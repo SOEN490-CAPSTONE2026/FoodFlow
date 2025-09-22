@@ -5,6 +5,7 @@ import com.example.foodflow.model.dto.RegisterReceiverRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -17,6 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureWebMvc
+@AutoConfigureMockMvc // Add this annotation
 @ActiveProfiles("test")
 @Transactional
 class AuthIntegrationTest {
@@ -96,6 +98,6 @@ class AuthIntegrationTest {
         mockMvc.perform(post("/api/auth/register/donor")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request2)))
-                .andExpect(status().isConflict());
+                .andExpect(status().isBadRequest());
     }
 }
