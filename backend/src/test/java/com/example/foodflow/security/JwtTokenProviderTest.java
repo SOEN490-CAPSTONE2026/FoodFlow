@@ -7,8 +7,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+// import org.mockito.junit.jupiter.MockitoSettings;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -85,7 +87,9 @@ class JwtTokenProviderTest {
     @Test
     void validateToken_ExpiredToken_ReturnsFalse() {
         // Given - Mock short expiration time
-        when(jwtConfig.getExpiration()).thenReturn(1L); // 1ms expiration
+        JwtConfig expiredConfig = mock(JwtConfig.class);
+        when(expiredConfig.getSecret()).thenReturn("testSecretKeyThatIsAtLeast32CharactersLongForTesting");
+        when(jwtConfig.getExpiration()).thenReturn(-1000L); // 1ms expiration
         
         String token = jwtTokenProvider.generateToken("test@example.com", "DONOR");
         
