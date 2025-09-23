@@ -8,6 +8,16 @@ on:
     branches:
       - main
 
+env:
+  POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+  POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+  POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+  SERVER_PORT: ${{ secrets.SERVER_PORT }}
+  JWT_SECRET: ${{ secrets.JWT_SECRET }}
+  JWT_EXPIRATION: ${{ secrets.JWT_EXPIRATION }}
+  REACT_APP_API_BASE_URL: ${{ secrets.REACT_APP_API_BASE_URL }}
+  CORS_ALLOWED_ORIGINS: ${{ secrets.CORS_ALLOWED_ORIGINS }}
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
@@ -15,13 +25,13 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_DB: foodflow
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready -U postgres -d foodflow"
+          --health-cmd="pg_isready -U ${{ secrets.POSTGRES_USER }} -d ${{ secrets.POSTGRES_DB }}"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
