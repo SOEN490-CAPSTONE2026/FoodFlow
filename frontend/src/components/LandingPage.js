@@ -21,9 +21,16 @@ const LandingPage = () => {
           >
             Register Now
           </button>
+          <button 
+            className="cta-button"
+            style={{ marginTop: '10px' }}
+            onClick={() => navigate('/login')}
+          >
+            Login
+          </button>
         </div>
       </header>
-      
+    
       <section className="features-section">
         <div className="container">
           <h3>How FoodFlow Works</h3>
