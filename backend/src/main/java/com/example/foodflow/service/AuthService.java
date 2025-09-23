@@ -3,6 +3,7 @@ package com.example.foodflow.service;
 import com.example.foodflow.model.dto.AuthResponse;
 import com.example.foodflow.model.dto.RegisterDonorRequest;
 import com.example.foodflow.model.dto.RegisterReceiverRequest;
+import com.example.foodflow.model.dto.LoginRequest;
 import com.example.foodflow.model.entity.Organization;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.UserRole;
@@ -94,4 +95,16 @@ public class AuthService {
 
         return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), "Receiver registered successfully");
     }
+
+    public AuthResponse login(LoginRequest request) {
+    User user = userRepository.findByEmail(request.getEmail())
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+    if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+        throw new RuntimeException("Invalid credentials");
+    }
+
+    String token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole().toString());
+    return new AuthResponse(token, user.getEmail(), user.getRole().toString(), "Account logged in successfully.");
+}
 }

@@ -4,6 +4,8 @@ import LandingPage from './components/LandingPage';
 import RegisterType from './components/RegisterType';
 import DonorRegistration from './components/DonorRegistration';
 import ReceiverRegistration from './components/ReceiverRegistration';
+import LoginPage from './components/LoginPage';
+import TempDashboard from './components/TempDashboard';
 import './App.css';
 
 function App() {
@@ -15,6 +17,8 @@ function App() {
           <Route path="/register" element={<RegisterType />} />
           <Route path="/register/donor" element={<DonorRegistration />} />
           <Route path="/register/receiver" element={<ReceiverRegistration />} />
+          <Route path = "login" element = {<LoginPage />} />
+          <Route path = "/dashboard" element = {<TempDashboard/>} />
         </Routes>
       </div>
     </Router>
