@@ -10,6 +10,7 @@ const api = axios.create({
 });
 
 export const authAPI = {
+  login: (data) => api.post('/auth/login', data),
   registerDonor: (data) => api.post('/auth/register/donor', data),
   registerReceiver: (data) => api.post('/auth/register/receiver', data),
 };
