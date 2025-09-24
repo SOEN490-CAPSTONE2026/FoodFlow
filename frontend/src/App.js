@@ -6,22 +6,27 @@ import DonorRegistration from './components/DonorRegistration';
 import ReceiverRegistration from './components/ReceiverRegistration';
 import LoginPage from './components/LoginPage';
 import TempDashboard from './components/TempDashboard';
+import NavigationBar from './components/NavigationBar';
+import { AuthProvider } from './contexts/AuthContext';
 import './App.css';
 
 function App() {
   return (
-    <Router>
-      <div className="App">
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/register" element={<RegisterType />} />
-          <Route path="/register/donor" element={<DonorRegistration />} />
-          <Route path="/register/receiver" element={<ReceiverRegistration />} />
-          <Route path = "login" element = {<LoginPage />} />
-          <Route path = "/dashboard" element = {<TempDashboard/>} />
-        </Routes>
-      </div>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <div className="App">
+          <NavigationBar />
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/register" element={<RegisterType />} />
+            <Route path="/register/donor" element={<DonorRegistration />} />
+            <Route path="/register/receiver" element={<ReceiverRegistration />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/dashboard" element={<TempDashboard />} />
+          </Routes>
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
 
