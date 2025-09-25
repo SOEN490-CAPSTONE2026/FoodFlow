@@ -6,7 +6,7 @@ import DonorRegistration from './components/DonorRegistration';
 import ReceiverRegistration from './components/ReceiverRegistration';
 import LoginPage from './components/LoginPage';
 import TempDashboard from './components/TempDashboard';
-import NavigationBar from './components/NavigationBar';
+import Navbar from './components/Navbar';
 import { AuthProvider } from './contexts/AuthContext';
 import './App.css';
 
@@ -15,7 +15,7 @@ function App() {
     <AuthProvider>
       <Router>
         <div className="App">
-          <NavigationBar />
+          <Navbar />
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/register" element={<RegisterType />} />
