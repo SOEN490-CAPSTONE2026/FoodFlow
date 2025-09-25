@@ -3,82 +3,72 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - main
+      - cicd-setup
   pull_request:
     branches:
       - main
 
 jobs:
-  build-and-test:
+  setup:
     runs-on: ubuntu-latest
-    #env:
-    #  POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-    #  POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-    #  POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}    
-    #
-    #services:
-    #  postgres:
-    #    image: postgres:15
-    #    env:
-    #      POSTGRES_DB: ${{ env.POSTGRES_DB }}
-    #      POSTGRES_USER: ${{ env.POSTGRES_USER }}
-    #      POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
-    #    ports:
-    #      - 5432:5432
-    #    options: >-
-    #      --health-cmd="pg_isready -U ${{ env.POSTGRES_USER }} -d ${{ env.POSTGRES_DB }}"
-    #      --health-interval=10s
-    #      --health-timeout=5s
-    #      --health-retries=5
-
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-    #  - name: Print env variables
-    #    run: |
-    #      echo "POSTGRES_DB=$POSTGRES_DB"
-    #      echo "POSTGRES_USER=$POSTGRES_USER"
-    #
-    #  - name: Check PostgreSQL connection
-    #    run: |
-    #      sudo apt-get update && sudo apt-get install -y postgresql-client
-    #      pg_isready -h localhost -p 5432 -U $POSTGRES_USER -d $POSTGRES_DB
-
-      # ---------- Frontend ----------
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: ./frontend/package-lock.json
 
       - name: Install frontend dependencies
+        run: npm install
         working-directory: ./frontend
-        run: npm ci
+
+      # ---------- Frontend ----------
+  test-frontend:
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: ./frontend/package-lock.json
+      
+      - name: Install frontend dependencies
+        run: npm install
+        working-directory: ./frontend
 
       - name: Run frontend tests (Jest)
         working-directory: ./frontend
         run: npm test -- --watchAll=false
 
-      # ---------- Backend ----------
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
+# ---------- Backend ----------
+  test-backend:
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+        - name: Set up JDK
+          uses: actions/setup-java@v4
+          with:
+            distribution: temurin
+            java-version: '17'
 
-      - name: Build & test backend with Maven (Jacoco, H2 DB)
-        working-directory: ./backend
-        run: mvn clean verify -Dspring.profiles.active=test
+        - name: Build & test backend with Maven (Jacoco, H2 DB)
+          working-directory: ./backend
+          run: mvn clean verify -Dspring.profiles.active=test
 
-      - name: Upload backend test coverage
-        uses: actions/upload-artifact@v4
-        with:
-          name: jacoco-report
-          path: backend/target/site/jacoco/
-
-    #  - name: Dump postgres logs on failure
-    #    if: failure()
-    #    run: docker logs $(docker ps -q --filter "ancestor=postgres:15")
+        - name: Upload backend test coverage
+          uses: actions/upload-artifact@v4
+          with:
+            name: jacoco-report
+            path: backend/target/site/jacoco/
 
   docker-build:
     runs-on: ubuntu-latest
