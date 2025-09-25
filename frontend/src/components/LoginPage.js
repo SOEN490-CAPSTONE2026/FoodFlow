@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
+import { AuthContext } from '../contexts/AuthContext';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -12,8 +14,8 @@ const LoginPage = () => {
     e.preventDefault();
     try {
       const response = await authAPI.login({ email, password });
-      // store JWT in localStorage
-      localStorage.setItem('token', response.data.token);
+      // store JWT in localStorage using context
+      login(response.data.token);
       navigate('/dashboard');
     } catch (err) {
       setError('Invalid email or password');
