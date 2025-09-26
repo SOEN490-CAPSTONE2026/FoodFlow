@@ -1,0 +1,181 @@
+.register-type-page {
+    font-family: "Inter", sans-serif;
+    background: linear-gradient(to bottom, #F0F9FF 0%, #FFFFFF 45%, #E6FFFA 100%);
+    min-height: 100vh;
+    padding: 40px;
+    color: #1B4965;
+}
+
+.intro {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.intro h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #1B4965;
+}
+
+.intro p {
+    color: #55697a;
+    margin-top: 10px;
+}
+
+.intro h2 {
+    margin-top: 30px;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.content {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 40px;
+}
+
+.registration-options {
+    display: flex;
+    gap: 20px;
+}
+
+.illustration img {
+  max-height: 80vh;  /* scales with viewport height */
+  max-width: 100%;   /* keeps from overflowing horizontally */
+  height: auto;
+  object-fit: contain;
+}
+.option-card {
+    border-radius: 12px;
+    padding: 25px;
+    width: 400px;
+    height: 500px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.option-card img {
+    display: block;
+    margin: 0 auto;
+}
+
+.option-card.donor {
+    background: #DCF7FF;
+    border: 1px solid #6CADD5;
+}
+
+.option-card.receiver {
+    background: #E6FFF7;
+    border: 1px solid #3EB08C;
+}
+
+.option-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.option-card.donor:hover {
+    border-color: #0074d9;
+}
+
+.option-card.receiver:hover {
+    border-color: #00a98f;
+}
+
+.option-card h3 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.option-card p {
+  font-size: 0.95rem;
+  color: #55697a;
+  margin-bottom: 20px;
+  line-height: 1.4; 
+}
+
+.option-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 25px 0;
+}
+
+.option-card li {
+    margin-bottom: 12px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 10px;
+}
+
+.option-card li::before {
+    content: "✔";
+    color: #1B4965;
+    font-weight: bold;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+.register-button {
+    display: inline-block;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 200;
+    cursor: pointer;
+    transition: 0.2s;
+    color: #fff;
+}
+
+.donor-button {
+    background: #0077B6;
+}
+
+.donor-button:hover {
+    background: #005bb5;
+}
+
+.receiver-button {
+    background: #00A896;
+}
+
+.receiver-button:hover {
+    background: #008d76;
+}
+
+.back-container {
+    margin-top: 40px;
+    text-align: center;
+}
+
+.back-button {
+    background: none;
+    border: 2px solid #16324f;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    color: #16324f;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.back-button:hover {
+    background: #16324f;
+    color: #fff;
+}
+
+@media (max-width: 768px) {
+    .content {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .registration-options {
+        flex-direction: column;
+        align-items: center;
+    }
+}
