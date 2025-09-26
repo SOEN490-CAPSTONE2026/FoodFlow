@@ -8,23 +8,32 @@ import LoginPage from './components/LoginPage';
 import TempDashboard from './components/TempDashboard';
 import NavigationBar from './components/NavigationBar';
 import { AuthProvider } from './contexts/AuthContext';
+import { useAnalytics } from './hooks/useAnalytics';
 import './App.css';
+
+function AppContent() {
+  useAnalytics(); // This will track page views automatically
+
+  return (
+    <div className="App">
+      <NavigationBar />
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/register" element={<RegisterType />} />
+        <Route path="/register/donor" element={<DonorRegistration />} />
+        <Route path="/register/receiver" element={<ReceiverRegistration />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/dashboard" element={<TempDashboard />} />
+      </Routes>
+    </div>
+  );
+}
 
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="App">
-          <NavigationBar />
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/register" element={<RegisterType />} />
-            <Route path="/register/donor" element={<DonorRegistration />} />
-            <Route path="/register/receiver" element={<ReceiverRegistration />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/dashboard" element={<TempDashboard />} />
-          </Routes>
-        </div>
+        <AppContent />
       </Router>
     </AuthProvider>
   );
