@@ -30,35 +30,35 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="ffx-page">
+    <div className="login-page">
 
-      <div className="ffx-left" aria-hidden="true">
-        <div className="ffx-spots">
-          <span className="ffx-spot s1" />
-          <span className="ffx-spot s2" />
-          <span className="ffx-spot s3" />
+      <div className="login-left" aria-hidden="true">
+        <div className="background-spots">
+          <span className="background-spot s1" />
+          <span className="background-spot s2" />
+          <span className="background-spot s3" />
         </div>
         <img src="https://i.ibb.co/HLxDnk57/Untitled-design-6.png" alt="Donation example" className="main" />
-        <img src="https://i.ibb.co/jkF1r5xL/logo-white.png" alt="FoodFlow logo" className="ffx-logo" />
+        <img src="https://i.ibb.co/jkF1r5xL/logo-white.png" alt="FoodFlow logo" className="login-logo" />
       </div>
 
-      <div className="ffx-right">
-        <div className="ffx-white">
-          <div className="ffx-inner">
-            <div className="ffx-card" role="region" aria-labelledby="login-title">
-              <h1 id="login-title" className="ffx-title">Log in to your account</h1>
+      <div className="login-right">
+        <div className="login-container">
+          <div className="login-inner">
+            <div className="login-card" role="region" aria-labelledby="login-title">
+              <h1 id="login-title" className="login-title">Log in to your account</h1>
 
               <form onSubmit={handleLogin} noValidate>
-                <div className="ffx-field">
-                  <label htmlFor="email" className="ffx-label">Email address</label>
-                  <input id="email" type="email" className="ffx-input" placeholder="Enter your email" value={email} onChange={(e)=>setEmail(e.target.value)} autoComplete="email" required />
+                <div className="form-field">
+                  <label htmlFor="email" className="form-label">Email address</label>
+                  <input id="email" type="email" className="form-input" placeholder="Enter your email" value={email} onChange={(e)=>setEmail(e.target.value)} autoComplete="email" required />
                 </div>
 
-                <div className="ffx-field">
-                  <label htmlFor="password" className="ffx-label">Password</label>
-                  <div className="ffx-password">
-                    <input id="password" type={showPassword? 'text':'password'} className="ffx-input" placeholder="Enter your password" value={password} onChange={(e)=>setPassword(e.target.value)} autoComplete="current-password" required />
-                    <button type="button" className="ffx-eye" aria-label={showPassword? 'Hide password':'Show password'} onClick={()=>setShowPassword(s=>!s)}>
+                <div className="form-field">
+                  <label htmlFor="password" className="form-label">Password</label>
+                  <div className="password-wrapper">
+                    <input id="password" type={showPassword? 'text':'password'} className="form-input" placeholder="Enter your password" value={password} onChange={(e)=>setPassword(e.target.value)} autoComplete="current-password" required />
+                    <button type="button" className="password-toggle" aria-label={showPassword? 'Hide password':'Show password'} onClick={()=>setShowPassword(s=>!s)}>
                       {showPassword ? (
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                           <path d="M3 3l18 18" stroke="#0f172a" strokeWidth="2" strokeLinecap="round"/>
@@ -72,18 +72,18 @@ const LoginPage = () => {
                       )}
                     </button>
                   </div>
-                  <div className="ffx-forgot">
+                  <div className="forgot-link">
                     <Link to="/forgot-password">Forgot password?</Link>
                   </div>
                 </div>
 
-                {error && <p className="ffx-error">{error}</p>}
+                {error && <p className="form-error">{error}</p>}
 
-                <button type="submit" className="ffx-btn" disabled={loading}>
+                <button type="submit" className="submit-btn" disabled={loading}>
                   {loading ? 'Logging in…' : 'LOG IN'}
                 </button>
 
-                <p className="ffx-footer">Don't have an account? <Link to="/signup">Sign up</Link></p>
+                <p className="form-footer">Don't have an account? <Link to="/signup">Sign up</Link></p>
               </form>
             </div>
           </div>

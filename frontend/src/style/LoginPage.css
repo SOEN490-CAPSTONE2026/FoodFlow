@@ -2,11 +2,11 @@
         :root{ --brand:#1B4965; --accent:#609B7E; }
         html,body,#root{height:100%}
         *,*::before,*::after{box-sizing:border-box}
-        .ffx-page{min-height:100vh;display:flex;background:#f0f2f5;overflow-x:hidden;}
+        .login-page{min-height:100vh;display:flex;background:#f0f2f5;overflow-x:hidden;}
 
         /* LEFT */
-.ffx-left{flex:1;position:relative;background:linear-gradient(180deg, var(--brand) 0%, #244e69 100%);overflow:hidden;display:flex;align-items:center;justify-content:center;padding:8px 12px; min-height: 60px;}
-.ffx-left::after{
+.login-left{flex:1;position:relative;background:linear-gradient(180deg, var(--brand) 0%, #244e69 100%);overflow:hidden;display:flex;align-items:center;justify-content:center;padding:8px 12px; min-height: 60px;}
+.login-left::after{
   content:"";
   position:absolute;
   inset:8px 12px;
@@ -15,12 +15,12 @@
   box-shadow: inset 0 0 28px rgba(27,73,101,.45), inset 0 0 0 1px rgba(255,255,255,.14);
   z-index: 1;
 }
-        .ffx-spots{position:absolute;inset:0;}
-        .ffx-spot{position:absolute;filter:blur(30px);opacity:.22;border-radius:50%;background:#ffffff}
-        .ffx-spot.s1{width:320px;height:320px;left:12%;top:14%;opacity:.10}
-        .ffx-spot.s2{width:260px;height:260px;left:36%;top:38%;opacity:.08}
-        .ffx-spot.s3{width:220px;height:220px;left:22%;top:66%;opacity:.06}
-.ffx-left img.main {
+        .background-spots{position:absolute;inset:0;}
+        .background-spot{position:absolute;filter:blur(30px);opacity:.22;border-radius:50%;background:#ffffff}
+        .background-spot.s1{width:320px;height:320px;left:12%;top:14%;opacity:.10}
+        .background-spot.s2{width:260px;height:260px;left:36%;top:38%;opacity:.08}
+        .background-spot.s3{width:220px;height:220px;left:22%;top:66%;opacity:.06}
+.login-left img.main {
   width: 100%;
   height: 100%;
   display: block;
@@ -32,7 +32,7 @@
   outline: 1px solid rgba(255,255,255,.12);
   outline-offset: 0;
 }
-        .ffx-logo {
+        .login-logo {
           position: absolute;
           top: 16px;
           left: 16px;
@@ -44,51 +44,51 @@
         }
 
         /* RIGHT white panel */
-        .ffx-right{flex:1;display:flex;align-items:center;justify-content:center;padding:40px}
-        .ffx-white{width:100%;max-width:920px;background:#fff;border-radius:12px;box-shadow:0 14px 32px rgba(0,0,0,.12);overflow:hidden;margin:0 16px}
-        .ffx-inner{display:flex;align-items:center;justify-content:center;padding:48px 32px}
+        .login-right{flex:1;display:flex;align-items:center;justify-content:center;padding:40px}
+        .login-container{width:100%;max-width:920px;background:#fff;border-radius:12px;box-shadow:0 14px 32px rgba(0,0,0,.12);overflow:hidden;margin:0 16px}
+        .login-inner{display:flex;align-items:center;justify-content:center;padding:48px 32px}
 
         /* Card content */
-        .ffx-card{width:100%;max-width:520px;margin:0 auto}
-        .ffx-title{margin:0 0 24px 0;font-family:'Poppins',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;font-weight:400;font-size:24px;line-height:32px;color:#1f2937;text-align:center}
-        .ffx-field{margin-bottom:18px}
-        .ffx-label{display:block;margin:0 0 8px 4px;font-weight:600;color:#1f2937;font-size:13px;text-align:left;font-family:'Poppins',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-        .ffx-input{width:100%;height:44px;padding:0 14px;border-radius:12px;border:1px solid #e5e7eb;background:#f8fafc;outline:none;font-size:14px}
-        .ffx-password{position:relative}
-        .ffx-eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);border:none;background:transparent;cursor:pointer;padding:6px;display:flex;align-items:center}
-        .ffx-forgot{margin-top:8px;text-align:right}
-        .ffx-forgot a{color:var(--accent);text-decoration:none;border-bottom:1px solid transparent}
-        .ffx-forgot a:hover{border-bottom-color:var(--accent)}
-        .ffx-error{color:#b91c1c;margin:6px 0;text-align:center}
-        .ffx-btn{width:100%;height:44px;border:none;border-radius:9999px;background:var(--brand);color:#fff;font-weight:700;letter-spacing:.3px;box-shadow:0 6px 16px rgba(27,73,101,.35);cursor:pointer}
-        .ffx-footer{margin-top:18px;text-align:center;color:#475569}
-        .ffx-footer a{color:var(--brand);text-decoration:underline}
-        .ffx-copy{position:absolute;left:18px;bottom:14px;color:rgba(255,255,255,.85);font-size:12px}
+        .login-card{width:100%;max-width:520px;margin:0 auto}
+        .login-title{margin:0 0 24px 0;font-family:'Poppins',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;font-weight:400;font-size:24px;line-height:32px;color:#1f2937;text-align:center}
+        .form-field{margin-bottom:18px}
+        .form-label{display:block;margin:0 0 8px 4px;font-weight:600;color:#1f2937;font-size:13px;text-align:left;font-family:'Poppins',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+        .form-input{width:100%;height:44px;padding:0 14px;border-radius:12px;border:1px solid #e5e7eb;background:#f8fafc;outline:none;font-size:14px}
+        .password-wrapper{position:relative}
+        .password-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);border:none;background:transparent;cursor:pointer;padding:6px;display:flex;align-items:center}
+        .forgot-link{margin-top:8px;text-align:right}
+        .forgot-link a{color:var(--accent);text-decoration:none;border-bottom:1px solid transparent}
+        .forgot-link a:hover{border-bottom-color:var(--accent)}
+        .form-error{color:#b91c1c;margin:6px 0;text-align:center}
+        .submit-btn{width:100%;height:44px;border:none;border-radius:9999px;background:var(--brand);color:#fff;font-weight:700;letter-spacing:.3px;box-shadow:0 6px 16px rgba(27,73,101,.35);cursor:pointer}
+        .form-footer{margin-top:18px;text-align:center;color:#475569}
+        .form-footer a{color:var(--brand);text-decoration:underline}
+        .footer-copy{position:absolute;left:18px;bottom:14px;color:rgba(255,255,255,.85);font-size:12px}
 
         /* Responsive */
         @media (max-width: 1024px){
-          .ffx-inner{padding:36px 24px}
+          .login-inner{padding:36px 24px}
         }
         @media (max-width: 960px){
-          .ffx-page{flex-direction:column}
-          .ffx-right{padding:0}
-          .ffx-white{border-radius:12px;width:100%;max-width:100%;box-shadow:0 10px 24px rgba(0,0,0,.12);margin:12px}
-          .ffx-inner{padding:20px 16px}
-          .ffx-left{min-height:40px;padding:8px 12px;justify-content:flex-start;background:linear-gradient(180deg, var(--brand) 0%, #244e69 100%)}
-          .ffx-spots{display:none}
-          .ffx-left img.main{display:none !important}
-          .ffx-logo{position:relative;top:auto;left:auto;width:96px;height:auto}
-          .ffx-card{max-width:100%;width:100%}
+          .login-page{flex-direction:column}
+          .login-right{padding:0}
+          .login-container{border-radius:12px;width:100%;max-width:100%;box-shadow:0 10px 24px rgba(0,0,0,.12);margin:12px}
+          .login-inner{padding:20px 16px}
+          .login-left{min-height:40px;padding:8px 12px;justify-content:flex-start;background:linear-gradient(180deg, var(--brand) 0%, #244e69 100%)}
+          .background-spots{display:none}
+          .login-left img.main{display:none !important}
+          .login-logo{position:relative;top:auto;left:auto;width:96px;height:auto}
+          .login-card{max-width:100%;width:100%}
         }
         @media (max-width: 480px){
-          .ffx-title{font-size:22px;line-height:30px}
-          .ffx-input{height:50px;font-size:16px}
-          .ffx-btn{height:50px}
+          .login-title{font-size:22px;line-height:30px}
+          .form-input{height:50px;font-size:16px}
+          .submit-btn{height:50px}
 
-          .ffx-left{min-height:32px;padding:8px 12px}
-          .ffx-logo{width:100px}
-          .ffx-inner{padding:12px 12px}
-          .ffx-white{border-radius:10px;width:100%;max-width:100%;margin:8px}
-          .ffx-right{padding:0}
-          .ffx-card{padding:0}
+          .login-left{min-height:32px;padding:8px 12px}
+          .login-logo{width:100px}
+          .login-inner{padding:12px 12px}
+          .login-container{border-radius:10px;width:100%;max-width:100%;margin:8px}
+          .login-right{padding:0}
+          .login-card{padding:0}
         }
