@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
 import DonorIllustration from "../assets/donor-illustration.jpg";
-import './DonorRegistration.css';
+import './Registration.css';
 
 const DonorRegistration = () => {
   const navigate = useNavigate();
