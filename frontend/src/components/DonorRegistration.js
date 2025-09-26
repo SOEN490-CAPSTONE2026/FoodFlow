@@ -89,7 +89,7 @@ const DonorRegistration = () => {
               value={formData.password}
               onChange={handleChange}
               minLength="8"
-              placeholder="Enter a strong password"
+              placeholder="Enter your password"
               required
             />
             <small>Minimum 8 characters</small>
