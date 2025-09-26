@@ -18,7 +18,7 @@ const NavigationBar = () => {
   };
 
   return (
-    <nav style={{ padding: '1rem', background: '#f8f9fa', display: 'flex', justifyContent: 'space-between' }}>
+    <nav style={{ padding: '1rem', background: '#ffffffff', display: 'flex', justifyContent: 'space-between' }}>
       <div>
         <Link to="/">
           <img src={Logo} alt="Logo" height={50} width={50} />
