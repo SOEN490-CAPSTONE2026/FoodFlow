@@ -4,6 +4,9 @@
     min-height: 100vh;
     padding: 40px;
     color: #1B4965;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .intro {
@@ -41,26 +44,31 @@
 }
 
 .illustration img {
-  max-height: 80vh;  /* scales with viewport height */
-  max-width: 100%;   /* keeps from overflowing horizontally */
-  height: auto;
-  object-fit: contain;
+    max-height: 70vh;
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
 }
+
 .option-card {
     border-radius: 12px;
     padding: 25px;
     width: 400px;
-    height: 500px;
+    min-height: 545px;
+    height: auto;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
     cursor: pointer;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    text-align: center;
 }
+
 .option-card img {
     display: block;
     margin: 0 auto;
+    max-width: 100%;
 }
 
 .option-card.donor {
@@ -93,22 +101,23 @@
 }
 
 .option-card p {
-  font-size: 0.95rem;
-  color: #55697a;
-  margin-bottom: 20px;
-  line-height: 1.4; 
+    font-size: 0.95rem;
+    color: #55697a;
+    margin-bottom: 20px;
+    line-height: 1.4;
 }
 
 .option-card ul {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 25px 0;
+    list-style: none;
+    padding: 0;
+    margin: 0 0 25px 0;
+    text-align: center;
 }
 
 .option-card li {
     margin-bottom: 12px;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
     gap: 10px;
 }
@@ -118,8 +127,8 @@
     color: #1B4965;
     font-weight: bold;
     flex-shrink: 0;
-    margin-top: 1px;
 }
+
 .register-button {
     display: inline-block;
     padding: 12px 20px;
@@ -169,13 +178,35 @@
 }
 
 @media (max-width: 768px) {
+    .register-type-page {
+        padding: 20px;
+        justify-content: flex-start;
+    }
+    
     .content {
         flex-direction: column;
         align-items: center;
+        gap: 20px;
     }
 
     .registration-options {
         flex-direction: column;
         align-items: center;
+        gap: 20px;
+    }
+    
+    .option-card {
+        width: 100%;
+        max-width: 400px;
+        min-height: auto;
+    }
+    
+    .illustration img {
+        max-height: 250px;
+    }
+    
+    .option-card li {
+        gap: 8px;
+        margin-bottom: 10px;
     }
 }
