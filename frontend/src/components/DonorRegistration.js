@@ -57,12 +57,11 @@ const DonorRegistration = () => {
   return (
     <div className="registration-page">
       <div className="background-image">
-        <h1> JOIN US TODAY </h1>
-        <img src={DonorIllustration} alt="Donor Illustration" height={387} width={800} />
+        <img src={DonorIllustration} alt="Donor Illustration" height={500} width={900} />
         <p>Your generosity provides meals, care, and hope for families in need. Every donation helps strengthen communities and build a brighter, kinder future together, we can make lasting change!</p>
       </div>
       <div className="form-container">
-        <h1>Be a donor</h1>
+        <h1>Register as a Donor</h1>
 
         {error && <div className="error-message">{error}</div>}
         {success && <div className="success-message">{success}</div>}
@@ -76,6 +75,7 @@ const DonorRegistration = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
+              placeholder="Enter your email address"
               required
             />
           </div>
@@ -89,6 +89,7 @@ const DonorRegistration = () => {
               value={formData.password}
               onChange={handleChange}
               minLength="8"
+              placeholder="Enter a strong password"
               required
             />
             <small>Minimum 8 characters</small>
@@ -102,6 +103,7 @@ const DonorRegistration = () => {
               name="organizationName"
               value={formData.organizationName}
               onChange={handleChange}
+              placeholder="Enter your organization name"
               required
             />
           </div>
@@ -114,6 +116,7 @@ const DonorRegistration = () => {
               name="contactPerson"
               value={formData.contactPerson}
               onChange={handleChange}
+              placeholder="Enter your contact person's name"
               required
             />
           </div>
@@ -126,6 +129,7 @@ const DonorRegistration = () => {
               name="phone"
               value={formData.phone}
               onChange={handleChange}
+              placeholder="Enter your phone number"
               required
             />
           </div>
@@ -138,6 +142,7 @@ const DonorRegistration = () => {
               value={formData.address}
               onChange={handleChange}
               rows="3"
+              placeholder="Enter your address"
               required
             />
           </div>
@@ -149,6 +154,7 @@ const DonorRegistration = () => {
               name="organizationType"
               value={formData.organizationType}
               onChange={handleChange}
+              placeholder="Select your organization type"
               required
             >
               <option value="RESTAURANT">Restaurant</option>
@@ -165,6 +171,7 @@ const DonorRegistration = () => {
               name="businessLicense"
               value={formData.businessLicense}
               onChange={handleChange}
+              placeholder="Enter your business license number"
             />
             <small>Optional but recommended for verification</small>
           </div>
