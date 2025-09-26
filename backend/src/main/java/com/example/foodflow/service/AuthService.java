@@ -15,9 +15,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.example.foodflow.service.MetricsService;
 
 @Service
 public class AuthService {
+
+    private final MetricsService metricsService;
 
     @Autowired
     private UserRepository userRepository;
@@ -30,6 +33,20 @@ public class AuthService {
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
+
+    // Update the constructor to include MetricsService:
+    public AuthService(UserRepository userRepository, 
+                    OrganizationRepository organizationRepository,
+                    PasswordEncoder passwordEncoder, 
+                    JwtTokenProvider jwtTokenProvider,
+                    MetricsService metricsService) {
+        this.userRepository = userRepository;
+        this.organizationRepository = organizationRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.metricsService = metricsService;
+    }
+
 
     @Transactional
     public AuthResponse registerDonor(RegisterDonorRequest request) {
@@ -60,6 +77,9 @@ public class AuthService {
 
         // Generate JWT token
         String token = jwtTokenProvider.generateToken(savedUser.getEmail(), savedUser.getRole().toString());
+
+        metricsService.incrementDonorRegistration();
+        metricsService.incrementUserRegistration();
 
         return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), "Donor registered successfully");
     }
@@ -94,6 +114,9 @@ public class AuthService {
         // Generate JWT token
         String token = jwtTokenProvider.generateToken(savedUser.getEmail(), savedUser.getRole().toString());
 
+        metricsService.incrementReceiverRegistration();
+        metricsService.incrementUserRegistration();
+
         return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), "Receiver registered successfully");
     }
 
@@ -106,6 +129,9 @@ public class AuthService {
     }
 
         String token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole().toString());
+
+        metricsService.incrementLoginSuccess();
+
         return new AuthResponse(token, user.getEmail(), user.getRole().toString(), "Account logged in successfully.");
 }
 

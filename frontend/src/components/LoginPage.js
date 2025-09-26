@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
+import { useAnalytics } from '../hooks/useAnalytics';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -9,6 +10,7 @@ const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const { trackButtonClick, trackFormSubmission, trackLogin } = useAnalytics();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -16,8 +18,10 @@ const LoginPage = () => {
       const response = await authAPI.login({ email, password });
       // store JWT in localStorage using context
       login(response.data.token);
+      trackLogin(true);
       navigate('/dashboard');
     } catch (err) {
+      trackLogin(false);
       setError('Invalid email or password');
     }
   };
@@ -47,7 +51,7 @@ const LoginPage = () => {
           />
         </div>
         {error && <p style={{ color: 'red' }}>{error}</p>}
-        <button type="submit" style={{ padding: '10px 20px' }}>Login</button>
+        <button type="submit" onClick={() => trackButtonClick('login_submit', 'login_page')} style={{ padding: '10px 20px' }}>Login</button>
       </form>
     </div>
   );
