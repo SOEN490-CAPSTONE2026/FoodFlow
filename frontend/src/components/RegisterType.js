@@ -1,8 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import RegistrationIllustration from "../assets/registration-illustration.png";
-import DonorIcon from "../assets/donor-icon.png";
-import ReceiverIcon from "../assets/receiver-icon.png";
+import RegistrationIllustration from "../assets/illustrations/registration-illustration.png";
+import DonorIcon from "../assets/icons/donor-icon.png";
+import ReceiverIcon from "../assets/icons/receiver-icon.png";
 import "./RegisterType.css";
 
 const RegisterType = () => {

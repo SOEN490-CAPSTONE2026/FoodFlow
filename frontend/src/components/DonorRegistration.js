@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
-import DonorIllustration from "../assets/donor-illustration.jpg";
+import DonorIllustration from "../assets/illustrations/donor-illustration.jpg";
 import './Registration.css';
 
 const DonorRegistration = () => {
