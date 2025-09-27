@@ -3,6 +3,8 @@ package com.example.foodflow.service;
 import com.example.foodflow.model.dto.AuthResponse;
 import com.example.foodflow.model.dto.RegisterDonorRequest;
 import com.example.foodflow.model.dto.RegisterReceiverRequest;
+import com.example.foodflow.model.dto.LoginRequest;
+import com.example.foodflow.model.dto.LogoutRequest;
 import com.example.foodflow.model.entity.Organization;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.UserRole;
@@ -13,9 +15,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.example.foodflow.service.MetricsService;
 
 @Service
 public class AuthService {
+
+    private final MetricsService metricsService;
 
     @Autowired
     private UserRepository userRepository;
@@ -28,6 +33,20 @@ public class AuthService {
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
+
+    // Update the constructor to include MetricsService:
+    public AuthService(UserRepository userRepository, 
+                    OrganizationRepository organizationRepository,
+                    PasswordEncoder passwordEncoder, 
+                    JwtTokenProvider jwtTokenProvider,
+                    MetricsService metricsService) {
+        this.userRepository = userRepository;
+        this.organizationRepository = organizationRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.metricsService = metricsService;
+    }
+
 
     @Transactional
     public AuthResponse registerDonor(RegisterDonorRequest request) {
@@ -58,6 +77,9 @@ public class AuthService {
 
         // Generate JWT token
         String token = jwtTokenProvider.generateToken(savedUser.getEmail(), savedUser.getRole().toString());
+
+        metricsService.incrementDonorRegistration();
+        metricsService.incrementUserRegistration();
 
         return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), "Donor registered successfully");
     }
@@ -92,6 +114,35 @@ public class AuthService {
         // Generate JWT token
         String token = jwtTokenProvider.generateToken(savedUser.getEmail(), savedUser.getRole().toString());
 
+        metricsService.incrementReceiverRegistration();
+        metricsService.incrementUserRegistration();
+
         return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), "Receiver registered successfully");
+    }
+
+    public AuthResponse login(LoginRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+        throw new RuntimeException("Invalid credentials");
+    }
+
+        String token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole().toString());
+
+        metricsService.incrementLoginSuccess();
+
+        return new AuthResponse(token, user.getEmail(), user.getRole().toString(), "Account logged in successfully.");
+}
+
+    public AuthResponse logout(LogoutRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new RuntimeException("Invalid credentials");
+        }
+
+        return new AuthResponse(null, user.getEmail(), user.getRole().toString(), "Account logged out successfully.");
     }
 }

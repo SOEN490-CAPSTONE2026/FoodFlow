@@ -3,6 +3,7 @@ package com.example.foodflow.controller;
 import com.example.foodflow.model.dto.AuthResponse;
 import com.example.foodflow.model.dto.RegisterDonorRequest;
 import com.example.foodflow.model.dto.RegisterReceiverRequest;
+import com.example.foodflow.model.dto.LoginRequest;
 import com.example.foodflow.service.AuthService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -96,4 +97,56 @@ class AuthControllerTest {
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    void login_Success() throws Exception {
+    // Given
+    LoginRequest request = new LoginRequest("user@test.com", "password123");
+    AuthResponse response = new AuthResponse("jwt-token", "user@test.com", "DONOR", "Login successful");
+
+    when(authService.login(any(LoginRequest.class))).thenReturn(response);
+
+    // When & Then
+    mockMvc.perform(post("/api/auth/login")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.token").value("jwt-token"))
+            .andExpect(jsonPath("$.email").value("user@test.com"))
+            .andExpect(jsonPath("$.role").value("DONOR"))
+            .andExpect(jsonPath("$.message").value("Login successful"));
+    }
+
+    @Test
+    void login_InvalidCredentials_ReturnsBadRequest() throws Exception {
+        // Given
+        LoginRequest request = new LoginRequest("user@test.com", "wrongpassword");
+
+        when(authService.login(any(LoginRequest.class)))
+                .thenThrow(new RuntimeException("Invalid credentials"));
+
+        // When & Then
+        mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.token").value((Object) null))
+                .andExpect(jsonPath("$.email").value((Object) null))
+                .andExpect(jsonPath("$.role").value((Object) null))
+                .andExpect(jsonPath("$.message").value("Invalid credentials"));
+    }
+
+    @Test
+    void login_BlankEmailOrPassword_ReturnsBadRequest() throws Exception {
+        // Given
+        LoginRequest request = new LoginRequest("", ""); // both blank, triggers @NotBlank
+
+        // When & Then
+        mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
 }
+
+

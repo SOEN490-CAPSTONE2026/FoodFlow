@@ -46,6 +46,8 @@ public class SecurityConfig {
                 .requestMatchers("/receiver/**").hasAuthority("RECEIVER")
                 .requestMatchers("/admin/**").hasAuthority("ADMIN")
 
+                .requestMatchers("/actuator/**").permitAll()
+                .requestMatchers("/api/analytics/**").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
