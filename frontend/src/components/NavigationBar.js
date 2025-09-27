@@ -43,7 +43,7 @@ const handleLogout = () => {
       
       <div className={`menu ${isMenuOpen ? 'active' : ''}`}>
         <ul>
-          <li><a href='#' onClick={() => setIsMenuOpen(false)}>Home</a></li>
+          <li><a href='#home' onClick={() => setIsMenuOpen(false)}>Home</a></li>
           <li><a href='#' onClick={() => setIsMenuOpen(false)}>How it works</a></li>
           <li><a href='#' onClick={() => setIsMenuOpen(false)}>Features</a></li>
           <li><a href='#' onClick={() => setIsMenuOpen(false)}>FAQs</a></li>
