@@ -1,3 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+* {
+    font-family: 'Poppins', sans-serif; 
+}
+
 .home-container {
   min-height: 100vh;
   display: flex;
@@ -15,6 +21,9 @@
   z-index: 2;
   max-width: 50%;
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .home-image {
@@ -30,9 +39,9 @@
 }
 
 .home-image img {
-  width: 650px;
-  height: 500px;
-  border-radius: 10px;
+  max-width: 100%;
+  height: auto;
+  border-radius: 5px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
   object-fit: cover;
   transition: all 0.5s ease;
@@ -70,6 +79,48 @@
   100% { transform: translate(-50px, -50px) rotate(360deg); }
 }
 
+
+.typewriter-text {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.typewriter-line-1 {
+  width: 0;
+  animation: 
+    typing-sequential-line1 8s steps(25, end) infinite,
+    blink-caret 1s ease-in-out infinite;
+}
+
+.typewriter-line-2 {
+  width: 0;
+  animation: 
+    typing-sequential-line2 8s steps(18, end) infinite,
+    blink-caret 1s ease-in-out infinite;
+}
+
+@keyframes typing-sequential-line1 {
+  0% { width: 0; }       
+  25% { width: 100%; }    
+  75% { width: 100%; }    
+  100% { width: 0; }     
+}
+
+@keyframes typing-sequential-line2 {
+  0% { width: 0; }        
+  25% { width: 0; }      
+  50% { width: 100%; }    
+  62.5% { width: 100%; }  
+  75% { width: 0; }       
+  100% { width: 0; }      
+}
+
+@keyframes blink-caret {
+  0%, 50% { border-color: #62B6CB; }
+  51%, 100% { border-color: transparent; }
+}
+
 .home-title {
   position: relative;
   z-index: 2;
@@ -77,6 +128,8 @@
   opacity: 0;
   transform: translateY(30px);
   animation: fadeInUp 1s ease-out 0.5s forwards;
+  text-align: left;
+  width: 100%;
 }
 
 .home-title h1 {
@@ -86,9 +139,10 @@
   margin: 0;
   line-height: 1.1;
   text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  width: 100%;
 }
 
-.home-title span {
+.gradient-text {
   font-size: 4rem;
   font-weight: 300;
   color: #62B6CB;
@@ -98,6 +152,8 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
   animation: shimmer 3s infinite;
+  animation-delay: 4.5s;
+  text-shadow: none;
 }
 
 @keyframes shimmer {
@@ -112,6 +168,8 @@
   opacity: 0;
   transform: translateY(30px);
   animation: fadeInUp 1s ease-out 1s forwards;
+  text-align: left;
+  width: 100%;
 }
 
 .home-description p {
@@ -229,15 +287,29 @@
     flex-direction: column;
     text-align: center;
     padding: 5%;
+    justify-content: center;
   }
   
   .home-content {
     max-width: 100%;
     margin-bottom: 3rem;
+    align-items: center;
+  }
+  
+  .home-title {
+    text-align: center;
+  }
+  
+  .home-description {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
   
   .home-image {
     max-width: 100%;
+    width: 100%;
   }
   
   .home-image img {
