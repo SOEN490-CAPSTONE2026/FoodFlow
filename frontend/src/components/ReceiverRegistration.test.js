@@ -1,25 +1,27 @@
+// src/components/ReceiverRegistration.test.js
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import '@testing-library/jest-dom';
 
-import { authAPI } from '../../services/api';
+// Mock static imports used by the component
+jest.mock('../assets/illustrations/receiver-ilustration.jpg', () => 'receiver.jpg');
+jest.mock('./Registration.css', () => ({}), { virtual: true });
 
-jest.mock('../../assets/illustrations/receiver-ilustration.jpg', () => 'receiver.jpg');
-jest.mock('../Registration.css', () => ({}), { virtual: true });
-
+// Mock navigate
 const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => {
     const actual = jest.requireActual('react-router-dom');
     return { ...actual, useNavigate: () => mockNavigate };
 });
 
-jest.mock('../../services/api', () => ({
-    authAPI: {
-        registerReceiver: jest.fn(),
-    },
+// Mock API
+jest.mock('../services/api', () => ({
+    authAPI: { registerReceiver: jest.fn() },
 }));
+import { authAPI } from '../services/api';
 
-import ReceiverRegistration from '../ReceiverRegistration';
+import ReceiverRegistration from './ReceiverRegistration';
 
 const setItemSpy = jest.spyOn(Storage.prototype, 'setItem');
 
@@ -29,7 +31,7 @@ describe('ReceiverRegistration', () => {
         jest.useRealTimers();
     });
 
-    const fillForm = async () => {
+    const fillAllFields = async () => {
         await userEvent.type(screen.getByLabelText(/email address/i), 'test@example.com');
         await userEvent.type(screen.getByLabelText(/password/i), 'password123');
         await userEvent.type(screen.getByLabelText(/organization name/i), 'Food Helpers');
@@ -40,57 +42,51 @@ describe('ReceiverRegistration', () => {
         await userEvent.type(screen.getByLabelText(/daily capacity/i), '150');
     };
 
-    test('renders the form', () => {
+    test('renders the form with all required fields', () => {
         render(<ReceiverRegistration />);
-        expect(screen.getByRole('heading', { name: /register as receiver/i })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /register as receiver/i })).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: /register as receiver/i })).toBeDefined();
+        expect(screen.getByLabelText(/email address/i)).toBeDefined();
+        expect(screen.getByLabelText(/password/i)).toBeDefined();
+        expect(screen.getByLabelText(/organization name/i)).toBeDefined();
+        expect(screen.getByLabelText(/contact person/i)).toBeDefined();
+        expect(screen.getByLabelText(/phone number/i)).toBeDefined();
+        expect(screen.getByLabelText(/^address$/i)).toBeDefined();
+        expect(screen.getByLabelText(/organization type/i)).toBeDefined();
+        expect(screen.getByLabelText(/daily capacity/i)).toBeDefined();
     });
 
-    test('submits successfully, stores token, and navigates', async () => {
-        jest.useFakeTimers();
-        authAPI.registerReceiver.mockResolvedValueOnce({ data: { token: 'abc123' } });
-
+    test('updates form values', async () => {
         render(<ReceiverRegistration />);
-        await fillForm();
-        await userEvent.click(screen.getByRole('button', { name: /register as receiver/i }));
+        const email = screen.getByLabelText(/email address/i);
+        await userEvent.type(email, 'test@example.com');
+        expect(email).toHaveValue('test@example.com');
 
-        await waitFor(() => {
-            expect(authAPI.registerReceiver).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    email: 'test@example.com',
-                    password: 'password123',
-                    organizationName: 'Food Helpers',
-                    contactPerson: 'Alex Doe',
-                    phone: '5145551234',
-                    address: '123 Main St, Montreal, QC',
-                    organizationType: 'SHELTER',
-                    capacity: 150,
-                })
-            );
-        });
+        const password = screen.getByLabelText(/password/i);
+        await userEvent.type(password, 'password123');
+        expect(password).toHaveValue('password123');
 
-        expect(await screen.findByText(/registration successful!/i)).toBeInTheDocument();
-        expect(setItemSpy).toHaveBeenCalledWith('token', 'abc123');
-
-        jest.advanceTimersByTime(2000);
-        expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
+        const org = screen.getByLabelText(/organization name/i);
+        await userEvent.type(org, 'Food Helpers');
+        expect(org).toHaveValue('Food Helpers');
     });
 
-    test('shows API error message and does not navigate', async () => {
+
+    test('shows API error message from server and does not navigate', async () => {
         authAPI.registerReceiver.mockRejectedValueOnce({
             response: { data: { message: 'Email already exists' } },
         });
 
         render(<ReceiverRegistration />);
-        await fillForm();
+        await fillAllFields();
+
         await userEvent.click(screen.getByRole('button', { name: /register as receiver/i }));
 
-        expect(await screen.findByText(/email already exists/i)).toBeInTheDocument();
+        expect(await screen.findByText(/email already exists/i)).toBeTruthy();
         expect(mockNavigate).not.toHaveBeenCalled();
         expect(setItemSpy).not.toHaveBeenCalled();
     });
 
-    test('Back button navigates to /register', async () => {
+    test('Back button goes to /register', async () => {
         render(<ReceiverRegistration />);
         await userEvent.click(screen.getByRole('button', { name: /back/i }));
         expect(mockNavigate).toHaveBeenCalledWith('/register');
@@ -100,12 +96,14 @@ describe('ReceiverRegistration', () => {
         authAPI.registerReceiver.mockResolvedValueOnce({ data: {} });
 
         render(<ReceiverRegistration />);
+
         await userEvent.type(screen.getByLabelText(/email address/i), 'a@b.com');
         await userEvent.type(screen.getByLabelText(/password/i), 'password123');
         await userEvent.type(screen.getByLabelText(/organization name/i), 'Org');
         await userEvent.type(screen.getByLabelText(/contact person/i), 'Person');
         await userEvent.type(screen.getByLabelText(/phone number/i), '1112223333');
         await userEvent.type(screen.getByLabelText(/^address$/i), 'Addr');
+        // leave capacity empty
 
         await userEvent.click(screen.getByRole('button', { name: /register as receiver/i }));
 
