@@ -4,31 +4,11 @@ import './FAQ.css';
 
 const FAQ = () => {
     const [activeIndices, setActiveIndices] = useState([]);
-    const [loaded, setLoaded] = useState(false);
     const containerRef = useRef(null);
     const leftRef = useRef(null);
+    const rightRef = useRef(null);
     const itemRefs = useRef([]);
 
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('animate-in');
-                    }
-                });
-            },
-            { threshold: 0.3 }
-        );
-
-        if (leftRef.current) observer.observe(leftRef.current);
-
-        itemRefs.current.forEach((item) => {
-            if (item) observer.observe(item);
-        });
-
-        return () => observer.disconnect();
-    }, []);
     const faqData = [
         {
             question: "How can I use FoodFlow to donate my surplus food?",
@@ -47,6 +27,32 @@ const FAQ = () => {
             answer: "Food safety is our top priority. Our platform includes built-in safety guidelines and tracking features. Donors provide information about storage conditions, preparation time, and expiration dates. We also provide temperature logging for perishable items and ensure all pickups happen within safe time windows."
         }
     ];
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate-in');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            },
+            { 
+                threshold: 0.3,
+                rootMargin: '0px 0px -50px 0px'
+            }
+        );
+
+        if (leftRef.current) observer.observe(leftRef.current);
+        if (rightRef.current) observer.observe(rightRef.current);
+
+        itemRefs.current.forEach((item) => {
+            if (item) observer.observe(item);
+        });
+
+        return () => observer.disconnect();
+    }, []);
 
     const toggleFAQ = (index) => {
         setActiveIndices(prevIndices => {
@@ -67,12 +73,12 @@ const FAQ = () => {
     };
 
     return (
-        <div ref={containerRef} className={`faq-container ${loaded ? 'loaded' : ''}`}>
+        <div ref={containerRef} className="faq-container">
             <div ref={leftRef} className="faq-left">
                 <h1>Frequently Asked Questions</h1>
             </div>
 
-            <div className="faq-right">
+            <div ref={rightRef} className="faq-right">
                 {faqData.map((item, index) => (
                     <div
                         key={index}

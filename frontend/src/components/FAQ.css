@@ -17,10 +17,6 @@
   background-color: #F9FAFB;
 }
 
-/* Title on the Left of the page */
-.faq-container.loaded .faq-left {
-  animation: fadeInUp 0.8s ease-out both;
-}
 
 .faq-left {
   flex: 1;
@@ -34,15 +30,12 @@
   line-height: 1.5;
 }
 
-/* Questions on the right of the page */
 .faq-right {
   flex: 1;
   max-width: 600px;
 }
 
-.faq-container.loaded .faq-item {
-  animation: slideInLeft 0.6s ease-out both;
-}
+
 
 .faq-item {
   margin-bottom: 0;
@@ -55,11 +48,49 @@
   border-bottom-color: #62B6CB;
 }
 
+/* === ENTRANCE ANIMATIONS === */
+.faq-left {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all 0.8s ease;
+}
+
+.faq-left.animate-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.faq-right {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all 0.8s ease 0.2s;
+}
+
+.faq-right.animate-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.faq-item {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.6s ease;
+}
+
+.faq-right.animate-in .faq-item {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.faq-right.animate-in .faq-item:nth-child(1) { transition-delay: 0.3s; }
+.faq-right.animate-in .faq-item:nth-child(2) { transition-delay: 0.4s; }
+.faq-right.animate-in .faq-item:nth-child(3) { transition-delay: 0.5s; }
+.faq-right.animate-in .faq-item:nth-child(4) { transition-delay: 0.6s; }
+
 .faq-item.active {
   border-bottom-color: #62B6CB;
 }
 
-/* Question Style */
 .faq-question {
   background: transparent;
   color: #1B4965;
@@ -146,12 +177,6 @@
   }
 }
 
-/* Animation delays for staggered entrance */
-.faq-container.loaded .faq-item:nth-child(1) { animation-delay: 0.1s; }
-.faq-container.loaded .faq-item:nth-child(2) { animation-delay: 0.2s; }
-.faq-container.loaded .faq-item:nth-child(3) { animation-delay: 0.3s; }
-.faq-container.loaded .faq-item:nth-child(4) { animation-delay: 0.4s; }
-
 /* Responsiveness */
 @media (max-width: 900px) {
   .faq-container {
@@ -173,21 +198,6 @@
   .faq-right {
     max-width: 100%;
     width: 100%;
-  }
-
-  .faq-container.loaded .faq-item {
-    animation: slideInUp 0.6s ease-out both;
-  }
-
-  @keyframes slideInUp {
-    from {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
   }
 }
 

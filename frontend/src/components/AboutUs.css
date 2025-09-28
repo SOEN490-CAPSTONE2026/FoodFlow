@@ -149,7 +149,7 @@
 }
 
 .carousel-btn {
-  background: #1B4965;
+  background: #62B6CB;
   color: white;
   border: none;
   width: 60px;
@@ -169,7 +169,7 @@
 }
 
 .carousel-btn:hover {
-  background: #62B6CB;
+  background: #81d6ec;
   transform: translateY(-50%) scale(1.15);
 }
 
