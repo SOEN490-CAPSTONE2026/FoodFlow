@@ -53,21 +53,73 @@ a[href^="#"] {
 }
 
 .buttons button {
-    background-color: #1B4965;
-    color: white;
-    border: none;
-    padding: 0.6rem 1.5rem;
-    border-radius: 4px;
-    font-weight: 500;
+    transition: all 0.3s ease;
+    padding: 0.7rem 1.8rem;
+    font-size: 1.05rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.3s;
-    font-size: 1rem;
+    border-radius: 50px;
 }
+
+.buttons .login-button{
+    background-color: transparent;
+    color: #1B4965;
+    border: 2px solid #1B4965;
+}
+.buttons .login-button:hover {
+  background-color: #1B4965;
+  color: #fff;
+  transform: translateY(-2px);
+}
+
 .buttons .signup-button {
-    background-color: #1B4965;
+    background: linear-gradient(135deg, #1B4965, #3577a0);
+    color: #fff;
+    border: none;
 }
-.buttons button:hover {
-    background-color: #62B6CB;
+.buttons .signup-button:hover {
+    background: linear-gradient(135deg, #3577a0, #1B4965);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+/* Mobile Buttons[in hamburger menu]*/
+.mobile-buttons {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.mobile-buttons button {
+    width: 25%;
+    padding: 0.7rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+}
+.mobile-buttons .login-button{
+    background-color: transparent;
+    color: #1B4965;
+    border: 2px solid #1B4965;
+}
+.mobile-buttons .login-button:hover {
+  background-color: #1B4965;
+  color: #fff;
+  transform: translateY(-2px);
+}
+.mobile-buttons .signup-button {
+    background: linear-gradient(135deg, #1B4965, #3577a0);
+    color: #fff;
+    border: none;
+}
+.mobile-buttons .signup-button:hover {
+    background: linear-gradient(135deg, #3577a0, #1B4965);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }
 
 .menu-toggle {
@@ -77,15 +129,6 @@ a[href^="#"] {
     padding: 5px;
 }
 
-.menu-toggle span {
-    width: 25px;
-    height: 3px;
-    background-color: #1B4965;
-    margin: 3px 0;
-    transition: 0.3s;
-}
-
-/* Hamburger Animation when active */
 .menu-toggle.active span:nth-child(1) {
     transform: rotate(45deg) translate(5px, 5px);
 }
@@ -98,7 +141,6 @@ a[href^="#"] {
     transform: rotate(-45deg) translate(7px, -6px);
 }
 
-/* Mobile Responsive Styles */
 @media screen and (max-width: 968px) {
     .navbar {
         padding: 1rem 5%;
@@ -137,15 +179,15 @@ a[href^="#"] {
     
     .menu-toggle {
         display: flex;
-    }
-    
-    .buttons {
         margin-left: auto;
     }
     
-    .buttons button {
-        padding: 0.5rem 1rem;
-        font-size: 0.9rem;
+    .buttons {
+        display: none;
+    }
+    
+    .mobile-buttons {
+        display: flex;
     }
 }
 
@@ -159,13 +201,8 @@ a[href^="#"] {
         height: 50px;
     }
     
-    .buttons {
-        flex-direction: column;
-        gap: 0.3rem;
-    }
-    
-    .buttons button {
-        padding: 0.4rem 0.8rem;
-        font-size: 0.8rem;
+    .mobile-buttons button {
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
     }
 }

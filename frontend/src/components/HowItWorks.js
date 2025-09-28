@@ -75,7 +75,6 @@ const HowItWorks = () => {
   return (
     <div 
       className={`how-it-works-container ${isInView ? "animate-in" : ""}`} 
-      id="how-it-works"
       ref={sectionRef}
     >
       <div className="how-it-works-header">

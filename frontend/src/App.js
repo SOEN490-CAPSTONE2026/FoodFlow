@@ -4,7 +4,6 @@ import LandingPage from './components/LandingPage';
 import RegisterType from './components/RegisterType';
 import DonorRegistration from './components/DonorRegistration';
 import ReceiverRegistration from './components/ReceiverRegistration';
-import HowItWorks from './components/HowItWorks';
 import LoginPage from './components/LoginPage';
 import TempDashboard from './components/TempDashboard';
 import NavigationBar from './components/NavigationBar';
@@ -21,7 +20,6 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/register" element={<RegisterType />} />
-        <Route path="/how-it-works" element={<HowItWorks />} />
         <Route path="/register/donor" element={<DonorRegistration />} />
         <Route path="/register/receiver" element={<ReceiverRegistration />} />
         <Route path="/login" element={<LoginPage />} />

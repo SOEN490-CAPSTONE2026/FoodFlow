@@ -25,7 +25,7 @@ const Home = () => {
     }, []);
 
     return (
-        <div className="home-container" id="home">
+        <div className="home-container">
             <div className="floating-element"></div>
             <div className="floating-element"></div>
             <div className="floating-element"></div>
