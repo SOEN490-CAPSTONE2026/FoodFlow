@@ -270,6 +270,7 @@
     flex-direction: column;
     gap: 40px;
     text-align: center;
+    align-items: center; /* Add this */
   }
   
   .footer-left {
@@ -286,13 +287,17 @@
   .footer-grid {
     grid-template-columns: 1fr;
     gap: 40px; 
-    width: 100%;
-    max-width: 300px;
+    width: 100%; 
+    max-width: 100%; 
     margin: 0 auto;
+    display: flex; 
+    flex-direction: column;
+    align-items: center;
   }
   
   .footer-column {
     text-align: center;
+    width: 100%;
   }
   
   .column-title::after {
@@ -348,8 +353,13 @@
     gap: 5px;
     text-align: center;
   }
+  
+  /* Ensure contact items stay centered */
+  .contact-info .contact-item {
+    align-items: center;
+    justify-content: center;
+  }
 }
-
 @media (max-width: 360px) {
   .footer {
     padding: 25px 8px 10px;

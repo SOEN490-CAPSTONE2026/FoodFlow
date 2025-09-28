@@ -1,15 +1,18 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import Footer from './Footer';
 import Home from './Home';
-// import './LandingPage.css';
+import AboutUs from './AboutUs';
+import FAQ from './FAQ';
+import HowItWorks from './HowItWorks';
 
 const LandingPage = () => {
-  const navigate = useNavigate();
 
   return (
     <div className="landing-page">
       <Home />
+      <HowItWorks />
+      <AboutUs />
+      <FAQ />
       <Footer />
     </div>
   );

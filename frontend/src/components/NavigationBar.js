@@ -44,8 +44,8 @@ const handleLogout = () => {
       <div className={`menu ${isMenuOpen ? 'active' : ''}`}>
         <ul>
           <li><a href='#home' onClick={() => setIsMenuOpen(false)}>Home</a></li>
-          <li><a href='#' onClick={() => setIsMenuOpen(false)}>How it works</a></li>
-          <li><a href='#' onClick={() => setIsMenuOpen(false)}>Features</a></li>
+          <li><a href='#how-it-works' onClick={() => setIsMenuOpen(false)}>How it works</a></li>
+          <li><a href='#' onClick={() => setIsMenuOpen(false)}>About Us</a></li>
           <li><a href='#' onClick={() => setIsMenuOpen(false)}>FAQs</a></li>
           <li><a href='#contact' onClick={() => setIsMenuOpen(false)}>Contact Us</a></li>
         </ul>

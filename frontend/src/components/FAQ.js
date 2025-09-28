@@ -1,10 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FaPlus, FaMinus } from 'react-icons/fa';
 import './FAQ.css';
 
 const FAQ = () => {
     const [activeIndices, setActiveIndices] = useState([]);
+    const [loaded, setLoaded] = useState(false);
+    const containerRef = useRef(null);
+    const leftRef = useRef(null);
+    const itemRefs = useRef([]);
 
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate-in');
+                    }
+                });
+            },
+            { threshold: 0.3 }
+        );
+
+        if (leftRef.current) observer.observe(leftRef.current);
+
+        itemRefs.current.forEach((item) => {
+            if (item) observer.observe(item);
+        });
+
+        return () => observer.disconnect();
+    }, []);
     const faqData = [
         {
             question: "How can I use FoodFlow to donate my surplus food?",
@@ -23,24 +47,28 @@ const FAQ = () => {
             answer: "Food safety is our top priority. Our platform includes built-in safety guidelines and tracking features. Donors provide information about storage conditions, preparation time, and expiration dates. We also provide temperature logging for perishable items and ensure all pickups happen within safe time windows."
         }
     ];
+
     const toggleFAQ = (index) => {
         setActiveIndices(prevIndices => {
             if (prevIndices.includes(index)) {
                 return prevIndices.filter(i => i !== index);
-            }
-            else {
+            } else {
                 return [...prevIndices, index];
             }
         });
     };
 
-    const isActive = (index) => {
-        return activeIndices.includes(index);
+    const isActive = (index) => activeIndices.includes(index);
+
+    const addToItemRefs = (el, index) => {
+        if (el && !itemRefs.current.includes(el)) {
+            itemRefs.current[index] = el;
+        }
     };
 
     return (
-        <div className="faq-container">
-            <div className="faq-left">
+        <div ref={containerRef} className={`faq-container ${loaded ? 'loaded' : ''}`}>
+            <div ref={leftRef} className="faq-left">
                 <h1>Frequently Asked Questions</h1>
             </div>
 
@@ -48,6 +76,7 @@ const FAQ = () => {
                 {faqData.map((item, index) => (
                     <div
                         key={index}
+                        ref={(el) => addToItemRefs(el, index)}
                         className={`faq-item ${isActive(index) ? 'active' : ''}`}
                     >
                         <div className="faq-question" onClick={() => toggleFAQ(index)}>
