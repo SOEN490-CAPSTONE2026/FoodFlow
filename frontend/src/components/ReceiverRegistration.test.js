@@ -44,15 +44,15 @@ describe('ReceiverRegistration', () => {
 
     test('renders the form with all required fields', () => {
         render(<ReceiverRegistration />);
-        expect(screen.getByRole('heading', { name: /register as receiver/i })).toBeDefined();
-        expect(screen.getByLabelText(/email address/i)).toBeDefined();
-        expect(screen.getByLabelText(/password/i)).toBeDefined();
-        expect(screen.getByLabelText(/organization name/i)).toBeDefined();
-        expect(screen.getByLabelText(/contact person/i)).toBeDefined();
-        expect(screen.getByLabelText(/phone number/i)).toBeDefined();
-        expect(screen.getByLabelText(/^address$/i)).toBeDefined();
-        expect(screen.getByLabelText(/organization type/i)).toBeDefined();
-        expect(screen.getByLabelText(/daily capacity/i)).toBeDefined();
+        expect(screen.getByRole('heading', { name: /register as receiver/i })).toBeInTheDocument();
+        expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/organization name/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/contact person/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/phone number/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/^address$/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/organization type/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/daily capacity/i)).toBeInTheDocument();
     });
 
     test('updates form values', async () => {
@@ -103,8 +103,6 @@ describe('ReceiverRegistration', () => {
         await userEvent.type(screen.getByLabelText(/contact person/i), 'Person');
         await userEvent.type(screen.getByLabelText(/phone number/i), '1112223333');
         await userEvent.type(screen.getByLabelText(/^address$/i), 'Addr');
-        // leave capacity empty
-
         await userEvent.click(screen.getByRole('button', { name: /register as receiver/i }));
 
         await waitFor(() => {
