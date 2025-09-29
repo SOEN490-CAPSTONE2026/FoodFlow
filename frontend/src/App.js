@@ -47,6 +47,7 @@ function AppContent() {
         />
         
         {/* Donor Dashboard */}
+         <Route path="/donor/*" element={<DonorDashboard />} />
         <Route
           path="/dashboard/donor/*"
           element={
@@ -57,6 +58,7 @@ function AppContent() {
         />
 
         {/* Receiver Dashboard */}
+        <Route path="/receiver" element={<ReceiverLayout />}></Route>
         <Route
           path="/dashboard/receiver/*"
           element={

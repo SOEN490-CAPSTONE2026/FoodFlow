@@ -1,9 +1,11 @@
 // DonorLayout.jsx
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 
 export default function DonorLayout() {
   const location = useLocation();
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef(null);
   
   // Get page title based on current route
   const getPageTitle = () => {
@@ -38,6 +40,25 @@ export default function DonorLayout() {
       default:
         return "FoodFlow Donor Portal";
     }
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Toggle dropdown
+  const toggleDropdown = () => {
+    setShowDropdown(!showDropdown);
   };
 
   return (
@@ -90,8 +111,27 @@ export default function DonorLayout() {
             <h1>{getPageTitle()}</h1>
             <p>{getPageDescription()}</p>
           </div>
-          <div className="ff-donor-user-info">
-            Donor Account
+          <div className="ff-donor-user-info" ref={dropdownRef}>
+            <div className="ff-user-menu" onClick={toggleDropdown}>
+              Donor Account
+              <span className="ff-dropdown-arrow">▼</span>
+            </div>
+            
+            {/* Dropdown Menu */}
+            {showDropdown && (
+              <div className="ff-dropdown-menu">
+                <div className="ff-dropdown-item" onClick={() => setShowDropdown(false)}>
+                  Profile
+                </div>
+                <div className="ff-dropdown-item" onClick={() => setShowDropdown(false)}>
+                  Settings
+                </div>
+                <div className="ff-dropdown-divider"></div>
+                <div className="ff-dropdown-item ff-dropdown-item-logout">
+                  Log Out
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
