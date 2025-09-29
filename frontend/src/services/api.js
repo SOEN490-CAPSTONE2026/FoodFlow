@@ -13,6 +13,7 @@ export const authAPI = {
   login: (data) => api.post('/auth/login', data),
   registerDonor: (data) => api.post('/auth/register/donor', data),
   registerReceiver: (data) => api.post('/auth/register/receiver', data),
+    logout: () => api.post('/auth/logout'),
 };
 
 export default api;

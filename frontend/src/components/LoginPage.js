@@ -2,15 +2,21 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authAPI } from '../services/api';
 import '../style/LoginPage.css';
-
+import React, { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { authAPI } from '../services/api';
+import { AuthContext } from '../contexts/AuthContext';
+import { useAnalytics } from '../hooks/useAnalytics';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const { trackButtonClick, trackFormSubmission, trackLogin } = useAnalytics();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -19,8 +25,12 @@ const LoginPage = () => {
     try {
       const response = await authAPI.login({ email, password });
       localStorage.setItem('token', response?.data?.token);
+      // store JWT in localStorage using context
+      login(response.data.token);
+      trackLogin(true);
       navigate('/dashboard');
     } catch (err) {
+      trackLogin(false);
       setError('Invalid email or password');
     } finally {
       setLoading(false);
@@ -89,6 +99,9 @@ const LoginPage = () => {
           </div>
         </div>
       </div>
+        {error && <p style={{ color: 'red' }}>{error}</p>}
+        <button type="submit" onClick={() => trackButtonClick('login_submit', 'login_page')} style={{ padding: '10px 20px' }}>Login</button>
+      </form>
     </div>
   );
 };
