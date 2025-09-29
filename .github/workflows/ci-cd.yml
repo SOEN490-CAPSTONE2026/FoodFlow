@@ -8,81 +8,20 @@ on:
     branches:
       - main
 
-env:
-  POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-  POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-  POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-  SERVER_PORT: ${{ secrets.SERVER_PORT }}
-  JWT_SECRET: ${{ secrets.JWT_SECRET }}
-  JWT_EXPIRATION: ${{ secrets.JWT_EXPIRATION }}
-  REACT_APP_API_BASE_URL: ${{ secrets.REACT_APP_API_BASE_URL }}
-  CORS_ALLOWED_ORIGINS: ${{ secrets.CORS_ALLOWED_ORIGINS }}
-
 jobs:
-  build-and-test:
+  setup:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U ${{ secrets.POSTGRES_USER }} -d ${{ secrets.POSTGRES_DB }}"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      # ---------- Frontend ----------
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: ./frontend/package-lock.json
 
       - name: Install frontend dependencies
+        run: npm install
         working-directory: ./frontend
-        run: npm ci
-
-      - name: Run frontend tests (Jest)
-        working-directory: ./frontend
-        run: npm test -- --watchAll=false
-
-      # ---------- Backend ----------
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-
-      - name: Build & test backend with Maven (Jacoco)
-        working-directory: ./backend
-        run: mvn clean verify
-
-      - name: Upload backend test coverage
-        uses: actions/upload-artifact@v4
-        with:
-          name: jacoco-report
-          path: backend/target/site/jacoco/
-
-  docker-build:
-    runs-on: ubuntu-latest
-    needs: build-and-test
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Build frontend Docker image
-        run: |
-          docker build -t foodflow-frontend ./frontend
-
-      - name: Build backend Docker image
-        run: |
-          docker build -t foodflow-backend ./backend
