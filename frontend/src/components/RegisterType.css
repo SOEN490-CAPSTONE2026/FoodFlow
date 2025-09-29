@@ -12,17 +12,21 @@
 .intro {
     text-align: center;
     margin-bottom: 40px;
-    margin-top: 20px; 
+    margin-top: 20px;
 }
 .intro h1 {
     font-size: 2rem;
     font-weight: 600;
     color: #1B4965;
+    margin-bottom: 10px;
 }
 
 .intro p {
     color: #55697a;
     margin-top: 10px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .intro h2 {
@@ -43,6 +47,12 @@
     gap: 20px;
 }
 
+.illustration {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .illustration img {
     max-height: 70vh;
     max-width: 100%;
@@ -53,8 +63,8 @@
 .option-card {
     border-radius: 12px;
     padding: 25px;
-    width: 400px;
-    min-height: 545px;
+    width: 450px;
+    min-height: 555px;
     height: auto;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
@@ -69,6 +79,7 @@
     display: block;
     margin: 0 auto;
     max-width: 100%;
+    height: auto;
 }
 
 .option-card.donor {
@@ -138,6 +149,8 @@
     transition: 0.2s;
     font-weight: 600;
     color: #fff;
+    width: 100%;
+    font-size: 1rem;
 }
 
 .donor-button {
@@ -177,6 +190,69 @@
     color: #fff;
 }
 
+/* Responsive Styles */
+@media (max-width: 1200px) {
+    .content {
+        gap: 30px;
+    }
+    
+    .option-card {
+        width: 350px;
+        min-height: 500px;
+    }
+    
+    .illustration img {
+        max-height: 60vh;
+    }
+}
+
+@media (max-width: 1024px) {
+    .register-type-page {
+        padding: 30px;
+    }
+    
+    .content {
+        gap: 25px;
+    }
+    
+    .registration-options {
+        gap: 15px;
+    }
+    
+    .option-card {
+        width: 320px;
+        min-height: 480px;
+        padding: 20px;
+    }
+    
+    .illustration img {
+        max-height: 50vh;
+    }
+}
+
+@media (max-width: 900px) {
+    .content {
+        gap: 20px;
+    }
+    
+    .option-card {
+        width: 280px;
+        min-height: 520px;
+    }
+    
+    .illustration img {
+        max-height: 45vh;
+    }
+    
+    .option-card h3 {
+        font-size: 1.2rem;
+    }
+    
+    .option-card p {
+        font-size: 0.9rem;
+    }
+}
+
 @media (max-width: 768px) {
     .register-type-page {
         padding: 20px;
@@ -186,9 +262,28 @@
     .content {
         flex-direction: column;
         align-items: center;
-        gap: 20px;
+        gap: 30px;
     }
 
+    .registration-options {
+        flex-direction: row;
+        gap: 20px;
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .option-card {
+        width: 100%;
+        max-width: 300px;
+        min-height: auto;
+    }
+    
+    .illustration img {
+        max-height: 250px;
+    }
+}
+
+@media (max-width: 640px) {
     .registration-options {
         flex-direction: column;
         align-items: center;
@@ -196,17 +291,43 @@
     }
     
     .option-card {
-        width: 100%;
         max-width: 400px;
-        min-height: auto;
+        width: 100%;
     }
     
     .illustration img {
-        max-height: 250px;
+        max-height: 200px;
+    }
+}
+
+@media (max-width: 480px) {
+    .register-type-page {
+        padding: 15px;
+    }
+    
+    .intro h1 {
+        font-size: 1.7rem;
+    }
+    
+    .intro h2 {
+        font-size: 1.1rem;
+        margin-top: 20px;
+    }
+    
+    .option-card {
+        padding: 20px;
+    }
+    
+    .option-card img {
+        height: 100px;
+        width: 100px;
+    }
+    
+    .illustration img {
+        max-height: 180px;
     }
     
     .option-card li {
-        gap: 8px;
-        margin-bottom: 10px;
+        font-size: 0.9rem;
     }
 }

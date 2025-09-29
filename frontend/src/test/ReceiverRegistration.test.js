@@ -6,7 +6,7 @@ import '@testing-library/jest-dom';
 
 // Mock static imports used by the component
 jest.mock('../assets/illustrations/receiver-ilustration.jpg', () => 'receiver.jpg');
-jest.mock('./Registration.css', () => ({}), { virtual: true });
+jest.mock('../components/Registration.css', () => ({}), { virtual: true });
 
 // Mock navigate
 const mockNavigate = jest.fn();
@@ -21,7 +21,7 @@ jest.mock('../services/api', () => ({
 }));
 import { authAPI } from '../services/api';
 
-import ReceiverRegistration from './ReceiverRegistration';
+import ReceiverRegistration from '../components/ReceiverRegistration';
 
 const setItemSpy = jest.spyOn(Storage.prototype, 'setItem');
 

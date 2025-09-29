@@ -5,7 +5,7 @@ import '@testing-library/jest-dom';
 
 // Mock static imports used by the component
 jest.mock('../assets/illustrations/donor-illustration.jpg', () => 'donor.jpg');
-jest.mock('./Registration.css', () => ({}), { virtual: true });
+jest.mock('../components/Registration.css', () => ({}), { virtual: true });
 
 // Mock navigate
 const mockNavigate = jest.fn();
@@ -19,7 +19,7 @@ jest.mock('../services/api', () => ({
     authAPI: { registerDonor: jest.fn() },
 }));
 
-import DonorRegistration from './DonorRegistration';
+import DonorRegistration from '../components/DonorRegistration';
 
 describe('DonorRegistration', () => {
     beforeEach(() => {
