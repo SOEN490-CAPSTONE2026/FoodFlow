@@ -148,7 +148,6 @@
 }
 
 .error-message {
-    background: #fed7d7;
     color: #c53030;
     padding: 12px;
     border-radius: 8px;
@@ -157,7 +156,6 @@
 }
 
 .success-message {
-    background: #c6f6d5;
     color: #2d774a;
     padding: 12px;
     border-radius: 8px;
