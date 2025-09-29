@@ -1,9 +1,6 @@
-import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { authAPI } from '../services/api';
 import '../style/LoginPage.css';
 import React, { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
 import { useAnalytics } from '../hooks/useAnalytics';
@@ -89,7 +86,12 @@ const LoginPage = () => {
 
                 {error && <p className="form-error">{error}</p>}
 
-                <button type="submit" className="submit-btn" disabled={loading}>
+                <button
+                  type="submit"
+                  className="submit-btn"
+                  disabled={loading}
+                  onClick={() => trackButtonClick('login_submit', 'login_page')}
+                >
                   {loading ? 'Logging in…' : 'LOG IN'}
                 </button>
 
@@ -99,9 +101,6 @@ const LoginPage = () => {
           </div>
         </div>
       </div>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        <button type="submit" onClick={() => trackButtonClick('login_submit', 'login_page')} style={{ padding: '10px 20px' }}>Login</button>
-      </form>
     </div>
   );
 };
