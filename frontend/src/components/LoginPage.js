@@ -39,7 +39,9 @@ const LoginPage = () => {
           <span className="background-spot s3" />
         </div>
         <img src="https://i.ibb.co/HLxDnk57/Untitled-design-6.png" alt="Donation example" className="main" />
-        <img src="https://i.ibb.co/jkF1r5xL/logo-white.png" alt="FoodFlow logo" className="login-logo" />
+        <Link to="/">
+          <img src="https://i.ibb.co/jkF1r5xL/logo-white.png" alt="FoodFlow logo" className="login-logo" />
+        </Link>
       </div>
 
       <div className="login-right">
