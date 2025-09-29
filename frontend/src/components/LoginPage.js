@@ -3,8 +3,6 @@ import { useNavigate, Link } from 'react-router-dom';
 import { authAPI } from '../services/api';
 import '../style/LoginPage.css';
 
-const BRAND = '#1B4965';
-const ACCENT = '#609B7E';
 
 const LoginPage = () => {
   const navigate = useNavigate();
