@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import FAQ from './FAQ';
+import FAQ from '../components/FAQ';
 
 // Mock IntersectionObserver properly
 const mockObserve = jest.fn();

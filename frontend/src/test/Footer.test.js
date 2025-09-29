@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import Footer from './Footer';
+import Footer from '../components/Footer';
 
 // Mock the logo import
 jest.mock("../assets/Logo.png", () => "mock-logo.png");

@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
-import NavigationBar from './NavigationBar';
+import NavigationBar from '../components/NavigationBar';
 
 // Mock logo import
 jest.mock("../assets/Logo.png", () => "test-logo.png");

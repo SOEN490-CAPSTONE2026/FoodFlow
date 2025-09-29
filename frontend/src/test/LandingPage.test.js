@@ -1,14 +1,29 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
-import LandingPage from './LandingPage';
+import LandingPage from '../components/LandingPage';
+
+// Mock IntersectionObserver
+const mockIntersectionObserver = jest.fn();
+mockIntersectionObserver.mockReturnValue({
+  observe: () => null,
+  unobserve: () => null,
+  disconnect: () => null
+});
+window.IntersectionObserver = mockIntersectionObserver;
 
 // Mock child components
-jest.mock('./Footer', () => () => <div data-testid="footer">Footer</div>);
-jest.mock('./Home', () => () => <div data-testid="home">Home</div>);
-jest.mock('./AboutUs', () => () => <div data-testid="about-us">AboutUs</div>);
-jest.mock('./FAQ', () => () => <div data-testid="faq">FAQ</div>);
-jest.mock('./HowItWorks', () => () => <div data-testid="how-it-works">HowItWorks</div>);
+jest.mock('../components/Footer', () => () => <div data-testid="footer">Footer</div>);
+jest.mock('../components/Home', () => () => <div data-testid="home">Home</div>);
+jest.mock('../components/AboutUs', () => () => <div data-testid="about-us">AboutUs</div>);
+jest.mock('../components/FAQ', () => () => <div data-testid="faq">FAQ</div>);
+
+
+jest.mock('../components/HowItWorks', () => () => (
+  <section id="how-it-works">
+    <div data-testid="how-it-works">HowItWorks</div>
+  </section>
+));
 
 // Mock useLocation
 const mockUseLocation = jest.fn();

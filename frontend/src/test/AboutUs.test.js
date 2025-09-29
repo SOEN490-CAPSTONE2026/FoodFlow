@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import AboutUs from './AboutUs';
+import AboutUs from '../components/AboutUs';
 
 // Proper IntersectionObserver mock
 const mockIntersectionObserver = jest.fn();
