@@ -11,6 +11,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { useAnalytics } from './hooks/useAnalytics';
 import AdminDashboard from './components/AdminDashboard';
 import DonorDashboard from './components/DonorDashboard/DonorDashboard';
+import PrivateRoutes from './components/PrivateRoutes';
 
 // For the receiver dashboard 
 import ReceiverLayout from './components/ReceiverDashboard/ReceiverLayout';
@@ -34,13 +35,36 @@ function AppContent() {
         <Route path="/register/receiver" element={<ReceiverRegistration />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/dashboard" element={<TempDashboard />} />
-        <Route path="/admin" element={<AdminDashboard />} />
+        
+        {/* Admin Dashboard */}
+        <Route
+          path="/dashboard/admin"
+          element={
+            <PrivateRoutes allowedRoles={['ADMIN']}>
+              <AdminDashboard />
+            </PrivateRoutes>
+          }
+        />
         
         {/* Donor Dashboard */}
-        <Route path="/donor/*" element={<DonorDashboard />} />
+        <Route
+          path="/dashboard/donor/*"
+          element={
+            <PrivateRoutes allowedRoles={['DONOR']}>
+              <DonorDashboard />
+            </PrivateRoutes>
+          }
+        />
 
         {/* Receiver Dashboard */}
-        <Route path="/receiver" element={<ReceiverLayout />}>
+        <Route
+          path="/dashboard/receiver/*"
+          element={
+            <PrivateRoutes allowedRoles={['RECEIVER']}>
+              <ReceiverLayout />
+            </PrivateRoutes>
+          }
+        >
           <Route index element={<ReceiverDashboardHome />} />
           <Route path="browse" element={<ReceiverBrowse />} />
           <Route path="requests" element={<ReceiverRequests />} />

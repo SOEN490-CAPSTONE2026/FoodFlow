@@ -4,17 +4,17 @@ import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { AuthContext } from "../contexts/AuthContext";
 import PrivateRoutes from "../components/PrivateRoutes";
 
-describe("PrivateRoute", () => {
-  test("renders protected content when logged in", () => {
+describe("PrivateRoutes", () => {
+  test("renders protected content when logged in with correct role", () => {
     render(
-      <AuthContext.Provider value={{ isLoggedIn: true }}>
-        <MemoryRouter initialEntries={["/protected"]}>
+      <AuthContext.Provider value={{ isLoggedIn: true, role: "DONOR" }}>
+        <MemoryRouter initialEntries={["/dashboard/donor"]}>
           <Routes>
             <Route
-              path="/protected"
+              path="/dashboard/donor"
               element={
                 <PrivateRoutes>
-                  <div>Protected Content</div>
+                  <div>Donor Dashboard</div>
                 </PrivateRoutes>
               }
             />
@@ -23,19 +23,41 @@ describe("PrivateRoute", () => {
       </AuthContext.Provider>
     );
 
-    expect(screen.getByText("Protected Content")).toBeInTheDocument();
+    expect(screen.getByText("Donor Dashboard")).toBeInTheDocument();
+  });
+
+  test("redirects to login when logged in but role does not match", () => {
+    render(
+      <AuthContext.Provider value={{ isLoggedIn: true, role: "DONOR" }}>
+        <MemoryRouter initialEntries={["/dashboard/admin"]}>
+          <Routes>
+            <Route
+              path="/dashboard/admin"
+              element={
+                <PrivateRoutes>
+                  <div>Admin Dashboard</div>
+                </PrivateRoutes>
+              }
+            />
+            <Route path="/login" element={<div>Login Page</div>} />
+          </Routes>
+        </MemoryRouter>
+      </AuthContext.Provider>
+    );
+
+    expect(screen.getByText("Login Page")).toBeInTheDocument();
   });
 
   test("redirects to login when not logged in", () => {
     render(
-      <AuthContext.Provider value={{ isLoggedIn: false }}>
-        <MemoryRouter initialEntries={["/protected"]}>
+      <AuthContext.Provider value={{ isLoggedIn: false, role: null }}>
+        <MemoryRouter initialEntries={["/dashboard/donor"]}>
           <Routes>
             <Route
-              path="/protected"
+              path="/dashboard/donor"
               element={
                 <PrivateRoutes>
-                  <div>Protected Content</div>
+                  <div>Donor Dashboard</div>
                 </PrivateRoutes>
               }
             />
