@@ -1,47 +1,50 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-// import './LandingPage.css';
+import React, { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import Footer from './Footer';
+import Home from './Home';
+import AboutUs from './AboutUs';
+import FAQ from './FAQ';
+import HowItWorks from './HowItWorks';
 
 const LandingPage = () => {
-  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Handle scroll to section when navigating with state
+    if (location.state?.scrollTo) {
+      const sectionId = location.state.scrollTo;
+      setTimeout(() => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          const navbarHeight = 80;
+          const elementPosition = element.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - navbarHeight;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }
+      }, 300); 
+    }
+  }, [location]);
 
   return (
     <div className="landing-page">
-      <header className="hero-section">
-        <div className="hero-content">
-          <h1 className="hero-title">FoodFlow</h1>
-          <h2 className="hero-subtitle">Reduce Food Waste, Feed Communities</h2>
-          <p className="hero-description">
-            Connect surplus food with those who need it most. 
-            Join our platform to make a difference in your community.
-          </p>
-          <button 
-            className="cta-button"
-            onClick={() => navigate('/register')}
-          >
-            Register Now
-          </button>
-        </div>
-      </header>
-      
-      <section className="features-section">
-        <div className="container">
-          <h3>How FoodFlow Works</h3>
-          <div className="features-grid">
-            <div className="feature-card">
-              <h4>For Donors</h4>
-              <p>Restaurants, grocery stores, and event organizers can easily list surplus food</p>
-            </div>
-            <div className="feature-card">
-              <h4>Smart Matching</h4>
-              <p>Our system connects donors with nearby charities and community organizations</p>
-            </div>
-            <div className="feature-card">
-              <h4>For Receivers</h4>
-              <p>Charities and shelters get access to fresh food to serve their communities</p>
-            </div>
-          </div>
-        </div>
+      <section id="home">
+        <Home />
+      </section>
+      <section id="how-it-works">
+        <HowItWorks />
+      </section>
+      <section id="about">
+        <AboutUs />
+      </section>
+      <section id="faqs">
+        <FAQ />
+      </section>
+      <section id="contact">
+        <Footer />
       </section>
     </div>
   );

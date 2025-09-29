@@ -26,7 +26,7 @@ jobs:
         run: npm install
         working-directory: ./frontend
 
-      # ---------- Frontend ----------
+# ---------- Frontend ----------
   test-frontend:
     runs-on: ubuntu-latest
     needs: setup
