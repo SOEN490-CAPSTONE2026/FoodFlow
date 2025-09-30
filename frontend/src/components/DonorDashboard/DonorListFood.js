@@ -1,124 +1,39 @@
 import React from "react";
 import "./Dashboards.css";
 import "./DonorListFood.css";
-const H = () => ({ 
-  "Content-Type": "application/json", 
-  ...(localStorage.token ? {Authorization:`Bearer ${localStorage.token}`} : {}) 
-});
 
-// Mock data for demonstration
-const mockListings = [
-  {
-    id: 1,
-    title: "Fresh Bread and Pastries",
-    category: "Bakery",
-    qty: 5,
-    unit: "boxes",
-    expiresAt: "2024-02-15T18:00",
-    pickupWindow: "3-6 PM",
-    location: "123 Main St, Kitchen",
-    status: "Active",
-    createdAt: "2024-02-10T10:00"
-  },
-  {
-    id: 2,
-    title: "Assorted Vegetables",
-    category: "Produce",
-    qty: 10,
+
+
+export default function DonorListFood({
+  items = [],
+  loading = false,
+  saving = false,
+  onCreate = async () => {},
+  onDelete = async () => {},
+}) {
+  const [form, setForm] = React.useState({
+    title: "",
+    category: "Prepared Meals",
+    qty: 1,
     unit: "kg",
-    expiresAt: "2024-02-12T12:00",
-    pickupWindow: "9 AM-12 PM",
-    location: "456 Oak Ave, Storage",
-    status: "Pending",
-    createdAt: "2024-02-11T14:30"
-  }
-];
-
-async function fetchListings(){ 
-  // Simulate API call
-  return new Promise(resolve => {
-    setTimeout(() => {
-      resolve({ 
-        items: mockListings, 
-        total: mockListings.length 
-      });
-    }, 500);
-  });
-}
-
-async function createListing(payload){ 
-  // Simulate API call
-  return new Promise(resolve => {
-    setTimeout(() => {
-      const newListing = {
-        id: Date.now(),
-        ...payload,
-        status: "Active",
-        createdAt: new Date().toISOString()
-      };
-      mockListings.unshift(newListing);
-      resolve({ ok: true, data: newListing });
-    }, 500);
-  });
-}
-
-async function deleteListing(id) {
-  return new Promise(resolve => {
-    setTimeout(() => {
-      const index = mockListings.findIndex(item => item.id === id);
-      if (index > -1) {
-        mockListings.splice(index, 1);
-      }
-      resolve({ ok: true });
-    }, 300);
-  });
-}
-
-export default function DonorListFood(){
-  const [items, setItems] = React.useState([]);
-  const [total, setTotal] = React.useState(0);
-  const [loading, setLoading] = React.useState(false);
-  const [saving, setSaving] = React.useState(false);
-  const [form, setForm] = React.useState({ 
-    title: "", 
-    category: "Prepared Meals", 
-    qty: 1, 
-    unit: "kg", 
-    pickupWindow: "", 
-    location: "", 
-    expiresAt: "" 
+    pickupWindow: "",
+    location: "",
+    expiresAt: "",
   });
 
-  React.useEffect(() => { 
-    loadListings();
-  }, []);
-
-  async function loadListings() {
-    setLoading(true);
-    try {
-      const r = await fetchListings();
-      setItems(r.items || []);
-      setTotal(r.total || 0);
-    } catch (error) {
-      console.error("Failed to load listings:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function onChange(k, v) { 
-    setForm(f => ({ ...f, [k]: v })); 
+  function onChange(k, v) {
+    setForm((f) => ({ ...f, [k]: v }));
   }
 
   function clearForm() {
     setForm({
-      title: "", 
-      category: "Prepared Meals", 
-      qty: 1, 
-      unit: "kg", 
-      pickupWindow: "", 
-      location: "", 
-      expiresAt: ""
+      title: "",
+      category: "Prepared Meals",
+      qty: 1,
+      unit: "kg",
+      pickupWindow: "",
+      location: "",
+      expiresAt: "",
     });
   }
 
@@ -127,66 +42,56 @@ export default function DonorListFood(){
       alert("Please fill in required fields: Title and Location");
       return;
     }
-
-    setSaving(true);
-    try {
-      await createListing({
-        title: form.title, 
-        category: form.category, 
-        quantity: Number(form.qty), 
-        unit: form.unit,
-        pickupWindow: form.pickupWindow, 
-        location: form.location, 
-        expiresAt: form.expiresAt
-      });
-      await loadListings(); // Reload listings
-      clearForm();
-      alert("Listing created successfully!");
-    } catch (error) {
-      console.error("Failed to create listing:", error);
-      alert("Failed to create listing. Please try again.");
-    } finally {
-      setSaving(false);
-    }
+    // Delegate creation to parent
+    await onCreate({
+      title: form.title,
+      category: form.category,
+      quantity: Number(form.qty),
+      unit: form.unit,
+      pickupWindow: form.pickupWindow,
+      location: form.location,
+      expiresAt: form.expiresAt || null,
+    });
+    clearForm();
   }
 
   async function handleDelete(id) {
     if (window.confirm("Are you sure you want to delete this listing?")) {
-      try {
-        await deleteListing(id);
-        await loadListings(); // Reload listings
-        alert("Listing deleted successfully!");
-      } catch (error) {
-        console.error("Failed to delete listing:", error);
-        alert("Failed to delete listing. Please try again.");
-      }
+      await onDelete(id);
     }
   }
 
   function formatDate(dateString) {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
+    if (!dateString) return "—";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
   }
 
   function formatDateTime(dateString) {
-    return new Date(dateString).toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    if (!dateString) return "Not specified";
+    return new Date(dateString).toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   }
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Active': return 'st-active';
-      case 'Pending': return 'st-pending';
-      case 'Completed': return 'st-claimed';
-      case 'Expired': return 'st-closed';
-      default: return 'st-closed';
+      case "Active":
+        return "st-active";
+      case "Pending":
+        return "st-pending";
+      case "Completed":
+        return "st-claimed";
+      case "Expired":
+        return "st-closed";
+      default:
+        return "st-closed";
     }
   };
 
@@ -199,16 +104,20 @@ export default function DonorListFood(){
           <div className="form-row">
             <div className="form-group">
               <label>Food Title *</label>
-              <input 
-                className="ff-input" 
-                placeholder="e.g., Fresh Bread, Assorted Vegetables..." 
-                value={form.title} 
-                onChange={e => onChange("title", e.target.value)} 
+              <input
+                className="ff-input"
+                placeholder="e.g., Fresh Bread, Assorted Vegetables..."
+                value={form.title}
+                onChange={(e) => onChange("title", e.target.value)}
               />
             </div>
             <div className="form-group">
               <label>Category</label>
-              <select className="ff-input" value={form.category} onChange={e => onChange("category", e.target.value)}>
+              <select
+                className="ff-input"
+                value={form.category}
+                onChange={(e) => onChange("category", e.target.value)}
+              >
                 <option value="Prepared Meals">Prepared Meals</option>
                 <option value="Produce">Produce</option>
                 <option value="Bakery">Bakery</option>
@@ -224,17 +133,21 @@ export default function DonorListFood(){
           <div className="form-row">
             <div className="form-group">
               <label>Quantity *</label>
-              <input 
-                type="number" 
-                min="1" 
-                className="ff-input" 
-                value={form.qty} 
-                onChange={e => onChange("qty", e.target.value)} 
+              <input
+                type="number"
+                min="1"
+                className="ff-input"
+                value={form.qty}
+                onChange={(e) => onChange("qty", e.target.value)}
               />
             </div>
             <div className="form-group">
               <label>Unit *</label>
-              <select className="ff-input" value={form.unit} onChange={e => onChange("unit", e.target.value)}>
+              <select
+                className="ff-input"
+                value={form.unit}
+                onChange={(e) => onChange("unit", e.target.value)}
+              >
                 <option value="kg">kg</option>
                 <option value="lbs">lbs</option>
                 <option value="boxes">boxes</option>
@@ -249,47 +162,39 @@ export default function DonorListFood(){
           <div className="form-row">
             <div className="form-group">
               <label>Expiration Date/Time</label>
-              <input 
-                type="datetime-local" 
-                className="ff-input" 
-                value={form.expiresAt} 
-                onChange={e => onChange("expiresAt", e.target.value)} 
+              <input
+                type="datetime-local"
+                className="ff-input"
+                value={form.expiresAt}
+                onChange={(e) => onChange("expiresAt", e.target.value)}
               />
             </div>
             <div className="form-group">
               <label>Pickup Window</label>
-              <input 
-                className="ff-input" 
-                placeholder="e.g., 3-6 PM, 9 AM-12 PM" 
-                value={form.pickupWindow} 
-                onChange={e => onChange("pickupWindow", e.target.value)} 
+              <input
+                className="ff-input"
+                placeholder="e.g., 3-6 PM, 9 AM-12 PM"
+                value={form.pickupWindow}
+                onChange={(e) => onChange("pickupWindow", e.target.value)}
               />
             </div>
           </div>
 
           <div className="form-group">
             <label>Pickup Location *</label>
-            <input 
-              className="ff-input" 
-              placeholder="Full address or specific location details" 
-              value={form.location} 
-              onChange={e => onChange("location", e.target.value)} 
+            <input
+              className="ff-input"
+              placeholder="Full address or specific location details"
+              value={form.location}
+              onChange={(e) => onChange("location", e.target.value)}
             />
           </div>
 
           <div className="form-actions">
-            <button 
-              className="ff-btn ghost" 
-              onClick={clearForm}
-              disabled={saving}
-            >
+            <button className="ff-btn ghost" onClick={clearForm} disabled={saving}>
               Clear Form
             </button>
-            <button 
-              className="ff-btn secondary" 
-              onClick={save}
-              disabled={saving}
-            >
+            <button className="ff-btn secondary" onClick={save} disabled={saving}>
               {saving ? "Creating..." : "Create Listing"}
             </button>
           </div>
@@ -307,7 +212,7 @@ export default function DonorListFood(){
           <div className="loading-state">Loading listings...</div>
         ) : items.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">📝</div>
+            
             <h4>No listings yet</h4>
             <p>Create your first food listing to get started!</p>
           </div>
@@ -321,7 +226,7 @@ export default function DonorListFood(){
                     {item.status}
                   </span>
                 </div>
-                
+
                 <div className="listing-details">
                   <div className="detail-row">
                     <span className="detail-label">Category:</span>
@@ -329,7 +234,9 @@ export default function DonorListFood(){
                   </div>
                   <div className="detail-row">
                     <span className="detail-label">Quantity:</span>
-                    <span className="detail-value">{item.qty} {item.unit}</span>
+                    <span className="detail-value">
+                      {item.qty} {item.unit}
+                    </span>
                   </div>
                   <div className="detail-row">
                     <span className="detail-label">Expires:</span>
@@ -348,10 +255,8 @@ export default function DonorListFood(){
                 </div>
 
                 <div className="listing-actions">
-                  <span className="created-date">
-                    Created: {formatDate(item.createdAt)}
-                  </span>
-                  <button 
+                  <span className="created-date">Created: {formatDate(item.createdAt)}</span>
+                  <button
                     className="ff-btn ghost small danger"
                     onClick={() => handleDelete(item.id)}
                   >
@@ -365,4 +270,39 @@ export default function DonorListFood(){
       </div>
     </div>
   );
+}
+
+// ---- helpers (module-local) ----
+function formatDate(dateString) {
+  if (!dateString) return "—";
+  return new Date(dateString).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function formatDateTime(dateString) {
+  if (!dateString) return "Not specified";
+  return new Date(dateString).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function getStatusColor(status) {
+  switch (status) {
+    case "Active":
+      return "st-active";
+    case "Pending":
+      return "st-pending";
+    case "Completed":
+      return "st-claimed";
+    case "Expired":
+      return "st-closed";
+    default:
+      return "st-closed";
+  }
 }

@@ -1,39 +1,129 @@
-import React from "react";
-import { NavLink, Outlet } from "react-router-dom";
-import "../DonorDashboard/Dashboards.css";
-import brand from "../../assets/Logo_light_background.png"; // your logo
+import React, { useState, useRef, useEffect } from "react";
+import { Outlet, useLocation } from "react-router-dom";
+import "./ReceiverDashboard.css"; 
+export default function ReceiverLayout() {
+  const location = useLocation();
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef(null);
 
-export default function ReceiverLayout(){
+  // Page title
+  const getPageTitle = () => {
+    switch (location.pathname) {
+      case "/receiver":
+        return "Find Food Nearby";
+      case "/receiver/browse":
+        return "Browse Available Food";
+      case "/receiver/requests":
+        return "My Requests";
+      case "/receiver/search":
+        return "Search Organizations";
+      default:
+        return "Receiver Dashboard";
+    }
+  };
+
+  // Page description
+  const getPageDescription = () => {
+    switch (location.pathname) {
+      case "/receiver":
+        return "Find food donations in your area";
+      case "/receiver/browse":
+        return "Browse available food listings";
+      case "/receiver/requests":
+        return "Manage your food requests";
+      case "/receiver/search":
+        return "Search for food donors";
+      default:
+        return "FoodFlow Receiver Portal";
+    }
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const toggleDropdown = () => setShowDropdown((s) => !s);
+
   return (
-    <div className="ff-shell">
+    <div className="receiver-layout">
       {/* Sidebar */}
-      <aside className="ff-side">
-        <div className="brand">
-          <img src={brand} alt="FoodFlow" />
-          <span>RECEIVER</span>
+      <div className="receiver-sidebar">
+        <div className="receiver-sidebar-header">
+          <h2>FoodFlow</h2>
         </div>
 
-        <nav className="ff-nav">
-          <NavLink end to="/receiver" className={({isActive})=>`ff-link ${isActive?'active':''}`}>Dashboard</NavLink>
-          <NavLink to="/receiver/browse" className={({isActive})=>`ff-link ${isActive?'active':''}`}>Find Food</NavLink>
-          <NavLink to="/receiver/requests" className={({isActive})=>`ff-link ${isActive?'active':''}`}>My Requests</NavLink>
-          <NavLink to="/receiver/search" className={({isActive})=>`ff-link ${isActive?'active':''}`}>Search</NavLink>
-        </nav>
-      </aside>
+        <div className="receiver-nav-links">
+          <a
+            href="/receiver"
+            className={`receiver-nav-link ${location.pathname === "/receiver" ? "active" : ""}`}
+          >
+            Dashboard
+          </a>
+          <a
+            href="/receiver/browse"
+            className={`receiver-nav-link ${location.pathname === "/receiver/browse" ? "active" : ""}`}
+          >
+            Find Food
+          </a>
+          <a
+            href="/receiver/requests"
+            className={`receiver-nav-link ${location.pathname === "/receiver/requests" ? "active" : ""}`}
+          >
+            My Requests
+          </a>
+          <a
+            href="/receiver/search"
+            className={`receiver-nav-link ${location.pathname === "/receiver/search" ? "active" : ""}`}
+          >
+            Search
+          </a>
+        </div>
+      </div>
 
-      {/* Main */}
-      <div>
-        <header className="ff-topbar">
-          <strong>FoodFlow</strong>
-          <div className="spacer" />
-          <span className="ff-dot" title="Notifications" />
-          <span style={{fontWeight:700}}>Jane Smith</span>
-          <span className="ff-avatar" />
-        </header>
+      {/* Main Content */}
+      <div className="receiver-main">
+        {/* Top Bar */}
+        <div className="receiver-topbar">
+          <div className="receiver-topbar-left">
+            <h1>{getPageTitle()}</h1>
+            <p>{getPageDescription()}</p>
+          </div>
 
-        <main className="ff-wrap">
+          <div className="receiver-user-info" ref={dropdownRef}>
+            <div className="user-menu" onClick={toggleDropdown}>
+              Receiver Account
+              <span className="dropdown-arrow">▼</span>
+            </div>
+
+            {/* Dropdown Menu */}
+            {showDropdown && (
+              <div className="dropdown-menu">
+                <div className="dropdown-item" onClick={() => setShowDropdown(false)}>
+                  Profile
+                </div>
+                <div className="dropdown-item" onClick={() => setShowDropdown(false)}>
+                  Settings
+                </div>
+                <div className="dropdown-divider"></div>
+                <div className="dropdown-item dropdown-item-logout">
+                  Log Out
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Page Content */}
+        <div className="receiver-content">
           <Outlet />
-        </main>
+        </div>
       </div>
     </div>
   );

@@ -1,48 +1,93 @@
 import React from "react";
-import "../DonorDashboard/Dashboards.css";
+import "./ReceiverDashboard.css";
 
-async function fetchMyRequests(){ // GET /receiver/requests
-  // { items:[{id,itemTitle,donor,qty,status,requestedAt,pickupWindow}], total }
-  return { items: [], total: 0 };
-}
-async function cancelMyRequest(id){ /* PATCH /receiver/requests/:id/cancel */ return true; }
 
-export default function ReceiverRequests(){
-  const [items,setItems]=React.useState([]); const [total,setTotal]=React.useState(0);
-  const [loading,setLoading]=React.useState(true);
-
-  const load = React.useCallback(async()=>{ setLoading(true);
-    try{ const r=await fetchMyRequests(); setItems(r.items||[]); setTotal(r.total||0); }
-    finally{ setLoading(false); }
-  },[]);
-  React.useEffect(()=>{ load(); },[load]);
-
-  async function cancel(x){ await cancelMyRequest(x.id); await load(); }
+export default function ReceiverRequests({
+  items = [],
+  total = 0,
+  loading = false,
+  onCancel = () => {},
+}) {
+  const list = Array.isArray(items) ? items : [];
 
   return (
-    <div className="ff-card">
-      <h3 style={{color:"var(--ff-navy)", marginTop:0}}>My Requests</h3>
-      <table className="ff-table">
-        <thead><tr>
-          <th>Item</th><th>Donor</th><th>Qty</th><th>Status</th><th>Pickup</th><th style={{textAlign:"right"}}>Action</th>
-        </tr></thead>
-        <tbody>
-          {items.map(x=>(
-            <tr key={x.id} className="ff-row">
-              <td>{x.itemTitle}</td>
-              <td>{x.donor}</td>
-              <td>{x.qty}</td>
-              <td><span className={`ff-status ${x.status==="approved"?"st-claimed":x.status==="rejected"?"st-closed":"st-active"}`}>{x.status}</span></td>
-              <td>{x.pickupWindow || "—"}</td>
-              <td style={{textAlign:"right"}}>
-                <button className="ff-btn ghost" onClick={()=>cancel(x)} disabled={x.status!=="pending"}>Cancel</button>
-              </td>
+    <div>
+      <div className="card">
+        <h3 style={{ color: "var(--navy)", marginTop: 0 }}>My Requests</h3>
+
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Donor</th>
+              <th>Qty</th>
+              <th>Status</th>
+              <th>Requested</th>
+              <th style={{ textAlign: "right" }}>Action</th>
             </tr>
-          ))}
-          {items.length===0 && !loading && <tr><td colSpan={6} style={{padding:12,color:"#547f95"}}>No requests yet.</td></tr>}
-        </tbody>
-      </table>
-      <div className="ff-help">{loading?"Loading…":`${items.length} / ${total}`}</div>
+          </thead>
+          <tbody>
+            {list.map((x) => (
+              <tr key={x.id} className="row">
+                <td>{x.itemTitle ?? "—"}</td>
+                <td>{x.donor ?? "—"}</td>
+                <td>{x.qty ?? "—"}</td>
+                <td>
+                  <span className={`status ${statusClass(x.status)}`}>
+                    {x.status ?? "—"}
+                  </span>
+                </td>
+                <td>{x.requestedAt ? formatDate(x.requestedAt) : "—"}</td>
+                <td style={{ textAlign: "right" }}>
+                  <button
+                    className="button ghost"
+                    onClick={() => onCancel(x)}
+                    disabled={(x.status || "").toLowerCase() !== "pending"}
+                  >
+                    Cancel
+                  </button>
+                </td>
+              </tr>
+            ))}
+
+            {list.length === 0 && !loading && (
+              <tr>
+                <td colSpan={6} style={{ padding: 12, color: "#547f95" }}>
+                  No requests yet.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+
+        <div className="help" style={{ marginTop: 10 }}>
+          {loading ? "Loading…" : `${list.length} / ${total}`}
+        </div>
+      </div>
     </div>
   );
+}
+
+// helpers
+function statusClass(status) {
+  switch ((status || "").toLowerCase()) {
+    case "approved":
+      return "st-claimed";
+    case "rejected":
+    case "cancelled":
+    case "canceled":
+      return "st-closed";
+    case "pending":
+      return "st-active";
+    default:
+      return "st-active";
+  }
+}
+
+function formatDate(dateString) {
+  try {
+    return new Date(dateString).toLocaleDateString();
+  } catch {
+    return "—";
+  }
 }

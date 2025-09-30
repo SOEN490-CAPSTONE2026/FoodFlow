@@ -41,7 +41,7 @@ export default function DonorWelcome() {
 
       {/* Important notice with animation */}
       <div ref={noticeRef} className="donate-notice animate-on-scroll">
-        <p>Please note we can only process donations of <strong>one pallet or more</strong>.</p>
+        <p>Make a change starting today.</p>
       </div>
 
       {/* Content sections with staggered animation */}

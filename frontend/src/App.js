@@ -13,12 +13,7 @@ import AdminDashboard from './components/AdminDashboard';
 import DonorDashboard from './components/DonorDashboard/DonorDashboard';
 import PrivateRoutes from './components/PrivateRoutes';
 
-// For the receiver dashboard 
-import ReceiverLayout from './components/ReceiverDashboard/ReceiverLayout';
-import ReceiverDashboardHome from './components/ReceiverDashboard/ReceiverDashboardHome';
-import ReceiverBrowse from './components/ReceiverDashboard/ReceiverBrowse';
-import ReceiverRequests from './components/ReceiverDashboard/ReceiverRequests';
-import ReceiverSearch from './components/ReceiverDashboard/ReceiverSearch';
+import ReceiverDashboard from './components/ReceiverDashboard/ReceiverDashboard';
 
 import './App.css';
 
@@ -47,7 +42,7 @@ function AppContent() {
         />
         
         {/* Donor Dashboard */}
-         <Route path="/donor/*" element={<DonorDashboard />} />
+        <Route path="/donor/*" element={<DonorDashboard />} />
         <Route
           path="/dashboard/donor/*"
           element={
@@ -58,20 +53,15 @@ function AppContent() {
         />
 
         {/* Receiver Dashboard */}
-        <Route path="/receiver" element={<ReceiverLayout />}></Route>
+        <Route path="/receiver/*" element={<ReceiverDashboard />} />
         <Route
           path="/dashboard/receiver/*"
           element={
             <PrivateRoutes allowedRoles={['RECEIVER']}>
-              <ReceiverLayout />
+              <ReceiverDashboard />
             </PrivateRoutes>
           }
-        >
-          <Route index element={<ReceiverDashboardHome />} />
-          <Route path="browse" element={<ReceiverBrowse />} />
-          <Route path="requests" element={<ReceiverRequests />} />
-          <Route path="search" element={<ReceiverSearch />} />
-        </Route>
+        />
       </Routes>
     </div>
   );
