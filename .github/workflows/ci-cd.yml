@@ -17,7 +17,7 @@ jobs:
         ports:
           - 9090:9090
         volumes:
-          - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+          - ${{ github.workspace }}/monitoring:/etc/prometheus
         options: >-
           --health-cmd="curl --fail http://localhost:9090/-/ready || exit 1"
           --health-interval=10s
@@ -29,8 +29,8 @@ jobs:
         ports:
           - 3000:3000
         volumes:
-          - ./monitoring/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
-          - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+          - ${{ github.workspace }}/monitoring/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+          - ${{ github.workspace }}/monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
         options: >-
           --health-cmd="curl --fail http://localhost:3000/api/health || exit 1"
           --health-interval=10s
