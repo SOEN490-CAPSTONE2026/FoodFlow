@@ -11,6 +11,32 @@ on:
 jobs:
   setup:
     runs-on: ubuntu-latest
+    services:
+      prometheus:
+        image: prom/prometheus:latest
+        ports:
+          - 9090:9090
+        volumes:
+          - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+        options: >-
+          --health-cmd="curl --fail http://localhost:9090/-/ready || exit 1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+      grafana:
+        image: grafana/grafana:latest
+        ports:
+          - 3000:3000
+        volumes:
+          - ./monitoring/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+          - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+        options: >-
+          --health-cmd="curl --fail http://localhost:3000/api/health || exit 1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -25,3 +51,25 @@ jobs:
       - name: Install frontend dependencies
         run: npm install
         working-directory: ./frontend
+
+      - name: Verify Prometheus is running
+        run: |
+          for i in {1..5}; do
+            curl --fail http://localhost:9090/-/ready && break
+            echo "Waiting for Prometheus to be ready..."
+            sleep 10
+          done
+
+      - name: Verify Grafana is running
+        run: |
+          for i in {1..5}; do
+            curl --fail http://localhost:3000/api/health && break
+            echo "Waiting for Grafana to be ready..."
+            sleep 10
+          done
+
+      - name: Check Prometheus targets
+        run: curl --fail http://localhost:9090/api/v1/targets
+
+      - name: Check Grafana dashboard
+        run: curl --fail http://localhost:3000/api/dashboards/uid/foodflow-api
