@@ -1,15 +1,21 @@
+import '@testing-library/jest-dom';
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import LoginPage from '../components/LoginPage';
+import { AuthContext } from '../contexts/AuthContext';
 
-// Silence React Router future flag warnings
+// Mock axios to avoid ESM parsing in tests
+jest.mock('axios', () => {
+  const handlers = { get: jest.fn(), post: jest.fn(), put: jest.fn(), delete: jest.fn() };
+  return { __esModule: true, default: { create: () => handlers, ...handlers } };
+});
+
 let warnSpy;
 beforeAll(() => {
   warnSpy = jest.spyOn(console, 'warn').mockImplementation((msg, ...args) => {
     if (String(msg).includes('React Router Future Flag Warning')) return;
-    // Uncomment to pass through other warnings:
-    // console.warn(msg, ...args);
+  
   });
 });
 afterAll(() => warnSpy && warnSpy.mockRestore());
@@ -35,11 +41,22 @@ jest.mock('../services/api', () => ({
 const { authAPI } = require('../services/api');
 
 
-const renderWithRouter = () =>
+const defaultAuthValue = {
+  isLoggedIn: false,
+  login: jest.fn(),
+  logout: jest.fn(),
+  setIsLoggedIn: jest.fn(),
+  user: null,
+  setUser: jest.fn(),
+};
+
+const renderWithProviders = (authOverrides = {}) =>
   render(
-    <MemoryRouter>
-      <LoginPage />
-    </MemoryRouter>
+    <AuthContext.Provider value={{ ...defaultAuthValue, ...authOverrides }}>
+      <MemoryRouter>
+        <LoginPage />
+      </MemoryRouter>
+    </AuthContext.Provider>
   );
 
 describe('LoginPage', () => {
@@ -51,7 +68,7 @@ describe('LoginPage', () => {
   });
 
   test('renders email, password fields and submit button', () => {
-    renderWithRouter();
+    renderWithProviders();
 
     expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/password/i, { selector: 'input' })).toBeInTheDocument();
@@ -68,7 +85,7 @@ describe('LoginPage', () => {
   });
 
   test('password visibility toggle switches input type and aria-label', () => {
-    renderWithRouter();
+    renderWithProviders();
 
     const pwd = screen.getByLabelText(/password/i, { selector: 'input' });
     const toggle = screen.getByRole('button', { name: /show password/i });
@@ -89,7 +106,7 @@ describe('LoginPage', () => {
   test('successful login saves token and navigates to /dashboard', async () => {
     authAPI.login.mockResolvedValueOnce({ data: { token: 'abc123' } });
 
-    renderWithRouter();
+    renderWithProviders();
 
     fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: 'user@example.com' },
@@ -101,7 +118,6 @@ describe('LoginPage', () => {
     const submit = screen.getByRole('button', { name: /log in/i });
     fireEvent.click(submit);
 
-    // Button shows loading state
     expect(screen.getByRole('button', { name: /logging in/i })).toBeDisabled();
 
     await waitFor(() => {
@@ -123,7 +139,7 @@ describe('LoginPage', () => {
   test('failed login shows error and does not navigate', async () => {
     authAPI.login.mockRejectedValueOnce(new Error('bad creds'));
 
-    renderWithRouter();
+    renderWithProviders();
 
     fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: 'user@example.com' },
@@ -133,14 +149,8 @@ describe('LoginPage', () => {
     });
 
     fireEvent.click(screen.getByRole('button', { name: /log in/i }));
-
-    // Error message appears
     expect(await screen.findByText(/invalid email or password/i)).toBeInTheDocument();
-
-    // No navigation on failure
     expect(mockNavigate).not.toHaveBeenCalled();
-
-    // Button returns to normal state
     expect(screen.getByRole('button', { name: /log in/i })).not.toBeDisabled();
   });
 });
