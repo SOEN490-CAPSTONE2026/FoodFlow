@@ -17,7 +17,7 @@ jobs:
         ports:
           - 9090:9090
         volumes:
-          - ${{ github.workspace }}/monitoring/prometheus:/etc/prometheus
+          - ${{ github.workspace }}/monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
         options: >-
           --health-cmd="curl --fail http://localhost:9090/-/ready || exit 1"
           --health-interval=10s
