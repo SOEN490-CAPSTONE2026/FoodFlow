@@ -1,0 +1,18 @@
+/* MAIN COLOR SCHEME */
+:root{
+    --green: #609B7E;
+    --blue: #83C5BE;
+    --light-blue: #BEE9E8;
+    --quaternary-color: #EAF9F9;
+    --black: #000;
+    --white: #fff;
+    --dark-blue:#62B6CB;
+    --navy: #1B4965;
+    --dark-green:#047857;
+    --light-green:#059669;
+    --gray:#4B5563;
+    --light-gray:#9E9E9E;
+    --blue-ciel: #0891B2;
+    --ice-blue: #C2F1FF;
+    --ice-green:#CCFBF1;
+}
