@@ -91,8 +91,17 @@ class SurplusServiceTest {
     @Test
     void testCreateSurplusPost_SetsCorrectDonor() {
         // Given
+        SurplusPost mockSavedPost = new SurplusPost();
+        mockSavedPost.setId(1L);
+        mockSavedPost.setDonor(donor);  // ✅ ADD THIS - set the donor!
+        mockSavedPost.setType("Vegetables");
+        mockSavedPost.setQuantity("10 kg");
+        mockSavedPost.setLocation("123 Main St");
+        mockSavedPost.setExpiryDate(request.getExpiryDate());
+        mockSavedPost.setPickupTime(request.getPickupTime());
+        
         ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
-        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(new SurplusPost());
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(mockSavedPost);  // ✅ Return mock with donor
 
         // When
         surplusService.createSurplusPost(request, donor);
@@ -109,8 +118,17 @@ class SurplusServiceTest {
     @Test
     void testCreateSurplusPost_MapsAllFields() {
         // Given
+        SurplusPost mockSavedPost = new SurplusPost();
+        mockSavedPost.setId(1L);
+        mockSavedPost.setDonor(donor);  // ✅ ADD THIS - set the donor!
+        mockSavedPost.setType("Vegetables");
+        mockSavedPost.setQuantity("10 kg");
+        mockSavedPost.setLocation("123 Main St");
+        mockSavedPost.setExpiryDate(request.getExpiryDate());
+        mockSavedPost.setPickupTime(request.getPickupTime());
+        
         ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
-        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(new SurplusPost());
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(mockSavedPost);  // ✅ Return mock with donor
 
         // When
         surplusService.createSurplusPost(request, donor);
@@ -125,4 +143,5 @@ class SurplusServiceTest {
         assertThat(capturedPost.getExpiryDate()).isEqualTo(request.getExpiryDate());
         assertThat(capturedPost.getPickupTime()).isEqualTo(request.getPickupTime());
     }
+
 }
