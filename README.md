@@ -100,51 +100,6 @@ npm test -- --coverage     # Run with coverage
 
 Coverage report: `frontend/coverage/lcov-report/index.html`
 
-### Database Setup
-
-The database is automatically initialized when using Docker Compose. For local development:
-
-- The schema is auto-created via JPA
-- Initial data can be added through the registration endpoints
-
-### Architecture Overview
-
-```javascript
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   React     │────▶│ Spring Boot │────▶│ PostgreSQL  │
-│  Frontend   │     │   Backend   │     │  Database   │
-└─────────────┘     └─────────────┘     └─────────────┘
-       │                    │
-       │                    │
-       ▼                    ▼
-┌─────────────┐     ┌─────────────┐
-│   Grafana   │◀────│ Prometheus  │
-│  Dashboard  │     │   Metrics   │
-└─────────────┘     └─────────────┘
-```
-
-### Key Features Implemented
-
-- ✅ User registration (Donor/Receiver)
-- ✅ JWT authentication
-- ✅ Password encryption (BCrypt)
-- ✅ Organization profiles
-- ✅ Role-based access control
-- ✅ Docker containerization
-- ✅ Prometheus metrics
-- ✅ Grafana dashboards
-- ✅ Comprehensive testing (85%+ coverage)
-
-### Tech Stack
-
-- __Frontend__: React 18, React Router, Axios
-- __Backend__: Spring Boot 3, Spring Security, Spring Data JPA
-- __Database__: PostgreSQL 15
-- __Authentication__: JWT (JSON Web Tokens)
-- __Testing__: JUnit 5, Mockito, Jest, React Testing Library
-- __Monitoring__: Prometheus, Grafana
-- __Containerization__: Docker, Docker Compose
-
 ### Troubleshooting
 
 __Port conflicts:__
