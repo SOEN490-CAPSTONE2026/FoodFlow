@@ -129,10 +129,6 @@ __Backend not connecting to database:__
 - Check database credentials in .env
 - Review logs: `docker-compose logs backend`
 
-### Contributing
-
-Please read our [Contributing Guidelines](CONTRIBUTING.md) before submitting pull requests.
-
 ### Team
 
 - Alexandre Payumo (40249777)
@@ -149,7 +145,7 @@ Please read our [Contributing Guidelines](CONTRIBUTING.md) before submitting pul
 
 ## 📊 Project Board
 
-[FoodFlow Project Board](https://github.com/orgs/SOEN490-CAPSTONE2026/projects/%5BYOUR_PROJECT_NUMBER%5D)
+[FoodFlow Project Board](https://github.com/orgs/SOEN490-CAPSTONE2026/projects/1)
 
 ## 📄 License
 
