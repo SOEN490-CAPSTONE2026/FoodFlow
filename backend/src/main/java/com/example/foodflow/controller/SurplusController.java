@@ -23,7 +23,7 @@ public class SurplusController {
     }
     
     @PostMapping
-    @PreAuthorize("hasRole('DONOR')")
+    @PreAuthorize("hasAuthority('DONOR')")
     public ResponseEntity<SurplusResponse> createSurplusPost(
             @Valid @RequestBody CreateSurplusRequest request,
             @AuthenticationPrincipal User donor) {
