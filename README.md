@@ -34,17 +34,19 @@ FoodFlow is a platform that connects restaurants, grocery stores, bakeries, and 
    Create a `.env` file in the project root:
 
    ```bash
-   POSTGRES_DB=foodflow_db
-   POSTGRES_USER=foodflow_user
-   POSTGRES_PASSWORD=foodflow_password
-   DB_HOST=postgres
-   DB_PORT=5432
-   SERVER_PORT=8080
-   JWT_SECRET=myVeryLongSecretKeyThatIsAtLeast32CharactersLongForSecurity
-   JWT_EXPIRATION=86400000
-   REACT_APP_API_BASE_URL=http://localhost:8080/api
-   CORS_ALLOWED_ORIGINS=http://localhost:3000
+   POSTGRES_DB=
+   POSTGRES_USER=
+   POSTGRES_PASSWORD=
+   DB_HOST=
+   DB_PORT=
+   SERVER_PORT=
+   JWT_SECRET=
+   JWT_EXPIRATION=
+   REACT_APP_API_BASE_URL=
+   CORS_ALLOWED_ORIGINS=
    ```
+
+   Ask a team member for the necessary values for the .env file
 
 3. __Start all services__
 
