@@ -85,9 +85,13 @@ npm start
 #### Backend Tests
 
 ```bash
+# 1. Start database only
+docker-compose up postgres -d
+
+# Run tests locally
 cd backend
-mvn test                    # Run all tests
-mvn jacoco:report          # Generate coverage report
+./mvnw clean test "-Dspring.profiles.active=test"
+./mvnw jacoco:report
 ```
 
 Coverage report: `backend/target/site/jacoco/index.html`
