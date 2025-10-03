@@ -5,7 +5,7 @@
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
 ## 🎬 Release Demos
-- [Release 1 Demo]() - User Registration & Authentication System
+- [Release 1 Demo]() - [Coming Soon]
 - [Release 2 Demo]() - [Coming Soon]
 - [Release 3 Demo]() - [Coming Soon]
 
@@ -27,7 +27,7 @@ FoodFlow is a platform that connects restaurants, grocery stores, bakeries, and 
    ```bash
    git clone https://github.com/SOEN490-CAPSTONE2026/FoodFlow.git
    cd FoodFlow
-````
+   ```
 
 2. __Create environment file__
 
