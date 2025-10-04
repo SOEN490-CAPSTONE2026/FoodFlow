@@ -467,3 +467,124 @@
     padding: 8px 12px;
   }
 }
+
+/* ================================
+   RECEIVER THEME OVERRIDES to match the landing page theme 
+================================ */
+
+
+:root{
+  --navy: #1B4965;   
+  --sky:  #62B6CB;  
+  --ice:  #F1FAFE;  
+  --mint: #A7E7DE;   
+  --green:#3AA78A;   
+}
+
+/* Layout background to match donor vibe */
+.receiver-layout { background: #F7FBFD; }
+
+/* Sidebar: hover/active feel consistent with donor */
+.receiver-nav-link:hover{
+  background: rgba(255,255,255,0.12);
+  color:#fff;
+}
+.receiver-nav-link.active{
+  background: linear-gradient(135deg, var(--sky), #3577a0);
+  color:#fff;
+  font-weight: 700;
+}
+
+/* Top bar headline + user chip colors aligned */
+.receiver-topbar-left h1 { color: var(--navy); }
+.user-menu{
+  background: var(--ice);
+  color: var(--navy);
+  border: 1px solid #e6f2f7;
+}
+.user-menu:hover{ background:#ecf8fd; }
+.dropdown-item:hover{ background-color:#f6fafc; }
+
+/* Logout hover tint (subtle danger without harsh green) */
+.dropdown-item-logout{
+  color:#dc3545;
+  font-weight: 600;
+}
+.dropdown-item-logout:hover{
+  background-color:#fff5f5;
+  color:#dc3545;
+}
+
+.tile{
+  box-shadow: 0 6px 20px rgba(27,73,101,0.08);
+}
+/* Tile color classes already derive from vars; keep them */
+.tile.sky  { background: var(--sky);  color:#072b3a; }
+.tile.green{ background: var(--green); color:#fff; }
+.tile.navy { background: var(--navy);  color:#fff; }
+.tile.ice  { background: var(--ice);   color:#083041; }
+.tile.mint { background: var(--mint);  color:#083041; }
+
+
+.button{
+  background: linear-gradient(135deg, var(--green), #2d8f77);
+  color:#fff;
+  border:none;
+}
+.button:hover{
+  background: linear-gradient(135deg, #2d8f77, var(--green));
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+}
+.button:disabled{
+  background:#c6d3da;
+  box-shadow:none;
+  transform:none;
+}
+
+/* Secondary / Ghost variants */
+.button.secondary{
+  background: linear-gradient(135deg, var(--sky), #3a8fb9);
+  color:#fff;
+}
+.button.secondary:hover{
+  background: linear-gradient(135deg, #3a8fb9, var(--sky));
+}
+.button.ghost{
+  background: transparent;
+  color: var(--navy);
+  border:1px solid var(--navy);
+}
+.button.ghost:hover{
+  background: var(--navy);
+  color:#fff;
+}
+
+
+.input:focus{
+  outline:none;
+  border-color: var(--sky);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sky) 25%, transparent);
+}
+
+
+.card{ box-shadow: 0 4px 12px rgba(27,73,101,0.08); }
+.table th{ background: #F3F9FC; color: var(--navy); }
+
+/* Status badges aligned to palette */
+.st-active{
+  background: color-mix(in srgb, var(--sky) 28%, white);
+  color: #0f3547;
+}
+.st-claimed{
+  background: color-mix(in srgb, var(--green) 22%, white);
+  color: #0f5132;
+}
+.st-closed{
+  background: #F8D7DA;
+  color: #842029;
+}
+
+/* Small helpers */
+.help{ color:#5b7a91; }
+.row:hover{ background:#f3f9fc; }

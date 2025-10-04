@@ -679,3 +679,91 @@
   background-color: #e0e0e0;
   margin: 4px 0;
 }
+
+
+/* ================================
+   THEME OVERRIDES to match the css of the landing page 
+===================================*/
+
+
+:root{
+  --ff-navy: #1B4965;     
+  --ff-sky:  #62B6CB;     
+  --ff-ice:  #F1FAFE;     
+  --ff-mint: #A7E7DE;    
+  --ff-green:#3AA78A;     
+}
+
+/* Layout background a touch cooler to match hero vibe */
+.ff-donor-layout{ background: #F7FBFD; }
+
+/* Sidebar: crisper hover/active using brand tones */
+.ff-donor-nav-link:hover{
+  background: rgba(255,255,255,0.12);
+  color:#fff;
+}
+.ff-donor-nav-link.active{
+  background: linear-gradient(135deg, var(--ff-sky), #3577a0);
+  color:#fff;
+}
+
+/* Topbar: headline + chip colors aligned */
+.ff-donor-topbar-left h1{ color: var(--ff-navy); }
+.ff-donor-user-info{
+  background: var(--ff-ice);
+  color: var(--ff-navy);
+}
+
+/* Donate area: notices/buttons tuned to brand */
+.donate-notice{
+  background: linear-gradient(180deg, #F7FCFF 0%, #EFF9FE 100%);
+  border-color: var(--ff-sky);
+  color:#0f3547;
+}
+.donate-btn.primary{
+  background: linear-gradient(135deg, var(--ff-green), #2d8f77);
+}
+.donate-btn.primary:hover{
+  background: linear-gradient(135deg, #2d8f77, var(--ff-green));
+}
+.donate-btn.secondary{
+  color: var(--ff-navy);
+  border-color: var(--ff-navy);
+}
+.donate-btn.secondary:hover{
+  background: var(--ff-navy);
+  color:#fff;
+}
+
+
+.donor-tile{
+  box-shadow: 0 6px 20px rgba(27,73,101,0.08);
+}
+.donor-tile.sky  { background: var(--ff-sky);  color:#072b3a; }
+.donor-tile.green{ background: var(--ff-green); color:#fff; }
+.donor-tile.navy { background: var(--ff-navy); color:#fff; }
+.donor-tile.ice  { background: var(--ff-ice);  color:#083041; }
+.donor-tile.mint { background: var(--ff-mint); color:#083041; }
+
+/* Charts: align fills/strokes to brand */
+.bar{
+  background: linear-gradient(to top, var(--ff-sky), #9ed7e8);
+}
+.bar-value{ color: var(--ff-navy); }
+
+.line-path{ stroke: var(--ff-green); }
+.line-area{ fill: color-mix(in srgb, var(--ff-green) 18%, transparent); }
+
+.legend-color:nth-child(1){ background: var(--ff-sky); }
+.legend-color:nth-child(2){ background: var(--ff-green); }
+.legend-color:nth-child(3){ background: var(--ff-navy); }
+
+/* Metric cards: left accents in palette */
+.metric-card{ border-left-color: var(--ff-sky); }
+.metric-card.green{ border-left-color: var(--ff-green); }
+.metric-card.navy{ border-left-color: var(--ff-navy); }
+.metric-card.mint{ border-left-color: var(--ff-mint); }
+
+/* Dropdown hover tint slightly cooler */
+.ff-user-menu:hover{ background-color:#f2f8fb; }
+.ff-dropdown-item:hover{ background-color:#f6fafc; }

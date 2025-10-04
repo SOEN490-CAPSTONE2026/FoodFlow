@@ -15,6 +15,19 @@ export default function DonorSearch({
   onSearch = () => {},
 }) {
   const [q, setQ] = React.useState("");
+  const searchBtnRef = React.useRef(null);
+
+  // NEW: scroll/focus the Search button when arriving with #org-search
+  React.useEffect(() => {
+    if (window.location.hash === "#org-search" && searchBtnRef.current) {
+      searchBtnRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+      const t = setTimeout(
+        () => searchBtnRef.current?.focus({ preventScroll: true }),
+        150
+      );
+      return () => clearTimeout(t);
+    }
+  }, []);
 
   const run = () => onSearch(q);
   const onKeyDown = (e) => {
@@ -31,7 +44,13 @@ export default function DonorSearch({
           onChange={(e) => setQ(e.target.value)}
           onKeyDown={onKeyDown}
         />
-        <button className="ff-btn" onClick={run} disabled={loading}>
+        <button
+          id="org-search"              // <-- anchor target
+          ref={searchBtnRef}           // <-- used by the effect above
+          className="ff-btn"
+          onClick={run}
+          disabled={loading}
+        >
           {loading ? "Searching…" : "Search"}
         </button>
         <div className="spacer" />
@@ -64,7 +83,10 @@ export default function DonorSearch({
               <tr key={x.id} className="ff-row">
                 <td>{x.title}</td>
                 <td>{x.category}</td>
-                <td>{x.qty}{x.unit ? ` ${x.unit}` : ""}</td>
+                <td>
+                  {x.qty}
+                  {x.unit ? ` ${x.unit}` : ""}
+                </td>
                 <td>{x.expiresAt ? formatDateTime(x.expiresAt) : "—"}</td>
                 <td>
                   <span className={`ff-status ${statusClass(x.status)}`}>
@@ -88,7 +110,7 @@ export default function DonorSearch({
   );
 }
 
-// helpers
+// helpers (unchanged)
 function formatDateTime(dateString) {
   try {
     return new Date(dateString).toLocaleString("en-US", {
