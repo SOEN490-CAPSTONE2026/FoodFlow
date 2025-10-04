@@ -1,47 +1,44 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LandingPage from './components/LandingPage';
 import RegisterType from './components/RegisterType';
 import DonorRegistration from './components/DonorRegistration';
 import ReceiverRegistration from './components/ReceiverRegistration';
 import LoginPage from './components/LoginPage';
 import TempDashboard from './components/TempDashboard';
-//import NavigationBar from './components/NavigationBar';
+// import NavigationBar from './components/NavigationBar';
 import { AuthProvider } from './contexts/AuthContext';
 import { useAnalytics } from './hooks/useAnalytics';
-import AdminDashboard from './components/AdminDashboard';
-import DonorDashboard from './components/DonorDashboard/DonorDashboard';
 import PrivateRoutes from './components/PrivateRoutes';
 
+/* Dashboards */
+import AdminDashboard from './components/AdminDashboard/AdminDashboard';
+import DonorDashboard from './components/DonorDashboard/DonorDashboard';
 import ReceiverDashboard from './components/ReceiverDashboard/ReceiverDashboard';
 
 import './App.css';
 
 function AppContent() {
-  useAnalytics(); // This will track page views automatically
+  useAnalytics(); // track page views
 
   return (
     <div className="App">
       {/* <NavigationBar /> */}
       <Routes>
+        {/* Public */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/register" element={<RegisterType />} />
         <Route path="/register/donor" element={<DonorRegistration />} />
         <Route path="/register/receiver" element={<ReceiverRegistration />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/dashboard" element={<TempDashboard />} />
-        
-        {/* Admin Dashboard */}
-        <Route
-          path="/dashboard/admin"
-          element={
-            <PrivateRoutes allowedRoles={['ADMIN']}>
-              <AdminDashboard />
-            </PrivateRoutes>
-          }
-        />
-        
-        {/* Donor Dashboard */}
+
+        {/* ===== Admin Dashboard (UNPROTECTED for dev preview) ===== */}
+        <Route path="/admin/*" element={<AdminDashboard />} />
+        {/* Back-compat redirect from old path */}
+        <Route path="/dashboard/admin/*" element={<Navigate to="/admin" replace />} />
+
+        {/* ===== Donor Dashboard ===== */}
         <Route path="/donor/*" element={<DonorDashboard />} />
         <Route
           path="/dashboard/donor/*"
@@ -52,7 +49,7 @@ function AppContent() {
           }
         />
 
-        {/* Receiver Dashboard */}
+        {/* ===== Receiver Dashboard ===== */}
         <Route path="/receiver/*" element={<ReceiverDashboard />} />
         <Route
           path="/dashboard/receiver/*"
