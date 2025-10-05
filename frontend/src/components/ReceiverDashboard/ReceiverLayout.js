@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import "./ReceiverDashboard.css"; 
+
 export default function ReceiverLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -10,7 +12,10 @@ export default function ReceiverLayout() {
   const getPageTitle = () => {
     switch (location.pathname) {
       case "/receiver":
-        return "Find Food Nearby";
+      case "/receiver/dashboard":
+        return "Receiver Dashboard";
+      case "/receiver/welcome":            // <-- ADDED
+        return "Welcome";
       case "/receiver/browse":
         return "Browse Available Food";
       case "/receiver/requests":
@@ -26,7 +31,10 @@ export default function ReceiverLayout() {
   const getPageDescription = () => {
     switch (location.pathname) {
       case "/receiver":
-        return "Find food donations in your area";
+      case "/receiver/dashboard":
+        return "Overview of nearby food and your activity";
+      case "/receiver/welcome":            // <-- ADDED
+        return "Start here: search the map or browse nearby food";
       case "/receiver/browse":
         return "Browse available food listings";
       case "/receiver/requests":
@@ -51,6 +59,20 @@ export default function ReceiverLayout() {
 
   const toggleDropdown = () => setShowDropdown((s) => !s);
 
+  // Logout → clear storage + go to LandingPage (scroll to home section)
+  const handleLogout = async () => {
+    try {
+      // await auth.logout?.(); // if you have an auth service
+    } catch (e) {
+      // optional: log
+    } finally {
+      localStorage.removeItem("token");
+      sessionStorage.clear();
+      setShowDropdown(false);
+      navigate("/", { replace: true, state: { scrollTo: "home" } });
+    }
+  };
+
   return (
     <div className="receiver-layout">
       {/* Sidebar */}
@@ -60,26 +82,39 @@ export default function ReceiverLayout() {
         </div>
 
         <div className="receiver-nav-links">
+          {/* NEW Welcome link (keeps Dashboard too) */}
+          <a
+            href="/receiver/welcome"
+            className={`receiver-nav-link ${location.pathname === "/receiver/welcome" ? "active" : ""}`}
+          >
+            Welcome
+          </a>
+
           <a
             href="/receiver"
-            className={`receiver-nav-link ${location.pathname === "/receiver" ? "active" : ""}`}
+            className={`receiver-nav-link ${
+              location.pathname === "/receiver" || location.pathname === "/receiver/dashboard" ? "active" : ""
+            }`}
           >
             Dashboard
           </a>
+
           <a
             href="/receiver/browse"
             className={`receiver-nav-link ${location.pathname === "/receiver/browse" ? "active" : ""}`}
           >
             Find Food
           </a>
+
           <a
             href="/receiver/requests"
             className={`receiver-nav-link ${location.pathname === "/receiver/requests" ? "active" : ""}`}
           >
             My Requests
           </a>
+
           <a
-            href="/receiver/search"
+            href="/receiver/search#org-search"
             className={`receiver-nav-link ${location.pathname === "/receiver/search" ? "active" : ""}`}
           >
             Search
@@ -112,7 +147,7 @@ export default function ReceiverLayout() {
                   Settings
                 </div>
                 <div className="dropdown-divider"></div>
-                <div className="dropdown-item dropdown-item-logout">
+                <div className="dropdown-item dropdown-item-logout" onClick={handleLogout}>
                   Log Out
                 </div>
               </div>

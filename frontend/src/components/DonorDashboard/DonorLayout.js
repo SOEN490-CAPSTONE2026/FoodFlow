@@ -1,9 +1,10 @@
 // DonorLayout.jsx
 import React, { useState, useRef, useEffect } from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 
 export default function DonorLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
   
@@ -60,6 +61,29 @@ export default function DonorLayout() {
   const toggleDropdown = () => {
     setShowDropdown(!showDropdown);
   };
+
+  // ---- LOGOUT HANDLER (connect your existing logout here if needed) ----
+  const handleLogout = async () => {
+    try {
+      // If you have an auth service/hook, call it here:
+      // await auth.logout();
+    } catch (e) {
+      // optional: log error
+    } finally {
+      // Safety cleanup in case you store tokens locally
+      localStorage.removeItem("token");
+      sessionStorage.clear();
+
+      setShowDropdown(false);
+
+      // Navigate to landing page; scroll to a section via location.state
+      navigate("/", {
+        replace: true,
+        state: { scrollTo: "home" }, // or "how-it-works" | "about" | "faqs" | "contact"
+      });
+    }
+  };
+  // --------------------------------------------------------------------
 
   return (
     <div className="ff-donor-layout">
@@ -127,7 +151,7 @@ export default function DonorLayout() {
                   Settings
                 </div>
                 <div className="ff-dropdown-divider"></div>
-                <div className="ff-dropdown-item ff-dropdown-item-logout">
+                <div className="ff-dropdown-item ff-dropdown-item-logout" onClick={handleLogout}>
                   Log Out
                 </div>
               </div>
