@@ -95,7 +95,7 @@ const LoginPage = () => {
                   {loading ? 'Logging in…' : 'LOG IN'}
                 </button>
 
-                <p className="form-footer">Don't have an account? <Link to="/signup">Sign up</Link></p>
+                <p className="form-footer">Don't have an account? <button type="button" className="link-button" onClick={() => navigate("/register")}>Sign up</button></p>
               </form>
             </div>
           </div>
