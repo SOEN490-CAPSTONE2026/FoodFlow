@@ -10,14 +10,23 @@ import NavigationBar from './components/NavigationBar';
 import { AuthProvider } from './contexts/AuthContext';
 import { useAnalytics } from './hooks/useAnalytics';
 import SurplusForm from './components/SurplusForm';
+import PrivacyPolicy from './components/PrivacyPolicy'; 
 import './App.css';
+
+import { useLocation } from "react-router-dom";
 
 function AppContent() {
   useAnalytics(); // This will track page views automatically
+  const location = useLocation();
+
+  // Hide navbar on login and registration pages
+  const hideNavbar =
+    location.pathname === "/login" ||
+    location.pathname.startsWith("/register");
 
   return (
     <div className="App">
-      <NavigationBar />
+      {!hideNavbar && <NavigationBar />}
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/register" element={<RegisterType />} />
@@ -26,6 +35,7 @@ function AppContent() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/dashboard" element={<TempDashboard />} />
         <Route path="/surplus/create" element={<SurplusForm />} />
+         <Route path="/privacy-policy" element={<PrivacyPolicy />} /> 
       </Routes>
     </div>
   );
