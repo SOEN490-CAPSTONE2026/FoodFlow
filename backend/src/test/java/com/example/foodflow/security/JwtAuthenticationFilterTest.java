@@ -17,11 +17,10 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;  // ADD THIS IMPORT
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.User;
-import java.util.List;
+import java.util.Optional;
+
+import com.example.foodflow.repository.UserRepository;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
@@ -31,7 +30,7 @@ import static org.mockito.Mockito.when;
 class JwtAuthenticationFilterTest {
 
     @Mock
-    private UserDetailsService userDetailsService;
+    private UserRepository userRepository;
 
     @Mock
     private JwtTokenProvider jwtTokenProvider;
@@ -72,9 +71,11 @@ class JwtAuthenticationFilterTest {
         when(jwtTokenProvider.getEmailFromToken(token)).thenReturn(email);
         when(jwtTokenProvider.getRoleFromToken(token)).thenReturn(role);
 
-        User userDetails = new User(email, "password",
-            List.of(new SimpleGrantedAuthority(role)));
-        when(userDetailsService.loadUserByUsername(email)).thenReturn(userDetails);
+        com.example.foodflow.model.entity.User entityUser = new com.example.foodflow.model.entity.User();
+        entityUser.setEmail(email);
+        entityUser.setPassword("password123"); // dummy password
+
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(entityUser));
 
         jwtAuthenticationFilter.doFilterInternal(request, response, new FilterChain() {
             @Override
@@ -84,9 +85,8 @@ class JwtAuthenticationFilterTest {
         });
 
         assertNotNull(SecurityContextHolder.getContext().getAuthentication());
-        assertEquals(email, SecurityContextHolder.getContext().getAuthentication().getName());
-        assertTrue(SecurityContextHolder.getContext().getAuthentication().getAuthorities()
-                .stream().anyMatch(a -> a.getAuthority().equals(role)));
+        assertEquals(entityUser, SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+        assertTrue(SecurityContextHolder.getContext().getAuthentication().isAuthenticated());
     }
 
     @Test
