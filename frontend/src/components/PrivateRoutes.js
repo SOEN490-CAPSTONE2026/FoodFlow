@@ -9,15 +9,15 @@ const PrivateRoutes = ({ children }) => {
   if (!isLoggedIn) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
-  if (location.pathname.startsWith("/dashboard/admin") && role !== "ADMIN") {
+  if (location.pathname.startsWith("/admin") && role !== "ADMIN") {
     return <Navigate to="/login" replace />;
   }
 
-  if (location.pathname.startsWith("/dashboard/donor") && role !== "DONOR") {
+  if (location.pathname.startsWith("/donor/*") && role !== "DONOR") {
     return <Navigate to="/login" replace />;
   }
 
-  if (location.pathname.startsWith("/dashboard/receiver") && role !== "RECEIVER") {
+  if (location.pathname.startsWith("/receiver/*") && role !== "RECEIVER") {
     return <Navigate to="/login" replace />;
   }
 

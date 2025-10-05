@@ -8,10 +8,10 @@ describe("PrivateRoutes", () => {
   test("renders protected content when logged in with correct role", () => {
     render(
       <AuthContext.Provider value={{ isLoggedIn: true, role: "DONOR" }}>
-        <MemoryRouter initialEntries={["/dashboard/donor"]}>
+        <MemoryRouter initialEntries={["/donor/*"]}>
           <Routes>
             <Route
-              path="/dashboard/donor"
+              path="/donor/*"
               element={
                 <PrivateRoutes>
                   <div>Donor Dashboard</div>
@@ -29,10 +29,10 @@ describe("PrivateRoutes", () => {
   test("redirects to login when logged in but role does not match", () => {
     render(
       <AuthContext.Provider value={{ isLoggedIn: true, role: "DONOR" }}>
-        <MemoryRouter initialEntries={["/dashboard/admin"]}>
+        <MemoryRouter initialEntries={["/admin"]}>
           <Routes>
             <Route
-              path="/dashboard/admin"
+              path="/admin"
               element={
                 <PrivateRoutes>
                   <div>Admin Dashboard</div>
@@ -51,10 +51,10 @@ describe("PrivateRoutes", () => {
   test("redirects to login when not logged in", () => {
     render(
       <AuthContext.Provider value={{ isLoggedIn: false, role: null }}>
-        <MemoryRouter initialEntries={["/dashboard/donor"]}>
+        <MemoryRouter initialEntries={["/donor/*"]}>
           <Routes>
             <Route
-              path="/dashboard/donor"
+              path="/donor/*"
               element={
                 <PrivateRoutes>
                   <div>Donor Dashboard</div>
