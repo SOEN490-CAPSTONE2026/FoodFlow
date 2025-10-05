@@ -79,7 +79,7 @@ export default function DonorLayout() {
       // Navigate to landing page; scroll to a section via location.state
       navigate("/", {
         replace: true,
-        state: { scrollTo: "home" }, // or "how-it-works" | "about" | "faqs" | "contact"
+        state: { scrollTo: "home" }, 
       });
     }
   };

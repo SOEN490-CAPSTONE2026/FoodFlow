@@ -3,7 +3,7 @@ import { render, screen, fireEvent, within } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 
-// Mock only useNavigate; keep the rest of react-router-dom real
+// Mock only useNavigate
 const mockedNavigate = jest.fn();
 jest.mock("react-router-dom", () => {
   const actual = jest.requireActual("react-router-dom");
@@ -34,7 +34,7 @@ describe("AdminLayout", () => {
     sessionStorage.clear();
   });
 
-  // IMPORTANT: parent route MUST have a path ("/admin/*") and children must be relative
+  // parent route MUST have a path ("/admin/*") and children must be relative
   const renderWithRoutes = (initialPath = "/admin") =>
     render(
       <MemoryRouter initialEntries={[initialPath]}>

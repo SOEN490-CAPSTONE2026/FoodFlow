@@ -1,14 +1,7 @@
 import React from "react";
 import "./Dashboards.css";
 
-/**
- * Props:
- * - items: [{ id, receiver, itemTitle, qty, status ('pending'|'approved'|'rejected'), requestedAt? }]
- * - total: number
- * - loading: boolean
- * - onApprove: (id) => void|Promise<void>
- * - onReject: (id) => void|Promise<void>
- */
+
 export default function DonorRequests({
   items = [],
   total = 0,

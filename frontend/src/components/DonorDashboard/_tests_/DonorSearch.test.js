@@ -26,7 +26,7 @@ test('runs onSearch when clicking Search and when pressing Enter', async () => {
   await user.click(screen.getByRole('button', { name: /search/i }));
   expect(onSearch).toHaveBeenCalledWith('apples');
 
-  // Enter key path
+  
   onSearch.mockClear();
   await user.clear(input);
   await user.type(input, 'bananas{enter}');
