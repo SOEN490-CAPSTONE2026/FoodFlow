@@ -13,11 +13,11 @@ const PrivateRoutes = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
-  if (location.pathname.startsWith("/donor/*") && role !== "DONOR") {
+  if (location.pathname.startsWith("/donor") && role !== "DONOR") {
     return <Navigate to="/login" replace />;
   }
 
-  if (location.pathname.startsWith("/receiver/*") && role !== "RECEIVER") {
+  if (location.pathname.startsWith("/receiver") && role !== "RECEIVER") {
     return <Navigate to="/login" replace />;
   }
 

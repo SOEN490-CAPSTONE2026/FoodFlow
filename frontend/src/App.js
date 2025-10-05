@@ -39,9 +39,8 @@ function AppContent() {
         <Route path="/dashboard/admin/*" element={<Navigate to="/admin" replace />} />
 
         {/* ===== Donor Dashboard ===== */}
-        <Route path="/donor/*" element={<DonorDashboard />} />
         <Route
-          path="/dashboard/donor/*"
+          path="/donor"
           element={
             <PrivateRoutes allowedRoles={['DONOR']}>
               <DonorDashboard />
@@ -50,9 +49,8 @@ function AppContent() {
         />
 
         {/* ===== Receiver Dashboard ===== */}
-        <Route path="/receiver/*" element={<ReceiverDashboard />} />
         <Route
-          path="/dashboard/receiver/*"
+          path="/receiver"
           element={
             <PrivateRoutes allowedRoles={['RECEIVER']}>
               <ReceiverDashboard />
