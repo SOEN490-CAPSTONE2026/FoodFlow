@@ -12,12 +12,20 @@ import { useAnalytics } from './hooks/useAnalytics';
 import SurplusForm from './components/SurplusForm';
 import './App.css';
 
+import { useLocation } from "react-router-dom";
+
 function AppContent() {
   useAnalytics(); // This will track page views automatically
+  const location = useLocation();
+
+  // Hide navbar on login and registration pages
+  const hideNavbar =
+    location.pathname === "/login" ||
+    location.pathname.startsWith("/register");
 
   return (
     <div className="App">
-      <NavigationBar />
+      {!hideNavbar && <NavigationBar />}
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/register" element={<RegisterType />} />

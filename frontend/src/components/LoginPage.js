@@ -53,6 +53,13 @@ const LoginPage = () => {
         <div className="login-container">
           <div className="login-inner">
             <div className="login-card" role="region" aria-labelledby="login-title">
+              <button
+                className="back-home-button"
+                onClick={() => navigate("/")}
+                aria-label="Go back to homepage"
+              >
+                ← Back Home
+              </button>
               <h1 id="login-title" className="login-title">Log in to your account</h1>
 
               <form onSubmit={handleLogin} noValidate>
