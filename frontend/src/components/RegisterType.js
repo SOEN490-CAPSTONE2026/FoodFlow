@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import RegistrationIllustration from "../assets/illustrations/registration-illustration.png";
 import DonorIcon from "../assets/icons/donor-icon.png";
 import ReceiverIcon from "../assets/icons/receiver-icon.png";
-import "./RegisterType.css";
+import "../style/RegisterType.css";
 
 const RegisterType = () => {
   const navigate = useNavigate();

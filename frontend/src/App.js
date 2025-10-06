@@ -9,7 +9,7 @@ import TempDashboard from './components/TempDashboard';
 import NavigationBar from './components/NavigationBar';
 import { AuthProvider } from './contexts/AuthContext';
 import { useAnalytics } from './hooks/useAnalytics';
-import SurplusForm from './components/SurplusForm';
+import SurplusForm from './components/SurplusFormModal';
 import './App.css';
 
 function AppContent() {
