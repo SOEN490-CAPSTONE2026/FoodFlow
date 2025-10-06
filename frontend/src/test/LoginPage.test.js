@@ -80,8 +80,11 @@ describe('LoginPage', () => {
     const forgot = screen.getByRole('link', { name: /forgot password\?/i });
     expect(forgot).toHaveAttribute('href', '/forgot-password');
 
-    const signup = screen.getByRole('link', { name: /sign up/i });
-    expect(signup).toHaveAttribute('href', '/signup');
+
+    const signupBtn = screen.getByRole('button', { name: /sign up/i });
+    expect(signupBtn).toBeInTheDocument();
+    fireEvent.click(signupBtn);
+    expect(mockNavigate).toHaveBeenCalledWith('/register');
   });
 
   test('password visibility toggle switches input type and aria-label', () => {

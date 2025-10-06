@@ -10,6 +10,13 @@ const RegisterType = () => {
 
   return (
     <div className="register-type-page">
+      <button
+        className="back-home-button"
+        onClick={() => navigate("/")}
+        aria-label="Go back to homepage"
+      >
+        ← Back Home
+      </button>
       <div className="intro">
         <h1>Join FoodFlow</h1>
         <p>

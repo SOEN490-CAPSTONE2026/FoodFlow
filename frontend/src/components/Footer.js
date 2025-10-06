@@ -37,11 +37,11 @@ const Footer = () => {
               <div className="contact-info">
                 <div className="contact-item">
                   <FaEnvelope className="contact-icon" />
-                  <span className="contact-email">foodflow.group@gmail.com</span>
+                  <a href="mailto:foodflow.group@gmail.com" className="contact-email">foodflow.group@gmail.com</a>
                 </div>
                 <div className="contact-item">
                   <FaPhone className="contact-icon" />
-                  <span className="contact-phone">1-800-122-4567</span>
+                  <a href="tel:18001224567" className="contact-phone">1-800-122-4567</a>
                 </div>
               </div>
             </div>

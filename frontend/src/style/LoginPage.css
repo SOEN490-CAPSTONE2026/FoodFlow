@@ -65,6 +65,29 @@
         .form-footer a{color:var(--brand);text-decoration:underline}
         .footer-copy{position:absolute;left:18px;bottom:14px;color:rgba(255,255,255,.85);font-size:12px}
 
+        .link-button{
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: var(--brand);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.form-footer .link-button{
+  color: var(--brand);
+  text-decoration: underline;
+}
+
+.form-footer .link-button:focus-visible{
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+  text-decoration: none;
+}
+
         /* Responsive */
         @media (max-width: 1024px){
           .login-inner{padding:36px 24px}
@@ -92,3 +115,27 @@
           .login-right{padding:0}
           .login-card{padding:0}
         }
+
+.back-home-button {
+  position: absolute;
+  top: 24px;
+  right: 32px;
+  background: transparent;
+  color: var(--brand);
+  border: none;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.back-home-button:hover {
+  color: var(--accent);
+}
+
+.back-home-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
