@@ -16,14 +16,24 @@ import AdminDashboard from './components/AdminDashboard/AdminDashboard';
 import DonorDashboard from './components/DonorDashboard/DonorDashboard';
 import ReceiverDashboard from './components/ReceiverDashboard/ReceiverDashboard';
 
+import SurplusForm from './components/SurplusForm';
+import PrivacyPolicy from './components/PrivacyPolicy'; 
 import './App.css';
 
+import { useLocation } from "react-router-dom";
+
 function AppContent() {
-  useAnalytics(); // track page views
+  useAnalytics(); // This will track page views automatically
+  const location = useLocation();
+
+  // Hide navbar on login and registration pages
+  const hideNavbar =
+    location.pathname === "/login" ||
+    location.pathname.startsWith("/register");
 
   return (
     <div className="App">
-      {/* <NavigationBar /> */}
+      {!hideNavbar && <NavigationBar />}
       <Routes>
         {/* Public */}
         <Route path="/" element={<LandingPage />} />
@@ -57,6 +67,8 @@ function AppContent() {
             </PrivateRoutes>
           }
         />
+        <Route path="/surplus/create" element={<SurplusForm />} />
+         <Route path="/privacy-policy" element={<PrivacyPolicy />} /> 
       </Routes>
     </div>
   );

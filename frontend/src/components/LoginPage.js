@@ -77,6 +77,13 @@ const LoginPage = () => {
         <div className="login-container">
           <div className="login-inner">
             <div className="login-card" role="region" aria-labelledby="login-title">
+              <button
+                className="back-home-button"
+                onClick={() => navigate("/")}
+                aria-label="Go back to homepage"
+              >
+                ← Back Home
+              </button>
               <h1 id="login-title" className="login-title">Log in to your account</h1>
 
               <form onSubmit={handleLogin} noValidate>
@@ -119,7 +126,7 @@ const LoginPage = () => {
                   {loading ? 'Logging in…' : 'LOG IN'}
                 </button>
 
-                <p className="form-footer">Don't have an account? <Link to="/signup">Sign up</Link></p>
+                <p className="form-footer">Don't have an account? <button type="button" className="link-button" onClick={() => navigate("/register")}>Sign up</button></p>
               </form>
             </div>
           </div>
