@@ -6,7 +6,7 @@ import { AuthContext } from "../../contexts/AuthContext";
 export default function ReceiverLayout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = useContext(AuthContext);
+  const { logout } = React.useContext(AuthContext);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
 
