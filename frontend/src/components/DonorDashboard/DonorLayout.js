@@ -1,10 +1,12 @@
 // DonorLayout.jsx
 import React, { useState, useRef, useEffect } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { AuthContext } from "../../contexts/AuthContext";
 
 export default function DonorLayout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { logout } = useContext(AuthContext);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
   
@@ -67,14 +69,13 @@ export default function DonorLayout() {
     try {
       // If you have an auth service/hook, call it here:
       // await auth.logout();
+      await logout();
     } catch (e) {
       // optional: log error
     } finally {
       // Safety cleanup in case you store tokens locally
-      localStorage.removeItem("token");
-      sessionStorage.clear();
-
       setShowDropdown(false);
+      navigate("/", { replace: true, state: { scrollTo: "home" } });
 
       // Navigate to landing page; scroll to a section via location.state
       navigate("/", {

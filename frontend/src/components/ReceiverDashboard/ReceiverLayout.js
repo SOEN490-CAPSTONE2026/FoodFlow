@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import "./ReceiverDashboard.css"; 
+import { AuthContext } from "../../contexts/AuthContext";
 
 export default function ReceiverLayout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { logout } = useContext(AuthContext);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -63,11 +65,10 @@ export default function ReceiverLayout() {
   const handleLogout = async () => {
     try {
       // await auth.logout?.(); // if you have an auth service
+      await logout();
     } catch (e) {
       // optional: log
     } finally {
-      localStorage.removeItem("token");
-      sessionStorage.clear();
       setShowDropdown(false);
       navigate("/", { replace: true, state: { scrollTo: "home" } });
     }
