@@ -44,7 +44,14 @@ function AppContent() {
         <Route path="/dashboard" element={<TempDashboard />} />
 
         {/* ===== Admin Dashboard (UNPROTECTED for dev preview) ===== */}
-        <Route path="/admin/*" element={<AdminDashboard />} />
+        <Route 
+          path="/admin" 
+          element={
+            <PrivateRoutes allowedRoles={['ADMIN']}>
+              <AdminDashboard />
+            </PrivateRoutes>
+          } 
+        />
         {/* Back-compat redirect from old path */}
         <Route path="/dashboard/admin/*" element={<Navigate to="/admin" replace />} />
 
