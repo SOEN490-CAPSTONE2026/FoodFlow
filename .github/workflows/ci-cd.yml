@@ -112,4 +112,9 @@ jobs:
         run: curl --fail http://localhost:9090/api/v1/targets || (docker logs prometheus && exit 1)
 
       - name: Check Grafana dashboard
-        run: curl --fail http://localhost:3001/api/dashboards/uid/foodflow-api || (docker logs grafana && exit 1)
+        env:
+          GRAFANA_USER: ${{ secrets.GRAFANA_USER }}
+          GRAFANA_PASSWORD: ${{ secrets.GRAFANA_PASSWORD }}
+        run: |
+          curl -u "$GRAFANA_USER:$GRAFANA_PASSWORD" --fail http://localhost:3001/api/dashboards/uid/foodflow-api \
+          || (docker logs grafana && exit 1)
