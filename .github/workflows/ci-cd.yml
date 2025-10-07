@@ -53,7 +53,6 @@ jobs:
     services:
       prometheus:
         image: prom/prometheus:latest
-        container_name: foodflow-prometheus
         ports:
           - "9090:9090"
         volumes:
@@ -66,7 +65,6 @@ jobs:
   
       grafana:
         image: grafana/grafana:latest
-        container_name: foodflow-grafana
         ports:
           - "3001:3000"
         volumes:
@@ -78,25 +76,25 @@ jobs:
           --health-timeout=5s
           --health-retries=5
   
-        steps:
-          - name: Verify Prometheus is running
-            run: |
-              for i in {1..5}; do
-                curl --fail http://localhost:9090/-/ready && break
-                echo "Waiting for Prometheus to be ready..."
-                sleep 10
-              done
+    steps:
+      - name: Verify Prometheus is running
+        run: |
+          for i in {1..5}; do
+            curl --fail http://localhost:9090/-/ready && break
+            echo "Waiting for Prometheus to be ready..."
+            sleep 10
+          done
 
-          - name: Verify Grafana is running
-            run: |
-              for i in {1..5}; do
-                curl --fail http://localhost:3000/api/health && break
-                echo "Waiting for Grafana to be ready..."
-                sleep 10
-              done
+      - name: Verify Grafana is running
+        run: |
+          for i in {1..5}; do
+            curl --fail http://localhost:3000/api/health && break
+            echo "Waiting for Grafana to be ready..."
+            sleep 10
+          done
 
-          - name: Check Prometheus targets
-            run: curl --fail http://localhost:9090/api/v1/targets
+      - name: Check Prometheus targets
+        run: curl --fail http://localhost:9090/api/v1/targets
 
-          - name: Check Grafana dashboard
-            run: curl --fail http://localhost:3001/api/dashboards/uid/foodflow-api
+      - name: Check Grafana dashboard
+        run: curl --fail http://localhost:3001/api/dashboards/uid/foodflow-api
