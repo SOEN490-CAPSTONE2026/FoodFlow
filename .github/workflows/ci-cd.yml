@@ -65,7 +65,7 @@ jobs:
           docker network create foodflow-ci || true
 
           docker run -d \
-            --name prometheus \ 
+            --name prometheus \
             --network foodflow-ci \
             -p 9090:9090 \
             -v $(pwd)/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml \
