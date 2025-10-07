@@ -22,6 +22,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -185,5 +187,75 @@ class SurplusControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    // ====== ADDITIONAL "MY POSTS" TESTS FOR HIGH COVERAGE ======
+
+    @Test
+    @WithMockUser(username = "donor1@test.com", authorities = {"DONOR"})
+    void testGetMyPosts_OnlyReturnsCurrentUserPosts() throws Exception {
+        // Given - Mock posts for the current user only
+        SurplusResponse userPost1 = new SurplusResponse();
+        userPost1.setId(1L);
+        userPost1.setType("Vegetables");
+        userPost1.setDonorEmail("donor1@test.com");
+        userPost1.setCreatedAt(LocalDateTime.now());
+
+        SurplusResponse userPost2 = new SurplusResponse();
+        userPost2.setId(2L);
+        userPost2.setType("Bread");
+        userPost2.setDonorEmail("donor1@test.com");
+        userPost2.setCreatedAt(LocalDateTime.now());
+
+        // Note: Posts from other users should not be returned by the service
+        List<SurplusResponse> currentUserPosts = Arrays.asList(userPost1, userPost2);
+        when(surplusService.getUserSurplusPosts(any())).thenReturn(currentUserPosts);
+
+        // When & Then
+        mockMvc.perform(get("/api/surplus/my-posts"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].donorEmail").value("donor1@test.com"))
+                .andExpect(jsonPath("$[1].donorEmail").value("donor1@test.com"));
+        
+        // Verify service is called with the authenticated user
+        verify(surplusService).getUserSurplusPosts(any());
+    }
+
+
+    @Test
+    @WithMockUser(username = "donor@test.com", authorities = {"DONOR"})
+    void testGetMyPosts_LargeNumberOfPosts() throws Exception {
+        // Given - Create a large list of posts to test pagination/performance
+        List<SurplusResponse> largePosts = new java.util.ArrayList<>();
+        for (int i = 1; i <= 10; i++) {
+            SurplusResponse post = new SurplusResponse();
+            post.setId((long) i);
+            post.setType("Type" + i);
+            post.setQuantity(i + " kg");
+            post.setDonorEmail("donor@test.com");
+            post.setCreatedAt(LocalDateTime.now());
+            largePosts.add(post);
+        }
+
+        when(surplusService.getUserSurplusPosts(any())).thenReturn(largePosts);
+
+        // When & Then
+        mockMvc.perform(get("/api/surplus/my-posts"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.length()").value(10))
+                .andExpect(jsonPath("$[0].type").value("Type1"))
+                .andExpect(jsonPath("$[9].type").value("Type10"));
+    }
+
+    @Test
+    void testGetMyPosts_NoAuthentication() throws Exception {
+        // When & Then - No @WithMockUser annotation means no authentication
+        mockMvc.perform(get("/api/surplus/my-posts"))
+                .andExpect(status().isForbidden());
+        
+        // Verify service was never called
+        verify(surplusService, never()).getUserSurplusPosts(any());
     }
 }
