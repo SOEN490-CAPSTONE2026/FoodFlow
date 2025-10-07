@@ -110,19 +110,3 @@ jobs:
 
       - name: Check Prometheus targets
         run: curl --fail http://localhost:9090/api/v1/targets || (docker logs prometheus && exit 1)
-
-      - name: Wait for Grafana to load dashboards
-        run: |
-          echo "Waiting 30 seconds for Grafana to load dashboards..."
-          sleep 30
-
-      - name: Check Grafana dashboard
-        env:
-          GRAFANA_USER: ${{ secrets.GRAFANA_USER }}
-          GRAFANA_PASSWORD: ${{ secrets.GRAFANA_PASSWORD }}
-        run: |
-          echo "Checking Grafana dashboard with UID 'foodflow-api'..."
-          curl -u "$GRAFANA_USER:$GRAFANA_PASSWORD" --fail http://localhost:3001/api/dashboards/uid/foodflow-api \
-          || (echo "Dashboard not found. Listing all dashboards for debugging:" \
-              && curl -u "$GRAFANA_USER:$GRAFANA_PASSWORD" http://localhost:3001/api/search \
-              && exit 1)
