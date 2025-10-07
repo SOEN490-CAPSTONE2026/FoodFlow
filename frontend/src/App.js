@@ -6,7 +6,7 @@ import DonorRegistration from './components/DonorRegistration';
 import ReceiverRegistration from './components/ReceiverRegistration';
 import LoginPage from './components/LoginPage';
 import TempDashboard from './components/TempDashboard';
-// import NavigationBar from './components/NavigationBar';
+import NavigationBar from './components/NavigationBar';
 import { AuthProvider } from './contexts/AuthContext';
 import { useAnalytics } from './hooks/useAnalytics';
 import PrivateRoutes from './components/PrivateRoutes';
