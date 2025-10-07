@@ -11,6 +11,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/surplus")
 @CrossOrigin(origins = "${spring.web.cors.allowed-origins}")
@@ -30,5 +32,14 @@ public class SurplusController {
         
         SurplusResponse response = surplusService.createSurplusPost(request, donor);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+    
+    @GetMapping("/my-posts")
+    @PreAuthorize("hasAuthority('DONOR')")
+    public ResponseEntity<List<SurplusResponse>> getMyPosts(
+            @AuthenticationPrincipal User user) {
+        
+        List<SurplusResponse> myPosts = surplusService.getUserSurplusPosts(user);
+        return ResponseEntity.ok(myPosts);
     }
 }

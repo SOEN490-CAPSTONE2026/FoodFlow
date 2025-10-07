@@ -18,9 +18,12 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -118,5 +121,69 @@ class SurplusControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(username = "donor@test.com", authorities = {"DONOR"})
+    void testGetMyPosts_Success() throws Exception {
+        // Given
+        SurplusResponse response1 = new SurplusResponse();
+        response1.setId(1L);
+        response1.setType("Vegetables");
+        response1.setQuantity("10 kg");
+        response1.setLocation("123 Main St");
+        response1.setDonorEmail("donor@test.com");
+        response1.setCreatedAt(LocalDateTime.now());
+        
+        SurplusResponse response2 = new SurplusResponse();
+        response2.setId(2L);
+        response2.setType("Fruits");
+        response2.setQuantity("5 kg");
+        response2.setLocation("456 Oak Ave");
+        response2.setDonorEmail("donor@test.com");
+        response2.setCreatedAt(LocalDateTime.now());
+
+        List<SurplusResponse> userPosts = Arrays.asList(response1, response2);
+        when(surplusService.getUserSurplusPosts(any())).thenReturn(userPosts);
+
+        // When & Then
+        mockMvc.perform(get("/api/surplus/my-posts"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].type").value("Vegetables"))
+                .andExpect(jsonPath("$[1].id").value(2))
+                .andExpect(jsonPath("$[1].type").value("Fruits"));
+    }
+
+    @Test
+    void testGetMyPosts_Unauthorized() throws Exception {
+        // When & Then
+        mockMvc.perform(get("/api/surplus/my-posts"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "receiver@test.com", authorities = {"RECEIVER"})
+    void testGetMyPosts_Forbidden_WrongRole() throws Exception {
+        // When & Then (RECEIVER trying to access donor posts should be forbidden)
+        mockMvc.perform(get("/api/surplus/my-posts"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "donor@test.com", authorities = {"DONOR"})
+    void testGetMyPosts_EmptyList() throws Exception {
+        // Given
+        when(surplusService.getUserSurplusPosts(any())).thenReturn(Arrays.asList());
+
+        // When & Then
+        mockMvc.perform(get("/api/surplus/my-posts"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(0));
     }
 }
