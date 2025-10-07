@@ -1,4 +1,4 @@
-/* ===== Donor List Food Styles ===== */
+
 .donor-list-food {
   padding: 0;
 }
@@ -12,7 +12,7 @@
 }
 
 .section-title {
-  color: var(--ff-navy);
+  color: var(--navy);
   margin-top: 0;
   margin-bottom: 20px;
   font-size: 20px;
@@ -35,7 +35,7 @@
 .form-group label {
   font-size: 14px;
   font-weight: 600;
-  color: var(--ff-navy);
+  color: var(--navy);
   margin-bottom: 5px;
 }
 
@@ -57,8 +57,8 @@
 }
 
 .listings-count {
-  background: var(--ff-ice);
-  color: var(--ff-navy);
+  background: var(--ice);
+  color: var(--navy);
   padding: 4px 12px;
   border-radius: 12px;
   font-size: 14px;
@@ -80,7 +80,7 @@
 }
 
 .listing-item:hover {
-  border-color: var(--ff-sky);
+  border-color: var(--sky);
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
@@ -95,7 +95,7 @@
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-  color: var(--ff-navy);
+  color: var(--navy);
   flex: 1;
   margin-right: 10px;
 }
@@ -131,7 +131,7 @@
 }
 
 .detail-value {
-  color: var(--ff-navy);
+  color: var(--navy);
   font-weight: 600;
   text-align: right;
   max-width: 60%;
@@ -151,17 +151,17 @@
   color: #64748b;
 }
 
-.ff-btn.small {
+.btn.small {
   padding: 6px 12px;
   font-size: 12px;
 }
 
-.ff-btn.danger {
+.btn.danger {
   background: #dc3545;
   color: white;
 }
 
-.ff-btn.danger:hover {
+.btn.danger:hover {
   background: #c82333;
 }
 
@@ -179,7 +179,7 @@
 
 .empty-state h4 {
   margin: 0 0 8px 0;
-  color: var(--ff-navy);
+  color: var(--navy);
 }
 
 .empty-state p {
@@ -190,7 +190,7 @@
 .loading-state {
   text-align: center;
   padding: 40px 20px;
-  color: var(--ff-navy);
+  color: var(--navy);
   font-style: italic;
 }
 
@@ -220,7 +220,7 @@
     gap: 10px;
   }
   
-  .form-actions .ff-btn {
+  .form-actions .btn {
     width: 100%;
   }
 }

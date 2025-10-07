@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Home, BarChart3, Calendar as CalendarIcon, Mail, HelpCircle } from "lucide-react";
 import "./AdminLayout.css";
 
 export default function AdminLayout() {
@@ -54,7 +55,7 @@ export default function AdminLayout() {
 
   const handleLogout = () => {
     try {
-      // await auth.logout?.(); // if you have a service, call it here
+     
     } finally {
       localStorage.removeItem("token");
       sessionStorage.clear();
@@ -80,35 +81,35 @@ export default function AdminLayout() {
         <nav className="admin-nav-links">
           <a href="/admin" className={`admin-nav-link ${isActive("/admin") ? "active" : ""}`}>
             <span className="nav-icon" aria-hidden>
-              <svg viewBox="0 0 24 24"><path d="M12 3l9 8h-3v9h-5v-6H11v6H6v-9H3l9-8z" /></svg>
+              <Home size={18} className="lucide" />
             </span>
             Dashboard
           </a>
 
           <a href="/admin/analytics" className={`admin-nav-link ${isActive("/admin/analytics") ? "active" : ""}`}>
             <span className="nav-icon" aria-hidden>
-              <svg viewBox="0 0 24 24"><path d="M3 20h18v1H3zM6 10h3v8H6zM11 6h3v12h-3zM16 13h3v5h-3z"/></svg>
+              <BarChart3 size={18} className="lucide" />
             </span>
             Analytics
           </a>
 
           <a href="/admin/calendar" className={`admin-nav-link ${isActive("/admin/calendar") ? "active" : ""}`}>
             <span className="nav-icon" aria-hidden>
-              <svg viewBox="0 0 24 24"><path d="M7 2h2v2h6V2h2v2h3a2 2 0 012 2v13a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2h3V2zm13 7H4v10h16V9z"/></svg>
+              <CalendarIcon size={18} className="lucide" />
             </span>
             Calendar
           </a>
 
           <a href="/admin/messages" className={`admin-nav-link ${isActive("/admin/messages") ? "active" : ""}`}>
             <span className="nav-icon" aria-hidden>
-              <svg viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 012 2v9a2 2 0 01-2 2H8l-4 4V6a2 2 0 012-2zm1 3v1l7 4 7-4V7l-7 4-7-4z"/></svg>
+              <Mail size={18} className="lucide" />
             </span>
             Messages
           </a>
 
           <a href="/admin/help" className={`admin-nav-link ${isActive("/admin/help") ? "active" : ""}`}>
             <span className="nav-icon" aria-hidden>
-              <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-2h2v2zm1.07-7.75l-.9.92A2 2 0 0012 12h-1v-1a3 3 0 011-2.24l1.2-1.2a1.5 1.5 0 10-2.12-2.12 1.73 1.73 0 00-.5 1.23H8a3.5 3.5 0 016.07 2.08z"/></svg>
+              <HelpCircle size={18} className="lucide" />
             </span>
             Help
           </a>

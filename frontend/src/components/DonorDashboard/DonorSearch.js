@@ -1,13 +1,7 @@
 import React from "react";
 import "./Dashboards.css";
 
-/**
- * Props:
- * - items: [{ id, title, category, qty, unit, expiresAt, status }]
- * - total: number
- * - loading: boolean
- * - onSearch: (q: string) => void|Promise<void>
- */
+
 export default function DonorSearch({
   items = [],
   total = 0,
@@ -36,9 +30,9 @@ export default function DonorSearch({
 
   return (
     <div>
-      <div className="ff-card ff-searchbar">
+      <div className="card searchbar">
         <input
-          className="ff-input"
+          className="input"
           placeholder="Search by title, category…"
           value={q}
           onChange={(e) => setQ(e.target.value)}
@@ -47,20 +41,20 @@ export default function DonorSearch({
         <button
           id="org-search"              // <-- anchor target
           ref={searchBtnRef}           // <-- used by the effect above
-          className="ff-btn"
+          className="btn"
           onClick={run}
           disabled={loading}
         >
           {loading ? "Searching…" : "Search"}
         </button>
         <div className="spacer" />
-        <div className="ff-help">
+        <div className="help">
           {loading ? "Loading…" : `${items.length} / ${total}`}
         </div>
       </div>
 
-      <div className="ff-card" style={{ marginTop: 14 }}>
-        <table className="ff-table">
+      <div className="card" style={{ marginTop: 14 }}>
+        <table className="table">
           <thead>
             <tr>
               <th>Title</th>
@@ -80,7 +74,7 @@ export default function DonorSearch({
             )}
 
             {items.map((x) => (
-              <tr key={x.id} className="ff-row">
+              <tr key={x.id} className="row">
                 <td>{x.title}</td>
                 <td>{x.category}</td>
                 <td>
@@ -89,7 +83,7 @@ export default function DonorSearch({
                 </td>
                 <td>{x.expiresAt ? formatDateTime(x.expiresAt) : "—"}</td>
                 <td>
-                  <span className={`ff-status ${statusClass(x.status)}`}>
+                  <span className={`status ${statusClass(x.status)}`}>
                     {x.status ?? "—"}
                   </span>
                 </td>
@@ -110,7 +104,7 @@ export default function DonorSearch({
   );
 }
 
-// helpers (unchanged)
+// helpers 
 function formatDateTime(dateString) {
   try {
     return new Date(dateString).toLocaleString("en-US", {

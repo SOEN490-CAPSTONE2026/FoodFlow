@@ -33,19 +33,19 @@ describe("DonorRequests", () => {
     expect(r1.getByText("Bread")).toBeInTheDocument();
     expect(r1.getByText("5")).toBeInTheDocument();
     const st1 = r1.getByText(/pending/i);
-    expect(st1).toHaveClass("ff-status", "st-active");
+    expect(st1).toHaveClass("status", "st-active");
     expect(r1.getByRole("button", { name: /approve/i })).toBeEnabled();
     expect(r1.getByRole("button", { name: /reject/i })).toBeEnabled();
 
     const r2 = within(bodyRows[1]);
     const st2 = r2.getByText(/approved/i);
-    expect(st2).toHaveClass("ff-status", "st-claimed");
+    expect(st2).toHaveClass("status", "st-claimed");
     expect(r2.getByRole("button", { name: /approve/i })).toBeDisabled();
     expect(r2.getByRole("button", { name: /reject/i })).toBeDisabled();
 
     const r3 = within(bodyRows[2]);
     const st3 = r3.getByText(/rejected/i);
-    expect(st3).toHaveClass("ff-status", "st-closed");
+    expect(st3).toHaveClass("status", "st-closed");
     expect(r3.getByRole("button", { name: /approve/i })).toBeDisabled();
     expect(r3.getByRole("button", { name: /reject/i })).toBeDisabled();
 

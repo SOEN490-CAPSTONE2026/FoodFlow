@@ -44,7 +44,7 @@ export default function DonorWelcome() {
         </p>
       </div>
 
-      {/* Important notice with animation */}
+     
       <div ref={noticeRef} className="donate-notice animate-on-scroll">
         <p>Make a change starting today.</p>
       </div>

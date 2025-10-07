@@ -16,7 +16,7 @@ export default function ReceiverLayout() {
       case "/receiver":
       case "/receiver/dashboard":
         return "Receiver Dashboard";
-      case "/receiver/welcome":            // <-- ADDED
+      case "/receiver/welcome":            
         return "Welcome";
       case "/receiver/browse":
         return "Browse Available Food";
@@ -35,7 +35,7 @@ export default function ReceiverLayout() {
       case "/receiver":
       case "/receiver/dashboard":
         return "Overview of nearby food and your activity";
-      case "/receiver/welcome":            // <-- ADDED
+      case "/receiver/welcome":          
         return "Start here: search the map or browse nearby food";
       case "/receiver/browse":
         return "Browse available food listings";
@@ -61,13 +61,12 @@ export default function ReceiverLayout() {
 
   const toggleDropdown = () => setShowDropdown((s) => !s);
 
-  // Logout → clear storage + go to LandingPage (scroll to home section)
+  
   const handleLogout = async () => {
     try {
-      // await auth.logout?.(); // if you have an auth service
       await logout();
     } catch (e) {
-      // optional: log
+     
     } finally {
       setShowDropdown(false);
       navigate("/", { replace: true, state: { scrollTo: "home" } });
@@ -83,7 +82,7 @@ export default function ReceiverLayout() {
         </div>
 
         <div className="receiver-nav-links">
-          {/* NEW Welcome link (keeps Dashboard too) */}
+          
           <a
             href="/receiver/welcome"
             className={`receiver-nav-link ${location.pathname === "/receiver/welcome" ? "active" : ""}`}

@@ -13,14 +13,10 @@ export default function ReceiverDashboard() {
   return (
     <Routes>
       <Route element={<ReceiverLayout />}>
-        {/* Keep Dashboard as the default (index) */}
+        
         <Route index element={<ReceiverDashboardHome />} />
         <Route path="dashboard" element={<ReceiverDashboardHome />} />
-
-        {/* NEW Welcome page */}
         <Route path="welcome" element={<ReceiverWelcome />} /> 
-
-        {/* Other pages */}
         <Route path="browse" element={<ReceiverBrowse />} />
         <Route path="requests" element={<ReceiverRequests />} />
         <Route path="search" element={<ReceiverSearch />} />

@@ -55,7 +55,7 @@ export default function ReceiverWelcome() {
             Browse current listings and filter by category or expiry to quickly find
             the items your organization needs.
           </p>
-          {/* Hash targets the Search page button with id="org-search" */}
+        
           <a href="/receiver/search#org-search" className="rw-btn primary">
             Open map & search
           </a>

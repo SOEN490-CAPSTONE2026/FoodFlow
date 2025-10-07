@@ -1,7 +1,6 @@
 import React from "react";
 import "./Dashboards.css";
 
-
 export default function DonorRequests({
   items = [],
   total = 0,
@@ -13,10 +12,10 @@ export default function DonorRequests({
   const reject = (x) => onReject(x.id);
 
   return (
-    <div className="ff-card">
-      <h3 style={{ color: "var(--ff-navy)", marginTop: 0 }}>Requests</h3>
+    <div className="card">
+      <h3 style={{ color: "var(--navy)", marginTop: 0 }}>Requests</h3>
 
-      <table className="ff-table">
+      <table className="table">
         <thead>
           <tr>
             <th>Receiver</th>
@@ -28,13 +27,13 @@ export default function DonorRequests({
         </thead>
         <tbody>
           {items.map((x) => (
-            <tr key={x.id} className="ff-row">
+            <tr key={x.id} className="row">
               <td>{x.receiver}</td>
               <td>{x.itemTitle}</td>
               <td>{x.qty}</td>
               <td>
                 <span
-                  className={`ff-status ${
+                  className={`status ${
                     x.status === "approved"
                       ? "st-claimed"
                       : x.status === "rejected"
@@ -47,7 +46,7 @@ export default function DonorRequests({
               </td>
               <td style={{ textAlign: "right" }}>
                 <button
-                  className="ff-btn secondary"
+                  className="btn secondary"
                   style={{ marginRight: 8 }}
                   onClick={() => approve(x)}
                   disabled={x.status !== "pending"}
@@ -55,7 +54,7 @@ export default function DonorRequests({
                   Approve
                 </button>
                 <button
-                  className="ff-btn ghost"
+                  className="btn ghost"
                   onClick={() => reject(x)}
                   disabled={x.status !== "pending"}
                 >
@@ -75,7 +74,7 @@ export default function DonorRequests({
         </tbody>
       </table>
 
-      <div className="ff-help">{loading ? "Loading…" : `${items.length} / ${total}`}</div>
+      <div className="help">{loading ? "Loading…" : `${items.length} / ${total}`}</div>
     </div>
   );
 }

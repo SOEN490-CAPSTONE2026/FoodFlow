@@ -126,7 +126,7 @@ describe("DonorListFood", () => {
 
     render(<DonorListFood items={items} onDelete={onDelete} />);
 
-    const card = screen.getByRole("heading", { name: /my listings/i }).closest(".ff-card");
+    const card = screen.getByRole("heading", { name: /my listings/i }).closest(".card");
     expect(within(card).getByText(/tomatoes/i)).toBeInTheDocument();
     expect(within(card).getByText(/produce/i)).toBeInTheDocument();
     expect(within(card).getByText(/10 kg/i)).toBeInTheDocument();

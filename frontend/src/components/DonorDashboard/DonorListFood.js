@@ -1,8 +1,7 @@
+// DonorListFood.jsx
 import React from "react";
 import "./Dashboards.css";
 import "./DonorListFood.css";
-
-
 
 export default function DonorListFood({
   items = [],
@@ -42,7 +41,7 @@ export default function DonorListFood({
       alert("Please fill in required fields: Title and Location");
       return;
     }
-    // Delegate creation to parent
+    
     await onCreate({
       title: form.title,
       category: form.category,
@@ -98,14 +97,14 @@ export default function DonorListFood({
   return (
     <div className="donor-list-food">
       {/* Create New Listing Card */}
-      <div className="ff-card listing-form-card">
+      <div className="card listing-form-card">
         <h3 className="section-title">Create New Food Listing</h3>
-        <div className="ff-form">
+        <div className="form">
           <div className="form-row">
             <div className="form-group">
               <label>Food Title *</label>
               <input
-                className="ff-input"
+                className="input"
                 placeholder="e.g., Fresh Bread, Assorted Vegetables..."
                 value={form.title}
                 onChange={(e) => onChange("title", e.target.value)}
@@ -114,7 +113,7 @@ export default function DonorListFood({
             <div className="form-group">
               <label>Category</label>
               <select
-                className="ff-input"
+                className="input"
                 value={form.category}
                 onChange={(e) => onChange("category", e.target.value)}
               >
@@ -136,7 +135,7 @@ export default function DonorListFood({
               <input
                 type="number"
                 min="1"
-                className="ff-input"
+                className="input"
                 value={form.qty}
                 onChange={(e) => onChange("qty", e.target.value)}
               />
@@ -144,7 +143,7 @@ export default function DonorListFood({
             <div className="form-group">
               <label>Unit *</label>
               <select
-                className="ff-input"
+                className="input"
                 value={form.unit}
                 onChange={(e) => onChange("unit", e.target.value)}
               >
@@ -164,7 +163,7 @@ export default function DonorListFood({
               <label>Expiration Date/Time</label>
               <input
                 type="datetime-local"
-                className="ff-input"
+                className="input"
                 value={form.expiresAt}
                 onChange={(e) => onChange("expiresAt", e.target.value)}
               />
@@ -172,7 +171,7 @@ export default function DonorListFood({
             <div className="form-group">
               <label>Pickup Window</label>
               <input
-                className="ff-input"
+                className="input"
                 placeholder="e.g., 3-6 PM, 9 AM-12 PM"
                 value={form.pickupWindow}
                 onChange={(e) => onChange("pickupWindow", e.target.value)}
@@ -183,7 +182,7 @@ export default function DonorListFood({
           <div className="form-group">
             <label>Pickup Location *</label>
             <input
-              className="ff-input"
+              className="input"
               placeholder="Full address or specific location details"
               value={form.location}
               onChange={(e) => onChange("location", e.target.value)}
@@ -191,10 +190,10 @@ export default function DonorListFood({
           </div>
 
           <div className="form-actions">
-            <button className="ff-btn ghost" onClick={clearForm} disabled={saving}>
+            <button className="btn ghost" onClick={clearForm} disabled={saving}>
               Clear Form
             </button>
-            <button className="ff-btn secondary" onClick={save} disabled={saving}>
+            <button className="btn secondary" onClick={save} disabled={saving}>
               {saving ? "Creating..." : "Create Listing"}
             </button>
           </div>
@@ -202,7 +201,7 @@ export default function DonorListFood({
       </div>
 
       {/* My Listings Card */}
-      <div className="ff-card listings-card">
+      <div className="card listings-card">
         <div className="listings-header">
           <h3 className="section-title">My Listings</h3>
           <span className="listings-count">{items.length} listing(s)</span>
@@ -257,7 +256,7 @@ export default function DonorListFood({
                 <div className="listing-actions">
                   <span className="created-date">Created: {formatDate(item.createdAt)}</span>
                   <button
-                    className="ff-btn ghost small danger"
+                    className="btn ghost small danger"
                     onClick={() => handleDelete(item.id)}
                   >
                     Delete

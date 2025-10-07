@@ -1,16 +1,13 @@
-// DonorLayout.jsx
+
 import React, { useState, useRef, useEffect } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { AuthContext } from "../../contexts/AuthContext";
 
 export default function DonorLayout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = React.useContext(AuthContext);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
   
-  // Get page title based on current route
   const getPageTitle = () => {
     switch (location.pathname) {
       case "/donor":
@@ -45,7 +42,6 @@ export default function DonorLayout() {
     }
   };
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -59,100 +55,94 @@ export default function DonorLayout() {
     };
   }, []);
 
-  // Toggle dropdown
   const toggleDropdown = () => {
     setShowDropdown(!showDropdown);
   };
 
-  // ---- LOGOUT HANDLER (connect your existing logout here if needed) ----
   const handleLogout = async () => {
     try {
-      // If you have an auth service/hook, call it here:
-      // await auth.logout();
-      await logout();
+      
+      
     } catch (e) {
-      // optional: log error
+     
     } finally {
-      // Safety cleanup in case you store tokens locally
-      setShowDropdown(false);
-      navigate("/", { replace: true, state: { scrollTo: "home" } });
+      
+      localStorage.removeItem("token");
+      sessionStorage.clear();
 
-      // Navigate to landing page; scroll to a section via location.state
+      setShowDropdown(false);
+
       navigate("/", {
         replace: true,
         state: { scrollTo: "home" }, 
       });
     }
   };
-  // --------------------------------------------------------------------
+  
 
   return (
-    <div className="ff-donor-layout">
-      {/* Sidebar */}
-      <div className="ff-donor-sidebar">
-        <div className="ff-donor-sidebar-header">
+    <div className="donor-layout">
+      <div className="donor-sidebar">
+        <div className="donor-sidebar-header">
           <h2>FoodFlow</h2>
         </div>
         
-        <div className="ff-donor-nav-links">
+        <div className="donor-nav-links">
           <a 
             href="/donor" 
-            className={`ff-donor-nav-link ${location.pathname === "/donor" ? "active" : ""}`}
+            className={`donor-nav-link ${location.pathname === "/donor" ? "active" : ""}`}
           >
             Home
           </a>
           <a 
             href="/donor/dashboard" 
-            className={`ff-donor-nav-link ${location.pathname === "/donor/dashboard" ? "active" : ""}`}
+            className={`donor-nav-link ${location.pathname === "/donor/dashboard" ? "active" : ""}`}
           >
             Dashboard
           </a>
           <a 
             href="/donor/list" 
-            className={`ff-donor-nav-link ${location.pathname === "/donor/list" ? "active" : ""}`}
+            className={`donor-nav-link ${location.pathname === "/donor/list" ? "active" : ""}`}
           >
             List Your Food
           </a>
           <a 
             href="/donor/requests" 
-            className={`ff-donor-nav-link ${location.pathname === "/donor/requests" ? "active" : ""}`}
+            className={`donor-nav-link ${location.pathname === "/donor/requests" ? "active" : ""}`}
           >
             Requests
           </a>
           <a 
             href="/donor/search" 
-            className={`ff-donor-nav-link ${location.pathname === "/donor/search" ? "active" : ""}`}
+            className={`donor-nav-link ${location.pathname === "/donor/search" ? "active" : ""}`}
           >
             Search
           </a>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="ff-donor-main">
-        {/* Top Bar */}
-        <div className="ff-donor-topbar">
-          <div className="ff-donor-topbar-left">
+      <div className="donor-main">
+        <div className="donor-topbar">
+          <div className="donor-topbar-left">
             <h1>{getPageTitle()}</h1>
             <p>{getPageDescription()}</p>
           </div>
-          <div className="ff-donor-user-info" ref={dropdownRef}>
-            <div className="ff-user-menu" onClick={toggleDropdown}>
+          <div className="donor-user-info" ref={dropdownRef}>
+            <div className="user-menu" onClick={toggleDropdown}>
               Donor Account
-              <span className="ff-dropdown-arrow">▼</span>
+              <span className="dropdown-arrow">▼</span>
             </div>
             
-            {/* Dropdown Menu */}
             {showDropdown && (
-              <div className="ff-dropdown-menu">
-                <div className="ff-dropdown-item" onClick={() => setShowDropdown(false)}>
+              <div className="dropdown-menu">
+                <div className="dropdown-item" onClick={() => setShowDropdown(false)}>
                   Profile
                 </div>
-                <div className="ff-dropdown-item" onClick={() => setShowDropdown(false)}>
+                <div className="dropdown-item" onClick={() => setShowDropdown(false)}>
                   Settings
                 </div>
-                <div className="ff-dropdown-divider"></div>
-                <div className="ff-dropdown-item ff-dropdown-item-logout" onClick={handleLogout}>
+                <div className="dropdown-divider"></div>
+                <div className="dropdown-item dropdown-item-logout" onClick={handleLogout}>
                   Log Out
                 </div>
               </div>
@@ -160,8 +150,7 @@ export default function DonorLayout() {
           </div>
         </div>
 
-        {/* Page Content */}
-        <div className="ff-donor-content">
+        <div className="donor-content">
           <Outlet />
         </div>
       </div>

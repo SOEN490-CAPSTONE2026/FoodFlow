@@ -1,5 +1,12 @@
 import React from "react";
 import "./Dashboards.css";
+import {
+  BarChart3,
+  PieChart,
+  TrendingUp,
+  Utensils,
+  Inbox,
+} from "lucide-react";
 
 // Helper function to calculate doughnut chart values
 const calculateDoughnut = (data = []) => {
@@ -30,7 +37,11 @@ export default function DonorDashboardHome({ stats, chartData }) {
       <div className="donor-dashboard-home">
         <h1>Dashboard</h1>
         <p className="subtitle">Overview of your donations</p>
-        <div className="empty-state">No data provided.</div>
+        <div className="empty-state">
+          <Inbox className="lucide" size={20} aria-hidden />
+          {" "}
+          No data provided.
+        </div>
       </div>
     );
   }
@@ -110,7 +121,10 @@ export default function DonorDashboardHome({ stats, chartData }) {
         <div className="donor-charts-grid">
           {/* Bar Chart */}
           <div className="donor-chart-card">
-            <h3>Monthly Donation Activity</h3>
+            <h3>
+              <BarChart3 className="lucide" size={16} aria-hidden />{" "}
+              Monthly Donation Activity
+            </h3>
             <div className="css-bar-chart">
               {chartData.monthlyDonations.map((item, index) => (
                 <div key={index} className="bar-container">
@@ -128,9 +142,12 @@ export default function DonorDashboardHome({ stats, chartData }) {
 
           {/* Doughnut Chart - Request Status */}
           <div className="donor-chart-card">
-            <h3>Request Status Distribution</h3>
+            <h3>
+              <PieChart className="lucide" size={16} aria-hidden />{" "}
+              Request Status Distribution
+            </h3>
             <div className="css-doughnut">
-              <svg className="doughnut-svg" viewBox="0 0 100 100">
+              <svg className="donut-icon" viewBox="0 0 100 100">
                 <circle className="doughnut-circle-bg" cx="50" cy="50" r="45" />
                 {statusDoughnut.segments.map((segment, index) => (
                   <circle
@@ -165,7 +182,10 @@ export default function DonorDashboardHome({ stats, chartData }) {
 
           {/* Line Chart */}
           <div className="donor-chart-card">
-            <h3>Request Trends</h3>
+            <h3>
+              <TrendingUp className="lucide" size={16} aria-hidden />{" "}
+              Request Trends
+            </h3>
             <div className="css-line-chart">
               <div className="line-chart-grid">
                 {[...Array(5)].map((_, i) => (
@@ -236,9 +256,12 @@ export default function DonorDashboardHome({ stats, chartData }) {
 
           {/* Doughnut Chart - Food Categories */}
           <div className="donor-chart-card">
-            <h3>Food Categories</h3>
+            <h3>
+              <Utensils className="lucide" size={16} aria-hidden />{" "}
+              Food Categories
+            </h3>
             <div className="css-doughnut">
-              <svg className="doughnut-svg" viewBox="0 0 100 100">
+              <svg className="donut-icon" viewBox="0 0 100 100">
                 <circle className="doughnut-circle-bg" cx="50" cy="50" r="45" />
                 {foodDoughnut.segments.map((segment, index) => (
                   <circle

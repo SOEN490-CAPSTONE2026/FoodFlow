@@ -1,4 +1,4 @@
-// DonorDashboard.jsx (unchanged)
+
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import DonorLayout from "./DonorLayout";
@@ -8,7 +8,7 @@ import DonorListFood from "./DonorListFood";
 import DonorRequests from "./DonorRequests";
 import DonorSearch from "./DonorSearch";
 
-/** Mount this at /donor/* */
+
 export default function DonorDashboard() {
   return (
     <Routes>
