@@ -29,7 +29,9 @@ function AppContent() {
   // Hide navbar on login and registration pages
   const hideNavbar =
     location.pathname === "/login" ||
-    location.pathname.startsWith("/register");
+    location.pathname.startsWith("/register") ||
+    location.pathname.startsWith("/donor") ||
+    location.pathname.startsWith("/admin");
 
   return (
     <div className="App">

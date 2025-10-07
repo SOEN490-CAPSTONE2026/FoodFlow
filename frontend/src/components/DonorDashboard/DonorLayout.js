@@ -1,10 +1,12 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { AuthContext } from "../../contexts/AuthContext";
 
 export default function DonorLayout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { logout } = React.useContext(AuthContext);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
   
@@ -61,15 +63,10 @@ export default function DonorLayout() {
 
   const handleLogout = async () => {
     try {
-      
-      
+      await logout();      
     } catch (e) {
-     
+           
     } finally {
-      
-      localStorage.removeItem("token");
-      sessionStorage.clear();
-
       setShowDropdown(false);
 
       navigate("/", {
