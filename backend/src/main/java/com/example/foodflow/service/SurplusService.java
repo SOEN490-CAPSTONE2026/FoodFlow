@@ -8,18 +8,21 @@ import com.example.foodflow.repository.SurplusPostRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 public class SurplusService {
-    
+
     private final SurplusPostRepository surplusPostRepository;
-    
+
     public SurplusService(SurplusPostRepository surplusPostRepository) {
         this.surplusPostRepository = surplusPostRepository;
     }
-    
+
     @Transactional
     public SurplusResponse createSurplusPost(CreateSurplusRequest request, User donor) {
-        // Create new surplus post
+        // create new surplus post
         SurplusPost surplusPost = new SurplusPost();
         surplusPost.setType(request.getType());
         surplusPost.setQuantity(request.getQuantity());
@@ -27,14 +30,20 @@ public class SurplusService {
         surplusPost.setPickupTime(request.getPickupTime());
         surplusPost.setLocation(request.getLocation());
         surplusPost.setDonor(donor);
-        
-        // Save to database
+
+        // save to database
         SurplusPost savedPost = surplusPostRepository.save(surplusPost);
-        
-        // Convert to response DTO
+
+        // convert to response dto
         return convertToResponse(savedPost);
     }
-    
+
+    public List<SurplusResponse> getAvailableSurplusPosts() {
+        return surplusPostRepository.findByClaimedFalse().stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+    }
+
     private SurplusResponse convertToResponse(SurplusPost post) {
         return new SurplusResponse(
             post.getId(),

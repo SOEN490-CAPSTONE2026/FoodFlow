@@ -36,6 +36,9 @@ public class SurplusPost {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     
+    @Column(nullable = false)
+    private boolean claimed = false;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -74,4 +77,7 @@ public class SurplusPost {
     
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
+
+    public boolean isClaimed() { return claimed; }
+    public void setClaimed(boolean claimed) { this.claimed = claimed; }
 }

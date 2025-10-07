@@ -11,4 +11,6 @@ public interface SurplusPostRepository extends JpaRepository<SurplusPost, Long> 
     List<SurplusPost> findByDonorId(Long donorId);
     
     List<SurplusPost> findByLocation(String location);
+
+    List<SurplusPost> findByClaimedFalse();
 }
