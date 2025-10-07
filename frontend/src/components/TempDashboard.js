@@ -16,22 +16,40 @@ const TempDashboard = () => {
       <h1>Login Successful</h1>
       <p>Welcome to your dashboard!</p>
       
-      <button 
-        onClick={() => navigate('/surplus/create')}
-        style={{ 
-          padding: '12px 24px',
-          fontSize: '16px',
-          cursor: 'pointer',
-          marginTop: '30px',
-          backgroundColor: '#4CAF50',
-          color: 'white',
-          border: 'none',
-          borderRadius: '5px',
-          fontWeight: 'bold'
-        }}
-      >
-        Create Surplus Post
-      </button>
+      <div style={{ marginTop: '30px' }}>
+        <button 
+          onClick={() => navigate('/surplus/create')}
+          style={{ 
+            padding: '12px 24px',
+            fontSize: '16px',
+            cursor: 'pointer',
+            backgroundColor: '#4CAF50',
+            color: 'white',
+            border: 'none',
+            borderRadius: '5px',
+            fontWeight: 'bold',
+            marginRight: '15px'
+          }}
+        >
+          Create Surplus Post
+        </button>
+        
+        <button 
+          onClick={() => navigate('/my-posts')}
+          style={{ 
+            padding: '12px 24px',
+            fontSize: '16px',
+            cursor: 'pointer',
+            backgroundColor: '#2196F3',
+            color: 'white',
+            border: 'none',
+            borderRadius: '5px',
+            fontWeight: 'bold'
+          }}
+        >
+          See My Posts
+        </button>
+      </div>
     </div>
   );
 };

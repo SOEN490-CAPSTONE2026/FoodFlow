@@ -10,7 +10,8 @@ import NavigationBar from './components/NavigationBar';
 import { AuthProvider } from './contexts/AuthContext';
 import { useAnalytics } from './hooks/useAnalytics';
 import SurplusForm from './components/SurplusForm';
-import PrivacyPolicy from './components/PrivacyPolicy'; 
+import MyPosts from './components/MyPosts';
+import PrivacyPolicy from './components/PrivacyPolicy';
 import './App.css';
 
 import { useLocation } from "react-router-dom";
@@ -35,7 +36,8 @@ function AppContent() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/dashboard" element={<TempDashboard />} />
         <Route path="/surplus/create" element={<SurplusForm />} />
-         <Route path="/privacy-policy" element={<PrivacyPolicy />} /> 
+        <Route path="/my-posts" element={<MyPosts />} />
+         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       </Routes>
     </div>
   );
