@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
-// import './RegistrationForm.css';
+import DonorIllustration from "../assets/illustrations/donor-illustration.jpg";
+import './Registration.css';
 
 const DonorRegistration = () => {
   const navigate = useNavigate();
@@ -35,17 +36,17 @@ const DonorRegistration = () => {
     try {
       const response = await authAPI.registerDonor(formData);
       setSuccess('Registration successful! Welcome to FoodFlow.');
-      
+
       // Store token if needed
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
       }
-      
+
       // Redirect after success
       setTimeout(() => {
         navigate('/dashboard'); // You'll create this later
       }, 2000);
-      
+
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
@@ -55,27 +56,32 @@ const DonorRegistration = () => {
 
   return (
     <div className="registration-page">
-      <div className="container">
-        <h1>Register as Donor</h1>
-        
+      <div className="background-image">
+        <img src={DonorIllustration} alt="Donor Illustration" height={500} width={900} />
+        <p>Your generosity provides meals, care, and hope for families in need. Every donation helps strengthen communities and build a brighter, kinder future together, we can make lasting change!</p>
+      </div>
+      <div className="form-container">
+        <h1>Register as a Donor</h1>
+
         {error && <div className="error-message">{error}</div>}
         {success && <div className="success-message">{success}</div>}
-        
+
         <form onSubmit={handleSubmit} className="registration-form">
           <div className="form-group">
-            <label htmlFor="email">Email Address *</label>
+            <label htmlFor="email">Email Address</label>
             <input
               type="email"
               id="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
+              placeholder="Enter your email address"
               required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Password *</label>
+            <label htmlFor="password">Password</label>
             <input
               type="password"
               id="password"
@@ -83,66 +89,72 @@ const DonorRegistration = () => {
               value={formData.password}
               onChange={handleChange}
               minLength="8"
+              placeholder="Enter your password"
               required
             />
             <small>Minimum 8 characters</small>
           </div>
 
           <div className="form-group">
-            <label htmlFor="organizationName">Organization Name *</label>
+            <label htmlFor="organizationName">Organization Name</label>
             <input
               type="text"
               id="organizationName"
               name="organizationName"
               value={formData.organizationName}
               onChange={handleChange}
+              placeholder="Enter your organization name"
               required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="contactPerson">Contact Person *</label>
+            <label htmlFor="contactPerson">Contact Person</label>
             <input
               type="text"
               id="contactPerson"
               name="contactPerson"
               value={formData.contactPerson}
               onChange={handleChange}
+              placeholder="Enter your contact person's name"
               required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="phone">Phone Number *</label>
+            <label htmlFor="phone">Phone Number</label>
             <input
               type="tel"
               id="phone"
               name="phone"
               value={formData.phone}
               onChange={handleChange}
+              placeholder="Enter your phone number"
               required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="address">Address *</label>
+            <label htmlFor="address">Address</label>
             <textarea
               id="address"
               name="address"
               value={formData.address}
               onChange={handleChange}
               rows="3"
+              placeholder="Enter your address"
               required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="organizationType">Organization Type *</label>
+            <label htmlFor="organizationType">Organization Type</label>
             <select
               id="organizationType"
               name="organizationType"
               value={formData.organizationType}
               onChange={handleChange}
+              placeholder="Select your organization type"
               required
             >
               <option value="RESTAURANT">Restaurant</option>
@@ -159,20 +171,21 @@ const DonorRegistration = () => {
               name="businessLicense"
               value={formData.businessLicense}
               onChange={handleChange}
+              placeholder="Enter your business license number"
             />
             <small>Optional but recommended for verification</small>
           </div>
 
           <div className="form-actions">
-            <button 
-              type="button" 
+            <button
+              type="button"
               className="back-button"
               onClick={() => navigate('/register')}
             >
               Back
             </button>
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="submit-button"
               disabled={loading}
             >
