@@ -19,32 +19,37 @@ public class SurplusService {
     
     @Transactional
     public SurplusResponse createSurplusPost(CreateSurplusRequest request, User donor) {
-        // Create new surplus post
-        SurplusPost surplusPost = new SurplusPost();
-        surplusPost.setType(request.getType());
-        surplusPost.setQuantity(request.getQuantity());
-        surplusPost.setExpiryDate(request.getExpiryDate());
-        surplusPost.setPickupTime(request.getPickupTime());
-        surplusPost.setLocation(request.getLocation());
-        surplusPost.setDonor(donor);
+        SurplusPost post = new SurplusPost();
+        post.setDonor(donor);
+        post.setFoodName(request.getFoodName());
+        post.setFoodType(request.getFoodType());
+        post.setQuantity(request.getQuantity());
+        post.setUnit(request.getUnit());
+        post.setExpiryDate(request.getExpiryDate());
+        post.setPickupFrom(request.getPickupFrom());
+        post.setPickupTo(request.getPickupTo());
+        post.setLocation(request.getLocation());
+        post.setNotes(request.getNotes());
         
-        // Save to database
-        SurplusPost savedPost = surplusPostRepository.save(surplusPost);
+        SurplusPost savedPost = surplusPostRepository.save(post);
         
-        // Convert to response DTO
         return convertToResponse(savedPost);
     }
     
     private SurplusResponse convertToResponse(SurplusPost post) {
-        return new SurplusResponse(
-            post.getId(),
-            post.getType(),
-            post.getQuantity(),
-            post.getExpiryDate(),
-            post.getPickupTime(),
-            post.getLocation(),
-            post.getDonor().getEmail(),
-            post.getCreatedAt()
-        );
+        SurplusResponse response = new SurplusResponse();
+        response.setId(post.getId());
+        response.setFoodName(post.getFoodName());
+        response.setFoodType(post.getFoodType());
+        response.setQuantity(post.getQuantity());
+        response.setUnit(post.getUnit());
+        response.setExpiryDate(post.getExpiryDate());
+        response.setPickupFrom(post.getPickupFrom());
+        response.setPickupTo(post.getPickupTo());
+        response.setLocation(post.getLocation());
+        response.setNotes(post.getNotes());
+        response.setDonorEmail(post.getDonor().getEmail());
+        response.setCreatedAt(post.getCreatedAt());
+        return response;
     }
 }
