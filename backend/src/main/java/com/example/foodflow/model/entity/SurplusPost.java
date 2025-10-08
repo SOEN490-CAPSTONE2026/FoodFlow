@@ -3,6 +3,7 @@ package com.example.foodflow.model.entity;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "surplus_posts")
@@ -19,7 +20,7 @@ public class SurplusPost {
     private String foodType;
     
     @Column(nullable = false, name = "expiry_date")
-    private LocalDateTime expiryDate;
+    private LocalDate expiryDate;
     
     @Column(nullable = false)
     private Double quantity;
@@ -73,8 +74,8 @@ public class SurplusPost {
     public String getFoodType() { return foodType; }
     public void setFoodType(String foodType) { this.foodType = foodType; }
     
-    public LocalDateTime getExpiryDate() { return expiryDate; }
-    public void setExpiryDate(LocalDateTime expiryDate) { this.expiryDate = expiryDate; }
+    public LocalDate getExpiryDate() { return expiryDate; }
+    public void setExpiryDate(LocalDate expiryDate) { this.expiryDate = expiryDate; }
     
     public Double getQuantity() { return quantity; }
     public void setQuantity(Double quantity) { this.quantity = quantity; }

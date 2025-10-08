@@ -2,6 +2,7 @@ package com.example.foodflow.model.dto;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.LocalDate;
 
 public class SurplusResponse {
     
@@ -10,7 +11,7 @@ public class SurplusResponse {
     private String foodType;
     private Double quantity;
     private String unit;
-    private LocalDateTime expiryDate;
+    private LocalDate expiryDate;
     private LocalDateTime pickupFrom;
     private LocalTime pickupTo;
     private String location;
@@ -22,7 +23,7 @@ public class SurplusResponse {
     public SurplusResponse() {}
     
     public SurplusResponse(Long id, String foodName, String foodType, Double quantity, 
-                          String unit, LocalDateTime expiryDate, LocalDateTime pickupFrom,
+                          String unit, LocalDate expiryDate, LocalDateTime pickupFrom,
                           LocalTime pickupTo, String location, String notes,
                           String donorEmail, LocalDateTime createdAt) {
         this.id = id;
@@ -55,8 +56,8 @@ public class SurplusResponse {
     public String getUnit() { return unit; }
     public void setUnit(String unit) { this.unit = unit; }
     
-    public LocalDateTime getExpiryDate() { return expiryDate; }
-    public void setExpiryDate(LocalDateTime expiryDate) { this.expiryDate = expiryDate; }
+    public LocalDate getExpiryDate() { return expiryDate; }
+    public void setExpiryDate(LocalDate expiryDate) { this.expiryDate = expiryDate; }
     
     public LocalDateTime getPickupFrom() { return pickupFrom; }
     public void setPickupFrom(LocalDateTime pickupFrom) { this.pickupFrom = pickupFrom; }

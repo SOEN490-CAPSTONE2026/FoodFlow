@@ -18,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -56,7 +57,7 @@ class SurplusServiceTest {
         request.setFoodType("Prepared Meals");
         request.setQuantity(10.0);
         request.setUnit("kg");
-        request.setExpiryDate(LocalDateTime.now().plusDays(2));
+        request.setExpiryDate(LocalDate.now().plusDays(2));
         request.setPickupFrom(LocalDateTime.now().plusHours(3));
         request.setPickupTo(LocalTime.of(18, 0));
         request.setLocation("123 Main St");
@@ -140,7 +141,7 @@ class SurplusServiceTest {
         mockSavedPost.setQuantity(1.0);
         mockSavedPost.setUnit("kg");
         mockSavedPost.setLocation("Test");
-        mockSavedPost.setExpiryDate(LocalDateTime.now());
+        mockSavedPost.setExpiryDate(LocalDate.now());
         mockSavedPost.setPickupFrom(LocalDateTime.now());
         mockSavedPost.setPickupTo(LocalTime.now());
         mockSavedPost.setNotes("Test");

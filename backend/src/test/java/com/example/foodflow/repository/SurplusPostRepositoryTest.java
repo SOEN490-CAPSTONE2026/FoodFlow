@@ -15,6 +15,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -68,7 +69,7 @@ class SurplusPostRepositoryTest {
         post.setQuantity(10.0);
         post.setUnit("kg");
         post.setLocation("123 Main St");
-        post.setExpiryDate(LocalDateTime.now().plusDays(2));
+        post.setExpiryDate(LocalDate.now().plusDays(2));
         post.setPickupFrom(LocalDateTime.now().plusHours(3));
         post.setPickupTo(LocalTime.of(18, 0));
         post.setNotes("Vegetarian lasagna");
@@ -124,7 +125,7 @@ class SurplusPostRepositoryTest {
         post.setQuantity(quantity);
         post.setUnit("items");
         post.setLocation("123 Main St");
-        post.setExpiryDate(LocalDateTime.now().plusDays(2));
+        post.setExpiryDate(LocalDate.now().plusDays(2));
         post.setPickupFrom(LocalDateTime.now().plusHours(3));
         post.setPickupTo(LocalTime.of(18, 0));
         post.setNotes("Test food description");

@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
@@ -17,7 +18,7 @@ public class CreateSurplusRequest {
     
     @NotNull(message = "Expiry date is required")
     @Future(message = "Expiry date must be in the future")
-    private LocalDateTime expiryDate;
+    private LocalDate expiryDate;
     
     @NotNull(message = "Quantity is required")
     @Positive(message = "Quantity must be positive")
@@ -49,8 +50,9 @@ public class CreateSurplusRequest {
     public String getFoodType() { return foodType; }
     public void setFoodType(String foodType) { this.foodType = foodType; }
     
-    public LocalDateTime getExpiryDate() { return expiryDate; }
-    public void setExpiryDate(LocalDateTime expiryDate) { this.expiryDate = expiryDate; }
+    public LocalDate getExpiryDate() { return expiryDate; }
+    public void setExpiryDate(LocalDate expiryDate) { this.expiryDate = expiryDate; }
+    
     
     public Double getQuantity() { return quantity; }
     public void setQuantity(Double quantity) { this.quantity = quantity; }
