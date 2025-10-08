@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { X } from 'lucide-react';
+import { useLoadScript } from '@react-google-maps/api';
+import usePlacesAutocomplete, { getGeocode, getLatLng } from 'use-places-autocomplete';
 import "../style/SurplusFormModal.css";
 
 const SurplusFormModal = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({
     foodName: '',
-    foodType: [],
+    foodType: '',
     expiryDate: '',
     quantity: '',
     unit: 'kg',
@@ -30,22 +33,11 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
     setMessage('');
     setError('');
 
-    // Prepare data for API
-    const apiData = {
-      type: formData.foodType,
-      quantity: `${formData.quantity}${formData.unit ? ' ' + formData.unit : ''}`,
-      expiryDate: formData.expiryDate,
-      pickupTime: `${formData.pickupFrom} to ${formData.pickupTo}`,
-      location: formData.location,
-      notes: formData.notes
-    };
-
     try {
       const token = localStorage.getItem('token');
-
       const response = await axios.post(
         'http://localhost:8080/api/surplus',
-        apiData,
+        formData,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -58,7 +50,7 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
       // Reset form
       setFormData({
         foodName: '',
-        foodType: [],
+        foodType: '',
         expiryDate: '',
         quantity: '',
         unit: 'kg',
@@ -68,7 +60,7 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
         notes: ''
       });
 
-      // Close modal after successful submission
+      //Modal closes after successful submission
       setTimeout(() => {
         onClose();
       }, 2000);
@@ -93,6 +85,9 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
       onClose();
     }
   };
+   const handleClose = () => {
+    handleCancel();
+  };
 
   if (!isOpen) return null;
 
@@ -101,6 +96,9 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
       <div className="modal-container" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Add New Donation</h2>
+           <button className="close-button" onClick={handleClose}>
+            <X size={24} />
+          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="modal-form">
@@ -137,9 +135,7 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
                   <option value="Fruits">Fruits & Vegetables</option>
                   <option value="Vegetables">Packaged / Pantry Items</option>
                   <option value="Dairy">Dairy & Cold Items</option>
-                  <option value="Meat">Meat</option>
-                  <option value="Seafood">Seafood</option>
-                  <option value="Grains">Frozen Food</option>
+                  <option value="Frozen Food">Frozen Food</option>
                   <option value="Prepared Meals">Prepared Meals</option>
                 </select>
               </div>
@@ -160,10 +156,9 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
 
           {/* Quantity Section */}
           <div className="form-section">
-            <h3 className="section-title">Quantity</h3>
             <div className="row-group">
               <div className="input-group half-width">
-                <label className="input-label">Enter quantity</label>
+                <label className="input-label">Quantity</label>
                 <input
                   type="number"
                   name="quantity"
@@ -189,11 +184,7 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
                   <option value="items">items</option>
                   <option value="liters">liters</option>
                   <option value="lbs">lbs</option>
-                  <option value="pieces">pieces</option>
-                  <option value="portions">portions</option>
                   <option value="boxes">boxes</option>
-                  <option value="bags">bags</option>
-                  <option value="containers">containers</option>
                 </select>
               </div>
             </div>
@@ -201,12 +192,11 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
 
           {/* Pickup Time Section */}
           <div className="form-section">
-            <h3 className="section-title">Pickup Time</h3>
             <div className="row-group">
               <div className="input-group half-width">
                 <label className="input-label">From</label>
                 <input
-                  type="time"
+                  type="datetime-local"
                   name="pickupFrom"
                   value={formData.pickupFrom}
                   onChange={handleChange}
@@ -231,9 +221,8 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
 
           {/* Pickup Location Section */}
           <div className="form-section">
-            <h3 className="section-title">Pickup Location</h3>
             <div className="input-group">
-              <label className="input-label">Enter pickup location</label>
+              <label className="input-label">Pickup location</label>
               <input
                 type="text"
                 name="location"
@@ -248,9 +237,8 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
 
           {/* Notes Section */}
           <div className="form-section">
-            <h3 className="section-title">Notes</h3>
             <div className="input-group">
-              <label className="input-label">Enter food description</label>
+              <label className="input-label">Food description</label>
               <textarea
                 name="notes"
                 value={formData.notes}
@@ -258,6 +246,7 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
                 className="input-field textarea"
                 placeholder='Example: "Vegetarian lasagna made with tomato sauce, spinach, and ricotta cheese."'
                 rows="4"
+                required
               />
               <p className="example-text">
                 Example: "Vegetarian lasagna made with tomato sauce, spinach, and ricotta cheese."
