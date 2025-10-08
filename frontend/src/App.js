@@ -11,7 +11,6 @@ import { AuthProvider } from './contexts/AuthContext';
 import { useAnalytics } from './hooks/useAnalytics';
 import SurplusForm from './components/SurplusFormModal';
 import Surplus from './components/surplus';
-import DonorListFood from './components/DonorListFood';
 import PrivacyPolicy from './components/PrivacyPolicy'; 
 import './App.css';
 
