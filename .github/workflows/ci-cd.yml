@@ -3,10 +3,11 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - main
+      - 'main'
+      - 'cicd'
   pull_request:
     branches:
-      - main
+      - 'main'
 
 jobs:
   setup:
@@ -25,3 +26,87 @@ jobs:
       - name: Install frontend dependencies
         run: npm install
         working-directory: ./frontend
+
+  frontend:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: ./frontend/package-lock.json
+
+      - run: npm install
+        working-directory: ./frontend
+
+      - name: Run frontend tests
+        run: npm test
+        working-directory: ./frontend
+
+  prometheus_grafana:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Compose
+        run: |
+          docker --version
+          docker compose version
+
+      - name: Start Prometheus and Grafana
+        run: |
+          docker network create foodflow-ci || true
+
+          docker run -d \
+            --name prometheus \
+            --network foodflow-ci \
+            -p 9090:9090 \
+            -v $(pwd)/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml \
+            prom/prometheus:latest \
+            --config.file=/etc/prometheus/prometheus.yml
+
+          docker run -d \
+            --name grafana \
+            --network foodflow-ci \
+            -p 3001:3000 \
+            -e "GF_SECURITY_ADMIN_PASSWORD=admin" \
+            -e "GF_USERS_ALLOW_SIGN_UP=false" \
+            grafana/grafana:latest
+
+      - name: Wait for Prometheus to be healthy
+        run: |
+          for i in {1..10}; do
+            if curl --fail http://localhost:9090/-/ready; then
+              echo "Prometheus is ready"
+              exit 0
+            fi
+            echo "Waiting for Prometheus to be ready..."
+            sleep 5
+          done
+          echo "Prometheus failed to start"
+          docker logs prometheus
+          exit 1
+
+      - name: Wait for Grafana to be healthy
+        run: |
+          for i in {1..10}; do
+            if curl --fail http://localhost:3001/api/health; then
+              echo "Grafana is ready"
+              exit 0
+            fi
+            echo "Waiting for Grafana to be ready..."
+            sleep 5
+          done
+          echo "Grafana failed to start"
+          docker logs grafana
+          exit 1
+
+      - name: Check Prometheus targets
+        run: curl --fail http://localhost:9090/api/v1/targets || (docker logs prometheus && exit 1)
