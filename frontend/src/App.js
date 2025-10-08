@@ -10,6 +10,8 @@ import NavigationBar from './components/NavigationBar';
 import { AuthProvider } from './contexts/AuthContext';
 import { useAnalytics } from './hooks/useAnalytics';
 import SurplusForm from './components/SurplusFormModal';
+import Surplus from './components/surplus';
+import DonorListFood from './components/DonorListFood';
 import PrivacyPolicy from './components/PrivacyPolicy'; 
 import './App.css';
 
@@ -34,7 +36,7 @@ function AppContent() {
         <Route path="/register/receiver" element={<ReceiverRegistration />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/dashboard" element={<TempDashboard />} />
-        <Route path="/surplus/create" element={<SurplusForm />} />
+        <Route path="/surplus/create" element={<Surplus />} />
          <Route path="/privacy-policy" element={<PrivacyPolicy />} /> 
       </Routes>
     </div>
