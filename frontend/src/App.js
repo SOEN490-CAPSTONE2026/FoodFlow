@@ -17,7 +17,8 @@ import DonorDashboard from './components/DonorDashboard/DonorDashboard';
 import ReceiverDashboard from './components/ReceiverDashboard/ReceiverDashboard';
 
 import SurplusForm from './components/SurplusForm';
-import PrivacyPolicy from './components/PrivacyPolicy'; 
+import MyPosts from './components/MyPosts';
+import PrivacyPolicy from './components/PrivacyPolicy';
 import './App.css';
 
 import { useLocation } from "react-router-dom";
@@ -77,7 +78,8 @@ function AppContent() {
           }
         />
         <Route path="/surplus/create" element={<SurplusForm />} />
-         <Route path="/privacy-policy" element={<PrivacyPolicy />} /> 
+        <Route path="/my-posts" element={<MyPosts />} />
+         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       </Routes>
     </div>
   );
