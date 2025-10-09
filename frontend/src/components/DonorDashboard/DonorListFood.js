@@ -1,307 +1,173 @@
-// DonorListFood.jsx
-import React from "react";
-import "./Dashboards.css";
+import React, { useState, useEffect, useRef } from "react";
+import { Calendar, Clock, MapPin, Edit, Trash2, AlertTriangle, X } from "lucide-react";
 import "./DonorListFood.css";
 
-export default function DonorListFood({
-  items = [],
-  loading = false,
-  saving = false,
-  onCreate = async () => {},
-  onDelete = async () => {},
-}) {
-  const [form, setForm] = React.useState({
-    title: "",
-    category: "Prepared Meals",
-    qty: 1,
-    unit: "kg",
-    pickupWindow: "",
-    location: "",
-    expiresAt: "",
-  });
+const initialDonations = [
+  {
+    id: 1,
+    title: "Fresh Apples",
+    tags: ["Fruits", "Organic"],
+    quantity: "5 kg",
+    status: "available",
+    expiry: "Expires Oct 8, 2025",
+    time: "2:00–5:00 PM",
+    location: "1380 Sherbrooke St W, Montreal, QC H3G 1J5, Canada",
+    notes:
+      "Red Delicious apples, perfect for snacking or baking. Freshly picked this week from local orchard.",
+  },
+  {
+    id: 2,
+    title: "Artisan Bread Selection",
+    tags: ["Bakery", "Gluten-Free", "Whole Grain"],
+    quantity: "8 loaves",
+    status: "expiring-soon",
+    expiry: "Expires Oct 5, 2025",
+    time: "9:00 AM–12:00 PM",
+    location: "5035 Rue Saint-Denis, Montréal, QC H2J 2L8, Canada",
+    notes:
+      "Fresh sourdough, whole wheat, and gluten-free options. Baked this morning with organic ingredients. Great for sandwiches or toast.",
+  },
+  {
+    id: 3,
+    title: "Seasonal Vegetable Mix",
+    tags: ["Vegetables", "Organic", "Local"],
+    quantity: "3.5 kg",
+    status: "claimed",
+    expiry: "Expires Oct 10, 2025",
+    time: "4:00–7:00 PM",
+    location: "400 Boulevard de Maisonneuve O, Montréal, QC H3A 1L4, Canada",
+    notes:
+      "Fresh carrots, bell peppers, zucchini, and tomatoes from local farm. Perfect for stir fry, soups, or salads. All pesticide-free.",
+  },
+  {
+    id: 4,
+    title: "Dairy & Protein Pack",
+    tags: ["Dairy", "Protein", "Refrigerated"],
+    quantity: "12 items",
+    status: "expired",
+    expiry: "Expires Oct 2, 2025",
+    time: "1:00–3:00 PM",
+    location: "2000 Notre-Dame St W, Montréal, QC H3J 1N4, Canada",
+    notes:
+      "Includes organic milk, Greek yogurt, aged cheddar cheese, and free-range eggs. All from local Quebec producers.",
+  },
+];
 
-  function onChange(k, v) {
-    setForm((f) => ({ ...f, [k]: v }));
+function statusClass(status) {
+  switch (status) {
+    case "available":
+      return "badge badge--ok";
+    case "expiring-soon":
+      return "badge badge--warn";
+    case "claimed":
+      return "badge badge--muted";
+    case "expired":
+      return "badge badge--danger";
+    default:
+      return "badge";
   }
+}
 
-  function clearForm() {
-    setForm({
-      title: "",
-      category: "Prepared Meals",
-      qty: 1,
-      unit: "kg",
-      pickupWindow: "",
-      location: "",
-      expiresAt: "",
-    });
-  }
+function addressLabel(full) {
+  if (!full) return '';
+  const parts = String(full).split(',').map((s) => s.trim());
+  if (parts.length <= 2) return full; 
+  return `${parts[0]}, ${parts[1]}…`;
+}
 
-  async function save() {
-    if (!form.title.trim() || !form.location.trim()) {
-      alert("Please fill in required fields: Title and Location");
-      return;
+export default function DonorListFood() {
+  const [items, setItems] = useState(initialDonations);
+  const titleRef = useRef(null);
+
+  function requestDelete(id) {
+    const confirmDelete = window.confirm("Are you sure you want to delete this post?");
+    if (confirmDelete) {
+      setItems((prev) => prev.filter((it) => it.id !== id));
+      alert("Post deleted successfully.");
     }
-    
-    await onCreate({
-      title: form.title,
-      category: form.category,
-      quantity: Number(form.qty),
-      unit: form.unit,
-      pickupWindow: form.pickupWindow,
-      location: form.location,
-      expiresAt: form.expiresAt || null,
-    });
-    clearForm();
   }
 
-  async function handleDelete(id) {
-    if (window.confirm("Are you sure you want to delete this listing?")) {
-      await onDelete(id);
-    }
+  function openEdit(item) {
+    alert(`Opening edit form for: ${item.title}\n(You will add the actual form here later.)`);
   }
-
-  function formatDate(dateString) {
-    if (!dateString) return "—";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  }
-
-  function formatDateTime(dateString) {
-    if (!dateString) return "Not specified";
-    return new Date(dateString).toLocaleString("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  }
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "Active":
-        return "st-active";
-      case "Pending":
-        return "st-pending";
-      case "Completed":
-        return "st-claimed";
-      case "Expired":
-        return "st-closed";
-      default:
-        return "st-closed";
-    }
-  };
 
   return (
-    <div className="donor-list-food">
-      {/* Create New Listing Card */}
-      <div className="card listing-form-card">
-        <h3 className="section-title">Create New Food Listing</h3>
-        <div className="form">
-          <div className="form-row">
-            <div className="form-group">
-              <label>Food Title *</label>
-              <input
-                className="input"
-                placeholder="e.g., Fresh Bread, Assorted Vegetables..."
-                value={form.title}
-                onChange={(e) => onChange("title", e.target.value)}
-              />
+    <div className="dlf-wrap">
+   
+      <header className="dlf-header">
+        <button className="dlf-cta">+ Donate More</button>
+      </header>
+
+
+      <section className="dlf-grid" aria-label="Donations list">
+        {items.map((d) => (
+          <article key={d.id} className="dc-card" aria-label={d.title}>
+  
+            <div className="dc-head">
+              <h3 className="dc-title">{d.title}</h3>
+              <span className={statusClass(d.status)}>
+                {d.status === "expiring-soon" && <AlertTriangle className="dc-icon" />}
+                {d.status === "available"
+                  ? "Available"
+                  : d.status === "expiring-soon"
+                  ? "Expiring Soon"
+                  : d.status === "claimed"
+                  ? "Claimed"
+                  : "Expired"}
+              </span>
             </div>
-            <div className="form-group">
-              <label>Category</label>
-              <select
-                className="input"
-                value={form.category}
-                onChange={(e) => onChange("category", e.target.value)}
-              >
-                <option value="Prepared Meals">Prepared Meals</option>
-                <option value="Produce">Produce</option>
-                <option value="Bakery">Bakery</option>
-                <option value="Dairy">Dairy</option>
-                <option value="Packaged Goods">Packaged Goods</option>
-                <option value="Beverages">Beverages</option>
-                <option value="Meat">Meat</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-          </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label>Quantity *</label>
-              <input
-                type="number"
-                min="1"
-                className="input"
-                value={form.qty}
-                onChange={(e) => onChange("qty", e.target.value)}
-              />
-            </div>
-            <div className="form-group">
-              <label>Unit *</label>
-              <select
-                className="input"
-                value={form.unit}
-                onChange={(e) => onChange("unit", e.target.value)}
-              >
-                <option value="kg">kg</option>
-                <option value="lbs">lbs</option>
-                <option value="boxes">boxes</option>
-                <option value="units">units</option>
-                <option value="liters">liters</option>
-                <option value="packages">packages</option>
-                <option value="other">other</option>
-              </select>
-            </div>
-          </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label>Expiration Date/Time</label>
-              <input
-                type="datetime-local"
-                className="input"
-                value={form.expiresAt}
-                onChange={(e) => onChange("expiresAt", e.target.value)}
-              />
-            </div>
-            <div className="form-group">
-              <label>Pickup Window</label>
-              <input
-                className="input"
-                placeholder="e.g., 3-6 PM, 9 AM-12 PM"
-                value={form.pickupWindow}
-                onChange={(e) => onChange("pickupWindow", e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label>Pickup Location *</label>
-            <input
-              className="input"
-              placeholder="Full address or specific location details"
-              value={form.location}
-              onChange={(e) => onChange("location", e.target.value)}
-            />
-          </div>
-
-          <div className="form-actions">
-            <button className="btn ghost" onClick={clearForm} disabled={saving}>
-              Clear Form
-            </button>
-            <button className="btn secondary" onClick={save} disabled={saving}>
-              {saving ? "Creating..." : "Create Listing"}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* My Listings Card */}
-      <div className="card listings-card">
-        <div className="listings-header">
-          <h3 className="section-title">My Listings</h3>
-          <span className="listings-count">{items.length} listing(s)</span>
-        </div>
-
-        {loading ? (
-          <div className="loading-state">Loading listings...</div>
-        ) : items.length === 0 ? (
-          <div className="empty-state">
-            
-            <h4>No listings yet</h4>
-            <p>Create your first food listing to get started!</p>
-          </div>
-        ) : (
-          <div className="listings-grid">
-            {items.map((item) => (
-              <div key={item.id} className="listing-item">
-                <div className="listing-header">
-                  <h4 className="listing-title">{item.title}</h4>
-                  <span className={`status-badge ${getStatusColor(item.status)}`}>
-                    {item.status}
-                  </span>
-                </div>
-
-                <div className="listing-details">
-                  <div className="detail-row">
-                    <span className="detail-label">Category:</span>
-                    <span className="detail-value">{item.category}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span className="detail-label">Quantity:</span>
-                    <span className="detail-value">
-                      {item.qty} {item.unit}
-                    </span>
-                  </div>
-                  <div className="detail-row">
-                    <span className="detail-label">Expires:</span>
-                    <span className="detail-value">
-                      {item.expiresAt ? formatDateTime(item.expiresAt) : "Not specified"}
-                    </span>
-                  </div>
-                  <div className="detail-row">
-                    <span className="detail-label">Pickup:</span>
-                    <span className="detail-value">{item.pickupWindow || "Flexible"}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span className="detail-label">Location:</span>
-                    <span className="detail-value">{item.location}</span>
-                  </div>
-                </div>
-
-                <div className="listing-actions">
-                  <span className="created-date">Created: {formatDate(item.createdAt)}</span>
-                  <button
-                    className="btn ghost small danger"
-                    onClick={() => handleDelete(item.id)}
-                  >
-                    Delete
-                  </button>
-                </div>
+            {d.tags?.length > 0 && (
+              <div className="dc-tags">
+                {d.tags.map((t) => (
+                  <span key={t} className="dc-chip">{t}</span>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+            )}
+
+
+            <div className="dc-qty">{d.quantity}</div>
+
+
+            <ul className="dc-meta" aria-label="details">
+              <li>
+                <Calendar className="dc-icon" />
+                <span>{d.expiry}</span>
+              </li>
+              <li>
+                <Clock className="dc-icon" />
+                <span>{d.time}</span>
+              </li>
+              <li>
+                <MapPin className="dc-icon" />
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.location)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="dc-link--address"
+                  title={d.location}
+                >
+                  {addressLabel(d.location)}
+                </a>
+              </li>
+            </ul>
+
+
+            {d.notes && <p className="dc-desc">{d.notes}</p>}
+
+
+            <div className="dc-actions">
+              <button className="dc-link" onClick={() => openEdit(d)}>
+                <Edit className="dc-icon" /> Edit
+              </button>
+              <button className="dc-link dc-link--danger" onClick={() => requestDelete(d.id)}>
+                <Trash2 className="dc-icon" /> Delete
+              </button>
+            </div>
+          </article>
+        ))}
+      </section>
     </div>
   );
-}
-
-// ---- helpers (module-local) ----
-function formatDate(dateString) {
-  if (!dateString) return "—";
-  return new Date(dateString).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function formatDateTime(dateString) {
-  if (!dateString) return "Not specified";
-  return new Date(dateString).toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function getStatusColor(status) {
-  switch (status) {
-    case "Active":
-      return "st-active";
-    case "Pending":
-      return "st-pending";
-    case "Completed":
-      return "st-claimed";
-    case "Expired":
-      return "st-closed";
-    default:
-      return "st-closed";
-  }
 }
