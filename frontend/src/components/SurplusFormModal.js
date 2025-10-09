@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import axios from 'axios';
 import { X } from 'lucide-react';
-import { useLoadScript } from '@react-google-maps/api';
-import usePlacesAutocomplete, { getGeocode, getLatLng } from 'use-places-autocomplete';
+import { Autocomplete } from "@react-google-maps/api";
 import "../style/SurplusFormModal.css";
 
 const SurplusFormModal = ({ isOpen, onClose }) => {
@@ -19,6 +18,9 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
   });
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  
+  // Reference for the autocomplete instance
+  const autocompleteRef = useRef(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -26,6 +28,30 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
       ...prev,
       [name]: value
     }));
+  };
+
+  // Handle when autocomplete loads
+  const onLoadAutocomplete = (autocomplete) => {
+    autocompleteRef.current = autocomplete;
+  };
+
+  // Handle when user selects a place from autocomplete
+  const onPlaceChanged = () => {
+    if (autocompleteRef.current) {
+      const place = autocompleteRef.current.getPlace();
+      
+      if (place.formatted_address) {
+        setFormData(prev => ({
+          ...prev,
+          location: place.formatted_address
+        }));
+      } else if (place.name) {
+        setFormData(prev => ({
+          ...prev,
+          location: place.name
+        }));
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -85,191 +111,198 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
       onClose();
     }
   };
-   const handleClose = () => {
+  
+  const handleClose = () => {
     handleCancel();
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={handleCancel}>
-      <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>Add New Donation</h2>
-           <button className="close-button" onClick={handleClose}>
-            <X size={24} />
-          </button>
+      <div className="modal-overlay" onClick={handleCancel}>
+        <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-header">
+            <h2>Add New Donation</h2>
+            <button className="close-button" onClick={handleClose}>
+              <X size={24} />
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="modal-form">
+            {/* Food Title Section */}
+            <div className="form-section">
+              <div className="input-group">
+                <label className="input-label">Food name</label>
+                <input
+                  type="text"
+                  name="foodName"
+                  value={formData.foodName}
+                  onChange={handleChange}
+                  className="input-field"
+                  placeholder="e.g., Vegetable Lasagna"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Food Type & Expiry Date Section */}
+            <div className="form-section">
+              <div className="row-group">
+                <div className="input-group half-width">
+                  <label className="input-label">Food Type</label>
+                  <select
+                    name="foodType"
+                    value={formData.foodType}
+                    onChange={handleChange}
+                    className="input-field"
+                    placeholder="Select food type"
+                    required
+                  >
+                    <option value="Bakery & Pastry">Bakery & Pastry</option>
+                    <option value="Fruits">Fruits & Vegetables</option>
+                    <option value="Vegetables">Packaged / Pantry Items</option>
+                    <option value="Dairy">Dairy & Cold Items</option>
+                    <option value="Frozen Food">Frozen Food</option>
+                    <option value="Prepared Meals">Prepared Meals</option>
+                  </select>
+                </div>
+
+                <div className="input-group half-width">
+                  <label className="input-label">Expiry Date</label>
+                  <input
+                    type="date"
+                    name="expiryDate"
+                    value={formData.expiryDate}
+                    onChange={handleChange}
+                    className="input-field"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Quantity Section */}
+            <div className="form-section">
+              <div className="row-group">
+                <div className="input-group half-width">
+                  <label className="input-label">Quantity</label>
+                  <input
+                    type="number"
+                    name="quantity"
+                    value={formData.quantity}
+                    onChange={handleChange}
+                    className="input-field"
+                    placeholder="0"
+                    min="0"
+                    step="0.1"
+                    required
+                  />
+                </div>
+
+                <div className="input-group half-width">
+                  <label className="input-label">Unit</label>
+                  <select
+                    name="unit"
+                    value={formData.unit}
+                    onChange={handleChange}
+                    className="input-field"
+                  >
+                    <option value="kg">kg</option>
+                    <option value="items">items</option>
+                    <option value="liters">liters</option>
+                    <option value="lbs">lbs</option>
+                    <option value="boxes">boxes</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Pickup Time Section */}
+            <div className="form-section">
+              <div className="row-group">
+                <div className="input-group half-width">
+                  <label className="input-label">From</label>
+                  <input
+                    type="datetime-local"
+                    name="pickupFrom"
+                    value={formData.pickupFrom}
+                    onChange={handleChange}
+                    className="input-field"
+                    required
+                  />
+                </div>
+
+                <div className="input-group half-width">
+                  <label className="input-label">To</label>
+                  <input
+                    type="time"
+                    name="pickupTo"
+                    value={formData.pickupTo}
+                    onChange={handleChange}
+                    className="input-field"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Pickup Location Section*/}
+            <div className="form-section">
+              <div className="input-group">
+                <label className="input-label">Pickup location</label>
+                <Autocomplete
+                  onLoad={onLoadAutocomplete}
+                  onPlaceChanged={onPlaceChanged}
+                  options={{
+                    types: ['geocode', 'establishment'],
+                    fields: ['formatted_address', 'name', 'geometry']
+                  }}
+                >
+                  <input
+                    type="text"
+                    name="location"
+                    value={formData.location}
+                    onChange={handleChange}
+                    className="input-field"
+                    placeholder="Start typing to search the location"
+                    required
+                  />
+                </Autocomplete>
+              </div>
+            </div>
+
+            {/* Notes Section */}
+            <div className="form-section">
+              <div className="input-group">
+                <label className="input-label">Food description</label>
+                <textarea
+                  name="notes"
+                  value={formData.notes}
+                  onChange={handleChange}
+                  className="input-field textarea"
+                  placeholder='e.g.,Vegetarian lasagna made with tomato sauce, spinach, and ricotta cheese.'
+                  rows="4"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Messages */}
+            {message && <div className="success-message">{message}</div>}
+            {error && <div className="error-message">{error}</div>}
+
+            {/* Footer Buttons */}
+            <div className="modal-footer">
+              <button type="button" className="btn btn-cancel" onClick={handleCancel}>
+                Cancel
+              </button>
+              <button type="submit" className="btn btn-create">
+                Create Donation
+              </button>
+            </div>
+          </form>
         </div>
-
-        <form onSubmit={handleSubmit} className="modal-form">
-          {/* Food Title Section */}
-          <div className="form-section">
-            <div className="input-group">
-              <label className="input-label">Food name</label>
-              <input
-                type="text"
-                name="foodName"
-                value={formData.foodName}
-                onChange={handleChange}
-                className="input-field"
-                placeholder="e.g., Vegetable Lasagna"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Food Type & Expiry Date Section */}
-          <div className="form-section">
-            <div className="row-group">
-              <div className="input-group half-width">
-                <label className="input-label">Food Type</label>
-                <select
-                  name="foodType"
-                  value={formData.foodType}
-                  onChange={handleChange}
-                  className="input-field"
-                  placeholder="Select food type"
-                  required
-                >
-                  <option value="Bakery & Pastry">Bakery & Pastry</option>
-                  <option value="Fruits">Fruits & Vegetables</option>
-                  <option value="Vegetables">Packaged / Pantry Items</option>
-                  <option value="Dairy">Dairy & Cold Items</option>
-                  <option value="Frozen Food">Frozen Food</option>
-                  <option value="Prepared Meals">Prepared Meals</option>
-                </select>
-              </div>
-
-              <div className="input-group half-width">
-                <label className="input-label">Expiry Date</label>
-                <input
-                  type="date"
-                  name="expiryDate"
-                  value={formData.expiryDate}
-                  onChange={handleChange}
-                  className="input-field"
-                  required
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Quantity Section */}
-          <div className="form-section">
-            <div className="row-group">
-              <div className="input-group half-width">
-                <label className="input-label">Quantity</label>
-                <input
-                  type="number"
-                  name="quantity"
-                  value={formData.quantity}
-                  onChange={handleChange}
-                  className="input-field"
-                  placeholder="0"
-                  min="0"
-                  step="0.1"
-                  required
-                />
-              </div>
-
-              <div className="input-group half-width">
-                <label className="input-label">Unit</label>
-                <select
-                  name="unit"
-                  value={formData.unit}
-                  onChange={handleChange}
-                  className="input-field"
-                >
-                  <option value="kg">kg</option>
-                  <option value="items">items</option>
-                  <option value="liters">liters</option>
-                  <option value="lbs">lbs</option>
-                  <option value="boxes">boxes</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Pickup Time Section */}
-          <div className="form-section">
-            <div className="row-group">
-              <div className="input-group half-width">
-                <label className="input-label">From</label>
-                <input
-                  type="datetime-local"
-                  name="pickupFrom"
-                  value={formData.pickupFrom}
-                  onChange={handleChange}
-                  className="input-field"
-                  required
-                />
-              </div>
-
-              <div className="input-group half-width">
-                <label className="input-label">To</label>
-                <input
-                  type="time"
-                  name="pickupTo"
-                  value={formData.pickupTo}
-                  onChange={handleChange}
-                  className="input-field"
-                  required
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Pickup Location Section */}
-          <div className="form-section">
-            <div className="input-group">
-              <label className="input-label">Pickup location</label>
-              <input
-                type="text"
-                name="location"
-                value={formData.location}
-                onChange={handleChange}
-                className="input-field"
-                placeholder="Start typing to search the location"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Notes Section */}
-          <div className="form-section">
-            <div className="input-group">
-              <label className="input-label">Food description</label>
-              <textarea
-                name="notes"
-                value={formData.notes}
-                onChange={handleChange}
-                className="input-field textarea"
-                placeholder='Example: "Vegetarian lasagna made with tomato sauce, spinach, and ricotta cheese."'
-                rows="4"
-                required
-              />
-              <p className="example-text">
-                Example: "Vegetarian lasagna made with tomato sauce, spinach, and ricotta cheese."
-              </p>
-            </div>
-          </div>
-
-          {/* Messages */}
-          {message && <div className="success-message">{message}</div>}
-          {error && <div className="error-message">{error}</div>}
-
-          {/* Footer Buttons */}
-          <div className="modal-footer">
-            <button type="button" className="btn btn-cancel" onClick={handleCancel}>
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-create">
-              Create Donation
-            </button>
-          </div>
-        </form>
       </div>
-    </div>
   );
 };
 

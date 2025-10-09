@@ -168,12 +168,6 @@
   accent-color: #4299e1;
 }
 
-.example-text {
-  font-size: 0.8rem;
-  color: #718096;
-  margin-top: 6px;
-  font-style: italic;
-}
 
 .modal-footer {
   display: flex;
@@ -230,7 +224,22 @@
   margin: 16px 24px;
   font-size: 0.9rem;
 }
+.validation-error {
+  color: #9F2D00;
+  font-size: 0.8rem;
+  margin-top: 4px;
+  text-align: left;
+}
 
+.input-error {
+  border-color: #9F2D00 !important;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.1) !important;
+}
+
+.input-error:focus {
+  border-color: #9F2D00 !important;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.1) !important;
+}
 /* Responsive Design */
 @media (max-width: 600px) {
   .modal-overlay {
