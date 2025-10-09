@@ -13,26 +13,50 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const { trackButtonClick, trackFormSubmission, trackLogin } = useAnalytics();
+  const { trackButtonClick, trackLogin } = useAnalytics();
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-    try {
-      const response = await authAPI.login({ email, password });
-      localStorage.setItem('token', response?.data?.token);
-      // store JWT in localStorage using context
-      login(response.data.token);
-      trackLogin(true);
-      navigate('/dashboard');
-    } catch (err) {
-      trackLogin(false);
-      setError('Invalid email or password');
-    } finally {
-      setLoading(false);
+  e.preventDefault();
+  setError('');
+  setLoading(true);
+
+  try {
+    const response = await authAPI.login({ email, password });
+
+    // get token and role from backend response
+    const token = response?.data?.token;
+    const userRole = response?.data?.role;
+
+    if (!token || !userRole) {
+      throw new Error('Invalid server response');
     }
-  };
+
+    login(token, userRole); // this automatically updates localStorage and context
+    trackLogin(true);
+
+    // redirect based on role
+    switch (userRole.toUpperCase()) {
+      case 'ADMIN':
+        navigate('/admin');
+        break;
+      case 'DONOR':
+        navigate('/donor');
+        break;
+      case 'RECEIVER':
+        navigate('/receiver');
+        break;
+      default:
+        navigate('/dashboard');
+        break;
+    }
+  } catch (err) {
+    console.error(err);
+    trackLogin(false);
+    setError('Invalid email or password');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="login-page">
@@ -53,6 +77,13 @@ const LoginPage = () => {
         <div className="login-container">
           <div className="login-inner">
             <div className="login-card" role="region" aria-labelledby="login-title">
+              <button
+                className="back-home-button"
+                onClick={() => navigate("/")}
+                aria-label="Go back to homepage"
+              >
+                ← Back Home
+              </button>
               <h1 id="login-title" className="login-title">Log in to your account</h1>
 
               <form onSubmit={handleLogin} noValidate>
@@ -95,7 +126,7 @@ const LoginPage = () => {
                   {loading ? 'Logging in…' : 'LOG IN'}
                 </button>
 
-                <p className="form-footer">Don't have an account? <Link to="/signup">Sign up</Link></p>
+                <p className="form-footer">Don't have an account? <Link to="/signup" className="link-button">Sign up</Link></p>
               </form>
             </div>
           </div>
