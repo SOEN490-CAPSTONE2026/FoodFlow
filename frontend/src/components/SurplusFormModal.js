@@ -149,7 +149,7 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
             <div className="form-section">
               <div className="row-group">
                 <div className="input-group half-width">
-                  <label className="input-label">Food Type</label>
+                  <label className="input-label" htmlFor="foodType" >Food Type</label>
                   <select
                     name="foodType"
                     value={formData.foodType}
@@ -246,7 +246,7 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
               </div>
             </div>
 
-            {/* Pickup Location Section*/}
+            {/* Pickup Location Section */}
             <div className="form-section">
               <div className="input-group">
                 <label className="input-label">Pickup location</label>

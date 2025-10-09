@@ -33,6 +33,7 @@
   scrollbar-width: none; 
   -ms-overflow-style: none; 
 }
+
 .modal-container::-webkit-scrollbar {
   display: none; 
 }
@@ -103,7 +104,7 @@
 }
 
 .input-group {
-  margin-bottom: 16px;
+  margin-bottom: 0px;
 }
 
 .input-group:last-child {
@@ -138,6 +139,7 @@
   background-color: white;
 }
 
+
 .input-field:focus {
   outline: none;
   border-color: #4299e1;
@@ -169,6 +171,63 @@
 }
 
 
+/* Select Styling */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: #ffffff;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 14px 40px 14px 16px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #1f2937;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 20px;
+  transition: all 0.2s ease;
+  outline: none;
+  width: 100%;
+}
+
+/* Hover state */
+select:hover {
+  border-color: #1B4965;
+  background-color: #f8fafc;
+}
+
+/* Focus state */
+select:focus {
+  border-color: #1B4965;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Disabled state */
+select:disabled {
+  background-color: #f8fafc;
+  border-color: #e5e7eb;
+  color: #1B4965;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+select option {
+  padding: 12px;
+  background-color: #ffffff;
+  color: #1B4965;
+  font-weight: 500;
+}
+
+select option:hover {
+  background-color: #f8fafc !important;
+}
+
+
+/* Modal Footer */
 .modal-footer {
   display: flex;
   justify-content: space-between;
@@ -178,6 +237,7 @@
   gap: 12px;
 }
 
+/* Buttons */
 .btn {
   padding: 12px 24px;
   border-radius: 6px;
@@ -209,6 +269,7 @@
   background-color: #245b7c;
 }
 
+/* Messages */
 .success-message {
   color: #059669;
   padding: 12px;
@@ -240,6 +301,80 @@
   border-color: #9F2D00 !important;
   box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.1) !important;
 }
+
+
+/* Google Maps Autocomplete Styling */
+.pac-container {
+  border-radius: 8px;
+  border: none;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  margin-top: 4px;
+  font-family: inherit;
+  z-index: 1001;
+  overflow: hidden;
+}
+.pac-container:after {
+  display: none !important;
+}
+
+.pac-logo:after {
+  display: none !important;
+}
+.pac-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.pac-item:hover {
+  background-color: #f8fafc;
+}
+
+.pac-item-selected {
+  background-color: #e0f2fe;
+}
+
+.pac-icon {
+  margin-right: 12px;
+}
+
+.pac-item-query {
+  font-size: 0.9rem;
+  color: #1e293b;
+  font-weight: 500;
+}
+
+.pac-matched {
+  font-weight: 600;
+  color: #1B4965;
+}
+
+.location-input-wrapper {
+  position: relative;
+}
+
+.location-input-wrapper::before {
+  content: "📍";
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  font-size: 1rem;
+}
+
+.location-input-wrapper input {
+  padding-left: 40px !important;
+}
+
+/* Focus state for location input */
+.location-input-wrapper:focus-within::before {
+  color: #4299e1;
+}
+
+
 /* Responsive Design */
 @media (max-width: 600px) {
   .modal-overlay {
@@ -263,4 +398,5 @@
   .modal-footer {
     flex-direction: column;
   }
+
 }
