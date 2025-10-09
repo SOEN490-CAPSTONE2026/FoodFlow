@@ -16,4 +16,9 @@ export const authAPI = {
     logout: () => api.post('/auth/logout'),
 };
 
+// New surplus API abstraction (minimal)
+export const surplusAPI = {
+  list: () => api.get('/surplus'),
+};
+
 export default api;

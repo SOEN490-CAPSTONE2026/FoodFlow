@@ -8,6 +8,8 @@ import com.example.foodflow.repository.SurplusPostRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,7 +41,10 @@ public class SurplusService {
     }
 
     public List<SurplusResponse> getAvailableSurplusPosts() {
+        LocalDateTime now = LocalDateTime.now();
         return surplusPostRepository.findByClaimedFalse().stream()
+                .filter(p -> p.getExpiryDate() == null || p.getExpiryDate().isAfter(now)) // guard against null
+                .sorted(Comparator.comparing(SurplusPost::getExpiryDate, Comparator.nullsLast(Comparator.naturalOrder())))
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }

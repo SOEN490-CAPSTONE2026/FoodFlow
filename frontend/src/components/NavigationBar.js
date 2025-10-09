@@ -133,6 +133,16 @@ const NavigationBar = () => {
               Contact Us
             </a>
           </li>
+          {isLoggedIn && (
+            <li>
+              <a
+                href='/surplus'
+                onClick={(e) => { e.preventDefault(); navigate('/surplus'); setIsMenuOpen(false); }}
+              >
+                Surplus Feed
+              </a>
+            </li>
+          )}
         </ul>
 
         <div className='mobile-buttons'>
