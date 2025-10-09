@@ -16,12 +16,12 @@ function renderAt(pathname = '/donor/search') {
     <AuthContext.Provider value={mockAuthContext}>
       <MemoryRouter initialEntries={[pathname]}>
         <Routes>
-          <Route element={<DonorLayout />}>
-            <Route path="/donor" element={<div>Home</div>} />
-            <Route path="/donor/dashboard" element={<div>Dash</div>} />
-            <Route path="/donor/list" element={<div>List</div>} />
-            <Route path="/donor/requests" element={<div>Req</div>} />
-            <Route path="/donor/search" element={<div>Search</div>} />
+          <Route path="/donor" element={<DonorLayout />}>
+            <Route index element={<div>Home</div>} />
+            <Route path="dashboard" element={<div>Dash</div>} />
+            <Route path="list" element={<div>List</div>} />
+            <Route path="requests" element={<div>Req</div>} />
+            <Route path="search" element={<div>Search</div>} />
           </Route>
         </Routes>
       </MemoryRouter>
