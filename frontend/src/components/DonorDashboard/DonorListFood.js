@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Calendar, Clock, MapPin, Edit, Trash2, AlertTriangle, X } from "lucide-react";
+import { Calendar, Clock, MapPin, Edit, Trash2, AlertTriangle, X, Package } from "lucide-react";
 import "./DonorListFood.css";
 
 const initialDonations = [
@@ -76,7 +76,7 @@ function addressLabel(full) {
 }
 
 export default function DonorListFood() {
-  const [items, setItems] = useState(initialDonations);
+  const [items, setItems] = useState([]); // Start with empty array to show empty state
   const titleRef = useRef(null);
 
   function requestDelete(id) {
@@ -91,83 +91,102 @@ export default function DonorListFood() {
     alert(`Opening edit form for: ${item.title}\n(You will add the actual form here later.)`);
   }
 
+  function loadSampleDonations() {
+    setItems(initialDonations);
+  }
+
   return (
     <div className="donor-list-wrapper">
    
       <header className="donor-list-header">
+        {items.length === 0 && (
+          <button className="donor-add-button" onClick={loadSampleDonations}>
+            Load Sample Data (for testing)
+          </button>
+        )}
         <button className="donor-add-button">+ Donate More</button>
       </header>
 
 
-      <section className="donor-list-grid" aria-label="Donations list">
-        {items.map((d) => (
-          <article key={d.id} className="donation-card" aria-label={d.title}>
-  
-            <div className="donation-header">
-              <h3 className="donation-title">{d.title}</h3>
-              <span className={statusClass(d.status)}>
-                {d.status === "expiring-soon" && <AlertTriangle className="icon" />}
-                {d.status === "available"
-                  ? "Available"
-                  : d.status === "expiring-soon"
-                  ? "Expiring Soon"
-                  : d.status === "claimed"
-                  ? "Claimed"
-                  : "Expired"}
-              </span>
-            </div>
-
-
-            {d.tags?.length > 0 && (
-              <div className="donation-tags">
-                {d.tags.map((t) => (
-                  <span key={t} className="donation-tag">{t}</span>
-                ))}
+      {items.length === 0 ? (
+        <div className="empty-state">
+          <Package className="empty-state-icon" size={64} />
+          <h3 className="empty-state-title">You haven't posted anything yet</h3>
+          <p className="empty-state-description">
+            Create your first donation post to start helping your community reduce food waste.
+          </p>
+        </div>
+      ) : (
+        <section className="donor-list-grid" aria-label="Donations list">
+          {items.map((d) => (
+            <article key={d.id} className="donation-card" aria-label={d.title}>
+    
+              <div className="donation-header">
+                <h3 className="donation-title">{d.title}</h3>
+                <span className={statusClass(d.status)}>
+                  {d.status === "expiring-soon" && <AlertTriangle className="icon" />}
+                  {d.status === "available"
+                    ? "Available"
+                    : d.status === "expiring-soon"
+                    ? "Expiring Soon"
+                    : d.status === "claimed"
+                    ? "Claimed"
+                    : "Expired"}
+                </span>
               </div>
-            )}
 
 
-            <div className="donation-quantity">{d.quantity}</div>
+              {d.tags?.length > 0 && (
+                <div className="donation-tags">
+                  {d.tags.map((t) => (
+                    <span key={t} className="donation-tag">{t}</span>
+                  ))}
+                </div>
+              )}
 
 
-            <ul className="donation-meta" aria-label="details">
-              <li>
-                <Calendar className="icon" />
-                <span>{d.expiry}</span>
-              </li>
-              <li>
-                <Clock className="icon" />
-                <span>{d.time}</span>
-              </li>
-              <li>
-                <MapPin className="icon" />
-                <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.location)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="donation-address"
-                  title={d.location}
-                >
-                  {addressLabel(d.location)}
-                </a>
-              </li>
-            </ul>
+              <div className="donation-quantity">{d.quantity}</div>
 
 
-            {d.notes && <p className="donation-notes">{d.notes}</p>}
+              <ul className="donation-meta" aria-label="details">
+                <li>
+                  <Calendar className="icon" />
+                  <span>{d.expiry}</span>
+                </li>
+                <li>
+                  <Clock className="icon" />
+                  <span>{d.time}</span>
+                </li>
+                <li>
+                  <MapPin className="icon" />
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.location)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="donation-address"
+                    title={d.location}
+                  >
+                    {addressLabel(d.location)}
+                  </a>
+                </li>
+              </ul>
 
 
-            <div className="donation-actions">
-              <button className="donation-link" onClick={() => openEdit(d)}>
-                <Edit className="icon" /> Edit
-              </button>
-              <button className="donation-link danger" onClick={() => requestDelete(d.id)}>
-                <Trash2 className="icon" /> Delete
-              </button>
-            </div>
-          </article>
-        ))}
-      </section>
+              {d.notes && <p className="donation-notes">{d.notes}</p>}
+
+
+              <div className="donation-actions">
+                <button className="donation-link" onClick={() => openEdit(d)}>
+                  <Edit className="icon" /> Edit
+                </button>
+                <button className="donation-link danger" onClick={() => requestDelete(d.id)}>
+                  <Trash2 className="icon" /> Delete
+                </button>
+              </div>
+            </article>
+          ))}
+        </section>
+      )}
     </div>
   );
 }
