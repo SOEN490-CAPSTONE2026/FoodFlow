@@ -92,21 +92,21 @@ export default function DonorListFood() {
   }
 
   return (
-    <div className="dlf-wrap">
+    <div className="donor-list-wrapper">
    
-      <header className="dlf-header">
-        <button className="dlf-cta">+ Donate More</button>
+      <header className="donor-list-header">
+        <button className="donor-add-button">+ Donate More</button>
       </header>
 
 
-      <section className="dlf-grid" aria-label="Donations list">
+      <section className="donor-list-grid" aria-label="Donations list">
         {items.map((d) => (
-          <article key={d.id} className="dc-card" aria-label={d.title}>
+          <article key={d.id} className="donation-card" aria-label={d.title}>
   
-            <div className="dc-head">
-              <h3 className="dc-title">{d.title}</h3>
+            <div className="donation-header">
+              <h3 className="donation-title">{d.title}</h3>
               <span className={statusClass(d.status)}>
-                {d.status === "expiring-soon" && <AlertTriangle className="dc-icon" />}
+                {d.status === "expiring-soon" && <AlertTriangle className="icon" />}
                 {d.status === "available"
                   ? "Available"
                   : d.status === "expiring-soon"
@@ -119,33 +119,33 @@ export default function DonorListFood() {
 
 
             {d.tags?.length > 0 && (
-              <div className="dc-tags">
+              <div className="donation-tags">
                 {d.tags.map((t) => (
-                  <span key={t} className="dc-chip">{t}</span>
+                  <span key={t} className="donation-tag">{t}</span>
                 ))}
               </div>
             )}
 
 
-            <div className="dc-qty">{d.quantity}</div>
+            <div className="donation-quantity">{d.quantity}</div>
 
 
-            <ul className="dc-meta" aria-label="details">
+            <ul className="donation-meta" aria-label="details">
               <li>
-                <Calendar className="dc-icon" />
+                <Calendar className="icon" />
                 <span>{d.expiry}</span>
               </li>
               <li>
-                <Clock className="dc-icon" />
+                <Clock className="icon" />
                 <span>{d.time}</span>
               </li>
               <li>
-                <MapPin className="dc-icon" />
+                <MapPin className="icon" />
                 <a
                   href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.location)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="dc-link--address"
+                  className="donation-address"
                   title={d.location}
                 >
                   {addressLabel(d.location)}
@@ -154,15 +154,15 @@ export default function DonorListFood() {
             </ul>
 
 
-            {d.notes && <p className="dc-desc">{d.notes}</p>}
+            {d.notes && <p className="donation-notes">{d.notes}</p>}
 
 
-            <div className="dc-actions">
-              <button className="dc-link" onClick={() => openEdit(d)}>
-                <Edit className="dc-icon" /> Edit
+            <div className="donation-actions">
+              <button className="donation-link" onClick={() => openEdit(d)}>
+                <Edit className="icon" /> Edit
               </button>
-              <button className="dc-link dc-link--danger" onClick={() => requestDelete(d.id)}>
-                <Trash2 className="dc-icon" /> Delete
+              <button className="donation-link danger" onClick={() => requestDelete(d.id)}>
+                <Trash2 className="icon" /> Delete
               </button>
             </div>
           </article>
