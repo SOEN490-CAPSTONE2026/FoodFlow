@@ -14,7 +14,7 @@ export default function DonorLayout() {
     const p = location.pathname;
     if (p === "/donor" || p === "/donor/") return "Donate Food Now";
     if (p.startsWith("/donor/dashboard")) return "Dashboard";
-    if (p.startsWith("/donor/list")) return "List Your Food";
+    if (p.startsWith("/donor/list")) return "Your Donations";
     if (p.startsWith("/donor/requests")) return "Requests";
     if (p.startsWith("/donor/search")) return "Search";
     return "Donor Dashboard";
@@ -24,7 +24,7 @@ export default function DonorLayout() {
     const p = location.pathname;
     if (p === "/donor" || p === "/donor/") return "Every gift makes a difference";
     if (p.startsWith("/donor/dashboard")) return "Overview of your donations";
-    if (p.startsWith("/donor/list")) return "Add new food donations";
+    if (p.startsWith("/donor/list")) return "Create and manage donation listings";
     if (p.startsWith("/donor/requests")) return "Manage donation requests";
     if (p.startsWith("/donor/search")) return "Find organizations";
     return "FoodFlow Donor Portal";
