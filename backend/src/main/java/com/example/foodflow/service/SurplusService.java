@@ -10,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
+import java.util.Comparator;
 
 @Service
 public class SurplusService {
@@ -59,7 +61,10 @@ public class SurplusService {
     }
 
     public List<SurplusResponse> getAvailableSurplusPosts() {
+        LocalDateTime now = LocalDateTime.now();
         return surplusPostRepository.findByClaimedFalse().stream()
+                .filter(p -> p.getExpiryDate() == null || p.getExpiryDate().isAfter(now))
+                .sorted(Comparator.comparing(SurplusPost::getExpiryDate, Comparator.nullsLast(Comparator.naturalOrder())))
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
