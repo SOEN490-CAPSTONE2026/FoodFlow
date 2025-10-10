@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
@@ -41,5 +40,11 @@ public class SurplusController {
         
         List<SurplusResponse> myPosts = surplusService.getUserSurplusPosts(user);
         return ResponseEntity.ok(myPosts);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<SurplusResponse>> getAvailableSurplusPosts() {
+        List<SurplusResponse> posts = surplusService.getAvailableSurplusPosts();
+        return ResponseEntity.ok(posts);
     }
 }

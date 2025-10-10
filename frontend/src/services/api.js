@@ -44,4 +44,8 @@ export const authAPI = {
   },
 };
 
+export const surplusAPI = {
+  list: () => api.get('/surplus'),
+};
+
 export default api;
