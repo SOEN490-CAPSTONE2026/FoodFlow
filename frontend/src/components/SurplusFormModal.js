@@ -113,7 +113,7 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
     };
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('jwtToken');
       const response = await axios.post(
         'http://localhost:8080/api/surplus',
         submissionData,
