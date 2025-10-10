@@ -11,7 +11,6 @@ import { AuthProvider } from './contexts/AuthContext';
 import { useAnalytics } from './hooks/useAnalytics';
 import SurplusForm from './components/SurplusForm';
 import PrivacyPolicy from './components/PrivacyPolicy'; 
-import SurplusFeed from './components/SurplusFeed';
 import './App.css';
 
 import { useLocation } from "react-router-dom";
@@ -36,8 +35,7 @@ function AppContent() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/dashboard" element={<TempDashboard />} />
         <Route path="/surplus/create" element={<SurplusForm />} />
-        <Route path="/surplus" element={<SurplusFeed />} />
-         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+         <Route path="/privacy-policy" element={<PrivacyPolicy />} /> 
       </Routes>
     </div>
   );

@@ -8,23 +8,18 @@ import com.example.foodflow.repository.SurplusPostRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
-
 @Service
 public class SurplusService {
-
+    
     private final SurplusPostRepository surplusPostRepository;
-
+    
     public SurplusService(SurplusPostRepository surplusPostRepository) {
         this.surplusPostRepository = surplusPostRepository;
     }
-
+    
     @Transactional
     public SurplusResponse createSurplusPost(CreateSurplusRequest request, User donor) {
-        // create new surplus post
+        // Create new surplus post
         SurplusPost surplusPost = new SurplusPost();
         surplusPost.setType(request.getType());
         surplusPost.setQuantity(request.getQuantity());
@@ -32,23 +27,14 @@ public class SurplusService {
         surplusPost.setPickupTime(request.getPickupTime());
         surplusPost.setLocation(request.getLocation());
         surplusPost.setDonor(donor);
-
-        // save to database
+        
+        // Save to database
         SurplusPost savedPost = surplusPostRepository.save(surplusPost);
-
-        // convert to response dto
+        
+        // Convert to response DTO
         return convertToResponse(savedPost);
     }
-
-    public List<SurplusResponse> getAvailableSurplusPosts() {
-        LocalDateTime now = LocalDateTime.now();
-        return surplusPostRepository.findByClaimedFalse().stream()
-                .filter(p -> p.getExpiryDate() == null || p.getExpiryDate().isAfter(now)) // guard against null
-                .sorted(Comparator.comparing(SurplusPost::getExpiryDate, Comparator.nullsLast(Comparator.naturalOrder())))
-                .map(this::convertToResponse)
-                .collect(Collectors.toList());
-    }
-
+    
     private SurplusResponse convertToResponse(SurplusPost post) {
         return new SurplusResponse(
             post.getId(),

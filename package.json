@@ -1,0 +1,31 @@
+{
+  "dependencies": {
+    "@testing-library/jest-dom": "^6.8.0",
+    "@testing-library/react": "^16.3.0",
+    "react-router-dom": "^7.9.3"
+  },
+  "name": "foodflow",
+  "version": "1.0.0",
+  "description": "FoodFlow is a platform designed to reduce food waste and improve food distribution efficiency. It connects restaurants, grocery stores, and individuals who have surplus food with local charities, shelters, or community members in need.",
+  "main": "index.js",
+  "devDependencies": {
+    "@babel/preset-env": "^7.28.3",
+    "@babel/preset-react": "^7.27.1",
+    "babel-jest": "^30.2.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SOEN490-CAPSTONE2026/FoodFlow.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/SOEN490-CAPSTONE2026/FoodFlow/issues"
+  },
+  "homepage": "https://github.com/SOEN490-CAPSTONE2026/FoodFlow#readme"
+}
