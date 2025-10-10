@@ -50,6 +50,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/surplus").permitAll()
+                .requestMatchers("/api/feed/**").hasAuthority("RECEIVER")
 
                 // Role-based endpoints
                 .requestMatchers("/donor/**").hasAuthority("DONOR")
