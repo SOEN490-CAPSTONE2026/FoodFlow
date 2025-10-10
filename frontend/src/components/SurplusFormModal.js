@@ -91,6 +91,13 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
 
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
+  const formatTimeForAPI = (date) => {
+    if (!date) return '';
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = '00';
+    return `${hours}:${minutes}:${seconds}`; 
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -102,17 +109,11 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
       ...formData,
       expiryDate: formatDateForAPI(formData.expiryDate),
       pickupFrom: formatDateTimeForAPI(formData.pickupFrom),
-      pickupTo: formData.pickupTo ? formData.pickupTo.toTimeString().slice(0, 5) : ''
+      pickupTo: formatTimeForAPI(formData.pickupTo)
     };
-    // DEBUG LINES
-    console.log('SUBMISSION DATA:', submissionData);
-    console.log('expiryDate:', submissionData.expiryDate, 'Type:', typeof submissionData.expiryDate);
-    console.log('pickupFrom:', submissionData.pickupFrom, 'Type:', typeof submissionData.pickupFrom);
-    console.log(' pickupTo:', submissionData.pickupTo, 'Type:', typeof submissionData.pickupTo);
 
     try {
       const token = localStorage.getItem('token');
-      console.log('🔑 Token exists:', !!token); //DEBUG
       const response = await axios.post(
         'http://localhost:8080/api/surplus',
         submissionData,
@@ -143,11 +144,6 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
         onClose();
       }, 2000);
     } catch (err) {
-      // DEBUG
-      console.log('FULL ERROR OBJECT:', err);
-      console.log('ERROR RESPONSE:', err.response);
-      console.log('ERROR DATA:', err.response?.data);
-      console.log('ERROR STATUS:', err.response?.status);
       setError(err.response?.data?.message || 'Failed to create surplus post');
     }
   };
