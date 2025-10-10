@@ -8,6 +8,9 @@ import com.example.foodflow.repository.SurplusPostRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 public class SurplusService {
     
@@ -34,7 +37,23 @@ public class SurplusService {
         // Convert to response DTO
         return convertToResponse(savedPost);
     }
-    
+
+    @Transactional(readOnly = true)
+    public List<SurplusResponse> getUserSurplusPosts(User user) {
+        List<SurplusPost> userPosts = surplusPostRepository.findByDonorOrderByCreatedAtDesc(user);
+        return userPosts.stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<SurplusResponse> getAvailableSurplusPosts() {
+        List<SurplusPost> availablePosts = surplusPostRepository.findByClaimedFalse();
+        return availablePosts.stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+    }
+
     private SurplusResponse convertToResponse(SurplusPost post) {
         return new SurplusResponse(
             post.getId(),
