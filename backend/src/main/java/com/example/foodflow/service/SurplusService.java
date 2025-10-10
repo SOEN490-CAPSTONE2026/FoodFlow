@@ -39,10 +39,11 @@ public class SurplusService {
         // Convert to response DTO
         return convertToResponse(savedPost);
     }
-    
+
+    @Transactional(readOnly = true)
     public List<SurplusResponse> getUserSurplusPosts(User user) {
-        List<SurplusPost> posts = surplusPostRepository.findByDonorId(user.getId());
-        return posts.stream()
+        List<SurplusPost> userPosts = surplusPostRepository.findByDonorOrderByCreatedAtDesc(user);
+        return userPosts.stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
@@ -60,6 +61,7 @@ public class SurplusService {
         );
     }
 
+    @Transactional(readOnly = true)
     public List<SurplusResponse> getAvailableSurplusPosts() {
         LocalDateTime now = LocalDateTime.now();
         return surplusPostRepository.findByClaimedFalse().stream()
@@ -68,4 +70,5 @@ public class SurplusService {
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
+
 }
