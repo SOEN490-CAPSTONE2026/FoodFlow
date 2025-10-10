@@ -28,11 +28,11 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({
     foodName: '',
     foodType: '',
-    expiryDate: null,
+    expiryDate: '',
     quantity: '',
     unit: 'kg',
-    pickupFrom: null,
-    pickupTo: null,
+    pickupFrom: '',
+    pickupTo: '',
     location: '',
     notes: ''
   });
@@ -119,11 +119,11 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
       setFormData({
         foodName: '',
         foodType: '',
-        expiryDate: null,
+        expiryDate: '',
         quantity: '',
         unit: 'kg',
-        pickupFrom: null,
-        pickupTo: null,
+        pickupFrom: '',
+        pickupTo: '',
         location: '',
         notes: ''
       });
@@ -142,11 +142,11 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
       setFormData({
         foodName: '',
         foodType: '',
-        expiryDate: null,
+        expiryDate: '',
         quantity: '',
         unit: 'kg',
-        pickupFrom: null,
-        pickupTo: null,
+        pickupFrom: '',
+        pickupTo: '',
         location: '',
         notes: ''
       });
