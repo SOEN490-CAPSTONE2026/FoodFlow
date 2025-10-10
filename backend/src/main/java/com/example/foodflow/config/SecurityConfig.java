@@ -17,7 +17,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import com.example.foodflow.security.JwtAuthenticationFilter; 
+import com.example.foodflow.security.JwtAuthenticationFilter;
+import org.springframework.http.HttpMethod;
+
+
 
 import java.util.Arrays;
 
@@ -46,6 +49,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/surplus").permitAll()
 
                 // Role-based endpoints
                 .requestMatchers("/donor/**").hasAuthority("DONOR")

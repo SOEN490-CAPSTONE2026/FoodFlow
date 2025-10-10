@@ -57,4 +57,10 @@ public class SurplusService {
             post.getCreatedAt()
         );
     }
+
+    public List<SurplusResponse> getAvailableSurplusPosts() {
+        return surplusPostRepository.findByClaimedFalse().stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+    }
 }
