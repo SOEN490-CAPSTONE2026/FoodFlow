@@ -1,48 +1,38 @@
-import React, { createContext, useState, useEffect } from "react";
+import React, { createContext, useState, useEffect } from 'react';
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    return Boolean(localStorage.getItem("jwtToken") || sessionStorage.getItem("jwtToken"));
-  });
-
-  const [role, setRole] = useState(() => {
-    return localStorage.getItem("userRole") || sessionStorage.getItem("userRole") || null;
+    return Boolean(localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken'));
   });
 
   useEffect(() => {
+    // Listen for storage changes (e.g., in other tabs)
     const handleStorage = () => {
-      setIsLoggedIn(Boolean(localStorage.getItem("jwtToken") || sessionStorage.getItem("jwtToken")));
-      setRole(localStorage.getItem("userRole") || sessionStorage.getItem("userRole") || null);
+      setIsLoggedIn(Boolean(localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken')));
     };
-    window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
-  const login = (token, userRole, useSession = false) => {
+  const login = (token, useSession = false) => {
     if (useSession) {
-      sessionStorage.setItem("jwtToken", token);
-      sessionStorage.setItem("userRole", userRole);
+      sessionStorage.setItem('jwtToken', token);
     } else {
-      localStorage.setItem("jwtToken", token);
-      localStorage.setItem("userRole", userRole);
+      localStorage.setItem('jwtToken', token);
     }
     setIsLoggedIn(true);
-    setRole(userRole);
   };
 
   const logout = () => {
     localStorage.removeItem('jwtToken');
     sessionStorage.removeItem('jwtToken');
-    localStorage.removeItem('userRole');
-    sessionStorage.removeItem('userRole');
     setIsLoggedIn(false);
-    setRole(null);
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, role, login, logout }}>
+    <AuthContext.Provider value={{ isLoggedIn, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

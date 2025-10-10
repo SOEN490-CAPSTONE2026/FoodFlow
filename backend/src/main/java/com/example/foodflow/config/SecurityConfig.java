@@ -18,7 +18,32 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import com.example.foodflow.security.JwtAuthenticationFilter; 
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import com.example.foodflow.repository.UserRepository;
+import com.example.foodflow.security.JwtTokenProvider;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import com.example.foodflow.model.entity.User;
+import com.example.foodflow.repository.UserRepository;
+import com.example.foodflow.security.JwtTokenProvider;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+import java.util.Collections;
 
 import java.util.Arrays;
 
@@ -26,12 +51,6 @@ import java.util.Arrays;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -48,17 +67,11 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/surplus").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
-
-                // Role-based endpoints
-                .requestMatchers("/donor/**").hasAuthority("DONOR")
-                .requestMatchers("/receiver/**").hasAuthority("RECEIVER")
-                .requestMatchers("/admin/**").hasAuthority("ADMIN")
-
                 .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers("/api/analytics/**").permitAll()
                 .anyRequest().authenticated()
             )
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -74,6 +87,55 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    @Bean
+    public OncePerRequestFilter jwtAuthenticationFilter() {
+        return new OncePerRequestFilter() {
+            @Autowired
+            private JwtTokenProvider tokenProvider;
+            
+            @Autowired
+            private UserRepository userRepository;
+            
+            @Override
+            protected void doFilterInternal(HttpServletRequest request, 
+                                        HttpServletResponse response, 
+                                        FilterChain filterChain) 
+                    throws ServletException, IOException {
+                
+                String token = getJwtFromRequest(request);
+                
+                if (token != null && tokenProvider.validateToken(token)) {
+                    String email = tokenProvider.getEmailFromToken(token);
+                    User user = userRepository.findByEmail(email).orElse(null);
+                    
+                    if (user != null) {
+                        // Create authority from user's role
+                        SimpleGrantedAuthority authority = new SimpleGrantedAuthority(user.getRole().name());
+                        
+                        UsernamePasswordAuthenticationToken authentication = 
+                            new UsernamePasswordAuthenticationToken(
+                                user, 
+                                null, 
+                                Collections.singletonList(authority)
+                            );
+                        
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                    }
+                }
+                
+                filterChain.doFilter(request, response);
+            }
+            
+            private String getJwtFromRequest(HttpServletRequest request) {
+                String bearerToken = request.getHeader("Authorization");
+                if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+                    return bearerToken.substring(7);
+                }
+                return null;
+            }
+        };
     }
 
 }

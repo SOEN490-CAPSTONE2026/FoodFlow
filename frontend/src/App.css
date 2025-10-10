@@ -2,12 +2,6 @@
   text-align: center;
 }
 
-:root{
-  --ff-green:#609B7E; --ff-mint:#83C5BE; --ff-ice:#BEE9E8;
-  --ff-sky:#62B6CB; --ff-navy:#1B4965; --ff-bg:#f7fcfd;
-}
-body{ background:var(--ff-bg); color:#0b1f2a; }
-
 .App-logo {
   height: 40vmin;
   pointer-events: none;

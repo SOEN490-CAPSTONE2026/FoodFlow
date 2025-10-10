@@ -1,6 +1,5 @@
 package com.example.foodflow.integration;
 
-import com.example.foodflow.model.dto.LoginRequest;
 import com.example.foodflow.model.dto.RegisterDonorRequest;
 import com.example.foodflow.model.dto.RegisterReceiverRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -100,106 +99,5 @@ class AuthIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request2)))
                 .andExpect(status().isBadRequest());
-    }
-
-    // ====== INTEGRATION LOGIN TESTS ======
-
-    @Test
-    void registerThenLogin_DonorFlow_Success() throws Exception {
-        // Given - First register a donor
-        RegisterDonorRequest registerRequest = new RegisterDonorRequest();
-        registerRequest.setEmail("login.donor@test.com");
-        registerRequest.setPassword("password123");
-        registerRequest.setOrganizationName("Login Test Restaurant");
-        registerRequest.setContactPerson("Login Test User");
-        registerRequest.setPhone("123-456-7890");
-        registerRequest.setAddress("123 Login St");
-
-        mockMvc.perform(post("/api/auth/register/donor")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(registerRequest)))
-                .andExpect(status().isOk());
-
-        // When - Then login with the registered credentials
-        LoginRequest loginRequest = new LoginRequest("login.donor@test.com", "password123");
-
-        mockMvc.perform(post("/api/auth/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(loginRequest)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").exists())
-                .andExpect(jsonPath("$.email").value("login.donor@test.com"))
-                .andExpect(jsonPath("$.role").value("DONOR"))
-                .andExpect(jsonPath("$.message").value("Account logged in successfully."));
-    }
-
-    @Test
-    void registerThenLogin_ReceiverFlow_Success() throws Exception {
-        // Given - First register a receiver
-        RegisterReceiverRequest registerRequest = new RegisterReceiverRequest();
-        registerRequest.setEmail("login.receiver@test.com");
-        registerRequest.setPassword("password123");
-        registerRequest.setOrganizationName("Login Test Charity");
-        registerRequest.setContactPerson("Login Test User");
-        registerRequest.setPhone("987-654-3210");
-        registerRequest.setAddress("456 Login Ave");
-
-        mockMvc.perform(post("/api/auth/register/receiver")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(registerRequest)))
-                .andExpect(status().isOk());
-
-        // When - Then login with the registered credentials
-        LoginRequest loginRequest = new LoginRequest("login.receiver@test.com", "password123");
-
-        mockMvc.perform(post("/api/auth/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(loginRequest)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").exists())
-                .andExpect(jsonPath("$.email").value("login.receiver@test.com"))
-                .andExpect(jsonPath("$.role").value("RECEIVER"))
-                .andExpect(jsonPath("$.message").value("Account logged in successfully."));
-    }
-
-    @Test
-    void login_WithoutRegistration_UserNotFound() throws Exception {
-        // Given - Login request for unregistered user
-        LoginRequest loginRequest = new LoginRequest("unregistered@test.com", "password123");
-
-        // When & Then
-        mockMvc.perform(post("/api/auth/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(loginRequest)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.token").value((Object) null))
-                .andExpect(jsonPath("$.message").value("User not found"));
-    }
-
-    @Test
-    void login_WrongPassword_InvalidCredentials() throws Exception {
-        // Given - First register a user
-        RegisterDonorRequest registerRequest = new RegisterDonorRequest();
-        registerRequest.setEmail("wrongpass.test@test.com");
-        registerRequest.setPassword("correctpassword");
-        registerRequest.setOrganizationName("Wrong Pass Restaurant");
-        registerRequest.setContactPerson("Wrong Pass User");
-        registerRequest.setPhone("123-456-7890");
-        registerRequest.setAddress("123 Wrong St");
-
-        mockMvc.perform(post("/api/auth/register/donor")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(registerRequest)))
-                .andExpect(status().isOk());
-
-        // When - Then login with wrong password
-        LoginRequest loginRequest = new LoginRequest("wrongpass.test@test.com", "wrongpassword");
-
-        mockMvc.perform(post("/api/auth/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(loginRequest)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.token").value((Object) null))
-                .andExpect(jsonPath("$.message").value("Invalid credentials"));
     }
 }

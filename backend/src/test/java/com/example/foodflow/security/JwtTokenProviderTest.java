@@ -110,20 +110,6 @@ class JwtTokenProviderTest {
     }
 
     @Test
-    void getRoleFromToken_Success() {
-        // Given
-        String email = "test@example.com";
-        String role = "DONOR";
-        String token = jwtTokenProvider.generateToken(email, role);
-
-        // When
-        String extractedRole = jwtTokenProvider.getRoleFromToken(token);
-
-        // Then
-        assertEquals(role, extractedRole);
-    }
-
-    @Test
     void validateToken_NullToken_ReturnsFalse() {
         // When
         boolean isValid = jwtTokenProvider.validateToken(null);
