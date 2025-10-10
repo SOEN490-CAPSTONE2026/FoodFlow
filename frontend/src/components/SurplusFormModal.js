@@ -75,22 +75,22 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
     }
   };
 
-// Format date for API submission
-const formatDateForAPI = (date) => {
-  if (!date) return '';
-  return date.toISOString().split('T')[0]; 
-};
+  // Format date for API submission
+  const formatDateForAPI = (date) => {
+    if (!date) return '';
+    return date.toISOString().split('T')[0];
+  };
 
-const formatDateTimeForAPI = (date) => {
-  if (!date) return '';
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
-};
+  const formatDateTimeForAPI = (date) => {
+    if (!date) return '';
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -104,9 +104,15 @@ const formatDateTimeForAPI = (date) => {
       pickupFrom: formatDateTimeForAPI(formData.pickupFrom),
       pickupTo: formData.pickupTo ? formData.pickupTo.toTimeString().slice(0, 5) : ''
     };
+    // DEBUG LINES
+    console.log('SUBMISSION DATA:', submissionData);
+    console.log('expiryDate:', submissionData.expiryDate, 'Type:', typeof submissionData.expiryDate);
+    console.log('pickupFrom:', submissionData.pickupFrom, 'Type:', typeof submissionData.pickupFrom);
+    console.log(' pickupTo:', submissionData.pickupTo, 'Type:', typeof submissionData.pickupTo);
 
     try {
       const token = localStorage.getItem('token');
+      console.log('🔑 Token exists:', !!token); //DEBUG
       const response = await axios.post(
         'http://localhost:8080/api/surplus',
         submissionData,
@@ -137,6 +143,11 @@ const formatDateTimeForAPI = (date) => {
         onClose();
       }, 2000);
     } catch (err) {
+      // DEBUG
+      console.log('FULL ERROR OBJECT:', err);
+      console.log('ERROR RESPONSE:', err.response);
+      console.log('ERROR DATA:', err.response?.data);
+      console.log('ERROR STATUS:', err.response?.status);
       setError(err.response?.data?.message || 'Failed to create surplus post');
     }
   };
@@ -174,6 +185,7 @@ const formatDateTimeForAPI = (date) => {
         placeholder={placeholder}
         readOnly
         className="input-field"
+        required
       />
     </div>
   );
@@ -187,6 +199,7 @@ const formatDateTimeForAPI = (date) => {
         placeholder={placeholder}
         readOnly
         className="input-field"
+        required
       />
     </div>
   );
@@ -200,6 +213,7 @@ const formatDateTimeForAPI = (date) => {
         placeholder={placeholder}
         readOnly
         className="input-field"
+        required
       />
     </div>
   );
