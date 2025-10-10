@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Calendar, Clock, MapPin, Edit, Trash2, AlertTriangle, X, Package } from "lucide-react";
-const [isModalOpen, setIsModalOpen] = useState(false);
+import { LoadScript } from "@react-google-maps/api";
+import SurplusFormModal from "../SurplusFormModal";
 import "./DonorListFood.css";
 
 const initialDonations = [
@@ -54,6 +55,9 @@ const initialDonations = [
   },
 ];
 
+// Define libraries for Google Maps
+const libraries = ['places']; 
+
 function statusClass(status) {
   switch (status) {
     case "available":
@@ -77,8 +81,8 @@ function addressLabel(full) {
 }
 
 export default function DonorListFood() {
-  const [items, setItems] = useState([]); // Start with empty array to show empty state
-  const titleRef = useRef(null);
+  const [items, setItems] = useState([]); 
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   function requestDelete(id) {
     const confirmDelete = window.confirm("Are you sure you want to delete this post?");
@@ -115,9 +119,12 @@ export default function DonorListFood() {
           >
             + Donate More
           </button>
+          <SurplusFormModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+          />
         </LoadScript>
       </header>
-
 
       {items.length === 0 ? (
         <div className="empty-state">
@@ -146,7 +153,6 @@ export default function DonorListFood() {
                 </span>
               </div>
 
-
               {d.tags?.length > 0 && (
                 <div className="donation-tags">
                   {d.tags.map((t) => (
@@ -155,9 +161,7 @@ export default function DonorListFood() {
                 </div>
               )}
 
-
               <div className="donation-quantity">{d.quantity}</div>
-
 
               <ul className="donation-meta" aria-label="details">
                 <li>
@@ -182,9 +186,7 @@ export default function DonorListFood() {
                 </li>
               </ul>
 
-
               {d.notes && <p className="donation-notes">{d.notes}</p>}
-
 
               <div className="donation-actions">
                 <button className="donation-link" onClick={() => openEdit(d)}>
