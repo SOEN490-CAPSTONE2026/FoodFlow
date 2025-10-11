@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import { FaBars, FaTimes } from 'react-icons/fa';
 import Logo from "../assets/Logo.png";
-import './NavigationBar.css';
+import '../style/NavigationBar.css';
 
 const NavigationBar = () => {
   const navigate = useNavigate();

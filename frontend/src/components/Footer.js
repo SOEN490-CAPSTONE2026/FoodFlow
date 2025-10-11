@@ -1,7 +1,7 @@
 import React from 'react';
 import Logo from "../assets/Logo.png";
 import { FaEnvelope, FaPhone } from 'react-icons/fa';
-import './Footer.css';
+import '../style/Footer.css';
 
 const Footer = () => {
   return (

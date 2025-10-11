@@ -16,7 +16,7 @@ import AdminDashboard from './components/AdminDashboard/AdminDashboard';
 import DonorDashboard from './components/DonorDashboard/DonorDashboard';
 import ReceiverDashboard from './components/ReceiverDashboard/ReceiverDashboard';
 
-import SurplusForm from './components/SurplusForm';
+import SurplusForm from './components/SurplusFormModal';
 import MyPosts from './components/MyPosts';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import './App.css';

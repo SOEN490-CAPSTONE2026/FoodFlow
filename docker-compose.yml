@@ -43,6 +43,8 @@ services:
   frontend:
     build:
       context: ./frontend
+      args:
+        REACT_APP_GOOGLE_MAPS_API_KEY: ${REACT_APP_GOOGLE_MAPS_API_KEY}
       dockerfile: Dockerfile
     container_name: foodflow-frontend
     environment:

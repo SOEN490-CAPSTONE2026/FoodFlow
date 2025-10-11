@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FaMobileAlt, FaBell, FaShieldAlt } from "react-icons/fa";
-import "./HowItWorks.css";
+import "../style/HowItWorks.css";
 
 const steps = [
   {
