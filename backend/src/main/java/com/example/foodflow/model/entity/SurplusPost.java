@@ -3,6 +3,8 @@ package com.example.foodflow.model.entity;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+import com.example.foodflow.model.types.Quantity;
+
 @Entity
 @Table(name = "surplus_posts")
 public class SurplusPost {
@@ -14,6 +16,7 @@ public class SurplusPost {
     @Column(nullable = false)
     private String type;
     
+    //@Embedded
     @Column(nullable = false)
     private String quantity;
     
