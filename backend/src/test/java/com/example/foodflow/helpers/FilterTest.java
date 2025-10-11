@@ -1,70 +1,76 @@
 package com.example.foodflow.helpers;
 
-import helpers.Filter;
+
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
+import helpers.Filter;
 
 class FilterTest {
 
-    // ---------------- Numeric filters ----------------
-
     @Test
-    void testIntegerEqual() {
-        Filter<Object, Integer> filter = Filter.equal("quantity", 10);
+    void testEqualOperation() {
+        Filter<Integer> filter = Filter.equal(10);
         assertTrue(filter.check(10));
+        assertFalse(filter.check(9));
+    }
+
+    @Test
+    void testNotEqualOperation() {
+        Filter<String> filter = Filter.notEqual("apple");
+        assertTrue(filter.check("banana"));
+        assertFalse(filter.check("apple"));
+    }
+
+    @Test
+    void testGreaterThanOperation() {
+        Filter<Integer> filter = Filter.greaterThan(5);
+        assertTrue(filter.check(6));
         assertFalse(filter.check(5));
+        assertFalse(filter.check(4));
     }
 
     @Test
-    void testIntegerNotEqual() {
-        Filter<Object, Integer> filter = Filter.notEqual("quantity", 10);
+    void testGreaterThanOrEqualOperation() {
+        Filter<Double> filter = Filter.greaterThanOrEqual(2.5);
+        assertTrue(filter.check(3.0));
+        assertTrue(filter.check(2.5));
+        assertFalse(filter.check(2.4));
+    }
+
+    @Test
+    void testLessThanOperation() {
+        Filter<Integer> filter = Filter.lessThan(10);
+        assertTrue(filter.check(9));
         assertFalse(filter.check(10));
-        assertTrue(filter.check(5));
+        assertFalse(filter.check(11));
     }
 
     @Test
-    void testIntegerGreaterThan() {
-        Filter<Object, Integer> filter = Filter.greaterThan("quantity", 10);
-        assertTrue(filter.check(20));
-        assertFalse(filter.check(5));
-        assertFalse(filter.check(10));
-    }
-
-    @Test
-    void testIntegerLessThanOrEqual() {
-        Filter<Object, Integer> filter = Filter.lessThanOrEqual("quantity", 10);
-        assertTrue(filter.check(5));
+    void testLessThanOrEqualOperation() {
+        Filter<Integer> filter = Filter.lessThanOrEqual(10);
         assertTrue(filter.check(10));
-        assertFalse(filter.check(15));
-    }
-
-    // ---------------- String filters ----------------
-
-    @Test
-    void testStringEqual() {
-        Filter<Object, String> filter = Filter.equal("type", "Fruit");
-        assertTrue(filter.check("Fruit"));
-        assertFalse(filter.check("Vegetable"));
+        assertTrue(filter.check(9));
+        assertFalse(filter.check(11));
     }
 
     @Test
-    void testStringNotEqual() {
-        Filter<Object, String> filter = Filter.notEqual("type", "Fruit");
-        assertFalse(filter.check("Fruit"));
-        assertTrue(filter.check("Vegetable"));
-    }
-
-    // ---------------- Null checks ----------------
-
-    @Test
-    void testNullValueThrowsException() {
-        assertThrows(NullPointerException.class, () -> Filter.equal("field", null));
+    void testStringComparisonLexicographically() {
+        Filter<String> filter = Filter.lessThan("mango");
+        assertTrue(filter.check("apple"));   // "apple" < "mango"
+        assertFalse(filter.check("zebra"));
     }
 
     @Test
-    void testCheckWithNullThrowsException() {
-        Filter<Object, String> filter = Filter.equal("field", "Value");
+    void testNullValueThrows() {
+        Filter<Integer> filter = Filter.equal(5);
         assertThrows(NullPointerException.class, () -> filter.check(null));
+    }
+
+    @Test
+    void testGetters() {
+        Filter<Integer> filter = Filter.greaterThan(7);
+        assertEquals(7, filter.getValue());
+        assertEquals(Filter.Operation.GREATER_THAN, filter.getOperation());
     }
 }
 
