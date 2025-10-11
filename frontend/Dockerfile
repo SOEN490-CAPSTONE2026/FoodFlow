@@ -1,5 +1,9 @@
 # Multi-stage build for React
 FROM node:18-alpine as build
+
+ARG REACT_APP_GOOGLE_MAPS_API_KEY
+ENV REACT_APP_GOOGLE_MAPS_API_KEY=${REACT_APP_GOOGLE_MAPS_API_KEY}
+
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --only=production
