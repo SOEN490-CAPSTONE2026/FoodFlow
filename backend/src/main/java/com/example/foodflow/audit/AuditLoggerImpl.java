@@ -28,7 +28,6 @@ public class AuditLoggerImpl implements AuditLogger {
 
     @PostConstruct
     public void init() {
-        // Read property from Spring environment
         String enabledProp = env.getProperty("AUDIT_LOG_ENABLED");
         if (enabledProp != null) {
             auditEnabled = Boolean.parseBoolean(enabledProp);
@@ -39,7 +38,6 @@ public class AuditLoggerImpl implements AuditLogger {
     @Override
     public void logAction(AuditLog log) {
         if (!auditEnabled) {
-            // Skip logging if disabled
             return;
         }
         auditLogRepository.save(log);
