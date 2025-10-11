@@ -3,27 +3,27 @@ package com.example.foodflow.helpers;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
-import helpers.Filter;
+import helpers.BasicFilter;
 
-class FilterTest {
+class BasicFilterTest {
 
     @Test
     void testEqualOperation() {
-        Filter<Integer> filter = Filter.equal(10);
+        BasicFilter<Integer> filter = BasicFilter.equal(10);
         assertTrue(filter.check(10));
         assertFalse(filter.check(9));
     }
 
     @Test
     void testNotEqualOperation() {
-        Filter<String> filter = Filter.notEqual("apple");
+        BasicFilter<String> filter = BasicFilter.notEqual("apple");
         assertTrue(filter.check("banana"));
         assertFalse(filter.check("apple"));
     }
 
     @Test
     void testGreaterThanOperation() {
-        Filter<Integer> filter = Filter.greaterThan(5);
+        BasicFilter<Integer> filter = BasicFilter.greaterThan(5);
         assertTrue(filter.check(6));
         assertFalse(filter.check(5));
         assertFalse(filter.check(4));
@@ -31,7 +31,7 @@ class FilterTest {
 
     @Test
     void testGreaterThanOrEqualOperation() {
-        Filter<Double> filter = Filter.greaterThanOrEqual(2.5);
+        BasicFilter<Double> filter = BasicFilter.greaterThanOrEqual(2.5);
         assertTrue(filter.check(3.0));
         assertTrue(filter.check(2.5));
         assertFalse(filter.check(2.4));
@@ -39,7 +39,7 @@ class FilterTest {
 
     @Test
     void testLessThanOperation() {
-        Filter<Integer> filter = Filter.lessThan(10);
+        BasicFilter<Integer> filter = BasicFilter.lessThan(10);
         assertTrue(filter.check(9));
         assertFalse(filter.check(10));
         assertFalse(filter.check(11));
@@ -47,7 +47,7 @@ class FilterTest {
 
     @Test
     void testLessThanOrEqualOperation() {
-        Filter<Integer> filter = Filter.lessThanOrEqual(10);
+        BasicFilter<Integer> filter = BasicFilter.lessThanOrEqual(10);
         assertTrue(filter.check(10));
         assertTrue(filter.check(9));
         assertFalse(filter.check(11));
@@ -55,22 +55,22 @@ class FilterTest {
 
     @Test
     void testStringComparisonLexicographically() {
-        Filter<String> filter = Filter.lessThan("mango");
+        BasicFilter<String> filter = BasicFilter.lessThan("mango");
         assertTrue(filter.check("apple"));   // "apple" < "mango"
         assertFalse(filter.check("zebra"));
     }
 
     @Test
     void testNullValueThrows() {
-        Filter<Integer> filter = Filter.equal(5);
+        BasicFilter<Integer> filter = BasicFilter.equal(5);
         assertThrows(NullPointerException.class, () -> filter.check(null));
     }
 
     @Test
     void testGetters() {
-        Filter<Integer> filter = Filter.greaterThan(7);
+        BasicFilter<Integer> filter = BasicFilter.greaterThan(7);
         assertEquals(7, filter.getValue());
-        assertEquals(Filter.Operation.GREATER_THAN, filter.getOperation());
+        assertEquals(BasicFilter.Operation.GREATER_THAN, filter.getOperation());
     }
 }
 

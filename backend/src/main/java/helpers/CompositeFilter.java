@@ -3,8 +3,12 @@ package helpers;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-/* 
-public class CompositeFilter<T extends Comparable<T>> {
+
+/**
+ * Complex filter composed of atomic filters.
+ * @param <T> the type of the field being filtered
+ */
+public class CompositeFilter<T> implements Filter<T>{
 
     private final List<Filter<T>> filters;
 
@@ -39,4 +43,3 @@ public class CompositeFilter<T extends Comparable<T>> {
         return filters.size();
     }
 }
-*/
