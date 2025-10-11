@@ -17,7 +17,8 @@ import DonorDashboard from './components/DonorDashboard/DonorDashboard';
 import ReceiverDashboard from './components/ReceiverDashboard/ReceiverDashboard';
 
 import SurplusForm from './components/SurplusForm';
-import PrivacyPolicy from './components/PrivacyPolicy'; 
+import MyPosts from './components/MyPosts';
+import PrivacyPolicy from './components/PrivacyPolicy';
 import './App.css';
 
 import { useLocation } from "react-router-dom";
@@ -31,7 +32,8 @@ function AppContent() {
     location.pathname === "/login" ||
     location.pathname.startsWith("/register") ||
     location.pathname.startsWith("/donor") ||
-    location.pathname.startsWith("/admin");
+    location.pathname.startsWith("/admin") ||
+    location.pathname.startsWith("/receiver");
 
   return (
     <div className="App">
@@ -47,7 +49,7 @@ function AppContent() {
 
         {/* ===== Admin Dashboard (UNPROTECTED for dev preview) ===== */}
         <Route 
-          path="/admin" 
+          path="/admin/*" 
           element={
             <PrivateRoutes allowedRoles={['ADMIN']}>
               <AdminDashboard />
@@ -59,17 +61,17 @@ function AppContent() {
 
         {/* ===== Donor Dashboard ===== */}
         <Route
-          path="/donor"
-          element={
-            <PrivateRoutes allowedRoles={['DONOR']}>
-              <DonorDashboard />
-            </PrivateRoutes>
-          }
+          path="/donor/*"
+         element={
+      <PrivateRoutes allowedRoles={['DONOR']}>
+        <DonorDashboard />
+      </PrivateRoutes>
+    }
         />
 
         {/* ===== Receiver Dashboard ===== */}
         <Route
-          path="/receiver"
+          path="/receiver/*"
           element={
             <PrivateRoutes allowedRoles={['RECEIVER']}>
               <ReceiverDashboard />
@@ -77,7 +79,8 @@ function AppContent() {
           }
         />
         <Route path="/surplus/create" element={<SurplusForm />} />
-         <Route path="/privacy-policy" element={<PrivacyPolicy />} /> 
+        <Route path="/my-posts" element={<MyPosts />} />
+         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       </Routes>
     </div>
   );

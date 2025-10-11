@@ -16,7 +16,7 @@
 }
 
 .donor-sidebar-header {
-  padding: 0 20px 20px;
+  padding: 10px 10px 15px;
   border-bottom: 1px solid rgba(255,255,255,0.1);
   margin-bottom: 20px;
 }
@@ -26,6 +26,19 @@
   font-size: 20px;
   font-weight: 700;
   color: white;
+}
+
+.donor-logo {
+  height: 120px;
+  width: auto;
+  display: block;
+  margin: 0 auto;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.donor-logo:hover {
+  opacity: 0.8;
 }
 
 .donor-nav-links {

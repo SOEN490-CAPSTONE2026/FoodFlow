@@ -1,7 +1,7 @@
-
 import React, { useState, useRef, useEffect } from "react";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate, NavLink, Link } from "react-router-dom";
 import { AuthContext } from "../../contexts/AuthContext";
+import Logo from "../../assets/logo_dark_background.png";
 
 export default function DonorLayout() {
   const location = useLocation();
@@ -11,37 +11,23 @@ export default function DonorLayout() {
   const dropdownRef = useRef(null);
   
   const getPageTitle = () => {
-    switch (location.pathname) {
-      case "/donor":
-        return "Donate Food Now";
-      case "/donor/dashboard":
-        return "Dashboard";
-      case "/donor/list":
-        return "List Your Food";
-      case "/donor/requests":
-        return "Requests";
-      case "/donor/search":
-        return "Search";
-      default:
-        return "Donor Dashboard";
-    }
+    const p = location.pathname;
+    if (p === "/donor" || p === "/donor/") return "Donate Food Now";
+    if (p.startsWith("/donor/dashboard")) return "Dashboard";
+    if (p.startsWith("/donor/list")) return "Your Donations";
+    if (p.startsWith("/donor/requests")) return "Requests";
+    if (p.startsWith("/donor/search")) return "Search";
+    return "Donor Dashboard";
   };
 
   const getPageDescription = () => {
-    switch (location.pathname) {
-      case "/donor":
-        return "Every gift makes a difference";
-      case "/donor/dashboard":
-        return "Overview of your donations";
-      case "/donor/list":
-        return "Add new food donations";
-      case "/donor/requests":
-        return "Manage donation requests";
-      case "/donor/search":
-        return "Find organizations";
-      default:
-        return "FoodFlow Donor Portal";
-    }
+    const p = location.pathname;
+    if (p === "/donor" || p === "/donor/") return "Every gift makes a difference";
+    if (p.startsWith("/donor/dashboard")) return "Overview of your donations";
+    if (p.startsWith("/donor/list")) return "Create and manage donation listings";
+    if (p.startsWith("/donor/requests")) return "Manage donation requests";
+    if (p.startsWith("/donor/search")) return "Find organizations";
+    return "FoodFlow Donor Portal";
   };
 
   useEffect(() => {
@@ -81,40 +67,45 @@ export default function DonorLayout() {
     <div className="donor-layout">
       <div className="donor-sidebar">
         <div className="donor-sidebar-header">
-          <h2>FoodFlow</h2>
+          <h2>
+            <a href="http://localhost:3002">
+              <img src={Logo} alt="FoodFlow Logo" className="donor-logo" />
+            </a>
+          </h2>
         </div>
         
         <div className="donor-nav-links">
-          <a 
-            href="/donor" 
-            className={`donor-nav-link ${location.pathname === "/donor" ? "active" : ""}`}
+          <NavLink
+            to="."
+            end
+            className={({ isActive }) => `donor-nav-link ${isActive ? "active" : ""}`}
           >
             Home
-          </a>
-          <a 
-            href="/donor/dashboard" 
-            className={`donor-nav-link ${location.pathname === "/donor/dashboard" ? "active" : ""}`}
+          </NavLink>
+          <NavLink
+            to="dashboard"
+            className={({ isActive }) => `donor-nav-link ${isActive ? "active" : ""}`}
           >
             Dashboard
-          </a>
-          <a 
-            href="/donor/list" 
-            className={`donor-nav-link ${location.pathname === "/donor/list" ? "active" : ""}`}
+          </NavLink>
+          <NavLink
+            to="list"
+            className={({ isActive }) => `donor-nav-link ${isActive ? "active" : ""}`}
           >
             List Your Food
-          </a>
-          <a 
-            href="/donor/requests" 
-            className={`donor-nav-link ${location.pathname === "/donor/requests" ? "active" : ""}`}
+          </NavLink>
+          <NavLink
+            to="requests"
+            className={({ isActive }) => `donor-nav-link ${isActive ? "active" : ""}`}
           >
             Requests
-          </a>
-          <a 
-            href="/donor/search" 
-            className={`donor-nav-link ${location.pathname === "/donor/search" ? "active" : ""}`}
+          </NavLink>
+          <NavLink
+            to="search"
+            className={({ isActive }) => `donor-nav-link ${isActive ? "active" : ""}`}
           >
             Search
-          </a>
+          </NavLink>
         </div>
       </div>
 
