@@ -1,13 +1,34 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Home, BarChart3, Calendar as CalendarIcon, Mail, HelpCircle } from "lucide-react";
+import { Outlet, useLocation, useNavigate, Link } from "react-router-dom";
+import {
+  Home,
+  LayoutGrid,
+  Heart,
+  Calendar as CalendarIcon,
+  FileText,
+  Mail,
+  ChevronRight,
+  ChevronDown,
+  Settings,
+  HelpCircle,
+  MoreVertical,
+  LogOut
+} from "lucide-react";
 import "./AdminLayout.css";
 
 export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-  const ddRef = useRef(null);
+  const [messagesOpen, setMessagesOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  const contacts = [
+    { name: "Olive Nacelle", online: true },
+    { name: "Amélie Laurent", online: true },
+    { name: "Amélie Jackson", online: false },
+    { name: "Frankie Sullivan", online: false }
+  ];
 
   const pageTitle = (() => {
     switch (location.pathname) {
@@ -47,7 +68,7 @@ export default function AdminLayout() {
 
   useEffect(() => {
     const onDocClick = (e) => {
-      if (ddRef.current && !ddRef.current.contains(e.target)) setOpen(false);
+      if (menuRef.current && !menuRef.current.contains(e.target)) setOpen(false);
     };
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
@@ -55,7 +76,6 @@ export default function AdminLayout() {
 
   const handleLogout = () => {
     try {
-     
     } finally {
       localStorage.removeItem("token");
       sessionStorage.clear();
@@ -79,41 +99,104 @@ export default function AdminLayout() {
         </div>
 
         <nav className="admin-nav-links">
-          <a href="/admin" className={`admin-nav-link ${isActive("/admin") ? "active" : ""}`}>
+          <Link to="/admin/welcome" className={`admin-nav-link ${isActive("/admin/welcome") ? "active" : ""}`}>
             <span className="nav-icon" aria-hidden>
               <Home size={18} className="lucide" />
             </span>
-            Dashboard
-          </a>
+            Home
+          </Link>
 
-          <a href="/admin/analytics" className={`admin-nav-link ${isActive("/admin/analytics") ? "active" : ""}`}>
+        <Link to="/admin" className={`admin-nav-link ${isActive("/admin") ? "active" : ""}`}>
             <span className="nav-icon" aria-hidden>
-              <BarChart3 size={18} className="lucide" />
+              <LayoutGrid size={18} className="lucide" />
             </span>
-            Analytics
-          </a>
+            Dashboard
+          </Link>
 
-          <a href="/admin/calendar" className={`admin-nav-link ${isActive("/admin/calendar") ? "active" : ""}`}>
+          <Link to="/admin/analytics" className={`admin-nav-link ${isActive("/admin/analytics") ? "active" : ""}`}>
+            <span className="nav-icon" aria-hidden>
+              <Heart size={18} className="lucide" />
+            </span>
+            Donations
+          </Link>
+
+          <Link to="/admin/calendar" className={`admin-nav-link ${isActive("/admin/calendar") ? "active" : ""}`}>
             <span className="nav-icon" aria-hidden>
               <CalendarIcon size={18} className="lucide" />
             </span>
-            Calendar
-          </a>
+            Compliance Queue
+          </Link>
 
-          <a href="/admin/messages" className={`admin-nav-link ${isActive("/admin/messages") ? "active" : ""}`}>
+          <Link to="/admin/help" className={`admin-nav-link ${isActive("/admin/help") ? "active" : ""}`}>
             <span className="nav-icon" aria-hidden>
-              <Mail size={18} className="lucide" />
+              <FileText size={18} className="lucide" />
             </span>
-            Messages
-          </a>
+            Activity log
+          </Link>
 
-          <a href="/admin/help" className={`admin-nav-link ${isActive("/admin/help") ? "active" : ""}`}>
+          <div className={`admin-nav-link messages-link ${isActive("/admin/messages") ? "active" : ""}`}>
+            <div onClick={() => navigate("/admin/messages")} className="messages-left">
+              <span className="nav-icon" aria-hidden>
+                <Mail size={18} className="lucide" />
+              </span>
+              Messages
+            </div>
+            <button className="messages-toggle" onClick={() => setMessagesOpen((s) => !s)} aria-label="Toggle Messages">
+              {messagesOpen ? <ChevronDown size={16} className="lucide" /> : <ChevronRight size={16} className="lucide" />}
+            </button>
+          </div>
+
+          {messagesOpen && (
+            <div className="messages-dropdown">
+              {contacts.map((c, i) => (
+                <div key={i} className="message-item">
+                  <div className="message-avatar">
+                    {c.online && <span className="message-status" />}
+                  </div>
+                  <span className="message-name">{c.name}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </nav>
+
+        <div className="admin-nav-bottom nav-bottom-abs">
+          <div className="admin-nav-link disabled">
+            <span className="nav-icon" aria-hidden>
+              <Settings size={18} className="lucide" />
+            </span>
+            Settings
+          </div>
+          <div className="admin-nav-link disabled">
             <span className="nav-icon" aria-hidden>
               <HelpCircle size={18} className="lucide" />
             </span>
             Help
-          </a>
-        </nav>
+          </div>
+        </div>
+
+        <div className="admin-sidebar-footer admin-user footer-abs" ref={menuRef}>
+          <div className="account-row">
+            <button className="user-profile-pic" type="button">
+              <div className="account-avatar"></div>
+              <div className="account-text">
+                <span className="account-name">Evian</span>
+                <span className="account-role">admin</span>
+              </div>
+            </button>
+            <button className="account-dotted-menu" onClick={() => setOpen((s) => !s)} aria-label="Menu">
+              <MoreVertical size={18} className="lucide" />
+            </button>
+          </div>
+          {open && (
+            <div className="account-menu">
+              <button className="account-menu-item logout" onClick={handleLogout}>
+                <LogOut size={16} className="lucide" />
+                Logout
+              </button>
+            </div>
+          )}
+        </div>
       </aside>
 
       <main className="admin-main">
@@ -121,20 +204,6 @@ export default function AdminLayout() {
           <div className="admin-topbar-left">
             <h1>{pageTitle}</h1>
             <p>{pageDesc}</p>
-          </div>
-
-          <div className="admin-user" ref={ddRef}>
-            <button className="user-chip" onClick={() => setOpen((s) => !s)}>
-              Admin Account <span className="chev">▼</span>
-            </button>
-            {open && (
-              <div className="admin-dd">
-                <button className="admin-dd-item" onClick={() => setOpen(false)}>Profile</button>
-                <button className="admin-dd-item" onClick={() => setOpen(false)}>Notifications</button>
-                <div className="admin-dd-divider" />
-                <button className="admin-dd-item logout" onClick={handleLogout}>Log Out</button>
-              </div>
-            )}
           </div>
         </header>
 
