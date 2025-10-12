@@ -1,7 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import "./ReceiverDashboard.css"; 
+import "./ReceiverLayout.css";
 import { AuthContext } from "../../contexts/AuthContext";
+import {
+  Settings as IconSettings,
+  HelpCircle as IconHelpCircle,
+  LogOut as IconLogOut,
+  Inbox as IconInbox
+} from "lucide-react";
 
 export default function ReceiverLayout() {
   const location = useLocation();
@@ -10,13 +16,12 @@ export default function ReceiverLayout() {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Page title
   const getPageTitle = () => {
     switch (location.pathname) {
       case "/receiver":
       case "/receiver/dashboard":
         return "Receiver Dashboard";
-      case "/receiver/welcome":            
+      case "/receiver/welcome":
         return "Welcome";
       case "/receiver/browse":
         return "Browse Available Food";
@@ -29,13 +34,12 @@ export default function ReceiverLayout() {
     }
   };
 
-  // Page description
   const getPageDescription = () => {
     switch (location.pathname) {
       case "/receiver":
       case "/receiver/dashboard":
         return "Overview of nearby food and your activity";
-      case "/receiver/welcome":          
+      case "/receiver/welcome":
         return "Start here: search the map or browse nearby food";
       case "/receiver/browse":
         return "Browse available food listings";
@@ -48,7 +52,6 @@ export default function ReceiverLayout() {
     }
   };
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -61,12 +64,10 @@ export default function ReceiverLayout() {
 
   const toggleDropdown = () => setShowDropdown((s) => !s);
 
-  
   const handleLogout = async () => {
     try {
       await logout();
     } catch (e) {
-     
     } finally {
       setShowDropdown(false);
       navigate("/", { replace: true, state: { scrollTo: "home" } });
@@ -75,19 +76,17 @@ export default function ReceiverLayout() {
 
   return (
     <div className="receiver-layout">
-      {/* Sidebar */}
       <div className="receiver-sidebar">
         <div className="receiver-sidebar-header">
-          <h2>FoodFlow</h2>
+          <img src="/logo.png" alt="FoodFlow" className="receiver-logo" />
         </div>
 
         <div className="receiver-nav-links">
-          
           <a
             href="/receiver/welcome"
             className={`receiver-nav-link ${location.pathname === "/receiver/welcome" ? "active" : ""}`}
           >
-            Welcome
+            Donations
           </a>
 
           <a
@@ -96,66 +95,86 @@ export default function ReceiverLayout() {
               location.pathname === "/receiver" || location.pathname === "/receiver/dashboard" ? "active" : ""
             }`}
           >
-            Dashboard
+            My Claims
           </a>
 
           <a
             href="/receiver/browse"
             className={`receiver-nav-link ${location.pathname === "/receiver/browse" ? "active" : ""}`}
           >
-            Find Food
+            Saved Donations
           </a>
 
           <a
             href="/receiver/requests"
             className={`receiver-nav-link ${location.pathname === "/receiver/requests" ? "active" : ""}`}
           >
-            My Requests
+            Messages
           </a>
+        </div>
 
-          <a
-            href="/receiver/search#org-search"
-            className={`receiver-nav-link ${location.pathname === "/receiver/search" ? "active" : ""}`}
-          >
-            Search
-          </a>
+        <div className="receiver-user-info" ref={dropdownRef}>
+          <div className="user-actions">
+            <button
+              className="inbox-btn"
+              type="button"
+              aria-label="Inbox"
+            >
+              <IconInbox size={22} />
+              <span className="badge">5</span>
+            </button>
+
+            <button
+              className="avatar-btn"
+              type="button"
+              aria-label="Account menu"
+              onClick={toggleDropdown}
+              title="Account"
+            >
+              <img src="/pfp.png" alt="" />
+            </button>
+          </div>
+
+          {showDropdown && (
+            <div className="dropdown-menu dropdown-menu--card">
+              <div className="dropdown-header">Hello John Doe!</div>
+              <div className="dropdown-divider"></div>
+
+              <div className="dropdown-item dropdown-item--settings" onClick={() => setShowDropdown(false)}>
+                <IconSettings size={18} />
+                <span>Settings</span>
+              </div>
+
+              <div
+                className="dropdown-item dropdown-item--help"
+                onClick={() => {
+                  setShowDropdown(false);
+                  navigate("/receiver/help");
+                }}
+              >
+                <IconHelpCircle size={18} />
+                <span>Help</span>
+              </div>
+
+              <div className="dropdown-divider"></div>
+
+              <div className="dropdown-item dropdown-item-logout" onClick={handleLogout}>
+                <IconLogOut size={18} />
+                <span>Logout</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="receiver-main">
-        {/* Top Bar */}
         <div className="receiver-topbar">
           <div className="receiver-topbar-left">
             <h1>{getPageTitle()}</h1>
             <p>{getPageDescription()}</p>
           </div>
-
-          <div className="receiver-user-info" ref={dropdownRef}>
-            <div className="user-menu" onClick={toggleDropdown}>
-              Receiver Account
-              <span className="dropdown-arrow">▼</span>
-            </div>
-
-            {/* Dropdown Menu */}
-            {showDropdown && (
-              <div className="dropdown-menu">
-                <div className="dropdown-item" onClick={() => setShowDropdown(false)}>
-                  Profile
-                </div>
-                <div className="dropdown-item" onClick={() => setShowDropdown(false)}>
-                  Settings
-                </div>
-                <div className="dropdown-divider"></div>
-                <div className="dropdown-item dropdown-item-logout" onClick={handleLogout}>
-                  Log Out
-                </div>
-              </div>
-            )}
-          </div>
         </div>
 
-        {/* Page Content */}
         <div className="receiver-content">
           <Outlet />
         </div>
