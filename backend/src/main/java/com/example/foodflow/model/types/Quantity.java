@@ -11,6 +11,7 @@ import java.util.Objects;
 @Embeddable
 public class Quantity {
 
+    @Column(name = "quantity_value")
     @Positive(message = "Quantity must be positive")
     private Double value;
 
@@ -57,6 +58,15 @@ public class Quantity {
     @Override
     public String toString() {
         return value + " " + unit;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Quantity)) return false;
+        Quantity that = (Quantity) o;
+        return Double.compare(that.value, value) == 0 &&
+               Objects.equals(unit, that.unit);
     }
 
     @Override

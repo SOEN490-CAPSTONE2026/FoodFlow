@@ -1,79 +1,90 @@
 package com.example.foodflow.model.dto;
 
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import com.example.foodflow.model.types.FoodCategory;
+import com.example.foodflow.model.types.Quantity;
+import com.example.foodflow.model.types.Location;
+import com.example.foodflow.model.types.PostStatus;
+
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Set;
 
 public class SurplusResponse {
-    
+
     private Long id;
-    private String foodName;
-    private String foodType;
-    private Double quantity;
-    private String unit;
+    private String title;
+    private String description;
+    private Set<FoodCategory> foodCategories;
+    private Quantity quantity;
+    private Location pickupLocation;
     private LocalDate expiryDate;
     private LocalDateTime pickupFrom;
-    private LocalTime pickupTo;
-    private String location;
-    private String notes;
+    private LocalDateTime pickupTo;
+    private PostStatus status;
     private String donorEmail;
     private LocalDateTime createdAt;
-    
+    private LocalDateTime updatedAt;
+
     // Constructors
     public SurplusResponse() {}
-    
-    public SurplusResponse(Long id, String foodName, String foodType, Double quantity, 
-                          String unit, LocalDate expiryDate, LocalDateTime pickupFrom,
-                          LocalTime pickupTo, String location, String notes,
-                          String donorEmail, LocalDateTime createdAt) {
+
+    public SurplusResponse(Long id, String title, String description, Set<FoodCategory> foodCategories,
+                           Quantity quantity, Location pickupLocation,
+                           LocalDate expiryDate, LocalDateTime pickupFrom, LocalDateTime pickupTo,
+                           PostStatus status, String donorEmail,
+                           LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
-        this.foodName = foodName;
-        this.foodType = foodType;
+        this.title = title;
+        this.description = description;
+        this.foodCategories = foodCategories;
         this.quantity = quantity;
-        this.unit = unit;
+        this.pickupLocation = pickupLocation;
         this.expiryDate = expiryDate;
         this.pickupFrom = pickupFrom;
         this.pickupTo = pickupTo;
-        this.location = location;
-        this.notes = notes;
+        this.status = status;
         this.donorEmail = donorEmail;
         this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
-    
+
     // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    
-    public String getFoodName() { return foodName; }
-    public void setFoodName(String foodName) { this.foodName = foodName; }
-    
-    public String getFoodType() { return foodType; }
-    public void setFoodType(String foodType) { this.foodType = foodType; }
-    
-    public Double getQuantity() { return quantity; }
-    public void setQuantity(Double quantity) { this.quantity = quantity; }
-    
-    public String getUnit() { return unit; }
-    public void setUnit(String unit) { this.unit = unit; }
-    
+
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+
+    public Set<FoodCategory> getFoodCategories() { return foodCategories; }
+    public void setFoodCategories(Set<FoodCategory> foodCategories) { this.foodCategories = foodCategories; }
+
+    public Quantity getQuantity() { return quantity; }
+    public void setQuantity(Quantity quantity) { this.quantity = quantity; }
+
+    public Location getPickupLocation() { return pickupLocation; }
+    public void setPickupLocation(Location pickupLocation) { this.pickupLocation = pickupLocation; }
+
     public LocalDate getExpiryDate() { return expiryDate; }
     public void setExpiryDate(LocalDate expiryDate) { this.expiryDate = expiryDate; }
-    
+
     public LocalDateTime getPickupFrom() { return pickupFrom; }
     public void setPickupFrom(LocalDateTime pickupFrom) { this.pickupFrom = pickupFrom; }
-    
-    public LocalTime getPickupTo() { return pickupTo; }
-    public void setPickupTo(LocalTime pickupTo) { this.pickupTo = pickupTo; }
-    
-    public String getLocation() { return location; }
-    public void setLocation(String location) { this.location = location; }
-    
-    public String getNotes() { return notes; }
-    public void setNotes(String notes) { this.notes = notes; }
-    
+
+    public LocalDateTime getPickupTo() { return pickupTo; }
+    public void setPickupTo(LocalDateTime pickupTo) { this.pickupTo = pickupTo; }
+
+    public PostStatus getStatus() { return status; }
+    public void setStatus(PostStatus status) { this.status = status; }
+
     public String getDonorEmail() { return donorEmail; }
     public void setDonorEmail(String donorEmail) { this.donorEmail = donorEmail; }
-    
+
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }

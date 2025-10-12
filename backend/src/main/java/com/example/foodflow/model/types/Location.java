@@ -32,6 +32,20 @@ public class Location {
         return address + " (" + latitude + ", " + longitude + ")";
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Location)) return false;
+        Location that = (Location) o;
+        return Objects.equals(latitude, that.latitude) &&
+            Objects.equals(longitude, that.longitude);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(latitude, longitude);
+    }
+
     // Optional helper for distance (Haversine formula)
     public double distanceTo(Location other) {
         final int R = 6371; // km

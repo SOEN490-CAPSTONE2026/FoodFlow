@@ -20,46 +20,56 @@ public class SurplusService {
         this.surplusPostRepository = surplusPostRepository;
     }
     
+    /**
+     * Creates a new SurplusPost from the request DTO and saves it to the database.
+     */
     @Transactional
     public SurplusResponse createSurplusPost(CreateSurplusRequest request, User donor) {
         SurplusPost post = new SurplusPost();
+        
         post.setDonor(donor);
-        post.setFoodName(request.getFoodName());
-        post.setFoodType(request.getFoodType());
+        post.setTitle(request.getTitle());
+        post.setDescription(request.getDescription());
+        post.setFoodCategories(request.getFoodCategories());
         post.setQuantity(request.getQuantity());
-        post.setUnit(request.getUnit());
+        post.setPickupLocation(request.getPickupLocation());
         post.setExpiryDate(request.getExpiryDate());
         post.setPickupFrom(request.getPickupFrom());
         post.setPickupTo(request.getPickupTo());
-        post.setLocation(request.getLocation());
-        post.setNotes(request.getNotes());
+        post.setStatus(request.getStatus()); // defaults to AVAILABLE if not set
         
         SurplusPost savedPost = surplusPostRepository.save(post);
-        
         return convertToResponse(savedPost);
     }
     
+    /**
+     * Retrieves all surplus posts for a given user.
+     */
     public List<SurplusResponse> getUserSurplusPosts(User user) {
-        List<SurplusPost> posts = surplusPostRepository.findByDonorId(user.getId());
-        return posts.stream()
+        return surplusPostRepository.findByDonorId(user.getId())
+                .stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
     
+    /**
+     * Converts a SurplusPost entity to the SurplusResponse DTO.
+     */
     private SurplusResponse convertToResponse(SurplusPost post) {
         SurplusResponse response = new SurplusResponse();
         response.setId(post.getId());
-        response.setFoodName(post.getFoodName());
-        response.setFoodType(post.getFoodType());
+        response.setTitle(post.getTitle());
+        response.setDescription(post.getDescription());
+        response.setFoodCategories(post.getFoodCategories());
         response.setQuantity(post.getQuantity());
-        response.setUnit(post.getUnit());
+        response.setPickupLocation(post.getPickupLocation());
         response.setExpiryDate(post.getExpiryDate());
         response.setPickupFrom(post.getPickupFrom());
         response.setPickupTo(post.getPickupTo());
-        response.setLocation(post.getLocation());
-        response.setNotes(post.getNotes());
+        response.setStatus(post.getStatus());
         response.setDonorEmail(post.getDonor().getEmail());
         response.setCreatedAt(post.getCreatedAt());
+        response.setUpdatedAt(post.getUpdatedAt());
         return response;
     }
 }

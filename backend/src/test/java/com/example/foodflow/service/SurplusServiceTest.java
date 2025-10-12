@@ -7,6 +7,9 @@ import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.OrganizationType;
 import com.example.foodflow.model.entity.UserRole;
+import com.example.foodflow.model.types.FoodCategory;
+import com.example.foodflow.model.types.Location;
+import com.example.foodflow.model.types.Quantity;
 import com.example.foodflow.repository.SurplusPostRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +21,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,7 +30,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class SurplusServiceTest {
+class SurplusServiceTest { 
 
     @Mock
     private SurplusPostRepository surplusPostRepository;
@@ -53,15 +58,14 @@ class SurplusServiceTest {
 
         // Create test request with NEW structure
         request = new CreateSurplusRequest();
-        request.setFoodName("Vegetable Lasagna");
-        request.setFoodType("Prepared Meals");
-        request.setQuantity(10.0);
-        request.setUnit("kg");
+        request.setTitle("Vegetable Lasagna");
+        request.getFoodCategories().add(FoodCategory.PREPARED_MEALS);
+        request.setQuantity(new Quantity(10.0, Quantity.Unit.KILOGRAM));
         request.setExpiryDate(LocalDate.now().plusDays(2));
         request.setPickupFrom(LocalDateTime.now().plusHours(3));
-        request.setPickupTo(LocalTime.of(18, 0));
-        request.setLocation("123 Main St");
-        request.setNotes("Vegetarian lasagna");
+        request.setPickupTo(LocalDateTime.now().plusHours(5));
+        request.setPickupLocation(new Location(45.2903, -34.0987, "123 Main St"));
+        request.setDescription("Vegetarian lasagna");
     }
 
     @Test
@@ -70,15 +74,14 @@ class SurplusServiceTest {
         SurplusPost savedPost = new SurplusPost();
         savedPost.setId(1L);
         savedPost.setDonor(donor);
-        savedPost.setFoodName(request.getFoodName());
-        savedPost.setFoodType(request.getFoodType());
+        savedPost.setTitle(request.getTitle());
+        savedPost.setFoodCategories(request.getFoodCategories());
         savedPost.setQuantity(request.getQuantity());
-        savedPost.setUnit(request.getUnit());
-        savedPost.setLocation(request.getLocation());
+        savedPost.setPickupLocation(request.getPickupLocation());
         savedPost.setExpiryDate(request.getExpiryDate());
         savedPost.setPickupFrom(request.getPickupFrom());
         savedPost.setPickupTo(request.getPickupTo());
-        savedPost.setNotes(request.getNotes());
+        savedPost.setDescription(request.getDescription());
 
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
 
@@ -88,32 +91,31 @@ class SurplusServiceTest {
         // Then
         assertThat(response).isNotNull();
         assertThat(response.getId()).isEqualTo(1L);
-        assertThat(response.getFoodName()).isEqualTo("Vegetable Lasagna");
-        assertThat(response.getFoodType()).isEqualTo("Prepared Meals");
-        assertThat(response.getQuantity()).isEqualTo(10.0);
-        assertThat(response.getUnit()).isEqualTo("kg");
-        assertThat(response.getLocation()).isEqualTo("123 Main St");
+        assertThat(response.getTitle()).isEqualTo("Vegetable Lasagna");
+        assertThat(response.getFoodCategories()).isEqualTo(Set.of(FoodCategory.PREPARED_MEALS));
+        assertThat(response.getQuantity()).isEqualTo(new Quantity(10.0, Quantity.Unit.KILOGRAM));
+        assertThat(response.getPickupLocation()).isEqualTo(new Location(45.2903, -34.0987, "123 Main St"));
         assertThat(response.getDonorEmail()).isEqualTo("donor@test.com");
 
         verify(surplusPostRepository, times(1)).save(any(SurplusPost.class));
     }
 
+    
     @Test
     void testCreateSurplusPost_SetsCorrectDonor() {
         // Given
         SurplusPost mockSavedPost = new SurplusPost();
         mockSavedPost.setId(1L);
         mockSavedPost.setDonor(donor);
-        mockSavedPost.setFoodName("Vegetable Lasagna");
-        mockSavedPost.setFoodType("Prepared Meals");
-        mockSavedPost.setQuantity(10.0);
-        mockSavedPost.setUnit("kg");
-        mockSavedPost.setLocation("123 Main St");
+        mockSavedPost.setTitle(request.getTitle());
+        mockSavedPost.setFoodCategories(request.getFoodCategories());
+        mockSavedPost.setQuantity(request.getQuantity());
+        mockSavedPost.setPickupLocation(request.getPickupLocation());
         mockSavedPost.setExpiryDate(request.getExpiryDate());
         mockSavedPost.setPickupFrom(request.getPickupFrom());
         mockSavedPost.setPickupTo(request.getPickupTo());
-        mockSavedPost.setNotes(request.getNotes());
-        
+        mockSavedPost.setDescription(request.getDescription());
+
         ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(mockSavedPost);
 
@@ -123,12 +125,15 @@ class SurplusServiceTest {
         // Then
         verify(surplusPostRepository).save(postCaptor.capture());
         SurplusPost capturedPost = postCaptor.getValue();
-        
+
         assertThat(capturedPost.getDonor()).isEqualTo(donor);
-        assertThat(capturedPost.getFoodName()).isEqualTo("Vegetable Lasagna");
-        assertThat(capturedPost.getFoodType()).isEqualTo("Prepared Meals");
-        assertThat(capturedPost.getQuantity()).isEqualTo(10.0);
+        assertThat(capturedPost.getTitle()).isEqualTo("Vegetable Lasagna");
+        assertThat(capturedPost.getFoodCategories()).isEqualTo(Set.of(FoodCategory.PREPARED_MEALS));
+        assertThat(capturedPost.getQuantity()).isEqualTo(new Quantity(10.0, Quantity.Unit.KILOGRAM));
+        assertThat(capturedPost.getPickupLocation()).isEqualTo(new Location(45.2903, -34.0987, "123 Main St"));
+        assertThat(capturedPost.getDescription()).isEqualTo("Vegetarian lasagna");
     }
+
 
     @Test
     void testCreateSurplusPost_MapsAllFields() {
@@ -136,16 +141,15 @@ class SurplusServiceTest {
         SurplusPost mockSavedPost = new SurplusPost();
         mockSavedPost.setId(1L);
         mockSavedPost.setDonor(donor);
-        mockSavedPost.setFoodName("Test");
-        mockSavedPost.setFoodType("Test");
-        mockSavedPost.setQuantity(1.0);
-        mockSavedPost.setUnit("kg");
-        mockSavedPost.setLocation("Test");
-        mockSavedPost.setExpiryDate(LocalDate.now());
-        mockSavedPost.setPickupFrom(LocalDateTime.now());
-        mockSavedPost.setPickupTo(LocalTime.now());
-        mockSavedPost.setNotes("Test");
-        
+        mockSavedPost.setTitle(request.getTitle());
+        mockSavedPost.setFoodCategories(request.getFoodCategories());
+        mockSavedPost.setQuantity(request.getQuantity());
+        mockSavedPost.setPickupLocation(request.getPickupLocation());
+        mockSavedPost.setExpiryDate(request.getExpiryDate());
+        mockSavedPost.setPickupFrom(request.getPickupFrom());
+        mockSavedPost.setPickupTo(request.getPickupTo());
+        mockSavedPost.setDescription(request.getDescription());
+
         ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(mockSavedPost);
 
@@ -155,17 +159,16 @@ class SurplusServiceTest {
         // Then
         verify(surplusPostRepository).save(postCaptor.capture());
         SurplusPost capturedPost = postCaptor.getValue();
-        
-        assertThat(capturedPost.getFoodName()).isEqualTo(request.getFoodName());
-        assertThat(capturedPost.getFoodType()).isEqualTo(request.getFoodType());
+
+        assertThat(capturedPost.getTitle()).isEqualTo(request.getTitle());
+        assertThat(capturedPost.getFoodCategories()).isEqualTo(request.getFoodCategories());
         assertThat(capturedPost.getQuantity()).isEqualTo(request.getQuantity());
-        assertThat(capturedPost.getUnit()).isEqualTo(request.getUnit());
-        assertThat(capturedPost.getLocation()).isEqualTo(request.getLocation());
+        assertThat(capturedPost.getPickupLocation()).isEqualTo(request.getPickupLocation());
         assertThat(capturedPost.getExpiryDate()).isEqualTo(request.getExpiryDate());
         assertThat(capturedPost.getPickupFrom()).isEqualTo(request.getPickupFrom());
         assertThat(capturedPost.getPickupTo()).isEqualTo(request.getPickupTo());
-        assertThat(capturedPost.getNotes()).isEqualTo(request.getNotes());
+        assertThat(capturedPost.getDescription()).isEqualTo(request.getDescription());
+        assertThat(capturedPost.getDonor()).isEqualTo(donor);
     }
-
 
 }
