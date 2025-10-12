@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Calendar, Clock, MapPin, Edit, Trash2, AlertTriangle, X, Package } from "lucide-react";
-import { LoadScript } from "@react-google-maps/api";
+import React, { useState } from "react";
+import { Calendar, Clock, MapPin, Edit, Trash2, AlertTriangle, Package } from "lucide-react";
 import SurplusFormModal from "../SurplusFormModal";
 import "./DonorListFood.css";
 
@@ -55,9 +54,6 @@ const initialDonations = [
   },
 ];
 
-// Define libraries for Google Maps
-const libraries = ['places']; 
-
 function statusClass(status) {
   switch (status) {
     case "available":
@@ -102,29 +98,24 @@ export default function DonorListFood() {
 
   return (
     <div className="donor-list-wrapper">
-
       <header className="donor-list-header">
         {items.length === 0 && (
           <button className="donor-add-button" onClick={loadSampleDonations}>
             Load Sample Data (for testing)
           </button>
         )}
-        <LoadScript
-          googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}
-          libraries={libraries}
+        <button
+          className="donor-add-button"
+          onClick={() => setIsModalOpen(true)}
         >
-          <button
-            className="donor-add-button"
-            onClick={() => setIsModalOpen(true)}
-          >
-            + Donate More
-          </button>
-          <SurplusFormModal
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-          />
-        </LoadScript>
+          + Donate More
+        </button>
       </header>
+
+      <SurplusFormModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
 
       {items.length === 0 ? (
         <div className="empty-state">

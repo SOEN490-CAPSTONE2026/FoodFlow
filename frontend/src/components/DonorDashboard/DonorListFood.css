@@ -31,10 +31,10 @@
 
 /* Page layout */
 .donor-list-wrapper {
-  min-height: 100vh;
   background: var(--bg);
   color: var(--text);
-  padding: 0; 
+  padding: 0;
+  min-height: auto;
 }
 
 /* Header */

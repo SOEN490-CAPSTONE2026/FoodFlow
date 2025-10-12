@@ -12,10 +12,12 @@ import {
   Settings,
   HelpCircle,
   MoreVertical,
-  LogOut
+  LogOut,
+  Menu,
+  X
 } from "lucide-react";
 import { AuthContext } from "../../contexts/AuthContext";
-import Logo from "../../assets/logo_dark_background.png";
+import Logo from "../../assets/Logo_White.png";
 import "./DonorLayout.css";
 
 export default function DonorLayout() {
@@ -24,6 +26,8 @@ export default function DonorLayout() {
   const { logout } = useContext(AuthContext);
   const [open, setOpen] = useState(false);
   const [messagesOpen, setMessagesOpen] = useState(false);
+  const [screenHeight, setScreenHeight] = useState(window.innerHeight);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
   const contacts = [
@@ -32,6 +36,27 @@ export default function DonorLayout() {
     { name: "Amélie Jackson", online: false },
     { name: "Frankie Sullivan", online: false }
   ];
+
+  // Track screen height changes
+  useEffect(() => {
+    const handleResize = () => {
+      setScreenHeight(window.innerHeight);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Determine how many contacts to show based on screen height
+  const getMaxContacts = () => {
+    if (screenHeight <= 650) return 1;
+    if (screenHeight <= 800) return 2;
+    return 4; // Show all contacts on larger screens
+  };
+
+  const visibleContacts = contacts.slice(0, getMaxContacts());
+
+
 
   const pageTitle = (() => {
     switch (location.pathname) {
@@ -94,7 +119,22 @@ export default function DonorLayout() {
 
   return (
     <div className="donor-layout">
-      <aside className="donor-sidebar">
+      {/* Mobile Header with Hamburger */}
+      <div className="mobile-header">
+        <img src={Logo} alt="FoodFlow" className="mobile-logo" />
+        <button 
+          className="hamburger-btn" 
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Toggle Menu"
+        >
+          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
+
+      {/* Mobile Overlay */}
+      {mobileMenuOpen && <div className="mobile-overlay" onClick={() => setMobileMenuOpen(false)}></div>}
+
+      <aside className={`donor-sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}>
         <div className="donor-sidebar-header">
           <Link to="/donor" aria-label="FoodFlow Home">
             <img src={Logo} alt="FoodFlow" className="donor-logo" />
@@ -134,7 +174,7 @@ export default function DonorLayout() {
             <span className="nav-icon" aria-hidden>
               <FileText size={18} className="lucide" />
             </span>
-            PickUp Schedule
+            Pickup Schedule
           </Link>
 
           <div className={`donor-nav-link messages-link ${isActive("/donor/messages") ? "active" : ""}`}>
@@ -151,7 +191,7 @@ export default function DonorLayout() {
 
           {messagesOpen && (
             <div className="messages-dropdown">
-              {contacts.map((c, i) => (
+              {visibleContacts.map((c, i) => (
                 <div key={i} className="message-item">
                   <div className="message-avatar">{c.online && <span className="message-status" />}</div>
                   <span className="message-name">{c.name}</span>
