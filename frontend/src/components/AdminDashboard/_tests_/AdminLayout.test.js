@@ -3,7 +3,6 @@ import { render, screen, fireEvent, within } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 
-// Mock only useNavigate
 const mockedNavigate = jest.fn();
 jest.mock("react-router-dom", () => {
   const actual = jest.requireActual("react-router-dom");
@@ -22,7 +21,6 @@ function Stub({ label }) {
 describe("AdminLayout", () => {
   beforeEach(() => {
     mockedNavigate.mockClear();
-    // seed storages to verify logout clears them
     localStorage.setItem("token", "abc123");
     jest.spyOn(Storage.prototype, "removeItem");
     jest.spyOn(Storage.prototype, "clear");
@@ -34,7 +32,6 @@ describe("AdminLayout", () => {
     sessionStorage.clear();
   });
 
-  // parent route MUST have a path ("/admin/*") and children must be relative
   const renderWithRoutes = (initialPath = "/admin") =>
     render(
       <MemoryRouter initialEntries={[initialPath]}>
@@ -70,43 +67,33 @@ describe("AdminLayout", () => {
   it("applies active class to the current nav link", () => {
     renderWithRoutes("/admin/calendar");
     const nav = screen.getByRole("navigation");
-    const active = within(nav).getByRole("link", { name: /calendar/i });
+    const active = within(nav).getByRole("link", { name: /compliance queue/i });
     expect(active).toHaveClass("active");
-    const analytics = within(nav).getByRole("link", { name: /analytics/i });
-    expect(analytics).not.toHaveClass("active");
+    const donations = within(nav).getByRole("link", { name: /donations/i });
+    expect(donations).not.toHaveClass("active");
   });
 
-  it("toggles the user dropdown and logs out", () => {
+  it("toggles the user dropdown via kebab and logs out", () => {
     renderWithRoutes("/admin/messages");
-
-    // open dropdown
-    const chip = screen.getByRole("button", { name: /admin account/i });
-    fireEvent.click(chip);
-    const logoutBtn = screen.getByRole("button", { name: /log out/i });
+    const kebab = screen.getByRole("button", { name: /menu/i });
+    fireEvent.click(kebab);
+    const logoutBtn = screen.getByRole("button", { name: /logout/i });
     expect(logoutBtn).toBeInTheDocument();
-
-    // click logout
     fireEvent.click(logoutBtn);
-
-    // storage cleared
     expect(localStorage.removeItem).toHaveBeenCalledWith("token");
     expect(sessionStorage.clear).toHaveBeenCalled();
-
-    // navigated home
     expect(mockedNavigate).toHaveBeenCalledWith("/", {
       replace: true,
       state: { scrollTo: "home" },
     });
   });
 
-  it("closes the dropdown by toggling the chip", () => {
+  it("closes the dropdown by toggling the menu button", () => {
     renderWithRoutes("/admin");
-    const chip = screen.getByRole("button", { name: /admin account/i });
-
-    fireEvent.click(chip); // open
-    expect(screen.getByRole("button", { name: /profile/i })).toBeInTheDocument();
-
-    fireEvent.click(chip); // close
-    expect(screen.queryByRole("button", { name: /profile/i })).not.toBeInTheDocument();
+    const kebab = screen.getByRole("button", { name: /menu/i });
+    fireEvent.click(kebab);
+    expect(screen.getByRole("button", { name: /logout/i })).toBeInTheDocument();
+    fireEvent.click(kebab);
+    expect(screen.queryByRole("button", { name: /logout/i })).not.toBeInTheDocument();
   });
 });
