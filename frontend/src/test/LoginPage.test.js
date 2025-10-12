@@ -84,7 +84,7 @@ describe('LoginPage', () => {
       'href',
       '/forgot-password'
     );
-    expect(screen.getByRole('link', { name: /sign up/i })).toHaveAttribute('href', '/signup');
+    expect(screen.getByRole('link', { name: /sign up/i })).toHaveAttribute('href', '/register');
   });
 
   test('password visibility toggle switches input type and aria-label', () => {
