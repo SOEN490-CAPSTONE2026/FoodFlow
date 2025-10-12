@@ -5,8 +5,7 @@ public enum PostStatus {
     EXPIRED,
     CLAIMED;
 
-    @Override
-    public String toString(){
+    public String getDisplayName(){
         String name = this.name();
         return name.charAt(0) + name.substring(1).toLowerCase().replace('_', ' ');
     }

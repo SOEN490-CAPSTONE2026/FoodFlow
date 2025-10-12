@@ -232,9 +232,4 @@ public enum FoodCategory {
     public boolean isFoodType() {
         return !isDietaryLabel() && !isPerishabilityLabel();
     }
-
-    @Override
-    public String toString(){
-        return this.getDisplayName();
-    }
 }

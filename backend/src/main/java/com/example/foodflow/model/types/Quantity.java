@@ -57,7 +57,7 @@ public class Quantity {
 
     @Override
     public String toString() {
-        return value + " " + unit;
+        return value + " " + unit.getLabel();
     }
 
     @Override
@@ -123,6 +123,10 @@ public class Quantity {
         public boolean isIntegerOnly() {
             return integerOnly;
         }
+
+        public String getLabel(){
+            return label;
+        }
         
         public String getFullName() {
             // Convert enum name to readable format: KILOGRAM -> kilogram
@@ -143,11 +147,6 @@ public class Quantity {
         
         public String getDisplayName(double quantity) {
             return quantity == 1.0 ? getFullName() : getPlural();
-        }
-
-        @Override
-        public String toString(){
-            return label;
         }
     }
 }
