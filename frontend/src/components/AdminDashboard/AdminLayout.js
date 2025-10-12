@@ -12,8 +12,11 @@ import {
   Settings,
   HelpCircle,
   MoreVertical,
-  LogOut
+  LogOut,
+  Menu,
+  X
 } from "lucide-react";
+import Logo from "../../assets/Logo_White.png";
 import "./AdminLayout.css";
 
 export default function AdminLayout() {
@@ -21,6 +24,8 @@ export default function AdminLayout() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [messagesOpen, setMessagesOpen] = useState(false);
+  const [screenHeight, setScreenHeight] = useState(window.innerHeight);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
   const contacts = [
@@ -29,6 +34,25 @@ export default function AdminLayout() {
     { name: "Amélie Jackson", online: false },
     { name: "Frankie Sullivan", online: false }
   ];
+
+  // Track screen height changes
+  useEffect(() => {
+    const handleResize = () => {
+      setScreenHeight(window.innerHeight);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Determine how many contacts to show based on screen height
+  const getMaxContacts = () => {
+    if (screenHeight <= 650) return 1;
+    if (screenHeight <= 800) return 2;
+    return 4; // Show all contacts on larger screens
+  };
+
+  const visibleContacts = contacts.slice(0, getMaxContacts());
 
   const pageTitle = (() => {
     switch (location.pathname) {
@@ -93,9 +117,26 @@ export default function AdminLayout() {
 
   return (
     <div className="admin-layout">
-      <aside className="admin-sidebar">
+      {/* Mobile Header with Hamburger */}
+      <div className="mobile-header">
+        <img src={Logo} alt="FoodFlow" className="mobile-logo" />
+        <button 
+          className="hamburger-btn" 
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Toggle Menu"
+        >
+          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
+
+      {/* Mobile Overlay */}
+      {mobileMenuOpen && <div className="mobile-overlay" onClick={() => setMobileMenuOpen(false)}></div>}
+
+      <aside className={`admin-sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}>
         <div className="admin-sidebar-header">
-          <h2>FoodFlow</h2>
+          <Link to="/admin" aria-label="FoodFlow Home">
+            <img src={Logo} alt="FoodFlow" className="admin-logo" />
+          </Link>
         </div>
 
         <nav className="admin-nav-links">
@@ -148,11 +189,9 @@ export default function AdminLayout() {
 
           {messagesOpen && (
             <div className="messages-dropdown">
-              {contacts.map((c, i) => (
+              {visibleContacts.map((c, i) => (
                 <div key={i} className="message-item">
-                  <div className="message-avatar">
-                    {c.online && <span className="message-status" />}
-                  </div>
+                  <div className="message-avatar">{c.online && <span className="message-status" />}</div>
                   <span className="message-name">{c.name}</span>
                 </div>
               ))}
