@@ -358,14 +358,14 @@ export default function ReceiverBrowse() {
                         <div className="detail-item">
                           <span className="detail-label">Expires</span>
                           <div className="detail-value">
-                            <Calendar size={14} style={{ display: 'inline', marginRight: '8px' }} />
+                            <Calendar size={14} className="expiry-icon-detail" style={{ display: 'inline', marginRight: '8px' }} />
                             {formatExpiryDate(item.expiryDate)}
                           </div>
                         </div>
                         <div className="detail-item">
                           <span className="detail-label">Location</span>
                           <div className="detail-value">
-                            <MapPin size={14} style={{ display: 'inline', marginRight: '8px' }} />
+                            <MapPin size={14} className='location-icon-detail' style={{ display: 'inline', marginRight: '8px' }} />
                             {item.location}
                           </div>
                         </div>
