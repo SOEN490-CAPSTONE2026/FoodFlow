@@ -1,19 +1,23 @@
 package com.example.foodflow.model.types;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.validation.constraints.Positive;
+
 import java.util.Objects;
 
 @Embeddable
 public class Quantity {
 
+    @Positive(message = "Quantity must be positive")
     private Double value;
 
     @Enumerated(EnumType.STRING)
     private Unit unit;
 
-    protected Quantity() {} // Required by JPA
+    public Quantity() {} // Required by JPA
 
     public Quantity(Double value, Unit unit) {
         this.value = Objects.requireNonNull(value, "Quantity value cannot be null");
@@ -22,8 +26,8 @@ public class Quantity {
     }
 
     private void validate() {
-        if (value <= 0) {
-            throw new IllegalArgumentException("Quantity value must be positive");
+        if (value == null || unit == null){
+            return;
         }
 
         // Example validation: integer-only units
