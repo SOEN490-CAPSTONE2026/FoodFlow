@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axios from 'axios';
-import SurplusFormModal from '../components/SurplusFormModal';
+import SurplusFormModal from '../components/DonorDashboard/SurplusFormModal';
 
 // Mock dependencies
 jest.mock('axios', () => ({

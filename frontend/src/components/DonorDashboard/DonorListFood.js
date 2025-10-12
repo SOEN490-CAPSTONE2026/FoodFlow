@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Calendar, Clock, MapPin, Edit, Trash2, AlertTriangle, X, Package } from "lucide-react";
 import { LoadScript } from "@react-google-maps/api";
-import SurplusFormModal from "../SurplusFormModal";
+import SurplusFormModal from "../DonorDashboard/SurplusFormModal";
 import "./DonorListFood.css";
 
 const initialDonations = [

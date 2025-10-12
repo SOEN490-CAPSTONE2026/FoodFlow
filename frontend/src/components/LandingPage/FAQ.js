@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FaPlus, FaMinus } from 'react-icons/fa';
-import '../style/FAQ.css';
+import '../LandingPage/style/FAQ.css';
 
 const FAQ = () => {
     const [activeIndices, setActiveIndices] = useState([]);

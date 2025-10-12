@@ -15,7 +15,7 @@ jest.mock('@react-google-maps/api', () => ({
   LoadScript: ({ children }) => children,
 }));
 
-jest.mock('../../SurplusFormModal', () => {
+jest.mock('../SurplusFormModal', () => {
   return function MockSurplusFormModal({ isOpen, onClose }) {
     return isOpen ? <div data-testid="surplus-form-modal">Mock Modal</div> : null;
   };
