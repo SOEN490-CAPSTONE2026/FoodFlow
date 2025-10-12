@@ -27,7 +27,7 @@ UPDATE surplus_posts SET
     latitude = 0.0,
     longitude = 0.0,
     address = location,
-    quantity_value = quantity
+    quantity_value = CAST(quantity AS DOUBLE PRECISION)
 WHERE title IS NULL;
 
 -- Set NOT NULL constraints on new required columns
