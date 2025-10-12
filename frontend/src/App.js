@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import LandingPage from './components/LandingPage';
+import LandingPage from './components/LandingPage/LandingPage';
 import RegisterType from './components/RegisterType';
 import DonorRegistration from './components/DonorRegistration';
 import ReceiverRegistration from './components/ReceiverRegistration';
@@ -16,7 +16,7 @@ import AdminDashboard from './components/AdminDashboard/AdminDashboard';
 import DonorDashboard from './components/DonorDashboard/DonorDashboard';
 import ReceiverDashboard from './components/ReceiverDashboard/ReceiverDashboard';
 
-import SurplusForm from './components/SurplusFormModal';
+import SurplusForm from './components/DonorDashboard/SurplusFormModal';
 import MyPosts from './components/MyPosts';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import './App.css';
