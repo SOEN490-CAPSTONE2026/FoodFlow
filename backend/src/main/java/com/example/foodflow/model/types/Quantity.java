@@ -13,6 +13,8 @@ public class Quantity {
     @Enumerated(EnumType.STRING)
     private Unit unit;
 
+    protected Quantity() {} // Required by JPA
+
     public Quantity(Double value, Unit unit) {
         this.value = Objects.requireNonNull(value, "Quantity value cannot be null");
         this.unit = Objects.requireNonNull(unit, "Quantity unit cannot be null");
@@ -25,7 +27,7 @@ public class Quantity {
         }
 
         // Example validation: integer-only units
-        if (unit.isIntegerOnly() && value % 1 != 0) {
+        if (unit.isIntegerOnly() && Math.abs(value - Math.round(value)) > 1e-9) {
             throw new IllegalArgumentException("Unit " + unit + " only accepts integer values");
         }
     }
