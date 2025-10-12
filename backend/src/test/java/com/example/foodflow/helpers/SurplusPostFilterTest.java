@@ -21,9 +21,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @TestPropertySource(properties = {
     "spring.jpa.properties.hibernate.validator.apply_to_ddl=false"
 })
-class SurplusPostSpecificationTest {
+class SurplusPostSpecificationTest { /* 
 
-    /* 
+    
     @Autowired
     private SurplusPostRepository repository;
     
