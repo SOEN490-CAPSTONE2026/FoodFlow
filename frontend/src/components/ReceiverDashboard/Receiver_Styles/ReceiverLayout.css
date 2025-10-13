@@ -21,11 +21,12 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 30px;
-    height: 70px;
+    padding: 1.2rem 5%;
+    height: auto;
     position: sticky;
     top: 0;
     z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .receiver-sidebar-header {
@@ -189,7 +190,7 @@ body {
 
 @media (max-width: 968px) {
     .receiver-sidebar {
-        padding: 0 20px;
+        padding: 1rem 5%;
         height: auto;
         min-height: 60px;
     }
@@ -217,7 +218,7 @@ body {
 
 @media (max-width: 576px) {
     .receiver-sidebar {
-        padding: 0 15px;
+        padding: 0.8rem 5%;
         flex-wrap: wrap;
         height: auto;
     }
@@ -380,13 +381,14 @@ body {
 
 .receiver-logo {
   display: block;
-  height: 100px;   
-  width: auto;
+  height: 70px;   
+  width: 80px;
 }
 
 @media (max-width: 576px) {
   .receiver-logo {
-    height: 22px;
+    height: 50px;
+    width: 50px;
   }
 }
 
