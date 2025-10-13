@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
-import Home from '../components/Home';
+import Home from '../components/LandingPage/Home';
 
 // Mock the useNavigate hook
 const mockNavigate = jest.fn();
@@ -11,7 +11,7 @@ jest.mock('react-router-dom', () => ({
 }));
 
 // Mock the assets
-jest.mock('../assets/home-illustration.jpg', () => 'mock-image.jpg');
+jest.mock('../assets/illustrations/home-illustration.jpg', () => 'mock-image.jpg');
 
 describe('Home Component - Core Functionality', () => {
   beforeEach(() => {
