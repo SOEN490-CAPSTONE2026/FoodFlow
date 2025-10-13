@@ -1,4 +1,4 @@
-package helpers;
+package com.example.foodflow.helpers;
 
 import org.springframework.data.jpa.domain.Specification;
 

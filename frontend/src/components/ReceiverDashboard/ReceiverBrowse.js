@@ -1,111 +1,88 @@
-import React from "react";
-import "./ReceiverDashboard.css";
+import React, { useState } from 'react';
+import { LoadScript } from "@react-google-maps/api";
+import FiltersPanel from './FiltersPanel';
+import './ReceiverBrowse.css';
 
-export default function ReceiverBrowse({
-  items = [],            
-  total = 0,                
-  loading = false,          
-  page = 1,                 
-  pageSize = 10,            
-  onSearch = () => {},      
-  onPageChange = () => {},  
-  onRequestClick = () => {},
-}) {
-  const [q, setQ] = React.useState("");
+// Google Maps libraries needed for Places API
+const libraries = ['places'];
 
-  const runSearch = () => onSearch(q);
-  const onKeyDown = (e) => { if (e.key === "Enter") runSearch(); };
+const ReceiverBrowse = () => {
+  const [filters, setFilters] = useState({
+    foodType: [],
+    expiryBefore: null,
+    distance: 10,
+    location: ''
+  });
 
-  const list = Array.isArray(items) ? items : [];  // ← guard
-  const nextDisabled = list.length < pageSize;
-  const prevDisabled = page <= 1;
+  const [appliedFilters, setAppliedFilters] = useState({
+    foodType: [],
+    expiryBefore: null,
+    distance: 10,
+    location: ''
+  });
+
+  const [isFiltersVisible, setIsFiltersVisible] = useState(true);
+
+  const handleFiltersChange = (filterType, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [filterType]: value
+    }));
+  };
+
+  const handleApplyFilters = () => {
+    setAppliedFilters({ ...filters });
+    // TODO: Implement filter application logic
+  };
+
+  const handleClearFilters = () => {
+    const clearedFilters = {
+      foodType: [],
+      expiryBefore: null,
+      distance: 10,
+      location: ''
+    };
+    setFilters(clearedFilters);
+    setAppliedFilters(clearedFilters);
+  };
+
+  const handleToggleFilters = () => {
+    setIsFiltersVisible(!isFiltersVisible);
+  };
+
+  const handleCloseFilters = () => {
+    setIsFiltersVisible(false);
+  };
 
   return (
-    <div>
-      <div className="card searchbar">
-        <input
-          className="input"
-          placeholder="Search available food…"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          onKeyDown={onKeyDown}
+    <LoadScript
+      googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY || ""}
+      libraries={libraries}
+      onError={(error) => console.error("Google Maps API failed to load:", error)}
+    >
+      <div className="receiver-browse">
+        {/* Mobile Filter Toggle Button */}
+        {!isFiltersVisible && (
+          <button className="mobile-filter-toggle" onClick={handleToggleFilters}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46 22,3"></polygon>
+            </svg>
+            <span>Filters</span>
+          </button>
+        )}
+        
+        <FiltersPanel
+          filters={filters}
+          onFiltersChange={handleFiltersChange}
+          onApplyFilters={handleApplyFilters}
+          appliedFilters={appliedFilters}
+          onClearFilters={handleClearFilters}
+          isVisible={isFiltersVisible}
+          onClose={handleCloseFilters}
         />
-        <button className="button" onClick={runSearch} disabled={loading}>
-          {loading ? "Searching…" : "Search"}
-        </button>
-        <div className="spacer" />
-        <div className="help">{loading ? "Loading…" : `${list.length} / ${total}`}</div>
       </div>
-
-      <div className="card" style={{ marginTop: 14 }}>
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Donor</th>
-              <th>Qty</th>
-              <th>Expires</th>
-              <th>Distance</th>
-              <th style={{ textAlign: "right" }}>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {list.map((x) => (
-              <tr key={x.id ?? `${x.title}-${Math.random()}`} className="row">
-                <td>{x.title ?? "—"}</td>
-                <td>{x.donor ?? "—"}</td>
-                <td>{x.qty ?? "—"} {x.unit ?? ""}</td>
-                <td>{x.expiresAt ? formatDate(x.expiresAt) : "—"}</td>
-                <td>{isFiniteNumber(x.distanceKm) ? `${x.distanceKm} km` : "—"}</td>
-                <td style={{ textAlign: "right" }}>
-                  <button className="button secondary" onClick={() => onRequestClick(x)}>
-                    Request
-                  </button>
-                </td>
-              </tr>
-            ))}
-
-            {list.length === 0 && !loading && (
-              <tr>
-                <td colSpan={6} style={{ padding: 12, color: "#547f95" }}>
-                  No results.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 10 }}>
-          <div className="help">Page {page}</div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button
-              className="button ghost"
-              onClick={() => onPageChange(Math.max(1, page - 1))}
-              disabled={prevDisabled}
-            >
-              Prev
-            </button>
-            <button
-              className="button"
-              onClick={() => onPageChange(page + (nextDisabled ? 0 : 1))}
-              disabled={nextDisabled}
-            >
-              Next
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    </LoadScript>
   );
-}
+};
 
-function formatDate(dateString) {
-  try {
-    return new Date(dateString).toLocaleDateString();
-  } catch {
-    return "—";
-  }
-}
-function isFiniteNumber(n) {
-  return typeof n === "number" && Number.isFinite(n);
-}
+export default ReceiverBrowse;

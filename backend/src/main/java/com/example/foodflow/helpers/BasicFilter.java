@@ -1,4 +1,4 @@
-package helpers;
+package com.example.foodflow.helpers;
 
 import java.util.Objects;
 
