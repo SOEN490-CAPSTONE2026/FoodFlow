@@ -51,7 +51,8 @@ describe("AdminLayout", () => {
 
   it("renders sidebar and topbar basics", () => {
     renderWithRoutes("/admin");
-    expect(screen.getByText("FoodFlow")).toBeInTheDocument();
+    // Logo is an <img alt="FoodFlow">, not text content
+    expect(screen.getAllByRole("img", { name: /foodflow/i }).length).toBeGreaterThan(0);
     expect(screen.getByRole("heading", { name: /admin dashboard/i })).toBeInTheDocument();
     expect(screen.getByText(/overview and quick actions/i)).toBeInTheDocument();
     expect(screen.getByTestId("stub-outlet")).toHaveTextContent("Dashboard Content");
@@ -75,7 +76,7 @@ describe("AdminLayout", () => {
 
   it("toggles the user dropdown via kebab and logs out", () => {
     renderWithRoutes("/admin/messages");
-    const kebab = screen.getByRole("button", { name: /menu/i });
+    const kebab = screen.getByRole("button", { name: /^menu$/i });
     fireEvent.click(kebab);
     const logoutBtn = screen.getByRole("button", { name: /logout/i });
     expect(logoutBtn).toBeInTheDocument();
@@ -90,7 +91,7 @@ describe("AdminLayout", () => {
 
   it("closes the dropdown by toggling the menu button", () => {
     renderWithRoutes("/admin");
-    const kebab = screen.getByRole("button", { name: /menu/i });
+    const kebab = screen.getByRole("button", { name: /^menu$/i });
     fireEvent.click(kebab);
     expect(screen.getByRole("button", { name: /logout/i })).toBeInTheDocument();
     fireEvent.click(kebab);
