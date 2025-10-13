@@ -66,24 +66,9 @@ const NavigationBar = () => {
   };
 
   const handleLogoClick = () => {
-    // If we came from a dashboard and are logged in, go back to dashboard
-    if (from && isLoggedIn) {
-      const target = 
-        from === 'receiver' ? '/receiver/dashboard' : 
-        from === 'donor' ? '/donor/dashboard' :
-        from === 'admin' ? '/admin/dashboard' :
-        null;
-      if (target) {
-        sessionStorage.removeItem('returnFrom');
-        navigate(target);
-        setIsMenuOpen(false);
-        return;
-      }
-    }
-    
-    // Otherwise, go to landing page home
+    // Always go to landing page, preserving the 'from' state
     if (location.pathname !== '/') {
-      navigate('/', { state: { from: from || location.state?.from || undefined, scrollTo: 'home' } });
+      navigate('/', { state: { from: from || undefined, scrollTo: 'home' } });
     } else {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
