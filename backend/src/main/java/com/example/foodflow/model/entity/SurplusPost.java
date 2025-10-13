@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.LocalDate;
 
+import com.example.foodflow.model.types.Quantity;
+
 @Entity
 @Table(name = "surplus_posts")
 public class SurplusPost {
@@ -25,6 +27,7 @@ public class SurplusPost {
     @Column(nullable = false)
     private Double quantity;
     
+    //@Embedded
     @Column(nullable = false)
     private String unit;
     

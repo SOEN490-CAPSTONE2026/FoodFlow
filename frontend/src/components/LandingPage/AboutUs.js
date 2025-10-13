@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import "../style/AboutUs.css";
+import "../LandingPage/style/AboutUs.css";
 
 export default function AboutUs() {
   const titleRef = useRef(null);
