@@ -225,15 +225,15 @@ export default function ReceiverBrowse() {
 
                 <div className="receiver-donation-info">
                   <div className="receiver-info-item">
-                    <Calendar size={16} className="receiver-info-icon expiry-icon" />
+                    <Calendar size={16} className="receiver-info-icon-expiry-icon" />
                     <span>Expires: {formatExpiryDate(item.expiryDate)}</span>
                   </div>
                   <div className="receiver-info-item">
-                    <MapPin size={16} className="receiver-info-icon location-icon" />
+                    <MapPin size={16} className="receiver-info-icon-location-icon" />
                     <span>{item.location}</span>
                   </div>
                   <div className="receiver-info-item">
-                    <Clock size={16} className="receiver-info-icon time-icon" />
+                    <Clock size={16} className="receiver-info-icon-time-icon" />
                     <span>{formatPickupTime(item.pickupFrom, item.pickupTo)}</span>
                   </div>
                 </div>

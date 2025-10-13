@@ -202,15 +202,15 @@
   display: inline-block;
 }
 
-.receiver-expiry-icon {
+.receiver-info-icon-expiry-icon {
   color: #9F2D00;
 }
 
-.receiver-location-icon {
+.receiver-info-icon-location-icon {
   color: #047857;
 }
 
-.receiver-time-icon {
+.receiver-info-icon-time-icon{
   color: #0891B2;
 }
 
