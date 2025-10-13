@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useContext } from "react";
-import { Outlet, useLocation, useNavigate, Link } from "react-router-dom";
+import { Outlet, useLocation, useNavigate, Link, useNavigationType } from "react-router-dom";
 import {
   Home,
   LayoutGrid,
@@ -18,11 +18,12 @@ import {
 } from "lucide-react";
 import { AuthContext } from "../../contexts/AuthContext";
 import Logo from "../../assets/Logo_White.png";
-import "./DonorLayout.css";
+import "./Donor_Styles/DonorLayout.css";
 
 export default function DonorLayout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const navType = useNavigationType();
   const { logout } = useContext(AuthContext);
   const [open, setOpen] = useState(false);
   const [messagesOpen, setMessagesOpen] = useState(false);
@@ -37,26 +38,21 @@ export default function DonorLayout() {
     { name: "Frankie Sullivan", online: false }
   ];
 
-  // Track screen height changes
   useEffect(() => {
     const handleResize = () => {
       setScreenHeight(window.innerHeight);
     };
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Determine how many contacts to show based on screen height
   const getMaxContacts = () => {
     if (screenHeight <= 650) return 1;
     if (screenHeight <= 800) return 2;
-    return 4; // Show all contacts on larger screens
+    return 4;
   };
 
   const visibleContacts = contacts.slice(0, getMaxContacts());
-
-
 
   const pageTitle = (() => {
     switch (location.pathname) {
@@ -106,6 +102,12 @@ export default function DonorLayout() {
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
+  useEffect(() => {
+    if (navType === "POP" && !location.pathname.startsWith("/donor")) {
+      navigate("/donor/dashboard", { replace: true });
+    }
+  }, [navType, location.pathname, navigate]);
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -119,11 +121,12 @@ export default function DonorLayout() {
 
   return (
     <div className="donor-layout">
-      {/* Mobile Header with Hamburger */}
       <div className="mobile-header">
-        <img src={Logo} alt="FoodFlow" className="mobile-logo" />
-        <button 
-          className="hamburger-btn" 
+        <Link to="/" state={{ scrollTo: "home", from: "donor" }}>
+          <img src={Logo} alt="FoodFlow" className="mobile-logo" />
+        </Link>
+        <button
+          className="hamburger-btn"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label="Toggle Menu"
         >
@@ -131,12 +134,11 @@ export default function DonorLayout() {
         </button>
       </div>
 
-      {/* Mobile Overlay */}
       {mobileMenuOpen && <div className="mobile-overlay" onClick={() => setMobileMenuOpen(false)}></div>}
 
       <aside className={`donor-sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}>
         <div className="donor-sidebar-header">
-          <Link to="/donor" aria-label="FoodFlow Home">
+          <Link to="/" state={{ scrollTo: "home", from: "donor" }} aria-label="FoodFlow Home">
             <img src={Logo} alt="FoodFlow" className="donor-logo" />
           </Link>
         </div>

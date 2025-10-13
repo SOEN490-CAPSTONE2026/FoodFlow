@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Outlet, useLocation, useNavigate, Link } from "react-router-dom";
+import { Outlet, useLocation, useNavigate, Link, useNavigationType } from "react-router-dom";
 import {
   Home,
   LayoutGrid,
@@ -17,11 +17,12 @@ import {
   X
 } from "lucide-react";
 import Logo from "../../assets/Logo_White.png";
-import "./AdminLayout.css";
+import "./Admin_Styles/AdminLayout.css";
 
 export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const navType = useNavigationType();
   const [open, setOpen] = useState(false);
   const [messagesOpen, setMessagesOpen] = useState(false);
   const [screenHeight, setScreenHeight] = useState(window.innerHeight);
@@ -35,21 +36,18 @@ export default function AdminLayout() {
     { name: "Frankie Sullivan", online: false }
   ];
 
-  // Track screen height changes
   useEffect(() => {
     const handleResize = () => {
       setScreenHeight(window.innerHeight);
     };
-    
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Determine how many contacts to show based on screen height
   const getMaxContacts = () => {
     if (screenHeight <= 650) return 1;
     if (screenHeight <= 800) return 2;
-    return 4; // Show all contacts on larger screens
+    return 4;
   };
 
   const visibleContacts = contacts.slice(0, getMaxContacts());
@@ -98,6 +96,12 @@ export default function AdminLayout() {
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
+  useEffect(() => {
+    if (navType === "POP" && !location.pathname.startsWith("/admin")) {
+      navigate("/admin/dashboard", { replace: true });
+    }
+  }, [navType, location.pathname, navigate]);
+
   const handleLogout = () => {
     try {
     } finally {
@@ -117,11 +121,12 @@ export default function AdminLayout() {
 
   return (
     <div className="admin-layout">
-      {/* Mobile Header with Hamburger */}
       <div className="mobile-header">
-        <img src={Logo} alt="FoodFlow" className="mobile-logo" />
-        <button 
-          className="hamburger-btn" 
+        <Link to="/" replace state={{ scrollTo: "home", from: "admin" }}>
+          <img src={Logo} alt="FoodFlow" className="mobile-logo" />
+        </Link>
+        <button
+          className="hamburger-btn"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label="Toggle Menu"
         >
@@ -129,12 +134,11 @@ export default function AdminLayout() {
         </button>
       </div>
 
-      {/* Mobile Overlay */}
       {mobileMenuOpen && <div className="mobile-overlay" onClick={() => setMobileMenuOpen(false)}></div>}
 
       <aside className={`admin-sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}>
         <div className="admin-sidebar-header">
-          <Link to="/admin" aria-label="FoodFlow Home">
+          <Link to="/" replace state={{ scrollTo: "home", from: "admin" }} aria-label="FoodFlow Home">
             <img src={Logo} alt="FoodFlow" className="admin-logo" />
           </Link>
         </div>
@@ -147,7 +151,7 @@ export default function AdminLayout() {
             Home
           </Link>
 
-        <Link to="/admin" className={`admin-nav-link ${isActive("/admin") ? "active" : ""}`}>
+          <Link to="/admin" className={`admin-nav-link ${isActive("/admin") ? "active" : ""}`}>
             <span className="nav-icon" aria-hidden>
               <LayoutGrid size={18} className="lucide" />
             </span>

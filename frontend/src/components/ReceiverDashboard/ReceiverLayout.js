@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate, Link, useNavigationType } from "react-router-dom";
 import "./ReceiverLayout.css";
 import { AuthContext } from "../../contexts/AuthContext";
 import {
@@ -12,6 +12,7 @@ import {
 export default function ReceiverLayout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const navType = useNavigationType();
   const { logout } = React.useContext(AuthContext);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
@@ -62,6 +63,12 @@ export default function ReceiverLayout() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (navType === "POP" && !location.pathname.startsWith("/receiver")) {
+      navigate("/receiver/dashboard", { replace: true });
+    }
+  }, [navType, location.pathname, navigate]);
+
   const toggleDropdown = () => setShowDropdown((s) => !s);
 
   const handleLogout = async () => {
@@ -78,48 +85,45 @@ export default function ReceiverLayout() {
     <div className="receiver-layout">
       <div className="receiver-sidebar">
         <div className="receiver-sidebar-header">
-          <img src="/logo.png" alt="FoodFlow" className="receiver-logo" />
+          <Link to="/" state={{ scrollTo: "home", from: "receiver" }}>
+            <img src="/logo.png" alt="FoodFlow" className="receiver-logo" />
+          </Link>
         </div>
 
         <div className="receiver-nav-links">
-          <a
-            href="/receiver/welcome"
+          <Link
+            to="/receiver/welcome"
             className={`receiver-nav-link ${location.pathname === "/receiver/welcome" ? "active" : ""}`}
           >
             Donations
-          </a>
+          </Link>
 
-          <a
-            href="/receiver"
-            className={`receiver-nav-link ${
-              location.pathname === "/receiver" || location.pathname === "/receiver/dashboard" ? "active" : ""
-            }`}
+          <Link
+            to="/receiver"
+            className={`receiver-nav-link ${location.pathname === "/receiver" || location.pathname === "/receiver/dashboard" ? "active" : ""
+              }`}
           >
             My Claims
-          </a>
+          </Link>
 
-          <a
-            href="/receiver/browse"
+          <Link
+            to="/receiver/browse"
             className={`receiver-nav-link ${location.pathname === "/receiver/browse" ? "active" : ""}`}
           >
             Saved Donations
-          </a>
+          </Link>
 
-          <a
-            href="/receiver/requests"
+          <Link
+            to="/receiver/requests"
             className={`receiver-nav-link ${location.pathname === "/receiver/requests" ? "active" : ""}`}
           >
             Messages
-          </a>
+          </Link>
         </div>
 
         <div className="receiver-user-info" ref={dropdownRef}>
           <div className="user-actions">
-            <button
-              className="inbox-btn"
-              type="button"
-              aria-label="Inbox"
-            >
+            <button className="inbox-btn" type="button" aria-label="Inbox">
               <IconInbox size={22} />
               <span className="badge">5</span>
             </button>
