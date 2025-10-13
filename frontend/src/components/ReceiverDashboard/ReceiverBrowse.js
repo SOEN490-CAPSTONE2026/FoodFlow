@@ -9,93 +9,6 @@ import FrozenFoodImage from '../../assets/foodtypes/FrozenFood.jpg';
 import PreparedMealsImage from '../../assets/foodtypes/PreparedFood.jpg';
 import "./ReceiverBrowse.css";
 
-// //Mock data(will be removed later)
-// const mockData = [
-//   {
-//     id: 1,
-//     foodName: "Fresh Organic Apples",
-//     foodType: "Fruits & Vegetables",
-//     expiryDate: "2025-11-08",
-//     location: "Downtown Montreal",
-//     pickupFrom: "2025-11-06T14:00:00",
-//     pickupTo: "17:00:00",
-//     quantity: 5,
-//     unit: "kg",
-//     donorName: "Green Organic Market",
-//     donorNote: "Crisp and sweet! Delicious apples, perfect for snacking or baking. Freshly picked this week from local orchard.",
-//     createdAt: "2025-11-04T10:00:00"
-//   },
-//   {
-//     id: 2,
-//     foodName: "Artisan Bread Assortment",
-//     foodType: "Bakery & Pastry",
-//     expiryDate: "2025-11-05",
-//     location: "Plateau Mont-Royal",
-//     pickupFrom: "2025-11-05T08:00:00",
-//     pickupTo: "12:00:00",
-//     quantity: 10,
-//     unit: "items",
-//     donorName: "Le Petit Boulanger",
-//     donorNote: "Freshly baked this morning. Includes sourdough, baguettes, and whole wheat bread.",
-//     createdAt: "2025-11-04T16:30:00"
-//   },
-//   {
-//     id: 3,
-//     foodName: "Canned Goods Variety Pack",
-//     foodType: "Packaged / Pantry Items",
-//     expiryDate: "2026-03-15",
-//     location: "Ville-Marie",
-//     pickupFrom: "2025-11-07T09:00:00",
-//     pickupTo: "18:00:00",
-//     quantity: 25,
-//     unit: "items",
-//     donorName: "Metro Supermarket",
-//     donorNote: "Assorted canned vegetables, beans, and soups. Perfect for food drives.",
-//     createdAt: "2025-11-04T14:15:00"
-//   },
-//   {
-//     id: 4,
-//     foodName: "Fresh Milk & Yogurt",
-//     foodType: "Dairy & Cold Items",
-//     expiryDate: "2025-11-12",
-//     location: "Griffintown",
-//     pickupFrom: "2025-11-06T10:00:00",
-//     pickupTo: "16:00:00",
-//     quantity: 15,
-//     unit: "liters",
-//     donorName: "Dairy Delight",
-//     donorNote: "Fresh dairy products from local farms. Requires refrigeration.",
-//     createdAt: "2025-11-04T08:45:00"
-//   },
-//   {
-//     id: 5,
-//     foodName: "Frozen Vegetables Mix",
-//     foodType: "Frozen Food",
-//     expiryDate: "2026-01-20",
-//     location: "Hochelaga",
-//     pickupFrom: "2025-11-07T13:00:00",
-//     pickupTo: "17:00:00",
-//     quantity: 8,
-//     unit: "boxes",
-//     donorName: "IGA Marché",
-//     donorNote: "Mixed frozen vegetables - corn, peas, carrots, and green beans. Great for soups and stir-fries.",
-//     createdAt: "2025-11-03T20:20:00"
-//   },
-//   {
-//     id: 6,
-//     foodName: "Homemade Lasagna Trays",
-//     foodType: "Prepared Meals",
-//     expiryDate: "2025-11-09",
-//     location: "Little Italy",
-//     pickupFrom: "2025-11-06T11:00:00",
-//     pickupTo: "19:00:00",
-//     quantity: 12,
-//     unit: "items",
-//     donorName: "Mama Rosa's Kitchen",
-//     donorNote: "Freshly prepared lasagna with meat sauce and cheese. Just heat and serve!",
-//     createdAt: "2025-11-04T12:00:00"
-//   }
-// ];
 
 export default function ReceiverBrowse() {
   const [items, setItems] = useState([]);
@@ -413,17 +326,6 @@ export default function ReceiverBrowse() {
           ))}
         </div>
       )}
-      {/* Refresh button
-      {!loading && (
-        <div className="refresh-container">
-          <button
-            onClick={fetchDonations}
-            className="refresh-button"
-          >
-            Refresh Donations
-          </button>
-        </div>
-      )} */}
     </div>
   );
 }
