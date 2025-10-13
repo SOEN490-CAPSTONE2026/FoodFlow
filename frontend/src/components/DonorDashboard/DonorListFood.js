@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Calendar, Clock, MapPin, Edit, Trash2, AlertTriangle, X, Package } from "lucide-react";
+import { LoadScript } from "@react-google-maps/api";
+import SurplusFormModal from "../DonorDashboard/SurplusFormModal";
 import "./DonorListFood.css";
 
 const initialDonations = [
@@ -53,6 +55,9 @@ const initialDonations = [
   },
 ];
 
+// Define libraries for Google Maps
+const libraries = ['places']; 
+
 function statusClass(status) {
   switch (status) {
     case "available":
@@ -71,13 +76,13 @@ function statusClass(status) {
 function addressLabel(full) {
   if (!full) return '';
   const parts = String(full).split(',').map((s) => s.trim());
-  if (parts.length <= 2) return full; 
+  if (parts.length <= 2) return full;
   return `${parts[0]}, ${parts[1]}…`;
 }
 
 export default function DonorListFood() {
-  const [items, setItems] = useState([]); // Start with empty array to show empty state
-  const titleRef = useRef(null);
+  const [items, setItems] = useState([]); 
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   function requestDelete(id) {
     const confirmDelete = window.confirm("Are you sure you want to delete this post?");
@@ -97,16 +102,29 @@ export default function DonorListFood() {
 
   return (
     <div className="donor-list-wrapper">
-   
+
       <header className="donor-list-header">
         {items.length === 0 && (
           <button className="donor-add-button" onClick={loadSampleDonations}>
             Load Sample Data (for testing)
           </button>
         )}
-        <button className="donor-add-button">+ Donate More</button>
+        <LoadScript
+          googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}
+          libraries={libraries}
+        >
+          <button
+            className="donor-add-button"
+            onClick={() => setIsModalOpen(true)}
+          >
+            + Donate More
+          </button>
+          <SurplusFormModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+          />
+        </LoadScript>
       </header>
-
 
       {items.length === 0 ? (
         <div className="empty-state">
@@ -120,7 +138,7 @@ export default function DonorListFood() {
         <section className="donor-list-grid" aria-label="Donations list">
           {items.map((d) => (
             <article key={d.id} className="donation-card" aria-label={d.title}>
-    
+
               <div className="donation-header">
                 <h3 className="donation-title">{d.title}</h3>
                 <span className={statusClass(d.status)}>
@@ -128,13 +146,12 @@ export default function DonorListFood() {
                   {d.status === "available"
                     ? "Available"
                     : d.status === "expiring-soon"
-                    ? "Expiring Soon"
-                    : d.status === "claimed"
-                    ? "Claimed"
-                    : "Expired"}
+                      ? "Expiring Soon"
+                      : d.status === "claimed"
+                        ? "Claimed"
+                        : "Expired"}
                 </span>
               </div>
-
 
               {d.tags?.length > 0 && (
                 <div className="donation-tags">
@@ -144,9 +161,7 @@ export default function DonorListFood() {
                 </div>
               )}
 
-
               <div className="donation-quantity">{d.quantity}</div>
-
 
               <ul className="donation-meta" aria-label="details">
                 <li>
@@ -171,9 +186,7 @@ export default function DonorListFood() {
                 </li>
               </ul>
 
-
               {d.notes && <p className="donation-notes">{d.notes}</p>}
-
 
               <div className="donation-actions">
                 <button className="donation-link" onClick={() => openEdit(d)}>

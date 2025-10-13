@@ -75,6 +75,7 @@ class JwtAuthenticationFilterTest {
         entityUser.setEmail(email);
         entityUser.setPassword("password123"); // dummy password
         entityUser.setRole(com.example.foodflow.model.entity.UserRole.DONOR);
+
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(entityUser));
 
         jwtAuthenticationFilter.doFilterInternal(request, response, new FilterChain() {

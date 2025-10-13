@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import Footer from './Footer';
+import Footer from '../Footer';
 import Home from './Home';
 import AboutUs from './AboutUs';
 import FAQ from './FAQ';

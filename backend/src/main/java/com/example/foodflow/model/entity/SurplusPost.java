@@ -2,6 +2,10 @@ package com.example.foodflow.model.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.LocalDate;
+
+import com.example.foodflow.model.types.Quantity;
 
 @Entity
 @Table(name = "surplus_posts")
@@ -11,20 +15,33 @@ public class SurplusPost {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(nullable = false)
-    private String type;
+    @Column(nullable = false, name = "food_name")
+    private String foodName;
     
-    @Column(nullable = false)
-    private String quantity;
+    @Column(nullable = false, name = "food_type")
+    private String foodType;
     
     @Column(nullable = false, name = "expiry_date")
-    private LocalDateTime expiryDate;
+    private LocalDate expiryDate;
     
-    @Column(nullable = false, name = "pickup_time")
-    private LocalDateTime pickupTime;
+    @Column(nullable = false)
+    private Double quantity;
+    
+    //@Embedded
+    @Column(nullable = false)
+    private String unit;
+    
+    @Column(nullable = false, name = "pickup_from")
+    private LocalDateTime pickupFrom;
+    
+    @Column(nullable = false, name = "pickup_to")
+    private LocalTime pickupTo;
     
     @Column(nullable = false)
     private String location;
+    
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String notes;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "donor_id", nullable = false)
@@ -57,20 +74,32 @@ public class SurplusPost {
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
+    public String getFoodName() { return foodName; }
+    public void setFoodName(String foodName) { this.foodName = foodName; }
     
-    public String getQuantity() { return quantity; }
-    public void setQuantity(String quantity) { this.quantity = quantity; }
+    public String getFoodType() { return foodType; }
+    public void setFoodType(String foodType) { this.foodType = foodType; }
     
-    public LocalDateTime getExpiryDate() { return expiryDate; }
-    public void setExpiryDate(LocalDateTime expiryDate) { this.expiryDate = expiryDate; }
+    public LocalDate getExpiryDate() { return expiryDate; }
+    public void setExpiryDate(LocalDate expiryDate) { this.expiryDate = expiryDate; }
     
-    public LocalDateTime getPickupTime() { return pickupTime; }
-    public void setPickupTime(LocalDateTime pickupTime) { this.pickupTime = pickupTime; }
+    public Double getQuantity() { return quantity; }
+    public void setQuantity(Double quantity) { this.quantity = quantity; }
+    
+    public String getUnit() { return unit; }
+    public void setUnit(String unit) { this.unit = unit; }
+    
+    public LocalDateTime getPickupFrom() { return pickupFrom; }
+    public void setPickupFrom(LocalDateTime pickupFrom) { this.pickupFrom = pickupFrom; }
+    
+    public LocalTime getPickupTo() { return pickupTo; }
+    public void setPickupTo(LocalTime pickupTo) { this.pickupTo = pickupTo; }
     
     public String getLocation() { return location; }
     public void setLocation(String location) { this.location = location; }
+    
+    public String getNotes() { return notes; }
+    public void setNotes(String notes) { this.notes = notes; }
     
     public User getDonor() { return donor; }
     public void setDonor(User donor) { this.donor = donor; }

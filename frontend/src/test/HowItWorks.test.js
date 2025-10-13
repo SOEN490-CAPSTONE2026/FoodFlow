@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, act } from '@testing-library/react';
-import HowItWorks from '../components/HowItWorks';
+import HowItWorks from '../components/LandingPage/HowItWorks.js';
 
 // Mock react-icons
 jest.mock('react-icons/fa', () => ({
@@ -10,7 +10,7 @@ jest.mock('react-icons/fa', () => ({
 }));
 
 // Mock CSS import
-jest.mock('../components/HowItWorks.css', () => ({}));
+jest.mock('../components/LandingPage/style/HowItWorks.css', () => ({}));
 
 describe('HowItWorks Component', () => {
   let observerCallback;
