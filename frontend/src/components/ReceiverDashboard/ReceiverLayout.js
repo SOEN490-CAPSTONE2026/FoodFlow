@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Outlet, useLocation, useNavigate, Link, useNavigationType } from "react-router-dom";
-import "./ReceiverLayout.css";
+import "./Receiver_Styles/ReceiverLayout.css";
 import { AuthContext } from "../../contexts/AuthContext";
 import {
   Settings as IconSettings,

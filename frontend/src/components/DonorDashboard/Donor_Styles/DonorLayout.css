@@ -519,6 +519,7 @@ body {
     align-items: center;
     gap: 12px;
     flex: 1;
+    padding: 13px 1px;
 }
 
 @media (max-width: 1440px) {
