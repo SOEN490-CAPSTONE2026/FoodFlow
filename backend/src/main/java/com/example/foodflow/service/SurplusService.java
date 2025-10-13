@@ -10,8 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import java.time.LocalDateTime;
-import java.util.Comparator;
 
 @Service
 public class SurplusService {
@@ -40,11 +38,10 @@ public class SurplusService {
         
         return convertToResponse(savedPost);
     }
-
-    @Transactional(readOnly = true)
+    
     public List<SurplusResponse> getUserSurplusPosts(User user) {
-        List<SurplusPost> userPosts = surplusPostRepository.findByDonorOrderByCreatedAtDesc(user);
-        return userPosts.stream()
+        List<SurplusPost> posts = surplusPostRepository.findByDonorId(user.getId());
+        return posts.stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
@@ -65,15 +62,11 @@ public class SurplusService {
         response.setCreatedAt(post.getCreatedAt());
         return response;
     }
-
-    @Transactional(readOnly = true)
-    public List<SurplusResponse> getAvailableSurplusPosts() {
-        LocalDateTime now = LocalDateTime.now();
-        return surplusPostRepository.findByClaimedFalse().stream()
-                .filter(p -> p.getExpiryDate() == null || p.getExpiryDate().isAfter(now))
-                .sorted(Comparator.comparing(SurplusPost::getExpiryDate, Comparator.nullsLast(Comparator.naturalOrder())))
-                .map(this::convertToResponse)
-                .collect(Collectors.toList());
-    }
+    public List<SurplusResponse> getAllAvailableSurplusPosts() {
+    List<SurplusPost> posts = surplusPostRepository.findByClaimedFalse();
+    return posts.stream()
+            .map(this::convertToResponse)
+            .collect(Collectors.toList());
+}
 
 }

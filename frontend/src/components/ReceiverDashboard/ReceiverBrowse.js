@@ -9,93 +9,93 @@ import FrozenFoodImage from '../../assets/foodtypes/FrozenFood.jpg';
 import PreparedMealsImage from '../../assets/foodtypes/PreparedFood.jpg';
 import "./ReceiverBrowse.css";
 
-//Mock data(will be removed later)
-const mockData = [
-  {
-    id: 1,
-    foodName: "Fresh Organic Apples",
-    foodType: "Fruits & Vegetables",
-    expiryDate: "2025-11-08",
-    location: "Downtown Montreal",
-    pickupFrom: "2025-11-06T14:00:00",
-    pickupTo: "17:00:00",
-    quantity: 5,
-    unit: "kg",
-    donorName: "Green Organic Market",
-    donorNote: "Crisp and sweet! Delicious apples, perfect for snacking or baking. Freshly picked this week from local orchard.",
-    createdAt: "2025-11-04T10:00:00"
-  },
-  {
-    id: 2,
-    foodName: "Artisan Bread Assortment",
-    foodType: "Bakery & Pastry",
-    expiryDate: "2025-11-05",
-    location: "Plateau Mont-Royal",
-    pickupFrom: "2025-11-05T08:00:00",
-    pickupTo: "12:00:00",
-    quantity: 10,
-    unit: "items",
-    donorName: "Le Petit Boulanger",
-    donorNote: "Freshly baked this morning. Includes sourdough, baguettes, and whole wheat bread.",
-    createdAt: "2025-11-04T16:30:00"
-  },
-  {
-    id: 3,
-    foodName: "Canned Goods Variety Pack",
-    foodType: "Packaged / Pantry Items",
-    expiryDate: "2026-03-15",
-    location: "Ville-Marie",
-    pickupFrom: "2025-11-07T09:00:00",
-    pickupTo: "18:00:00",
-    quantity: 25,
-    unit: "items",
-    donorName: "Metro Supermarket",
-    donorNote: "Assorted canned vegetables, beans, and soups. Perfect for food drives.",
-    createdAt: "2025-11-04T14:15:00"
-  },
-  {
-    id: 4,
-    foodName: "Fresh Milk & Yogurt",
-    foodType: "Dairy & Cold Items",
-    expiryDate: "2025-11-12",
-    location: "Griffintown",
-    pickupFrom: "2025-11-06T10:00:00",
-    pickupTo: "16:00:00",
-    quantity: 15,
-    unit: "liters",
-    donorName: "Dairy Delight",
-    donorNote: "Fresh dairy products from local farms. Requires refrigeration.",
-    createdAt: "2025-11-04T08:45:00"
-  },
-  {
-    id: 5,
-    foodName: "Frozen Vegetables Mix",
-    foodType: "Frozen Food",
-    expiryDate: "2026-01-20",
-    location: "Hochelaga",
-    pickupFrom: "2025-11-07T13:00:00",
-    pickupTo: "17:00:00",
-    quantity: 8,
-    unit: "boxes",
-    donorName: "IGA Marché",
-    donorNote: "Mixed frozen vegetables - corn, peas, carrots, and green beans. Great for soups and stir-fries.",
-    createdAt: "2025-11-03T20:20:00"
-  },
-  {
-    id: 6,
-    foodName: "Homemade Lasagna Trays",
-    foodType: "Prepared Meals",
-    expiryDate: "2025-11-09",
-    location: "Little Italy",
-    pickupFrom: "2025-11-06T11:00:00",
-    pickupTo: "19:00:00",
-    quantity: 12,
-    unit: "items",
-    donorName: "Mama Rosa's Kitchen",
-    donorNote: "Freshly prepared lasagna with meat sauce and cheese. Just heat and serve!",
-    createdAt: "2025-11-04T12:00:00"
-  }
-];
+// //Mock data(will be removed later)
+// const mockData = [
+//   {
+//     id: 1,
+//     foodName: "Fresh Organic Apples",
+//     foodType: "Fruits & Vegetables",
+//     expiryDate: "2025-11-08",
+//     location: "Downtown Montreal",
+//     pickupFrom: "2025-11-06T14:00:00",
+//     pickupTo: "17:00:00",
+//     quantity: 5,
+//     unit: "kg",
+//     donorName: "Green Organic Market",
+//     donorNote: "Crisp and sweet! Delicious apples, perfect for snacking or baking. Freshly picked this week from local orchard.",
+//     createdAt: "2025-11-04T10:00:00"
+//   },
+//   {
+//     id: 2,
+//     foodName: "Artisan Bread Assortment",
+//     foodType: "Bakery & Pastry",
+//     expiryDate: "2025-11-05",
+//     location: "Plateau Mont-Royal",
+//     pickupFrom: "2025-11-05T08:00:00",
+//     pickupTo: "12:00:00",
+//     quantity: 10,
+//     unit: "items",
+//     donorName: "Le Petit Boulanger",
+//     donorNote: "Freshly baked this morning. Includes sourdough, baguettes, and whole wheat bread.",
+//     createdAt: "2025-11-04T16:30:00"
+//   },
+//   {
+//     id: 3,
+//     foodName: "Canned Goods Variety Pack",
+//     foodType: "Packaged / Pantry Items",
+//     expiryDate: "2026-03-15",
+//     location: "Ville-Marie",
+//     pickupFrom: "2025-11-07T09:00:00",
+//     pickupTo: "18:00:00",
+//     quantity: 25,
+//     unit: "items",
+//     donorName: "Metro Supermarket",
+//     donorNote: "Assorted canned vegetables, beans, and soups. Perfect for food drives.",
+//     createdAt: "2025-11-04T14:15:00"
+//   },
+//   {
+//     id: 4,
+//     foodName: "Fresh Milk & Yogurt",
+//     foodType: "Dairy & Cold Items",
+//     expiryDate: "2025-11-12",
+//     location: "Griffintown",
+//     pickupFrom: "2025-11-06T10:00:00",
+//     pickupTo: "16:00:00",
+//     quantity: 15,
+//     unit: "liters",
+//     donorName: "Dairy Delight",
+//     donorNote: "Fresh dairy products from local farms. Requires refrigeration.",
+//     createdAt: "2025-11-04T08:45:00"
+//   },
+//   {
+//     id: 5,
+//     foodName: "Frozen Vegetables Mix",
+//     foodType: "Frozen Food",
+//     expiryDate: "2026-01-20",
+//     location: "Hochelaga",
+//     pickupFrom: "2025-11-07T13:00:00",
+//     pickupTo: "17:00:00",
+//     quantity: 8,
+//     unit: "boxes",
+//     donorName: "IGA Marché",
+//     donorNote: "Mixed frozen vegetables - corn, peas, carrots, and green beans. Great for soups and stir-fries.",
+//     createdAt: "2025-11-03T20:20:00"
+//   },
+//   {
+//     id: 6,
+//     foodName: "Homemade Lasagna Trays",
+//     foodType: "Prepared Meals",
+//     expiryDate: "2025-11-09",
+//     location: "Little Italy",
+//     pickupFrom: "2025-11-06T11:00:00",
+//     pickupTo: "19:00:00",
+//     quantity: 12,
+//     unit: "items",
+//     donorName: "Mama Rosa's Kitchen",
+//     donorNote: "Freshly prepared lasagna with meat sauce and cheese. Just heat and serve!",
+//     createdAt: "2025-11-04T12:00:00"
+//   }
+// ];
 
 export default function ReceiverBrowse() {
   const [items, setItems] = useState([]);
@@ -106,18 +106,10 @@ export default function ReceiverBrowse() {
   const pollingRef = useRef(null);
 
   const fetchDonations = useCallback(async () => {
+    setLoading(true);
     try {
-      // Only update items if they've actually changed
-      setItems(prevItems => {
-        const newItems = mockData;
-        // If items are the same, don't trigger re-render
-        if (JSON.stringify(prevItems) === JSON.stringify(newItems)) {
-          return prevItems;
-        }
-        return newItems;
-      });
-      // const { data } = await surplusAPI.list(); //UNCOMMENT WHEN BACKEND IS READY
-      // setItems(Array.isArray(data) ? data : []);
+      const { data } = await surplusAPI.list();
+      setItems(Array.isArray(data) ? data : []);
       setError(null);
     } catch (e) {
       setError('Failed to load available donations');
@@ -126,7 +118,6 @@ export default function ReceiverBrowse() {
       setLoading(false);
     }
   }, []);
-
   useEffect(() => {
     fetchDonations();
     pollingRef.current = setInterval(fetchDonations, 8000);
@@ -257,33 +248,33 @@ export default function ReceiverBrowse() {
 
   return (
     <div className="receiver-browse-container">
-      <h2 className="section-title">Explore Available Donations</h2>
+      <h2 className="receiver-section-title">Explore Available Donations</h2>
       {error && (
-        <div role="alert" className="error-message">
+        <div role="alert" className="receiver-error-message">
           {error}
         </div>
       )}
 
       {!loading && !error && items.length === 0 && (
-        <div className="empty-state">
-          <Package className="empty-state-icon" size={64} />
+        <div className="receiver-empty-state">
+          <Package className="receiver-empty-state-icon" size={64} />
           <p>No donations available right now.</p>
           <p>Check back soon for new surplus food!</p>
         </div>
       )}
 
       {!loading && !error && items.length > 0 && (
-        <div className="donations-list">
+        <div className="receiver-donations-list">
           {items.map((item) => (
             <div
               key={item.id}
-              className={`donation-card ${expandedCardId === item.id ? 'expanded' : ''}`}
+              className={`receiver-donation-card ${expandedCardId === item.id ? 'expanded' : ''}`}
             >
-              <div className={`donation-image ${getFoodImageClass(item.foodType)}`}>
+              <div className={`receiver-donation-image ${getFoodImageClass(item.foodType)}`}>
                 <img
                   src={getFoodTypeImage(item.foodType)}
                   alt={item.foodType || "Food donation"}
-                  className="food-type-image"
+                  className="receiver-food-type-image"
                   onError={(e) => {
                     e.target.style.display = 'none';
                     e.target.parentElement.classList.add('food-image-default');
@@ -291,14 +282,14 @@ export default function ReceiverBrowse() {
                 />
               </div>
 
-              <div className="donation-content">
-                <div className="donation-header">
-                  <h3 className="donation-title">
+              <div className="receiver-donation-content">
+                <div className="receiver-donation-header">
+                  <h3 className="receiver-donation-title">
                     {item.foodName}
                   </h3>
-                  <div className="header-actions">
+                  <div className="receiver-header-actions">
                     <button
-                      className="bookmark-button"
+                      className="receiver-bookmark-button"
                       onClick={(e) => handleBookmark(item, e)}
                       aria-label="Bookmark"
                     >
@@ -312,108 +303,108 @@ export default function ReceiverBrowse() {
                         }}
                       />
                     </button>
-                    <span className="status-badge">
-                      <span className="status-icon">✓</span>
+                    <span className="receiver-status-badge">
+                      <span className="receiver-status-icon">✓</span>
                       Available
                     </span>
                   </div>
                 </div>
 
-                <div className="donation-info">
-                  <div className="info-item">
-                    <Calendar size={16} className="info-icon expiry-icon" />
+                <div className="receiver-donation-info">
+                  <div className="receiver-info-item">
+                    <Calendar size={16} className="receiver-info-icon expiry-icon" />
                     <span>Expires: {formatExpiryDate(item.expiryDate)}</span>
                   </div>
-                  <div className="info-item">
-                    <MapPin size={16} className="info-icon location-icon" />
+                  <div className="receiver-info-item">
+                    <MapPin size={16} className="receiver-info-icon location-icon" />
                     <span>{item.location}</span>
                   </div>
-                  <div className="info-item">
-                    <Clock size={16} className="info-icon time-icon" />
+                  <div className="receiver-info-item">
+                    <Clock size={16} className="receiver-info-icon time-icon" />
                     <span>{formatPickupTime(item.pickupFrom, item.pickupTo)}</span>
                   </div>
                 </div>
 
-                <div className="donation-meta">
-                  <span className="category-tag">
+                <div className="receiver-donation-meta">
+                  <span className="receiver-category-tag">
                     {item.foodType}
                   </span>
-                  <div className="donor-info">
+                  <div className="receiver-donor-info">
                     <User size={16} />
                     <span>Donated by {item.donorName || 'Local Business'}</span>
                   </div>
                 </div>
 
                 {expandedCardId === item.id && (
-                  <div className="donation-details">
-                    <div className="details-grid">
-                      <div className="details-section">
-                        <div className="detail-item">
-                          <span className="detail-label">Quantity</span>
-                          <div className="detail-value">
-                            <Package2 size={14} className="quantity-icon-detail" style={{ display: 'inline', marginRight: '8px' }} />
+                  <div className="receiver-donation-details">
+                    <div className="receiver-details-grid">
+                      <div className="receiver-details-section">
+                        <div className="receiver-detail-item">
+                          <span className="receiver-detail-label">Quantity</span>
+                          <div className="receiver-detail-value">
+                            <Package2 size={14} className="receiver-quantity-icon-detail" style={{ display: 'inline', marginRight: '8px' }} />
                             {item.quantity} {item.unit}
                           </div>
                         </div>
-                        <div className="detail-item">
-                          <span className="detail-label">Pickup Time</span>
-                          <div className="detail-value">
-                            <Clock size={14} className="time-icon-detail" style={{ display: 'inline', marginRight: '8px' }} />
+                        <div className="receiver-detail-item">
+                          <span className="receiver-detail-label">Pickup Time</span>
+                          <div className="receiver-detail-value">
+                            <Clock size={14} className="receiver-time-icon-detail" style={{ display: 'inline', marginRight: '8px' }} />
                             {formatPickupTime(item.pickupFrom, item.pickupTo)}
                           </div>
                         </div>
                       </div>
 
-                      <div className="details-section">
-                        <div className="detail-item">
-                          <span className="detail-label">Expires</span>
-                          <div className="detail-value">
-                            <Calendar size={14} className="expiry-icon-detail" style={{ display: 'inline', marginRight: '8px' }} />
+                      <div className="receiver-details-section">
+                        <div className="receiver-detail-item">
+                          <span className="receiver-detail-label">Expires</span>
+                          <div className="receiver-detail-value">
+                            <Calendar size={14} className="receiver-expiry-icon-detail" style={{ display: 'inline', marginRight: '8px' }} />
                             {formatExpiryDate(item.expiryDate)}
                           </div>
                         </div>
-                        <div className="detail-item">
-                          <span className="detail-label">Location</span>
-                          <div className="detail-value">
-                            <MapPin size={14} className='location-icon-detail' style={{ display: 'inline', marginRight: '8px' }} />
+                        <div className="receiver-detail-item">
+                          <span className="receiver-detail-label">Location</span>
+                          <div className="receiver-detail-value">
+                            <MapPin size={14} className='receiver-location-icon-detail' style={{ display: 'inline', marginRight: '8px' }} />
                             {item.location}
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    {(item.donorNote || item.description) && (
-                      <div className="donor-note">
-                        <div className="note-label">Donor's Note</div>
-                        <div className="note-content">
-                          {item.donorNote}
+                    {(item.notes || item.description) && (
+                      <div className="receiver-donor-note">
+                        <div className="receiver-note-label">Donor's Note</div>
+                        <div className="receiver-note-content">
+                          {item.notes}
                         </div>
                       </div>
                     )}
 
                     {item.createdAt && (
-                      <div className="posted-time">
+                      <div className="receiver-posted-time">
                         Posted {formatPostedTime(item.createdAt)}
                       </div>
                     )}
                   </div>
                 )}
 
-                <div className="donation-actions">
+                <div className="receiver-donation-actions">
                   <button
                     onClick={() => handleClaimDonation(item)}
-                    className="claim-button"
+                    className="receiver-claim-button"
                   >
                     Claim Donation
                   </button>
                   <button
                     onClick={() => handleMoreClick(item)}
-                    className={`more-button ${expandedCardId === item.id ? 'expanded' : ''}`}
+                    className={`receiver-more-button ${expandedCardId === item.id ? 'expanded' : ''}`}
                   >
                     {expandedCardId === item.id ? 'Less' : 'More'}
                     {expandedCardId === item.id
-                      ? <ChevronUp size={14} className="dropdown-icon" />
-                      : <ChevronDown size={14} className="dropdown-icon" />
+                      ? <ChevronUp size={14} className="receiver-dropdown-icon" />
+                      : <ChevronDown size={14} className="receiver-dropdown-icon" />
                     }
                   </button>
                 </div>
@@ -422,7 +413,7 @@ export default function ReceiverBrowse() {
           ))}
         </div>
       )}
-       {/* Refresh button
+      {/* Refresh button
       {!loading && (
         <div className="refresh-container">
           <button
