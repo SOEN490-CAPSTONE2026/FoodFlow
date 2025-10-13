@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Outlet, useLocation, useNavigate, Link, useNavigationType } from "react-router-dom";
 import "./Receiver_Styles/ReceiverLayout.css";
+import Logo from "../../assets/Logo.png";
 import { AuthContext } from "../../contexts/AuthContext";
 import {
   Settings as IconSettings,
@@ -86,7 +87,7 @@ export default function ReceiverLayout() {
       <div className="receiver-sidebar">
         <div className="receiver-sidebar-header">
           <Link to="/" state={{ scrollTo: "home", from: "receiver" }}>
-            <img src="/logo.png" alt="FoodFlow" className="receiver-logo" />
+            <img src={Logo} alt="FoodFlow" className="receiver-logo" />
           </Link>
         </div>
 
