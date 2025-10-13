@@ -1,9 +1,10 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import { FaBars, FaTimes } from 'react-icons/fa';
 import Logo from "../assets/Logo.png";
 import '../style/NavigationBar.css';
+import ReturnToDashboardButton from "../components/ReceiverDashboard/ReturnToDashboardButton";
 
 const NavigationBar = () => {
   const navigate = useNavigate();
@@ -11,8 +12,18 @@ const NavigationBar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { isLoggedIn, logout } = useContext(AuthContext);
 
+  const [from, setFrom] = useState(() => location.state?.from || sessionStorage.getItem('returnFrom') || null);
+
+  useEffect(() => {
+    if (location.state?.from) {
+      sessionStorage.setItem('returnFrom', location.state.from);
+      setFrom(location.state.from);
+    }
+  }, [location.state?.from]);
+
   const handleLogout = () => {
     logout();
+    sessionStorage.removeItem('returnFrom');
     navigate('/login');
     setIsMenuOpen(false);
   };
@@ -33,16 +44,11 @@ const NavigationBar = () => {
 
   const scrollToSection = (sectionId, event) => {
     event.preventDefault();
-
     setIsMenuOpen(false);
 
-    // Navigate to home first if not on landing page 
     if (location.pathname !== '/') {
-      navigate('/', {
-        state: { scrollTo: sectionId }
-      });
+      navigate('/', { state: { scrollTo: sectionId, from: from || undefined } });
     } else {
-      // Scroll to the section if we are already on the landing page
       setTimeout(() => {
         scrollToElement(sectionId);
       }, 100);
@@ -55,29 +61,37 @@ const NavigationBar = () => {
       const navbarHeight = 80;
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - navbarHeight;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
+      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
     }
   };
 
   const handleLogoClick = () => {
+    // If we came from a dashboard and are logged in, go back to dashboard
+    if (from && isLoggedIn) {
+      const target = 
+        from === 'receiver' ? '/receiver/dashboard' : 
+        from === 'donor' ? '/donor/dashboard' :
+        from === 'admin' ? '/admin/dashboard' :
+        null;
+      if (target) {
+        sessionStorage.removeItem('returnFrom');
+        navigate(target);
+        setIsMenuOpen(false);
+        return;
+      }
+    }
+    
+    // Otherwise, go to landing page home
     if (location.pathname !== '/') {
-      navigate('/', { replace: true });
+      navigate('/', { state: { from: from || location.state?.from || undefined, scrollTo: 'home' } });
     } else {
-      navigate('.', {
-        replace: true,
-        state: null
-      });
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     setIsMenuOpen(false);
   };
+
+  const showReturnButton = Boolean(from) && Boolean(isLoggedIn);
+
   return (
     <nav className='navbar'>
       <div className='logo' onClick={handleLogoClick} style={{ cursor: 'pointer' }}>
@@ -85,58 +99,22 @@ const NavigationBar = () => {
       </div>
 
       <div className="menu-toggle" onClick={toggleMenu}>
-        {isMenuOpen ? (
-          <FaTimes size={28} color="#1B4965" />
-        ) : (
-          <FaBars size={28} color="#1B4965" />
-        )}
+        {isMenuOpen ? <FaTimes size={28} color="#1B4965" /> : <FaBars size={28} color="#1B4965" />}
       </div>
+
       <div className={`menu ${isMenuOpen ? 'active' : ''}`}>
         <ul>
-          <li>
-            <a
-              href='#home'
-              onClick={(e) => scrollToSection('home', e)}
-            >
-              Home
-            </a>
-          </li>
-          <li>
-            <a
-              href='#how-it-works'
-              onClick={(e) => scrollToSection('how-it-works', e)}
-            >
-              How it works
-            </a>
-          </li>
-          <li>
-            <a
-              href='#about'
-              onClick={(e) => scrollToSection('about', e)}
-            >
-              About Us
-            </a>
-          </li>
-          <li>
-            <a
-              href='#faqs'
-              onClick={(e) => scrollToSection('faqs', e)}
-            >
-              FAQs
-            </a>
-          </li>
-          <li>
-            <a
-              href='#contact'
-              onClick={(e) => scrollToSection('contact', e)}
-            >
-              Contact Us
-            </a>
-          </li>
+          <li><a href='#home' onClick={(e) => scrollToSection('home', e)}>Home</a></li>
+          <li><a href='#how-it-works' onClick={(e) => scrollToSection('how-it-works', e)}>How it works</a></li>
+          <li><a href='#about' onClick={(e) => scrollToSection('about', e)}>About Us</a></li>
+          <li><a href='#faqs' onClick={(e) => scrollToSection('faqs', e)}>FAQs</a></li>
+          <li><a href='#contact' onClick={(e) => scrollToSection('contact', e)}>Contact Us</a></li>
         </ul>
 
         <div className='mobile-buttons'>
-          {!isLoggedIn ? (
+          {showReturnButton ? (
+            <ReturnToDashboardButton onNavigate={() => setIsMenuOpen(false)} />
+          ) : !isLoggedIn ? (
             <>
               <button className='login-button' onClick={handleLogin}>Login</button>
               <button className='signup-button' onClick={handleSignUp}>Register</button>
@@ -148,7 +126,9 @@ const NavigationBar = () => {
       </div>
 
       <div className='buttons'>
-        {!isLoggedIn ? (
+        {showReturnButton ? (
+          <ReturnToDashboardButton onNavigate={() => setIsMenuOpen(false)} />
+        ) : !isLoggedIn ? (
           <>
             <button className='login-button' onClick={handleLogin}>Login</button>
             <button className='signup-button' onClick={handleSignUp}>Register</button>
