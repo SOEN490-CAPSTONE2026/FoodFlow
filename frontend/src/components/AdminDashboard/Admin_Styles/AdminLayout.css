@@ -13,7 +13,6 @@ body {
   background: #F7FBFD;
 }
 
-/* Mobile Header */
 .mobile-header {
   display: none;
   background: #1B4965;
@@ -139,7 +138,6 @@ body {
   opacity: .9;
 }
 
-/* Messages Components */
 .messages-left {
   display: flex;
   align-items: center;
@@ -179,7 +177,6 @@ body {
   position: static;
 }
 
-/* Responsive height adjustments for messages */
 @media (max-height: 800px) {
   .messages-dropdown {
     max-height: 120px;
@@ -284,8 +281,6 @@ body {
   justify-content: flex-start;
 }
 
-
-
 .account-avatar {
   width: 36px;
   height: 36px;
@@ -343,7 +338,6 @@ body {
   top: auto !important;
   bottom: 0 !important;
   margin: 0 !important;
-
   min-width: 200px;
   background: #1B4965;
   border: 1px solid rgba(255, 255, 255, .08);
@@ -399,17 +393,24 @@ body {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  margin-left: 0px;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .admin-topbar {
   background: #fff;
   border-bottom: 1px solid #e2e8f0;
-  padding: 14px 22px;
+  padding: 12px 22px 12px 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
+  flex-wrap: nowrap;
+  gap: 0;
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  box-shadow: 0 1px 0 #e2e8f0;
 }
 
 .admin-topbar-left h1 {
@@ -437,94 +438,6 @@ body {
   gap: 8px;
 }
 
-.messages-link {
-  cursor: default;
-}
-
-.messages-toggle {
-  margin-left: auto;
-  background: none;
-  border: none;
-  padding: 0;
-  display: inline-flex;
-  cursor: pointer;
-  color: #e2e8f0;
-}
-
-.messages-dropdown {
-  padding-left: 12px;
-  padding-right: 14px;
-  margin-top: 6px;
-  margin-bottom: 6px;
-  cursor: pointer;
-}
-
-.message-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 9px 8px;
-}
-
-.message-avatar {
-  position: relative;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: #ffffff;
-  flex: 0 0 32px;
-  cursor: pointer;
-}
-
-.message-status {
-  position: absolute;
-  right: -1px;
-  bottom: -1px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #10b981;
-  box-shadow: 0 0 0 2px #1B4965;
-}
-
-.message-name {
-  color: rgba(255, 255, 255, .92);
-  font-size: 14px;
-}
-
-.nav-bottom-abs {
-  position: absolute;
-  left: 14px;
-  right: 14px;
-  bottom: 80px;
-}
-
-.footer-abs {
-  position: absolute;
-  left: 14px;
-  right: 14px;
-  bottom: 14px;
-}
-
-
-.messages-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-}
-
-.admin-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  margin-left: 220px;
-  height: 100vh;
-  overflow: hidden;
-}
-
-/* Responsive adjustments for mobile */
 @media (max-width: 768px) {
   .mobile-header {
     display: flex;
@@ -560,7 +473,15 @@ body {
 
   .admin-main {
     margin-left: 0;
-    padding-top: 60px;
+    padding-top: calc(60px + 56px);
+  }
+
+  .admin-topbar {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    z-index: 900;
   }
 
   .messages-dropdown {
@@ -608,14 +529,13 @@ body {
   }
 }
 
-
 @media (max-width: 1440px) {
   .admin-content {
     padding: 20px;
   }
 
   .admin-topbar {
-    padding: 12px 20px;
+    padding: 12px 20px 12px 0;
   }
 }
 
