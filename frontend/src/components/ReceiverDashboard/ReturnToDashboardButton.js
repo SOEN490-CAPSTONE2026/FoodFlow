@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import "./ReturnToDashboardButton.css";
+import "./Receiver_Styles/ReturnToDashboardButton.css";
 
 export default function ReturnToDashboardButton({ onNavigate }) {
   const location = useLocation();
