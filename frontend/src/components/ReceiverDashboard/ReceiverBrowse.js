@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { Calendar, MapPin, Clock, Package2, Bookmark, ChevronDown, ChevronUp, User, Navigation } from 'lucide-react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { Calendar, MapPin, Clock, Package2, Bookmark, ChevronDown, ChevronUp, Package, User } from 'lucide-react';
 import { surplusAPI } from '../../services/api';
 import BakeryPastryImage from '../../assets/foodtypes/Pastry&Bakery.jpg';
 import FruitsVeggiesImage from '../../assets/foodtypes/Fruits&Vegetables.jpg';
@@ -9,6 +9,7 @@ import FrozenFoodImage from '../../assets/foodtypes/FrozenFood.jpg';
 import PreparedMealsImage from '../../assets/foodtypes/PreparedFood.jpg';
 import "./ReceiverBrowse.css";
 
+//Mock data(will be removed later)
 const mockData = [
   {
     id: 1,
@@ -95,17 +96,26 @@ const mockData = [
     createdAt: "2025-11-04T12:00:00"
   }
 ];
-export default function ReceiverBrowse() {
 
+export default function ReceiverBrowse() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expandedCardId, setExpandedCardId] = useState(null);
+  const [bookmarkedItems, setBookmarkedItems] = useState(new Set());
   const pollingRef = useRef(null);
 
-  const fetchDonations = async () => {
+  const fetchDonations = useCallback(async () => {
     try {
-      setItems(mockData);
+      // Only update items if they've actually changed
+      setItems(prevItems => {
+        const newItems = mockData;
+        // If items are the same, don't trigger re-render
+        if (JSON.stringify(prevItems) === JSON.stringify(newItems)) {
+          return prevItems;
+        }
+        return newItems;
+      });
       // const { data } = await surplusAPI.list(); //UNCOMMENT WHEN BACKEND IS READY
       // setItems(Array.isArray(data) ? data : []);
       setError(null);
@@ -115,33 +125,36 @@ export default function ReceiverBrowse() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchDonations();
     pollingRef.current = setInterval(fetchDonations, 8000);
     return () => pollingRef.current && clearInterval(pollingRef.current);
+  }, [fetchDonations]);
+
+  const handleMoreClick = useCallback((item) => {
+    setExpandedCardId(prev => prev === item.id ? null : item.id);
   }, []);
 
-  const handleMoreClick = (item) => {
-    if (expandedCardId === item.id) {
-      setExpandedCardId(null);
-    } else {
-      // Expand the card
-      setExpandedCardId(item.id);
-    }
-  };
-
-  const handleClaimDonation = (item) => {// Next Sprint
+  const handleClaimDonation = useCallback((item) => {
     console.log('Claiming donation:', item);
-  };
+  }, []);
 
-  const handleBookmark = (item, e) => {// Next Sprint
+  const handleBookmark = useCallback((item, e) => {
     e.stopPropagation();
+    setBookmarkedItems(prev => {
+      const newBookmarks = new Set(prev);
+      if (newBookmarks.has(item.id)) {
+        newBookmarks.delete(item.id);
+      } else {
+        newBookmarks.add(item.id);
+      }
+      return newBookmarks;
+    });
     console.log('Bookmarking:', item);
-  };
+  }, []);
 
-  // Function to get the appropriate image based on the food type
   const getFoodTypeImage = (foodType) => {
     switch (foodType) {
       case 'Bakery & Pastry':
@@ -161,7 +174,6 @@ export default function ReceiverBrowse() {
     }
   };
 
-  // Function to get CSS class for image container
   const getFoodImageClass = (foodType) => {
     switch (foodType) {
       case 'Bakery & Pastry':
@@ -180,6 +192,7 @@ export default function ReceiverBrowse() {
         return 'food-image-packaged';
     }
   };
+
   const formatExpiryDate = (dateString) => {
     if (!dateString) return '—';
     try {
@@ -222,7 +235,6 @@ export default function ReceiverBrowse() {
     }
   };
 
-  // function to format the time
   const formatPostedTime = (dateString) => {
     if (!dateString) return '';
 
@@ -245,12 +257,7 @@ export default function ReceiverBrowse() {
 
   return (
     <div className="receiver-browse-container">
-      {loading && (
-        <div className="loading-message">
-          Explore Available Donations
-        </div>
-      )}
-
+      <h2 className="section-title">Explore Available Donations</h2>
       {error && (
         <div role="alert" className="error-message">
           {error}
@@ -259,6 +266,7 @@ export default function ReceiverBrowse() {
 
       {!loading && !error && items.length === 0 && (
         <div className="empty-state">
+          <Package className="empty-state-icon" size={64} />
           <p>No donations available right now.</p>
           <p>Check back soon for new surplus food!</p>
         </div>
@@ -268,7 +276,7 @@ export default function ReceiverBrowse() {
         <div className="donations-list">
           {items.map((item) => (
             <div
-              key={item.id || `${item.foodName}-${Math.random()}`}
+              key={item.id}
               className={`donation-card ${expandedCardId === item.id ? 'expanded' : ''}`}
             >
               <div className={`donation-image ${getFoodImageClass(item.foodType)}`}>
@@ -277,16 +285,13 @@ export default function ReceiverBrowse() {
                   alt={item.foodType || "Food donation"}
                   className="food-type-image"
                   onError={(e) => {
-                    // Fallback if image fails to load
                     e.target.style.display = 'none';
                     e.target.parentElement.classList.add('food-image-default');
                   }}
                 />
               </div>
 
-              {/* Content */}
               <div className="donation-content">
-                {/* Title and status */}
                 <div className="donation-header">
                   <h3 className="donation-title">
                     {item.foodName}
@@ -297,7 +302,15 @@ export default function ReceiverBrowse() {
                       onClick={(e) => handleBookmark(item, e)}
                       aria-label="Bookmark"
                     >
-                      <Bookmark size={16} style={{ display: 'block', margin: '0 auto', color: '#90A1B9' }} />
+                      <Bookmark
+                        size={16}
+                        style={{
+                          display: 'block',
+                          margin: '0 auto',
+                          color: bookmarkedItems.has(item.id) ? '#1B4965' : '#90A1B9',
+                          fill: bookmarkedItems.has(item.id) ? '#1B4965' : 'transparent'
+                        }}
+                      />
                     </button>
                     <span className="status-badge">
                       <span className="status-icon">✓</span>
@@ -306,7 +319,6 @@ export default function ReceiverBrowse() {
                   </div>
                 </div>
 
-                {/* Info row */}
                 <div className="donation-info">
                   <div className="info-item">
                     <Calendar size={16} className="info-icon expiry-icon" />
@@ -322,7 +334,6 @@ export default function ReceiverBrowse() {
                   </div>
                 </div>
 
-                {/* Category tag and donator */}
                 <div className="donation-meta">
                   <span className="category-tag">
                     {item.foodType}
@@ -333,7 +344,6 @@ export default function ReceiverBrowse() {
                   </div>
                 </div>
 
-                {/* Expanded Details */}
                 {expandedCardId === item.id && (
                   <div className="donation-details">
                     <div className="details-grid">
@@ -348,7 +358,7 @@ export default function ReceiverBrowse() {
                         <div className="detail-item">
                           <span className="detail-label">Pickup Time</span>
                           <div className="detail-value">
-                            <Clock size={14} className="time-icon-detail" style={{ display: 'inline', marginRight: '8px' }}/>
+                            <Clock size={14} className="time-icon-detail" style={{ display: 'inline', marginRight: '8px' }} />
                             {formatPickupTime(item.pickupFrom, item.pickupTo)}
                           </div>
                         </div>
@@ -372,7 +382,6 @@ export default function ReceiverBrowse() {
                       </div>
                     </div>
 
-                    {/* Donor's Note */}
                     {(item.donorNote || item.description) && (
                       <div className="donor-note">
                         <div className="note-label">Donor's Note</div>
@@ -382,7 +391,6 @@ export default function ReceiverBrowse() {
                       </div>
                     )}
 
-                    {/* Posted Time */}
                     {item.createdAt && (
                       <div className="posted-time">
                         Posted {formatPostedTime(item.createdAt)}
@@ -391,7 +399,6 @@ export default function ReceiverBrowse() {
                   </div>
                 )}
 
-                {/* Actions */}
                 <div className="donation-actions">
                   <button
                     onClick={() => handleClaimDonation(item)}
@@ -415,8 +422,7 @@ export default function ReceiverBrowse() {
           ))}
         </div>
       )}
-
-      {/* Refresh button */}
+       {/* Refresh button
       {!loading && (
         <div className="refresh-container">
           <button
@@ -426,7 +432,7 @@ export default function ReceiverBrowse() {
             Refresh Donations
           </button>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

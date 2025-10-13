@@ -11,10 +11,15 @@
   color: #666;
   font-size: 16px;
 }
-
+.section-title{
+    font-size: 24px;
+    font-weight: 700;
+    color: #1e3a5f;
+    text-align: left;
+    margin-bottom: 20px;
+}
 .error-message {
   padding: 16px;
-  background: #fee;
   color: #9F2D00;
   border-radius: 8px;
   margin-bottom: 20px;
@@ -26,12 +31,10 @@
   color: #888;
   font-size: 16px;
 }
-
-.empty-icon {
-  font-size: 64px;
-  margin-bottom: 16px;
-  opacity: 0.6;
+.empty-state-icon{
+    color: #888;
 }
+
 
 /* Donations list */
 .donations-list {
@@ -64,12 +67,15 @@
 
 /* Image section */
 .donation-image {
-  width: 120px; 
-  height: 120px; 
+  width: 150px; 
+  height: 150px; 
   margin-top: 2%; 
   border-radius: 6px; 
   flex-shrink: 0;
   overflow: hidden;
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
 }
 
 .food-type-image {
@@ -159,15 +165,15 @@
 .status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px; 
-  padding: 4px 8px; 
+  gap: 6px;
+  border: 1px solid #047857;
+  padding: 6px 12px;
   background: #e8f5e9;
   color: #2e7d32;
-  border-radius: 12px; 
-  font-size: 12px; 
+  border-radius: 16px;
+  font-size: 13px; 
   font-weight: 600;
 }
-
 .status-icon {
   font-size: 10px;
 }
@@ -207,7 +213,7 @@
 .time-icon-detail{
     color: #0891B2;
     background-color:#EFF6FF ;
-    border-radius: 10px;
+    border-radius: 8px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -216,13 +222,26 @@
 .quantity-icon-detail{
     color:rgb(113, 82, 32);
     background-color:#f54a0049;
-    border-radius: 2px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 .expiry-icon-detail{
     color:#9F2D00;
+    background-color: #FEF2F2;
+    border-radius: 2px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 .location-icon-detail{
     color:#047857;
+    background-color: #E6FFF3;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 /* Meta section */
@@ -250,7 +269,7 @@
   align-items: center;
   gap: 6px; 
   color: #62748E;
-  font-weight: 400;
+  font-weight: 500;
 }
 
 .quantity-info {
@@ -400,7 +419,7 @@
 }
 
 .more-button.expanded .dropdown-icon {
-  transform: rotate(180deg);
+  transform: transform 0.2s;
 }
 
 .dropdown-icon {
