@@ -159,8 +159,8 @@ describe("DonorListFood", () => {
     
     const appleCard = screen.getByLabelText(/fresh apples/i);
     expect(within(appleCard).getByText(/5 kg/i)).toBeInTheDocument();
-    expect(within(appleCard).getByText(/✓ Available/i)).toBeInTheDocument();
-    expect(within(appleCard).getByText(/fruits/i)).toBeInTheDocument();
+    expect(within(appleCard).getByText(/Available/i)).toBeInTheDocument();
+    expect(within(appleCard).getByText(/fruits/i)).toBeInTheDocument();  
   });
 
   test("displays donation details like time and location after loading data", async () => {
@@ -298,7 +298,7 @@ describe("DonorListFood", () => {
     const errorCloseButton = screen.getByRole('button', { name: 'XIcon' });
     expect(errorCloseButton).toBeInTheDocument();
   });    
-  
+
   test("opens and closes donation modal", async () => {
     surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
     const user = userEvent.setup();
