@@ -175,23 +175,38 @@ export default function DonorListFood() {
         <section className="donor-list-grid" aria-label="Donations list">
           {items.map((item) => (
             <article key={item.id} className="donation-card" aria-label={item.foodName}>
-             <div className="donation-header">
+              <div className="donation-header">
                 <h3 className="donation-title">{item.foodName}</h3>
                 <span
                   className={statusClass(item.status)}
                   style={{
-                    padding: '10px 20px',
-                    fontSize: '14px'
+                    padding: '6px 12px',
+                    fontSize: '14px',
+                    borderRadius: '6px',
+                    fontWeight: '500',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    backgroundColor:
+                      item.status === "available" ? '#dcfce7' :
+                        item.status === "expiring-soon" ? '#e98e64ff' :
+                          item.status === "claimed" ? '#dbeafe' :
+                            item.status === "expired" ? '#fee2e2' : '#f3f4f6',
+                    color:
+                      item.status === "available" ? '#166534' :
+                        item.status === "expiring-soon" ? '#9a3412' :
+                          item.status === "claimed" ? '#1e40af' :
+                            item.status === "expired" ? '#991b1b' : '#374151',
                   }}
                 >
-                  {item.status === "expiring-soon" && <AlertTriangle className="icon" size={16} />}
+                  {item.status === "expiring-soon" && <AlertTriangle size={16} />}
                   {item.status === "available"
                     ? "Available"
                     : item.status === "expiring-soon"
-                    ? "Expiring Soon"
-                    : item.status === "claimed"
-                    ? "Claimed"
-                    : "Expired"}
+                      ? "Expiring Soon"
+                      : item.status === "claimed"
+                        ? "Claimed"
+                        : "Expired"}
                 </span>
               </div>
 
