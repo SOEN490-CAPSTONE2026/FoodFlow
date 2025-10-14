@@ -1,6 +1,6 @@
-// ReceiverDashboardHome.jsx
+
 import React from "react";
-import "./ReceiverDashboard.css";
+import "./Receiver_Styles/ReceiverDashboard.css";
 
 // Helper: compute doughnut segments for the SVG donuts
 const calculateDoughnut = (data = []) => {
@@ -24,7 +24,7 @@ const calculateDoughnut = (data = []) => {
 };
 
 export default function ReceiverDashboardHome({ stats, chartData }) {
-  // Guard: require data to be passed in via props
+  
   if (!stats || !chartData) {
     return (
       <div className="dashboard-home">

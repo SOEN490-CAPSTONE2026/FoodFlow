@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import "./ReceiverWelcome.css";
+import "./Receiver_Styles/ReceiverWelcome.css";
 
 
 export default function ReceiverWelcome() {

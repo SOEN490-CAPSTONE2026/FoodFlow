@@ -1,147 +1,259 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Outlet, useLocation, useNavigate, NavLink, Link } from "react-router-dom";
+import React, { useEffect, useRef, useState, useContext } from "react";
+import { Outlet, useLocation, useNavigate, Link, useNavigationType } from "react-router-dom";
+import {
+  Home,
+  LayoutGrid,
+  Heart,
+  Calendar as CalendarIcon,
+  FileText,
+  Mail,
+  ChevronRight,
+  ChevronDown,
+  Settings,
+  HelpCircle,
+  MoreVertical,
+  LogOut,
+  Menu,
+  X
+} from "lucide-react";
 import { AuthContext } from "../../contexts/AuthContext";
-import Logo from "../../assets/logo_dark_background.png";
+import Logo from "../../assets/Logo_White.png";
+import "./Donor_Styles/DonorLayout.css";
 
 export default function DonorLayout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = React.useContext(AuthContext);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const dropdownRef = useRef(null);
-  
-  const getPageTitle = () => {
-    const p = location.pathname;
-    if (p === "/donor" || p === "/donor/") return "Donate Food Now";
-    if (p.startsWith("/donor/dashboard")) return "Dashboard";
-    if (p.startsWith("/donor/list")) return "Your Donations";
-    if (p.startsWith("/donor/requests")) return "Requests";
-    if (p.startsWith("/donor/search")) return "Search";
-    return "Donor Dashboard";
-  };
+  const navType = useNavigationType();
+  const { logout } = useContext(AuthContext);
+  const [open, setOpen] = useState(false);
+  const [messagesOpen, setMessagesOpen] = useState(false);
+  const [screenHeight, setScreenHeight] = useState(window.innerHeight);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const menuRef = useRef(null);
 
-  const getPageDescription = () => {
-    const p = location.pathname;
-    if (p === "/donor" || p === "/donor/") return "Every gift makes a difference";
-    if (p.startsWith("/donor/dashboard")) return "Overview of your donations";
-    if (p.startsWith("/donor/list")) return "Create and manage donation listings";
-    if (p.startsWith("/donor/requests")) return "Manage donation requests";
-    if (p.startsWith("/donor/search")) return "Find organizations";
-    return "FoodFlow Donor Portal";
-  };
+  const contacts = [
+    { name: "Olive Nacelle", online: true },
+    { name: "Amélie Laurent", online: true },
+    { name: "Amélie Jackson", online: false },
+    { name: "Frankie Sullivan", online: false }
+  ];
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setShowDropdown(false);
-      }
+    const handleResize = () => {
+      setScreenHeight(window.innerHeight);
     };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const toggleDropdown = () => {
-    setShowDropdown(!showDropdown);
+  const getMaxContacts = () => {
+    if (screenHeight <= 650) return 1;
+    if (screenHeight <= 800) return 2;
+    return 4;
   };
+
+  const visibleContacts = contacts.slice(0, getMaxContacts());
+
+  const pageTitle = (() => {
+    switch (location.pathname) {
+      case "/donor":
+      case "/donor/dashboard":
+        return "Donor Dashboard";
+      case "/donor/list":
+        return "Donate Now";
+      case "/donor/requests":
+        return "Requests & Claims";
+      case "/donor/search":
+        return " Pickup Schdule";
+      case "/donor/messages":
+        return "Messages";
+      case "/donor/help":
+        return "Help";
+      default:
+        return "Donor";
+    }
+  })();
+
+  const pageDesc = (() => {
+    switch (location.pathname) {
+      case "/donor":
+      case "/donor/dashboard":
+        return "Overview and quick actions";
+      case "/donor/list":
+        return "Create and manage donation listings";
+      case "/donor/requests":
+        return "Incoming requests and status";
+      case "/donor/search":
+        return "Recent activity and history";
+      case "/donor/messages":
+        return "Incoming communications";
+      case "/donor/help":
+        return "Guides and support";
+      default:
+        return "FoodFlow Donor Portal";
+    }
+  })();
+
+  useEffect(() => {
+    const onDocClick = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, []);
+
+  useEffect(() => {
+    if (navType === "POP" && !location.pathname.startsWith("/donor")) {
+      navigate("/donor/dashboard", { replace: true });
+    }
+  }, [navType, location.pathname, navigate]);
 
   const handleLogout = async () => {
     try {
-      await logout();      
-    } catch (e) {
-           
+      await logout();
     } finally {
-      setShowDropdown(false);
-
-      navigate("/", {
-        replace: true,
-        state: { scrollTo: "home" }, 
-      });
+      setOpen(false);
+      navigate("/", { replace: true, state: { scrollTo: "home" } });
     }
   };
-  
+
+  const isActive = (path) => location.pathname === path;
 
   return (
     <div className="donor-layout">
-      <div className="donor-sidebar">
+      <div className="mobile-header">
+        <Link to="/" state={{ scrollTo: "home", from: "donor" }}>
+          <img src={Logo} alt="FoodFlow" className="mobile-logo" />
+        </Link>
+        <button
+          className="hamburger-btn"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Toggle Menu"
+        >
+          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
+
+      {mobileMenuOpen && <div className="mobile-overlay" onClick={() => setMobileMenuOpen(false)}></div>}
+
+      <aside className={`donor-sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}>
         <div className="donor-sidebar-header">
-          <h2>
-            <a href="http://localhost:3002">
-              <img src={Logo} alt="FoodFlow Logo" className="donor-logo" />
-            </a>
-          </h2>
+          <Link to="/" state={{ scrollTo: "home", from: "donor" }} aria-label="FoodFlow Home">
+            <img src={Logo} alt="FoodFlow" className="donor-logo" />
+          </Link>
         </div>
-        
-        <div className="donor-nav-links">
-          <NavLink
-            to="."
-            end
-            className={({ isActive }) => `donor-nav-link ${isActive ? "active" : ""}`}
-          >
+
+        <nav className="donor-nav-links">
+          <Link to="/donor" className={`donor-nav-link ${isActive("/donor") ? "active" : ""}`}>
+            <span className="nav-icon" aria-hidden>
+              <Home size={18} className="lucide" />
+            </span>
             Home
-          </NavLink>
-          <NavLink
-            to="dashboard"
-            className={({ isActive }) => `donor-nav-link ${isActive ? "active" : ""}`}
-          >
+          </Link>
+
+          <Link to="/donor/dashboard" className={`donor-nav-link ${isActive("/donor/dashboard") ? "active" : ""}`}>
+            <span className="nav-icon" aria-hidden>
+              <LayoutGrid size={18} className="lucide" />
+            </span>
             Dashboard
-          </NavLink>
-          <NavLink
-            to="list"
-            className={({ isActive }) => `donor-nav-link ${isActive ? "active" : ""}`}
-          >
-            List Your Food
-          </NavLink>
-          <NavLink
-            to="requests"
-            className={({ isActive }) => `donor-nav-link ${isActive ? "active" : ""}`}
-          >
-            Requests
-          </NavLink>
-          <NavLink
-            to="search"
-            className={({ isActive }) => `donor-nav-link ${isActive ? "active" : ""}`}
-          >
-            Search
-          </NavLink>
-        </div>
-      </div>
+          </Link>
 
-      <div className="donor-main">
-        <div className="donor-topbar">
-          <div className="donor-topbar-left">
-            <h1>{getPageTitle()}</h1>
-            <p>{getPageDescription()}</p>
-          </div>
-          <div className="donor-user-info" ref={dropdownRef}>
-            <div className="user-menu" onClick={toggleDropdown}>
-              Donor Account
-              <span className="dropdown-arrow">▼</span>
+          <Link to="/donor/list" className={`donor-nav-link ${isActive("/donor/list") ? "active" : ""}`}>
+            <span className="nav-icon" aria-hidden>
+              <Heart size={18} className="lucide" />
+            </span>
+            Donate Now
+          </Link>
+
+          <Link to="/donor/requests" className={`donor-nav-link ${isActive("/donor/requests") ? "active" : ""}`}>
+            <span className="nav-icon" aria-hidden>
+              <CalendarIcon size={18} className="lucide" />
+            </span>
+            Requests & Claims 
+          </Link>
+
+          <Link to="/donor/search" className={`donor-nav-link ${isActive("/donor/search") ? "active" : ""}`}>
+            <span className="nav-icon" aria-hidden>
+              <FileText size={18} className="lucide" />
+            </span>
+            Pickup Schedule
+          </Link>
+
+          <div className={`donor-nav-link messages-link ${isActive("/donor/messages") ? "active" : ""}`}>
+            <div onClick={() => navigate("/donor/messages")} className="messages-left">
+              <span className="nav-icon" aria-hidden>
+                <Mail size={18} className="lucide" />
+              </span>
+              Messages
             </div>
-            
-            {showDropdown && (
-              <div className="dropdown-menu">
-                <div className="dropdown-item" onClick={() => setShowDropdown(false)}>
-                  Profile
+            <button className="messages-toggle" onClick={() => setMessagesOpen((s) => !s)} aria-label="Toggle Messages">
+              {messagesOpen ? <ChevronDown size={16} className="lucide" /> : <ChevronRight size={16} className="lucide" />}
+            </button>
+          </div>
+
+          {messagesOpen && (
+            <div className="messages-dropdown">
+              {visibleContacts.map((c, i) => (
+                <div key={i} className="message-item">
+                  <div className="message-avatar">{c.online && <span className="message-status" />}</div>
+                  <span className="message-name">{c.name}</span>
                 </div>
-                <div className="dropdown-item" onClick={() => setShowDropdown(false)}>
-                  Settings
-                </div>
-                <div className="dropdown-divider"></div>
-                <div className="dropdown-item dropdown-item-logout" onClick={handleLogout}>
-                  Log Out
-                </div>
-              </div>
-            )}
+              ))}
+            </div>
+          )}
+        </nav>
+
+        <div className="donor-nav-bottom nav-bottom-abs">
+          <div className="donor-nav-link disabled">
+            <span className="nav-icon" aria-hidden>
+              <Settings size={18} className="lucide" />
+            </span>
+            Settings
+          </div>
+          <div className="donor-nav-link disabled">
+            <span className="nav-icon" aria-hidden>
+              <HelpCircle size={18} className="lucide" />
+            </span>
+            Help
           </div>
         </div>
 
-        <div className="donor-content">
-          <Outlet />
+        <div className="donor-sidebar-footer donor-user footer-abs" ref={menuRef}>
+          <div className="account-row">
+            <button className="user-profile-pic" type="button">
+              <div className="account-avatar"></div>
+              <div className="account-text">
+                <span className="account-name">Donor</span>
+                <span className="account-role">donor</span>
+              </div>
+            </button>
+            <button className="account-dotted-menu" onClick={() => setOpen((s) => !s)} aria-label="Menu">
+              <MoreVertical size={18} className="lucide" />
+            </button>
+          </div>
+          {open && (
+            <div className="account-menu">
+              <button className="account-menu-item logout" onClick={handleLogout}>
+                <LogOut size={16} className="lucide" />
+                Logout
+              </button>
+            </div>
+          )}
         </div>
-      </div>
+      </aside>
+
+      <main className="donor-main">
+        <header className="donor-topbar">
+          <div className="donor-topbar-left">
+            <h1>{pageTitle}</h1>
+            <p>{pageDesc}</p>
+          </div>
+        </header>
+
+        <section className="donor-content">
+          <Outlet />
+        </section>
+      </main>
     </div>
   );
 }
