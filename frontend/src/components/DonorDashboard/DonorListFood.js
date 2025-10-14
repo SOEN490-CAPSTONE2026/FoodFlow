@@ -1,62 +1,13 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Calendar, Clock, MapPin, Edit, Trash2, AlertTriangle, X, Package } from "lucide-react";
 import { LoadScript } from "@react-google-maps/api";
+import { AuthContext } from '../../contexts/AuthContext';
+import { surplusAPI } from '../../services/api';
 import SurplusFormModal from "../DonorDashboard/SurplusFormModal";
 import "./DonorListFood.css";
 
-const initialDonations = [
-  {
-    id: 1,
-    title: "Fresh Apples",
-    tags: ["Fruits", "Organic"],
-    quantity: "5 kg",
-    status: "available",
-    expiry: "Expires Oct 8, 2025",
-    time: "2:00–5:00 PM",
-    location: "1380 Sherbrooke St W, Montreal, QC H3G 1J5, Canada",
-    notes:
-      "Red Delicious apples, perfect for snacking or baking. Freshly picked this week from local orchard.",
-  },
-  {
-    id: 2,
-    title: "Artisan Bread Selection",
-    tags: ["Bakery", "Gluten-Free", "Whole Grain"],
-    quantity: "8 loaves",
-    status: "expiring-soon",
-    expiry: "Expires Oct 5, 2025",
-    time: "9:00 AM–12:00 PM",
-    location: "5035 Rue Saint-Denis, Montréal, QC H2J 2L8, Canada",
-    notes:
-      "Fresh sourdough, whole wheat, and gluten-free options. Baked this morning with organic ingredients. Great for sandwiches or toast.",
-  },
-  {
-    id: 3,
-    title: "Seasonal Vegetable Mix",
-    tags: ["Vegetables", "Organic", "Local"],
-    quantity: "3.5 kg",
-    status: "claimed",
-    expiry: "Expires Oct 10, 2025",
-    time: "4:00–7:00 PM",
-    location: "400 Boulevard de Maisonneuve O, Montréal, QC H3A 1L4, Canada",
-    notes:
-      "Fresh carrots, bell peppers, zucchini, and tomatoes from local farm. Perfect for stir fry, soups, or salads. All pesticide-free.",
-  },
-  {
-    id: 4,
-    title: "Dairy & Protein Pack",
-    tags: ["Dairy", "Protein", "Refrigerated"],
-    quantity: "12 items",
-    status: "expired",
-    expiry: "Expires Oct 2, 2025",
-    time: "1:00–3:00 PM",
-    location: "2000 Notre-Dame St W, Montréal, QC H3J 1N4, Canada",
-    notes:
-      "Includes organic milk, Greek yogurt, aged cheddar cheese, and free-range eggs. All from local Quebec producers.",
-  },
-];
-
 // Define libraries for Google Maps
-const libraries = ['places']; 
+const libraries = ['places'];
 
 function statusClass(status) {
   switch (status) {
@@ -80,9 +31,79 @@ function addressLabel(full) {
   return `${parts[0]}, ${parts[1]}…`;
 }
 
+// Format the pickup time range
+function formatPickupTime(from, to) {
+  if (!from && !to) return 'Flexible';
+
+  try {
+    if (from && to) {
+      const fromDate = new Date(from);
+      const dateStr = fromDate.toLocaleDateString('en-US', { // Format the date
+        month: 'short',
+        day: 'numeric'
+      });
+      const fromTime = fromDate.toLocaleTimeString('en-US', { // Format the from time
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+      const [hours, minutes] = to.split(':');
+      const toDate = new Date(fromDate);
+      toDate.setHours(parseInt(hours), parseInt(minutes));
+      const toTime = toDate.toLocaleTimeString('en-US', { // Format the to time
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+
+      return `${dateStr}, ${fromTime} – ${toTime}`;
+    }
+
+    // Fallback if only one time is available
+    if (from) {
+      const fromDate = new Date(from);
+      const dateStr = fromDate.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric'
+      });
+      const timeStr = fromDate.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+      return `${dateStr}, ${timeStr}`;
+    }
+
+    return to || 'Flexible';
+  } catch (error) {
+    console.error('Error formatting pickup time:', error);
+    return 'Flexible';
+  }
+}
 export default function DonorListFood() {
-  const [items, setItems] = useState([]); 
+  const [items, setItems] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { user } = useContext(AuthContext);
+
+  useEffect(() => {
+    fetchMyPosts();
+  }, []);
+
+  const fetchMyPosts = async () => {
+    try {
+      setLoading(true);
+      const response = await surplusAPI.getMyPosts();
+      setItems(response.data);
+      setError(null);
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to fetch posts';
+      setError(`Error: ${errorMessage}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   function requestDelete(id) {
     const confirmDelete = window.confirm("Are you sure you want to delete this post?");
@@ -93,22 +114,38 @@ export default function DonorListFood() {
   }
 
   function openEdit(item) {
-    alert(`Opening edit form for: ${item.title}\n(You will add the actual form here later.)`);
+    alert(`Opening edit form for: ${item.foodName}\n(Edit functionality to be implemented)`);
   }
 
-  function loadSampleDonations() {
-    setItems(initialDonations);
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    fetchMyPosts();
+  };
+
+  if (loading) {
+    return (
+      <div className="donor-list-wrapper">
+        <div className="loading-state">
+          <Package className="loading-icon" size={48} />
+          <h3>Loading your donations...</h3>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="donor-list-wrapper">
+      {error && (
+        <div className="error-banner">
+          <AlertTriangle className="error-icon" />
+          <span>{error}</span>
+          <button className="error-close" onClick={() => setError(null)}>
+            <X size={16} />
+          </button>
+        </div>
+      )}
 
       <header className="donor-list-header">
-        {items.length === 0 && (
-          <button className="donor-add-button" onClick={loadSampleDonations}>
-            Load Sample Data (for testing)
-          </button>
-        )}
         <LoadScript
           googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}
           libraries={libraries}
@@ -121,7 +158,7 @@ export default function DonorListFood() {
           </button>
           <SurplusFormModal
             isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
+            onClose={handleModalClose}
           />
         </LoadScript>
       </header>
@@ -136,63 +173,63 @@ export default function DonorListFood() {
         </div>
       ) : (
         <section className="donor-list-grid" aria-label="Donations list">
-          {items.map((d) => (
-            <article key={d.id} className="donation-card" aria-label={d.title}>
-
+          {items.map((item) => (
+            <article key={item.id} className="donation-card" aria-label={item.foodName}>
               <div className="donation-header">
-                <h3 className="donation-title">{d.title}</h3>
-                <span className={statusClass(d.status)}>
-                  {d.status === "expiring-soon" && <AlertTriangle className="icon" />}
-                  {d.status === "available"
-                    ? "Available"
-                    : d.status === "expiring-soon"
-                      ? "Expiring Soon"
-                      : d.status === "claimed"
-                        ? "Claimed"
-                        : "Expired"}
+                <h3 className="donation-title">{item.foodName}</h3>
+                <span
+                  className={statusClass('available')}
+                  style={{
+                    padding: '10px 20px',
+                    fontSize: '14px'
+                  }}
+                >
+                  ✓ Available
                 </span>
               </div>
 
-              {d.tags?.length > 0 && (
+              {item.foodType && (
                 <div className="donation-tags">
-                  {d.tags.map((t) => (
-                    <span key={t} className="donation-tag">{t}</span>
-                  ))}
+                  <span className="donation-tag">{item.foodType}</span>
                 </div>
               )}
 
-              <div className="donation-quantity">{d.quantity}</div>
+              <div className="donation-quantity">{item.quantity} {item.unit}</div>
 
               <ul className="donation-meta" aria-label="details">
                 <li>
-                  <Calendar className="icon" />
-                  <span>{d.expiry}</span>
+                  <Calendar size={16} className="calendar-icon" />
+                  <span>Expires: {item.expiryDate || 'Not specified'}</span>
                 </li>
                 <li>
-                  <Clock className="icon" />
-                  <span>{d.time}</span>
+                  <Clock size={16} className="time-icon" />
+                  <span>Pickup: {formatPickupTime(item.pickupFrom, item.pickupTo)}</span>
                 </li>
                 <li>
-                  <MapPin className="icon" />
-                  <a
-                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.location)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="donation-address"
-                    title={d.location}
-                  >
-                    {addressLabel(d.location)}
-                  </a>
+                  <MapPin size={16} className="location-icon" />
+                  {item.location ? (
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.location)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="donation-address"
+                      title={item.location}
+                    >
+                      {addressLabel(item.location)}
+                    </a>
+                  ) : (
+                    <span className="donation-address">Address not specified</span>
+                  )}
                 </li>
               </ul>
 
-              {d.notes && <p className="donation-notes">{d.notes}</p>}
+              {item.notes && <p className="donation-notes">{item.notes}</p>}
 
               <div className="donation-actions">
-                <button className="donation-link" onClick={() => openEdit(d)}>
+                <button className="donation-link" onClick={() => openEdit(item)}>
                   <Edit className="icon" /> Edit
                 </button>
-                <button className="donation-link danger" onClick={() => requestDelete(d.id)}>
+                <button className="donation-link danger" onClick={() => requestDelete(item.id)}>
                   <Trash2 className="icon" /> Delete
                 </button>
               </div>
