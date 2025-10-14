@@ -1,5 +1,5 @@
 import React from "react";
-import "./Dashboards.css";
+import "./Donor_Styles/Dashboards.css";
 import {
   BarChart3,
   PieChart,

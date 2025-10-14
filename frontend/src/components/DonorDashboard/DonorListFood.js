@@ -4,7 +4,7 @@ import { LoadScript } from "@react-google-maps/api";
 import { AuthContext } from '../../contexts/AuthContext';
 import { surplusAPI } from '../../services/api';
 import SurplusFormModal from "../DonorDashboard/SurplusFormModal";
-import "./DonorListFood.css";
+import "../DonorDashboard/Donor_Styles/DonorListFood.css";
 
 // Define libraries for Google Maps
 const libraries = ['places'];
@@ -25,8 +25,8 @@ function statusClass(status) {
 }
 
 function addressLabel(full) {
-  if (!full) return '';
-  const parts = String(full).split(',').map((s) => s.trim());
+  if (!full) return "";
+  const parts = String(full).split(",").map((s) => s.trim());
   if (parts.length <= 2) return full;
   return `${parts[0]}, ${parts[1]}…`;
 }
@@ -175,16 +175,23 @@ export default function DonorListFood() {
         <section className="donor-list-grid" aria-label="Donations list">
           {items.map((item) => (
             <article key={item.id} className="donation-card" aria-label={item.foodName}>
-              <div className="donation-header">
+             <div className="donation-header">
                 <h3 className="donation-title">{item.foodName}</h3>
                 <span
-                  className={statusClass('available')}
+                  className={statusClass(item.status)}
                   style={{
                     padding: '10px 20px',
                     fontSize: '14px'
                   }}
                 >
-                  ✓ Available
+                  {item.status === "expiring-soon" && <AlertTriangle className="icon" size={16} />}
+                  {item.status === "available"
+                    ? "Available"
+                    : item.status === "expiring-soon"
+                    ? "Expiring Soon"
+                    : item.status === "claimed"
+                    ? "Claimed"
+                    : "Expired"}
                 </span>
               </div>
 

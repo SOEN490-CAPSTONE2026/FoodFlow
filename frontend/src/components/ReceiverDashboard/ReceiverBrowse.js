@@ -9,7 +9,6 @@ import FrozenFoodImage from '../../assets/foodtypes/FrozenFood.jpg';
 import PreparedMealsImage from '../../assets/foodtypes/PreparedFood.jpg';
 import "./ReceiverBrowse.css";
 
-
 export default function ReceiverBrowse() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,6 +30,7 @@ export default function ReceiverBrowse() {
       setLoading(false);
     }
   }, []);
+
   useEffect(() => {
     fetchDonations();
     pollingRef.current = setInterval(fetchDonations, 8000);
@@ -128,7 +128,7 @@ export default function ReceiverBrowse() {
       });
 
       const [hours, minutes] = pickupTo.split(':');
-      const hour = parseInt(hours);
+      const hour = parseInt(hours, 10);
       const isPM = hour >= 12;
       const displayHour = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour);
       const toTime = `${displayHour}:${minutes} ${isPM ? 'PM' : 'AM'}`;
@@ -141,7 +141,6 @@ export default function ReceiverBrowse() {
 
   const formatPostedTime = (dateString) => {
     if (!dateString) return '';
-
     try {
       const now = new Date();
       const posted = new Date(dateString);
