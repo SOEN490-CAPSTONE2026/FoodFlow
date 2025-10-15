@@ -2,6 +2,7 @@ package com.example.foodflow.model.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
@@ -43,10 +44,13 @@ public class SurplusPost {
     private String description;
 
     @Column(nullable = false)
-    private LocalDateTime pickupFrom;
+    private LocalDate pickupDate;
 
     @Column(nullable = false)
-    private LocalDateTime pickupTo;
+    private LocalTime pickupFrom;
+
+    @Column(nullable = false)
+    private LocalTime pickupTo;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -98,11 +102,14 @@ public class SurplusPost {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    public LocalDateTime getPickupFrom() { return pickupFrom; }
-    public void setPickupFrom(LocalDateTime pickupFrom) { this.pickupFrom = pickupFrom; }
+    public LocalDate getPickupDate() { return pickupDate; }
+    public void setPickupDate(LocalDate pickupDate) { this.pickupDate = pickupDate; }
 
-    public LocalDateTime getPickupTo() { return pickupTo; }
-    public void setPickupTo(LocalDateTime pickupTo) { this.pickupTo = pickupTo; }
+    public LocalTime getPickupFrom() { return pickupFrom; }
+    public void setPickupFrom(LocalTime pickupFrom) { this.pickupFrom = pickupFrom; }
+
+    public LocalTime getPickupTo() { return pickupTo; }
+    public void setPickupTo(LocalTime pickupTo) { this.pickupTo = pickupTo; }
 
     public PostStatus getStatus() { return status; }
     public void setStatus(PostStatus status) { this.status = status; }

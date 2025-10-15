@@ -7,7 +7,7 @@ import com.example.foodflow.model.types.Location;
 
 import jakarta.validation.constraints.*;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.HashSet;
 import java.util.Set;
 import jakarta.validation.Valid;
@@ -31,13 +31,14 @@ public class CreateSurplusRequest {
     @NotBlank(message = "Description is required")
     private String description;
 
+    @NotNull(message = "Pickup date is required")
+    private LocalDate pickupDate;
+
     @NotNull(message = "Pickup start time is required")
-    @Future(message = "Pickup start time must be in the future")
-    private LocalDateTime pickupFrom;
+    private LocalTime pickupFrom;
 
     @NotNull(message = "Pickup end time is required")
-    @Future(message = "Pickup end time must be in the future")
-    private LocalDateTime pickupTo;
+    private LocalTime pickupTo;
 
     @NotNull(message = "Pickup location is required")
     private Location pickupLocation;
@@ -63,11 +64,14 @@ public class CreateSurplusRequest {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    public LocalDateTime getPickupFrom() { return pickupFrom; }
-    public void setPickupFrom(LocalDateTime pickupFrom) { this.pickupFrom = pickupFrom; }
+    public LocalDate getPickupDate() { return pickupDate; }
+    public void setPickupDate(LocalDate pickupDate) { this.pickupDate = pickupDate; }
 
-    public LocalDateTime getPickupTo() { return pickupTo; }
-    public void setPickupTo(LocalDateTime pickupTo) { this.pickupTo = pickupTo; }
+    public LocalTime getPickupFrom() { return pickupFrom; }
+    public void setPickupFrom(LocalTime pickupFrom) { this.pickupFrom = pickupFrom; }
+
+    public LocalTime getPickupTo() { return pickupTo; }
+    public void setPickupTo(LocalTime pickupTo) { this.pickupTo = pickupTo; }
 
     public Location getPickupLocation() { return pickupLocation; }
     public void setPickupLocation(Location pickupLocation) { this.pickupLocation = pickupLocation; }

@@ -78,8 +78,9 @@ class SurplusPostRepositoryTest {
         post.setQuantity(new Quantity(10.0, Quantity.Unit.KILOGRAM));
         post.setPickupLocation(new Location(45.2903, -34.0987, "123 Main St"));
         post.setExpiryDate(LocalDate.now().plusDays(2));
-        post.setPickupFrom(LocalDateTime.now().plusHours(3));
-        post.setPickupTo(LocalDateTime.now().plusHours(5));
+        post.setPickupDate(LocalDate.now());
+        post.setPickupFrom(LocalTime.now().plusHours(3));
+        post.setPickupTo(LocalTime.now().plusHours(5));
         post.setDescription("Vegetarian lasagna");
 
         // When
@@ -136,8 +137,9 @@ class SurplusPostRepositoryTest {
         post.setQuantity(quantity);
         post.setPickupLocation(new Location(45.2903, -34.0987, "123 Main St"));
         post.setExpiryDate(LocalDate.now().plusDays(2));
-        post.setPickupFrom(LocalDateTime.now().plusHours(3));
-        post.setPickupTo(LocalDateTime.now().plusHours(5));
+        post.setPickupDate(LocalDate.now());
+        post.setPickupFrom(LocalTime.now().plusHours(3));
+        post.setPickupTo(LocalTime.now().plusHours(5));
         post.setDescription("Test food description");
         return post;
     }

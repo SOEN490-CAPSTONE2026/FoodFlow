@@ -6,6 +6,7 @@ import com.example.foodflow.model.types.Location;
 import com.example.foodflow.model.types.PostStatus;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.LocalDateTime;
 import java.util.Set;
 
@@ -18,8 +19,12 @@ public class SurplusResponse {
     private Quantity quantity;
     private Location pickupLocation;
     private LocalDate expiryDate;
-    private LocalDateTime pickupFrom;
-    private LocalDateTime pickupTo;
+
+    // Changed fields
+    private LocalDate pickupDate;
+    private LocalTime pickupFrom;
+    private LocalTime pickupTo;
+
     private PostStatus status;
     private String donorEmail;
     private LocalDateTime createdAt;
@@ -30,7 +35,7 @@ public class SurplusResponse {
 
     public SurplusResponse(Long id, String title, String description, Set<FoodCategory> foodCategories,
                            Quantity quantity, Location pickupLocation,
-                           LocalDate expiryDate, LocalDateTime pickupFrom, LocalDateTime pickupTo,
+                           LocalDate expiryDate, LocalDate pickupDate, LocalTime pickupFrom, LocalTime pickupTo,
                            PostStatus status, String donorEmail,
                            LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
@@ -40,6 +45,7 @@ public class SurplusResponse {
         this.quantity = quantity;
         this.pickupLocation = pickupLocation;
         this.expiryDate = expiryDate;
+        this.pickupDate = pickupDate;
         this.pickupFrom = pickupFrom;
         this.pickupTo = pickupTo;
         this.status = status;
@@ -70,11 +76,14 @@ public class SurplusResponse {
     public LocalDate getExpiryDate() { return expiryDate; }
     public void setExpiryDate(LocalDate expiryDate) { this.expiryDate = expiryDate; }
 
-    public LocalDateTime getPickupFrom() { return pickupFrom; }
-    public void setPickupFrom(LocalDateTime pickupFrom) { this.pickupFrom = pickupFrom; }
+    public LocalDate getPickupDate() { return pickupDate; }
+    public void setPickupDate(LocalDate pickupDate) { this.pickupDate = pickupDate; }
 
-    public LocalDateTime getPickupTo() { return pickupTo; }
-    public void setPickupTo(LocalDateTime pickupTo) { this.pickupTo = pickupTo; }
+    public LocalTime getPickupFrom() { return pickupFrom; }
+    public void setPickupFrom(LocalTime pickupFrom) { this.pickupFrom = pickupFrom; }
+
+    public LocalTime getPickupTo() { return pickupTo; }
+    public void setPickupTo(LocalTime pickupTo) { this.pickupTo = pickupTo; }
 
     public PostStatus getStatus() { return status; }
     public void setStatus(PostStatus status) { this.status = status; }

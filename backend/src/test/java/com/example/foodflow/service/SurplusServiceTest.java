@@ -62,8 +62,9 @@ class SurplusServiceTest {
         request.getFoodCategories().add(FoodCategory.PREPARED_MEALS);
         request.setQuantity(new Quantity(10.0, Quantity.Unit.KILOGRAM));
         request.setExpiryDate(LocalDate.now().plusDays(2));
-        request.setPickupFrom(LocalDateTime.now().plusHours(3));
-        request.setPickupTo(LocalDateTime.now().plusHours(5));
+        request.setPickupDate(LocalDate.now());
+        request.setPickupFrom(LocalTime.now().plusHours(3));
+        request.setPickupTo(LocalTime.now().plusHours(5));
         request.setPickupLocation(new Location(45.2903, -34.0987, "123 Main St"));
         request.setDescription("Vegetarian lasagna");
     }
@@ -79,6 +80,7 @@ class SurplusServiceTest {
         savedPost.setQuantity(request.getQuantity());
         savedPost.setPickupLocation(request.getPickupLocation());
         savedPost.setExpiryDate(request.getExpiryDate());
+        savedPost.setPickupDate(request.getPickupDate());
         savedPost.setPickupFrom(request.getPickupFrom());
         savedPost.setPickupTo(request.getPickupTo());
         savedPost.setDescription(request.getDescription());
@@ -112,6 +114,7 @@ class SurplusServiceTest {
         mockSavedPost.setQuantity(request.getQuantity());
         mockSavedPost.setPickupLocation(request.getPickupLocation());
         mockSavedPost.setExpiryDate(request.getExpiryDate());
+        mockSavedPost.setPickupDate(request.getPickupDate());
         mockSavedPost.setPickupFrom(request.getPickupFrom());
         mockSavedPost.setPickupTo(request.getPickupTo());
         mockSavedPost.setDescription(request.getDescription());
@@ -146,6 +149,7 @@ class SurplusServiceTest {
         mockSavedPost.setQuantity(request.getQuantity());
         mockSavedPost.setPickupLocation(request.getPickupLocation());
         mockSavedPost.setExpiryDate(request.getExpiryDate());
+        mockSavedPost.setPickupDate(request.getPickupDate());
         mockSavedPost.setPickupFrom(request.getPickupFrom());
         mockSavedPost.setPickupTo(request.getPickupTo());
         mockSavedPost.setDescription(request.getDescription());
@@ -165,6 +169,7 @@ class SurplusServiceTest {
         assertThat(capturedPost.getQuantity()).isEqualTo(request.getQuantity());
         assertThat(capturedPost.getPickupLocation()).isEqualTo(request.getPickupLocation());
         assertThat(capturedPost.getExpiryDate()).isEqualTo(request.getExpiryDate());
+        assertThat(capturedPost.getPickupDate()).isEqualTo(request.getPickupDate());
         assertThat(capturedPost.getPickupFrom()).isEqualTo(request.getPickupFrom());
         assertThat(capturedPost.getPickupTo()).isEqualTo(request.getPickupTo());
         assertThat(capturedPost.getDescription()).isEqualTo(request.getDescription());

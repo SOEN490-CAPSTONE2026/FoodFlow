@@ -60,8 +60,9 @@ class SurplusControllerTest {
         
         request.setQuantity(new Quantity(10.0, Quantity.Unit.KILOGRAM));
         request.setExpiryDate(LocalDate.now().plusDays(2));
-        request.setPickupFrom(LocalDateTime.now().plusHours(3));
-        request.setPickupTo(LocalDateTime.now().plusHours(5));
+        request.setPickupDate(LocalDate.now());
+        request.setPickupFrom(LocalTime.now().plusHours(3));
+        request.setPickupTo(LocalTime.now().plusHours(5));
         request.setPickupLocation(new Location(45.2903, -34.0987, "123 Main St"));
         request.setDescription("Vegetarian lasagna with spinach");
 
@@ -77,6 +78,7 @@ class SurplusControllerTest {
         response.setQuantity(new Quantity(10.0, Quantity.Unit.KILOGRAM)); 
 
         response.setExpiryDate(request.getExpiryDate());
+        response.setPickupDate(request.getPickupDate());
         response.setPickupFrom(request.getPickupFrom()); 
         response.setPickupTo(request.getPickupTo()); 
         request.setPickupLocation(new Location(45.2903, -34.0987, "123 Main St"));

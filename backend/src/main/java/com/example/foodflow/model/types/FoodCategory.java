@@ -2,8 +2,7 @@ package com.example.foodflow.model.types;
 
 public enum FoodCategory {
     // Fruits & Vegetables (more specific)
-    FRUITS,
-    VEGETABLES,
+    FRUITS_VEGETABLES("Fruits & Vegetables"),
     LEAFY_GREENS,
     ROOT_VEGETABLES,
     BERRIES,
@@ -12,6 +11,7 @@ public enum FoodCategory {
     
     // Grains & Breads
     BREAD,
+    BAKED_GOODS("Bakery & Pastry"),
     BAKERY_ITEMS,
     WHOLE_GRAINS,
     CEREALS,
@@ -55,6 +55,7 @@ public enum FoodCategory {
     NUT_BUTTERS,
     
     // Frozen Foods
+    FROZEN("Frozen Food"),
     FROZEN_VEGETABLES,
     FROZEN_FRUITS,
     FROZEN_MEALS,
@@ -71,7 +72,7 @@ public enum FoodCategory {
     INSTANT_NOODLES,
     
     // Prepared & Ready-to-Eat
-    PREPARED_MEALS,
+    PREPARED_MEALS("Prepared Meals"),
     READY_TO_EAT,
     SANDWICHES,
     SALADS,
@@ -160,6 +161,7 @@ public enum FoodCategory {
     
     // Dietary Labels
     VEGETARIAN,
+    DAIRY("Dairy & Cold Items"),
     VEGAN,
     GLUTEN_FREE,
     DAIRY_FREE,
@@ -187,11 +189,26 @@ public enum FoodCategory {
     // Other
     MIXED_ITEMS,
     ASSORTED,
+    PACKAGED("Packaged / Pantry Items"),
     BULK_ITEMS,
     EMERGENCY_FOOD_KIT,
     MRE_MILITARY_RATIONS,
     PET_FOOD,
     OTHER;
+
+    private String label;
+
+    FoodCategory(String label){
+        this.label = label;
+    }
+
+    FoodCategory(){
+        this.label = getDisplayName();
+    }
+
+    public String getLabel(){
+        return label;
+    }
     
     public String getDisplayName() {
         String[] words = this.name().split("_");

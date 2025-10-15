@@ -34,6 +34,7 @@ public class SurplusService {
         post.setQuantity(request.getQuantity());
         post.setPickupLocation(request.getPickupLocation());
         post.setExpiryDate(request.getExpiryDate());
+        post.setPickupDate(request.getPickupDate());
         post.setPickupFrom(request.getPickupFrom());
         post.setPickupTo(request.getPickupTo());
         post.setStatus(request.getStatus()); // defaults to AVAILABLE if not set
@@ -64,6 +65,7 @@ public class SurplusService {
         response.setQuantity(post.getQuantity());
         response.setPickupLocation(post.getPickupLocation());
         response.setExpiryDate(post.getExpiryDate());
+        response.setPickupDate(post.getPickupDate());
         response.setPickupFrom(post.getPickupFrom());
         response.setPickupTo(post.getPickupTo());
         response.setStatus(post.getStatus());
