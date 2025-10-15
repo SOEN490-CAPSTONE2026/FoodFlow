@@ -213,6 +213,7 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
                 value={formData.quantityValue}
                 onChange={handleChange}
                 className="input-field"
+                placeholder="0"
                 min="0"
                 step="0.1"
                 required
