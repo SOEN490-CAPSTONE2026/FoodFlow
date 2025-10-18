@@ -2,7 +2,7 @@ h1{
     color: #1B4965;
 }
 .claimed-subtitle{
-    font-size: 1.1rem;
+    font-size: 0.9rem;
     color: #364153;
     margin-top: 0.5rem;
     margin-bottom: 2rem;
@@ -11,16 +11,20 @@ h1{
 /* Filters Container */
 .donation-filters-container {
     display: flex;
-    justify-content: space-between; 
+    justify-content: center; 
     align-items: center;
     margin-bottom: 2rem;
-    gap: 2rem; 
+    gap: 2rem;
+    position: relative; 
 }
 
 .donation-filter-buttons {
-    display: flex;
+display: flex;
     flex-wrap: wrap;
     gap: 1.0rem;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
     background: #F1F5F9;
     padding: 0.1rem;
     border-radius: 16px;
@@ -35,12 +39,12 @@ h1{
     border-radius: 12px;
     border: none;
     background: transparent;
-    color: #64748b;
+    color: #0A0A0A;
     font-weight: 500;
     cursor: pointer;
     position: relative;
     overflow: hidden;
-    font-size: 0.95rem;
+    font-size: 0.8rem;
 }
 
 .filter-btn::before {
@@ -89,8 +93,8 @@ h1{
     gap: 0.5rem;
     padding: 0.5rem 1rem;
     border-radius: 0.5rem;
-    margin-left: auto; 
-    margin-right: 1rem; 
+    position: absolute; 
+    right: 1rem; 
 }
 
 .donation-filter-icon {
@@ -104,4 +108,232 @@ h1{
     color: #374151;
     font-weight: 500;
     cursor: pointer;
+}
+/* Donations Grid */
+.donations-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(350px, 1fr));
+    gap: 1rem;
+    justify-content: center;
+    max-width: 1350px;
+    margin: 0 auto;
+}
+
+
+/* Donation Card */
+.donation-card {
+    background-color: white;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    padding: 0;
+    transition: box-shadow 0.3s;
+}
+
+.donation-card:hover {
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.card-image {
+    position: relative;
+    width: 100%;
+    height: 10rem; 
+    overflow: hidden;
+    margin: 0; 
+    padding: 0; 
+}
+
+.card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+    display: block;
+}
+
+.donation-card:hover .card-image img {
+    transform: scale(1.05);
+}
+
+.status-badge {
+    position: absolute;
+    top: 0.5rem; 
+    left: 0.5rem; 
+    padding: 0.2rem 0.6rem; 
+    border-radius: 9999px;
+    font-size: 0.7rem; 
+    font-weight: 600;
+}
+
+.status-claimed {
+    background-color: #dbeafe;
+    color: #1B4965;
+}
+
+.status-ready-for  {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.status-completed {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
+/* Card Content */
+.card-content {
+    padding: 0.75rem; 
+}
+
+.card-title {
+    font-weight: 700;
+    color: #1B4965;
+    text-align: left;
+    margin-bottom: 0.5rem; 
+    font-size: 1rem; 
+}
+
+.card-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem; 
+    margin-bottom: 0.75rem; 
+}
+
+.detail-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.375rem; 
+    font-size: 0.8rem; 
+    color: #4b5563;
+}
+
+.quantity-detail-icon {
+    margin-top: 0.125rem;
+    flex-shrink: 0;
+    color: #967966;
+}
+.donor-detail-icon {
+    margin-top: 0.125rem;
+    flex-shrink: 0;
+    color: #A1A3A6;
+}
+.date-detail-icon {
+    margin-top: 0.125rem;
+    flex-shrink: 0;
+    color: #9F2D00;
+}
+
+
+/* View Details Container */
+.view-details-container {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0.75rem; 
+    border: none;
+    cursor: pointer;
+    position: relative;
+    border-top: 1px solid #e5e7eb; 
+}
+
+.view-details-container span {
+    color: #364153;
+    text-align: left;
+    font-size: 0.85rem;
+    flex: 1;
+}
+
+.view-details-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px; 
+    height: 28px; 
+    background-color: rgba(27, 73, 101, 0.1); 
+    border: none;
+    border-radius: 30px; 
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.view-details-btn:hover {
+    background-color: rgba(27, 73, 101, 0.2); 
+}
+
+.arrow-icon {
+    color: #1B4965;
+    transition: transform 0.2s;
+}
+
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 4rem 0;
+}
+
+.empty-state .empty-icon {
+    margin: 0 auto 1rem;
+    color: #d1d5db;
+}
+
+.empty-state p {
+    color: #6b7280;
+    font-size: 1.125rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .donation-filters-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .donation-sort-dropdown {
+    position: static;
+    justify-content: flex-end;
+    align-self: flex-end;
+    width: 100%;
+  }
+
+  .donation-filter-buttons {
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 90%;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .donation-filters-container {
+    gap: 0.75rem;
+    padding: 0 1rem;
+  }
+
+  .donation-filter-buttons {
+    gap: 0.5rem;
+    padding: 0.5rem;
+    width: 90%;
+    margin: 0 auto;
+
+  }
+
+  .filter-btn {
+    font-size: 0.7rem;
+    padding: 0.6rem 1rem;
+  }
+
+  .donation-sort-dropdown {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .donation-sort-dropdown select {
+    font-size: 0.8rem;
+  }
 }

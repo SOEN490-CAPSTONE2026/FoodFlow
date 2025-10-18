@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { Package, MapPin, Calendar, ArrowRight, Filter } from 'lucide-react';
 import Select from 'react-select';
 import BakeryPastryImage from '../../assets/foodtypes/Pastry&Bakery.jpg';
@@ -14,7 +14,7 @@ const mockDonations = [
   {
     id: 1,
     status: 'Claimed',
-    foodType: 'canned-goods',
+    foodType: 'Packaged / Pantry Items',
     title: 'Canned Goods & Pantry Items',
     quantity: '40+ assorted items',
     location: 'IGA Extra Supermarché',
@@ -24,7 +24,7 @@ const mockDonations = [
   {
     id: 2,
     status: 'Claimed',
-    foodType: 'soup',
+    foodType: 'Prepared Meals',
     title: 'Homemade Soup & Stew',
     quantity: '8 containers (2L each)',
     location: "Restaurant L'Avenue",
@@ -34,7 +34,7 @@ const mockDonations = [
   {
     id: 3,
     status: 'Claimed',
-    foodType: 'vegetables',
+    foodType: 'Fruits & Vegetables',
     title: 'Assorted Vegetables',
     quantity: '12 kg mixed vegetables',
     location: 'Metro Plus Laurier',
@@ -44,7 +44,7 @@ const mockDonations = [
   {
     id: 4,
     status: 'Ready for Pickup',
-    foodType: 'sandwiches',
+    foodType: 'Prepared Meals',
     title: 'Prepared Sandwiches',
     quantity: '20 sandwiches',
     location: 'Cafe Olimpico',
@@ -54,7 +54,7 @@ const mockDonations = [
   {
     id: 5,
     status: 'Ready for Pickup',
-    foodType: 'pastries',
+    foodType: 'Bakery & Pastry',
     title: 'Assorted Pastries & Croissants',
     quantity: '25 pieces',
     location: 'Pâtisserie Kouign-Amann',
@@ -64,7 +64,7 @@ const mockDonations = [
   {
     id: 6,
     status: 'Ready for Pickup',
-    foodType: 'bread',
+    foodType: 'Bakery & Pastry',
     title: 'Fresh Bread Loaves',
     quantity: '6 loaves',
     location: 'Boulangerie Rosemont',
@@ -74,7 +74,7 @@ const mockDonations = [
   {
     id: 7,
     status: 'Completed',
-    foodType: 'dairy',
+    foodType: 'Dairy & Cold Items',
     title: 'Dairy Products Bundle',
     quantity: '8 yogurt containers, 4 milk cartons',
     location: 'Provigo Le Marché',
@@ -84,7 +84,7 @@ const mockDonations = [
   {
     id: 8,
     status: 'Completed',
-    foodType: 'fruits',
+    foodType: 'Fruits & Vegetables',
     title: 'Fresh Fruit Mix',
     quantity: '15 lbs assorted fruits',
     location: 'Marché Jean-Talon Vendor',
@@ -104,20 +104,20 @@ export default function ReceiverClaimedDonations() {
     { value: 'status', label: 'Sort by Status' }
   ];
 
-  const fetchDonations = useCallback(async () => {
-    setLoading(true);
-    try {
-      // const { data } = await surplusAPI.list();
-      // setItems(Array.isArray(data) ? data : []);
-
-      setError(null);
-    } catch (e) {
-      setError('Failed to load available donations');
-      console.error('fetchDonations error:', e);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  // Fetch Claimed Donations 
+  // const fetchDonations = useCallback(async () => {
+  //   setLoading(true);
+  //   try {
+  //     const { data } = await surplusAPI.list();
+  //     setItems(Array.isArray(data) ? data : []);
+  //     setError(null);
+  //   } catch (e) {
+  //     setError('Failed to load available donations');
+  //     console.error('fetchDonations error:', e);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }, []);
   const getFoodTypeImage = (foodType) => {
     switch (foodType) {
       case 'Bakery & Pastry':
@@ -137,24 +137,6 @@ export default function ReceiverClaimedDonations() {
     }
   };
 
-  const getFoodImageClass = (foodType) => {
-    switch (foodType) {
-      case 'Bakery & Pastry':
-        return 'claimed-food-image-bakery';
-      case 'Fruits & Vegetables':
-        return 'claimed-food-image-fruits-veg';
-      case 'Packaged / Pantry Items':
-        return 'claimed-food-image-packaged';
-      case 'Dairy & Cold Items':
-        return 'claimed-food-image-dairy';
-      case 'Frozen Food':
-        return 'claimed-food-image-frozen';
-      case 'Prepared Meals':
-        return 'claimed-food-image-prepared';
-      default:
-        return 'claimed-food-image-packaged';
-    }
-  };
   const getStatusCount = (status) => {
     if (status === 'All') return mockDonations.length;
     if (status === 'Ready') return mockDonations.filter(d => d.status === 'Ready for Pickup').length;
@@ -207,5 +189,57 @@ export default function ReceiverClaimedDonations() {
           />
         </div>
       </div>
-    </div>);
+      <div className="donations-grid">
+        {filteredDonations.map((donation) => (
+          <div key={donation.id} className="donation-card">
+            {/* Image */}
+            <div className="card-image">
+              <img
+                src={getFoodTypeImage(donation.foodType)}
+                alt={donation.title}
+              />
+              <span className={`status-badge status-${donation.status.toLowerCase().replace(' ', '-')}`}>
+                {donation.status}
+              </span>
+            </div>
+
+            {/* Content */}
+            <div className="card-content">
+              <h3 className="card-title">{donation.title}</h3>
+
+              <div className="card-details">
+                <div className="detail-item">
+                  <Package size={16} className="quantity-detail-icon" />
+                  <span>{donation.quantity}</span>
+                </div>
+                <div className="detail-item">
+                  <MapPin size={16} className="donor-detail-icon" />
+                  <span>{donation.location}</span>
+                </div>
+                <div className="detail-item">
+                  <Calendar size={16} className="date-detail-icon" />
+                  <span>{donation.date}</span>
+                </div>
+              </div>
+
+              {/* View Details Button */}
+              <div className="view-details-container">
+                <span>View details</span>
+                <button className="view-details-btn">
+                  <ArrowRight size={16} className="arrow-icon" />
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {filteredDonations.length === 0 && (
+        <div className="empty-state">
+          <Package size={48} className="empty-icon" />
+          <p>No donations found for this filter.</p>
+        </div>
+      )}
+    </div>
+  );
 }
