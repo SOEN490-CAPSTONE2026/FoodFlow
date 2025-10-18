@@ -335,47 +335,48 @@ describe('ReceiverBrowse Component', () => {
     });
   });
 
-  describe('Polling Mechanism', () => {
-    beforeEach(() => {
-      jest.useFakeTimers();
-    });
-
-    afterEach(() => {
-      jest.runOnlyPendingTimers();
-      jest.useRealTimers();
-    });
-
-    test('sets up polling interval on mount', async () => {
-      surplusAPI.list.mockResolvedValue({ data: [] });
-      const setIntervalSpy = jest.spyOn(global, 'setInterval');
-      
-      await act(async () => {
-        render(<ReceiverBrowse />);
-      });
-
-      expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 8000);
-      
-      setIntervalSpy.mockRestore();
-    });
-
-    test('clears polling interval on unmount', async () => {
-      surplusAPI.list.mockResolvedValue({ data: [] });
-      const clearIntervalSpy = jest.spyOn(global, 'clearInterval');
-      
-      let component;
-      await act(async () => {
-        component = render(<ReceiverBrowse />);
-      });
-      
-      act(() => {
-        component.unmount();
-      });
-
-      expect(clearIntervalSpy).toHaveBeenCalled();
-      
-      clearIntervalSpy.mockRestore();
-    });
+describe('Polling Mechanism', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
   });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+  });
+
+  test('sets up polling interval on mount', async () => {
+    surplusAPI.list.mockResolvedValue({ data: [] });
+    const setIntervalSpy = jest.spyOn(global, 'setInterval');
+    
+    await act(async () => {
+      render(<ReceiverBrowse />);
+    });
+
+    // Change 8000 to 30000 to match your new interval
+    expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 30000);
+    
+    setIntervalSpy.mockRestore();
+  });
+
+  test('clears polling interval on unmount', async () => {
+    surplusAPI.list.mockResolvedValue({ data: [] });
+    const clearIntervalSpy = jest.spyOn(global, 'clearInterval');
+    
+    let component;
+    await act(async () => {
+      component = render(<ReceiverBrowse />);
+    });
+    
+    act(() => {
+      component.unmount();
+    });
+
+    expect(clearIntervalSpy).toHaveBeenCalled();
+    
+    clearIntervalSpy.mockRestore();
+  });
+});
 
   describe('Edge Cases', () => {
     test('handles null expiry date from API', async () => {

@@ -31,11 +31,18 @@ export default function ReceiverBrowse() {
     }
   }, []);
 
-  useEffect(() => {
-    fetchDonations();
-    pollingRef.current = setInterval(fetchDonations, 8000);
-    return () => pollingRef.current && clearInterval(pollingRef.current);
-  }, [fetchDonations]);
+useEffect(() => {
+  fetchDonations();
+  
+  const pollIfVisible = () => {
+    if (document.visibilityState === 'visible') {
+      fetchDonations();
+    }
+  };
+  
+  pollingRef.current = setInterval(pollIfVisible, 30000);
+  return () => pollingRef.current && clearInterval(pollingRef.current);
+}, [fetchDonations]);
 
   const handleMoreClick = useCallback((item) => {
     setExpandedCardId(prev => prev === item.id ? null : item.id);
@@ -160,7 +167,7 @@ export default function ReceiverBrowse() {
 
   return (
     <div className="receiver-browse-container">
-      <h2 className="receiver-section-title">Explore Available Donations</h2>
+      <h1 className="receiver-section-title">Explore Available Donations</h1>
       {error && (
         <div role="alert" className="receiver-error-message">
           {error}

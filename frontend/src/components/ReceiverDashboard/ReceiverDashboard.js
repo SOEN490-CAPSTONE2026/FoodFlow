@@ -2,7 +2,7 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import ReceiverLayout from "./ReceiverLayout";
-import ReceiverDashboardHome from "./ReceiverDashboardHome";
+import ReceiverClaimedDonations from "./ReceiverClaimedDonations";
 import ReceiverBrowse from "./ReceiverBrowse";
 import ReceiverRequests from "./ReceiverRequests";
 import ReceiverSearch from "./ReceiverSearch";
@@ -14,10 +14,10 @@ export default function ReceiverDashboard() {
     <Routes>
       <Route element={<ReceiverLayout />}>
         
-        <Route index element={<ReceiverDashboardHome />} />
-        <Route path="dashboard" element={<ReceiverDashboardHome />} />
-        <Route path="welcome" element={<ReceiverWelcome />} /> 
-        <Route path="browse" element={<ReceiverBrowse />} />
+        <Route index element={<ReceiverClaimedDonations />} />
+        <Route path="dashboard" element={<ReceiverClaimedDonations />} />
+        <Route path="welcome" element={<ReceiverBrowse />} /> 
+        <Route path="browse" element={<ReceiverWelcome />} />
         <Route path="requests" element={<ReceiverRequests />} />
         <Route path="search" element={<ReceiverSearch />} />
 

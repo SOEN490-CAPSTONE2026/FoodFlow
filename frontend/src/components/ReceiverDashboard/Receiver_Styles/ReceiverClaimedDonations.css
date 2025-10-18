@@ -1,0 +1,107 @@
+h1{
+    color: #1B4965;
+}
+.claimed-subtitle{
+    font-size: 1.1rem;
+    color: #364153;
+    margin-top: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+/* Filters Container */
+.donation-filters-container {
+    display: flex;
+    justify-content: space-between; 
+    align-items: center;
+    margin-bottom: 2rem;
+    gap: 2rem; 
+}
+
+.donation-filter-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.0rem;
+    background: #F1F5F9;
+    padding: 0.1rem;
+    border-radius: 16px;
+    border: #F4E6E6 0.8px solid;
+}
+
+.filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 12px;
+    border: none;
+    background: transparent;
+    color: #64748b;
+    font-weight: 500;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    font-size: 0.95rem;
+}
+
+.filter-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #1B4965;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-radius: 10px;
+}
+
+.filter-btn:hover {
+    color: #475569;
+}
+
+.filter-btn.active {
+    color: white;
+}
+
+.filter-btn.active::before {
+    opacity: 1;
+}
+
+.filter-btn span {
+    position: relative;
+    z-index: 1;
+}
+
+.donation-filter-count {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    font-weight: 400;
+}
+
+.filter-btn.active .donation-filter-count {
+    opacity: 0.9;
+}
+
+.donation-sort-dropdown {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    margin-left: auto; 
+    margin-right: 1rem; 
+}
+
+.donation-filter-icon {
+    color: #6b7280;
+}
+
+.donation-sort-dropdown select {
+    border: none;
+    background: transparent;
+    outline: none;
+    color: #374151;
+    font-weight: 500;
+    cursor: pointer;
+}
