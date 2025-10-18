@@ -64,6 +64,10 @@ public class SecurityConfig {
                 .requestMatchers("/donor/**").hasAuthority("DONOR")
                 .requestMatchers("/receiver/**").hasAuthority("RECEIVER")
                 .requestMatchers("/admin/**").hasAuthority("ADMIN")
+
+                .requestMatchers("/ws/**").permitAll()  // Allow WebSocket connections
+                .requestMatchers("/api/messages/**").authenticated()  // Require auth for messages
+
                 
                 // All other requests require authentication
                 .anyRequest().authenticated()

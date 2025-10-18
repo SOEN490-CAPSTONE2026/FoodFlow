@@ -11,6 +11,8 @@ import { AuthProvider } from './contexts/AuthContext';
 import { useAnalytics } from './hooks/useAnalytics';
 import PrivateRoutes from './components/PrivateRoutes';
 
+import Messages from './components/Messages';
+
 /* Dashboards */
 import AdminDashboard from './components/AdminDashboard/AdminDashboard';
 import DonorDashboard from './components/DonorDashboard/DonorDashboard';
@@ -80,7 +82,8 @@ function AppContent() {
         />
         <Route path="/surplus/create" element={<SurplusForm />} />
         <Route path="/my-posts" element={<MyPosts />} />
-         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="messages" element={<Messages />} />
       </Routes>
     </div>
   );
