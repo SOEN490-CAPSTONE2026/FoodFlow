@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { Calendar, Clock, MapPin, Edit, Trash2, AlertTriangle, X, Package } from "lucide-react";
 import { LoadScript } from "@react-google-maps/api";
-import { AuthContext } from '../../contexts/AuthContext';
+// import { AuthContext } from '../../contexts/AuthContext';
 import { surplusAPI } from '../../services/api';
 import SurplusFormModal from "../DonorDashboard/SurplusFormModal";
 import "../DonorDashboard/Donor_Styles/DonorListFood.css";
@@ -12,13 +12,15 @@ const libraries = ['places'];
 function statusClass(status) {
   switch (status) {
     case "available":
-      return "badge badge--ok";
-    case "expiring-soon":
-      return "badge badge--warn";
+      return "badge badge--available";
+    case "ready-for-pickup":
+      return "badge badge--ready";
     case "claimed":
-      return "badge badge--muted";
-    case "expired":
-      return "badge badge--danger";
+      return "badge badge--claimed";
+    case "not-completed":
+      return "badge badge--not-completed";
+    case "completed":
+      return "badge badge--completed";
     default:
       return "badge";
   }
@@ -80,15 +82,109 @@ function formatPickupTime(from, to) {
     return 'Flexible';
   }
 }
+// Mock data for testing different badge statuses
+const MOCK_DATA = [
+  {
+    id: 1,
+    foodName: "Artisan Bread Selection",
+    status: "ready-for-pickup",
+    foodType: "Bakery",
+    quantity: "8",
+    unit: "loaves",
+    expiryDate: "Oct 5, 2025",
+    pickupFrom: "2025-10-05T09:00:00",
+    pickupTo: "12:00",
+    location: "Westmount Village, Montreal, QC",
+    notes: "Fresh sourdough, whole wheat, and gluten-free options. Baked this morning with organic ingredients. Great for sandwiches or toast."
+  },
+  {
+    id: 2,
+    foodName: "Dairy & Protein Pack",
+    status: "not-completed",
+    foodType: "Dairy",
+    quantity: "12",
+    unit: "items",
+    expiryDate: "Oct 2, 2025",
+    pickupFrom: "2025-10-02T13:00:00",
+    pickupTo: "15:00",
+    location: "Old Port, Montreal, QC",
+    notes: "Includes organic milk, Greek yogurt, aged cheddar cheese, and free-range eggs. All from local Quebec producers."
+  },
+  {
+    id: 3,
+    foodName: "Seasonal Vegetable Mix",
+    status: "completed",
+    foodType: "Vegetables",
+    quantity: "3.5",
+    unit: "kg",
+    expiryDate: "Oct 10, 2025",
+    pickupFrom: "2025-10-10T16:00:00",
+    pickupTo: "19:00",
+    location: "Plateau Mont-Royal, Montreal, QC",
+    notes: "Fresh carrots, bell peppers, zucchini, and tomatoes from local farm. Perfect for stir-fry, soups, or salads. All pesticide-free."
+  },
+  {
+    id: 4,
+    foodName: "International Prepared Meals",
+    status: "available",
+    foodType: "Prepared Meals",
+    quantity: "15",
+    unit: "portions",
+    expiryDate: "Oct 12, 2025",
+    pickupFrom: "2025-10-12T17:00:00",
+    pickupTo: "20:00",
+    location: "Little Italy, Montreal, QC",
+    notes: "Homemade Italian pasta dishes, Thai curry, and Indian dal. All vegetarian, properly frozen and labeled. Ready to heat and serve."
+  },
+  {
+    id: 5,
+    foodName: "Gourmet Beverages",
+    status: "available",
+    foodType: "Beverages",
+    quantity: "24",
+    unit: "bottles",
+    expiryDate: "Oct 15, 2025",
+    pickupFrom: "2025-10-15T10:00:00",
+    pickupTo: "14:00",
+    location: "Old Montreal, Montreal, QC",
+    notes: "Artisan sodas, fresh juices, herbal teas, and kombucha. Mix of local Quebec brands and specialty imports. All unopened and refrigerated."
+  },
+  {
+    id: 6,
+    foodName: "Fresh Bakery Items",
+    status: "claimed",
+    foodType: "Bakery",
+    quantity: "20",
+    unit: "items",
+    expiryDate: "Oct 8, 2025",
+    pickupFrom: "2025-10-08T08:00:00",
+    pickupTo: "10:00",
+    location: "NDG, Montreal, QC",
+    notes: "Assorted pastries, croissants, and muffins from local bakery. Freshly baked yesterday morning."
+  }
+];
+
+// Toggle between mock data and real API
+const USE_MOCK_DATA = true; // Set to false to use real API
+
 export default function DonorListFood() {
   const [items, setItems] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { user } = useContext(AuthContext);
 
   useEffect(() => {
-    fetchMyPosts();
+    if (USE_MOCK_DATA) {
+      // Use mock data
+      setTimeout(() => {
+        setItems(MOCK_DATA);
+        setLoading(false);
+      }, 500); // Simulate loading delay
+    } else {
+      // Use real API
+      fetchMyPosts();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchMyPosts = async () => {
@@ -177,36 +273,18 @@ export default function DonorListFood() {
             <article key={item.id} className="donation-card" aria-label={item.foodName}>
               <div className="donation-header">
                 <h3 className="donation-title">{item.foodName}</h3>
-                <span
-                  className={statusClass(item.status)}
-                  style={{
-                    padding: '6px 12px',
-                    fontSize: '14px',
-                    borderRadius: '6px',
-                    fontWeight: '500',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    backgroundColor:
-                      item.status === "available" ? '#dcfce7' :
-                        item.status === "expiring-soon" ? '#e98e64ff' :
-                          item.status === "claimed" ? '#dbeafe' :
-                            item.status === "expired" ? '#fee2e2' : '#f3f4f6',
-                    color:
-                      item.status === "available" ? '#166534' :
-                        item.status === "expiring-soon" ? '#9a3412' :
-                          item.status === "claimed" ? '#1e40af' :
-                            item.status === "expired" ? '#991b1b' : '#374151',
-                  }}
-                >
-                  {item.status === "expiring-soon" && <AlertTriangle size={16} />}
+                <span className={statusClass(item.status)}>
                   {item.status === "available"
                     ? "Available"
-                    : item.status === "expiring-soon"
-                      ? "Expiring Soon"
+                    : item.status === "ready-for-pickup"
+                      ? "Ready for Pickup"
                       : item.status === "claimed"
                         ? "Claimed"
-                        : "Expired"}
+                        : item.status === "not-completed"
+                          ? "Not Completed"
+                          : item.status === "completed"
+                            ? "Completed"
+                            : item.status}
                 </span>
               </div>
 
