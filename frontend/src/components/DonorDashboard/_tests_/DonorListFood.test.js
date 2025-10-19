@@ -78,7 +78,7 @@ const mockItems = [
     pickupTo: "12:00",
     location: "456 Oak Ave, Town, State 67890",
     notes: "Fresh sourdough, whole wheat, and gluten-free options",
-    status: "expiring-soon"
+    status: "not-completed"
   }
 ];
 
