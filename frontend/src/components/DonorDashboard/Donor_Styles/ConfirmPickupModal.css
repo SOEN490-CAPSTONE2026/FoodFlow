@@ -1,0 +1,189 @@
+/* Confirm Pickup Modal Overlay */
+.confirm-pickup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+/* Modal Container */
+.confirm-pickup-modal {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 480px;
+  width: 100%;
+  position: relative;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Close Button */
+.confirm-pickup-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.confirm-pickup-close:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+/* Title and Subtitle */
+.confirm-pickup-title {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1B4965;
+  text-align: center;
+}
+
+.confirm-pickup-subtitle {
+  margin: 0 0 24px 0;
+  font-size: 14px;
+  color: #6b7280;
+  text-align: center;
+}
+
+/* Code Inputs Container */
+.confirm-pickup-code-inputs {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+/* Individual Code Input */
+.confirm-pickup-code-input {
+  width: 56px;
+  height: 64px;
+  border: 2px solid #d1d5db;
+  border-radius: 12px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 600;
+  color: #1f2937;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.confirm-pickup-code-input:focus {
+  border-color: #0f4c5c;
+  box-shadow: 0 0 0 3px rgba(15, 76, 92, 0.1);
+}
+
+.confirm-pickup-code-input:hover {
+  border-color: #9ca3af;
+}
+
+/* Error Message */
+.confirm-pickup-error {
+  color: #dc2626;
+  font-size: 13px;
+  text-align: center;
+  margin: 0 0 16px 0;
+  font-weight: 500;
+}
+
+/* Info Text */
+.confirm-pickup-info {
+  font-size: 13px;
+  color: #6b7280;
+  text-align: center;
+  margin: 0 0 24px 0;
+}
+
+.confirm-pickup-link {
+  background: transparent;
+  border: none;
+  color: #0f4c5c;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  font-size: 13px;
+}
+
+.confirm-pickup-link:hover {
+  color: #136b80;
+}
+
+/* Action Buttons */
+.confirm-pickup-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.confirm-pickup-button {
+  padding: 12px 32px;
+  border-radius: 50px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 140px;
+}
+
+.confirm-pickup-button.primary {
+  background: #0891B2;
+  color: white;
+}
+
+.confirm-pickup-button.primary:hover {
+  background: #0e7490;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);
+}
+
+.confirm-pickup-button.secondary {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.confirm-pickup-button.secondary:hover {
+  background: #e5e7eb;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .confirm-pickup-modal {
+    padding: 24px;
+  }
+
+  .confirm-pickup-code-input {
+    width: 48px;
+    height: 56px;
+    font-size: 20px;
+  }
+
+  .confirm-pickup-code-inputs {
+    gap: 8px;
+  }
+
+  .confirm-pickup-actions {
+    flex-direction: column;
+  }
+
+  .confirm-pickup-button {
+    width: 100%;
+  }
+}

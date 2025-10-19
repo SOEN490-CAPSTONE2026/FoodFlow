@@ -4,6 +4,8 @@ import { LoadScript } from "@react-google-maps/api";
 // import { AuthContext } from '../../contexts/AuthContext';
 import { surplusAPI } from '../../services/api';
 import SurplusFormModal from "../DonorDashboard/SurplusFormModal";
+import ConfirmPickupModal from "../DonorDashboard/ConfirmPickupModal";
+import ClaimedSuccessModal from "../DonorDashboard/ClaimedSuccessModal";
 import "../DonorDashboard/Donor_Styles/DonorListFood.css";
 
 // Define libraries for Google Maps
@@ -165,11 +167,14 @@ const MOCK_DATA = [
 ];
 
 // Toggle between mock data and real API
-const USE_MOCK_DATA = true; // Set to false to use real API
+const USE_MOCK_DATA = false; // Set to false to use real API
 
 export default function DonorListFood() {
   const [items, setItems] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPickupModalOpen, setIsPickupModalOpen] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -216,6 +221,24 @@ export default function DonorListFood() {
   const handleModalClose = () => {
     setIsModalOpen(false);
     fetchMyPosts();
+  };
+
+  const handleOpenPickupModal = (item) => {
+    setSelectedItem(item);
+    setIsPickupModalOpen(true);
+  };
+
+  const handleClosePickupModal = () => {
+    setIsPickupModalOpen(false);
+    setSelectedItem(null);
+  };
+
+  const handlePickupSuccess = () => {
+    setIsSuccessModalOpen(true);
+  };
+
+  const handleCloseSuccessModal = () => {
+    setIsSuccessModalOpen(false);
   };
 
   if (loading) {
@@ -325,18 +348,53 @@ export default function DonorListFood() {
 
               {item.notes && <p className="donation-notes">{item.notes}</p>}
 
-              <div className="donation-actions">
-                <button className="donation-link" onClick={() => openEdit(item)}>
-                  <Edit className="icon" /> Edit
-                </button>
-                <button className="donation-link danger" onClick={() => requestDelete(item.id)}>
-                  <Trash2 className="icon" /> Delete
-                </button>
-              </div>
+              {(item.status === "available" || item.status === "not-completed") ? (
+                <div className="donation-actions">
+                  <button className="donation-link" onClick={() => openEdit(item)}>
+                    <Edit className="icon" /> Edit
+                  </button>
+                  <button className="donation-link danger" onClick={() => requestDelete(item.id)}>
+                    <Trash2 className="icon" /> Delete
+                  </button>
+                </div>
+              ) : (
+                <div className="donation-actions">
+                  {item.status === "ready-for-pickup" && (
+                    <button 
+                      className="donation-action-button primary"
+                      onClick={() => handleOpenPickupModal(item)}
+                    >
+                      ENTER PICKUP CODE
+                    </button>
+                  )}
+                  {item.status === "completed" && (
+                    <button className="donation-action-button secondary" disabled>
+                      THANK YOU
+                    </button>
+                  )}
+                  {item.status === "claimed" && (
+                    <button className="donation-action-button primary">
+                      OPEN CHAT
+                    </button>
+                  )}
+                </div>
+              )}
             </article>
           ))}
         </section>
       )}
+
+      <ConfirmPickupModal
+        isOpen={isPickupModalOpen}
+        onClose={handleClosePickupModal}
+        donationItem={selectedItem}
+        onSuccess={handlePickupSuccess}
+      />
+
+      <ClaimedSuccessModal
+        isOpen={isSuccessModalOpen}
+        onClose={handleCloseSuccessModal}
+      />
     </div>
   );
 }
