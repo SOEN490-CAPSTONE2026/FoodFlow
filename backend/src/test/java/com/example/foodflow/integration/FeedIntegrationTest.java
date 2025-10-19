@@ -55,8 +55,9 @@ class FeedIntegrationTest {
 
         String token = objectMapper.readTree(loginResult.getResponse().getContentAsString()).get("token").asText();
 
-        // Test feed loads using existing surplus endpoint (no auth required)
-        mockMvc.perform(get("/api/surplus"))
+        // Test feed loads using existing surplus endpoint (requires RECEIVER auth)
+        mockMvc.perform(get("/api/surplus")
+                        .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
@@ -87,13 +88,17 @@ class FeedIntegrationTest {
 
         String token = objectMapper.readTree(loginResult.getResponse().getContentAsString()).get("token").asText();
 
-        // Create surplus post
+        // Create surplus post with correct DTO fields
         String postJson = "{" +
-                "\"type\": \"Milk\"," +
-                "\"quantity\": \"2 liters\"," +
-                "\"expiryDate\": \"2030-01-01T12:00:00\"," +
-                "\"pickupTime\": \"2030-01-01T15:00:00\"," +
-                "\"location\": \"Donor Street 2\"}";
+                "\"foodName\": \"Milk\"," +
+                "\"foodType\": \"Dairy\"," +
+                "\"expiryDate\": \"2030-01-01\"," +
+                "\"quantity\": 2.0," +
+                "\"unit\": \"liters\"," +
+                "\"pickupFrom\": \"2030-01-01T15:00:00\"," +
+                "\"pickupTo\": \"18:00:00\"," +
+                "\"location\": \"Donor Street 2\"," +
+                "\"notes\": \"Fresh milk available\"}";
 
         mockMvc.perform(post("/api/surplus")
                         .header("Authorization", "Bearer " + token)
@@ -151,13 +156,17 @@ class FeedIntegrationTest {
 
         String receiverToken = objectMapper.readTree(receiverLoginResult.getResponse().getContentAsString()).get("token").asText();
 
-        // Donor creates a surplus post
+        // Donor creates a surplus post with correct DTO fields
         String postJson = "{" +
-                "\"type\": \"Bread\"," +
-                "\"quantity\": \"5 loaves\"," +
-                "\"expiryDate\": \"2030-01-01T12:00:00\"," +
-                "\"pickupTime\": \"2030-01-01T15:00:00\"," +
-                "\"location\": \"Donor Street 1\"}";
+                "\"foodName\": \"Bread\"," +
+                "\"foodType\": \"Bakery\"," +
+                "\"expiryDate\": \"2030-01-01\"," +
+                "\"quantity\": 5.0," +
+                "\"unit\": \"loaves\"," +
+                "\"pickupFrom\": \"2030-01-01T15:00:00\"," +
+                "\"pickupTo\": \"18:00:00\"," +
+                "\"location\": \"Donor Street 1\"," +
+                "\"notes\": \"Fresh bread available\"}";
 
         mockMvc.perform(post("/api/surplus")
                         .header("Authorization", "Bearer " + donorToken)
@@ -165,8 +174,9 @@ class FeedIntegrationTest {
                         .content(postJson))
                 .andExpect(status().isCreated());
 
-        // Verify the post appears in the feed using existing surplus endpoint (no auth required)
-        mockMvc.perform(get("/api/surplus"))
+        // Verify the post appears in the feed using existing surplus endpoint (requires RECEIVER auth)
+        mockMvc.perform(get("/api/surplus")
+                        .header("Authorization", "Bearer " + receiverToken))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
