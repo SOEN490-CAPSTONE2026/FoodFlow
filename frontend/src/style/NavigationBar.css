@@ -206,3 +206,25 @@ a[href^="#"] {
         font-size: 0.9rem;
     }
 }
+
+
+/*Return to the dashboard from the landing papge button*/
+
+.return-chip {
+  background-color: transparent;
+  color: #1B4965;
+  border: 2px solid #1B4965;
+  transition: all 0.3s ease;
+  padding: 0.7rem 1.8rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 50px;
+}
+.return-chip:hover {
+  background-color: #1B4965;
+  color: #fff;
+  transform: translateY(-2px);
+}
+.return-chip-avatar { display: none; }
+.return-chip-text { color: inherit; font-size: inherit; }

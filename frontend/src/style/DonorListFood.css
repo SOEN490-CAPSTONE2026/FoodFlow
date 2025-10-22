@@ -107,19 +107,42 @@
 }
 
 .badge {
-  border-radius: 999px;
-  padding: 4px 10px;
-  font-size: 12px;
-  font-weight: 700;
-  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  white-space: nowrap;
 }
-.badge--ok     { background: var(--ok-bg);     color: var(--ok-text); }
-.badge--warn   { background: var(--warn-bg);   color: var(--warn-text); }
-.badge--danger { background: var(--danger-bg); color: var(--danger-text); }
-.badge--muted  { background: var(--claimed-bg); color: var(--claimed-text); }
+
+/* Status-specific badge styles matching the design */
+.badge--available { 
+  background: #10b981; 
+  color: #ffffff; 
+}
+
+.badge--ready { 
+  background: #0891b2; 
+  color: #ffffff; 
+}
+
+.badge--claimed { 
+  background: #9ca3af; 
+  color: #ffffff; 
+}
+
+.badge--not-completed { 
+  background: #ef4444; 
+  color: #ffffff; 
+}
+
+.badge--completed { 
+  background: #d1d5db; 
+  color: #6b7280; 
+}
 
 /* Tags */
 .dc-tags {

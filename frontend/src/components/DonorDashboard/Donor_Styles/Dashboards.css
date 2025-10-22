@@ -1,0 +1,547 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+}
+
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #F7FBFD;
+}
+
+.admin-sidebar {
+  width: 260px;
+  background: #1B4965;
+  color: #fff;
+  padding: 18px 0 0 0;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease;
+  position: relative;
+}
+
+.admin-sidebar-header {
+  padding: 0 22px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, .1);
+  margin-bottom: 18px;
+}
+
+.admin-sidebar-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.admin-nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 0 14px;
+  padding-bottom: 180px;
+}
+
+.admin-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  color: rgba(255, 255, 255, .92);
+  text-decoration: none;
+  border-radius: 12px;
+  transition: all .2s ease;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.admin-nav-link:hover {
+  background: rgba(255, 255, 255, .12);
+  color: #fff;
+}
+
+.admin-nav-link.active {
+  background: linear-gradient(135deg, #62B6CB, #3577a0);
+  color: #fff;
+  font-weight: 700;
+}
+
+.nav-icon {
+  display: inline-flex;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.nav-icon .lucide {
+  width: 20px;
+  height: 20px;
+  stroke: #fff;
+  opacity: .9;
+}
+
+.admin-user {
+  position: relative;
+}
+
+.user-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #e6f2f7;
+  background: #F1FAFE;
+  color: #1B4965;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.user-chip:hover {
+  background: #ecf8fd;
+}
+
+.chev {
+  font-size: 10px;
+}
+
+.account-menu {
+  position: absolute;
+  right: 0;
+  bottom: 100%;
+  margin-bottom: 8px;
+  min-width: 180px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+  overflow: hidden;
+  z-index: 10;
+}
+
+.account-menu-item {
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  font-size: 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background-color .2s ease;
+}
+
+.account-menu-item:hover {
+  background: #f6fafc;
+}
+
+.account-menu-item.logout {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+.account-menu-item.logout:hover {
+  background: #fff5f5;
+  color: #dc3545;
+}
+
+.account-menu-divider {
+  height: 1px;
+  background: #e0e0e0;
+  margin: 4px 0;
+}
+
+.admin-sidebar-footer {
+  margin-top: auto;
+  position: relative;
+}
+
+.admin-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.admin-topbar {
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 14px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.admin-topbar-left h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1B4965;
+}
+
+.admin-topbar-left p {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.admin-content {
+  padding: 24px;
+  flex: 1;
+  overflow: auto;
+}
+
+.admin-nav-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.messages-link {
+  cursor: default;
+}
+
+.messages-toggle {
+  margin-left: auto;
+  opacity: .7;
+  background: none;
+  border: none;
+  padding: 0;
+  display: inline-flex;
+}
+
+.messages-dropdown {
+  padding-left: 12px;
+  padding-right: 14px;
+  margin-top: 6px;
+  margin-bottom: 6px;
+}
+
+.message-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 8px;
+}
+
+.message-avatar {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ffffff;
+  flex: 0 0 32px;
+}
+
+.message-status {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 0 2px #1B4965;
+}
+
+.message-name {
+  color: rgba(255, 255, 255, .92);
+  font-size: 14px;
+}
+
+@media (max-width: 1440px) {
+  .admin-content {
+    padding: 20px;
+  }
+
+  .admin-topbar {
+    padding: 12px 20px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .admin-sidebar {
+    width: 220px;
+  }
+
+  .admin-nav-link {
+    font-size: 14px;
+    padding: 12px 14px;
+  }
+
+  .admin-sidebar-header h2 {
+    font-size: 18px;
+  }
+
+  .admin-content {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .admin-sidebar {
+    width: 200px;
+  }
+
+  .admin-nav-links {
+    gap: 12px;
+    padding: 0 12px;
+  }
+
+  .admin-nav-link {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+
+  .nav-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .admin-topbar-left h1 {
+    font-size: 20px;
+  }
+
+  .admin-content {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 968px) {
+  .admin-sidebar {
+    width: 180px;
+  }
+
+  .admin-sidebar-header {
+    padding: 0 16px 14px;
+  }
+
+  .admin-sidebar-header h2 {
+    font-size: 16px;
+  }
+
+  .admin-nav-link {
+    font-size: 13px;
+    padding: 10px 12px;
+  }
+
+  .admin-topbar {
+    padding: 12px 16px;
+  }
+
+  .admin-topbar-left h1 {
+    font-size: 18px;
+  }
+
+  .admin-topbar-left p {
+    font-size: 13px;
+  }
+
+  .user-chip {
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+}
+
+@media (max-height: 900px) {
+  .admin-sidebar-header {
+    padding: 0 22px 12px;
+    margin-bottom: 12px;
+  }
+
+  .admin-sidebar-header h2 {
+    font-size: 18px;
+  }
+
+  .admin-nav-links {
+    gap: 10px;
+  }
+
+  .admin-nav-link {
+    padding: 10px 14px;
+    font-size: 14px;
+    gap: 10px;
+  }
+
+  .nav-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .nav-icon .lucide {
+    width: 18px;
+    height: 18px;
+  }
+
+  .message-item {
+    padding: 7px 8px;
+    gap: 10px;
+  }
+
+  .message-avatar {
+    width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+  }
+
+  .message-status {
+    width: 7px;
+    height: 7px;
+  }
+
+  .message-name {
+    font-size: 13px;
+  }
+
+  .messages-dropdown {
+    margin-top: 4px;
+    margin-bottom: 4px;
+  }
+
+  .admin-nav-bottom {
+    gap: 6px;
+  }
+}
+
+@media (max-height: 800px) {
+  .admin-sidebar-header {
+    padding: 0 22px 10px;
+    margin-bottom: 10px;
+  }
+
+  .admin-sidebar-header h2 {
+    font-size: 17px;
+  }
+
+  .admin-nav-links {
+    gap: 7px;
+    padding-bottom: 160px;
+  }
+
+  .admin-nav-link {
+    padding: 8px 12px;
+    font-size: 13px;
+    gap: 8px;
+  }
+
+  .message-item {
+    padding: 6px 8px;
+  }
+
+  .message-avatar {
+    width: 26px;
+    height: 26px;
+    flex: 0 0 26px;
+  }
+
+  .admin-nav-bottom {
+    gap: 5px;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-layout {
+    flex-direction: column;
+  }
+
+  .admin-sidebar {
+    width: 100%;
+    padding: 12px 0 0 0;
+    position: relative;
+    height: auto;
+  }
+
+  .admin-sidebar-header {
+    padding: 0 16px 12px;
+    margin-bottom: 12px;
+  }
+
+  .admin-nav-links {
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 0 12px 8px;
+    gap: 8px;
+    scrollbar-width: thin;
+    flex: none;
+  }
+
+  .admin-nav-links::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .admin-nav-links::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, .3);
+    border-radius: 2px;
+  }
+
+  .admin-nav-link {
+    flex-shrink: 0;
+    font-size: 14px;
+  }
+
+  .admin-nav-bottom {
+    position: static !important;
+    flex-direction: row;
+    border-top: 1px solid rgba(255, 255, 255, .1);
+    padding: 12px;
+    gap: 8px;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+  }
+
+  .admin-sidebar-footer {
+    padding: 8px 12px;
+    position: static !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+  }
+
+  .admin-topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+  }
+
+  .admin-content {
+    padding: 16px;
+  }
+
+  .account-menu {
+    right: auto;
+    left: 0;
+  }
+
+  .messages-dropdown {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-sidebar-header h2 {
+    font-size: 16px;
+  }
+
+  .admin-topbar-left h1 {
+    font-size: 18px;
+  }
+
+  .admin-nav-link {
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+
+  .admin-content {
+    padding: 12px;
+  }
+
+  .user-chip {
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+}

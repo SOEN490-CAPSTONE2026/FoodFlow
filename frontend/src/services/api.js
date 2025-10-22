@@ -44,4 +44,9 @@ export const authAPI = {
   },
 };
 
+export const surplusAPI = {
+  list: () => api.get('/surplus'),
+  getMyPosts: () => api.get('/surplus/my-posts'),
+};
+
 export default api;

@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import ReceiverLayout from "../ReceiverLayout";
@@ -38,89 +38,78 @@ describe("ReceiverLayout", () => {
     mockLogout.mockReset();
   });
 
-  test("renders dashboard title/description at /receiver", () => {
+  test("renders dashboard title/description at /receiver and marks 'My Claims' active", () => {
     renderAt("/receiver");
-    expect(
-      screen.getByRole("heading", { name: /receiver dashboard/i })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/overview of nearby food and your activity/i)
-    ).toBeInTheDocument();
-    const dashboardLink = screen.getByRole("link", { name: /dashboard/i });
-    expect(dashboardLink).toHaveClass("receiver-nav-link");
-    expect(dashboardLink).toHaveClass("active");
+    expect(screen.getByRole("heading", { name: /receiver dashboard/i })).toBeInTheDocument();
+    expect(screen.getByText(/overview of nearby food and your activity/i)).toBeInTheDocument();
+
+    const nav = screen.getByText(/my claims/i).closest("a");
+    expect(nav).toHaveClass("receiver-nav-link");
+    expect(nav).toHaveClass("active");
   });
 
-  test("renders welcome title/description at /receiver/welcome", () => {
+  test("renders welcome title/description at /receiver/welcome and marks 'Donations' active", () => {
     renderAt("/receiver/welcome");
-    expect(
-      screen.getByRole("heading", { name: /welcome/i })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/start here: search the map or browse nearby food/i)
-    ).toBeInTheDocument();
-    const link = screen.getByRole("link", { name: /welcome/i });
+    expect(screen.getByRole("heading", { name: /welcome/i })).toBeInTheDocument();
+    expect(screen.getByText(/start here: search the map or browse nearby food/i)).toBeInTheDocument();
+
+    const link = screen.getByRole("link", { name: /^donations$/i });
     expect(link).toHaveClass("active");
   });
 
-  test("renders browse title/description at /receiver/browse", () => {
+  test("renders browse title/description at /receiver/browse and marks 'Saved Donations' active", () => {
     renderAt("/receiver/browse");
-    expect(
-      screen.getByRole("heading", { name: /browse available food/i })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/browse available food listings/i)
-    ).toBeInTheDocument();
-    const link = screen.getByRole("link", { name: /find food/i });
+    expect(screen.getByRole("heading", { name: /browse available food/i })).toBeInTheDocument();
+    expect(screen.getByText(/browse available food listings/i)).toBeInTheDocument();
+
+    const link = screen.getByRole("link", { name: /^saved donations$/i });
     expect(link).toHaveClass("active");
   });
 
-  test("renders requests title/description at /receiver/requests", () => {
+  test("renders requests title/description at /receiver/requests and marks 'Messages' active", () => {
     renderAt("/receiver/requests");
-    expect(
-      screen.getByRole("heading", { name: /my requests/i })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/manage your food requests/i)
-    ).toBeInTheDocument();
-    const link = screen.getByRole("link", { name: /my requests/i });
+    expect(screen.getByRole("heading", { name: /my requests/i })).toBeInTheDocument();
+    expect(screen.getByText(/manage your food requests/i)).toBeInTheDocument();
+
+    const link = screen.getByRole("link", { name: /^messages$/i });
     expect(link).toHaveClass("active");
   });
 
   test("renders search title/description at /receiver/search", () => {
     renderAt("/receiver/search");
-    expect(
-      screen.getByRole("heading", { name: /search organizations/i })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/search for food donors/i)
-    ).toBeInTheDocument();
-    const link = screen.getByRole("link", { name: /search/i });
-    expect(link).toHaveClass("active");
+    expect(screen.getByRole("heading", { name: /search organizations/i })).toBeInTheDocument();
+    expect(screen.getByText(/search for food donors/i)).toBeInTheDocument();
   });
 
-  test("opens dropdown and logs out via navigate", async () => {
+  test("opens account menu via avatar button and logs out", async () => {
     renderAt("/receiver");
-    
-    const menu = screen.getByText(/receiver account/i);
-    fireEvent.click(menu);
-    const logoutBtn = screen.getByText(/log out/i);
+
+    const avatarBtn = screen.getByRole("button", { name: /account menu/i });
+    fireEvent.click(avatarBtn);
+
+    const menu = screen.getByText(/logout/i).closest(".dropdown-menu");
+    expect(menu).toBeInTheDocument();
+
+    const logoutBtn = within(menu).getByText(/logout/i);
     fireEvent.click(logoutBtn);
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(
-        "/",
-        expect.objectContaining({ replace: true, state: { scrollTo: "home" } })
-      );
+      expect(mockLogout).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith("/", {
+        replace: true,
+        state: { scrollTo: "home" },
+      });
     });
   });
 
-  test("dropdown closes on outside click", () => {
+  test("account menu closes on outside click", () => {
     renderAt("/receiver");
-    const menu = screen.getByText(/receiver account/i);
-    fireEvent.click(menu);
-    expect(screen.getByText(/log out/i)).toBeInTheDocument();
+    const avatarBtn = screen.getByRole("button", { name: /account menu/i });
+
+    fireEvent.click(avatarBtn);
+    expect(screen.getByText(/logout/i)).toBeInTheDocument();
+
     fireEvent.mouseDown(document.body);
-    expect(screen.queryByText(/log out/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/logout/i)).not.toBeInTheDocument();
   });
 });

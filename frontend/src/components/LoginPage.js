@@ -126,7 +126,7 @@ const LoginPage = () => {
                   {loading ? 'Logging in…' : 'LOG IN'}
                 </button>
 
-                <p className="form-footer">Don't have an account? <Link to="/signup" className="link-button">Sign up</Link></p>
+                <p className="form-footer">Don't have an account? <Link to="/register" className="link-button">Sign up</Link></p>
               </form>
             </div>
           </div>

@@ -1,6 +1,5 @@
 import React from "react";
-import "./ReceiverDashboard.css";
-
+import "./Receiver_Styles/ReceiverDashboard.css";
 
 export default function ReceiverRequests({
   items = [],

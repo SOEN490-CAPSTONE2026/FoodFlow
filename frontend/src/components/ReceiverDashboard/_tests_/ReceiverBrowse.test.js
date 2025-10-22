@@ -1,185 +1,525 @@
-import React from "react";
-import { render, screen, within, fireEvent } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import "@testing-library/jest-dom";
-import ReceiverBrowse from "../ReceiverBrowse";
+import React from 'react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import ReceiverBrowse from '../ReceiverBrowse';
+import { surplusAPI } from '../../../services/api';
 
-describe("ReceiverBrowse", () => {
-  const makeItems = (n) =>
-    Array.from({ length: n }).map((_, i) => ({
-      id: `id-${i + 1}`,
-      title: `Item ${i + 1}`,
-      donor: `Donor ${i + 1}`,
-      qty: i + 1,
-      unit: "kg",
-      expiresAt: "2024-01-05T00:00:00.000Z",
-      distanceKm: i + 0.5,
-    }));
+// Mock the API
+jest.mock('../../../services/api', () => ({
+  surplusAPI: {
+    list: jest.fn()
+  }
+}));
 
-  test("renders empty state with counts and disabled pagination", () => {
-    render(<ReceiverBrowse items={[]} total={0} page={1} pageSize={10} />);
+// Mock the images
+jest.mock('../../../assets/foodtypes/Pastry&Bakery.jpg', () => 'bakery-image.jpg');
+jest.mock('../../../assets/foodtypes/Fruits&Vegetables.jpg', () => 'fruits-image.jpg');
+jest.mock('../../../assets/foodtypes/PackagedItems.jpg', () => 'packaged-image.jpg');
+jest.mock('../../../assets/foodtypes/Dairy.jpg', () => 'dairy-image.jpg');
+jest.mock('../../../assets/foodtypes/FrozenFood.jpg', () => 'frozen-image.jpg');
+jest.mock('../../../assets/foodtypes/PreparedFood.jpg', () => 'prepared-image.jpg');
 
-    // Searchbar help shows count
-    expect(screen.getByText("0 / 0")).toBeInTheDocument();
+// Mock CSS
+jest.mock('../ReceiverBrowse.css', () => ({}));
 
-    // Table shows "No results."
-    expect(screen.getByText(/no results\./i)).toBeInTheDocument();
-
-    // Pagination info and disabled buttons
-    expect(screen.getByText(/page 1/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /prev/i })).toBeDisabled();
-    expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
+describe('ReceiverBrowse Component', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  test("shows loading state in searchbar and disables search button", () => {
-    render(<ReceiverBrowse loading items={[]} total={20} />);
+  describe('Initial Rendering', () => {
+    test('renders the component title', async () => {
+      surplusAPI.list.mockResolvedValue({ data: [] });
+      
+      await act(async () => {
+        render(<ReceiverBrowse />);
+      });
+      
+      expect(screen.getByText('Explore Available Donations')).toBeInTheDocument();
+    });
 
-    expect(screen.getByRole("button", { name: /searching…/i })).toBeDisabled();
-    expect(screen.getByText(/loading…/i)).toBeInTheDocument();
+    test('displays loading state initially and then shows empty state when no data', async () => {
+      surplusAPI.list.mockResolvedValue({ data: [] });
+      
+      await act(async () => {
+        render(<ReceiverBrowse />);
+      });
+      
+      await waitFor(() => {
+        expect(screen.getByText('No donations available right now.')).toBeInTheDocument();
+      });
+    });
+
+    test('renders empty state when no donations available', async () => {
+      surplusAPI.list.mockResolvedValue({ data: [] });
+      
+      await act(async () => {
+        render(<ReceiverBrowse />);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('No donations available right now.')).toBeInTheDocument();
+        expect(screen.getByText('Check back soon for new surplus food!')).toBeInTheDocument();
+      });
+    });
   });
 
-  test("typing + clicking Search calls onSearch with the query", async () => {
-    const user = userEvent.setup();
-    const onSearch = jest.fn();
+  describe('Donation Cards Rendering', () => {
+    test('renders donation cards with correct information when API returns data', async () => {
+      const mockApiResponse = [
+        {
+          id: 1,
+          foodName: "Fresh Organic Apples",
+          foodType: "Fruits & Vegetables",
+          expiryDate: "2025-11-08",
+          location: "Downtown Montreal",
+          pickupFrom: "2025-11-06T14:00:00",
+          pickupTo: "17:00:00",
+          quantity: 5,
+          unit: "kg",
+          donorName: "Green Organic Market",
+          notes: "Crisp and sweet apples",
+          createdAt: "2025-11-04T10:00:00"
+        }
+      ];
+      
+      surplusAPI.list.mockResolvedValue({ data: mockApiResponse });
+      
+      await act(async () => {
+        render(<ReceiverBrowse />);
+      });
 
-    render(<ReceiverBrowse onSearch={onSearch} />);
+      await waitFor(() => {
+        expect(screen.getByText('Fresh Organic Apples')).toBeInTheDocument();
+        expect(screen.getByText('Downtown Montreal')).toBeInTheDocument();
+        expect(screen.getByText('Fruits & Vegetables')).toBeInTheDocument();
+        expect(screen.getByText('Donated by Green Organic Market')).toBeInTheDocument();
+      });
+    });
 
-    const input = screen.getByPlaceholderText(/search available food/i);
-    await user.type(input, "rice");
-    await user.click(screen.getByRole("button", { name: /search/i }));
+    test('renders multiple donation cards when API returns multiple items', async () => {
+      const mockApiResponse = [
+        {
+          id: 1,
+          foodName: "Fresh Organic Apples",
+          foodType: "Fruits & Vegetables",
+          expiryDate: "2025-11-08",
+          location: "Downtown Montreal",
+          pickupFrom: "2025-11-06T14:00:00",
+          pickupTo: "17:00:00",
+          quantity: 5,
+          unit: "kg",
+          donorName: "Green Organic Market",
+          notes: "Crisp and sweet apples",
+          createdAt: "2025-11-04T10:00:00"
+        },
+        {
+          id: 2,
+          foodName: "Artisan Bread Assortment",
+          foodType: "Bakery & Pastry",
+          expiryDate: "2025-11-05",
+          location: "Plateau Mont-Royal",
+          pickupFrom: "2025-11-05T08:00:00",
+          pickupTo: "12:00:00",
+          quantity: 10,
+          unit: "items",
+          donorName: "Le Petit Boulanger",
+          notes: "Freshly baked this morning",
+          createdAt: "2025-11-04T16:30:00"
+        }
+      ];
+      
+      surplusAPI.list.mockResolvedValue({ data: mockApiResponse });
+      
+      await act(async () => {
+        render(<ReceiverBrowse />);
+      });
 
-    expect(onSearch).toHaveBeenCalledTimes(1);
-    expect(onSearch).toHaveBeenCalledWith("rice");
+      await waitFor(() => {
+        expect(screen.getByText('Fresh Organic Apples')).toBeInTheDocument();
+        expect(screen.getByText('Artisan Bread Assortment')).toBeInTheDocument();
+      });
+    });
+
+    test('shows Available status badge on cards', async () => {
+      const mockApiResponse = [
+        {
+          id: 1,
+          foodName: "Fresh Organic Apples",
+          foodType: "Fruits & Vegetables",
+          expiryDate: "2025-11-08",
+          location: "Downtown Montreal",
+          pickupFrom: "2025-11-06T14:00:00",
+          pickupTo: "17:00:00",
+          quantity: 5,
+          unit: "kg",
+          donorName: "Green Organic Market",
+          notes: "Crisp and sweet apples",
+          createdAt: "2025-11-04T10:00:00"
+        }
+      ];
+      
+      surplusAPI.list.mockResolvedValue({ data: mockApiResponse });
+      
+      await act(async () => {
+        render(<ReceiverBrowse />);
+      });
+
+      await waitFor(() => {
+        const badges = screen.getAllByText('Available');
+        expect(badges.length).toBe(1);
+      });
+    });
   });
 
-  test("pressing Enter triggers search", async () => {
-    const user = userEvent.setup();
-    const onSearch = jest.fn();
+  describe('Bookmark Functionality', () => {
+    test('bookmarks a donation when bookmark button is clicked', async () => {
+      const mockApiResponse = [
+        {
+          id: 1,
+          foodName: "Fresh Organic Apples",
+          foodType: "Fruits & Vegetables",
+          expiryDate: "2025-11-08",
+          location: "Downtown Montreal",
+          pickupFrom: "2025-11-06T14:00:00",
+          pickupTo: "17:00:00",
+          quantity: 5,
+          unit: "kg",
+          donorName: "Green Organic Market",
+          notes: "Crisp and sweet apples",
+          createdAt: "2025-11-04T10:00:00"
+        }
+      ];
+      
+      surplusAPI.list.mockResolvedValue({ data: mockApiResponse });
+      
+      await act(async () => {
+        render(<ReceiverBrowse />);
+      });
 
-    render(<ReceiverBrowse onSearch={onSearch} />);
+      await waitFor(() => {
+        expect(screen.getByText('Fresh Organic Apples')).toBeInTheDocument();
+      });
 
-    const input = screen.getByPlaceholderText(/search available food/i);
-    await user.type(input, "beans{Enter}");
+      const bookmarkButtons = screen.getAllByLabelText('Bookmark');
+      
+      await act(async () => {
+        fireEvent.click(bookmarkButtons[0]);
+      });
 
-    expect(onSearch).toHaveBeenCalledTimes(1);
-    expect(onSearch).toHaveBeenCalledWith("beans");
+      expect(bookmarkButtons[0]).toBeInTheDocument();
+    });
   });
 
-  test("renders rows with formatted fields and invokes onRequestClick", async () => {
-    const user = userEvent.setup();
-    const items = [
-      {
-        id: "a",
-        title: "Apples",
-        donor: "Farm Co",
-        qty: 5,
-        unit: "kg",
-        expiresAt: "2024-01-05T00:00:00.000Z",
-        distanceKm: 3.2,
-      },
-      {
-        id: "b",
-        title: "—missing— demo",
-    
-        qty: 1,
-        unit: "boxes",
-        
-      },
-    ];
-    const onRequestClick = jest.fn();
+  describe('Expand/Collapse Functionality', () => {
+    test('expands and collapses donation details when More/Less button is clicked', async () => {
+      const mockApiResponse = [
+        {
+          id: 1,
+          foodName: "Fresh Organic Apples",
+          foodType: "Fruits & Vegetables",
+          expiryDate: "2025-11-08",
+          location: "Downtown Montreal",
+          pickupFrom: "2025-11-06T14:00:00",
+          pickupTo: "17:00:00",
+          quantity: 5,
+          unit: "kg",
+          donorName: "Green Organic Market",
+          notes: "Crisp and sweet apples",
+          createdAt: "2025-11-04T10:00:00"
+        }
+      ];
+      
+      surplusAPI.list.mockResolvedValue({ data: mockApiResponse });
+      
+      await act(async () => {
+        render(<ReceiverBrowse />);
+      });
 
-    render(<ReceiverBrowse items={items} total={2} onRequestClick={onRequestClick} />);
+      await waitFor(() => {
+        expect(screen.getByText('Fresh Organic Apples')).toBeInTheDocument();
+      });
 
-    const rows = screen.getAllByRole("row");
-    // rows[0] is header; ensure we have 2 data rows after header
-    const bodyRows = rows.slice(1);
-    expect(bodyRows).toHaveLength(2);
+      const moreButtons = screen.getAllByText('More');
+      
+      // Expand
+      await act(async () => {
+        fireEvent.click(moreButtons[0]);
+      });
 
-    // Row 1 assertions (fully populated)
-    const r1 = bodyRows[0];
-    const c1 = within(r1).getAllByRole("cell");
-    expect(c1[0]).toHaveTextContent("Apples");
-    expect(c1[1]).toHaveTextContent("Farm Co");
-    expect(c1[2]).toHaveTextContent("5 kg");
+      await waitFor(() => {
+        expect(screen.getByText("Donor's Note")).toBeInTheDocument();
+        expect(screen.getByText('Crisp and sweet apples')).toBeInTheDocument();
+      });
 
-    // Date formatting should match environment locale; compute expected string
-    const expectedDate = new Date("2024-01-05T00:00:00.000Z").toLocaleDateString();
-    expect(c1[3]).toHaveTextContent(expectedDate);
-    expect(c1[4]).toHaveTextContent("3.2 km");
+      // Collapse
+      const lessButton = screen.getByText('Less');
+      
+      await act(async () => {
+        fireEvent.click(lessButton);
+      });
 
-    // Click Request on row 1
-    await user.click(within(r1).getByRole("button", { name: /request/i }));
-    expect(onRequestClick).toHaveBeenCalledTimes(1);
-    expect(onRequestClick).toHaveBeenCalledWith(items[0]);
-
-    // Row 2 assertions (missing values)
-    const r2 = bodyRows[1];
-    const c2 = within(r2).getAllByRole("cell");
-    expect(c2[0]).toHaveTextContent("—missing— demo");
-    expect(c2[1]).toHaveTextContent("—");
-    expect(c2[2]).toHaveTextContent("1 boxes");
-    expect(c2[3]).toHaveTextContent("—");
-    expect(c2[4]).toHaveTextContent("—");
+      await waitFor(() => {
+        expect(screen.queryByText("Donor's Note")).not.toBeInTheDocument();
+      });
+    });
   });
 
-  test("pagination: next enabled when page is full; prev enabled when page > 1", async () => {
-    const user = userEvent.setup();
-    const onPageChange = jest.fn();
+  describe('Claim Donation Functionality', () => {
+    test('calls handleClaimDonation when Claim button is clicked', async () => {
+      const mockApiResponse = [
+        {
+          id: 1,
+          foodName: "Fresh Organic Apples",
+          foodType: "Fruits & Vegetables",
+          expiryDate: "2025-11-08",
+          location: "Downtown Montreal",
+          pickupFrom: "2025-11-06T14:00:00",
+          pickupTo: "17:00:00",
+          quantity: 5,
+          unit: "kg",
+          donorName: "Green Organic Market",
+          notes: "Crisp and sweet apples",
+          createdAt: "2025-11-04T10:00:00"
+        }
+      ];
+      
+      surplusAPI.list.mockResolvedValue({ data: mockApiResponse });
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      
+      await act(async () => {
+        render(<ReceiverBrowse />);
+      });
 
-    const fullPageItems = makeItems(10); // pageSize = 10
-    render(
-      <ReceiverBrowse
-        items={fullPageItems}
-        total={25}
-        page={2}
-        pageSize={10}
-        onPageChange={onPageChange}
-      />
-    );
+      await waitFor(() => {
+        expect(screen.getByText('Fresh Organic Apples')).toBeInTheDocument();
+      });
 
-    const prevBtn = screen.getByRole("button", { name: /prev/i });
-    const nextBtn = screen.getByRole("button", { name: /next/i });
+      const claimButtons = screen.getAllByText('Claim Donation');
+      
+      await act(async () => {
+        fireEvent.click(claimButtons[0]);
+      });
 
-    expect(prevBtn).toBeEnabled();
-    expect(nextBtn).toBeEnabled();
+      expect(consoleSpy).toHaveBeenCalledWith('Claiming donation:', expect.objectContaining({
+        foodName: 'Fresh Organic Apples'
+      }));
 
-    await user.click(prevBtn);
-    expect(onPageChange).toHaveBeenCalledWith(1);
-
-    await user.click(nextBtn);
-    expect(onPageChange).toHaveBeenCalledWith(3);
+      consoleSpy.mockRestore();
+    });
   });
 
-  test("pagination: next disabled when fewer than pageSize results; prev disabled at page 1", async () => {
-    const user = userEvent.setup();
-    const onPageChange = jest.fn();
+  describe('Error Handling', () => {
+    test('displays error message when API call fails', async () => {
+      surplusAPI.list.mockRejectedValue(new Error('API Error'));
+      
+      await act(async () => {
+        render(<ReceiverBrowse />);
+      });
 
-    const partialItems = makeItems(3);
-    render(
-      <ReceiverBrowse
-        items={partialItems}
-        total={3}
-        page={1}
-        pageSize={10}
-        onPageChange={onPageChange}
-      />
-    );
+      await waitFor(() => {
+        expect(screen.getByText('Failed to load available donations')).toBeInTheDocument();
+      });
+    });
 
-    const prevBtn = screen.getByRole("button", { name: /prev/i });
-    const nextBtn = screen.getByRole("button", { name: /next/i });
+    test('handles empty data array from API', async () => {
+      surplusAPI.list.mockResolvedValue({ data: [] });
+      
+      await act(async () => {
+        render(<ReceiverBrowse />);
+      });
 
-    expect(prevBtn).toBeDisabled();
-    expect(nextBtn).toBeDisabled();
-
-    // Clicking when disabled should not call handler
-    await user.click(prevBtn);
-    await user.click(nextBtn);
-    expect(onPageChange).not.toHaveBeenCalled();
+      await waitFor(() => {
+        expect(screen.getByText('No donations available right now.')).toBeInTheDocument();
+      });
+    });
   });
 
-  test("guards: non-array items do not crash and show 0 / total", () => {
-    render(<ReceiverBrowse items={null} total={9} />);
-    expect(screen.getByText("0 / 9")).toBeInTheDocument();
-    expect(screen.getByText(/no results\./i)).toBeInTheDocument();
+  describe('Polling Mechanism', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.runOnlyPendingTimers();
+      jest.useRealTimers();
+    });
+
+    test('sets up polling interval on mount', async () => {
+      surplusAPI.list.mockResolvedValue({ data: [] });
+      const setIntervalSpy = jest.spyOn(global, 'setInterval');
+      
+      await act(async () => {
+        render(<ReceiverBrowse />);
+      });
+
+      expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 8000);
+      
+      setIntervalSpy.mockRestore();
+    });
+
+    test('clears polling interval on unmount', async () => {
+      surplusAPI.list.mockResolvedValue({ data: [] });
+      const clearIntervalSpy = jest.spyOn(global, 'clearInterval');
+      
+      let component;
+      await act(async () => {
+        component = render(<ReceiverBrowse />);
+      });
+      
+      act(() => {
+        component.unmount();
+      });
+
+      expect(clearIntervalSpy).toHaveBeenCalled();
+      
+      clearIntervalSpy.mockRestore();
+    });
+  });
+
+  describe('Edge Cases', () => {
+    test('handles null expiry date from API', async () => {
+      const mockApiResponse = [
+        {
+          id: 1,
+          foodName: "Test Item",
+          foodType: "Fruits & Vegetables",
+          expiryDate: null,
+          location: "Test Location",
+          pickupFrom: "2025-11-06T14:00:00",
+          pickupTo: "17:00:00",
+          quantity: 5,
+          unit: "kg",
+          donorName: "Test Donor",
+          notes: "Test notes",
+          createdAt: "2025-11-04T10:00:00"
+        }
+      ];
+      
+      surplusAPI.list.mockResolvedValue({ data: mockApiResponse });
+      
+      await act(async () => {
+        render(<ReceiverBrowse />);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Expires: —')).toBeInTheDocument();
+      });
+    });
+
+    test('handles missing donor name from API', async () => {
+      const mockApiResponse = [
+        {
+          id: 1,
+          foodName: "Test Item",
+          foodType: "Fruits & Vegetables",
+          expiryDate: "2025-11-08",
+          location: "Test Location",
+          pickupFrom: "2025-11-06T14:00:00",
+          pickupTo: "17:00:00",
+          quantity: 5,
+          unit: "kg",
+          donorName: null,
+          notes: "Test notes",
+          createdAt: "2025-11-04T10:00:00"
+        }
+      ];
+      
+      surplusAPI.list.mockResolvedValue({ data: mockApiResponse });
+      
+      await act(async () => {
+        render(<ReceiverBrowse />);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Donated by Local Business')).toBeInTheDocument();
+      });
+    });
+
+    test('handles donation with no notes from API', async () => {
+      const mockApiResponse = [
+        {
+          id: 1,
+          foodName: "Test Item",
+          foodType: "Fruits & Vegetables",
+          expiryDate: "2025-11-08",
+          location: "Test Location",
+          pickupFrom: "2025-11-06T14:00:00",
+          pickupTo: "17:00:00",
+          quantity: 5,
+          unit: "kg",
+          donorName: "Test Donor",
+          notes: null,
+          createdAt: "2025-11-04T10:00:00"
+        }
+      ];
+      
+      surplusAPI.list.mockResolvedValue({ data: mockApiResponse });
+      
+      await act(async () => {
+        render(<ReceiverBrowse />);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Test Item')).toBeInTheDocument();
+      });
+
+      const moreButtons = screen.getAllByText('More');
+      
+      await act(async () => {
+        fireEvent.click(moreButtons[0]);
+      });
+
+      // Donor's Note section should not be rendered when there are no notes
+      await waitFor(() => {
+        expect(screen.queryByText("Donor's Note")).not.toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Accessibility', () => {
+    test('bookmark button has proper aria-label', async () => {
+      const mockApiResponse = [
+        {
+          id: 1,
+          foodName: "Fresh Organic Apples",
+          foodType: "Fruits & Vegetables",
+          expiryDate: "2025-11-08",
+          location: "Downtown Montreal",
+          pickupFrom: "2025-11-06T14:00:00",
+          pickupTo: "17:00:00",
+          quantity: 5,
+          unit: "kg",
+          donorName: "Green Organic Market",
+          notes: "Crisp and sweet apples",
+          createdAt: "2025-11-04T10:00:00"
+        }
+      ];
+      
+      surplusAPI.list.mockResolvedValue({ data: mockApiResponse });
+      
+      await act(async () => {
+        render(<ReceiverBrowse />);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Fresh Organic Apples')).toBeInTheDocument();
+      });
+
+      const bookmarkButtons = screen.getAllByLabelText('Bookmark');
+      expect(bookmarkButtons.length).toBeGreaterThan(0);
+    });
+
+    test('error messages have proper role attribute when API fails', async () => {
+      surplusAPI.list.mockRejectedValue(new Error('API Error'));
+      
+      await act(async () => {
+        render(<ReceiverBrowse />);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByRole('alert')).toBeInTheDocument();
+      });
+    });
   });
 });

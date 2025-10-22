@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import "./DonorWelcome.css";
+import "./Donor_Styles/DonorWelcome.css";
 
 export default function DonorWelcome() {
   const headerRef = useRef(null);

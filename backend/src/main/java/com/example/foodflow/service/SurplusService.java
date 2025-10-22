@@ -74,4 +74,11 @@ public class SurplusService {
         response.setUpdatedAt(post.getUpdatedAt());
         return response;
     }
+    public List<SurplusResponse> getAllAvailableSurplusPosts() {
+    List<SurplusPost> posts = surplusPostRepository.findByClaimedFalse();
+    return posts.stream()
+            .map(this::convertToResponse)
+            .collect(Collectors.toList());
+}
+
 }

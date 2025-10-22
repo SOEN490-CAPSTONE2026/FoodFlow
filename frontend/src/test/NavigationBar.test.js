@@ -166,7 +166,12 @@ describe('NavigationBar', () => {
     const logo = screen.getByAltText('Logo').closest('div');
     fireEvent.click(logo);
     
-    expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
+    expect(mockNavigate).toHaveBeenCalledWith('/', { 
+      state: { 
+        from: undefined, 
+        scrollTo: 'home' 
+      } 
+    });
   });
 
   test('logo click scrolls to top when already on home page', () => {
