@@ -1,7 +1,7 @@
 /* ===== ReceiverBrowse CSS ===== */
 
 /* Import CSS variables from main dashboard */
-@import "./ReceiverDashboard.css";
+@import "./Receiver_Styles/ReceiverDashboard.css";
 
 /* ===== Main Layout ===== */
 .receiver-browse {
