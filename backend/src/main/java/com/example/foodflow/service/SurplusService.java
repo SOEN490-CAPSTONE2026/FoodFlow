@@ -4,6 +4,7 @@ import com.example.foodflow.model.dto.CreateSurplusRequest;
 import com.example.foodflow.model.dto.SurplusResponse;
 import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.entity.User;
+import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.repository.SurplusPostRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -75,7 +76,7 @@ public class SurplusService {
         return response;
     }
     public List<SurplusResponse> getAllAvailableSurplusPosts() {
-    List<SurplusPost> posts = surplusPostRepository.findByClaimedFalse();
+    List<SurplusPost> posts = surplusPostRepository.findByStatus(PostStatus.CLAIMED);
     return posts.stream()
             .map(this::convertToResponse)
             .collect(Collectors.toList());

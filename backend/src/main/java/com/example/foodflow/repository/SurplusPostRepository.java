@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 import java.util.List;
 import com.example.foodflow.model.entity.User;
+import com.example.foodflow.model.types.PostStatus;
 
 
 
@@ -18,7 +19,13 @@ public interface SurplusPostRepository extends JpaRepository<SurplusPost, Long>,
     List<SurplusPost> findByPickupLocation_Address(String address);
     List<SurplusPost> findByPickupLocation_LatitudeAndPickupLocation_Longitude(Double lat, Double lon);
 
-    List<SurplusPost> findByClaimedFalse();
+    // All posts that are NOT claimed
+    List<SurplusPost> findByStatusNot(PostStatus status);
+
+    // Only claimed posts
+    List<SurplusPost> findByStatus(PostStatus status);
+
+    
     List<SurplusPost> findByDonorOrderByCreatedAtDesc(User donor);
 
 }
