@@ -40,6 +40,23 @@ jest.mock(
 // Mock CSS
 jest.mock("../ReceiverBrowse.css", () => ({}));
 
+// Mock LoadScript component
+jest.mock("@react-google-maps/api", () => ({
+  LoadScript: ({ children }) => <div data-testid="load-script">{children}</div>,
+}));
+
+// Mock FiltersPanel component
+jest.mock("../FiltersPanel", () => {
+  return function MockFiltersPanel(props) {
+    return (
+      <div data-testid="filters-panel">
+        <button onClick={props.onApplyFilters}>Apply Filters</button>
+        <button onClick={props.onClearFilters}>Clear Filters</button>
+      </div>
+    );
+  };
+});
+
 describe("ReceiverBrowse Component", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -91,21 +108,30 @@ describe("ReceiverBrowse Component", () => {
   });
 
   describe("Donation Cards Rendering", () => {
-    test("renders donation cards with correct information when API returns data", async () => {
+    test("renders donation cards with correct information when API returns backend data", async () => {
+      // This matches your Java SurplusPost entity structure
       const mockApiResponse = [
         {
           id: 1,
           title: "Fresh Organic Apples",
-          foodCategories: ["FRUITS_VEGETABLES"],
+          foodCategories: ["FRUITS_VEGETABLES"], // Backend enum format
           expiryDate: "2025-11-08",
-          pickupLocation: "Downtown Montreal",
+          pickupLocation: { address: "Downtown Montreal" }, // Can be string or Location object
           pickupDate: "2025-11-06",
-          pickupFrom: "14:00:00",
-          pickupTo: "17:00:00",
-          quantity: { value: 5, unit: "KILOGRAM" },
-          donorName: "Green Organic Market",
+          pickupFrom: "14:00:00", // LocalTime format
+          pickupTo: "17:00:00", // LocalTime format
+          quantity: {
+            value: 5,
+            unit: "KILOGRAM",
+          }, // Embedded Quantity object
+          donor: {
+            id: 1,
+            name: "Green Organic Market",
+          }, // User relationship
           description: "Crisp and sweet apples",
           createdAt: "2025-11-04T10:00:00",
+          updatedAt: "2025-11-04T10:00:00",
+          status: "AVAILABLE",
         },
       ];
 
@@ -129,30 +155,30 @@ describe("ReceiverBrowse Component", () => {
       const mockApiResponse = [
         {
           id: 1,
-          foodName: "Fresh Organic Apples",
-          foodType: "Fruits & Vegetables",
+          title: "Fresh Organic Apples",
+          foodCategories: ["FRUITS_VEGETABLES"],
           expiryDate: "2025-11-08",
-          location: "Downtown Montreal",
-          pickupFrom: "2025-11-06T14:00:00",
+          pickupLocation: { address: "Downtown Montreal" },
+          pickupDate: "2025-11-06",
+          pickupFrom: "14:00:00",
           pickupTo: "17:00:00",
-          quantity: 5,
-          unit: "kg",
-          donorName: "Green Organic Market",
-          notes: "Crisp and sweet apples",
+          quantity: { value: 5, unit: "KILOGRAM" },
+          donor: { name: "Green Organic Market" },
+          description: "Crisp and sweet apples",
           createdAt: "2025-11-04T10:00:00",
         },
         {
           id: 2,
-          foodName: "Artisan Bread Assortment",
-          foodType: "Bakery & Pastry",
+          title: "Artisan Bread Assortment",
+          foodCategories: ["BAKERY_PASTRY"],
           expiryDate: "2025-11-05",
-          location: "Plateau Mont-Royal",
-          pickupFrom: "2025-11-05T08:00:00",
+          pickupLocation: { address: "Plateau Mont-Royal" },
+          pickupDate: "2025-11-05",
+          pickupFrom: "08:00:00",
           pickupTo: "12:00:00",
-          quantity: 10,
-          unit: "items",
-          donorName: "Le Petit Boulanger",
-          notes: "Freshly baked this morning",
+          quantity: { value: 10, unit: "PIECE" },
+          donor: { name: "Le Petit Boulanger" },
+          description: "Freshly baked this morning",
           createdAt: "2025-11-04T16:30:00",
         },
       ];
@@ -175,16 +201,16 @@ describe("ReceiverBrowse Component", () => {
       const mockApiResponse = [
         {
           id: 1,
-          foodName: "Fresh Organic Apples",
-          foodType: "Fruits & Vegetables",
+          title: "Fresh Organic Apples",
+          foodCategories: ["FRUITS_VEGETABLES"],
           expiryDate: "2025-11-08",
-          location: "Downtown Montreal",
-          pickupFrom: "2025-11-06T14:00:00",
+          pickupLocation: { address: "Downtown Montreal" },
+          pickupDate: "2025-11-06",
+          pickupFrom: "14:00:00",
           pickupTo: "17:00:00",
-          quantity: 5,
-          unit: "kg",
-          donorName: "Green Organic Market",
-          notes: "Crisp and sweet apples",
+          quantity: { value: 5, unit: "KILOGRAM" },
+          donor: { name: "Green Organic Market" },
+          description: "Crisp and sweet apples",
           createdAt: "2025-11-04T10:00:00",
         },
       ];
@@ -207,16 +233,16 @@ describe("ReceiverBrowse Component", () => {
       const mockApiResponse = [
         {
           id: 1,
-          foodName: "Fresh Organic Apples",
-          foodType: "Fruits & Vegetables",
+          title: "Fresh Organic Apples",
+          foodCategories: ["FRUITS_VEGETABLES"],
           expiryDate: "2025-11-08",
-          location: "Downtown Montreal",
-          pickupFrom: "2025-11-06T14:00:00",
+          pickupLocation: { address: "Downtown Montreal" },
+          pickupDate: "2025-11-06",
+          pickupFrom: "14:00:00",
           pickupTo: "17:00:00",
-          quantity: 5,
-          unit: "kg",
-          donorName: "Green Organic Market",
-          notes: "Crisp and sweet apples",
+          quantity: { value: 5, unit: "KILOGRAM" },
+          donor: { name: "Green Organic Market" },
+          description: "Crisp and sweet apples",
           createdAt: "2025-11-04T10:00:00",
         },
       ];
@@ -246,16 +272,16 @@ describe("ReceiverBrowse Component", () => {
       const mockApiResponse = [
         {
           id: 1,
-          foodName: "Fresh Organic Apples",
-          foodType: "Fruits & Vegetables",
+          title: "Fresh Organic Apples",
+          foodCategories: ["FRUITS_VEGETABLES"],
           expiryDate: "2025-11-08",
-          location: "Downtown Montreal",
-          pickupFrom: "2025-11-06T14:00:00",
+          pickupLocation: { address: "Downtown Montreal" },
+          pickupDate: "2025-11-06",
+          pickupFrom: "14:00:00",
           pickupTo: "17:00:00",
-          quantity: 5,
-          unit: "kg",
-          donorName: "Green Organic Market",
-          notes: "Crisp and sweet apples",
+          quantity: { value: 5, unit: "KILOGRAM" },
+          donor: { name: "Green Organic Market" },
+          description: "Crisp and sweet apples",
           createdAt: "2025-11-04T10:00:00",
         },
       ];
@@ -300,16 +326,16 @@ describe("ReceiverBrowse Component", () => {
       const mockApiResponse = [
         {
           id: 1,
-          foodName: "Fresh Organic Apples",
-          foodType: "Fruits & Vegetables",
+          title: "Fresh Organic Apples",
+          foodCategories: ["FRUITS_VEGETABLES"],
           expiryDate: "2025-11-08",
-          location: "Downtown Montreal",
-          pickupFrom: "2025-11-06T14:00:00",
+          pickupLocation: { address: "Downtown Montreal" },
+          pickupDate: "2025-11-06",
+          pickupFrom: "14:00:00",
           pickupTo: "17:00:00",
-          quantity: 5,
-          unit: "kg",
-          donorName: "Green Organic Market",
-          notes: "Crisp and sweet apples",
+          quantity: { value: 5, unit: "KILOGRAM" },
+          donor: { name: "Green Organic Market" },
+          description: "Crisp and sweet apples",
           createdAt: "2025-11-04T10:00:00",
         },
       ];
@@ -334,7 +360,7 @@ describe("ReceiverBrowse Component", () => {
       expect(consoleSpy).toHaveBeenCalledWith(
         "Claiming donation:",
         expect.objectContaining({
-          foodName: "Fresh Organic Apples",
+          title: "Fresh Organic Apples",
         })
       );
 
@@ -419,16 +445,16 @@ describe("ReceiverBrowse Component", () => {
       const mockApiResponse = [
         {
           id: 1,
-          foodName: "Test Item",
-          foodType: "Fruits & Vegetables",
+          title: "Test Item",
+          foodCategories: ["FRUITS_VEGETABLES"],
           expiryDate: null,
-          location: "Test Location",
-          pickupFrom: "2025-11-06T14:00:00",
+          pickupLocation: { address: "Test Location" },
+          pickupDate: "2025-11-06",
+          pickupFrom: "14:00:00",
           pickupTo: "17:00:00",
-          quantity: 5,
-          unit: "kg",
-          donorName: "Test Donor",
-          notes: "Test notes",
+          quantity: { value: 5, unit: "KILOGRAM" },
+          donor: { name: "Test Donor" },
+          description: "Test description",
           createdAt: "2025-11-04T10:00:00",
         },
       ];
@@ -448,16 +474,16 @@ describe("ReceiverBrowse Component", () => {
       const mockApiResponse = [
         {
           id: 1,
-          foodName: "Test Item",
-          foodType: "Fruits & Vegetables",
+          title: "Test Item",
+          foodCategories: ["FRUITS_VEGETABLES"],
           expiryDate: "2025-11-08",
-          location: "Test Location",
-          pickupFrom: "2025-11-06T14:00:00",
+          pickupLocation: { address: "Test Location" },
+          pickupDate: "2025-11-06",
+          pickupFrom: "14:00:00",
           pickupTo: "17:00:00",
-          quantity: 5,
-          unit: "kg",
-          donorName: null,
-          notes: "Test notes",
+          quantity: { value: 5, unit: "KILOGRAM" },
+          donor: null,
+          description: "Test description",
           createdAt: "2025-11-04T10:00:00",
         },
       ];
@@ -475,20 +501,20 @@ describe("ReceiverBrowse Component", () => {
       });
     });
 
-    test("handles donation with no notes from API", async () => {
+    test("handles donation with no description from API", async () => {
       const mockApiResponse = [
         {
           id: 1,
-          foodName: "Test Item",
-          foodType: "Fruits & Vegetables",
+          title: "Test Item",
+          foodCategories: ["FRUITS_VEGETABLES"],
           expiryDate: "2025-11-08",
-          location: "Test Location",
-          pickupFrom: "2025-11-06T14:00:00",
+          pickupLocation: { address: "Test Location" },
+          pickupDate: "2025-11-06",
+          pickupFrom: "14:00:00",
           pickupTo: "17:00:00",
-          quantity: 5,
-          unit: "kg",
-          donorName: "Test Donor",
-          notes: null,
+          quantity: { value: 5, unit: "KILOGRAM" },
+          donor: { name: "Test Donor" },
+          description: null,
           createdAt: "2025-11-04T10:00:00",
         },
       ];
@@ -509,9 +535,40 @@ describe("ReceiverBrowse Component", () => {
         fireEvent.click(moreButtons[0]);
       });
 
-      // Donor's Note section should not be rendered when there are no notes
+      // Donor's Note section should not be rendered when there is no description
       await waitFor(() => {
         expect(screen.queryByText("Donor's Note")).not.toBeInTheDocument();
+      });
+    });
+  });
+
+  describe("Food Category Mapping", () => {
+    test("correctly maps backend food categories to display strings", async () => {
+      const mockApiResponse = [
+        {
+          id: 1,
+          title: "Bakery Item",
+          foodCategories: ["BAKERY_GOODS"],
+          expiryDate: "2025-11-08",
+          pickupLocation: { address: "Test Location" },
+          pickupDate: "2025-11-06",
+          pickupFrom: "14:00:00",
+          pickupTo: "17:00:00",
+          quantity: { value: 5, unit: "PIECE" },
+          donor: { name: "Test Donor" },
+          description: "Test description",
+          createdAt: "2025-11-04T10:00:00",
+        },
+      ];
+
+      surplusAPI.list.mockResolvedValue({ data: mockApiResponse });
+
+      await act(async () => {
+        render(<ReceiverBrowse />);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText("Bakery & Pastry")).toBeInTheDocument(); //TODO: to be modified later
       });
     });
   });
@@ -521,16 +578,16 @@ describe("ReceiverBrowse Component", () => {
       const mockApiResponse = [
         {
           id: 1,
-          foodName: "Fresh Organic Apples",
-          foodType: "Fruits & Vegetables",
+          title: "Fresh Organic Apples",
+          foodCategories: ["FRUITS_VEGETABLES"],
           expiryDate: "2025-11-08",
-          location: "Downtown Montreal",
-          pickupFrom: "2025-11-06T14:00:00",
+          pickupLocation: { address: "Downtown Montreal" },
+          pickupDate: "2025-11-06",
+          pickupFrom: "14:00:00",
           pickupTo: "17:00:00",
-          quantity: 5,
-          unit: "kg",
-          donorName: "Green Organic Market",
-          notes: "Crisp and sweet apples",
+          quantity: { value: 5, unit: "KILOGRAM" },
+          donor: { name: "Green Organic Market" },
+          description: "Crisp and sweet apples",
           createdAt: "2025-11-04T10:00:00",
         },
       ];
