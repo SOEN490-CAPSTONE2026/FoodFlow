@@ -157,12 +157,14 @@ const ReceiverBrowse = () => {
   };
 
   // Data fetching
-  const fetchDonations = useCallback(async () => {
-    setLoading(true);
-    try {
-      const { data } = await surplusAPI.list();
-      let filteredData = Array.isArray(data) ? data : [];
+  const fetchDonations = useCallback(
+    async () => {
+      setLoading(true);
+      try {
+        const { data } = await surplusAPI.list();
+        let filteredData = Array.isArray(data) ? data : [];
 
+        /*
       // Apply filters if any are set
       if (appliedFilters.foodType.length > 0) {
         filteredData = filteredData.filter((item) =>
@@ -186,16 +188,21 @@ const ReceiverBrowse = () => {
             .includes(appliedFilters.location.toLowerCase())
         );
       }
+        */
 
-      setItems(filteredData);
-      setError(null);
-    } catch (e) {
-      setError("Failed to load available donations");
-      console.error("fetchDonations error:", e);
-    } finally {
-      setLoading(false);
-    }
-  }, [appliedFilters]);
+        setItems(filteredData);
+        setError(null);
+      } catch (e) {
+        setError("Failed to load available donations");
+        console.error("fetchDonations error:", e);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [
+      /*appliedFilters*/
+    ]
+  );
 
   useEffect(() => {
     fetchDonations();
