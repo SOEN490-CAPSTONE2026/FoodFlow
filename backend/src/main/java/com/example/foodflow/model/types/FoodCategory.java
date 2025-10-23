@@ -95,6 +95,7 @@ public enum FoodCategory {
     CAKES_PASTRIES,
     
     // Beverages
+    BEVERAGES,
     WATER,
     JUICE,
     SOFT_DRINKS,
