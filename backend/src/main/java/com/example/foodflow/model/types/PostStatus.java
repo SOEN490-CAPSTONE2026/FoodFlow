@@ -2,8 +2,11 @@ package com.example.foodflow.model.types;
 
 public enum PostStatus {
     AVAILABLE,
+    READY_FOR_PICKUP,
     EXPIRED,
-    CLAIMED;
+    CLAIMED,
+    NOT_COMPLETED,
+    COMPLETED;
 
     public String getDisplayName(){
         String name = this.name();

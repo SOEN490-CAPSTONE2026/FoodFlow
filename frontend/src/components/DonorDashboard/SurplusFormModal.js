@@ -4,7 +4,7 @@ import { X, Calendar, Clock } from "lucide-react";
 import { Autocomplete } from "@react-google-maps/api";
 import Select from "react-select";
 import DatePicker from "react-datepicker";
-import "../DonorDashboard/SurplusFormModal.css";
+import "./Donor_Styles/SurplusFormModal.css";
 import "react-datepicker/dist/react-datepicker.css";
 
 const SurplusFormModal = ({ isOpen, onClose }) => {
