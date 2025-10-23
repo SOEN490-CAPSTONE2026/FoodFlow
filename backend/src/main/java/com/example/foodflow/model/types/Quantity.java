@@ -1,17 +1,24 @@
 package com.example.foodflow.model.types;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.validation.constraints.Positive;
+
 import java.util.Objects;
 
 @Embeddable
 public class Quantity {
 
+    @Column(name = "quantity_value")
+    @Positive(message = "Quantity must be positive")
     private Double value;
 
     @Enumerated(EnumType.STRING)
     private Unit unit;
+
+    public Quantity() {} // Required by JPA
 
     public Quantity(Double value, Unit unit) {
         this.value = Objects.requireNonNull(value, "Quantity value cannot be null");
@@ -20,12 +27,12 @@ public class Quantity {
     }
 
     private void validate() {
-        if (value <= 0) {
-            throw new IllegalArgumentException("Quantity value must be positive");
+        if (value == null || unit == null){
+            return;
         }
 
         // Example validation: integer-only units
-        if (unit.isIntegerOnly() && value % 1 != 0) {
+        if (unit.isIntegerOnly() && Math.abs(value - Math.round(value)) > 1e-9) {
             throw new IllegalArgumentException("Unit " + unit + " only accepts integer values");
         }
     }
@@ -50,7 +57,16 @@ public class Quantity {
 
     @Override
     public String toString() {
-        return value + " " + unit;
+        return value + " " + unit.getLabel();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Quantity)) return false;
+        Quantity that = (Quantity) o;
+        return Double.compare(that.value, value) == 0 &&
+               Objects.equals(unit, that.unit);
     }
 
     @Override
@@ -107,6 +123,10 @@ public class Quantity {
         public boolean isIntegerOnly() {
             return integerOnly;
         }
+
+        public String getLabel(){
+            return label;
+        }
         
         public String getFullName() {
             // Convert enum name to readable format: KILOGRAM -> kilogram
@@ -127,11 +147,6 @@ public class Quantity {
         
         public String getDisplayName(double quantity) {
             return quantity == 1.0 ? getFullName() : getPlural();
-        }
-
-        @Override
-        public String toString(){
-            return label;
         }
     }
 }

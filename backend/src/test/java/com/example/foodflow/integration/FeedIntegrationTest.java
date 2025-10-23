@@ -89,16 +89,19 @@ class FeedIntegrationTest {
         String token = objectMapper.readTree(loginResult.getResponse().getContentAsString()).get("token").asText();
 
         // Create surplus post with correct DTO fields
-        String postJson = "{" +
-                "\"foodName\": \"Milk\"," +
-                "\"foodType\": \"Dairy\"," +
-                "\"expiryDate\": \"2030-01-01\"," +
-                "\"quantity\": 2.0," +
-                "\"unit\": \"liters\"," +
-                "\"pickupFrom\": \"2030-01-01T15:00:00\"," +
-                "\"pickupTo\": \"18:00:00\"," +
-                "\"location\": \"Donor Street 2\"," +
-                "\"notes\": \"Fresh milk available\"}";
+        String postJson = "{"
+        + "\"title\": \"Milk\","
+        + "\"description\": \"Fresh milk available\","
+        + "\"foodCategories\": [\"DAIRY\"],"
+        + "\"quantity\": {\"value\": 2.0, \"unit\": \"LITER\"},"
+        + "\"pickupLocation\": {\"address\": \"Donor Street 2\"},"
+        + "\"expiryDate\": \"2030-01-01\","
+        + "\"pickupDate\": \"2030-01-01\","
+        + "\"pickupFrom\": \"15:00:00\","
+        + "\"pickupTo\": \"18:00:00\""
+        + "}";
+
+
 
         mockMvc.perform(post("/api/surplus")
                         .header("Authorization", "Bearer " + token)
@@ -156,17 +159,18 @@ class FeedIntegrationTest {
 
         String receiverToken = objectMapper.readTree(receiverLoginResult.getResponse().getContentAsString()).get("token").asText();
 
-        // Donor creates a surplus post with correct DTO fields
-        String postJson = "{" +
-                "\"foodName\": \"Bread\"," +
-                "\"foodType\": \"Bakery\"," +
-                "\"expiryDate\": \"2030-01-01\"," +
-                "\"quantity\": 5.0," +
-                "\"unit\": \"loaves\"," +
-                "\"pickupFrom\": \"2030-01-01T15:00:00\"," +
-                "\"pickupTo\": \"18:00:00\"," +
-                "\"location\": \"Donor Street 1\"," +
-                "\"notes\": \"Fresh bread available\"}";
+        // Create surplus post with correct DTO fields
+        String postJson = "{"
+        + "\"title\": \"Bread\","
+        + "\"description\": \"Fresh bread available\","
+        + "\"foodCategories\": [\"BREAD\", \"BAKED_GOODS\"],"
+        + "\"quantity\": {\"value\": 5.0, \"unit\": \"LOAF\"},"
+        + "\"pickupLocation\": {\"address\": \"Donor Street 1\"},"
+        + "\"expiryDate\": \"2030-01-01\","
+        + "\"pickupDate\": \"2030-01-01\","
+        + "\"pickupFrom\": \"15:00:00\","
+        + "\"pickupTo\": \"18:00:00\""
+        + "}";
 
         mockMvc.perform(post("/api/surplus")
                         .header("Authorization", "Bearer " + donorToken)

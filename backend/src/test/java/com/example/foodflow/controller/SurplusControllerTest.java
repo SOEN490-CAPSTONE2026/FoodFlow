@@ -3,6 +3,9 @@ package com.example.foodflow.controller;
 import com.example.foodflow.model.dto.CreateSurplusRequest;
 import com.example.foodflow.model.dto.SurplusResponse;
 import com.example.foodflow.model.entity.User;
+import com.example.foodflow.model.types.FoodCategory;
+import com.example.foodflow.model.types.Location;
+import com.example.foodflow.model.types.Quantity;
 import com.example.foodflow.service.SurplusService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -19,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.HashSet;
 import java.time.LocalDate;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -48,27 +52,37 @@ class SurplusControllerTest {
 
         // Create test request with NEW field structure
         request = new CreateSurplusRequest();
-        request.setFoodName("Vegetable Lasagna");
-        request.setFoodType("Prepared Meals");
-        request.setQuantity(10.0);
-        request.setUnit("kg");
+        request.setTitle("Vegetable Lasagna");
+        
+        HashSet<FoodCategory> foodCategories = new HashSet<FoodCategory>();
+        foodCategories.add(FoodCategory.PREPARED_MEALS);
+        request.setFoodCategories(foodCategories);
+        
+        request.setQuantity(new Quantity(10.0, Quantity.Unit.KILOGRAM));
         request.setExpiryDate(LocalDate.now().plusDays(2));
-        request.setPickupFrom(LocalDateTime.now().plusHours(3));
-        request.setPickupTo(LocalTime.of(18, 0));
-        request.setLocation("123 Main St");
-        request.setNotes("Vegetarian lasagna with spinach");
+        request.setPickupDate(LocalDate.now());
+        request.setPickupFrom(LocalTime.now().plusHours(3));
+        request.setPickupTo(LocalTime.now().plusHours(5));
+        request.setPickupLocation(new Location(45.2903, -34.0987, "123 Main St"));
+        request.setDescription("Vegetarian lasagna with spinach");
+
 
         response = new SurplusResponse();
         response.setId(1L);
-        response.setFoodName("Vegetable Lasagna");
-        response.setFoodType("Prepared Meals"); 
-        response.setQuantity(10.0); 
-        response.setUnit("kg");   
+        response.setTitle("Vegetable Lasagna");
+
+        HashSet<FoodCategory> foodCategories2 = new HashSet<FoodCategory>();
+        foodCategories2.add(FoodCategory.PREPARED_MEALS);
+        request.setFoodCategories(foodCategories2);
+        
+        response.setQuantity(new Quantity(10.0, Quantity.Unit.KILOGRAM)); 
+
         response.setExpiryDate(request.getExpiryDate());
+        response.setPickupDate(request.getPickupDate());
         response.setPickupFrom(request.getPickupFrom()); 
         response.setPickupTo(request.getPickupTo()); 
-        response.setLocation("123 Main St");
-        response.setNotes("Vegetarian lasagna with spinach");
+        request.setPickupLocation(new Location(45.2903, -34.0987, "123 Main St"));
+        response.setDescription("Vegetarian lasagna with spinach");
         response.setDonorEmail("donor@test.com");
         response.setCreatedAt(LocalDateTime.now());
     }
@@ -88,7 +102,7 @@ class SurplusControllerTest {
     @Test
     @WithMockUser(username = "donor@test.com", authorities = {"DONOR"})
     void testCreateSurplusPost_InvalidRequest_MissingFoodName() throws Exception {  // ✅ RENAMED test
-        request.setFoodName(null);  // ✅ NEW field
+        request.setTitle(null);  // ✅ NEW field
 
         mockMvc.perform(post("/api/surplus")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -99,7 +113,7 @@ class SurplusControllerTest {
     @Test
     @WithMockUser(username = "donor@test.com", authorities = {"DONOR"})
     void testCreateSurplusPost_InvalidRequest_InvalidQuantity() throws Exception {
-        request.setQuantity(-5.0);  // ✅ Negative Double
+        request.setQuantity(new Quantity(-5.0, Quantity.Unit.KILOGRAM));  // ✅ Negative Double
 
         mockMvc.perform(post("/api/surplus")
                 .contentType(MediaType.APPLICATION_JSON)

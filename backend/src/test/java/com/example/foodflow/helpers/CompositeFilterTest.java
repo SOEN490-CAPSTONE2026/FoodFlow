@@ -2,10 +2,11 @@ package com.example.foodflow.helpers;
 
 
 import org.junit.jupiter.api.Test;
+
+import com.example.foodflow.helpers.BasicFilter;
+import com.example.foodflow.helpers.CompositeFilter;
+
 import static org.junit.jupiter.api.Assertions.*;
-import helpers.CompositeFilter;
-import helpers.BasicFilter;
-//import helpers.StringFilter;
 
 class CompositeFilterTest {
 

@@ -1,31 +1,31 @@
-// package com.example.foodflow.helpers;
+package com.example.foodflow.helpers;
 
-// import com.example.foodflow.model.entity.SurplusPost;
-// import com.example.foodflow.model.entity.User;
-// import com.example.foodflow.model.entity.UserRole;
-// import com.example.foodflow.repository.SurplusPostRepository;
-// import org.junit.jupiter.api.BeforeEach;
-// import org.junit.jupiter.api.Test;
-// import org.springframework.beans.factory.annotation.Autowired;
-// import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-// import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-// import org.springframework.data.jpa.domain.Specification;
-// import org.springframework.test.context.TestPropertySource;
+import com.example.foodflow.helpers.BasicFilter;
+import com.example.foodflow.model.entity.SurplusPost;
+import com.example.foodflow.model.entity.User;
+import com.example.foodflow.model.entity.UserRole;
+import com.example.foodflow.repository.SurplusPostRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.test.context.TestPropertySource;
 
 // import java.time.LocalDateTime;
 
 // import static org.junit.jupiter.api.Assertions.assertEquals;
 
-// import helpers.BasicFilter;
+@DataJpaTest
+@TestPropertySource(properties = {
+    "spring.jpa.properties.hibernate.validator.apply_to_ddl=false"
+})
+class SurplusPostSpecificationTest { /* 
 
-// @DataJpaTest
-// @TestPropertySource(properties = {
-//     "spring.jpa.properties.hibernate.validator.apply_to_ddl=false"
-// })
-// class SurplusPostSpecificationTest {
-
-//     @Autowired
-//     private SurplusPostRepository repository;
+    
+    @Autowired
+    private SurplusPostRepository repository;
     
 //     @Autowired
 //     private TestEntityManager entityManager;
@@ -142,7 +142,8 @@
 
 //         var results = repository.findAll(spec);
 
-//         assertEquals(1, results.size());
-//         assertEquals(post1.getLocation(), results.get(0).getLocation());
-//     }
-// }
+        assertEquals(1, results.size());
+        assertEquals(post1.getLocation(), results.get(0).getLocation());
+    }
+        */
+}
