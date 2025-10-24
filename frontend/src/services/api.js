@@ -45,10 +45,10 @@ export const authAPI = {
 };
 
 export const surplusAPI = {
-  create: (data) => api.post('/api/surplus', data),
-  list: () => api.get('/api/surplus'),
-  myPosts: () => api.get('/api/surplus/my-posts'),
-  claim: (postId) => api.post('/api/claims', { surplusPostId: postId }),
+  list: () => api.get('/surplus'),  // ✅ Just /surplus, not /api/surplus
+  myPosts: () => api.get('/surplus/my-posts'),
+  create: (data) => api.post('/surplus', data),
+  claim: (postId) => api.post('/claims', { surplusPostId: postId }),
 };
 
 export default api;
