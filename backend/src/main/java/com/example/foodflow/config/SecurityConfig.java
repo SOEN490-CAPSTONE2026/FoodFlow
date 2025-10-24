@@ -13,11 +13,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import com.example.foodflow.security.JwtAuthenticationFilter;
 import org.springframework.http.HttpMethod;
-
-
-
 import com.example.foodflow.security.JwtAuthenticationFilter;
 
 import java.util.Arrays;
@@ -29,7 +25,6 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    // ✅ Inject the existing JwtAuthenticationFilter
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
@@ -46,26 +41,25 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // Public endpoints
+
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/surplus").permitAll()
-                .requestMatchers("/api/feed/**").hasAuthority("RECEIVER")
+                .requestMatchers(HttpMethod.GET, "/api/surplus/available").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/surplus/available/**").permitAll()
 
-                // Role-based endpoints
-                .requestMatchers("/actuator/**").permitAll()
-                .requestMatchers("/api/analytics/**").permitAll()
-                
-                // ✅ API endpoints with role restrictions
-                .requestMatchers("/api/surplus/**").hasAuthority("DONOR")
+                .requestMatchers(HttpMethod.GET, "/api/surplus/my-posts").hasAuthority("DONOR")
+                .requestMatchers(HttpMethod.POST, "/api/surplus/**").hasAuthority("DONOR")
+                .requestMatchers(HttpMethod.PUT, "/api/surplus/**").hasAuthority("DONOR")
+                .requestMatchers(HttpMethod.DELETE, "/api/surplus/**").hasAuthority("DONOR")
+
                 .requestMatchers("/api/requests/**").hasAnyAuthority("DONOR", "RECEIVER")
-                
-                // ✅ Dashboard endpoints
+
                 .requestMatchers("/donor/**").hasAuthority("DONOR")
                 .requestMatchers("/receiver/**").hasAuthority("RECEIVER")
                 .requestMatchers("/admin/**").hasAuthority("ADMIN")
-                
-                // All other requests require authentication
+
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -80,9 +74,10 @@ public class SecurityConfig {
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
+
         return source;
     }
 }

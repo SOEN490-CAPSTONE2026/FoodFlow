@@ -6,7 +6,8 @@ public enum PostStatus {
     EXPIRED,
     CLAIMED,
     NOT_COMPLETED,
-    COMPLETED;
+    COMPLETED,
+    PICKED_UP;
 
     public String getDisplayName(){
         String name = this.name();
