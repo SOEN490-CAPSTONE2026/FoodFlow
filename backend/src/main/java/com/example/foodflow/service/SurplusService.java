@@ -1,11 +1,18 @@
 package com.example.foodflow.service;
 
+import com.example.foodflow.helpers.ArrayFilter;
+import com.example.foodflow.helpers.BasicFilter;
+import com.example.foodflow.helpers.LocationFilter;
+import com.example.foodflow.helpers.SpecificationHandler;
 import com.example.foodflow.model.dto.CreateSurplusRequest;
+import com.example.foodflow.model.dto.SurplusFilterRequest;
 import com.example.foodflow.model.dto.SurplusResponse;
 import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.repository.SurplusPostRepository;
+
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -80,6 +87,54 @@ public class SurplusService {
     return posts.stream()
             .map(this::convertToResponse)
             .collect(Collectors.toList());
-}
+    }
+
+    /**
+     * Search surplus posts based on filter criteria using our custom filter classes.
+     * If no filters are provided, returns all available posts.
+     */
+    public List<SurplusResponse> searchSurplusPosts(SurplusFilterRequest filterRequest) {
+        Specification<SurplusPost> specification = buildSpecificationFromFilter(filterRequest);
+        
+        List<SurplusPost> posts = surplusPostRepository.findAll(specification);
+        
+        return posts.stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Builds a JPA Specification from the filter request using our custom filter classes.
+     */
+    private Specification<SurplusPost> buildSpecificationFromFilter(SurplusFilterRequest filterRequest) {
+        return SpecificationHandler.<SurplusPost>builder()
+                // Always filter by status (default: AVAILABLE)
+                .andIf(filterRequest.hasStatus(),
+                    BasicFilter.equal(filterRequest.getStatus())
+                                .toSpecification("status"))
+                
+                // Filter by food categories (any match)
+                .andIf(filterRequest.hasFoodCategories(),
+                    ArrayFilter.containsAny(filterRequest.getFoodCategories())
+                                .toSpecification("foodCategories"))
+                
+                // Filter by expiry date (before)
+                .andIf(filterRequest.hasExpiryBefore(),
+                    BasicFilter.lessThanOrEqual(filterRequest.getExpiryBefore())
+                                .toSpecification("expiryDate"))
+                
+                // Filter by expiry date (after) - posts that don't expire too soon
+                .andIf(filterRequest.hasExpiryAfter(),
+                    BasicFilter.greaterThanOrEqual(filterRequest.getExpiryAfter())
+                                .toSpecification("expiryDate"))
+                
+                // Filter by location and distance
+                .andIf(filterRequest.hasLocationFilter(),
+                    LocationFilter.within(filterRequest.getUserLocation(), 
+                                            filterRequest.getMaxDistanceKm())
+                                .toSpecification("pickupLocation"))
+                
+                .buildOrDefault(SpecificationHandler.alwaysTrue()); // Return all if no filters
+    }
 
 }

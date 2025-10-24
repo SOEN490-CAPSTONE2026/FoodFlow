@@ -11,7 +11,8 @@ public enum FoodCategory {
     
     // Grains & Breads
     BREAD,
-    BAKED_GOODS("Bakery & Pastry"),
+    BAKERY_PASTRY("Bakery & Pastry"),
+    BAKED_GOODS,
     BAKERY_ITEMS,
     WHOLE_GRAINS,
     CEREALS,
@@ -55,7 +56,7 @@ public enum FoodCategory {
     NUT_BUTTERS,
     
     // Frozen Foods
-    FROZEN("Frozen Food"),
+    FROZEN_FOOD("Frozen Food"),
     FROZEN_VEGETABLES,
     FROZEN_FRUITS,
     FROZEN_MEALS,
@@ -162,7 +163,8 @@ public enum FoodCategory {
     
     // Dietary Labels
     VEGETARIAN,
-    DAIRY("Dairy & Cold Items"),
+    DAIRY,
+    DAIRY_COLD("Dairy & Cold Items"),
     VEGAN,
     GLUTEN_FREE,
     DAIRY_FREE,
@@ -190,7 +192,8 @@ public enum FoodCategory {
     // Other
     MIXED_ITEMS,
     ASSORTED,
-    PACKAGED("Packaged / Pantry Items"),
+    PACKAGED,
+    PACKAGED_PANTRY("Packaged / Pantry Items"),
     BULK_ITEMS,
     EMERGENCY_FOOD_KIT,
     MRE_MILITARY_RATIONS,
