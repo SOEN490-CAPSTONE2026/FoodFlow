@@ -76,7 +76,7 @@ public class SurplusService {
         return response;
     }
     public List<SurplusResponse> getAllAvailableSurplusPosts() {
-    List<SurplusPost> posts = surplusPostRepository.findByStatus(PostStatus.CLAIMED);
+    List<SurplusPost> posts = surplusPostRepository.findByStatus(PostStatus.AVAILABLE);
     return posts.stream()
             .map(this::convertToResponse)
             .collect(Collectors.toList());

@@ -47,7 +47,6 @@ export default function ReceiverBrowse() {
   const [error, setError] = useState(null);
   const [expandedCardId, setExpandedCardId] = useState(null);
   const [bookmarkedItems, setBookmarkedItems] = useState(new Set());
-  const pollingRef = useRef(null);
 
   // Filter handlers (just update state, no filtering logic)
   const handleFiltersChange = (filterType, value) => {
@@ -94,17 +93,9 @@ export default function ReceiverBrowse() {
     }
   }, []);
 
+  // Removed the polling - only fetch once on mount
   useEffect(() => {
     fetchDonations();
-
-    const pollIfVisible = () => {
-      if (document.visibilityState === "visible") {
-        fetchDonations();
-      }
-    };
-
-    pollingRef.current = setInterval(pollIfVisible, 30000);
-    return () => pollingRef.current && clearInterval(pollingRef.current);
   }, [fetchDonations]);
 
   const handleMoreClick = useCallback((item) => {
@@ -129,18 +120,18 @@ export default function ReceiverBrowse() {
     console.log("Bookmarking:", item);
   }, []);
 
-  // Display ALL food categories as comma-separated string
-  const getFoodCategoriesDisplay = (foodCategories) => {
+  // Convert each category to display string (for separate tags)
+  const getFoodCategoryDisplays = (foodCategories) => {
     if (
       !foodCategories ||
       !Array.isArray(foodCategories) ||
       foodCategories.length === 0
     ) {
-      return "Other";
+      return ["Other"];
     }
 
-    // Convert all categories to display strings and join them
-    const displayCategories = foodCategories.map((category) => {
+    // Convert all categories to display strings
+    return foodCategories.map((category) => {
       switch (category) {
         case "FRUITS_VEGETABLES":
           return "Fruits & Vegetables";
@@ -158,8 +149,6 @@ export default function ReceiverBrowse() {
           return category;
       }
     });
-
-    return displayCategories.join(", ");
   };
 
   // Get primary food category for image (first one)
@@ -347,7 +336,7 @@ export default function ReceiverBrowse() {
           {!loading && !error && items.length > 0 && (
             <div className="receiver-donations-list">
               {items.map((item) => {
-                const allFoodCategories = getFoodCategoriesDisplay(
+                const categoryDisplays = getFoodCategoryDisplays(
                   item.foodCategories
                 );
                 const primaryFoodCategory = getPrimaryFoodCategory(
@@ -447,9 +436,13 @@ export default function ReceiverBrowse() {
                       </div>
 
                       <div className="receiver-donation-meta">
-                        <span className="receiver-category-tag">
-                          {allFoodCategories}
-                        </span>
+                        <div className="receiver-category-tags">
+                          {categoryDisplays.map((category, index) => (
+                            <span key={index} className="receiver-category-tag">
+                              {category}
+                            </span>
+                          ))}
+                        </div>
                         <div className="receiver-donor-info">
                           <User size={16} />
                           <span>
