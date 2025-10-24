@@ -45,8 +45,9 @@ export const authAPI = {
 };
 
 export const surplusAPI = {
-  list: () => api.get('/surplus'),
+  list: () => api.get('/surplus/available'),
   getMyPosts: () => api.get('/surplus/my-posts'),
+  confirmPickup: (postId, otp) => api.post('/pickup/confirm', { postId, otp }),
 };
 
 export default api;
