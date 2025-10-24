@@ -776,6 +776,12 @@
   font-size: 13px;
 }
 
+.receiver-category-tags {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+}
+
 .receiver-category-tag {
   padding: 4px 10px;
   background: #eef2ff;
