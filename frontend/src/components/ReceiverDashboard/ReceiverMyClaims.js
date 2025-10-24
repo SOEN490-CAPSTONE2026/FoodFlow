@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import './Receiver_Styles/ReceiverMyClaims.css';
+import { claimsAPI } from '../../services/api';
 
 const ReceiverMyClaims = () => {
     const [claims, setClaims] = useState([]);
@@ -12,7 +13,7 @@ const ReceiverMyClaims = () => {
 
     const fetchMyClaims = async () => {
         try {
-            const response = await api.get('/api/claims/my-claims');
+            const response = await claimsAPI.myClaims();
             setClaims(response.data);
         } catch (error) {
             console.error('Error fetching claims:', error);
@@ -27,7 +28,7 @@ const ReceiverMyClaims = () => {
         }
 
         try {
-            await api.delete(`/api/claims/${claimId}`);
+            await claimsAPI.cancel(claimId);
             alert('Claim cancelled successfully');
             fetchMyClaims(); // Refresh list
         } catch (error) {
@@ -60,8 +61,8 @@ const ReceiverMyClaims = () => {
                             
                             <div className="claim-details">
                                 <p><strong>Donor:</strong> {claim.surplusPost.donorEmail}</p>
-                                <p><strong>Quantity:</strong> {claim.surplusPost.quantity}</p>
-                                <p><strong>Location:</strong> {claim.surplusPost.location}</p>
+                                <p><strong>Quantity:</strong> {claim.surplusPost.quantity?.value || 0} {claim.surplusPost.quantity?.unit || 'items'}</p>
+                                <p><strong>Location:</strong> {claim.surplusPost.pickupLocation?.address || 'Not specified'}</p>
                                 <p><strong>Pickup Date:</strong> {claim.surplusPost.pickupDate}</p>
                                 <p><strong>Pickup Time:</strong> {claim.surplusPost.pickupFrom} - {claim.surplusPost.pickupTo}</p>
                                 <p><strong>Claimed On:</strong> {new Date(claim.claimedAt).toLocaleString()}</p>
