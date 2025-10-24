@@ -65,7 +65,17 @@ public class SurplusPost {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-    
+
+    @Column(name = "pickup_code", length = 6)
+    private String pickupCode;
+
+    @Column(name = "pickup_code_expiration")
+    private LocalDateTime pickupCodeExpiration;
+
+    @Column(name = "pickup_timestamp")
+    private LocalDateTime pickupTimestamp;
+
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -121,4 +131,18 @@ public class SurplusPost {
     public LocalDateTime getUpdatedAt() { return updatedAt; }
 
     public boolean isClaimed() { return status==PostStatus.CLAIMED; }
+
+    public String getPickupCode() { return pickupCode; }
+    public void setPickupCode(String pickupCode) { this.pickupCode = pickupCode; }
+
+    public LocalDateTime getPickupCodeExpiration() { return pickupCodeExpiration; }
+    public void setPickupCodeExpiration(LocalDateTime pickupCodeExpiration) {
+    this.pickupCodeExpiration = pickupCodeExpiration;
+    }
+
+    public LocalDateTime getPickupTimestamp() { return pickupTimestamp; }
+    public void setPickupTimestamp(LocalDateTime pickupTimestamp) {
+    this.pickupTimestamp = pickupTimestamp;
+    }
+
 }

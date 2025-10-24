@@ -43,10 +43,9 @@ public class SurplusController {
         return ResponseEntity.ok(myPosts);
     }
 
-    @GetMapping
-    @PreAuthorize("hasAuthority('RECEIVER')")
-    public ResponseEntity<List<SurplusResponse>> getAllAvailableSurplus() {
-        List<SurplusResponse> availablePosts = surplusService.getAllAvailableSurplusPosts();
-        return ResponseEntity.ok(availablePosts);
-    }
+   @GetMapping("/available")
+public ResponseEntity<List<SurplusResponse>> getAvailableSurplus() {
+    List<SurplusResponse> availablePosts = surplusService.getAllAvailableSurplusPosts();
+    return ResponseEntity.ok(availablePosts);
+}
 }

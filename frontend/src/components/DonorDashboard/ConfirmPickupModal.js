@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import './Donor_Styles/ConfirmPickupModal.css';
 
+import { surplusAPI } from '../../services/api';
+
+
 const ConfirmPickupModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState('');
@@ -38,22 +41,29 @@ const ConfirmPickupModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
     setCode(newCode);
   };
 
-  const handleConfirm = () => {
-    const fullCode = code.join('');
-    if (fullCode.length !== 6) {
-      setError('Please enter the complete 6-digit code');
-      return;
+ const handleConfirm = async () => {
+  const fullCode = code.join('');
+  if (fullCode.length !== 6) {
+    setError('Please enter the complete 6-digit code');
+    return;
+  }
+
+  try {
+    const response = await surplusAPI.confirmPickup(donationItem.id, fullCode);
+    if (response.data.success) {
+      console.log('Pickup confirmed:', response.data);
+      onClose();
+      if (onSuccess) onSuccess();
+    } else {
+      setError(response.data.message || 'Invalid pickup code');
     }
-    
-    // TODO: Implement actual verification logic with backend
-    console.log('Confirming pickup with code:', fullCode);
-    
-    // Close this modal and show success modal
-    onClose();
-    if (onSuccess) {
-      onSuccess();
-    }
-  };
+  } catch (err) {
+    console.error('Error confirming pickup:', err);
+    const msg = err.response?.data?.message || 'Server error. Please try again.';
+    setError(msg);
+  }
+};
+
 
   const handleMyClaimsClick = () => {
     // TODO: Navigate to My Claims page

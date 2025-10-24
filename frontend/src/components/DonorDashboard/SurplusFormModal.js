@@ -71,59 +71,62 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
     const seconds = "00";
     return `${hours}:${minutes}:${seconds}`;
   };
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setMessage("");
+  setError("");
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setMessage("");
-    setError("");
+  const submissionData = {
+    title: formData.title,
+    quantity: {
+      value: parseFloat(formData.quantityValue),
+      unit: formData.quantityUnit.toUpperCase(),
+    },
+    foodCategories: formData.foodCategories.map((fc) => fc.value),
+    expiryDate: formatDate(formData.expiryDate),
+    pickupDate: formatDate(formData.pickupDate),
+    pickupFrom: formatTime(formData.pickupFrom),
+    pickupTo: formatTime(formData.pickupTo),
+    pickupLocation: formData.pickupLocation,
+    description: formData.description,
+  };
 
-    const submissionData = {
-      title: formData.title,
+  try {
+    const token = localStorage.getItem("jwtToken");
+
+    const payload = {
+      ...submissionData,
       quantity: {
-        value: parseFloat(formData.quantityValue),
-        unit: formData.quantityUnit,
+        value: Number(formData.quantityValue),
+        unit: formData.quantityUnit.toUpperCase(),
       },
-      foodCategories: formData.foodCategories.map((fc) => fc.value),
-      expiryDate: formatDate(formData.expiryDate),
-      pickupDate: formatDate(formData.pickupDate),
-      pickupFrom: formatTime(formData.pickupFrom),
-      pickupTo: formatTime(formData.pickupTo),
-      pickupLocation: formData.pickupLocation,
-      description: formData.description,
     };
 
-    try {
-      const token = localStorage.getItem("jwtToken");
-      const response = await axios.post(
-        "http://localhost:8080/api/surplus",
-        submissionData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+    const response = await axios.post("http://localhost:8080/api/surplus", payload, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+    setFormData({
+      title: "",
+      quantityValue: "",
+      quantityUnit: "KILOGRAM",
+      foodCategories: [],
+      expiryDate: "",
+      pickupDate: "",
+      pickupFrom: "",
+      pickupTo: "",
+      pickupLocation: { latitude: "", longitude: "", address: "" },
+      description: "",
+    });
 
-      setMessage(`Success! Post created with ID: ${response.data.id}`);
-      setFormData({
-        title: "",
-        quantityValue: "",
-        quantityUnit: "KILOGRAM",
-        foodCategories: [],
-        expiryDate: "",
-        pickupDate: "",
-        pickupFrom: "",
-        pickupTo: "",
-        pickupLocation: { latitude: "", longitude: "", address: "" },
-        description: "",
-      });
+    setTimeout(() => onClose(), 2000);
+  } catch (err) {
+    setError(err.response?.data?.message || "Failed to create surplus post");
+  }
+};
 
-      setTimeout(() => onClose(), 2000);
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to create surplus post");
-    }
-  };
 
   const handleCancel = () => {
     if (window.confirm("Cancel donation creation?")) {
