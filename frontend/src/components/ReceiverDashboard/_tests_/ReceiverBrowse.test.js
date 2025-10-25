@@ -57,9 +57,13 @@ jest.mock("../FiltersPanel", () => {
   };
 });
 
+// Mock window.alert
+global.alert = jest.fn();
+
 describe("ReceiverBrowse Component", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    global.alert.mockClear();
   });
 
   describe("Initial Rendering", () => {
@@ -353,10 +357,12 @@ describe("ReceiverBrowse Component", () => {
   });
 
   describe("Claim Donation Functionality", () => {
-    test("calls console.log when Claim Donation button is clicked", async () => {
-      const consoleSpy = jest
-        .spyOn(console, "log")
-        .mockImplementation(() => {});
+    test("shows confirmation and calls API when Claim Donation button is clicked", async () => {
+      // Mock window.confirm
+      global.confirm = jest.fn(() => true);
+      
+      // Mock surplusAPI.claim
+      surplusAPI.claim = jest.fn().mockResolvedValue({});
 
       const mockApiResponse = [
         {
@@ -391,14 +397,13 @@ describe("ReceiverBrowse Component", () => {
         fireEvent.click(claimButtons[0]);
       });
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        "Claiming donation:",
-        expect.objectContaining({
-          title: "Fresh Organic Apples",
-        })
+      expect(global.confirm).toHaveBeenCalledWith(
+        "Are you sure you want to claim this donation?"
       );
-
-      consoleSpy.mockRestore();
+      
+      await waitFor(() => {
+        expect(surplusAPI.claim).toHaveBeenCalledWith(1);
+      });
     });
   });
 

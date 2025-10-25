@@ -102,9 +102,9 @@ export default function ReceiverBrowse() {
     setExpandedCardId((prev) => (prev === item.id ? null : item.id));
   }, []);
 
-  const handleClaimDonation = useCallback((item) => {
-    console.log("Claiming donation:", item);
-  }, []);
+  // const handleClaimDonation = useCallback((item) => {
+  //   console.log("Claiming donation:", item);
+  // }, []);
 
   const handleBookmark = useCallback((item, e) => {
     e.stopPropagation();
@@ -119,6 +119,23 @@ export default function ReceiverBrowse() {
     });
     console.log("Bookmarking:", item);
   }, []);
+
+  const handleClaimDonation = async (item) => {
+      if (!window.confirm('Are you sure you want to claim this donation?')) {
+          return;
+      }
+      
+      try {
+          await surplusAPI.claim(item.id);  // Use surplusAPI
+          alert('Successfully claimed! Check "My Claims" tab.');
+          
+          // Remove from available list
+          setItems(items.filter(post => post.id !== item.id));  // Use setItems/items
+      } catch (error) {
+          console.error('Error claiming post:', error);
+          alert(error.response?.data?.message || 'Failed to claim. It may have already been claimed.');
+      }
+  };
 
   // Convert each category to display string (for separate tags)
   const getFoodCategoryDisplays = (foodCategories) => {

@@ -45,8 +45,17 @@ export const authAPI = {
 };
 
 export const surplusAPI = {
-  list: () => api.get('/surplus'),
-  getMyPosts: () => api.get('/surplus/my-posts'),
+  list: () => api.get('/surplus'),  // ✅ Just /surplus, not /api/surplus
+  myPosts: () => api.get('/surplus/my-posts'),
+  create: (data) => api.post('/surplus', data),
+  claim: (postId) => api.post('/claims', { surplusPostId: postId }),
 };
+
+export const claimsAPI = {
+  myClaims: () => api.get('/claims/my-claims'),  // ✅ No /api prefix
+  claim: (postId) => api.post('/claims', { surplusPostId: postId }),
+  cancel: (claimId) => api.delete(`/claims/${claimId}`),
+};
+
 
 export default api;

@@ -7,7 +7,8 @@ import {
   Settings as IconSettings,
   HelpCircle as IconHelpCircle,
   LogOut as IconLogOut,
-  Inbox as IconInbox
+  Inbox as IconInbox,
+  CheckCircle
 } from "lucide-react";
 
 export default function ReceiverLayout() {
@@ -17,6 +18,7 @@ export default function ReceiverLayout() {
   const { logout } = React.useContext(AuthContext);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
+  const isActive = (path) => location.pathname === path;
 
   const getPageTitle = () => {
     switch (location.pathname) {
@@ -99,11 +101,18 @@ export default function ReceiverLayout() {
             Donations
           </Link>
 
-          <Link
-            to="/receiver"
-            className={`receiver-nav-link ${location.pathname === "/receiver" || location.pathname === "/receiver/dashboard" ? "active" : ""
-              }`}
+          <Link 
+            to="/receiver/my-claims" 
+            className={`receiver-nav-link ${
+              isActive("/receiver/my-claims") || 
+              isActive("/receiver") || 
+              isActive("/receiver/dashboard") 
+              ? "active" : ""
+            }`}
           >
+            <span className="nav-icon" aria-hidden>
+              <CheckCircle size={18} className="lucide" />
+            </span>
             My Claims
           </Link>
 

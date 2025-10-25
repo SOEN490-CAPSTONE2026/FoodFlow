@@ -10,6 +10,8 @@ import java.time.LocalTime;
 import java.time.LocalDateTime;
 import java.util.Set;
 
+import com.example.foodflow.model.entity.SurplusPost;
+
 public class SurplusResponse {
 
     private Long id;
@@ -52,6 +54,23 @@ public class SurplusResponse {
         this.donorEmail = donorEmail;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+    }
+
+    public SurplusResponse(SurplusPost surplusPost) {
+        this.id = surplusPost.getId();
+        this.title = surplusPost.getTitle();
+        this.description = surplusPost.getDescription();
+        this.foodCategories = surplusPost.getFoodCategories();
+        this.quantity = surplusPost.getQuantity();
+        this.pickupLocation = surplusPost.getPickupLocation();
+        this.expiryDate = surplusPost.getExpiryDate();
+        this.pickupDate = surplusPost.getPickupDate();
+        this.pickupFrom = surplusPost.getPickupFrom();
+        this.pickupTo = surplusPost.getPickupTo();
+        this.status = surplusPost.getStatus();
+        this.donorEmail = surplusPost.getDonor().getEmail();
+        this.createdAt = surplusPost.getCreatedAt();
+        this.updatedAt = surplusPost.getUpdatedAt();
     }
 
     // Getters and Setters
