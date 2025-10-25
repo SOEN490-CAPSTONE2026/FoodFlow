@@ -28,6 +28,7 @@ public class SurplusResponse {
     private LocalTime pickupTo;
 
     private PostStatus status;
+    private String otpCode;
     private String donorEmail;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -38,7 +39,7 @@ public class SurplusResponse {
     public SurplusResponse(Long id, String title, String description, Set<FoodCategory> foodCategories,
                            Quantity quantity, Location pickupLocation,
                            LocalDate expiryDate, LocalDate pickupDate, LocalTime pickupFrom, LocalTime pickupTo,
-                           PostStatus status, String donorEmail,
+                           PostStatus status, String otpCode, String donorEmail,
                            LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.title = title;
@@ -51,6 +52,7 @@ public class SurplusResponse {
         this.pickupFrom = pickupFrom;
         this.pickupTo = pickupTo;
         this.status = status;
+        this.otpCode = otpCode;
         this.donorEmail = donorEmail;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -68,6 +70,7 @@ public class SurplusResponse {
         this.pickupFrom = surplusPost.getPickupFrom();
         this.pickupTo = surplusPost.getPickupTo();
         this.status = surplusPost.getStatus();
+        this.otpCode = surplusPost.getOtpCode();
         this.donorEmail = surplusPost.getDonor().getEmail();
         this.createdAt = surplusPost.getCreatedAt();
         this.updatedAt = surplusPost.getUpdatedAt();
@@ -106,6 +109,9 @@ public class SurplusResponse {
 
     public PostStatus getStatus() { return status; }
     public void setStatus(PostStatus status) { this.status = status; }
+
+    public String getOtpCode() { return otpCode; }
+    public void setOtpCode(String otpCode) { this.otpCode = otpCode; }
 
     public String getDonorEmail() { return donorEmail; }
     public void setDonorEmail(String donorEmail) { this.donorEmail = donorEmail; }

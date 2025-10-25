@@ -56,6 +56,9 @@ public class SurplusPost {
     @Column(nullable = false)
     private PostStatus status = PostStatus.AVAILABLE;
 
+    @Column(name = "otp_code", length = 6)
+    private String otpCode;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "donor_id", nullable = false)
     private User donor;
@@ -113,6 +116,9 @@ public class SurplusPost {
 
     public PostStatus getStatus() { return status; }
     public void setStatus(PostStatus status) { this.status = status; }
+
+    public String getOtpCode() { return otpCode; }
+    public void setOtpCode(String otpCode) { this.otpCode = otpCode; }
 
     public User getDonor() { return donor; }
     public void setDonor(User donor) { this.donor = donor; }

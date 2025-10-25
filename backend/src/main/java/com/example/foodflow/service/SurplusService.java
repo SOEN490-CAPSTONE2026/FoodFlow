@@ -70,16 +70,42 @@ public class SurplusService {
         response.setPickupFrom(post.getPickupFrom());
         response.setPickupTo(post.getPickupTo());
         response.setStatus(post.getStatus());
+        response.setOtpCode(post.getOtpCode());
         response.setDonorEmail(post.getDonor().getEmail());
         response.setCreatedAt(post.getCreatedAt());
         response.setUpdatedAt(post.getUpdatedAt());
         return response;
     }
     public List<SurplusResponse> getAllAvailableSurplusPosts() {
-    List<SurplusPost> posts = surplusPostRepository.findByStatus(PostStatus.AVAILABLE);
-    return posts.stream()
-            .map(this::convertToResponse)
-            .collect(Collectors.toList());
-}
+        List<SurplusPost> posts = surplusPostRepository.findByStatus(PostStatus.AVAILABLE);
+        return posts.stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public SurplusResponse completeSurplusPost(Long postId, String otpCode, User donor) {
+        // Fetch the surplus post
+        SurplusPost post = surplusPostRepository.findById(postId)
+            .orElseThrow(() -> new RuntimeException("Surplus post not found"));
+
+        if (!post.getDonor().getId().equals(donor.getId())) {
+            throw new RuntimeException("You are not authorized to complete this post. Only the post owner can mark it as completed.");
+        }
+
+        if (post.getStatus() != PostStatus.READY_FOR_PICKUP) {
+            throw new RuntimeException("Post must be in READY_FOR_PICKUP status to be completed. Current status: " + post.getStatus());
+        }
+
+        if (post.getOtpCode() == null || !post.getOtpCode().equals(otpCode)) {
+            throw new RuntimeException("Invalid OTP code");
+        }
+
+        // Mark as completed
+        post.setStatus(PostStatus.COMPLETED);
+        SurplusPost updatedPost = surplusPostRepository.save(post);
+
+        return convertToResponse(updatedPost);
+    }
 
 }
