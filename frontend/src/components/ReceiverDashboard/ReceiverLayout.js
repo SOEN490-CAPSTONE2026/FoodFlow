@@ -103,7 +103,12 @@ export default function ReceiverLayout() {
 
           <Link 
             to="/receiver/my-claims" 
-            className={`receiver-nav-link ${isActive("/receiver/my-claims") ? "active" : ""}`}
+            className={`receiver-nav-link ${
+              isActive("/receiver/my-claims") || 
+              isActive("/receiver") || 
+              isActive("/receiver/dashboard") 
+              ? "active" : ""
+            }`}
           >
             <span className="nav-icon" aria-hidden>
               <CheckCircle size={18} className="lucide" />

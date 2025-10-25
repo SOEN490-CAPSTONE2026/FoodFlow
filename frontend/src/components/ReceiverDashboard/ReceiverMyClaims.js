@@ -14,9 +14,10 @@ const ReceiverMyClaims = () => {
     const fetchMyClaims = async () => {
         try {
             const response = await claimsAPI.myClaims();
-            setClaims(response.data);
+            setClaims(response.data || []);
         } catch (error) {
             console.error('Error fetching claims:', error);
+            setClaims([]);
         } finally {
             setLoading(false);
         }

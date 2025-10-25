@@ -30,7 +30,7 @@ describe('ReceiverMyClaims Component', () => {
   });
 
   test('renders "no claims" message when claims list is empty', async () => {
-    claimsAPI.myClaims.mockResolvedValue([]);
+    claimsAPI.myClaims.mockResolvedValue({ data: [] });
 
     render(<ReceiverMyClaims />);
 
@@ -48,10 +48,14 @@ describe('ReceiverMyClaims Component', () => {
         status: 'Active',
         surplusPost: {
           id: 10,
-          donorName: 'Green Grocer',
-          location: '123 Main St',
-          pickupStartTime: '09:00',
-          pickupEndTime: '17:00',
+          title: 'Fresh Vegetables',
+          donorEmail: 'greengrocer@example.com',
+          quantity: { value: 10, unit: 'kg' },
+          pickupLocation: { address: '123 Main St' },
+          pickupDate: '2025-10-25',
+          pickupFrom: '09:00:00',
+          pickupTo: '17:00:00',
+          description: 'Fresh vegetables'
         },
       },
       {
@@ -61,23 +65,27 @@ describe('ReceiverMyClaims Component', () => {
         status: 'Active',
         surplusPost: {
           id: 11,
-          donorName: 'Local Bakery',
-          location: '456 Oak Ave',
-          pickupStartTime: '08:00',
-          pickupEndTime: '16:00',
+          title: 'Baked Goods',
+          donorEmail: 'bakery@example.com',
+          quantity: { value: 5, unit: 'items' },
+          pickupLocation: { address: '456 Oak Ave' },
+          pickupDate: '2025-10-25',
+          pickupFrom: '08:00:00',
+          pickupTo: '16:00:00',
+          description: 'Fresh baked goods'
         },
       },
     ];
 
-    claimsAPI.myClaims.mockResolvedValue(mockClaims);
+    claimsAPI.myClaims.mockResolvedValue({ data: mockClaims });
 
     render(<ReceiverMyClaims />);
 
     await waitFor(() => {
       expect(screen.getByText('Fresh Vegetables')).toBeInTheDocument();
       expect(screen.getByText('Baked Goods')).toBeInTheDocument();
-      expect(screen.getByText('Green Grocer')).toBeInTheDocument();
-      expect(screen.getByText('Local Bakery')).toBeInTheDocument();
+      expect(screen.getByText('greengrocer@example.com')).toBeInTheDocument();
+      expect(screen.getByText('bakery@example.com')).toBeInTheDocument();
     });
   });
 
@@ -89,21 +97,24 @@ describe('ReceiverMyClaims Component', () => {
       status: 'Active',
       surplusPost: {
         id: 10,
-        donorName: 'Green Grocer',
-        location: '123 Main St, City',
-        pickupStartTime: '09:00',
-        pickupEndTime: '17:00',
+        title: 'Fresh Vegetables',
+        donorEmail: 'greengrocer@example.com',
+        quantity: { value: 10, unit: 'kg' },
+        pickupLocation: { address: '123 Main St, City' },
+        pickupDate: '2025-10-25',
+        pickupFrom: '09:00:00',
+        pickupTo: '17:00:00',
         description: 'Fresh organic vegetables',
       },
     };
 
-    claimsAPI.myClaims.mockResolvedValue([mockClaim]);
+    claimsAPI.myClaims.mockResolvedValue({ data: [mockClaim] });
 
     render(<ReceiverMyClaims />);
 
     await waitFor(() => {
       expect(screen.getByText('Fresh Vegetables')).toBeInTheDocument();
-      expect(screen.getByText(/green grocer/i)).toBeInTheDocument();
+      expect(screen.getByText(/greengrocer@example.com/i)).toBeInTheDocument();
       expect(screen.getByText(/123 main st/i)).toBeInTheDocument();
     });
   });
@@ -117,13 +128,18 @@ describe('ReceiverMyClaims Component', () => {
         status: 'Active',
         surplusPost: {
           id: 10,
-          donorName: 'Green Grocer',
-          location: '123 Main St',
+          title: 'Fresh Vegetables',
+          donorEmail: 'greengrocer@example.com',
+          quantity: { value: 10, unit: 'kg' },
+          pickupLocation: { address: '123 Main St' },
+          pickupDate: '2025-10-25',
+          pickupFrom: '09:00:00',
+          pickupTo: '17:00:00',
         },
       },
     ];
 
-    claimsAPI.myClaims.mockResolvedValue(mockClaims);
+    claimsAPI.myClaims.mockResolvedValue({ data: mockClaims });
     
     render(<ReceiverMyClaims />);
 
@@ -144,12 +160,22 @@ describe('ReceiverMyClaims Component', () => {
       {
         id: 1,
         surplusPostTitle: 'Fresh Vegetables',
+        claimedAt: '2025-10-24T10:00:00',
         status: 'Active',
-        surplusPost: { id: 10, donorName: 'Green Grocer' },
+        surplusPost: {
+          id: 10,
+          title: 'Fresh Vegetables',
+          donorEmail: 'greengrocer@example.com',
+          quantity: { value: 10, unit: 'kg' },
+          pickupLocation: { address: '123 Main St' },
+          pickupDate: '2025-10-25',
+          pickupFrom: '09:00:00',
+          pickupTo: '17:00:00',
+        },
       },
     ];
 
-    claimsAPI.myClaims.mockResolvedValue(mockClaims);
+    claimsAPI.myClaims.mockResolvedValue({ data: mockClaims });
 
     render(<ReceiverMyClaims />);
 
@@ -168,14 +194,24 @@ describe('ReceiverMyClaims Component', () => {
       {
         id: 1,
         surplusPostTitle: 'Fresh Vegetables',
+        claimedAt: '2025-10-24T10:00:00',
         status: 'Active',
-        surplusPost: { id: 10, donorName: 'Green Grocer' },
+        surplusPost: {
+          id: 10,
+          title: 'Fresh Vegetables',
+          donorEmail: 'greengrocer@example.com',
+          quantity: { value: 10, unit: 'kg' },
+          pickupLocation: { address: '123 Main St' },
+          pickupDate: '2025-10-25',
+          pickupFrom: '09:00:00',
+          pickupTo: '17:00:00',
+        },
       },
     ];
 
     claimsAPI.myClaims
-      .mockResolvedValueOnce(mockClaims) // Initial load
-      .mockResolvedValueOnce([]); // After cancel
+      .mockResolvedValueOnce({ data: mockClaims }) // Initial load
+      .mockResolvedValueOnce({ data: [] }); // After cancel
 
     claimsAPI.cancel.mockResolvedValue({});
 
@@ -200,12 +236,22 @@ describe('ReceiverMyClaims Component', () => {
       {
         id: 1,
         surplusPostTitle: 'Fresh Vegetables',
+        claimedAt: '2025-10-24T10:00:00',
         status: 'Active',
-        surplusPost: { id: 10, donorName: 'Green Grocer' },
+        surplusPost: {
+          id: 10,
+          title: 'Fresh Vegetables',
+          donorEmail: 'greengrocer@example.com',
+          quantity: { value: 10, unit: 'kg' },
+          pickupLocation: { address: '123 Main St' },
+          pickupDate: '2025-10-25',
+          pickupFrom: '09:00:00',
+          pickupTo: '17:00:00',
+        },
       },
     ];
 
-    claimsAPI.myClaims.mockResolvedValue(mockClaims);
+    claimsAPI.myClaims.mockResolvedValue({ data: mockClaims });
 
     render(<ReceiverMyClaims />);
 
@@ -226,12 +272,22 @@ describe('ReceiverMyClaims Component', () => {
       {
         id: 1,
         surplusPostTitle: 'Fresh Vegetables',
+        claimedAt: '2025-10-24T10:00:00',
         status: 'Active',
-        surplusPost: { id: 10, donorName: 'Green Grocer' },
+        surplusPost: {
+          id: 10,
+          title: 'Fresh Vegetables',
+          donorEmail: 'greengrocer@example.com',
+          quantity: { value: 10, unit: 'kg' },
+          pickupLocation: { address: '123 Main St' },
+          pickupDate: '2025-10-25',
+          pickupFrom: '09:00:00',
+          pickupTo: '17:00:00',
+        },
       },
     ];
 
-    claimsAPI.myClaims.mockResolvedValue(mockClaims);
+    claimsAPI.myClaims.mockResolvedValue({ data: mockClaims });
     claimsAPI.cancel.mockRejectedValue(new Error('Cancel failed'));
 
     render(<ReceiverMyClaims />);
@@ -273,11 +329,17 @@ describe('ReceiverMyClaims Component', () => {
       status: 'Active',
       surplusPost: {
         id: 10,
-        donorName: 'Green Grocer',
+        title: 'Fresh Vegetables',
+        donorEmail: 'greengrocer@example.com',
+        quantity: { value: 10, unit: 'kg' },
+        pickupLocation: { address: '123 Main St' },
+        pickupDate: '2025-10-25',
+        pickupFrom: '09:00:00',
+        pickupTo: '17:00:00',
       },
     };
 
-    claimsAPI.myClaims.mockResolvedValue([mockClaim]);
+    claimsAPI.myClaims.mockResolvedValue({ data: [mockClaim] });
 
     render(<ReceiverMyClaims />);
 
