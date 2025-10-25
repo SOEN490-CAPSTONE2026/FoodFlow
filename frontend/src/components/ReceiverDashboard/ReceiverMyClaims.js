@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import api from '../../services/api';
 import './Receiver_Styles/ReceiverMyClaims.css';
 import { claimsAPI } from '../../services/api';
 
@@ -9,6 +8,13 @@ const ReceiverMyClaims = () => {
 
     useEffect(() => {
         fetchMyClaims();
+
+        // Poll for updates every 30 seconds to catch status changes
+        const intervalId = setInterval(() => {
+            fetchMyClaims();
+        }, 30000);
+
+        return () => clearInterval(intervalId);
     }, []);
 
     const fetchMyClaims = async () => {
@@ -57,7 +63,12 @@ const ReceiverMyClaims = () => {
                         <div key={claim.id} className="claim-card">
                             <div className="claim-header">
                                 <h3>{claim.surplusPost.title}</h3>
-                                <span className="claim-status">{claim.status}</span>
+                                <div className="status-badges">
+                                    <span className="claim-status">{claim.status}</span>
+                                    <span className={`post-status ${claim.surplusPost.status.toLowerCase().replace(/_/g, '-')}`}>
+                                        {claim.surplusPost.status.replace(/_/g, ' ')}
+                                    </span>
+                                </div>
                             </div>
                             
                             <div className="claim-details">
@@ -67,6 +78,14 @@ const ReceiverMyClaims = () => {
                                 <p><strong>Pickup Date:</strong> {claim.surplusPost.pickupDate}</p>
                                 <p><strong>Pickup Time:</strong> {claim.surplusPost.pickupFrom} - {claim.surplusPost.pickupTo}</p>
                                 <p><strong>Claimed On:</strong> {new Date(claim.claimedAt).toLocaleString()}</p>
+
+                                {claim.surplusPost.status === 'READY_FOR_PICKUP' && claim.surplusPost.otpCode && (
+                                    <div className="otp-code-section">
+                                        <p><strong>Pickup Code:</strong></p>
+                                        <div className="otp-code-display">{claim.surplusPost.otpCode}</div>
+                                        <p className="otp-instruction">Show this code to the donor during pickup</p>
+                                    </div>
+                                )}
                             </div>
                             
                             <div className="claim-description">
