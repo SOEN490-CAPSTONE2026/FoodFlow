@@ -5,11 +5,11 @@ import com.example.foodflow.model.dto.MessageResponse;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.service.MessageService;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -17,50 +17,42 @@ import java.util.Map;
 @CrossOrigin(origins = "http://localhost:3000")
 public class MessageController {
     
-    private final MessageService messageService;
+    @Autowired
+    private MessageService messageService;
     
-    public MessageController(MessageService messageService) {
-        this.messageService = messageService;
-    }
-    
-    // Send message via REST (alternative to WebSocket)
-    @PostMapping("/send")
+    /**
+     * Send message via REST (alternative to WebSocket)
+     */
+    @PostMapping
     public ResponseEntity<MessageResponse> sendMessage(
             @Valid @RequestBody MessageRequest request,
             @AuthenticationPrincipal User sender) {
-        MessageResponse response = messageService.sendMessage(request, sender);
-        return ResponseEntity.ok(response);
+        try {
+            MessageResponse response = messageService.sendMessage(request, sender);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
     
-    // Get all messages for a specific surplus post
-    @GetMapping("/post/{postId}")
-    public ResponseEntity<List<MessageResponse>> getMessagesForPost(
-            @PathVariable Long postId) {
-        List<MessageResponse> messages = messageService.getMessagesForPost(postId);
-        return ResponseEntity.ok(messages);
-    }
-    
-    // Get messages between two users for a specific post
-    @GetMapping("/conversation")
-    public ResponseEntity<List<MessageResponse>> getConversation(
-            @RequestParam Long postId,
-            @RequestParam Long otherUserId,
-            @AuthenticationPrincipal User currentUser) {
-        List<MessageResponse> messages = messageService.getMessagesBetweenUsers(
-            postId, currentUser.getId(), otherUserId);
-        return ResponseEntity.ok(messages);
-    }
-    
-    // Mark message as read
+    /**
+     * Mark a specific message as read
+     */
     @PutMapping("/{messageId}/read")
     public ResponseEntity<Void> markAsRead(
             @PathVariable Long messageId,
             @AuthenticationPrincipal User currentUser) {
-        messageService.markAsRead(messageId, currentUser);
-        return ResponseEntity.ok().build();
+        try {
+            messageService.markAsRead(messageId, currentUser);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
     
-    // Get unread message count
+    /**
+     * Get unread message count for current user
+     */
     @GetMapping("/unread/count")
     public ResponseEntity<Map<String, Long>> getUnreadCount(
             @AuthenticationPrincipal User currentUser) {

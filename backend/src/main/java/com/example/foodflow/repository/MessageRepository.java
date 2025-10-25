@@ -11,23 +11,40 @@ import java.util.List;
 @Repository
 public interface MessageRepository extends JpaRepository<Message, Long> {
     
-    // Get all messages for a specific surplus post
-    List<Message> findBySurplusPostIdOrderByCreatedAtAsc(Long surplusPostId);
+    /**
+     * Find all messages in a conversation, ordered by creation time (oldest first)
+     */
+    @Query("SELECT m FROM Message m WHERE m.conversation.id = :conversationId ORDER BY m.createdAt ASC")
+    List<Message> findByConversationId(@Param("conversationId") Long conversationId);
     
-    // Get messages between two users for a specific post
-    @Query("SELECT m FROM Message m WHERE m.surplusPost.id = :postId " +
-           "AND ((m.sender.id = :userId1 AND m.receiver.id = :userId2) " +
-           "OR (m.sender.id = :userId2 AND m.receiver.id = :userId1)) " +
+    /**
+     * Find unread messages for a specific user in a conversation
+     */
+    @Query("SELECT m FROM Message m " +
+           "WHERE m.conversation.id = :conversationId " +
+           "AND m.sender.id != :userId " +
+           "AND m.readStatus = false " +
            "ORDER BY m.createdAt ASC")
-    List<Message> findMessagesBetweenUsers(
-        @Param("postId") Long postId,
-        @Param("userId1") Long userId1,
-        @Param("userId2") Long userId2
-    );
+    List<Message> findUnreadByConversationAndUser(@Param("conversationId") Long conversationId, 
+                                                    @Param("userId") Long userId);
     
-    // Get unread messages for a user
-    List<Message> findByReceiverIdAndReadStatusFalse(Long receiverId);
+    /**
+     * Count unread messages for a user across all conversations
+     */
+    @Query("SELECT COUNT(m) FROM Message m " +
+           "JOIN m.conversation c " +
+           "WHERE (c.user1.id = :userId OR c.user2.id = :userId) " +
+           "AND m.sender.id != :userId " +
+           "AND m.readStatus = false")
+    long countUnreadByUser(@Param("userId") Long userId);
     
-    // Count unread messages for a user
-    long countByReceiverIdAndReadStatusFalse(Long receiverId);
+    /**
+     * Count unread messages in a specific conversation for a user
+     */
+    @Query("SELECT COUNT(m) FROM Message m " +
+           "WHERE m.conversation.id = :conversationId " +
+           "AND m.sender.id != :userId " +
+           "AND m.readStatus = false")
+    long countUnreadInConversation(@Param("conversationId") Long conversationId, 
+                                    @Param("userId") Long userId);
 }

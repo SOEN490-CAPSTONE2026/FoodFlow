@@ -12,16 +12,12 @@ public class Message {
     private Long id;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "surplus_post_id", nullable = false)
-    private SurplusPost surplusPost;
+    @JoinColumn(name = "conversation_id", nullable = false)
+    private Conversation conversation;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id", nullable = false)
     private User sender;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "receiver_id", nullable = false)
-    private User receiver;
     
     @Column(name = "message_body", nullable = false, columnDefinition = "TEXT")
     private String messageBody;
@@ -40,32 +36,55 @@ public class Message {
     // Constructors
     public Message() {}
     
-    public Message(SurplusPost surplusPost, User sender, User receiver, String messageBody) {
-        this.surplusPost = surplusPost;
+    public Message(Conversation conversation, User sender, String messageBody) {
+        this.conversation = conversation;
         this.sender = sender;
-        this.receiver = receiver;
         this.messageBody = messageBody;
         this.readStatus = false;
     }
     
     // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() { 
+        return id; 
+    }
     
-    public SurplusPost getSurplusPost() { return surplusPost; }
-    public void setSurplusPost(SurplusPost surplusPost) { this.surplusPost = surplusPost; }
+    public void setId(Long id) { 
+        this.id = id; 
+    }
     
-    public User getSender() { return sender; }
-    public void setSender(User sender) { this.sender = sender; }
+    public Conversation getConversation() { 
+        return conversation; 
+    }
     
-    public User getReceiver() { return receiver; }
-    public void setReceiver(User receiver) { this.receiver = receiver; }
+    public void setConversation(Conversation conversation) { 
+        this.conversation = conversation; 
+    }
     
-    public String getMessageBody() { return messageBody; }
-    public void setMessageBody(String messageBody) { this.messageBody = messageBody; }
+    public User getSender() { 
+        return sender; 
+    }
     
-    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setSender(User sender) { 
+        this.sender = sender; 
+    }
     
-    public Boolean getReadStatus() { return readStatus; }
-    public void setReadStatus(Boolean readStatus) { this.readStatus = readStatus; }
+    public String getMessageBody() { 
+        return messageBody; 
+    }
+    
+    public void setMessageBody(String messageBody) { 
+        this.messageBody = messageBody; 
+    }
+    
+    public LocalDateTime getCreatedAt() { 
+        return createdAt; 
+    }
+    
+    public Boolean getReadStatus() { 
+        return readStatus; 
+    }
+    
+    public void setReadStatus(Boolean readStatus) { 
+        this.readStatus = readStatus; 
+    }
 }

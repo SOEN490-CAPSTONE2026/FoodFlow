@@ -2,57 +2,61 @@ package com.example.foodflow.service;
 
 import com.example.foodflow.model.dto.MessageRequest;
 import com.example.foodflow.model.dto.MessageResponse;
+import com.example.foodflow.model.entity.Conversation;
 import com.example.foodflow.model.entity.Message;
-import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.entity.User;
+import com.example.foodflow.repository.ConversationRepository;
 import com.example.foodflow.repository.MessageRepository;
-import com.example.foodflow.repository.SurplusPostRepository;
-import com.example.foodflow.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class MessageService {
     
-    private final MessageRepository messageRepository;
-    private final UserRepository userRepository;
-    private final SurplusPostRepository surplusPostRepository;
-    private final SimpMessagingTemplate messagingTemplate;
+    @Autowired
+    private MessageRepository messageRepository;
     
-    public MessageService(MessageRepository messageRepository,
-                         UserRepository userRepository,
-                         SurplusPostRepository surplusPostRepository,
-                         SimpMessagingTemplate messagingTemplate) {
-        this.messageRepository = messageRepository;
-        this.userRepository = userRepository;
-        this.surplusPostRepository = surplusPostRepository;
-        this.messagingTemplate = messagingTemplate;
-    }
+    @Autowired
+    private ConversationRepository conversationRepository;
     
+    @Autowired
+    private ConversationService conversationService;
+    
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+    
+    /**
+     * Send a message in a conversation
+     */
     @Transactional
     public MessageResponse sendMessage(MessageRequest request, User sender) {
-        // Validate surplus post exists
-        SurplusPost surplusPost = surplusPostRepository.findById(request.getSurplusPostId())
-            .orElseThrow(() -> new RuntimeException("Surplus post not found"));
-        
-        // Validate receiver exists
-        User receiver = userRepository.findById(request.getReceiverId())
-            .orElseThrow(() -> new RuntimeException("Receiver not found"));
+        // Get and validate conversation
+        Conversation conversation = conversationService.getConversation(
+            request.getConversationId(), 
+            sender
+        );
         
         // Create and save message
-        Message message = new Message(surplusPost, sender, receiver, request.getMessageBody());
+        Message message = new Message(conversation, sender, request.getMessageBody());
         message = messageRepository.save(message);
+        
+        // Update conversation's last message timestamp
+        conversation.setLastMessageAt(LocalDateTime.now());
+        conversationRepository.save(conversation);
         
         // Convert to response
         MessageResponse response = new MessageResponse(message);
         
-        // Send via WebSocket to receiver
+        // Send via WebSocket to the other participant
+        User otherUser = conversation.getOtherParticipant(sender.getId());
         messagingTemplate.convertAndSendToUser(
-            receiver.getId().toString(),
+            otherUser.getId().toString(),
             "/queue/messages",
             response
         );
@@ -60,38 +64,65 @@ public class MessageService {
         return response;
     }
     
+    /**
+     * Get all messages in a conversation
+     */
     @Transactional(readOnly = true)
-    public List<MessageResponse> getMessagesForPost(Long postId) {
-        return messageRepository.findBySurplusPostIdOrderByCreatedAtAsc(postId)
+    public List<MessageResponse> getConversationMessages(Long conversationId, User currentUser) {
+        // Validate user is participant
+        conversationService.getConversation(conversationId, currentUser);
+        
+        return messageRepository.findByConversationId(conversationId)
             .stream()
             .map(MessageResponse::new)
             .collect(Collectors.toList());
     }
     
-    @Transactional(readOnly = true)
-    public List<MessageResponse> getMessagesBetweenUsers(Long postId, Long userId1, Long userId2) {
-        return messageRepository.findMessagesBetweenUsers(postId, userId1, userId2)
-            .stream()
-            .map(MessageResponse::new)
-            .collect(Collectors.toList());
-    }
-    
+    /**
+     * Mark a message as read
+     */
     @Transactional
     public void markAsRead(Long messageId, User currentUser) {
         Message message = messageRepository.findById(messageId)
-            .orElseThrow(() -> new RuntimeException("Message not found"));
+            .orElseThrow(() -> new IllegalArgumentException("Message not found"));
         
-        // Only receiver can mark as read
-        if (!message.getReceiver().getId().equals(currentUser.getId())) {
-            throw new RuntimeException("Unauthorized to mark this message as read");
+        // Only the recipient (not the sender) can mark as read
+        if (message.getSender().getId().equals(currentUser.getId())) {
+            throw new IllegalArgumentException("Cannot mark your own message as read");
+        }
+        
+        // Verify user is participant in the conversation
+        Conversation conversation = message.getConversation();
+        if (!conversation.isParticipant(currentUser.getId())) {
+            throw new IllegalArgumentException("Unauthorized to mark this message as read");
         }
         
         message.setReadStatus(true);
         messageRepository.save(message);
     }
     
+    /**
+     * Mark all messages in a conversation as read for the current user
+     */
+    @Transactional
+    public void markConversationAsRead(Long conversationId, User currentUser) {
+        // Validate user is participant
+        conversationService.getConversation(conversationId, currentUser);
+        
+        List<Message> unreadMessages = messageRepository.findUnreadByConversationAndUser(
+            conversationId, 
+            currentUser.getId()
+        );
+        
+        unreadMessages.forEach(message -> message.setReadStatus(true));
+        messageRepository.saveAll(unreadMessages);
+    }
+    
+    /**
+     * Get unread message count for user
+     */
     @Transactional(readOnly = true)
     public long getUnreadCount(User user) {
-        return messageRepository.countByReceiverIdAndReadStatusFalse(user.getId());
+        return messageRepository.countUnreadByUser(user.getId());
     }
 }

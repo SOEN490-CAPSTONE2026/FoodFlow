@@ -5,11 +5,8 @@ import jakarta.validation.constraints.NotNull;
 
 public class MessageRequest {
     
-    @NotNull(message = "Surplus post ID is required")
-    private Long surplusPostId;
-    
-    @NotNull(message = "Receiver ID is required")
-    private Long receiverId;
+    @NotNull(message = "Conversation ID is required")
+    private Long conversationId;
     
     @NotBlank(message = "Message body cannot be empty")
     private String messageBody;
@@ -17,19 +14,25 @@ public class MessageRequest {
     // Constructors
     public MessageRequest() {}
     
-    public MessageRequest(Long surplusPostId, Long receiverId, String messageBody) {
-        this.surplusPostId = surplusPostId;
-        this.receiverId = receiverId;
+    public MessageRequest(Long conversationId, String messageBody) {
+        this.conversationId = conversationId;
         this.messageBody = messageBody;
     }
     
     // Getters and Setters
-    public Long getSurplusPostId() { return surplusPostId; }
-    public void setSurplusPostId(Long surplusPostId) { this.surplusPostId = surplusPostId; }
+    public Long getConversationId() { 
+        return conversationId; 
+    }
     
-    public Long getReceiverId() { return receiverId; }
-    public void setReceiverId(Long receiverId) { this.receiverId = receiverId; }
+    public void setConversationId(Long conversationId) { 
+        this.conversationId = conversationId; 
+    }
     
-    public String getMessageBody() { return messageBody; }
-    public void setMessageBody(String messageBody) { this.messageBody = messageBody; }
+    public String getMessageBody() { 
+        return messageBody; 
+    }
+    
+    public void setMessageBody(String messageBody) { 
+        this.messageBody = messageBody; 
+    }
 }
