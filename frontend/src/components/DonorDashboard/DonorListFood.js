@@ -233,8 +233,10 @@ export default function DonorListFood() {
     );
   }
 
-  const handleModalClose = () => {
+  const handleModalClose = async () => {
     setIsModalOpen(false);
+    // Small delay to ensure backend has processed the new post
+    await new Promise(resolve => setTimeout(resolve, 300));
     fetchMyPosts();
   };
 
@@ -250,6 +252,8 @@ export default function DonorListFood() {
 
   const handlePickupSuccess = () => {
     setIsSuccessModalOpen(true);
+    // Refresh the posts list to show updated status
+    fetchMyPosts();
   };
 
   const handleCloseSuccessModal = () => {

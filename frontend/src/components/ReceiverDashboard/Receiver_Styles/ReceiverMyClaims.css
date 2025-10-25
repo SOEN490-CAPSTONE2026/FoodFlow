@@ -65,6 +65,14 @@
     margin: 0;
     color: #333;
     font-size: 20px;
+    flex: 1;
+}
+
+.status-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
 }
 
 .claim-status {
@@ -75,6 +83,46 @@
     font-size: 12px;
     font-weight: bold;
     text-transform: uppercase;
+}
+
+.post-status {
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: capitalize;
+    white-space: nowrap;
+}
+
+.post-status.available {
+    background: #28a745;
+    color: white;
+}
+
+.post-status.claimed {
+    background: #ffc107;
+    color: #333;
+}
+
+.post-status.ready-for-pickup {
+    background: #007bff;
+    color: white;
+    animation: pulse 2s infinite;
+}
+
+.post-status.completed {
+    background: #6c757d;
+    color: white;
+}
+
+.post-status.not-completed {
+    background: #dc3545;
+    color: white;
+}
+
+.post-status.expired {
+    background: #343a40;
+    color: white;
 }
 
 .claim-details {
@@ -125,4 +173,43 @@
 
 .cancel-button:hover {
     background: #c82333;
+}
+
+/* OTP Code Display Styles */
+.otp-code-section {
+    margin-top: 20px;
+    padding: 15px;
+    background: #e8f5e9;
+    border: 2px solid #4caf50;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.otp-code-display {
+    font-size: 32px;
+    font-weight: bold;
+    color: #2e7d32;
+    letter-spacing: 8px;
+    margin: 15px 0;
+    font-family: 'Courier New', monospace;
+    padding: 15px;
+    background: white;
+    border-radius: 5px;
+    border: 2px dashed #4caf50;
+}
+
+.otp-instruction {
+    font-size: 13px;
+    color: #1b5e20;
+    margin: 10px 0 0 0;
+    font-weight: 500;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
 }

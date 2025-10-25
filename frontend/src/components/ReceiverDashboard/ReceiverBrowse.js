@@ -300,6 +300,44 @@ export default function ReceiverBrowse() {
     }
   };
 
+  const formatStatus = (status) => {
+    switch (status) {
+      case "AVAILABLE":
+        return "Available";
+      case "READY_FOR_PICKUP":
+        return "Ready for Pickup";
+      case "CLAIMED":
+        return "Claimed";
+      case "COMPLETED":
+        return "Completed";
+      case "NOT_COMPLETED":
+        return "Not Completed";
+      case "EXPIRED":
+        return "Expired";
+      default:
+        return status || "Available";
+    }
+  };
+
+  const getStatusClass = (status) => {
+    switch (status) {
+      case "AVAILABLE":
+        return "status-available";
+      case "READY_FOR_PICKUP":
+        return "status-ready";
+      case "CLAIMED":
+        return "status-claimed";
+      case "COMPLETED":
+        return "status-completed";
+      case "NOT_COMPLETED":
+        return "status-not-completed";
+      case "EXPIRED":
+        return "status-expired";
+      default:
+        return "status-available";
+    }
+  };
+
   return (
     <LoadScript
       googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY || ""}
@@ -410,9 +448,9 @@ export default function ReceiverBrowse() {
                               }}
                             />
                           </button>
-                          <span className="receiver-status-badge">
+                          <span className={`receiver-status-badge ${getStatusClass(item.status)}`}>
                             <span className="receiver-status-icon">✓</span>
-                            Available
+                            {formatStatus(item.status)}
                           </span>
                         </div>
                       </div>
