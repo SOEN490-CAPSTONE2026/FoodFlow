@@ -14,6 +14,9 @@ public class ClaimResponse {
     private String status;
     private SurplusResponse surplusPost;
     
+    // No-arg constructor for testing/serialization
+    public ClaimResponse() {}
+    
     // Constructor from entity
     public ClaimResponse(Claim claim) {
         this.id = claim.getId();
