@@ -9,6 +9,7 @@ import com.example.foodflow.repository.SurplusPostRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -77,7 +78,11 @@ public class SurplusService {
         return response;
     }
     public List<SurplusResponse> getAllAvailableSurplusPosts() {
-        List<SurplusPost> posts = surplusPostRepository.findByStatus(PostStatus.AVAILABLE);
+        List<PostStatus> claimableStatuses = Arrays.asList(
+            PostStatus.AVAILABLE,
+            PostStatus.READY_FOR_PICKUP
+        );
+        List<SurplusPost> posts = surplusPostRepository.findByStatusIn(claimableStatuses);
         return posts.stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
