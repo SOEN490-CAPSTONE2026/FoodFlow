@@ -49,18 +49,23 @@ public class SecurityConfig {
                 // Public endpoints
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/surplus").permitAll()
-                .requestMatchers("/api/feed/**").hasAuthority("RECEIVER")
-
-                // Role-based endpoints
                 .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers("/api/analytics/**").permitAll()
                 
-                // ✅ API endpoints with role restrictions
-                .requestMatchers("/api/surplus/**").hasAuthority("DONOR")
+                // ✅ FIXED: Surplus endpoints with proper role restrictions
+                .requestMatchers(HttpMethod.POST, "/api/surplus").hasAuthority("DONOR")
+                .requestMatchers(HttpMethod.GET, "/api/surplus").hasAuthority("RECEIVER")
+                .requestMatchers(HttpMethod.GET, "/api/surplus/my-posts").hasAuthority("DONOR")
+                
+                // ✅ NEW: Claims endpoints  
+                .requestMatchers(HttpMethod.GET, "/api/claims/post/**").hasAnyAuthority("DONOR", "RECEIVER")
+                .requestMatchers("/api/claims/**").hasAuthority("RECEIVER")
+                
+                // Other endpoints
+                .requestMatchers("/api/feed/**").hasAuthority("RECEIVER")
                 .requestMatchers("/api/requests/**").hasAnyAuthority("DONOR", "RECEIVER")
                 
-                // ✅ Dashboard endpoints
+                // Dashboard endpoints
                 .requestMatchers("/donor/**").hasAuthority("DONOR")
                 .requestMatchers("/receiver/**").hasAuthority("RECEIVER")
                 .requestMatchers("/admin/**").hasAuthority("ADMIN")
@@ -76,6 +81,7 @@ public class SecurityConfig {
 
         return http.build();
     }
+
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {

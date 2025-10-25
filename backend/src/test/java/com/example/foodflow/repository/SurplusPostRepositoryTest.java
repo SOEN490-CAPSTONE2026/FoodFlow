@@ -6,6 +6,8 @@ import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.OrganizationType;
 import com.example.foodflow.model.entity.UserRole;
 import com.example.foodflow.model.entity.VerificationStatus;
+
+import org.jboss.jandex.Main;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,9 @@ import org.springframework.test.context.ActiveProfiles;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.LocalDate;
+
+import java.util.HashSet;
+import com.example.foodflow.model.types.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -59,39 +64,45 @@ class SurplusPostRepositoryTest {
         donor = userRepository.save(donor);
     }
 
+    
     @Test
     void testSaveSurplusPost() {
         // Given
         SurplusPost post = new SurplusPost();
         post.setDonor(donor);
-        post.setFoodName("Vegetable Lasagna");
-        post.setFoodType("Prepared Meals");
-        post.setQuantity(10.0);
-        post.setUnit("kg");
-        post.setLocation("123 Main St");
+        post.setTitle("Vegetable Lasagna");
+
+        HashSet<FoodCategory> foodCategories = new HashSet<>();
+        foodCategories.add(FoodCategory.PREPARED_MEALS);
+        post.setFoodCategories(foodCategories);
+        post.setQuantity(new Quantity(10.0, Quantity.Unit.KILOGRAM));
+        post.setPickupLocation(new Location(45.2903, -34.0987, "123 Main St"));
         post.setExpiryDate(LocalDate.now().plusDays(2));
-        post.setPickupFrom(LocalDateTime.now().plusHours(3));
-        post.setPickupTo(LocalTime.of(18, 0));
-        post.setNotes("Vegetarian lasagna");
+        post.setPickupDate(LocalDate.now());
+        post.setPickupFrom(LocalTime.now().plusHours(3));
+        post.setPickupTo(LocalTime.now().plusHours(5));
+        post.setDescription("Vegetarian lasagna");
 
         // When
         SurplusPost saved = surplusPostRepository.save(post);
 
         // Then
         assertThat(saved.getId()).isNotNull();
-        assertThat(saved.getFoodName()).isEqualTo("Vegetable Lasagna");
-        assertThat(saved.getFoodType()).isEqualTo("Prepared Meals");
-        assertThat(saved.getQuantity()).isEqualTo(10.0);
-        assertThat(saved.getUnit()).isEqualTo("kg");
+        assertThat(saved.getTitle()).isEqualTo("Vegetable Lasagna");
+        assertThat(saved.getFoodCategories().size()).isEqualTo(1);
+        assertThat(saved.getFoodCategories().contains(FoodCategory.PREPARED_MEALS)).isEqualTo(true);
+        assertThat(saved.getQuantity().getValue()).isEqualTo(10.0);
+        assertThat(saved.getQuantity().getUnit()).isEqualTo(Quantity.Unit.KILOGRAM);
         assertThat(saved.getDonor().getEmail()).isEqualTo("donor@test.com");
         assertThat(saved.getCreatedAt()).isNotNull();
     }
 
+    
     @Test
     void testFindAll() {
         // Given
-        SurplusPost post1 = createSurplusPost("Bread", 5.0);
-        SurplusPost post2 = createSurplusPost("Milk", 3.0);
+        SurplusPost post1 = createSurplusPost("Bread", new Quantity(5.0,Quantity.Unit.ITEM));
+        SurplusPost post2 = createSurplusPost("Milk", new Quantity(3.0,Quantity.Unit.ITEM));
         surplusPostRepository.save(post1);
         surplusPostRepository.save(post2);
 
@@ -102,10 +113,11 @@ class SurplusPostRepositoryTest {
         assertThat(all).hasSize(2);
     }
 
+    
     @Test
     void testFindById() {
         // Given
-        SurplusPost post = createSurplusPost("Fruit", 20.0);
+        SurplusPost post = createSurplusPost("Fruit", new Quantity(20.0,Quantity.Unit.ITEM));
         SurplusPost saved = surplusPostRepository.save(post);
 
         // When
@@ -113,22 +125,22 @@ class SurplusPostRepositoryTest {
 
         // Then
         assertThat(found).isNotNull();
-        assertThat(found.getFoodName()).isEqualTo("Fruit");
-        assertThat(found.getQuantity()).isEqualTo(20.0);
+        assertThat(found.getTitle()).isEqualTo("Fruit");
+        assertThat(found.getQuantity().getValue()).isEqualTo(20.0);
     }
 
-    private SurplusPost createSurplusPost(String foodName, Double quantity) {
+    private SurplusPost createSurplusPost(String foodName, Quantity quantity) {
         SurplusPost post = new SurplusPost();
         post.setDonor(donor);
-        post.setFoodName(foodName);
-        post.setFoodType("Prepared Meals");
+        post.setTitle(foodName);
+        post.getFoodCategories().add(FoodCategory.PREPARED_MEALS);
         post.setQuantity(quantity);
-        post.setUnit("items");
-        post.setLocation("123 Main St");
+        post.setPickupLocation(new Location(45.2903, -34.0987, "123 Main St"));
         post.setExpiryDate(LocalDate.now().plusDays(2));
-        post.setPickupFrom(LocalDateTime.now().plusHours(3));
-        post.setPickupTo(LocalTime.of(18, 0));
-        post.setNotes("Test food description");
+        post.setPickupDate(LocalDate.now());
+        post.setPickupFrom(LocalTime.now().plusHours(3));
+        post.setPickupTo(LocalTime.now().plusHours(5));
+        post.setDescription("Test food description");
         return post;
     }
 
