@@ -51,6 +51,11 @@ public class SecurityConfig {
                 .requestMatchers("/api/public/**").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers("/api/analytics/**").permitAll()
+                .requestMatchers("/ws/**").permitAll()  // Allow WebSocket connections
+                
+                // Messaging endpoints - must be accessible to all authenticated users
+                .requestMatchers("/api/conversations/**").hasAnyAuthority("DONOR", "RECEIVER")
+                .requestMatchers("/api/messages/**").hasAnyAuthority("DONOR", "RECEIVER")
                 
                 // ✅ FIXED: Surplus endpoints with proper role restrictions
                 .requestMatchers(HttpMethod.POST, "/api/surplus").hasAuthority("DONOR")

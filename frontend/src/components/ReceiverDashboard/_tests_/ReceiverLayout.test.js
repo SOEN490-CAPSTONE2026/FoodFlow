@@ -25,6 +25,7 @@ function renderAt(path = "/receiver") {
             <Route path="browse" element={<div>Browse</div>} />
             <Route path="requests" element={<div>Requests</div>} />
             <Route path="search" element={<div>Search</div>} />
+            <Route path="messages" element={<div>Messages</div>} />
           </Route>
         </Routes>
       </MemoryRouter>
@@ -66,10 +67,16 @@ describe("ReceiverLayout", () => {
     expect(link).toHaveClass("active");
   });
 
-  test("renders requests title/description at /receiver/requests and marks 'Messages' active", () => {
+  test("renders requests title/description at /receiver/requests", () => {
     renderAt("/receiver/requests");
     expect(screen.getByRole("heading", { name: /my requests/i })).toBeInTheDocument();
     expect(screen.getByText(/manage your food requests/i)).toBeInTheDocument();
+  });
+
+  test("renders messages title/description at /receiver/messages and marks 'Messages' active", () => {
+    renderAt("/receiver/messages");
+    expect(screen.getByRole("heading", { name: /messages/i })).toBeInTheDocument();
+    expect(screen.getByText(/communicate with donors and other users/i)).toBeInTheDocument();
 
     const link = screen.getByRole("link", { name: /^messages$/i });
     expect(link).toHaveClass("active");

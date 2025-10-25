@@ -33,6 +33,8 @@ export default function ReceiverLayout() {
         return "My Requests";
       case "/receiver/search":
         return "Search Organizations";
+      case "/receiver/messages":
+        return "Messages";
       default:
         return "Receiver Dashboard";
     }
@@ -51,6 +53,8 @@ export default function ReceiverLayout() {
         return "Manage your food requests";
       case "/receiver/search":
         return "Search for food donors";
+      case "/receiver/messages":
+        return "Communicate with donors and other users";
       default:
         return "FoodFlow Receiver Portal";
     }
@@ -124,8 +128,8 @@ export default function ReceiverLayout() {
           </Link>
 
           <Link
-            to="/receiver/requests"
-            className={`receiver-nav-link ${location.pathname === "/receiver/requests" ? "active" : ""}`}
+            to="/receiver/messages"
+            className={`receiver-nav-link ${location.pathname === "/receiver/messages" ? "active" : ""}`}
           >
             Messages
           </Link>
