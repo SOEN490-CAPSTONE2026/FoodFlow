@@ -34,7 +34,7 @@ const ChatPanel = ({ conversation, onMessageSent }) => {
     
     try {
       setLoading(true);
-      const response = await api.get(`/api/conversations/${conversation.id}/messages`);
+      const response = await api.get(`/conversations/${conversation.id}/messages`);
       setMessages(response.data);
     } catch (err) {
       console.error('Error loading messages:', err);
@@ -47,7 +47,7 @@ const ChatPanel = ({ conversation, onMessageSent }) => {
     if (!conversation) return;
     
     try {
-      await api.put(`/api/conversations/${conversation.id}/read`);
+      await api.put(`/conversations/${conversation.id}/read`);
     } catch (err) {
       console.error('Error marking as read:', err);
     }
@@ -59,7 +59,7 @@ const ChatPanel = ({ conversation, onMessageSent }) => {
 
     try {
       setSending(true);
-      const response = await api.post('/api/messages', {
+      const response = await api.post('/messages', {
         conversationId: conversation.id,
         messageBody: newMessage.trim()
       });

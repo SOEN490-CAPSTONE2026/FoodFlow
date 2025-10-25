@@ -19,7 +19,7 @@ const NewConversationModal = ({ onClose, onConversationCreated }) => {
       setLoading(true);
       setError(null);
       
-      const response = await api.post('/api/conversations', {
+      const response = await api.post('/conversations', {
         recipientEmail: recipientEmail.trim()
       });
       

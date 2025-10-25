@@ -20,7 +20,7 @@ const MessagingDashboard = () => {
   const loadConversations = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/api/conversations');
+      const response = await api.get('/conversations');
       setConversations(response.data);
       setError(null);
     } catch (err) {
