@@ -138,6 +138,7 @@
     background-color: white;
     border-radius: 0.75rem;
     overflow: hidden;
+    
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     padding: 0;
     transition: box-shadow 0.3s;
@@ -185,7 +186,7 @@
     color: #1B4965;
 }
 
-.claimed-page .status-ready-for-pickup {
+.claimed-page .status-ready-for.pickup {
     background-color: #d1fae5;
     color: #065f46;
 }

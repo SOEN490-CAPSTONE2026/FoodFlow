@@ -19,7 +19,8 @@
     background: white;
     max-width: 750px;
     width: 100%;
-    max-height: 90vh;
+    height: 85vh; 
+    max-height: 90vh; 
     overflow-y: auto;
     position: relative;
     border-radius: 5px;
@@ -93,7 +94,7 @@
     color: #1B4965;
 }
 
-.claimed-status-ready-for-pickup {
+.claimed-status-ready-for.pickup {
      background-color: #d1fae5;
     color: #065f46;
 }
@@ -113,6 +114,7 @@
 /* Modal Body */
 .claimed-modal-body {
     padding: 2rem 1.5rem;
+    min-height: 450px;
 }
 
 .claimed-modal-section-title {
