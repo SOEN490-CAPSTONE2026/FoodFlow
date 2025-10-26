@@ -63,6 +63,7 @@
   max-height: 60px;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Responsive design */
