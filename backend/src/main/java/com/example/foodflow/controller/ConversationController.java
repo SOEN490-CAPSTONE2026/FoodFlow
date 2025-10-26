@@ -3,6 +3,7 @@ package com.example.foodflow.controller;
 import com.example.foodflow.model.dto.ConversationResponse;
 import com.example.foodflow.model.dto.MessageResponse;
 import com.example.foodflow.model.dto.StartConversationRequest;
+import com.example.foodflow.model.dto.StartPostConversationRequest;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.service.ConversationService;
 import com.example.foodflow.service.MessageService;
@@ -109,6 +110,26 @@ public class ConversationController {
             return ResponseEntity.ok(conversation);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
+        }
+    }
+    
+    /**
+     * Create or get conversation for a specific post
+     * Creates a new conversation linked to the post if one doesn't exist
+     * Returns existing conversation if it already exists
+     */
+    @PostMapping("/post/{postId}")
+    public ResponseEntity<ConversationResponse> createOrGetPostConversation(
+            @PathVariable Long postId,
+            @Valid @RequestBody StartPostConversationRequest request,
+            @AuthenticationPrincipal User currentUser) {
+        try {
+            ConversationResponse conversation = conversationService.createOrGetPostConversation(
+                postId, request.getOtherUserId(), currentUser
+            );
+            return ResponseEntity.status(HttpStatus.CREATED).body(conversation);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
         }
     }
 }
