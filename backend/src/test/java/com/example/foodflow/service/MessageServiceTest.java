@@ -1,21 +1,23 @@
 package com.example.foodflow.service;
 
-import com.example.foodflow.model.dto.MessageRequest;
+import com.example.foodflow.model.dto.MessageHistoryResponse;
 import com.example.foodflow.model.dto.MessageResponse;
 import com.example.foodflow.model.entity.Conversation;
 import com.example.foodflow.model.entity.Message;
+import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.entity.User;
-import com.example.foodflow.model.entity.UserRole;
 import com.example.foodflow.repository.ConversationRepository;
 import com.example.foodflow.repository.MessageRepository;
-import io.micrometer.core.instrument.Timer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.test.context.ActiveProfiles;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -28,288 +30,174 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-@SpringBootTest
-@ActiveProfiles("test")
+@ExtendWith(MockitoExtension.class)
 class MessageServiceTest {
-
-    @Autowired
-    private MessageService messageService;
-
-    @MockBean
+    
+    @Mock
     private MessageRepository messageRepository;
-
-    @MockBean
+    
+    @Mock
     private ConversationRepository conversationRepository;
-
-    @MockBean
-    private ConversationService conversationService;
-
-    @MockBean
-    private SimpMessagingTemplate messagingTemplate;
-
-    @MockBean
-    private BusinessMetricsService businessMetricsService;
-
-    private User sender;
-    private User recipient;
-    private Conversation conversation;
-
+    
+    @InjectMocks
+    private MessageService messageService;
+    
+    private User testUser;
+    private Conversation testConversation;
+    private SurplusPost testPost;
+    private Message testMessage1;
+    private Message testMessage2;
+    
     @BeforeEach
     void setUp() {
-
-        // Setup test users
-        sender = new User();
-        sender.setId(1L);
-        sender.setEmail("sender@test.com");
-        sender.setRole(UserRole.DONOR);
-
-        recipient = new User();
-        recipient.setId(2L);
-        recipient.setEmail("recipient@test.com");
-        recipient.setRole(UserRole.RECEIVER);
-
-        // Setup test conversation
-        conversation = new Conversation(sender, recipient);
-        conversation.setId(1L);
-
-        // Mock timer
-        Timer.Sample mockSample = mock(Timer.Sample.class);
-        when(businessMetricsService.startTimer()).thenReturn(mockSample);
+        testUser = new User();
+        testUser.setId(1L);
+        testUser.setEmail("test@example.com");
+        
+        User otherUser = new User();
+        otherUser.setId(2L);
+        otherUser.setEmail("other@example.com");
+        
+        testPost = new SurplusPost();
+        testPost.setId(100L);
+        
+        testConversation = new Conversation(testUser, otherUser, testPost);
+        testConversation.setId(10L);
+        
+        testMessage1 = new Message(testConversation, testUser, "First message");
+        testMessage1.setId(1L);
+        
+        testMessage2 = new Message(testConversation, otherUser, "Second message");
+        testMessage2.setId(2L);
     }
-
+    
     @Test
-    void testSendMessage_Success() {
-        // Given
-        MessageRequest request = new MessageRequest();
-        request.setConversationId(1L);
-        request.setMessageBody("Hello, this is a test message");
-
-        Message savedMessage = new Message(conversation, sender, "Hello, this is a test message");
-        savedMessage.setId(1L);
-
-        when(conversationService.getConversation(1L, sender)).thenReturn(conversation);
-        when(messageRepository.save(any(Message.class))).thenReturn(savedMessage);
-        when(conversationRepository.save(any(Conversation.class))).thenReturn(conversation);
-
-        // When
-        MessageResponse response = messageService.sendMessage(request, sender);
-
-        // Then
+    void testGetMessageHistoryByPostId_Success() {
+        // Arrange
+        Long postId = 100L;
+        int page = 0;
+        int size = 50;
+        
+        List<Message> messages = Arrays.asList(testMessage1, testMessage2);
+        Page<Message> messagePage = new PageImpl<>(messages, PageRequest.of(page, size), messages.size());
+        
+        when(conversationRepository.findByPostIdAndUserId(postId, testUser.getId()))
+            .thenReturn(Optional.of(testConversation));
+        when(messageRepository.findByConversationIdWithPagination(eq(testConversation.getId()), any(Pageable.class)))
+            .thenReturn(messagePage);
+        
+        // Act
+        MessageHistoryResponse response = messageService.getMessageHistoryByPostId(postId, testUser, page, size);
+        
+        // Assert
         assertNotNull(response);
-        assertEquals(1L, response.getId());
-        assertEquals("Hello, this is a test message", response.getMessageBody());
-        verify(conversationService).getConversation(1L, sender);
-        verify(messageRepository).save(any(Message.class));
-        verify(conversationRepository).save(any(Conversation.class));
-        verify(messagingTemplate).convertAndSendToUser(eq("2"), eq("/queue/messages"), any(MessageResponse.class));
-        verify(businessMetricsService).incrementMessagesSent();
+        assertEquals(2, response.getMessages().size());
+        assertEquals(0, response.getCurrentPage());
+        assertEquals(1, response.getTotalPages());
+        assertEquals(2, response.getTotalMessages());
+        assertFalse(response.isHasMore());
+        
+        verify(conversationRepository).findByPostIdAndUserId(postId, testUser.getId());
+        verify(messageRepository).findByConversationIdWithPagination(eq(testConversation.getId()), any(Pageable.class));
     }
-
+    
     @Test
-    void testGetConversationMessages_Success() {
-        // Given
-        Message msg1 = new Message(conversation, sender, "Message 1");
-        msg1.setId(1L);
-
-        Message msg2 = new Message(conversation, recipient, "Message 2");
-        msg2.setId(2L);
-
-        List<Message> messages = Arrays.asList(msg1, msg2);
-
-        when(conversationService.getConversation(1L, sender)).thenReturn(conversation);
-        when(messageRepository.findByConversationId(1L)).thenReturn(messages);
-
-        // When
-        List<MessageResponse> responses = messageService.getConversationMessages(1L, sender);
-
-        // Then
-        assertEquals(2, responses.size());
-        assertEquals(1L, responses.get(0).getId());
-        assertEquals("Message 1", responses.get(0).getMessageBody());
-        assertEquals(2L, responses.get(1).getId());
-        assertEquals("Message 2", responses.get(1).getMessageBody());
-        verify(conversationService).getConversation(1L, sender);
-        verify(messageRepository).findByConversationId(1L);
-        verify(businessMetricsService).incrementMessagesReceived();
+    void testGetMessageHistoryByPostId_WithPagination() {
+        // Arrange
+        Long postId = 100L;
+        int page = 0;
+        int size = 1;
+        
+        List<Message> messages = Collections.singletonList(testMessage1);
+        Page<Message> messagePage = new PageImpl<>(messages, PageRequest.of(page, size), 2);
+        
+        when(conversationRepository.findByPostIdAndUserId(postId, testUser.getId()))
+            .thenReturn(Optional.of(testConversation));
+        when(messageRepository.findByConversationIdWithPagination(eq(testConversation.getId()), any(Pageable.class)))
+            .thenReturn(messagePage);
+        
+        // Act
+        MessageHistoryResponse response = messageService.getMessageHistoryByPostId(postId, testUser, page, size);
+        
+        // Assert
+        assertNotNull(response);
+        assertEquals(1, response.getMessages().size());
+        assertEquals(0, response.getCurrentPage());
+        assertEquals(2, response.getTotalPages());
+        assertEquals(2, response.getTotalMessages());
+        assertTrue(response.isHasMore());
     }
-
+    
     @Test
-    void testGetConversationMessages_EmptyList() {
-        // Given
-        when(conversationService.getConversation(1L, sender)).thenReturn(conversation);
-        when(messageRepository.findByConversationId(1L)).thenReturn(Collections.emptyList());
-
-        // When
-        List<MessageResponse> responses = messageService.getConversationMessages(1L, sender);
-
-        // Then
-        assertTrue(responses.isEmpty());
-        verify(businessMetricsService).incrementMessagesReceived();
-    }
-
-    @Test
-    void testMarkAsRead_Success() {
-        // Given
-        Message message = new Message(conversation, sender, "Test message");
-        message.setId(1L);
-        message.setReadStatus(false);
-
-        when(messageRepository.findById(1L)).thenReturn(Optional.of(message));
-        when(messageRepository.save(any(Message.class))).thenReturn(message);
-
-        // When
-        messageService.markAsRead(1L, recipient);
-
-        // Then
-        verify(messageRepository).findById(1L);
-        verify(messageRepository).save(argThat(m -> m.getReadStatus()));
-    }
-
-    @Test
-    void testMarkAsRead_MessageNotFound() {
-        // Given
-        when(messageRepository.findById(999L)).thenReturn(Optional.empty());
-
-        // When & Then
+    void testGetMessageHistoryByPostId_NoConversationFound() {
+        // Arrange
+        Long postId = 999L;
+        
+        when(conversationRepository.findByPostIdAndUserId(postId, testUser.getId()))
+            .thenReturn(Optional.empty());
+        
+        // Act & Assert
         assertThrows(IllegalArgumentException.class, () -> {
-            messageService.markAsRead(999L, recipient);
+            messageService.getMessageHistoryByPostId(postId, testUser, 0, 50);
         });
+        
+        verify(conversationRepository).findByPostIdAndUserId(postId, testUser.getId());
+        verify(messageRepository, never()).findByConversationIdWithPagination(any(), any());
     }
-
+    
     @Test
-    void testMarkAsRead_CannotMarkOwnMessage() {
-        // Given
-        Message message = new Message(conversation, sender, "Test message");
-        message.setId(1L);
-
-        when(messageRepository.findById(1L)).thenReturn(Optional.of(message));
-
-        // When & Then
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            messageService.markAsRead(1L, sender);
-        });
-        assertEquals("Cannot mark your own message as read", exception.getMessage());
+    void testGetMessageHistoryByPostId_MessagesInChronologicalOrder() {
+        // Arrange
+        Long postId = 100L;
+        
+        // Create messages - repository query handles chronological ordering
+        Message message1 = new Message(testConversation, testUser, "First message");
+        message1.setId(1L);
+        
+        Message message2 = new Message(testConversation, testUser, "Second message");
+        message2.setId(2L);
+        
+        // Messages returned in order as repository would provide them
+        List<Message> messages = Arrays.asList(message1, message2);
+        Page<Message> messagePage = new PageImpl<>(messages, PageRequest.of(0, 50), messages.size());
+        
+        when(conversationRepository.findByPostIdAndUserId(postId, testUser.getId()))
+            .thenReturn(Optional.of(testConversation));
+        when(messageRepository.findByConversationIdWithPagination(eq(testConversation.getId()), any(Pageable.class)))
+            .thenReturn(messagePage);
+        
+        // Act
+        MessageHistoryResponse response = messageService.getMessageHistoryByPostId(postId, testUser, 0, 50);
+        
+        // Assert
+        List<MessageResponse> responseMessages = response.getMessages();
+        assertEquals(2, responseMessages.size());
+        // Verify messages are returned in the order provided by repository
+        assertEquals("First message", responseMessages.get(0).getMessageBody());
+        assertEquals("Second message", responseMessages.get(1).getMessageBody());
     }
-
+    
     @Test
-    void testMarkAsRead_UnauthorizedUser() {
-        // Given
-        User unauthorizedUser = new User();
-        unauthorizedUser.setId(3L);
-        unauthorizedUser.setEmail("unauthorized@test.com");
-
-        Message message = new Message(conversation, sender, "Test message");
-        message.setId(1L);
-
-        when(messageRepository.findById(1L)).thenReturn(Optional.of(message));
-
-        // When & Then
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            messageService.markAsRead(1L, unauthorizedUser);
-        });
-        assertEquals("Unauthorized to mark this message as read", exception.getMessage());
-    }
-
-    @Test
-    void testMarkConversationAsRead_Success() {
-        // Given
-        Message msg1 = new Message(conversation, sender, "Message 1");
-        msg1.setReadStatus(false);
-        Message msg2 = new Message(conversation, sender, "Message 2");
-        msg2.setReadStatus(false);
-
-        List<Message> unreadMessages = Arrays.asList(msg1, msg2);
-
-        when(conversationService.getConversation(1L, recipient)).thenReturn(conversation);
-        when(messageRepository.findUnreadByConversationAndUser(1L, 2L)).thenReturn(unreadMessages);
-        when(messageRepository.saveAll(anyList())).thenReturn(unreadMessages);
-
-        // When
-        messageService.markConversationAsRead(1L, recipient);
-
-        // Then
-        verify(conversationService).getConversation(1L, recipient);
-        verify(messageRepository).findUnreadByConversationAndUser(1L, 2L);
-        verify(messageRepository).saveAll(anyList());
-        assertTrue(msg1.getReadStatus());
-        assertTrue(msg2.getReadStatus());
-    }
-
-    @Test
-    void testMarkConversationAsRead_NoUnreadMessages() {
-        // Given
-        when(conversationService.getConversation(1L, recipient)).thenReturn(conversation);
-        when(messageRepository.findUnreadByConversationAndUser(1L, 2L)).thenReturn(Collections.emptyList());
-
-        // When
-        messageService.markConversationAsRead(1L, recipient);
-
-        // Then
-        verify(messageRepository).saveAll(Collections.emptyList());
-    }
-
-    @Test
-    void testGetUnreadCount_Success() {
-        // Given
-        when(messageRepository.countUnreadByUser(1L)).thenReturn(5L);
-
-        // When
-        long count = messageService.getUnreadCount(sender);
-
-        // Then
-        assertEquals(5L, count);
-        verify(messageRepository).countUnreadByUser(1L);
-    }
-
-    @Test
-    void testGetUnreadCount_NoUnreadMessages() {
-        // Given
-        when(messageRepository.countUnreadByUser(1L)).thenReturn(0L);
-
-        // When
-        long count = messageService.getUnreadCount(sender);
-
-        // Then
-        assertEquals(0L, count);
-    }
-
-    @Test
-    void testSendMessage_InvalidConversation() {
-        // Given
-        MessageRequest request = new MessageRequest();
-        request.setConversationId(999L);
-        request.setMessageBody("Test");
-
-        when(conversationService.getConversation(999L, sender))
-                .thenThrow(new IllegalArgumentException("Conversation not found"));
-
-        // When & Then
-        assertThrows(IllegalArgumentException.class, () -> {
-            messageService.sendMessage(request, sender);
-        });
-    }
-
-    @Test
-    void testGetConversationMessages_NotParticipant() {
-        // Given
-        when(conversationService.getConversation(1L, sender))
-                .thenThrow(new IllegalArgumentException("Not a participant"));
-
-        // When & Then
-        assertThrows(IllegalArgumentException.class, () -> {
-            messageService.getConversationMessages(1L, sender);
-        });
-    }
-
-    @Test
-    void testMarkConversationAsRead_NotParticipant() {
-        // Given
-        when(conversationService.getConversation(1L, recipient))
-                .thenThrow(new IllegalArgumentException("Not a participant"));
-
-        // When & Then
-        assertThrows(IllegalArgumentException.class, () -> {
-            messageService.markConversationAsRead(1L, recipient);
-        });
+    void testGetMessageHistoryByPostId_EmptyConversation() {
+        // Arrange
+        Long postId = 100L;
+        
+        List<Message> messages = Collections.emptyList();
+        Page<Message> messagePage = new PageImpl<>(messages, PageRequest.of(0, 50), 0);
+        
+        when(conversationRepository.findByPostIdAndUserId(postId, testUser.getId()))
+            .thenReturn(Optional.of(testConversation));
+        when(messageRepository.findByConversationIdWithPagination(eq(testConversation.getId()), any(Pageable.class)))
+            .thenReturn(messagePage);
+        
+        // Act
+        MessageHistoryResponse response = messageService.getMessageHistoryByPostId(postId, testUser, 0, 50);
+        
+        // Assert
+        assertNotNull(response);
+        assertTrue(response.getMessages().isEmpty());
+        assertEquals(0, response.getTotalMessages());
+        assertEquals(0, response.getTotalPages());
+        assertFalse(response.isHasMore());
     }
 }
