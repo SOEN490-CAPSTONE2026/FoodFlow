@@ -3,6 +3,7 @@ import { X, Package, Calendar, MapPin, User, Clock } from 'lucide-react';
 import useGoogleMap from '../../hooks/useGoogleMaps';
 import ClaimedView from './ClaimedView';
 import CompletedView from './CompletedView';
+import ReadyForPickUpView from './ReadyForPickUpView';
 import BakeryPastryImage from '../../assets/foodtypes/Pastry&Bakery.jpg';
 import FruitsVeggiesImage from '../../assets/foodtypes/Fruits&Vegetables.jpg';
 import PackagedPantryImage from '../../assets/foodtypes/PackagedItems.jpg';
@@ -52,10 +53,8 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
     };
 
     const handleViewPickupSteps = () => {
-        // Only show pickup steps if status is "Claimed"
-        if (getDisplayStatus() === 'Claimed') {
-            setShowPickupSteps(true);
-        }
+        // Show pickup steps for Claimed, Ready for Pickup, and Completed statuses
+        setShowPickupSteps(true);
     };
 
     const handleBackToDetails = () => {
@@ -188,18 +187,10 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                             <button className="claimed-modal-btn-secondary" onClick={onClose}>
                                 Back to Details
                             </button>
-                            {getDisplayStatus() === 'Claimed' && (
+                            {(getDisplayStatus() === 'Claimed' || getDisplayStatus() === 'Ready for Pickup' || getDisplayStatus() === 'Completed') && (
                                 <button
                                     className="claimed-modal-btn-primary"
                                     onClick={handleViewPickupSteps}
-                                >
-                                    View Pickup Steps
-                                </button>
-                            )}
-                            {getDisplayStatus() === 'Completed' && (
-                                <button
-                                    className="claimed-modal-btn-primary"
-                                    onClick={() => setShowPickupSteps(true)}
                                 >
                                     View Pickup Steps
                                 </button>
@@ -212,6 +203,16 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
             {/* Pickup Steps Modal */}
             {getDisplayStatus() === 'Claimed' ? (
                 <ClaimedView
+                    claim={claim}
+                    isOpen={showPickupSteps}
+                    onClose={() => {
+                        setShowPickupSteps(false);
+                        onClose();
+                    }}
+                    onBack={handleBackToDetails}
+                />
+            ) : getDisplayStatus() === 'Ready for Pickup' ? (
+                <ReadyForPickUpView
                     claim={claim}
                     isOpen={showPickupSteps}
                     onClose={() => {
