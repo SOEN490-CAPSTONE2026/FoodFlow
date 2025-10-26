@@ -94,4 +94,21 @@ public class ConversationController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
     }
+    
+    /**
+     * Get conversation for a specific post
+     * Returns the conversation details including the other participant
+     * for the current user and the specified post
+     */
+    @GetMapping("/post/{postId}")
+    public ResponseEntity<ConversationResponse> getConversationByPost(
+            @PathVariable Long postId,
+            @AuthenticationPrincipal User currentUser) {
+        try {
+            ConversationResponse conversation = conversationService.getConversationByPost(postId, currentUser);
+            return ResponseEntity.ok(conversation);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

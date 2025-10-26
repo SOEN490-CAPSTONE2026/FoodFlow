@@ -121,4 +121,28 @@ public class ConversationService {
         
         return new ConversationResponse(conversation, currentUser, lastMessagePreview, unreadCount);
     }
+    
+    /**
+     * Get conversation for a specific post
+     * Returns conversation details including the other participant
+     */
+    @Transactional(readOnly = true)
+    public ConversationResponse getConversationByPost(Long postId, User currentUser) {
+        Conversation conversation = conversationRepository.findByPostIdAndUserId(postId, currentUser.getId())
+            .orElseThrow(() -> new IllegalArgumentException("No conversation found for this post"));
+        
+        // Get last message
+        List<Message> messages = messageRepository.findByConversationId(conversation.getId());
+        String lastMessagePreview = messages.isEmpty() ? 
+            "No messages yet" : 
+            messages.get(messages.size() - 1).getMessageBody();
+        
+        // Get unread count
+        long unreadCount = messageRepository.countUnreadInConversation(
+            conversation.getId(), 
+            currentUser.getId()
+        );
+        
+        return new ConversationResponse(conversation, currentUser, lastMessagePreview, unreadCount);
+    }
 }
