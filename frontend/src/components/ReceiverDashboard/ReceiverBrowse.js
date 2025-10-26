@@ -79,11 +79,15 @@ export default function ReceiverBrowse() {
     setIsFiltersVisible(false);
   };
 
-  const fetchDonations = useCallback(async () => {
+   const fetchDonations = useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await surplusAPI.list();
-      setItems(Array.isArray(data) ? data : []);
+      // Filter to only show AVAILABLE items
+      const availableItems = Array.isArray(data) 
+        ? data.filter(item => item.status === 'AVAILABLE') 
+        : [];
+      setItems(availableItems);
       setError(null);
     } catch (e) {
       setError("Failed to load available donations");
