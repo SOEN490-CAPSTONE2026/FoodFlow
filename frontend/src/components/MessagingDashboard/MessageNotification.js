@@ -11,7 +11,7 @@ const MessageNotification = ({ notification, onClose }) => {
     }, 5000);
 
     return () => clearTimeout(timer);
-  }, [notification, onClose]);
+  }, [notification]);
 
   if (!notification) return null;
 
