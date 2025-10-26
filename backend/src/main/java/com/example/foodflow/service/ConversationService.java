@@ -4,9 +4,11 @@ import com.example.foodflow.model.dto.ConversationResponse;
 import com.example.foodflow.model.dto.StartConversationRequest;
 import com.example.foodflow.model.entity.Conversation;
 import com.example.foodflow.model.entity.Message;
+import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.repository.ConversationRepository;
 import com.example.foodflow.repository.MessageRepository;
+import com.example.foodflow.repository.SurplusPostRepository;
 import com.example.foodflow.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,9 @@ public class ConversationService {
     
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private SurplusPostRepository surplusPostRepository;
     
     /**
      * Get all conversations for the current user
@@ -132,6 +137,48 @@ public class ConversationService {
             .orElseThrow(() -> new IllegalArgumentException("No conversation found for this post"));
         
         // Get last message
+        List<Message> messages = messageRepository.findByConversationId(conversation.getId());
+        String lastMessagePreview = messages.isEmpty() ? 
+            "No messages yet" : 
+            messages.get(messages.size() - 1).getMessageBody();
+        
+        // Get unread count
+        long unreadCount = messageRepository.countUnreadInConversation(
+            conversation.getId(), 
+            currentUser.getId()
+        );
+        
+        return new ConversationResponse(conversation, currentUser, lastMessagePreview, unreadCount);
+    }
+    
+    /**
+     * Create or get conversation for a specific post
+     * Creates a new conversation linked to the post if one doesn't exist
+     */
+    @Transactional
+    public ConversationResponse createOrGetPostConversation(Long postId, Long otherUserId, User currentUser) {
+        // Validate post exists
+        SurplusPost post = surplusPostRepository.findById(postId)
+            .orElseThrow(() -> new IllegalArgumentException("Post not found"));
+        
+        // Get other user
+        User otherUser = userRepository.findById(otherUserId)
+            .orElseThrow(() -> new IllegalArgumentException("Other user not found"));
+        
+        // Prevent self-conversation
+        if (currentUser.getId().equals(otherUserId)) {
+            throw new IllegalArgumentException("Cannot create conversation with yourself");
+        }
+        
+        // Check if conversation already exists for this post
+        Conversation conversation = conversationRepository.findByPostIdAndUserId(postId, currentUser.getId())
+            .orElseGet(() -> {
+                // Create new conversation linked to post
+                Conversation newConv = new Conversation(currentUser, otherUser, post);
+                return conversationRepository.save(newConv);
+            });
+        
+        // Get last message (if any)
         List<Message> messages = messageRepository.findByConversationId(conversation.getId());
         String lastMessagePreview = messages.isEmpty() ? 
             "No messages yet" : 
