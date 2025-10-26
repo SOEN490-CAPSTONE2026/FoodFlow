@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { X, Package, Calendar, MapPin, User, Clock } from 'lucide-react';
 import useGoogleMap from '../../hooks/useGoogleMaps';
+import ClaimedView from './ClaimedView'; // Import the new modal
 import BakeryPastryImage from '../../assets/foodtypes/Pastry&Bakery.jpg';
 import FruitsVeggiesImage from '../../assets/foodtypes/Fruits&Vegetables.jpg';
 import PackagedPantryImage from '../../assets/foodtypes/PackagedItems.jpg';
@@ -11,8 +12,9 @@ import './Receiver_Styles/ClaimDetailModal.css';
 
 const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
     const post = claim?.surplusPost;
+    const [showPickupSteps, setShowPickupSteps] = useState(false);
 
-    const mapRef = useGoogleMap(//Using custom hook to render Google Map
+    const mapRef = useGoogleMap(
         post?.pickupLocation,
         {
             zoom: 15,
@@ -21,11 +23,6 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
             fullscreenControl: false,
         }
     );
-    const handleCancel = () => {
-    if (window.confirm("Cancel Donation Detail Viewing?")) {
-      onClose();
-    }
-  };
 
     const getFoodTypeImage = (foodType) => {
         switch (foodType) {
@@ -53,139 +50,167 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
         return 'Claimed';
     };
 
+    const handleViewPickupSteps = () => {
+        // Only show pickup steps if status is "Claimed"
+        if (getDisplayStatus() === 'Claimed') {
+            setShowPickupSteps(true);
+        }
+    };
+
+    const handleBackToDetails = () => {
+        setShowPickupSteps(false);
+    };
+
     if (!isOpen || !claim) return null;
 
     return (
-        <div className="claimed-modal-overlay" onClick={handleCancel}>
-            <div className="claimed-modal-container" onClick={(e) => e.stopPropagation()}>
-                {/* Close Button */}
-                <button className="claimed-modal-close-btn" onClick={handleCancel}>
-                    <X size={24} />
-                </button>
+        <>
+            <div className="claimed-modal-overlay" onClick={onClose}>
+                <div className="claimed-modal-container" onClick={(e) => e.stopPropagation()}>
+                    {/* Close Button */}
+                    <button className="claimed-modal-close-btn" onClick={onClose}>
+                        <X size={24} />
+                    </button>
 
-                {/* Modal Header with Image */}
-                <div className="claimed-modal-header">
-                    <img
-                        src={getFoodTypeImage(post?.foodType || 'Prepared Meals')}
-                        alt={post?.title || 'Donation'}
-                        className="claimed-modal-header-image"
-                    />
-                    {/* Move badge outside overlay */}
-                    <span className={`claimed-modal-status-badge claimed-status-${getDisplayStatus().toLowerCase().replace(' ', '-')}`}>
-                        {getDisplayStatus()}
-                    </span>
-                    <div className="claimed-modal-header-overlay">
-                        <h2 className="claimed-modal-title">{post?.title || 'Untitled Donation'}</h2>
-                    </div>
-                </div>
-
-                {/* Modal Body */}
-                <div className="claimed-modal-body">
-                    <h3 className="claimed-modal-section-title">Donation Details</h3>
-
-                    <div className="claimed-modal-details-grid">
-                        {/* Quantity */}
-                        <div className="claimed-modal-detail-item">
-                            <div className="claimed-modal-detail-icon package">
-                                <Package size={20} />
-                            </div>
-                            <div className="claimed-modal-detail-content">
-                                <span className="claimed-modal-detail-label">Quantity</span>
-                                <span className="claimed-modal-detail-value">
-                                    {post?.quantity?.value || 0} {post?.quantity?.unit || 'items'}
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* Expiry Date */}
-                        <div className="claimed-modal-detail-item">
-                            <div className="claimed-modal-detail-icon calendar">
-                                <Calendar size={20} />
-                            </div>
-                            <div className="claimed-modal-detail-content">
-                                <span className="claimed-modal-detail-label">Expiry Date</span>
-                                <span className="claimed-modal-detail-value">{post?.pickupDate || 'Date TBD'}</span>
-                            </div>
-                        </div>
-
-                        {/* Donor */}
-                        <div className="claimed-modal-detail-item">
-                            <div className="claimed-modal-detail-icon user">
-                                <User size={20} />
-                            </div>
-                            <div className="claimed-modal-detail-content">
-                                <span className="claimed-modal-detail-label">Donor</span>
-                                <span className="claimed-modal-detail-value">{post?.donorEmail || 'Not specified'}</span>
-                            </div>
+                    {/* Modal Header with Image */}
+                    <div className="claimed-modal-header">
+                        <img
+                            src={getFoodTypeImage(post?.foodType || 'Prepared Meals')}
+                            alt={post?.title || 'Donation'}
+                            className="claimed-modal-header-image"
+                        />
+                        <span className={`claimed-modal-status-badge claimed-status-${getDisplayStatus().toLowerCase().replace(' ', '-')}`}>
+                            {getDisplayStatus()}
+                        </span>
+                        <div className="claimed-modal-header-overlay">
+                            <h2 className="claimed-modal-title">{post?.title || 'Untitled Donation'}</h2>
                         </div>
                     </div>
 
-                    {/* Pickup Date & Time */}
-                    <div className="claimed-modal-section">
-                        <div className="claimed-modal-detail-item-full">
-                            <div className="claimed-modal-detail-icon clock">
-                                <Clock size={20} />
+                    {/* Modal Body */}
+                    <div className="claimed-modal-body">
+                        <h3 className="claimed-modal-section-title">Donation Details</h3>
+
+                        <div className="claimed-modal-details-grid">
+                            {/* Quantity */}
+                            <div className="claimed-modal-detail-item">
+                                <div className="claimed-modal-detail-icon package">
+                                    <Package size={20} />
+                                </div>
+                                <div className="claimed-modal-detail-content">
+                                    <span className="claimed-modal-detail-label">Quantity</span>
+                                    <span className="claimed-modal-detail-value">
+                                        {post?.quantity?.value || 0} {post?.quantity?.unit || 'items'}
+                                    </span>
+                                </div>
                             </div>
-                            <div className="claimed-modal-detail-content">
-                                <span className="claimed-modal-detail-label">Pickup Date & Time</span>
-                                <span className="claimed-modal-detail-value">
-                                    {post?.pickupDate || 'TBD'} • {post?.pickupFrom || '00:00'} - {post?.pickupTo || '00:00'}
-                                </span>
+
+                            {/* Expiry Date */}
+                            <div className="claimed-modal-detail-item">
+                                <div className="claimed-modal-detail-icon calendar">
+                                    <Calendar size={20} />
+                                </div>
+                                <div className="claimed-modal-detail-content">
+                                    <span className="claimed-modal-detail-label">Expiry Date</span>
+                                    <span className="claimed-modal-detail-value">{post?.pickupDate || 'Date TBD'}</span>
+                                </div>
+                            </div>
+
+                            {/* Donor */}
+                            <div className="claimed-modal-detail-item">
+                                <div className="claimed-modal-detail-icon user">
+                                    <User size={20} />
+                                </div>
+                                <div className="claimed-modal-detail-content">
+                                    <span className="claimed-modal-detail-label">Donor</span>
+                                    <span className="claimed-modal-detail-value">{post?.donorEmail || 'Not specified'}</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Pickup Location */}
-                    <div className="claimed-modal-section">
-                        <div className="claimed-modal-detail-item-full">
-                            <div className="claimed-modal-detail-icon map-pin">
-                                <MapPin size={20} />
+                        {/* Pickup Date & Time */}
+                        <div className="claimed-modal-section">
+                            <div className="claimed-modal-detail-item-full">
+                                <div className="claimed-modal-detail-icon clock">
+                                    <Clock size={20} />
+                                </div>
+                                <div className="claimed-modal-detail-content">
+                                    <span className="claimed-modal-detail-label">Pickup Date & Time</span>
+                                    <span className="claimed-modal-detail-value">
+                                        {post?.pickupDate || 'TBD'} • {post?.pickupFrom || '00:00'} - {post?.pickupTo || '00:00'}
+                                    </span>
+                                </div>
                             </div>
-                            <div className="claimed-modal-detail-content">
-                                <span className="claimed-modal-detail-label">Pickup Location</span>
-                                {post?.pickupLocation?.address ? (
-                                    <a
-                                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(post.pickupLocation.address)}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="claimed-modal-detail-value link"
-                                    >
-                                        {post.pickupLocation.address}
-                                    </a>
+                        </div>
+
+                        {/* Pickup Location */}
+                        <div className="claimed-modal-section">
+                            <div className="claimed-modal-detail-item-full">
+                                <div className="claimed-modal-detail-icon map-pin">
+                                    <MapPin size={20} />
+                                </div>
+                                <div className="claimed-modal-detail-content">
+                                    <span className="claimed-modal-detail-label">Pickup Location</span>
+                                    {post?.pickupLocation?.address ? (
+                                        <a
+                                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(post.pickupLocation.address)}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="claimed-modal-detail-value link"
+                                        >
+                                            {post.pickupLocation.address}
+                                        </a>
+                                    ) : (
+                                        <span className="claimed-modal-detail-value">Not specified</span>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Map using the hook */}
+                            <div className="claimed-modal-map-container">
+                                {post?.pickupLocation?.latitude && post?.pickupLocation?.longitude ? (
+                                    <div ref={mapRef} className="claimed-modal-map-view" />
                                 ) : (
-                                    <span className="claimed-modal-detail-value">Not specified</span>
+                                    <div className="claimed-modal-map-placeholder">
+                                        <MapPin size={48} />
+                                        <p>Map view coming soon</p>
+                                        <p className="claimed-modal-map-address">
+                                            {post?.pickupLocation?.address || 'Address not specified'}
+                                        </p>
+                                    </div>
                                 )}
                             </div>
                         </div>
 
-                        {/* Map using the hook */}
-                        <div className="claimed-modal-map-container">
-                            {post?.pickupLocation?.latitude && post?.pickupLocation?.longitude ? (
-                                <div ref={mapRef} className="claimed-modal-map-view" />
-                            ) : (
-                                <div className="claimed-modal-map-placeholder">
-                                    <MapPin size={48} />
-                                    <p>Map view coming soon</p>
-                                    <p className="claimed-modal-map-address">
-                                        {post?.pickupLocation?.address || 'Address not specified'}
-                                    </p>
-                                </div>
+                        {/* Action Buttons */}
+                        <div className="claimed-modal-actions">
+                            <button className="claimed-modal-btn-secondary">
+                                Back to Details
+                            </button>
+                            {getDisplayStatus() === 'Claimed' && (
+                                <button
+                                    className="claimed-modal-btn-primary"
+                                    onClick={handleViewPickupSteps}
+                                >
+                                    View Pickup Steps
+                                </button>
                             )}
                         </div>
                     </div>
-
-                    {/* Action Buttons */}
-                    <div className="claimed-modal-actions">
-                        <button className="claimed-modal-btn-secondary">
-                            Back to Details
-                        </button>
-                        <button className="claimed-modal-btn-primary">
-                            View Pickup Steps
-                        </button>
-                    </div>
                 </div>
             </div>
-        </div>
+
+            {/* Pickup Steps Modal */}
+            <ClaimedView
+                claim={claim}
+                isOpen={showPickupSteps}
+                onClose={() => {
+                    setShowPickupSteps(false);
+                    onClose();
+                }}
+                onBack={handleBackToDetails}
+            />
+        </>
     );
 };
 

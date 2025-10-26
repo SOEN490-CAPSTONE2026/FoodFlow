@@ -1,0 +1,126 @@
+*{
+    font-family: Poppins, sans-serif;
+}
+
+/* Pickup Steps */
+.pickup-step {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding: 20px;
+    background: #ECFEFF;
+    border-radius: 12px;
+    border: 1px solid #A2F4FD;
+}
+.pickup-step-placeholder{
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding: 20px;
+    background: #F8FAFC;
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
+}
+
+.pickup-step-number {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    color: #1B4965;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.5rem;
+    font-weight: 700;
+}
+.pickup-step-number-placeholder {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    color: #90A1B9;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    text-align: center;
+    justify-content: center;
+    font-size: 4rem;
+    font-weight: 700;
+}
+
+.pickup-step-content {
+    flex: 1;
+}
+
+.pickup-step-title {
+    font-size: 16px;
+    font-weight: 600;
+    text-align: left;
+    color: #1B4965;
+    margin: 0 0 8px 0;
+}
+
+.pickup-step-description {
+    font-size: 14px;
+    color: #364153;
+    text-align: left;
+    opacity: 0.8;
+    margin: 0 0 12px 0;
+    line-height: 1.5;
+}
+
+/* Pickup Code Placeholder */
+.pickup-code-placeholder {
+    border-radius: 8px;
+    padding: 0px;
+    text-align: center;
+}
+
+.pickup-dots {
+    font-size: 32px;
+    color: #90A1B9;
+    letter-spacing: 8px;
+    display: inline-flex;
+    gap: 0px;
+}
+
+.pickup-dots span {
+    display: inline-block;
+    animation: loading-dots 1.4s infinite;
+}
+
+.pickup-dots .dot-1 {
+    animation-delay: 0s;
+}
+
+.pickup-dots .dot-2 {
+    animation-delay: 0.2s;
+}
+
+.pickup-dots .dot-3 {
+    animation-delay: 0.4s;
+}
+
+@keyframes loading-dots {
+    0%, 60%, 100% {
+        opacity: 0.3;
+        transform: translateY(0);
+    }
+    30% {
+        opacity: 1;
+        transform: translateY(-8px);
+    }
+}
+
+/* Info Box */
+.pickup-info-box {
+    background: #ECFEFF;
+    border: 1px solid #A2F4FD;
+    border-radius: 8px;
+    padding: 20px 18px;
+    text-align: center;
+    color: #104E64;
+    font-size: 14px;
+    font-weight: 500;
+    margin: 24px 0;
+}
