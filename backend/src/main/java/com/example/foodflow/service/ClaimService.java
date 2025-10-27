@@ -32,32 +32,61 @@ public class ClaimService {
         // Fetch and lock the surplus post to prevent concurrent claims
         SurplusPost surplusPost = surplusPostRepository.findById(request.getSurplusPostId())
             .orElseThrow(() -> new RuntimeException("Surplus post not found"));
-        
-        // Check if post is available
-        if (surplusPost.getStatus() != PostStatus.AVAILABLE) {
-            throw new RuntimeException("This post is no longer available");
+
+        if (surplusPost.getStatus() != PostStatus.AVAILABLE &&
+            surplusPost.getStatus() != PostStatus.READY_FOR_PICKUP) {
+            throw new RuntimeException("This post is no longer available for claiming");
         }
-        
+
         // Check if already claimed (race condition prevention)
         if (claimRepository.existsBySurplusPostIdAndStatus(
                 surplusPost.getId(), ClaimStatus.ACTIVE)) {
             throw new RuntimeException("This post has already been claimed");
         }
-        
+
         // Prevent donor from claiming their own post
         if (surplusPost.getDonor().getId().equals(receiver.getId())) {
             throw new RuntimeException("You cannot claim your own surplus post");
         }
-        
+
         // Create the claim
         Claim claim = new Claim(surplusPost, receiver);
         claim = claimRepository.save(claim);
-        
+
+        // Check if pickup time has already started
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        java.time.LocalDate today = now.toLocalDate();
+        java.time.LocalTime currentTime = now.toLocalTime();
+
+        boolean pickupTimeStarted = false;
+
+        if (surplusPost.getPickupDate().isBefore(today)) {
+            pickupTimeStarted = true;
+        } else if (surplusPost.getPickupDate().isEqual(today)) {
+            pickupTimeStarted = !currentTime.isBefore(surplusPost.getPickupFrom());
+        }
+
         // Update surplus post status
-        surplusPost.setStatus(PostStatus.CLAIMED);
+        if (pickupTimeStarted) {
+            surplusPost.setStatus(PostStatus.READY_FOR_PICKUP);
+            // Generate OTP code if pickup is ready
+            if (surplusPost.getOtpCode() == null || surplusPost.getOtpCode().isEmpty()) {
+                surplusPost.setOtpCode(generateOtpCode());
+            }
+        } else {
+            surplusPost.setStatus(PostStatus.CLAIMED);
+        }
+
         surplusPostRepository.save(surplusPost);
-        
+
         return new ClaimResponse(claim);
+    }
+
+
+    private String generateOtpCode() {
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        int otp = 100000 + random.nextInt(900000); // 6-digit number
+        return String.valueOf(otp);
     }
     
     @Transactional(readOnly = true)

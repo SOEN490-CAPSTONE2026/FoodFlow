@@ -46,9 +46,10 @@ export const authAPI = {
 
 export const surplusAPI = {
   list: () => api.get('/surplus'),  // ✅ Just /surplus, not /api/surplus
-  myPosts: () => api.get('/surplus/my-posts'),
+  getMyPosts: () => api.get('/surplus/my-posts'),
   create: (data) => api.post('/surplus', data),
   claim: (postId) => api.post('/claims', { surplusPostId: postId }),
+  completeSurplusPost: (id, otpCode) => api.patch(`/surplus/${id}/complete`, { otpCode }),
 };
 
 export const claimsAPI = {

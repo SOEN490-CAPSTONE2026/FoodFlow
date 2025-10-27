@@ -685,13 +685,50 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  border: 1px solid #047857;
   padding: 6px 12px;
-  background: #e8f5e9;
-  color: #2e7d32;
   border-radius: 16px;
   font-size: 13px;
   font-weight: 600;
+  border: 1px solid #047857;
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+/* Status-specific styling */
+.receiver-status-badge.status-available {
+  border: 1px solid #047857;
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.receiver-status-badge.status-ready {
+  border: 1px solid #d97706;
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.receiver-status-badge.status-claimed {
+  border: 1px solid #6b7280;
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.receiver-status-badge.status-completed {
+  border: 1px solid #1e40af;
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.receiver-status-badge.status-not-completed {
+  border: 1px solid #dc2626;
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.receiver-status-badge.status-expired {
+  border: 1px solid #9ca3af;
+  background: #f9fafb;
+  color: #6b7280;
 }
 
 .receiver-status-icon {

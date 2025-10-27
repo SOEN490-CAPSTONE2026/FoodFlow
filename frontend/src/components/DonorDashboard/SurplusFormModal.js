@@ -1,9 +1,9 @@
 import React, { useState, useRef } from "react";
-import axios from "axios";
 import { X, Calendar, Clock } from "lucide-react";
 import { Autocomplete } from "@react-google-maps/api";
 import Select from "react-select";
 import DatePicker from "react-datepicker";
+import { surplusAPI } from "../../services/api";
 import "./Donor_Styles/SurplusFormModal.css";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -93,17 +93,7 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
     };
 
     try {
-      const token = localStorage.getItem("jwtToken");
-      const response = await axios.post(
-        "http://localhost:8080/api/surplus",
-        submissionData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await surplusAPI.create(submissionData);
 
       setMessage(`Success! Post created with ID: ${response.data.id}`);
       setFormData({
@@ -119,7 +109,10 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
         description: "",
       });
 
-      setTimeout(() => onClose(), 2000);
+      setTimeout(() => {
+        setMessage("");
+        onClose();
+      }, 1500);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to create surplus post");
     }

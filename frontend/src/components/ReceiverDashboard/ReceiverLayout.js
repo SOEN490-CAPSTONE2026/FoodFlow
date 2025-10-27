@@ -118,20 +118,19 @@ export default function ReceiverLayout() {
 
         <div className="receiver-nav-links">
           <Link
-            to="/receiver/welcome"
-            className={`receiver-nav-link ${location.pathname === "/receiver/welcome" ? "active" : ""}`}
+            to="/receiver/browse"
+            className={`receiver-nav-link ${location.pathname === "/receiver/browse" ? "active" : ""}`}
           >
             Donations
           </Link>
 
-          <Link 
-            to="/receiver/my-claims" 
-            className={`receiver-nav-link ${
-              isActive("/receiver/my-claims") || 
-              isActive("/receiver") || 
-              isActive("/receiver/dashboard") 
-              ? "active" : ""
-            }`}
+          <Link
+            to="/receiver/my-claims"
+            className={`receiver-nav-link ${isActive("/receiver/my-claims") ||
+                isActive("/receiver") ||
+                isActive("/receiver/dashboard")
+                ? "active" : ""
+              }`}
           >
             <span className="nav-icon" aria-hidden>
               <CheckCircle size={18} className="lucide" />
@@ -140,8 +139,8 @@ export default function ReceiverLayout() {
           </Link>
 
           <Link
-            to="/receiver/browse"
-            className={`receiver-nav-link ${location.pathname === "/receiver/browse" ? "active" : ""}`}
+            to="/receiver/welcome"
+            className={`receiver-nav-link ${location.pathname === "/receiver/welcome" ? "active" : ""}`}
           >
             Saved Donations
           </Link>
