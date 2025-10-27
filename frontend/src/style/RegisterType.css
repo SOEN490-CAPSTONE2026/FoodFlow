@@ -1,24 +1,63 @@
 .register-type-page {
     font-family: "Inter", sans-serif;
     background: linear-gradient(to bottom, #F0F9FF 0%, #FFFFFF 45%, #E6FFFA 100%);
-    min-height: 100vh;
-    padding: 40px;
+    height: 100vh;
+    padding: 40px 40px;
     color: #1B4965;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.logo-container {
+    position: absolute;
+    top: 30px;
+    left: 40px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: transform 0.2s ease;
+}
+
+.logo-container:hover {
+    transform: scale(1.05);
+}
+
+.logo-container .logo {
+    width: 100px;
+    height: auto;
+}
+
+.logo-container .logo-text {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #1B4965;
 }
 
 .intro {
     text-align: center;
     margin-bottom: 40px;
-    margin-top: 20px;
+    flex-shrink: 0;
 }
+
 .intro h1 {
-    font-size: 2rem;
+    font-size: 3rem;
     font-weight: 600;
     color: #1B4965;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.intro .subtitle {
+    color: #1B4965;
+    font-size: 1.25rem;
+    font-weight: 500;
+    margin-top: 10px;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .intro p {
@@ -37,9 +76,14 @@
 
 .content {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
     gap: 40px;
+    max-width: 1400px;
+    width: 100%;
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
 }
 
 .registration-options {
@@ -50,107 +94,124 @@
 .illustration {
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-end;
+    flex-shrink: 0;
+    height: 100%;
+    max-height: 600px;
+    overflow: hidden;
 }
 
 .illustration img {
-    max-height: 70vh;
-    max-width: 100%;
+    max-height: 100%;
     height: auto;
+    max-width: 100%;
+    width: auto;
     object-fit: contain;
+    display: block;
 }
 
 .option-card {
-    border-radius: 12px;
-    padding: 25px;
-    width: 450px;
-    min-height: 555px;
+    border-radius: 16px;
+    padding: 30px 25px;
+    width: 350px;
+    max-height: 100%;
     height: auto;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
     cursor: pointer;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     text-align: center;
+    border: 2px solid transparent;
+    flex-shrink: 1;
+    overflow: hidden;
 }
 
 .option-card img {
     display: block;
-    margin: 0 auto;
+    margin: 0 auto 25px auto;
     max-width: 100%;
     height: auto;
+    width: 120px;
+    height: 120px;
 }
 
 .option-card.donor {
-    background: #DCF7FF;
-    border: 1px solid #6CADD5;
+    background: #F0F9FF;
+    border: 2px solid #B3D9E6;
 }
 
 .option-card.receiver {
-    background: #E6FFF7;
-    border: 1px solid #3EB08C;
+    background: #F0FFF9;
+    border: 2px solid #B3E6D5;
 }
 
 .option-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .option-card.donor:hover {
-    border-color: #0074d9;
+    border-color: #0077B6;
 }
 
 .option-card.receiver:hover {
-    border-color: #00a98f;
+    border-color: #00A896;
 }
 
 .option-card h3 {
-    font-size: 1.3rem;
-    font-weight: 600;
-    margin-bottom: 15px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #1B4965;
 }
 
 .option-card p {
     font-size: 0.95rem;
     color: #55697a;
-    margin-bottom: 20px;
-    line-height: 1.4;
+    margin-bottom: 30px;
+    line-height: 1.6;
 }
 
 .option-card ul {
     list-style: none;
     padding: 0;
-    margin: 0 0 25px 0;
-    text-align: center;
+    margin: 0 0 30px 0;
+    text-align: left;
 }
 
 .option-card li {
-    margin-bottom: 12px;
+    margin-bottom: 15px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 10px;
+    justify-content: flex-start;
+    gap: 12px;
+    padding-left: 20px;
+    font-size: 0.95rem;
+    color: #1B4965;
 }
 
 .option-card li::before {
-    content: "✔";
+    content: "✓";
     color: #1B4965;
     font-weight: bold;
     flex-shrink: 0;
+    font-size: 1.1rem;
 }
 
 .register-button {
     display: inline-block;
-    padding: 15px 15px;
+    padding: 16px 24px;
     border: none;
-    border-radius: 10px;
+    border-radius: 12px;
     cursor: pointer;
-    transition: 0.2s;
+    transition: background-color 0.2s, transform 0.1s;
     font-weight: 600;
     color: #fff;
     width: 100%;
     font-size: 1rem;
+    margin-top: auto;
 }
 
 .donor-button {
@@ -158,7 +219,8 @@
 }
 
 .donor-button:hover {
-    background: #005bb5;
+    background: #005a8f;
+    transform: translateY(-2px);
 }
 
 .receiver-button {
@@ -167,6 +229,7 @@
 
 .receiver-button:hover {
     background: #008d76;
+    transform: translateY(-2px);
 }
 
 .back-container {
@@ -197,55 +260,55 @@
     }
     
     .option-card {
-        width: 350px;
-        min-height: 500px;
+        width: 300px;
+        padding: 25px 20px;
     }
     
-    .illustration img {
-        max-height: 60vh;
+    .intro h1 {
+        font-size: 2.5rem;
     }
 }
 
 @media (max-width: 1024px) {
     .register-type-page {
-        padding: 30px;
+        padding: 30px 20px;
     }
     
-    .content {
-        gap: 25px;
-    }
-    
-    .registration-options {
-        gap: 15px;
-    }
-    
-    .option-card {
-        width: 320px;
-        min-height: 480px;
-        padding: 20px;
-    }
-    
-    .illustration img {
-        max-height: 50vh;
-    }
-}
-
-@media (max-width: 900px) {
     .content {
         gap: 20px;
     }
     
     .option-card {
-        width: 280px;
-        min-height: 520px;
+        width: 260px;
+        padding: 25px 18px;
     }
     
-    .illustration img {
-        max-height: 45vh;
+    .option-card img {
+        width: 90px;
+        height: 90px;
+    }
+    
+    .intro h1 {
+        font-size: 2.2rem;
+    }
+    
+    .intro .subtitle {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 900px) {
+    .content {
+        gap: 15px;
+    }
+    
+    .option-card {
+        width: 240px;
+        padding: 20px 15px;
     }
     
     .option-card h3 {
-        font-size: 1.2rem;
+        font-size: 1.3rem;
     }
     
     .option-card p {
@@ -255,103 +318,172 @@
 
 @media (max-width: 768px) {
     .register-type-page {
-        padding: 20px;
-        justify-content: flex-start;
+        padding: 20px 15px;
+        justify-content: space-between;
+        overflow: hidden;
+    }
+    
+    .logo-container {
+        top: 15px;
+        left: 15px;
+    }
+    
+    .logo-container .logo {
+        width: 60px;
+    }
+    
+    .intro {
+        margin-bottom: 20px;
+        margin-top: 70px;
+        flex-shrink: 0;
+    }
+    
+    .intro h1 {
+        font-size: 1.8rem;
+        margin-bottom: 10px;
+    }
+    
+    .intro .subtitle {
+        font-size: 1rem;
     }
     
     .content {
-        flex-direction: column;
-        align-items: center;
-        gap: 30px;
+        flex-direction: row;
+        align-items: stretch;
+        gap: 15px;
+        flex: 1;
+        min-height: 0;
     }
 
-    .registration-options {
-        flex-direction: row;
-        gap: 20px;
-        width: 100%;
-        justify-content: center;
-    }
-    
     .option-card {
-        width: 100%;
-        max-width: 300px;
-        min-height: auto;
+        width: 48%;
+        max-width: none;
+        padding: 20px 15px;
+        max-height: 100%;
     }
     
-    .illustration img {
-        max-height: 250px;
+    .option-card img {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 15px;
+    }
+    
+    .option-card h3 {
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+    }
+    
+    .option-card p {
+        font-size: 0.85rem;
+        margin-bottom: 15px;
+    }
+    
+    .option-card ul {
+        margin-bottom: 15px;
+    }
+    
+    .option-card li {
+        font-size: 0.85rem;
+        margin-bottom: 10px;
+        padding-left: 10px;
+    }
+    
+    .register-button {
+        padding: 12px 16px;
+        font-size: 0.9rem;
+    }
+    
+    /* Hide illustration on tablet and mobile */
+    .illustration {
+        display: none;
     }
 }
 
 @media (max-width: 640px) {
-    .registration-options {
-        flex-direction: column;
-        align-items: center;
-        gap: 20px;
-    }
-    
     .option-card {
-        max-width: 400px;
-        width: 100%;
+        width: 48%;
     }
     
-    .illustration img {
-        max-height: 200px;
+    .intro h1 {
+        font-size: 1.6rem;
     }
 }
 
 @media (max-width: 480px) {
     .register-type-page {
-        padding: 15px;
+        padding: 15px 10px;
+    }
+    
+    .logo-container {
+        top: 10px;
+        left: 10px;
+    }
+    
+    .logo-container .logo {
+        width: 50px;
+    }
+    
+    .intro {
+        margin-top: 60px;
+        margin-bottom: 15px;
     }
     
     .intro h1 {
-        font-size: 1.7rem;
+        font-size: 1.4rem;
+        margin-bottom: 8px;
     }
     
-    .intro h2 {
-        font-size: 1.1rem;
-        margin-top: 20px;
+    .intro .subtitle {
+        font-size: 0.9rem;
+    }
+    
+    .content {
+        gap: 10px;
     }
     
     .option-card {
-        padding: 20px;
+        width: 48%;
+        padding: 15px 10px;
     }
     
     .option-card img {
-        height: 100px;
-        width: 100px;
+        width: 60px;
+        height: 60px;
+        margin-bottom: 10px;
     }
     
-    .illustration img {
-        max-height: 180px;
+    .option-card h3 {
+        font-size: 1.1rem;
+        margin-bottom: 8px;
+    }
+    
+    .option-card p {
+        font-size: 0.75rem;
+        margin-bottom: 10px;
+    }
+    
+    .option-card ul {
+        margin-bottom: 10px;
     }
     
     .option-card li {
+        font-size: 0.75rem;
+        margin-bottom: 8px;
+        padding-left: 5px;
+        gap: 8px;
+    }
+    
+    .option-card li::before {
         font-size: 0.9rem;
     }
-}
-
-.back-home-button {
-  position: absolute;
-  top: 24px;
-  right: 32px;
-  background: transparent;
-  color: #1B4965;
-  border: none;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  text-decoration: underline;
-  transition: color 0.2s ease;
-}
-
-.back-home-button:hover {
-  color: #609B7E;
-}
-
-.back-home-button:focus-visible {
-  outline: 2px solid #609B7E;
-  outline-offset: 2px;
-  border-radius: 4px;
+    
+    .register-button {
+        padding: 10px 12px;
+        font-size: 0.85rem;
+    }
+    
+    /* Hide illustration on phone */
+    .illustration {
+        display: none;
+    }
 }
