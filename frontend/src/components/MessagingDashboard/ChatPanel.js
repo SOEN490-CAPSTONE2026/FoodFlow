@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Send } from 'lucide-react';
 import api from '../../services/api';
 import './ChatPanel.css';
 
-const ChatPanel = ({ conversation, onMessageSent }) => {
+const ChatPanel = ({ conversation, onMessageSent, onConversationRead }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef(null);
+  const textareaRef = useRef(null);
   const currentUserId = localStorage.getItem('userId');
 
   // Load messages when conversation changes
@@ -24,6 +26,14 @@ const ChatPanel = ({ conversation, onMessageSent }) => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+    }
+  }, [newMessage]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -48,6 +58,10 @@ const ChatPanel = ({ conversation, onMessageSent }) => {
     
     try {
       await api.put(`/conversations/${conversation.id}/read`);
+      // Notify parent to refresh conversations list
+      if (onConversationRead) {
+        onConversationRead();
+      }
     } catch (err) {
       console.error('Error marking as read:', err);
     }
@@ -84,6 +98,41 @@ const ChatPanel = ({ conversation, onMessageSent }) => {
     });
   };
 
+  const getDateSeparator = (timestamp) => {
+    const messageDate = new Date(timestamp);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    messageDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    yesterday.setHours(0, 0, 0, 0);
+
+    if (messageDate.getTime() === today.getTime()) {
+      return 'Today';
+    } else if (messageDate.getTime() === yesterday.getTime()) {
+      return 'Yesterday';
+    } else {
+      return messageDate.toLocaleDateString('en-US', { 
+        month: 'long', 
+        day: 'numeric', 
+        year: 'numeric' 
+      });
+    }
+  };
+
+  const shouldShowDateSeparator = (currentMessage, previousMessage) => {
+    if (!previousMessage) return true;
+    
+    const currentDate = new Date(currentMessage.createdAt);
+    const previousDate = new Date(previousMessage.createdAt);
+    
+    currentDate.setHours(0, 0, 0, 0);
+    previousDate.setHours(0, 0, 0, 0);
+    
+    return currentDate.getTime() !== previousDate.getTime();
+  };
+
   if (!conversation) {
     return (
       <div className="chat-panel empty">
@@ -98,59 +147,86 @@ const ChatPanel = ({ conversation, onMessageSent }) => {
   return (
     <div className="chat-panel">
       <div className="chat-header">
-        <div className="chat-header-avatar">
-          {conversation.otherUserName.charAt(0).toUpperCase()}
+        <div className="chat-header-left">
+          <div className="chat-header-info">
+            <h3>{conversation.postTitle || conversation.otherUserName}</h3>
+            <p className="chat-header-subtitle">with {conversation.otherUserName}</p>
+          </div>
         </div>
-        <div className="chat-header-info">
-          <h3>{conversation.otherUserName}</h3>
-          <p className="chat-header-email">{conversation.otherUserEmail}</p>
+        <div className="chat-header-actions">
+          <span className="status-badge claimed">
+            Claimed
+          </span>
+          <button className="view-post-btn">
+            View Post
+          </button>
+          <button className="menu-btn">⋮</button>
         </div>
       </div>
 
       <div className="messages-container">
-        {loading ? (
-          <div className="loading-messages">
-            <p>Loading messages...</p>
-          </div>
-        ) : messages.length === 0 ? (
-          <div className="no-messages">
-            <p>No messages yet. Start the conversation!</p>
-          </div>
-        ) : (
-          messages.map((message) => (
-            <div
-              key={message.id}
-              className={`message ${
-                message.senderId.toString() === currentUserId ? 'sent' : 'received'
-              }`}
-            >
-              <div className="message-content">
-                <p>{message.messageBody}</p>
-                <span className="message-time">
-                  {formatMessageTime(message.createdAt)}
-                </span>
-              </div>
+        {messages.length === 0 ? (
+          !loading && (
+            <div className="no-messages">
+              <p>No messages yet. Start the conversation!</p>
             </div>
+          )
+        ) : (
+          messages.map((message, index) => (
+            <React.Fragment key={message.id}>
+              {shouldShowDateSeparator(message, messages[index - 1]) && (
+                <div className="date-separator">
+                  <span>{getDateSeparator(message.createdAt)}</span>
+                </div>
+              )}
+              <div
+                className={`message ${
+                  message.senderId.toString() === currentUserId ? 'sent' : 'received'
+                }`}
+              >
+                {message.senderId.toString() !== currentUserId && (
+                  <div className="message-avatar">
+                    {conversation.otherUserName.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="message-content">
+                  <p>{message.messageBody}</p>
+                  <span className="message-time">
+                    {formatMessageTime(message.createdAt)}
+                  </span>
+                </div>
+              </div>
+            </React.Fragment>
           ))
         )}
         <div ref={messagesEndRef} />
       </div>
 
       <form className="message-input-container" onSubmit={handleSendMessage}>
-        <input
-          type="text"
+        <textarea
+          ref={textareaRef}
           className="message-input"
-          placeholder="Type a message..."
+          placeholder="Type your message here..."
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey) {
+              // Enter alone sends the message
+              e.preventDefault();
+              handleSendMessage(e);
+            }
+            // Ctrl+Enter or Shift+Enter adds a new line (default behavior)
+          }}
           disabled={sending}
+          rows={1}
         />
         <button 
           type="submit" 
           className="send-button"
           disabled={!newMessage.trim() || sending}
+          title="Send message"
         >
-          {sending ? 'Sending...' : 'Send'}
+          <Send size={20} />
         </button>
       </form>
     </div>
