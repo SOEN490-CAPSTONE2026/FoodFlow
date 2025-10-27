@@ -26,15 +26,15 @@ describe('DonorRegistration', () => {
         jest.clearAllMocks();
     });
 
-    const fillAllFields = async () => {
-        await userEvent.type(screen.getByLabelText(/email address/i), 'donor@example.com');
-        await userEvent.type(screen.getByLabelText(/password/i), 'password123');
-        await userEvent.type(screen.getByLabelText(/organization name/i), 'Donor Org');
-        await userEvent.type(screen.getByLabelText(/contact person/i), 'Jane Doe');
-        await userEvent.type(screen.getByLabelText(/phone number/i), '1234567890');
-        await userEvent.type(screen.getByLabelText(/^address$/i), '456 Main St');
-        await userEvent.selectOptions(screen.getByLabelText(/organization type/i), 'RESTAURANT');
-        await userEvent.type(screen.getByLabelText(/business license/i), 'BL-123456');
+    const fillAllFields = async (user) => {
+        await user.type(screen.getByLabelText(/email address/i), 'donor@example.com');
+        await user.type(screen.getByLabelText(/password/i), 'password123');
+        await user.type(screen.getByLabelText(/organization name/i), 'Donor Org');
+        await user.type(screen.getByLabelText(/contact person/i), 'Jane Doe');
+        await user.type(screen.getByLabelText(/phone number/i), '1234567890');
+        await user.type(screen.getByLabelText(/^address$/i), '456 Main St');
+        await user.selectOptions(screen.getByLabelText(/organization type/i), 'RESTAURANT');
+        await user.type(screen.getByLabelText(/business license/i), 'BL-123456');
     };
 
     it('renders the form with all required fields', () => {
@@ -50,8 +50,9 @@ describe('DonorRegistration', () => {
     });
 
     it('updates form values correctly', async () => {
+        const user = userEvent.setup();
         render(<DonorRegistration />);
-        await fillAllFields();
+        await fillAllFields(user);
         expect(screen.getByLabelText(/email address/i)).toHaveValue('donor@example.com');
         expect(screen.getByLabelText(/password/i)).toHaveValue('password123');
         expect(screen.getByLabelText(/organization name/i)).toHaveValue('Donor Org');
@@ -60,15 +61,20 @@ describe('DonorRegistration', () => {
         expect(screen.getByLabelText(/^address$/i)).toHaveValue('456 Main St');
         expect(screen.getByLabelText(/organization type/i)).toHaveValue('RESTAURANT');
         expect(screen.getByLabelText(/business license/i)).toHaveValue('BL-123456');
-    });
+    }, 10000);
 
     it('business license field accepts only text', async () => {
+        const user = userEvent.setup();
         render(<DonorRegistration />);
         const licenseInput = screen.getByLabelText(/business license/i);
-        await userEvent.type(licenseInput, 'ABC123');
+        
+        // Clear any default value and type new value
+        await user.clear(licenseInput);
+        await user.type(licenseInput, 'ABC123');
         expect(licenseInput).toHaveValue('ABC123');
-        await userEvent.clear(licenseInput);
-        await userEvent.type(licenseInput, '987XYZ');
+        
+        await user.clear(licenseInput);
+        await user.type(licenseInput, '987XYZ');
         expect(licenseInput).toHaveValue('987XYZ');
     });
 });

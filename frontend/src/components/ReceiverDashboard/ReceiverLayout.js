@@ -23,6 +23,8 @@ export default function ReceiverLayout() {
   const isActive = (path) => location.pathname === path;
   const [notification, setNotification] = useState(null);
 
+  const isMessagesPage = location.pathname === "/receiver/messages";
+
   const getPageTitle = () => {
     switch (location.pathname) {
       case "/receiver":
@@ -202,14 +204,16 @@ export default function ReceiverLayout() {
       </div>
 
       <div className="receiver-main">
-        <div className="receiver-topbar">
-          <div className="receiver-topbar-left">
-            <h1>{getPageTitle()}</h1>
-            <p>{getPageDescription()}</p>
+        {!isMessagesPage && (
+          <div className="receiver-topbar">
+            <div className="receiver-topbar-left">
+              <h1>{getPageTitle()}</h1>
+              <p>{getPageDescription()}</p>
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className="receiver-content">
+        <div className={`receiver-content ${isMessagesPage ? 'messages-page' : ''}`}>
           <Outlet />
           <MessageNotification
             notification={notification}

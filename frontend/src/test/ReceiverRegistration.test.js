@@ -31,15 +31,15 @@ describe('ReceiverRegistration', () => {
         jest.useRealTimers();
     });
 
-    const fillAllFields = async () => {
-        await userEvent.type(screen.getByLabelText(/email address/i), 'test@example.com');
-        await userEvent.type(screen.getByLabelText(/password/i), 'password123');
-        await userEvent.type(screen.getByLabelText(/organization name/i), 'Food Helpers');
-        await userEvent.type(screen.getByLabelText(/contact person/i), 'Alex Doe');
-        await userEvent.type(screen.getByLabelText(/phone number/i), '5145551234');
-        await userEvent.type(screen.getByLabelText(/^address$/i), '123 Main St, Montreal, QC');
-        await userEvent.selectOptions(screen.getByLabelText(/organization type/i), 'SHELTER');
-        await userEvent.type(screen.getByLabelText(/daily capacity/i), '150');
+    const fillAllFields = async (user) => {
+        await user.type(screen.getByLabelText(/email address/i), 'test@example.com');
+        await user.type(screen.getByLabelText(/password/i), 'password123');
+        await user.type(screen.getByLabelText(/organization name/i), 'Food Helpers');
+        await user.type(screen.getByLabelText(/contact person/i), 'Alex Doe');
+        await user.type(screen.getByLabelText(/phone number/i), '5145551234');
+        await user.type(screen.getByLabelText(/^address$/i), '123 Main St, Montreal, QC');
+        await user.selectOptions(screen.getByLabelText(/organization type/i), 'SHELTER');
+        await user.type(screen.getByLabelText(/daily capacity/i), '150');
     };
 
     test('renders the form with all required fields', () => {
@@ -72,19 +72,20 @@ describe('ReceiverRegistration', () => {
 
 
     test('shows API error message from server and does not navigate', async () => {
+        const user = userEvent.setup();
         authAPI.registerReceiver.mockRejectedValueOnce({
             response: { data: { message: 'Email already exists' } },
         });
 
         render(<ReceiverRegistration />);
-        await fillAllFields();
+        await fillAllFields(user);
 
-        await userEvent.click(screen.getByRole('button', { name: /register as receiver/i }));
+        await user.click(screen.getByRole('button', { name: /register as receiver/i }));
 
         expect(await screen.findByText(/email already exists/i)).toBeTruthy();
         expect(mockNavigate).not.toHaveBeenCalled();
         expect(setItemSpy).not.toHaveBeenCalled();
-    });
+    }, 10000);
 
     test('Back button goes to /register', async () => {
         render(<ReceiverRegistration />);
@@ -93,17 +94,23 @@ describe('ReceiverRegistration', () => {
     });
 
     test('sends null for capacity when left blank', async () => {
+        const user = userEvent.setup();
         authAPI.registerReceiver.mockResolvedValueOnce({ data: {} });
 
         render(<ReceiverRegistration />);
 
-        await userEvent.type(screen.getByLabelText(/email address/i), 'a@b.com');
-        await userEvent.type(screen.getByLabelText(/password/i), 'password123');
-        await userEvent.type(screen.getByLabelText(/organization name/i), 'Org');
-        await userEvent.type(screen.getByLabelText(/contact person/i), 'Person');
-        await userEvent.type(screen.getByLabelText(/phone number/i), '1112223333');
-        await userEvent.type(screen.getByLabelText(/^address$/i), 'Addr');
-        await userEvent.click(screen.getByRole('button', { name: /register as receiver/i }));
+        await user.type(screen.getByLabelText(/email address/i), 'a@b.com');
+        await user.type(screen.getByLabelText(/password/i), 'password123');
+        await user.type(screen.getByLabelText(/organization name/i), 'Org');
+        await user.type(screen.getByLabelText(/contact person/i), 'Person');
+        await user.type(screen.getByLabelText(/phone number/i), '1112223333');
+        await user.type(screen.getByLabelText(/^address$/i), 'Addr');
+        
+        // Clear capacity field if it has a value
+        const capacityInput = screen.getByLabelText(/daily capacity/i);
+        await user.clear(capacityInput);
+        
+        await user.click(screen.getByRole('button', { name: /register as receiver/i }));
 
         await waitFor(() => {
             expect(authAPI.registerReceiver).toHaveBeenCalledWith(

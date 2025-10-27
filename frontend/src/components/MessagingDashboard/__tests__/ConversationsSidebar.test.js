@@ -30,18 +30,20 @@ describe('ConversationsSidebar', () => {
     jest.clearAllMocks();
   });
 
-  test('renders loading state', () => {
+  test('does not render loading text (no loader)', () => {
     render(
       <ConversationsSidebar
         conversations={[]}
         selectedConversation={null}
         onSelectConversation={mockOnSelectConversation}
         onNewConversation={mockOnNewConversation}
-        loading={true}
       />
     );
 
-    expect(screen.getByText('Loading conversations...')).toBeInTheDocument();
+    // We don't show a loading text anymore
+    expect(screen.queryByText('Loading conversations...')).not.toBeInTheDocument();
+    // For an empty list, the empty state should be visible
+    expect(screen.getByText('No conversations yet')).toBeInTheDocument();
   });
 
   test('renders empty state when no conversations', () => {
@@ -51,7 +53,6 @@ describe('ConversationsSidebar', () => {
         selectedConversation={null}
         onSelectConversation={mockOnSelectConversation}
         onNewConversation={mockOnNewConversation}
-        loading={false}
       />
     );
 
@@ -66,7 +67,6 @@ describe('ConversationsSidebar', () => {
         selectedConversation={null}
         onSelectConversation={mockOnSelectConversation}
         onNewConversation={mockOnNewConversation}
-        loading={false}
       />
     );
 
@@ -82,7 +82,6 @@ describe('ConversationsSidebar', () => {
         selectedConversation={null}
         onSelectConversation={mockOnSelectConversation}
         onNewConversation={mockOnNewConversation}
-        loading={false}
       />
     );
 
@@ -99,7 +98,6 @@ describe('ConversationsSidebar', () => {
         selectedConversation={mockConversations[0]}
         onSelectConversation={mockOnSelectConversation}
         onNewConversation={mockOnNewConversation}
-        loading={false}
       />
     );
 
@@ -114,7 +112,6 @@ describe('ConversationsSidebar', () => {
         selectedConversation={null}
         onSelectConversation={mockOnSelectConversation}
         onNewConversation={mockOnNewConversation}
-        loading={false}
       />
     );
 

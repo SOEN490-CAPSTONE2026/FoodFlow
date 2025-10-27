@@ -136,6 +136,8 @@ export default function DonorLayout() {
 
   const isActive = (path) => location.pathname === path;
 
+  const isMessagesPage = location.pathname === "/donor/messages";
+
   return (
     <div className="donor-layout">
       <div className="mobile-header">
@@ -260,20 +262,27 @@ export default function DonorLayout() {
       </aside>
 
       <main className="donor-main">
-        <header className="donor-topbar">
-          <div className="donor-topbar-left">
-            <h1>{pageTitle}</h1>
-            <p>{pageDesc}</p>
-          </div>
-        </header>
+        {!isMessagesPage && (
+          <header className="donor-topbar">
+            <div className="donor-topbar-left">
+              <h1>{pageTitle}</h1>
+              <p>{pageDesc}</p>
+            </div>
+          </header>
+        )}
 
-        <section className="donor-content">
-            <Outlet />
-            <MessageNotification
-              notification={notification}
-              onClose={() => setNotification(null)}
-            />
-        </section>
+        
+<section className={`donor-content ${isMessagesPage ? 'messages-page' : ''}`}>
+  <Outlet />
+
+  {notification && (
+    <MessageNotification
+      notification={notification}
+      onClose={() => setNotification(null)}
+    />
+  )}
+</section>
+
       </main>
     </div>
   );

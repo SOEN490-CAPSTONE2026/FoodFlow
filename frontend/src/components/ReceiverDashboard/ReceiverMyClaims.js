@@ -8,7 +8,8 @@ import PackagedPantryImage from '../../assets/foodtypes/PackagedItems.jpg';
 import DairyColdImage from '../../assets/foodtypes/Dairy.jpg';
 import FrozenFoodImage from '../../assets/foodtypes/FrozenFood.jpg';
 import PreparedMealsImage from '../../assets/foodtypes/PreparedFood.jpg';
-import ClaimDetailModal from './ClaimDetailModal';
+
+import ClaimDetailModal from './ClaimDetailModal.js';
 import "./Receiver_Styles/ReceiverMyClaims.css";
 
 export default function ReceiverMyClaims() {
