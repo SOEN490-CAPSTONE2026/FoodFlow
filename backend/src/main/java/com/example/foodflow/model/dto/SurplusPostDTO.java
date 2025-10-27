@@ -29,12 +29,12 @@ public static SurplusPostDTO toDTO(com.example.foodflow.model.entity.SurplusPost
     SurplusPostDTO dto = new SurplusPostDTO();
     dto.setId(post.getId());
 
-    dto.setType(post.getFoodType());  
+    //dto.setType(post.getFoodType());  
     dto.setQuantity(post.getQuantity() != null ? post.getQuantity().toString() : null);
     dto.setExpiryDate(post.getExpiryDate() != null ? post.getExpiryDate().atStartOfDay() : null);
-    dto.setPickupTime(post.getPickupFrom());
+    //dto.setPickupTime(post.getPickupFrom());
 
-    dto.setLocation(post.getLocation());
+    //dto.setLocation(post.getLocation());
     dto.setDonor(UserDTO.toDTO(post.getDonor()));
     dto.setCreatedAt(post.getCreatedAt());
     dto.setUpdatedAt(post.getUpdatedAt());
