@@ -19,6 +19,8 @@ import {
 import { AuthContext } from "../../contexts/AuthContext";
 import Logo from "../../assets/Logo_White.png";
 import "./Donor_Styles/DonorLayout.css";
+import MessageNotification from "../MessagingDashboard/MessageNotification";
+import { connectToUserQueue, disconnect } from '../../services/socket';
 
 export default function DonorLayout() {
   const location = useLocation();
@@ -30,6 +32,7 @@ export default function DonorLayout() {
   const [screenHeight, setScreenHeight] = useState(window.innerHeight);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const menuRef = useRef(null);
+  const [notification, setNotification] = useState(null);
 
   const contacts = [
     { name: "Olive Nacelle", online: true },
@@ -100,6 +103,20 @@ export default function DonorLayout() {
     };
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
+  }, []);
+
+  // Connect to websocket for user-specific notifications (donor)
+  useEffect(() => {
+    const onMessage = (payload) => {
+      const senderName = payload.senderName || payload.sender?.email || payload.senderEmail || '';
+      const message = payload.messageBody || payload.message || payload.body || '';
+      if (message) setNotification({ senderName, message });
+    };
+
+    connectToUserQueue(onMessage);
+    return () => {
+      try { disconnect(); } catch (e) { /* ignore */ }
+    };
   }, []);
 
   useEffect(() => {
@@ -251,7 +268,11 @@ export default function DonorLayout() {
         </header>
 
         <section className="donor-content">
-          <Outlet />
+            <Outlet />
+            <MessageNotification
+              notification={notification}
+              onClose={() => setNotification(null)}
+            />
         </section>
       </main>
     </div>
