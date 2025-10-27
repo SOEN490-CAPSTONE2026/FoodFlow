@@ -55,9 +55,9 @@ const ReadyForPickUpView = ({ claim, isOpen, onClose, onBack }) => {
 
     return (
         <div className="claimed-modal-overlay" onClick={onClose}>
-            <div 
+            <div
                 ref={containerRef}
-                className="claimed-modal-container ready-pickup-container" 
+                className="claimed-modal-container ready-pickup-container"
                 onClick={(e) => e.stopPropagation()}
                 style={{ position: 'relative' }}
             >
@@ -92,7 +92,7 @@ const ReadyForPickUpView = ({ claim, isOpen, onClose, onBack }) => {
                         <div className="PickupView-ready-pickup-step-content">
                             <h4 className="PickupView-ready-pickup-step-title">Your Pickup Code</h4>
                             <p className="PickupView-ready-pickup-step-description">Show this to the donor when collecting</p>
-                            
+
                             <div className="PickupView-pickup-code-container">
                                 <div className="PickupView-pickup-code-label">PICKUP CODE</div>
                                 <div className="PickupView-pickup-code-digits">
@@ -110,7 +110,7 @@ const ReadyForPickUpView = ({ claim, isOpen, onClose, onBack }) => {
                         <div className="PickupView-ready-pickup-step-content">
                             <h4 className="PickupView-ready-pickup-step-title">Confirm Pickup</h4>
                             <p className="PickupView-ready-pickup-step-description">After collecting the food, mark this donation as collected.</p>
-                            
+
                             <button className="PickupView-mark-collected-btn" onClick={handleMarkAsCollected}>
                                 <CircleCheck size={20} />
                                 Mark as Collected
@@ -120,10 +120,10 @@ const ReadyForPickUpView = ({ claim, isOpen, onClose, onBack }) => {
 
                     {/* Action Buttons */}
                     <div className="claimed-modal-actions">
-                        <button className="claimed-modal-btn-secondary" onClick={onBack}>
+                        <button className="claimed-view-btn-back" onClick={onBack}>
                             Back to Details
                         </button>
-                        <button className="claimed-modal-btn-primary" onClick={() => {}}>
+                        <button className="claimed-view-btn-view">
                             View Pickup Steps
                         </button>
                     </div>

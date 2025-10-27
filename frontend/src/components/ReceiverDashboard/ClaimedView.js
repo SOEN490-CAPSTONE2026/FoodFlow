@@ -113,10 +113,10 @@ const ClaimedView = ({ claim, isOpen, onClose, onBack }) => {
 
                     {/* Action Buttons */}
                     <div className="claimed-modal-actions">
-                        <button className="claimed-modal-btn-secondary" onClick={onBack}>
+                        <button className="claimed-view-btn-back" onClick={onBack}>
                             Back to Details
                         </button>
-                        <button className="claimed-modal-btn-primary">
+                        <button className="claimed-view-btn-view">
                             View Pickup Steps
                         </button>
                     </div>
