@@ -179,6 +179,13 @@ body {
     background: #F7FBFD;
 }
 
+/* Remove padding for messaging page to allow full-screen messaging */
+.receiver-content.messages-page {
+    padding: 0;
+    overflow: hidden;
+    position: relative;
+}
+
 @media (max-width: 1440px) {
     .receiver-content {
         padding: 24px;
@@ -213,6 +220,11 @@ body {
     
     .receiver-content {
         padding: 20px;
+    }
+    
+    .receiver-content.messages-page {
+        padding: 0;
+        height: 100%;
     }
 }
 
