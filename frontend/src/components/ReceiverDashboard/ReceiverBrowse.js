@@ -31,6 +31,7 @@ export default function ReceiverBrowse() {
     expiryBefore: null,
     distance: 10,
     location: "",
+    locationCoords: null, // Store lat/lng coordinates from Google Places
   });
 
   const [appliedFilters, setAppliedFilters] = useState({
@@ -38,6 +39,7 @@ export default function ReceiverBrowse() {
     expiryBefore: null,
     distance: 10,
     location: "",
+    locationCoords: null,
   });
 
   const [isFiltersVisible, setIsFiltersVisible] = useState(true);
@@ -48,7 +50,7 @@ export default function ReceiverBrowse() {
   const [expandedCardId, setExpandedCardId] = useState(null);
   const [bookmarkedItems, setBookmarkedItems] = useState(new Set());
 
-  // Filter handlers (just update state, no filtering logic)
+  // Filter handlers
   const handleFiltersChange = (filterType, value) => {
     setFilters((prev) => ({
       ...prev,
@@ -56,20 +58,27 @@ export default function ReceiverBrowse() {
     }));
   };
 
-  const handleApplyFilters = () => {
+  const handleApplyFilters = useCallback(async () => {
     setAppliedFilters({ ...filters });
-  };
 
-  const handleClearFilters = () => {
+    // Apply filters by calling the new search API
+    await fetchFilteredDonations(filters);
+  }, [filters]);
+
+  const handleClearFilters = useCallback(async () => {
     const clearedFilters = {
       foodType: [],
       expiryBefore: null,
       distance: 10,
       location: "",
+      locationCoords: null,
     };
     setFilters(clearedFilters);
     setAppliedFilters(clearedFilters);
-  };
+
+    // Fetch all donations when filters are cleared
+    await fetchDonations();
+  }, []);
 
   const handleToggleFilters = () => {
     setIsFiltersVisible(!isFiltersVisible);
@@ -79,6 +88,7 @@ export default function ReceiverBrowse() {
     setIsFiltersVisible(false);
   };
 
+  // Original fetch all donations function
   const fetchDonations = useCallback(async () => {
     setLoading(true);
     try {
@@ -93,7 +103,38 @@ export default function ReceiverBrowse() {
     }
   }, []);
 
-  // Removed the polling - only fetch once on mount
+  // New function to fetch filtered donations
+  const fetchFilteredDonations = useCallback(async (filterCriteria) => {
+    setLoading(true);
+    try {
+      // Check if any filters are actually applied
+      const hasActiveFilters =
+        (filterCriteria.foodType && filterCriteria.foodType.length > 0) ||
+        filterCriteria.expiryBefore ||
+        (filterCriteria.locationCoords && filterCriteria.distance);
+
+      let data;
+      if (hasActiveFilters) {
+        // Use the new search API with filters
+        const response = await surplusAPI.search(filterCriteria);
+        data = response.data;
+      } else {
+        // No filters applied, fetch all donations
+        const response = await surplusAPI.list();
+        data = response.data;
+      }
+
+      setItems(Array.isArray(data) ? data : []);
+      setError(null);
+    } catch (e) {
+      setError("Failed to load donations with applied filters");
+      console.error("fetchFilteredDonations error:", e);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Initial load - fetch all donations
   useEffect(() => {
     fetchDonations();
   }, [fetchDonations]);
@@ -336,6 +377,7 @@ export default function ReceiverBrowse() {
           <h1 className="receiver-section-title">
             Explore Available Donations
           </h1>
+
           {error && (
             <div role="alert" className="receiver-error-message">
               {error}
