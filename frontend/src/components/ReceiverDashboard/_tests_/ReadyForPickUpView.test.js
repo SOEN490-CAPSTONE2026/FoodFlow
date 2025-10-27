@@ -72,8 +72,8 @@ describe("ReadyForPickUpView", () => {
     expect(screen.getByText("Ready for Pickup")).toBeInTheDocument();
   });
 
-  test("displays pickup code digits correctly", () => {
-    render(
+ test("displays pickup code digits correctly", () => {
+    const { container } = render(
       <ReadyForPickUpView
         claim={mockClaim}
         isOpen={true}
@@ -82,8 +82,11 @@ describe("ReadyForPickUpView", () => {
       />
     );
     expect(screen.getByText("PICKUP CODE")).toBeInTheDocument();
-    const codeDigits = screen.getAllByText("1").filter(el => el.className === "pickup-code-digit");
-    expect(codeDigits.length).toBeGreaterThan(0);
+    const codeDigits = container.querySelectorAll(".pickup-code-digit");
+    expect(codeDigits.length).toBe(6);
+    codeDigits.forEach(digit => {
+      expect(digit.textContent).toMatch(/^\d$/);
+    });
   });
 
   test("uses default pickup code when not provided", () => {
