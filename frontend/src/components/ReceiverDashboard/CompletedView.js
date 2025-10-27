@@ -46,9 +46,9 @@ const CompletedView = ({ claim, isOpen, onClose, onBack }) => {
 
     return (
         <div className="claimed-modal-overlay" onClick={onClose}>
-            <div 
+            <div
                 ref={containerRef}
-                className="claimed-modal-container" 
+                className="claimed-modal-container"
                 onClick={(e) => e.stopPropagation()}
                 style={{ position: 'relative' }}
             >
@@ -95,17 +95,17 @@ const CompletedView = ({ claim, isOpen, onClose, onBack }) => {
                         <div className="CompletedView-pickup-step-content">
                             <h4 className="CompletedView-pickup-step-title">Donation Claimed! </h4>
                             <p className="CompletedView-pickup-step-description">
-                                Your claim is confirmed. Wait for the pickup window to start, and your pickup code will be available! 
+                                Your claim is confirmed. Wait for the pickup window to start, and your pickup code will be available!
                             </p>
                         </div>
                     </div>
 
                     {/* Action Buttons */}
                     <div className="claimed-modal-actions">
-                        <button className="claimed-modal-btn-secondary" onClick={onBack}>
+                        <button className="claimed-view-btn-back" onClick={onBack}>
                             Back to Details
                         </button>
-                        <button className="claimed-modal-btn-primary">
+                        <button className="claimed-view-btn-view">
                             View Pickup Steps
                         </button>
                     </div>

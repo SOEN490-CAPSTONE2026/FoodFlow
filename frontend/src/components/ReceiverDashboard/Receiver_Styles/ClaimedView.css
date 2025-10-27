@@ -100,7 +100,39 @@
 .pickup-dots .dot-3 {
     animation-delay: 0.4s;
 }
+.claimed-view-btn-back {
+    flex: 1;
+    padding: 0.875rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+    background: #1B4965;
+    color: white;
+    border: none;
+}
 
+.claimed-view-btn-back:hover {
+    background: #164058;
+}
+
+.claimed-view-btn-view {
+    flex: 1;
+    padding: 0.875rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+    background: white;
+    color: #1B4965;
+    border: 1px solid #d1d5db;
+}
+
+.claimed-view-btn-view:hover {
+    background: #f9fafb;
+}
 @keyframes loading-dots {
     0%, 60%, 100% {
         opacity: 0.3;

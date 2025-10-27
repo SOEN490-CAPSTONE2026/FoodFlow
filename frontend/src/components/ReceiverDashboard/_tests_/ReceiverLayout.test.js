@@ -23,6 +23,7 @@ function renderAt(path = "/receiver") {
             <Route path="dashboard" element={<div>Dashboard</div>} />
             <Route path="welcome" element={<div>Welcome</div>} />
             <Route path="browse" element={<div>Browse</div>} />
+            <Route path="my-claims" element={<div>My Claims</div>} />
             <Route path="requests" element={<div>Requests</div>} />
             <Route path="search" element={<div>Search</div>} />
           </Route>
@@ -48,21 +49,21 @@ describe("ReceiverLayout", () => {
     expect(nav).toHaveClass("active");
   });
 
-  test("renders welcome title/description at /receiver/welcome and marks 'Donations' active", () => {
+  test("renders welcome title/description at /receiver/welcome and marks 'Saved Donations' active", () => {
     renderAt("/receiver/welcome");
     expect(screen.getByRole("heading", { name: /welcome/i })).toBeInTheDocument();
     expect(screen.getByText(/start here: search the map or browse nearby food/i)).toBeInTheDocument();
 
-    const link = screen.getByRole("link", { name: /^donations$/i });
+    const link = screen.getByRole("link", { name: /saved donations/i });
     expect(link).toHaveClass("active");
   });
 
-  test("renders browse title/description at /receiver/browse and marks 'Saved Donations' active", () => {
+  test("renders browse title/description at /receiver/browse and marks 'Donations' active", () => {
     renderAt("/receiver/browse");
     expect(screen.getByRole("heading", { name: /browse available food/i })).toBeInTheDocument();
     expect(screen.getByText(/browse available food listings/i)).toBeInTheDocument();
 
-    const link = screen.getByRole("link", { name: /^saved donations$/i });
+    const link = screen.getByRole("link", { name: /^donations$/i });
     expect(link).toHaveClass("active");
   });
 
