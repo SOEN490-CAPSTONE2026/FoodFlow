@@ -1,13 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './ConversationsSidebar.css';
 
 const ConversationsSidebar = ({ 
   conversations, 
   selectedConversation, 
   onSelectConversation, 
-  onNewConversation,
-  loading 
+  onNewConversation
 }) => {
+  const [filter, setFilter] = useState('all'); // 'all' or 'unread'
   
   const formatTimestamp = (timestamp) => {
     if (!timestamp) return '';
@@ -25,10 +25,21 @@ const ConversationsSidebar = ({
     return date.toLocaleDateString();
   };
 
+  // Filter conversations based on selected filter
+  const filteredConversations = filter === 'unread' 
+    ? conversations.filter(conv => conv.unreadCount > 0)
+    : conversations;
+
+  // Count unread conversations
+  const unreadCount = conversations.filter(conv => conv.unreadCount > 0).length;
+
   return (
     <div className="conversations-sidebar">
       <div className="sidebar-header">
-        <h2>Messages</h2>
+        <div className="header-content">
+          <h2>Messages</h2>
+          <p className="sidebar-subtitle">Connect and coordinate here!</p>
+        </div>
         <button 
           className="new-conversation-btn"
           onClick={onNewConversation}
@@ -38,18 +49,32 @@ const ConversationsSidebar = ({
         </button>
       </div>
 
+      <div className="filter-tabs">
+        <button 
+          className={`filter-tab ${filter === 'all' ? 'active' : ''}`}
+          onClick={() => setFilter('all')}
+        >
+          All
+        </button>
+        <button 
+          className={`filter-tab ${filter === 'unread' ? 'active' : ''}`}
+          onClick={() => setFilter('unread')}
+        >
+          Unread
+          {unreadCount > 0 && (
+            <span className="filter-badge">{unreadCount}</span>
+          )}
+        </button>
+      </div>
+
       <div className="conversations-list">
-        {loading ? (
-          <div className="loading-conversations">
-            <p>Loading conversations...</p>
-          </div>
-        ) : conversations.length === 0 ? (
+        {conversations.length === 0 ? (
           <div className="no-conversations">
             <p>No conversations yet</p>
             <p className="hint">Click + to start a new conversation</p>
           </div>
         ) : (
-          conversations.map((conversation) => (
+          filteredConversations.map((conversation) => (
             <div
               key={conversation.id}
               className={`conversation-item ${
