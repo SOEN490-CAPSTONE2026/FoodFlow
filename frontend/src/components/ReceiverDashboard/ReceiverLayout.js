@@ -3,6 +3,8 @@ import { Outlet, useLocation, useNavigate, Link, useNavigationType } from "react
 import "./Receiver_Styles/ReceiverLayout.css";
 import Logo from "../../assets/Logo.png";
 import { AuthContext } from "../../contexts/AuthContext";
+import MessageNotification from "../MessagingDashboard/MessageNotification";
+import { connectToUserQueue, disconnect } from '../../services/socket';
 import {
   Settings as IconSettings,
   HelpCircle as IconHelpCircle,
@@ -19,6 +21,7 @@ export default function ReceiverLayout() {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
   const isActive = (path) => location.pathname === path;
+  const [notification, setNotification] = useState(null);
 
   const isMessagesPage = location.pathname === "/receiver/messages";
 
@@ -70,6 +73,20 @@ export default function ReceiverLayout() {
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Connect to websocket for user-specific notifications (receiver)
+  useEffect(() => {
+    const onMessage = (payload) => {
+      const senderName = payload.senderName || payload.sender?.email || payload.senderEmail || '';
+      const message = payload.messageBody || payload.message || payload.body || '';
+      if (message) setNotification({ senderName, message });
+    };
+
+    connectToUserQueue(onMessage);
+    return () => {
+      try { disconnect(); } catch (e) { /* ignore */ }
+    };
   }, []);
 
   useEffect(() => {
@@ -199,6 +216,10 @@ export default function ReceiverLayout() {
 
         <div className={`receiver-content ${isMessagesPage ? 'messages-page' : ''}`}>
           <Outlet />
+          <MessageNotification
+            notification={notification}
+            onClose={() => setNotification(null)}
+          />
         </div>
       </div>
     </div>

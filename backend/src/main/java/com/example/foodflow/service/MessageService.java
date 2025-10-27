@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,6 +20,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class MessageService {
+    private static final Logger logger = LoggerFactory.getLogger(MessageService.class);
     
     @Autowired
     private MessageRepository messageRepository;
@@ -60,6 +63,7 @@ public class MessageService {
             "/queue/messages",
             response
         );
+        logger.info("Sent websocket message to userId={} conversationId={} messageId={}", otherUser.getId(), conversation.getId(), response.getId());
         
         return response;
     }

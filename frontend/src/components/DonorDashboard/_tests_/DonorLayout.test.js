@@ -11,6 +11,11 @@ const mockAuthContext = {
   logout: jest.fn(),
 };
 
+jest.mock("../../../services/socket", () => ({
+  connectToUserQueue: jest.fn(),
+  disconnect: jest.fn(),
+}));
+
 function renderAt(pathname = '/donor/search') {
   return render(
     <AuthContext.Provider value={mockAuthContext}>

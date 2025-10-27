@@ -11,6 +11,11 @@ jest.mock("react-router-dom", () => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
+jest.mock("../../../services/socket", () => ({
+  connectToUserQueue: jest.fn(),
+  disconnect: jest.fn(),
+}));
+
 const mockLogout = jest.fn();
 
 function renderAt(path = "/receiver") {
