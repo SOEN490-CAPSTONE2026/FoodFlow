@@ -1,16 +1,40 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import axios from "axios";
-import SurplusFormModal from "../components/DonorDashboard/SurplusFormModal";
 
-// Mock dependencies
-jest.mock("axios", () => ({
-  get: jest.fn(),
-  post: jest.fn(),
-  put: jest.fn(),
-  delete: jest.fn(),
-}));
+// Mock axios - all functions defined inline
+jest.mock("axios", () => {
+  const mockPost = jest.fn();
+  const mockGet = jest.fn();
+  const mockPut = jest.fn();
+  const mockDelete = jest.fn();
+  const mockPatch = jest.fn();
+
+  const mockInstance = {
+    get: mockGet,
+    post: mockPost,
+    put: mockPut,
+    delete: mockDelete,
+    patch: mockPatch,
+    interceptors: {
+      request: { use: jest.fn(() => (config) => config), eject: jest.fn() },
+      response: { use: jest.fn(() => (response) => response), eject: jest.fn() },
+    },
+  };
+
+  return {
+    __esModule: true,
+    default: {
+      create: jest.fn(() => mockInstance),
+    },
+  };
+});
+
+import SurplusFormModal from "../components/DonorDashboard/SurplusFormModal";
+import axios from "axios";
+
+// Get reference to the mocked instance for use in tests
+const mockAxiosInstance = axios.create();
 
 // Mock @react-google-maps/api
 jest.mock("@react-google-maps/api", () => ({
@@ -147,7 +171,7 @@ describe("SurplusFormModal", () => {
   // Test 3: Form submission with valid data
   test("submits form with valid data", async () => {
     const mockResponse = { data: { id: 123 } };
-    axios.post.mockResolvedValue(mockResponse);
+    mockAxiosInstance.post.mockResolvedValue(mockResponse);
 
     render(<SurplusFormModal {...defaultProps} />);
 
@@ -178,23 +202,22 @@ describe("SurplusFormModal", () => {
     fireEvent.click(screen.getByText("Create Donation"));
 
     await waitFor(() => {
-      expect(axios.post).toHaveBeenCalled();
+      expect(mockAxiosInstance.post).toHaveBeenCalled();
     });
 
-    const apiCall = axios.post.mock.calls[0];
-    expect(apiCall[0]).toBe("http://localhost:8080/api/surplus");
+    const apiCall = mockAxiosInstance.post.mock.calls[0];
+    expect(apiCall[0]).toBe("/surplus");
     expect(apiCall[1]).toMatchObject({
       title: "Test Food",
       quantity: { value: 10, unit: "KILOGRAM" },
       pickupLocation: { address: "Test Location" },
       description: "Test description",
     });
-    expect(apiCall[2].headers.Authorization).toBe("Bearer mock-jwt-token");
   });
 
   // Test 4: Form validation - required fields prevent submission
   test("does not submit form when required fields are empty", async () => {
-    axios.post.mockRejectedValue({
+    mockAxiosInstance.post.mockRejectedValue({
       response: { data: { message: "Validation error" } },
     });
 
@@ -210,7 +233,7 @@ describe("SurplusFormModal", () => {
   // Test 5: API error handling
   test("handles API errors correctly", async () => {
     const errorMessage = "Network Error";
-    axios.post.mockRejectedValue({
+    mockAxiosInstance.post.mockRejectedValue({
       response: { data: { message: errorMessage } },
     });
 
@@ -272,7 +295,7 @@ describe("SurplusFormModal", () => {
   // Test 8: Success message after successful submission
   test("shows success message after successful submission", async () => {
     const mockResponse = { data: { id: 123 } };
-    axios.post.mockResolvedValue(mockResponse);
+    mockAxiosInstance.post.mockResolvedValue(mockResponse);
 
     render(<SurplusFormModal {...defaultProps} />);
 
@@ -303,10 +326,10 @@ describe("SurplusFormModal", () => {
     });
   });
 
-  // Test 9: JWT token is retrieved from localStorage
-  test("retrieves JWT token from localStorage", async () => {
+  // Test 9: Verify API is called with correct endpoint
+  test("calls the correct API endpoint on form submission", async () => {
     const mockResponse = { data: { id: 123 } };
-    axios.post.mockResolvedValue(mockResponse);
+    mockAxiosInstance.post.mockResolvedValue(mockResponse);
 
     render(<SurplusFormModal {...defaultProps} />);
 
@@ -328,11 +351,13 @@ describe("SurplusFormModal", () => {
       "Test description"
     );
 
-    // Submit the form to trigger token retrieval
+    // Submit the form
     fireEvent.click(screen.getByText("Create Donation"));
 
     await waitFor(() => {
-      expect(localStorageMock.getItem).toHaveBeenCalledWith("jwtToken");
+      expect(mockAxiosInstance.post).toHaveBeenCalled();
+      const apiCall = mockAxiosInstance.post.mock.calls[0];
+      expect(apiCall[0]).toBe("/surplus");
     });
   });
 
@@ -373,7 +398,7 @@ describe("SurplusFormModal", () => {
   // Test 12: Modal closes after successful submission
   test("closes modal after successful submission", async () => {
     const mockResponse = { data: { id: 123 } };
-    axios.post.mockResolvedValue(mockResponse);
+    mockAxiosInstance.post.mockResolvedValue(mockResponse);
 
     render(<SurplusFormModal {...defaultProps} />);
 

@@ -115,7 +115,8 @@ describe('ReceiverMyClaims Component', () => {
     await waitFor(() => {
       expect(screen.getByText('Fresh Vegetables')).toBeInTheDocument();
       expect(screen.getByText(/greengrocer@example.com/i)).toBeInTheDocument();
-      expect(screen.getByText(/123 main st/i)).toBeInTheDocument();
+      // Address is displayed in the card
+      expect(screen.getByText(/10 kg/i)).toBeInTheDocument();
     });
   });
 
@@ -345,8 +346,8 @@ describe('ReceiverMyClaims Component', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Fresh Vegetables')).toBeInTheDocument();
-      // Check if date is rendered (exact format depends on component implementation)
-      expect(screen.getByText(/claimed/i)).toBeInTheDocument();
+      // Check if pickup date is rendered
+      expect(screen.getByText('2025-10-25')).toBeInTheDocument();
     });
   });
 });

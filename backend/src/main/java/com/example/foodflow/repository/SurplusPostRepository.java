@@ -25,7 +25,10 @@ public interface SurplusPostRepository extends JpaRepository<SurplusPost, Long>,
     // Only claimed posts
     List<SurplusPost> findByStatus(PostStatus status);
 
-    
+
+    List<SurplusPost> findByStatusIn(List<PostStatus> statuses);
+
+
     List<SurplusPost> findByDonorOrderByCreatedAtDesc(User donor);
 
 }

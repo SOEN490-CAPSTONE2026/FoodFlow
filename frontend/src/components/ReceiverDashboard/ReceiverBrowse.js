@@ -83,7 +83,9 @@ export default function ReceiverBrowse() {
     setLoading(true);
     try {
       const { data } = await surplusAPI.list();
-      setItems(Array.isArray(data) ? data : []);
+      // Show AVAILABLE and READY_FOR_PICKUP items (backend already filters these)
+      const availableItems = Array.isArray(data) ? data : [];
+      setItems(availableItems);
       setError(null);
     } catch (e) {
       setError("Failed to load available donations");
@@ -93,7 +95,7 @@ export default function ReceiverBrowse() {
     }
   }, []);
 
-  // Removed the polling - only fetch once on mount
+  // Fetch donations on mount only - NO AUTO-REFRESH
   useEffect(() => {
     fetchDonations();
   }, [fetchDonations]);
@@ -121,20 +123,20 @@ export default function ReceiverBrowse() {
   }, []);
 
   const handleClaimDonation = async (item) => {
-      if (!window.confirm('Are you sure you want to claim this donation?')) {
-          return;
-      }
-      
-      try {
-          await surplusAPI.claim(item.id);  // Use surplusAPI
-          alert('Successfully claimed! Check "My Claims" tab.');
-          
-          // Remove from available list
-          setItems(items.filter(post => post.id !== item.id));  // Use setItems/items
-      } catch (error) {
-          console.error('Error claiming post:', error);
-          alert(error.response?.data?.message || 'Failed to claim. It may have already been claimed.');
-      }
+    if (!window.confirm('Are you sure you want to claim this donation?')) {
+        return;
+    }
+
+    try {
+        await surplusAPI.claim(item.id);  // Use surplusAPI
+        alert('Successfully claimed! Check "My Claims" tab.');
+
+        // Remove from available list
+        setItems(items.filter(post => post.id !== item.id));  // Use setItems/items
+    } catch (error) {
+        console.error('Error claiming post:', error);
+        alert(error.response?.data?.message || 'Failed to claim. It may have already been claimed.');
+    }
   };
 
   // Convert each category to display string (for separate tags)
@@ -300,6 +302,44 @@ export default function ReceiverBrowse() {
     }
   };
 
+  const formatStatus = (status) => {
+    switch (status) {
+      case "AVAILABLE":
+        return "Available";
+      case "READY_FOR_PICKUP":
+        return "Ready for Pickup";
+      case "CLAIMED":
+        return "Claimed";
+      case "COMPLETED":
+        return "Completed";
+      case "NOT_COMPLETED":
+        return "Not Completed";
+      case "EXPIRED":
+        return "Expired";
+      default:
+        return status || "Available";
+    }
+  };
+
+  const getStatusClass = (status) => {
+    switch (status) {
+      case "AVAILABLE":
+        return "status-available";
+      case "READY_FOR_PICKUP":
+        return "status-ready";
+      case "CLAIMED":
+        return "status-claimed";
+      case "COMPLETED":
+        return "status-completed";
+      case "NOT_COMPLETED":
+        return "status-not-completed";
+      case "EXPIRED":
+        return "status-expired";
+      default:
+        return "status-available";
+    }
+  };
+
   return (
     <LoadScript
       googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY || ""}
@@ -410,9 +450,9 @@ export default function ReceiverBrowse() {
                               }}
                             />
                           </button>
-                          <span className="receiver-status-badge">
+                          <span className={`receiver-status-badge ${getStatusClass(item.status)}`}>
                             <span className="receiver-status-icon">✓</span>
-                            Available
+                            {formatStatus(item.status)}
                           </span>
                         </div>
                       </div>
