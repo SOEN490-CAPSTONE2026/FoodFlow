@@ -71,17 +71,15 @@ class SurplusPostSchedulerServiceTest {
     // ==================== Tests for updatePostsToReadyForPickup ====================
 
     @Test
-    void testUpdatePostsToReadyForPickup_PickupTimeStartedToday_UpdatesStatus() {
-        // Given - Pickup time has started (2 hours ago)
-        availablePost.setPickupDate(LocalDate.now());
-        availablePost.setPickupFrom(LocalTime.now().minusHours(2));
-        availablePost.setPickupTo(LocalTime.now().plusHours(2));
+    void testUpdatePostsToReadyForPickup_ClaimedPostPickupTimeStarted_UpdatesStatus() {
+        // Given - CLAIMED post with pickup time started (2 hours ago)
+        claimedPost.setPickupDate(LocalDate.now());
+        claimedPost.setPickupFrom(LocalTime.now().minusHours(2));
+        claimedPost.setPickupTo(LocalTime.now().plusHours(2));
 
-        when(surplusPostRepository.findByStatus(PostStatus.AVAILABLE))
-            .thenReturn(Collections.singletonList(availablePost));
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
-            .thenReturn(Collections.emptyList());
-        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(availablePost);
+            .thenReturn(Collections.singletonList(claimedPost));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
 
         // When
         schedulerService.updatePostsToReadyForPickup();
@@ -98,36 +96,33 @@ class SurplusPostSchedulerServiceTest {
     }
 
     @Test
-    void testUpdatePostsToReadyForPickup_PickupTimeNotStarted_DoesNotUpdate() {
-        // Given - Pickup time is in the future
+    void testUpdatePostsToReadyForPickup_AvailablePostStaysAvailable() {
+        // Given - AVAILABLE post with pickup time started should stay AVAILABLE
+        // Only CLAIMED posts should transition to READY_FOR_PICKUP
         availablePost.setPickupDate(LocalDate.now());
-        availablePost.setPickupFrom(LocalTime.now().plusHours(2));
+        availablePost.setPickupFrom(LocalTime.now().minusHours(2));
         availablePost.setPickupTo(LocalTime.now().plusHours(4));
 
-        when(surplusPostRepository.findByStatus(PostStatus.AVAILABLE))
-            .thenReturn(Collections.singletonList(availablePost));
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
             .thenReturn(Collections.emptyList());
 
         // When
         schedulerService.updatePostsToReadyForPickup();
 
-        // Then
+        // Then - AVAILABLE posts are never transitioned by scheduler
         verify(surplusPostRepository, never()).save(any(SurplusPost.class));
     }
 
     @Test
-    void testUpdatePostsToReadyForPickup_PickupDateInPast_UpdatesStatus() {
-        // Given - Pickup date was yesterday
-        availablePost.setPickupDate(LocalDate.now().minusDays(1));
-        availablePost.setPickupFrom(LocalTime.of(9, 0));
-        availablePost.setPickupTo(LocalTime.of(17, 0));
+    void testUpdatePostsToReadyForPickup_ClaimedPostPickupDateInPast_UpdatesStatus() {
+        // Given - CLAIMED post with pickup date in the past
+        claimedPost.setPickupDate(LocalDate.now().minusDays(1));
+        claimedPost.setPickupFrom(LocalTime.of(9, 0));
+        claimedPost.setPickupTo(LocalTime.of(17, 0));
 
-        when(surplusPostRepository.findByStatus(PostStatus.AVAILABLE))
-            .thenReturn(Collections.singletonList(availablePost));
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
-            .thenReturn(Collections.emptyList());
-        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(availablePost);
+            .thenReturn(Collections.singletonList(claimedPost));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
 
         // When
         schedulerService.updatePostsToReadyForPickup();
@@ -142,16 +137,14 @@ class SurplusPostSchedulerServiceTest {
     }
 
     @Test
-    void testUpdatePostsToReadyForPickup_PickupDateInFuture_DoesNotUpdate() {
-        // Given - Pickup date is tomorrow
-        availablePost.setPickupDate(LocalDate.now().plusDays(1));
-        availablePost.setPickupFrom(LocalTime.of(9, 0));
-        availablePost.setPickupTo(LocalTime.of(17, 0));
+    void testUpdatePostsToReadyForPickup_ClaimedPostPickupDateInFuture_DoesNotUpdate() {
+        // Given - CLAIMED post with pickup date in the future
+        claimedPost.setPickupDate(LocalDate.now().plusDays(1));
+        claimedPost.setPickupFrom(LocalTime.of(9, 0));
+        claimedPost.setPickupTo(LocalTime.of(17, 0));
 
-        when(surplusPostRepository.findByStatus(PostStatus.AVAILABLE))
-            .thenReturn(Collections.singletonList(availablePost));
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
-            .thenReturn(Collections.emptyList());
+            .thenReturn(Collections.singletonList(claimedPost));
 
         // When
         schedulerService.updatePostsToReadyForPickup();
@@ -161,43 +154,41 @@ class SurplusPostSchedulerServiceTest {
     }
 
     @Test
-    void testUpdatePostsToReadyForPickup_BothAvailableAndClaimed_UpdatesBoth() {
-        // Given - Both AVAILABLE and CLAIMED posts with pickup time started
-        availablePost.setPickupDate(LocalDate.now().minusDays(1));
-        availablePost.setPickupFrom(LocalTime.of(9, 0));
-        availablePost.setPickupTo(LocalTime.of(17, 0));
+    void testUpdatePostsToReadyForPickup_MultipleClaimedPosts_UpdatesAll() {
+        // Given - Multiple CLAIMED posts with pickup time started
+        SurplusPost claimedPost2 = createTestPost(4L, PostStatus.CLAIMED);
 
         claimedPost.setPickupDate(LocalDate.now().minusDays(1));
         claimedPost.setPickupFrom(LocalTime.of(9, 0));
         claimedPost.setPickupTo(LocalTime.of(17, 0));
 
-        when(surplusPostRepository.findByStatus(PostStatus.AVAILABLE))
-            .thenReturn(Collections.singletonList(availablePost));
+        claimedPost2.setPickupDate(LocalDate.now().minusDays(1));
+        claimedPost2.setPickupFrom(LocalTime.of(9, 0));
+        claimedPost2.setPickupTo(LocalTime.of(17, 0));
+
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
-            .thenReturn(Collections.singletonList(claimedPost));
+            .thenReturn(Arrays.asList(claimedPost, claimedPost2));
         when(surplusPostRepository.save(any(SurplusPost.class)))
             .thenAnswer(invocation -> invocation.getArgument(0));
 
         // When
         schedulerService.updatePostsToReadyForPickup();
 
-        // Then
+        // Then - Both CLAIMED posts should be updated
         verify(surplusPostRepository, times(2)).save(any(SurplusPost.class));
     }
 
     @Test
     void testUpdatePostsToReadyForPickup_OtpAlreadyExists_DoesNotRegenerateOtp() {
-        // Given - Post already has an OTP
-        availablePost.setPickupDate(LocalDate.now().minusDays(1));
-        availablePost.setPickupFrom(LocalTime.of(9, 0));
-        availablePost.setPickupTo(LocalTime.of(17, 0));
-        availablePost.setOtpCode("123456");
+        // Given - CLAIMED post already has an OTP
+        claimedPost.setPickupDate(LocalDate.now().minusDays(1));
+        claimedPost.setPickupFrom(LocalTime.of(9, 0));
+        claimedPost.setPickupTo(LocalTime.of(17, 0));
+        claimedPost.setOtpCode("123456");
 
-        when(surplusPostRepository.findByStatus(PostStatus.AVAILABLE))
-            .thenReturn(Collections.singletonList(availablePost));
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
-            .thenReturn(Collections.emptyList());
-        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(availablePost);
+            .thenReturn(Collections.singletonList(claimedPost));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
 
         // When
         schedulerService.updatePostsToReadyForPickup();
@@ -212,17 +203,15 @@ class SurplusPostSchedulerServiceTest {
 
     @Test
     void testUpdatePostsToReadyForPickup_EmptyOtpCode_GeneratesNewOtp() {
-        // Given - Post has empty OTP
-        availablePost.setPickupDate(LocalDate.now().minusDays(1));
-        availablePost.setPickupFrom(LocalTime.of(9, 0));
-        availablePost.setPickupTo(LocalTime.of(17, 0));
-        availablePost.setOtpCode("");
+        // Given - CLAIMED post has empty OTP
+        claimedPost.setPickupDate(LocalDate.now().minusDays(1));
+        claimedPost.setPickupFrom(LocalTime.of(9, 0));
+        claimedPost.setPickupTo(LocalTime.of(17, 0));
+        claimedPost.setOtpCode("");
 
-        when(surplusPostRepository.findByStatus(PostStatus.AVAILABLE))
-            .thenReturn(Collections.singletonList(availablePost));
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
-            .thenReturn(Collections.emptyList());
-        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(availablePost);
+            .thenReturn(Collections.singletonList(claimedPost));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
 
         // When
         schedulerService.updatePostsToReadyForPickup();
@@ -238,9 +227,7 @@ class SurplusPostSchedulerServiceTest {
 
     @Test
     void testUpdatePostsToReadyForPickup_NoPosts_DoesNotSaveAnything() {
-        // Given - No posts to update
-        when(surplusPostRepository.findByStatus(PostStatus.AVAILABLE))
-            .thenReturn(Collections.emptyList());
+        // Given - No CLAIMED posts to update
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
             .thenReturn(Collections.emptyList());
 

@@ -28,10 +28,10 @@ export default function ReceiverMyClaims() {
   useEffect(() => {
     fetchMyClaims();
 
-    // Poll for updates every 30 seconds to catch status changes
+    // Poll for updates every 10 seconds to catch status changes faster
     const intervalId = setInterval(() => {
       fetchMyClaims();
-    }, 30000);
+    }, 10000);
 
     return () => clearInterval(intervalId);
   }, []);
@@ -74,6 +74,7 @@ export default function ReceiverMyClaims() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedClaim(null);
+    fetchMyClaims();
   };
   const getFoodTypeImage = (foodType) => {
     switch (foodType) {

@@ -79,14 +79,12 @@ export default function ReceiverBrowse() {
     setIsFiltersVisible(false);
   };
 
-   const fetchDonations = useCallback(async () => {
+  const fetchDonations = useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await surplusAPI.list();
-      // Filter to only show AVAILABLE items
-      const availableItems = Array.isArray(data) 
-        ? data.filter(item => item.status === 'AVAILABLE') 
-        : [];
+      // Show AVAILABLE and READY_FOR_PICKUP items (backend already filters these)
+      const availableItems = Array.isArray(data) ? data : [];
       setItems(availableItems);
       setError(null);
     } catch (e) {
@@ -97,7 +95,7 @@ export default function ReceiverBrowse() {
     }
   }, []);
 
-  // Removed the polling - only fetch once on mount
+  // Fetch donations on mount only - NO AUTO-REFRESH
   useEffect(() => {
     fetchDonations();
   }, [fetchDonations]);
@@ -125,20 +123,20 @@ export default function ReceiverBrowse() {
   }, []);
 
   const handleClaimDonation = async (item) => {
-      if (!window.confirm('Are you sure you want to claim this donation?')) {
-          return;
-      }
-      
-      try {
-          await surplusAPI.claim(item.id);  // Use surplusAPI
-          alert('Successfully claimed! Check "My Claims" tab.');
-          
-          // Remove from available list
-          setItems(items.filter(post => post.id !== item.id));  // Use setItems/items
-      } catch (error) {
-          console.error('Error claiming post:', error);
-          alert(error.response?.data?.message || 'Failed to claim. It may have already been claimed.');
-      }
+    if (!window.confirm('Are you sure you want to claim this donation?')) {
+        return;
+    }
+
+    try {
+        await surplusAPI.claim(item.id);  // Use surplusAPI
+        alert('Successfully claimed! Check "My Claims" tab.');
+
+        // Remove from available list
+        setItems(items.filter(post => post.id !== item.id));  // Use setItems/items
+    } catch (error) {
+        console.error('Error claiming post:', error);
+        alert(error.response?.data?.message || 'Failed to claim. It may have already been claimed.');
+    }
   };
 
   // Convert each category to display string (for separate tags)

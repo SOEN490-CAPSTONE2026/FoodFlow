@@ -4,7 +4,9 @@ import com.example.foodflow.model.dto.CreateSurplusRequest;
 import com.example.foodflow.model.dto.SurplusResponse;
 import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.entity.User;
+import com.example.foodflow.model.types.ClaimStatus;
 import com.example.foodflow.model.types.PostStatus;
+import com.example.foodflow.repository.ClaimRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,9 +19,11 @@ import java.util.stream.Collectors;
 public class SurplusService {
     
     private final SurplusPostRepository surplusPostRepository;
-    
-    public SurplusService(SurplusPostRepository surplusPostRepository) {
+    private final ClaimRepository claimRepository;
+
+    public SurplusService(SurplusPostRepository surplusPostRepository, ClaimRepository claimRepository) {
         this.surplusPostRepository = surplusPostRepository;
+        this.claimRepository = claimRepository;
     }
     
     /**
@@ -39,8 +43,27 @@ public class SurplusService {
         post.setPickupDate(request.getPickupDate());
         post.setPickupFrom(request.getPickupFrom());
         post.setPickupTo(request.getPickupTo());
-        post.setStatus(request.getStatus()); // defaults to AVAILABLE if not set
-        
+
+        // Check if pickup time has already started - set status immediately
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        java.time.LocalDate today = now.toLocalDate();
+        java.time.LocalTime currentTime = now.toLocalTime();
+
+        boolean pickupTimeStarted = false;
+        if (request.getPickupDate().isBefore(today)) {
+            pickupTimeStarted = true;
+        } else if (request.getPickupDate().isEqual(today)) {
+            pickupTimeStarted = !currentTime.isBefore(request.getPickupFrom());
+        }
+
+        if (pickupTimeStarted) {
+            post.setStatus(PostStatus.READY_FOR_PICKUP);
+            // Generate OTP immediately
+            post.setOtpCode(generateOtpCode());
+        } else {
+            post.setStatus(request.getStatus() != null ? request.getStatus() : PostStatus.AVAILABLE);
+        }
+
         SurplusPost savedPost = surplusPostRepository.save(post);
         return convertToResponse(savedPost);
     }
@@ -83,7 +106,9 @@ public class SurplusService {
             PostStatus.READY_FOR_PICKUP
         );
         List<SurplusPost> posts = surplusPostRepository.findByStatusIn(claimableStatuses);
+
         return posts.stream()
+                .filter(post -> !claimRepository.existsBySurplusPostIdAndStatus(post.getId(), ClaimStatus.ACTIVE))
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
@@ -113,4 +138,9 @@ public class SurplusService {
         return convertToResponse(updatedPost);
     }
 
+    private String generateOtpCode() {
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        int otp = 100000 + random.nextInt(900000);
+        return String.valueOf(otp);
+    }
 }
