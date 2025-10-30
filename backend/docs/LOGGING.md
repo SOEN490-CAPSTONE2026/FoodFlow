@@ -306,7 +306,7 @@ log.debug("Generated JWT: {}", tokenPreview);
 POST /api/auth/login
 {
   "email": "donor@restaurant.com",
-  "password": "secret123"
+  "password": "***REDACTED***"
 }
 ```
 
