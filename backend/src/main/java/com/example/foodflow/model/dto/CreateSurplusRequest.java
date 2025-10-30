@@ -8,7 +8,9 @@ import com.example.foodflow.model.types.Location;
 import jakarta.validation.constraints.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import jakarta.validation.Valid;
 
@@ -42,6 +44,9 @@ public class CreateSurplusRequest {
 
     @NotNull(message = "Pickup location is required")
     private Location pickupLocation;
+
+    @Valid
+    private List<PickupSlotRequest> pickupSlots = new ArrayList<>();
 
     private PostStatus status = PostStatus.AVAILABLE; // default value
 
@@ -78,4 +83,7 @@ public class CreateSurplusRequest {
 
     public PostStatus getStatus() { return status; }
     public void setStatus(PostStatus status) { this.status = status; }
+
+    public List<PickupSlotRequest> getPickupSlots() { return pickupSlots; }
+    public void setPickupSlots(List<PickupSlotRequest> pickupSlots) { this.pickupSlots = pickupSlots; }
 }

@@ -8,7 +8,10 @@ import com.example.foodflow.model.types.PostStatus;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.example.foodflow.model.entity.SurplusPost;
 
@@ -32,6 +35,7 @@ public class SurplusResponse {
     private String donorEmail;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private List<PickupSlotResponse> pickupSlots = new ArrayList<>();
 
     // Constructors
     public SurplusResponse() {}
@@ -74,6 +78,13 @@ public class SurplusResponse {
         this.donorEmail = surplusPost.getDonor().getEmail();
         this.createdAt = surplusPost.getCreatedAt();
         this.updatedAt = surplusPost.getUpdatedAt();
+        
+        // Convert pickup slots
+        if (surplusPost.getPickupSlots() != null) {
+            this.pickupSlots = surplusPost.getPickupSlots().stream()
+                .map(PickupSlotResponse::fromEntity)
+                .collect(Collectors.toList());
+        }
     }
 
     // Getters and Setters
@@ -121,4 +132,7 @@ public class SurplusResponse {
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public List<PickupSlotResponse> getPickupSlots() { return pickupSlots; }
+    public void setPickupSlots(List<PickupSlotResponse> pickupSlots) { this.pickupSlots = pickupSlots; }
 }

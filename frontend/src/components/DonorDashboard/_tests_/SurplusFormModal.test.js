@@ -30,7 +30,7 @@ jest.mock("axios", () => {
   };
 });
 
-import SurplusFormModal from "../components/DonorDashboard/SurplusFormModal";
+import SurplusFormModal from "../SurplusFormModal";
 import axios from "axios";
 
 // Get reference to the mocked instance for use in tests
@@ -79,6 +79,8 @@ jest.mock("lucide-react", () => ({
   X: () => <span data-testid="x-icon">X</span>,
   Calendar: () => <span data-testid="calendar-icon">Calendar</span>,
   Clock: () => <span data-testid="clock-icon">Clock</span>,
+  Plus: () => <span data-testid="plus-icon">Plus</span>,
+  Trash2: () => <span data-testid="trash-icon">Trash</span>,
 }));
 
 // Mock localStorage
@@ -107,19 +109,36 @@ jest.mock("react-select", () => {
     onChange,
     placeholder,
     classNamePrefix,
+    isMulti,
   }) {
     const handleChange = (e) => {
       if (onChange) {
-        const selectedOption = options.find(
-          (opt) => opt.value === e.target.value
-        );
-        onChange(selectedOption);
+        if (isMulti) {
+          const selectedOptions = Array.from(e.target.selectedOptions).map(
+            (opt) => options.find((option) => option.value === opt.value)
+          );
+          onChange(selectedOptions);
+        } else {
+          const selectedOption = options.find(
+            (opt) => opt.value === e.target.value
+          );
+          onChange(selectedOption);
+        }
       }
     };
 
     return (
       <select
-        value={value ? value.value : ""}
+        multiple={isMulti}
+        value={
+          isMulti
+            ? value
+              ? value.map((v) => v.value)
+              : []
+            : value
+            ? value.value
+            : ""
+        }
         onChange={handleChange}
         data-testid="mock-select"
       >
