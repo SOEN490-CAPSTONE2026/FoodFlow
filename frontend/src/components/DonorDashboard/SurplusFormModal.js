@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { X, Calendar, Clock } from "lucide-react";
+import { X, Calendar, Clock, Plus, Trash2 } from "lucide-react";
 import { Autocomplete } from "@react-google-maps/api";
 import Select from "react-select";
 import DatePicker from "react-datepicker";
@@ -31,12 +31,18 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
     quantityUnit: "KILOGRAM",
     foodCategories: [],
     expiryDate: "",
-    pickupDate: "",
-    pickupFrom: "",
-    pickupTo: "",
     pickupLocation: { latitude: "", longitude: "", address: "" },
     description: "",
   });
+
+  const [pickupSlots, setPickupSlots] = useState([
+    {
+      pickupDate: "",
+      startTime: "",
+      endTime: "",
+      notes: "",
+    },
+  ]);
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -68,14 +74,45 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
     if (!date) return "";
     const hours = String(date.getHours()).padStart(2, "0");
     const minutes = String(date.getMinutes()).padStart(2, "0");
-    const seconds = "00";
-    return `${hours}:${minutes}:${seconds}`;
+    return `${hours}:${minutes}`;
+  };
+
+  const addPickupSlot = () => {
+    setPickupSlots([
+      ...pickupSlots,
+      {
+        pickupDate: "",
+        startTime: "",
+        endTime: "",
+        notes: "",
+      },
+    ]);
+  };
+
+  const removePickupSlot = (index) => {
+    if (pickupSlots.length > 1) {
+      setPickupSlots(pickupSlots.filter((_, i) => i !== index));
+    }
+  };
+
+  const updatePickupSlot = (index, field, value) => {
+    const updatedSlots = [...pickupSlots];
+    updatedSlots[index][field] = value;
+    setPickupSlots(updatedSlots);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
     setError("");
+
+    // Format pickup slots for submission
+    const formattedSlots = pickupSlots.map((slot) => ({
+      pickupDate: formatDate(slot.pickupDate),
+      startTime: formatTime(slot.startTime),
+      endTime: formatTime(slot.endTime),
+      notes: slot.notes || null,
+    }));
 
     const submissionData = {
       title: formData.title,
@@ -85,9 +122,11 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
       },
       foodCategories: formData.foodCategories.map((fc) => fc.value),
       expiryDate: formatDate(formData.expiryDate),
-      pickupDate: formatDate(formData.pickupDate),
-      pickupFrom: formatTime(formData.pickupFrom),
-      pickupTo: formatTime(formData.pickupTo),
+      pickupSlots: formattedSlots,
+      // Keep legacy fields for backward compatibility (backend will use first slot)
+      pickupDate: formattedSlots[0].pickupDate,
+      pickupFrom: formattedSlots[0].startTime,
+      pickupTo: formattedSlots[0].endTime,
       pickupLocation: formData.pickupLocation,
       description: formData.description,
     };
@@ -102,12 +141,18 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
         quantityUnit: "KILOGRAM",
         foodCategories: [],
         expiryDate: "",
-        pickupDate: "",
-        pickupFrom: "",
-        pickupTo: "",
         pickupLocation: { latitude: "", longitude: "", address: "" },
         description: "",
       });
+
+      setPickupSlots([
+        {
+          pickupDate: "",
+          startTime: "",
+          endTime: "",
+          notes: "",
+        },
+      ]);
 
       setTimeout(() => {
         setMessage("");
@@ -126,12 +171,17 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
         quantityUnit: "KILOGRAM",
         foodCategories: [],
         expiryDate: "",
-        pickupDate: "",
-        pickupFrom: "",
-        pickupTo: "",
         pickupLocation: { latitude: "", longitude: "", address: "" },
         description: "",
       });
+      setPickupSlots([
+        {
+          pickupDate: "",
+          startTime: "",
+          endTime: "",
+          notes: "",
+        },
+      ]);
       onClose();
     }
   };
@@ -234,56 +284,107 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          {/* Pickup Date and Time */}
-          <div className="form-section row-group">
-            <div className="input-group third-width">
-              <label className="input-label">Pickup Date</label>
-              <DatePicker
-                selected={formData.pickupDate}
-                onChange={(date) =>
-                  setFormData((prev) => ({ ...prev, pickupDate: date }))
-                }
-                minDate={new Date()}
-                dateFormat="yyyy-MM-dd"
-                className="input-field"
-                placeholderText="Select date"
-                required
-              />
+          {/* Pickup Time Slots */}
+          <div className="form-section">
+            <div className="pickup-slots-header">
+              <label className="input-label">Pickup Time Slots</label>
+              <button
+                type="button"
+                className="btn-add-slot"
+                onClick={addPickupSlot}
+              >
+                <Plus size={16} /> Add Another Slot
+              </button>
             </div>
-            <div className="input-group third-width">
-              <label className="input-label">From</label>
-              <DatePicker
-                selected={formData.pickupFrom}
-                onChange={(date) =>
-                  setFormData((prev) => ({ ...prev, pickupFrom: date }))
-                }
-                showTimeSelect
-                showTimeSelectOnly
-                timeIntervals={15}
-                timeCaption="Time"
-                dateFormat="HH:mm"
-                className="input-field"
-                placeholderText="Start time"
-                required
-              />
-            </div>
-            <div className="input-group third-width">
-              <label className="input-label">To</label>
-              <DatePicker
-                selected={formData.pickupTo}
-                onChange={(date) =>
-                  setFormData((prev) => ({ ...prev, pickupTo: date }))
-                }
-                showTimeSelect
-                showTimeSelectOnly
-                timeIntervals={15}
-                timeCaption="Time"
-                dateFormat="HH:mm"
-                className="input-field"
-                placeholderText="End time"
-                required
-              />
-            </div>
+
+            {pickupSlots.map((slot, index) => (
+              <div key={index} className="pickup-slot-card">
+                <div className="slot-header">
+                  <span className="slot-number">Slot {index + 1}</span>
+                  {pickupSlots.length > 1 && (
+                    <button
+                      type="button"
+                      className="btn-remove-slot"
+                      onClick={() => removePickupSlot(index)}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
+                </div>
+
+                <div className="slot-content">
+                  <div className="slot-row">
+                    <div className="input-group third-width">
+                      <label className="input-label-small">Date</label>
+                      <DatePicker
+                        selected={slot.pickupDate}
+                        onChange={(date) =>
+                          updatePickupSlot(index, "pickupDate", date)
+                        }
+                        minDate={new Date()}
+                        dateFormat="yyyy-MM-dd"
+                        className="input-field-small"
+                        placeholderText="Select date"
+                        required
+                      />
+                    </div>
+
+                    <div className="input-group third-width">
+                      <label className="input-label-small">Start Time</label>
+                      <DatePicker
+                        selected={slot.startTime}
+                        onChange={(date) =>
+                          updatePickupSlot(index, "startTime", date)
+                        }
+                        showTimeSelect
+                        showTimeSelectOnly
+                        timeIntervals={15}
+                        timeCaption="Time"
+                        dateFormat="HH:mm"
+                        className="input-field-small"
+                        placeholderText="Start"
+                        required
+                      />
+                    </div>
+
+                    <div className="input-group third-width">
+                      <label className="input-label-small">End Time</label>
+                      <DatePicker
+                        selected={slot.endTime}
+                        onChange={(date) =>
+                          updatePickupSlot(index, "endTime", date)
+                        }
+                        showTimeSelect
+                        showTimeSelectOnly
+                        timeIntervals={15}
+                        timeCaption="Time"
+                        dateFormat="HH:mm"
+                        className="input-field-small"
+                        placeholderText="End"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="slot-row">
+                    <div className="input-group full-width">
+                      <label className="input-label-small">
+                        Notes (optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={slot.notes}
+                        onChange={(e) =>
+                          updatePickupSlot(index, "notes", e.target.value)
+                        }
+                        className="input-field-small"
+                        placeholder="e.g., Use back entrance, Ask for manager"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
 
           {/* Location */}
