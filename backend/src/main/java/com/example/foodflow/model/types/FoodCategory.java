@@ -56,6 +56,7 @@ public enum FoodCategory {
     NUT_BUTTERS,
     
     // Frozen Foods
+    FROZEN,
     FROZEN_FOOD("Frozen Food"),
     FROZEN_VEGETABLES,
     FROZEN_FRUITS,

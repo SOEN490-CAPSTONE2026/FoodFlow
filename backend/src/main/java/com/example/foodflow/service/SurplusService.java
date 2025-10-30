@@ -107,34 +107,34 @@ public class SurplusService {
      * Builds a JPA Specification from the filter request using our custom filter classes.
      */
     private Specification<SurplusPost> buildSpecificationFromFilter(SurplusFilterRequest filterRequest) {
-        return SpecificationHandler.<SurplusPost>builder()
-                // Always filter by status (default: AVAILABLE)
-                .andIf(filterRequest.hasStatus(),
-                    BasicFilter.equal(filterRequest.getStatus())
-                                .toSpecification("status"))
-                
-                // Filter by food categories (any match)
-                .andIf(filterRequest.hasFoodCategories(),
-                    ArrayFilter.containsAny(filterRequest.getFoodCategories())
-                                .toSpecification("foodCategories"))
-                
-                // Filter by expiry date (before)
-                .andIf(filterRequest.hasExpiryBefore(),
-                    BasicFilter.lessThanOrEqual(filterRequest.getExpiryBefore())
-                                .toSpecification("expiryDate"))
-                
-                // Filter by expiry date (after) - posts that don't expire too soon
-                .andIf(filterRequest.hasExpiryAfter(),
-                    BasicFilter.greaterThanOrEqual(filterRequest.getExpiryAfter())
-                                .toSpecification("expiryDate"))
-                
-                // Filter by location and distance
-                .andIf(filterRequest.hasLocationFilter(),
-                    LocationFilter.within(filterRequest.getUserLocation(), 
-                                            filterRequest.getMaxDistanceKm())
-                                .toSpecification("pickupLocation"))
-                
-                .buildOrDefault(SpecificationHandler.alwaysTrue()); // Return all if no filters
+        SpecificationHandler.SpecificationBuilder<SurplusPost> builder = SpecificationHandler.<SurplusPost>builder();
+    
+        // Always filter by status
+        if (filterRequest.hasStatus()) {
+            builder.and(BasicFilter.equal(filterRequest.getStatus()).toSpecification("status"));
+        }
+        
+        // Filter by food categories
+        if (filterRequest.hasFoodCategories()) {
+            builder.and(ArrayFilter.containsAny(filterRequest.getFoodCategories()).toSpecification("foodCategories"));
+        }
+        
+        // Filter by expiry date (before) - FIXED
+        if (filterRequest.hasExpiryBefore()) {
+            builder.and(BasicFilter.lessThanOrEqual(filterRequest.getExpiryBefore()).toSpecification("expiryDate"));
+        }
+        
+        // Filter by expiry date (after)
+        if (filterRequest.hasExpiryAfter()) {
+            builder.and(BasicFilter.greaterThanOrEqual(filterRequest.getExpiryAfter()).toSpecification("expiryDate"));
+        }
+        
+        // Filter by location
+        if (filterRequest.hasLocationFilter()) {
+            builder.and(LocationFilter.within(filterRequest.getUserLocation(), filterRequest.getMaxDistanceKm()).toSpecification("pickupLocation"));
+        }
+        
+        return builder.buildOrDefault(SpecificationHandler.alwaysTrue());
     }
 
 }

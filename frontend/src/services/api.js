@@ -71,34 +71,30 @@ export const surplusAPI = {
    * @returns {Promise} API response with filtered surplus posts
    */
   search: (filters) => {
-    // Transform frontend filter format to backend format
-    const filterRequest = {
-      foodCategories:
-        filters.foodType && filters.foodType.length > 0
-          ? filters.foodType.map(mapFrontendCategoryToBackend)
-          : null,
-      expiryBefore: filters.expiryBefore ? filters.expiryBefore : null,
-      userLocation:
-        filters.locationCoords && filters.distance
-          ? {
-              latitude: parseFloat(filters.locationCoords.lat),
-              longitude: parseFloat(filters.locationCoords.lng),
-              address: filters.locationCoords.address || filters.location,
-            }
-          : null,
-      maxDistanceKm:
-        filters.locationCoords && filters.distance
-          ? parseFloat(filters.distance)
-          : null,
-      status: "AVAILABLE", // Always filter for available posts
-    };
+    const filterRequest = {};
 
-    // Remove null/undefined values
-    Object.keys(filterRequest).forEach((key) => {
-      if (filterRequest[key] === null || filterRequest[key] === undefined) {
-        delete filterRequest[key];
-      }
-    });
+    // Only add fields if they have actual values
+    if (filters.foodType && filters.foodType.length > 0) {
+      filterRequest.foodCategories = filters.foodType.map(
+        mapFrontendCategoryToBackend
+      );
+    }
+
+    if (filters.expiryBefore) {
+      filterRequest.expiryBefore = filters.expiryBefore;
+    }
+
+    if (filters.locationCoords && filters.distance) {
+      filterRequest.userLocation = {
+        latitude: parseFloat(filters.locationCoords.lat),
+        longitude: parseFloat(filters.locationCoords.lng),
+        address: filters.locationCoords.address || filters.location,
+      };
+      filterRequest.maxDistanceKm = parseFloat(filters.distance);
+    }
+
+    // Always include status
+    filterRequest.status = "AVAILABLE";
 
     return api.post("/surplus/search", filterRequest);
   },
