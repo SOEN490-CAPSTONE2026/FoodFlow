@@ -1,7 +1,10 @@
 package com.example.foodflow.service;
 
 import com.example.foodflow.model.dto.CreateSurplusRequest;
+import com.example.foodflow.model.dto.PickupSlotRequest;
+import com.example.foodflow.model.dto.PickupSlotResponse;
 import com.example.foodflow.model.dto.SurplusResponse;
+import com.example.foodflow.model.entity.PickupSlot;
 import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.types.ClaimStatus;
@@ -11,6 +14,7 @@ import com.example.foodflow.repository.SurplusPostRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,10 +24,14 @@ public class SurplusService {
     
     private final SurplusPostRepository surplusPostRepository;
     private final ClaimRepository claimRepository;
+    private final PickupSlotValidationService pickupSlotValidationService;
 
-    public SurplusService(SurplusPostRepository surplusPostRepository, ClaimRepository claimRepository) {
+    public SurplusService(SurplusPostRepository surplusPostRepository, 
+                         ClaimRepository claimRepository,
+                         PickupSlotValidationService pickupSlotValidationService) {
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;
+        this.pickupSlotValidationService = pickupSlotValidationService;
     }
     
     /**
@@ -40,9 +48,45 @@ public class SurplusService {
         post.setQuantity(request.getQuantity());
         post.setPickupLocation(request.getPickupLocation());
         post.setExpiryDate(request.getExpiryDate());
-        post.setPickupDate(request.getPickupDate());
-        post.setPickupFrom(request.getPickupFrom());
-        post.setPickupTo(request.getPickupTo());
+
+        // Handle pickup slots
+        List<PickupSlotRequest> slotsToProcess;
+        
+        if (request.getPickupSlots() != null && !request.getPickupSlots().isEmpty()) {
+            // Use provided pickup slots
+            slotsToProcess = request.getPickupSlots();
+            pickupSlotValidationService.validateSlots(slotsToProcess);
+        } else {
+            // Backward compatibility: create single slot from legacy fields
+            PickupSlotRequest legacySlot = new PickupSlotRequest(
+                request.getPickupDate(),
+                request.getPickupFrom(),
+                request.getPickupTo(),
+                null
+            );
+            slotsToProcess = List.of(legacySlot);
+        }
+
+        // Set legacy fields from first slot (for backward compatibility)
+        PickupSlotRequest firstSlot = slotsToProcess.get(0);
+        post.setPickupDate(firstSlot.getPickupDate());
+        post.setPickupFrom(firstSlot.getStartTime());
+        post.setPickupTo(firstSlot.getEndTime());
+
+        // Create pickup slot entities
+        List<PickupSlot> pickupSlots = new ArrayList<>();
+        for (int i = 0; i < slotsToProcess.size(); i++) {
+            PickupSlotRequest slotReq = slotsToProcess.get(i);
+            PickupSlot slot = new PickupSlot();
+            slot.setSurplusPost(post);
+            slot.setPickupDate(slotReq.getPickupDate());
+            slot.setStartTime(slotReq.getStartTime());
+            slot.setEndTime(slotReq.getEndTime());
+            slot.setNotes(slotReq.getNotes());
+            slot.setSlotOrder(i + 1); // 1-indexed
+            pickupSlots.add(slot);
+        }
+        post.setPickupSlots(pickupSlots);
 
         // Check if pickup time has already started - set status immediately
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
@@ -50,10 +94,10 @@ public class SurplusService {
         java.time.LocalTime currentTime = now.toLocalTime();
 
         boolean pickupTimeStarted = false;
-        if (request.getPickupDate().isBefore(today)) {
+        if (firstSlot.getPickupDate().isBefore(today)) {
             pickupTimeStarted = true;
-        } else if (request.getPickupDate().isEqual(today)) {
-            pickupTimeStarted = !currentTime.isBefore(request.getPickupFrom());
+        } else if (firstSlot.getPickupDate().isEqual(today)) {
+            pickupTimeStarted = !currentTime.isBefore(firstSlot.getStartTime());
         }
 
         if (pickupTimeStarted) {
@@ -98,6 +142,15 @@ public class SurplusService {
         response.setDonorEmail(post.getDonor().getEmail());
         response.setCreatedAt(post.getCreatedAt());
         response.setUpdatedAt(post.getUpdatedAt());
+        
+        // Convert pickup slots
+        if (post.getPickupSlots() != null && !post.getPickupSlots().isEmpty()) {
+            List<PickupSlotResponse> slotResponses = post.getPickupSlots().stream()
+                .map(PickupSlotResponse::fromEntity)
+                .collect(Collectors.toList());
+            response.setPickupSlots(slotResponses);
+        }
+        
         return response;
     }
     public List<SurplusResponse> getAllAvailableSurplusPosts() {
