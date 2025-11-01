@@ -1,27 +1,40 @@
 import React, { useState, useRef } from 'react';
 import { Autocomplete } from '@react-google-maps/api';
+import DatePicker from 'react-datepicker';
+import { Filter, X, ChevronDown, MapPin, Check } from 'lucide-react';
 import './FiltersPanel.css';
 
 const FOOD_CATEGORIES = [
-    { value: 'Bakery & Pastry', label: 'Bakery & Pastry' },
-    { value: 'Fruits', label: 'Fruits & Vegetables' },
-    { value: 'Packaged', label: 'Packaged / Pantry Items' },
-    { value: 'Dairy', label: 'Dairy & Cold Items' },
-    { value: 'Frozen Food', label: 'Frozen Food' },
-    { value: 'Prepared Meals', label: 'Prepared Meals' }
+  { value: 'Bakery & Pastry', label: 'Bakery & Pastry' },
+  { value: 'Fruits', label: 'Fruits & Vegetables' },
+  { value: 'Packaged', label: 'Packaged / Pantry Items' },
+  { value: 'Dairy', label: 'Dairy & Cold Items' },
+  { value: 'Frozen Food', label: 'Frozen Food' },
+  { value: 'Prepared Meals', label: 'Prepared Meals' }
 ];
 
-// Custom Date Picker Component - Simple Version
+// Custom Date Picker Component using react-datepicker
 const CustomDatePicker = ({ value, onChange, placeholder }) => {
+  // Convert string date to Date object if value exists
+  const dateValue = value ? new Date(value) : null;
+
   return (
     <div className="custom-date-picker">
-      <input
-        type="date"
-        value={value || ''}
-        onChange={(e) => onChange(e.target.value)}
-        min={new Date().toISOString().split('T')[0]}
+      <DatePicker
+        selected={dateValue}
+        onChange={(date) => {
+          // Convert Date object to YYYY-MM-DD string format
+          if (date) {
+            const formattedDate = date.toISOString().split('T')[0];
+            onChange(formattedDate);
+          } else {
+            onChange('');
+          }
+        }}
+        minDate={new Date()}
+        dateFormat="MMM d, yyyy"
+        placeholderText={placeholder || "Select date"}
         className="date-picker-input"
-        placeholder={placeholder}
       />
     </div>
   );
@@ -55,11 +68,9 @@ const CustomMultiSelect = ({ options, selectedValues, onChange, placeholder }) =
         onClick={() => setIsOpen(!isOpen)}
       >
         <span className="selected-text">{getDisplayText()}</span>
-        <svg className={`dropdown-arrow ${isOpen ? 'open' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <polyline points="6,9 12,15 18,9"></polyline>
-        </svg>
+        <ChevronDown className={`dropdown-arrow ${isOpen ? 'open' : ''}`} size={16} />
       </button>
-      
+
       {isOpen && (
         <div className="multi-select-dropdown">
           {options.map(option => (
@@ -69,7 +80,11 @@ const CustomMultiSelect = ({ options, selectedValues, onChange, placeholder }) =
                 checked={selectedValues.includes(option.value)}
                 onChange={() => handleOptionToggle(option.value)}
               />
-              <span className="checkmark"></span>
+              <span className="checkmark">
+                {selectedValues.includes(option.value) && (
+                  <Check size={12} strokeWidth={3} />
+                )}
+              </span>
               <span className="option-text">{option.label}</span>
             </label>
           ))}
@@ -127,21 +142,16 @@ const FiltersPanel = ({ filters, onFiltersChange, onApplyFilters, appliedFilters
     <div className="filters-panel">
       <div className="filters-header">
         <div className="header-left">
-          <svg className="filter-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46 22,3"></polygon>
-          </svg>
+          <Filter className="filter-icon" size={16} />
           <span className="filters-title">Filter Donations</span>
         </div>
         {onClose && (
           <button className="close-filters-btn" onClick={onClose}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
+            <X size={20} />
           </button>
         )}
       </div>
-      
+
       <div className="filters-content">
         <div className="filters-row">
           {/* Food Type Filter */}
@@ -167,7 +177,10 @@ const FiltersPanel = ({ filters, onFiltersChange, onApplyFilters, appliedFilters
 
           {/* Distance Filter */}
           <div className="filter-group">
-            <label className="filter-label">Distance</label>
+            <div className="distance-label-row">
+              <label className="filter-label">Distance:</label>
+              <span className="distance-display">{filters.distance || 10} km</span>
+            </div>
             <div className="distance-filter">
               <input
                 type="range"
@@ -180,9 +193,6 @@ const FiltersPanel = ({ filters, onFiltersChange, onApplyFilters, appliedFilters
                   background: `linear-gradient(to right, #1B4965 0%, #1B4965 ${((filters.distance || 10) - 1) / 49 * 100}%, #e9ecef ${((filters.distance || 10) - 1) / 49 * 100}%, #e9ecef 100%)`
                 }}
               />
-              <div className="distance-display">
-                {filters.distance || 10} km
-              </div>
             </div>
           </div>
 
@@ -190,12 +200,15 @@ const FiltersPanel = ({ filters, onFiltersChange, onApplyFilters, appliedFilters
           <div className="filter-group">
             <label className="filter-label">Location</label>
             <div className="location-input-container">
+              <MapPin className="location-icon" size={16} color='#717182' />
               {typeof window !== 'undefined' && window.google ? (
                 <Autocomplete
                   onLoad={(autocomplete) => (autocompleteRef.current = autocomplete)}
                   onPlaceChanged={handlePlaceSelect}
-                  types={['(regions)'].concat(['establishment'])}
-                  componentRestrictions={{ country: 'us' }}
+                  options={{
+                    types: ['(regions)', 'establishment'],
+                    componentRestrictions: { country: 'us' }
+                  }}
                 >
                   <input
                     type="text"
@@ -214,10 +227,6 @@ const FiltersPanel = ({ filters, onFiltersChange, onApplyFilters, appliedFilters
                   onChange={(e) => handleFilterChange('location', e.target.value)}
                 />
               )}
-              <svg className="location-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                <circle cx="12" cy="10" r="3"></circle>
-              </svg>
             </div>
           </div>
         </div>
@@ -225,13 +234,13 @@ const FiltersPanel = ({ filters, onFiltersChange, onApplyFilters, appliedFilters
         {/* Applied Filters and Action Buttons */}
         <div className="filter-actions">
           <div className="left-section">
-            <button 
+            <button
               className="clear-filters-btn"
               onClick={handleClearFilters}
             >
               Clear All
             </button>
-            
+
             {/* Applied Filters Tags */}
             <div className="applied-tags">
               {/* Food Type Tags */}
@@ -240,68 +249,56 @@ const FiltersPanel = ({ filters, onFiltersChange, onApplyFilters, appliedFilters
                 return (
                   <div key={`food-${foodType}`} className="filter-tag">
                     <span className="tag-text">{category?.label || foodType}</span>
-                    <button 
+                    <button
                       className="tag-remove"
                       onClick={() => handleRemoveFilter('foodType', foodType)}
                     >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                      </svg>
+                      <X size={10} />
                     </button>
                   </div>
                 );
               })}
-              
+
               {appliedFilters.expiryBefore && (
                 <div className="filter-tag">
                   <span className="tag-text">Before: {appliedFilters.expiryBefore}</span>
-                  <button 
+                  <button
                     className="tag-remove"
                     onClick={() => handleRemoveFilter('expiryBefore')}
                   >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
+                    <X size={10} />
                   </button>
                 </div>
               )}
-              
+
               {appliedFilters.distance && appliedFilters.distance !== 10 && (
                 <div className="filter-tag">
                   <span className="tag-text">Within: {appliedFilters.distance}km</span>
-                  <button 
+                  <button
                     className="tag-remove"
                     onClick={() => handleRemoveFilter('distance')}
                   >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
+                    <X size={10} />
                   </button>
                 </div>
               )}
-              
+
               {appliedFilters.location && (
                 <div className="filter-tag">
                   <span className="tag-text">Near: {appliedFilters.location}</span>
-                  <button 
+                  <button
                     className="tag-remove"
                     onClick={() => handleRemoveFilter('location')}
                   >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
+                    <X size={10} />
                   </button>
                 </div>
               )}
             </div>
           </div>
-          
+
           <div className="right-section">
-            <button 
+            <button
               className="apply-filters-btn"
               onClick={handleApplyFilters}
             >
