@@ -31,6 +31,7 @@ export default function ReceiverBrowse() {
     expiryBefore: null,
     distance: 10,
     location: "",
+    locationCoords: null, // Store lat/lng coordinates from Google Places
   });
 
   const [appliedFilters, setAppliedFilters] = useState({
@@ -38,6 +39,7 @@ export default function ReceiverBrowse() {
     expiryBefore: null,
     distance: 10,
     location: "",
+    locationCoords: null,
   });
 
   const [isFiltersVisible, setIsFiltersVisible] = useState(true);
@@ -48,7 +50,7 @@ export default function ReceiverBrowse() {
   const [expandedCardId, setExpandedCardId] = useState(null);
   const [bookmarkedItems, setBookmarkedItems] = useState(new Set());
 
-  // Filter handlers (just update state, no filtering logic)
+  // Filter handlers
   const handleFiltersChange = (filterType, value) => {
     setFilters((prev) => ({
       ...prev,
@@ -56,20 +58,27 @@ export default function ReceiverBrowse() {
     }));
   };
 
-  const handleApplyFilters = () => {
+  const handleApplyFilters = useCallback(async () => {
     setAppliedFilters({ ...filters });
-  };
 
-  const handleClearFilters = () => {
+    // Apply filters by calling the new search API
+    await fetchFilteredDonations(filters);
+  }, [filters]);
+
+  const handleClearFilters = useCallback(async () => {
     const clearedFilters = {
       foodType: [],
       expiryBefore: null,
       distance: 10,
       location: "",
+      locationCoords: null,
     };
     setFilters(clearedFilters);
     setAppliedFilters(clearedFilters);
-  };
+
+    // Fetch all donations when filters are cleared
+    await fetchDonations();
+  }, []);
 
   const handleToggleFilters = () => {
     setIsFiltersVisible(!isFiltersVisible);
@@ -79,6 +88,7 @@ export default function ReceiverBrowse() {
     setIsFiltersVisible(false);
   };
 
+  // Original fetch all donations function
   const fetchDonations = useCallback(async () => {
     setLoading(true);
     try {
@@ -95,7 +105,38 @@ export default function ReceiverBrowse() {
     }
   }, []);
 
-  // Fetch donations on mount only - NO AUTO-REFRESH
+  // New function to fetch filtered donations
+  const fetchFilteredDonations = useCallback(async (filterCriteria) => {
+    setLoading(true);
+    try {
+      // Check if any filters are actually applied
+      const hasActiveFilters =
+        (filterCriteria.foodType && filterCriteria.foodType.length > 0) ||
+        filterCriteria.expiryBefore ||
+        (filterCriteria.locationCoords && filterCriteria.distance);
+
+      let data;
+      if (hasActiveFilters) {
+        // Use the new search API with filters
+        const response = await surplusAPI.search(filterCriteria);
+        data = response.data;
+      } else {
+        // No filters applied, fetch all donations
+        const response = await surplusAPI.list();
+        data = response.data;
+      }
+
+      setItems(Array.isArray(data) ? data : []);
+      setError(null);
+    } catch (e) {
+      setError("Failed to load donations with applied filters");
+      console.error("fetchFilteredDonations error:", e);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Initial load - fetch all donations
   useEffect(() => {
     fetchDonations();
   }, [fetchDonations]);
@@ -119,7 +160,7 @@ export default function ReceiverBrowse() {
   }, []);
 
   const handleClaimDonation = async (item) => {
-    if (!window.confirm('Are you sure you want to claim this donation?')) {
+    if (!window.confirm("Are you sure you want to claim this donation?")) {
       return;
     }
 
@@ -128,10 +169,13 @@ export default function ReceiverBrowse() {
       alert('Successfully claimed! Check "My Claims" tab.');
 
       // Remove from available list
-      setItems(items.filter(post => post.id !== item.id));
+      setItems(items.filter((post) => post.id !== item.id));
     } catch (error) {
-      console.error('Error claiming post:', error);
-      alert(error.response?.data?.message || 'Failed to claim. It may have already been claimed.');
+      console.error("Error claiming post:", error);
+      alert(
+        error.response?.data?.message ||
+          "Failed to claim. It may have already been claimed."
+      );
     }
   };
 
@@ -345,10 +389,7 @@ export default function ReceiverBrowse() {
       }
     >
       <div className="receiver-browse-container">
-
-        <h1 className="receiver-section-title">
-          Explore Available Donations
-        </h1>
+        <h1 className="receiver-section-title">Explore Available Donations</h1>
         <FiltersPanel
           filters={filters}
           onFiltersChange={handleFiltersChange}
@@ -385,8 +426,9 @@ export default function ReceiverBrowse() {
               return (
                 <div
                   key={item.id}
-                  className={`receiver-donation-card ${expandedCardId === item.id ? "expanded" : ""
-                    }`}
+                  className={`receiver-donation-card ${
+                    expandedCardId === item.id ? "expanded" : ""
+                  }`}
                 >
                   <div
                     className={`receiver-donation-image ${getFoodImageClass(
@@ -408,9 +450,7 @@ export default function ReceiverBrowse() {
 
                   <div className="receiver-donation-content">
                     <div className="receiver-donation-header">
-                      <h3 className="receiver-donation-title">
-                        {item.title}
-                      </h3>
+                      <h3 className="receiver-donation-title">{item.title}</h3>
                       <div className="receiver-header-actions">
                         <button
                           className="receiver-bookmark-button"
@@ -431,7 +471,11 @@ export default function ReceiverBrowse() {
                             }}
                           />
                         </button>
-                        <span className={`receiver-status-badge ${getStatusClass(item.status)}`}>
+                        <span
+                          className={`receiver-status-badge ${getStatusClass(
+                            item.status
+                          )}`}
+                        >
                           <span className="receiver-status-icon">✓</span>
                           {formatStatus(item.status)}
                         </span>
@@ -597,8 +641,9 @@ export default function ReceiverBrowse() {
                       </button>
                       <button
                         onClick={() => handleMoreClick(item)}
-                        className={`receiver-more-button ${expandedCardId === item.id ? "expanded" : ""
-                          }`}
+                        className={`receiver-more-button ${
+                          expandedCardId === item.id ? "expanded" : ""
+                        }`}
                       >
                         {expandedCardId === item.id ? "Less" : "More"}
                         {expandedCardId === item.id ? (
