@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Package, MapPin, Calendar, User, ArrowRight, Filter } from 'lucide-react';
+import { Package, MapPin, User, ArrowRight, Filter, Clock } from 'lucide-react';
 import Select from 'react-select';
 import { claimsAPI } from '../../services/api';
 import BakeryPastryImage from '../../assets/foodtypes/Pastry&Bakery.jpg';
@@ -77,6 +77,33 @@ export default function ReceiverMyClaims() {
     setSelectedClaim(null);
     fetchMyClaims();
   };
+
+  // Format pickup time consistently with ReceiverBrowse
+  const formatPickupTime = (pickupDate, pickupFrom, pickupTo) => {
+    if (!pickupDate || !pickupFrom || !pickupTo) return "—";
+    try {
+      const fromDate = new Date(`${pickupDate}T${pickupFrom}`);
+      const dateStr = fromDate.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+      const fromTime = fromDate.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
+      const [hours, minutes] = pickupTo.split(":");
+      const hour = parseInt(hours, 10);
+      const isPM = hour >= 12;
+      const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+      const toTime = `${displayHour}:${minutes} ${isPM ? "PM" : "AM"}`;
+      return `${dateStr} ${fromTime}-${toTime}`;
+    } catch {
+      return "—";
+    }
+  };
+
   const getFoodTypeImage = (foodType) => {
     switch (foodType) {
       case 'Bakery & Pastry':
@@ -227,8 +254,18 @@ export default function ReceiverMyClaims() {
                     <span>{post?.donorEmail || 'Not specified'}</span>
                   </div>
                   <div className="claimed-page detail-item">
-                    <Calendar size={16} className="claimed-page date-detail-icon" />
-                    <span>{post?.pickupDate || 'Date TBD'}</span>
+                    <Clock size={16} className="claimed-page date-detail-icon" />
+                    <span>
+                      {claim?.confirmedPickupSlot ? (
+                        formatPickupTime(
+                          claim.confirmedPickupSlot.pickupDate || claim.confirmedPickupSlot.date,
+                          claim.confirmedPickupSlot.startTime || claim.confirmedPickupSlot.pickupFrom,
+                          claim.confirmedPickupSlot.endTime || claim.confirmedPickupSlot.pickupTo
+                        )
+                      ) : (
+                        formatPickupTime(post?.pickupDate, post?.pickupFrom, post?.pickupTo)
+                      )}
+                    </span>
                   </div>
                 </div>
                 {/* Action Buttons */}

@@ -48,7 +48,16 @@ export const surplusAPI = {
   list: () => api.get('/surplus'),  // ✅ Just /surplus, not /api/surplus
   getMyPosts: () => api.get('/surplus/my-posts'),
   create: (data) => api.post('/surplus', data),
-  claim: (postId) => api.post('/claims', { surplusPostId: postId }),
+  // claim now accepts an optional `slot` parameter. If `slot` has an `id` we send `pickupSlotId`,
+  // otherwise we include the slot object as `pickupSlot` so the backend can interpret it.
+  claim: (postId, slot) => {
+    const payload = { surplusPostId: postId };
+    if (slot) {
+      if (slot.id) payload.pickupSlotId = slot.id;
+      else payload.pickupSlot = slot;
+    }
+    return api.post('/claims', payload);
+  },
   completeSurplusPost: (id, otpCode) => api.patch(`/surplus/${id}/complete`, { otpCode }),
 };
 

@@ -747,8 +747,31 @@
 
 .receiver-info-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 6px;
+}
+
+/* Pickup slots list styling */
+.pickup-slots-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 0;
+  align-items: center;
+}
+
+.pickup-slot-time {
+  font-size: 13px;
+  color: #62748e;
+  line-height: 1.4;
+  padding-right: 8px;
+  border-right: 1px solid #d1d5db;
+  margin-right: 8px;
+}
+
+.pickup-slot-time:last-child {
+  border-right: none;
+  margin-right: 0;
+  padding-right: 0;
 }
 
 .receiver-info-icon {
