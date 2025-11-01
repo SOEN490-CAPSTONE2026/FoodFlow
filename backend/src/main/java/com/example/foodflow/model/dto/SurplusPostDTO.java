@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 @Data //handles getters, setters, toString, equals, and hashCode
 @NoArgsConstructor
@@ -29,12 +30,24 @@ public static SurplusPostDTO toDTO(com.example.foodflow.model.entity.SurplusPost
     SurplusPostDTO dto = new SurplusPostDTO();
     dto.setId(post.getId());
 
-    //dto.setType(post.getFoodType());  
+    // Convert Set<FoodCategory> to comma-separated string
+    dto.setType(post.getFoodCategories() != null && !post.getFoodCategories().isEmpty() 
+        ? post.getFoodCategories().stream()
+            .map(Enum::name)
+            .collect(Collectors.joining(", "))
+        : null);
+    
     dto.setQuantity(post.getQuantity() != null ? post.getQuantity().toString() : null);
     dto.setExpiryDate(post.getExpiryDate() != null ? post.getExpiryDate().atStartOfDay() : null);
-    //dto.setPickupTime(post.getPickupFrom());
+    
+    // Combine pickupDate and pickupFrom to create LocalDateTime
+    dto.setPickupTime(post.getPickupDate() != null && post.getPickupFrom() != null
+        ? post.getPickupDate().atTime(post.getPickupFrom())
+        : null);
 
-    //dto.setLocation(post.getLocation());
+    // Extract address from Location object
+    dto.setLocation(post.getPickupLocation() != null ? post.getPickupLocation().getAddress() : null);
+    
     dto.setDonor(UserDTO.toDTO(post.getDonor()));
     dto.setCreatedAt(post.getCreatedAt());
     dto.setUpdatedAt(post.getUpdatedAt());

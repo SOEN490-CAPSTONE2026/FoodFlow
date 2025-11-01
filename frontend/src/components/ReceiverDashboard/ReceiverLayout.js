@@ -3,6 +3,8 @@ import { Outlet, useLocation, useNavigate, Link, useNavigationType } from "react
 import "./Receiver_Styles/ReceiverLayout.css";
 import Logo from "../../assets/Logo.png";
 import { AuthContext } from "../../contexts/AuthContext";
+import MessageNotification from "../MessagingDashboard/MessageNotification";
+import { connectToUserQueue, disconnect } from '../../services/socket';
 import {
   Settings as IconSettings,
   HelpCircle as IconHelpCircle,
@@ -19,6 +21,9 @@ export default function ReceiverLayout() {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
   const isActive = (path) => location.pathname === path;
+  const [notification, setNotification] = useState(null);
+
+  const isMessagesPage = location.pathname === "/receiver/messages";
 
   const getPageTitle = () => {
     switch (location.pathname) {
@@ -70,6 +75,20 @@ export default function ReceiverLayout() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Connect to websocket for user-specific notifications (receiver)
+  useEffect(() => {
+    const onMessage = (payload) => {
+      const senderName = payload.senderName || payload.sender?.email || payload.senderEmail || '';
+      const message = payload.messageBody || payload.message || payload.body || '';
+      if (message) setNotification({ senderName, message });
+    };
+
+    connectToUserQueue(onMessage);
+    return () => {
+      try { disconnect(); } catch (e) { /* ignore */ }
+    };
+  }, []);
+
   useEffect(() => {
     if (navType === "POP" && !location.pathname.startsWith("/receiver")) {
       navigate("/receiver/dashboard", { replace: true });
@@ -99,30 +118,26 @@ export default function ReceiverLayout() {
 
         <div className="receiver-nav-links">
           <Link
-            to="/receiver/welcome"
-            className={`receiver-nav-link ${location.pathname === "/receiver/welcome" ? "active" : ""}`}
+            to="/receiver/browse"
+            className={`receiver-nav-link ${location.pathname === "/receiver/browse" ? "active" : ""}`}
           >
             Donations
           </Link>
 
-          <Link 
-            to="/receiver/my-claims" 
-            className={`receiver-nav-link ${
-              isActive("/receiver/my-claims") || 
-              isActive("/receiver") || 
-              isActive("/receiver/dashboard") 
-              ? "active" : ""
-            }`}
+          <Link
+            to="/receiver/my-claims"
+            className={`receiver-nav-link ${isActive("/receiver/my-claims") ||
+                isActive("/receiver") ||
+                isActive("/receiver/dashboard")
+                ? "active" : ""
+              }`}
           >
-            <span className="nav-icon" aria-hidden>
-              <CheckCircle size={18} className="lucide" />
-            </span>
             My Claims
           </Link>
 
           <Link
-            to="/receiver/browse"
-            className={`receiver-nav-link ${location.pathname === "/receiver/browse" ? "active" : ""}`}
+            to="/receiver/welcome"
+            className={`receiver-nav-link ${location.pathname === "/receiver/welcome" ? "active" : ""}`}
           >
             Saved Donations
           </Link>
@@ -186,15 +201,21 @@ export default function ReceiverLayout() {
       </div>
 
       <div className="receiver-main">
-        <div className="receiver-topbar">
-          <div className="receiver-topbar-left">
-            <h1>{getPageTitle()}</h1>
-            <p>{getPageDescription()}</p>
+        {!isMessagesPage && (
+          <div className="receiver-topbar">
+            <div className="receiver-topbar-left">
+              <h1>{getPageTitle()}</h1>
+              <p>{getPageDescription()}</p>
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className="receiver-content">
+        <div className={`receiver-content ${isMessagesPage ? 'messages-page' : ''}`}>
           <Outlet />
+          <MessageNotification
+            notification={notification}
+            onClose={() => setNotification(null)}
+          />
         </div>
       </div>
     </div>

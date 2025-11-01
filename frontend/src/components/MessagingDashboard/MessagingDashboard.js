@@ -35,6 +35,11 @@ const MessagingDashboard = () => {
     setSelectedConversation(conversation);
   };
 
+  const handleConversationRead = () => {
+    // Refresh conversations to update unread count
+    loadConversations();
+  };
+
   const handleNewConversation = () => {
     setShowNewConversationModal(true);
   };
@@ -63,6 +68,7 @@ const MessagingDashboard = () => {
       <ChatPanel
         conversation={selectedConversation}
         onMessageSent={handleMessageSent}
+        onConversationRead={handleConversationRead}
       />
 
       {showNewConversationModal && (

@@ -56,6 +56,8 @@ export const surplusAPI = {
   getMyPosts: () => api.get("/surplus/my-posts"),
   create: (data) => api.post("/surplus", data),
   claim: (postId) => api.post("/claims", { surplusPostId: postId }),
+  completeSurplusPost: (id, otpCode) =>
+    api.patch(`/surplus/${id}/complete`, { otpCode }),
 
   /**
    * Search surplus posts with filters.

@@ -303,7 +303,13 @@ body {
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
-    height: calc(100vh - 80px); /* Subtract topbar height */
+}
+
+/* Remove padding for messaging page to allow full-screen messaging */
+.donor-content.messages-page {
+    padding: 0;
+    overflow: hidden;
+    position: relative;
 }
 
 .donor-nav-bottom {
@@ -412,6 +418,16 @@ body {
   .donor-main {
     margin-left: 0;
     padding-top: 60px;
+    height: 100vh;
+  }
+  
+  .donor-content {
+    height: calc(100vh - 60px - 80px);
+  }
+  
+  .donor-content.messages-page {
+    height: calc(100vh - 60px);
+    padding-top: 0;
   }
   
   .messages-dropdown {

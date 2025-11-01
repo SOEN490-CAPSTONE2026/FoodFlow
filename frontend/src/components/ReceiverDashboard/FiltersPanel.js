@@ -1,28 +1,41 @@
 import React, { useState, useRef } from "react";
 import { Autocomplete } from "@react-google-maps/api";
+import DatePicker from "react-datepicker";
+import { Filter, X, ChevronDown, MapPin, Check } from "lucide-react";
 import "./FiltersPanel.css";
 
 // Updated food categories to match backend enums exactly
 const FOOD_CATEGORIES = [
-  { value: "Fruits & Vegetables", label: "Fruits & Vegetables" }, // Fixed from 'Fruits'
+  { value: "Fruits & Vegetables", label: "Fruits & Vegetables" },
   { value: "Bakery & Pastry", label: "Bakery & Pastry" },
-  { value: "Packaged / Pantry Items", label: "Packaged / Pantry Items" }, // Fixed from 'Packaged'
-  { value: "Dairy & Cold Items", label: "Dairy & Cold Items" }, // Fixed from 'Dairy'
+  { value: "Packaged / Pantry Items", label: "Packaged / Pantry Items" },
+  { value: "Dairy & Cold Items", label: "Dairy & Cold Items" },
   { value: "Frozen Food", label: "Frozen Food" },
   { value: "Prepared Meals", label: "Prepared Meals" },
 ];
 
-// Custom Date Picker Component - Simple Version
+// Custom Date Picker Component using react-datepicker
 const CustomDatePicker = ({ value, onChange, placeholder }) => {
+  // Convert string date to Date object if value exists
+  const dateValue = value ? new Date(value) : null;
+
   return (
     <div className="custom-date-picker">
-      <input
-        type="date"
-        value={value || ""}
-        onChange={(e) => onChange(e.target.value)}
-        min={new Date().toISOString().split("T")[0]}
+      <DatePicker
+        selected={dateValue}
+        onChange={(date) => {
+          // Convert Date object to YYYY-MM-DD string format
+          if (date) {
+            const formattedDate = date.toISOString().split("T")[0];
+            onChange(formattedDate);
+          } else {
+            onChange("");
+          }
+        }}
+        minDate={new Date()}
+        dateFormat="MMM d, yyyy"
+        placeholderText={placeholder || "Select date"}
         className="date-picker-input"
-        placeholder={placeholder}
       />
     </div>
   );
@@ -61,14 +74,10 @@ const CustomMultiSelect = ({
         onClick={() => setIsOpen(!isOpen)}
       >
         <span className="selected-text">{getDisplayText()}</span>
-        <svg
+        <ChevronDown
           className={`dropdown-arrow ${isOpen ? "open" : ""}`}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-        >
-          <polyline points="6,9 12,15 18,9"></polyline>
-        </svg>
+          size={16}
+        />
       </button>
 
       {isOpen && (
@@ -80,7 +89,11 @@ const CustomMultiSelect = ({
                 checked={selectedValues.includes(option.value)}
                 onChange={() => handleOptionToggle(option.value)}
               />
-              <span className="checkmark"></span>
+              <span className="checkmark">
+                {selectedValues.includes(option.value) && (
+                  <Check size={12} strokeWidth={3} />
+                )}
+              </span>
               <span className="option-text">{option.label}</span>
             </label>
           ))}
@@ -165,22 +178,12 @@ const FiltersPanel = ({
     <div className="filters-panel">
       <div className="filters-header">
         <div className="header-left">
-          <svg
-            className="filter-icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-          >
-            <polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46 22,3"></polygon>
-          </svg>
+          <Filter className="filter-icon" size={16} />
           <span className="filters-title">Filter Donations</span>
         </div>
         {onClose && (
           <button className="close-filters-btn" onClick={onClose}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
+            <X size={20} />
           </button>
         )}
       </div>
@@ -212,7 +215,12 @@ const FiltersPanel = ({
 
           {/* Distance Filter */}
           <div className="filter-group">
-            <label className="filter-label">Distance</label>
+            <div className="distance-label-row">
+              <label className="filter-label">Distance:</label>
+              <span className="distance-display">
+                {filters.distance || 10} km
+              </span>
+            </div>
             <div className="distance-filter">
               <input
                 type="range"
@@ -231,9 +239,6 @@ const FiltersPanel = ({
                   }%, #e9ecef 100%)`,
                 }}
               />
-              <div className="distance-display">
-                {filters.distance || 10} km
-              </div>
             </div>
           </div>
 
@@ -241,6 +246,7 @@ const FiltersPanel = ({
           <div className="filter-group">
             <label className="filter-label">Location</label>
             <div className="location-input-container">
+              <MapPin className="location-icon" size={16} color="#717182" />
               {typeof window !== "undefined" && window.google ? (
                 <Autocomplete
                   onLoad={(autocomplete) =>
@@ -307,14 +313,7 @@ const FiltersPanel = ({
                       className="tag-remove"
                       onClick={() => handleRemoveFilter("foodType", foodType)}
                     >
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                      >
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                      </svg>
+                      <X size={10} />
                     </button>
                   </div>
                 );
@@ -329,10 +328,7 @@ const FiltersPanel = ({
                     className="tag-remove"
                     onClick={() => handleRemoveFilter("expiryBefore")}
                   >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
+                    <X size={10} />
                   </button>
                 </div>
               )}
@@ -346,10 +342,7 @@ const FiltersPanel = ({
                     className="tag-remove"
                     onClick={() => handleRemoveFilter("distance")}
                   >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
+                    <X size={10} />
                   </button>
                 </div>
               )}
@@ -363,10 +356,7 @@ const FiltersPanel = ({
                     className="tag-remove"
                     onClick={() => handleRemoveFilter("location")}
                   >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
+                    <X size={10} />
                   </button>
                 </div>
               )}

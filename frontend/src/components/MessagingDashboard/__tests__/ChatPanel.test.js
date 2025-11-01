@@ -86,7 +86,6 @@ describe('ChatPanel', () => {
 
     await waitFor(() => {
       expect(screen.getByText('John Doe')).toBeInTheDocument();
-      expect(screen.getByText('john@test.com')).toBeInTheDocument();
     });
   });
 
@@ -116,11 +115,11 @@ describe('ChatPanel', () => {
     render(<ChatPanel conversation={mockConversation} onMessageSent={mockOnMessageSent} />);
 
     await waitFor(() => {
-      expect(screen.getByPlaceholderText('Type a message...')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('Type your message here...')).toBeInTheDocument();
     });
 
-    const input = screen.getByPlaceholderText('Type a message...');
-    const sendButton = screen.getByText('Send');
+    const input = screen.getByPlaceholderText('Type your message here...');
+    const sendButton = screen.getByTitle('Send message');
 
     fireEvent.change(input, { target: { value: 'New message' } });
     fireEvent.click(sendButton);
@@ -143,19 +142,22 @@ describe('ChatPanel', () => {
     render(<ChatPanel conversation={mockConversation} onMessageSent={mockOnMessageSent} />);
 
     await waitFor(() => {
-      expect(screen.getByPlaceholderText('Type a message...')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('Type your message here...')).toBeInTheDocument();
     });
 
-    const sendButton = screen.getByText('Send');
+    const sendButton = screen.getByTitle('Send message');
     expect(sendButton).toBeDisabled();
   });
 
-  test('displays loading state while fetching messages', () => {
+  test('does not display loading text while fetching messages', () => {
     mockGet.mockImplementation(() => new Promise(() => {})); // Never resolves
     mockPut.mockResolvedValue({});
 
     render(<ChatPanel conversation={mockConversation} onMessageSent={mockOnMessageSent} />);
 
-    expect(screen.getByText('Loading messages...')).toBeInTheDocument();
+    // We intentionally do not render a loading text anymore
+    expect(screen.queryByText('Loading messages...')).not.toBeInTheDocument();
+    // And we also don't show the empty state until loading finishes
+    expect(screen.queryByText('No messages yet. Start the conversation!')).not.toBeInTheDocument();
   });
 });

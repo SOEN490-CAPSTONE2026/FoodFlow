@@ -53,33 +53,35 @@ function formatPickupTime(pickupDate, pickupFrom, pickupTo) {
   if (!pickupDate) return "Flexible";
 
   try {
-    const date = new Date(pickupDate);
+    // Parse the date string as local date
+    const [year, month, day] = pickupDate.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    
     const dateStr = date.toLocaleDateString("en-US", {
-      // Format the date
       month: "short",
       day: "numeric",
     });
 
     if (pickupFrom && pickupTo) {
-      let [hours, minutes] = pickupFrom.split(":");
-      date.setHours(parseInt(hours), parseInt(minutes));
-      const fromTime = date.toLocaleTimeString("en-US", {
-        // Format the to time
+      // Create a proper local time for 'from'
+      const [fromHours, fromMinutes] = pickupFrom.split(":").map(Number);
+      const fromDate = new Date(year, month - 1, day, fromHours, fromMinutes);
+      const fromTime = fromDate.toLocaleTimeString("en-US", {
         hour: "numeric",
         minute: "2-digit",
         hour12: true,
       });
 
-      [hours, minutes] = pickupTo.split(":");
-      date.setHours(parseInt(hours), parseInt(minutes));
-      const toTime = date.toLocaleTimeString("en-US", {
-        // Format the to time
+      // Create a proper local time for 'to'
+      const [toHours, toMinutes] = pickupTo.split(":").map(Number);
+      const toDate = new Date(year, month - 1, day, toHours, toMinutes);
+      const toTime = toDate.toLocaleTimeString("en-US", {
         hour: "numeric",
         minute: "2-digit",
         hour12: true,
       });
 
-      return `${dateStr}, ${fromTime} – ${toTime}`;
+      return `${dateStr}, ${fromTime} — ${toTime}`;
     }
 
     return `${dateStr}`;
@@ -233,8 +235,10 @@ export default function DonorListFood() {
     );
   }
 
-  const handleModalClose = () => {
+  const handleModalClose = async () => {
     setIsModalOpen(false);
+    // Small delay to ensure backend has processed the new post
+    await new Promise(resolve => setTimeout(resolve, 300));
     fetchMyPosts();
   };
 
@@ -250,6 +254,8 @@ export default function DonorListFood() {
 
   const handlePickupSuccess = () => {
     setIsSuccessModalOpen(true);
+    // Refresh the posts list to show updated status
+    fetchMyPosts();
   };
 
   const handleCloseSuccessModal = () => {
@@ -362,7 +368,7 @@ export default function DonorListFood() {
                   </span>
                 </li>
                 <li>
-                  <MapPin size={16} className="location-icon" />
+                  <MapPin size={16} className="locationMap-icon" />
                   {item.pickupLocation.address ? (
                     <a
                       href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(

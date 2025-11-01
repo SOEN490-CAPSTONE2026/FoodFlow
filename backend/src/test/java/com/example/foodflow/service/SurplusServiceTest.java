@@ -1,15 +1,20 @@
 package com.example.foodflow.service;
 
 import com.example.foodflow.model.dto.CreateSurplusRequest;
+import com.example.foodflow.model.dto.PickupSlotRequest;
 import com.example.foodflow.model.dto.SurplusResponse;
 import com.example.foodflow.model.entity.Organization;
+import com.example.foodflow.model.entity.PickupSlot;
 import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.OrganizationType;
 import com.example.foodflow.model.entity.UserRole;
+import com.example.foodflow.model.types.ClaimStatus;
 import com.example.foodflow.model.types.FoodCategory;
 import com.example.foodflow.model.types.Location;
+import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.model.types.Quantity;
+import com.example.foodflow.repository.ClaimRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,11 +26,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -34,6 +39,12 @@ class SurplusServiceTest {
 
     @Mock
     private SurplusPostRepository surplusPostRepository;
+
+    @Mock
+    private ClaimRepository claimRepository;
+
+    @Mock
+    private PickupSlotValidationService pickupSlotValidationService;
 
     @InjectMocks
     private SurplusService surplusService;
@@ -67,6 +78,16 @@ class SurplusServiceTest {
         request.setPickupTo(LocalTime.now().plusHours(5));
         request.setPickupLocation(new Location(45.2903, -34.0987, "123 Main St"));
         request.setDescription("Vegetarian lasagna");
+        
+        // Add pickup slots for backward compatibility tests
+        List<PickupSlotRequest> slots = new ArrayList<>();
+        PickupSlotRequest slot = new PickupSlotRequest();
+        slot.setPickupDate(LocalDate.now());
+        slot.setStartTime(LocalTime.now().plusHours(3));
+        slot.setEndTime(LocalTime.now().plusHours(5));
+        slot.setNotes("Test slot");
+        slots.add(slot);
+        request.setPickupSlots(slots);
     }
 
     @Test
@@ -85,6 +106,8 @@ class SurplusServiceTest {
         savedPost.setPickupTo(request.getPickupTo());
         savedPost.setDescription(request.getDescription());
 
+        // Mock validation service
+        doNothing().when(pickupSlotValidationService).validateSlots(any());
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
 
         // When
@@ -99,6 +122,7 @@ class SurplusServiceTest {
         assertThat(response.getPickupLocation()).isEqualTo(new Location(45.2903, -34.0987, "123 Main St"));
         assertThat(response.getDonorEmail()).isEqualTo("donor@test.com");
 
+        verify(pickupSlotValidationService, times(1)).validateSlots(any());
         verify(surplusPostRepository, times(1)).save(any(SurplusPost.class));
     }
 
@@ -120,6 +144,7 @@ class SurplusServiceTest {
         mockSavedPost.setDescription(request.getDescription());
 
         ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
+        doNothing().when(pickupSlotValidationService).validateSlots(any());
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(mockSavedPost);
 
         // When
@@ -155,6 +180,7 @@ class SurplusServiceTest {
         mockSavedPost.setDescription(request.getDescription());
 
         ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
+        doNothing().when(pickupSlotValidationService).validateSlots(any());
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(mockSavedPost);
 
         // When
@@ -174,6 +200,426 @@ class SurplusServiceTest {
         assertThat(capturedPost.getPickupTo()).isEqualTo(request.getPickupTo());
         assertThat(capturedPost.getDescription()).isEqualTo(request.getDescription());
         assertThat(capturedPost.getDonor()).isEqualTo(donor);
+    }
+
+    // ==================== Tests for completeSurplusPost - Story 8.1 ====================
+
+    @Test
+    void testCompleteSurplusPost_Success() {
+        // Given
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setTitle("Test Food");
+        post.setStatus(PostStatus.READY_FOR_PICKUP);
+        post.setOtpCode("123456");
+        post.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        post.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        post.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC"));
+        post.setExpiryDate(LocalDate.now().plusDays(2));
+        post.setPickupDate(LocalDate.now());
+        post.setPickupFrom(LocalTime.of(9, 0));
+        post.setPickupTo(LocalTime.of(17, 0));
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(post);
+
+        // When
+        SurplusResponse response = surplusService.completeSurplusPost(1L, "123456", donor);
+
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.getId()).isEqualTo(1L);
+        assertThat(response.getStatus()).isEqualTo(PostStatus.COMPLETED);
+
+        ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
+        verify(surplusPostRepository).save(postCaptor.capture());
+        assertThat(postCaptor.getValue().getStatus()).isEqualTo(PostStatus.COMPLETED);
+    }
+
+    @Test
+    void testCompleteSurplusPost_PostNotFound_ThrowsException() {
+        // Given
+        when(surplusPostRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> surplusService.completeSurplusPost(999L, "123456", donor))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("Surplus post not found");
+
+        verify(surplusPostRepository, never()).save(any(SurplusPost.class));
+    }
+
+    @Test
+    void testCompleteSurplusPost_UnauthorizedUser_ThrowsException() {
+        // Given - Create another donor
+        User otherDonor = new User();
+        otherDonor.setId(2L);
+        otherDonor.setEmail("other@test.com");
+        otherDonor.setRole(UserRole.DONOR);
+
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor); // Post belongs to original donor
+        post.setStatus(PostStatus.READY_FOR_PICKUP);
+        post.setOtpCode("123456");
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+
+        // When & Then - Try to complete with different donor
+        assertThatThrownBy(() -> surplusService.completeSurplusPost(1L, "123456", otherDonor))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("not authorized");
+
+        verify(surplusPostRepository, never()).save(any(SurplusPost.class));
+    }
+
+    @Test
+    void testCompleteSurplusPost_WrongStatus_ThrowsException() {
+        // Given - Post is AVAILABLE, not READY_FOR_PICKUP
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setStatus(PostStatus.AVAILABLE); // Wrong status
+        post.setOtpCode("123456");
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+
+        // When & Then
+        assertThatThrownBy(() -> surplusService.completeSurplusPost(1L, "123456", donor))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("READY_FOR_PICKUP");
+
+        verify(surplusPostRepository, never()).save(any(SurplusPost.class));
+    }
+
+    @Test
+    void testCompleteSurplusPost_InvalidOtp_ThrowsException() {
+        // Given
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setStatus(PostStatus.READY_FOR_PICKUP);
+        post.setOtpCode("123456");
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+
+        // When & Then - Try with wrong OTP
+        assertThatThrownBy(() -> surplusService.completeSurplusPost(1L, "999999", donor))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("Invalid OTP code");
+
+        verify(surplusPostRepository, never()).save(any(SurplusPost.class));
+    }
+
+    @Test
+    void testCompleteSurplusPost_NullOtp_ThrowsException() {
+        // Given
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setStatus(PostStatus.READY_FOR_PICKUP);
+        post.setOtpCode(null); // No OTP set
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+
+        // When & Then
+        assertThatThrownBy(() -> surplusService.completeSurplusPost(1L, "123456", donor))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("Invalid OTP code");
+
+        verify(surplusPostRepository, never()).save(any(SurplusPost.class));
+    }
+
+    @Test
+    void testCompleteSurplusPost_ClaimedStatus_ThrowsException() {
+        // Given - Post is CLAIMED, not READY_FOR_PICKUP
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setStatus(PostStatus.CLAIMED);
+        post.setOtpCode("123456");
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+
+        // When & Then
+        assertThatThrownBy(() -> surplusService.completeSurplusPost(1L, "123456", donor))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("READY_FOR_PICKUP")
+            .hasMessageContaining("CLAIMED");
+
+        verify(surplusPostRepository, never()).save(any(SurplusPost.class));
+    }
+
+    @Test
+    void testCompleteSurplusPost_CompletedStatus_ThrowsException() {
+        // Given - Post is already COMPLETED
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setStatus(PostStatus.COMPLETED);
+        post.setOtpCode("123456");
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+
+        // When & Then
+        assertThatThrownBy(() -> surplusService.completeSurplusPost(1L, "123456", donor))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("READY_FOR_PICKUP")
+            .hasMessageContaining("COMPLETED");
+
+        verify(surplusPostRepository, never()).save(any(SurplusPost.class));
+    }
+
+    // ==================== Tests for getAllAvailableSurplusPosts ====================
+
+    @Test
+    void testGetAllAvailableSurplusPosts_IncludesAvailableAndReadyForPickup() {
+        // Given - Posts with different statuses
+        SurplusPost availablePost = new SurplusPost();
+        availablePost.setId(1L);
+        availablePost.setDonor(donor);
+        availablePost.setTitle("Available Food");
+        availablePost.setStatus(PostStatus.AVAILABLE);
+        availablePost.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        availablePost.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        availablePost.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC"));
+        availablePost.setExpiryDate(LocalDate.now().plusDays(2));
+        availablePost.setPickupDate(LocalDate.now());
+        availablePost.setPickupFrom(LocalTime.of(9, 0));
+        availablePost.setPickupTo(LocalTime.of(17, 0));
+
+        SurplusPost readyPost = new SurplusPost();
+        readyPost.setId(2L);
+        readyPost.setDonor(donor);
+        readyPost.setTitle("Ready Food");
+        readyPost.setStatus(PostStatus.READY_FOR_PICKUP);
+        readyPost.setOtpCode("123456");
+        readyPost.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        readyPost.setQuantity(new Quantity(3.0, Quantity.Unit.KILOGRAM));
+        readyPost.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC"));
+        readyPost.setExpiryDate(LocalDate.now().plusDays(1));
+        readyPost.setPickupDate(LocalDate.now());
+        readyPost.setPickupFrom(LocalTime.of(10, 0));
+        readyPost.setPickupTo(LocalTime.of(18, 0));
+
+        when(surplusPostRepository.findByStatusIn(any()))
+            .thenReturn(Arrays.asList(availablePost, readyPost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(anyLong(), any(ClaimStatus.class)))
+            .thenReturn(false);
+
+        // When
+        List<SurplusResponse> responses = surplusService.getAllAvailableSurplusPosts();
+
+        // Then
+        assertThat(responses).hasSize(2);
+        assertThat(responses).extracting(SurplusResponse::getTitle)
+            .containsExactlyInAnyOrder("Available Food", "Ready Food");
+        assertThat(responses).extracting(SurplusResponse::getStatus)
+            .containsExactlyInAnyOrder(PostStatus.AVAILABLE, PostStatus.READY_FOR_PICKUP);
+
+        // Verify the repository was called with correct statuses
+        ArgumentCaptor<List<PostStatus>> statusCaptor = ArgumentCaptor.forClass(List.class);
+        verify(surplusPostRepository).findByStatusIn(statusCaptor.capture());
+        List<PostStatus> capturedStatuses = statusCaptor.getValue();
+        assertThat(capturedStatuses).containsExactlyInAnyOrder(
+            PostStatus.AVAILABLE,
+            PostStatus.READY_FOR_PICKUP
+        );
+    }
+
+    // ==================== Tests for Multiple Pickup Slots Feature ====================
+
+    @Test
+    void testCreateSurplusPost_WithMultiplePickupSlots_Success() {
+        // Given - Request with multiple pickup slots
+        List<PickupSlotRequest> slots = new ArrayList<>();
+        
+        PickupSlotRequest slot1 = new PickupSlotRequest();
+        slot1.setPickupDate(LocalDate.now().plusDays(1));
+        slot1.setStartTime(LocalTime.of(9, 0));
+        slot1.setEndTime(LocalTime.of(12, 0));
+        slot1.setNotes("Morning slot");
+        slots.add(slot1);
+        
+        PickupSlotRequest slot2 = new PickupSlotRequest();
+        slot2.setPickupDate(LocalDate.now().plusDays(1));
+        slot2.setStartTime(LocalTime.of(14, 0));
+        slot2.setEndTime(LocalTime.of(17, 0));
+        slot2.setNotes("Afternoon slot");
+        slots.add(slot2);
+        
+        request.setPickupSlots(slots);
+
+        SurplusPost savedPost = new SurplusPost();
+        savedPost.setId(1L);
+        savedPost.setDonor(donor);
+        savedPost.setTitle(request.getTitle());
+        savedPost.setPickupDate(slot1.getPickupDate());
+        savedPost.setPickupFrom(slot1.getStartTime());
+        savedPost.setPickupTo(slot1.getEndTime());
+        
+        doNothing().when(pickupSlotValidationService).validateSlots(slots);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
+
+        // When
+        SurplusResponse response = surplusService.createSurplusPost(request, donor);
+
+        // Then
+        assertThat(response).isNotNull();
+        verify(pickupSlotValidationService, times(1)).validateSlots(slots);
+        verify(surplusPostRepository, times(1)).save(any(SurplusPost.class));
+    }
+
+    @Test
+    void testCreateSurplusPost_WithoutPickupSlots_UsesLegacyFields() {
+        // Given - Request without pickup slots (backward compatibility)
+        request.setPickupSlots(null);
+        
+        SurplusPost savedPost = new SurplusPost();
+        savedPost.setId(1L);
+        savedPost.setDonor(donor);
+        savedPost.setTitle(request.getTitle());
+        savedPost.setPickupDate(request.getPickupDate());
+        savedPost.setPickupFrom(request.getPickupFrom());
+        savedPost.setPickupTo(request.getPickupTo());
+
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
+
+        // When
+        SurplusResponse response = surplusService.createSurplusPost(request, donor);
+
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.getPickupDate()).isEqualTo(request.getPickupDate());
+        assertThat(response.getPickupFrom()).isEqualTo(request.getPickupFrom());
+        assertThat(response.getPickupTo()).isEqualTo(request.getPickupTo());
+        
+        // Validation service should NOT be called since no slots provided
+        verify(pickupSlotValidationService, never()).validateSlots(any());
+        verify(surplusPostRepository, times(1)).save(any(SurplusPost.class));
+    }
+
+    @Test
+    void testCreateSurplusPost_LegacyFieldsPopulatedFromFirstSlot() {
+        // Given - Multiple slots, verify first slot populates legacy fields
+        List<PickupSlotRequest> slots = new ArrayList<>();
+        
+        PickupSlotRequest slot1 = new PickupSlotRequest();
+        slot1.setPickupDate(LocalDate.now().plusDays(1));
+        slot1.setStartTime(LocalTime.of(9, 0));
+        slot1.setEndTime(LocalTime.of(12, 0));
+        slots.add(slot1);
+        
+        PickupSlotRequest slot2 = new PickupSlotRequest();
+        slot2.setPickupDate(LocalDate.now().plusDays(2));
+        slot2.setStartTime(LocalTime.of(14, 0));
+        slot2.setEndTime(LocalTime.of(17, 0));
+        slots.add(slot2);
+        
+        request.setPickupSlots(slots);
+
+        ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
+        SurplusPost savedPost = new SurplusPost();
+        savedPost.setId(1L);
+        savedPost.setDonor(donor);
+        
+        doNothing().when(pickupSlotValidationService).validateSlots(slots);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
+
+        // When
+        surplusService.createSurplusPost(request, donor);
+
+        // Then
+        verify(surplusPostRepository).save(postCaptor.capture());
+        SurplusPost capturedPost = postCaptor.getValue();
+        
+        // Legacy fields should match first slot
+        assertThat(capturedPost.getPickupDate()).isEqualTo(slot1.getPickupDate());
+        assertThat(capturedPost.getPickupFrom()).isEqualTo(slot1.getStartTime());
+        assertThat(capturedPost.getPickupTo()).isEqualTo(slot1.getEndTime());
+    }
+
+    @Test
+    void testCreateSurplusPost_PickupSlotsCreatedWithCorrectOrder() {
+        // Given
+        List<PickupSlotRequest> slots = new ArrayList<>();
+        
+        for (int i = 0; i < 3; i++) {
+            PickupSlotRequest slot = new PickupSlotRequest();
+            slot.setPickupDate(LocalDate.now().plusDays(1));
+            slot.setStartTime(LocalTime.of(9 + (i * 3), 0));
+            slot.setEndTime(LocalTime.of(11 + (i * 3), 0));
+            slot.setNotes("Slot " + (i + 1));
+            slots.add(slot);
+        }
+        
+        request.setPickupSlots(slots);
+
+        ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
+        SurplusPost savedPost = new SurplusPost();
+        savedPost.setId(1L);
+        savedPost.setDonor(donor); // FIXED: Add donor to avoid NullPointerException
+        
+        doNothing().when(pickupSlotValidationService).validateSlots(slots);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
+
+        // When
+        surplusService.createSurplusPost(request, donor);
+
+        // Then
+        verify(surplusPostRepository).save(postCaptor.capture());
+        SurplusPost capturedPost = postCaptor.getValue();
+        
+        assertThat(capturedPost.getPickupSlots()).hasSize(3);
+        
+        // Verify slot order
+        for (int i = 0; i < 3; i++) {
+            PickupSlot slot = capturedPost.getPickupSlots().get(i);
+            assertThat(slot.getSlotOrder()).isEqualTo(i + 1);
+            assertThat(slot.getNotes()).isEqualTo("Slot " + (i + 1));
+        }
+    }
+
+    @Test
+    void testGetAllAvailableSurplusPosts_ExcludesClaimedAndCompletedPosts() {
+        // Given - Only AVAILABLE and READY_FOR_PICKUP posts should be returned
+        SurplusPost availablePost = new SurplusPost();
+        availablePost.setId(1L);
+        availablePost.setDonor(donor);
+        availablePost.setTitle("Available Food");
+        availablePost.setStatus(PostStatus.AVAILABLE);
+        availablePost.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        availablePost.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        availablePost.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC"));
+        availablePost.setExpiryDate(LocalDate.now().plusDays(2));
+        availablePost.setPickupDate(LocalDate.now());
+        availablePost.setPickupFrom(LocalTime.of(9, 0));
+        availablePost.setPickupTo(LocalTime.of(17, 0));
+
+        // Repository returns only posts with AVAILABLE or READY_FOR_PICKUP status
+        when(surplusPostRepository.findByStatusIn(any()))
+            .thenReturn(Collections.singletonList(availablePost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(anyLong(), any(ClaimStatus.class)))
+            .thenReturn(false);
+
+        // When
+        List<SurplusResponse> responses = surplusService.getAllAvailableSurplusPosts();
+
+        // Then
+        assertThat(responses).hasSize(1);
+        assertThat(responses.get(0).getStatus()).isEqualTo(PostStatus.AVAILABLE);
+
+        // Verify CLAIMED, COMPLETED, NOT_COMPLETED are NOT in the query
+        ArgumentCaptor<List<PostStatus>> statusCaptor = ArgumentCaptor.forClass(List.class);
+        verify(surplusPostRepository).findByStatusIn(statusCaptor.capture());
+        List<PostStatus> capturedStatuses = statusCaptor.getValue();
+        assertThat(capturedStatuses).doesNotContain(
+            PostStatus.CLAIMED,
+            PostStatus.COMPLETED,
+            PostStatus.NOT_COMPLETED,
+            PostStatus.EXPIRED
+        );
     }
 
 }

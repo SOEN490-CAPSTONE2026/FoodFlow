@@ -118,7 +118,7 @@ describe("ReceiverBrowse Component", () => {
         {
           id: 1,
           title: "Fresh Organic Apples",
-          foodCategories: ["FRUITS_VEGETABLES"], // Backend enum format
+          foodCategories: ["FRUITS_VEGETABLES"], 
           expiryDate: "2025-11-08",
           pickupLocation: { address: "Downtown Montreal" }, // Location object
           pickupDate: "2025-11-06",
@@ -134,6 +134,7 @@ describe("ReceiverBrowse Component", () => {
           }, // User relationship
           description: "Crisp and sweet apples",
           createdAt: "2025-11-04T10:00:00",
+          status: "AVAILABLE",
           updatedAt: "2025-11-04T10:00:00",
           status: "AVAILABLE",
         },
@@ -170,11 +171,13 @@ describe("ReceiverBrowse Component", () => {
           donor: { name: "Green Organic Market" },
           description: "Crisp and sweet apples",
           createdAt: "2025-11-04T10:00:00",
+          status: "AVAILABLE",
+          status: "AVAILABLE",
         },
         {
           id: 2,
           title: "Artisan Bread Assortment",
-          foodCategories: ["BAKERY_PASTRY"],
+          foodCategories: ["BAKED_GOODS"],
           expiryDate: "2025-11-05",
           pickupLocation: { address: "Plateau Mont-Royal" },
           pickupDate: "2025-11-05",
@@ -184,6 +187,8 @@ describe("ReceiverBrowse Component", () => {
           donor: { name: "Le Petit Boulanger" },
           description: "Freshly baked this morning",
           createdAt: "2025-11-04T16:30:00",
+          status: "AVAILABLE",
+          status: "AVAILABLE",
         },
       ];
 
@@ -216,6 +221,8 @@ describe("ReceiverBrowse Component", () => {
           donor: { name: "Green Organic Market" },
           description: "Crisp and sweet apples",
           createdAt: "2025-11-04T10:00:00",
+          status: "AVAILABLE",
+          status: "AVAILABLE",
         },
       ];
 
@@ -238,7 +245,7 @@ describe("ReceiverBrowse Component", () => {
         {
           id: 1,
           title: "Mixed Food Box",
-          foodCategories: ["FRUITS_VEGETABLES", "BAKERY_PASTRY", "DAIRY_COLD"], // Multiple categories
+          foodCategories: ["FRUITS_VEGETABLES", "BAKED_GOODS", "DAIRY"], 
           expiryDate: "2025-11-08",
           pickupLocation: { address: "Downtown Montreal" },
           pickupDate: "2025-11-06",
@@ -248,6 +255,7 @@ describe("ReceiverBrowse Component", () => {
           donor: { name: "Mixed Supplier" },
           description: "Variety box",
           createdAt: "2025-11-04T10:00:00",
+          status: "AVAILABLE",
         },
       ];
 
@@ -281,6 +289,7 @@ describe("ReceiverBrowse Component", () => {
           donor: { name: "Green Organic Market" },
           description: "Crisp and sweet apples",
           createdAt: "2025-11-04T10:00:00",
+          status: "AVAILABLE",
         },
       ];
 
@@ -320,6 +329,7 @@ describe("ReceiverBrowse Component", () => {
           donor: { name: "Green Organic Market" },
           description: "Crisp and sweet apples",
           createdAt: "2025-11-04T10:00:00",
+          status: "AVAILABLE",
         },
       ];
 
@@ -378,6 +388,7 @@ describe("ReceiverBrowse Component", () => {
           donor: { name: "Green Organic Market" },
           description: "Crisp and sweet apples",
           createdAt: "2025-11-04T10:00:00",
+          status: "AVAILABLE",
         },
       ];
 
@@ -453,6 +464,7 @@ describe("ReceiverBrowse Component", () => {
           donor: { name: "Test Donor" },
           description: "Test description",
           createdAt: "2025-11-04T10:00:00",
+          status: "AVAILABLE",
         },
       ];
 
@@ -482,6 +494,7 @@ describe("ReceiverBrowse Component", () => {
           donor: null,
           description: "Test description",
           createdAt: "2025-11-04T10:00:00",
+          status: "AVAILABLE",
         },
       ];
 
@@ -513,6 +526,7 @@ describe("ReceiverBrowse Component", () => {
           donor: { name: "Test Donor" },
           description: null,
           createdAt: "2025-11-04T10:00:00",
+          status: "AVAILABLE",
         },
       ];
 
@@ -553,6 +567,7 @@ describe("ReceiverBrowse Component", () => {
           donor: { name: "Test Donor" },
           description: "Test description",
           createdAt: "2025-11-04T10:00:00",
+          status: "AVAILABLE",
         },
       ];
 
@@ -574,7 +589,7 @@ describe("ReceiverBrowse Component", () => {
         {
           id: 1,
           title: "Bakery Item",
-          foodCategories: ["BAKERY_PASTRY"], // Using the correct enum from your backend
+          foodCategories: ["BAKED_GOODS"], 
           expiryDate: "2025-11-08",
           pickupLocation: { address: "Test Location" },
           pickupDate: "2025-11-06",
@@ -584,6 +599,7 @@ describe("ReceiverBrowse Component", () => {
           donor: { name: "Test Donor" },
           description: "Test description",
           createdAt: "2025-11-04T10:00:00",
+          status: "AVAILABLE",
         },
       ];
 
@@ -613,6 +629,7 @@ describe("ReceiverBrowse Component", () => {
           donor: { name: "Test Donor" },
           description: "Test description",
           createdAt: "2025-11-04T10:00:00",
+          status: "AVAILABLE",
         },
       ];
 
@@ -642,6 +659,7 @@ describe("ReceiverBrowse Component", () => {
           donor: { name: "Test Donor" },
           description: "Test description",
           createdAt: "2025-11-04T10:00:00",
+          status: "AVAILABLE",
         },
       ];
 
@@ -706,6 +724,7 @@ describe("ReceiverBrowse Component", () => {
           donor: { name: "Green Organic Market" },
           description: "Crisp and sweet apples",
           createdAt: "2025-11-04T10:00:00",
+          status: "AVAILABLE",
         },
       ];
 

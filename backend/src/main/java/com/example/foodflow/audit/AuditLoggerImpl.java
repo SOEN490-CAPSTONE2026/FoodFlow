@@ -2,6 +2,8 @@ package com.example.foodflow.audit;
 
 import com.example.foodflow.model.entity.AuditLog;
 import com.example.foodflow.repository.AuditLogRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -10,6 +12,8 @@ import jakarta.annotation.PostConstruct;
 
 @Service
 public class AuditLoggerImpl implements AuditLogger {
+
+    private static final Logger log = LoggerFactory.getLogger(AuditLoggerImpl.class);
 
     private final AuditLogRepository auditLogRepository;
     private final Environment env;
@@ -32,14 +36,26 @@ public class AuditLoggerImpl implements AuditLogger {
         if (enabledProp != null) {
             auditEnabled = Boolean.parseBoolean(enabledProp);
         }
-        System.out.println("AUDIT_LOG_ENABLED = " + auditEnabled); // debug
+        log.info("Audit logging initialized - AUDIT_LOG_ENABLED = {}", auditEnabled);
     }
 
     @Override
-    public void logAction(AuditLog log) {
+    public void logAction(AuditLog auditLog) {
         if (!auditEnabled) {
+            log.debug("Audit logging disabled, skipping audit log entry");
             return;
         }
-        auditLogRepository.save(log);
+        
+        try {
+            auditLogRepository.save(auditLog);
+            // Also log to file for dual logging approach
+            log.info("AUDIT: user={}, action={}, entity={}, entityId={}", 
+                auditLog.getUsername(), 
+                auditLog.getAction(), 
+                auditLog.getEntityType(), 
+                auditLog.getEntityId());
+        } catch (Exception e) {
+            log.error("Failed to save audit log to database: {}", e.getMessage(), e);
+        }
     }
 }

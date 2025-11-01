@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import com.example.foodflow.model.types.FoodCategory;
 import com.example.foodflow.model.types.PostStatus;
@@ -56,9 +58,16 @@ public class SurplusPost {
     @Column(nullable = false)
     private PostStatus status = PostStatus.AVAILABLE;
 
+    @Column(name = "otp_code", length = 6)
+    private String otpCode;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "donor_id", nullable = false)
     private User donor;
+
+    @OneToMany(mappedBy = "surplusPost", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("slotOrder ASC")
+    private List<PickupSlot> pickupSlots = new ArrayList<>();
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -114,11 +123,17 @@ public class SurplusPost {
     public PostStatus getStatus() { return status; }
     public void setStatus(PostStatus status) { this.status = status; }
 
+    public String getOtpCode() { return otpCode; }
+    public void setOtpCode(String otpCode) { this.otpCode = otpCode; }
+
     public User getDonor() { return donor; }
     public void setDonor(User donor) { this.donor = donor; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
+
+    public List<PickupSlot> getPickupSlots() { return pickupSlots; }
+    public void setPickupSlots(List<PickupSlot> pickupSlots) { this.pickupSlots = pickupSlots; }
 
     public boolean isClaimed() { return status==PostStatus.CLAIMED; }
 }

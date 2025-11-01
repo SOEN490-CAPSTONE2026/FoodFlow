@@ -633,3 +633,151 @@
   cursor: not-allowed;
   color: #94a3b8;
 }
+
+/* Pickup Slots Styles */
+.pickup-slots-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.btn-add-slot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background-color: #1b4965;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-add-slot:hover {
+  background-color: #245b7c;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(27, 73, 101, 0.3);
+}
+
+.pickup-slot-card {
+  background-color: #f8f9fa;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  transition: all 0.2s ease;
+}
+
+.pickup-slot-card:hover {
+  border-color: #cbd5e0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.pickup-slot-card:last-child {
+  margin-bottom: 0;
+}
+
+.slot-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.slot-number {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1b4965;
+}
+
+.btn-remove-slot {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background-color: transparent;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-remove-slot:hover {
+  background-color: #fee2e2;
+  border-color: #fca5a5;
+}
+
+.slot-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.slot-row {
+  display: flex;
+  gap: 12px;
+}
+
+.full-width {
+  flex: 1;
+}
+
+.input-label-small {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.input-field-small {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+  background-color: white;
+}
+
+.input-field-small:focus {
+  outline: none;
+  border-color: #4299e1;
+  box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.1);
+}
+
+.input-field-small::placeholder {
+  color: #cbd5e0;
+  font-size: 0.85rem;
+}
+
+/* Responsive pickup slots */
+@media (max-width: 768px) {
+  .pickup-slots-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .btn-add-slot {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .slot-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .pickup-slot-card {
+    padding: 12px;
+  }
+}

@@ -17,6 +17,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -61,6 +63,10 @@ class ClaimServiceTest {
         surplusPost.setTitle("Test Food");
         surplusPost.setStatus(PostStatus.AVAILABLE);
         surplusPost.setDonor(donor);
+        // Add required fields for pickup date/time
+        surplusPost.setPickupDate(LocalDate.now().plusDays(1));
+        surplusPost.setPickupFrom(LocalTime.of(9, 0));
+        surplusPost.setPickupTo(LocalTime.of(17, 0));
 
         claimRequest = new ClaimRequest();
         claimRequest.setSurplusPostId(1L);

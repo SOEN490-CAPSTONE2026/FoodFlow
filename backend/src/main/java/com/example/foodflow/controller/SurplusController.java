@@ -1,5 +1,6 @@
 package com.example.foodflow.controller;
 
+import com.example.foodflow.model.dto.CompleteSurplusRequest;
 import com.example.foodflow.model.dto.CreateSurplusRequest;
 import com.example.foodflow.model.dto.SurplusResponse;
 import com.example.foodflow.model.entity.User;
@@ -97,5 +98,18 @@ public class SurplusController {
         }
         List<SurplusResponse> filteredPosts = surplusService.searchSurplusPosts(filterRequest);
         return ResponseEntity.ok(filteredPosts);
+
+    }
+
+    
+    @PatchMapping("/{id}/complete")
+    @PreAuthorize("hasAuthority('DONOR')")
+    public ResponseEntity<SurplusResponse> completeSurplusPost(
+            @PathVariable Long id,
+            @Valid @RequestBody CompleteSurplusRequest request,
+            @AuthenticationPrincipal User donor) {
+
+        SurplusResponse response = surplusService.completeSurplusPost(id, request.getOtpCode(), donor);
+        return ResponseEntity.ok(response);
     }
 }

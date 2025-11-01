@@ -19,6 +19,8 @@ import {
 import { AuthContext } from "../../contexts/AuthContext";
 import Logo from "../../assets/Logo_White.png";
 import "./Donor_Styles/DonorLayout.css";
+import MessageNotification from "../MessagingDashboard/MessageNotification";
+import { connectToUserQueue, disconnect } from '../../services/socket';
 
 export default function DonorLayout() {
   const location = useLocation();
@@ -30,6 +32,7 @@ export default function DonorLayout() {
   const [screenHeight, setScreenHeight] = useState(window.innerHeight);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const menuRef = useRef(null);
+  const [notification, setNotification] = useState(null);
 
   const contacts = [
     { name: "Olive Nacelle", online: true },
@@ -102,6 +105,20 @@ export default function DonorLayout() {
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
+  // Connect to websocket for user-specific notifications (donor)
+  useEffect(() => {
+    const onMessage = (payload) => {
+      const senderName = payload.senderName || payload.sender?.email || payload.senderEmail || '';
+      const message = payload.messageBody || payload.message || payload.body || '';
+      if (message) setNotification({ senderName, message });
+    };
+
+    connectToUserQueue(onMessage);
+    return () => {
+      try { disconnect(); } catch (e) { /* ignore */ }
+    };
+  }, []);
+
   useEffect(() => {
     if (navType === "POP" && !location.pathname.startsWith("/donor")) {
       navigate("/donor/dashboard", { replace: true });
@@ -118,6 +135,8 @@ export default function DonorLayout() {
   };
 
   const isActive = (path) => location.pathname === path;
+
+  const isMessagesPage = location.pathname === "/donor/messages";
 
   return (
     <div className="donor-layout">
@@ -243,16 +262,27 @@ export default function DonorLayout() {
       </aside>
 
       <main className="donor-main">
-        <header className="donor-topbar">
-          <div className="donor-topbar-left">
-            <h1>{pageTitle}</h1>
-            <p>{pageDesc}</p>
-          </div>
-        </header>
+        {!isMessagesPage && (
+          <header className="donor-topbar">
+            <div className="donor-topbar-left">
+              <h1>{pageTitle}</h1>
+              <p>{pageDesc}</p>
+            </div>
+          </header>
+        )}
 
-        <section className="donor-content">
-          <Outlet />
-        </section>
+        
+<section className={`donor-content ${isMessagesPage ? 'messages-page' : ''}`}>
+  <Outlet />
+
+  {notification && (
+    <MessageNotification
+      notification={notification}
+      onClose={() => setNotification(null)}
+    />
+  )}
+</section>
+
       </main>
     </div>
   );
