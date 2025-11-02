@@ -141,7 +141,7 @@ function mapFrontendCategoryToBackend(frontendCategory) {
     "Bakery & Pastry": "BAKERY_PASTRY",
     "Packaged / Pantry Items": "PACKAGED_PANTRY",
     "Dairy & Cold Items": "DAIRY_COLD",
-    "Frozen Food": "FROZEN_FOOD",
+    "Frozen Food": "FROZEN",
     "Prepared Meals": "PREPARED_MEALS",
   };
 
