@@ -135,17 +135,5 @@ export const claimsAPI = {
  * @param {string} frontendCategory - Frontend category name
  * @returns {string} Backend enum value
  */
-function mapFrontendCategoryToBackend(frontendCategory) {
-  const categoryMap = {
-    "Fruits & Vegetables": "FRUITS_VEGETABLES",
-    "Bakery & Pastry": "BAKERY_PASTRY",
-    "Packaged / Pantry Items": "PACKAGED_PANTRY",
-    "Dairy & Cold Items": "DAIRY_COLD",
-    "Frozen Food": "FROZEN_FOOD",
-    "Prepared Meals": "PREPARED_MEALS",
-  };
-
-  return categoryMap[frontendCategory] || frontendCategory;
-}
 
 export default api;
