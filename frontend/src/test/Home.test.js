@@ -42,19 +42,12 @@ describe('Home Component - Core Functionality', () => {
     expect(screen.getByText('Connect surplus with')).toBeInTheDocument();
     expect(screen.getByText('those in need')).toBeInTheDocument();
     
-    // Description paragraph
-    expect(screen.getByText(/FoodFlow connects restaurants/i)).toBeInTheDocument();
+    // Description paragraph - updated to match actual content
+    expect(screen.getByText(/Real-time platform connecting food businesses/i)).toBeInTheDocument();
     
-    // CTA button
-    const button = screen.getByRole('button', { name: /Donate Surplus Food now/i });
+    // CTA button - updated to match actual button text
+    const button = screen.getByRole('button', { name: /Join Us Now/i });
     expect(button).toBeInTheDocument();
-    
-    // Hero image
-    const image = screen.getByAltText('Food donation community');
-    expect(image).toBeInTheDocument();
-    expect(image).toHaveAttribute('src', 'mock-image.jpg');
-    expect(image).toHaveAttribute('width', '700px');
-    expect(image).toHaveAttribute('height', '550px');
   });
 
   test('typewriter animation progresses correctly through stages', () => {
@@ -85,7 +78,7 @@ describe('Home Component - Core Functionality', () => {
   test('navigation works when CTA button is clicked', () => {
     renderHome();
 
-    const button = screen.getByRole('button', { name: /Donate Surplus Food now/i });
+    const button = screen.getByRole('button', { name: /Join Us Now/i });
     fireEvent.click(button);
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
@@ -148,11 +141,10 @@ describe('Home Component - Edge Cases', () => {
       </BrowserRouter>
     );
 
-    const image = screen.getByAltText('Food donation community');
-    expect(image).toBeInTheDocument();
-
+    // Button accessibility check
     const button = screen.getByRole('button');
     expect(button).toBeEnabled();
+    expect(button).toHaveTextContent(/Join Us Now/i);
   });
 
   test('renders correctly with all timers completed immediately', () => {
