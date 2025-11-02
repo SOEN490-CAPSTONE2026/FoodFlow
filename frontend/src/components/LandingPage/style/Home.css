@@ -7,8 +7,8 @@
 .home-container {
   min-height: 100vh;
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
   padding: 0 10%;
   background-color:#1B4965;
@@ -19,45 +19,14 @@
 .home-content {
   position: relative;
   z-index: 2;
-  max-width: 50%;
-  flex: 1;
+  max-width: 900px;
+  width: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
-}
-
-.home-image {
-  position: relative;
-  z-index: 2;
-  flex: 1;
-  display: flex;
-  justify-content: center;
   align-items: center;
-  opacity: 0;
-  transform: translateX(50px) scale(0.9);
-  animation: slideInImage 1s ease-out 1.2s forwards;
-}
-
-.home-image img {
-  max-width: 100%;
-  height: auto;
-  border-radius: 5px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-  object-fit: cover;
-  transition: all 0.5s ease;
-  animation: floatImage 6s ease-in-out infinite 2s;
-}
-
-/* Image animations */
-@keyframes slideInImage {
-  from {
-    opacity: 0;
-    transform: translateX(50px) scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0) scale(1);
-  }
+  text-align: center;
+  padding: 3rem;
 }
 
 /*  Floating Background elements */
@@ -79,13 +48,13 @@
   100% { transform: translate(-50px, -50px) rotate(360deg); }
 }
 
-
 .typewriter-text {
   display: inline-block;
   overflow: hidden;
   white-space: nowrap;
 }
 
+/* Donor title animations */
 .typewriter-line-1 {
   width: 0;
   animation: 
@@ -100,6 +69,21 @@
     blink-caret 1s ease-in-out infinite;
 }
 
+/* Receiver title animations */
+.typewriter-line-3 {
+  width: 0;
+  animation: 
+    typing-sequential-line3 8s steps(25, end) infinite,
+    blink-caret 1s ease-in-out infinite;
+}
+
+.typewriter-line-4 {
+  width: 0;
+  animation: 
+    typing-sequential-line4 8s steps(22, end) infinite,
+    blink-caret 1s ease-in-out infinite;
+}
+
 @keyframes typing-sequential-line1 {
   0% { width: 0; }       
   25% { width: 100%; }    
@@ -108,6 +92,22 @@
 }
 
 @keyframes typing-sequential-line2 {
+  0% { width: 0; }        
+  25% { width: 0; }      
+  50% { width: 100%; }    
+  62.5% { width: 100%; }  
+  75% { width: 0; }       
+  100% { width: 0; }      
+}
+
+@keyframes typing-sequential-line3 {
+  0% { width: 0; }       
+  25% { width: 100%; }    
+  75% { width: 100%; }    
+  100% { width: 0; }     
+}
+
+@keyframes typing-sequential-line4 {
   0% { width: 0; }        
   25% { width: 0; }      
   50% { width: 100%; }    
@@ -128,8 +128,12 @@
   opacity: 0;
   transform: translateY(30px);
   animation: fadeInUp 1s ease-out 0.5s forwards;
-  text-align: left;
+  text-align: center;
   width: 100%;
+}
+
+.receiver-title {
+  animation: fadeInUp 1s ease-out forwards;
 }
 
 .home-title h1 {
@@ -137,7 +141,7 @@
   font-weight: 700;
   color: white;
   margin: 0;
-  line-height: 1.1;
+  line-height: 1.2;
   text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
   width: 100%;
 }
@@ -164,18 +168,18 @@
 .home-description {
   position: relative;
   z-index: 2;
-  max-width: 600px;
+  max-width: 700px;
   opacity: 0;
   transform: translateY(30px);
   animation: fadeInUp 1s ease-out 1s forwards;
-  text-align: left;
+  text-align: center;
   width: 100%;
 }
 
 .home-description p {
   font-size: 1.2rem;
   color: rgba(255, 255, 255, 0.9);
-  line-height: 1.6;
+  line-height: 1.8;
   margin-bottom: 2.5rem;
   text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
 }
@@ -284,70 +288,43 @@
 /* Responsive Styles */
 @media (max-width: 968px) {
   .home-container {
-    flex-direction: column;
-    text-align: center;
     padding: 5%;
-    justify-content: center;
   }
   
   .home-content {
     max-width: 100%;
-    margin-bottom: 3rem;
-    align-items: center;
   }
   
-  .home-title {
-    text-align: center;
-  }
-  
-  .home-description {
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .home-image {
-    max-width: 100%;
-    width: 100%;
-  }
-  
-  .home-image img {
-    width: 100%;
-    max-width: 500px;
-    height: auto;
+  .home-title h1,
+  .gradient-text {
+    font-size: 3rem;
   }
 }
 
 @media (max-width: 768px) {
   .home-container {
     padding: 0 5%;
-    text-align: center;
-    align-items: center;
   }
   
   .home-title h1,
-  .home-title span {
+  .gradient-text {
     font-size: 2.5rem;
   }
   
   .home-description p {
     font-size: 1rem;
+    line-height: 1.6;
   }
   
   .home-description button {
     padding: 1rem 2rem;
     font-size: 1rem;
   }
-  
-  .home-image img {
-    max-width: 400px;
-  }
 }
 
 @media (max-width: 480px) {
   .home-title h1,
-  .home-title span {
+  .gradient-text {
     font-size: 2rem;
   }
   
@@ -355,7 +332,12 @@
     max-width: 100%;
   }
   
-  .home-image img {
-    max-width: 300px;
+  .home-description p {
+    font-size: 0.95rem;
+  }
+  
+  .home-description button {
+    padding: 0.9rem 1.8rem;
+    font-size: 0.95rem;
   }
 }

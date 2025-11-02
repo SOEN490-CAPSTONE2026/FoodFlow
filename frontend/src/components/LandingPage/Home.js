@@ -7,9 +7,9 @@ const Home = () => {
     const navigate = useNavigate();
     const [line1Completed, setLine1Completed] = useState(false);
     const [line2Completed, setLine2Completed] = useState(false);
+    const [showReceiver, setShowReceiver] = useState(false);
 
     useEffect(() => {
-        
         const timer1 = setTimeout(() => {
             setLine1Completed(true);
         }, 2500);
@@ -18,9 +18,15 @@ const Home = () => {
             setLine2Completed(true);
         }, 4500);
 
+        // Alternate between donor and receiver every 8 seconds
+        const interval = setInterval(() => {
+            setShowReceiver(prev => !prev);
+        }, 8000);
+
         return () => {
             clearTimeout(timer1);
             clearTimeout(timer2);
+            clearInterval(interval);
         };
     }, []);
 
@@ -29,33 +35,49 @@ const Home = () => {
             <div className="floating-element"></div>
             <div className="floating-element"></div>
             <div className="floating-element"></div>
-            
+
             <div className="home-content">
-                <div className="home-title">
-                    <h1>
-                        <span 
-                            className={`typewriter-text typewriter-line-1 ${line1Completed ? 'completed' : ''}`}
-                        >
-                            Connect surplus with
+                {!showReceiver ? (
+                    <div className="home-title">
+                        <h1>
+                            <span
+                                className={`typewriter-text typewriter-line-1 ${line1Completed ? 'completed' : ''}`}
+                            >
+                                Connect surplus with
+                            </span>
+                        </h1>
+                        <span className="gradient-text">
+                            <span
+                                className={`typewriter-text typewriter-line-2 ${line2Completed ? 'completed' : ''}`}
+                            >
+                                those in need
+                            </span>
                         </span>
-                    </h1>
-                    <span className="gradient-text">
-                        <span 
-                            className={`typewriter-text typewriter-line-2 ${line2Completed ? 'completed' : ''}`}
-                        >
-                            those in need
+                    </div>
+                ) : (
+                    <div className="home-title receiver-title">
+                        <h1>
+                            <span className="typewriter-text typewriter-line-3">
+                                Receive quality food
+                            </span>
+                        </h1>
+                        <span className="gradient-text">
+                            <span className="typewriter-text typewriter-line-4">
+                                for your community
+                            </span>
                         </span>
-                    </span>
-                </div>
+                    </div>
+                )}
+                
                 <div className="home-description">
-                    <p>FoodFlow connects restaurants, grocery stores, and event venues with verified community organizations in real-time. Redistribute surplus food before it spoils—from conferences to restaurants, ensure good food gets eaten, not wasted.</p>
-                    <button onClick={() => navigate('/register')}>Donate Surplus Food now</button>
+                    <p>Real-time platform connecting food businesses with verified community organizations. Whether it's event surplus, restaurant excess, or grocery overstock, FoodFlow helps you redistribute quality food quickly and efficiently—turning waste into community impact.</p>
+                    <button onClick={() => navigate('/register')}>Join Us Now</button>
                 </div>
             </div>
-            
-            <div className="home-image">
+
+            {/* <div className="home-image">
                 <img src={HomeIllustration} alt="Food donation community" width={"700px"} height={"550px"} />
-            </div>
+            </div> */}
         </div>
     );
 };
