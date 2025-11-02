@@ -103,36 +103,34 @@ const ClaimedView = ({ claim, isOpen, onClose, onBack }) => {
                                 </p>
                             </div>
                         </div>
-                        <div className="pickup-step-timer">
-                            <div className="timer-content">
-                                <div className="timer-display">
-                                    {timeRemaining && timeRemaining.days > 0 && (
+                        {timeRemaining && (
+                            <div className="pickup-step-timer">
+                                <div className="timer-content">
+                                    <div className="timer-display">
+                                        {timeRemaining.days > 0 && (
+                                            <div className="timer-unit">
+                                                <span className="timer-value">{timeRemaining.days}</span>
+                                                <span className="timer-unit-label">{timeRemaining.days === 1 ? 'day' : 'days'}</span>
+                                            </div>
+                                        )}
                                         <div className="timer-unit">
-                                            <span className="timer-value">{timeRemaining.days}</span>
-                                            <span className="timer-unit-label">{timeRemaining.days === 1 ? 'day' : 'days'}</span>
+                                            <span className="timer-value">{String(timeRemaining.hours).padStart(2, '0')}</span>
+                                            <span className="timer-unit-label">hrs</span>
                                         </div>
-                                    )}
-                                    {timeRemaining && (
-                                        <>
-                                            <div className="timer-unit">
-                                                <span className="timer-value">{String(timeRemaining.hours).padStart(2, '0')}</span>
-                                                <span className="timer-unit-label">hrs</span>
-                                            </div>
-                                            <div className="timer-separator">:</div>
-                                            <div className="timer-unit">
-                                                <span className="timer-value">{String(timeRemaining.minutes).padStart(2, '0')}</span>
-                                                <span className="timer-unit-label">min</span>
-                                            </div>
-                                            <div className="timer-separator">:</div>
-                                            <div className="timer-unit">
-                                                <span className="timer-value">{String(timeRemaining.seconds).padStart(2, '0')}</span>
-                                                <span className="timer-unit-label">sec</span>
-                                            </div>
-                                        </>
-                                    )}
+                                        <div className="timer-separator">:</div>
+                                        <div className="timer-unit">
+                                            <span className="timer-value">{String(timeRemaining.minutes).padStart(2, '0')}</span>
+                                            <span className="timer-unit-label">min</span>
+                                        </div>
+                                        <div className="timer-separator">:</div>
+                                        <div className="timer-unit">
+                                            <span className="timer-value">{String(timeRemaining.seconds).padStart(2, '0')}</span>
+                                            <span className="timer-unit-label">sec</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                     {/* Step 2 */}
                     <div className="pickup-step-placeholder">
