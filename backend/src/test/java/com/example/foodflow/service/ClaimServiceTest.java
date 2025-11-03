@@ -2,7 +2,9 @@ package com.example.foodflow.service;
 
 import com.example.foodflow.model.dto.ClaimRequest;
 import com.example.foodflow.model.dto.ClaimResponse;
+import com.example.foodflow.model.dto.PickupSlotRequest;
 import com.example.foodflow.model.entity.Claim;
+import com.example.foodflow.model.entity.PickupSlot;
 import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.UserRole;
@@ -13,12 +15,15 @@ import com.example.foodflow.repository.SurplusPostRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -37,6 +42,9 @@ class ClaimServiceTest {
 
     @Mock
     private SurplusPostRepository surplusPostRepository;
+
+    @Mock
+    private SimpMessagingTemplate messagingTemplate;
 
     @InjectMocks
     private ClaimService claimService;
@@ -256,5 +264,245 @@ class ClaimServiceTest {
         
         verify(claimRepository, never()).save(any());
         verify(surplusPostRepository, never()).save(any());
+    }
+
+    // ========== PICKUP SLOT TESTS ==========
+
+    @Test
+    void claimSurplusPost_WithInlinePickupSlot_StoresConfirmedPickupTime() {
+        // Given
+        LocalDate pickupDate = LocalDate.now().plusDays(2);
+        LocalTime startTime = LocalTime.of(10, 0);
+        LocalTime endTime = LocalTime.of(12, 0);
+        
+        PickupSlotRequest pickupSlot = new PickupSlotRequest();
+        pickupSlot.setPickupDate(pickupDate);
+        pickupSlot.setStartTime(startTime);
+        pickupSlot.setEndTime(endTime);
+        
+        claimRequest.setPickupSlot(pickupSlot);
+        
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
+        
+        ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+        Claim savedClaim = new Claim(surplusPost, receiver);
+        savedClaim.setId(1L);
+        savedClaim.setConfirmedPickupDate(pickupDate);
+        savedClaim.setConfirmedPickupStartTime(startTime);
+        savedClaim.setConfirmedPickupEndTime(endTime);
+        when(claimRepository.save(claimCaptor.capture())).thenReturn(savedClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        // When
+        ClaimResponse response = claimService.claimSurplusPost(claimRequest, receiver);
+
+        // Then
+        assertThat(response).isNotNull();
+        Claim capturedClaim = claimCaptor.getValue();
+        assertThat(capturedClaim.getConfirmedPickupDate()).isEqualTo(pickupDate);
+        assertThat(capturedClaim.getConfirmedPickupStartTime()).isEqualTo(startTime);
+        assertThat(capturedClaim.getConfirmedPickupEndTime()).isEqualTo(endTime);
+    }
+
+    @Test
+    void claimSurplusPost_WithPickupSlotId_StoresConfirmedPickupTime() {
+        // Given
+        LocalDate pickupDate = LocalDate.now().plusDays(2);
+        LocalTime startTime = LocalTime.of(14, 0);
+        LocalTime endTime = LocalTime.of(16, 0);
+        
+        PickupSlot existingSlot = new PickupSlot();
+        existingSlot.setId(100L);
+        existingSlot.setPickupDate(pickupDate);
+        existingSlot.setStartTime(startTime);
+        existingSlot.setEndTime(endTime);
+        existingSlot.setSurplusPost(surplusPost);
+        
+        List<PickupSlot> pickupSlots = new ArrayList<>();
+        pickupSlots.add(existingSlot);
+        surplusPost.setPickupSlots(pickupSlots);
+        
+        claimRequest.setPickupSlotId(100L);
+        
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
+        
+        ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+        Claim savedClaim = new Claim(surplusPost, receiver);
+        savedClaim.setId(1L);
+        savedClaim.setConfirmedPickupDate(pickupDate);
+        savedClaim.setConfirmedPickupStartTime(startTime);
+        savedClaim.setConfirmedPickupEndTime(endTime);
+        when(claimRepository.save(claimCaptor.capture())).thenReturn(savedClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        // When
+        ClaimResponse response = claimService.claimSurplusPost(claimRequest, receiver);
+
+        // Then
+        assertThat(response).isNotNull();
+        Claim capturedClaim = claimCaptor.getValue();
+        assertThat(capturedClaim.getConfirmedPickupDate()).isEqualTo(pickupDate);
+        assertThat(capturedClaim.getConfirmedPickupStartTime()).isEqualTo(startTime);
+        assertThat(capturedClaim.getConfirmedPickupEndTime()).isEqualTo(endTime);
+    }
+
+    @Test
+    void claimSurplusPost_WithInvalidPickupSlotId_DoesNotSetConfirmedTime() {
+        // Given
+        PickupSlot existingSlot = new PickupSlot();
+        existingSlot.setId(100L);
+        existingSlot.setPickupDate(LocalDate.now().plusDays(2));
+        existingSlot.setStartTime(LocalTime.of(14, 0));
+        existingSlot.setEndTime(LocalTime.of(16, 0));
+        
+        List<PickupSlot> pickupSlots = new ArrayList<>();
+        pickupSlots.add(existingSlot);
+        surplusPost.setPickupSlots(pickupSlots);
+        
+        // Request a non-existent slot ID
+        claimRequest.setPickupSlotId(999L);
+        
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
+        
+        ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+        Claim savedClaim = new Claim(surplusPost, receiver);
+        savedClaim.setId(1L);
+        // Fallback to post's default times
+        savedClaim.setConfirmedPickupDate(surplusPost.getPickupDate());
+        savedClaim.setConfirmedPickupStartTime(surplusPost.getPickupFrom());
+        savedClaim.setConfirmedPickupEndTime(surplusPost.getPickupTo());
+        when(claimRepository.save(claimCaptor.capture())).thenReturn(savedClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        // When
+        ClaimResponse response = claimService.claimSurplusPost(claimRequest, receiver);
+
+        // Then - should fallback to post's default times
+        assertThat(response).isNotNull();
+        Claim capturedClaim = claimCaptor.getValue();
+        assertThat(capturedClaim.getConfirmedPickupDate()).isEqualTo(surplusPost.getPickupDate());
+        assertThat(capturedClaim.getConfirmedPickupStartTime()).isEqualTo(surplusPost.getPickupFrom());
+        assertThat(capturedClaim.getConfirmedPickupEndTime()).isEqualTo(surplusPost.getPickupTo());
+    }
+
+    @Test
+    void claimSurplusPost_WithoutPickupSlot_UsesFallbackTimes() {
+        // Given - no pickup slot provided in request
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
+        
+        ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+        Claim savedClaim = new Claim(surplusPost, receiver);
+        savedClaim.setId(1L);
+        savedClaim.setConfirmedPickupDate(surplusPost.getPickupDate());
+        savedClaim.setConfirmedPickupStartTime(surplusPost.getPickupFrom());
+        savedClaim.setConfirmedPickupEndTime(surplusPost.getPickupTo());
+        when(claimRepository.save(claimCaptor.capture())).thenReturn(savedClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        // When
+        ClaimResponse response = claimService.claimSurplusPost(claimRequest, receiver);
+
+        // Then - should use post's default pickup times
+        assertThat(response).isNotNull();
+        Claim capturedClaim = claimCaptor.getValue();
+        assertThat(capturedClaim.getConfirmedPickupDate()).isEqualTo(surplusPost.getPickupDate());
+        assertThat(capturedClaim.getConfirmedPickupStartTime()).isEqualTo(surplusPost.getPickupFrom());
+        assertThat(capturedClaim.getConfirmedPickupEndTime()).isEqualTo(surplusPost.getPickupTo());
+    }
+
+    @Test
+    void claimSurplusPost_WithPickupSlot_SetsStatusToClaimedWhenFuture() {
+        // Given - pickup date is in the future
+        LocalDate futureDate = LocalDate.now().plusDays(3);
+        PickupSlotRequest pickupSlot = new PickupSlotRequest();
+        pickupSlot.setPickupDate(futureDate);
+        pickupSlot.setStartTime(LocalTime.of(10, 0));
+        pickupSlot.setEndTime(LocalTime.of(12, 0));
+        
+        claimRequest.setPickupSlot(pickupSlot);
+        surplusPost.setPickupDate(futureDate);
+        
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
+        
+        Claim savedClaim = new Claim(surplusPost, receiver);
+        savedClaim.setId(1L);
+        when(claimRepository.save(any(Claim.class))).thenReturn(savedClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        // When
+        claimService.claimSurplusPost(claimRequest, receiver);
+
+        // Then - status should be CLAIMED (not READY_FOR_PICKUP)
+        verify(surplusPostRepository).save(argThat(post -> 
+            post.getStatus() == PostStatus.CLAIMED
+        ));
+    }
+
+    @Test
+    void claimSurplusPost_WithPickupSlotInPast_SetsStatusToReadyForPickup() {
+        // Given - pickup date is in the past
+        LocalDate pastDate = LocalDate.now().minusDays(1);
+        PickupSlotRequest pickupSlot = new PickupSlotRequest();
+        pickupSlot.setPickupDate(pastDate);
+        pickupSlot.setStartTime(LocalTime.of(10, 0));
+        pickupSlot.setEndTime(LocalTime.of(12, 0));
+        
+        claimRequest.setPickupSlot(pickupSlot);
+        surplusPost.setPickupDate(pastDate);
+        
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
+        
+        Claim savedClaim = new Claim(surplusPost, receiver);
+        savedClaim.setId(1L);
+        when(claimRepository.save(any(Claim.class))).thenReturn(savedClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        // When
+        claimService.claimSurplusPost(claimRequest, receiver);
+
+        // Then - status should be READY_FOR_PICKUP and OTP code generated
+        verify(surplusPostRepository).save(argThat(post -> 
+            post.getStatus() == PostStatus.READY_FOR_PICKUP && 
+            post.getOtpCode() != null && 
+            !post.getOtpCode().isEmpty()
+        ));
+    }
+
+    @Test
+    void claimSurplusPost_WithPickupSlotToday_ChecksCurrentTime() {
+        // Given - pickup is today but hasn't started yet
+        LocalDate today = LocalDate.now();
+        LocalTime futureTime = LocalTime.now().plusHours(2);
+        
+        PickupSlotRequest pickupSlot = new PickupSlotRequest();
+        pickupSlot.setPickupDate(today);
+        pickupSlot.setStartTime(futureTime);
+        pickupSlot.setEndTime(futureTime.plusHours(2));
+        
+        claimRequest.setPickupSlot(pickupSlot);
+        surplusPost.setPickupDate(today);
+        surplusPost.setPickupFrom(futureTime);
+        
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
+        
+        Claim savedClaim = new Claim(surplusPost, receiver);
+        savedClaim.setId(1L);
+        when(claimRepository.save(any(Claim.class))).thenReturn(savedClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        // When
+        claimService.claimSurplusPost(claimRequest, receiver);
+
+        // Then - status should be CLAIMED since pickup hasn't started
+        verify(surplusPostRepository).save(argThat(post -> 
+            post.getStatus() == PostStatus.CLAIMED
+        ));
     }
 }
