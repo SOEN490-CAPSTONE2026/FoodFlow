@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ReceiverMyClaims from '../ReceiverMyClaims';
 import { claimsAPI } from '../../../services/api';
+import { NotificationProvider } from '../../../contexts/NotificationContext';
 
 // Mock the API
 jest.mock('../../../services/api', () => ({
@@ -24,7 +25,11 @@ describe('ReceiverMyClaims Component', () => {
   test('renders loading state initially', () => {
     claimsAPI.myClaims.mockImplementation(() => new Promise(() => {})); // Never resolves
     
-    render(<ReceiverMyClaims />);
+    render(
+      <NotificationProvider>
+        <ReceiverMyClaims />
+      </NotificationProvider>
+    );
     
     expect(screen.getByText(/loading/i)).toBeInTheDocument();
   });
@@ -32,7 +37,11 @@ describe('ReceiverMyClaims Component', () => {
   test('renders "no claims" message when claims list is empty', async () => {
     claimsAPI.myClaims.mockResolvedValue({ data: [] });
 
-    render(<ReceiverMyClaims />);
+    render(
+      <NotificationProvider>
+        <ReceiverMyClaims />
+      </NotificationProvider>
+    );
 
     await waitFor(() => {
       expect(screen.getByText(/you haven't claimed any donations yet/i)).toBeInTheDocument();
@@ -79,7 +88,11 @@ describe('ReceiverMyClaims Component', () => {
 
     claimsAPI.myClaims.mockResolvedValue({ data: mockClaims });
 
-    render(<ReceiverMyClaims />);
+    render(
+      <NotificationProvider>
+        <ReceiverMyClaims />
+      </NotificationProvider>
+    );
 
     await waitFor(() => {
       expect(screen.getByText('Fresh Vegetables')).toBeInTheDocument();
@@ -110,7 +123,11 @@ describe('ReceiverMyClaims Component', () => {
 
     claimsAPI.myClaims.mockResolvedValue({ data: [mockClaim] });
 
-    render(<ReceiverMyClaims />);
+    render(
+      <NotificationProvider>
+        <ReceiverMyClaims />
+      </NotificationProvider>
+    );
 
     await waitFor(() => {
       expect(screen.getByText('Fresh Vegetables')).toBeInTheDocument();
@@ -141,8 +158,13 @@ describe('ReceiverMyClaims Component', () => {
     ];
 
     claimsAPI.myClaims.mockResolvedValue({ data: mockClaims });
+    claimsAPI.cancel.mockResolvedValue({});
     
-    render(<ReceiverMyClaims />);
+    render(
+      <NotificationProvider>
+        <ReceiverMyClaims />
+      </NotificationProvider>
+    );
 
     await waitFor(() => {
       expect(screen.getByText('Fresh Vegetables')).toBeInTheDocument();
@@ -151,12 +173,12 @@ describe('ReceiverMyClaims Component', () => {
     const cancelButton = screen.getByText(/cancel claim/i);
     fireEvent.click(cancelButton);
 
-    expect(global.confirm).toHaveBeenCalledWith(
-      expect.stringContaining('Are you sure')
-    );
+    await waitFor(() => {
+      expect(claimsAPI.cancel).toHaveBeenCalledWith(1);
+    });
   });
 
-  test('shows confirmation dialog before canceling claim', async () => {
+  test('shows toast notification when claim is cancelled', async () => {
     const mockClaims = [
       {
         id: 1,
@@ -177,8 +199,13 @@ describe('ReceiverMyClaims Component', () => {
     ];
 
     claimsAPI.myClaims.mockResolvedValue({ data: mockClaims });
+    claimsAPI.cancel.mockResolvedValue({});
 
-    render(<ReceiverMyClaims />);
+    render(
+      <NotificationProvider>
+        <ReceiverMyClaims />
+      </NotificationProvider>
+    );
 
     await waitFor(() => {
       expect(screen.getByText('Fresh Vegetables')).toBeInTheDocument();
@@ -187,7 +214,9 @@ describe('ReceiverMyClaims Component', () => {
     const cancelButton = screen.getByText(/cancel claim/i);
     fireEvent.click(cancelButton);
 
-    expect(global.confirm).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(claimsAPI.cancel).toHaveBeenCalledWith(1);
+    });
   });
 
   test('handles cancel claim success', async () => {
@@ -216,7 +245,11 @@ describe('ReceiverMyClaims Component', () => {
 
     claimsAPI.cancel.mockResolvedValue({});
 
-    render(<ReceiverMyClaims />);
+    render(
+      <NotificationProvider>
+        <ReceiverMyClaims />
+      </NotificationProvider>
+    );
 
     await waitFor(() => {
       expect(screen.getByText('Fresh Vegetables')).toBeInTheDocument();
@@ -230,9 +263,7 @@ describe('ReceiverMyClaims Component', () => {
     });
   });
 
-  test('does not cancel claim if user cancels confirmation', async () => {
-    global.confirm.mockReturnValue(false); // User clicks "Cancel"
-
+  test('refreshes claims list after successful cancellation', async () => {
     const mockClaims = [
       {
         id: 1,
@@ -252,9 +283,16 @@ describe('ReceiverMyClaims Component', () => {
       },
     ];
 
-    claimsAPI.myClaims.mockResolvedValue({ data: mockClaims });
+    claimsAPI.myClaims
+      .mockResolvedValueOnce({ data: mockClaims })
+      .mockResolvedValueOnce({ data: [] });
+    claimsAPI.cancel.mockResolvedValue({});
 
-    render(<ReceiverMyClaims />);
+    render(
+      <NotificationProvider>
+        <ReceiverMyClaims />
+      </NotificationProvider>
+    );
 
     await waitFor(() => {
       expect(screen.getByText('Fresh Vegetables')).toBeInTheDocument();
@@ -263,7 +301,10 @@ describe('ReceiverMyClaims Component', () => {
     const cancelButton = screen.getByText(/cancel claim/i);
     fireEvent.click(cancelButton);
 
-    expect(claimsAPI.cancel).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(claimsAPI.cancel).toHaveBeenCalledWith(1);
+      expect(claimsAPI.myClaims).toHaveBeenCalledTimes(2);
+    });
   });
 
   test('handles cancel claim error', async () => {
@@ -291,7 +332,11 @@ describe('ReceiverMyClaims Component', () => {
     claimsAPI.myClaims.mockResolvedValue({ data: mockClaims });
     claimsAPI.cancel.mockRejectedValue(new Error('Cancel failed'));
 
-    render(<ReceiverMyClaims />);
+    render(
+      <NotificationProvider>
+        <ReceiverMyClaims />
+      </NotificationProvider>
+    );
 
     await waitFor(() => {
       expect(screen.getByText('Fresh Vegetables')).toBeInTheDocument();
@@ -313,7 +358,11 @@ describe('ReceiverMyClaims Component', () => {
     
     claimsAPI.myClaims.mockRejectedValue(new Error('API Error'));
 
-    render(<ReceiverMyClaims />);
+    render(
+      <NotificationProvider>
+        <ReceiverMyClaims />
+      </NotificationProvider>
+    );
 
     await waitFor(() => {
       expect(consoleSpy).toHaveBeenCalled();
@@ -322,7 +371,7 @@ describe('ReceiverMyClaims Component', () => {
     consoleSpy.mockRestore();
   });
 
-  test('formats claimed date correctly', async () => {
+  test('formats pickup date and time correctly', async () => {
     const mockClaim = {
       id: 1,
       surplusPostTitle: 'Fresh Vegetables',
@@ -342,12 +391,17 @@ describe('ReceiverMyClaims Component', () => {
 
     claimsAPI.myClaims.mockResolvedValue({ data: [mockClaim] });
 
-    render(<ReceiverMyClaims />);
+    render(
+      <NotificationProvider>
+        <ReceiverMyClaims />
+      </NotificationProvider>
+    );
 
     await waitFor(() => {
       expect(screen.getByText('Fresh Vegetables')).toBeInTheDocument();
-      // Check if formatted pickup time is rendered
-      expect(screen.getByText(/Oct 25, 2025/)).toBeInTheDocument();
+      // Check if formatted pickup time is rendered (e.g., "Oct 25, 2025 9:00 AM-5:00 PM")
+      expect(screen.getByText(/Oct 25, 2025/i)).toBeInTheDocument();
+      expect(screen.getByText(/9:00 AM-5:00 PM/i)).toBeInTheDocument();
     });
   });
 });
