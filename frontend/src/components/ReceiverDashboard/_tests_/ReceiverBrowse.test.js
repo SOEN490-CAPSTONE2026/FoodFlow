@@ -118,7 +118,7 @@ describe("ReceiverBrowse Component", () => {
         {
           id: 1,
           title: "Fresh Organic Apples",
-          foodCategories: ["FRUITS_VEGETABLES"], // Backend enum format
+          foodCategories: ["FRUITS_VEGETABLES"], 
           expiryDate: "2025-11-08",
           pickupLocation: { address: "Downtown Montreal" }, // Location object
           pickupDate: "2025-11-06",
@@ -177,7 +177,7 @@ describe("ReceiverBrowse Component", () => {
         {
           id: 2,
           title: "Artisan Bread Assortment",
-          foodCategories: ["BAKERY_PASTRY"],
+          foodCategories: ["BAKED_GOODS"],
           expiryDate: "2025-11-05",
           pickupLocation: { address: "Plateau Mont-Royal" },
           pickupDate: "2025-11-05",
@@ -245,7 +245,7 @@ describe("ReceiverBrowse Component", () => {
         {
           id: 1,
           title: "Mixed Food Box",
-          foodCategories: ["FRUITS_VEGETABLES", "BAKERY_PASTRY", "DAIRY_COLD"], // Multiple categories
+          foodCategories: ["FRUITS_VEGETABLES", "BAKED_GOODS", "DAIRY"], 
           expiryDate: "2025-11-08",
           pickupLocation: { address: "Downtown Montreal" },
           pickupDate: "2025-11-06",
@@ -593,7 +593,7 @@ describe("ReceiverBrowse Component", () => {
         {
           id: 1,
           title: "Bakery Item",
-          foodCategories: ["BAKERY_PASTRY"], // Using the correct enum from your backend
+          foodCategories: ["BAKED_GOODS"], 
           expiryDate: "2025-11-08",
           pickupLocation: { address: "Test Location" },
           pickupDate: "2025-11-06",

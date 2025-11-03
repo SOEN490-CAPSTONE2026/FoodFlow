@@ -156,9 +156,6 @@ function ReceiverLayoutContent() {
                 ? "active" : ""
               }`}
           >
-            <span className="nav-icon" aria-hidden>
-              <CheckCircle size={18} className="lucide" />
-            </span>
             My Claims
           </Link>
 
