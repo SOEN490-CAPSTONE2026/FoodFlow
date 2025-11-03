@@ -413,7 +413,11 @@ describe("ReceiverBrowse Component", () => {
       );
       
       await waitFor(() => {
-        expect(surplusAPI.claim).toHaveBeenCalledWith(1);
+        expect(surplusAPI.claim).toHaveBeenCalledWith(1, {
+          pickupDate: "2025-11-06",
+          startTime: "14:00:00",
+          endTime: "17:00:00"
+        });
       });
     });
   });
