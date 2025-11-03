@@ -393,8 +393,7 @@ export default function DonorListFood() {
                 <p className="donation-notes">{item.description}</p>
               )}
 
-              {item.status === "AVAILABLE" ||
-              item.status === "NOT_COMPLETED" ? (
+              {item.status === "AVAILABLE" ? (
                 <div className="donation-actions">
                   <button
                     className="donation-link"
@@ -407,6 +406,15 @@ export default function DonorListFood() {
                     onClick={() => requestDelete(item.id)}
                   >
                     <Trash2 className="icon" /> Delete
+                  </button>
+                </div>
+              ) : item.status === "NOT_COMPLETED" ? (
+                <div className="donation-actions">
+                  <button
+                    className="donation-action-button primary"
+                    onClick={() => alert('Reschedule functionality coming soon!')}
+                  >
+                    RESCHEDULE
                   </button>
                 </div>
               ) : (

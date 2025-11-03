@@ -203,7 +203,7 @@ describe("DonorListFood", () => {
     expect(within(appleCard).getByText(/Pickup:/)).toBeInTheDocument();
   });
 
-  test("shows edit and delete buttons for each donation after loading data", async () => {
+  test("shows edit and delete buttons for AVAILABLE status donations", async () => {
     surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
 
     setup();
@@ -212,11 +212,43 @@ describe("DonorListFood", () => {
       expect(screen.getByLabelText(/fresh apples/i)).toBeInTheDocument();
     });
 
+    // Only the AVAILABLE item should have edit and delete buttons
     const editButtons = screen.getAllByRole("button", { name: /edit/i });
     const deleteButtons = screen.getAllByRole("button", { name: /delete/i });
 
-    expect(editButtons).toHaveLength(2);
-    expect(deleteButtons).toHaveLength(2);
+    expect(editButtons).toHaveLength(1);
+    expect(deleteButtons).toHaveLength(1);
+  });
+
+  test("shows reschedule button for NOT_COMPLETED status donations", async () => {
+    surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
+
+    setup();
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/artisan bread selection/i)).toBeInTheDocument();
+    });
+
+    const rescheduleButton = screen.getByRole("button", { name: /reschedule/i });
+    expect(rescheduleButton).toBeInTheDocument();
+  });
+
+  test("reschedule button shows alert when clicked", async () => {
+    surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
+    const user = userEvent.setup();
+
+    setup();
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/artisan bread selection/i)).toBeInTheDocument();
+    });
+
+    const rescheduleButton = screen.getByRole("button", { name: /reschedule/i });
+    await user.click(rescheduleButton);
+
+    expect(window.alert).toHaveBeenCalledWith(
+      "Reschedule functionality coming soon!"
+    );
   });
 
   test("edit button shows alert when clicked", async () => {
