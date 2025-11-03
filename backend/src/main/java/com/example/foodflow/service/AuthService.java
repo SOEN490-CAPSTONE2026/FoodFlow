@@ -136,24 +136,31 @@ public class AuthService {
 
     public AuthResponse login(LoginRequest request) {
         log.info("Login attempt for email: {}", request.getEmail());
-        
-        User user = userRepository.findByEmail(request.getEmail())
-            .orElseThrow(() -> {
-                log.warn("Login failed: User not found: {}", request.getEmail());
-                return new RuntimeException("User not found");
+        metricsService.incrementLoginAttempt();       
+        try {
+            User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> {
+                    log.warn("Login failed: User not found: {}", request.getEmail());
+                    metricsService.incrementAuthFailure("user_not_found");
+                    return new RuntimeException("User not found");
             });
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            log.warn("Login failed: Invalid credentials for user: {}", request.getEmail());
-            throw new RuntimeException("Invalid credentials");
+            if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+                    log.warn("Login failed: Invalid credentials for user: {}", request.getEmail());
+                    metricsService.incrementAuthFailure("invalid_credentials");
+                    throw new RuntimeException("Invalid credentials");
+            }
+
+            String token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole().toString());
+
+            metricsService.incrementLoginSuccess();
+
+            log.info("Login successful: email={}, role={}", user.getEmail(), user.getRole());
+            return new AuthResponse(token, user.getEmail(), user.getRole().toString(), "Account logged in successfully.");
+        } catch (RuntimeException e) {
+            // Already logged failure metrics above
+            throw e;
         }
-
-        String token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole().toString());
-
-        metricsService.incrementLoginSuccess();
-
-        log.info("Login successful: email={}, role={}", user.getEmail(), user.getRole());
-        return new AuthResponse(token, user.getEmail(), user.getRole().toString(), "Account logged in successfully.");
     }
 
     public AuthResponse logout(LogoutRequest request) {

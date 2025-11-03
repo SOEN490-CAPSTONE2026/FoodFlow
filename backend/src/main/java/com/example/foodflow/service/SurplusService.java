@@ -11,6 +11,8 @@ import com.example.foodflow.model.types.ClaimStatus;
 import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.repository.ClaimRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
+import io.micrometer.core.annotation.Timed;
+import io.micrometer.core.instrument.Timer;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,20 +27,25 @@ public class SurplusService {
     private final SurplusPostRepository surplusPostRepository;
     private final ClaimRepository claimRepository;
     private final PickupSlotValidationService pickupSlotValidationService;
+    private final BusinessMetricsService businessMetricsService;
 
     public SurplusService(SurplusPostRepository surplusPostRepository, 
                          ClaimRepository claimRepository,
-                         PickupSlotValidationService pickupSlotValidationService) {
+                         PickupSlotValidationService pickupSlotValidationService,
+                         BusinessMetricsService businessMetricsService) {
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;
         this.pickupSlotValidationService = pickupSlotValidationService;
+        this.businessMetricsService = businessMetricsService;
     }
     
     /**
      * Creates a new SurplusPost from the request DTO and saves it to the database.
      */
     @Transactional
+    @Timed(value = "surplus.service.create", description = "Time taken to create a surplus post")
     public SurplusResponse createSurplusPost(CreateSurplusRequest request, User donor) {
+        Timer.Sample sample = businessMetricsService.startTimer();
         SurplusPost post = new SurplusPost();
         
         post.setDonor(donor);
@@ -109,12 +116,17 @@ public class SurplusService {
         }
 
         SurplusPost savedPost = surplusPostRepository.save(post);
+
+        businessMetricsService.incrementSurplusPostCreated();
+        businessMetricsService.recordTimer(sample, "surplus.service.create", "status", savedPost.getStatus().toString());
+
         return convertToResponse(savedPost);
     }
     
     /**
      * Retrieves all surplus posts for a given user.
      */
+    @Timed(value = "surplus.service.getUserPosts", description = "Time taken to get user surplus posts")
     public List<SurplusResponse> getUserSurplusPosts(User user) {
         return surplusPostRepository.findByDonorId(user.getId())
                 .stream()
@@ -167,7 +179,9 @@ public class SurplusService {
     }
 
     @Transactional
+    @Timed(value = "surplus.service.complete", description = "Time taken to complete a surplus post")
     public SurplusResponse completeSurplusPost(Long postId, String otpCode, User donor) {
+        Timer.Sample sample = businessMetricsService.startTimer();
         // Fetch the surplus post
         SurplusPost post = surplusPostRepository.findById(postId)
             .orElseThrow(() -> new RuntimeException("Surplus post not found"));
@@ -187,6 +201,9 @@ public class SurplusService {
         // Mark as completed
         post.setStatus(PostStatus.COMPLETED);
         SurplusPost updatedPost = surplusPostRepository.save(post);
+
+        businessMetricsService.incrementSurplusPostCompleted();
+        businessMetricsService.recordTimer(sample, "surplus.service.complete", "status", "complete");
 
         return convertToResponse(updatedPost);
     }
