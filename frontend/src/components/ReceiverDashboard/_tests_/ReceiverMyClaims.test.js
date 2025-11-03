@@ -346,8 +346,8 @@ describe('ReceiverMyClaims Component', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Fresh Vegetables')).toBeInTheDocument();
-      // Check if pickup date is rendered
-      expect(screen.getByText('2025-10-25')).toBeInTheDocument();
+      // Check if formatted pickup time is rendered
+      expect(screen.getByText(/Oct 25, 2025/)).toBeInTheDocument();
     });
   });
 });

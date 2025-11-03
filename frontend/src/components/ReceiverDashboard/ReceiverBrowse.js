@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   Calendar,
   MapPin,
@@ -13,6 +13,7 @@ import {
 import { LoadScript } from "@react-google-maps/api";
 import { surplusAPI } from "../../services/api";
 import FiltersPanel from "./FiltersPanel";
+import "./ReceiverBrowseModal.css";
 import BakeryPastryImage from "../../assets/foodtypes/Pastry&Bakery.jpg";
 import FruitsVeggiesImage from "../../assets/foodtypes/Fruits&Vegetables.jpg";
 import PackagedPantryImage from "../../assets/foodtypes/PackagedItems.jpg";
@@ -49,6 +50,10 @@ export default function ReceiverBrowse() {
   const [error, setError] = useState(null);
   const [expandedCardId, setExpandedCardId] = useState(null);
   const [bookmarkedItems, setBookmarkedItems] = useState(new Set());
+  const [claimModalOpen, setClaimModalOpen] = useState(false);
+  const [claimTargetItem, setClaimTargetItem] = useState(null);
+  const [selectedSlotIndex, setSelectedSlotIndex] = useState(0);
+  const [claiming, setClaiming] = useState(false);
 
   // Filter handlers
   const handleFiltersChange = (filterType, value) => {
@@ -159,23 +164,48 @@ export default function ReceiverBrowse() {
     console.log("Bookmarking:", item);
   }, []);
 
-  const handleClaimDonation = async (item) => {
+  // Open claim flow: if post contains pickupSlots, open modal to select one.
+  const handleClaimDonation = (item) => {
+    if (item.pickupSlots && Array.isArray(item.pickupSlots) && item.pickupSlots.length > 0) {
+      setClaimTargetItem(item);
+      setSelectedSlotIndex(0);
+      setClaimModalOpen(true);
+      return;
+    }
+
+    // Fallback: no slots array, confirm directly and send legacy fields
     if (!window.confirm("Are you sure you want to claim this donation?")) {
       return;
     }
 
-    try {
-      await surplusAPI.claim(item.id);
-      alert('Successfully claimed! Check "My Claims" tab.');
+    // Build a legacy-style slot payload from root fields if present
+    const legacySlot = (item.pickupDate && item.pickupFrom && item.pickupTo) ? {
+      pickupDate: item.pickupDate,
+      startTime: item.pickupFrom,
+      endTime: item.pickupTo
+    } : null;
 
+    confirmClaim(item, legacySlot);
+  };
+
+  const confirmClaim = async (item, slot) => {
+    setClaiming(true);
+    try {
+      await surplusAPI.claim(item.id, slot);
+      alert('Successfully claimed! Check "My Claims" tab.');
       // Remove from available list
-      setItems(items.filter((post) => post.id !== item.id));
+      setItems((prev) => prev.filter((post) => post.id !== item.id));
+      // close modal if open
+      setClaimModalOpen(false);
+      setClaimTargetItem(null);
     } catch (error) {
       console.error("Error claiming post:", error);
       alert(
         error.response?.data?.message ||
           "Failed to claim. It may have already been claimed."
       );
+    } finally {
+      setClaiming(false);
     }
   };
 
@@ -507,13 +537,27 @@ export default function ReceiverBrowse() {
                           size={16}
                           className="receiver-info-icon-time-icon"
                         />
-                        <span>
-                          {formatPickupTime(
-                            item.pickupDate,
-                            item.pickupFrom,
-                            item.pickupTo
-                          )}
-                        </span>
+                        {item.pickupSlots && item.pickupSlots.length > 0 ? (
+                          <div className="pickup-slots-list">
+                            {item.pickupSlots.map((slot, idx) => (
+                              <div key={idx} className="pickup-slot-time">
+                                {formatPickupTime(
+                                  slot.pickupDate || slot.date,
+                                  slot.startTime || slot.pickupFrom,
+                                  slot.endTime || slot.pickupTo
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <span>
+                            {formatPickupTime(
+                              item.pickupDate,
+                              item.pickupFrom,
+                              item.pickupTo
+                            )}
+                          </span>
+                        )}
                       </div>
                     </div>
 
@@ -556,7 +600,7 @@ export default function ReceiverBrowse() {
                             </div>
                             <div className="receiver-detail-item">
                               <span className="receiver-detail-label">
-                                Pickup Time
+                                Pickup Time{item.pickupSlots && item.pickupSlots.length > 1 ? 's' : ''}
                               </span>
                               <div className="receiver-detail-value">
                                 <Clock
@@ -567,10 +611,25 @@ export default function ReceiverBrowse() {
                                     marginRight: "8px",
                                   }}
                                 />
-                                {formatPickupTime(
-                                  item.pickupDate,
-                                  item.pickupFrom,
-                                  item.pickupTo
+                                {item.pickupSlots && item.pickupSlots.length > 0 ? (
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                    {item.pickupSlots.map((slot, idx) => (
+                                      <div key={idx}>
+                                        {formatPickupTime(
+                                          slot.pickupDate || slot.date,
+                                          slot.startTime || slot.pickupFrom,
+                                          slot.endTime || slot.pickupTo
+                                        )}
+                                        {slot.notes && <span style={{ fontSize: '12px', color: '#6c757d', marginLeft: '8px' }}>({slot.notes})</span>}
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  formatPickupTime(
+                                    item.pickupDate,
+                                    item.pickupFrom,
+                                    item.pickupTo
+                                  )
                                 )}
                               </div>
                             </div>
@@ -611,7 +670,6 @@ export default function ReceiverBrowse() {
                               </div>
                             </div>
                           </div>
-                        </div>
 
                         {item.description && (
                           <div className="receiver-donor-note">
@@ -629,6 +687,7 @@ export default function ReceiverBrowse() {
                             Posted {formatPostedTime(item.createdAt)}
                           </div>
                         )}
+                        </div>
                       </div>
                     )}
 
@@ -636,8 +695,9 @@ export default function ReceiverBrowse() {
                       <button
                         onClick={() => handleClaimDonation(item)}
                         className="receiver-claim-button"
+                        disabled={claiming}
                       >
-                        Claim Donation
+                        {claiming && claimTargetItem?.id === item.id ? 'Claiming...' : 'Claim Donation'}
                       </button>
                       <button
                         onClick={() => handleMoreClick(item)}
@@ -666,6 +726,81 @@ export default function ReceiverBrowse() {
           </div>
         )}
       </div>
+      <ClaimModal
+        open={claimModalOpen}
+        item={claimTargetItem}
+        selectedIndex={selectedSlotIndex}
+        onSelectIndex={(idx) => setSelectedSlotIndex(idx)}
+        onConfirm={(slot) => confirmClaim(claimTargetItem, slot)}
+        onClose={() => { setClaimModalOpen(false); setClaimTargetItem(null); }}
+        loading={claiming}
+        formatFn={formatPickupTime}
+      />
     </LoadScript>
   );
 }
+
+// Claim modal JSX: render at end so it overlays the page when open
+function ClaimModal({ open, item, selectedIndex, onSelectIndex, onConfirm, onClose, loading, formatFn }) {
+  if (!open || !item) return null;
+
+  const slots = Array.isArray(item.pickupSlots) ? item.pickupSlots : [];
+
+  return (
+    <div className="claim-modal-overlay" role="dialog" aria-modal="true">
+      <div className="claim-modal-card">
+        <h3>Choose a pickup slot</h3>
+        {slots.length === 0 && (
+          <div className="claim-modal-empty">No proposed slots available.</div>
+        )}
+        <div className="claim-slots-list">
+          {slots.map((slot, idx) => {
+            const date = slot.pickupDate || slot.date || '';
+            const from = slot.startTime || slot.pickupFrom || slot.from || '';
+            const to = slot.endTime || slot.pickupTo || slot.to || '';
+            const display = formatFn ? formatFn(date, from, to) : '';
+            return (
+              <label key={idx} className={`claim-slot-item ${selectedIndex === idx ? 'selected' : ''}`}>
+                <input
+                  type="radio"
+                  name="pickupSlot"
+                  checked={selectedIndex === idx}
+                  onChange={() => onSelectIndex(idx)}
+                />
+                <div className="claim-slot-content">
+                  <div className="claim-slot-time">{display}</div>
+                  {slot.notes && <div className="claim-slot-notes">{slot.notes}</div>}
+                </div>
+              </label>
+            );
+          })}
+        </div>
+
+        <div className="claim-modal-actions">
+          <button className="btn btn-secondary" onClick={onClose} disabled={loading}>Cancel</button>
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              const selectedSlot = slots[selectedIndex];
+              // Normalize slot to sender-friendly shape: pickupDate, startTime, endTime, notes
+              const normalized = selectedSlot ? {
+                pickupDate: selectedSlot.pickupDate || selectedSlot.date,
+                startTime: selectedSlot.startTime || selectedSlot.pickupFrom,
+                endTime: selectedSlot.endTime || selectedSlot.pickupTo,
+                notes: selectedSlot.notes || null,
+                id: selectedSlot.id || undefined,
+              } : null;
+              onConfirm(normalized);
+            }}
+            disabled={loading || slots.length === 0}
+          >
+            {loading ? 'Confirming...' : 'Confirm & Claim'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Attach ClaimModal into module scope by exporting nothing (component uses in-file function call)
+
