@@ -81,9 +81,18 @@ const mockItems = [
       unit: "LOAF",
     },
     expiryDate: "2025-10-02",
-    pickupDate: "2025-10-01",
-    pickupFrom: "09:00",
-    pickupTo: "12:00",
+    pickupSlots: [
+      {
+        pickupDate: "2025-10-01",
+        startTime: "09:00",
+        endTime: "12:00",
+      },
+      {
+        pickupDate: "2025-10-02",
+        startTime: "14:00",
+        endTime: "17:00",
+      },
+    ],
     pickupLocation: { address: "456 Oak Ave, Town, State 67890" },
     description: "Fresh sourdough, whole wheat, and gluten-free options",
     status: "NOT_COMPLETED",
@@ -180,10 +189,10 @@ describe("DonorListFood", () => {
     });
 
     const appleCard = screen.getByLabelText(/fresh apples/i);
-    expect(within(appleCard).getByText(/5 KILOGRAM/i)).toBeInTheDocument(); //TODO: to be modified later
+    expect(within(appleCard).getByText(/5 KILOGRAM/i)).toBeInTheDocument();
     expect(within(appleCard).getByText(/Available/i)).toBeInTheDocument();
     expect(
-      within(appleCard).getByText(/FRUITS_VEGETABLES/i) //TODO: to be modified later
+      within(appleCard).getByText(/FRUITS_VEGETABLES/i)
     ).toBeInTheDocument();
   });
 
@@ -201,6 +210,25 @@ describe("DonorListFood", () => {
       within(appleCard).getByText(/Expires: 2025-10-08/)
     ).toBeInTheDocument();
     expect(within(appleCard).getByText(/Pickup:/)).toBeInTheDocument();
+  });
+
+  test("displays multiple pickup slots when available", async () => {
+    surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
+
+    setup();
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/artisan bread selection/i)).toBeInTheDocument();
+    });
+
+    const breadCard = screen.getByLabelText(/artisan bread selection/i);
+    
+    // Should display "Pickup:" label once
+    const pickupLabels = within(breadCard).getAllByText(/Pickup:/i);
+    expect(pickupLabels).toHaveLength(1);
+    
+    // Should display the divider between slots
+    expect(within(breadCard).getByText(/\|/)).toBeInTheDocument();
   });
 
   test("shows edit and delete buttons for AVAILABLE status donations", async () => {

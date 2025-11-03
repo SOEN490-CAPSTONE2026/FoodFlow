@@ -56,7 +56,7 @@ function formatPickupTime(pickupDate, pickupFrom, pickupTo) {
     // Parse the date string as local date
     const [year, month, day] = pickupDate.split('-').map(Number);
     const date = new Date(year, month - 1, day);
-    
+
     const dateStr = date.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
@@ -323,16 +323,16 @@ export default function DonorListFood() {
                   {item.status === "AVAILABLE"
                     ? "Available"
                     : item.status === "READY_FOR_PICKUP"
-                    ? "Ready for Pickup"
-                    : item.status === "CLAIMED"
-                    ? "Claimed"
-                    : item.status === "NOT_COMPLETED"
-                    ? "Not Completed"
-                    : item.status === "COMPLETED"
-                    ? "Completed"
-                    : item.status === "EXPIRED"
-                    ? "Expired"
-                    : item.status}
+                      ? "Ready for Pickup"
+                      : item.status === "CLAIMED"
+                        ? "Claimed"
+                        : item.status === "NOT_COMPLETED"
+                          ? "Not Completed"
+                          : item.status === "COMPLETED"
+                            ? "Completed"
+                            : item.status === "EXPIRED"
+                              ? "Expired"
+                              : item.status}
                 </span>
               </div>
 
@@ -358,14 +358,35 @@ export default function DonorListFood() {
                 </li>
                 <li>
                   <Clock size={16} className="time-icon" />
-                  <span>
-                    Pickup:{" "}
-                    {formatPickupTime(
-                      item.pickupDate,
-                      item.pickupFrom,
-                      item.pickupTo
+                  <div className="pickup-times-container">
+                    <span className="pickup-label">Pickup:</span>
+                    {item.pickupSlots && item.pickupSlots.length > 0 ? (
+                      <>
+                        {item.pickupSlots.map((slot, idx) => (
+                          <React.Fragment key={idx}>
+                            <span className="pickup-time-item">
+                              {formatPickupTime(
+                                slot.pickupDate || slot.date,
+                                slot.startTime || slot.pickupFrom,
+                                slot.endTime || slot.pickupTo
+                              )}
+                            </span>
+                            {idx < item.pickupSlots.length - 1 && (
+                              <span className="pickup-time-divider">|</span>
+                            )}
+                          </React.Fragment>
+                        ))}
+                      </>
+                    ) : (
+                      <span className="pickup-time-item">
+                        {formatPickupTime(
+                          item.pickupDate,
+                          item.pickupFrom,
+                          item.pickupTo
+                        )}
+                      </span>
                     )}
-                  </span>
+                  </div>
                 </li>
                 <li>
                   <MapPin size={16} className="locationMap-icon" />
