@@ -13,6 +13,7 @@ public class ClaimResponse {
     private LocalDateTime claimedAt;
     private String status;
     private SurplusResponse surplusPost;
+    private PickupSlotResponse confirmedPickupSlot;
     
     // No-arg constructor for testing/serialization
     public ClaimResponse() {}
@@ -27,6 +28,14 @@ public class ClaimResponse {
         this.claimedAt = claim.getClaimedAt();
         this.status = claim.getStatus().getDisplayName();
         this.surplusPost = new SurplusResponse(claim.getSurplusPost());
+        
+        // Include confirmed pickup slot if available
+        if (claim.getConfirmedPickupDate() != null) {
+            this.confirmedPickupSlot = new PickupSlotResponse();
+            this.confirmedPickupSlot.setPickupDate(claim.getConfirmedPickupDate());
+            this.confirmedPickupSlot.setStartTime(claim.getConfirmedPickupStartTime());
+            this.confirmedPickupSlot.setEndTime(claim.getConfirmedPickupEndTime());
+        }
     }
     
     // Getters and Setters
@@ -53,4 +62,9 @@ public class ClaimResponse {
     
     public SurplusResponse getSurplusPost() { return surplusPost; }
     public void setSurplusPost(SurplusResponse surplusPost) { this.surplusPost = surplusPost; }
+    
+    public PickupSlotResponse getConfirmedPickupSlot() { return confirmedPickupSlot; }
+    public void setConfirmedPickupSlot(PickupSlotResponse confirmedPickupSlot) { 
+        this.confirmedPickupSlot = confirmedPickupSlot; 
+    }
 }

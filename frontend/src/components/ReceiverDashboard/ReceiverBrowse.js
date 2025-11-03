@@ -155,7 +155,7 @@ export default function ReceiverBrowse() {
     setClaiming(true);
     try {
       await surplusAPI.claim(item.id, slot);
-      alert('Successfully claimed! Check "My Claims" tab.');
+      // Successfully claimed - websocket notification will handle the toast
       // Remove from available list
       setItems((prev) => prev.filter((post) => post.id !== item.id));
       // close modal if open
@@ -779,4 +779,3 @@ function ClaimModal({ open, item, selectedIndex, onSelectIndex, onConfirm, onClo
 }
 
 // Attach ClaimModal into module scope by exporting nothing (component uses in-file function call)
-
