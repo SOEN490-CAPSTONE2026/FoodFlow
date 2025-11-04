@@ -13,26 +13,24 @@ import {
 import { LoadScript } from "@react-google-maps/api";
 import { surplusAPI } from "../../services/api";
 import FiltersPanel from "./FiltersPanel";
-import "./ReceiverBrowseModal.css";
 import BakeryPastryImage from "../../assets/foodtypes/Pastry&Bakery.jpg";
 import FruitsVeggiesImage from "../../assets/foodtypes/Fruits&Vegetables.jpg";
 import PackagedPantryImage from "../../assets/foodtypes/PackagedItems.jpg";
 import DairyColdImage from "../../assets/foodtypes/Dairy.jpg";
 import FrozenFoodImage from "../../assets/foodtypes/FrozenFood.jpg";
 import PreparedMealsImage from "../../assets/foodtypes/PreparedFood.jpg";
+import "./ReceiverBrowseModal.css";
 import "./ReceiverBrowse.css";
 
-// Google Maps libraries needed for Places API
 const libraries = ["places"];
 
 export default function ReceiverBrowse() {
-  // Filter state (not applied, just stored)
   const [filters, setFilters] = useState({
     foodType: [],
     expiryBefore: null,
     distance: 10,
     location: "",
-    locationCoords: null, // Store lat/lng coordinates from Google Places
+    locationCoords: null,
   });
 
   const [appliedFilters, setAppliedFilters] = useState({
@@ -44,7 +42,6 @@ export default function ReceiverBrowse() {
   });
 
   const [isFiltersVisible, setIsFiltersVisible] = useState(true);
-
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -55,50 +52,10 @@ export default function ReceiverBrowse() {
   const [selectedSlotIndex, setSelectedSlotIndex] = useState(0);
   const [claiming, setClaiming] = useState(false);
 
-  // Filter handlers
-  const handleFiltersChange = (filterType, value) => {
-    setFilters((prev) => ({
-      ...prev,
-      [filterType]: value,
-    }));
-  };
-
-  const handleApplyFilters = useCallback(async () => {
-    setAppliedFilters({ ...filters });
-
-    // Apply filters by calling the new search API
-    await fetchFilteredDonations(filters);
-  }, [filters]);
-
-  const handleClearFilters = useCallback(async () => {
-    const clearedFilters = {
-      foodType: [],
-      expiryBefore: null,
-      distance: 10,
-      location: "",
-      locationCoords: null,
-    };
-    setFilters(clearedFilters);
-    setAppliedFilters(clearedFilters);
-
-    // Fetch all donations when filters are cleared
-    await fetchDonations();
-  }, []);
-
-  const handleToggleFilters = () => {
-    setIsFiltersVisible(!isFiltersVisible);
-  };
-
-  const handleCloseFilters = () => {
-    setIsFiltersVisible(false);
-  };
-
-  // Original fetch all donations function
   const fetchDonations = useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await surplusAPI.list();
-      // Show AVAILABLE and READY_FOR_PICKUP items (backend already filters these)
       const availableItems = Array.isArray(data) ? data : [];
       setItems(availableItems);
       setError(null);
@@ -110,11 +67,9 @@ export default function ReceiverBrowse() {
     }
   }, []);
 
-  // New function to fetch filtered donations
   const fetchFilteredDonations = useCallback(async (filterCriteria) => {
     setLoading(true);
     try {
-      // Check if any filters are actually applied
       const hasActiveFilters =
         (filterCriteria.foodType && filterCriteria.foodType.length > 0) ||
         filterCriteria.expiryBefore ||
@@ -122,11 +77,9 @@ export default function ReceiverBrowse() {
 
       let data;
       if (hasActiveFilters) {
-        // Use the new search API with filters
         const response = await surplusAPI.search(filterCriteria);
         data = response.data;
       } else {
-        // No filters applied, fetch all donations
         const response = await surplusAPI.list();
         data = response.data;
       }
@@ -141,7 +94,35 @@ export default function ReceiverBrowse() {
     }
   }, []);
 
-  // Initial load - fetch all donations
+  const handleFiltersChange = useCallback((filterType, value) => {
+    setFilters((prev) => ({
+      ...prev,
+      [filterType]: value,
+    }));
+  }, []);
+
+  const handleApplyFilters = useCallback(async () => {
+    setAppliedFilters({ ...filters });
+    await fetchFilteredDonations(filters);
+  }, [filters, fetchFilteredDonations]);
+
+  const handleClearFilters = useCallback(async () => {
+    const clearedFilters = {
+      foodType: [],
+      expiryBefore: null,
+      distance: 10,
+      location: "",
+      locationCoords: null,
+    };
+    setFilters(clearedFilters);
+    setAppliedFilters(clearedFilters);
+    await fetchDonations();
+  }, [fetchDonations]);
+
+  const handleCloseFilters = useCallback(() => {
+    setIsFiltersVisible(false);
+  }, []);
+
   useEffect(() => {
     fetchDonations();
   }, [fetchDonations]);
@@ -164,8 +145,25 @@ export default function ReceiverBrowse() {
     console.log("Bookmarking:", item);
   }, []);
 
-  // Open claim flow: if post contains pickupSlots, open modal to select one.
-  const handleClaimDonation = (item) => {
+  const confirmClaim = useCallback(async (item, slot) => {
+    setClaiming(true);
+    try {
+      await surplusAPI.claim(item.id, slot);
+      setItems((prev) => prev.filter((post) => post.id !== item.id));
+      setClaimModalOpen(false);
+      setClaimTargetItem(null);
+    } catch (error) {
+      console.error("Error claiming post:", error);
+      alert(
+        error.response?.data?.message ||
+        "Failed to claim. It may have already been claimed."
+      );
+    } finally {
+      setClaiming(false);
+    }
+  }, []);
+
+  const handleClaimDonation = useCallback((item) => {
     if (item.pickupSlots && Array.isArray(item.pickupSlots) && item.pickupSlots.length > 0) {
       setClaimTargetItem(item);
       setSelectedSlotIndex(0);
@@ -173,12 +171,10 @@ export default function ReceiverBrowse() {
       return;
     }
 
-    // Fallback: no slots array, confirm directly and send legacy fields
     if (!window.confirm("Are you sure you want to claim this donation?")) {
       return;
     }
 
-    // Build a legacy-style slot payload from root fields if present
     const legacySlot = (item.pickupDate && item.pickupFrom && item.pickupTo) ? {
       pickupDate: item.pickupDate,
       startTime: item.pickupFrom,
@@ -186,31 +182,9 @@ export default function ReceiverBrowse() {
     } : null;
 
     confirmClaim(item, legacySlot);
-  };
+  }, [confirmClaim]);
 
-  const confirmClaim = async (item, slot) => {
-    setClaiming(true);
-    try {
-      await surplusAPI.claim(item.id, slot);
-      // Successfully claimed - websocket notification will handle the toast
-      // Remove from available list
-      setItems((prev) => prev.filter((post) => post.id !== item.id));
-      // close modal if open
-      setClaimModalOpen(false);
-      setClaimTargetItem(null);
-    } catch (error) {
-      console.error("Error claiming post:", error);
-      alert(
-        error.response?.data?.message ||
-          "Failed to claim. It may have already been claimed."
-      );
-    } finally {
-      setClaiming(false);
-    }
-  };
-
-  // Convert each category to display string (for separate tags)
-  const getFoodCategoryDisplays = (foodCategories) => {
+  const getFoodCategoryDisplays = useCallback((foodCategories) => {
     if (
       !foodCategories ||
       !Array.isArray(foodCategories) ||
@@ -219,14 +193,13 @@ export default function ReceiverBrowse() {
       return ["Other"];
     }
 
-    // Convert all categories to display strings
     return foodCategories.map((category) => {
       switch (category) {
         case "FRUITS_VEGETABLES":
           return "Fruits & Vegetables";
-        case "BAKED_GOODS":
+        case "BAKERY_PASTRY":
           return "Bakery & Pastry";
-        case "PACKAGED":
+        case "PACKAGED_PANTRY":
           return "Packaged / Pantry Items";
         case "DAIRY":
           return "Dairy & Cold Items";
@@ -238,10 +211,9 @@ export default function ReceiverBrowse() {
           return category;
       }
     });
-  };
+  }, []);
 
-  // Get primary food category for image (first one)
-  const getPrimaryFoodCategory = (foodCategories) => {
+  const getPrimaryFoodCategory = useCallback((foodCategories) => {
     if (
       !foodCategories ||
       !Array.isArray(foodCategories) ||
@@ -254,9 +226,9 @@ export default function ReceiverBrowse() {
     switch (category) {
       case "FRUITS_VEGETABLES":
         return "Fruits & Vegetables";
-      case "BAKED_GOODS":
+      case "BAKERY_PASTRY":
         return "Bakery & Pastry";
-      case "PACKAGED":
+      case "PACKAGED_PANTRY":
         return "Packaged / Pantry Items";
       case "DAIRY":
         return "Dairy & Cold Items";
@@ -267,9 +239,9 @@ export default function ReceiverBrowse() {
       default:
         return "Other";
     }
-  };
+  }, []);
 
-  const getFoodTypeImage = (foodType) => {
+  const getFoodTypeImage = useCallback((foodType) => {
     switch (foodType) {
       case "Bakery & Pastry":
         return BakeryPastryImage;
@@ -286,9 +258,9 @@ export default function ReceiverBrowse() {
       default:
         return PreparedMealsImage;
     }
-  };
+  }, []);
 
-  const getFoodImageClass = (foodType) => {
+  const getFoodImageClass = useCallback((foodType) => {
     switch (foodType) {
       case "Bakery & Pastry":
         return "food-image-bakery";
@@ -305,9 +277,9 @@ export default function ReceiverBrowse() {
       default:
         return "food-image-packaged";
     }
-  };
+  }, []);
 
-  const formatExpiryDate = (dateString) => {
+  const formatExpiryDate = useCallback((dateString) => {
     if (!dateString) return "—";
     try {
       const date = new Date(dateString);
@@ -319,60 +291,51 @@ export default function ReceiverBrowse() {
     } catch {
       return "—";
     }
-  };
+  }, []);
 
-  // Updated to handle new format: pickupDate + pickupFrom + pickupTo
-  const formatPickupTime = (pickupDate, pickupFrom, pickupTo) => {
+  const formatPickupTime = useCallback((pickupDate, pickupFrom, pickupTo) => {
     if (!pickupDate || !pickupFrom || !pickupTo) return "—";
     try {
-      // Combine pickupDate (LocalDate) and pickupFrom (LocalTime)
       const fromDate = new Date(`${pickupDate}T${pickupFrom}`);
-
       const dateStr = fromDate.toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
         year: "numeric",
       });
-
       const fromTime = fromDate.toLocaleTimeString("en-US", {
         hour: "numeric",
         minute: "2-digit",
         hour12: true,
       });
-
-      // Parse pickupTo (LocalTime format "17:00:00")
       const [hours, minutes] = pickupTo.split(":");
       const hour = parseInt(hours, 10);
       const isPM = hour >= 12;
       const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
       const toTime = `${displayHour}:${minutes} ${isPM ? "PM" : "AM"}`;
-
       return `${dateStr} ${fromTime}-${toTime}`;
     } catch {
       return "—";
     }
-  };
+  }, []);
 
-  const formatPostedTime = (dateString) => {
+  const formatPostedTime = useCallback((dateString) => {
     if (!dateString) return "";
     try {
       const now = new Date();
       const posted = new Date(dateString);
       const diffInHours = Math.floor((now - posted) / (1000 * 60 * 60));
-
       if (diffInHours < 1) return "Just now";
       if (diffInHours === 1) return "1 hour ago";
       if (diffInHours < 24) return `${diffInHours} hours ago`;
-
       const diffInDays = Math.floor(diffInHours / 24);
       if (diffInDays === 1) return "1 day ago";
       return `${diffInDays} days ago`;
     } catch {
       return "";
     }
-  };
+  }, []);
 
-  const formatStatus = (status) => {
+  const formatStatus = useCallback((status) => {
     switch (status) {
       case "AVAILABLE":
         return "Available";
@@ -389,9 +352,9 @@ export default function ReceiverBrowse() {
       default:
         return status || "Available";
     }
-  };
+  }, []);
 
-  const getStatusClass = (status) => {
+  const getStatusClass = useCallback((status) => {
     switch (status) {
       case "AVAILABLE":
         return "status-available";
@@ -408,7 +371,7 @@ export default function ReceiverBrowse() {
       default:
         return "status-available";
     }
-  };
+  }, []);
 
   return (
     <LoadScript
@@ -456,9 +419,8 @@ export default function ReceiverBrowse() {
               return (
                 <div
                   key={item.id}
-                  className={`receiver-donation-card ${
-                    expandedCardId === item.id ? "expanded" : ""
-                  }`}
+                  className={`receiver-donation-card ${expandedCardId === item.id ? "expanded" : ""
+                    }`}
                 >
                   <div
                     className={`receiver-donation-image ${getFoodImageClass(
@@ -612,24 +574,25 @@ export default function ReceiverBrowse() {
                                   }}
                                 />
                                 {item.pickupSlots && item.pickupSlots.length > 0 ? (
-                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                  <div className="pickup-slots-list">
                                     {item.pickupSlots.map((slot, idx) => (
-                                      <div key={idx}>
+                                      <div key={idx} className="pickup-slot-time" style={{ color: '#314158' }}>
                                         {formatPickupTime(
                                           slot.pickupDate || slot.date,
                                           slot.startTime || slot.pickupFrom,
                                           slot.endTime || slot.pickupTo
                                         )}
-                                        {slot.notes && <span style={{ fontSize: '12px', color: '#6c757d', marginLeft: '8px' }}>({slot.notes})</span>}
                                       </div>
                                     ))}
                                   </div>
                                 ) : (
-                                  formatPickupTime(
-                                    item.pickupDate,
-                                    item.pickupFrom,
-                                    item.pickupTo
-                                  )
+                                  <span style={{ color: '#314158' }}>
+                                    {formatPickupTime(
+                                      item.pickupDate,
+                                      item.pickupFrom,
+                                      item.pickupTo
+                                    )}
+                                  </span>
                                 )}
                               </div>
                             </div>
@@ -670,6 +633,7 @@ export default function ReceiverBrowse() {
                               </div>
                             </div>
                           </div>
+                        </div>
 
                         {item.description && (
                           <div className="receiver-donor-note">
@@ -687,7 +651,6 @@ export default function ReceiverBrowse() {
                             Posted {formatPostedTime(item.createdAt)}
                           </div>
                         )}
-                        </div>
                       </div>
                     )}
 
@@ -701,9 +664,8 @@ export default function ReceiverBrowse() {
                       </button>
                       <button
                         onClick={() => handleMoreClick(item)}
-                        className={`receiver-more-button ${
-                          expandedCardId === item.id ? "expanded" : ""
-                        }`}
+                        className={`receiver-more-button ${expandedCardId === item.id ? "expanded" : ""
+                          }`}
                       >
                         {expandedCardId === item.id ? "Less" : "More"}
                         {expandedCardId === item.id ? (
@@ -740,7 +702,6 @@ export default function ReceiverBrowse() {
   );
 }
 
-// Claim modal JSX: render at end so it overlays the page when open
 function ClaimModal({ open, item, selectedIndex, onSelectIndex, onConfirm, onClose, loading, formatFn }) {
   if (!open || !item) return null;
 
@@ -777,12 +738,11 @@ function ClaimModal({ open, item, selectedIndex, onSelectIndex, onConfirm, onClo
         </div>
 
         <div className="claim-modal-actions">
-          <button className="btn btn-secondary" onClick={onClose} disabled={loading}>Cancel</button>
+          <button className="btn btn-cancel" onClick={onClose} disabled={loading}>Cancel</button>
           <button
-            className="btn btn-primary"
+            className="btn btn-create"
             onClick={() => {
               const selectedSlot = slots[selectedIndex];
-              // Normalize slot to sender-friendly shape: pickupDate, startTime, endTime, notes
               const normalized = selectedSlot ? {
                 pickupDate: selectedSlot.pickupDate || selectedSlot.date,
                 startTime: selectedSlot.startTime || selectedSlot.pickupFrom,
@@ -801,5 +761,3 @@ function ClaimModal({ open, item, selectedIndex, onSelectIndex, onConfirm, onClo
     </div>
   );
 }
-
-// Attach ClaimModal into module scope by exporting nothing (component uses in-file function call)

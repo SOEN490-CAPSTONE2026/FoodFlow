@@ -253,10 +253,10 @@
 }
 
 .claimed-page .cancel-claim-btn {
-    padding: 0.5rem 1rem;
-    background: #dc2626;
-    color: white;
-    border: none;
+    padding: 0.6rem 1rem;
+    color: #555454;
+    border: 1.5px solid #b6b6b7;
+    background-color: white;
     border-radius: 5px;
     cursor: pointer;
     font-size: 0.875rem;
@@ -266,20 +266,23 @@
 }
 
 .claimed-page .cancel-claim-btn:hover {
-    background: #b91c1c;
+    background: #ececec;
 }
 
 /* View Details Container */
 .claimed-page .view-details-container {
     display: flex;
+    background-color: #0891B2;
+    border: #0891B2 1px solid;
+    border-radius: 5px;
+    padding: 0.35rem 1rem;
     align-items: center;
     gap: 0.5rem;
     cursor: pointer;
     flex-shrink: 0;
 }
-
 .claimed-page .view-details-container span {
-    color: #364153;
+    color: #ffffff;
     text-align: left;
     font-size: 0.85rem;
     white-space: nowrap;
@@ -291,7 +294,7 @@
     justify-content: center;
     width: 28px; 
     height: 28px; 
-    background-color: rgba(27, 73, 101, 0.1); 
+    background-color: #0891B2; 
     border: none;
     border-radius: 30px; 
     cursor: pointer;
@@ -304,7 +307,7 @@
 }
 
 .claimed-page .arrow-icon {
-    color: #1B4965;
+    color: #ffffff;
     transition: transform 0.2s;
 }
 

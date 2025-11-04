@@ -1,10 +1,7 @@
-/* ===== Claim Modal Styles (moved from ReceiverBrowse.css) ===== */
+/* ===== Claim Modal Styles ===== */
 .claim-modal-overlay {
   position: fixed;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
+  inset: 0;
   background: rgba(15, 23, 42, 0.45);
   display: flex;
   align-items: center;
@@ -14,26 +11,29 @@
 }
 
 .claim-modal-card {
-  background: white;
-  width: 720px;
+  background: #ffffff;
+  width: 600px;
   max-width: calc(100% - 48px);
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(2,6,23,0.2);
+  border-radius: 14px;
+  box-shadow: 0 6px 24px rgba(2, 6, 23, 0.2);
   padding: 28px 32px;
   text-align: center;
+  animation: popIn 0.25s ease;
+  border: 1px solid #e3e8ef;
 }
 
 .claim-modal-card h3 {
   margin: 0 0 18px 0;
   font-size: 20px;
-  color: var(--navy);
+  font-weight: 700;
+  color: #1b4965;
 }
 
 .claim-slots-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin: 8px 0 20px 0;
+  margin: 10px 0 20px 0;
 }
 
 .claim-slot-item {
@@ -43,24 +43,26 @@
   padding: 12px 16px;
   border-radius: 10px;
   cursor: pointer;
-  border: 1px solid transparent;
-  transition: background 0.12s ease, border-color 0.12s ease;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
 }
 
 .claim-slot-item:hover {
-  background: #f8fafc;
-  border-color: #e6eef6;
+  background: #f1f5f9;
+  border-color: #cbd5e1;
 }
 
 .claim-slot-item.selected {
-  background: linear-gradient(90deg, rgba(255,244,246,1) 0%, rgba(255,244,246,0.5) 100%);
-  border-color: rgba(255,160,177,0.25);
+  background: #e0f2fe;
+  border-color: #1b4965;
+  box-shadow: 0 0 0 3px rgba(27, 73, 101, 0.1);
 }
 
 .claim-slot-item input[type="radio"] {
   width: 18px;
   height: 18px;
-  accent-color: #ff4d8b; /* pink accent like screenshot */
+  accent-color: #1b4965;
 }
 
 .claim-slot-content {
@@ -74,42 +76,22 @@
 }
 
 .claim-slot-notes {
-  margin-top: 6px;
-  color: #6c757d;
+  margin-top: 4px;
+  color: #6b7280;
   font-size: 13px;
+  font-style: italic;
 }
 
+/* Buttons */
 .claim-modal-actions {
   display: flex;
   gap: 12px;
   justify-content: center;
-  margin-top: 12px;
+  margin-top: 16px;
 }
 
-.btn {
-  padding: 10px 20px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  font-weight: 600;
-}
 
-.btn-primary {
-  background: #1b4965;
-  color: white;
-}
-
-.btn-secondary {
-  background: #f2f4f6;
-  color: #12343f;
-}
-
-@media (max-width: 600px) {
-  .claim-modal-card { width: 100%; padding: 18px; }
-  .claim-slot-item { padding: 10px; }
-}
-
-/* Inline claim section tweaks */
+/* Inline claim section */
 .inline-claim-section {
   margin: 18px auto 8px auto;
   width: 100%;
@@ -120,7 +102,28 @@
 .inline-claim-section h4 {
   margin: 6px 0 12px 0;
   font-size: 18px;
-  color: var(--navy);
+  color: #1b4965;
 }
 
-/* allow claim-slots-list styles to be reused for inline list */
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes popIn {
+  from { transform: scale(0.97); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .claim-modal-card { width: 100%; padding: 20px; }
+  .claim-slot-item { padding: 10px; }
+  .claim-modal-actions {
+    flex-direction: column;
+  }
+  .claim-modal-btn {
+    width: 100%;
+  }
+}
