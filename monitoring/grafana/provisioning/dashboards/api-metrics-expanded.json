@@ -1,0 +1,138 @@
+{
+  "dashboard": {
+    "title": "FoodFlow Metrics Expanded",
+    "uid": "foodflow-api-expanded",
+    "tags": ["foodflow", "api", "business", "performance", "errors"],
+    "timezone": "browser",
+    "schemaVersion": 37,
+    "style": "dark",
+    "refresh": "5s",
+    "panels": [
+      {
+        "type": "row",
+        "title": "Business KPIs",
+        "collapsed": false
+      },
+      {
+        "type": "stat",
+        "title": "Surplus Posts Created",
+        "gridPos": {"h": 6, "w": 6, "x": 0, "y": 0},
+        "targets": [{"expr": "surplus_posts_created_total", "legendFormat": "Created"}],
+        "datasource": "Prometheus"
+      },
+      {
+        "type": "stat",
+        "title": "Surplus Posts Claimed",
+        "gridPos": {"h": 6, "w": 6, "x": 6, "y": 0},
+        "targets": [{"expr": "surplus_posts_claimed_total", "legendFormat": "Claimed"}],
+        "datasource": "Prometheus"
+      },
+      {
+        "type": "stat",
+        "title": "Surplus Posts Completed",
+        "gridPos": {"h": 6, "w": 6, "x": 0, "y": 6},
+        "targets": [{"expr": "surplus_posts_completed_total", "legendFormat": "Completed"}],
+        "datasource": "Prometheus"
+      },
+      {
+        "type": "stat",
+        "title": "Claims Created",
+        "gridPos": {"h": 6, "w": 6, "x": 6, "y": 6},
+        "targets": [{"expr": "claims_created_total"}],
+        "datasource": "Prometheus"
+      },
+      {
+        "type": "stat",
+        "title": "Claims Cancelled",
+        "gridPos": {"h": 6, "w": 6, "x": 0, "y": 12},
+        "targets": [{"expr": "claims_cancelled_total"}],
+        "datasource": "Prometheus"
+      },
+      {
+        "type": "stat",
+        "title": "Messages Sent",
+        "gridPos": {"h": 6, "w": 6, "x": 6, "y": 12},
+        "targets": [{"expr": "messages_sent_total"}],
+        "datasource": "Prometheus"
+      },
+      {
+        "type": "stat",
+        "title": "Messages Received",
+        "gridPos": {"h": 6, "w": 6, "x": 0, "y": 18},
+        "targets": [{"expr": "messages_received_total"}],
+        "datasource": "Prometheus"
+      },
+      {
+        "type": "row",
+        "title": "Performance Metrics",
+        "collapsed": false
+      },
+      {
+        "type": "timeseries",
+        "title": "API Response Time (avg)",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24},
+        "targets": [
+          {"expr": "rate(http_server_requests_seconds_sum[5m]) / rate(http_server_requests_seconds_count[5m])", "legendFormat": "{{method}} {{uri}}"}
+        ],
+        "datasource": "Prometheus"
+      },
+      {
+        "type": "timeseries",
+        "title": "Database Query Duration",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24},
+        "targets": [{"expr": "database_query_duration_seconds", "legendFormat": "{{type}}"}],
+        "datasource": "Prometheus"
+      },
+      {
+        "type": "timeseries",
+        "title": "Database Transaction Duration",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 32},
+        "targets": [{"expr": "database_transaction_duration_seconds", "legendFormat": "{{method}}"}],
+        "datasource": "Prometheus"
+      },
+      {
+        "type": "timeseries",
+        "title": "CPU Usage",
+        "gridPos": {"h": 6, "w": 6, "x": 12, "y": 32},
+        "targets": [{"expr": "process_cpu_seconds_total", "legendFormat": "CPU"}],
+        "datasource": "Prometheus"
+      },
+      {
+        "type": "timeseries",
+        "title": "Memory Usage (MB)",
+        "gridPos": {"h": 6, "w": 6, "x": 0, "y": 38},
+        "targets": [{"expr": "jvm_memory_used_bytes / 1024 / 1024", "legendFormat": "Memory"}],
+        "datasource": "Prometheus"
+      },
+      {
+        "type": "row",
+        "title": "Error Tracking",
+        "collapsed": false
+      },
+      {
+        "type": "table",
+        "title": "HTTP Errors by Endpoint",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 44},
+        "targets": [
+          {"expr": "sum(rate(http_server_requests_seconds_count{status=~\"4..|5..\"}[5m])) by (uri, status)"}
+        ],
+        "datasource": "Prometheus"
+      },
+      {
+        "type": "stat",
+        "title": "Authentication Failures",
+        "gridPos": {"h": 6, "w": 6, "x": 0, "y": 52},
+        "targets": [{"expr": "auth_failures_total"}],
+        "datasource": "Prometheus"
+      },
+      {
+        "type": "stat",
+        "title": "Security Events",
+        "gridPos": {"h": 6, "w": 6, "x": 6, "y": 52},
+        "targets": [{"expr": "security_events_total"}],
+        "datasource": "Prometheus"
+      }
+    ]
+  },
+  "overwrite": true
+}
