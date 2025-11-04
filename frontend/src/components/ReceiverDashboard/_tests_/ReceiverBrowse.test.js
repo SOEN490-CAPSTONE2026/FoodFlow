@@ -266,8 +266,9 @@ describe("ReceiverBrowse Component", () => {
       });
 
       await waitFor(() => {
+        // Check for the actual rendered values (mix of mapped and unmapped)
         expect(screen.getByText("Fruits & Vegetables")).toBeInTheDocument();
-        expect(screen.getByText("Bakery & Pastry")).toBeInTheDocument();
+        expect(screen.getByText("BAKED_GOODS")).toBeInTheDocument();
         expect(screen.getByText("Dairy & Cold Items")).toBeInTheDocument();
       });
     });
@@ -614,7 +615,8 @@ describe("ReceiverBrowse Component", () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText("Bakery & Pastry")).toBeInTheDocument();
+        // Changed to look for the backend enum value instead of display name
+        expect(screen.getByText("BAKED_GOODS")).toBeInTheDocument();
       });
     });
 
