@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
+import { AuthContext } from '../contexts/AuthContext';
 import ReceiverIllustration from "../assets/illustrations/receiver-ilustration.jpg";
 import '../style/Registration.css';
 
 const ReceiverRegistration = () => {
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -41,14 +43,18 @@ const ReceiverRegistration = () => {
 
       setSuccess('Registration successful! Welcome to FoodFlow.');
 
-      // Store token if needed
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
+      // Extract token, role, and userId from response
+      const token = response?.data?.token;
+      const userRole = response?.data?.role;
+      const userId = response?.data?.userId;
+
+      if (token && userRole && userId) {
+        login(token, userRole, userId); // Store in context and localStorage
       }
 
       // Redirect after success
       setTimeout(() => {
-        navigate('/dashboard'); // You'll create this later
+        navigate('/receiver'); // Redirect to receiver dashboard
       }, 2000);
 
     } catch (err) {

@@ -72,13 +72,15 @@ class SurplusPostSchedulerServiceTest {
 
     @Test
     void testUpdatePostsToReadyForPickup_ClaimedPostPickupTimeStarted_UpdatesStatus() {
-        // Given - CLAIMED post with pickup time started (2 hours ago)
-        claimedPost.setPickupDate(LocalDate.now());
-        claimedPost.setPickupFrom(LocalTime.now().minusHours(2));
-        claimedPost.setPickupTo(LocalTime.now().plusHours(2));
+        // Given - CLAIMED post with pickup time started (pickup date in the past ensures it will transition)
+        claimedPost.setPickupDate(LocalDate.now().minusDays(1));
+        claimedPost.setPickupFrom(LocalTime.of(9, 0));
+        claimedPost.setPickupTo(LocalTime.of(17, 0));
 
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
             .thenReturn(Collections.singletonList(claimedPost));
+        when(surplusPostRepository.findByStatus(PostStatus.AVAILABLE))
+            .thenReturn(Collections.emptyList());
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
 
         // When
@@ -96,21 +98,28 @@ class SurplusPostSchedulerServiceTest {
     }
 
     @Test
-    void testUpdatePostsToReadyForPickup_AvailablePostStaysAvailable() {
-        // Given - AVAILABLE post with pickup time started should stay AVAILABLE
-        // Only CLAIMED posts should transition to READY_FOR_PICKUP
-        availablePost.setPickupDate(LocalDate.now());
-        availablePost.setPickupFrom(LocalTime.now().minusHours(2));
-        availablePost.setPickupTo(LocalTime.now().plusHours(4));
+    void testUpdatePostsToReadyForPickup_AvailablePostTransitionsToReady() {
+        // Given - AVAILABLE post with pickup date in the past should transition to READY_FOR_PICKUP
+        availablePost.setPickupDate(LocalDate.now().minusDays(1));
+        availablePost.setPickupFrom(LocalTime.of(9, 0));
+        availablePost.setPickupTo(LocalTime.of(17, 0));
 
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
             .thenReturn(Collections.emptyList());
+        when(surplusPostRepository.findByStatus(PostStatus.AVAILABLE))
+            .thenReturn(Collections.singletonList(availablePost));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(availablePost);
 
         // When
         schedulerService.updatePostsToReadyForPickup();
 
-        // Then - AVAILABLE posts are never transitioned by scheduler
-        verify(surplusPostRepository, never()).save(any(SurplusPost.class));
+        // Then - AVAILABLE posts should also transition when pickup time arrives
+        ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
+        verify(surplusPostRepository).save(postCaptor.capture());
+
+        SurplusPost savedPost = postCaptor.getValue();
+        assertThat(savedPost.getStatus()).isEqualTo(PostStatus.READY_FOR_PICKUP);
+        assertThat(savedPost.getOtpCode()).isNotNull();
     }
 
     @Test
@@ -122,6 +131,8 @@ class SurplusPostSchedulerServiceTest {
 
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
             .thenReturn(Collections.singletonList(claimedPost));
+        when(surplusPostRepository.findByStatus(PostStatus.AVAILABLE))
+            .thenReturn(Collections.emptyList());
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
 
         // When
@@ -145,6 +156,8 @@ class SurplusPostSchedulerServiceTest {
 
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
             .thenReturn(Collections.singletonList(claimedPost));
+        when(surplusPostRepository.findByStatus(PostStatus.AVAILABLE))
+            .thenReturn(Collections.emptyList());
 
         // When
         schedulerService.updatePostsToReadyForPickup();
@@ -168,6 +181,8 @@ class SurplusPostSchedulerServiceTest {
 
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
             .thenReturn(Arrays.asList(claimedPost, claimedPost2));
+        when(surplusPostRepository.findByStatus(PostStatus.AVAILABLE))
+            .thenReturn(Collections.emptyList());
         when(surplusPostRepository.save(any(SurplusPost.class)))
             .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -188,6 +203,8 @@ class SurplusPostSchedulerServiceTest {
 
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
             .thenReturn(Collections.singletonList(claimedPost));
+        when(surplusPostRepository.findByStatus(PostStatus.AVAILABLE))
+            .thenReturn(Collections.emptyList());
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
 
         // When
@@ -211,6 +228,8 @@ class SurplusPostSchedulerServiceTest {
 
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
             .thenReturn(Collections.singletonList(claimedPost));
+        when(surplusPostRepository.findByStatus(PostStatus.AVAILABLE))
+            .thenReturn(Collections.emptyList());
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
 
         // When
@@ -229,6 +248,8 @@ class SurplusPostSchedulerServiceTest {
     void testUpdatePostsToReadyForPickup_NoPosts_DoesNotSaveAnything() {
         // Given - No CLAIMED posts to update
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
+            .thenReturn(Collections.emptyList());
+        when(surplusPostRepository.findByStatus(PostStatus.AVAILABLE))
             .thenReturn(Collections.emptyList());
 
         // When
@@ -265,10 +286,10 @@ class SurplusPostSchedulerServiceTest {
 
     @Test
     void testUpdatePostsToNotCompleted_PickupWindowEndedToday_UpdatesStatus() {
-        // Given - Pickup window ended today (2 hours ago)
-        readyPost.setPickupDate(LocalDate.now());
-        readyPost.setPickupFrom(LocalTime.now().minusHours(4));
-        readyPost.setPickupTo(LocalTime.now().minusHours(2));
+        // Given - Pickup window ended (use past date to ensure reliable test)
+        readyPost.setPickupDate(LocalDate.now().minusDays(1));
+        readyPost.setPickupFrom(LocalTime.of(9, 0));
+        readyPost.setPickupTo(LocalTime.of(17, 0));
         readyPost.setOtpCode("123456");
 
         when(surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP))
