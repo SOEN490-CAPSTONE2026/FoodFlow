@@ -54,6 +54,7 @@ const defaultAuthValue = {
   logout: jest.fn(),
   setIsLoggedIn: jest.fn(),
   role: null,
+  userId: null,
   setRole: jest.fn(),
   user: null,
   setUser: jest.fn(),
@@ -111,7 +112,7 @@ describe('LoginPage', () => {
       trackLogin: mockTrackLogin,
     });
 
-    authAPI.login.mockResolvedValueOnce({ data: { token: 'abc123', role: 'donor' } });
+    authAPI.login.mockResolvedValueOnce({ data: { token: 'abc123', role: 'donor', userId: '42' } });
 
     renderWithProviders();
 
@@ -133,7 +134,7 @@ describe('LoginPage', () => {
     });
 
     await waitFor(() => {
-      expect(defaultAuthValue.login).toHaveBeenCalledWith('abc123', 'donor');
+      expect(defaultAuthValue.login).toHaveBeenCalledWith('abc123', 'donor', '42');
     });
 
     await waitFor(() => {
