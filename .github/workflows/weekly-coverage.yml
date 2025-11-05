@@ -109,7 +109,7 @@ jobs:
           DB_NAME: foodflow_db
           DB_USER: foodflow_user
           DB_PASS: foodflow_password
-        run: ./mvnw jacoco:report
+        run: ./mvnw clean test jacoco:report
 
       - name: Extract JaCoCo coverage percentage
         id: backend_coverage
