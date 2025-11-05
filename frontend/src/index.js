@@ -3,6 +3,10 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { initHotjar } from './services/hotjar';
+
+// Initialize Hotjar for UAT tracking
+initHotjar();
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

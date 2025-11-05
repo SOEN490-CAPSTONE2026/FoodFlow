@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect } from "react";
+import { identifyHotjarUser } from "../services/hotjar";
 
 export const AuthContext = createContext();
 
@@ -38,6 +39,9 @@ export const AuthProvider = ({ children }) => {
     setIsLoggedIn(true);
     setRole(userRole);
     setUserId(userId);
+    
+    // Identify user in Hotjar for session tracking
+    identifyHotjarUser(userId, { role: userRole });
   };
 
   const logout = () => {

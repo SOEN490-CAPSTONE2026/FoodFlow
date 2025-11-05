@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { LoadScript } from "@react-google-maps/api";
 import { surplusAPI } from "../../services/api";
+import { startTask, completeTask, trackError, trackFeatureUse } from "../../utils/usabilityTracking";
+import { usabilityTasks } from "../../utils/usabilityTracking";
 import FiltersPanel from "./FiltersPanel";
 import "./ReceiverBrowseModal.css";
 import BakeryPastryImage from "../../assets/foodtypes/Pastry&Bakery.jpg";
@@ -64,6 +66,10 @@ export default function ReceiverBrowse() {
   };
 
   const handleApplyFilters = useCallback(async () => {
+    // Track filter usage
+    trackFeatureUse('receiver_filter_search');
+    startTask(usabilityTasks.RECEIVER_FILTER_SEARCH);
+    
     setAppliedFilters({ ...filters });
 
     // Apply filters by calling the new search API
@@ -133,9 +139,16 @@ export default function ReceiverBrowse() {
 
       setItems(Array.isArray(data) ? data : []);
       setError(null);
+      
+      // Track successful filter completion
+      completeTask(usabilityTasks.RECEIVER_FILTER_SEARCH, true);
     } catch (e) {
       setError("Failed to load donations with applied filters");
       console.error("fetchFilteredDonations error:", e);
+      
+      // Track filter error
+      trackError('filter_search_failed', 'receiver_browse');
+      completeTask(usabilityTasks.RECEIVER_FILTER_SEARCH, false);
     } finally {
       setLoading(false);
     }
@@ -166,6 +179,9 @@ export default function ReceiverBrowse() {
 
   // Open claim flow: if post contains pickupSlots, open modal to select one.
   const handleClaimDonation = (item) => {
+    // Track start of claim task
+    startTask(usabilityTasks.RECEIVER_CLAIM_DONATION);
+    
     if (item.pickupSlots && Array.isArray(item.pickupSlots) && item.pickupSlots.length > 0) {
       setClaimTargetItem(item);
       setSelectedSlotIndex(0);
@@ -175,6 +191,8 @@ export default function ReceiverBrowse() {
 
     // Fallback: no slots array, confirm directly and send legacy fields
     if (!window.confirm("Are you sure you want to claim this donation?")) {
+      // User cancelled - track as failed task
+      completeTask(usabilityTasks.RECEIVER_CLAIM_DONATION, false);
       return;
     }
 
@@ -192,6 +210,9 @@ export default function ReceiverBrowse() {
     setClaiming(true);
     try {
       await surplusAPI.claim(item.id, slot);
+      // Successfully claimed - track completion
+      completeTask(usabilityTasks.RECEIVER_CLAIM_DONATION, true);
+      
       // Successfully claimed - websocket notification will handle the toast
       // Remove from available list
       setItems((prev) => prev.filter((post) => post.id !== item.id));
@@ -200,6 +221,10 @@ export default function ReceiverBrowse() {
       setClaimTargetItem(null);
     } catch (error) {
       console.error("Error claiming post:", error);
+      // Track claim error
+      trackError('claim_failed', 'receiver_browse');
+      completeTask(usabilityTasks.RECEIVER_CLAIM_DONATION, false);
+      
       alert(
         error.response?.data?.message ||
           "Failed to claim. It may have already been claimed."

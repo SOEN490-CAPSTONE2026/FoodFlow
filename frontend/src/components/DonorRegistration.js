@@ -1,7 +1,9 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
+import { startTask, completeTask, trackError } from '../utils/usabilityTracking';
+import { usabilityTasks } from '../utils/usabilityTracking';
 import DonorIllustration from "../assets/illustrations/donor-illustration.jpg";
 import '../style/Registration.css';
 
@@ -21,6 +23,11 @@ const DonorRegistration = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  // Track when user starts registration task
+  useEffect(() => {
+    startTask(usabilityTasks.DONOR_REGISTER);
+  }, []);
 
   const handleChange = (e) => {
     setFormData({
@@ -48,12 +55,18 @@ const DonorRegistration = () => {
         login(token, userRole, userId); // Store in context and localStorage
       }
 
+      // Track successful registration completion
+      completeTask(usabilityTasks.DONOR_REGISTER, true);
+
       // Redirect after success
       setTimeout(() => {
         navigate('/donor'); // Redirect to donor dashboard
       }, 2000);
 
     } catch (err) {
+      // Track registration failure
+      trackError('registration_failed', 'donor_registration');
+      completeTask(usabilityTasks.DONOR_REGISTER, false);
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
