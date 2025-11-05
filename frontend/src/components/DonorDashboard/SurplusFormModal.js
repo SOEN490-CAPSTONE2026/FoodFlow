@@ -191,7 +191,7 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
   return (
     <div className="modal-overlay" onClick={handleCancel}>
       <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
+        <div className="surplus-modal-header">
           <h2>Add New Donation</h2>
           <button className="close-button" onClick={handleCancel}>
             <X size={24} />
