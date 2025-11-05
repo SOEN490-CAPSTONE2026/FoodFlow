@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Package, MapPin, User, ArrowRight, Filter, Clock } from 'lucide-react';
+import { Package, User, ArrowRight, Filter, Clock } from 'lucide-react';
 import Select from 'react-select';
 import { claimsAPI } from '../../services/api';
 import { useNotification } from '../../contexts/NotificationContext';
@@ -9,7 +9,6 @@ import PackagedPantryImage from '../../assets/foodtypes/PackagedItems.jpg';
 import DairyColdImage from '../../assets/foodtypes/Dairy.jpg';
 import FrozenFoodImage from '../../assets/foodtypes/FrozenFood.jpg';
 import PreparedMealsImage from '../../assets/foodtypes/PreparedFood.jpg';
-
 import ClaimDetailModal from './ClaimDetailModal.js';
 import "./Receiver_Styles/ReceiverMyClaims.css";
 
@@ -27,6 +26,54 @@ export default function ReceiverMyClaims() {
     { value: 'date', label: 'Sort by Date' },
     { value: 'status', label: 'Sort by Status' }
   ];
+
+  // Add these helper functions from ReceiverBrowse
+  const getPrimaryFoodCategory = (foodCategories) => {
+    if (
+      !foodCategories ||
+      !Array.isArray(foodCategories) ||
+      foodCategories.length === 0
+    ) {
+      return "Other";
+    }
+
+    const category = foodCategories[0];
+    switch (category) {
+      case "FRUITS_VEGETABLES":
+        return "Fruits & Vegetables";
+      case "BAKERY_PASTRY":
+        return "Bakery & Pastry";
+      case "PACKAGED_PANTRY":
+        return "Packaged / Pantry Items";
+      case "DAIRY":
+        return "Dairy & Cold Items";
+      case "FROZEN":
+        return "Frozen Food";
+      case "PREPARED_MEALS":
+        return "Prepared Meals";
+      default:
+        return "Other";
+    }
+  };
+
+  const getFoodTypeImage = (foodType) => {
+    switch (foodType) {
+      case "Bakery & Pastry":
+        return BakeryPastryImage;
+      case "Fruits & Vegetables":
+        return FruitsVeggiesImage;
+      case "Packaged / Pantry Items":
+        return PackagedPantryImage;
+      case "Dairy & Cold Items":
+        return DairyColdImage;
+      case "Frozen Food":
+        return FrozenFoodImage;
+      case "Prepared Meals":
+        return PreparedMealsImage;
+      default:
+        return PreparedMealsImage;
+    }
+  };
 
   useEffect(() => {
     fetchMyClaims();
@@ -110,25 +157,6 @@ export default function ReceiverMyClaims() {
     }
   };
 
-  const getFoodTypeImage = (foodType) => {
-    switch (foodType) {
-      case 'Bakery & Pastry':
-        return BakeryPastryImage;
-      case 'Fruits & Vegetables':
-        return FruitsVeggiesImage;
-      case 'Packaged / Pantry Items':
-        return PackagedPantryImage;
-      case 'Dairy & Cold Items':
-        return DairyColdImage;
-      case 'Frozen Food':
-        return FrozenFoodImage;
-      case 'Prepared Meals':
-        return PreparedMealsImage;
-      default:
-        return PreparedMealsImage;
-    }
-  };
-
   // Map claim status to display status
   const getDisplayStatus = (claim) => {
     const postStatus = claim.surplusPost?.status;
@@ -171,10 +199,36 @@ export default function ReceiverMyClaims() {
   // Sort claims
   const sortedClaims = [...filteredClaims].sort((a, b) => {
     if (sortBy.value === 'date') {
-      return new Date(b.claimedAt) - new Date(a.claimedAt);
+      // Get the pickup date (prioritize confirmed slot, fallback to post pickup date)
+      const getPickupDate = (claim) => {
+        return claim.confirmedPickupSlot?.pickupDate || 
+               claim.confirmedPickupSlot?.date || 
+               claim.surplusPost?.pickupDate;
+      };
+      
+      const dateA = getPickupDate(a);
+      const dateB = getPickupDate(b);
+      
+      // Handle missing dates
+      if (!dateA && !dateB) return 0;
+      if (!dateA) return 1; // Put items without dates at the end
+      if (!dateB) return -1;
+      
+      // Sort by pickup date - earliest pickup first (ascending)
+      return new Date(dateA).getTime() - new Date(dateB).getTime();
+      
     }
     if (sortBy.value === 'status') {
-      return getDisplayStatus(a).localeCompare(getDisplayStatus(b));
+      const statusPriority = {
+        'Ready for Pickup': 1,
+        'Claimed': 2,
+        'Completed': 3
+      };
+      
+      const statusA = getDisplayStatus(a);
+      const statusB = getDisplayStatus(b);
+      
+      return (statusPriority[statusA] || 99) - (statusPriority[statusB] || 99);
     }
     return 0;
   });
@@ -233,12 +287,15 @@ export default function ReceiverMyClaims() {
           const post = claim.surplusPost;
           const displayStatus = getDisplayStatus(claim);
           
+          // Get the primary food category from foodCategories array
+          const primaryFoodCategory = getPrimaryFoodCategory(post?.foodCategories);
+          
           return (
             <div key={claim.id} className="claimed-page donation-card">
               {/* Image */}
               <div className="claimed-page card-image">
                 <img
-                  src={getFoodTypeImage(post?.foodType || 'Prepared Meals')}
+                  src={getFoodTypeImage(primaryFoodCategory)}
                   alt={post?.title || 'Donation'}
                 />
                 <span className={`claimed-page status-badge status-${displayStatus.toLowerCase().replace(' ', '-')}`}>
@@ -250,10 +307,17 @@ export default function ReceiverMyClaims() {
               <div className="claimed-page card-content">
                 <h3 className="claimed-page card-title">{post?.title || 'Untitled Donation'}</h3>
 
-                <div className="claimed-page card-details">
+                 <div className="claimed-page card-details">
                   <div className="claimed-page detail-item">
                     <Package size={16} className="claimed-page quantity-detail-icon" />
-                    <span>{post?.quantity?.value || 0} {post?.quantity?.unit || 'items'}</span>
+                    <span>
+                      {post?.quantity?.value || 0} {post?.quantity?.unit ? 
+                        (() => {
+                          const formatted = post.quantity.unit.charAt(0).toUpperCase() + post.quantity.unit.slice(1).toLowerCase();
+                          return post.quantity.value !== 1 && !formatted.endsWith('s') ? formatted + 's' : formatted;
+                        })() 
+                        : (post?.quantity?.value === 1 ? 'Item' : 'Items')}
+                    </span>
                   </div>
                   <div className="claimed-page detail-item">
                     <User size={16} className="claimed-page donor-detail-icon" />
@@ -280,7 +344,7 @@ export default function ReceiverMyClaims() {
                     onClick={() => handleCancelClaim(claim.id)}
                     className="claimed-page cancel-claim-btn"
                   >
-                    Cancel Claim
+                    Cancel
                   </button>
                   
                   <div className="claimed-page view-details-container" onClick={() => handleViewDetails(claim)}>

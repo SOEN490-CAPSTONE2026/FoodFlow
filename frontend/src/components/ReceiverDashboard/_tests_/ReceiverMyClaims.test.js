@@ -170,7 +170,8 @@ describe('ReceiverMyClaims Component', () => {
       expect(screen.getByText('Fresh Vegetables')).toBeInTheDocument();
     });
 
-    const cancelButton = screen.getByText(/cancel claim/i);
+    // Changed from /cancel claim/i to "Cancel"
+    const cancelButton = screen.getByText("Cancel");
     fireEvent.click(cancelButton);
 
     await waitFor(() => {
@@ -211,7 +212,8 @@ describe('ReceiverMyClaims Component', () => {
       expect(screen.getByText('Fresh Vegetables')).toBeInTheDocument();
     });
 
-    const cancelButton = screen.getByText(/cancel claim/i);
+    // Changed from /cancel claim/i to "Cancel"
+    const cancelButton = screen.getByText("Cancel");
     fireEvent.click(cancelButton);
 
     await waitFor(() => {
@@ -255,7 +257,8 @@ describe('ReceiverMyClaims Component', () => {
       expect(screen.getByText('Fresh Vegetables')).toBeInTheDocument();
     });
 
-    const cancelButton = screen.getByText(/cancel claim/i);
+    // Changed from /cancel claim/i to "Cancel"
+    const cancelButton = screen.getByText("Cancel");
     fireEvent.click(cancelButton);
 
     await waitFor(() => {
@@ -298,7 +301,8 @@ describe('ReceiverMyClaims Component', () => {
       expect(screen.getByText('Fresh Vegetables')).toBeInTheDocument();
     });
 
-    const cancelButton = screen.getByText(/cancel claim/i);
+    // Changed from /cancel claim/i to "Cancel"
+    const cancelButton = screen.getByText("Cancel");
     fireEvent.click(cancelButton);
 
     await waitFor(() => {
@@ -342,7 +346,8 @@ describe('ReceiverMyClaims Component', () => {
       expect(screen.getByText('Fresh Vegetables')).toBeInTheDocument();
     });
 
-    const cancelButton = screen.getByText(/cancel claim/i);
+    // Changed from /cancel claim/i to "Cancel"
+    const cancelButton = screen.getByText("Cancel");
     fireEvent.click(cancelButton);
 
     await waitFor(() => {
