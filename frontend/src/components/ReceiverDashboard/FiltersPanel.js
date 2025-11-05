@@ -232,41 +232,28 @@ const FiltersPanel = ({
                   handleFilterChange("distance", parseInt(e.target.value))
                 }
                 style={{
-                  background: `linear-gradient(to right, #1B4965 0%, #1B4965 ${
-                    (((filters.distance || 10) - 1) / 49) * 100
-                  }%, #e9ecef ${
-                    (((filters.distance || 10) - 1) / 49) * 100
-                  }%, #e9ecef 100%)`,
+                  background: `linear-gradient(to right, #1B4965 0%, #1B4965 ${(((filters.distance || 10) - 1) / 49) * 100
+                    }%, #e9ecef ${(((filters.distance || 10) - 1) / 49) * 100
+                    }%, #e9ecef 100%)`,
                 }}
               />
             </div>
           </div>
 
           {/* Location Filter */}
+          {/* Location Filter */}
           <div className="filter-group">
             <label className="filter-label">Location</label>
             <div className="location-input-container">
               <MapPin className="location-icon" size={16} color="#717182" />
-              {typeof window !== "undefined" && window.google ? (
-                <Autocomplete
-                  onLoad={(autocomplete) =>
-                    (autocompleteRef.current = autocomplete)
-                  }
-                  onPlaceChanged={handlePlaceSelect}
-                  types={["(regions)"].concat(["establishment"])}
-                  componentRestrictions={{ country: ["us", "ca"] }} // Added Canada for Montreal
-                >
-                  <input
-                    type="text"
-                    className="location-input"
-                    placeholder="Enter location..."
-                    value={filters.location || ""}
-                    onChange={(e) =>
-                      handleFilterChange("location", e.target.value)
-                    }
-                  />
-                </Autocomplete>
-              ) : (
+              <Autocomplete
+                onLoad={(autocomplete) =>
+                  (autocompleteRef.current = autocomplete)
+                }
+                onPlaceChanged={handlePlaceSelect}
+                types={["(regions)"].concat(["establishment"])}
+                componentRestrictions={{ country: ["us", "ca"] }}
+              >
                 <input
                   type="text"
                   className="location-input"
@@ -276,8 +263,7 @@ const FiltersPanel = ({
                     handleFilterChange("location", e.target.value)
                   }
                 />
-              )}
-
+              </Autocomplete>
             </div>
           </div>
         </div>

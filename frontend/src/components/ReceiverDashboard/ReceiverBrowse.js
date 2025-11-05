@@ -10,7 +10,7 @@ import {
   Package,
   User,
 } from "lucide-react";
-import { LoadScript } from "@react-google-maps/api";
+import { useLoadScript } from "@react-google-maps/api";
 import { surplusAPI } from "../../services/api";
 import FiltersPanel from "./FiltersPanel";
 import BakeryPastryImage from "../../assets/foodtypes/Pastry&Bakery.jpg";
@@ -25,6 +25,11 @@ import "./ReceiverBrowse.css";
 const libraries = ["places"];
 
 export default function ReceiverBrowse() {
+  const { isLoaded } = useLoadScript({
+    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY || "",
+    libraries: libraries,
+  });
+
   const [filters, setFilters] = useState({
     foodType: [],
     expiryBefore: null,
@@ -60,8 +65,8 @@ export default function ReceiverBrowse() {
       setItems(availableItems);
       setError(null);
     } catch (e) {
+      console.error("Error fetching donations:", e);
       setError("Failed to load available donations");
-      console.error("fetchDonations error:", e);
     } finally {
       setLoading(false);
     }
@@ -88,11 +93,15 @@ export default function ReceiverBrowse() {
       setError(null);
     } catch (e) {
       setError("Failed to load donations with applied filters");
-      console.error("fetchFilteredDonations error:", e);
+      console.error("Error fetching filtered donations:", e);
     } finally {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    fetchDonations();
+  }, [fetchDonations]);
 
   const handleFiltersChange = useCallback((filterType, value) => {
     setFilters((prev) => ({
@@ -123,10 +132,6 @@ export default function ReceiverBrowse() {
     setIsFiltersVisible(false);
   }, []);
 
-  useEffect(() => {
-    fetchDonations();
-  }, [fetchDonations]);
-
   const handleMoreClick = useCallback((item) => {
     setExpandedCardId((prev) => (prev === item.id ? null : item.id));
   }, []);
@@ -142,7 +147,6 @@ export default function ReceiverBrowse() {
       }
       return newBookmarks;
     });
-    console.log("Bookmarking:", item);
   }, []);
 
   const confirmClaim = useCallback(async (item, slot) => {
@@ -185,11 +189,7 @@ export default function ReceiverBrowse() {
   }, [confirmClaim]);
 
   const getFoodCategoryDisplays = useCallback((foodCategories) => {
-    if (
-      !foodCategories ||
-      !Array.isArray(foodCategories) ||
-      foodCategories.length === 0
-    ) {
+    if (!foodCategories || !Array.isArray(foodCategories) || foodCategories.length === 0) {
       return ["Other"];
     }
 
@@ -214,11 +214,7 @@ export default function ReceiverBrowse() {
   }, []);
 
   const getPrimaryFoodCategory = useCallback((foodCategories) => {
-    if (
-      !foodCategories ||
-      !Array.isArray(foodCategories) ||
-      foodCategories.length === 0
-    ) {
+    if (!foodCategories || !Array.isArray(foodCategories) || foodCategories.length === 0) {
       return "Other";
     }
 
@@ -374,15 +370,11 @@ export default function ReceiverBrowse() {
   }, []);
 
   return (
-    <LoadScript
-      googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY || ""}
-      libraries={libraries}
-      onError={(error) =>
-        console.error("Google Maps API failed to load:", error)
-      }
-    >
-      <div className="receiver-browse-container">
-        <h1 className="receiver-section-title">Explore Available Donations</h1>
+    <div className="receiver-browse-container">
+      <h1 className="receiver-section-title">Explore Available Donations</h1>
+      
+      {/* Only render FiltersPanel when Google Maps is loaded */}
+      {isLoaded && (
         <FiltersPanel
           filters={filters}
           onFiltersChange={handleFiltersChange}
@@ -392,313 +384,268 @@ export default function ReceiverBrowse() {
           isVisible={isFiltersVisible}
           onClose={handleCloseFilters}
         />
-        {error && (
-          <div role="alert" className="receiver-error-message">
-            {error}
-          </div>
-        )}
+      )}
+      
+      {error && (
+        <div role="alert" className="receiver-error-message">
+          {error}
+        </div>
+      )}
 
-        {!loading && !error && items.length === 0 && (
-          <div className="receiver-empty-state">
-            <Package className="receiver-empty-state-icon" size={64} />
-            <p>No donations available right now.</p>
-            <p>Check back soon for new surplus food!</p>
-          </div>
-        )}
+      {loading && (
+        <div className="receiver-loading-state">
+          <p>Loading donations...</p>
+        </div>
+      )}
 
-        {!loading && !error && items.length > 0 && (
-          <div className="receiver-donations-list">
-            {items.map((item) => {
-              const categoryDisplays = getFoodCategoryDisplays(
-                item.foodCategories
-              );
-              const primaryFoodCategory = getPrimaryFoodCategory(
-                item.foodCategories
-              );
+      {!loading && !error && items.length === 0 && (
+        <div className="receiver-empty-state">
+          <Package className="receiver-empty-state-icon" size={64} />
+          <p>No donations available right now.</p>
+          <p>Check back soon for new surplus food!</p>
+        </div>
+      )}
 
-              return (
+      {!loading && !error && items.length > 0 && (
+        <div className="receiver-donations-list">
+          {items.map((item) => {
+            const categoryDisplays = getFoodCategoryDisplays(item.foodCategories);
+            const primaryFoodCategory = getPrimaryFoodCategory(item.foodCategories);
+
+            return (
+              <div
+                key={item.id}
+                className={`receiver-donation-card ${
+                  expandedCardId === item.id ? "expanded" : ""
+                }`}
+              >
                 <div
-                  key={item.id}
-                  className={`receiver-donation-card ${expandedCardId === item.id ? "expanded" : ""
-                    }`}
+                  className={`receiver-donation-image ${getFoodImageClass(
+                    primaryFoodCategory
+                  )}`}
                 >
-                  <div
-                    className={`receiver-donation-image ${getFoodImageClass(
-                      primaryFoodCategory
-                    )}`}
-                  >
-                    <img
-                      src={getFoodTypeImage(primaryFoodCategory)}
-                      alt={primaryFoodCategory || "Food donation"}
-                      className="receiver-food-type-image"
-                      onError={(e) => {
-                        e.target.style.display = "none";
-                        e.target.parentElement.classList.add(
-                          "food-image-default"
-                        );
-                      }}
-                    />
+                  <img
+                    src={getFoodTypeImage(primaryFoodCategory)}
+                    alt={primaryFoodCategory || "Food donation"}
+                    className="receiver-food-type-image"
+                    onError={(e) => {
+                      e.target.style.display = "none";
+                      e.target.parentElement.classList.add("food-image-default");
+                    }}
+                  />
+                </div>
+
+                <div className="receiver-donation-content">
+                  <div className="receiver-donation-header">
+                    <h3 className="receiver-donation-title">{item.title}</h3>
+                    <div className="receiver-header-actions">
+                      <button
+                        className="receiver-bookmark-button"
+                        onClick={(e) => handleBookmark(item, e)}
+                        aria-label="Bookmark"
+                      >
+                        <Bookmark
+                          size={16}
+                          style={{
+                            display: "block",
+                            margin: "0 auto",
+                            color: bookmarkedItems.has(item.id) ? "#1B4965" : "#90A1B9",
+                            fill: bookmarkedItems.has(item.id) ? "#1B4965" : "transparent",
+                          }}
+                        />
+                      </button>
+                      <span className={`receiver-status-badge ${getStatusClass(item.status)}`}>
+                        <span className="receiver-status-icon">✓</span>
+                        {formatStatus(item.status)}
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="receiver-donation-content">
-                    <div className="receiver-donation-header">
-                      <h3 className="receiver-donation-title">{item.title}</h3>
-                      <div className="receiver-header-actions">
-                        <button
-                          className="receiver-bookmark-button"
-                          onClick={(e) => handleBookmark(item, e)}
-                          aria-label="Bookmark"
-                        >
-                          <Bookmark
-                            size={16}
-                            style={{
-                              display: "block",
-                              margin: "0 auto",
-                              color: bookmarkedItems.has(item.id)
-                                ? "#1B4965"
-                                : "#90A1B9",
-                              fill: bookmarkedItems.has(item.id)
-                                ? "#1B4965"
-                                : "transparent",
-                            }}
-                          />
-                        </button>
-                        <span
-                          className={`receiver-status-badge ${getStatusClass(
-                            item.status
-                          )}`}
-                        >
-                          <span className="receiver-status-icon">✓</span>
-                          {formatStatus(item.status)}
-                        </span>
-                      </div>
+                  <div className="receiver-donation-info">
+                    <div className="receiver-info-item">
+                      <Calendar size={16} className="receiver-info-icon-expiry-icon" />
+                      <span>Expires: {formatExpiryDate(item.expiryDate)}</span>
                     </div>
-
-                    <div className="receiver-donation-info">
-                      <div className="receiver-info-item">
-                        <Calendar
-                          size={16}
-                          className="receiver-info-icon-expiry-icon"
-                        />
-                        <span>
-                          Expires: {formatExpiryDate(item.expiryDate)}
-                        </span>
-                      </div>
-                      <div className="receiver-info-item">
-                        <MapPin
-                          size={16}
-                          className="receiver-info-icon-location-icon"
-                        />
-                        <span>
-                          {item.pickupLocation?.address ||
-                            "Location not specified"}
-                        </span>
-                      </div>
-                      <div className="receiver-info-item">
-                        <Clock
-                          size={16}
-                          className="receiver-info-icon-time-icon"
-                        />
-                        {item.pickupSlots && item.pickupSlots.length > 0 ? (
-                          <div className="pickup-slots-list">
-                            {item.pickupSlots.map((slot, idx) => (
-                              <div key={idx} className="pickup-slot-time">
-                                {formatPickupTime(
-                                  slot.pickupDate || slot.date,
-                                  slot.startTime || slot.pickupFrom,
-                                  slot.endTime || slot.pickupTo
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <span>
-                            {formatPickupTime(
-                              item.pickupDate,
-                              item.pickupFrom,
-                              item.pickupTo
-                            )}
-                          </span>
-                        )}
-                      </div>
+                    <div className="receiver-info-item">
+                      <MapPin size={16} className="receiver-info-icon-location-icon" />
+                      <span>
+                        {item.pickupLocation?.address || "Location not specified"}
+                      </span>
                     </div>
-
-                    <div className="receiver-donation-meta">
-                      <div className="receiver-category-tags">
-                        {categoryDisplays.map((category, index) => (
-                          <span key={index} className="receiver-category-tag">
-                            {category}
-                          </span>
-                        ))}
-                      </div>
-                      <div className="receiver-donor-info">
-                        <User size={16} />
-                        <span>
-                          Donated by {item.donor?.name || "Local Business"}
-                        </span>
-                      </div>
-                    </div>
-
-                    {expandedCardId === item.id && (
-                      <div className="receiver-donation-details">
-                        <div className="receiver-details-grid">
-                          <div className="receiver-details-section">
-                            <div className="receiver-detail-item">
-                              <span className="receiver-detail-label">
-                                Quantity
-                              </span>
-                              <div className="receiver-detail-value">
-                                <Package2
-                                  size={14}
-                                  className="receiver-quantity-icon-detail"
-                                  style={{
-                                    display: "inline",
-                                    marginRight: "8px",
-                                  }}
-                                />
-                                {item.quantity?.value || 0}{" "}
-                                {item.quantity?.unit || "items"}
-                              </div>
+                    <div className="receiver-info-item">
+                      <Clock size={16} className="receiver-info-icon-time-icon" />
+                      {item.pickupSlots && item.pickupSlots.length > 0 ? (
+                        <div className="pickup-slots-list">
+                          {item.pickupSlots.map((slot, idx) => (
+                            <div key={idx} className="pickup-slot-time">
+                              {formatPickupTime(
+                                slot.pickupDate || slot.date,
+                                slot.startTime || slot.pickupFrom,
+                                slot.endTime || slot.pickupTo
+                              )}
                             </div>
-                            <div className="receiver-detail-item">
-                              <span className="receiver-detail-label">
-                                Pickup Time{item.pickupSlots && item.pickupSlots.length > 1 ? 's' : ''}
-                              </span>
-                              <div className="receiver-detail-value">
-                                <Clock
-                                  size={14}
-                                  className="receiver-time-icon-detail"
-                                  style={{
-                                    display: "inline",
-                                    marginRight: "8px",
-                                  }}
-                                />
-                                {item.pickupSlots && item.pickupSlots.length > 0 ? (
-                                  <div className="pickup-slots-list">
-                                    {item.pickupSlots.map((slot, idx) => (
-                                      <div key={idx} className="pickup-slot-time" style={{ color: '#314158' }}>
-                                        {formatPickupTime(
-                                          slot.pickupDate || slot.date,
-                                          slot.startTime || slot.pickupFrom,
-                                          slot.endTime || slot.pickupTo
-                                        )}
-                                      </div>
-                                    ))}
-                                  </div>
-                                ) : (
-                                  <span style={{ color: '#314158' }}>
-                                    {formatPickupTime(
-                                      item.pickupDate,
-                                      item.pickupFrom,
-                                      item.pickupTo
-                                    )}
-                                  </span>
-                                )}
-                              </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <span>
+                          {formatPickupTime(
+                            item.pickupDate,
+                            item.pickupFrom,
+                            item.pickupTo
+                          )}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="receiver-donation-meta">
+                    <div className="receiver-category-tags">
+                      {categoryDisplays.map((category, index) => (
+                        <span key={index} className="receiver-category-tag">
+                          {category}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="receiver-donor-info">
+                      <User size={16} />
+                      <span>Donated by {item.donor?.name || "Local Business"}</span>
+                    </div>
+                  </div>
+
+                  {expandedCardId === item.id && (
+                    <div className="receiver-donation-details">
+                      <div className="receiver-details-grid">
+                        <div className="receiver-details-section">
+                          <div className="receiver-detail-item">
+                            <span className="receiver-detail-label">Quantity</span>
+                            <div className="receiver-detail-value">
+                              <Package2
+                                size={14}
+                                className="receiver-quantity-icon-detail"
+                                style={{ display: "inline", marginRight: "8px" }}
+                              />
+                              {item.quantity?.value || 0} {item.quantity?.unit || "items"}
                             </div>
                           </div>
-
-                          <div className="receiver-details-section">
-                            <div className="receiver-detail-item">
-                              <span className="receiver-detail-label">
-                                Expires
-                              </span>
-                              <div className="receiver-detail-value">
-                                <Calendar
-                                  size={14}
-                                  className="receiver-expiry-icon-detail"
-                                  style={{
-                                    display: "inline",
-                                    marginRight: "8px",
-                                  }}
-                                />
-                                {formatExpiryDate(item.expiryDate)}
-                              </div>
-                            </div>
-                            <div className="receiver-detail-item">
-                              <span className="receiver-detail-label">
-                                Location
-                              </span>
-                              <div className="receiver-detail-value">
-                                <MapPin
-                                  size={14}
-                                  className="receiver-location-icon-detail"
-                                  style={{
-                                    display: "inline",
-                                    marginRight: "8px",
-                                  }}
-                                />
-                                {item.pickupLocation?.address ||
-                                  "Location not specified"}
-                              </div>
+                          <div className="receiver-detail-item">
+                            <span className="receiver-detail-label">
+                              Pickup Time{item.pickupSlots && item.pickupSlots.length > 1 ? 's' : ''}
+                            </span>
+                            <div className="receiver-detail-value">
+                              <Clock
+                                size={14}
+                                className="receiver-time-icon-detail"
+                                style={{ display: "inline", marginRight: "8px" }}
+                              />
+                              {item.pickupSlots && item.pickupSlots.length > 0 ? (
+                                <div className="pickup-slots-list">
+                                  {item.pickupSlots.map((slot, idx) => (
+                                    <div key={idx} className="pickup-slot-time" style={{ color: '#314158' }}>
+                                      {formatPickupTime(
+                                        slot.pickupDate || slot.date,
+                                        slot.startTime || slot.pickupFrom,
+                                        slot.endTime || slot.pickupTo
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span style={{ color: '#314158' }}>
+                                  {formatPickupTime(
+                                    item.pickupDate,
+                                    item.pickupFrom,
+                                    item.pickupTo
+                                  )}
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>
 
-                        {item.description && (
-                          <div className="receiver-donor-note">
-                            <div className="receiver-note-label">
-                              Donor's Note
-                            </div>
-                            <div className="receiver-note-content">
-                              {item.description}
+                        <div className="receiver-details-section">
+                          <div className="receiver-detail-item">
+                            <span className="receiver-detail-label">Expires</span>
+                            <div className="receiver-detail-value">
+                              <Calendar
+                                size={14}
+                                className="receiver-expiry-icon-detail"
+                                style={{ display: "inline", marginRight: "8px" }}
+                              />
+                              {formatExpiryDate(item.expiryDate)}
                             </div>
                           </div>
-                        )}
-
-                        {item.createdAt && (
-                          <div className="receiver-posted-time">
-                            Posted {formatPostedTime(item.createdAt)}
+                          <div className="receiver-detail-item">
+                            <span className="receiver-detail-label">Location</span>
+                            <div className="receiver-detail-value">
+                              <MapPin
+                                size={14}
+                                className="receiver-location-icon-detail"
+                                style={{ display: "inline", marginRight: "8px" }}
+                              />
+                              {item.pickupLocation?.address || "Location not specified"}
+                            </div>
                           </div>
-                        )}
+                        </div>
                       </div>
-                    )}
 
-                    <div className="receiver-donation-actions">
-                      <button
-                        onClick={() => handleClaimDonation(item)}
-                        className="receiver-claim-button"
-                        disabled={claiming}
-                      >
-                        {claiming && claimTargetItem?.id === item.id ? 'Claiming...' : 'Claim Donation'}
-                      </button>
-                      <button
-                        onClick={() => handleMoreClick(item)}
-                        className={`receiver-more-button ${expandedCardId === item.id ? "expanded" : ""
-                          }`}
-                      >
-                        {expandedCardId === item.id ? "Less" : "More"}
-                        {expandedCardId === item.id ? (
-                          <ChevronUp
-                            size={14}
-                            className="receiver-dropdown-icon"
-                          />
-                        ) : (
-                          <ChevronDown
-                            size={14}
-                            className="receiver-dropdown-icon"
-                          />
-                        )}
-                      </button>
+                      {item.description && (
+                        <div className="receiver-donor-note">
+                          <div className="receiver-note-label">Donor's Note</div>
+                          <div className="receiver-note-content">{item.description}</div>
+                        </div>
+                      )}
+
+                      {item.createdAt && (
+                        <div className="receiver-posted-time">
+                          Posted {formatPostedTime(item.createdAt)}
+                        </div>
+                      )}
                     </div>
+                  )}
+
+                  <div className="receiver-donation-actions">
+                    <button
+                      onClick={() => handleClaimDonation(item)}
+                      className="receiver-claim-button"
+                      disabled={claiming}
+                    >
+                      {claiming && claimTargetItem?.id === item.id ? 'Claiming...' : 'Claim Donation'}
+                    </button>
+                    <button
+                      onClick={() => handleMoreClick(item)}
+                      className={`receiver-more-button ${
+                        expandedCardId === item.id ? "expanded" : ""
+                      }`}
+                    >
+                      {expandedCardId === item.id ? "Less" : "More"}
+                      {expandedCardId === item.id ? (
+                        <ChevronUp size={14} className="receiver-dropdown-icon" />
+                      ) : (
+                        <ChevronDown size={14} className="receiver-dropdown-icon" />
+                      )}
+                    </button>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       <ClaimModal
         open={claimModalOpen}
         item={claimTargetItem}
         selectedIndex={selectedSlotIndex}
         onSelectIndex={(idx) => setSelectedSlotIndex(idx)}
         onConfirm={(slot) => confirmClaim(claimTargetItem, slot)}
-        onClose={() => { setClaimModalOpen(false); setClaimTargetItem(null); }}
+        onClose={() => { 
+          setClaimModalOpen(false); 
+          setClaimTargetItem(null); 
+        }}
         loading={claiming}
         formatFn={formatPickupTime}
       />
-    </LoadScript>
+    </div>
   );
 }
 
@@ -738,7 +685,9 @@ function ClaimModal({ open, item, selectedIndex, onSelectIndex, onConfirm, onClo
         </div>
 
         <div className="claim-modal-actions">
-          <button className="btn btn-cancel" onClick={onClose} disabled={loading}>Cancel</button>
+          <button className="btn btn-cancel" onClick={onClose} disabled={loading}>
+            Cancel
+          </button>
           <button
             className="btn btn-create"
             onClick={() => {
