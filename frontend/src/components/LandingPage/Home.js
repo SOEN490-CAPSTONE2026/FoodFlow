@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import HomeIllustration from "../../assets/illustrations/home-illustration.jpg";
+import backgroundVideo from "../../assets/LandingPage_VIDEO.mp4"; // Add your video import
 import '../LandingPage/style/Home.css';
 
 const Home = () => {
@@ -18,7 +19,6 @@ const Home = () => {
             setLine2Completed(true);
         }, 4500);
 
-        // Alternate between donor and receiver every 8 seconds
         const interval = setInterval(() => {
             setShowReceiver(prev => !prev);
         }, 8000);
@@ -32,6 +32,16 @@ const Home = () => {
 
     return (
         <div className="home-container">
+            <video 
+                className="background-video" 
+                autoPlay 
+                loop 
+                muted 
+                playsInline
+            >
+                <source src={backgroundVideo} type="video/mp4" />
+            </video>
+
             <div className="floating-element"></div>
             <div className="floating-element"></div>
             <div className="floating-element"></div>
@@ -74,10 +84,6 @@ const Home = () => {
                     <button onClick={() => navigate('/register')}>Join Us Now</button>
                 </div>
             </div>
-
-            {/* <div className="home-image">
-                <img src={HomeIllustration} alt="Food donation community" width={"700px"} height={"550px"} />
-            </div> */}
         </div>
     );
 };
