@@ -115,9 +115,10 @@ jobs:
         id: backend_coverage
         working-directory: backend
         run: |
-          COVERAGE=$(grep -A 1 '<counter type="LINE"' target/site/jacoco/jacoco.xml | grep -o 'covered="[0-9]*" missed="[0-9]*"' | \
-          awk -F'"' '{covered+=$2; missed+=$4} END {printf "%.2f", (covered/(covered+missed))*100}')
-          echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
+          COVERAGE=$(xmllint --xpath "sum(//counter[@type='LINE']/@covered)" target/site/jacoco/jacoco.xml | awk '{covered=$1} END {print covered}' )
+          MISSED=$(xmllint --xpath "sum(//counter[@type='LINE']/@missed)" target/site/jacoco/jacoco.xml | awk '{missed=$1} END {print missed}' )
+          PERCENT=$(awk -v c=$COVERAGE -v m=$MISSED 'BEGIN {if(c+m>0){printf "%.2f", (c/(c+m))*100}else{print "0"}}')
+          echo "coverage=$PERCENT" >> $GITHUB_OUTPUT
 
       - name: Upload backend coverage artifact
         uses: actions/upload-artifact@v4
