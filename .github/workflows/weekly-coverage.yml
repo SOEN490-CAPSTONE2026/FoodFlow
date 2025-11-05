@@ -38,7 +38,15 @@ jobs:
         id: frontend_coverage
         working-directory: frontend
         run: |
-          COVERAGE=$(node -e "const fs=require('fs');const s=JSON.parse(fs.readFileSync('coverage/coverage-summary.json'));console.log(s.total.lines.pct)")
+          npm install cheerio
+          COVERAGE=$(node -e "
+            const fs = require('fs');
+            const cheerio = require('cheerio');
+            const html = fs.readFileSync('coverage/lcov-report/index.html', 'utf8');
+            const $ = cheerio.load(html);
+            const lines = $('.pad1 > .clearfix > div.fl:contains(\"Lines\") .strong').text().trim();
+            console.log(lines);
+          ")
           echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
 
       - name: Upload coverage report
