@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Package, MapPin, Calendar, User, ArrowRight, Filter } from 'lucide-react';
+import { Package, MapPin, User, ArrowRight, Filter, Clock } from 'lucide-react';
 import Select from 'react-select';
 import { claimsAPI } from '../../services/api';
+import { useNotification } from '../../contexts/NotificationContext';
 import BakeryPastryImage from '../../assets/foodtypes/Pastry&Bakery.jpg';
 import FruitsVeggiesImage from '../../assets/foodtypes/Fruits&Vegetables.jpg';
 import PackagedPantryImage from '../../assets/foodtypes/PackagedItems.jpg';
@@ -13,6 +14,7 @@ import ClaimDetailModal from './ClaimDetailModal.js';
 import "./Receiver_Styles/ReceiverMyClaims.css";
 
 export default function ReceiverMyClaims() {
+  const { showNotification } = useNotification();
   const [claims, setClaims] = useState([]);
   const [activeFilter, setActiveFilter] = useState('All');
   const [sortBy, setSortBy] = useState({ value: 'date', label: 'Sort by Date' });
@@ -53,17 +55,21 @@ export default function ReceiverMyClaims() {
   };
 
   const handleCancelClaim = async (claimId) => {
-    if (!window.confirm('Are you sure you want to cancel this claim?')) {
-      return;
-    }
-
     try {
+      // Find the claim to get its title for the notification
+      const claim = claims.find(c => c.id === claimId);
+      const postTitle = claim?.surplusPost?.title || 'donation';
+      
       await claimsAPI.cancel(claimId);
-      alert('Claim cancelled successfully');
+      console.log('Claim cancelled successfully');
+      
+      // Show toast notification
+      showNotification('Claim Cancelled', `Your claim on "${postTitle}" has been cancelled`);
+      
       fetchMyClaims(); // Refresh list
     } catch (error) {
       console.error('Error cancelling claim:', error);
-      alert('Failed to cancel claim');
+      showNotification('Error', 'Failed to cancel claim. Please try again.');
     }
   };
 
@@ -77,6 +83,33 @@ export default function ReceiverMyClaims() {
     setSelectedClaim(null);
     fetchMyClaims();
   };
+
+  // Format pickup time consistently with ReceiverBrowse
+  const formatPickupTime = (pickupDate, pickupFrom, pickupTo) => {
+    if (!pickupDate || !pickupFrom || !pickupTo) return "—";
+    try {
+      const fromDate = new Date(`${pickupDate}T${pickupFrom}`);
+      const dateStr = fromDate.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+      const fromTime = fromDate.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
+      const [hours, minutes] = pickupTo.split(":");
+      const hour = parseInt(hours, 10);
+      const isPM = hour >= 12;
+      const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+      const toTime = `${displayHour}:${minutes} ${isPM ? "PM" : "AM"}`;
+      return `${dateStr} ${fromTime}-${toTime}`;
+    } catch {
+      return "—";
+    }
+  };
+
   const getFoodTypeImage = (foodType) => {
     switch (foodType) {
       case 'Bakery & Pastry':
@@ -227,8 +260,18 @@ export default function ReceiverMyClaims() {
                     <span>{post?.donorEmail || 'Not specified'}</span>
                   </div>
                   <div className="claimed-page detail-item">
-                    <Calendar size={16} className="claimed-page date-detail-icon" />
-                    <span>{post?.pickupDate || 'Date TBD'}</span>
+                    <Clock size={16} className="claimed-page date-detail-icon" />
+                    <span>
+                      {claim?.confirmedPickupSlot ? (
+                        formatPickupTime(
+                          claim.confirmedPickupSlot.pickupDate || claim.confirmedPickupSlot.date,
+                          claim.confirmedPickupSlot.startTime || claim.confirmedPickupSlot.pickupFrom,
+                          claim.confirmedPickupSlot.endTime || claim.confirmedPickupSlot.pickupTo
+                        )
+                      ) : (
+                        formatPickupTime(post?.pickupDate, post?.pickupFrom, post?.pickupTo)
+                      )}
+                    </span>
                   </div>
                 </div>
                 {/* Action Buttons */}

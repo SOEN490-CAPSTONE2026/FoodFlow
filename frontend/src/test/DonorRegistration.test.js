@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
+import { AuthContext } from '../contexts/AuthContext';
 
 // Mock static imports used by the component
 jest.mock('../assets/illustrations/donor-illustration.jpg', () => 'donor.jpg');
@@ -21,10 +22,27 @@ jest.mock('../services/api', () => ({
 
 import DonorRegistration from '../components/DonorRegistration';
 
+// Mock AuthContext value
+const mockAuthContextValue = {
+    isLoggedIn: false,
+    role: null,
+    userId: null,
+    login: jest.fn(),
+    logout: jest.fn(),
+};
+
 describe('DonorRegistration', () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });
+
+    const renderWithAuth = (component) => {
+        return render(
+            <AuthContext.Provider value={mockAuthContextValue}>
+                {component}
+            </AuthContext.Provider>
+        );
+    };
 
     const fillAllFields = async (user) => {
         await user.type(screen.getByLabelText(/email address/i), 'donor@example.com');
@@ -38,7 +56,7 @@ describe('DonorRegistration', () => {
     };
 
     it('renders the form with all required fields', () => {
-        render(<DonorRegistration />);
+        renderWithAuth(<DonorRegistration />);
         expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
         expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
         expect(screen.getByLabelText(/organization name/i)).toBeInTheDocument();
@@ -51,7 +69,7 @@ describe('DonorRegistration', () => {
 
     it('updates form values correctly', async () => {
         const user = userEvent.setup();
-        render(<DonorRegistration />);
+        renderWithAuth(<DonorRegistration />);
         await fillAllFields(user);
         expect(screen.getByLabelText(/email address/i)).toHaveValue('donor@example.com');
         expect(screen.getByLabelText(/password/i)).toHaveValue('password123');
@@ -65,7 +83,7 @@ describe('DonorRegistration', () => {
 
     it('business license field accepts only text', async () => {
         const user = userEvent.setup();
-        render(<DonorRegistration />);
+        renderWithAuth(<DonorRegistration />);
         const licenseInput = screen.getByLabelText(/business license/i);
         
         // Clear any default value and type new value

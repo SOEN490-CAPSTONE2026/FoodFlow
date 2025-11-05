@@ -99,7 +99,33 @@ export default function DonorLayout() {
       if (message) setNotification({ senderName, message });
     };
 
-    connectToUserQueue(onMessage);
+    const onClaimNotification = (payload) => {
+      // Handle claim notifications from receivers
+      console.log('DONOR: Claim notification received:', payload);
+      const receiverName = payload.receiverEmail || 'A receiver';
+      const foodTitle = payload.surplusPostTitle || 'your food item';
+      const message = `${receiverName} has claimed your "${foodTitle}"`;
+      console.log('DONOR: Setting notification with message:', message);
+      setNotification({ 
+        senderName: 'New Claim', 
+        message
+      });
+    };
+
+    const onClaimCancelled = (payload) => {
+      // Handle claim cancellation notifications
+      console.log('DONOR: Claim cancellation received:', payload);
+      const receiverName = payload.receiverEmail || 'A receiver';
+      const foodTitle = payload.surplusPostTitle || 'your food item';
+      const message = `${receiverName} cancelled their claim on "${foodTitle}"`;
+      console.log('DONOR: Setting notification with message:', message);
+      setNotification({ 
+        senderName: 'Claim Cancelled', 
+        message
+      });
+    };
+
+    connectToUserQueue(onMessage, onClaimNotification, onClaimCancelled);
     return () => {
       try { disconnect(); } catch (e) { /* ignore */ }
     };

@@ -3,6 +3,7 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
+import { AuthContext } from '../contexts/AuthContext';
 
 // Mock static imports used by the component
 jest.mock('../assets/illustrations/receiver-ilustration.jpg', () => 'receiver.jpg');
@@ -25,11 +26,28 @@ import ReceiverRegistration from '../components/ReceiverRegistration';
 
 const setItemSpy = jest.spyOn(Storage.prototype, 'setItem');
 
+// Mock AuthContext value
+const mockAuthContextValue = {
+    isLoggedIn: false,
+    role: null,
+    userId: null,
+    login: jest.fn(),
+    logout: jest.fn(),
+};
+
 describe('ReceiverRegistration', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         jest.useRealTimers();
     });
+
+    const renderWithAuth = (component) => {
+        return render(
+            <AuthContext.Provider value={mockAuthContextValue}>
+                {component}
+            </AuthContext.Provider>
+        );
+    };
 
     const fillAllFields = async (user) => {
         await user.type(screen.getByLabelText(/email address/i), 'test@example.com');
@@ -43,7 +61,7 @@ describe('ReceiverRegistration', () => {
     };
 
     test('renders the form with all required fields', () => {
-        render(<ReceiverRegistration />);
+        renderWithAuth(<ReceiverRegistration />);
         expect(screen.getByRole('heading', { name: /register as receiver/i })).toBeInTheDocument();
         expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
         expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
@@ -56,7 +74,7 @@ describe('ReceiverRegistration', () => {
     });
 
     test('updates form values', async () => {
-        render(<ReceiverRegistration />);
+        renderWithAuth(<ReceiverRegistration />);
         const email = screen.getByLabelText(/email address/i);
         await userEvent.type(email, 'test@example.com');
         expect(email).toHaveValue('test@example.com');
@@ -77,7 +95,7 @@ describe('ReceiverRegistration', () => {
             response: { data: { message: 'Email already exists' } },
         });
 
-        render(<ReceiverRegistration />);
+        renderWithAuth(<ReceiverRegistration />);
         await fillAllFields(user);
 
         await user.click(screen.getByRole('button', { name: /register as receiver/i }));
@@ -88,7 +106,7 @@ describe('ReceiverRegistration', () => {
     }, 10000);
 
     test('Back button goes to /register', async () => {
-        render(<ReceiverRegistration />);
+        renderWithAuth(<ReceiverRegistration />);
         await userEvent.click(screen.getByRole('button', { name: /back/i }));
         expect(mockNavigate).toHaveBeenCalledWith('/register');
     });
@@ -97,7 +115,7 @@ describe('ReceiverRegistration', () => {
         const user = userEvent.setup();
         authAPI.registerReceiver.mockResolvedValueOnce({ data: {} });
 
-        render(<ReceiverRegistration />);
+        renderWithAuth(<ReceiverRegistration />);
 
         await user.type(screen.getByLabelText(/email address/i), 'a@b.com');
         await user.type(screen.getByLabelText(/password/i), 'password123');

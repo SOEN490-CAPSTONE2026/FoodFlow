@@ -1,7 +1,9 @@
 package com.example.foodflow.model.entity;
 
 import jakarta.persistence.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import com.example.foodflow.model.types.ClaimStatus;
 
 @Entity
@@ -26,6 +28,16 @@ public class Claim {
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
     private ClaimStatus status = ClaimStatus.ACTIVE;
+    
+    // Confirmed pickup slot - the specific time the receiver selected
+    @Column(name = "confirmed_pickup_date")
+    private LocalDate confirmedPickupDate;
+    
+    @Column(name = "confirmed_pickup_start_time")
+    private LocalTime confirmedPickupStartTime;
+    
+    @Column(name = "confirmed_pickup_end_time")
+    private LocalTime confirmedPickupEndTime;
     
     @PrePersist
     protected void onCreate() {
@@ -55,4 +67,19 @@ public class Claim {
     
     public ClaimStatus getStatus() { return status; }
     public void setStatus(ClaimStatus status) { this.status = status; }
+    
+    public LocalDate getConfirmedPickupDate() { return confirmedPickupDate; }
+    public void setConfirmedPickupDate(LocalDate confirmedPickupDate) { 
+        this.confirmedPickupDate = confirmedPickupDate; 
+    }
+    
+    public LocalTime getConfirmedPickupStartTime() { return confirmedPickupStartTime; }
+    public void setConfirmedPickupStartTime(LocalTime confirmedPickupStartTime) { 
+        this.confirmedPickupStartTime = confirmedPickupStartTime; 
+    }
+    
+    public LocalTime getConfirmedPickupEndTime() { return confirmedPickupEndTime; }
+    public void setConfirmedPickupEndTime(LocalTime confirmedPickupEndTime) { 
+        this.confirmedPickupEndTime = confirmedPickupEndTime; 
+    }
 }

@@ -95,7 +95,7 @@ public class AuthService {
         log.info("Donor registration successful: email={}, organization={}, type={}", 
             savedUser.getEmail(), request.getOrganizationName(), request.getOrganizationType());
 
-        return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), "Donor registered successfully");
+        return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), "Donor registered successfully", savedUser.getId());
     }
 
     @Transactional
@@ -131,7 +131,7 @@ public class AuthService {
         metricsService.incrementReceiverRegistration();
         metricsService.incrementUserRegistration();
 
-        return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), "Receiver registered successfully");
+        return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), "Receiver registered successfully", savedUser.getId());
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -152,8 +152,8 @@ public class AuthService {
 
         metricsService.incrementLoginSuccess();
 
-        log.info("Login successful: email={}, role={}", user.getEmail(), user.getRole());
-        return new AuthResponse(token, user.getEmail(), user.getRole().toString(), "Account logged in successfully.");
+        log.info("Login successful: email={}, role={}, userId={}", user.getEmail(), user.getRole(), user.getId());
+        return new AuthResponse(token, user.getEmail(), user.getRole().toString(), "Account logged in successfully.", user.getId());
     }
 
     public AuthResponse logout(LogoutRequest request) {

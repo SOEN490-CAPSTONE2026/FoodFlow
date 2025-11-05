@@ -15,13 +15,24 @@ const MessageNotification = ({ notification, onClose }) => {
 
   if (!notification) return null;
 
+  // For claim notifications, use senderName as the title directly
+  const isClaimNotification = 
+    notification.senderName === 'New Claim' || 
+    notification.senderName === 'Claim Cancelled' ||
+    notification.senderName === 'Claim Confirmed' ||
+    notification.senderName === 'Claim Status';
+  
+  const headerText = isClaimNotification 
+    ? notification.senderName 
+    : `New message from ${notification.senderName}`;
+
   return (
     <div className="message-notification">
       <button className="notification-close" onClick={onClose}>
         ×
       </button>
       <div className="notification-header">
-        <strong>New message from {notification.senderName}</strong>
+        <strong>{headerText}</strong>
       </div>
       <div className="notification-body">
         {notification.message}
