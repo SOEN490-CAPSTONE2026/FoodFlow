@@ -80,8 +80,8 @@ const Home = () => {
                 )}
                 
                 <div className="home-description">
-                    <p>Connecting food businesses with community organizations in real-time. Turn surplus into impact—whether it's event leftovers, restaurant excess, or grocery overstock.</p>
-                    <button onClick={() => navigate('/register')}>Get Started</button>
+                    <p>Connecting food businesses with community organizations. Turn surplus into impact—whether it's event leftovers, restaurant excess, or grocery overstock.</p>
+                    <button onClick={() => navigate('/register')}>Join Us Now</button>
                 </div>
             </div>
         </div>
