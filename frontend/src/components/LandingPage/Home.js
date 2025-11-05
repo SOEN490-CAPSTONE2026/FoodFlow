@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import HomeIllustration from "../../assets/illustrations/home-illustration.jpg";
-import backgroundVideo from "../../assets/LandingPage_VIDEO.mp4"; // Add your video import
+import backgroundVideo from "../../assets/LandingPage_VIDEO.mp4"; 
 import '../LandingPage/style/Home.css';
 
 const Home = () => {
@@ -80,8 +80,8 @@ const Home = () => {
                 )}
                 
                 <div className="home-description">
-                    <p>Real-time platform connecting food businesses with verified community organizations. Whether it's event surplus, restaurant excess, or grocery overstock, FoodFlow helps you redistribute quality food quickly and efficiently—turning waste into community impact.</p>
-                    <button onClick={() => navigate('/register')}>Join Us Now</button>
+                    <p>Connecting food businesses with community organizations in real-time. Turn surplus into impact—whether it's event leftovers, restaurant excess, or grocery overstock.</p>
+                    <button onClick={() => navigate('/register')}>Get Started</button>
                 </div>
             </div>
         </div>

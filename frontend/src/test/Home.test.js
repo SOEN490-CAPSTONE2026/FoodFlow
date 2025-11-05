@@ -43,10 +43,10 @@ describe('Home Component - Core Functionality', () => {
     expect(screen.getByText('those in need')).toBeInTheDocument();
     
     // Description paragraph - updated to match actual content
-    expect(screen.getByText(/Real-time platform connecting food businesses/i)).toBeInTheDocument();
+    expect(screen.getByText(/Connecting food businesses with community organizations/i)).toBeInTheDocument();
     
     // CTA button - updated to match actual button text
-    const button = screen.getByRole('button', { name: /Join Us Now/i });
+    const button = screen.getByRole('button', { name: /Get Started/i });
     expect(button).toBeInTheDocument();
   });
 
@@ -78,7 +78,7 @@ describe('Home Component - Core Functionality', () => {
   test('navigation works when CTA button is clicked', () => {
     renderHome();
 
-    const button = screen.getByRole('button', { name: /Join Us Now/i });
+    const button = screen.getByRole('button', { name: /Get Started/i });
     fireEvent.click(button);
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
@@ -144,7 +144,7 @@ describe('Home Component - Edge Cases', () => {
     // Button accessibility check
     const button = screen.getByRole('button');
     expect(button).toBeEnabled();
-    expect(button).toHaveTextContent(/Join Us Now/i);
+    expect(button).toHaveTextContent(/Get Started/i);
   });
 
   test('renders correctly with all timers completed immediately', () => {
