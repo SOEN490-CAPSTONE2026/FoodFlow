@@ -63,7 +63,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: frontend-coverage
-          path: frontend/coverage/
+          path: frontend/coverage/lcov-report/index.html
 
   backend-coverage:
     name: Backend Coverage
@@ -124,7 +124,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: backend-coverage
-          path: backend/target/site/jacoco
+          path: backend/target/site/jacoco/index.html
 
   summary:
       name: Coverage Summary
