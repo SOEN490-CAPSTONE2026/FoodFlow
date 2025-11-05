@@ -130,7 +130,7 @@ describe('ReturnToDashboardButton', () => {
     const button = screen.getByRole('button', { name: /return to your dashboard/i });
     fireEvent.click(button);
 
-    expect(mockNavigate).toHaveBeenCalledWith('/donor/dashboard');
+    expect(mockNavigate).toHaveBeenCalledWith('/donor');
   });
 
   it('should navigate to admin dashboard when clicked', () => {

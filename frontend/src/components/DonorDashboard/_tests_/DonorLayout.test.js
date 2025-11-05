@@ -40,8 +40,9 @@ test('highlights PickUp Schedule link when on /donor/search', () => {
   expect(searchLink).toHaveClass('active');
 });
 
-test('shows page title and description for /donor', () => {
+test('does not show topbar on /donor welcome page', () => {
   renderAt('/donor');
-  expect(screen.getByRole('heading', { name: /donor dashboard/i })).toBeInTheDocument();
-  expect(screen.getByText(/overview and quick actions/i)).toBeInTheDocument();
+  // The topbar should be hidden on the welcome page
+  expect(screen.queryByRole('heading', { name: /donor dashboard/i })).not.toBeInTheDocument();
+  expect(screen.queryByText(/overview and quick actions/i)).not.toBeInTheDocument();
 });
