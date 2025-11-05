@@ -44,9 +44,13 @@ jobs:
             const cheerio = require('cheerio');
             const html = fs.readFileSync('coverage/lcov-report/index.html', 'utf8');
             const $ = cheerio.load(html);
-            const lines = $('.pad1 > .clearfix > div.fl:contains(\"Lines\") .strong').text().trim();
-            console.log(lines);
-          ")
+            let lines = '';
+            $('.pad1 > .clearfix > div.fl').each((i, el) => {
+              const key = $(el).find('span.quiet').text().trim();
+              if (key === 'Lines') {
+                lines = $(el).find('span.strong').text().trim();
+              }
+            });
           echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
 
       - name: Upload coverage report
