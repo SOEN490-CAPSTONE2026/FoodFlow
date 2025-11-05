@@ -8,20 +8,21 @@ const HOTJAR_VERSION = 6;
  * Only initializes in production or UAT environments
  */
 export const initHotjar = () => {
-  // Run Hotjar in production, UAT, or when hostname matches production URL
-  const isProduction = process.env.NODE_ENV === 'production' || 
-                       process.env.REACT_APP_ENV === 'uat' ||
-                       window.location.hostname === 'frontend-production-3b5a.up.railway.app';
+  // Enable on production deployment or when explicitly set to UAT
+  const isProductionDeploy = window.location.hostname.includes('railway.app') || 
+                             window.location.hostname.includes('frontend-production');
+  const isUAT = process.env.REACT_APP_ENV === 'uat';
+  const isProduction = process.env.NODE_ENV === 'production';
   
-  if (isProduction) {
+  if (isProductionDeploy || isUAT || isProduction) {
     try {
       Hotjar.init(HOTJAR_SITE_ID, HOTJAR_VERSION);
-      console.log('Hotjar initialized successfully');
+      console.log('🎯 Hotjar initialized successfully on', window.location.hostname);
     } catch (error) {
       console.error('Failed to initialize Hotjar:', error);
     }
   } else {
-    console.log('Hotjar disabled in development mode');
+    console.log('Hotjar disabled - not on production/UAT');
   }
 };
 
@@ -31,13 +32,15 @@ export const initHotjar = () => {
  * @param {object} attributes - User attributes (e.g., role, email, etc.)
  */
 export const identifyHotjarUser = (userId, attributes = {}) => {
-  const isProduction = process.env.NODE_ENV === 'production' || 
-                       process.env.REACT_APP_ENV === 'uat' ||
-                       window.location.hostname === 'frontend-production-3b5a.up.railway.app';
+  const isProductionDeploy = window.location.hostname.includes('railway.app') || 
+                             window.location.hostname.includes('frontend-production');
+  const isUAT = process.env.REACT_APP_ENV === 'uat';
+  const isProduction = process.env.NODE_ENV === 'production';
   
-  if (isProduction) {
+  if (isProductionDeploy || isUAT || isProduction) {
     try {
       Hotjar.identify(userId, attributes);
+      console.log('👤 Hotjar user identified:', userId, attributes);
     } catch (error) {
       console.error('Failed to identify Hotjar user:', error);
     }
@@ -49,13 +52,15 @@ export const identifyHotjarUser = (userId, attributes = {}) => {
  * @param {string} eventName - Name of the event to track
  */
 export const trackHotjarEvent = (eventName) => {
-  const isProduction = process.env.NODE_ENV === 'production' || 
-                       process.env.REACT_APP_ENV === 'uat' ||
-                       window.location.hostname === 'frontend-production-3b5a.up.railway.app';
+  const isProductionDeploy = window.location.hostname.includes('railway.app') || 
+                             window.location.hostname.includes('frontend-production');
+  const isUAT = process.env.REACT_APP_ENV === 'uat';
+  const isProduction = process.env.NODE_ENV === 'production';
   
-  if (isProduction) {
+  if (isProductionDeploy || isUAT || isProduction) {
     try {
       Hotjar.event(eventName);
+      console.log('📊 Hotjar event tracked:', eventName);
     } catch (error) {
       console.error('Failed to track Hotjar event:', error);
     }
@@ -67,11 +72,12 @@ export const trackHotjarEvent = (eventName) => {
  * @param {string} relativePath - The new path/URL
  */
 export const updateHotjarStateChange = (relativePath) => {
-  const isProduction = process.env.NODE_ENV === 'production' || 
-                       process.env.REACT_APP_ENV === 'uat' ||
-                       window.location.hostname === 'frontend-production-3b5a.up.railway.app';
+  const isProductionDeploy = window.location.hostname.includes('railway.app') || 
+                             window.location.hostname.includes('frontend-production');
+  const isUAT = process.env.REACT_APP_ENV === 'uat';
+  const isProduction = process.env.NODE_ENV === 'production';
   
-  if (isProduction) {
+  if (isProductionDeploy || isUAT || isProduction) {
     try {
       Hotjar.stateChange(relativePath);
     } catch (error) {
