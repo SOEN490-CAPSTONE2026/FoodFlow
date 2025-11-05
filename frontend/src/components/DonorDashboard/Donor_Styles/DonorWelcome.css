@@ -168,6 +168,7 @@
 
 .action-text {
   flex: 1;
+  text-align: center;
 }
 
 .action-text h3 {
@@ -196,7 +197,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  align-self: flex-start;
+  align-self: center;
 }
 
 .action-btn.primary {
