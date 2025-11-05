@@ -261,7 +261,6 @@
   word-break: break-word;
   hyphens: auto;
 }
-
 .donation-actions {
   display: flex;
   gap: 20px;
