@@ -31,6 +31,7 @@ export default function DonorLayout() {
   const [messagesOpen, setMessagesOpen] = useState(false);
   const [screenHeight, setScreenHeight] = useState(window.innerHeight);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const menuRef = useRef(null);
   const [notification, setNotification] = useState(null);
 
@@ -167,11 +168,18 @@ export default function DonorLayout() {
 
       {mobileMenuOpen && <div className="mobile-overlay" onClick={() => setMobileMenuOpen(false)}></div>}
 
-      <aside className={`donor-sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}>
+      <aside className={`donor-sidebar ${mobileMenuOpen ? 'mobile-open' : ''} ${sidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="donor-sidebar-header">
           <Link to="/" state={{ scrollTo: "home", from: "donor" }} aria-label="FoodFlow Home">
             <img src={Logo} alt="FoodFlow" className="donor-logo" />
           </Link>
+          {/* <button 
+            className="sidebar-toggle-btn"
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            aria-label="Toggle sidebar"
+          >
+            {sidebarCollapsed ? <ChevronRight size={20} /> : <X size={20} />}
+          </button> */}
         </div>
 
         <nav className="donor-nav-links">
@@ -260,7 +268,7 @@ export default function DonorLayout() {
       </aside>
 
       <main className="donor-main">
-        {!isMessagesPage && (
+        {!isMessagesPage && location.pathname !== "/donor" && location.pathname !== "/donor/" && (
           <header className="donor-topbar">
             <div className="donor-topbar-left">
               <h1>{pageTitle}</h1>

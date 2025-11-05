@@ -17,7 +17,7 @@ export default function ReturnToDashboardButton({ onNavigate }) {
 
   const target =
     from === "receiver" ? "/receiver/dashboard" :
-    from === "donor"    ? "/donor/dashboard" :
+    from === "donor"    ? "/donor" :
     from === "admin"    ? "/admin/dashboard" :
     null;
 
