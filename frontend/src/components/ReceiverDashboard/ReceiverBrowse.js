@@ -10,29 +10,32 @@ import {
   Package,
   User,
 } from "lucide-react";
-import { LoadScript } from "@react-google-maps/api";
+import { useLoadScript } from "@react-google-maps/api";
 import { surplusAPI } from "../../services/api";
 import FiltersPanel from "./FiltersPanel";
-import "./ReceiverBrowseModal.css";
 import BakeryPastryImage from "../../assets/foodtypes/Pastry&Bakery.jpg";
 import FruitsVeggiesImage from "../../assets/foodtypes/Fruits&Vegetables.jpg";
 import PackagedPantryImage from "../../assets/foodtypes/PackagedItems.jpg";
 import DairyColdImage from "../../assets/foodtypes/Dairy.jpg";
 import FrozenFoodImage from "../../assets/foodtypes/FrozenFood.jpg";
 import PreparedMealsImage from "../../assets/foodtypes/PreparedFood.jpg";
+import "./ReceiverBrowseModal.css";
 import "./ReceiverBrowse.css";
 
-// Google Maps libraries needed for Places API
 const libraries = ["places"];
 
 export default function ReceiverBrowse() {
-  // Filter state (not applied, just stored)
+  const { isLoaded } = useLoadScript({
+    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY || "",
+    libraries: libraries,
+  });
+
   const [filters, setFilters] = useState({
     foodType: [],
     expiryBefore: null,
     distance: 10,
     location: "",
-    locationCoords: null, // Store lat/lng coordinates from Google Places
+    locationCoords: null,
   });
 
   const [appliedFilters, setAppliedFilters] = useState({
@@ -44,7 +47,6 @@ export default function ReceiverBrowse() {
   });
 
   const [isFiltersVisible, setIsFiltersVisible] = useState(true);
-
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -55,20 +57,63 @@ export default function ReceiverBrowse() {
   const [selectedSlotIndex, setSelectedSlotIndex] = useState(0);
   const [claiming, setClaiming] = useState(false);
 
-  // Filter handlers
-  const handleFiltersChange = (filterType, value) => {
+  const fetchDonations = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { data } = await surplusAPI.list();
+      const availableItems = Array.isArray(data) ? data : [];
+      setItems(availableItems);
+      setError(null);
+    } catch (e) {
+      console.error("Error fetching donations:", e);
+      setError("Failed to load available donations");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchFilteredDonations = useCallback(async (filterCriteria) => {
+    setLoading(true);
+    try {
+      const hasActiveFilters =
+        (filterCriteria.foodType && filterCriteria.foodType.length > 0) ||
+        filterCriteria.expiryBefore ||
+        (filterCriteria.locationCoords && filterCriteria.distance);
+
+      let data;
+      if (hasActiveFilters) {
+        const response = await surplusAPI.search(filterCriteria);
+        data = response.data;
+      } else {
+        const response = await surplusAPI.list();
+        data = response.data;
+      }
+
+      setItems(Array.isArray(data) ? data : []);
+      setError(null);
+    } catch (e) {
+      setError("Failed to load donations with applied filters");
+      console.error("Error fetching filtered donations:", e);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchDonations();
+  }, [fetchDonations]);
+
+  const handleFiltersChange = useCallback((filterType, value) => {
     setFilters((prev) => ({
       ...prev,
       [filterType]: value,
     }));
-  };
+  }, []);
 
   const handleApplyFilters = useCallback(async () => {
     setAppliedFilters({ ...filters });
-
-    // Apply filters by calling the new search API
     await fetchFilteredDonations(filters);
-  }, [filters]);
+  }, [filters, fetchFilteredDonations]);
 
   const handleClearFilters = useCallback(async () => {
     const clearedFilters = {
@@ -80,71 +125,12 @@ export default function ReceiverBrowse() {
     };
     setFilters(clearedFilters);
     setAppliedFilters(clearedFilters);
-
-    // Fetch all donations when filters are cleared
     await fetchDonations();
-  }, []);
-
-  const handleToggleFilters = () => {
-    setIsFiltersVisible(!isFiltersVisible);
-  };
-
-  const handleCloseFilters = () => {
-    setIsFiltersVisible(false);
-  };
-
-  // Original fetch all donations function
-  const fetchDonations = useCallback(async () => {
-    setLoading(true);
-    try {
-      const { data } = await surplusAPI.list();
-      // Show AVAILABLE and READY_FOR_PICKUP items (backend already filters these)
-      const availableItems = Array.isArray(data) ? data : [];
-      setItems(availableItems);
-      setError(null);
-    } catch (e) {
-      setError("Failed to load available donations");
-      console.error("fetchDonations error:", e);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // New function to fetch filtered donations
-  const fetchFilteredDonations = useCallback(async (filterCriteria) => {
-    setLoading(true);
-    try {
-      // Check if any filters are actually applied
-      const hasActiveFilters =
-        (filterCriteria.foodType && filterCriteria.foodType.length > 0) ||
-        filterCriteria.expiryBefore ||
-        (filterCriteria.locationCoords && filterCriteria.distance);
-
-      let data;
-      if (hasActiveFilters) {
-        // Use the new search API with filters
-        const response = await surplusAPI.search(filterCriteria);
-        data = response.data;
-      } else {
-        // No filters applied, fetch all donations
-        const response = await surplusAPI.list();
-        data = response.data;
-      }
-
-      setItems(Array.isArray(data) ? data : []);
-      setError(null);
-    } catch (e) {
-      setError("Failed to load donations with applied filters");
-      console.error("fetchFilteredDonations error:", e);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // Initial load - fetch all donations
-  useEffect(() => {
-    fetchDonations();
   }, [fetchDonations]);
+
+  const handleCloseFilters = useCallback(() => {
+    setIsFiltersVisible(false);
+  }, []);
 
   const handleMoreClick = useCallback((item) => {
     setExpandedCardId((prev) => (prev === item.id ? null : item.id));
@@ -161,11 +147,27 @@ export default function ReceiverBrowse() {
       }
       return newBookmarks;
     });
-    console.log("Bookmarking:", item);
   }, []);
 
-  // Open claim flow: if post contains pickupSlots, open modal to select one.
-  const handleClaimDonation = (item) => {
+  const confirmClaim = useCallback(async (item, slot) => {
+    setClaiming(true);
+    try {
+      await surplusAPI.claim(item.id, slot);
+      setItems((prev) => prev.filter((post) => post.id !== item.id));
+      setClaimModalOpen(false);
+      setClaimTargetItem(null);
+    } catch (error) {
+      console.error("Error claiming post:", error);
+      alert(
+        error.response?.data?.message ||
+        "Failed to claim. It may have already been claimed."
+      );
+    } finally {
+      setClaiming(false);
+    }
+  }, []);
+
+  const handleClaimDonation = useCallback((item) => {
     if (item.pickupSlots && Array.isArray(item.pickupSlots) && item.pickupSlots.length > 0) {
       setClaimTargetItem(item);
       setSelectedSlotIndex(0);
@@ -173,12 +175,10 @@ export default function ReceiverBrowse() {
       return;
     }
 
-    // Fallback: no slots array, confirm directly and send legacy fields
     if (!window.confirm("Are you sure you want to claim this donation?")) {
       return;
     }
 
-    // Build a legacy-style slot payload from root fields if present
     const legacySlot = (item.pickupDate && item.pickupFrom && item.pickupTo) ? {
       pickupDate: item.pickupDate,
       startTime: item.pickupFrom,
@@ -186,47 +186,20 @@ export default function ReceiverBrowse() {
     } : null;
 
     confirmClaim(item, legacySlot);
-  };
+  }, [confirmClaim]);
 
-  const confirmClaim = async (item, slot) => {
-    setClaiming(true);
-    try {
-      await surplusAPI.claim(item.id, slot);
-      // Successfully claimed - websocket notification will handle the toast
-      // Remove from available list
-      setItems((prev) => prev.filter((post) => post.id !== item.id));
-      // close modal if open
-      setClaimModalOpen(false);
-      setClaimTargetItem(null);
-    } catch (error) {
-      console.error("Error claiming post:", error);
-      alert(
-        error.response?.data?.message ||
-          "Failed to claim. It may have already been claimed."
-      );
-    } finally {
-      setClaiming(false);
-    }
-  };
-
-  // Convert each category to display string (for separate tags)
-  const getFoodCategoryDisplays = (foodCategories) => {
-    if (
-      !foodCategories ||
-      !Array.isArray(foodCategories) ||
-      foodCategories.length === 0
-    ) {
+  const getFoodCategoryDisplays = useCallback((foodCategories) => {
+    if (!foodCategories || !Array.isArray(foodCategories) || foodCategories.length === 0) {
       return ["Other"];
     }
 
-    // Convert all categories to display strings
     return foodCategories.map((category) => {
       switch (category) {
         case "FRUITS_VEGETABLES":
           return "Fruits & Vegetables";
-        case "BAKED_GOODS":
+        case "BAKERY_PASTRY":
           return "Bakery & Pastry";
-        case "PACKAGED":
+        case "PACKAGED_PANTRY":
           return "Packaged / Pantry Items";
         case "DAIRY":
           return "Dairy & Cold Items";
@@ -238,15 +211,10 @@ export default function ReceiverBrowse() {
           return category;
       }
     });
-  };
+  }, []);
 
-  // Get primary food category for image (first one)
-  const getPrimaryFoodCategory = (foodCategories) => {
-    if (
-      !foodCategories ||
-      !Array.isArray(foodCategories) ||
-      foodCategories.length === 0
-    ) {
+  const getPrimaryFoodCategory = useCallback((foodCategories) => {
+    if (!foodCategories || !Array.isArray(foodCategories) || foodCategories.length === 0) {
       return "Other";
     }
 
@@ -254,9 +222,9 @@ export default function ReceiverBrowse() {
     switch (category) {
       case "FRUITS_VEGETABLES":
         return "Fruits & Vegetables";
-      case "BAKED_GOODS":
+      case "BAKERY_PASTRY":
         return "Bakery & Pastry";
-      case "PACKAGED":
+      case "PACKAGED_PANTRY":
         return "Packaged / Pantry Items";
       case "DAIRY":
         return "Dairy & Cold Items";
@@ -267,9 +235,9 @@ export default function ReceiverBrowse() {
       default:
         return "Other";
     }
-  };
+  }, []);
 
-  const getFoodTypeImage = (foodType) => {
+  const getFoodTypeImage = useCallback((foodType) => {
     switch (foodType) {
       case "Bakery & Pastry":
         return BakeryPastryImage;
@@ -286,9 +254,9 @@ export default function ReceiverBrowse() {
       default:
         return PreparedMealsImage;
     }
-  };
+  }, []);
 
-  const getFoodImageClass = (foodType) => {
+  const getFoodImageClass = useCallback((foodType) => {
     switch (foodType) {
       case "Bakery & Pastry":
         return "food-image-bakery";
@@ -305,9 +273,9 @@ export default function ReceiverBrowse() {
       default:
         return "food-image-packaged";
     }
-  };
+  }, []);
 
-  const formatExpiryDate = (dateString) => {
+  const formatExpiryDate = useCallback((dateString) => {
     if (!dateString) return "—";
     try {
       const date = new Date(dateString);
@@ -319,60 +287,51 @@ export default function ReceiverBrowse() {
     } catch {
       return "—";
     }
-  };
+  }, []);
 
-  // Updated to handle new format: pickupDate + pickupFrom + pickupTo
-  const formatPickupTime = (pickupDate, pickupFrom, pickupTo) => {
+  const formatPickupTime = useCallback((pickupDate, pickupFrom, pickupTo) => {
     if (!pickupDate || !pickupFrom || !pickupTo) return "—";
     try {
-      // Combine pickupDate (LocalDate) and pickupFrom (LocalTime)
       const fromDate = new Date(`${pickupDate}T${pickupFrom}`);
-
       const dateStr = fromDate.toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
         year: "numeric",
       });
-
       const fromTime = fromDate.toLocaleTimeString("en-US", {
         hour: "numeric",
         minute: "2-digit",
         hour12: true,
       });
-
-      // Parse pickupTo (LocalTime format "17:00:00")
       const [hours, minutes] = pickupTo.split(":");
       const hour = parseInt(hours, 10);
       const isPM = hour >= 12;
       const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
       const toTime = `${displayHour}:${minutes} ${isPM ? "PM" : "AM"}`;
-
       return `${dateStr} ${fromTime}-${toTime}`;
     } catch {
       return "—";
     }
-  };
+  }, []);
 
-  const formatPostedTime = (dateString) => {
+  const formatPostedTime = useCallback((dateString) => {
     if (!dateString) return "";
     try {
       const now = new Date();
       const posted = new Date(dateString);
       const diffInHours = Math.floor((now - posted) / (1000 * 60 * 60));
-
       if (diffInHours < 1) return "Just now";
       if (diffInHours === 1) return "1 hour ago";
       if (diffInHours < 24) return `${diffInHours} hours ago`;
-
       const diffInDays = Math.floor(diffInHours / 24);
       if (diffInDays === 1) return "1 day ago";
       return `${diffInDays} days ago`;
     } catch {
       return "";
     }
-  };
+  }, []);
 
-  const formatStatus = (status) => {
+  const formatStatus = useCallback((status) => {
     switch (status) {
       case "AVAILABLE":
         return "Available";
@@ -389,9 +348,9 @@ export default function ReceiverBrowse() {
       default:
         return status || "Available";
     }
-  };
+  }, []);
 
-  const getStatusClass = (status) => {
+  const getStatusClass = useCallback((status) => {
     switch (status) {
       case "AVAILABLE":
         return "status-available";
@@ -408,18 +367,14 @@ export default function ReceiverBrowse() {
       default:
         return "status-available";
     }
-  };
+  }, []);
 
   return (
-    <LoadScript
-      googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY || ""}
-      libraries={libraries}
-      onError={(error) =>
-        console.error("Google Maps API failed to load:", error)
-      }
-    >
-      <div className="receiver-browse-container">
-        <h1 className="receiver-section-title">Explore Available Donations</h1>
+    <div className="receiver-browse-container">
+      <h1 className="receiver-section-title">Explore Available Donations</h1>
+      
+      {/* Only render FiltersPanel when Google Maps is loaded */}
+      {isLoaded && (
         <FiltersPanel
           filters={filters}
           onFiltersChange={handleFiltersChange}
@@ -429,318 +384,271 @@ export default function ReceiverBrowse() {
           isVisible={isFiltersVisible}
           onClose={handleCloseFilters}
         />
-        {error && (
-          <div role="alert" className="receiver-error-message">
-            {error}
-          </div>
-        )}
+      )}
+      
+      {error && (
+        <div role="alert" className="receiver-error-message">
+          {error}
+        </div>
+      )}
 
-        {!loading && !error && items.length === 0 && (
-          <div className="receiver-empty-state">
-            <Package className="receiver-empty-state-icon" size={64} />
-            <p>No donations available right now.</p>
-            <p>Check back soon for new surplus food!</p>
-          </div>
-        )}
+      {loading && (
+        <div className="receiver-loading-state">
+          <p>Loading donations...</p>
+        </div>
+      )}
 
-        {!loading && !error && items.length > 0 && (
-          <div className="receiver-donations-list">
-            {items.map((item) => {
-              const categoryDisplays = getFoodCategoryDisplays(
-                item.foodCategories
-              );
-              const primaryFoodCategory = getPrimaryFoodCategory(
-                item.foodCategories
-              );
+      {!loading && !error && items.length === 0 && (
+        <div className="receiver-empty-state">
+          <Package className="receiver-empty-state-icon" size={64} />
+          <p>No donations available right now.</p>
+          <p>Check back soon for new surplus food!</p>
+        </div>
+      )}
 
-              return (
+      {!loading && !error && items.length > 0 && (
+        <div className="receiver-donations-list">
+          {items.map((item) => {
+            const categoryDisplays = getFoodCategoryDisplays(item.foodCategories);
+            const primaryFoodCategory = getPrimaryFoodCategory(item.foodCategories);
+
+            return (
+              <div
+                key={item.id}
+                className={`receiver-donation-card ${
+                  expandedCardId === item.id ? "expanded" : ""
+                }`}
+              >
                 <div
-                  key={item.id}
-                  className={`receiver-donation-card ${
-                    expandedCardId === item.id ? "expanded" : ""
-                  }`}
+                  className={`receiver-donation-image ${getFoodImageClass(
+                    primaryFoodCategory
+                  )}`}
                 >
-                  <div
-                    className={`receiver-donation-image ${getFoodImageClass(
-                      primaryFoodCategory
-                    )}`}
-                  >
-                    <img
-                      src={getFoodTypeImage(primaryFoodCategory)}
-                      alt={primaryFoodCategory || "Food donation"}
-                      className="receiver-food-type-image"
-                      onError={(e) => {
-                        e.target.style.display = "none";
-                        e.target.parentElement.classList.add(
-                          "food-image-default"
-                        );
-                      }}
-                    />
+                  <img
+                    src={getFoodTypeImage(primaryFoodCategory)}
+                    alt={primaryFoodCategory || "Food donation"}
+                    className="receiver-food-type-image"
+                    onError={(e) => {
+                      e.target.style.display = "none";
+                      e.target.parentElement.classList.add("food-image-default");
+                    }}
+                  />
+                </div>
+
+                <div className="receiver-donation-content">
+                  <div className="receiver-donation-header">
+                    <h3 className="receiver-donation-title">{item.title}</h3>
+                    <div className="receiver-header-actions">
+                      <button
+                        className="receiver-bookmark-button"
+                        onClick={(e) => handleBookmark(item, e)}
+                        aria-label="Bookmark"
+                      >
+                        <Bookmark
+                          size={16}
+                          style={{
+                            display: "block",
+                            margin: "0 auto",
+                            color: bookmarkedItems.has(item.id) ? "#1B4965" : "#90A1B9",
+                            fill: bookmarkedItems.has(item.id) ? "#1B4965" : "transparent",
+                          }}
+                        />
+                      </button>
+                      <span className={`receiver-status-badge ${getStatusClass(item.status)}`}>
+                        <span className="receiver-status-icon">✓</span>
+                        {formatStatus(item.status)}
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="receiver-donation-content">
-                    <div className="receiver-donation-header">
-                      <h3 className="receiver-donation-title">{item.title}</h3>
-                      <div className="receiver-header-actions">
-                        <button
-                          className="receiver-bookmark-button"
-                          onClick={(e) => handleBookmark(item, e)}
-                          aria-label="Bookmark"
-                        >
-                          <Bookmark
-                            size={16}
-                            style={{
-                              display: "block",
-                              margin: "0 auto",
-                              color: bookmarkedItems.has(item.id)
-                                ? "#1B4965"
-                                : "#90A1B9",
-                              fill: bookmarkedItems.has(item.id)
-                                ? "#1B4965"
-                                : "transparent",
-                            }}
-                          />
-                        </button>
-                        <span
-                          className={`receiver-status-badge ${getStatusClass(
-                            item.status
-                          )}`}
-                        >
-                          <span className="receiver-status-icon">✓</span>
-                          {formatStatus(item.status)}
-                        </span>
-                      </div>
+                  <div className="receiver-donation-info">
+                    <div className="receiver-info-item">
+                      <Calendar size={16} className="receiver-info-icon-expiry-icon" />
+                      <span>Expires: {formatExpiryDate(item.expiryDate)}</span>
                     </div>
-
-                    <div className="receiver-donation-info">
-                      <div className="receiver-info-item">
-                        <Calendar
-                          size={16}
-                          className="receiver-info-icon-expiry-icon"
-                        />
-                        <span>
-                          Expires: {formatExpiryDate(item.expiryDate)}
-                        </span>
-                      </div>
-                      <div className="receiver-info-item">
-                        <MapPin
-                          size={16}
-                          className="receiver-info-icon-location-icon"
-                        />
-                        <span>
-                          {item.pickupLocation?.address ||
-                            "Location not specified"}
-                        </span>
-                      </div>
-                      <div className="receiver-info-item">
-                        <Clock
-                          size={16}
-                          className="receiver-info-icon-time-icon"
-                        />
-                        {item.pickupSlots && item.pickupSlots.length > 0 ? (
-                          <div className="pickup-slots-list">
-                            {item.pickupSlots.map((slot, idx) => (
-                              <div key={idx} className="pickup-slot-time">
-                                {formatPickupTime(
-                                  slot.pickupDate || slot.date,
-                                  slot.startTime || slot.pickupFrom,
-                                  slot.endTime || slot.pickupTo
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <span>
-                            {formatPickupTime(
-                              item.pickupDate,
-                              item.pickupFrom,
-                              item.pickupTo
-                            )}
-                          </span>
-                        )}
-                      </div>
+                    <div className="receiver-info-item">
+                      <MapPin size={16} className="receiver-info-icon-location-icon" />
+                      <span>
+                        {item.pickupLocation?.address || "Location not specified"}
+                      </span>
                     </div>
-
-                    <div className="receiver-donation-meta">
-                      <div className="receiver-category-tags">
-                        {categoryDisplays.map((category, index) => (
-                          <span key={index} className="receiver-category-tag">
-                            {category}
-                          </span>
-                        ))}
-                      </div>
-                      <div className="receiver-donor-info">
-                        <User size={16} />
-                        <span>
-                          Donated by {item.donor?.name || "Local Business"}
-                        </span>
-                      </div>
-                    </div>
-
-                    {expandedCardId === item.id && (
-                      <div className="receiver-donation-details">
-                        <div className="receiver-details-grid">
-                          <div className="receiver-details-section">
-                            <div className="receiver-detail-item">
-                              <span className="receiver-detail-label">
-                                Quantity
-                              </span>
-                              <div className="receiver-detail-value">
-                                <Package2
-                                  size={14}
-                                  className="receiver-quantity-icon-detail"
-                                  style={{
-                                    display: "inline",
-                                    marginRight: "8px",
-                                  }}
-                                />
-                                {item.quantity?.value || 0}{" "}
-                                {item.quantity?.unit || "items"}
-                              </div>
+                    <div className="receiver-info-item">
+                      <Clock size={16} className="receiver-info-icon-time-icon" />
+                      {item.pickupSlots && item.pickupSlots.length > 0 ? (
+                        <div className="pickup-slots-list">
+                          {item.pickupSlots.map((slot, idx) => (
+                            <div key={idx} className="pickup-slot-time">
+                              {formatPickupTime(
+                                slot.pickupDate || slot.date,
+                                slot.startTime || slot.pickupFrom,
+                                slot.endTime || slot.pickupTo
+                              )}
                             </div>
-                            <div className="receiver-detail-item">
-                              <span className="receiver-detail-label">
-                                Pickup Time{item.pickupSlots && item.pickupSlots.length > 1 ? 's' : ''}
-                              </span>
-                              <div className="receiver-detail-value">
-                                <Clock
-                                  size={14}
-                                  className="receiver-time-icon-detail"
-                                  style={{
-                                    display: "inline",
-                                    marginRight: "8px",
-                                  }}
-                                />
-                                {item.pickupSlots && item.pickupSlots.length > 0 ? (
-                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                    {item.pickupSlots.map((slot, idx) => (
-                                      <div key={idx}>
-                                        {formatPickupTime(
-                                          slot.pickupDate || slot.date,
-                                          slot.startTime || slot.pickupFrom,
-                                          slot.endTime || slot.pickupTo
-                                        )}
-                                        {slot.notes && <span style={{ fontSize: '12px', color: '#6c757d', marginLeft: '8px' }}>({slot.notes})</span>}
-                                      </div>
-                                    ))}
-                                  </div>
-                                ) : (
-                                  formatPickupTime(
+                          ))}
+                        </div>
+                      ) : (
+                        <span>
+                          {formatPickupTime(
+                            item.pickupDate,
+                            item.pickupFrom,
+                            item.pickupTo
+                          )}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="receiver-donation-meta">
+                    <div className="receiver-category-tags">
+                      {categoryDisplays.map((category, index) => (
+                        <span key={index} className="receiver-category-tag">
+                          {category}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="receiver-donor-info">
+                      <User size={16} />
+                      <span>Donated by {item.donor?.name || "Local Business"}</span>
+                    </div>
+                  </div>
+
+                  {expandedCardId === item.id && (
+                    <div className="receiver-donation-details">
+                      <div className="receiver-details-grid">
+                        <div className="receiver-details-section">
+                          <div className="receiver-detail-item">
+                            <span className="receiver-detail-label">Quantity</span>
+                            <div className="receiver-detail-value">
+                              <Package2
+                                size={14}
+                                className="receiver-quantity-icon-detail"
+                                style={{ display: "inline", marginRight: "8px" }}
+                              />
+                              {item.quantity?.value || 0} {item.quantity?.unit || "items"}
+                            </div>
+                          </div>
+                          <div className="receiver-detail-item">
+                            <span className="receiver-detail-label">
+                              Pickup Time{item.pickupSlots && item.pickupSlots.length > 1 ? 's' : ''}
+                            </span>
+                            <div className="receiver-detail-value">
+                              <Clock
+                                size={14}
+                                className="receiver-time-icon-detail"
+                                style={{ display: "inline", marginRight: "8px" }}
+                              />
+                              {item.pickupSlots && item.pickupSlots.length > 0 ? (
+                                <div className="pickup-slots-list">
+                                  {item.pickupSlots.map((slot, idx) => (
+                                    <div key={idx} className="pickup-slot-time" style={{ color: '#314158' }}>
+                                      {formatPickupTime(
+                                        slot.pickupDate || slot.date,
+                                        slot.startTime || slot.pickupFrom,
+                                        slot.endTime || slot.pickupTo
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span style={{ color: '#314158' }}>
+                                  {formatPickupTime(
                                     item.pickupDate,
                                     item.pickupFrom,
                                     item.pickupTo
-                                  )
-                                )}
-                              </div>
+                                  )}
+                                </span>
+                              )}
                             </div>
                           </div>
+                        </div>
 
-                          <div className="receiver-details-section">
-                            <div className="receiver-detail-item">
-                              <span className="receiver-detail-label">
-                                Expires
-                              </span>
-                              <div className="receiver-detail-value">
-                                <Calendar
-                                  size={14}
-                                  className="receiver-expiry-icon-detail"
-                                  style={{
-                                    display: "inline",
-                                    marginRight: "8px",
-                                  }}
-                                />
-                                {formatExpiryDate(item.expiryDate)}
-                              </div>
-                            </div>
-                            <div className="receiver-detail-item">
-                              <span className="receiver-detail-label">
-                                Location
-                              </span>
-                              <div className="receiver-detail-value">
-                                <MapPin
-                                  size={14}
-                                  className="receiver-location-icon-detail"
-                                  style={{
-                                    display: "inline",
-                                    marginRight: "8px",
-                                  }}
-                                />
-                                {item.pickupLocation?.address ||
-                                  "Location not specified"}
-                              </div>
+                        <div className="receiver-details-section">
+                          <div className="receiver-detail-item">
+                            <span className="receiver-detail-label">Expires</span>
+                            <div className="receiver-detail-value">
+                              <Calendar
+                                size={14}
+                                className="receiver-expiry-icon-detail"
+                                style={{ display: "inline", marginRight: "8px" }}
+                              />
+                              {formatExpiryDate(item.expiryDate)}
                             </div>
                           </div>
-
-                        {item.description && (
-                          <div className="receiver-donor-note">
-                            <div className="receiver-note-label">
-                              Donor's Note
-                            </div>
-                            <div className="receiver-note-content">
-                              {item.description}
+                          <div className="receiver-detail-item">
+                            <span className="receiver-detail-label">Location</span>
+                            <div className="receiver-detail-value">
+                              <MapPin
+                                size={14}
+                                className="receiver-location-icon-detail"
+                                style={{ display: "inline", marginRight: "8px" }}
+                              />
+                              {item.pickupLocation?.address || "Location not specified"}
                             </div>
                           </div>
-                        )}
-
-                        {item.createdAt && (
-                          <div className="receiver-posted-time">
-                            Posted {formatPostedTime(item.createdAt)}
-                          </div>
-                        )}
                         </div>
                       </div>
-                    )}
 
-                    <div className="receiver-donation-actions">
-                      <button
-                        onClick={() => handleClaimDonation(item)}
-                        className="receiver-claim-button"
-                        disabled={claiming}
-                      >
-                        {claiming && claimTargetItem?.id === item.id ? 'Claiming...' : 'Claim Donation'}
-                      </button>
-                      <button
-                        onClick={() => handleMoreClick(item)}
-                        className={`receiver-more-button ${
-                          expandedCardId === item.id ? "expanded" : ""
-                        }`}
-                      >
-                        {expandedCardId === item.id ? "Less" : "More"}
-                        {expandedCardId === item.id ? (
-                          <ChevronUp
-                            size={14}
-                            className="receiver-dropdown-icon"
-                          />
-                        ) : (
-                          <ChevronDown
-                            size={14}
-                            className="receiver-dropdown-icon"
-                          />
-                        )}
-                      </button>
+                      {item.description && (
+                        <div className="receiver-donor-note">
+                          <div className="receiver-note-label">Donor's Note</div>
+                          <div className="receiver-note-content">{item.description}</div>
+                        </div>
+                      )}
+
+                      {item.createdAt && (
+                        <div className="receiver-posted-time">
+                          Posted {formatPostedTime(item.createdAt)}
+                        </div>
+                      )}
                     </div>
+                  )}
+
+                  <div className="receiver-donation-actions">
+                    <button
+                      onClick={() => handleClaimDonation(item)}
+                      className="receiver-claim-button"
+                      disabled={claiming}
+                    >
+                      {claiming && claimTargetItem?.id === item.id ? 'Claiming...' : 'Claim Donation'}
+                    </button>
+                    <button
+                      onClick={() => handleMoreClick(item)}
+                      className={`receiver-more-button ${
+                        expandedCardId === item.id ? "expanded" : ""
+                      }`}
+                    >
+                      {expandedCardId === item.id ? "Less" : "More"}
+                      {expandedCardId === item.id ? (
+                        <ChevronUp size={14} className="receiver-dropdown-icon" />
+                      ) : (
+                        <ChevronDown size={14} className="receiver-dropdown-icon" />
+                      )}
+                    </button>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       <ClaimModal
         open={claimModalOpen}
         item={claimTargetItem}
         selectedIndex={selectedSlotIndex}
         onSelectIndex={(idx) => setSelectedSlotIndex(idx)}
         onConfirm={(slot) => confirmClaim(claimTargetItem, slot)}
-        onClose={() => { setClaimModalOpen(false); setClaimTargetItem(null); }}
+        onClose={() => { 
+          setClaimModalOpen(false); 
+          setClaimTargetItem(null); 
+        }}
         loading={claiming}
         formatFn={formatPickupTime}
       />
-    </LoadScript>
+    </div>
   );
 }
 
-// Claim modal JSX: render at end so it overlays the page when open
 function ClaimModal({ open, item, selectedIndex, onSelectIndex, onConfirm, onClose, loading, formatFn }) {
   if (!open || !item) return null;
 
@@ -777,12 +685,13 @@ function ClaimModal({ open, item, selectedIndex, onSelectIndex, onConfirm, onClo
         </div>
 
         <div className="claim-modal-actions">
-          <button className="btn btn-secondary" onClick={onClose} disabled={loading}>Cancel</button>
+          <button className="btn btn-cancel" onClick={onClose} disabled={loading}>
+            Cancel
+          </button>
           <button
-            className="btn btn-primary"
+            className="btn btn-create"
             onClick={() => {
               const selectedSlot = slots[selectedIndex];
-              // Normalize slot to sender-friendly shape: pickupDate, startTime, endTime, notes
               const normalized = selectedSlot ? {
                 pickupDate: selectedSlot.pickupDate || selectedSlot.date,
                 startTime: selectedSlot.startTime || selectedSlot.pickupFrom,
@@ -801,5 +710,3 @@ function ClaimModal({ open, item, selectedIndex, onSelectIndex, onConfirm, onClo
     </div>
   );
 }
-
-// Attach ClaimModal into module scope by exporting nothing (component uses in-file function call)

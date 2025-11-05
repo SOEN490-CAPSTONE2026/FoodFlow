@@ -13,6 +13,10 @@ jest.mock("axios", () => ({
 
 jest.mock("@react-google-maps/api", () => ({
   LoadScript: ({ children }) => children,
+  useLoadScript: () => ({
+    isLoaded: true,
+    loadError: null,
+  }),
 }));
 
 jest.mock("../SurplusFormModal", () => {
@@ -189,10 +193,10 @@ describe("DonorListFood", () => {
     });
 
     const appleCard = screen.getByLabelText(/fresh apples/i);
-    expect(within(appleCard).getByText(/5 KILOGRAM/i)).toBeInTheDocument();
+    expect(within(appleCard).getByText(/5 kilograms/i)).toBeInTheDocument();
     expect(within(appleCard).getByText(/Available/i)).toBeInTheDocument();
     expect(
-      within(appleCard).getByText(/FRUITS_VEGETABLES/i)
+      within(appleCard).getByText(/Fruits & Vegetables/i)
     ).toBeInTheDocument();
   });
 

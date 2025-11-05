@@ -9,7 +9,7 @@ import {
   X,
   Package,
 } from "lucide-react";
-import { LoadScript } from "@react-google-maps/api";
+import { useLoadScript } from "@react-google-maps/api";
 // import { AuthContext } from '../../contexts/AuthContext';
 import { surplusAPI } from "../../services/api";
 import SurplusFormModal from "../DonorDashboard/SurplusFormModal";
@@ -19,6 +19,16 @@ import "../DonorDashboard/Donor_Styles/DonorListFood.css";
 
 // Define libraries for Google Maps
 const libraries = ["places"];
+
+// Food category mapping from enum values to display labels
+const foodCategoryLabels = {
+  PREPARED_MEALS: "Prepared Meals",
+  BAKERY_PASTRY: "Bakery & Pastry",
+  FRUITS_VEGETABLES: "Fruits & Vegetables",
+  PACKAGED_PANTRY: "Packaged / Pantry Items",
+  DAIRY_COLD: "Dairy & Cold Items",
+  FROZEN: "Frozen Food",
+};
 
 function statusClass(status) {
   switch (status) {
@@ -90,98 +100,35 @@ function formatPickupTime(pickupDate, pickupFrom, pickupTo) {
     return "Flexible";
   }
 }
-// Mock data for testing different badge statuses
-const MOCK_DATA = [
-  {
-    id: 1,
-    title: "Artisan Bread Selection",
-    status: "READY_FOR_PICKUP",
-    foodCategories: ["BREAD", "BAKED_GOODS", "BAKERY_ITEMS"],
-    quantity: { value: 8, unit: "LOAF" },
-    expiryDate: "2025-10-05",
-    pickupDate: "2025-10-05",
-    pickupFrom: "09:00",
-    pickupTo: "12:00",
-    location: { address: "Westmount Village, Montreal, QC" },
-    description:
-      "Fresh sourdough, whole wheat, and gluten-free options. Baked this morning with organic ingredients. Great for sandwiches or toast.",
-  },
-  {
-    id: 2,
-    title: "Dairy & Protein Pack",
-    status: "NOT_COMPLETED",
-    foodCategories: ["DAIRY"],
-    quantity: { value: 12, unit: "ITEM" },
-    expiryDate: "2025-10-02",
-    pickupDate: "2025-10-02",
-    pickupFrom: "13:00",
-    pickupTo: "15:00",
-    location: { address: "Old Port, Montreal, QC" },
-    description:
-      "Includes organic milk, Greek yogurt, aged cheddar cheese, and free-range eggs. All from local Quebec producers.",
-  },
-  {
-    id: 3,
-    title: "Seasonal Vegetable Mix",
-    status: "COMPLETED",
-    foodCategories: ["FRUITS_VEGETABLES"],
-    quantity: { value: 3.5, unit: "KILOGRAM" },
-    expiryDate: "2025-10-10",
-    pickupDate: "2025-10-10",
-    pickupFrom: "16:00",
-    pickupTo: "19:00",
-    location: { address: "Plateau Mont-Royal, Montreal, QC" },
-    description:
-      "Fresh carrots, bell peppers, zucchini, and tomatoes from local farm. Perfect for stir-fry, soups, or salads. All pesticide-free.",
-  },
-  {
-    id: 4,
-    title: "International Prepared Meals",
-    status: "AVAILABLE",
-    foodCategories: ["PREPARED_MEALS"],
-    quantity: { value: 15, unit: "PORTION" },
-    expiryDate: "2025-10-12",
-    pickupDate: "2025-10-12",
-    pickupFrom: "17:00",
-    pickupTo: "20:00",
-    location: { address: "Little Italy, Montreal, QC" },
-    description:
-      "Homemade Italian pasta dishes, Thai curry, and Indian dal. All vegetarian, properly frozen and labeled. Ready to heat and serve.",
-  },
-  {
-    id: 5,
-    title: "Gourmet Beverages",
-    status: "AVAILABLE",
-    foodCategories: ["BEVERAGES"],
-    quantity: { value: 24, unit: "BOTTLE" },
-    expiryDate: "2025-10-15",
-    pickupDate: "2025-10-15",
-    pickupFrom: "10:00",
-    pickupTo: "14:00",
-    location: { address: "Old Montreal, Montreal, QC" },
-    description:
-      "Artisan sodas, fresh juices, herbal teas, and kombucha. Mix of local Quebec brands and specialty imports. All unopened and refrigerated.",
-  },
-  {
-    id: 6,
-    title: "Fresh Bakery Items",
-    status: "CLAIMED",
-    foodCategories: ["BAKERY_ITEMS"],
-    quantity: { value: 20, unit: "ITEM" },
-    expiryDate: "2025-10-08",
-    pickupDate: "2025-10-08",
-    pickupFrom: "08:00",
-    pickupTo: "10:00",
-    location: { address: "NDG, Montreal, QC" },
-    description:
-      "Assorted pastries, croissants, and muffins from local bakery. Freshly baked yesterday morning.",
-  },
-];
 
-// Toggle between mock data and real API
-const USE_MOCK_DATA = false; // Set to false to use real API
+// Helper function to format quantity text (singular/plural)
+function formatQuantityText(value, unit) {
+  const numValue = parseFloat(value);
+  const unitLower = unit.toLowerCase();
+  
+  // If value is 1, make unit singular
+  if (numValue === 1) {
+    // For units ending in 's', remove the 's' for singular
+    if (unitLower.endsWith('s')) {
+      return `${value} ${unitLower.slice(0, -1)}`;
+    }
+    return `${value} ${unitLower}`;
+  }
+  
+  // For values other than 1, ensure plural form
+  // If unit doesn't end in 's', add 's' for plural
+  if (!unitLower.endsWith('s')) {
+    return `${value} ${unitLower}s`;
+  }
+  
+  return `${value} ${unitLower}`;
+}
 
 export default function DonorListFood() {
+  const { isLoaded } = useLoadScript({
+    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
+    libraries: libraries,
+  });
   const [items, setItems] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPickupModalOpen, setIsPickupModalOpen] = useState(false);
@@ -191,17 +138,7 @@ export default function DonorListFood() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (USE_MOCK_DATA) {
-      // Use mock data
-      setTimeout(() => {
-        setItems(MOCK_DATA);
-        setLoading(false);
-      }, 500); // Simulate loading delay
-    } else {
-      // Use real API
-      fetchMyPosts();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    fetchMyPosts();
   }, []);
 
   const fetchMyPosts = async () => {
@@ -219,7 +156,7 @@ export default function DonorListFood() {
     }
   };
 
-  function requestDelete(id) {
+  function requestDelete(id) { //Needs to be connected to backend(code to come)
     const confirmDelete = window.confirm(
       "Are you sure you want to delete this post?"
     );
@@ -286,18 +223,15 @@ export default function DonorListFood() {
       )}
 
       <header className="donor-list-header">
-        <LoadScript
-          googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}
-          libraries={libraries}
+        <button
+          className="donor-add-button"
+          onClick={() => setIsModalOpen(true)}
         >
-          <button
-            className="donor-add-button"
-            onClick={() => setIsModalOpen(true)}
-          >
-            + Donate More
-          </button>
+          + Donate More
+        </button>
+        {isLoaded && (
           <SurplusFormModal isOpen={isModalOpen} onClose={handleModalClose} />
-        </LoadScript>
+        )}
       </header>
 
       {items.length === 0 ? (
@@ -338,17 +272,27 @@ export default function DonorListFood() {
 
               {item.foodCategories && item.foodCategories.length > 0 && (
                 <div className="donation-tags">
-                  {item.foodCategories.map((category, index) => (
-                    <span key={index} className="donation-tag">
-                      {category.name ? category.name : category}{" "}
-                      {/* Handles objects or plain strings */}
-                    </span>
-                  ))}
+                  {item.foodCategories.map((category, index) => {
+                    // Get the category value (handle both object and string formats)
+                    const categoryValue = category.name || category;
+                    // Map to display label, fallback to formatted version if not in mapping
+                    const displayLabel = foodCategoryLabels[categoryValue] || 
+                      categoryValue.replace(/_/g, ' ').toLowerCase()
+                        .split(' ')
+                        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                        .join(' ');
+                    
+                    return (
+                      <span key={index} className="donation-tag">
+                        {displayLabel}
+                      </span>
+                    );
+                  })}
                 </div>
               )}
 
               <div className="donation-quantity">
-                {item.quantity.value} {item.quantity.unit}
+                {formatQuantityText(item.quantity.value, item.quantity.unit)}
               </div>
 
               <ul className="donation-meta" aria-label="details">
