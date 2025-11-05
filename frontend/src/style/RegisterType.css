@@ -1,24 +1,63 @@
 .register-type-page {
     font-family: "Inter", sans-serif;
     background: linear-gradient(to bottom, #F0F9FF 0%, #FFFFFF 45%, #E6FFFA 100%);
-    min-height: 100vh;
-    padding: 40px;
+    height: 100vh;
+    padding: 20px 40px;
     color: #1B4965;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.logo-container {
+    position: absolute;
+    top: 30px;
+    left: 40px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: transform 0.2s ease;
+}
+
+.logo-container:hover {
+    transform: scale(1.05);
+}
+
+.logo-container .logo {
+    width: 100px;
+    height: auto;
+}
+
+.logo-container .logo-text {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #1B4965;
 }
 
 .intro {
     text-align: center;
-    margin-bottom: 40px;
-    margin-top: 20px;
+    margin-bottom: 20px;
+    flex-shrink: 0;
 }
+
 .intro h1 {
-    font-size: 2rem;
+    font-size: 2.5rem;
     font-weight: 600;
     color: #1B4965;
     margin-bottom: 10px;
+}
+
+.intro .subtitle {
+    color: #1B4965;
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-top: 5px;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .intro p {
@@ -37,9 +76,14 @@
 
 .content {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
-    gap: 40px;
+    gap: 30px;
+    max-width: 1400px;
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    max-height: calc(100vh - 200px);
 }
 
 .registration-options {
@@ -51,106 +95,122 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    flex-shrink: 0;
+    height: 100%;
+    max-height: 100%;
 }
 
 .illustration img {
-    max-height: 70vh;
-    max-width: 100%;
+    max-height: 100%;
     height: auto;
+    max-width: 100%;
+    width: auto;
     object-fit: contain;
+    display: block;
 }
 
 .option-card {
-    border-radius: 12px;
-    padding: 25px;
-    width: 450px;
-    min-height: 555px;
-    height: auto;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-radius: 16px;
+    padding: 25px 20px;
+    width: 380px;
+    max-height: 100%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
     cursor: pointer;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     text-align: center;
+    border: 2px solid transparent;
+    flex-shrink: 1;
+    overflow-y: auto;
 }
 
 .option-card img {
     display: block;
-    margin: 0 auto;
+    margin: 0 auto 15px auto;
     max-width: 100%;
     height: auto;
+    width: 100px;
+    height: 100px;
 }
 
 .option-card.donor {
-    background: #DCF7FF;
-    border: 1px solid #6CADD5;
+    background: #F0F9FF;
+    border: 2px solid #B3D9E6;
 }
 
 .option-card.receiver {
-    background: #E6FFF7;
-    border: 1px solid #3EB08C;
+    background: #F0FFF9;
+    border: 2px solid #B3E6D5;
 }
 
 .option-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .option-card.donor:hover {
-    border-color: #0074d9;
+    border-color: #0077B6;
 }
 
 .option-card.receiver:hover {
-    border-color: #00a98f;
+    border-color: #00A896;
 }
 
 .option-card h3 {
-    font-size: 1.3rem;
-    font-weight: 600;
-    margin-bottom: 15px;
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: #1B4965;
 }
 
 .option-card p {
-    font-size: 0.95rem;
+    font-size: 0.88rem;
     color: #55697a;
-    margin-bottom: 20px;
-    line-height: 1.4;
+    margin-bottom: 18px;
+    line-height: 1.5;
 }
 
 .option-card ul {
     list-style: none;
     padding: 0;
-    margin: 0 0 25px 0;
-    text-align: center;
+    margin: 0 0 20px 0;
+    text-align: left;
 }
 
 .option-card li {
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 10px;
+    padding-left: 15px;
+    font-size: 0.88rem;
+    color: #1B4965;
 }
 
 .option-card li::before {
-    content: "✔";
+    content: "✓";
     color: #1B4965;
     font-weight: bold;
     flex-shrink: 0;
+    font-size: 1.1rem;
 }
 
 .register-button {
     display: inline-block;
-    padding: 15px 15px;
+    padding: 14px 20px;
     border: none;
-    border-radius: 10px;
+    border-radius: 12px;
     cursor: pointer;
-    transition: 0.2s;
+    transition: background-color 0.2s, transform 0.1s;
     font-weight: 600;
     color: #fff;
     width: 100%;
-    font-size: 1rem;
+    font-size: 0.95rem;
+    margin-top: auto;
+    flex-shrink: 0;
 }
 
 .donor-button {
@@ -158,7 +218,8 @@
 }
 
 .donor-button:hover {
-    background: #005bb5;
+    background: #005a8f;
+    transform: translateY(-2px);
 }
 
 .receiver-button {
@@ -167,6 +228,7 @@
 
 .receiver-button:hover {
     background: #008d76;
+    transform: translateY(-2px);
 }
 
 .back-container {
@@ -193,165 +255,355 @@
 /* Responsive Styles */
 @media (max-width: 1200px) {
     .content {
-        gap: 30px;
+        gap: 25px;
+        max-height: calc(100vh - 180px);
     }
     
     .option-card {
-        width: 350px;
-        min-height: 500px;
+        width: 280px;
+        padding: 20px 18px;
     }
     
-    .illustration img {
-        max-height: 60vh;
+    .intro h1 {
+        font-size: 2.2rem;
+    }
+    
+    .intro .subtitle {
+        font-size: 1rem;
     }
 }
 
 @media (max-width: 1024px) {
     .register-type-page {
-        padding: 30px;
+        padding: 15px 20px;
     }
     
     .content {
-        gap: 25px;
-    }
-    
-    .registration-options {
-        gap: 15px;
+        gap: 20px;
+        max-height: calc(100vh - 160px);
     }
     
     .option-card {
-        width: 320px;
-        min-height: 480px;
-        padding: 20px;
+        width: 250px;
+        padding: 18px 15px;
     }
     
-    .illustration img {
-        max-height: 50vh;
+    .option-card img {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 12px;
+    }
+    
+    .option-card h3 {
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+    }
+    
+    .option-card p {
+        font-size: 0.82rem;
+        margin-bottom: 15px;
+    }
+    
+    .option-card ul {
+        margin-bottom: 15px;
+    }
+    
+    .option-card li {
+        font-size: 0.82rem;
+        margin-bottom: 8px;
+    }
+    
+    .intro h1 {
+        font-size: 2rem;
+        margin-bottom: 8px;
+    }
+    
+    .intro .subtitle {
+        font-size: 0.95rem;
     }
 }
 
 @media (max-width: 900px) {
     .content {
-        gap: 20px;
+        gap: 15px;
+        max-height: calc(100vh - 150px);
     }
     
     .option-card {
-        width: 280px;
-        min-height: 520px;
-    }
-    
-    .illustration img {
-        max-height: 45vh;
+        width: 230px;
+        padding: 15px 12px;
     }
     
     .option-card h3 {
-        font-size: 1.2rem;
+        font-size: 1.1rem;
     }
     
     .option-card p {
-        font-size: 0.9rem;
+        font-size: 0.78rem;
+        margin-bottom: 12px;
+    }
+    
+    .option-card ul {
+        margin-bottom: 12px;
+    }
+    
+    .option-card li {
+        font-size: 0.78rem;
+        margin-bottom: 6px;
+    }
+    
+    .register-button {
+        padding: 12px 16px;
+        font-size: 0.88rem;
     }
 }
 
 @media (max-width: 768px) {
     .register-type-page {
-        padding: 20px;
-        justify-content: flex-start;
+        padding: 15px;
+        height: 100vh;
+        overflow: hidden;
+    }
+    
+    .logo-container {
+        top: 10px;
+        left: 10px;
+    }
+    
+    .logo-container .logo {
+        width: 50px;
+    }
+    
+    .intro {
+        margin-bottom: 15px;
+        margin-top: 60px;
+    }
+    
+    .intro h1 {
+        font-size: 1.6rem;
+        margin-bottom: 6px;
+    }
+    
+    .intro .subtitle {
+        font-size: 0.9rem;
     }
     
     .content {
-        flex-direction: column;
+        flex-direction: row;
         align-items: center;
-        gap: 30px;
+        gap: 12px;
+        max-height: calc(100vh - 140px);
     }
 
-    .registration-options {
-        flex-direction: row;
-        gap: 20px;
-        width: 100%;
-        justify-content: center;
-    }
-    
     .option-card {
-        width: 100%;
-        max-width: 300px;
-        min-height: auto;
+        width: 48%;
+        max-width: none;
+        padding: 15px 12px;
     }
     
-    .illustration img {
-        max-height: 250px;
+    .option-card img {
+        width: 70px;
+        height: 70px;
+        margin-bottom: 10px;
+    }
+    
+    .option-card h3 {
+        font-size: 1.1rem;
+        margin-bottom: 8px;
+    }
+    
+    .option-card p {
+        font-size: 0.78rem;
+        margin-bottom: 10px;
+        line-height: 1.4;
+    }
+    
+    .option-card ul {
+        margin-bottom: 12px;
+    }
+    
+    .option-card li {
+        font-size: 0.78rem;
+        margin-bottom: 6px;
+        padding-left: 8px;
+        gap: 8px;
+    }
+    
+    .register-button {
+        padding: 11px 14px;
+        font-size: 0.85rem;
+    }
+    
+    /* Hide illustration on tablet and mobile */
+    .illustration {
+        display: none;
     }
 }
 
 @media (max-width: 640px) {
-    .registration-options {
-        flex-direction: column;
-        align-items: center;
-        gap: 20px;
+    .intro h1 {
+        font-size: 1.5rem;
+    }
+    
+    .intro .subtitle {
+        font-size: 0.85rem;
+    }
+    
+    .option-card h3 {
+        font-size: 1rem;
+    }
+    
+    .option-card p {
+        font-size: 0.72rem;
+    }
+    
+    .option-card li {
+        font-size: 0.72rem;
+    }
+    
+    .register-button {
+        font-size: 0.8rem;
+    }
+}
+
+/* Small laptops and specific height constraints */
+@media (max-height: 800px) and (min-width: 769px) {
+    .register-type-page {
+        padding: 15px 30px;
+    }
+    
+    .intro {
+        margin-bottom: 15px;
+    }
+    
+    .intro h1 {
+        font-size: 2rem;
+        margin-bottom: 8px;
+    }
+    
+    .intro .subtitle {
+        font-size: 1rem;
+    }
+    
+    .content {
+        max-height: calc(100vh - 150px);
     }
     
     .option-card {
-        max-width: 400px;
-        width: 100%;
+        padding: 18px 16px;
+        width: 280px;
     }
     
-    .illustration img {
-        max-height: 200px;
+    .option-card img {
+        width: 85px;
+        height: 85px;
+        margin-bottom: 12px;
+    }
+    
+    .option-card h3 {
+        font-size: 1.25rem;
+        margin-bottom: 10px;
+    }
+    
+    .option-card p {
+        font-size: 0.85rem;
+        margin-bottom: 12px;
+    }
+    
+    .option-card ul {
+        margin-bottom: 15px;
+    }
+    
+    .option-card li {
+        font-size: 0.85rem;
+        margin-bottom: 8px;
+    }
+    
+    .register-button {
+        padding: 12px 18px;
+        font-size: 0.9rem;
     }
 }
 
 @media (max-width: 480px) {
     .register-type-page {
-        padding: 15px;
+        padding: 12px 8px;
+        height: 100vh;
+        overflow: hidden;
+    }
+    
+    .logo-container {
+        top: 8px;
+        left: 8px;
+    }
+    
+    .logo-container .logo {
+        width: 45px;
+    }
+    
+    .intro {
+        margin-top: 55px;
+        margin-bottom: 12px;
     }
     
     .intro h1 {
-        font-size: 1.7rem;
+        font-size: 1.3rem;
+        margin-bottom: 5px;
     }
     
-    .intro h2 {
-        font-size: 1.1rem;
-        margin-top: 20px;
+    .intro .subtitle {
+        font-size: 0.8rem;
+    }
+    
+    .content {
+        gap: 8px;
+        max-height: calc(100vh - 120px);
     }
     
     .option-card {
-        padding: 20px;
+        width: 48%;
+        padding: 12px 8px;
     }
     
     .option-card img {
-        height: 100px;
-        width: 100px;
+        width: 55px;
+        height: 55px;
+        margin-bottom: 8px;
     }
     
-    .illustration img {
-        max-height: 180px;
+    .option-card h3 {
+        font-size: 0.95rem;
+        margin-bottom: 6px;
+    }
+    
+    .option-card p {
+        font-size: 0.65rem;
+        margin-bottom: 8px;
+        line-height: 1.3;
+    }
+    
+    .option-card ul {
+        margin-bottom: 10px;
     }
     
     .option-card li {
-        font-size: 0.9rem;
+        font-size: 0.65rem;
+        margin-bottom: 5px;
+        padding-left: 4px;
+        gap: 6px;
     }
-}
-
-.back-home-button {
-  position: absolute;
-  top: 24px;
-  right: 32px;
-  background: transparent;
-  color: #1B4965;
-  border: none;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  text-decoration: underline;
-  transition: color 0.2s ease;
-}
-
-.back-home-button:hover {
-  color: #609B7E;
-}
-
-.back-home-button:focus-visible {
-  outline: 2px solid #609B7E;
-  outline-offset: 2px;
-  border-radius: 4px;
+    
+    .option-card li::before {
+        font-size: 0.8rem;
+    }
+    
+    .register-button {
+        padding: 9px 10px;
+        font-size: 0.75rem;
+    }
+    
+    /* Hide illustration on phone */
+    .illustration {
+        display: none;
+    }
 }
