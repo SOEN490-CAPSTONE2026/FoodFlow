@@ -34,12 +34,6 @@ export default function DonorLayout() {
   const menuRef = useRef(null);
   const [notification, setNotification] = useState(null);
 
-  const contacts = [
-    { name: "Olive Nacelle", online: true },
-    { name: "Amélie Laurent", online: true },
-    { name: "Amélie Jackson", online: false },
-    { name: "Frankie Sullivan", online: false }
-  ];
 
   useEffect(() => {
     const handleResize = () => {
@@ -48,14 +42,6 @@ export default function DonorLayout() {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
-  const getMaxContacts = () => {
-    if (screenHeight <= 650) return 1;
-    if (screenHeight <= 800) return 2;
-    return 4;
-  };
-
-  const visibleContacts = contacts.slice(0, getMaxContacts());
 
   const pageTitle = (() => {
     switch (location.pathname) {
@@ -231,21 +217,7 @@ export default function DonorLayout() {
               </span>
               Messages
             </div>
-            <button className="messages-toggle" onClick={() => setMessagesOpen((s) => !s)} aria-label="Toggle Messages">
-              {messagesOpen ? <ChevronDown size={16} className="lucide" /> : <ChevronRight size={16} className="lucide" />}
-            </button>
           </div>
-
-          {messagesOpen && (
-            <div className="messages-dropdown">
-              {visibleContacts.map((c, i) => (
-                <div key={i} className="message-item">
-                  <div className="message-avatar">{c.online && <span className="message-status" />}</div>
-                  <span className="message-name">{c.name}</span>
-                </div>
-              ))}
-            </div>
-          )}
         </nav>
 
         <div className="donor-nav-bottom nav-bottom-abs">

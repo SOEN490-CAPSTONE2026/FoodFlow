@@ -256,8 +256,11 @@
   font-size: 14px;
   text-align: left;
   line-height: 1.5;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
 }
-
 .donation-actions {
   display: flex;
   gap: 20px;
