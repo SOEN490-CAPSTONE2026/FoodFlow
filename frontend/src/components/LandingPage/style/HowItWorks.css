@@ -1,18 +1,21 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
 * {
-    font-family: 'Poppins', sans-serif; 
+    font-family: 'Poppins', sans-serif;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
 .how-it-works-container {
-    min-height: 100vh;
     background-color: #fff;
-    padding: 100px 10%;
+    padding: 80px 5%;
     position: relative;
     overflow: hidden;
     opacity: 0;
     transform: translateY(30px);
     transition: opacity 0.8s ease, transform 0.8s ease;
+    box-sizing: border-box;
 }
 
 .how-it-works-container.animate-in {
@@ -22,10 +25,11 @@
 
 .how-it-works-header {
     text-align: center;
-    margin-bottom: 100px;
+    margin-bottom: 60px;
     opacity: 0;
     transform: translateY(20px);
     transition: opacity 0.8s ease 0.3s, transform 0.8s ease 0.3s;
+    padding: 0 20px;
 }
 
 .how-it-works-container.animate-in .how-it-works-header {
@@ -34,7 +38,7 @@
 }
 
 .how-it-works-header h1 {
-    font-size: 3.5rem;
+    font-size: clamp(2rem, 5vw, 3.5rem);
     font-weight: 700;
     color: #1B4965;
     margin-bottom: 1rem;
@@ -42,6 +46,7 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    word-wrap: break-word;
 }
 
 .how-it-works-header p {
@@ -230,13 +235,39 @@
 }
 
 /* Responsive Style */
+@media (max-width: 1400px) {
+    .how-it-works-container {
+        padding: 80px 5%;
+    }
+    
+    .steps-container {
+        max-width: 1100px;
+        gap: 30px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .steps-container {
+        max-width: 950px;
+        gap: 25px;
+    }
+    
+    .step-content h3 {
+        font-size: 1.6rem;
+    }
+    
+    .step-content p {
+        font-size: 1rem;
+    }
+}
+
 @media (max-width: 1024px) {
     .steps-container {
         gap: 20px;
     }
     
     .step-card {
-        padding: 20px 15px;
+        padding: 25px 15px;
     }
     
     .icon-circle {
@@ -248,20 +279,26 @@
     .step-content h3 {
         font-size: 1.5rem;
     }
+    
+    .step-content p {
+        font-size: 0.95rem;
+    }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
     .how-it-works-container {
         padding: 60px 5%;
     }
     
-    .how-it-works-header h1 {
-        font-size: 2.5rem;
-    }
-    
     .steps-container {
         flex-direction: column;
-        gap: 60px;
+        gap: 40px;
+        align-items: center;
+    }
+    
+    .step-column {
+        max-width: 500px;
+        width: 100%;
     }
     
     .step-card {
@@ -275,12 +312,76 @@
     }
     
     .progress-container {
-        width: 80%;
-        max-width: 300px;
+        width: 100%;
+        max-width: 400px;
+    }
+}
+
+@media (max-width: 768px) {
+    .how-it-works-container {
+        padding: 50px 5%;
+    }
+    
+    .how-it-works-header {
+        margin-bottom: 40px;
+    }
+    
+    .how-it-works-header h1 {
+        font-size: 2.5rem;
+    }
+    
+    .how-it-works-header p {
+        font-size: 1rem;
+    }
+    
+    .step-column {
+        max-width: 450px;
+    }
+    
+    .steps-container {
+        gap: 35px;
+    }
+}
+
+@media (max-width: 600px) {
+    .how-it-works-header h1 {
+        font-size: 2rem;
+    }
+    
+    .icon-circle {
+        width: 75px;
+        height: 75px;
+        font-size: 1.6rem;
+    }
+    
+    .step-content h3 {
+        font-size: 1.4rem;
     }
 }
 
 @media (max-width: 480px) {
+    .how-it-works-container {
+        padding: 40px 4%;
+    }
+    
+    .how-it-works-header {
+        padding: 0 10px;
+        margin-bottom: 35px;
+    }
+    
+    .how-it-works-header h1 {
+        font-size: 1.75rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .how-it-works-header p {
+        font-size: 0.95rem;
+    }
+    
+    .step-card {
+        padding: 20px 15px;
+    }
+    
     .step-content {
         padding: 0 10px;
     }
@@ -292,10 +393,38 @@
     }
     
     .step-content h3 {
-        font-size: 1.4rem;
+        font-size: 1.3rem;
     }
     
     .step-content p {
-        font-size: 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .steps-container {
+        gap: 30px;
+    }
+    
+    .progress-container {
+        max-width: 300px;
+    }
+}
+
+@media (max-width: 375px) {
+    .how-it-works-header h1 {
+        font-size: 1.6rem;
+    }
+    
+    .step-content h3 {
+        font-size: 1.2rem;
+    }
+    
+    .step-content p {
+        font-size: 0.85rem;
+    }
+    
+    .icon-circle {
+        width: 65px;
+        height: 65px;
+        font-size: 1.4rem;
     }
 }

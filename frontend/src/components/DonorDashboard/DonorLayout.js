@@ -31,15 +31,10 @@ export default function DonorLayout() {
   const [messagesOpen, setMessagesOpen] = useState(false);
   const [screenHeight, setScreenHeight] = useState(window.innerHeight);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const menuRef = useRef(null);
   const [notification, setNotification] = useState(null);
 
-  const contacts = [
-    { name: "Olive Nacelle", online: true },
-    { name: "Amélie Laurent", online: true },
-    { name: "Amélie Jackson", online: false },
-    { name: "Frankie Sullivan", online: false }
-  ];
 
   useEffect(() => {
     const handleResize = () => {
@@ -48,14 +43,6 @@ export default function DonorLayout() {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
-  const getMaxContacts = () => {
-    if (screenHeight <= 650) return 1;
-    if (screenHeight <= 800) return 2;
-    return 4;
-  };
-
-  const visibleContacts = contacts.slice(0, getMaxContacts());
 
   const pageTitle = (() => {
     switch (location.pathname) {
@@ -181,11 +168,18 @@ export default function DonorLayout() {
 
       {mobileMenuOpen && <div className="mobile-overlay" onClick={() => setMobileMenuOpen(false)}></div>}
 
-      <aside className={`donor-sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}>
+      <aside className={`donor-sidebar ${mobileMenuOpen ? 'mobile-open' : ''} ${sidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="donor-sidebar-header">
           <Link to="/" state={{ scrollTo: "home", from: "donor" }} aria-label="FoodFlow Home">
             <img src={Logo} alt="FoodFlow" className="donor-logo" />
           </Link>
+          {/* <button 
+            className="sidebar-toggle-btn"
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            aria-label="Toggle sidebar"
+          >
+            {sidebarCollapsed ? <ChevronRight size={20} /> : <X size={20} />}
+          </button> */}
         </div>
 
         <nav className="donor-nav-links">
@@ -231,21 +225,7 @@ export default function DonorLayout() {
               </span>
               Messages
             </div>
-            <button className="messages-toggle" onClick={() => setMessagesOpen((s) => !s)} aria-label="Toggle Messages">
-              {messagesOpen ? <ChevronDown size={16} className="lucide" /> : <ChevronRight size={16} className="lucide" />}
-            </button>
           </div>
-
-          {messagesOpen && (
-            <div className="messages-dropdown">
-              {visibleContacts.map((c, i) => (
-                <div key={i} className="message-item">
-                  <div className="message-avatar">{c.online && <span className="message-status" />}</div>
-                  <span className="message-name">{c.name}</span>
-                </div>
-              ))}
-            </div>
-          )}
         </nav>
 
         <div className="donor-nav-bottom nav-bottom-abs">
@@ -288,7 +268,7 @@ export default function DonorLayout() {
       </aside>
 
       <main className="donor-main">
-        {!isMessagesPage && (
+        {!isMessagesPage && location.pathname !== "/donor" && location.pathname !== "/donor/" && (
           <header className="donor-topbar">
             <div className="donor-topbar-left">
               <h1>{pageTitle}</h1>
