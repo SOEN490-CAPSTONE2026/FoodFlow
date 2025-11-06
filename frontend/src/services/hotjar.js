@@ -8,21 +8,12 @@ const HOTJAR_VERSION = 6;
  * Only initializes in production or UAT environments
  */
 export const initHotjar = () => {
-  // Enable on production deployment or when explicitly set to UAT
-  const isProductionDeploy = window.location.hostname.includes('railway.app') || 
-                             window.location.hostname.includes('frontend-production');
-  const isUAT = process.env.REACT_APP_ENV === 'uat';
-  const isProduction = process.env.NODE_ENV === 'production';
-  
-  if (isProductionDeploy || isUAT || isProduction) {
-    try {
-      Hotjar.init(HOTJAR_SITE_ID, HOTJAR_VERSION);
-      console.log('🎯 Hotjar initialized successfully on', window.location.hostname);
-    } catch (error) {
-      console.error('Failed to initialize Hotjar:', error);
-    }
-  } else {
-    console.log('Hotjar disabled - not on production/UAT');
+  // TEMPORARY: Always enable for testing
+  try {
+    Hotjar.init(HOTJAR_SITE_ID, HOTJAR_VERSION);
+    console.log('🎯 Hotjar initialized successfully');
+  } catch (error) {
+    console.error('❌ Failed to initialize Hotjar:', error);
   }
 };
 

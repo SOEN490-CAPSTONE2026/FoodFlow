@@ -1,9 +1,10 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
 import ReceiverIllustration from "../assets/illustrations/receiver-ilustration.jpg";
 import '../style/Registration.css';
+import { startTask, completeTask, trackError } from '../utils/usabilityTracking';
 
 const ReceiverRegistration = () => {
   const navigate = useNavigate();
@@ -21,6 +22,11 @@ const ReceiverRegistration = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  // Track when user starts the receiver registration task
+  useEffect(() => {
+    startTask('task_receiver_register');
+  }, []);
 
   const handleChange = (e) => {
     setFormData({
@@ -43,6 +49,9 @@ const ReceiverRegistration = () => {
 
       setSuccess('Registration successful! Welcome to FoodFlow.');
 
+      // Track successful registration
+      completeTask('task_receiver_register', true);
+
       // Extract token, role, and userId from response
       const token = response?.data?.token;
       const userRole = response?.data?.role;
@@ -58,6 +67,10 @@ const ReceiverRegistration = () => {
       }, 2000);
 
     } catch (err) {
+      // Track failed registration
+      trackError('registration_failed', 'ReceiverRegistration');
+      completeTask('task_receiver_register', false);
+      
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
