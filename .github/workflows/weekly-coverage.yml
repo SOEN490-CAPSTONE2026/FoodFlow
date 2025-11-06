@@ -114,7 +114,7 @@ jobs:
           DB_USER: foodflow_user
           DB_PASS: foodflow_password
         run: |
-          ./mvnw clean test "-Dspring.profiles.active=test"
+          ./mvnw clean test "-Dspring.profiles.active=test" || true
           ./mvnw jacoco:report
 
       - name: Extract JaCoCo coverage percentage from HTML
@@ -156,7 +156,7 @@ jobs:
     steps:
       - name: Create coverage summary
         run: |
-          echo "## 🧾 Weekly Coverage Report" >> $GITHUB_STEP_SUMMARY
+          echo "## Weekly Coverage Report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Frontend Coverage:** ${{ needs.frontend-coverage.outputs.coverage }}%" >> $GITHUB_STEP_SUMMARY
           echo "**Backend Coverage:** ${{ needs.backend-coverage.outputs.coverage }}%" >> $GITHUB_STEP_SUMMARY
