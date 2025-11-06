@@ -413,4 +413,108 @@ describe("DonorListFood", () => {
     await user.click(screen.getByRole("button", { name: /\+ donate more/i }));
     expect(screen.getByTestId("surplus-form-modal")).toBeInTheDocument();
   });
+
+  test("applies confirmed class to pickup slot when confirmedPickupSlot matches", async () => {
+    const itemWithConfirmedSlot = {
+      id: 3,
+      title: "Confirmed Slot Item",
+      foodCategories: ["PREPARED_MEALS"],
+      quantity: { value: 3, unit: "SERVINGS" },
+      expiryDate: "2025-10-10",
+      pickupSlots: [
+        { pickupDate: "2025-10-05", startTime: "10:00", endTime: "12:00" },
+        { pickupDate: "2025-10-06", startTime: "14:00", endTime: "16:00" },
+      ],
+      confirmedPickupSlot: {
+        pickupDate: "2025-10-06",
+        startTime: "14:00",
+        endTime: "16:00",
+      },
+      pickupLocation: { address: "789 Test St" },
+      status: "CLAIMED",
+    };
+
+    surplusAPI.getMyPosts.mockResolvedValue({ data: [itemWithConfirmedSlot] });
+
+    setup();
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/confirmed slot item/i)).toBeInTheDocument();
+    });
+
+    const card = screen.getByLabelText(/confirmed slot item/i);
+    const pickupTimes = card.querySelectorAll(".pickup-time-item");
+
+    // First slot should not have confirmed class
+    expect(pickupTimes[0]).not.toHaveClass("confirmed");
+
+    // Second slot should have confirmed class
+    expect(pickupTimes[1]).toHaveClass("confirmed");
+  });
+
+  test("does not apply confirmed class when no confirmedPickupSlot exists", async () => {
+    const itemWithoutConfirmedSlot = {
+      id: 4,
+      title: "No Confirmed Slot Item",
+      foodCategories: ["DAIRY_COLD"],
+      quantity: { value: 2, unit: "LITERS" },
+      expiryDate: "2025-10-08",
+      pickupSlots: [
+        { pickupDate: "2025-10-05", startTime: "10:00", endTime: "12:00" },
+        { pickupDate: "2025-10-06", startTime: "14:00", endTime: "16:00" },
+      ],
+      pickupLocation: { address: "321 Test Ave" },
+      status: "AVAILABLE",
+    };
+
+    surplusAPI.getMyPosts.mockResolvedValue({ data: [itemWithoutConfirmedSlot] });
+
+    setup();
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/no confirmed slot item/i)).toBeInTheDocument();
+    });
+
+    const card = screen.getByLabelText(/no confirmed slot item/i);
+    const pickupTimes = card.querySelectorAll(".pickup-time-item");
+
+    // Neither slot should have confirmed class
+    pickupTimes.forEach(slot => {
+      expect(slot).not.toHaveClass("confirmed");
+    });
+  });
+
+  test("applies confirmed class when item has single pickup slot that is confirmed", async () => {
+    const itemWithSingleConfirmedSlot = {
+      id: 5,
+      title: "Single Confirmed Slot",
+      foodCategories: ["FROZEN"],
+      quantity: { value: 5, unit: "PACKAGES" },
+      expiryDate: "2025-10-15",
+      pickupSlots: [
+        { pickupDate: "2025-10-10", startTime: "09:00", endTime: "11:00" },
+      ],
+      confirmedPickupSlot: {
+        pickupDate: "2025-10-10",
+        startTime: "09:00",
+        endTime: "11:00",
+      },
+      pickupLocation: { address: "555 Frozen Lane" },
+      status: "READY_FOR_PICKUP",
+    };
+
+    surplusAPI.getMyPosts.mockResolvedValue({ data: [itemWithSingleConfirmedSlot] });
+
+    setup();
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/single confirmed slot/i)).toBeInTheDocument();
+    });
+
+    const card = screen.getByLabelText(/single confirmed slot/i);
+    const pickupTime = card.querySelector(".pickup-time-item");
+
+    // The single slot should have confirmed class
+    expect(pickupTime).toHaveClass("confirmed");
+  });
 });
