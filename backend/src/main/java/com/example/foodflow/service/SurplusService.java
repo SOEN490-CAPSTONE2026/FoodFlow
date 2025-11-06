@@ -149,7 +149,7 @@ public class SurplusService {
         response.setDonorEmail(post.getDonor().getEmail());
         response.setCreatedAt(post.getCreatedAt());
         response.setUpdatedAt(post.getUpdatedAt());
-        
+
         // Convert pickup slots
         if (post.getPickupSlots() != null && !post.getPickupSlots().isEmpty()) {
             List<PickupSlotResponse> slotResponses = post.getPickupSlots().stream()
@@ -157,7 +157,21 @@ public class SurplusService {
                 .collect(Collectors.toList());
             response.setPickupSlots(slotResponses);
         }
-        
+
+        // Include confirmed pickup slot if post has an active claim
+        claimRepository.findBySurplusPostIdAndStatus(post.getId(), ClaimStatus.ACTIVE)
+            .ifPresent(claim -> {
+                if (claim.getConfirmedPickupDate() != null &&
+                    claim.getConfirmedPickupStartTime() != null &&
+                    claim.getConfirmedPickupEndTime() != null) {
+                    PickupSlotResponse confirmedSlot = new PickupSlotResponse();
+                    confirmedSlot.setPickupDate(claim.getConfirmedPickupDate());
+                    confirmedSlot.setStartTime(claim.getConfirmedPickupStartTime());
+                    confirmedSlot.setEndTime(claim.getConfirmedPickupEndTime());
+                    response.setConfirmedPickupSlot(confirmedSlot);
+                }
+            });
+
         return response;
     }
     public List<SurplusResponse> getAllAvailableSurplusPosts() {

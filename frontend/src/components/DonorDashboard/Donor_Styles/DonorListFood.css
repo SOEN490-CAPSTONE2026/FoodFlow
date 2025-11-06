@@ -232,6 +232,11 @@
   color: #374151;
 }
 
+.pickup-time-item.confirmed {
+  color: #609B7E;
+  font-weight: 700;
+}
+
 .pickup-time-divider {
   color: #9ca3af;
   font-weight: 300;

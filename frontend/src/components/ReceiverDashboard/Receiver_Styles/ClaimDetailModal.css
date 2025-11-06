@@ -201,6 +201,11 @@
     font-weight: 500;
 }
 
+.claimed-modal-detail-value.confirmed-pickup-time {
+    color: #609B7E;
+    font-weight: 700;
+}
+
 /* Modal Section */
 .claimed-modal-section {
     margin-bottom: 2rem;
