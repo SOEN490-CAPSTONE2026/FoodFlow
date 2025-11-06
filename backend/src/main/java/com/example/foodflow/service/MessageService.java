@@ -90,8 +90,11 @@ public class MessageService {
         // Validate user is participant
         conversationService.getConversation(conversationId, currentUser);
         
-        return messageRepository.findByConversationId(conversationId)
-            .stream()
+        List<Message> messages = messageRepository.findByConversationId(conversationId);
+
+        businessMetricsService.incrementMessagesReceived();
+
+        return messages.stream()
             .map(MessageResponse::new)
             .collect(Collectors.toList());
     }

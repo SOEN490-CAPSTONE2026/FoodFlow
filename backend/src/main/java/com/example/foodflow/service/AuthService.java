@@ -19,6 +19,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.foodflow.service.MetricsService;
+import io.micrometer.core.annotation.Timed;
+
 
 @Service
 public class AuthService {
@@ -54,6 +56,7 @@ public class AuthService {
 
 
     @Transactional
+    @Timed(value = "auth.service.registerDonor", description = "Time taken to register a donor")
     public AuthResponse registerDonor(RegisterDonorRequest request) {
         log.info("Starting donor registration for email: {}", request.getEmail());
         
@@ -99,6 +102,7 @@ public class AuthService {
     }
 
     @Transactional
+    @Timed(value = "auth.service.registerReceiver", description = "Time taken to register a receiver")
     public AuthResponse registerReceiver(RegisterReceiverRequest request) {
         // Check if user already exists
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -134,6 +138,7 @@ public class AuthService {
         return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), "Receiver registered successfully");
     }
 
+    @Timed(value = "auth.service.login", description = "Time taken to login")
     public AuthResponse login(LoginRequest request) {
         log.info("Login attempt for email: {}", request.getEmail());
         metricsService.incrementLoginAttempt();       
@@ -163,6 +168,7 @@ public class AuthService {
         }
     }
 
+    @Timed(value = "auth.service.logout", description = "Time taken to logout")
     public AuthResponse logout(LogoutRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));

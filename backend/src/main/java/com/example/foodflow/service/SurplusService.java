@@ -165,6 +165,8 @@ public class SurplusService {
         
         return response;
     }
+
+    @Timed(value = "surplus.service.getAllAvailablePosts", description = "Time taken to get all available surplus posts")
     public List<SurplusResponse> getAllAvailableSurplusPosts() {
         List<PostStatus> claimableStatuses = Arrays.asList(
             PostStatus.AVAILABLE,

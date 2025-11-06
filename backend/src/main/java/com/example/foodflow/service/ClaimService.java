@@ -143,4 +143,22 @@ public class ClaimService {
         businessMetricsService.incrementClaimCancelled();
         businessMetricsService.recordTimer(sample, "claim.service.cancel", "status", "cancelled");
     }
+
+    @Transactional
+    @Timed(value = "claim.service.complete", description = "Time taken to complete a claim")
+    public void completeClaim(Long claimId) {
+        Timer.Sample sample = businessMetricsService.startTimer();
+
+        Claim claim = claimRepository.findById(claimId)
+            .orElseThrow(() -> new RuntimeException("Claim not found"));
+
+        claim.setStatus(ClaimStatus.COMPLETED);
+        claimRepository.save(claim);
+
+        // Increment completed claim counter
+        businessMetricsService.incrementClaimCompleted();
+
+        // Record timer
+        businessMetricsService.recordTimer(sample, "claim.service.complete", "status", "completed");
+    }
 }
