@@ -107,6 +107,13 @@ public class MetricsConfig implements WebMvcConfigurer {
     }
 
     @Bean
+    public Counter authSuccessCounter(MeterRegistry meterRegistry) {
+        return Counter.builder("auth.successes")
+                .description("Total successful logins")
+                .register(meterRegistry);
+    }
+
+    @Bean
     public Counter securityEventCounter(MeterRegistry meterRegistry) {
         return Counter.builder("security.events")
                 .description("Security-related events")
