@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import { Autocomplete } from "@react-google-maps/api";
 import DatePicker from "react-datepicker";
 import { Filter, X, ChevronDown, MapPin, Check } from "lucide-react";
-import "./FiltersPanel.css";
+import "./Receiver_Styles/FiltersPanel.css";
 
 // Updated food categories to match backend enums exactly
 const FOOD_CATEGORIES = [
