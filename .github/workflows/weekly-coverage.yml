@@ -117,7 +117,7 @@ jobs:
           ./mvnw clean test "-Dspring.profiles.active=test" || true
           ./mvnw jacoco:report
 
-      - name: Extract JaCoCo coverage percentage from HTML
+      - name: Extract coverage summary
         id: backend_coverage
         working-directory: backend
         run: |
@@ -129,15 +129,9 @@ jobs:
             const html = fs.readFileSync('target/site/jacoco/index.html', 'utf8');
             const $ = cheerio.load(html);
 
-            let coverage = '';
-            $('tfoot tr td.ctr1').each((i, el) => {
-              const text = $(el).text().trim();
-              if (text.endsWith('%')) {
-                coverage = text;
-              }
-            });
+            const instructionCoverage = $('tfoot tr td.ctr2').eq(0).text().trim();
 
-            console.log(coverage.replace('%','').trim());
+            console.log(instructionCoverage.replace('%','').trim());
           EOF
           )
           echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
