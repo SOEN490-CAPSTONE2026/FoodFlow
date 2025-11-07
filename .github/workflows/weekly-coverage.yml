@@ -1,6 +1,10 @@
 name: Weekly Coverage Reports
 
 on:
+  push:
+    branches:
+      - 'main'
+      - 'coverage-reports-pipeline'
   schedule:
     # Runs every Monday at 7 AM UTC
     - cron: '0 7 * * 1'
@@ -125,9 +129,8 @@ jobs:
             const html = fs.readFileSync('target/site/jacoco/index.html', 'utf8');
             const $ = cheerio.load(html);
 
-            // Find total line coverage percentage in the footer
             let coverage = '';
-            $('tfoot tr td.ctr2').each((i, el) => {
+            $('tfoot tr td.ctr1').each((i, el) => {
               const text = $(el).text().trim();
               if (text.endsWith('%')) {
                 coverage = text;
