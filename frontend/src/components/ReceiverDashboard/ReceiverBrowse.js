@@ -24,8 +24,8 @@ import "./ReceiverBrowse.css";
 // Google Maps libraries needed for Places API
 const libraries = ["places"];
 
-const ReceiverBrowse = () => {
-  // Filter state
+export default function ReceiverBrowse() {
+  // Filter state (not applied, just stored)
   const [filters, setFilters] = useState({
     foodType: [],
     expiryBefore: null,
@@ -42,15 +42,13 @@ const ReceiverBrowse = () => {
 
   const [isFiltersVisible, setIsFiltersVisible] = useState(true);
 
-  // Item state
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expandedCardId, setExpandedCardId] = useState(null);
   const [bookmarkedItems, setBookmarkedItems] = useState(new Set());
-  const pollingRef = useRef(null);
 
-  // Filter handlers
+  // Filter handlers (just update state, no filtering logic)
   const handleFiltersChange = (filterType, value) => {
     setFilters((prev) => ({
       ...prev,
@@ -60,7 +58,6 @@ const ReceiverBrowse = () => {
 
   const handleApplyFilters = () => {
     setAppliedFilters({ ...filters });
-    fetchDonations();
   };
 
   const handleClearFilters = () => {
@@ -72,7 +69,6 @@ const ReceiverBrowse = () => {
     };
     setFilters(clearedFilters);
     setAppliedFilters(clearedFilters);
-    fetchDonations();
   };
 
   const handleToggleFilters = () => {
@@ -83,111 +79,13 @@ const ReceiverBrowse = () => {
     setIsFiltersVisible(false);
   };
 
-  // Convert backend food categories enum to display string
-  const getFoodTypeDisplay = (foodCategories) => {
-    if (
-      !foodCategories ||
-      !Array.isArray(foodCategories) ||
-      foodCategories.length === 0
-    ) {
-      return "Other";
-    }
-
-    const category = foodCategories[0];
-    switch (category) {
-      case "FRUITS_VEGETABLES":
-        return "Fruits & Vegetables";
-      case "BAKERY_GOODS":
-        return "Bakery & Pastry";
-      case "DAIRY_COLD":
-        return "Dairy & Cold Items";
-      case "FROZEN_FOOD":
-        return "Frozen Food";
-      case "PREPARED_MEALS":
-        return "Prepared Meals";
-      default:
-        return "Other";
-    }
-  };
-
-  // Get location string from pickupLocation
-  const getLocationString = (pickupLocation) => {
-    if (typeof pickupLocation === "string") {
-      return pickupLocation;
-    }
-    if (pickupLocation && pickupLocation.address) {
-      return `${pickupLocation.address}${
-        pickupLocation.city ? ", " + pickupLocation.city : ""
-      }`;
-    }
-    return "Location not specified";
-  };
-
-  // Format pickup time using pickupDate, pickupFrom, and pickupTo
-  const formatPickupTime = (pickupDate, pickupFrom, pickupTo) => {
-    if (!pickupDate || !pickupFrom || !pickupTo) return "—";
-
-    try {
-      // Combine pickupDate (LocalDate) and pickupFrom (LocalTime)
-      const fromDate = new Date(`${pickupDate}T${pickupFrom}`);
-
-      const dateStr = fromDate.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      });
-
-      const fromTime = fromDate.toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      });
-
-      // Parse pickupTo (LocalTime format "17:00:00")
-      const [hours, minutes] = pickupTo.split(":");
-      const hour = parseInt(hours, 10);
-      const isPM = hour >= 12;
-      const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-      const toTime = `${displayHour}:${minutes} ${isPM ? "PM" : "AM"}`;
-
-      return `${dateStr} ${fromTime}-${toTime}`;
-    } catch {
-      return "—";
-    }
-  };
-
-  // Data fetching
   const fetchDonations = useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await surplusAPI.list();
-      let filteredData = Array.isArray(data) ? data : [];
-
-      // Apply filters if any are set
-      if (appliedFilters.foodType.length > 0) {
-        filteredData = filteredData.filter((item) =>
-          appliedFilters.foodType.includes(
-            getFoodTypeDisplay(item.foodCategories)
-          )
-        );
-      }
-
-      if (appliedFilters.expiryBefore) {
-        filteredData = filteredData.filter(
-          (item) =>
-            new Date(item.expiryDate) <= new Date(appliedFilters.expiryBefore)
-        );
-      }
-
-      if (appliedFilters.location) {
-        filteredData = filteredData.filter((item) =>
-          getLocationString(item.pickupLocation)
-            .toLowerCase()
-            .includes(appliedFilters.location.toLowerCase())
-        );
-      }
-
-      setItems(filteredData);
+      // Show AVAILABLE and READY_FOR_PICKUP items (backend already filters these)
+      const availableItems = Array.isArray(data) ? data : [];
+      setItems(availableItems);
       setError(null);
     } catch (e) {
       setError("Failed to load available donations");
@@ -195,22 +93,20 @@ const ReceiverBrowse = () => {
     } finally {
       setLoading(false);
     }
-  }, [appliedFilters]);
+  }, []);
 
+  // Fetch donations on mount only - NO AUTO-REFRESH
   useEffect(() => {
     fetchDonations();
-    pollingRef.current = setInterval(fetchDonations, 8000);
-    return () => pollingRef.current && clearInterval(pollingRef.current);
   }, [fetchDonations]);
 
-  // Item interaction handlers
   const handleMoreClick = useCallback((item) => {
     setExpandedCardId((prev) => (prev === item.id ? null : item.id));
   }, []);
 
-  const handleClaimDonation = useCallback((item) => {
-    console.log("Claiming donation:", item);
-  }, []);
+  // const handleClaimDonation = useCallback((item) => {
+  //   console.log("Claiming donation:", item);
+  // }, []);
 
   const handleBookmark = useCallback((item, e) => {
     e.stopPropagation();
@@ -226,7 +122,83 @@ const ReceiverBrowse = () => {
     console.log("Bookmarking:", item);
   }, []);
 
-  // Utility functions
+  const handleClaimDonation = async (item) => {
+    if (!window.confirm('Are you sure you want to claim this donation?')) {
+        return;
+    }
+
+    try {
+        await surplusAPI.claim(item.id);  // Use surplusAPI
+        alert('Successfully claimed! Check "My Claims" tab.');
+
+        // Remove from available list
+        setItems(items.filter(post => post.id !== item.id));  // Use setItems/items
+    } catch (error) {
+        console.error('Error claiming post:', error);
+        alert(error.response?.data?.message || 'Failed to claim. It may have already been claimed.');
+    }
+  };
+
+  // Convert each category to display string (for separate tags)
+  const getFoodCategoryDisplays = (foodCategories) => {
+    if (
+      !foodCategories ||
+      !Array.isArray(foodCategories) ||
+      foodCategories.length === 0
+    ) {
+      return ["Other"];
+    }
+
+    // Convert all categories to display strings
+    return foodCategories.map((category) => {
+      switch (category) {
+        case "FRUITS_VEGETABLES":
+          return "Fruits & Vegetables";
+        case "BAKERY_PASTRY":
+          return "Bakery & Pastry";
+        case "PACKAGED_PANTRY":
+          return "Packaged / Pantry Items";
+        case "DAIRY_COLD":
+          return "Dairy & Cold Items";
+        case "FROZEN_FOOD":
+          return "Frozen Food";
+        case "PREPARED_MEALS":
+          return "Prepared Meals";
+        default:
+          return category;
+      }
+    });
+  };
+
+  // Get primary food category for image (first one)
+  const getPrimaryFoodCategory = (foodCategories) => {
+    if (
+      !foodCategories ||
+      !Array.isArray(foodCategories) ||
+      foodCategories.length === 0
+    ) {
+      return "Other";
+    }
+
+    const category = foodCategories[0];
+    switch (category) {
+      case "FRUITS_VEGETABLES":
+        return "Fruits & Vegetables";
+      case "BAKERY_PASTRY":
+        return "Bakery & Pastry";
+      case "PACKAGED_PANTRY":
+        return "Packaged / Pantry Items";
+      case "DAIRY_COLD":
+        return "Dairy & Cold Items";
+      case "FROZEN_FOOD":
+        return "Frozen Food";
+      case "PREPARED_MEALS":
+        return "Prepared Meals";
+      default:
+        return "Other";
+    }
+  };
+
   const getFoodTypeImage = (foodType) => {
     switch (foodType) {
       case "Bakery & Pastry":
@@ -279,6 +251,38 @@ const ReceiverBrowse = () => {
     }
   };
 
+  // Updated to handle new format: pickupDate + pickupFrom + pickupTo
+  const formatPickupTime = (pickupDate, pickupFrom, pickupTo) => {
+    if (!pickupDate || !pickupFrom || !pickupTo) return "—";
+    try {
+      // Combine pickupDate (LocalDate) and pickupFrom (LocalTime)
+      const fromDate = new Date(`${pickupDate}T${pickupFrom}`);
+
+      const dateStr = fromDate.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+
+      const fromTime = fromDate.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
+
+      // Parse pickupTo (LocalTime format "17:00:00")
+      const [hours, minutes] = pickupTo.split(":");
+      const hour = parseInt(hours, 10);
+      const isPM = hour >= 12;
+      const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+      const toTime = `${displayHour}:${minutes} ${isPM ? "PM" : "AM"}`;
+
+      return `${dateStr} ${fromTime}-${toTime}`;
+    } catch {
+      return "—";
+    }
+  };
+
   const formatPostedTime = (dateString) => {
     if (!dateString) return "";
     try {
@@ -295,6 +299,44 @@ const ReceiverBrowse = () => {
       return `${diffInDays} days ago`;
     } catch {
       return "";
+    }
+  };
+
+  const formatStatus = (status) => {
+    switch (status) {
+      case "AVAILABLE":
+        return "Available";
+      case "READY_FOR_PICKUP":
+        return "Ready for Pickup";
+      case "CLAIMED":
+        return "Claimed";
+      case "COMPLETED":
+        return "Completed";
+      case "NOT_COMPLETED":
+        return "Not Completed";
+      case "EXPIRED":
+        return "Expired";
+      default:
+        return status || "Available";
+    }
+  };
+
+  const getStatusClass = (status) => {
+    switch (status) {
+      case "AVAILABLE":
+        return "status-available";
+      case "READY_FOR_PICKUP":
+        return "status-ready";
+      case "CLAIMED":
+        return "status-claimed";
+      case "COMPLETED":
+        return "status-completed";
+      case "NOT_COMPLETED":
+        return "status-not-completed";
+      case "EXPIRED":
+        return "status-expired";
+      default:
+        return "status-available";
     }
   };
 
@@ -331,18 +373,13 @@ const ReceiverBrowse = () => {
         />
 
         <div className="receiver-browse-container">
-          <h2 className="receiver-section-title">
+          <h1 className="receiver-section-title">
             Explore Available Donations
-          </h2>
-
+          </h1>
           {error && (
             <div role="alert" className="receiver-error-message">
               {error}
             </div>
-          )}
-
-          {loading && (
-            <div className="receiver-loading">Loading donations...</div>
           )}
 
           {!loading && !error && items.length === 0 && (
@@ -356,8 +393,12 @@ const ReceiverBrowse = () => {
           {!loading && !error && items.length > 0 && (
             <div className="receiver-donations-list">
               {items.map((item) => {
-                const foodType = getFoodTypeDisplay(item.foodCategories);
-                const location = getLocationString(item.pickupLocation);
+                const categoryDisplays = getFoodCategoryDisplays(
+                  item.foodCategories
+                );
+                const primaryFoodCategory = getPrimaryFoodCategory(
+                  item.foodCategories
+                );
 
                 return (
                   <div
@@ -368,12 +409,12 @@ const ReceiverBrowse = () => {
                   >
                     <div
                       className={`receiver-donation-image ${getFoodImageClass(
-                        foodType
+                        primaryFoodCategory
                       )}`}
                     >
                       <img
-                        src={getFoodTypeImage(foodType)}
-                        alt={foodType || "Food donation"}
+                        src={getFoodTypeImage(primaryFoodCategory)}
+                        alt={primaryFoodCategory || "Food donation"}
                         className="receiver-food-type-image"
                         onError={(e) => {
                           e.target.style.display = "none";
@@ -409,9 +450,9 @@ const ReceiverBrowse = () => {
                               }}
                             />
                           </button>
-                          <span className="receiver-status-badge">
+                          <span className={`receiver-status-badge ${getStatusClass(item.status)}`}>
                             <span className="receiver-status-icon">✓</span>
-                            Available
+                            {formatStatus(item.status)}
                           </span>
                         </div>
                       </div>
@@ -431,7 +472,10 @@ const ReceiverBrowse = () => {
                             size={16}
                             className="receiver-info-icon-location-icon"
                           />
-                          <span>{location}</span>
+                          <span>
+                            {item.pickupLocation?.address ||
+                              "Location not specified"}
+                          </span>
                         </div>
                         <div className="receiver-info-item">
                           <Clock
@@ -449,9 +493,13 @@ const ReceiverBrowse = () => {
                       </div>
 
                       <div className="receiver-donation-meta">
-                        <span className="receiver-category-tag">
-                          {foodType}
-                        </span>
+                        <div className="receiver-category-tags">
+                          {categoryDisplays.map((category, index) => (
+                            <span key={index} className="receiver-category-tag">
+                              {category}
+                            </span>
+                          ))}
+                        </div>
                         <div className="receiver-donor-info">
                           <User size={16} />
                           <span>
@@ -533,7 +581,8 @@ const ReceiverBrowse = () => {
                                       marginRight: "8px",
                                     }}
                                   />
-                                  {location}
+                                  {item.pickupLocation?.address ||
+                                    "Location not specified"}
                                 </div>
                               </div>
                             </div>
@@ -595,6 +644,4 @@ const ReceiverBrowse = () => {
       </div>
     </LoadScript>
   );
-};
-
-export default ReceiverBrowse;
+}

@@ -7,6 +7,7 @@ import DonorDashboardHome from "./DonorDashboardHome";
 import DonorListFood from "./DonorListFood";
 import DonorRequests from "./DonorRequests";
 import DonorSearch from "./DonorSearch";
+import MessagingDashboard from "../MessagingDashboard/MessagingDashboard";
 
 
 export default function DonorDashboard() {
@@ -18,6 +19,7 @@ export default function DonorDashboard() {
         <Route path="list" element={<DonorListFood />} />
         <Route path="requests" element={<DonorRequests />} />
         <Route path="search" element={<DonorSearch />} />
+        <Route path="messages" element={<MessagingDashboard />} />
         {/* anything unknown under /donor -> back to /donor */}
         <Route path="*" element={<Navigate to="." replace />} />
       </Route>

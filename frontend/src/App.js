@@ -80,7 +80,7 @@ function AppContent() {
         />
         <Route path="/surplus/create" element={<SurplusForm />} />
         <Route path="/my-posts" element={<MyPosts />} />
-         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       </Routes>
     </div>
   );

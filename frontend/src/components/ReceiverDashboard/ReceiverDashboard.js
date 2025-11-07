@@ -6,7 +6,9 @@ import ReceiverDashboardHome from "./ReceiverDashboardHome";
 import ReceiverBrowse from "./ReceiverBrowse";
 import ReceiverRequests from "./ReceiverRequests";
 import ReceiverSearch from "./ReceiverSearch";
-import ReceiverWelcome from "./ReceiverWelcome"; 
+import ReceiverWelcome from "./ReceiverWelcome";
+import ReceiverMyClaims from './ReceiverMyClaims'; 
+import MessagingDashboard from "../MessagingDashboard/MessagingDashboard";
 
 
 export default function ReceiverDashboard() {
@@ -20,6 +22,8 @@ export default function ReceiverDashboard() {
         <Route path="browse" element={<ReceiverBrowse />} />
         <Route path="requests" element={<ReceiverRequests />} />
         <Route path="search" element={<ReceiverSearch />} />
+        <Route path="my-claims" element={<ReceiverMyClaims />} />
+        <Route path="messages" element={<MessagingDashboard />} />
 
        
         <Route path="*" element={<Navigate to="." replace />} />

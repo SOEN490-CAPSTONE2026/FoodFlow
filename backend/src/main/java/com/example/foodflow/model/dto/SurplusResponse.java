@@ -8,7 +8,12 @@ import com.example.foodflow.model.types.PostStatus;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import com.example.foodflow.model.entity.SurplusPost;
 
 public class SurplusResponse {
 
@@ -26,9 +31,11 @@ public class SurplusResponse {
     private LocalTime pickupTo;
 
     private PostStatus status;
+    private String otpCode;
     private String donorEmail;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private List<PickupSlotResponse> pickupSlots = new ArrayList<>();
 
     // Constructors
     public SurplusResponse() {}
@@ -36,7 +43,7 @@ public class SurplusResponse {
     public SurplusResponse(Long id, String title, String description, Set<FoodCategory> foodCategories,
                            Quantity quantity, Location pickupLocation,
                            LocalDate expiryDate, LocalDate pickupDate, LocalTime pickupFrom, LocalTime pickupTo,
-                           PostStatus status, String donorEmail,
+                           PostStatus status, String otpCode, String donorEmail,
                            LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.title = title;
@@ -49,9 +56,35 @@ public class SurplusResponse {
         this.pickupFrom = pickupFrom;
         this.pickupTo = pickupTo;
         this.status = status;
+        this.otpCode = otpCode;
         this.donorEmail = donorEmail;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+    }
+
+    public SurplusResponse(SurplusPost surplusPost) {
+        this.id = surplusPost.getId();
+        this.title = surplusPost.getTitle();
+        this.description = surplusPost.getDescription();
+        this.foodCategories = surplusPost.getFoodCategories();
+        this.quantity = surplusPost.getQuantity();
+        this.pickupLocation = surplusPost.getPickupLocation();
+        this.expiryDate = surplusPost.getExpiryDate();
+        this.pickupDate = surplusPost.getPickupDate();
+        this.pickupFrom = surplusPost.getPickupFrom();
+        this.pickupTo = surplusPost.getPickupTo();
+        this.status = surplusPost.getStatus();
+        this.otpCode = surplusPost.getOtpCode();
+        this.donorEmail = surplusPost.getDonor().getEmail();
+        this.createdAt = surplusPost.getCreatedAt();
+        this.updatedAt = surplusPost.getUpdatedAt();
+        
+        // Convert pickup slots
+        if (surplusPost.getPickupSlots() != null) {
+            this.pickupSlots = surplusPost.getPickupSlots().stream()
+                .map(PickupSlotResponse::fromEntity)
+                .collect(Collectors.toList());
+        }
     }
 
     // Getters and Setters
@@ -88,6 +121,9 @@ public class SurplusResponse {
     public PostStatus getStatus() { return status; }
     public void setStatus(PostStatus status) { this.status = status; }
 
+    public String getOtpCode() { return otpCode; }
+    public void setOtpCode(String otpCode) { this.otpCode = otpCode; }
+
     public String getDonorEmail() { return donorEmail; }
     public void setDonorEmail(String donorEmail) { this.donorEmail = donorEmail; }
 
@@ -96,4 +132,7 @@ public class SurplusResponse {
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public List<PickupSlotResponse> getPickupSlots() { return pickupSlots; }
+    public void setPickupSlots(List<PickupSlotResponse> pickupSlots) { this.pickupSlots = pickupSlots; }
 }

@@ -3,11 +3,14 @@ import { Outlet, useLocation, useNavigate, Link, useNavigationType } from "react
 import "./Receiver_Styles/ReceiverLayout.css";
 import Logo from "../../assets/Logo.png";
 import { AuthContext } from "../../contexts/AuthContext";
+import MessageNotification from "../MessagingDashboard/MessageNotification";
+import { connectToUserQueue, disconnect } from '../../services/socket';
 import {
   Settings as IconSettings,
   HelpCircle as IconHelpCircle,
   LogOut as IconLogOut,
-  Inbox as IconInbox
+  Inbox as IconInbox,
+  CheckCircle
 } from "lucide-react";
 
 export default function ReceiverLayout() {
@@ -17,6 +20,10 @@ export default function ReceiverLayout() {
   const { logout } = React.useContext(AuthContext);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
+  const isActive = (path) => location.pathname === path;
+  const [notification, setNotification] = useState(null);
+
+  const isMessagesPage = location.pathname === "/receiver/messages";
 
   const getPageTitle = () => {
     switch (location.pathname) {
@@ -31,6 +38,8 @@ export default function ReceiverLayout() {
         return "My Requests";
       case "/receiver/search":
         return "Search Organizations";
+      case "/receiver/messages":
+        return "Messages";
       default:
         return "Receiver Dashboard";
     }
@@ -49,6 +58,8 @@ export default function ReceiverLayout() {
         return "Manage your food requests";
       case "/receiver/search":
         return "Search for food donors";
+      case "/receiver/messages":
+        return "Communicate with donors and other users";
       default:
         return "FoodFlow Receiver Portal";
     }
@@ -62,6 +73,20 @@ export default function ReceiverLayout() {
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Connect to websocket for user-specific notifications (receiver)
+  useEffect(() => {
+    const onMessage = (payload) => {
+      const senderName = payload.senderName || payload.sender?.email || payload.senderEmail || '';
+      const message = payload.messageBody || payload.message || payload.body || '';
+      if (message) setNotification({ senderName, message });
+    };
+
+    connectToUserQueue(onMessage);
+    return () => {
+      try { disconnect(); } catch (e) { /* ignore */ }
+    };
   }, []);
 
   useEffect(() => {
@@ -93,30 +118,36 @@ export default function ReceiverLayout() {
 
         <div className="receiver-nav-links">
           <Link
-            to="/receiver/welcome"
-            className={`receiver-nav-link ${location.pathname === "/receiver/welcome" ? "active" : ""}`}
+            to="/receiver/browse"
+            className={`receiver-nav-link ${location.pathname === "/receiver/browse" ? "active" : ""}`}
           >
             Donations
           </Link>
 
           <Link
-            to="/receiver"
-            className={`receiver-nav-link ${location.pathname === "/receiver" || location.pathname === "/receiver/dashboard" ? "active" : ""
+            to="/receiver/my-claims"
+            className={`receiver-nav-link ${isActive("/receiver/my-claims") ||
+                isActive("/receiver") ||
+                isActive("/receiver/dashboard")
+                ? "active" : ""
               }`}
           >
+            <span className="nav-icon" aria-hidden>
+              <CheckCircle size={18} className="lucide" />
+            </span>
             My Claims
           </Link>
 
           <Link
-            to="/receiver/browse"
-            className={`receiver-nav-link ${location.pathname === "/receiver/browse" ? "active" : ""}`}
+            to="/receiver/welcome"
+            className={`receiver-nav-link ${location.pathname === "/receiver/welcome" ? "active" : ""}`}
           >
             Saved Donations
           </Link>
 
           <Link
-            to="/receiver/requests"
-            className={`receiver-nav-link ${location.pathname === "/receiver/requests" ? "active" : ""}`}
+            to="/receiver/messages"
+            className={`receiver-nav-link ${location.pathname === "/receiver/messages" ? "active" : ""}`}
           >
             Messages
           </Link>
@@ -173,15 +204,21 @@ export default function ReceiverLayout() {
       </div>
 
       <div className="receiver-main">
-        <div className="receiver-topbar">
-          <div className="receiver-topbar-left">
-            <h1>{getPageTitle()}</h1>
-            <p>{getPageDescription()}</p>
+        {!isMessagesPage && (
+          <div className="receiver-topbar">
+            <div className="receiver-topbar-left">
+              <h1>{getPageTitle()}</h1>
+              <p>{getPageDescription()}</p>
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className="receiver-content">
+        <div className={`receiver-content ${isMessagesPage ? 'messages-page' : ''}`}>
           <Outlet />
+          <MessageNotification
+            notification={notification}
+            onClose={() => setNotification(null)}
+          />
         </div>
       </div>
     </div>

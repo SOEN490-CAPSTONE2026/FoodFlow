@@ -8,12 +8,17 @@ import com.example.foodflow.model.entity.AuditLog;
 import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.types.PostStatus;
+import com.example.foodflow.repository.ClaimRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,7 +27,7 @@ import org.slf4j.LoggerFactory;
 
 @Service
 public class SurplusService {
-    
+
     private final SurplusPostRepository surplusPostRepository;
     private static final Logger log = LoggerFactory.getLogger(SurplusService.class);
     private final AuditLogger auditLogger;
@@ -31,14 +36,10 @@ public class SurplusService {
         this.surplusPostRepository = surplusPostRepository;
         this.auditLogger = auditLogger;
     }
-    
-    /**
-     * Creates a new SurplusPost from the request DTO and saves it to the database.
-     */
+
     @Transactional
     public SurplusResponse createSurplusPost(CreateSurplusRequest request, User donor) {
         SurplusPost post = new SurplusPost();
-        
         post.setDonor(donor);
         post.setTitle(request.getTitle());
         post.setDescription(request.getDescription());
@@ -54,20 +55,14 @@ public class SurplusService {
         SurplusPost savedPost = surplusPostRepository.save(post);
         return convertToResponse(savedPost);
     }
-    
-    /**
-     * Retrieves all surplus posts for a given user.
-     */
+
     public List<SurplusResponse> getUserSurplusPosts(User user) {
         return surplusPostRepository.findByDonorId(user.getId())
                 .stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
-    
-    /**
-     * Converts a SurplusPost entity to the SurplusResponse DTO.
-     */
+
     private SurplusResponse convertToResponse(SurplusPost post) {
         SurplusResponse response = new SurplusResponse();
         response.setId(post.getId());
@@ -81,11 +76,13 @@ public class SurplusService {
         response.setPickupFrom(post.getPickupFrom());
         response.setPickupTo(post.getPickupTo());
         response.setStatus(post.getStatus());
+        response.setOtpCode(post.getOtpCode());
         response.setDonorEmail(post.getDonor().getEmail());
         response.setCreatedAt(post.getCreatedAt());
         response.setUpdatedAt(post.getUpdatedAt());
         return response;
     }
+
     public List<SurplusResponse> getAllAvailableSurplusPosts() {
     List<SurplusPost> posts = surplusPostRepository.findByStatus(PostStatus.CLAIMED);
     return posts.stream()
@@ -185,4 +182,34 @@ public PickupConfirmationResponse confirmPickup(Long postId, String otp) {
 }
 
 
+    @Transactional
+    public SurplusResponse completeSurplusPost(Long postId, String otpCode, User donor) {
+        // Fetch the surplus post
+        SurplusPost post = surplusPostRepository.findById(postId)
+            .orElseThrow(() -> new RuntimeException("Surplus post not found"));
+
+        if (!post.getDonor().getId().equals(donor.getId())) {
+            throw new RuntimeException("You are not authorized to complete this post. Only the post owner can mark it as completed.");
+        }
+
+        if (post.getStatus() != PostStatus.READY_FOR_PICKUP) {
+            throw new RuntimeException("Post must be in READY_FOR_PICKUP status to be completed. Current status: " + post.getStatus());
+        }
+
+        if (post.getOtpCode() == null || !post.getOtpCode().equals(otpCode)) {
+            throw new RuntimeException("Invalid OTP code");
+        }
+
+        // Mark as completed
+        post.setStatus(PostStatus.COMPLETED);
+        SurplusPost updatedPost = surplusPostRepository.save(post);
+
+        return convertToResponse(updatedPost);
+    }
+
+    private String generateOtpCode() {
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        int otp = 100000 + random.nextInt(900000);
+        return String.valueOf(otp);
+    }
     }

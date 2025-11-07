@@ -33,7 +33,7 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
+   
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -41,31 +41,43 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
+                // Public endpoints
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/surplus/available").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/surplus/available/**").permitAll()
-
+                .requestMatchers("/actuator/**").permitAll()
+                .requestMatchers("/api/analytics/**").permitAll()
+                .requestMatchers("/ws/**").permitAll()  // Allow WebSocket connections
+                
+                // Messaging endpoints - must be accessible to all authenticated users
+                .requestMatchers("/api/conversations/**").hasAnyAuthority("DONOR", "RECEIVER")
+                .requestMatchers("/api/messages/**").hasAnyAuthority("DONOR", "RECEIVER")
+                
+                // ✅ FIXED: Surplus endpoints with proper role restrictions
+                .requestMatchers(HttpMethod.POST, "/api/surplus").hasAuthority("DONOR")
+                .requestMatchers(HttpMethod.GET, "/api/surplus").hasAuthority("RECEIVER")
                 .requestMatchers(HttpMethod.GET, "/api/surplus/my-posts").hasAuthority("DONOR")
-                .requestMatchers(HttpMethod.POST, "/api/surplus/**").hasAuthority("DONOR")
-                .requestMatchers(HttpMethod.PUT, "/api/surplus/**").hasAuthority("DONOR")
-                .requestMatchers(HttpMethod.DELETE, "/api/surplus/**").hasAuthority("DONOR")
-
+                
+                // ✅ NEW: Claims endpoints  
+                .requestMatchers(HttpMethod.GET, "/api/claims/post/**").hasAnyAuthority("DONOR", "RECEIVER")
+                .requestMatchers("/api/claims/**").hasAuthority("RECEIVER")
+                
+                // Other endpoints
+                .requestMatchers("/api/feed/**").hasAuthority("RECEIVER")
                 .requestMatchers("/api/requests/**").hasAnyAuthority("DONOR", "RECEIVER")
-
+                
+                // Dashboard endpoints
                 .requestMatchers("/donor/**").hasAuthority("DONOR")
                 .requestMatchers("/receiver/**").hasAuthority("RECEIVER")
                 .requestMatchers("/admin/**").hasAuthority("ADMIN")
-
+                
+                // All other requests require authentication
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {

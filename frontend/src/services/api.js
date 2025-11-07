@@ -45,9 +45,18 @@ export const authAPI = {
 };
 
 export const surplusAPI = {
-  list: () => api.get('/surplus/available'),
+  list: () => api.get('/surplus'),  // ✅ Just /surplus, not /api/surplus
   getMyPosts: () => api.get('/surplus/my-posts'),
-  confirmPickup: (postId, otp) => api.post('/pickup/confirm', { postId, otp }),
+  create: (data) => api.post('/surplus', data),
+  claim: (postId) => api.post('/claims', { surplusPostId: postId }),
+  completeSurplusPost: (id, otpCode) => api.patch(`/surplus/${id}/complete`, { otpCode }),
 };
+
+export const claimsAPI = {
+  myClaims: () => api.get('/claims/my-claims'),  // ✅ No /api prefix
+  claim: (postId) => api.post('/claims', { surplusPostId: postId }),
+  cancel: (claimId) => api.delete(`/claims/${claimId}`),
+};
+
 
 export default api;

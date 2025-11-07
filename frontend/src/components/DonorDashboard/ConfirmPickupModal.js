@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
+import { surplusAPI } from '../../services/api';
 import './Donor_Styles/ConfirmPickupModal.css';
 
 import { surplusAPI } from '../../services/api';
@@ -8,6 +9,7 @@ import { surplusAPI } from '../../services/api';
 const ConfirmPickupModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
@@ -41,29 +43,35 @@ const ConfirmPickupModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
     setCode(newCode);
   };
 
- const handleConfirm = async () => {
-  const fullCode = code.join('');
-  if (fullCode.length !== 6) {
-    setError('Please enter the complete 6-digit code');
-    return;
-  }
-
-  try {
-    const response = await surplusAPI.confirmPickup(donationItem.id, fullCode);
-    if (response.data.success) {
-      console.log('Pickup confirmed:', response.data);
-      onClose();
-      if (onSuccess) onSuccess();
-    } else {
-      setError(response.data.message || 'Invalid pickup code');
+  const handleConfirm = async () => {
+    const fullCode = code.join('');
+    if (fullCode.length !== 6) {
+      setError('Please enter the complete 6-digit code');
+      return;
     }
-  } catch (err) {
-    console.error('Error confirming pickup:', err);
-    const msg = err.response?.data?.message || 'Server error. Please try again.';
-    setError(msg);
-  }
-};
+    
+    if (!donationItem || !donationItem.id) {
+      setError('Invalid donation item');
+      return;
+    }
 
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      await surplusAPI.completeSurplusPost(donationItem.id, fullCode);
+
+      onClose();
+      if (onSuccess) {
+        onSuccess();
+      }
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to verify code';
+      setError(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleMyClaimsClick = () => {
     // TODO: Navigate to My Claims page
@@ -113,16 +121,16 @@ const ConfirmPickupModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
         </p>
 
         <div className="confirm-pickup-actions">
-          <button className="confirm-pickup-button secondary" onClick={onClose}>
+          <button className="confirm-pickup-button secondary" onClick={onClose} disabled={isSubmitting}>
             Cancel
           </button>
-          <button className="confirm-pickup-button primary" onClick={handleConfirm}>
-            Confirm Pickup
+          <button className="confirm-pickup-button primary" onClick={handleConfirm} disabled={isSubmitting}>
+            {isSubmitting ? 'Verifying...' : 'Confirm Pickup'}
           </button>
         </div>
       </div>
     </div>
   );
-};
 
+};
 export default ConfirmPickupModal;
