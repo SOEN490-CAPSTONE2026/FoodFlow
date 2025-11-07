@@ -174,6 +174,7 @@
 .contact-phone, 
 .contact-address {
   color: #555;
+  text-decoration: none;
   font-weight: 500;
   transition: color 0.3s ease;
   margin: 0;

@@ -1,5 +1,5 @@
 # Multi-stage build for Spring Boot
-FROM openjdk:17-jdk-slim as build
+FROM mcr.microsoft.com/openjdk/jdk:17-ubuntu AS build
 WORKDIR /app
 COPY pom.xml .
 COPY mvnw .
@@ -9,7 +9,7 @@ RUN ./mvnw dependency:go-offline
 COPY src ./src
 RUN ./mvnw clean package -DskipTests
 
-FROM openjdk:17-jdk-slim
+FROM mcr.microsoft.com/openjdk/jdk:17-ubuntu
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080

@@ -4,54 +4,116 @@ import SockJS from 'sockjs-client';
 let stompClient = null;
 
 /**
- * Connects to the backend STOMP endpoint and subscribes to the user's private queue.
- * onMessage is called with parsed message payload when a message arrives.
+ * Connects to the backend STOMP endpoint and subscribes to the user's private queues.
+ * @param {Function} onMessage - Called with parsed message payload from /user/queue/messages
+ * @param {Function} onClaimNotification - Called with parsed claim notification from /user/queue/claims
+ * @param {Function} onClaimCancelled - Called with parsed cancellation from /user/queue/claims/cancelled
  */
-export function connectToUserQueue(onMessage) {
+export function connectToUserQueue(onMessage, onClaimNotification, onClaimCancelled) {
+  console.log('connectToUserQueue called');
+  
   if (stompClient && stompClient.active) {
+    console.log('Returning existing active WebSocket connection');
     return stompClient;
   }
 
   const token = localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
+  console.log('JWT Token found:', token ? 'YES' : 'NO');
+  
   const WS_URL = process.env.REACT_APP_WS_URL || 'http://localhost:8080/ws';
+  console.log('WS_URL:', WS_URL);
 
   // If we have a token, append it as a query param so the backend handshake interceptor can read it.
   const wsUrlWithToken = token ? `${WS_URL}?token=${encodeURIComponent(token)}` : WS_URL;
+  console.log('Final WebSocket URL:', wsUrlWithToken);
 
-  stompClient = new Client({
+  try {
+    console.log('Creating new STOMP client...');
+    stompClient = new Client({
     webSocketFactory: () => new SockJS(wsUrlWithToken),
     connectHeaders: token ? { Authorization: `Bearer ${token}` } : {},
     debug: (str) => {
       // Keep a light debug; remove or guard in production
-      // console.log('[STOMP]', str);
+      console.log('[STOMP]', str);
     },
     reconnectDelay: 5000,
     onConnect: (frame) => {
-      // Subscribe to user-specific queue. Spring will deliver messages for the authenticated principal.
-      // Server destination will typically be /user/queue/messages (adjust if your backend uses a different path)
+      console.log('WebSocket connected successfully');
+      
+      // Subscribe to user-specific message queue
       try {
         stompClient.subscribe('/user/queue/messages', (msg) => {
           if (msg.body) {
             try {
               const payload = JSON.parse(msg.body);
+              console.log('Received message:', payload);
               onMessage && onMessage(payload);
             } catch (e) {
-              console.error('Failed to parse STOMP message body', e);
+              console.error('Failed to parse message body', e);
             }
           }
         });
+        console.log('Subscribed to /user/queue/messages');
       } catch (e) {
-        console.error('STOMP subscribe error', e);
+        console.error('Failed to subscribe to messages', e);
+      }
+
+      // Subscribe to claim notifications
+      try {
+        stompClient.subscribe('/user/queue/claims', (msg) => {
+          if (msg.body) {
+            try {
+              const payload = JSON.parse(msg.body);
+              console.log('Received claim notification:', payload);
+              onClaimNotification && onClaimNotification(payload);
+            } catch (e) {
+              console.error('Failed to parse claim notification', e);
+            }
+          }
+        });
+        console.log('Subscribed to /user/queue/claims');
+      } catch (e) {
+        console.error('Failed to subscribe to claims', e);
+      }
+
+      // Subscribe to claim cancellations
+      try {
+        stompClient.subscribe('/user/queue/claims/cancelled', (msg) => {
+          if (msg.body) {
+            try {
+              const payload = JSON.parse(msg.body);
+              console.log('Received claim cancellation:', payload);
+              onClaimCancelled && onClaimCancelled(payload);
+            } catch (e) {
+              console.error('Failed to parse claim cancellation', e);
+            }
+          }
+        });
+        console.log('Subscribed to /user/queue/claims/cancelled');
+      } catch (e) {
+        console.error('Failed to subscribe to claim cancellations', e);
       }
     },
     onStompError: (frame) => {
       console.error('Broker reported error: ' + frame.headers['message']);
       console.error('Additional details: ' + frame.body);
     },
+    onWebSocketError: (event) => {
+      console.error('WebSocket error occurred:', event);
+    },
+    onDisconnect: () => {
+      console.log('WebSocket disconnected');
+    },
   });
 
-  stompClient.activate();
-  return stompClient;
+    console.log('STOMP client created, calling activate()...');
+    stompClient.activate();
+    console.log('stompClient.activate() called successfully');
+    return stompClient;
+  } catch (error) {
+    console.error('ERROR creating or activating STOMP client:', error);
+    throw error;
+  }
 }
 
 export function disconnect() {

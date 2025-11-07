@@ -4,13 +4,12 @@ import { AuthContext } from '../contexts/AuthContext';
 import { FaBars, FaTimes } from 'react-icons/fa';
 import Logo from "../assets/Logo.png";
 import '../style/NavigationBar.css';
-import ReturnToDashboardButton from "../components/ReceiverDashboard/ReturnToDashboardButton";
 
 const NavigationBar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { isLoggedIn, logout } = useContext(AuthContext);
+  const { isLoggedIn, role } = useContext(AuthContext);
 
   const [from, setFrom] = useState(
     () => location.state?.from || sessionStorage.getItem('returnFrom') || null
@@ -22,13 +21,6 @@ const NavigationBar = () => {
       setFrom(location.state.from);
     }
   }, [location.state?.from]);
-
-  const handleLogout = () => {
-    logout();
-    sessionStorage.removeItem('returnFrom');
-    navigate('/login');
-    setIsMenuOpen(false);
-  };
 
   const handleLogin = () => {
     navigate('/login');
@@ -74,7 +66,18 @@ const NavigationBar = () => {
     setIsMenuOpen(false);
   };
 
-  const showReturnButton = Boolean(from) && Boolean(isLoggedIn);
+  const handleReturnToDashboard = () => {
+    const target =
+      role === 'RECEIVER' ? '/receiver/browse' :
+      role === 'DONOR' ? '/donor' :
+      role === 'ADMIN' ? '/admin/dashboard' :
+      null;
+    
+    if (target) {
+      navigate(target);
+      setIsMenuOpen(false);
+    }
+  };
 
   return (
     <nav className="navbar">
@@ -112,29 +115,29 @@ const NavigationBar = () => {
         </ul>
 
         <div className="mobile-buttons">
-          {showReturnButton ? (
-            <ReturnToDashboardButton onNavigate={() => setIsMenuOpen(false)} />
-          ) : !isLoggedIn ? (
+          {isLoggedIn ? (
+            <button className="signup-button" onClick={handleReturnToDashboard}>
+              Return to Dashboard
+            </button>
+          ) : (
             <>
               <button className="login-button" onClick={handleLogin}>Login</button>
               <button className="signup-button" onClick={handleSignUp}>Register</button>
             </>
-          ) : (
-            <button className="logout-button" onClick={handleLogout}>Logout</button>
           )}
         </div>
       </div>
 
       <div className="buttons">
-        {showReturnButton ? (
-          <ReturnToDashboardButton onNavigate={() => setIsMenuOpen(false)} />
-        ) : !isLoggedIn ? (
+        {isLoggedIn ? (
+          <button className="signup-button" onClick={handleReturnToDashboard}>
+            Return to Dashboard
+          </button>
+        ) : (
           <>
             <button className="login-button" onClick={handleLogin}>Login</button>
             <button className="signup-button" onClick={handleSignUp}>Register</button>
           </>
-        ) : (
-          <button className="logout-button" onClick={handleLogout}>Logout</button>
         )}
       </div>
     </nav>

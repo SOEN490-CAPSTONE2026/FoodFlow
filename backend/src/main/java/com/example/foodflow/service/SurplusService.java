@@ -1,8 +1,13 @@
 package com.example.foodflow.service;
 
-import com.example.foodflow.audit.AuditLogger;
+import com.example.foodflow.helpers.ArrayFilter;
+import com.example.foodflow.helpers.BasicFilter;
+import com.example.foodflow.helpers.LocationFilter;
+import com.example.foodflow.helpers.SpecificationHandler;
 import com.example.foodflow.model.dto.CreateSurplusRequest;
-import com.example.foodflow.model.dto.PickupConfirmationResponse;
+import com.example.foodflow.model.dto.SurplusFilterRequest;
+import com.example.foodflow.model.dto.PickupSlotRequest;
+import com.example.foodflow.model.dto.PickupSlotResponse;
 import com.example.foodflow.model.dto.SurplusResponse;
 import com.example.foodflow.model.entity.AuditLog;
 import com.example.foodflow.model.entity.SurplusPost;
@@ -10,8 +15,8 @@ import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.repository.ClaimRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -164,23 +169,53 @@ public PickupConfirmationResponse confirmPickup(Long postId, String otp) {
         return new PickupConfirmationResponse(false, "Invalid pickup code.");
     }
 
-    PostStatus oldStatus = post.getStatus();
-    post.setStatus(PostStatus.PICKED_UP);
-    post.setPickupTimestamp(LocalDateTime.now());
-    surplusPostRepository.save(post);
+    /**
+     * Search surplus posts based on filter criteria using our custom filter classes.
+     * If no filters are provided, returns all available posts.
+     */
+    public List<SurplusResponse> searchSurplusPosts(SurplusFilterRequest filterRequest) {
+        Specification<SurplusPost> specification = buildSpecificationFromFilter(filterRequest);
+        
+        List<SurplusPost> posts = surplusPostRepository.findAll(specification);
+        
+        return posts.stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+    }
 
-    recordAudit(
-        post.getDonor().getEmail(),
-        "PICKUP_CONFIRMED",
-        "SurplusPost",
-        String.valueOf(postId),
-        oldStatus.name(),
-        "Status changed to PICKED_UP at " + post.getPickupTimestamp()
-    );
-
-    return new PickupConfirmationResponse(true, "Pickup confirmed successfully.");
-}
-
+    /**
+     * Builds a JPA Specification from the filter request using our custom filter classes.
+     */
+    private Specification<SurplusPost> buildSpecificationFromFilter(SurplusFilterRequest filterRequest) {
+        SpecificationHandler.SpecificationBuilder<SurplusPost> builder = SpecificationHandler.<SurplusPost>builder();
+    
+        // Always filter by status
+        if (filterRequest.hasStatus()) {
+            builder.and(BasicFilter.equal(filterRequest.getStatus()).toSpecification("status"));
+        }
+        
+        // Filter by food categories
+        if (filterRequest.hasFoodCategories()) {
+            builder.and(ArrayFilter.containsAny(filterRequest.getFoodCategories()).toSpecification("foodCategories"));
+        }
+        
+        // Filter by expiry date (before) - FIXED
+        if (filterRequest.hasExpiryBefore()) {
+            builder.and(BasicFilter.lessThanOrEqual(filterRequest.getExpiryBefore()).toSpecification("expiryDate"));
+        }
+        
+        // Filter by expiry date (after)
+        if (filterRequest.hasExpiryAfter()) {
+            builder.and(BasicFilter.greaterThanOrEqual(filterRequest.getExpiryAfter()).toSpecification("expiryDate"));
+        }
+        
+        // Filter by location
+        if (filterRequest.hasLocationFilter()) {
+            builder.and(LocationFilter.within(filterRequest.getUserLocation(), filterRequest.getMaxDistanceKm()).toSpecification("pickupLocation"));
+        }
+        
+        return builder.buildOrDefault(SpecificationHandler.alwaysTrue());
+    }
 
     @Transactional
     public SurplusResponse completeSurplusPost(Long postId, String otpCode, User donor) {

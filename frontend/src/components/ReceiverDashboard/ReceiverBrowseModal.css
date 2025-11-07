@@ -1,0 +1,129 @@
+/* ===== Claim Modal Styles ===== */
+.claim-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 24px;
+}
+
+.claim-modal-card {
+  background: #ffffff;
+  width: 600px;
+  max-width: calc(100% - 48px);
+  border-radius: 14px;
+  box-shadow: 0 6px 24px rgba(2, 6, 23, 0.2);
+  padding: 28px 32px;
+  text-align: center;
+  animation: popIn 0.25s ease;
+  border: 1px solid #e3e8ef;
+}
+
+.claim-modal-card h3 {
+  margin: 0 0 18px 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1b4965;
+}
+
+.claim-slots-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 10px 0 20px 0;
+}
+
+.claim-slot-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.claim-slot-item:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.claim-slot-item.selected {
+  background: #e0f2fe;
+  border-color: #1b4965;
+  box-shadow: 0 0 0 3px rgba(27, 73, 101, 0.1);
+}
+
+.claim-slot-item input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #1b4965;
+}
+
+.claim-slot-content {
+  text-align: left;
+  flex: 1 1 auto;
+}
+
+.claim-slot-time {
+  font-weight: 600;
+  color: #12343f;
+}
+
+.claim-slot-notes {
+  margin-top: 4px;
+  color: #6b7280;
+  font-size: 13px;
+  font-style: italic;
+}
+
+/* Buttons */
+.claim-modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+
+/* Inline claim section */
+.inline-claim-section {
+  margin: 18px auto 8px auto;
+  width: 100%;
+  max-width: 820px;
+  text-align: center;
+}
+
+.inline-claim-section h4 {
+  margin: 6px 0 12px 0;
+  font-size: 18px;
+  color: #1b4965;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes popIn {
+  from { transform: scale(0.97); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .claim-modal-card { width: 100%; padding: 20px; }
+  .claim-slot-item { padding: 10px; }
+  .claim-modal-actions {
+    flex-direction: column;
+  }
+  .claim-modal-btn {
+    width: 100%;
+  }
+}

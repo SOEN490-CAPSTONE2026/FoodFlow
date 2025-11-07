@@ -162,7 +162,8 @@ describe("ClaimDetailModal", () => {
       <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
     );
     expect(screen.getByText("Pickup Date & Time")).toBeInTheDocument();
-    expect(screen.getByText(/2025-10-29.*08:00.*10:00/)).toBeInTheDocument();
+    // Changed to match the actual formatted output
+    expect(screen.getByText("Oct 29, 2025 8:00 AM-10:00 AM")).toBeInTheDocument();
   });
 
   test("displays pickup location with link", () => {
