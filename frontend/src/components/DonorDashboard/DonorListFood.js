@@ -302,14 +302,43 @@ export default function DonorListFood() {
                 </li>
                 <li>
                   <Clock size={16} className="time-icon" />
-                  <span>
-                    Pickup:{" "}
-                    {formatPickupTime(
-                      item.pickupDate,
-                      item.pickupFrom,
-                      item.pickupTo
+                  <div className="pickup-times-container">
+                    <span className="pickup-label">Pickup:</span>
+                    {item.pickupSlots && item.pickupSlots.length > 0 ? (
+                      <>
+                        {item.pickupSlots.map((slot, idx) => {
+                          // Check if this slot matches the confirmed pickup slot
+                          const isConfirmed = item.confirmedPickupSlot &&
+                            slot.pickupDate === item.confirmedPickupSlot.pickupDate &&
+                            slot.startTime === item.confirmedPickupSlot.startTime &&
+                            slot.endTime === item.confirmedPickupSlot.endTime;
+
+                          return (
+                            <React.Fragment key={idx}>
+                              <span className={`pickup-time-item ${isConfirmed ? 'confirmed' : ''}`}>
+                                {formatPickupTime(
+                                  slot.pickupDate || slot.date,
+                                  slot.startTime || slot.pickupFrom,
+                                  slot.endTime || slot.pickupTo
+                                )}
+                              </span>
+                              {idx < item.pickupSlots.length - 1 && (
+                                <span className="pickup-time-divider">|</span>
+                              )}
+                            </React.Fragment>
+                          );
+                        })}
+                      </>
+                    ) : (
+                      <span className="pickup-time-item">
+                        {formatPickupTime(
+                          item.pickupDate,
+                          item.pickupFrom,
+                          item.pickupTo
+                        )}
+                      </span>
                     )}
-                  </span>
+                  </div>
                 </li>
                 <li>
                   <MapPin size={16} className="locationMap-icon" />
@@ -337,8 +366,7 @@ export default function DonorListFood() {
                 <p className="donation-notes">{item.description}</p>
               )}
 
-              {item.status === "AVAILABLE" ||
-                item.status === "NOT_COMPLETED" ? (
+              {item.status === "AVAILABLE" ? (
                 <div className="donation-actions">
                   <button
                     className="donation-link"
@@ -351,6 +379,15 @@ export default function DonorListFood() {
                     onClick={() => requestDelete(item.id)}
                   >
                     <Trash2 className="icon" /> Delete
+                  </button>
+                </div>
+              ) : item.status === "NOT_COMPLETED" ? (
+                <div className="donation-actions">
+                  <button
+                    className="donation-action-button primary"
+                    onClick={() => alert('Reschedule functionality coming soon!')}
+                  >
+                    RESCHEDULE
                   </button>
                 </div>
               ) : (

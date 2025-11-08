@@ -160,7 +160,7 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                                 </div>
                                 <div className="claimed-modal-detail-content">
                                     <span className="claimed-modal-detail-label">Pickup Date & Time</span>
-                                    <span className="claimed-modal-detail-value">
+                                    <span className={`claimed-modal-detail-value ${claim?.confirmedPickupSlot ? 'confirmed-pickup-time' : ''}`}>
                                         {claim?.confirmedPickupSlot ? (
                                             formatPickupTime(
                                                 claim.confirmedPickupSlot.pickupDate || claim.confirmedPickupSlot.date,

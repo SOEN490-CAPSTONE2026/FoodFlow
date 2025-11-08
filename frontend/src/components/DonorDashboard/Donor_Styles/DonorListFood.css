@@ -214,8 +214,36 @@
   font-style: normal;
 }
 
+.pickup-times-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pickup-label {
+  font-weight: 400;
+  white-space: nowrap;
+  color: #374151;
+}
+
+.pickup-time-item {
+  font-size: 1.0rem;
+  color: #374151;
+}
+
+.pickup-time-item.confirmed {
+  color: #609B7E;
+  font-weight: 700;
+}
+
+.pickup-time-divider {
+  color: #9ca3af;
+  font-weight: 300;
+}
 .donation-meta {
   list-style: none;
+  
   padding: 0;
   margin: 0;
   display: grid;
@@ -223,7 +251,7 @@
 }
 .donation-meta li {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
 }
 .donation-meta li span,
@@ -238,6 +266,7 @@
 }
 .time-icon {
   width: 16px;
+  flex-shrink: 0; 
   height: 16px;
   color: #0891b2;
 }
