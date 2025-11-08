@@ -9,6 +9,7 @@ import com.example.foodflow.model.dto.SurplusFilterRequest;
 import com.example.foodflow.model.dto.PickupSlotRequest;
 import com.example.foodflow.model.dto.PickupSlotResponse;
 import com.example.foodflow.model.dto.SurplusResponse;
+import com.example.foodflow.model.entity.Claim;
 import com.example.foodflow.model.entity.PickupSlot;
 import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.entity.User;
@@ -21,9 +22,11 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -265,4 +268,66 @@ public class SurplusService {
         int otp = 100000 + random.nextInt(900000);
         return String.valueOf(otp);
     }
+
+   @Transactional
+public SurplusResponse confirmPickup(long postId, String otpCode, User donor) {
+    // Fetch the surplus post
+    SurplusPost post = surplusPostRepository.findById(postId)
+            .orElseThrow(() -> new RuntimeException("Surplus post not found"));
+
+    // Only the donor of the post can confirm pickup
+    if (!post.getDonor().getId().equals(donor.getId())) {
+        throw new RuntimeException("You are not authorized to confirm this pickup.");
+    }
+
+    // Validate OTP
+    if (post.getOtpCode() == null) {
+        throw new RuntimeException("No OTP is set for this donation.");
+    }
+
+    if (!post.getOtpCode().equals(otpCode)) {
+        throw new RuntimeException("Invalid or expired OTP code.");
+    }
+
+    // Ensure it's ready for pickup
+    if (post.getStatus() != PostStatus.READY_FOR_PICKUP) {
+        throw new RuntimeException("Donation is not ready for pickup. Current status: " + post.getStatus());
+    }
+
+    // Update post status to completed (or picked up)
+    post.setStatus(PostStatus.COMPLETED);
+    post.setOtpCode(null); // clear OTP for security
+
+    // Persist changes
+    SurplusPost updatedPost = surplusPostRepository.save(post);
+
+    return convertToResponse(updatedPost);
+}
+
+@Transactional(rollbackFor = Exception.class)
+public SurplusResponse markAsCollected(long postId, User receiver) {
+    SurplusPost post = surplusPostRepository.findById(postId)
+        .orElseThrow(() -> new RuntimeException("Donation not found"));
+
+    if (post.getStatus() != PostStatus.READY_FOR_PICKUP) {
+        throw new RuntimeException("Cannot mark as collected — post is not ready for pickup");
+    }
+
+    Claim claim = claimRepository.findBySurplusPost(post)
+        .orElseThrow(() -> new RuntimeException("No active claim found for this post"));
+
+    if (!claim.getReceiver().getId().equals(receiver.getId())) {
+        throw new RuntimeException("Unauthorized — only the receiver who claimed this donation can mark it as collected");
+    }
+
+    post.setStatus(PostStatus.COMPLETED);
+    claim.setStatus(ClaimStatus.COMPLETED);
+
+    surplusPostRepository.save(post);
+    claimRepository.save(claim);
+
+    return convertToResponse(post);
+}
+
+
 }

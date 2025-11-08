@@ -8,6 +8,7 @@ import DairyColdImage from '../../assets/foodtypes/Dairy.jpg';
 import FrozenFoodImage from '../../assets/foodtypes/FrozenFood.jpg';
 import PreparedMealsImage from '../../assets/foodtypes/PreparedFood.jpg';
 import './Receiver_Styles/ReadyForPickUpView.css';
+import { surplusAPI } from '../../services/api';
 
 const ReadyForPickUpView = ({ claim, isOpen, onClose, onBack }) => {
     const post = claim?.surplusPost;
@@ -49,9 +50,26 @@ const ReadyForPickUpView = ({ claim, isOpen, onClose, onBack }) => {
     const pickupCodeArray = pickupCode.split('');
 
 
-    const handleMarkAsCollected = () => {
-        console.log('Marking as collected...');
-    };
+   const handleMarkAsCollected = async () => {
+  if (!post?.id) {
+    console.error('Missing post ID');
+    return;
+  }
+
+  try {
+    // Optionally, show a loading state here later
+    await surplusAPI.markAsCollected(post.id);
+
+    // Show quick confirmation (you can replace with toast or animation)
+    alert(' Pickup confirmed — thank you for collecting!');
+
+    // You can refresh UI or close modal
+    onClose();
+  } catch (error) {
+    console.error('Error marking as collected:', error);
+    alert(error.response?.data?.message || 'Failed to confirm pickup. Please try again.');
+  }
+};
 
     return (
         <div className="claimed-modal-overlay" onClick={onClose}>
