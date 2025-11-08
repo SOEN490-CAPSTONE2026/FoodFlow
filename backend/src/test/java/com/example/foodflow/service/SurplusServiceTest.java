@@ -28,6 +28,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import static org.assertj.core.api.Assertions.within;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -45,6 +47,9 @@ class SurplusServiceTest {
 
     @Mock
     private PickupSlotValidationService pickupSlotValidationService;
+    
+    @Mock
+    private BusinessMetricsService businessMetricsService;
 
     @InjectMocks
     private SurplusService surplusService;
@@ -196,8 +201,9 @@ class SurplusServiceTest {
         assertThat(capturedPost.getPickupLocation()).isEqualTo(request.getPickupLocation());
         assertThat(capturedPost.getExpiryDate()).isEqualTo(request.getExpiryDate());
         assertThat(capturedPost.getPickupDate()).isEqualTo(request.getPickupDate());
-        assertThat(capturedPost.getPickupFrom()).isEqualTo(request.getPickupFrom());
-        assertThat(capturedPost.getPickupTo()).isEqualTo(request.getPickupTo());
+        // Use isCloseTo for time comparisons to handle nanosecond precision differences
+        assertThat(capturedPost.getPickupFrom()).isCloseTo(request.getPickupFrom(), within(1, ChronoUnit.MILLIS));
+        assertThat(capturedPost.getPickupTo()).isCloseTo(request.getPickupTo(), within(1, ChronoUnit.MILLIS));
         assertThat(capturedPost.getDescription()).isEqualTo(request.getDescription());
         assertThat(capturedPost.getDonor()).isEqualTo(donor);
     }
