@@ -45,6 +45,9 @@ class ClaimServiceTest {
 
     @Mock
     private SimpMessagingTemplate messagingTemplate;
+    
+    @Mock
+    private BusinessMetricsService businessMetricsService;
 
     @InjectMocks
     private ClaimService claimService;
