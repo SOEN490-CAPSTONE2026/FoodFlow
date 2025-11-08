@@ -30,7 +30,6 @@ public class ClaimService {
     private final BusinessMetricsService businessMetricsService;
     private final SimpMessagingTemplate messagingTemplate;
     
-    @Autowired
     public ClaimService(ClaimRepository claimRepository,
                        SurplusPostRepository surplusPostRepository,
                        BusinessMetricsService businessMetricsService,
@@ -38,8 +37,9 @@ public class ClaimService {
         this.claimRepository = claimRepository;
         this.surplusPostRepository = surplusPostRepository;
         this.businessMetricsService = businessMetricsService;
-        this.messagingTemplate = messagingTemplate
-    
+        this.messagingTemplate = messagingTemplate;
+    }
+                       
     @Transactional
     @Timed(value = "claim.service.create", description = "Time taken to create a claim")
     public ClaimResponse claimSurplusPost(ClaimRequest request, User receiver) {
