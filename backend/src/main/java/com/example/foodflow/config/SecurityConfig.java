@@ -61,9 +61,14 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/surplus").hasAuthority("DONOR")
                 .requestMatchers(HttpMethod.GET, "/api/surplus").hasAuthority("RECEIVER")
                 .requestMatchers(HttpMethod.GET, "/api/surplus/my-posts").hasAuthority("DONOR")
+                .requestMatchers(HttpMethod.PATCH, "/api/surplus/**").hasAuthority("DONOR")
+                .requestMatchers(HttpMethod.POST, "/api/surplus/search").hasAuthority("RECEIVER")
+                .requestMatchers(HttpMethod.GET, "/api/surplus/search").hasAuthority("RECEIVER")
                 
                 // ✅ NEW: Claims endpoints  
                 .requestMatchers(HttpMethod.GET, "/api/claims/post/**").hasAnyAuthority("DONOR", "RECEIVER")
+                .requestMatchers(HttpMethod.POST, "/api/claims/*/generate-code").hasAuthority("RECEIVER")
+                .requestMatchers(HttpMethod.POST, "/api/claims/*/confirm-pickup").hasAuthority("DONOR")
                 .requestMatchers("/api/claims/**").hasAuthority("RECEIVER")
                 
                 // Other endpoints
@@ -88,7 +93,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(Arrays.asList("*"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
         

@@ -245,15 +245,40 @@ public class SurplusService {
             throw new RuntimeException("You are not authorized to complete this post. Only the post owner can mark it as completed.");
         }
 
-        if (post.getStatus() != PostStatus.READY_FOR_PICKUP) {
-            throw new RuntimeException("Post must be in READY_FOR_PICKUP status to be completed. Current status: " + post.getStatus());
+        if (post.getStatus() != PostStatus.READY_FOR_PICKUP && post.getStatus() != PostStatus.CLAIMED) {
+            throw new RuntimeException("Post must be in READY_FOR_PICKUP or CLAIMED status to be completed. Current status: " + post.getStatus());
         }
 
-        if (post.getOtpCode() == null || !post.getOtpCode().equals(otpCode)) {
-            throw new RuntimeException("Invalid OTP code");
+        // Find the active claim for this post
+        var claimOpt = claimRepository.findBySurplusPostIdAndStatus(postId, ClaimStatus.ACTIVE);
+        if (claimOpt.isEmpty()) {
+            throw new RuntimeException("No active claim found for this post");
         }
 
-        // Mark as completed
+        var claim = claimOpt.get();
+
+        // Verify OTP from claim (not from surplus post)
+        if (claim.getPickupCode() == null || claim.getPickupCode().isEmpty()) {
+            throw new RuntimeException("No pickup code has been generated for this claim. The receiver must generate a pickup code first.");
+        }
+
+        if (!claim.getPickupCode().equals(otpCode)) {
+            throw new RuntimeException("Invalid pickup code");
+        }
+
+        // Verify OTP hasn't expired (30 minutes)
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        java.time.LocalDateTime expiresAt = claim.getPickupCodeGeneratedAt().plusMinutes(30);
+        if (now.isAfter(expiresAt)) {
+            throw new RuntimeException("Pickup code has expired. Please request a new code from the receiver.");
+        }
+
+        // Mark claim as completed
+        claim.setStatus(ClaimStatus.COMPLETED);
+        claim.setPickedUpAt(now);
+        claimRepository.save(claim);
+
+        // Mark surplus post as completed
         post.setStatus(PostStatus.COMPLETED);
         SurplusPost updatedPost = surplusPostRepository.save(post);
 

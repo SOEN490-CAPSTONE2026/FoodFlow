@@ -39,6 +39,16 @@ public class Claim {
     @Column(name = "confirmed_pickup_end_time")
     private LocalTime confirmedPickupEndTime;
     
+    // OTP for pickup confirmation
+    @Column(name = "pickup_code", length = 6)
+    private String pickupCode;
+    
+    @Column(name = "pickup_code_generated_at")
+    private LocalDateTime pickupCodeGeneratedAt;
+    
+    @Column(name = "picked_up_at")
+    private LocalDateTime pickedUpAt;
+    
     @PrePersist
     protected void onCreate() {
         claimedAt = LocalDateTime.now();
@@ -82,4 +92,15 @@ public class Claim {
     public void setConfirmedPickupEndTime(LocalTime confirmedPickupEndTime) { 
         this.confirmedPickupEndTime = confirmedPickupEndTime; 
     }
+    
+    public String getPickupCode() { return pickupCode; }
+    public void setPickupCode(String pickupCode) { this.pickupCode = pickupCode; }
+    
+    public LocalDateTime getPickupCodeGeneratedAt() { return pickupCodeGeneratedAt; }
+    public void setPickupCodeGeneratedAt(LocalDateTime pickupCodeGeneratedAt) { 
+        this.pickupCodeGeneratedAt = pickupCodeGeneratedAt; 
+    }
+    
+    public LocalDateTime getPickedUpAt() { return pickedUpAt; }
+    public void setPickedUpAt(LocalDateTime pickedUpAt) { this.pickedUpAt = pickedUpAt; }
 }

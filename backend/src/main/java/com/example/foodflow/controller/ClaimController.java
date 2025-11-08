@@ -2,6 +2,9 @@ package com.example.foodflow.controller;
 
 import com.example.foodflow.model.dto.ClaimRequest;
 import com.example.foodflow.model.dto.ClaimResponse;
+import com.example.foodflow.model.dto.GenerateOTPResponse;
+import com.example.foodflow.model.dto.ConfirmPickupRequest;
+import com.example.foodflow.model.dto.ConfirmPickupResponse;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.service.ClaimService;
 import jakarta.validation.Valid;
@@ -60,5 +63,34 @@ public class ClaimController {
         
         List<ClaimResponse> claims = claimService.getClaimsForSurplusPost(surplusPostId);
         return ResponseEntity.ok(claims);
+    }
+    
+    /**
+     * Generate pickup code (Receiver endpoint)
+     * Receiver generates a 6-digit OTP to show to donor at pickup time
+     */
+    @PostMapping("/{claimId}/generate-code")
+    // @PreAuthorize("hasAuthority('RECEIVER')")  // TEMPORARILY DISABLED FOR TESTING
+    public ResponseEntity<GenerateOTPResponse> generatePickupCode(
+            @PathVariable Long claimId,
+            @AuthenticationPrincipal User receiver) {
+        
+        GenerateOTPResponse response = claimService.generatePickupCode(claimId, receiver);
+        return ResponseEntity.ok(response);
+    }
+    
+    /**
+     * Confirm pickup with OTP (Donor endpoint)
+     * Donor enters the code shown by receiver to confirm successful handoff
+     */
+    @PostMapping("/{claimId}/confirm-pickup")
+    @PreAuthorize("hasAuthority('DONOR')")
+    public ResponseEntity<ConfirmPickupResponse> confirmPickup(
+            @PathVariable Long claimId,
+            @Valid @RequestBody ConfirmPickupRequest request,
+            @AuthenticationPrincipal User donor) {
+        
+        ConfirmPickupResponse response = claimService.confirmPickup(claimId, request, donor);
+        return ResponseEntity.ok(response);
     }
 }

@@ -2,6 +2,9 @@ package com.example.foodflow.service;
 
 import com.example.foodflow.model.dto.ClaimRequest;
 import com.example.foodflow.model.dto.ClaimResponse;
+import com.example.foodflow.model.dto.GenerateOTPResponse;
+import com.example.foodflow.model.dto.ConfirmPickupRequest;
+import com.example.foodflow.model.dto.ConfirmPickupResponse;
 import com.example.foodflow.model.entity.Claim;
 import com.example.foodflow.model.entity.PickupSlot;
 import com.example.foodflow.model.entity.SurplusPost;
@@ -16,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -147,9 +152,126 @@ public class ClaimService {
 
 
     private String generateOtpCode() {
-        java.security.SecureRandom random = new java.security.SecureRandom();
+        SecureRandom random = new SecureRandom();
         int otp = 100000 + random.nextInt(900000); // 6-digit number
         return String.valueOf(otp);
+    }
+    
+    /**
+     * Generate OTP code for pickup confirmation (Receiver action)
+     * Called when receiver is ready to show pickup code to donor
+     */
+    @Transactional
+    public GenerateOTPResponse generatePickupCode(Long claimId, User receiver) {
+        Claim claim = claimRepository.findById(claimId)
+            .orElseThrow(() -> new RuntimeException("Claim not found"));
+        
+        // Verify receiver owns this claim
+        if (!claim.getReceiver().getId().equals(receiver.getId())) {
+            throw new RuntimeException("You can only generate pickup codes for your own claims");
+        }
+        
+        // Verify claim is in ACTIVE status
+        if (claim.getStatus() != ClaimStatus.ACTIVE) {
+            throw new RuntimeException("Can only generate pickup code for active claims");
+        }
+        
+        // Generate new 6-digit OTP
+        String pickupCode = generateOtpCode();
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime expiresAt = now.plusMinutes(30); // OTP valid for 30 minutes
+        
+        // Save OTP to claim
+        claim.setPickupCode(pickupCode);
+        claim.setPickupCodeGeneratedAt(now);
+        claimRepository.save(claim);
+        
+        logger.info("Generated pickup code for claimId={}, receiverId={}", claimId, receiver.getId());
+        
+        return new GenerateOTPResponse(claimId, pickupCode, now, expiresAt);
+    }
+    
+    /**
+     * Confirm pickup with OTP code (Donor action)
+     * Donor enters the code shown by receiver to confirm successful handoff
+     */
+    @Transactional
+    public ConfirmPickupResponse confirmPickup(Long claimId, ConfirmPickupRequest request, User donor) {
+        Claim claim = claimRepository.findById(claimId)
+            .orElseThrow(() -> new RuntimeException("Claim not found"));
+        
+        SurplusPost surplusPost = claim.getSurplusPost();
+        
+        // Verify donor owns this surplus post
+        if (!surplusPost.getDonor().getId().equals(donor.getId())) {
+            throw new RuntimeException("You can only confirm pickup for your own surplus posts");
+        }
+        
+        // Verify claim is in ACTIVE status
+        if (claim.getStatus() != ClaimStatus.ACTIVE) {
+            throw new RuntimeException("This claim has already been processed");
+        }
+        
+        // Verify OTP exists
+        if (claim.getPickupCode() == null || claim.getPickupCode().isEmpty()) {
+            throw new RuntimeException("No pickup code has been generated for this claim");
+        }
+        
+        // Verify OTP matches
+        if (!claim.getPickupCode().equals(request.getPickupCode())) {
+            logger.warn("Invalid pickup code attempt for claimId={}, donorId={}", claimId, donor.getId());
+            throw new RuntimeException("Invalid pickup code");
+        }
+        
+        // Verify OTP hasn't expired (30 minutes)
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime expiresAt = claim.getPickupCodeGeneratedAt().plusMinutes(30);
+        if (now.isAfter(expiresAt)) {
+            logger.warn("Expired pickup code attempt for claimId={}, donorId={}", claimId, donor.getId());
+            throw new RuntimeException("Pickup code has expired. Please request a new code from the receiver.");
+        }
+        
+        // Mark as picked up
+        claim.setPickedUpAt(now);
+        claim.setStatus(ClaimStatus.COMPLETED);
+        claimRepository.save(claim);
+        
+        // Update surplus post status
+        surplusPost.setStatus(PostStatus.COMPLETED);
+        surplusPostRepository.save(surplusPost);
+        
+        logger.info("Pickup confirmed for claimId={}, surplusPostId={}, donorId={}", 
+            claimId, surplusPost.getId(), donor.getId());
+        
+        // Notify receiver via websocket
+        try {
+            ConfirmPickupResponse response = new ConfirmPickupResponse(
+                claimId,
+                surplusPost.getId(),
+                "Pickup confirmed successfully",
+                now
+            );
+            
+            messagingTemplate.convertAndSendToUser(
+                claim.getReceiver().getId().toString(),
+                "/queue/pickup/confirmed",
+                response
+            );
+            
+            logger.info("Sent pickup confirmation notification to receiver userId={}", 
+                claim.getReceiver().getId());
+            
+            return response;
+        } catch (Exception e) {
+            logger.error("Failed to send websocket notification for pickup confirmation: {}", e.getMessage());
+            // Still return success even if notification fails
+            return new ConfirmPickupResponse(
+                claimId,
+                surplusPost.getId(),
+                "Pickup confirmed successfully",
+                now
+            );
+        }
     }
     
     @Transactional(readOnly = true)

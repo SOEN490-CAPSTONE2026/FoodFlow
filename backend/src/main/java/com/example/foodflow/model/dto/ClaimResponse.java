@@ -14,6 +14,8 @@ public class ClaimResponse {
     private String status;
     private SurplusResponse surplusPost;
     private PickupSlotResponse confirmedPickupSlot;
+    private LocalDateTime pickupCodeGeneratedAt;
+    private LocalDateTime pickedUpAt;
     
     // No-arg constructor for testing/serialization
     public ClaimResponse() {}
@@ -36,6 +38,10 @@ public class ClaimResponse {
             this.confirmedPickupSlot.setStartTime(claim.getConfirmedPickupStartTime());
             this.confirmedPickupSlot.setEndTime(claim.getConfirmedPickupEndTime());
         }
+        
+        // Include OTP metadata (not the actual code for security)
+        this.pickupCodeGeneratedAt = claim.getPickupCodeGeneratedAt();
+        this.pickedUpAt = claim.getPickedUpAt();
     }
     
     // Getters and Setters
@@ -66,5 +72,15 @@ public class ClaimResponse {
     public PickupSlotResponse getConfirmedPickupSlot() { return confirmedPickupSlot; }
     public void setConfirmedPickupSlot(PickupSlotResponse confirmedPickupSlot) { 
         this.confirmedPickupSlot = confirmedPickupSlot; 
+    }
+    
+    public LocalDateTime getPickupCodeGeneratedAt() { return pickupCodeGeneratedAt; }
+    public void setPickupCodeGeneratedAt(LocalDateTime pickupCodeGeneratedAt) { 
+        this.pickupCodeGeneratedAt = pickupCodeGeneratedAt; 
+    }
+    
+    public LocalDateTime getPickedUpAt() { return pickedUpAt; }
+    public void setPickedUpAt(LocalDateTime pickedUpAt) { 
+        this.pickedUpAt = pickedUpAt; 
     }
 }
