@@ -12,6 +12,11 @@
 ## 📖 Project Summary
 FoodFlow is a platform that connects restaurants, grocery stores, bakeries, and event organizers with verified charities, shelters, and community kitchens to redistribute surplus food in real-time. By leveraging technology to bridge the gap between food surplus and food insecurity, FoodFlow ensures that edible food reaches those in need rather than being discarded, creating measurable social and environmental impact while helping businesses comply with food waste regulations.
 
+## ⚖️ Diversity, Equity, and Inclusion Statement for FoodFlow
+FoodFlow ensures inclusion and fairness across all aspects of surplus food distribution. The platform provides equal visibility of donations, unbiased matching based on food type and location, and transparent coordination between donors and receivers.
+
+Our team values diversity and collaboration, creating an environment of mutual respect and equal participation. FoodFlow’s interface follows accessibility standards (contrast, ARIA labels, bilingual support) and undergoes regular user acceptance testing. Data handling is transparent, ensuring that every organization, regardless of size or background, has equal opportunity to participate and benefit.
+
 ## 🚀 Developer Getting Started Guide
 
 ### Prerequisites
