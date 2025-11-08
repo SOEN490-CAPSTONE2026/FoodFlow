@@ -98,7 +98,7 @@ public class AuthService {
         log.info("Donor registration successful: email={}, organization={}, type={}", 
             savedUser.getEmail(), request.getOrganizationName(), request.getOrganizationType());
 
-        return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), "Donor registered successfully");
+        return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), "Donor registered successfully", savedUser.getId());
     }
 
     @Transactional
@@ -135,7 +135,7 @@ public class AuthService {
         metricsService.incrementReceiverRegistration();
         metricsService.incrementUserRegistration();
 
-        return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), "Receiver registered successfully");
+        return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), "Receiver registered successfully", savedUser.getId());
     }
 
     @Timed(value = "auth.service.login", description = "Time taken to login")

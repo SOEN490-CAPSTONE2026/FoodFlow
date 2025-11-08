@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { FaCheckCircle, FaBell, FaLightbulb } from "react-icons/fa";
 import "../LandingPage/style/AboutUs.css";
 
 export default function AboutUs() {
@@ -10,17 +11,17 @@ export default function AboutUs() {
 
   const cards = [
     {
-      icon: "✓",
+      icon: <FaCheckCircle />,
       title: "Verified Organizations",
       content: "All our partner organizations undergo thorough verification and background checks to ensure safety, legitimacy, and compliance with food safety standards."
     },
     {
-      icon: "🔔",
+      icon: <FaBell />,
       title: "Real-Time Notifications",
       content: "Instant alerts when food donations become available. Our system tracks temperature, pickup times, and compliance automatically for complete transparency."
     },
     {
-      icon: "💡",
+      icon: <FaLightbulb />,
       title: "Smart Matching",
       content: "Our intelligent algorithm matches food type, quantity, and location with the most suitable nearby organization to maximize efficiency and impact."
     }

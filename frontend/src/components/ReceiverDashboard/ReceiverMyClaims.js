@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Package, MapPin, Calendar, User, ArrowRight, Filter } from 'lucide-react';
+import { Package, User, ArrowRight, Filter, Clock } from 'lucide-react';
 import Select from 'react-select';
 import { claimsAPI } from '../../services/api';
+import { useNotification } from '../../contexts/NotificationContext';
 import BakeryPastryImage from '../../assets/foodtypes/Pastry&Bakery.jpg';
 import FruitsVeggiesImage from '../../assets/foodtypes/Fruits&Vegetables.jpg';
 import PackagedPantryImage from '../../assets/foodtypes/PackagedItems.jpg';
 import DairyColdImage from '../../assets/foodtypes/Dairy.jpg';
 import FrozenFoodImage from '../../assets/foodtypes/FrozenFood.jpg';
 import PreparedMealsImage from '../../assets/foodtypes/PreparedFood.jpg';
-
 import ClaimDetailModal from './ClaimDetailModal.js';
 import "./Receiver_Styles/ReceiverMyClaims.css";
 
 export default function ReceiverMyClaims() {
+  const { showNotification } = useNotification();
   const [claims, setClaims] = useState([]);
   const [activeFilter, setActiveFilter] = useState('All');
   const [sortBy, setSortBy] = useState({ value: 'date', label: 'Sort by Date' });
@@ -25,6 +26,54 @@ export default function ReceiverMyClaims() {
     { value: 'date', label: 'Sort by Date' },
     { value: 'status', label: 'Sort by Status' }
   ];
+
+  // Add these helper functions from ReceiverBrowse
+  const getPrimaryFoodCategory = (foodCategories) => {
+    if (
+      !foodCategories ||
+      !Array.isArray(foodCategories) ||
+      foodCategories.length === 0
+    ) {
+      return "Other";
+    }
+
+    const category = foodCategories[0];
+    switch (category) {
+      case "FRUITS_VEGETABLES":
+        return "Fruits & Vegetables";
+      case "BAKERY_PASTRY":
+        return "Bakery & Pastry";
+      case "PACKAGED_PANTRY":
+        return "Packaged / Pantry Items";
+      case "DAIRY":
+        return "Dairy & Cold Items";
+      case "FROZEN":
+        return "Frozen Food";
+      case "PREPARED_MEALS":
+        return "Prepared Meals";
+      default:
+        return "Other";
+    }
+  };
+
+  const getFoodTypeImage = (foodType) => {
+    switch (foodType) {
+      case "Bakery & Pastry":
+        return BakeryPastryImage;
+      case "Fruits & Vegetables":
+        return FruitsVeggiesImage;
+      case "Packaged / Pantry Items":
+        return PackagedPantryImage;
+      case "Dairy & Cold Items":
+        return DairyColdImage;
+      case "Frozen Food":
+        return FrozenFoodImage;
+      case "Prepared Meals":
+        return PreparedMealsImage;
+      default:
+        return PreparedMealsImage;
+    }
+  };
 
   useEffect(() => {
     fetchMyClaims();
@@ -53,17 +102,21 @@ export default function ReceiverMyClaims() {
   };
 
   const handleCancelClaim = async (claimId) => {
-    if (!window.confirm('Are you sure you want to cancel this claim?')) {
-      return;
-    }
-
     try {
+      // Find the claim to get its title for the notification
+      const claim = claims.find(c => c.id === claimId);
+      const postTitle = claim?.surplusPost?.title || 'donation';
+      
       await claimsAPI.cancel(claimId);
-      alert('Claim cancelled successfully');
+      console.log('Claim cancelled successfully');
+      
+      // Show toast notification
+      showNotification('Claim Cancelled', `Your claim on "${postTitle}" has been cancelled`);
+      
       fetchMyClaims(); // Refresh list
     } catch (error) {
       console.error('Error cancelling claim:', error);
-      alert('Failed to cancel claim');
+      showNotification('Error', 'Failed to cancel claim. Please try again.');
     }
   };
 
@@ -77,22 +130,30 @@ export default function ReceiverMyClaims() {
     setSelectedClaim(null);
     fetchMyClaims();
   };
-  const getFoodTypeImage = (foodType) => {
-    switch (foodType) {
-      case 'Bakery & Pastry':
-        return BakeryPastryImage;
-      case 'Fruits & Vegetables':
-        return FruitsVeggiesImage;
-      case 'Packaged / Pantry Items':
-        return PackagedPantryImage;
-      case 'Dairy & Cold Items':
-        return DairyColdImage;
-      case 'Frozen Food':
-        return FrozenFoodImage;
-      case 'Prepared Meals':
-        return PreparedMealsImage;
-      default:
-        return PreparedMealsImage;
+
+  // Format pickup time consistently with ReceiverBrowse
+  const formatPickupTime = (pickupDate, pickupFrom, pickupTo) => {
+    if (!pickupDate || !pickupFrom || !pickupTo) return "—";
+    try {
+      const fromDate = new Date(`${pickupDate}T${pickupFrom}`);
+      const dateStr = fromDate.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+      const fromTime = fromDate.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
+      const [hours, minutes] = pickupTo.split(":");
+      const hour = parseInt(hours, 10);
+      const isPM = hour >= 12;
+      const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+      const toTime = `${displayHour}:${minutes} ${isPM ? "PM" : "AM"}`;
+      return `${dateStr} ${fromTime}-${toTime}`;
+    } catch {
+      return "—";
     }
   };
 
@@ -138,10 +199,36 @@ export default function ReceiverMyClaims() {
   // Sort claims
   const sortedClaims = [...filteredClaims].sort((a, b) => {
     if (sortBy.value === 'date') {
-      return new Date(b.claimedAt) - new Date(a.claimedAt);
+      // Get the pickup date (prioritize confirmed slot, fallback to post pickup date)
+      const getPickupDate = (claim) => {
+        return claim.confirmedPickupSlot?.pickupDate || 
+               claim.confirmedPickupSlot?.date || 
+               claim.surplusPost?.pickupDate;
+      };
+      
+      const dateA = getPickupDate(a);
+      const dateB = getPickupDate(b);
+      
+      // Handle missing dates
+      if (!dateA && !dateB) return 0;
+      if (!dateA) return 1; // Put items without dates at the end
+      if (!dateB) return -1;
+      
+      // Sort by pickup date - earliest pickup first (ascending)
+      return new Date(dateA).getTime() - new Date(dateB).getTime();
+      
     }
     if (sortBy.value === 'status') {
-      return getDisplayStatus(a).localeCompare(getDisplayStatus(b));
+      const statusPriority = {
+        'Ready for Pickup': 1,
+        'Claimed': 2,
+        'Completed': 3
+      };
+      
+      const statusA = getDisplayStatus(a);
+      const statusB = getDisplayStatus(b);
+      
+      return (statusPriority[statusA] || 99) - (statusPriority[statusB] || 99);
     }
     return 0;
   });
@@ -200,12 +287,15 @@ export default function ReceiverMyClaims() {
           const post = claim.surplusPost;
           const displayStatus = getDisplayStatus(claim);
           
+          // Get the primary food category from foodCategories array
+          const primaryFoodCategory = getPrimaryFoodCategory(post?.foodCategories);
+          
           return (
             <div key={claim.id} className="claimed-page donation-card">
               {/* Image */}
               <div className="claimed-page card-image">
                 <img
-                  src={getFoodTypeImage(post?.foodType || 'Prepared Meals')}
+                  src={getFoodTypeImage(primaryFoodCategory)}
                   alt={post?.title || 'Donation'}
                 />
                 <span className={`claimed-page status-badge status-${displayStatus.toLowerCase().replace(' ', '-')}`}>
@@ -217,18 +307,35 @@ export default function ReceiverMyClaims() {
               <div className="claimed-page card-content">
                 <h3 className="claimed-page card-title">{post?.title || 'Untitled Donation'}</h3>
 
-                <div className="claimed-page card-details">
+                 <div className="claimed-page card-details">
                   <div className="claimed-page detail-item">
                     <Package size={16} className="claimed-page quantity-detail-icon" />
-                    <span>{post?.quantity?.value || 0} {post?.quantity?.unit || 'items'}</span>
+                    <span>
+                      {post?.quantity?.value || 0} {post?.quantity?.unit ? 
+                        (() => {
+                          const formatted = post.quantity.unit.charAt(0).toUpperCase() + post.quantity.unit.slice(1).toLowerCase();
+                          return post.quantity.value !== 1 && !formatted.endsWith('s') ? formatted + 's' : formatted;
+                        })() 
+                        : (post?.quantity?.value === 1 ? 'Item' : 'Items')}
+                    </span>
                   </div>
                   <div className="claimed-page detail-item">
                     <User size={16} className="claimed-page donor-detail-icon" />
                     <span>{post?.donorEmail || 'Not specified'}</span>
                   </div>
                   <div className="claimed-page detail-item">
-                    <Calendar size={16} className="claimed-page date-detail-icon" />
-                    <span>{post?.pickupDate || 'Date TBD'}</span>
+                    <Clock size={16} className="claimed-page date-detail-icon" />
+                    <span>
+                      {claim?.confirmedPickupSlot ? (
+                        formatPickupTime(
+                          claim.confirmedPickupSlot.pickupDate || claim.confirmedPickupSlot.date,
+                          claim.confirmedPickupSlot.startTime || claim.confirmedPickupSlot.pickupFrom,
+                          claim.confirmedPickupSlot.endTime || claim.confirmedPickupSlot.pickupTo
+                        )
+                      ) : (
+                        formatPickupTime(post?.pickupDate, post?.pickupFrom, post?.pickupTo)
+                      )}
+                    </span>
                   </div>
                 </div>
                 {/* Action Buttons */}
@@ -237,7 +344,7 @@ export default function ReceiverMyClaims() {
                     onClick={() => handleCancelClaim(claim.id)}
                     className="claimed-page cancel-claim-btn"
                   >
-                    Cancel Claim
+                    Cancel
                   </button>
                   
                   <div className="claimed-page view-details-container" onClick={() => handleViewDetails(claim)}>

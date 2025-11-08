@@ -1,6 +1,11 @@
 package com.example.foodflow.service;
 
+import com.example.foodflow.helpers.ArrayFilter;
+import com.example.foodflow.helpers.BasicFilter;
+import com.example.foodflow.helpers.LocationFilter;
+import com.example.foodflow.helpers.SpecificationHandler;
 import com.example.foodflow.model.dto.CreateSurplusRequest;
+import com.example.foodflow.model.dto.SurplusFilterRequest;
 import com.example.foodflow.model.dto.PickupSlotRequest;
 import com.example.foodflow.model.dto.PickupSlotResponse;
 import com.example.foodflow.model.dto.SurplusResponse;
@@ -13,6 +18,8 @@ import com.example.foodflow.repository.ClaimRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.Timer;
+
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -154,7 +161,7 @@ public class SurplusService {
         response.setDonorEmail(post.getDonor().getEmail());
         response.setCreatedAt(post.getCreatedAt());
         response.setUpdatedAt(post.getUpdatedAt());
-        
+
         // Convert pickup slots
         if (post.getPickupSlots() != null && !post.getPickupSlots().isEmpty()) {
             List<PickupSlotResponse> slotResponses = post.getPickupSlots().stream()
@@ -162,7 +169,21 @@ public class SurplusService {
                 .collect(Collectors.toList());
             response.setPickupSlots(slotResponses);
         }
-        
+
+        // Include confirmed pickup slot if post has an active claim
+        claimRepository.findBySurplusPostIdAndStatus(post.getId(), ClaimStatus.ACTIVE)
+            .ifPresent(claim -> {
+                if (claim.getConfirmedPickupDate() != null &&
+                    claim.getConfirmedPickupStartTime() != null &&
+                    claim.getConfirmedPickupEndTime() != null) {
+                    PickupSlotResponse confirmedSlot = new PickupSlotResponse();
+                    confirmedSlot.setPickupDate(claim.getConfirmedPickupDate());
+                    confirmedSlot.setStartTime(claim.getConfirmedPickupStartTime());
+                    confirmedSlot.setEndTime(claim.getConfirmedPickupEndTime());
+                    response.setConfirmedPickupSlot(confirmedSlot);
+                }
+            });
+
         return response;
     }
 
@@ -178,6 +199,54 @@ public class SurplusService {
                 .filter(post -> !claimRepository.existsBySurplusPostIdAndStatus(post.getId(), ClaimStatus.ACTIVE))
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Search surplus posts based on filter criteria using our custom filter classes.
+     * If no filters are provided, returns all available posts.
+     */
+    public List<SurplusResponse> searchSurplusPosts(SurplusFilterRequest filterRequest) {
+        Specification<SurplusPost> specification = buildSpecificationFromFilter(filterRequest);
+        
+        List<SurplusPost> posts = surplusPostRepository.findAll(specification);
+        
+        return posts.stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Builds a JPA Specification from the filter request using our custom filter classes.
+     */
+    private Specification<SurplusPost> buildSpecificationFromFilter(SurplusFilterRequest filterRequest) {
+        SpecificationHandler.SpecificationBuilder<SurplusPost> builder = SpecificationHandler.<SurplusPost>builder();
+    
+        // Always filter by status
+        if (filterRequest.hasStatus()) {
+            builder.and(BasicFilter.equal(filterRequest.getStatus()).toSpecification("status"));
+        }
+        
+        // Filter by food categories
+        if (filterRequest.hasFoodCategories()) {
+            builder.and(ArrayFilter.containsAny(filterRequest.getFoodCategories()).toSpecification("foodCategories"));
+        }
+        
+        // Filter by expiry date (before) - FIXED
+        if (filterRequest.hasExpiryBefore()) {
+            builder.and(BasicFilter.lessThanOrEqual(filterRequest.getExpiryBefore()).toSpecification("expiryDate"));
+        }
+        
+        // Filter by expiry date (after)
+        if (filterRequest.hasExpiryAfter()) {
+            builder.and(BasicFilter.greaterThanOrEqual(filterRequest.getExpiryAfter()).toSpecification("expiryDate"));
+        }
+        
+        // Filter by location
+        if (filterRequest.hasLocationFilter()) {
+            builder.and(LocationFilter.within(filterRequest.getUserLocation(), filterRequest.getMaxDistanceKm()).toSpecification("pickupLocation"));
+        }
+        
+        return builder.buildOrDefault(SpecificationHandler.alwaysTrue());
     }
 
     @Transactional

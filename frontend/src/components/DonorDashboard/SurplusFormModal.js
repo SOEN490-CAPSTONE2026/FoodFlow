@@ -10,10 +10,10 @@ import "react-datepicker/dist/react-datepicker.css";
 const SurplusFormModal = ({ isOpen, onClose }) => {
   const foodTypeOptions = [
     { value: "PREPARED_MEALS", label: "Prepared Meals" },
-    { value: "BAKED_GOODS", label: "Bakery & Pastry" },
+    { value: "BAKERY_PASTRY", label: "Bakery & Pastry" },
     { value: "FRUITS_VEGETABLES", label: "Fruits & Vegetables" },
-    { value: "PACKAGED", label: "Packaged / Pantry Items" },
-    { value: "DAIRY", label: "Dairy & Cold Items" },
+    { value: "PACKAGED_PANTRY", label: "Packaged / Pantry Items" },
+    { value: "DAIRY_COLD", label: "Dairy & Cold Items" },
     { value: "FROZEN", label: "Frozen Food" },
   ];
 
@@ -191,7 +191,7 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
   return (
     <div className="modal-overlay" onClick={handleCancel}>
       <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
+        <div className="surplus-modal-header">
           <h2>Add New Donation</h2>
           <button className="close-button" onClick={handleCancel}>
             <X size={24} />

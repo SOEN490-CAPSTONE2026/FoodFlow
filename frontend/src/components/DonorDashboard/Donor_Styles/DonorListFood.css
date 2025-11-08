@@ -91,7 +91,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 10px;
+  padding: 4px 24px;
   border-radius: 999px;
   font-size: 11px;
   font-weight: 800;
@@ -109,7 +109,7 @@
 }
 .badge {
   border-radius: 8px;
-  padding: 6px 12px;
+  padding: 8.5px 12px;
   font-size: 13px;
   font-weight: 500;
   border: none;
@@ -182,7 +182,7 @@
   background: #f5f6f7;
   color: #008236;
   border: 1px solid #b9f8cf;
-  padding: 4px 10px;
+  padding: 6px 16px;
   border-radius: 6px;
   font-size: 12px;
   font-weight: 500;
@@ -214,8 +214,36 @@
   font-style: normal;
 }
 
+.pickup-times-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pickup-label {
+  font-weight: 400;
+  white-space: nowrap;
+  color: #374151;
+}
+
+.pickup-time-item {
+  font-size: 1.0rem;
+  color: #374151;
+}
+
+.pickup-time-item.confirmed {
+  color: #609B7E;
+  font-weight: 700;
+}
+
+.pickup-time-divider {
+  color: #9ca3af;
+  font-weight: 300;
+}
 .donation-meta {
   list-style: none;
+  
   padding: 0;
   margin: 0;
   display: grid;
@@ -223,7 +251,7 @@
 }
 .donation-meta li {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
 }
 .donation-meta li span,
@@ -238,11 +266,12 @@
 }
 .time-icon {
   width: 16px;
+  flex-shrink: 0; 
   height: 16px;
   color: #0891b2;
 }
 
-.location-icon {
+.locationMap-icon{
   width: 16px;
   height: 16px;
   color: #10b981 !important;
@@ -251,13 +280,16 @@
 .donation-notes {
   background: #f5f6f7;
   border-radius: 12px;
-  padding: 14px;
-  margin: 4px 0 8px;
+  padding: 10px 14px;  /* Reduce vertical padding from 14px to 10px */
+  margin: 0 0 4px;     /* Reduce margins */
   font-size: 14px;
   text-align: left;
   line-height: 1.5;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
 }
-
 .donation-actions {
   display: flex;
   gap: 20px;

@@ -3,6 +3,7 @@ import { Outlet, useLocation, useNavigate, Link, useNavigationType } from "react
 import "./Receiver_Styles/ReceiverLayout.css";
 import Logo from "../../assets/Logo.png";
 import { AuthContext } from "../../contexts/AuthContext";
+import { NotificationProvider, useNotification } from "../../contexts/NotificationContext";
 import MessageNotification from "../MessagingDashboard/MessageNotification";
 import { connectToUserQueue, disconnect } from '../../services/socket';
 import {
@@ -13,7 +14,7 @@ import {
   CheckCircle
 } from "lucide-react";
 
-export default function ReceiverLayout() {
+function ReceiverLayoutContent() {
   const location = useLocation();
   const navigate = useNavigate();
   const navType = useNavigationType();
@@ -21,7 +22,7 @@ export default function ReceiverLayout() {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
   const isActive = (path) => location.pathname === path;
-  const [notification, setNotification] = useState(null);
+  const { notification, showNotification, clearNotification } = useNotification();
 
   const isMessagesPage = location.pathname === "/receiver/messages";
 
@@ -80,14 +81,37 @@ export default function ReceiverLayout() {
     const onMessage = (payload) => {
       const senderName = payload.senderName || payload.sender?.email || payload.senderEmail || '';
       const message = payload.messageBody || payload.message || payload.body || '';
-      if (message) setNotification({ senderName, message });
+      if (message) showNotification(senderName, message);
     };
 
-    connectToUserQueue(onMessage);
+    const onClaimNotification = (payload) => {
+      console.log('RECEIVER: Claim confirmation received:', payload);
+      const foodTitle = payload.surplusPostTitle || 'a food item';
+      const donorName = payload.surplusPost?.donorEmail || 'a donor';
+      const status = payload.status || '';
+      let message = `Successfully claimed "${foodTitle}" from ${donorName}`;
+      
+      if (status === 'READY_FOR_PICKUP' || status === 'Ready for Pickup') {
+        message = `"${foodTitle}" is ready for pickup! Check your claims for details.`;
+      }
+      
+      console.log('RECEIVER: Setting notification with message:', message);
+      showNotification('Claim Confirmed', message);
+    };
+
+    const onClaimCancelled = (payload) => {
+      console.log('RECEIVER: Claim cancellation received:', payload);
+      const foodTitle = payload.surplusPostTitle || 'a food item';
+      const message = `Your claim on "${foodTitle}" has been cancelled`;
+      console.log('RECEIVER: Setting notification with message:', message);
+      showNotification('Claim Status', message);
+    };
+
+    connectToUserQueue(onMessage, onClaimNotification, onClaimCancelled);
     return () => {
       try { disconnect(); } catch (e) { /* ignore */ }
     };
-  }, []);
+  }, [showNotification]);
 
   useEffect(() => {
     if (navType === "POP" && !location.pathname.startsWith("/receiver")) {
@@ -132,9 +156,6 @@ export default function ReceiverLayout() {
                 ? "active" : ""
               }`}
           >
-            <span className="nav-icon" aria-hidden>
-              <CheckCircle size={18} className="lucide" />
-            </span>
             My Claims
           </Link>
 
@@ -217,10 +238,18 @@ export default function ReceiverLayout() {
           <Outlet />
           <MessageNotification
             notification={notification}
-            onClose={() => setNotification(null)}
+            onClose={clearNotification}
           />
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ReceiverLayout() {
+  return (
+    <NotificationProvider>
+      <ReceiverLayoutContent />
+    </NotificationProvider>
   );
 }

@@ -36,6 +36,7 @@ public class SurplusResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<PickupSlotResponse> pickupSlots = new ArrayList<>();
+    private PickupSlotResponse confirmedPickupSlot;
 
     // Constructors
     public SurplusResponse() {}
@@ -135,4 +136,7 @@ public class SurplusResponse {
 
     public List<PickupSlotResponse> getPickupSlots() { return pickupSlots; }
     public void setPickupSlots(List<PickupSlotResponse> pickupSlots) { this.pickupSlots = pickupSlots; }
+
+    public PickupSlotResponse getConfirmedPickupSlot() { return confirmedPickupSlot; }
+    public void setConfirmedPickupSlot(PickupSlotResponse confirmedPickupSlot) { this.confirmedPickupSlot = confirmedPickupSlot; }
 }

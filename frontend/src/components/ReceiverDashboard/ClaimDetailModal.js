@@ -16,6 +16,30 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
     const post = claim?.surplusPost;
     const [showPickupSteps, setShowPickupSteps] = useState(false);
 
+    const formatPickupTime = (pickupDate, pickupFrom, pickupTo) => {
+        if (!pickupDate || !pickupFrom || !pickupTo) return "—";
+        try {
+            const fromDate = new Date(`${pickupDate}T${pickupFrom}`);
+            const dateStr = fromDate.toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+            });
+            const fromTime = fromDate.toLocaleTimeString("en-US", {
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true,
+            });
+            const [hours, minutes] = pickupTo.split(":");
+            const hour = parseInt(hours, 10);
+            const isPM = hour >= 12;
+            const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+            const toTime = `${displayHour}:${minutes} ${isPM ? "PM" : "AM"}`;
+            return `${dateStr} ${fromTime}-${toTime}`;
+        } catch {
+            return "—";
+        }
+    };
     const mapRef = useGoogleMap(
         post?.pickupLocation,
         {
@@ -136,8 +160,16 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                                 </div>
                                 <div className="claimed-modal-detail-content">
                                     <span className="claimed-modal-detail-label">Pickup Date & Time</span>
-                                    <span className="claimed-modal-detail-value">
-                                        {post?.pickupDate || 'TBD'} • {post?.pickupFrom || '00:00'} - {post?.pickupTo || '00:00'}
+                                    <span className={`claimed-modal-detail-value ${claim?.confirmedPickupSlot ? 'confirmed-pickup-time' : ''}`}>
+                                        {claim?.confirmedPickupSlot ? (
+                                            formatPickupTime(
+                                                claim.confirmedPickupSlot.pickupDate || claim.confirmedPickupSlot.date,
+                                                claim.confirmedPickupSlot.startTime || claim.confirmedPickupSlot.pickupFrom,
+                                                claim.confirmedPickupSlot.endTime || claim.confirmedPickupSlot.pickupTo
+                                            )
+                                        ) : (
+                                            formatPickupTime(post?.pickupDate, post?.pickupFrom, post?.pickupTo)
+                                        )}
                                     </span>
                                 </div>
                             </div>
