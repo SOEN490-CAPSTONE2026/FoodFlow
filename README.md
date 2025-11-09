@@ -5,7 +5,7 @@
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
 ## 🎬 Release Demos
-- [Release 1 Demo]() - [Coming Soon]
+- [Release 1 Demo]() - https://liveconcordia-my.sharepoint.com/personal/m_habchi_live_concordia_ca/_layouts/15/stream.aspx?id=%2Fpersonal%2Fm%5Fhabchi%5Flive%5Fconcordia%5Fca%2FDocuments%2FSOEN490%20%2D%20CAPSTONE%2FDemo%20Videos%2FRELEASE%201%20PRESENTATION%20FINAL%2Emov&referrer=StreamWebApp%2EWeb&referrerScenario=AddressBarCopied%2Eview%2E269f466d%2D1b7f%2D44b4%2D82b1%2D7ccbc7e931a6
 - [Release 2 Demo]() - [Coming Soon]
 - [Release 3 Demo]() - [Coming Soon]
 
