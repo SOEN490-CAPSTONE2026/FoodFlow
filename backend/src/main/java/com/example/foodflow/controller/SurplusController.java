@@ -127,15 +127,6 @@ public ResponseEntity<SurplusResponse> confirmPickup(
     );
     return ResponseEntity.ok(response);
 }
-@PatchMapping("/{id}/collected")
-@PreAuthorize("hasAuthority('RECEIVER')")
-public ResponseEntity<SurplusResponse> markAsCollected(
-        @PathVariable long id,
-        @AuthenticationPrincipal User receiver) {
-
-    SurplusResponse response = surplusService.markAsCollected(id, receiver);
-    return ResponseEntity.ok(response);
-}
 
 
 }

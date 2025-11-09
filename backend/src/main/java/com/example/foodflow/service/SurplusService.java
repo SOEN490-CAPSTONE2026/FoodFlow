@@ -240,7 +240,7 @@ public class SurplusService {
 
     @Transactional
     public SurplusResponse completeSurplusPost(Long postId, String otpCode, User donor) {
-        // Fetch the surplus post
+        
         SurplusPost post = surplusPostRepository.findById(postId)
             .orElseThrow(() -> new RuntimeException("Surplus post not found"));
 
@@ -256,7 +256,6 @@ public class SurplusService {
             throw new RuntimeException("Invalid OTP code");
         }
 
-        // Mark as completed
         post.setStatus(PostStatus.COMPLETED);
         SurplusPost updatedPost = surplusPostRepository.save(post);
 
@@ -271,16 +270,16 @@ public class SurplusService {
 
    @Transactional
 public SurplusResponse confirmPickup(long postId, String otpCode, User donor) {
-    // Fetch the surplus post
+    
     SurplusPost post = surplusPostRepository.findById(postId)
             .orElseThrow(() -> new RuntimeException("Surplus post not found"));
 
-    // Only the donor of the post can confirm pickup
+   
     if (!post.getDonor().getId().equals(donor.getId())) {
         throw new RuntimeException("You are not authorized to confirm this pickup.");
     }
 
-    // Validate OTP
+
     if (post.getOtpCode() == null) {
         throw new RuntimeException("No OTP is set for this donation.");
     }
@@ -289,38 +288,16 @@ public SurplusResponse confirmPickup(long postId, String otpCode, User donor) {
         throw new RuntimeException("Invalid or expired OTP code.");
     }
 
-    // Ensure it's ready for pickup
+    
     if (post.getStatus() != PostStatus.READY_FOR_PICKUP) {
         throw new RuntimeException("Donation is not ready for pickup. Current status: " + post.getStatus());
-    }
-
-    // Update post status to completed (or picked up)
-    post.setStatus(PostStatus.COMPLETED);
-    post.setOtpCode(null); // clear OTP for security
-
-    // Persist changes
-    SurplusPost updatedPost = surplusPostRepository.save(post);
-
-    return convertToResponse(updatedPost);
-}
-
-@Transactional(rollbackFor = Exception.class)
-public SurplusResponse markAsCollected(long postId, User receiver) {
-    SurplusPost post = surplusPostRepository.findById(postId)
-        .orElseThrow(() -> new RuntimeException("Donation not found"));
-
-    if (post.getStatus() != PostStatus.READY_FOR_PICKUP) {
-        throw new RuntimeException("Cannot mark as collected — post is not ready for pickup");
     }
 
     Claim claim = claimRepository.findBySurplusPost(post)
         .orElseThrow(() -> new RuntimeException("No active claim found for this post"));
 
-    if (!claim.getReceiver().getId().equals(receiver.getId())) {
-        throw new RuntimeException("Unauthorized — only the receiver who claimed this donation can mark it as collected");
-    }
-
     post.setStatus(PostStatus.COMPLETED);
+    post.setOtpCode(null);
     claim.setStatus(ClaimStatus.COMPLETED);
 
     surplusPostRepository.save(post);
@@ -328,6 +305,7 @@ public SurplusResponse markAsCollected(long postId, User receiver) {
 
     return convertToResponse(post);
 }
+
 
 
 }

@@ -71,10 +71,6 @@ export const surplusAPI = {
   confirmPickup: (postId, otpCode) =>
     api.post("/surplus/pickup/confirm", { postId, otpCode }),
 
-  markAsCollected: async (postId) => {
-    const response = await api.patch(`/surplus/${postId}/collected`);
-    return response.data;
-  },
   /**
    * Search surplus posts with filters.
    * @param {Object} filters - Filter criteria
