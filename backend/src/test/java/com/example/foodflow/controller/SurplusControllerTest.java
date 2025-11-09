@@ -286,4 +286,225 @@ class SurplusControllerTest {
                 .content(objectMapper.writeValueAsString(completionRequest)))
                 .andExpect(status().isForbidden());
     }
+
+    // ==================== Tests for getMyPosts ====================
+
+    @Test
+    @WithMockUser(username = "donor@test.com", authorities = {"DONOR"})
+    void testGetMyPosts_Success() throws Exception {
+        // Given
+        java.util.List<SurplusResponse> myPosts = java.util.Arrays.asList(response);
+        when(surplusService.getUserSurplusPosts(any()))
+            .thenReturn(myPosts);
+
+        // When & Then
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/surplus/my-posts"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].title").value("Vegetable Lasagna"));
+    }
+
+    @Test
+    @WithMockUser(username = "donor@test.com", authorities = {"DONOR"})
+    void testGetMyPosts_EmptyList() throws Exception {
+        // Given
+        when(surplusService.getUserSurplusPosts(any()))
+            .thenReturn(java.util.Collections.emptyList());
+
+        // When & Then
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/surplus/my-posts"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").isEmpty());
+    }
+
+    @Test
+    @WithMockUser(username = "receiver@test.com", authorities = {"RECEIVER"})
+    void testGetMyPosts_ReceiverRole_Forbidden() throws Exception {
+        // When & Then - Receivers cannot access my-posts
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/surplus/my-posts"))
+                .andExpect(status().isForbidden());
+    }
+
+    // ==================== Tests for getAllAvailableSurplus ====================
+
+    @Test
+    @WithMockUser(username = "receiver@test.com", authorities = {"RECEIVER"})
+    void testGetAllAvailableSurplus_Success() throws Exception {
+        // Given
+        java.util.List<SurplusResponse> availablePosts = java.util.Arrays.asList(response);
+        when(surplusService.getAllAvailableSurplusPosts())
+            .thenReturn(availablePosts);
+
+        // When & Then
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/surplus"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0].id").value(1));
+    }
+
+    @Test
+    @WithMockUser(username = "receiver@test.com", authorities = {"RECEIVER"})
+    void testGetAllAvailableSurplus_EmptyList() throws Exception {
+        // Given
+        when(surplusService.getAllAvailableSurplusPosts())
+            .thenReturn(java.util.Collections.emptyList());
+
+        // When & Then
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/surplus"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").isEmpty());
+    }
+
+    @Test
+    @WithMockUser(username = "donor@test.com", authorities = {"DONOR"})
+    void testGetAllAvailableSurplus_DonorRole_Forbidden() throws Exception {
+        // When & Then - Donors cannot access all surplus
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/surplus"))
+                .andExpect(status().isForbidden());
+    }
+
+    // ==================== Tests for searchSurplusPosts (POST) ====================
+
+    @Test
+    @WithMockUser(username = "receiver@test.com", authorities = {"RECEIVER"})
+    void testSearchSurplusPosts_Success() throws Exception {
+        // Given
+        com.example.foodflow.model.dto.SurplusFilterRequest filterRequest = new com.example.foodflow.model.dto.SurplusFilterRequest();
+        filterRequest.setStatus("AVAILABLE");
+        
+        java.util.List<SurplusResponse> filteredPosts = java.util.Arrays.asList(response);
+        when(surplusService.searchSurplusPosts(any(com.example.foodflow.model.dto.SurplusFilterRequest.class)))
+            .thenReturn(filteredPosts);
+
+        // When & Then
+        mockMvc.perform(post("/api/surplus/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(filterRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0].id").value(1));
+    }
+
+    @Test
+    @WithMockUser(username = "receiver@test.com", authorities = {"RECEIVER"})
+    void testSearchSurplusPosts_WithFoodCategories() throws Exception {
+        // Given
+        com.example.foodflow.model.dto.SurplusFilterRequest filterRequest = new com.example.foodflow.model.dto.SurplusFilterRequest();
+        filterRequest.setFoodCategories(java.util.Arrays.asList("PREPARED_MEALS"));
+        
+        java.util.List<SurplusResponse> filteredPosts = java.util.Arrays.asList(response);
+        when(surplusService.searchSurplusPosts(any(com.example.foodflow.model.dto.SurplusFilterRequest.class)))
+            .thenReturn(filteredPosts);
+
+        // When & Then
+        mockMvc.perform(post("/api/surplus/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(filterRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    @WithMockUser(username = "donor@test.com", authorities = {"DONOR"})
+    void testSearchSurplusPosts_DonorRole_Forbidden() throws Exception {
+        // Given
+        com.example.foodflow.model.dto.SurplusFilterRequest filterRequest = new com.example.foodflow.model.dto.SurplusFilterRequest();
+        
+        // When & Then - Donors cannot search
+        mockMvc.perform(post("/api/surplus/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(filterRequest)))
+                .andExpect(status().isForbidden());
+    }
+
+    // ==================== Tests for searchSurplusPostsViaParams (GET) ====================
+
+    @Test
+    @WithMockUser(username = "receiver@test.com", authorities = {"RECEIVER"})
+    void testSearchSurplusPostsViaParams_Success() throws Exception {
+        // Given
+        java.util.List<SurplusResponse> filteredPosts = java.util.Arrays.asList(response);
+        when(surplusService.searchSurplusPosts(any(com.example.foodflow.model.dto.SurplusFilterRequest.class)))
+            .thenReturn(filteredPosts);
+
+        // When & Then
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/surplus/search")
+                .param("status", "AVAILABLE"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0].id").value(1));
+    }
+
+    @Test
+    @WithMockUser(username = "receiver@test.com", authorities = {"RECEIVER"})
+    void testSearchSurplusPostsViaParams_WithFoodCategories() throws Exception {
+        // Given
+        java.util.List<SurplusResponse> filteredPosts = java.util.Arrays.asList(response);
+        when(surplusService.searchSurplusPosts(any(com.example.foodflow.model.dto.SurplusFilterRequest.class)))
+            .thenReturn(filteredPosts);
+
+        // When & Then
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/surplus/search")
+                .param("foodCategories", "PREPARED_MEALS")
+                .param("status", "AVAILABLE"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    @WithMockUser(username = "receiver@test.com", authorities = {"RECEIVER"})
+    void testSearchSurplusPostsViaParams_WithExpiryBefore() throws Exception {
+        // Given
+        java.util.List<SurplusResponse> filteredPosts = java.util.Arrays.asList(response);
+        when(surplusService.searchSurplusPosts(any(com.example.foodflow.model.dto.SurplusFilterRequest.class)))
+            .thenReturn(filteredPosts);
+
+        // When & Then
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/surplus/search")
+                .param("expiryBefore", "2024-12-31")
+                .param("status", "AVAILABLE"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    @WithMockUser(username = "receiver@test.com", authorities = {"RECEIVER"})
+    void testSearchSurplusPostsViaParams_InvalidExpiryDate() throws Exception {
+        // Given
+        java.util.List<SurplusResponse> filteredPosts = java.util.Arrays.asList(response);
+        when(surplusService.searchSurplusPosts(any(com.example.foodflow.model.dto.SurplusFilterRequest.class)))
+            .thenReturn(filteredPosts);
+
+        // When & Then - Invalid date format should be handled gracefully
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/surplus/search")
+                .param("expiryBefore", "invalid-date")
+                .param("status", "AVAILABLE"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(username = "receiver@test.com", authorities = {"RECEIVER"})
+    void testSearchSurplusPostsViaParams_NoParams() throws Exception {
+        // Given
+        java.util.List<SurplusResponse> filteredPosts = java.util.Arrays.asList(response);
+        when(surplusService.searchSurplusPosts(any(com.example.foodflow.model.dto.SurplusFilterRequest.class)))
+            .thenReturn(filteredPosts);
+
+        // When & Then - Default to AVAILABLE status
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/surplus/search"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    @WithMockUser(username = "donor@test.com", authorities = {"DONOR"})
+    void testSearchSurplusPostsViaParams_DonorRole_Forbidden() throws Exception {
+        // When & Then - Donors cannot search
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/surplus/search")
+                .param("status", "AVAILABLE"))
+                .andExpect(status().isForbidden());
+    }
 }
