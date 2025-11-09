@@ -5,7 +5,7 @@
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
 ## 🎬 Release Demos
-- Release 1 Demo: [Video](https://drive.google.com/file/d/1QMPNL1EYaqpbYQZB4Q4PgDAAiZX4eoUZ/view?usp=sharing) [Slide](https://docs.google.com/presentation/d/1XW-psvClrD1vm02NoNI0VIn4971Y4OIbMR2bVWhAyp8/edit?usp=sharing)
+- Release 1 Demo: [Video](https://drive.google.com/file/d/1QMPNL1EYaqpbYQZB4Q4PgDAAiZX4eoUZ/view?usp=sharing) [Slideshow](https://docs.google.com/presentation/d/1XW-psvClrD1vm02NoNI0VIn4971Y4OIbMR2bVWhAyp8/edit?usp=sharing)
 - [Release 2 Demo]() - [Coming Soon]
 - [Release 3 Demo]() - [Coming Soon]
 
