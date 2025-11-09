@@ -1,6 +1,7 @@
 package com.example.foodflow.repository;
 
 import com.example.foodflow.model.entity.Claim;
+import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.types.ClaimStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -19,8 +20,12 @@ public interface ClaimRepository extends JpaRepository<Claim, Long> {
     // Find all claims by receiver
     List<Claim> findByReceiverIdAndStatus(Long receiverId, ClaimStatus status);
     
-    // Find all claims for a specific post
+     // find one claim by SurplusPost (used by SurplusService)
+    Optional<Claim> findBySurplusPost(SurplusPost post);
+
+    // used by ClaimService to list all claims
     List<Claim> findBySurplusPostId(Long surplusPostId);
+
     
     // Check if post already has active claim
     boolean existsBySurplusPostIdAndStatus(Long surplusPostId, ClaimStatus status);

@@ -51,7 +51,7 @@ export const authAPI = {
 };
 
 export const surplusAPI = {
-  list: () => api.get("/surplus"), // ✅ Just /surplus, not /api/surplus
+  list: () => api.get("/surplus"), // Just /surplus, not /api/surplus
   myPosts: () => api.get("/surplus/my-posts"),
   getMyPosts: () => api.get("/surplus/my-posts"),
   create: (data) => api.post("/surplus", data),
@@ -67,6 +67,9 @@ export const surplusAPI = {
   },
   completeSurplusPost: (id, otpCode) =>
     api.patch(`/surplus/${id}/complete`, { otpCode }),
+
+  confirmPickup: (postId, otpCode) =>
+    api.post("/surplus/pickup/confirm", { postId, otpCode }),
 
   /**
    * Search surplus posts with filters.

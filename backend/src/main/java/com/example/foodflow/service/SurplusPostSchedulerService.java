@@ -20,6 +20,7 @@ public class SurplusPostSchedulerService {
 
     private static final Logger logger = LoggerFactory.getLogger(SurplusPostSchedulerService.class);
     private static final SecureRandom random = new SecureRandom();
+    private static final int GRACE_PERIOD_MINUTES = 2;
 
     private final SurplusPostRepository surplusPostRepository;
 
@@ -27,84 +28,75 @@ public class SurplusPostSchedulerService {
         this.surplusPostRepository = surplusPostRepository;
     }
 
-    /**
-     * Generate a secure 6-digit OTP code
-     */
     private String generateOtpCode() {
-        int otp = 100000 + random.nextInt(900000); // 6-digit number
+        int otp = 100000 + random.nextInt(900000);
         return String.valueOf(otp);
     }
 
     /**
-     * Check every 5 seconds for posts that should transition to READY_FOR_PICKUP status
-     * Runs every 5 seconds for faster status updates
+     * Every 5 seconds: mark CLAIMED posts as READY_FOR_PICKUP
+     * once the pickup time has started, with a 2-minute grace period.
      */
-    @Scheduled(fixedRate = 5000) // Changed from 60000 to 5000 (5 seconds)
+    @Scheduled(fixedRate = 5000)
     @Transactional
     public void updatePostsToReadyForPickup() {
         LocalDateTime now = LocalDateTime.now();
         LocalDate today = now.toLocalDate();
         LocalTime currentTime = now.toLocalTime();
 
-        logger.info("===== Scheduler updatePostsToReadyForPickup running at: {} =====", now);
+        logger.info("===== updatePostsToReadyForPickup running at {} =====", now);
 
-        // Find posts that are CLAIMED or AVAILABLE and whose pickup window has started
-        // AVAILABLE posts should also transition to READY_FOR_PICKUP when pickup time arrives
+        // Only CLAIMED posts can become READY_FOR_PICKUP
         List<SurplusPost> claimedPosts = surplusPostRepository.findByStatus(PostStatus.CLAIMED);
-        List<SurplusPost> availablePosts = surplusPostRepository.findByStatus(PostStatus.AVAILABLE);
+        logger.info("Found {} CLAIMED posts to evaluate", claimedPosts.size());
 
-        logger.info("Found {} CLAIMED posts and {} AVAILABLE posts", claimedPosts.size(), availablePosts.size());
-
-        List<SurplusPost> postsToUpdate = new java.util.ArrayList<>();
-        postsToUpdate.addAll(claimedPosts);
-        postsToUpdate.addAll(availablePosts);
-
-        postsToUpdate = postsToUpdate.stream()
+        List<SurplusPost> postsToUpdate = claimedPosts.stream()
             .filter(post -> {
-                logger.debug("Evaluating post ID {}: status={}, pickupDate={}, pickupFrom={}, pickupTo={}",
-                    post.getId(), post.getStatus(), post.getPickupDate(), post.getPickupFrom(), post.getPickupTo());
+                // Grace period: skip brand-new posts
+                if (post.getCreatedAt() != null &&
+                    post.getCreatedAt().isAfter(now.minusMinutes(GRACE_PERIOD_MINUTES))) {
+                    logger.debug("Skipping post ID {} — created recently (grace period active)", post.getId());
+                    return false;
+                }
 
-                // Check if pickup date is today or in the past
+                // Skip posts whose pickup date is still in the future
                 if (post.getPickupDate().isAfter(today)) {
-                    logger.debug("Post ID {} - pickup date is in the future, skipping", post.getId());
-                    return false; // Pickup date is in the future
+                    return false;
                 }
 
-                // If pickup date is today, check if pickup time has started
+                // If pickup date is today, check if start time has arrived
                 if (post.getPickupDate().isEqual(today)) {
-                    boolean timeStarted = !currentTime.isBefore(post.getPickupFrom());
-                    logger.debug("Post ID {} - pickup date is today, currentTime={}, pickupFrom={}, timeStarted={}",
-                        post.getId(), currentTime, post.getPickupFrom(), timeStarted);
-                    return timeStarted;
+                    boolean started = !currentTime.isBefore(post.getPickupFrom());
+                    return started;
                 }
 
-                // If pickup date is in the past, it should be ready
-                logger.debug("Post ID {} - pickup date is in the past, should be ready", post.getId());
+                // Pickup date in the past → should be ready
                 return true;
             })
             .toList();
 
-        logger.info("After filtering: {} posts need to be updated to READY_FOR_PICKUP", postsToUpdate.size());
+        if (postsToUpdate.isEmpty()) {
+            logger.info("No CLAIMED posts eligible for READY_FOR_PICKUP.");
+            return;
+        }
 
         for (SurplusPost post : postsToUpdate) {
             post.setStatus(PostStatus.READY_FOR_PICKUP);
 
-            // Generate OTP if not already generated
             if (post.getOtpCode() == null || post.getOtpCode().isEmpty()) {
-                String otpCode = generateOtpCode();
-                post.setOtpCode(otpCode);
-                logger.info("Generated OTP {} for surplus post ID: {}", otpCode, post.getId());
+                String otp = generateOtpCode();
+                post.setOtpCode(otp);
+                logger.info("Generated OTP {} for post ID {}", otp, post.getId());
             }
 
             surplusPostRepository.save(post);
-            logger.info("Updated surplus post ID {} from {} to READY_FOR_PICKUP status", post.getId(), 
-                post.getStatus() == PostStatus.READY_FOR_PICKUP ? "CLAIMED/AVAILABLE" : post.getStatus());
+            logger.info("Post ID {} updated to READY_FOR_PICKUP", post.getId());
         }
     }
 
     /**
-     * Check every minute for posts whose pickup window has ended without completion
-     * Runs every 60 seconds (1 minute)
+     * Every minute: mark READY_FOR_PICKUP posts as NOT_COMPLETED
+     * if pickup window has ended, with a 2-minute grace period.
      */
     @Scheduled(fixedRate = 60000)
     @Transactional
@@ -113,44 +105,43 @@ public class SurplusPostSchedulerService {
         LocalDate today = now.toLocalDate();
         LocalTime currentTime = now.toLocalTime();
 
-        logger.info("===== Scheduler updatePostsToNotCompleted running at: {} =====", now);
+        logger.info("===== updatePostsToNotCompleted running at {} =====", now);
 
-        // Find posts that are READY_FOR_PICKUP and whose pickup window has ended
         List<SurplusPost> readyPosts = surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP);
-        logger.info("Found {} READY_FOR_PICKUP posts", readyPosts.size());
+        logger.info("Found {} READY_FOR_PICKUP posts to evaluate", readyPosts.size());
 
-        List<SurplusPost> postsToUpdate = readyPosts
-            .stream()
+        List<SurplusPost> postsToUpdate = readyPosts.stream()
             .filter(post -> {
-                logger.debug("Evaluating READY post ID {}: pickupDate={}, pickupFrom={}, pickupTo={}",
-                    post.getId(), post.getPickupDate(), post.getPickupFrom(), post.getPickupTo());
+                // Grace period: skip brand-new posts
+                if (post.getCreatedAt() != null &&
+                    post.getCreatedAt().isAfter(now.minusMinutes(GRACE_PERIOD_MINUTES))) {
+                    logger.debug("Skipping post ID {} — created recently (grace period active)", post.getId());
+                    return false;
+                }
 
-                // Check if pickup date has passed
+                // Pickup date before today → definitely missed
                 if (post.getPickupDate().isBefore(today)) {
-                    logger.debug("Post ID {} - pickup date was in the past, should mark NOT_COMPLETED", post.getId());
-                    return true; // Pickup date was in the past
+                    return true;
                 }
 
-                // If pickup date is today, check if pickup window has ended
+                // Pickup date today and window ended
                 if (post.getPickupDate().isEqual(today)) {
-                    boolean windowEnded = currentTime.isAfter(post.getPickupTo());
-                    logger.debug("Post ID {} - pickup date is today, currentTime={}, pickupTo={}, windowEnded={}",
-                        post.getId(), currentTime, post.getPickupTo(), windowEnded);
-                    return windowEnded;
+                    return currentTime.isAfter(post.getPickupTo());
                 }
 
-                // Future pickup dates don't need updating
-                logger.debug("Post ID {} - pickup date is in the future, skipping", post.getId());
                 return false;
             })
             .toList();
 
-        logger.info("After filtering: {} posts need to be updated to NOT_COMPLETED", postsToUpdate.size());
+        if (postsToUpdate.isEmpty()) {
+            logger.info("No posts eligible for NOT_COMPLETED update.");
+            return;
+        }
 
         for (SurplusPost post : postsToUpdate) {
             post.setStatus(PostStatus.NOT_COMPLETED);
             surplusPostRepository.save(post);
-            logger.info("Updated surplus post ID {} to NOT_COMPLETED status (pickup window ended)", post.getId());
+            logger.info("Post ID {} marked as NOT_COMPLETED", post.getId());
         }
     }
 }

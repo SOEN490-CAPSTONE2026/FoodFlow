@@ -161,7 +161,8 @@ public class AuthService {
             metricsService.incrementLoginSuccess();
 
             log.info("Login successful: email={}, role={}", user.getEmail(), user.getRole());
-            return new AuthResponse(token, user.getEmail(), user.getRole().toString(), "Account logged in successfully.");
+            return new AuthResponse(token, user.getEmail(), user.getRole().toString(), 
+                       "Account logged in successfully.", user.getId());
         } catch (RuntimeException e) {
             // Already logged failure metrics above
             throw e;

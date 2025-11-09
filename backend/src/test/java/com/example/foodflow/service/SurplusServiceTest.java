@@ -628,4 +628,230 @@ class SurplusServiceTest {
         );
     }
 
+    // ==================== Tests for confirmPickup ====================
+
+    @Test
+    void testConfirmPickup_Success() {
+        // Given
+        com.example.foodflow.model.entity.Claim claim = new com.example.foodflow.model.entity.Claim();
+        claim.setId(1L);
+        claim.setStatus(ClaimStatus.ACTIVE);
+
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setTitle("Test Food");
+        post.setStatus(PostStatus.READY_FOR_PICKUP);
+        post.setOtpCode("123456");
+        post.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        post.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        post.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC"));
+        post.setExpiryDate(LocalDate.now().plusDays(2));
+        post.setPickupDate(LocalDate.now());
+        post.setPickupFrom(LocalTime.of(9, 0));
+        post.setPickupTo(LocalTime.of(17, 0));
+
+        claim.setSurplusPost(post);
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+        when(claimRepository.findBySurplusPost(post)).thenReturn(Optional.of(claim));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(post);
+        when(claimRepository.save(any(com.example.foodflow.model.entity.Claim.class))).thenReturn(claim);
+
+        // When
+        SurplusResponse response = surplusService.confirmPickup(1L, "123456", donor);
+
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.getId()).isEqualTo(1L);
+        assertThat(response.getStatus()).isEqualTo(PostStatus.COMPLETED);
+
+        // Verify post was updated
+        ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
+        verify(surplusPostRepository).save(postCaptor.capture());
+        assertThat(postCaptor.getValue().getStatus()).isEqualTo(PostStatus.COMPLETED);
+        assertThat(postCaptor.getValue().getOtpCode()).isNull();
+
+        // Verify claim was updated
+        ArgumentCaptor<com.example.foodflow.model.entity.Claim> claimCaptor = ArgumentCaptor.forClass(com.example.foodflow.model.entity.Claim.class);
+        verify(claimRepository).save(claimCaptor.capture());
+        assertThat(claimCaptor.getValue().getStatus()).isEqualTo(ClaimStatus.COMPLETED);
+    }
+
+    @Test
+    void testConfirmPickup_PostNotFound_ThrowsException() {
+        // Given
+        when(surplusPostRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> surplusService.confirmPickup(999L, "123456", donor))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("Surplus post not found");
+
+        verify(surplusPostRepository, never()).save(any(SurplusPost.class));
+        verify(claimRepository, never()).save(any(com.example.foodflow.model.entity.Claim.class));
+    }
+
+    @Test
+    void testConfirmPickup_UnauthorizedDonor_ThrowsException() {
+        // Given - Create another donor
+        User otherDonor = new User();
+        otherDonor.setId(2L);
+        otherDonor.setEmail("other@test.com");
+        otherDonor.setRole(UserRole.DONOR);
+
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor); // Post belongs to original donor
+        post.setStatus(PostStatus.READY_FOR_PICKUP);
+        post.setOtpCode("123456");
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+
+        // When & Then - Try to confirm with different donor
+        assertThatThrownBy(() -> surplusService.confirmPickup(1L, "123456", otherDonor))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("not authorized");
+
+        verify(surplusPostRepository, never()).save(any(SurplusPost.class));
+        verify(claimRepository, never()).save(any(com.example.foodflow.model.entity.Claim.class));
+    }
+
+    @Test
+    void testConfirmPickup_NoOtpSet_ThrowsException() {
+        // Given
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setStatus(PostStatus.READY_FOR_PICKUP);
+        post.setOtpCode(null); // No OTP set
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+
+        // When & Then
+        assertThatThrownBy(() -> surplusService.confirmPickup(1L, "123456", donor))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("No OTP is set");
+
+        verify(surplusPostRepository, never()).save(any(SurplusPost.class));
+        verify(claimRepository, never()).save(any(com.example.foodflow.model.entity.Claim.class));
+    }
+
+    @Test
+    void testConfirmPickup_InvalidOtp_ThrowsException() {
+        // Given
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setStatus(PostStatus.READY_FOR_PICKUP);
+        post.setOtpCode("123456");
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+
+        // When & Then - Try with wrong OTP
+        assertThatThrownBy(() -> surplusService.confirmPickup(1L, "999999", donor))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("Invalid or expired OTP code");
+
+        verify(surplusPostRepository, never()).save(any(SurplusPost.class));
+        verify(claimRepository, never()).save(any(com.example.foodflow.model.entity.Claim.class));
+    }
+
+    @Test
+    void testConfirmPickup_WrongStatus_ThrowsException() {
+        // Given - Post is AVAILABLE, not READY_FOR_PICKUP
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setStatus(PostStatus.AVAILABLE); // Wrong status
+        post.setOtpCode("123456");
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+
+        // When & Then
+        assertThatThrownBy(() -> surplusService.confirmPickup(1L, "123456", donor))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("not ready for pickup");
+
+        verify(surplusPostRepository, never()).save(any(SurplusPost.class));
+        verify(claimRepository, never()).save(any(com.example.foodflow.model.entity.Claim.class));
+    }
+
+    @Test
+    void testConfirmPickup_NoClaimFound_ThrowsException() {
+        // Given
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setStatus(PostStatus.READY_FOR_PICKUP);
+        post.setOtpCode("123456");
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+        when(claimRepository.findBySurplusPost(post)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> surplusService.confirmPickup(1L, "123456", donor))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("No active claim found");
+
+        verify(surplusPostRepository, never()).save(any(SurplusPost.class));
+        verify(claimRepository, never()).save(any(com.example.foodflow.model.entity.Claim.class));
+    }
+
+    @Test
+    void testConfirmPickup_ClaimedStatus_ThrowsException() {
+        // Given - Post is CLAIMED, not READY_FOR_PICKUP
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setStatus(PostStatus.CLAIMED);
+        post.setOtpCode("123456");
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+
+        // When & Then
+        assertThatThrownBy(() -> surplusService.confirmPickup(1L, "123456", donor))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("not ready for pickup")
+            .hasMessageContaining("CLAIMED");
+
+        verify(surplusPostRepository, never()).save(any(SurplusPost.class));
+    }
+
+    @Test
+    void testConfirmPickup_OtpClearedAfterCompletion() {
+        // Given
+        com.example.foodflow.model.entity.Claim claim = new com.example.foodflow.model.entity.Claim();
+        claim.setId(1L);
+        claim.setStatus(ClaimStatus.ACTIVE);
+
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setStatus(PostStatus.READY_FOR_PICKUP);
+        post.setOtpCode("123456");
+        post.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        post.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        post.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC"));
+        post.setExpiryDate(LocalDate.now().plusDays(2));
+        post.setPickupDate(LocalDate.now());
+        post.setPickupFrom(LocalTime.of(9, 0));
+        post.setPickupTo(LocalTime.of(17, 0));
+
+        claim.setSurplusPost(post);
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+        when(claimRepository.findBySurplusPost(post)).thenReturn(Optional.of(claim));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(post);
+        when(claimRepository.save(any(com.example.foodflow.model.entity.Claim.class))).thenReturn(claim);
+
+        // When
+        surplusService.confirmPickup(1L, "123456", donor);
+
+        // Then - Verify OTP was cleared
+        ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
+        verify(surplusPostRepository).save(postCaptor.capture());
+        assertThat(postCaptor.getValue().getOtpCode()).isNull();
+    }
+
 }

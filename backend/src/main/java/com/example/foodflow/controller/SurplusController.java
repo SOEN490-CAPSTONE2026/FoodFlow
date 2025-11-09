@@ -1,6 +1,7 @@
 package com.example.foodflow.controller;
 
 import com.example.foodflow.model.dto.CompleteSurplusRequest;
+import com.example.foodflow.model.dto.ConfirmPickupRequest;
 import com.example.foodflow.model.dto.CreateSurplusRequest;
 import com.example.foodflow.model.dto.SurplusResponse;
 import com.example.foodflow.model.entity.User;
@@ -14,6 +15,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
 
 @RestController
 @RequestMapping("/api/surplus")
@@ -112,4 +114,19 @@ public class SurplusController {
         SurplusResponse response = surplusService.completeSurplusPost(id, request.getOtpCode(), donor);
         return ResponseEntity.ok(response);
     }
+
+   @PostMapping("/pickup/confirm")
+public ResponseEntity<SurplusResponse> confirmPickup(
+        @RequestBody ConfirmPickupRequest request,
+        @AuthenticationPrincipal User donor) {
+
+    SurplusResponse response = surplusService.confirmPickup(
+        request.getPostId(), 
+        request.getOtpCode(), 
+        donor
+    );
+    return ResponseEntity.ok(response);
+}
+
+
 }

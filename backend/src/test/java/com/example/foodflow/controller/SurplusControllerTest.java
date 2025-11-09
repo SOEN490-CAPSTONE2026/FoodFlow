@@ -29,6 +29,7 @@ import java.time.LocalDate;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -505,6 +506,45 @@ class SurplusControllerTest {
         // When & Then - Donors cannot search
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/surplus/search")
                 .param("status", "AVAILABLE"))
+                .andExpect(status().isForbidden());
+    }
+
+    // ==================== Tests for confirmPickup ====================
+
+    // @Test
+    // @WithMockUser(username = "donor@test.com", authorities = {"DONOR"})
+    // void testConfirmPickup_Success() throws Exception {
+    //     // Given
+    //     com.example.foodflow.model.dto.ConfirmPickupRequest confirmRequest = 
+    //         new com.example.foodflow.model.dto.ConfirmPickupRequest();
+    //     confirmRequest.setPostId(1L);
+    //     confirmRequest.setOtpCode("123456");
+
+    //     when(surplusService.confirmPickup(eq(1L), eq("123456"), any(User.class)))
+    //         .thenReturn(response);
+
+    //     // When & Then
+    //     mockMvc.perform(post("/api/surplus/pickup/confirm")
+    //             .contentType(MediaType.APPLICATION_JSON)
+    //             .content(objectMapper.writeValueAsString(confirmRequest)))
+    //             .andExpect(status().isOk());
+        
+    //     // Verify service was called with correct parameters
+    //     verify(surplusService).confirmPickup(eq(1L), eq("123456"), any(User.class));
+    // }
+
+    @Test
+    void testConfirmPickup_Unauthenticated_Forbidden() throws Exception {
+        // Given - No authentication
+        com.example.foodflow.model.dto.ConfirmPickupRequest confirmRequest = 
+            new com.example.foodflow.model.dto.ConfirmPickupRequest();
+        confirmRequest.setPostId(1L);
+        confirmRequest.setOtpCode("123456");
+
+        // When & Then - Should be forbidden (403)
+        mockMvc.perform(post("/api/surplus/pickup/confirm")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(confirmRequest)))
                 .andExpect(status().isForbidden());
     }
 }
