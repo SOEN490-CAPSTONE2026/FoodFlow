@@ -13,7 +13,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.lang.reflect.Field;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -83,6 +85,10 @@ class DonationStatusIntegrationTest {
         post.setPickupFrom(LocalTime.of(9, 0));
         post.setPickupTo(LocalTime.of(12, 0));
         post = surplusPostRepository.save(post);
+        
+        // Set createdAt to bypass grace period using reflection
+        setCreatedAt(post, LocalDateTime.now().minusMinutes(3));
+        post = surplusPostRepository.save(post);
 
         assertNull(post.getOtpCode());
 
@@ -105,6 +111,10 @@ class DonationStatusIntegrationTest {
         post.setPickupDate(LocalDate.now().minusDays(1));
         post.setPickupFrom(LocalTime.of(9, 0));
         post.setPickupTo(LocalTime.of(12, 0));
+        post = surplusPostRepository.save(post);
+        
+        // Set createdAt to bypass grace period using reflection
+        setCreatedAt(post, LocalDateTime.now().minusMinutes(3));
         post = surplusPostRepository.save(post);
 
         // Run scheduler
@@ -213,5 +223,15 @@ class DonationStatusIntegrationTest {
         post.setPickupTo(LocalTime.of(17, 0));
         post.setStatus(status);
         return post;
+    }
+
+    private void setCreatedAt(SurplusPost post, LocalDateTime createdAt) {
+        try {
+            Field field = SurplusPost.class.getDeclaredField("createdAt");
+            field.setAccessible(true);
+            field.set(post, createdAt);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to set createdAt", e);
+        }
     }
 }

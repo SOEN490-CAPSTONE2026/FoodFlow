@@ -255,6 +255,7 @@ public class SurplusService {
     @Transactional
     @Timed(value = "surplus.service.complete", description = "Time taken to complete a surplus post")
     public SurplusResponse completeSurplusPost(Long postId, String otpCode, User donor) {
+        Timer.Sample sample = businessMetricsService.startTimer();
         
         SurplusPost post = surplusPostRepository.findById(postId)
             .orElseThrow(() -> new RuntimeException("Surplus post not found"));

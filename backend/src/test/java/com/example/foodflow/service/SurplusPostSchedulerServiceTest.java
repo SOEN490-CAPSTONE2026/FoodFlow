@@ -18,7 +18,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.lang.reflect.Field;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -76,11 +78,11 @@ class SurplusPostSchedulerServiceTest {
         claimedPost.setPickupDate(LocalDate.now().minusDays(1));
         claimedPost.setPickupFrom(LocalTime.of(9, 0));
         claimedPost.setPickupTo(LocalTime.of(17, 0));
+        // Set createdAt to 3 minutes ago to pass grace period check using reflection
+        setCreatedAt(claimedPost, LocalDateTime.now().minusMinutes(3));
 
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
             .thenReturn(Collections.singletonList(claimedPost));
-        when(surplusPostRepository.findByStatus(PostStatus.AVAILABLE))
-            .thenReturn(Collections.emptyList());
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
 
         // When
@@ -98,41 +100,15 @@ class SurplusPostSchedulerServiceTest {
     }
 
     @Test
-    void testUpdatePostsToReadyForPickup_AvailablePostTransitionsToReady() {
-        // Given - AVAILABLE post with pickup date in the past should transition to READY_FOR_PICKUP
-        availablePost.setPickupDate(LocalDate.now().minusDays(1));
-        availablePost.setPickupFrom(LocalTime.of(9, 0));
-        availablePost.setPickupTo(LocalTime.of(17, 0));
-
-        when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
-            .thenReturn(Collections.emptyList());
-        when(surplusPostRepository.findByStatus(PostStatus.AVAILABLE))
-            .thenReturn(Collections.singletonList(availablePost));
-        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(availablePost);
-
-        // When
-        schedulerService.updatePostsToReadyForPickup();
-
-        // Then - AVAILABLE posts should also transition when pickup time arrives
-        ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
-        verify(surplusPostRepository).save(postCaptor.capture());
-
-        SurplusPost savedPost = postCaptor.getValue();
-        assertThat(savedPost.getStatus()).isEqualTo(PostStatus.READY_FOR_PICKUP);
-        assertThat(savedPost.getOtpCode()).isNotNull();
-    }
-
-    @Test
     void testUpdatePostsToReadyForPickup_ClaimedPostPickupDateInPast_UpdatesStatus() {
         // Given - CLAIMED post with pickup date in the past
         claimedPost.setPickupDate(LocalDate.now().minusDays(1));
         claimedPost.setPickupFrom(LocalTime.of(9, 0));
         claimedPost.setPickupTo(LocalTime.of(17, 0));
+        setCreatedAt(claimedPost, LocalDateTime.now().minusMinutes(3));
 
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
             .thenReturn(Collections.singletonList(claimedPost));
-        when(surplusPostRepository.findByStatus(PostStatus.AVAILABLE))
-            .thenReturn(Collections.emptyList());
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
 
         // When
@@ -156,8 +132,6 @@ class SurplusPostSchedulerServiceTest {
 
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
             .thenReturn(Collections.singletonList(claimedPost));
-        when(surplusPostRepository.findByStatus(PostStatus.AVAILABLE))
-            .thenReturn(Collections.emptyList());
 
         // When
         schedulerService.updatePostsToReadyForPickup();
@@ -174,15 +148,15 @@ class SurplusPostSchedulerServiceTest {
         claimedPost.setPickupDate(LocalDate.now().minusDays(1));
         claimedPost.setPickupFrom(LocalTime.of(9, 0));
         claimedPost.setPickupTo(LocalTime.of(17, 0));
+        setCreatedAt(claimedPost, LocalDateTime.now().minusMinutes(3));
 
         claimedPost2.setPickupDate(LocalDate.now().minusDays(1));
         claimedPost2.setPickupFrom(LocalTime.of(9, 0));
         claimedPost2.setPickupTo(LocalTime.of(17, 0));
+        setCreatedAt(claimedPost2, LocalDateTime.now().minusMinutes(3));
 
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
             .thenReturn(Arrays.asList(claimedPost, claimedPost2));
-        when(surplusPostRepository.findByStatus(PostStatus.AVAILABLE))
-            .thenReturn(Collections.emptyList());
         when(surplusPostRepository.save(any(SurplusPost.class)))
             .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -200,11 +174,10 @@ class SurplusPostSchedulerServiceTest {
         claimedPost.setPickupFrom(LocalTime.of(9, 0));
         claimedPost.setPickupTo(LocalTime.of(17, 0));
         claimedPost.setOtpCode("123456");
+        setCreatedAt(claimedPost, LocalDateTime.now().minusMinutes(3));
 
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
             .thenReturn(Collections.singletonList(claimedPost));
-        when(surplusPostRepository.findByStatus(PostStatus.AVAILABLE))
-            .thenReturn(Collections.emptyList());
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
 
         // When
@@ -225,11 +198,10 @@ class SurplusPostSchedulerServiceTest {
         claimedPost.setPickupFrom(LocalTime.of(9, 0));
         claimedPost.setPickupTo(LocalTime.of(17, 0));
         claimedPost.setOtpCode("");
+        setCreatedAt(claimedPost, LocalDateTime.now().minusMinutes(3));
 
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
             .thenReturn(Collections.singletonList(claimedPost));
-        when(surplusPostRepository.findByStatus(PostStatus.AVAILABLE))
-            .thenReturn(Collections.emptyList());
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
 
         // When
@@ -248,8 +220,6 @@ class SurplusPostSchedulerServiceTest {
     void testUpdatePostsToReadyForPickup_NoPosts_DoesNotSaveAnything() {
         // Given - No CLAIMED posts to update
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
-            .thenReturn(Collections.emptyList());
-        when(surplusPostRepository.findByStatus(PostStatus.AVAILABLE))
             .thenReturn(Collections.emptyList());
 
         // When
@@ -401,5 +371,15 @@ class SurplusPostSchedulerServiceTest {
         post.setPickupTo(LocalTime.of(17, 0));
         post.setStatus(status);
         return post;
+    }
+
+    private void setCreatedAt(SurplusPost post, LocalDateTime createdAt) {
+        try {
+            Field field = SurplusPost.class.getDeclaredField("createdAt");
+            field.setAccessible(true);
+            field.set(post, createdAt);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to set createdAt", e);
+        }
     }
 }
