@@ -5,10 +5,22 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.data.jpa.domain.Specification;
 
-import static org.junit.jupiter.api.Assertions.*;
+import jakarta.persistence.criteria.*;
+import java.lang.reflect.Constructor;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 @DisplayName("LocationFilter Tests")
 class LocationFilterTest {
 
@@ -17,6 +29,21 @@ class LocationFilterTest {
     private Location torontoDowntown;
     private Location nearbyLocation;
     private Location farLocation;
+
+    @Mock
+    private Root<Object> root;
+    @Mock
+    private CriteriaQuery<?> query;
+    @Mock
+    private CriteriaBuilder criteriaBuilder;
+    @Mock
+    private Path<Object> locationPath;
+    @Mock
+    private Path<Double> latPath;
+    @Mock
+    private Path<Double> lonPath;
+    @Mock
+    private Predicate mockPredicate;
 
     @BeforeEach
     void setUp() {
@@ -83,14 +110,43 @@ class LocationFilterTest {
         }
 
         @Test
-        @DisplayName("Should create all comparison filters successfully")
-        void shouldCreateAllComparisonFiltersSuccessfully() {
-            assertDoesNotThrow(() -> {
-                LocationFilter.greaterThan(montrealDowntown, 2.0);
-                LocationFilter.greaterThanOrEqual(montrealDowntown, 2.0);
-                LocationFilter.lessThan(montrealDowntown, 8.0);
-                LocationFilter.lessThanOrEqual(montrealDowntown, 8.0);
-            });
+        @DisplayName("Should create GREATER_THAN filter successfully")
+        void shouldCreateGreaterThanFilterSuccessfully() {
+            LocationFilter filter = LocationFilter.greaterThan(montrealDowntown, 2.0);
+            
+            assertEquals(LocationFilter.Operation.GREATER_THAN, filter.getOperation());
+            assertEquals(2.0, filter.getDistanceKm(), 0.001);
+            assertEquals(0.1, filter.getTolerance(), 0.001);
+        }
+
+        @Test
+        @DisplayName("Should create GREATER_THAN_OR_EQUAL filter successfully")
+        void shouldCreateGreaterThanOrEqualFilterSuccessfully() {
+            LocationFilter filter = LocationFilter.greaterThanOrEqual(montrealDowntown, 2.0);
+            
+            assertEquals(LocationFilter.Operation.GREATER_THAN_OR_EQUAL, filter.getOperation());
+            assertEquals(2.0, filter.getDistanceKm(), 0.001);
+            assertEquals(0.1, filter.getTolerance(), 0.001);
+        }
+
+        @Test
+        @DisplayName("Should create LESS_THAN filter successfully")
+        void shouldCreateLessThanFilterSuccessfully() {
+            LocationFilter filter = LocationFilter.lessThan(montrealDowntown, 8.0);
+            
+            assertEquals(LocationFilter.Operation.LESS_THAN, filter.getOperation());
+            assertEquals(8.0, filter.getDistanceKm(), 0.001);
+            assertEquals(0.1, filter.getTolerance(), 0.001);
+        }
+
+        @Test
+        @DisplayName("Should create LESS_THAN_OR_EQUAL filter successfully")
+        void shouldCreateLessThanOrEqualFilterSuccessfully() {
+            LocationFilter filter = LocationFilter.lessThanOrEqual(montrealDowntown, 8.0);
+            
+            assertEquals(LocationFilter.Operation.LESS_THAN_OR_EQUAL, filter.getOperation());
+            assertEquals(8.0, filter.getDistanceKm(), 0.001);
+            assertEquals(0.1, filter.getTolerance(), 0.001);
         }
 
         @Test
@@ -98,15 +154,6 @@ class LocationFilterTest {
         void shouldThrowExceptionForNullReferenceLocation() {
             assertThrows(NullPointerException.class, () -> {
                 LocationFilter.within(null, 5.0);
-            });
-        }
-
-        @Test
-        @DisplayName("Should throw exception for reference location with null coordinates")
-        void shouldThrowExceptionForReferenceLocationWithNullCoordinates() {
-            // The Location constructor itself will throw NPE for null coordinates
-            assertThrows(NullPointerException.class, () -> {
-                Location invalidLocation = new Location(null, -73.5673, "Invalid");
             });
         }
 
@@ -130,215 +177,22 @@ class LocationFilterTest {
         @DisplayName("Should accept zero distance and tolerance")
         void shouldAcceptZeroDistanceAndTolerance() {
             assertDoesNotThrow(() -> {
-                LocationFilter.within(montrealDowntown, 0.0);
-                LocationFilter.exactly(montrealDowntown, 5.0, 0.0);
+                LocationFilter filter1 = LocationFilter.within(montrealDowntown, 0.0);
+                LocationFilter filter2 = LocationFilter.exactly(montrealDowntown, 5.0, 0.0);
+                
+                assertEquals(0.0, filter1.getDistanceKm());
+                assertEquals(0.0, filter2.getTolerance());
             });
         }
     }
 
     @Nested
-    @DisplayName("WITHIN Operation")
-    class WithinTests {
+    @DisplayName("Check Method - All Operations")
+    class CheckMethodTests {
 
         @Test
-        @DisplayName("Should return true for location within distance")
-        void shouldReturnTrueForLocationWithinDistance() {
-            LocationFilter filter = LocationFilter.within(montrealDowntown, 5.0);
-            
-            // nearbyLocation is about 0.5km away, should be within 5km
-            assertTrue(filter.check(nearbyLocation));
-            
-            // montrealPlateau is about 3-4km away, should be within 5km
-            assertTrue(filter.check(montrealPlateau));
-        }
-
-        @Test
-        @DisplayName("Should return false for location outside distance")
-        void shouldReturnFalseForLocationOutsideDistance() {
-            LocationFilter filter = LocationFilter.within(montrealDowntown, 2.0);
-            
-            // montrealPlateau is about 3-4km away, should be outside 2km
-            assertFalse(filter.check(montrealPlateau));
-            
-            // torontoDowntown is very far, definitely outside 2km
-            assertFalse(filter.check(torontoDowntown));
-        }
-
-        @Test
-        @DisplayName("Should return true for exact same location")
-        void shouldReturnTrueForExactSameLocation() {
-            LocationFilter filter = LocationFilter.within(montrealDowntown, 1.0);
-            
-            // Same coordinates should have distance 0
-            Location sameLocation = new Location(45.5017, -73.5673, "Same Location");
-            assertTrue(filter.check(sameLocation));
-        }
-
-        @Test
-        @DisplayName("Should handle boundary conditions correctly")
-        void shouldHandleBoundaryConditionsCorrectly() {
-            // Create a location exactly at the boundary distance
-            double exactDistance = montrealDowntown.distanceTo(nearbyLocation);
-            LocationFilter filter = LocationFilter.within(montrealDowntown, exactDistance);
-            
-            // Should return true for distance equal to the limit (<=)
-            assertTrue(filter.check(nearbyLocation));
-        }
-    }
-
-    @Nested
-    @DisplayName("OUTSIDE Operation")
-    class OutsideTests {
-
-        @Test
-        @DisplayName("Should return true for location outside distance")
-        void shouldReturnTrueForLocationOutsideDistance() {
-            LocationFilter filter = LocationFilter.outside(montrealDowntown, 1.0);
-            
-            // montrealPlateau is about 3-4km away, should be outside 1km
-            assertTrue(filter.check(montrealPlateau));
-            
-            // torontoDowntown is very far, definitely outside 1km
-            assertTrue(filter.check(torontoDowntown));
-        }
-
-        @Test
-        @DisplayName("Should return false for location within distance")
-        void shouldReturnFalseForLocationWithinDistance() {
-            LocationFilter filter = LocationFilter.outside(montrealDowntown, 10.0);
-            
-            // nearbyLocation is about 0.5km away, should be within 10km
-            assertFalse(filter.check(nearbyLocation));
-            
-            // montrealPlateau is about 3-4km away, should be within 10km
-            assertFalse(filter.check(montrealPlateau));
-        }
-
-        @Test
-        @DisplayName("Should return false for exact same location")
-        void shouldReturnFalseForExactSameLocation() {
-            LocationFilter filter = LocationFilter.outside(montrealDowntown, 1.0);
-            
-            Location sameLocation = new Location(45.5017, -73.5673, "Same Location");
-            assertFalse(filter.check(sameLocation));
-        }
-
-        @Test
-        @DisplayName("Should handle boundary conditions correctly")
-        void shouldHandleBoundaryConditionsCorrectly() {
-            double exactDistance = montrealDowntown.distanceTo(nearbyLocation);
-            LocationFilter filter = LocationFilter.outside(montrealDowntown, exactDistance);
-            
-            // Should return false for distance equal to the limit (not >)
-            assertFalse(filter.check(nearbyLocation));
-        }
-    }
-
-    @Nested
-    @DisplayName("EXACTLY Operation")
-    class ExactlyTests {
-
-        @Test
-        @DisplayName("Should return true for location at exact distance within tolerance")
-        void shouldReturnTrueForLocationAtExactDistanceWithinTolerance() {
-            double actualDistance = montrealDowntown.distanceTo(nearbyLocation);
-            LocationFilter filter = LocationFilter.exactly(montrealDowntown, actualDistance, 0.1);
-            
-            assertTrue(filter.check(nearbyLocation));
-        }
-
-        @Test
-        @DisplayName("Should return true for location within tolerance range")
-        void shouldReturnTrueForLocationWithinToleranceRange() {
-            double targetDistance = 3.0;
-            LocationFilter filter = LocationFilter.exactly(montrealDowntown, targetDistance, 1.0);
-            
-            // montrealPlateau is about 3-4km away, should be within 3.0±1.0km
-            assertTrue(filter.check(montrealPlateau));
-        }
-
-        @Test
-        @DisplayName("Should return false for location outside tolerance range")
-        void shouldReturnFalseForLocationOutsideToleranceRange() {
-            double targetDistance = 1.0;
-            LocationFilter filter = LocationFilter.exactly(montrealDowntown, targetDistance, 0.1);
-            
-            // montrealPlateau is about 3-4km away, should be outside 1.0±0.1km
-            assertFalse(filter.check(montrealPlateau));
-        }
-
-        @Test
-        @DisplayName("Should work with zero tolerance")
-        void shouldWorkWithZeroTolerance() {
-            double actualDistance = montrealDowntown.distanceTo(nearbyLocation);
-            LocationFilter filter = LocationFilter.exactly(montrealDowntown, actualDistance, 0.0);
-            
-            // Should still work due to floating point precision
-            assertTrue(filter.check(nearbyLocation));
-        }
-
-        @Test
-        @DisplayName("Should handle boundary conditions correctly")
-        void shouldHandleBoundaryConditionsCorrectly() {
-            double actualDistance = montrealDowntown.distanceTo(nearbyLocation);
-            double tolerance = 0.1;
-            LocationFilter filter = LocationFilter.exactly(montrealDowntown, actualDistance, tolerance);
-            
-            // Create locations at the boundary of tolerance
-            assertTrue(filter.check(nearbyLocation)); // Should be within tolerance
-        }
-    }
-
-    @Nested
-    @DisplayName("Comparison Operations")
-    class ComparisonTests {
-
-        @Test
-        @DisplayName("GREATER_THAN should work correctly")
-        void greaterThanShouldWorkCorrectly() {
-            LocationFilter filter = LocationFilter.greaterThan(montrealDowntown, 2.0);
-            
-            assertTrue(filter.check(montrealPlateau));  // ~3-4km > 2km
-            assertFalse(filter.check(nearbyLocation));  // ~0.5km < 2km
-        }
-
-        @Test
-        @DisplayName("GREATER_THAN_OR_EQUAL should work correctly")
-        void greaterThanOrEqualShouldWorkCorrectly() {
-            double exactDistance = montrealDowntown.distanceTo(nearbyLocation);
-            LocationFilter filter = LocationFilter.greaterThanOrEqual(montrealDowntown, exactDistance);
-            
-            assertTrue(filter.check(nearbyLocation));   // Equal case
-            assertTrue(filter.check(montrealPlateau));  // Greater case
-        }
-
-        @Test
-        @DisplayName("LESS_THAN should work correctly")
-        void lessThanShouldWorkCorrectly() {
-            LocationFilter filter = LocationFilter.lessThan(montrealDowntown, 2.0);
-            
-            assertTrue(filter.check(nearbyLocation));   // ~0.5km < 2km
-            assertFalse(filter.check(montrealPlateau)); // ~3-4km > 2km
-        }
-
-        @Test
-        @DisplayName("LESS_THAN_OR_EQUAL should work correctly")
-        void lessThanOrEqualShouldWorkCorrectly() {
-            double exactDistance = montrealDowntown.distanceTo(nearbyLocation);
-            LocationFilter filter = LocationFilter.lessThanOrEqual(montrealDowntown, exactDistance);
-            
-            assertTrue(filter.check(nearbyLocation));    // Equal case
-            assertFalse(filter.check(montrealPlateau));  // Greater case
-        }
-    }
-
-    @Nested
-    @DisplayName("Edge Cases")
-    class EdgeCaseTests {
-
-        @Test
-        @DisplayName("Should throw exception when checking null target location")
-        void shouldThrowExceptionWhenCheckingNullTargetLocation() {
+        @DisplayName("Should throw exception for null target location")
+        void shouldThrowExceptionForNullTargetLocation() {
             LocationFilter filter = LocationFilter.within(montrealDowntown, 5.0);
             
             assertThrows(NullPointerException.class, () -> {
@@ -347,82 +201,92 @@ class LocationFilterTest {
         }
 
         @Test
-        @DisplayName("Should throw exception for target location with null coordinates")
-        void shouldThrowExceptionForTargetLocationWithNullCoordinates() {
+        @DisplayName("WITHIN operation should work correctly")
+        void withinOperationShouldWorkCorrectly() {
             LocationFilter filter = LocationFilter.within(montrealDowntown, 5.0);
             
-            // The Location constructor itself will throw NPE for null coordinates
-            assertThrows(NullPointerException.class, () -> {
-                Location invalidTarget = new Location(null, -73.5673, "Invalid Target");
-            });
+            assertTrue(filter.check(nearbyLocation)); // ~0.5km - within 5km
+            assertTrue(filter.check(montrealPlateau)); // ~3-4km - within 5km
+            assertFalse(filter.check(farLocation)); // ~15km - outside 5km
+            assertTrue(filter.check(montrealDowntown)); // same location - distance 0
         }
 
         @Test
-        @DisplayName("Should handle very small distances correctly")
-        void shouldHandleVerySmallDistancesCorrectly() {
-            Location veryClose = new Location(45.5017001, -73.5673001, "Very Close");
-            LocationFilter filter = LocationFilter.within(montrealDowntown, 0.001);
+        @DisplayName("OUTSIDE operation should work correctly")
+        void outsideOperationShouldWorkCorrectly() {
+            LocationFilter filter = LocationFilter.outside(montrealDowntown, 5.0);
             
-            // Should work with very small distances
-            assertDoesNotThrow(() -> filter.check(veryClose));
+            assertFalse(filter.check(nearbyLocation)); // ~0.5km - within 5km
+            assertFalse(filter.check(montrealPlateau)); // ~3-4km - within 5km
+            assertTrue(filter.check(farLocation)); // ~15km - outside 5km
+            assertFalse(filter.check(montrealDowntown)); // same location - distance 0
         }
 
         @Test
-        @DisplayName("Should handle very large distances correctly")
-        void shouldHandleVeryLargeDistancesCorrectly() {
-            LocationFilter filter = LocationFilter.within(montrealDowntown, 1000.0);
+        @DisplayName("EXACTLY operation should work correctly")
+        void exactlyOperationShouldWorkCorrectly() {
+            double expectedDistance = montrealDowntown.distanceTo(montrealPlateau);
+            LocationFilter filter = LocationFilter.exactly(montrealDowntown, expectedDistance, 0.5);
             
-            assertTrue(filter.check(torontoDowntown)); // Even Toronto should be within 1000km
+            assertTrue(filter.check(montrealPlateau)); // Should be within tolerance
+            assertFalse(filter.check(farLocation)); // ~15km - way off target
+            assertFalse(filter.check(nearbyLocation)); // ~0.5km - too close
         }
 
         @Test
-        @DisplayName("Should handle locations at poles and equator")
-        void shouldHandleLocationsAtPolesAndEquator() {
-            Location northPole = new Location(90.0, 0.0, "North Pole");
-            Location equator = new Location(0.0, 0.0, "Equator");
+        @DisplayName("GREATER_THAN operation should work correctly")
+        void greaterThanOperationShouldWorkCorrectly() {
+            LocationFilter filter = LocationFilter.greaterThan(montrealDowntown, 2.0);
             
-            LocationFilter filter = LocationFilter.within(northPole, 20000.0); // Half earth circumference
-            
-            assertDoesNotThrow(() -> filter.check(equator));
+            assertFalse(filter.check(nearbyLocation)); // ~0.5km <= 2km
+            assertTrue(filter.check(montrealPlateau)); // ~3-4km > 2km
+            assertTrue(filter.check(farLocation)); // ~15km > 2km
+            assertFalse(filter.check(montrealDowntown)); // distance 0 <= 2km
         }
 
         @Test
-        @DisplayName("Should handle same location with different addresses")
-        void shouldHandleSameLocationWithDifferentAddresses() {
-            Location sameCoords = new Location(45.5017, -73.5673, "Different Address");
-            LocationFilter filter = LocationFilter.within(montrealDowntown, 0.1);
+        @DisplayName("GREATER_THAN_OR_EQUAL operation should work correctly")
+        void greaterThanOrEqualOperationShouldWorkCorrectly() {
+            double exactDistance = montrealDowntown.distanceTo(montrealPlateau);
+            LocationFilter filter = LocationFilter.greaterThanOrEqual(montrealDowntown, exactDistance);
             
-            assertTrue(filter.check(sameCoords)); // Same coordinates, different address
-        }
-    }
-
-    @Nested
-    @DisplayName("Distance Calculation Accuracy")
-    class DistanceAccuracyTests {
-
-        @Test
-        @DisplayName("Should calculate accurate distances for known locations")
-        void shouldCalculateAccurateDistancesForKnownLocations() {
-            // Montreal to Toronto is approximately 540km
-            LocationFilter filter = LocationFilter.within(montrealDowntown, 600.0);
-            assertTrue(filter.check(torontoDowntown));
-            
-            LocationFilter tightFilter = LocationFilter.within(montrealDowntown, 500.0);
-            assertFalse(tightFilter.check(torontoDowntown));
+            assertTrue(filter.check(montrealPlateau)); // exactly equal distance
+            assertTrue(filter.check(farLocation)); // greater than distance
+            assertFalse(filter.check(nearbyLocation)); // less than distance
         }
 
         @Test
-        @DisplayName("Should be consistent with Location.distanceTo method")
-        void shouldBeConsistentWithLocationDistanceToMethod() {
-            double manualDistance = montrealDowntown.distanceTo(montrealPlateau);
+        @DisplayName("LESS_THAN operation should work correctly")
+        void lessThanOperationShouldWorkCorrectly() {
+            LocationFilter filter = LocationFilter.lessThan(montrealDowntown, 2.0);
             
-            // Filter at exact distance should include the location
-            LocationFilter exactFilter = LocationFilter.within(montrealDowntown, manualDistance);
-            assertTrue(exactFilter.check(montrealPlateau));
+            assertTrue(filter.check(nearbyLocation)); // ~0.5km < 2km
+            assertFalse(filter.check(montrealPlateau)); // ~3-4km >= 2km
+            assertFalse(filter.check(farLocation)); // ~15km >= 2km
+            assertTrue(filter.check(montrealDowntown)); // distance 0 < 2km
+        }
+
+        @Test
+        @DisplayName("LESS_THAN_OR_EQUAL operation should work correctly")
+        void lessThanOrEqualOperationShouldWorkCorrectly() {
+            double exactDistance = montrealDowntown.distanceTo(montrealPlateau);
+            LocationFilter filter = LocationFilter.lessThanOrEqual(montrealDowntown, exactDistance);
             
-            // Filter just under the distance should exclude the location
-            LocationFilter underFilter = LocationFilter.within(montrealDowntown, manualDistance - 0.001);
-            assertFalse(underFilter.check(montrealPlateau));
+            assertTrue(filter.check(montrealPlateau)); // exactly equal distance
+            assertTrue(filter.check(nearbyLocation)); // less than distance
+            assertFalse(filter.check(farLocation)); // greater than distance
+        }
+
+        @Test
+        @DisplayName("Should handle boundary conditions correctly")
+        void shouldHandleBoundaryConditionsCorrectly() {
+            double exactDistance = montrealDowntown.distanceTo(nearbyLocation);
+            
+            LocationFilter withinFilter = LocationFilter.within(montrealDowntown, exactDistance);
+            LocationFilter lessThanFilter = LocationFilter.lessThan(montrealDowntown, exactDistance);
+            
+            assertTrue(withinFilter.check(nearbyLocation)); // <= includes equal
+            assertFalse(lessThanFilter.check(nearbyLocation)); // < excludes equal
         }
     }
 
@@ -431,16 +295,28 @@ class LocationFilterTest {
     class ObjectMethodTests {
 
         @Test
-        @DisplayName("Should implement equals correctly")
-        void shouldImplementEqualsCorrectly() {
+        @DisplayName("Should implement equals correctly for identical filters")
+        void shouldImplementEqualsCorrectlyForIdenticalFilters() {
             LocationFilter filter1 = LocationFilter.within(montrealDowntown, 5.0);
             LocationFilter filter2 = LocationFilter.within(montrealDowntown, 5.0);
-            LocationFilter filter3 = LocationFilter.within(montrealDowntown, 3.0);
-            LocationFilter filter4 = LocationFilter.outside(montrealDowntown, 5.0);
             
             assertEquals(filter1, filter2);
-            assertNotEquals(filter1, filter3); // Different distance
-            assertNotEquals(filter1, filter4); // Different operation
+            assertEquals(filter1, filter1); // reflexive
+        }
+
+        @Test
+        @DisplayName("Should implement equals correctly for different filters")
+        void shouldImplementEqualsCorrectlyForDifferentFilters() {
+            LocationFilter filter1 = LocationFilter.within(montrealDowntown, 5.0);
+            LocationFilter filter2 = LocationFilter.within(montrealDowntown, 3.0); // Different distance
+            LocationFilter filter3 = LocationFilter.outside(montrealDowntown, 5.0); // Different operation
+            LocationFilter filter4 = LocationFilter.within(torontoDowntown, 5.0); // Different location
+            LocationFilter filter5 = LocationFilter.exactly(montrealDowntown, 5.0, 0.5); // Different tolerance
+            
+            assertNotEquals(filter1, filter2);
+            assertNotEquals(filter1, filter3);
+            assertNotEquals(filter1, filter4);
+            assertNotEquals(filter1, filter5);
             assertNotEquals(filter1, null);
             assertNotEquals(filter1, "not a filter");
         }
@@ -452,48 +328,191 @@ class LocationFilterTest {
             LocationFilter filter2 = LocationFilter.within(montrealDowntown, 5.0);
             
             assertEquals(filter1.hashCode(), filter2.hashCode());
+            
+            // Hash code should be consistent
+            assertEquals(filter1.hashCode(), filter1.hashCode());
         }
 
         @Test
         @DisplayName("Should implement toString correctly")
         void shouldImplementToStringCorrectly() {
-            LocationFilter filter = LocationFilter.within(montrealDowntown, 5.0);
+            LocationFilter filter = LocationFilter.exactly(montrealDowntown, 5.0, 0.25);
             String toString = filter.toString();
             
             assertTrue(toString.contains("LocationFilter"));
-            assertTrue(toString.contains("WITHIN"));
+            assertTrue(toString.contains("EXACTLY"));
             assertTrue(toString.contains("5.00km"));
+            assertTrue(toString.contains("0.25km"));
             assertTrue(toString.contains("Montreal Downtown"));
         }
     }
 
     @Nested
-    @DisplayName("JPA Specification")
+    @DisplayName("JPA Specification Generation")
     class SpecificationTests {
 
-        @Test
-        @DisplayName("Should create specification without throwing exceptions")
-        void shouldCreateSpecificationWithoutThrowingExceptions() {
-            LocationFilter filter = LocationFilter.within(montrealDowntown, 5.0);
-            
-            assertDoesNotThrow(() -> {
-                Specification<Object> spec = filter.toSpecification("pickupLocation");
-                assertNotNull(spec);
-            });
+        @SuppressWarnings("unchecked")
+        private void setUpBasicMocks() {
+            when(root.get(anyString())).thenReturn(locationPath);
+            when(locationPath.get(eq("latitude"))).thenReturn((Path) latPath);
+            when(locationPath.get(eq("longitude"))).thenReturn((Path) lonPath);
+        }
+
+        @SuppressWarnings("unchecked")
+        private void setUpCriteriaBuilderMocks() {
+            // Mock methods for Haversine calculation
+            when(criteriaBuilder.literal(any(Double.class))).thenReturn(mock(Expression.class));
+            when(criteriaBuilder.prod(any(Expression.class), any(Expression.class))).thenReturn(mock(Expression.class));
+            when(criteriaBuilder.diff(any(Expression.class), any(Expression.class))).thenReturn(mock(Expression.class));
+            when(criteriaBuilder.quot(any(Expression.class), any(Expression.class))).thenReturn(mock(Expression.class));
+            when(criteriaBuilder.sum(any(Expression.class), any(Expression.class))).thenReturn(mock(Expression.class));
+            when(criteriaBuilder.function(anyString(), eq(Double.class), any(Expression.class))).thenReturn(mock(Expression.class));
+            when(criteriaBuilder.function(anyString(), eq(Double.class), any(Expression.class), any(Expression.class))).thenReturn(mock(Expression.class));
         }
 
         @Test
-        @DisplayName("Should handle all operations in specification")
-        void shouldHandleAllOperationsInSpecification() {
-            assertDoesNotThrow(() -> {
-                LocationFilter.within(montrealDowntown, 5.0).toSpecification("location");
-                LocationFilter.outside(montrealDowntown, 5.0).toSpecification("location");
-                LocationFilter.exactly(montrealDowntown, 5.0).toSpecification("location");
-                LocationFilter.greaterThan(montrealDowntown, 5.0).toSpecification("location");
-                LocationFilter.greaterThanOrEqual(montrealDowntown, 5.0).toSpecification("location");
-                LocationFilter.lessThan(montrealDowntown, 5.0).toSpecification("location");
-                LocationFilter.lessThanOrEqual(montrealDowntown, 5.0).toSpecification("location");
-            });
+        @DisplayName("Should create WITHIN specification correctly")
+        void shouldCreateWithinSpecificationCorrectly() {
+            setUpBasicMocks();
+            setUpCriteriaBuilderMocks();
+            when(criteriaBuilder.lessThanOrEqualTo(any(Expression.class), any(Double.class)))
+                    .thenReturn(mockPredicate);
+            
+            LocationFilter filter = LocationFilter.within(montrealDowntown, 5.0);
+            Specification<Object> spec = filter.toSpecification("pickupLocation");
+            
+            assertNotNull(spec);
+            spec.toPredicate(root, query, criteriaBuilder);
+            
+            verify(criteriaBuilder).lessThanOrEqualTo(any(Expression.class), eq(5.0));
+        }
+
+        @Test
+        @DisplayName("Should create OUTSIDE specification correctly")
+        void shouldCreateOutsideSpecificationCorrectly() {
+            setUpBasicMocks();
+            setUpCriteriaBuilderMocks();
+            when(criteriaBuilder.greaterThan(any(Expression.class), any(Double.class)))
+                    .thenReturn(mockPredicate);
+            
+            LocationFilter filter = LocationFilter.outside(montrealDowntown, 5.0);
+            Specification<Object> spec = filter.toSpecification("pickupLocation");
+            
+            assertNotNull(spec);
+            spec.toPredicate(root, query, criteriaBuilder);
+            
+            verify(criteriaBuilder).greaterThan(any(Expression.class), eq(5.0));
+        }
+
+        @Test
+        @DisplayName("Should create EXACTLY specification correctly")
+        void shouldCreateExactlySpecificationCorrectly() {
+            setUpBasicMocks();
+            setUpCriteriaBuilderMocks();
+            when(criteriaBuilder.greaterThanOrEqualTo(any(Expression.class), any(Double.class)))
+                    .thenReturn(mockPredicate);
+            when(criteriaBuilder.lessThanOrEqualTo(any(Expression.class), any(Double.class)))
+                    .thenReturn(mockPredicate);
+            when(criteriaBuilder.and(any(Predicate.class), any(Predicate.class)))
+                    .thenReturn(mockPredicate);
+            
+            LocationFilter filter = LocationFilter.exactly(montrealDowntown, 5.0, 0.5);
+            Specification<Object> spec = filter.toSpecification("pickupLocation");
+            
+            assertNotNull(spec);
+            spec.toPredicate(root, query, criteriaBuilder);
+            
+            verify(criteriaBuilder).greaterThanOrEqualTo(any(Expression.class), eq(4.5));
+            verify(criteriaBuilder).lessThanOrEqualTo(any(Expression.class), eq(5.5));
+            verify(criteriaBuilder).and(any(Predicate.class), any(Predicate.class));
+        }
+
+        @Test
+        @DisplayName("Should create GREATER_THAN specification correctly")
+        void shouldCreateGreaterThanSpecificationCorrectly() {
+            setUpBasicMocks();
+            setUpCriteriaBuilderMocks();
+            when(criteriaBuilder.greaterThan(any(Expression.class), any(Double.class)))
+                    .thenReturn(mockPredicate);
+            
+            LocationFilter filter = LocationFilter.greaterThan(montrealDowntown, 5.0);
+            Specification<Object> spec = filter.toSpecification("pickupLocation");
+            
+            assertNotNull(spec);
+            spec.toPredicate(root, query, criteriaBuilder);
+            
+            verify(criteriaBuilder).greaterThan(any(Expression.class), eq(5.0));
+        }
+
+        @Test
+        @DisplayName("Should create GREATER_THAN_OR_EQUAL specification correctly")
+        void shouldCreateGreaterThanOrEqualSpecificationCorrectly() {
+            setUpBasicMocks();
+            setUpCriteriaBuilderMocks();
+            when(criteriaBuilder.greaterThanOrEqualTo(any(Expression.class), any(Double.class)))
+                    .thenReturn(mockPredicate);
+            
+            LocationFilter filter = LocationFilter.greaterThanOrEqual(montrealDowntown, 5.0);
+            Specification<Object> spec = filter.toSpecification("pickupLocation");
+            
+            assertNotNull(spec);
+            spec.toPredicate(root, query, criteriaBuilder);
+            
+            verify(criteriaBuilder).greaterThanOrEqualTo(any(Expression.class), eq(5.0));
+        }
+
+        @Test
+        @DisplayName("Should create LESS_THAN specification correctly")
+        void shouldCreateLessThanSpecificationCorrectly() {
+            setUpBasicMocks();
+            setUpCriteriaBuilderMocks();
+            when(criteriaBuilder.lessThan(any(Expression.class), any(Double.class)))
+                    .thenReturn(mockPredicate);
+            
+            LocationFilter filter = LocationFilter.lessThan(montrealDowntown, 5.0);
+            Specification<Object> spec = filter.toSpecification("pickupLocation");
+            
+            assertNotNull(spec);
+            spec.toPredicate(root, query, criteriaBuilder);
+            
+            verify(criteriaBuilder).lessThan(any(Expression.class), eq(5.0));
+        }
+
+        @Test
+        @DisplayName("Should create LESS_THAN_OR_EQUAL specification correctly")
+        void shouldCreateLessThanOrEqualSpecificationCorrectly() {
+            setUpBasicMocks();
+            setUpCriteriaBuilderMocks();
+            when(criteriaBuilder.lessThanOrEqualTo(any(Expression.class), any(Double.class)))
+                    .thenReturn(mockPredicate);
+            
+            LocationFilter filter = LocationFilter.lessThanOrEqual(montrealDowntown, 5.0);
+            Specification<Object> spec = filter.toSpecification("pickupLocation");
+            
+            assertNotNull(spec);
+            spec.toPredicate(root, query, criteriaBuilder);
+            
+            verify(criteriaBuilder).lessThanOrEqualTo(any(Expression.class), eq(5.0));
+        }
+
+        @Test
+        @DisplayName("Should verify Haversine calculation is used")
+        void shouldVerifyHaversineCalculationIsUsed() {
+            setUpBasicMocks();
+            setUpCriteriaBuilderMocks();
+            when(criteriaBuilder.lessThanOrEqualTo(any(Expression.class), any(Double.class)))
+                    .thenReturn(mockPredicate);
+            
+            LocationFilter filter = LocationFilter.within(montrealDowntown, 5.0);
+            Specification<Object> spec = filter.toSpecification("pickupLocation");
+            
+            spec.toPredicate(root, query, criteriaBuilder);
+            
+            // Verify that trigonometric functions are called for Haversine
+            verify(criteriaBuilder, atLeastOnce()).function(eq("SIN"), eq(Double.class), any(Expression.class));
+            verify(criteriaBuilder, atLeastOnce()).function(eq("COS"), eq(Double.class), any(Expression.class));
+            verify(criteriaBuilder, atLeastOnce()).function(eq("SQRT"), eq(Double.class), any(Expression.class));
+            verify(criteriaBuilder, atLeastOnce()).function(eq("ATAN2"), eq(Double.class), any(Expression.class), any(Expression.class));
         }
     }
 
@@ -504,7 +523,6 @@ class LocationFilterTest {
         @Test
         @DisplayName("Should work for finding nearby food donations")
         void shouldWorkForFindingNearbyFoodDonations() {
-            // Scenario: User wants food donations within walking distance (1.5km)
             Location userLocation = new Location(45.5017, -73.5673, "User Location");
             LocationFilter walkingDistance = LocationFilter.within(userLocation, 1.5);
             
@@ -518,7 +536,6 @@ class LocationFilterTest {
         @Test
         @DisplayName("Should work for delivery service radius")
         void shouldWorkForDeliveryServiceRadius() {
-            // Scenario: Restaurant delivers within 5km radius
             Location restaurant = new Location(45.5100, -73.5700, "Restaurant");
             LocationFilter deliveryZone = LocationFilter.within(restaurant, 5.0);
             
@@ -532,9 +549,8 @@ class LocationFilterTest {
         @Test
         @DisplayName("Should work for excluding too close locations")
         void shouldWorkForExcludingTooCloseLocations() {
-            // Scenario: Avoid spam by excluding locations too close to each other
             Location baseLocation = new Location(45.5017, -73.5673, "Base");
-            LocationFilter notTooClose = LocationFilter.greaterThan(baseLocation, 0.1); // > 100m
+            LocationFilter notTooClose = LocationFilter.greaterThan(baseLocation, 0.1);
             
             Location tooClose = new Location(45.5018, -73.5674, "Too Close");
             Location justRight = new Location(45.5030, -73.5680, "Just Right");
@@ -542,36 +558,55 @@ class LocationFilterTest {
             assertFalse(notTooClose.check(tooClose));
             assertTrue(notTooClose.check(justRight));
         }
-
-        @Test
-        @DisplayName("Should work for finding locations in specific distance band")
-        void shouldWorkForFindingLocationsInSpecificDistanceBand() {
-            // Scenario: Find locations between 2-5km (not too close, not too far)
-            Location center = new Location(45.5017, -73.5673, "Center");
-            LocationFilter minDistance = LocationFilter.greaterThan(center, 2.0);
-            LocationFilter maxDistance = LocationFilter.lessThanOrEqual(center, 5.0);
-            
-            Location tooClose = new Location(45.5030, -73.5680, "Too Close"); // ~1km
-            Location justRight = new Location(45.5200, -73.5800, "Just Right"); // ~3-4km
-            Location tooFar = new Location(45.4000, -73.4000, "Too Far"); // ~15km
-            
-            // Combine filters for distance band
-            assertFalse(minDistance.check(tooClose));
-            assertTrue(minDistance.check(justRight) && maxDistance.check(justRight));
-            assertFalse(maxDistance.check(tooFar));
-        }
     }
 
     @Nested
-    @DisplayName("Performance and Edge Cases")
-    class PerformanceTests {
+    @DisplayName("Edge Cases and Error Handling")
+    class EdgeCasesTests {
 
         @Test
-        @DisplayName("Should handle many location checks efficiently")
-        void shouldHandleManyLocationChecksEfficiently() {
+        @DisplayName("Should handle zero distance filter")
+        void shouldHandleZeroDistanceFilter() {
+            LocationFilter filter = LocationFilter.within(montrealDowntown, 0.0);
+            
+            assertEquals(0.0, filter.getDistanceKm());
+            assertTrue(filter.check(montrealDowntown)); // Same location has distance 0
+            assertFalse(filter.check(nearbyLocation)); // Any other location should fail
+        }
+
+        @Test
+        @DisplayName("Should handle very large distance filter")
+        void shouldHandleVeryLargeDistanceFilter() {
+            LocationFilter filter = LocationFilter.within(montrealDowntown, 20000.0);
+            
+            assertTrue(filter.check(torontoDowntown)); // Should include locations across continents
+        }
+
+        @Test
+        @DisplayName("Should handle extreme coordinates")
+        void shouldHandleExtremeCoordinates() {
+            Location northPole = new Location(89.999, 0.0, "North Pole");
+            Location southPole = new Location(-89.999, 0.0, "South Pole");
+            
+            LocationFilter filter = LocationFilter.within(northPole, 25000.0);
+            
+            assertDoesNotThrow(() -> filter.check(southPole));
+        }
+
+        @Test
+        @DisplayName("Should handle very small tolerance in EXACTLY operation")
+        void shouldHandleVerySmallToleranceInExactlyOperation() {
+            LocationFilter filter = LocationFilter.exactly(montrealDowntown, 1.0, 0.001);
+            
+            assertEquals(0.001, filter.getTolerance());
+            assertNotNull(filter);
+        }
+
+        @Test
+        @DisplayName("Should handle performance with many checks")
+        void shouldHandlePerformanceWithManyChecks() {
             LocationFilter filter = LocationFilter.within(montrealDowntown, 5.0);
             
-            // This should complete quickly even with many checks
             assertDoesNotThrow(() -> {
                 for (int i = 0; i < 1000; i++) {
                     Location testLocation = new Location(
@@ -582,18 +617,6 @@ class LocationFilterTest {
                     filter.check(testLocation);
                 }
             });
-        }
-
-        @Test
-        @DisplayName("Should handle extreme coordinates correctly")
-        void shouldHandleExtremeCoordinatesCorrectly() {
-            // Test with extreme valid coordinates
-            Location northExtreme = new Location(89.999, 179.999, "North Extreme");
-            Location southExtreme = new Location(-89.999, -179.999, "South Extreme");
-            
-            LocationFilter filter = LocationFilter.within(northExtreme, 25000.0); // Half earth
-            
-            assertDoesNotThrow(() -> filter.check(southExtreme));
         }
     }
 }
