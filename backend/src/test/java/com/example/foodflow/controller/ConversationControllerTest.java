@@ -29,7 +29,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -61,6 +60,7 @@ class ConversationControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "DONOR")
     void getUserConversations_Success() throws Exception {
         // Given
         ConversationResponse conv1 = new ConversationResponse();
@@ -73,33 +73,33 @@ class ConversationControllerTest {
         
         List<ConversationResponse> conversations = Arrays.asList(conv1, conv2);
         
-        when(conversationService.getUserConversations(any(User.class))).thenReturn(conversations);
+        when(conversationService.getUserConversations(any())).thenReturn(conversations);
 
         // When & Then
-        mockMvc.perform(get("/api/conversations")
-                .with(user(currentUser)))
+        mockMvc.perform(get("/api/conversations"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(jsonPath("$[0].id").value(1))
                 .andExpect(jsonPath("$[1].id").value(2));
         
-        verify(conversationService, times(1)).getUserConversations(any(User.class));
+        verify(conversationService, times(1)).getUserConversations(any());
     }
 
     @Test
+    @WithMockUser(authorities = "DONOR")
     void getUserConversations_EmptyList() throws Exception {
         // Given
-        when(conversationService.getUserConversations(any(User.class)))
+        when(conversationService.getUserConversations(any()))
                 .thenReturn(Collections.emptyList());
 
         // When & Then
-        mockMvc.perform(get("/api/conversations")
-                .with(user(currentUser)))
+        mockMvc.perform(get("/api/conversations"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(0));
     }
 
     @Test
+    @WithMockUser(authorities = "DONOR")
     void startConversation_Success() throws Exception {
         // Given
         StartConversationRequest request = new StartConversationRequest();
@@ -109,12 +109,11 @@ class ConversationControllerTest {
         response.setId(1L);
         response.setOtherUserEmail("recipient@test.com");
         
-        when(conversationService.startConversation(any(User.class), any(StartConversationRequest.class)))
+        when(conversationService.startConversation(any(), any(StartConversationRequest.class)))
                 .thenReturn(response);
 
         // When & Then
         mockMvc.perform(post("/api/conversations")
-                .with(user(currentUser))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -123,40 +122,41 @@ class ConversationControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "DONOR")
     void startConversation_InvalidEmail_ReturnsBadRequest() throws Exception {
         // Given
         StartConversationRequest request = new StartConversationRequest();
         request.setRecipientEmail("nonexistent@test.com");
         
-        when(conversationService.startConversation(any(User.class), any(StartConversationRequest.class)))
+        when(conversationService.startConversation(any(), any(StartConversationRequest.class)))
                 .thenThrow(new IllegalArgumentException("User not found"));
 
         // When & Then
         mockMvc.perform(post("/api/conversations")
-                .with(user(currentUser))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
+    @WithMockUser(authorities = "DONOR")
     void startConversation_WithSelf_ReturnsBadRequest() throws Exception {
         // Given
         StartConversationRequest request = new StartConversationRequest();
         request.setRecipientEmail("user@test.com");
         
-        when(conversationService.startConversation(any(User.class), any(StartConversationRequest.class)))
+        when(conversationService.startConversation(any(), any(StartConversationRequest.class)))
                 .thenThrow(new IllegalArgumentException("Cannot start conversation with yourself"));
 
         // When & Then
         mockMvc.perform(post("/api/conversations")
-                .with(user(currentUser))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
+    @WithMockUser(authorities = "DONOR")
     void getConversation_Success() throws Exception {
         // Given
         Long conversationId = 1L;
@@ -164,32 +164,32 @@ class ConversationControllerTest {
         response.setId(conversationId);
         response.setOtherUserEmail("other@test.com");
         
-        when(conversationService.getConversationResponse(eq(conversationId), any(User.class)))
+        when(conversationService.getConversationResponse(eq(conversationId), any()))
                 .thenReturn(response);
 
         // When & Then
-        mockMvc.perform(get("/api/conversations/{id}", conversationId)
-                .with(user(currentUser)))
+        mockMvc.perform(get("/api/conversations/{id}", conversationId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(conversationId))
                 .andExpect(jsonPath("$.otherUserEmail").value("other@test.com"));
     }
 
     @Test
+    @WithMockUser(authorities = "DONOR")
     void getConversation_NotParticipant_ReturnsForbidden() throws Exception {
         // Given
         Long conversationId = 1L;
         
-        when(conversationService.getConversationResponse(eq(conversationId), any(User.class)))
+        when(conversationService.getConversationResponse(eq(conversationId), any()))
                 .thenThrow(new IllegalArgumentException("Not a participant"));
 
         // When & Then
-        mockMvc.perform(get("/api/conversations/{id}", conversationId)
-                .with(user(currentUser)))
+        mockMvc.perform(get("/api/conversations/{id}", conversationId))
                 .andExpect(status().isForbidden());
     }
 
     @Test
+    @WithMockUser(authorities = "DONOR")
     void getConversationMessages_Success() throws Exception {
         // Given
         Long conversationId = 1L;
@@ -203,12 +203,11 @@ class ConversationControllerTest {
         
         List<MessageResponse> messages = Arrays.asList(msg1, msg2);
         
-        when(messageService.getConversationMessages(eq(conversationId), any(User.class)))
+        when(messageService.getConversationMessages(eq(conversationId), any()))
                 .thenReturn(messages);
 
         // When & Then
-        mockMvc.perform(get("/api/conversations/{id}/messages", conversationId)
-                .with(user(currentUser)))
+        mockMvc.perform(get("/api/conversations/{id}/messages", conversationId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(jsonPath("$[0].messageBody").value("Hello"))
@@ -216,58 +215,59 @@ class ConversationControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "DONOR")
     void getConversationMessages_EmptyConversation() throws Exception {
         // Given
         Long conversationId = 1L;
         
-        when(messageService.getConversationMessages(eq(conversationId), any(User.class)))
+        when(messageService.getConversationMessages(eq(conversationId), any()))
                 .thenReturn(Collections.emptyList());
 
         // When & Then
-        mockMvc.perform(get("/api/conversations/{id}/messages", conversationId)
-                .with(user(currentUser)))
+        mockMvc.perform(get("/api/conversations/{id}/messages", conversationId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(0));
     }
 
     @Test
+    @WithMockUser(authorities = "DONOR")
     void getConversationMessages_NotParticipant_ReturnsForbidden() throws Exception {
         // Given
         Long conversationId = 1L;
         
-        when(messageService.getConversationMessages(eq(conversationId), any(User.class)))
+        when(messageService.getConversationMessages(eq(conversationId), any()))
                 .thenThrow(new IllegalArgumentException("Not a participant"));
 
         // When & Then
-        mockMvc.perform(get("/api/conversations/{id}/messages", conversationId)
-                .with(user(currentUser)))
+        mockMvc.perform(get("/api/conversations/{id}/messages", conversationId))
                 .andExpect(status().isForbidden());
     }
 
     @Test
+    @WithMockUser(authorities = "DONOR")
     void markConversationAsRead_Success() throws Exception {
         // Given
         Long conversationId = 1L;
 
         // When & Then
-        mockMvc.perform(put("/api/conversations/{id}/read", conversationId)
-                .with(user(currentUser)))
+        mockMvc.perform(put("/api/conversations/{id}/read", conversationId))
                 .andExpect(status().isOk());
         
-        verify(messageService, times(1)).markConversationAsRead(eq(conversationId), any(User.class));
+        verify(messageService, times(1)).markConversationAsRead(eq(conversationId), any());
     }
 
     @Test
+    @WithMockUser(authorities = "DONOR")
     void markConversationAsRead_NotParticipant_ReturnsForbidden() throws Exception {
         // Given
         Long conversationId = 1L;
         
-        when(messageService.markConversationAsRead(eq(conversationId), any(User.class)))
-                .thenThrow(new IllegalArgumentException("Not a participant"));
+        // Note: markConversationAsRead returns void, so we use doThrow
+        org.mockito.Mockito.doThrow(new IllegalArgumentException("Not a participant"))
+                .when(messageService).markConversationAsRead(eq(conversationId), any());
 
         // When & Then
-        mockMvc.perform(put("/api/conversations/{id}/read", conversationId)
-                .with(user(currentUser)))
+        mockMvc.perform(put("/api/conversations/{id}/read", conversationId))
                 .andExpect(status().isForbidden());
     }
 
@@ -280,16 +280,16 @@ class ConversationControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "DONOR")
     void getConversation_InvalidId_ReturnsForbidden() throws Exception {
         // Given
         Long invalidId = 999L;
         
-        when(conversationService.getConversationResponse(eq(invalidId), any(User.class)))
+        when(conversationService.getConversationResponse(eq(invalidId), any()))
                 .thenThrow(new IllegalArgumentException("Conversation not found"));
 
         // When & Then
-        mockMvc.perform(get("/api/conversations/{id}", invalidId)
-                .with(user(currentUser)))
+        mockMvc.perform(get("/api/conversations/{id}", invalidId))
                 .andExpect(status().isForbidden());
     }
 }
