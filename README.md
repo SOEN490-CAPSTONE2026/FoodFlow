@@ -158,6 +158,25 @@ __Backend not connecting to database:__
 
 [FoodFlow Project Board](https://github.com/orgs/SOEN490-CAPSTONE2026/projects/1)
 
+## 📑 Wiki Table of Content
+[Home](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki) </br>
+[Budget](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Budget)</br>
+[Deployment Plan and Infrastructure](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Deployment-Plan-and-Infrastructure)</br>
+[Diversity statement](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Diversity-statement)</br>
+[Economic](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Economic)</br>
+[Infrastructure and Tools](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Infrastructure-and-Tools)</br>
+[Legal and Ethical Issues](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Legal-and-Ethical-Issues)</br>
+[Meeting Minutes](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Meeting-Minutes)</br>
+[Missing knowledge and Independent Learning](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Missing-knowledge-and-Independent-Learning)</br>
+[Name Conventions](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Name-Conventions)</br>
+[Overall Architecture and Class Diagrams](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Overall-Architecture-and-Class-Diagrams)
+[Performance](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Performance)</br>
+[Personas](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Personas)</br>
+[Risks](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Risks)</br>
+[Security](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Security)</br>
+[Testing Plan and Continuous Integration](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Testing-Plan-and-Continuous-Integration)</br>
+[User Consent and End-User License Agreement (EULA)](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/User-Consent-and-End%E2%80%90user-License-Agreement)</br>
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

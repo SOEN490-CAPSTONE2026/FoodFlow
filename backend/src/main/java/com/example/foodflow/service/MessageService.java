@@ -7,6 +7,8 @@ import com.example.foodflow.model.entity.Message;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.repository.ConversationRepository;
 import com.example.foodflow.repository.MessageRepository;
+import io.micrometer.core.annotation.Timed;
+import io.micrometer.core.instrument.Timer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -33,12 +35,20 @@ public class MessageService {
     
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
+
+    private final BusinessMetricsService businessMetricsService;
     
+    public MessageService(BusinessMetricsService businessMetricsService) {
+        this.businessMetricsService = businessMetricsService;
+    }
+
     /**
      * Send a message in a conversation
      */
     @Transactional
+    @Timed(value = "message.service.send", description = "Time taken to send a message")
     public MessageResponse sendMessage(MessageRequest request, User sender) {
+        Timer.Sample sample = businessMetricsService.startTimer();
         // Get and validate conversation
         Conversation conversation = conversationService.getConversation(
             request.getConversationId(), 
@@ -65,6 +75,9 @@ public class MessageService {
         );
         logger.info("Sent websocket message to userId={} conversationId={} messageId={}", otherUser.getId(), conversation.getId(), response.getId());
         
+        businessMetricsService.incrementMessagesSent();
+        businessMetricsService.recordTimer(sample, "message.service.send", "conversationId", conversation.getId().toString());
+
         return response;
     }
     
@@ -72,12 +85,16 @@ public class MessageService {
      * Get all messages in a conversation
      */
     @Transactional(readOnly = true)
+    @Timed(value = "message.service.getConversationMessages", description = "Time taken to get a conversation messages")
     public List<MessageResponse> getConversationMessages(Long conversationId, User currentUser) {
         // Validate user is participant
         conversationService.getConversation(conversationId, currentUser);
         
-        return messageRepository.findByConversationId(conversationId)
-            .stream()
+        List<Message> messages = messageRepository.findByConversationId(conversationId);
+
+        businessMetricsService.incrementMessagesReceived();
+
+        return messages.stream()
             .map(MessageResponse::new)
             .collect(Collectors.toList());
     }
