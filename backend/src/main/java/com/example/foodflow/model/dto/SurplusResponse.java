@@ -33,6 +33,7 @@ public class SurplusResponse {
     private PostStatus status;
     private String otpCode;
     private String donorEmail;
+    private String donorName;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<PickupSlotResponse> pickupSlots = new ArrayList<>();
@@ -44,7 +45,7 @@ public class SurplusResponse {
     public SurplusResponse(Long id, String title, String description, Set<FoodCategory> foodCategories,
                            Quantity quantity, Location pickupLocation,
                            LocalDate expiryDate, LocalDate pickupDate, LocalTime pickupFrom, LocalTime pickupTo,
-                           PostStatus status, String otpCode, String donorEmail,
+                           PostStatus status, String otpCode, String donorEmail, String donorName,
                            LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.title = title;
@@ -59,6 +60,7 @@ public class SurplusResponse {
         this.status = status;
         this.otpCode = otpCode;
         this.donorEmail = donorEmail;
+        this.donorName = donorName;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -77,9 +79,12 @@ public class SurplusResponse {
         this.status = surplusPost.getStatus();
         this.otpCode = surplusPost.getOtpCode();
         this.donorEmail = surplusPost.getDonor().getEmail();
+        this.donorName = surplusPost.getDonor().getOrganization() != null
+            ? surplusPost.getDonor().getOrganization().getName()
+            : null;
         this.createdAt = surplusPost.getCreatedAt();
         this.updatedAt = surplusPost.getUpdatedAt();
-        
+
         // Convert pickup slots
         if (surplusPost.getPickupSlots() != null) {
             this.pickupSlots = surplusPost.getPickupSlots().stream()
@@ -127,6 +132,9 @@ public class SurplusResponse {
 
     public String getDonorEmail() { return donorEmail; }
     public void setDonorEmail(String donorEmail) { this.donorEmail = donorEmail; }
+
+    public String getDonorName() { return donorName; }
+    public void setDonorName(String donorName) { this.donorName = donorName; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

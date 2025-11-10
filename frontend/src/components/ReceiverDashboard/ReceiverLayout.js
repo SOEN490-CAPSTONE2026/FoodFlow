@@ -18,7 +18,7 @@ function ReceiverLayoutContent() {
   const location = useLocation();
   const navigate = useNavigate();
   const navType = useNavigationType();
-  const { logout } = React.useContext(AuthContext);
+  const { logout, organizationName } = React.useContext(AuthContext);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
   const isActive = (path) => location.pathname === path;
@@ -194,7 +194,7 @@ function ReceiverLayoutContent() {
 
           {showDropdown && (
             <div className="dropdown-menu dropdown-menu--card">
-              <div className="dropdown-header">Hello John Doe!</div>
+              <div className="dropdown-header">Hello {organizationName || 'User'}!</div>
               <div className="dropdown-divider"></div>
 
               <div className="dropdown-item dropdown-item--settings" onClick={() => setShowDropdown(false)}>

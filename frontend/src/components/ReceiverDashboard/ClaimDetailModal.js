@@ -147,7 +147,7 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                                 </div>
                                 <div className="claimed-modal-detail-content">
                                     <span className="claimed-modal-detail-label">Donor</span>
-                                    <span className="claimed-modal-detail-value">{post?.donorEmail || 'Not specified'}</span>
+                                    <span className="claimed-modal-detail-value">{post?.donorName || 'Not specified'}</span>
                                 </div>
                             </div>
                         </div>
