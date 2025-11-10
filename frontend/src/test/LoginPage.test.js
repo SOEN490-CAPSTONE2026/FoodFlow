@@ -112,7 +112,14 @@ describe('LoginPage', () => {
       trackLogin: mockTrackLogin,
     });
 
-    authAPI.login.mockResolvedValueOnce({ data: { token: 'abc123', role: 'donor', userId: '42' } });
+    authAPI.login.mockResolvedValueOnce({
+      data: {
+        token: 'abc123',
+        role: 'donor',
+        userId: '42',
+        organizationName: 'Test Organization'
+      }
+    });
 
     renderWithProviders();
 
@@ -134,7 +141,7 @@ describe('LoginPage', () => {
     });
 
     await waitFor(() => {
-      expect(defaultAuthValue.login).toHaveBeenCalledWith('abc123', 'donor', '42');
+      expect(defaultAuthValue.login).toHaveBeenCalledWith('abc123', 'donor', '42', 'Test Organization');
     });
 
     await waitFor(() => {
