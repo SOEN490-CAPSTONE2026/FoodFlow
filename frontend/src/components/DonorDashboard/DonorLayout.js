@@ -26,7 +26,7 @@ export default function DonorLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const navType = useNavigationType();
-  const { logout } = useContext(AuthContext);
+  const { logout, organizationName, role } = useContext(AuthContext);
   const [open, setOpen] = useState(false);
   const [messagesOpen, setMessagesOpen] = useState(false);
   const [screenHeight, setScreenHeight] = useState(window.innerHeight);
@@ -248,8 +248,8 @@ export default function DonorLayout() {
             <button className="user-profile-pic" type="button">
               <div className="account-avatar"></div>
               <div className="account-text">
-                <span className="account-name">Donor</span>
-                <span className="account-role">donor</span>
+                <span className="account-name">{organizationName || 'Donor'}</span>
+                <span className="account-role">{role?.toLowerCase() || 'donor'}</span>
               </div>
             </button>
             <button className="account-dotted-menu" onClick={() => setOpen((s) => !s)} aria-label="Menu">

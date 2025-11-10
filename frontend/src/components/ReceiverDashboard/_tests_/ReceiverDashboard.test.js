@@ -16,12 +16,6 @@ jest.mock("../ReceiverLayout.js", () => {
   };
 });
 
-jest.mock("../ReceiverDashboardHome.js", () => {
-  return function ReceiverDashboardHome() {
-    return <div data-testid="dashboard-home">Dashboard Home</div>;
-  };
-});
-
 jest.mock("../ReceiverWelcome.js", () => {
   return function ReceiverWelcome() {
     return <div data-testid="welcome">Welcome Page</div>;
@@ -63,15 +57,10 @@ describe("ReceiverDashboard", () => {
     expect(screen.getByTestId("receiver-layout")).toBeInTheDocument();
   });
 
-  test("renders dashboard home on index route", () => {
+  test("renders browse page on index route", () => {
     renderWithRouter("/receiver");
-    expect(screen.getByTestId("dashboard-home")).toBeInTheDocument();
-    expect(screen.getByText("Dashboard Home")).toBeInTheDocument();
-  });
-
-  test("renders dashboard home on /dashboard route", () => {
-    renderWithRouter("/receiver/dashboard");
-    expect(screen.getByTestId("dashboard-home")).toBeInTheDocument();
+    expect(screen.getByTestId("browse")).toBeInTheDocument();
+    expect(screen.getByText("Browse Page")).toBeInTheDocument();
   });
 
   test("renders welcome page on /welcome route", () => {
@@ -100,20 +89,19 @@ describe("ReceiverDashboard", () => {
 
   test("redirects unknown routes to index", () => {
     renderWithRouter("/receiver/unknown-route");
-    // Should redirect to dashboard home (index route)
-    expect(screen.getByTestId("dashboard-home")).toBeInTheDocument();
+    // Should redirect to browse page (index route)
+    expect(screen.getByTestId("browse")).toBeInTheDocument();
   });
 
   test("handles deeply nested unknown routes", () => {
     renderWithRouter("/receiver/unknown/nested/route");
-    // Should redirect to dashboard home
-    expect(screen.getByTestId("dashboard-home")).toBeInTheDocument();
+    // Should redirect to browse page
+    expect(screen.getByTestId("browse")).toBeInTheDocument();
   });
 
   test("all routes render within ReceiverLayout", () => {
     const routes = [
       "/receiver",
-      "/receiver/dashboard",
       "/receiver/welcome",
       "/receiver/browse",
       "/receiver/my-claims",
@@ -134,16 +122,15 @@ describe("ReceiverDashboard", () => {
     expect(screen.getByTestId("welcome")).toBeInTheDocument();
     expect(screen.queryByTestId("browse")).not.toBeInTheDocument();
     expect(screen.queryByTestId("my-claims")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("dashboard-home")).not.toBeInTheDocument();
   });
 
-  test("index route and /dashboard route render the same component", () => {
+  test("index route and /browse route render the same component", () => {
     const { unmount } = renderWithRouter("/receiver");
-    expect(screen.getByTestId("dashboard-home")).toBeInTheDocument();
+    expect(screen.getByTestId("browse")).toBeInTheDocument();
     unmount();
 
-    renderWithRouter("/receiver/dashboard");
-    expect(screen.getByTestId("dashboard-home")).toBeInTheDocument();
+    renderWithRouter("/receiver/browse");
+    expect(screen.getByTestId("browse")).toBeInTheDocument();
   });
 
   test("each route maintains layout wrapper", () => {
@@ -159,8 +146,7 @@ describe("ReceiverDashboard", () => {
 
   test("renders correct component for each unique route", () => {
     const routeComponentMap = {
-      "/receiver": "dashboard-home",
-      "/receiver/dashboard": "dashboard-home",
+      "/receiver": "browse",
       "/receiver/welcome": "welcome",
       "/receiver/browse": "browse",
       "/receiver/my-claims": "my-claims",
@@ -177,7 +163,7 @@ describe("ReceiverDashboard", () => {
   test("catch-all route redirects with replace flag", () => {
     // The Navigate component should use replace=true to avoid adding to history
     renderWithRouter("/receiver/nonexistent");
-    expect(screen.getByTestId("dashboard-home")).toBeInTheDocument();
+    expect(screen.getByTestId("browse")).toBeInTheDocument();
   });
 
   test("all route paths are defined correctly", () => {
@@ -229,16 +215,15 @@ describe("ReceiverDashboard", () => {
   test("unknown route does not break application", () => {
     const { container } = renderWithRouter("/receiver/completely-invalid-route");
     
-    // Should still render layout and redirect to home
+    // Should still render layout and redirect to browse
     expect(container).toBeInTheDocument();
     expect(screen.getByTestId("receiver-layout")).toBeInTheDocument();
-    expect(screen.getByTestId("dashboard-home")).toBeInTheDocument();
+    expect(screen.getByTestId("browse")).toBeInTheDocument();
   });
 
   test("each route component receives correct route configuration", () => {
     // Test that all defined routes render successfully
     const routes = [
-      "/receiver/dashboard",
       "/receiver/welcome",
       "/receiver/browse",
     ];
@@ -253,8 +238,8 @@ describe("ReceiverDashboard", () => {
 
   test("root receiver path renders index route", () => {
     renderWithRouter("/receiver");
-    // Index route should render dashboard home
-    expect(screen.getByTestId("dashboard-home")).toBeInTheDocument();
+    // Index route should render browse page
+    expect(screen.getByTestId("browse")).toBeInTheDocument();
   });
 
   test("MessagingDashboard route is configured correctly", () => {
@@ -272,16 +257,15 @@ describe("ReceiverDashboard", () => {
   test("Navigate component redirects to current location", () => {
     // Test that unknown routes use Navigate with relative path "."
     renderWithRouter("/receiver/some-invalid-path");
-    // Should redirect to index (dashboard home)
-    expect(screen.getByTestId("dashboard-home")).toBeInTheDocument();
+    // Should redirect to index (browse page)
+    expect(screen.getByTestId("browse")).toBeInTheDocument();
   });
 
   test("all imported components are used in routes", () => {
     // Verify all mocked components can be rendered through routing
     const componentRoutes = {
-      "dashboard-home": "/receiver/dashboard",
-      "welcome": "/receiver/welcome",
       "browse": "/receiver/browse",
+      "welcome": "/receiver/welcome",
       "my-claims": "/receiver/my-claims",
       "messages": "/receiver/messages",
     };

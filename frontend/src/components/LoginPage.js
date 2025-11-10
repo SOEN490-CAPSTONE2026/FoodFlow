@@ -23,16 +23,19 @@ const LoginPage = () => {
   try {
     const response = await authAPI.login({ email, password });
 
-    // get token, role, and userId from backend response
+    // get token, role, userId, and organizationName from backend response
     const token = response?.data?.token;
     const userRole = response?.data?.role;
     const userId = response?.data?.userId;
+    const organizationName = response?.data?.organizationName;
+
+    console.log('Login response - organizationName:', organizationName);
 
     if (!token || !userRole || !userId) {
       throw new Error('Invalid server response');
     }
 
-    login(token, userRole, userId); // this automatically updates localStorage and context
+    login(token, userRole, userId, organizationName); // this automatically updates localStorage and context
     trackLogin(true);
 
     // redirect based on role

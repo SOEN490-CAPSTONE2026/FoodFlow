@@ -1,6 +1,7 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import "@testing-library/jest-dom";
+import ReceiverBrowse from "../ReceiverBrowse";
 import { surplusAPI } from "../../../services/api";
 
 // Mock the API
@@ -77,13 +78,6 @@ describe("ReceiverBrowse Component", () => {
     jest.clearAllMocks();
     global.alert.mockClear();
     global.confirm.mockClear();
-    // Reset mock implementations
-    surplusAPI.list.mockReset();
-    surplusAPI.search.mockReset();
-    surplusAPI.claim.mockReset();
-    // Require the component fresh (uses the top-level mocked modules by default)
-    // eslint-disable-next-line global-require
-    ReceiverBrowse = require("../ReceiverBrowse").default;
   });
 
   describe("Initial Rendering & Loading", () => {
@@ -130,6 +124,40 @@ describe("ReceiverBrowse Component", () => {
     });
   });
 
+  describe("Donation Cards Rendering", () => {
+    test("renders donation cards with correct information when API returns backend data", async () => {
+      // This matches your Java SurplusPost entity structure
+      const mockApiResponse = [
+        {
+          id: 1,
+          title: "Fresh Organic Apples",
+          foodCategories: ["FRUITS_VEGETABLES"], 
+          expiryDate: "2025-11-08",
+          pickupLocation: { address: "Downtown Montreal" }, // Location object
+          pickupDate: "2025-11-06",
+          pickupFrom: "14:00:00", // LocalTime format
+          pickupTo: "17:00:00", // LocalTime format
+          quantity: {
+            value: 5,
+            unit: "KILOGRAM",
+          }, // Embedded Quantity object
+          donor: {
+            id: 1,
+            name: "Green Organic Market",
+          }, // User relationship
+          donorName: "Green Organic Market",
+          description: "Crisp and sweet apples",
+          createdAt: "2025-11-04T10:00:00",
+          status: "AVAILABLE",
+          updatedAt: "2025-11-04T10:00:00",
+        },
+      ];
+
+      surplusAPI.list.mockResolvedValue({ data: mockApiResponse });
+
+      await act(async () => {
+        render(<ReceiverBrowse />);
+      });
   describe("Donation Cards Display", () => {
     test("renders donation with all information", async () => {
       surplusAPI.list.mockResolvedValue({ data: [createMockDonation()] });
@@ -139,15 +167,51 @@ describe("ReceiverBrowse Component", () => {
         expect(screen.getByText("Fresh Organic Apples")).toBeInTheDocument();
         expect(screen.getByText("Downtown Montreal")).toBeInTheDocument();
         expect(screen.getByText("Fruits & Vegetables")).toBeInTheDocument();
-        // The component may render the actual donor name or a fallback like "Local Business".
-        const donorEl = screen.getByText(/Donated by/);
-        expect(donorEl).toBeInTheDocument();
-        // Accept either the explicit donor name or the fallback to avoid fragile test
-        expect(/Green Organic Market|Local Business/.test(donorEl.textContent)).toBe(true);
+        expect(screen.getByText("Donated by Green Organic Market")).toBeInTheDocument();
         expect(screen.getByText("Available")).toBeInTheDocument();
       });
     });
 
+    test("renders multiple donation cards when API returns multiple items", async () => {
+      const mockApiResponse = [
+        {
+          id: 1,
+          title: "Fresh Organic Apples",
+          foodCategories: ["FRUITS_VEGETABLES"],
+          expiryDate: "2025-11-08",
+          pickupLocation: { address: "Downtown Montreal" },
+          pickupDate: "2025-11-06",
+          pickupFrom: "14:00:00",
+          pickupTo: "17:00:00",
+          quantity: { value: 5, unit: "KILOGRAM" },
+          donor: { name: "Green Organic Market" },
+          donorName: "Green Organic Market",
+          description: "Crisp and sweet apples",
+          createdAt: "2025-11-04T10:00:00",
+          status: "AVAILABLE",
+        },
+        {
+          id: 2,
+          title: "Artisan Bread Assortment",
+          foodCategories: ["BAKED_GOODS"],
+          expiryDate: "2025-11-05",
+          pickupLocation: { address: "Plateau Mont-Royal" },
+          pickupDate: "2025-11-05",
+          pickupFrom: "08:00:00",
+          pickupTo: "12:00:00",
+          quantity: { value: 10, unit: "PIECE" },
+          donor: { name: "Le Petit Boulanger" },
+          donorName: "Le Petit Boulanger",
+          description: "Freshly baked this morning",
+          createdAt: "2025-11-04T16:30:00",
+          status: "AVAILABLE",
+        },
+      ];
+
+      surplusAPI.list.mockResolvedValue({ data: mockApiResponse });
+
+      await act(async () => {
+        render(<ReceiverBrowse />);
     test("renders multiple cards", async () => {
       surplusAPI.list.mockResolvedValue({
         data: [
@@ -163,6 +227,31 @@ describe("ReceiverBrowse Component", () => {
       });
     });
 
+    test("shows Available status badge on cards", async () => {
+      const mockApiResponse = [
+        {
+          id: 1,
+          title: "Fresh Organic Apples",
+          foodCategories: ["FRUITS_VEGETABLES"],
+          expiryDate: "2025-11-08",
+          pickupLocation: { address: "Downtown Montreal" },
+          pickupDate: "2025-11-06",
+          pickupFrom: "14:00:00",
+          pickupTo: "17:00:00",
+          quantity: { value: 5, unit: "KILOGRAM" },
+          donor: { name: "Green Organic Market" },
+          donorName: "Green Organic Market",
+          description: "Crisp and sweet apples",
+          createdAt: "2025-11-04T10:00:00",
+          status: "AVAILABLE",
+        },
+      ];
+
+      surplusAPI.list.mockResolvedValue({ data: mockApiResponse });
+
+      await act(async () => {
+        render(<ReceiverBrowse />);
+      });
     test("handles image load error", async () => {
       surplusAPI.list.mockResolvedValue({ data: [createMockDonation()] });
       await act(async () => { render(<ReceiverBrowse />); });
@@ -174,6 +263,28 @@ describe("ReceiverBrowse Component", () => {
     });
   });
 
+  describe("Multiple Food Categories", () => {
+    test("displays multiple food categories as separate tags", async () => {
+      const mockApiResponse = [
+        {
+          id: 1,
+          title: "Mixed Food Box",
+          foodCategories: ["FRUITS_VEGETABLES", "BAKED_GOODS", "DAIRY"], 
+          expiryDate: "2025-11-08",
+          pickupLocation: { address: "Downtown Montreal" },
+          pickupDate: "2025-11-06",
+          pickupFrom: "14:00:00",
+          pickupTo: "17:00:00",
+          quantity: { value: 1, unit: "BOX" },
+          donor: { name: "Mixed Supplier" },
+          donorName: "Mixed Supplier",
+          description: "Variety box",
+          createdAt: "2025-11-04T10:00:00",
+          status: "AVAILABLE",
+        },
+      ];
+
+      surplusAPI.list.mockResolvedValue({ data: mockApiResponse });
   describe("Food Categories", () => {
     const categoryTests = [
       { enum: "FRUITS_VEGETABLES", display: "Fruits & Vegetables" },
@@ -211,6 +322,30 @@ describe("ReceiverBrowse Component", () => {
         expect(screen.getByText("Dairy & Cold Items")).toBeInTheDocument();
       });
     });
+  });
+
+  describe("Bookmark Functionality", () => {
+    test("bookmarks a donation when bookmark button is clicked", async () => {
+      const mockApiResponse = [
+        {
+          id: 1,
+          title: "Fresh Organic Apples",
+          foodCategories: ["FRUITS_VEGETABLES"],
+          expiryDate: "2025-11-08",
+          pickupLocation: { address: "Downtown Montreal" },
+          pickupDate: "2025-11-06",
+          pickupFrom: "14:00:00",
+          pickupTo: "17:00:00",
+          quantity: { value: 5, unit: "KILOGRAM" },
+          donor: { name: "Green Organic Market" },
+          donorName: "Green Organic Market",
+          description: "Crisp and sweet apples",
+          createdAt: "2025-11-04T10:00:00",
+          status: "AVAILABLE",
+        },
+      ];
+
+      surplusAPI.list.mockResolvedValue({ data: mockApiResponse });
 
     test("handles empty/null categories", async () => {
       surplusAPI.list.mockResolvedValue({
@@ -259,6 +394,28 @@ describe("ReceiverBrowse Component", () => {
     });
   });
 
+  describe("Expand/Collapse Functionality", () => {
+    test("expands and collapses donation details when More/Less button is clicked", async () => {
+      const mockApiResponse = [
+        {
+          id: 1,
+          title: "Fresh Organic Apples",
+          foodCategories: ["FRUITS_VEGETABLES"],
+          expiryDate: "2025-11-08",
+          pickupLocation: { address: "Downtown Montreal" },
+          pickupDate: "2025-11-06",
+          pickupFrom: "14:00:00",
+          pickupTo: "17:00:00",
+          quantity: { value: 5, unit: "KILOGRAM" },
+          donor: { name: "Green Organic Market" },
+          donorName: "Green Organic Market",
+          description: "Crisp and sweet apples",
+          createdAt: "2025-11-04T10:00:00",
+          status: "AVAILABLE",
+        },
+      ];
+
+      surplusAPI.list.mockResolvedValue({ data: mockApiResponse });
   describe("Expand/Collapse & Details", () => {
     test("expands and shows details, then collapses", async () => {
       surplusAPI.list.mockResolvedValue({ data: [createMockDonation()] });
@@ -326,6 +483,34 @@ describe("ReceiverBrowse Component", () => {
     });
   });
 
+  describe("Claim Donation Functionality", () => {
+    test("shows confirmation and calls API when Claim Donation button is clicked", async () => {
+      // Mock window.confirm
+      global.confirm = jest.fn(() => true);
+      
+      // Mock surplusAPI.claim
+      surplusAPI.claim = jest.fn().mockResolvedValue({});
+
+      const mockApiResponse = [
+        {
+          id: 1,
+          title: "Fresh Organic Apples",
+          foodCategories: ["FRUITS_VEGETABLES"],
+          expiryDate: "2025-11-08",
+          pickupLocation: { address: "Downtown Montreal" },
+          pickupDate: "2025-11-06",
+          pickupFrom: "14:00:00",
+          pickupTo: "17:00:00",
+          quantity: { value: 5, unit: "KILOGRAM" },
+          donor: { name: "Green Organic Market" },
+          donorName: "Green Organic Market",
+          description: "Crisp and sweet apples",
+          createdAt: "2025-11-04T10:00:00",
+          status: "AVAILABLE",
+        },
+      ];
+
+      surplusAPI.list.mockResolvedValue({ data: mockApiResponse });
   describe("Bookmark Functionality", () => {
     test("bookmarks and unbookmarks", async () => {
       surplusAPI.list.mockResolvedValue({ data: [createMockDonation()] });
@@ -403,10 +588,31 @@ describe("ReceiverBrowse Component", () => {
       });
     });
 
+  describe("Edge Cases", () => {
+    test("handles null expiry date from API", async () => {
+      const mockApiResponse = [
+        {
+          id: 1,
+          title: "Test Item",
+          foodCategories: ["FRUITS_VEGETABLES"],
+          expiryDate: null,
+          pickupLocation: { address: "Test Location" },
+          pickupDate: "2025-11-06",
+          pickupFrom: "14:00:00",
+          pickupTo: "17:00:00",
+          quantity: { value: 5, unit: "KILOGRAM" },
+          donor: { name: "Test Donor" },
+          donorName: "Test Donor",
+          description: "Test description",
+          createdAt: "2025-11-04T10:00:00",
+          status: "AVAILABLE",
+        },
+      ];
+
+      surplusAPI.list.mockResolvedValue({ data: mockApiResponse });
     test("shows disabled state while claiming", async () => {
       global.confirm.mockReturnValue(true);
-      let resolvePromise;
-      surplusAPI.claim.mockReturnValue(new Promise(r => { resolvePromise = r; }));
+      surplusAPI.claim.mockResolvedValue({});
       surplusAPI.list.mockResolvedValue({ data: [createMockDonation()] });
 
       await act(async () => { render(<ReceiverBrowse />); });
@@ -417,21 +623,36 @@ describe("ReceiverBrowse Component", () => {
 
       const claimButton = screen.getByText("Claim Donation");
 
-      await act(async () => {
-        fireEvent.click(claimButton);
-      });
+      await act(async () => { fireEvent.click(claimButton); });
 
-      // Resolve the promise
-      await act(async () => {
-        resolvePromise({});
-      });
-
+      // After claiming, item is removed from list
       await waitFor(() => {
         expect(surplusAPI.claim).toHaveBeenCalled();
       });
     });
   });
 
+    test("handles donation with no description from API", async () => {
+      const mockApiResponse = [
+        {
+          id: 1,
+          title: "Test Item",
+          foodCategories: ["FRUITS_VEGETABLES"],
+          expiryDate: "2025-11-08",
+          pickupLocation: { address: "Test Location" },
+          pickupDate: "2025-11-06",
+          pickupFrom: "14:00:00",
+          pickupTo: "17:00:00",
+          quantity: { value: 5, unit: "KILOGRAM" },
+          donor: { name: "Test Donor" },
+          donorName: "Test Donor",
+          description: null,
+          createdAt: "2025-11-04T10:00:00",
+          status: "AVAILABLE",
+        },
+      ];
+
+      surplusAPI.list.mockResolvedValue({ data: mockApiResponse });
   describe("Claim Modal with Pickup Slots", () => {
     const itemWithSlots = createMockDonation({
       pickupSlots: [
@@ -472,6 +693,27 @@ describe("ReceiverBrowse Component", () => {
       });
     });
 
+    test("handles missing pickup location", async () => {
+      const mockApiResponse = [
+        {
+          id: 1,
+          title: "Test Item",
+          foodCategories: ["FRUITS_VEGETABLES"],
+          expiryDate: "2025-11-08",
+          pickupLocation: null,
+          pickupDate: "2025-11-06",
+          pickupFrom: "14:00:00",
+          pickupTo: "17:00:00",
+          quantity: { value: 5, unit: "KILOGRAM" },
+          donor: { name: "Test Donor" },
+          donorName: "Test Donor",
+          description: "Test description",
+          createdAt: "2025-11-04T10:00:00",
+          status: "AVAILABLE",
+        },
+      ];
+
+      surplusAPI.list.mockResolvedValue({ data: mockApiResponse });
     test("closes modal on cancel", async () => {
       surplusAPI.list.mockResolvedValue({ data: [itemWithSlots] });
       await act(async () => { render(<ReceiverBrowse />); });
@@ -485,6 +727,28 @@ describe("ReceiverBrowse Component", () => {
       });
     });
 
+  describe("Food Category Mapping", () => {
+    test("correctly maps backend food categories to display strings", async () => {
+      const mockApiResponse = [
+        {
+          id: 1,
+          title: "Bakery Item",
+          foodCategories: ["BAKED_GOODS"], 
+          expiryDate: "2025-11-08",
+          pickupLocation: { address: "Test Location" },
+          pickupDate: "2025-11-06",
+          pickupFrom: "14:00:00",
+          pickupTo: "17:00:00",
+          quantity: { value: 5, unit: "PIECE" },
+          donor: { name: "Test Donor" },
+          donorName: "Test Donor",
+          description: "Test description",
+          createdAt: "2025-11-04T10:00:00",
+          status: "AVAILABLE",
+        },
+      ];
+
+      surplusAPI.list.mockResolvedValue({ data: mockApiResponse });
     test("shows notes in modal", async () => {
       surplusAPI.list.mockResolvedValue({ data: [itemWithSlots] });
       await act(async () => { render(<ReceiverBrowse />); });
@@ -496,6 +760,30 @@ describe("ReceiverBrowse Component", () => {
       });
     });
 
+    test("handles unknown food categories", async () => {
+      const mockApiResponse = [
+        {
+          id: 1,
+          title: "Unknown Item",
+          foodCategories: ["UNKNOWN_CATEGORY"],
+          expiryDate: "2025-11-08",
+          pickupLocation: { address: "Test Location" },
+          pickupDate: "2025-11-06",
+          pickupFrom: "14:00:00",
+          pickupTo: "17:00:00",
+          quantity: { value: 5, unit: "PIECE" },
+          donor: { name: "Test Donor" },
+          donorName: "Test Donor",
+          description: "Test description",
+          createdAt: "2025-11-04T10:00:00",
+          status: "AVAILABLE",
+        },
+      ];
+
+      surplusAPI.list.mockResolvedValue({ data: mockApiResponse });
+
+      await act(async () => {
+        render(<ReceiverBrowse />);
     test("shows empty state when no slots", async () => {
       const noSlots = createMockDonation({
         pickupSlots: [],
@@ -508,13 +796,41 @@ describe("ReceiverBrowse Component", () => {
 
       await act(async () => { fireEvent.click(screen.getByText("Claim Donation")); });
 
+      // The modal should still open, even with no slots
       await waitFor(() => {
+        // Check if modal opened OR if it shows an alert/doesn't open
         const modalText = screen.queryByText(/No proposed slots available/);
         const claimButton = screen.queryByText("Claim Donation");
+
+        // Either the modal opened with empty state, or claim didn't trigger modal
         expect(modalText || claimButton).toBeTruthy();
       });
     });
 
+    test("handles empty food categories array", async () => {
+      const mockApiResponse = [
+        {
+          id: 1,
+          title: "No Category Item",
+          foodCategories: [],
+          expiryDate: "2025-11-08",
+          pickupLocation: { address: "Test Location" },
+          pickupDate: "2025-11-06",
+          pickupFrom: "14:00:00",
+          pickupTo: "17:00:00",
+          quantity: { value: 5, unit: "PIECE" },
+          donor: { name: "Test Donor" },
+          donorName: "Test Donor",
+          description: "Test description",
+          createdAt: "2025-11-04T10:00:00",
+          status: "AVAILABLE",
+        },
+      ];
+
+      surplusAPI.list.mockResolvedValue({ data: mockApiResponse });
+
+      await act(async () => {
+        render(<ReceiverBrowse />);
     test("handles alternative field names", async () => {
       const altFields = createMockDonation({
         pickupSlots: [{ date: "2025-11-06", from: "14:00:00", to: "17:00:00" }]
@@ -593,6 +909,28 @@ describe("ReceiverBrowse Component", () => {
       await waitFor(() => { expect(surplusAPI.list).toHaveBeenCalledTimes(2); });
     });
 
+  describe("Accessibility", () => {
+    test("bookmark button has proper aria-label", async () => {
+      const mockApiResponse = [
+        {
+          id: 1,
+          title: "Fresh Organic Apples",
+          foodCategories: ["FRUITS_VEGETABLES"],
+          expiryDate: "2025-11-08",
+          pickupLocation: { address: "Downtown Montreal" },
+          pickupDate: "2025-11-06",
+          pickupFrom: "14:00:00",
+          pickupTo: "17:00:00",
+          quantity: { value: 5, unit: "KILOGRAM" },
+          donor: { name: "Green Organic Market" },
+          donorName: "Green Organic Market",
+          description: "Crisp and sweet apples",
+          createdAt: "2025-11-04T10:00:00",
+          status: "AVAILABLE",
+        },
+      ];
+
+      surplusAPI.list.mockResolvedValue({ data: mockApiResponse });
     test("handles filter error", async () => {
       surplusAPI.list.mockResolvedValue({ data: [] });
       surplusAPI.search.mockRejectedValue(new Error("Search failed"));
@@ -604,12 +942,12 @@ describe("ReceiverBrowse Component", () => {
         fireEvent.click(screen.getByText("Apply Filters"));
       });
 
+      // Check for error in role="alert" element instead of specific text
       await waitFor(() => {
         const alert = screen.queryByRole("alert");
         expect(alert || screen.getByText("No donations available right now.")).toBeInTheDocument();
       });
     });
-
     test("closes filters panel", async () => {
       surplusAPI.list.mockResolvedValue({ data: [] });
       await act(async () => { render(<ReceiverBrowse />); });
@@ -677,79 +1015,76 @@ describe("ReceiverBrowse Component", () => {
       await act(async () => { render(<ReceiverBrowse />); });
 
       await waitFor(() => {
+        // Check for either "—" or "Invalid Date" as both are reasonable fallbacks
         const expiryText = screen.getByText(/Expires:/);
         expect(expiryText).toBeInTheDocument();
         expect(expiryText.textContent).toMatch(/Expires:\s*(—|Invalid Date)/);
       });
     });
-  });
 
-  describe("Edge Cases", () => {
-    test("handles all null/missing fields", async () => {
-      surplusAPI.list.mockResolvedValue({
-        data: [createMockDonation({
-          expiryDate: null,
-          donor: null,
-          pickupLocation: null,
-          pickupDate: null,
-          pickupFrom: null,
-          pickupTo: null,
-          createdAt: null,
-          foodCategories: null
-        })]
+    describe("Edge Cases", () => {
+      test("handles all null/missing fields", async () => {
+        surplusAPI.list.mockResolvedValue({
+          data: [createMockDonation({
+            expiryDate: null,
+            donor: null,
+            pickupLocation: null,
+            pickupDate: null,
+            pickupFrom: null,
+            pickupTo: null,
+            createdAt: null,
+            foodCategories: null
+          })]
+        });
+
+        await act(async () => { render(<ReceiverBrowse />); });
+
+        await waitFor(() => {
+          expect(screen.getByText("Expires: —")).toBeInTheDocument();
+          expect(screen.getByText("Donated by Local Business")).toBeInTheDocument();
+          expect(screen.getByText("Location not specified")).toBeInTheDocument();
+          expect(screen.getByText("Other")).toBeInTheDocument();
+        });
       });
 
-      await act(async () => { render(<ReceiverBrowse />); });
+      test("displays multiple pickup slots", async () => {
+        const multiSlots = createMockDonation({
+          pickupSlots: [
+            { pickupDate: "2025-11-06", startTime: "14:00:00", endTime: "17:00:00" },
+            { pickupDate: "2025-11-07", startTime: "10:00:00", endTime: "13:00:00" }
+          ]
+        });
+        surplusAPI.list.mockResolvedValue({ data: [multiSlots] });
 
-      await waitFor(() => {
-        expect(screen.getByText("Expires: —")).toBeInTheDocument();
-        expect(screen.getByText("Donated by Local Business")).toBeInTheDocument();
-        expect(screen.getByText("Location not specified")).toBeInTheDocument();
-        expect(screen.getByText("Other")).toBeInTheDocument();
+        await act(async () => { render(<ReceiverBrowse />); });
+
+        await waitFor(() => {
+          const slots = screen.getAllByText(/Nov \d+, 2025/);
+          expect(slots.length).toBeGreaterThan(0);
+        });
       });
     });
 
-    test("displays multiple pickup slots", async () => {
-      const multiSlots = createMockDonation({
-        pickupSlots: [
-          { pickupDate: "2025-11-06", startTime: "14:00:00", endTime: "17:00:00" },
-          { pickupDate: "2025-11-07", startTime: "10:00:00", endTime: "13:00:00" }
-        ]
+    describe("Google Maps Integration", () => {
+      test("renders filters when loaded", async () => {
+        surplusAPI.list.mockResolvedValue({ data: [] });
+        await act(async () => { render(<ReceiverBrowse />); });
+
+        expect(screen.getByTestId("filters-panel")).toBeInTheDocument();
       });
-      surplusAPI.list.mockResolvedValue({ data: [multiSlots] });
 
-      await act(async () => { render(<ReceiverBrowse />); });
+      test("does not render filters when not loaded", async () => {
+        const googlemaps = require("@react-google-maps/api");
+        googlemaps.useLoadScript = () => ({ isLoaded: false, loadError: null });
 
-      await waitFor(() => {
-        const slots = screen.getAllByText(/Nov \d+, 2025/);
-        expect(slots.length).toBeGreaterThan(0);
+        surplusAPI.list.mockResolvedValue({ data: [] });
+        await act(async () => { render(<ReceiverBrowse />); });
+
+        expect(screen.queryByTestId("filters-panel")).not.toBeInTheDocument();
+
+        // Reset
+        googlemaps.useLoadScript = () => ({ isLoaded: true, loadError: null });
       });
     });
-  });
-
-  describe("Google Maps Integration", () => {
-    test("renders filters when loaded", async () => {
-      surplusAPI.list.mockResolvedValue({ data: [] });
-      await act(async () => { render(<ReceiverBrowse />); });
-
-      expect(screen.getByTestId("filters-panel")).toBeInTheDocument();
-    });
-
-    test("does not render filters when not loaded", async () => {
-      // Temporarily override the mocked useLoadScript implementation so the
-      // component sees isLoaded=false during this render. This avoids re-requiring
-      // the component (which can cause invalid hook calls in tests).
-      const mapsApi = require("@react-google-maps/api");
-      const spy = jest.spyOn(mapsApi, "useLoadScript").mockReturnValue({ isLoaded: false, loadError: null });
-
-      surplusAPI.list.mockResolvedValue({ data: [] });
-      await act(async () => { render(<ReceiverBrowse />); });
-
-      expect(screen.queryByTestId("filters-panel")).not.toBeInTheDocument();
-
-      // restore
-      spy.mockRestore();
-    });
-  });
+  }); // describe("ReceiverBrowse")
 });
-

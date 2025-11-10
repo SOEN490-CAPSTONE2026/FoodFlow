@@ -414,7 +414,7 @@ describe("DonorListFood", () => {
     expect(screen.getByTestId("surplus-form-modal")).toBeInTheDocument();
   });
 
-  test("applies confirmed class to pickup slot when confirmedPickupSlot matches", async () => {
+  test("shows only confirmed pickup slot when confirmedPickupSlot exists", async () => {
     const itemWithConfirmedSlot = {
       id: 3,
       title: "Confirmed Slot Item",
@@ -445,14 +445,14 @@ describe("DonorListFood", () => {
     const card = screen.getByLabelText(/confirmed slot item/i);
     const pickupTimes = card.querySelectorAll(".pickup-time-item");
 
-    // First slot should not have confirmed class
-    expect(pickupTimes[0]).not.toHaveClass("confirmed");
-
-    // Second slot should have confirmed class
-    expect(pickupTimes[1]).toHaveClass("confirmed");
+    // Should only show ONE pickup time (the confirmed one)
+    expect(pickupTimes).toHaveLength(1);
+    
+    // Should not have divider since there's only one slot shown
+    expect(within(card).queryByText(/\|/)).not.toBeInTheDocument();
   });
 
-  test("does not apply confirmed class when no confirmedPickupSlot exists", async () => {
+  test("shows all pickup slots when no confirmedPickupSlot exists", async () => {
     const itemWithoutConfirmedSlot = {
       id: 4,
       title: "No Confirmed Slot Item",
@@ -478,13 +478,14 @@ describe("DonorListFood", () => {
     const card = screen.getByLabelText(/no confirmed slot item/i);
     const pickupTimes = card.querySelectorAll(".pickup-time-item");
 
-    // Neither slot should have confirmed class
-    pickupTimes.forEach(slot => {
-      expect(slot).not.toHaveClass("confirmed");
-    });
+    // Should show ALL pickup slots when not confirmed
+    expect(pickupTimes).toHaveLength(2);
+    
+    // Should have divider between multiple slots
+    expect(within(card).getByText(/\|/)).toBeInTheDocument();
   });
 
-  test("applies confirmed class when item has single pickup slot that is confirmed", async () => {
+  test("shows only the confirmed slot for single slot item when confirmed", async () => {
     const itemWithSingleConfirmedSlot = {
       id: 5,
       title: "Single Confirmed Slot",
@@ -512,9 +513,12 @@ describe("DonorListFood", () => {
     });
 
     const card = screen.getByLabelText(/single confirmed slot/i);
-    const pickupTime = card.querySelector(".pickup-time-item");
+    const pickupTimes = card.querySelectorAll(".pickup-time-item");
 
-    // The single slot should have confirmed class
-    expect(pickupTime).toHaveClass("confirmed");
+    // Should show only one slot
+    expect(pickupTimes).toHaveLength(1);
+    
+    // Should not have divider for single slot
+    expect(within(card).queryByText(/\|/)).not.toBeInTheDocument();
   });
 });

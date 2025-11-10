@@ -24,8 +24,7 @@ function renderAt(path = "/receiver") {
       <MemoryRouter initialEntries={[path]}>
         <Routes>
           <Route path="/receiver/*" element={<ReceiverLayout />}>
-            <Route index element={<div>Index</div>} />
-            <Route path="dashboard" element={<div>Dashboard</div>} />
+            <Route index element={<div>Browse</div>} />
             <Route path="welcome" element={<div>Welcome</div>} />
             <Route path="browse" element={<div>Browse</div>} />
             <Route path="my-claims" element={<div>My Claims</div>} />
@@ -43,12 +42,12 @@ describe("ReceiverLayout", () => {
     mockLogout.mockReset();
   });
 
-  test("renders dashboard title/description at /receiver and marks 'My Claims' active", () => {
+  test("renders browse title/description at /receiver and marks 'Donations' active", () => {
     renderAt("/receiver");
     expect(screen.getByRole("heading", { name: /receiver dashboard/i })).toBeInTheDocument();
     expect(screen.getByText(/overview of nearby food and your activity/i)).toBeInTheDocument();
 
-    const nav = screen.getByText(/my claims/i).closest("a");
+    const nav = screen.getByRole("link", { name: /^donations$/i });
     expect(nav).toHaveClass("receiver-nav-link");
     expect(nav).toHaveClass("active");
   });
@@ -69,6 +68,18 @@ describe("ReceiverLayout", () => {
 
     const link = screen.getByRole("link", { name: /^donations$/i });
     expect(link).toHaveClass("active");
+  });
+
+  test("renders my claims page at /receiver/my-claims and marks 'My Claims' active", () => {
+    renderAt("/receiver/my-claims");
+    
+    // Check that My Claims link is active
+    const link = screen.getByRole("link", { name: /my claims/i });
+    expect(link).toHaveClass("active");
+    
+    // Check that the my claims content is rendered (using getAllByText since it appears in nav and content)
+    const myClaimsElements = screen.getAllByText('My Claims');
+    expect(myClaimsElements.length).toBeGreaterThan(0);
   });
 
   test("renders messages title/description at /receiver/messages and marks 'Messages' active", () => {

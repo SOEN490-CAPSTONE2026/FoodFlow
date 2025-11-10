@@ -1,18 +1,18 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
 import DonorWelcome from '../DonorWelcome';
 
 // Mock the API
 jest.mock('../../../services/api', () => ({
   surplusAPI: {
-    getMyPosts: jest.fn()
-  }
+    getMyPosts: jest.fn(),
+  },
 }));
 
-// Mock CSS
+// Mock CSS (avoid actual CSS processing)
 jest.mock('../Donor_Styles/DonorWelcome.css', () => ({}), { virtual: true });
 
 import { surplusAPI } from '../../../services/api';
@@ -21,16 +21,14 @@ import { surplusAPI } from '../../../services/api';
 const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
-  useNavigate: () => mockNavigate
+  useNavigate: () => mockNavigate,
 }));
 
 // Mock localStorage
 const localStorageMock = (() => {
   let store = {};
   return {
-    getItem: (key) => {
-      return store[key] || null;
-    },
+    getItem: (key) => store[key] || null,
     setItem: (key, value) => {
       store[key] = value.toString();
     },
@@ -39,20 +37,20 @@ const localStorageMock = (() => {
     },
     clear: () => {
       store = {};
-    }
+    },
   };
 })();
 
 Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock
+  value: localStorageMock,
 });
 
 describe('DonorWelcome', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     window.localStorage.clear();
-    
-    // Mock IntersectionObserver
+
+    // Mock IntersectionObserver used by the component (if any)
     global.IntersectionObserver = class IntersectionObserver {
       constructor() {}
       disconnect() {}
@@ -73,21 +71,28 @@ describe('DonorWelcome', () => {
   };
 
   test('renders welcome header with donor name from localStorage', async () => {
-    window.localStorage.setItem('user', JSON.stringify({ 
-      organizationName: 'Test Donor Org',
-      name: 'Test User'
-    }));
+    window.localStorage.setItem(
+      'user',
+      JSON.stringify({
+        organizationName: 'Test Donor Org',
+        name: 'Test User',
+      })
+    );
 
     surplusAPI.getMyPosts.mockResolvedValueOnce({ data: [] });
 
     renderComponent();
 
     await waitFor(() => {
-      expect(screen.getByText((content, element) => {
-        return element?.tagName?.toLowerCase() === 'h1' && 
-               content.includes('Welcome back') && 
-               content.includes('Test Donor Org');
-      })).toBeInTheDocument();
+      expect(
+        screen.getByText((content, element) => {
+          return (
+            element?.tagName?.toLowerCase() === 'h1' &&
+            content.includes('Welcome back') &&
+            content.includes('Test Donor Org')
+          );
+        })
+      ).toBeInTheDocument();
     });
   });
 
@@ -115,24 +120,9 @@ describe('DonorWelcome', () => {
 
   test('calculates and displays correct stats from API data', async () => {
     const mockDonations = [
-      { 
-        id: 1, 
-        quantity: 10,
-        quantityUnit: 'kg',
-        status: 'COMPLETED'
-      },
-      { 
-        id: 2, 
-        quantity: 5,
-        quantityUnit: 'kg',
-        status: 'COMPLETED'
-      },
-      { 
-        id: 3, 
-        quantity: 8,
-        quantityUnit: 'kg',
-        status: 'PENDING'
-      }
+      { id: 1, quantity: 10, quantityUnit: 'kg', status: 'COMPLETED' },
+      { id: 2, quantity: 5, quantityUnit: 'kg', status: 'COMPLETED' },
+      { id: 3, quantity: 8, quantityUnit: 'kg', status: 'PENDING' },
     ];
 
     surplusAPI.getMyPosts.mockResolvedValueOnce({ data: mockDonations });
@@ -140,7 +130,7 @@ describe('DonorWelcome', () => {
     renderComponent();
 
     await waitFor(() => {
-      // Total donations: 3
+      // Total donations = 3 (as rendered in card value)
       expect(screen.getByText('3')).toBeInTheDocument();
     });
   });
@@ -194,7 +184,7 @@ describe('DonorWelcome', () => {
     });
 
     await user.click(screen.getByRole('button', { name: /Create Donation/i }));
-    
+
     expect(mockNavigate).toHaveBeenCalledWith('/donor/list');
   });
 
@@ -209,7 +199,7 @@ describe('DonorWelcome', () => {
     });
 
     await user.click(screen.getByRole('button', { name: /View Reports/i }));
-    
+
     expect(mockNavigate).toHaveBeenCalledWith('/donor/dashboard');
   });
 
@@ -229,7 +219,9 @@ describe('DonorWelcome', () => {
     renderComponent();
 
     await waitFor(() => {
-      expect(screen.getByText(/No donations yet. Create your first donation to get started!/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/No donations yet. Create your first donation to get started!/i)
+      ).toBeInTheDocument();
     });
   });
 
@@ -241,8 +233,8 @@ describe('DonorWelcome', () => {
         quantity: 10,
         quantityUnit: 'kg',
         status: 'COMPLETED',
-        createdAt: '2024-01-15T10:00:00Z'
-      }
+        createdAt: '2024-01-15T10:00:00Z',
+      },
     ];
 
     surplusAPI.getMyPosts.mockResolvedValueOnce({ data: mockDonations });
@@ -250,7 +242,7 @@ describe('DonorWelcome', () => {
     renderComponent();
 
     await waitFor(() => {
-      // Based on HTML output, it shows generic "Food donation" text
+      // Based on UI: generic "Food donation" and status label
       expect(screen.getByText('Food donation')).toBeInTheDocument();
       expect(screen.getByText('Completed')).toBeInTheDocument();
     });
@@ -264,7 +256,7 @@ describe('DonorWelcome', () => {
         quantity: 10,
         quantityUnit: 'kg',
         status: 'COMPLETED',
-        createdAt: '2024-01-15T10:00:00Z'
+        createdAt: '2024-01-15T10:00:00Z',
       },
       {
         id: 2,
@@ -272,7 +264,7 @@ describe('DonorWelcome', () => {
         quantity: 5,
         quantityUnit: 'kg',
         status: 'AVAILABLE',
-        createdAt: '2024-01-14T09:00:00Z'
+        createdAt: '2024-01-14T09:00:00Z',
       },
       {
         id: 3,
@@ -280,8 +272,8 @@ describe('DonorWelcome', () => {
         quantity: 3,
         quantityUnit: 'kg',
         status: 'CLAIMED',
-        createdAt: '2024-01-13T08:00:00Z'
-      }
+        createdAt: '2024-01-13T08:00:00Z',
+      },
     ];
 
     surplusAPI.getMyPosts.mockResolvedValueOnce({ data: mockDonations });
@@ -289,7 +281,6 @@ describe('DonorWelcome', () => {
     renderComponent();
 
     await waitFor(() => {
-      // Status displayed as: "Completed", "Available", "Claimed"
       expect(screen.getByText('Completed')).toBeInTheDocument();
       expect(screen.getByText('Available')).toBeInTheDocument();
       expect(screen.getByText('Claimed')).toBeInTheDocument();
@@ -304,8 +295,8 @@ describe('DonorWelcome', () => {
         quantity: 10,
         quantityUnit: 'kg',
         status: 'COMPLETED',
-        createdAt: '2024-01-15T10:00:00Z'
-      }
+        createdAt: '2024-01-15T10:00:00Z',
+      },
     ];
 
     surplusAPI.getMyPosts.mockResolvedValueOnce({ data: mockDonations });
@@ -336,8 +327,8 @@ describe('DonorWelcome', () => {
         quantity: 10,
         quantityUnit: 'kg',
         status: 'COMPLETED',
-        createdAt: '2024-01-15T10:00:00Z'
-      }
+        createdAt: '2024-01-15T10:00:00Z',
+      },
     ];
 
     surplusAPI.getMyPosts.mockResolvedValueOnce({ data: mockDonations });
@@ -349,7 +340,7 @@ describe('DonorWelcome', () => {
     });
 
     await user.click(screen.getByRole('button', { name: /View All/i }));
-    
+
     expect(mockNavigate).toHaveBeenCalled();
   });
 
@@ -371,8 +362,8 @@ describe('DonorWelcome', () => {
         quantity: 10,
         quantityUnit: 'kg',
         status: 'COMPLETED',
-        createdAt: '2024-01-15T10:30:45Z'
-      }
+        createdAt: '2024-01-15T10:30:45Z',
+      },
     ];
 
     surplusAPI.getMyPosts.mockResolvedValueOnce({ data: mockDonations });
@@ -380,7 +371,7 @@ describe('DonorWelcome', () => {
     renderComponent();
 
     await waitFor(() => {
-      // Date shown as "Jan 15" in the HTML
+      // Example: "Jan 15"
       expect(screen.getByText(/Jan 15/i)).toBeInTheDocument();
     });
   });
@@ -392,7 +383,7 @@ describe('DonorWelcome', () => {
 
     await waitFor(() => {
       const statValues = screen.getAllByText('0');
-      expect(statValues.length).toBeGreaterThan(0); // Should have multiple zeros (totalDonations, mealsServed)
+      expect(statValues.length).toBeGreaterThan(0); // multiple zero-stat cards appear
     });
   });
 });
