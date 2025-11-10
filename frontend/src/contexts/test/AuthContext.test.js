@@ -94,7 +94,7 @@ describe("AuthContext", () => {
       });
 
       act(() => {
-        result.current.login("session-token", "user", "456", true);
+        result.current.login("session-token", "user", "456", null, true);
       });
 
       expect(sessionStorage.getItem("jwtToken")).toBe("session-token");
@@ -112,7 +112,7 @@ describe("AuthContext", () => {
       });
 
       act(() => {
-        result.current.login("local-token", "moderator", "789", false);
+        result.current.login("local-token", "moderator", "789", null, false);
       });
 
       expect(localStorage.getItem("jwtToken")).toBe("local-token");
