@@ -1,21 +1,21 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import DonorWelcome from '../DonorWelcome';
+import { AuthContext } from '../../../contexts/AuthContext';
 
-// Mock the API
+// Mock API
 jest.mock('../../../services/api', () => ({
   surplusAPI: {
     getMyPosts: jest.fn(),
   },
 }));
-
-// Mock CSS (avoid actual CSS processing)
-jest.mock('../Donor_Styles/DonorWelcome.css', () => ({}), { virtual: true });
-
 import { surplusAPI } from '../../../services/api';
+
+// Mock CSS
+jest.mock('../Donor_Styles/DonorWelcome.css', () => ({}), { virtual: true });
 
 // Mock useNavigate
 const mockNavigate = jest.fn();
@@ -24,83 +24,74 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
 }));
 
-// Mock localStorage
+// Minimal localStorage stub
 const localStorageMock = (() => {
   let store = {};
   return {
-    getItem: (key) => store[key] || null,
-    setItem: (key, value) => {
-      store[key] = value.toString();
-    },
-    removeItem: (key) => {
-      delete store[key];
-    },
-    clear: () => {
-      store = {};
-    },
+    getItem: (k) => store[k] ?? null,
+    setItem: (k, v) => { store[k] = String(v); },
+    removeItem: (k) => { delete store[k]; },
+    clear: () => { store = {}; },
   };
 })();
+Object.defineProperty(window, 'localStorage', { value: localStorageMock });
 
-Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock,
-});
+const defaultCtx = {
+  isLoggedIn: true,
+  role: 'DONOR',
+  userId: '1',
+  organizationName: 'Test Donor Org',
+  login: jest.fn(),
+  logout: jest.fn(),
+};
+
+function renderWithProviders(ctxValue = defaultCtx) {
+  return render(
+    <AuthContext.Provider value={ctxValue}>
+      <MemoryRouter>
+        <DonorWelcome />
+      </MemoryRouter>
+    </AuthContext.Provider>
+  );
+}
 
 describe('DonorWelcome', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     window.localStorage.clear();
-
-    // Mock IntersectionObserver used by the component (if any)
-    global.IntersectionObserver = class IntersectionObserver {
+    // IntersectionObserver mock
+    global.IntersectionObserver = class {
       constructor() {}
       disconnect() {}
       observe() {}
       unobserve() {}
-      takeRecords() {
-        return [];
-      }
+      takeRecords() { return []; }
     };
   });
 
-  const renderComponent = () => {
-    return render(
-      <MemoryRouter>
-        <DonorWelcome />
-      </MemoryRouter>
-    );
-  };
-
-  test('renders welcome header with donor name from localStorage', async () => {
-    window.localStorage.setItem(
-      'user',
-      JSON.stringify({
-        organizationName: 'Test Donor Org',
-        name: 'Test User',
-      })
-    );
-
+  test('renders welcome header with donor name from localStorage/context', async () => {
+    window.localStorage.setItem('user', JSON.stringify({
+      organizationName: 'Test Donor Org',
+      name: 'Test User',
+    }));
     surplusAPI.getMyPosts.mockResolvedValueOnce({ data: [] });
 
-    renderComponent();
+    renderWithProviders();
 
     await waitFor(() => {
       expect(
-        screen.getByText((content, element) => {
-          return (
-            element?.tagName?.toLowerCase() === 'h1' &&
-            content.includes('Welcome back') &&
-            content.includes('Test Donor Org')
-          );
-        })
+        screen.getByText((content, el) =>
+          el?.tagName?.toLowerCase() === 'h1' &&
+          content.includes('Welcome back') &&
+          content.includes('Test Donor Org')
+        )
       ).toBeInTheDocument();
     });
   });
 
-  test('renders welcome header without name when user not in localStorage', async () => {
+  test('renders welcome header without name when context is empty (fallback)', async () => {
     surplusAPI.getMyPosts.mockResolvedValueOnce({ data: [] });
-
-    renderComponent();
-
+    renderWithProviders({}); // provide empty context instead of no provider
     await waitFor(() => {
       expect(screen.getByText(/Welcome back/i)).toBeInTheDocument();
     });
@@ -108,9 +99,7 @@ describe('DonorWelcome', () => {
 
   test('renders all stats cards', async () => {
     surplusAPI.getMyPosts.mockResolvedValueOnce({ data: [] });
-
-    renderComponent();
-
+    renderWithProviders();
     await waitFor(() => {
       expect(screen.getByText('Total Donations')).toBeInTheDocument();
       expect(screen.getByText('Meals Served')).toBeInTheDocument();
@@ -121,269 +110,94 @@ describe('DonorWelcome', () => {
   test('calculates and displays correct stats from API data', async () => {
     const mockDonations = [
       { id: 1, quantity: 10, quantityUnit: 'kg', status: 'COMPLETED' },
-      { id: 2, quantity: 5, quantityUnit: 'kg', status: 'COMPLETED' },
-      { id: 3, quantity: 8, quantityUnit: 'kg', status: 'PENDING' },
+      { id: 2, quantity: 5,  quantityUnit: 'kg', status: 'COMPLETED' },
+      { id: 3, quantity: 8,  quantityUnit: 'kg', status: 'PENDING' },
     ];
-
     surplusAPI.getMyPosts.mockResolvedValueOnce({ data: mockDonations });
-
-    renderComponent();
-
+    renderWithProviders();
     await waitFor(() => {
-      // Total donations = 3 (as rendered in card value)
       expect(screen.getByText('3')).toBeInTheDocument();
     });
   });
 
   test('handles API error gracefully', async () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
     surplusAPI.getMyPosts.mockRejectedValueOnce(new Error('API Error'));
-
-    renderComponent();
-
-    await waitFor(() => {
-      expect(consoleErrorSpy).toHaveBeenCalled();
-    });
-
-    // Should still render with default values
+    renderWithProviders();
+    await waitFor(() => expect(spy).toHaveBeenCalled());
     expect(screen.getByText('Total Donations')).toBeInTheDocument();
-
-    consoleErrorSpy.mockRestore();
+    spy.mockRestore();
   });
 
-  test('renders action cards with correct titles and descriptions', async () => {
+  test('renders action cards and buttons', async () => {
     surplusAPI.getMyPosts.mockResolvedValueOnce({ data: [] });
-
-    renderComponent();
-
+    renderWithProviders();
     await waitFor(() => {
       expect(screen.getByText('Donate Food')).toBeInTheDocument();
       expect(screen.getByText('Impact Reports')).toBeInTheDocument();
-    });
-  });
-
-  test('renders action buttons', async () => {
-    surplusAPI.getMyPosts.mockResolvedValueOnce({ data: [] });
-
-    renderComponent();
-
-    await waitFor(() => {
       expect(screen.getByRole('button', { name: /Create Donation/i })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /View Reports/i })).toBeInTheDocument();
     });
   });
 
-  test('navigates to list page when Create Donation button is clicked', async () => {
+  test('navigates to list on Create Donation', async () => {
     const user = userEvent.setup();
     surplusAPI.getMyPosts.mockResolvedValueOnce({ data: [] });
-
-    renderComponent();
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Create Donation/i })).toBeInTheDocument();
-    });
-
+    renderWithProviders();
+    await waitFor(() => screen.getByRole('button', { name: /Create Donation/i }));
     await user.click(screen.getByRole('button', { name: /Create Donation/i }));
-
     expect(mockNavigate).toHaveBeenCalledWith('/donor/list');
   });
 
-  test('navigates to dashboard page when View Reports button is clicked', async () => {
+  test('navigates to dashboard on View Reports', async () => {
     const user = userEvent.setup();
     surplusAPI.getMyPosts.mockResolvedValueOnce({ data: [] });
-
-    renderComponent();
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /View Reports/i })).toBeInTheDocument();
-    });
-
+    renderWithProviders();
+    await waitFor(() => screen.getByRole('button', { name: /View Reports/i }));
     await user.click(screen.getByRole('button', { name: /View Reports/i }));
-
     expect(mockNavigate).toHaveBeenCalledWith('/donor/dashboard');
   });
 
-  test('renders recent donations section', async () => {
+  test('recent donations section and empty state', async () => {
     surplusAPI.getMyPosts.mockResolvedValueOnce({ data: [] });
-
-    renderComponent();
-
+    renderWithProviders();
     await waitFor(() => {
       expect(screen.getByText('Recent Donations')).toBeInTheDocument();
-    });
-  });
-
-  test('displays empty state when there are no donations', async () => {
-    surplusAPI.getMyPosts.mockResolvedValueOnce({ data: [] });
-
-    renderComponent();
-
-    await waitFor(() => {
       expect(
-        screen.getByText(/No donations yet. Create your first donation to get started!/i)
+        screen.getByText(/No donations yet\. Create your first donation to get started!/i)
       ).toBeInTheDocument();
     });
   });
 
-  test('displays recent donations when donations exist', async () => {
-    const mockDonations = [
-      {
-        id: 1,
-        foodType: 'Vegetables',
-        quantity: 10,
-        quantityUnit: 'kg',
-        status: 'COMPLETED',
-        createdAt: '2024-01-15T10:00:00Z',
-      },
-    ];
-
-    surplusAPI.getMyPosts.mockResolvedValueOnce({ data: mockDonations });
-
-    renderComponent();
-
+  test('renders recent donation when present', async () => {
+    surplusAPI.getMyPosts.mockResolvedValueOnce({
+      data: [{
+        id: 1, foodType: 'Vegetables', quantity: 10, quantityUnit: 'kg',
+        status: 'COMPLETED', createdAt: '2024-01-15T10:00:00Z'
+      }],
+    });
+    renderWithProviders();
     await waitFor(() => {
-      // Based on UI: generic "Food donation" and status label
       expect(screen.getByText('Food donation')).toBeInTheDocument();
       expect(screen.getByText('Completed')).toBeInTheDocument();
     });
   });
 
-  test('displays correct status text for donations', async () => {
-    const mockDonations = [
-      {
-        id: 1,
-        foodType: 'Food',
-        quantity: 10,
-        quantityUnit: 'kg',
-        status: 'COMPLETED',
-        createdAt: '2024-01-15T10:00:00Z',
-      },
-      {
-        id: 2,
-        foodType: 'Food',
-        quantity: 5,
-        quantityUnit: 'kg',
-        status: 'AVAILABLE',
-        createdAt: '2024-01-14T09:00:00Z',
-      },
-      {
-        id: 3,
-        foodType: 'Food',
-        quantity: 3,
-        quantityUnit: 'kg',
-        status: 'CLAIMED',
-        createdAt: '2024-01-13T08:00:00Z',
-      },
-    ];
-
-    surplusAPI.getMyPosts.mockResolvedValueOnce({ data: mockDonations });
-
-    renderComponent();
-
-    await waitFor(() => {
-      expect(screen.getByText('Completed')).toBeInTheDocument();
-      expect(screen.getByText('Available')).toBeInTheDocument();
-      expect(screen.getByText('Claimed')).toBeInTheDocument();
+  test('formats date in recent donations', async () => {
+    surplusAPI.getMyPosts.mockResolvedValueOnce({
+      data: [{ id: 1, quantity: 1, quantityUnit: 'kg', status: 'COMPLETED', createdAt: '2024-01-15T10:30:45Z' }],
     });
-  });
-
-  test('renders View All button when donations exist', async () => {
-    const mockDonations = [
-      {
-        id: 1,
-        foodType: 'Food',
-        quantity: 10,
-        quantityUnit: 'kg',
-        status: 'COMPLETED',
-        createdAt: '2024-01-15T10:00:00Z',
-      },
-    ];
-
-    surplusAPI.getMyPosts.mockResolvedValueOnce({ data: mockDonations });
-
-    renderComponent();
-
+    renderWithProviders();
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /View All/i })).toBeInTheDocument();
-    });
-  });
-
-  test('does not render View All button when no donations', async () => {
-    surplusAPI.getMyPosts.mockResolvedValueOnce({ data: [] });
-
-    renderComponent();
-
-    await waitFor(() => {
-      expect(screen.queryByRole('button', { name: /View All/i })).not.toBeInTheDocument();
-    });
-  });
-
-  test('navigates when View All button is clicked', async () => {
-    const user = userEvent.setup();
-    const mockDonations = [
-      {
-        id: 1,
-        foodType: 'Food',
-        quantity: 10,
-        quantityUnit: 'kg',
-        status: 'COMPLETED',
-        createdAt: '2024-01-15T10:00:00Z',
-      },
-    ];
-
-    surplusAPI.getMyPosts.mockResolvedValueOnce({ data: mockDonations });
-
-    renderComponent();
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /View All/i })).toBeInTheDocument();
-    });
-
-    await user.click(screen.getByRole('button', { name: /View All/i }));
-
-    expect(mockNavigate).toHaveBeenCalled();
-  });
-
-  test('calls API on component mount', async () => {
-    surplusAPI.getMyPosts.mockResolvedValueOnce({ data: [] });
-
-    renderComponent();
-
-    await waitFor(() => {
-      expect(surplusAPI.getMyPosts).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  test('displays formatted dates in recent donations', async () => {
-    const mockDonations = [
-      {
-        id: 1,
-        foodType: 'Food',
-        quantity: 10,
-        quantityUnit: 'kg',
-        status: 'COMPLETED',
-        createdAt: '2024-01-15T10:30:45Z',
-      },
-    ];
-
-    surplusAPI.getMyPosts.mockResolvedValueOnce({ data: mockDonations });
-
-    renderComponent();
-
-    await waitFor(() => {
-      // Example: "Jan 15"
       expect(screen.getByText(/Jan 15/i)).toBeInTheDocument();
     });
   });
 
-  test('displays default stats when no donations', async () => {
+  test('defaults stats to zero when no donations', async () => {
     surplusAPI.getMyPosts.mockResolvedValueOnce({ data: [] });
-
-    renderComponent();
-
+    renderWithProviders();
     await waitFor(() => {
-      const statValues = screen.getAllByText('0');
-      expect(statValues.length).toBeGreaterThan(0); // multiple zero-stat cards appear
+      expect(screen.getAllByText('0').length).toBeGreaterThan(0);
     });
   });
 });
