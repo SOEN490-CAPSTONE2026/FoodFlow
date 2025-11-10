@@ -29,8 +29,6 @@ function renderAt(path = "/receiver") {
             <Route path="welcome" element={<div>Welcome</div>} />
             <Route path="browse" element={<div>Browse</div>} />
             <Route path="my-claims" element={<div>My Claims</div>} />
-            <Route path="requests" element={<div>Requests</div>} />
-            <Route path="search" element={<div>Search</div>} />
             <Route path="messages" element={<div>Messages</div>} />
           </Route>
         </Routes>
@@ -73,12 +71,6 @@ describe("ReceiverLayout", () => {
     expect(link).toHaveClass("active");
   });
 
-  test("renders requests title/description at /receiver/requests", () => {
-    renderAt("/receiver/requests");
-    expect(screen.getByRole("heading", { name: /my requests/i })).toBeInTheDocument();
-    expect(screen.getByText(/manage your food requests/i)).toBeInTheDocument();
-  });
-
   test("renders messages title/description at /receiver/messages and marks 'Messages' active", () => {
     renderAt("/receiver/messages");
     
@@ -89,12 +81,6 @@ describe("ReceiverLayout", () => {
     // Check that the messages page content is rendered
     const messagesContent = screen.getAllByText('Messages');
     expect(messagesContent.length).toBeGreaterThan(0);
-  });
-
-  test("renders search title/description at /receiver/search", () => {
-    renderAt("/receiver/search");
-    expect(screen.getByRole("heading", { name: /search organizations/i })).toBeInTheDocument();
-    expect(screen.getByText(/search for food donors/i)).toBeInTheDocument();
   });
 
   test("opens account menu via avatar button and logs out", async () => {

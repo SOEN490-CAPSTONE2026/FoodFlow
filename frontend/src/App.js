@@ -5,7 +5,6 @@ import RegisterType from './components/RegisterType';
 import DonorRegistration from './components/DonorRegistration';
 import ReceiverRegistration from './components/ReceiverRegistration';
 import LoginPage from './components/LoginPage';
-import TempDashboard from './components/TempDashboard';
 import NavigationBar from './components/NavigationBar';
 import { AuthProvider } from './contexts/AuthContext';
 import { useAnalytics } from './hooks/useAnalytics';
@@ -17,7 +16,6 @@ import DonorDashboard from './components/DonorDashboard/DonorDashboard';
 import ReceiverDashboard from './components/ReceiverDashboard/ReceiverDashboard';
 
 import SurplusForm from './components/DonorDashboard/SurplusFormModal';
-import MyPosts from './components/MyPosts';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import './App.css';
 
@@ -45,7 +43,6 @@ function AppContent() {
         <Route path="/register/donor" element={<DonorRegistration />} />
         <Route path="/register/receiver" element={<ReceiverRegistration />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/dashboard" element={<TempDashboard />} />
 
         {/* ===== Admin Dashboard (UNPROTECTED for dev preview) ===== */}
         <Route 
@@ -79,7 +76,6 @@ function AppContent() {
           }
         />
         <Route path="/surplus/create" element={<SurplusForm />} />
-        <Route path="/my-posts" element={<MyPosts />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       </Routes>
     </div>
