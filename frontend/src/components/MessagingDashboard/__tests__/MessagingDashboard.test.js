@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import MessagingDashboard from '../MessagingDashboard';
 
@@ -12,15 +12,29 @@ jest.mock('../../../services/api', () => ({
   },
 }));
 
+// ConversationsSidebar mock: keep your UI AND add a "Select First" button to trigger onSelectConversation
 jest.mock('../ConversationsSidebar', () => ({
   __esModule: true,
-  default: ({ conversations, loading, onNewConversation }) => (
+  default: ({ conversations, loading, onNewConversation, onSelectConversation }) => (
     <div data-testid="conversations-sidebar">
       {loading ? (
         <div>Loading...</div>
       ) : (
         <>
           <button onClick={onNewConversation}>New Conversation</button>
+          <button
+            onClick={() =>
+              onSelectConversation(
+                conversations[0] || {
+                  id: 111,
+                  otherUserName: 'Fallback User',
+                  otherUserEmail: 'fallback@test.com',
+                }
+              )
+            }
+          >
+            Select First
+          </button>
           <div>Conversations: {conversations.length}</div>
         </>
       )}
@@ -28,15 +42,21 @@ jest.mock('../ConversationsSidebar', () => ({
   ),
 }));
 
+// ChatPanel mock: expose triggers for onMessageSent and onConversationRead
 jest.mock('../ChatPanel', () => ({
   __esModule: true,
-  default: ({ conversation }) => (
+  default: ({ conversation, onMessageSent, onConversationRead }) => (
     <div data-testid="chat-panel">
-      {conversation ? `Chat with ${conversation.otherUserName}` : 'No conversation selected'}
+      <div>
+        {conversation ? `Chat with ${conversation.otherUserName}` : 'No conversation selected'}
+      </div>
+      <button onClick={onMessageSent}>Send Message</button>
+      <button onClick={onConversationRead}>Mark Read</button>
     </div>
   ),
 }));
 
+// NewConversationModal mock: keep your UI — provides Close and Create actions
 jest.mock('../NewConversationModal', () => ({
   __esModule: true,
   default: ({ onClose, onConversationCreated }) => (
@@ -64,7 +84,7 @@ describe('MessagingDashboard', () => {
   });
 
   test('renders loading state initially', () => {
-    mockGet.mockImplementation(() => new Promise(() => {})); // Never resolves
+    mockGet.mockImplementation(() => new Promise(() => {})); // never resolves
     render(<MessagingDashboard />);
     expect(screen.getByText('Loading...')).toBeInTheDocument();
   });
@@ -74,7 +94,6 @@ describe('MessagingDashboard', () => {
       { id: 1, otherUserName: 'User 1', otherUserEmail: 'user1@test.com' },
       { id: 2, otherUserName: 'User 2', otherUserEmail: 'user2@test.com' },
     ];
-
     mockGet.mockResolvedValue({ data: mockConversations });
 
     render(<MessagingDashboard />);
@@ -82,7 +101,6 @@ describe('MessagingDashboard', () => {
     await waitFor(() => {
       expect(screen.getByText('Conversations: 2')).toBeInTheDocument();
     });
-
     expect(mockGet).toHaveBeenCalledWith('/conversations');
   });
 
@@ -114,6 +132,113 @@ describe('MessagingDashboard', () => {
     await waitFor(() => {
       expect(screen.getByTestId('conversations-sidebar')).toBeInTheDocument();
       expect(screen.getByTestId('chat-panel')).toBeInTheDocument();
+    });
+  });
+
+  // ---- New tests to increase coverage of handlers/branches ----
+
+  test('selecting a conversation updates ChatPanel (handleSelectConversation)', async () => {
+    const mockConversations = [
+      { id: 1, otherUserName: 'User 1', otherUserEmail: 'user1@test.com' },
+      { id: 2, otherUserName: 'User 2', otherUserEmail: 'user2@test.com' },
+    ];
+    mockGet.mockResolvedValue({ data: mockConversations });
+
+    render(<MessagingDashboard />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Conversations: 2')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('Select First'));
+    expect(screen.getByText('Chat with User 1')).toBeInTheDocument();
+  });
+
+  test('clicking New Conversation opens modal; Create prepends, selects, and closes modal (handleNewConversation & handleConversationCreated)', async () => {
+    mockGet.mockResolvedValue({ data: [] });
+
+    render(<MessagingDashboard />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Conversations: 0')).toBeInTheDocument();
+    });
+
+    // open modal
+    fireEvent.click(screen.getByText('New Conversation'));
+    expect(screen.getByTestId('new-conversation-modal')).toBeInTheDocument();
+
+    // create conversation
+    fireEvent.click(screen.getByText('Create'));
+
+    // modal closed & chat switched to new conversation
+    await waitFor(() => {
+      expect(screen.queryByTestId('new-conversation-modal')).not.toBeInTheDocument();
+      expect(screen.getByText('Chat with New User')).toBeInTheDocument();
+      // conversations list updated
+      expect(screen.getByText('Conversations: 1')).toBeInTheDocument();
+    });
+  });
+
+  test('closing modal without creating hides the modal (show/hide branch)', async () => {
+    mockGet.mockResolvedValue({ data: [] });
+
+    render(<MessagingDashboard />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Conversations: 0')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('New Conversation'));
+    expect(screen.getByTestId('new-conversation-modal')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('Close'));
+    expect(screen.queryByTestId('new-conversation-modal')).not.toBeInTheDocument();
+  });
+
+  test('Send Message triggers a refresh (handleMessageSent -> loadConversations)', async () => {
+    // 1st call returns 1 conversation; 2nd call returns same list (we only assert call count)
+    mockGet
+      .mockResolvedValueOnce({ data: [{ id: 1, otherUserName: 'A', otherUserEmail: 'a@test.com' }] })
+      .mockResolvedValueOnce({ data: [{ id: 1, otherUserName: 'A', otherUserEmail: 'a@test.com' }] });
+
+    render(<MessagingDashboard />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Conversations: 1')).toBeInTheDocument();
+    });
+
+    // select conversation so ChatPanel shows buttons
+    fireEvent.click(screen.getByText('Select First'));
+    expect(screen.getByText('Chat with A')).toBeInTheDocument();
+
+    // trigger onMessageSent
+    fireEvent.click(screen.getByText('Send Message'));
+
+    await waitFor(() => {
+      // initial load + refresh
+      expect(mockGet).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  test('Mark Read triggers a refresh (handleConversationRead -> loadConversations)', async () => {
+    mockGet
+      .mockResolvedValueOnce({ data: [{ id: 2, otherUserName: 'B', otherUserEmail: 'b@test.com' }] })
+      .mockResolvedValueOnce({ data: [{ id: 2, otherUserName: 'B', otherUserEmail: 'b@test.com' }] });
+
+    render(<MessagingDashboard />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Conversations: 1')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('Select First'));
+    expect(screen.getByText('Chat with B')).toBeInTheDocument();
+
+    // trigger onConversationRead
+    fireEvent.click(screen.getByText('Mark Read'));
+
+    await waitFor(() => {
+      expect(mockGet).toHaveBeenCalledTimes(2); // initial + refresh
     });
   });
 });
