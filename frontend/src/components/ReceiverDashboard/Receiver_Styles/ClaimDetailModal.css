@@ -95,7 +95,7 @@
 }
 
 .claimed-status-ready-for.pickup {
-     background-color: #d1fae5;
+    background-color: #d1fae5;
     color: #065f46;
 }
 
@@ -202,8 +202,8 @@
 }
 
 .claimed-modal-detail-value.confirmed-pickup-time {
-    color: #609B7E;
-    font-weight: 700;
+    color: #45556C;
+    font-weight: 500;
 }
 
 /* Modal Section */

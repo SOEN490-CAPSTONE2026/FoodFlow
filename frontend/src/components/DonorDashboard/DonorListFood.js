@@ -304,30 +304,31 @@ export default function DonorListFood() {
                   <Clock size={16} className="time-icon" />
                   <div className="pickup-times-container">
                     <span className="pickup-label">Pickup:</span>
-                    {item.pickupSlots && item.pickupSlots.length > 0 ? (
+                    {/* Show only confirmed pickup slot if it exists, otherwise show all slots */}
+                    {item.confirmedPickupSlot ? (
+                      <span className="pickup-time-item">
+                        {formatPickupTime(
+                          item.confirmedPickupSlot.pickupDate,
+                          item.confirmedPickupSlot.startTime,
+                          item.confirmedPickupSlot.endTime
+                        )}
+                      </span>
+                    ) : item.pickupSlots && item.pickupSlots.length > 0 ? (
                       <>
-                        {item.pickupSlots.map((slot, idx) => {
-                          // Check if this slot matches the confirmed pickup slot
-                          const isConfirmed = item.confirmedPickupSlot &&
-                            slot.pickupDate === item.confirmedPickupSlot.pickupDate &&
-                            slot.startTime === item.confirmedPickupSlot.startTime &&
-                            slot.endTime === item.confirmedPickupSlot.endTime;
-
-                          return (
-                            <React.Fragment key={idx}>
-                              <span className={`pickup-time-item ${isConfirmed ? 'confirmed' : ''}`}>
-                                {formatPickupTime(
-                                  slot.pickupDate || slot.date,
-                                  slot.startTime || slot.pickupFrom,
-                                  slot.endTime || slot.pickupTo
-                                )}
-                              </span>
-                              {idx < item.pickupSlots.length - 1 && (
-                                <span className="pickup-time-divider">|</span>
+                        {item.pickupSlots.map((slot, idx) => (
+                          <React.Fragment key={idx}>
+                            <span className="pickup-time-item">
+                              {formatPickupTime(
+                                slot.pickupDate || slot.date,
+                                slot.startTime || slot.pickupFrom,
+                                slot.endTime || slot.pickupTo
                               )}
-                            </React.Fragment>
-                          );
-                        })}
+                            </span>
+                            {idx < item.pickupSlots.length - 1 && (
+                              <span className="pickup-time-divider">|</span>
+                            )}
+                          </React.Fragment>
+                        ))}
                       </>
                     ) : (
                       <span className="pickup-time-item">
