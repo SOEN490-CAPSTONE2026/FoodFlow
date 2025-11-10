@@ -52,10 +52,12 @@ const mockClaim = {
     title: "Fresh Dairy Products",
     foodType: "Dairy & Cold Items",
     quantity: { value: 15, unit: "bottles" },
+    expiryDate: "2025-10-29",
     pickupDate: "2025-10-29",
     pickupFrom: "08:00",
     pickupTo: "10:00",
     donorEmail: "dairy@example.com",
+    donorName: "dairy@example.com",
     status: "CLAIMED",
     pickupLocation: {
       address: "321 Dairy Drive",
@@ -325,6 +327,7 @@ describe("ClaimDetailModal", () => {
       surplusPost: {
         ...mockClaim.surplusPost,
         donorEmail: null,
+        donorName: null,
       },
     };
     render(

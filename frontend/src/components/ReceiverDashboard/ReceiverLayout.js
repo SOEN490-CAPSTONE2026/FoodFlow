@@ -18,7 +18,7 @@ function ReceiverLayoutContent() {
   const location = useLocation();
   const navigate = useNavigate();
   const navType = useNavigationType();
-  const { logout } = React.useContext(AuthContext);
+  const { logout, organizationName } = React.useContext(AuthContext);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
   const isActive = (path) => location.pathname === path;
@@ -82,11 +82,11 @@ function ReceiverLayoutContent() {
       const donorName = payload.surplusPost?.donorEmail || 'a donor';
       const status = payload.status || '';
       let message = `Successfully claimed "${foodTitle}" from ${donorName}`;
-      
+
       if (status === 'READY_FOR_PICKUP' || status === 'Ready for Pickup') {
         message = `"${foodTitle}" is ready for pickup! Check your claims for details.`;
       }
-      
+
       console.log('RECEIVER: Setting notification with message:', message);
       showNotification('Claim Confirmed', message);
     };
@@ -134,19 +134,15 @@ function ReceiverLayoutContent() {
 
         <div className="receiver-nav-links">
           <Link
-            to="/receiver/browse"
-            className={`receiver-nav-link ${location.pathname === "/receiver/browse" ? "active" : ""}`}
+            to="/receiver"
+            className={`receiver-nav-link ${location.pathname === "/receiver" || location.pathname === "/receiver/browse" ? "active" : ""}`}
           >
             Donations
           </Link>
 
           <Link
             to="/receiver/my-claims"
-            className={`receiver-nav-link ${isActive("/receiver/my-claims") ||
-                isActive("/receiver") ||
-                isActive("/receiver/dashboard")
-                ? "active" : ""
-              }`}
+            className={`receiver-nav-link ${isActive("/receiver/my-claims") || isActive("/receiver/dashboard") ? "active" : ""}`}
           >
             My Claims
           </Link>
@@ -186,7 +182,7 @@ function ReceiverLayoutContent() {
 
           {showDropdown && (
             <div className="dropdown-menu dropdown-menu--card">
-              <div className="dropdown-header">Hello John Doe!</div>
+              <div className="dropdown-header">Hello {organizationName || 'User'}!</div>
               <div className="dropdown-divider"></div>
 
               <div className="dropdown-item dropdown-item--settings" onClick={() => setShowDropdown(false)}>

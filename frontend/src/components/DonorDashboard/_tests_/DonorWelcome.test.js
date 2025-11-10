@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
 import DonorWelcome from '../DonorWelcome';
+import { AuthContext } from '../../../contexts/AuthContext';
 
 // Mock the API
 jest.mock('../../../services/api', () => ({
@@ -47,32 +48,48 @@ beforeAll(() => {
 });
 
 test('renders welcome header with donor name', async () => {
-  // Set up localStorage before rendering
-  window.localStorage.setItem('user', JSON.stringify({ 
-    organizationName: 'Test Donor', 
-    name: 'Test' 
-  }));
+  const mockAuthContext = {
+    isLoggedIn: true,
+    role: 'DONOR',
+    userId: '1',
+    organizationName: 'Test Donor',
+    login: jest.fn(),
+    logout: jest.fn()
+  };
 
   render(
-    <MemoryRouter>
-      <DonorWelcome />
-    </MemoryRouter>
+    <AuthContext.Provider value={mockAuthContext}>
+      <MemoryRouter>
+        <DonorWelcome />
+      </MemoryRouter>
+    </AuthContext.Provider>
   );
 
   await waitFor(() => {
     expect(screen.getByText((content, element) => {
-      return element.tagName.toLowerCase() === 'h1' && 
-             element.textContent.includes('Welcome back') && 
+      return element.tagName.toLowerCase() === 'h1' &&
+             element.textContent.includes('Welcome back') &&
              element.textContent.includes('Test Donor');
     })).toBeInTheDocument();
   });
 });
 
 test('renders stats cards', async () => {
+  const mockAuthContext = {
+    isLoggedIn: true,
+    role: 'DONOR',
+    userId: '1',
+    organizationName: 'Test Donor',
+    login: jest.fn(),
+    logout: jest.fn()
+  };
+
   render(
-    <MemoryRouter>
-      <DonorWelcome />
-    </MemoryRouter>
+    <AuthContext.Provider value={mockAuthContext}>
+      <MemoryRouter>
+        <DonorWelcome />
+      </MemoryRouter>
+    </AuthContext.Provider>
   );
 
   await waitFor(() => {
@@ -83,10 +100,21 @@ test('renders stats cards', async () => {
 });
 
 test('renders action cards with buttons', async () => {
+  const mockAuthContext = {
+    isLoggedIn: true,
+    role: 'DONOR',
+    userId: '1',
+    organizationName: 'Test Donor',
+    login: jest.fn(),
+    logout: jest.fn()
+  };
+
   render(
-    <MemoryRouter>
-      <DonorWelcome />
-    </MemoryRouter>
+    <AuthContext.Provider value={mockAuthContext}>
+      <MemoryRouter>
+        <DonorWelcome />
+      </MemoryRouter>
+    </AuthContext.Provider>
   );
 
   await waitFor(() => {
@@ -98,10 +126,21 @@ test('renders action cards with buttons', async () => {
 });
 
 test('renders recent donations section', async () => {
+  const mockAuthContext = {
+    isLoggedIn: true,
+    role: 'DONOR',
+    userId: '1',
+    organizationName: 'Test Donor',
+    login: jest.fn(),
+    logout: jest.fn()
+  };
+
   render(
-    <MemoryRouter>
-      <DonorWelcome />
-    </MemoryRouter>
+    <AuthContext.Provider value={mockAuthContext}>
+      <MemoryRouter>
+        <DonorWelcome />
+      </MemoryRouter>
+    </AuthContext.Provider>
   );
 
   await waitFor(() => {

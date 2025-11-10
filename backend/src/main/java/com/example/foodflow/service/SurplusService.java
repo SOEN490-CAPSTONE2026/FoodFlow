@@ -162,6 +162,9 @@ public class SurplusService {
         response.setStatus(post.getStatus());
         response.setOtpCode(post.getOtpCode());
         response.setDonorEmail(post.getDonor().getEmail());
+        response.setDonorName(post.getDonor().getOrganization() != null
+            ? post.getDonor().getOrganization().getName()
+            : null);
         response.setCreatedAt(post.getCreatedAt());
         response.setUpdatedAt(post.getUpdatedAt());
 

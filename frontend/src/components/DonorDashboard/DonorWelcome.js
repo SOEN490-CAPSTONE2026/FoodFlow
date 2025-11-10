@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { Package2, UtensilsCrossed, Sprout, ArrowRight, BarChart3, PlusCircle, Sparkles } from "lucide-react";
 import { surplusAPI } from "../../services/api";
+import { AuthContext } from "../../contexts/AuthContext";
 import "./Donor_Styles/DonorWelcome.css";
 
 export default function DonorWelcome() {
   const navigate = useNavigate();
-  const [donorName, setDonorName] = useState("Donor");
+  const { organizationName } = useContext(AuthContext);
   const [stats, setStats] = useState({
     totalDonations: 0,
     mealsServed: 0,
@@ -21,12 +22,6 @@ export default function DonorWelcome() {
 
   const fetchDonorData = async () => {
     try {
-      // Get donor profile
-      const userStr = localStorage.getItem("user");
-      if (userStr) {
-        const user = JSON.parse(userStr);
-        setDonorName(user.organizationName || user.name || "Donor");
-      }
 
       // Fetch all donations from the backend
       const response = await surplusAPI.getMyPosts();
@@ -121,7 +116,7 @@ export default function DonorWelcome() {
       {/* Welcome Header */}
       <div className="welcome-header">
         <h1>
-          Welcome back, {donorName} 
+          Welcome back, {organizationName || 'Donor'}
           <Sparkles className="wave-icon" size={28} strokeWidth={2} />
         </h1>
       </div>

@@ -95,10 +95,10 @@ public class AuthService {
         metricsService.incrementDonorRegistration();
         metricsService.incrementUserRegistration();
 
-        log.info("Donor registration successful: email={}, organization={}, type={}", 
+        log.info("Donor registration successful: email={}, organization={}, type={}",
             savedUser.getEmail(), request.getOrganizationName(), request.getOrganizationType());
 
-        return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), "Donor registered successfully", savedUser.getId());
+        return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), "Donor registered successfully", savedUser.getId(), request.getOrganizationName());
     }
 
     @Transactional
@@ -135,9 +135,10 @@ public class AuthService {
         metricsService.incrementReceiverRegistration();
         metricsService.incrementUserRegistration();
 
-        return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), "Receiver registered successfully", savedUser.getId());
+        return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), "Receiver registered successfully", savedUser.getId(), request.getOrganizationName());
     }
 
+    @Transactional(readOnly = true)
     @Timed(value = "auth.service.login", description = "Time taken to login")
     public AuthResponse login(LoginRequest request) {
         log.info("Login attempt for email: {}", request.getEmail());
@@ -160,9 +161,11 @@ public class AuthService {
 
             metricsService.incrementLoginSuccess();
 
-            log.info("Login successful: email={}, role={}", user.getEmail(), user.getRole());
-            return new AuthResponse(token, user.getEmail(), user.getRole().toString(), 
-                       "Account logged in successfully.", user.getId());
+            String organizationName = user.getOrganization() != null ? user.getOrganization().getName() : null;
+
+            log.info("Login successful: email={}, role={}, organizationName={}", user.getEmail(), user.getRole(), organizationName);
+            return new AuthResponse(token, user.getEmail(), user.getRole().toString(),
+                       "Account logged in successfully.", user.getId(), organizationName);
         } catch (RuntimeException e) {
             // Already logged failure metrics above
             throw e;

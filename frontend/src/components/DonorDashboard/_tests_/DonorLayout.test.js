@@ -7,6 +7,8 @@ import DonorLayout from '../DonorLayout';
 const mockAuthContext = {
   isLoggedIn: true,
   role: 'DONOR',
+  userId: '1',
+  organizationName: 'Test Donor Organization',
   login: jest.fn(),
   logout: jest.fn(),
 };
