@@ -35,10 +35,6 @@ function ReceiverLayoutContent() {
         return "Welcome";
       case "/receiver/browse":
         return "Browse Available Food";
-      case "/receiver/requests":
-        return "My Requests";
-      case "/receiver/search":
-        return "Search Organizations";
       case "/receiver/messages":
         return "Messages";
       default:
@@ -55,10 +51,6 @@ function ReceiverLayoutContent() {
         return "Start here: search the map or browse nearby food";
       case "/receiver/browse":
         return "Browse available food listings";
-      case "/receiver/requests":
-        return "Manage your food requests";
-      case "/receiver/search":
-        return "Search for food donors";
       case "/receiver/messages":
         return "Communicate with donors and other users";
       default:
