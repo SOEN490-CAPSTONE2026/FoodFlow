@@ -5,6 +5,28 @@ import { MemoryRouter, Routes, Route } from "react-router-dom";
 import ReceiverLayout from "../ReceiverLayout";
 import { AuthContext } from "../../../contexts/AuthContext";
 
+// Mock axios
+jest.mock("axios", () => ({
+  get: jest.fn(),
+  post: jest.fn(),
+  put: jest.fn(),
+  delete: jest.fn(),
+  create: jest.fn(() => ({
+    get: jest.fn(),
+    post: jest.fn(),
+    put: jest.fn(),
+    delete: jest.fn(),
+    interceptors: {
+      request: { use: jest.fn(), eject: jest.fn() },
+      response: { use: jest.fn(), eject: jest.fn() },
+    },
+  })),
+  interceptors: {
+    request: { use: jest.fn(), eject: jest.fn() },
+    response: { use: jest.fn(), eject: jest.fn() },
+  },
+}));
+
 const mockNavigate = jest.fn();
 jest.mock("react-router-dom", () => {
   const actual = jest.requireActual("react-router-dom");
