@@ -69,6 +69,9 @@ public class SurplusPost {
     @OrderBy("slotOrder ASC")
     private List<PickupSlot> pickupSlots = new ArrayList<>();
 
+    @OneToMany(mappedBy = "surplusPost", cascade = CascadeType.ALL)
+    private List<Claim> claims = new ArrayList<>();
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
@@ -134,6 +137,9 @@ public class SurplusPost {
 
     public List<PickupSlot> getPickupSlots() { return pickupSlots; }
     public void setPickupSlots(List<PickupSlot> pickupSlots) { this.pickupSlots = pickupSlots; }
+
+    public List<Claim> getClaims() { return claims; }
+    public void setClaims(List<Claim> claims) { this.claims = claims; }
 
     public boolean isClaimed() { return status==PostStatus.CLAIMED; }
 }

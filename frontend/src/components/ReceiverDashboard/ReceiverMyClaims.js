@@ -21,6 +21,7 @@ export default function ReceiverMyClaims() {
   const [error, setError] = useState(null);
   const [selectedClaim, setSelectedClaim] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [confirmCancel, setConfirmCancel] = useState({ show: false, claimId: null, postTitle: '' });
 
   const sortOptions = [
     { value: 'date', label: 'Sort by Date' },
@@ -101,11 +102,21 @@ export default function ReceiverMyClaims() {
     }
   };
 
-  const handleCancelClaim = async (claimId) => {
+  const handleCancelClick = (claimId) => {
+    // Find the claim to get its title for the confirmation
+    const claim = claims.find(c => c.id === claimId);
+    const postTitle = claim?.surplusPost?.title || 'donation';
+    
+    setConfirmCancel({ 
+      show: true, 
+      claimId: claimId, 
+      postTitle: postTitle 
+    });
+  };
+
+  const handleConfirmCancel = async () => {
     try {
-      // Find the claim to get its title for the notification
-      const claim = claims.find(c => c.id === claimId);
-      const postTitle = claim?.surplusPost?.title || 'donation';
+      const { claimId, postTitle } = confirmCancel;
       
       await claimsAPI.cancel(claimId);
       console.log('Claim cancelled successfully');
@@ -113,11 +124,20 @@ export default function ReceiverMyClaims() {
       // Show toast notification
       showNotification('Claim Cancelled', `Your claim on "${postTitle}" has been cancelled`);
       
+      // Close confirmation dialog
+      setConfirmCancel({ show: false, claimId: null, postTitle: '' });
+      
       fetchMyClaims(); // Refresh list
     } catch (error) {
       console.error('Error cancelling claim:', error);
       showNotification('Error', 'Failed to cancel claim. Please try again.');
+      // Close confirmation dialog even on error
+      setConfirmCancel({ show: false, claimId: null, postTitle: '' });
     }
+  };
+
+  const handleCancelCancel = () => {
+    setConfirmCancel({ show: false, claimId: null, postTitle: '' });
   };
 
   const handleViewDetails = (claim) => {
@@ -162,6 +182,7 @@ export default function ReceiverMyClaims() {
     const postStatus = claim.surplusPost?.status;
     if (postStatus === 'READY_FOR_PICKUP') return 'Ready for Pickup';
     if (postStatus === 'COMPLETED') return 'Completed';
+    if (postStatus === 'NOT_COMPLETED') return 'Not Completed';
     return 'Claimed';
   };
 
@@ -173,8 +194,13 @@ export default function ReceiverMyClaims() {
     if (status === 'Completed') {
       return claims.filter(c => c.surplusPost?.status === 'COMPLETED').length;
     }
+    if (status === 'Not Completed') {
+      return claims.filter(c => c.surplusPost?.status === 'NOT_COMPLETED').length;
+    }
     if (status === 'Claimed') {
-      return claims.filter(c => c.surplusPost?.status !== 'READY_FOR_PICKUP' && c.surplusPost?.status !== 'COMPLETED').length;
+      return claims.filter(c => c.surplusPost?.status !== 'READY_FOR_PICKUP' && 
+                                c.surplusPost?.status !== 'COMPLETED' && 
+                                c.surplusPost?.status !== 'NOT_COMPLETED').length;
     }
     return 0;
   };
@@ -183,15 +209,19 @@ export default function ReceiverMyClaims() {
     { name: 'All', count: getStatusCount('All') },
     { name: 'Claimed', count: getStatusCount('Claimed') },
     { name: 'Ready', count: getStatusCount('Ready') },
-    { name: 'Completed', count: getStatusCount('Completed') }
+    { name: 'Completed', count: getStatusCount('Completed') },
+    { name: 'Not Completed', count: getStatusCount('Not Completed') }
   ];
 
   const filteredClaims = claims.filter(claim => {
     if (activeFilter === 'All') return true;
     if (activeFilter === 'Ready') return claim.surplusPost?.status === 'READY_FOR_PICKUP';
     if (activeFilter === 'Completed') return claim.surplusPost?.status === 'COMPLETED';
+    if (activeFilter === 'Not Completed') return claim.surplusPost?.status === 'NOT_COMPLETED';
     if (activeFilter === 'Claimed') {
-      return claim.surplusPost?.status !== 'READY_FOR_PICKUP' && claim.surplusPost?.status !== 'COMPLETED';
+      return claim.surplusPost?.status !== 'READY_FOR_PICKUP' && 
+             claim.surplusPost?.status !== 'COMPLETED' && 
+             claim.surplusPost?.status !== 'NOT_COMPLETED';
     }
     return true;
   });
@@ -340,12 +370,15 @@ export default function ReceiverMyClaims() {
                 </div>
                 {/* Action Buttons */}
                 <div className="claimed-page card-actions">
-                  <button 
-                    onClick={() => handleCancelClaim(claim.id)}
-                    className="claimed-page cancel-claim-btn"
-                  >
-                    Cancel
-                  </button>
+                  {/* Only show Cancel button when status is CLAIMED */}
+                  {claim.surplusPost?.status === 'CLAIMED' && (
+                    <button 
+                      onClick={() => handleCancelClick(claim.id)}
+                      className="claimed-page cancel-claim-btn"
+                    >
+                      Cancel
+                    </button>
+                  )}
                   
                   <div className="claimed-page view-details-container" onClick={() => handleViewDetails(claim)}>
                     <span>View details</span>
@@ -368,6 +401,33 @@ export default function ReceiverMyClaims() {
               ? "You haven't claimed any donations yet. Browse available donations to make your first claim!"
               : `No donations found for the "${activeFilter}" filter.`}
           </p>
+        </div>
+      )}
+
+      {/* Confirmation Dialog */}
+      {confirmCancel.show && (
+        <div className="claimed-page confirmation-overlay">
+          <div className="confirmation-dialog">
+            <h3>Cancel Claim</h3>
+            <p>
+              Are you sure you want to cancel your claim on <strong>"{confirmCancel.postTitle}"</strong>? 
+              This action cannot be undone.
+            </p>
+            <div className="confirmation-buttons">
+              <button 
+                onClick={handleCancelCancel}
+                className="btn btn-cancel"
+              >
+                Keep Claim
+              </button>
+              <button 
+                onClick={handleConfirmCancel}
+                className="btn btn-create"
+              >
+                Yes, Cancel Claim
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
