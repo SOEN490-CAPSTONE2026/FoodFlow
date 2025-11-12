@@ -6,6 +6,7 @@ import ProfilePhoto from "./pfp.png";
 import { AuthContext } from "../../contexts/AuthContext";
 import { NotificationProvider, useNotification } from "../../contexts/NotificationContext";
 import MessageNotification from "../MessagingDashboard/MessageNotification";
+import ReceiverPreferences from "./ReceiverPreferences";
 import { connectToUserQueue, disconnect } from '../../services/socket';
 import api from '../../services/api';
 import {
@@ -13,7 +14,8 @@ import {
   HelpCircle as IconHelpCircle,
   LogOut as IconLogOut,
   Inbox as IconInbox,
-  CheckCircle
+  CheckCircle,
+  User as IconUser
 } from "lucide-react";
 
 function ReceiverLayoutContent() {
@@ -22,6 +24,7 @@ function ReceiverLayoutContent() {
   const navType = useNavigationType();
   const { logout, organizationName } = React.useContext(AuthContext);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showPreferences, setShowPreferences] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const dropdownRef = useRef(null);
   const isActive = (path) => location.pathname === path;
@@ -228,6 +231,14 @@ function ReceiverLayoutContent() {
                 <span>Settings</span>
               </div>
 
+              <div className="dropdown-item dropdown-item--preferences" onClick={() => {
+                setShowDropdown(false);
+                setShowPreferences(true);
+              }}>
+                <IconUser size={18} />
+                <span>Preferences</span>
+              </div>
+
               <div
                 className="dropdown-item dropdown-item--help"
                 onClick={() => {
@@ -268,6 +279,15 @@ function ReceiverLayoutContent() {
           />
         </div>
       </div>
+
+      <ReceiverPreferences
+        isOpen={showPreferences}
+        onClose={() => setShowPreferences(false)}
+        onSave={(savedPreferences) => {
+          console.log('Preferences saved:', savedPreferences);
+          // You can add additional logic here if needed
+        }}
+      />
     </div>
   );
 }
