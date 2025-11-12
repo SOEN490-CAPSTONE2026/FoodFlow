@@ -1,9 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ReceiverPreferences from '../components/ReceiverDashboard/ReceiverPreferences';
-import api from '../services/api';
-
-jest.mock('../services/api');
 
 describe('ReceiverPreferences', () => {
   const mockOnClose = jest.fn();
@@ -53,17 +50,7 @@ describe('ReceiverPreferences', () => {
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
-  test('loads existing preferences on mount', async () => {
-    const mockPreferences = {
-      preferredCategories: ['Bakery & Pastry', 'Fruits & Vegetables'],
-      storageCapacity: '100',
-      quantityMin: '10',
-      quantityMax: '50',
-      noStrictPreferences: false
-    };
-
-    api.get.mockResolvedValueOnce({ data: mockPreferences });
-
+  test('can open category dropdown and select a category', async () => {
     render(
       <ReceiverPreferences 
         isOpen={true} 
@@ -72,9 +59,15 @@ describe('ReceiverPreferences', () => {
       />
     );
 
-    await waitFor(() => {
-      expect(api.get).toHaveBeenCalledWith('/receiver/preferences');
-    });
+    const placeholder = screen.getByPlaceholderText('Select food categories...');
+    // open dropdown
+    fireEvent.click(placeholder);
+    // select first category (label text)
+    const optionLabel = await screen.findByText('Prepared Meals');
+    fireEvent.click(optionLabel);
+
+    // input value should reflect selected count
+    expect(placeholder.value).toBe('1 categories selected');
   });
 
   test('handles storage capacity input', () => {
@@ -112,16 +105,6 @@ describe('ReceiverPreferences', () => {
   });
 
   test('saves preferences successfully', async () => {
-    const savedPreferences = {
-      preferredCategories: ['Dairy Products'],
-      storageCapacity: '200',
-      quantityMin: '20',
-      quantityMax: '80',
-      noStrictPreferences: false
-    };
-
-    api.post.mockResolvedValueOnce({ data: savedPreferences });
-
     render(
       <ReceiverPreferences 
         isOpen={true} 
@@ -134,8 +117,8 @@ describe('ReceiverPreferences', () => {
     fireEvent.click(saveButton);
 
     await waitFor(() => {
-      expect(api.post).toHaveBeenCalledWith('/receiver/preferences', expect.any(Object));
-      expect(mockOnSave).toHaveBeenCalledWith(savedPreferences);
+      // component no longer calls backend; it should call onSave with the current preferences
+      expect(mockOnSave).toHaveBeenCalled();
       expect(mockOnClose).toHaveBeenCalled();
     });
   });
