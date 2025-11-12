@@ -115,17 +115,19 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                     <div className="claimed-modal-body">
                         <div className="claimed-modal-section-header">
                             <h3 className="claimed-modal-section-title">Donation Details</h3>
-                            <button 
+                            <a 
+                                href="#"
                                 className="claimed-modal-chat-link"
-                                onClick={() => {
+                                onClick={(e) => {
+                                    e.preventDefault();
                                     // Navigate to chat with donor
                                     console.log('Navigate to chat with donor:', post?.donorName);
                                 }}
                                 title={`Chat with ${post?.donorName || 'donor'}`}
                             >
-                                <MessageCircle size={20} />
+                                <MessageCircle size={16} />
                                 <span>Chat with Donor</span>
-                            </button>
+                            </a>
                         </div>
 
                         <div className="claimed-modal-details-grid">
