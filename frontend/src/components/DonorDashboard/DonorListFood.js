@@ -8,6 +8,8 @@ import {
   AlertTriangle,
   X,
   Package,
+  ChevronDown,
+  Filter,
 } from "lucide-react";
 import { useLoadScript } from "@react-google-maps/api";
 // import { AuthContext } from '../../contexts/AuthContext';
@@ -136,16 +138,32 @@ export default function DonorListFood() {
   const [selectedItem, setSelectedItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [sortBy, setSortBy] = useState("date"); // "date" or "status"
+  const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
 
   useEffect(() => {
     fetchMyPosts();
   }, []);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isSortDropdownOpen && !event.target.closest('.sort-dropdown-container')) {
+        setIsSortDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isSortDropdownOpen]);
+
   const fetchMyPosts = async () => {
     try {
       setLoading(true);
       const response = await surplusAPI.getMyPosts();
-      setItems(response.data);
+      // Sort by newest first (default)
+      const sortedData = sortPosts(response.data, sortBy);
+      setItems(sortedData);
       setError(null);
     } catch (err) {
       const errorMessage =
@@ -154,6 +172,41 @@ export default function DonorListFood() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Sort posts based on creation date or status
+  const sortPosts = (posts, sortOrder) => {
+    if (!Array.isArray(posts)) return [];
+    
+    return [...posts].sort((a, b) => {
+      if (sortOrder === "date") {
+        // Sort by date - newest first
+        const dateA = new Date(a.createdAt || a.pickupDate || 0);
+        const dateB = new Date(b.createdAt || b.pickupDate || 0);
+        return dateB - dateA;
+      } else if (sortOrder === "status") {
+        // Sort by status priority
+        const statusOrder = {
+          'AVAILABLE': 1,
+          'CLAIMED': 2,
+          'READY_FOR_PICKUP': 3,
+          'COMPLETED': 4,
+          'NOT_COMPLETED': 5,
+          'EXPIRED': 6
+        };
+        const statusA = statusOrder[a.status] || 999;
+        const statusB = statusOrder[b.status] || 999;
+        return statusA - statusB;
+      }
+      return 0;
+    });
+  };
+
+  // Update sort order and re-sort items
+  const handleSortChange = (newSortOrder) => {
+    setSortBy(newSortOrder);
+    setItems(prevItems => sortPosts(prevItems, newSortOrder));
+    setIsSortDropdownOpen(false);
   };
 
   function requestDelete(id) { //Needs to be connected to backend(code to come)
@@ -223,6 +276,38 @@ export default function DonorListFood() {
       )}
 
       <header className="donor-list-header">
+        <div className="header-left">
+          <Filter size={20} className="filter-icon" />
+          <div className="sort-dropdown-container">
+            <button
+              className="sort-dropdown-button"
+              onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
+            >
+              <span className="sort-label">
+                {sortBy === "date" ? "Sort by Date" : "Sort by Status"}
+              </span>
+              <ChevronDown size={18} className={`chevron ${isSortDropdownOpen ? "open" : ""}`} />
+            </button>
+            
+            {isSortDropdownOpen && (
+              <div className="sort-dropdown-menu">
+                <button
+                  className={`sort-option ${sortBy === "date" ? "active" : ""}`}
+                  onClick={() => handleSortChange("date")}
+                >
+                  Sort by Date
+                </button>
+                <button
+                  className={`sort-option ${sortBy === "status" ? "active" : ""}`}
+                  onClick={() => handleSortChange("status")}
+                >
+                  Sort by Status
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+        
         <button
           className="donor-add-button"
           onClick={() => setIsModalOpen(true)}
