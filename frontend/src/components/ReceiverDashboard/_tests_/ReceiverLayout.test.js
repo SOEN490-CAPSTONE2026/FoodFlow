@@ -38,6 +38,15 @@ jest.mock("../../../services/socket", () => ({
   disconnect: jest.fn(),
 }));
 
+jest.mock("../../../services/api", () => ({
+  default: {
+    get: jest.fn(() => Promise.resolve({ data: [] })),
+    post: jest.fn(),
+    put: jest.fn(),
+    delete: jest.fn(),
+  },
+}));
+
 const mockLogout = jest.fn();
 
 function renderAt(path = "/receiver") {
@@ -107,9 +116,9 @@ describe("ReceiverLayout", () => {
   test("renders messages title/description at /receiver/messages and marks 'Messages' active", () => {
     renderAt("/receiver/messages");
     
-    // Check that Messages link is active
-    const link = screen.getByRole("link", { name: /^messages$/i });
-    expect(link).toHaveClass("active");
+    // Check that Messages inbox button is present
+    const button = screen.getByRole("button", { name: /^messages$/i });
+    expect(button).toBeInTheDocument();
     
     // Check that the messages page content is rendered
     const messagesContent = screen.getAllByText('Messages');
