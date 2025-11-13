@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Package, Calendar, MapPin, User, Clock } from 'lucide-react';
+import { X, Package, Calendar, MapPin, User, Clock, MessageCircle } from 'lucide-react';
 import useGoogleMap from '../../hooks/useGoogleMaps';
 import ClaimedView from './ClaimedView';
 import CompletedView from './CompletedView';
@@ -113,7 +113,22 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
 
                     {/* Modal Body */}
                     <div className="claimed-modal-body">
-                        <h3 className="claimed-modal-section-title">Donation Details</h3>
+                        <div className="claimed-modal-section-header">
+                            <h3 className="claimed-modal-section-title">Donation Details</h3>
+                            <a 
+                                href="#"
+                                className="claimed-modal-chat-link"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    // Navigate to chat with donor
+                                    console.log('Navigate to chat with donor:', post?.donorName);
+                                }}
+                                title={`Chat with ${post?.donorName || 'donor'}`}
+                            >
+                                <MessageCircle size={16} />
+                                <span>Chat with Donor</span>
+                            </a>
+                        </div>
 
                         <div className="claimed-modal-details-grid">
                             {/* Quantity */}

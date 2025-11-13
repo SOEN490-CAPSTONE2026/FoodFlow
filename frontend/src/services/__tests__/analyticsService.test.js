@@ -109,7 +109,7 @@ describe('AnalyticsService', () => {
 
     it('use custom API base URL from environment variable', async () => {
       const originalEnv = process.env.REACT_APP_API_BASE_URL;
-      process.env.REACT_APP_API_BASE_URL = 'https://api.example.com';
+      process.env.REACT_APP_API_BASE_URL = 'https://api.example.com/api';
       jest.resetModules();
       jest.doMock('axios', () => ({
         post: jest.fn(() => Promise.resolve({ data: { success: true } }))

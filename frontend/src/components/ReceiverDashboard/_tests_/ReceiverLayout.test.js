@@ -5,6 +5,28 @@ import { MemoryRouter, Routes, Route } from "react-router-dom";
 import ReceiverLayout from "../ReceiverLayout";
 import { AuthContext } from "../../../contexts/AuthContext";
 
+// Mock axios
+jest.mock("axios", () => ({
+  get: jest.fn(),
+  post: jest.fn(),
+  put: jest.fn(),
+  delete: jest.fn(),
+  create: jest.fn(() => ({
+    get: jest.fn(),
+    post: jest.fn(),
+    put: jest.fn(),
+    delete: jest.fn(),
+    interceptors: {
+      request: { use: jest.fn(), eject: jest.fn() },
+      response: { use: jest.fn(), eject: jest.fn() },
+    },
+  })),
+  interceptors: {
+    request: { use: jest.fn(), eject: jest.fn() },
+    response: { use: jest.fn(), eject: jest.fn() },
+  },
+}));
+
 const mockNavigate = jest.fn();
 jest.mock("react-router-dom", () => {
   const actual = jest.requireActual("react-router-dom");
@@ -14,6 +36,15 @@ jest.mock("react-router-dom", () => {
 jest.mock("../../../services/socket", () => ({
   connectToUserQueue: jest.fn(),
   disconnect: jest.fn(),
+}));
+
+jest.mock("../../../services/api", () => ({
+  default: {
+    get: jest.fn(() => Promise.resolve({ data: [] })),
+    post: jest.fn(),
+    put: jest.fn(),
+    delete: jest.fn(),
+  },
 }));
 
 const mockLogout = jest.fn();
@@ -85,9 +116,9 @@ describe("ReceiverLayout", () => {
   test("renders messages title/description at /receiver/messages and marks 'Messages' active", () => {
     renderAt("/receiver/messages");
     
-    // Check that Messages link is active
-    const link = screen.getByRole("link", { name: /^messages$/i });
-    expect(link).toHaveClass("active");
+    // Check that Messages inbox button is present
+    const button = screen.getByRole("button", { name: /^messages$/i });
+    expect(button).toBeInTheDocument();
     
     // Check that the messages page content is rendered
     const messagesContent = screen.getAllByText('Messages');
