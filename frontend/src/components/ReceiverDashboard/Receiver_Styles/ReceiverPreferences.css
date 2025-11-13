@@ -169,6 +169,8 @@
   padding: 10px 12px;
   cursor: pointer;
   transition: background 0.2s;
+  gap: 0;
+  line-height: 1;
 }
 
 .category-option:hover {
@@ -176,16 +178,21 @@
 }
 
 .category-option input[type="checkbox"] {
-  margin-right: 10px;
+  margin: 0 5px 0 0 !important;
   cursor: pointer;
   width: 16px;
   height: 16px;
   accent-color: #1B4965;
+  flex-shrink: 0;
+  vertical-align: middle;
+  position: relative;
+  top: 0;
 }
 
 .category-option span {
   font-size: 14px;
   color: #334155;
+  line-height: 16px;
 }
 
 .selected-categories {
@@ -302,19 +309,26 @@
   cursor: pointer;
   font-weight: 400;
   justify-content: flex-start;
+  gap: 0;
+  line-height: 1;
 }
 
 .checkbox-label input[type="checkbox"] {
   width: 18px;
   height: 18px;
-  margin-right: 10px;
+  margin: 0 5px 0 0 !important;
   cursor: pointer;
   accent-color: #1B4965;
+  flex-shrink: 0;
+  vertical-align: middle;
+  position: relative;
+  top: 0;
 }
 
 .checkbox-label span {
   font-size: 14px;
   color: #334155;
+  line-height: 18px;
 }
 
 /* Error Message */
