@@ -4,6 +4,7 @@ import React, { useState, useContext } from 'react';
 import { authAPI } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
 import { useAnalytics } from '../hooks/useAnalytics';
+import { Eye, EyeOff } from 'lucide-react';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -102,15 +103,9 @@ const LoginPage = () => {
                     <input id="password" type={showPassword? 'text':'password'} className="form-input" placeholder="Enter your password" value={password} onChange={(e)=>setPassword(e.target.value)} autoComplete="current-password" required />
                     <button type="button" className="password-toggle" aria-label={showPassword? 'Hide password':'Show password'} onClick={()=>setShowPassword(s=>!s)}>
                       {showPassword ? (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                          <path d="M3 3l18 18" stroke="#0f172a" strokeWidth="2" strokeLinecap="round"/>
-                          <path d="M2 12s4-7 10-7 10 7 10 7c-.9 1.6-4.9 7-10 7-2.2 0-4.2-.8-5.9-1.9" stroke="#0f172a" strokeWidth="2" fill="none"/>
-                        </svg>
+                        <EyeOff size={20} color="#64748b" />
                       ) : (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                          <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" stroke="#0f172a" strokeWidth="2" fill="none"/>
-                          <circle cx="12" cy="12" r="3" stroke="#0f172a" strokeWidth="2" fill="none"/>
-                        </svg>
+                        <Eye size={20} color="#64748b" />
                       )}
                     </button>
                   </div>
