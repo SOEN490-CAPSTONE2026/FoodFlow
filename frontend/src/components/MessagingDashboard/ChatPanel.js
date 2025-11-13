@@ -190,7 +190,7 @@ const ChatPanel = ({ conversation, onMessageSent, onConversationRead }) => {
                   </div>
                 )}
                 <div className="message-content">
-                  <p>{message.messageBody}</p>
+                  <p className="message-text">{message.messageBody}</p>
                   <span className="message-time">
                     {formatMessageTime(message.createdAt)}
                   </span>

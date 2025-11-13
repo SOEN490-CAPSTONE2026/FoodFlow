@@ -117,13 +117,65 @@
     min-height: 450px;
 }
 
+.claimed-modal-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
 .claimed-modal-section-title {
     font-size: 1.25rem;
     font-weight: 600;
     color: #1B4965;
     text-align: left;
-    margin-bottom: 1.5rem;
+    margin-bottom: 0;
     margin-top: 0;
+}
+
+.claimed-modal-chat-link {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0;
+    background: none;
+    color: #1B4965;
+    text-decoration: none;
+    border: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.claimed-modal-chat-link:hover {
+    color: #2d6a8a;
+    text-decoration: underline;
+    transform: none;
+}
+
+.claimed-modal-chat-link:active {
+    color: #1B4965;
+}
+
+.claimed-modal-chat-link:visited {
+    color: #1B4965;
+}
+
+.claimed-modal-chat-link svg {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
 }
 
 .claimed-modal-subsection-title {
