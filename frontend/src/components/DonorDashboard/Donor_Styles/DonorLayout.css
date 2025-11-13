@@ -559,10 +559,14 @@ body {
     padding: 20px 32px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     flex-wrap: wrap;
     gap: 12px;
     flex-shrink: 0;
+}
+
+.donor-topbar-left {
+    text-align: left;
 }
 
 .donor-topbar-left h1 {
@@ -571,6 +575,7 @@ body {
     font-weight: 700;
     color: #1B4965;
     letter-spacing: -0.5px;
+    text-align: left;
 }
 
 .donor-topbar-left p {
@@ -578,6 +583,7 @@ body {
     font-size: 14px;
     color: #64748b;
     font-weight: 400;
+    text-align: left;
 }
 
 .donor-content {

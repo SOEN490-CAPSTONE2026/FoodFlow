@@ -43,6 +43,8 @@ function ReceiverLayoutContent() {
         return "Browse Available Food";
       case "/receiver/messages":
         return "Messages";
+      case "/receiver/settings":
+        return "Settings";
       default:
         return "Receiver Dashboard";
     }
@@ -59,6 +61,8 @@ function ReceiverLayoutContent() {
         return "Browse available food listings";
       case "/receiver/messages":
         return "Communicate with donors and other users";
+      case "/receiver/settings":
+        return "Manage your preferences and account settings";
       default:
         return "FoodFlow Receiver Portal";
     }
@@ -226,7 +230,10 @@ function ReceiverLayoutContent() {
               <div className="dropdown-header">Hello {organizationName || 'User'}!</div>
               <div className="dropdown-divider"></div>
 
-              <div className="dropdown-item dropdown-item--settings" onClick={() => setShowDropdown(false)}>
+              <div className="dropdown-item dropdown-item--settings" onClick={() => {
+                setShowDropdown(false);
+                navigate('/receiver/settings');
+              }}>
                 <IconSettings size={18} />
                 <span>Settings</span>
               </div>

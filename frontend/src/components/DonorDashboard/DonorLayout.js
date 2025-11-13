@@ -46,6 +46,8 @@ export default function DonorLayout() {
         return " Pickup Schdule";
       case "/donor/messages":
         return "Messages";
+      case "/donor/settings":
+        return "Settings";
       case "/donor/help":
         return "Help";
       default:
@@ -66,6 +68,8 @@ export default function DonorLayout() {
         return "Recent activity and history";
       case "/donor/messages":
         return "Incoming communications";
+      case "/donor/settings":
+        return "Manage your preferences and account settings";
       case "/donor/help":
         return "Guides and support";
       default:
@@ -240,12 +244,16 @@ export default function DonorLayout() {
         </nav>
 
         <div className="donor-nav-bottom">
-          <div className="donor-nav-link disabled" data-tooltip="Settings">
+          <Link 
+            to="/donor/settings" 
+            className={`donor-nav-link ${isActive("/donor/settings") ? "active" : ""}`}
+            data-tooltip="Settings"
+          >
             <span className="nav-icon" aria-hidden>
               <Settings size={18} className="lucide" />
             </span>
             Settings
-          </div>
+          </Link>
           <div className="donor-nav-link disabled" data-tooltip="Help">
             <span className="nav-icon" aria-hidden>
               <HelpCircle size={18} className="lucide" />
