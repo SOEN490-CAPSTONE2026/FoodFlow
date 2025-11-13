@@ -5,6 +5,7 @@ import RegisterType from './components/RegisterType';
 import DonorRegistration from './components/DonorRegistration';
 import ReceiverRegistration from './components/ReceiverRegistration';
 import LoginPage from './components/LoginPage';
+import ForgotPassword from './components/ForgotPassword';
 import NavigationBar from './components/NavigationBar';
 import { AuthProvider } from './contexts/AuthContext';
 import { useAnalytics } from './hooks/useAnalytics';
@@ -28,6 +29,7 @@ function AppContent() {
   // Hide navbar on login and registration pages
   const hideNavbar =
     location.pathname === "/login" ||
+    location.pathname === "/forgot-password" ||
     location.pathname.startsWith("/register") ||
     location.pathname.startsWith("/donor") ||
     location.pathname.startsWith("/admin") ||
@@ -43,6 +45,7 @@ function AppContent() {
         <Route path="/register/donor" element={<DonorRegistration />} />
         <Route path="/register/receiver" element={<ReceiverRegistration />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
 
         {/* ===== Admin Dashboard (UNPROTECTED for dev preview) ===== */}
         <Route 
