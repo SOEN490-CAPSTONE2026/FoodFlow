@@ -54,7 +54,6 @@ export default function ForgotPassword() {
         <Link to="/">
           <img src="https://i.ibb.co/jkF1r5xL/logo-white.png" alt="FoodFlow logo" className="forgot-password-logo" />
         </Link>
-        <p className="footer-copy">© 2025 FoodFlow. All rights reserved.</p>
       </div>
 
       {/* Right Side - Form */}
