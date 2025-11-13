@@ -1,6 +1,7 @@
 package com.example.foodflow.model.entity;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.LocalDate;
@@ -70,6 +71,7 @@ public class SurplusPost {
     private List<PickupSlot> pickupSlots = new ArrayList<>();
 
     @OneToMany(mappedBy = "surplusPost", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Claim> claims = new ArrayList<>();
 
     @Column(name = "created_at", updatable = false)
