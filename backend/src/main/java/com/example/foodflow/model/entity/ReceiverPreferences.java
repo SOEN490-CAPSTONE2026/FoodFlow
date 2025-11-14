@@ -2,6 +2,8 @@ package com.example.foodflow.model.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -23,9 +25,8 @@ public class ReceiverPreferences {
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
     
-    @ElementCollection
-    @CollectionTable(name = "receiver_preferred_food_types", joinColumns = @JoinColumn(name = "preferences_id"))
-    @Column(name = "food_type")
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "preferred_food_types", columnDefinition = "text[]")
     private List<String> preferredFoodTypes = new ArrayList<>();
     
     @Min(value = 1, message = "Maximum capacity must be at least 1")
@@ -40,9 +41,8 @@ public class ReceiverPreferences {
     @Column(name = "max_quantity", nullable = false)
     private Integer maxQuantity = 100; // Default max quantity
     
-    @ElementCollection
-    @CollectionTable(name = "receiver_pickup_windows", joinColumns = @JoinColumn(name = "preferences_id"))
-    @Column(name = "pickup_window")
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "preferred_pickup_windows", columnDefinition = "text[]")
     private List<String> preferredPickupWindows = new ArrayList<>();
     
     @Column(name = "accept_refrigerated", nullable = false)
