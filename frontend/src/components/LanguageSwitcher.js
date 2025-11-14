@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ReactCountryFlag from 'react-country-flag';
 import { Check, Search } from 'lucide-react';
 import '../style/LanguageSwitcher.css';
 
@@ -12,12 +13,12 @@ const LanguageSwitcher = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const languages = [
-    { code: 'en', name: 'English', nativeName: 'English', flag: '🇬🇧', dir: 'ltr' },
-    { code: 'fr', name: 'French', nativeName: 'Français', flag: '🇫🇷', dir: 'ltr' },
-    { code: 'es', name: 'Spanish', nativeName: 'Español', flag: '🇪🇸', dir: 'ltr' },
-    { code: 'zh', name: 'Chinese', nativeName: '中文', flag: '🇨🇳', dir: 'ltr' },
-    { code: 'ar', name: 'Arabic', nativeName: 'العربية', flag: '🇸🇦', dir: 'rtl' },
-    { code: 'pt', name: 'Portuguese', nativeName: 'Português', flag: '🇵🇹', dir: 'ltr' },
+    { code: 'en', name: 'English', nativeName: 'English', countryCode: 'GB', dir: 'ltr' },
+    { code: 'fr', name: 'French', nativeName: 'Français', countryCode: 'FR', dir: 'ltr' },
+    { code: 'es', name: 'Spanish', nativeName: 'Español', countryCode: 'ES', dir: 'ltr' },
+    { code: 'zh', name: 'Chinese', nativeName: '中文', countryCode: 'CN', dir: 'ltr' },
+    { code: 'ar', name: 'Arabic', nativeName: 'العربية', countryCode: 'SA', dir: 'rtl' },
+    { code: 'pt', name: 'Portuguese', nativeName: 'Português', countryCode: 'PT', dir: 'ltr' },
   ];
 
   const filteredLanguages = languages.filter(lang =>
@@ -60,7 +61,11 @@ const LanguageSwitcher = () => {
           aria-haspopup="listbox"
         >
           <span className="selected-language">
-            <span className="flag-emoji">{selectedLang?.flag}</span>
+            <span className="flag-emoji">
+              {selectedLang?.countryCode && (
+                <ReactCountryFlag countryCode={selectedLang.countryCode} svg style={{ width: '1.5em', height: '1.5em' }} title={selectedLang?.name} />
+              )}
+            </span>
             <span className="language-name">{selectedLang?.nativeName}</span>
           </span>
           <span className={`dropdown-arrow ${isOpen ? 'open' : ''}`}>▼</span>
@@ -91,6 +96,11 @@ const LanguageSwitcher = () => {
                     aria-selected={selectedLanguage === lang.code}
                   >
                     <span className="flag-emoji">{lang.flag}</span>
+                <span className="flag-emoji">
+                  {lang.countryCode && (
+                    <ReactCountryFlag countryCode={lang.countryCode} svg style={{ width: '1.5em', height: '1.5em' }} title={lang.name} />
+                  )}
+                </span>
                     <span className="language-details">
                       <span className="language-native">{lang.nativeName}</span>
                       <span className="language-english">{lang.name}</span>
