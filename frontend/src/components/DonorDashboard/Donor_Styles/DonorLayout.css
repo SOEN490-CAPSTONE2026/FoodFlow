@@ -366,6 +366,7 @@ body {
 .donor-user {
     position: relative;
     overflow: visible;
+    z-index: 100;
 }
 
 .user-profile-pic {
@@ -447,7 +448,7 @@ body {
 .account-menu {
     position: absolute;
     left: calc(100% + 12px);
-    top: 0;
+    bottom: 0;
     min-width: 200px;
     background: #1B4965;
     border: 1px solid rgba(255, 255, 255, .15);
@@ -455,36 +456,24 @@ body {
     box-shadow: 0 10px 40px rgba(0, 0, 0, .3);
     overflow: hidden;
     z-index: 10000;
-    animation: slideIn 0.2s ease;
+    animation: popIn 0.15s ease;
 }
 
-@keyframes slideIn {
+@keyframes popIn {
     from {
         opacity: 0;
-        transform: translateX(-10px);
+        transform: scale(0.95);
     }
     to {
         opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-@keyframes slideInCollapsed {
-    from {
-        opacity: 0;
-        transform: translateY(-50%) translateX(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(-50%) translateX(0);
+        transform: scale(1);
     }
 }
 
 .donor-sidebar.collapsed .account-menu {
     left: calc(100% + 12px);
-    top: 50%;
-    transform: translateY(-50%);
-    animation: slideInCollapsed 0.2s ease;
+    bottom: 0;
+    animation: popIn 0.15s ease;
 }
 
 .account-menu-item {
@@ -536,6 +525,7 @@ body {
     position: relative;
     flex-shrink: 0;
     overflow: visible;
+    z-index: 100;
 }
 
 .donor-main {
@@ -696,9 +686,10 @@ body {
   }
   
   .account-menu {
-    left: 50%;
-    transform: translateX(-50%);
-    bottom: 80px;
+    position: absolute;
+    left: calc(100% + 12px);
+    bottom: 0;
+    transform: none;
   }
   
   .donor-topbar {

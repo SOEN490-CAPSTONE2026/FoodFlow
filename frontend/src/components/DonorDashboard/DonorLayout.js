@@ -144,6 +144,11 @@ export default function DonorLayout() {
 
   const isMessagesPage = location.pathname === "/donor/messages";
 
+  // Close menu when navigating
+  useEffect(() => {
+    setOpen(false);
+  }, [location.pathname]);
+
   return (
     <div className="donor-layout">
       <div className="mobile-header">

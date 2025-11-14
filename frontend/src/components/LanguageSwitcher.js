@@ -60,6 +60,7 @@ const LanguageSwitcher = () => {
           aria-haspopup="listbox"
         >
           <span className="selected-language">
+            <span className="flag-emoji">{selectedLang?.flag}</span>
             <span className="language-name">{selectedLang?.nativeName}</span>
           </span>
           <span className={`dropdown-arrow ${isOpen ? 'open' : ''}`}>▼</span>
