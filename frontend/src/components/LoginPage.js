@@ -30,8 +30,6 @@ const LoginPage = () => {
     const userId = response?.data?.userId;
     const organizationName = response?.data?.organizationName;
 
-    console.log('Login response - organizationName:', organizationName);
-
     if (!token || !userRole || !userId) {
       throw new Error('Invalid server response');
     }

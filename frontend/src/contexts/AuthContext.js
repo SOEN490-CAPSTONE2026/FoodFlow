@@ -31,18 +31,27 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = (token, userRole, userId, orgName = null, useSession = false) => {
-    console.log('AuthContext.login - Setting organizationName:', orgName);
-    if (useSession) {
-      sessionStorage.setItem("jwtToken", token);
-      sessionStorage.setItem("userRole", userRole);
-      sessionStorage.setItem("userId", userId);
-      if (orgName) sessionStorage.setItem("organizationName", orgName);
+    // Save auth values to the chosen storage (session or local).
+    // Explicitly set or remove organizationName to avoid leaving a stale value
+    // from a previous session (which required clearing caches).
+    const storage = useSession ? sessionStorage : localStorage;
+    const otherStorage = useSession ? localStorage : sessionStorage;
+
+    storage.setItem("jwtToken", token);
+    storage.setItem("userRole", userRole);
+    storage.setItem("userId", userId);
+
+    if (orgName !== undefined && orgName !== null) {
+      // backend provided organizationName (could be empty string). Save it
+      storage.setItem("organizationName", orgName);
+      // make sure the other storage doesn't keep a stale value
+      otherStorage.removeItem("organizationName");
     } else {
-      localStorage.setItem("jwtToken", token);
-      localStorage.setItem("userRole", userRole);
-      localStorage.setItem("userId", userId);
-      if (orgName) localStorage.setItem("organizationName", orgName);
+      // backend didn't send organizationName -> remove any previous value
+      localStorage.removeItem("organizationName");
+      sessionStorage.removeItem("organizationName");
     }
+
     setIsLoggedIn(true);
     setRole(userRole);
     setUserId(userId);

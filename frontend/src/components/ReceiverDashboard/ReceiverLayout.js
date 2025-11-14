@@ -227,7 +227,9 @@ function ReceiverLayoutContent() {
 
           {showDropdown && (
             <div className="dropdown-menu dropdown-menu--card">
-              <div className="dropdown-header">Hello {organizationName || 'User'}!</div>
+              <div className="dropdown-header">
+                Hello {organizationName || 'User'}!
+              </div>
               <div className="dropdown-divider"></div>
 
               <div className="dropdown-item dropdown-item--settings" onClick={() => {
