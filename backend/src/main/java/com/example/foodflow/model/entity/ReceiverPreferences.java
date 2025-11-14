@@ -26,7 +26,7 @@ public class ReceiverPreferences {
     private User user;
     
     @JdbcTypeCode(SqlTypes.ARRAY)
-    @Column(name = "preferred_food_types", columnDefinition = "text[]")
+    @Column(name = "preferred_food_types", columnDefinition = "text array")
     private List<String> preferredFoodTypes = new ArrayList<>();
     
     @Min(value = 1, message = "Maximum capacity must be at least 1")
@@ -42,7 +42,7 @@ public class ReceiverPreferences {
     private Integer maxQuantity = 100; // Default max quantity
     
     @JdbcTypeCode(SqlTypes.ARRAY)
-    @Column(name = "preferred_pickup_windows", columnDefinition = "text[]")
+    @Column(name = "preferred_pickup_windows", columnDefinition = "text array")
     private List<String> preferredPickupWindows = new ArrayList<>();
     
     @Column(name = "accept_refrigerated", nullable = false)

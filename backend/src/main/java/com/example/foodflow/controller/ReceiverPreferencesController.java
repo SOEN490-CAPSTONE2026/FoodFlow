@@ -33,7 +33,7 @@ public class ReceiverPreferencesController {
     public ResponseEntity<ReceiverPreferencesResponse> getPreferences(
             @AuthenticationPrincipal User currentUser) {
         
-        logger.info("Getting preferences for user: {}", currentUser.getId());
+        logger.info("Getting preferences for user: {}", currentUser != null ? currentUser.getId() : "null");
         
         try {
             Optional<ReceiverPreferencesResponse> preferences = preferencesService.getPreferences(currentUser);
@@ -60,7 +60,7 @@ public class ReceiverPreferencesController {
             @Valid @RequestBody ReceiverPreferencesRequest request,
             @AuthenticationPrincipal User currentUser) {
         
-        logger.info("Creating preferences for user: {}", currentUser.getId());
+        logger.info("Creating preferences for user: {}", currentUser != null ? currentUser.getId() : "null");
         
         try {
             // Check if preferences already exist
@@ -90,7 +90,7 @@ public class ReceiverPreferencesController {
             @Valid @RequestBody ReceiverPreferencesRequest request,
             @AuthenticationPrincipal User currentUser) {
         
-        logger.info("Updating preferences for user: {}", currentUser.getId());
+        logger.info("Updating preferences for user: {}", currentUser != null ? currentUser.getId() : "null");
         
         try {
             ReceiverPreferencesResponse response = preferencesService.savePreferences(currentUser, request);
@@ -113,7 +113,7 @@ public class ReceiverPreferencesController {
     public ResponseEntity<Void> deletePreferences(
             @AuthenticationPrincipal User currentUser) {
         
-        logger.info("Deleting preferences for user: {}", currentUser.getId());
+        logger.info("Deleting preferences for user: {}", currentUser != null ? currentUser.getId() : "null");
         
         try {
             preferencesService.deletePreferences(currentUser);
@@ -137,7 +137,7 @@ public class ReceiverPreferencesController {
             boolean exists = preferencesService.hasPreferences(currentUser);
             return ResponseEntity.ok(exists);
         } catch (Exception e) {
-            logger.error("Error checking preferences existence for user {}: {}", currentUser.getId(), e.getMessage());
+            logger.error("Error checking preferences existence for user {}: {}", currentUser != null ? currentUser.getId() : "null", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
