@@ -186,12 +186,6 @@ const NavigationBar = () => {
               )}
             </div>
           )}
-                    {selectedLanguage === lang.code && <span className="lang-check">✓</span>}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
       </div>
 
@@ -207,32 +201,34 @@ const NavigationBar = () => {
           </>
         )}
         
-        {/* Language Selector */}
-        <div className="lang-selector">
-          <button 
-            className="lang-button"
-            onClick={toggleLangDropdown}
-            aria-label="Select Language"
-          >
-            {selectedLanguage} ▼
-          </button>
-          
-          {isLangDropdownOpen && (
-            <div className="lang-dropdown">
-              {languages.map((lang) => (
-                <button
-                  key={lang.code}
-                  className={`lang-option ${selectedLanguage === lang.code ? 'selected' : ''}`}
-                  onClick={() => handleLanguageSelect(lang.code)}
-                >
-                  <span className="lang-flag">{lang.flag}</span>
-                  <span className="lang-name">{lang.name}</span>
-                  {selectedLanguage === lang.code && <span className="lang-check">✓</span>}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        {/* Language Selector - Only show when not logged in */}
+        {!isLoggedIn && (
+          <div className="lang-selector">
+            <button 
+              className="lang-button"
+              onClick={toggleLangDropdown}
+              aria-label="Select Language"
+            >
+              {selectedLanguage} ▼
+            </button>
+            
+            {isLangDropdownOpen && (
+              <div className="lang-dropdown">
+                {languages.map((lang) => (
+                  <button
+                    key={lang.code}
+                    className={`lang-option ${selectedLanguage === lang.code ? 'selected' : ''}`}
+                    onClick={() => handleLanguageSelect(lang.code)}
+                  >
+                    <span className="lang-flag">{lang.flag}</span>
+                    <span className="lang-name">{lang.name}</span>
+                    {selectedLanguage === lang.code && <span className="lang-check">✓</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </nav>
   );
