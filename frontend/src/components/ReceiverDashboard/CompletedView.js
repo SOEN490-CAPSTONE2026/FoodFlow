@@ -95,7 +95,7 @@ const CompletedView = ({ claim, isOpen, onClose, onBack }) => {
                         <div className="CompletedView-pickup-step-content">
                             <h4 className="CompletedView-pickup-step-title">Donation Claimed! </h4>
                             <p className="CompletedView-pickup-step-description">
-                                Your claim is confirmed. Wait for the pickup window to start, and your pickup code will be available!
+                                Your donation has been successfully claimed! Thank you for making a difference in your community.
                             </p>
                         </div>
                     </div>
