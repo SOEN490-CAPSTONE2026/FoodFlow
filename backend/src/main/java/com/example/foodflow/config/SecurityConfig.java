@@ -66,6 +66,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/claims/post/**").hasAnyAuthority("DONOR", "RECEIVER")
                 .requestMatchers("/api/claims/**").hasAuthority("RECEIVER")
                 
+                // ✅ NEW: Receiver Preferences endpoints
+                .requestMatchers("/api/receiver/preferences/**").hasAuthority("RECEIVER")
+                
                 // Other endpoints
                 .requestMatchers("/api/feed/**").hasAuthority("RECEIVER")
                 .requestMatchers("/api/requests/**").hasAnyAuthority("DONOR", "RECEIVER")
