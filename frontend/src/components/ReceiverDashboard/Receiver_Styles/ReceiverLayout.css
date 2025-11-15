@@ -100,6 +100,8 @@ body {
 
 .receiver-user-info {
     position: relative;
+    display: flex;
+    align-items: center;
 }
 
 .user-menu {
@@ -408,6 +410,7 @@ body {
   display: flex;
   align-items: center;
   gap: 16px;
+  height: 100%;
 }
 
 .inbox-btn {
@@ -415,8 +418,8 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: 1px solid #e2e8f0;
   background: #fff;
@@ -453,8 +456,8 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   border: 2px solid #1B4965;
   background: #ffffff;

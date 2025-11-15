@@ -10,6 +10,8 @@ import com.example.foodflow.model.types.ClaimStatus;
 import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.repository.ClaimRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
+import io.micrometer.core.annotation.Timed;
+import io.micrometer.core.instrument.Timer;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,18 +27,23 @@ public class ClaimService {
     
     private final ClaimRepository claimRepository;
     private final SurplusPostRepository surplusPostRepository;
+    private final BusinessMetricsService businessMetricsService;
     private final SimpMessagingTemplate messagingTemplate;
     
     public ClaimService(ClaimRepository claimRepository,
                        SurplusPostRepository surplusPostRepository,
+                       BusinessMetricsService businessMetricsService,
                        SimpMessagingTemplate messagingTemplate) {
         this.claimRepository = claimRepository;
         this.surplusPostRepository = surplusPostRepository;
+        this.businessMetricsService = businessMetricsService;
         this.messagingTemplate = messagingTemplate;
     }
-    
+                       
     @Transactional
+    @Timed(value = "claim.service.create", description = "Time taken to create a claim")
     public ClaimResponse claimSurplusPost(ClaimRequest request, User receiver) {
+        Timer.Sample sample = businessMetricsService.startTimer();
         // Fetch and lock the surplus post to prevent concurrent claims
         SurplusPost surplusPost = surplusPostRepository.findById(request.getSurplusPostId())
             .orElseThrow(() -> new RuntimeException("Surplus post not found"));
@@ -94,13 +101,15 @@ public class ClaimService {
         java.time.LocalTime currentTime = now.toLocalTime();
 
         boolean pickupTimeStarted = false;
-
-        if (surplusPost.getPickupDate().isBefore(today)) {
-            pickupTimeStarted = true;
-        } else if (surplusPost.getPickupDate().isEqual(today)) {
-            pickupTimeStarted = !currentTime.isBefore(surplusPost.getPickupFrom());
+        
+        if (surplusPost.getPickupDate() != null) {
+          if (surplusPost.getPickupDate().isBefore(today)) {
+              pickupTimeStarted = true;
+          } else if (surplusPost.getPickupDate().isEqual(today)) {
+              pickupTimeStarted = !currentTime.isBefore(surplusPost.getPickupFrom());
+          }
         }
-
+         
         // Update surplus post status
         if (pickupTimeStarted) {
             surplusPost.setStatus(PostStatus.READY_FOR_PICKUP);
@@ -113,6 +122,10 @@ public class ClaimService {
         }
 
         surplusPostRepository.save(surplusPost);
+
+        businessMetricsService.incrementClaimCreated();
+        businessMetricsService.incrementSurplusPostClaimed();
+        businessMetricsService.recordTimer(sample, "claim.service.create", "status", claim.getStatus().toString());
 
         ClaimResponse response = new ClaimResponse(claim);
         
@@ -153,6 +166,7 @@ public class ClaimService {
     }
     
     @Transactional(readOnly = true)
+    @Timed(value = "claim.service.getReceiverClaims", description = "Time taken to get receiver claims")
     public List<ClaimResponse> getReceiverClaims(User receiver) {
         return claimRepository.findReceiverClaimsWithDetails(
             receiver.getId(), ClaimStatus.ACTIVE)
@@ -170,7 +184,9 @@ public class ClaimService {
     }
     
     @Transactional
+    @Timed(value = "claim.service.cancel", description = "Time taken to cancel a claim")
     public void cancelClaim(Long claimId, User receiver) {
+        Timer.Sample sample = businessMetricsService.startTimer();
         Claim claim = claimRepository.findById(claimId)
             .orElseThrow(() -> new RuntimeException("Claim not found"));
         
@@ -187,8 +203,32 @@ public class ClaimService {
         SurplusPost post = claim.getSurplusPost();
         post.setStatus(PostStatus.AVAILABLE);
         surplusPostRepository.save(post);
+
+        // Record metrics
+        businessMetricsService.incrementClaimCancelled();
+        businessMetricsService.recordTimer(sample, "claim.service.cancel", "status", "cancelled");
+    }
+
+    @Transactional
+    @Timed(value = "claim.service.complete", description = "Time taken to complete a claim")
+    public void completeClaim(Long claimId) {
+        Timer.Sample sample = businessMetricsService.startTimer();
+
+        Claim claim = claimRepository.findById(claimId)
+            .orElseThrow(() -> new RuntimeException("Claim not found"));
+
+        claim.setStatus(ClaimStatus.COMPLETED);
+        claimRepository.save(claim);
+
+        // Increment completed claim counter
+        businessMetricsService.incrementClaimCompleted();
+
+        // Record timer
+        businessMetricsService.recordTimer(sample, "claim.service.complete", "status", "completed");
         
         // Notify donor that the claim was cancelled
+        SurplusPost post = claim.getSurplusPost();
+      
         try {
             messagingTemplate.convertAndSendToUser(
                 post.getDonor().getId().toString(),

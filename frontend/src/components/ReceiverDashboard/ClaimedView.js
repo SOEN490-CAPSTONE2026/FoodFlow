@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, ArrowLeft } from 'lucide-react';
 import BakeryPastryImage from '../../assets/foodtypes/Pastry&Bakery.jpg';
 import FruitsVeggiesImage from '../../assets/foodtypes/Fruits&Vegetables.jpg';
@@ -10,12 +10,45 @@ import './Receiver_Styles/ClaimedView.css';
 
 const ClaimedView = ({ claim, isOpen, onClose, onBack }) => {
     const post = claim?.surplusPost;
+    const [timeRemaining, setTimeRemaining] = useState(null);
+
+    useEffect(() => {
+        // Get pickup time from the post data
+        const pickupDate = post?.pickupDate;
+        const pickupFrom = post?.pickupFrom;
+
+        if (!pickupDate || !pickupFrom) return;
+
+        const calculateTimeRemaining = () => {
+            const now = new Date();
+            // Combine pickupDate (YYYY-MM-DD) and pickupFrom (HH:MM:SS) to create full datetime
+            const pickupTime = new Date(`${pickupDate}T${pickupFrom}`);
+            const diff = pickupTime - now;
+
+            if (diff <= 0) {
+                setTimeRemaining({ expired: true });
+                return;
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            setTimeRemaining({ days, hours, minutes, seconds, expired: false });
+        };
+
+        calculateTimeRemaining();
+        const interval = setInterval(calculateTimeRemaining, 1000);
+
+        return () => clearInterval(interval);
+    }, [post?.pickupDate, post?.pickupFrom, isOpen]);
 
     if (!isOpen || !claim) return null;
 
     const getFoodTypeImage = (foodType) => {
         switch (foodType) {
-            case 'Bakery & Pastry':
+            case 'BAKERY_PASTRY':
                 return BakeryPastryImage;
             case 'Fruits & Vegetables':
                 return FruitsVeggiesImage;
@@ -61,15 +94,44 @@ const ClaimedView = ({ claim, isOpen, onClose, onBack }) => {
 
                     {/* Step 1 */}
                     <div className="pickup-step">
-                        <div className="pickup-step-number">1</div>
-                        <div className="pickup-step-content">
-                            <h4 className="pickup-step-title">Review pickup time and location</h4>
-                            <p className="pickup-step-description">
-                                Be on time to ensure your organization receives this donation.
-                            </p>
+                        <div className="pickup-step-header">
+                            <div className="pickup-step-number">1</div>
+                            <div className="pickup-step-content">
+                                <h4 className="pickup-step-title">Review pickup time and location</h4>
+                                <p className="pickup-step-description">
+                                    Be on time to ensure your organization receives this donation.
+                                </p>
+                            </div>
                         </div>
+                        {timeRemaining && (
+                            <div className="pickup-step-timer">
+                                <div className="timer-content">
+                                    <div className="timer-display">
+                                        {timeRemaining.days > 0 && (
+                                            <div className="timer-unit">
+                                                <span className="timer-value">{timeRemaining.days}</span>
+                                                <span className="timer-unit-label">{timeRemaining.days === 1 ? 'day' : 'days'}</span>
+                                            </div>
+                                        )}
+                                        <div className="timer-unit">
+                                            <span className="timer-value">{String(timeRemaining.hours).padStart(2, '0')}</span>
+                                            <span className="timer-unit-label">hrs</span>
+                                        </div>
+                                        <div className="timer-separator">:</div>
+                                        <div className="timer-unit">
+                                            <span className="timer-value">{String(timeRemaining.minutes).padStart(2, '0')}</span>
+                                            <span className="timer-unit-label">min</span>
+                                        </div>
+                                        <div className="timer-separator">:</div>
+                                        <div className="timer-unit">
+                                            <span className="timer-value">{String(timeRemaining.seconds).padStart(2, '0')}</span>
+                                            <span className="timer-unit-label">sec</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
-
                     {/* Step 2 */}
                     <div className="pickup-step-placeholder">
                         <div className="pickup-step-number-placeholder">2</div>

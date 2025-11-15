@@ -5,6 +5,28 @@ import { MemoryRouter, Routes, Route } from "react-router-dom";
 import ReceiverLayout from "../ReceiverLayout";
 import { AuthContext } from "../../../contexts/AuthContext";
 
+// Mock axios
+jest.mock("axios", () => ({
+  get: jest.fn(),
+  post: jest.fn(),
+  put: jest.fn(),
+  delete: jest.fn(),
+  create: jest.fn(() => ({
+    get: jest.fn(),
+    post: jest.fn(),
+    put: jest.fn(),
+    delete: jest.fn(),
+    interceptors: {
+      request: { use: jest.fn(), eject: jest.fn() },
+      response: { use: jest.fn(), eject: jest.fn() },
+    },
+  })),
+  interceptors: {
+    request: { use: jest.fn(), eject: jest.fn() },
+    response: { use: jest.fn(), eject: jest.fn() },
+  },
+}));
+
 const mockNavigate = jest.fn();
 jest.mock("react-router-dom", () => {
   const actual = jest.requireActual("react-router-dom");
@@ -16,6 +38,15 @@ jest.mock("../../../services/socket", () => ({
   disconnect: jest.fn(),
 }));
 
+jest.mock("../../../services/api", () => ({
+  default: {
+    get: jest.fn(() => Promise.resolve({ data: [] })),
+    post: jest.fn(),
+    put: jest.fn(),
+    delete: jest.fn(),
+  },
+}));
+
 const mockLogout = jest.fn();
 
 function renderAt(path = "/receiver") {
@@ -24,13 +55,10 @@ function renderAt(path = "/receiver") {
       <MemoryRouter initialEntries={[path]}>
         <Routes>
           <Route path="/receiver/*" element={<ReceiverLayout />}>
-            <Route index element={<div>Index</div>} />
-            <Route path="dashboard" element={<div>Dashboard</div>} />
+            <Route index element={<div>Browse</div>} />
             <Route path="welcome" element={<div>Welcome</div>} />
             <Route path="browse" element={<div>Browse</div>} />
             <Route path="my-claims" element={<div>My Claims</div>} />
-            <Route path="requests" element={<div>Requests</div>} />
-            <Route path="search" element={<div>Search</div>} />
             <Route path="messages" element={<div>Messages</div>} />
           </Route>
         </Routes>
@@ -45,12 +73,12 @@ describe("ReceiverLayout", () => {
     mockLogout.mockReset();
   });
 
-  test("renders dashboard title/description at /receiver and marks 'My Claims' active", () => {
+  test("renders browse title/description at /receiver and marks 'Donations' active", () => {
     renderAt("/receiver");
     expect(screen.getByRole("heading", { name: /receiver dashboard/i })).toBeInTheDocument();
     expect(screen.getByText(/overview of nearby food and your activity/i)).toBeInTheDocument();
 
-    const nav = screen.getByText(/my claims/i).closest("a");
+    const nav = screen.getByRole("link", { name: /^donations$/i });
     expect(nav).toHaveClass("receiver-nav-link");
     expect(nav).toHaveClass("active");
   });
@@ -73,28 +101,28 @@ describe("ReceiverLayout", () => {
     expect(link).toHaveClass("active");
   });
 
-  test("renders requests title/description at /receiver/requests", () => {
-    renderAt("/receiver/requests");
-    expect(screen.getByRole("heading", { name: /my requests/i })).toBeInTheDocument();
-    expect(screen.getByText(/manage your food requests/i)).toBeInTheDocument();
+  test("renders my claims page at /receiver/my-claims and marks 'My Claims' active", () => {
+    renderAt("/receiver/my-claims");
+    
+    // Check that My Claims link is active
+    const link = screen.getByRole("link", { name: /my claims/i });
+    expect(link).toHaveClass("active");
+    
+    // Check that the my claims content is rendered (using getAllByText since it appears in nav and content)
+    const myClaimsElements = screen.getAllByText('My Claims');
+    expect(myClaimsElements.length).toBeGreaterThan(0);
   });
 
   test("renders messages title/description at /receiver/messages and marks 'Messages' active", () => {
     renderAt("/receiver/messages");
     
-    // Check that Messages link is active
-    const link = screen.getByRole("link", { name: /^messages$/i });
-    expect(link).toHaveClass("active");
+    // Check that Messages inbox button is present
+    const button = screen.getByRole("button", { name: /^messages$/i });
+    expect(button).toBeInTheDocument();
     
     // Check that the messages page content is rendered
     const messagesContent = screen.getAllByText('Messages');
     expect(messagesContent.length).toBeGreaterThan(0);
-  });
-
-  test("renders search title/description at /receiver/search", () => {
-    renderAt("/receiver/search");
-    expect(screen.getByRole("heading", { name: /search organizations/i })).toBeInTheDocument();
-    expect(screen.getByText(/search for food donors/i)).toBeInTheDocument();
   });
 
   test("opens account menu via avatar button and logs out", async () => {

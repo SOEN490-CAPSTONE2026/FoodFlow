@@ -321,7 +321,7 @@ export default function ReceiverMyClaims() {
                   </div>
                   <div className="claimed-page detail-item">
                     <User size={16} className="claimed-page donor-detail-icon" />
-                    <span>{post?.donorEmail || 'Not specified'}</span>
+                    <span>{post?.donorName || 'Not specified'}</span>
                   </div>
                   <div className="claimed-page detail-item">
                     <Clock size={16} className="claimed-page date-detail-icon" />

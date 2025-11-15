@@ -5,7 +5,7 @@ import RegisterType from './components/RegisterType';
 import DonorRegistration from './components/DonorRegistration';
 import ReceiverRegistration from './components/ReceiverRegistration';
 import LoginPage from './components/LoginPage';
-import TempDashboard from './components/TempDashboard';
+import ForgotPassword from './components/ForgotPassword';
 import NavigationBar from './components/NavigationBar';
 import { AuthProvider } from './contexts/AuthContext';
 import { useAnalytics } from './hooks/useAnalytics';
@@ -17,7 +17,6 @@ import DonorDashboard from './components/DonorDashboard/DonorDashboard';
 import ReceiverDashboard from './components/ReceiverDashboard/ReceiverDashboard';
 
 import SurplusForm from './components/DonorDashboard/SurplusFormModal';
-import MyPosts from './components/MyPosts';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import './App.css';
 
@@ -30,6 +29,7 @@ function AppContent() {
   // Hide navbar on login and registration pages
   const hideNavbar =
     location.pathname === "/login" ||
+    location.pathname === "/forgot-password" ||
     location.pathname.startsWith("/register") ||
     location.pathname.startsWith("/donor") ||
     location.pathname.startsWith("/admin") ||
@@ -45,7 +45,7 @@ function AppContent() {
         <Route path="/register/donor" element={<DonorRegistration />} />
         <Route path="/register/receiver" element={<ReceiverRegistration />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/dashboard" element={<TempDashboard />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
 
         {/* ===== Admin Dashboard (UNPROTECTED for dev preview) ===== */}
         <Route 
@@ -79,7 +79,6 @@ function AppContent() {
           }
         />
         <Route path="/surplus/create" element={<SurplusForm />} />
-        <Route path="/my-posts" element={<MyPosts />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       </Routes>
     </div>

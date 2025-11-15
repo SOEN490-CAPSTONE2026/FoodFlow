@@ -23,14 +23,14 @@ jest.mock('react-router-dom', () => ({
 describe('NavigationBar', () => {
   const mockLogout = jest.fn();
   
-  const renderWithProviders = (isLoggedIn = false, locationPath = '/') => {
+  const renderWithProviders = (isLoggedIn = false, locationPath = '/', role = 'RECEIVER') => {
     mockUseLocation.mockReturnValue({
       pathname: locationPath,
       state: null
     });
 
     return render(
-      <AuthContext.Provider value={{ isLoggedIn, logout: mockLogout }}>
+      <AuthContext.Provider value={{ isLoggedIn, role, logout: mockLogout }}>
         <BrowserRouter>
           <NavigationBar />
         </BrowserRouter>
@@ -82,11 +82,11 @@ describe('NavigationBar', () => {
     renderWithProviders(true);
     
     // Use getAllByText since there are multiple instances
-    const logoutButtons = screen.getAllByText('Logout');
+    const returnButtons = screen.getAllByText('Return to Dashboard');
     const loginButtons = screen.queryAllByText('Login');
     const registerButtons = screen.queryAllByText('Register');
     
-    expect(logoutButtons.length).toBeGreaterThan(0);
+    expect(returnButtons.length).toBeGreaterThan(0);
     expect(loginButtons).toHaveLength(0);
     expect(registerButtons).toHaveLength(0);
   });
@@ -94,14 +94,15 @@ describe('NavigationBar', () => {
   test('desktop logout button calls logout function', () => {
     renderWithProviders(true);
     
-    // Get the desktop logout button 
+    // Get the desktop return to dashboard button 
     const buttonsContainer = document.querySelector('.buttons');
-    const logoutButton = buttonsContainer.querySelector('.logout-button');
+    const returnButton = buttonsContainer.querySelector('.signup-button');
     
-    fireEvent.click(logoutButton);
+    fireEvent.click(returnButton);
     
-    expect(mockLogout).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith('/login');
+    // Should navigate to receiver browse page, not call logout
+    expect(mockNavigate).toHaveBeenCalledWith('/receiver/browse');
+    expect(mockLogout).not.toHaveBeenCalled();
   });
 
   test('desktop login button navigates to login page', () => {
@@ -150,14 +151,15 @@ describe('NavigationBar', () => {
     const menuToggle = document.querySelector('.menu-toggle');
     fireEvent.click(menuToggle);
     
-    // Get the mobile logout button
+    // Get the mobile return to dashboard button
     const mobileButtonsContainer = document.querySelector('.mobile-buttons');
-    const logoutButton = mobileButtonsContainer.querySelector('.logout-button');
+    const returnButton = mobileButtonsContainer.querySelector('.signup-button');
     
-    fireEvent.click(logoutButton);
+    fireEvent.click(returnButton);
     
-    expect(mockLogout).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith('/login');
+    // Should navigate to receiver browse page, not call logout
+    expect(mockNavigate).toHaveBeenCalledWith('/receiver/browse');
+    expect(mockLogout).not.toHaveBeenCalled();
   });
 
   test('logo click navigates to home when not on home page', () => {

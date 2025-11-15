@@ -233,6 +233,14 @@
   line-height: 1.4;
   font-size: 14px;
   text-align: left;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+.message-text {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .message-time {

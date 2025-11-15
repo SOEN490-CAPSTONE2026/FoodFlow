@@ -52,6 +52,8 @@ jest.mock("lucide-react", () => ({
   AlertTriangle: () => "AlertIcon",
   X: () => "XIcon",
   Package: () => "PackageIcon",
+  ChevronDown: () => "ChevronDownIcon",
+  Filter: () => "FilterIcon",
 }));
 
 import DonorListFood from "../DonorListFood";
@@ -85,9 +87,18 @@ const mockItems = [
       unit: "LOAF",
     },
     expiryDate: "2025-10-02",
-    pickupDate: "2025-10-01",
-    pickupFrom: "09:00",
-    pickupTo: "12:00",
+    pickupSlots: [
+      {
+        pickupDate: "2025-10-01",
+        startTime: "09:00",
+        endTime: "12:00",
+      },
+      {
+        pickupDate: "2025-10-02",
+        startTime: "14:00",
+        endTime: "17:00",
+      },
+    ],
     pickupLocation: { address: "456 Oak Ave, Town, State 67890" },
     description: "Fresh sourdough, whole wheat, and gluten-free options",
     status: "NOT_COMPLETED",
@@ -207,7 +218,26 @@ describe("DonorListFood", () => {
     expect(within(appleCard).getByText(/Pickup:/)).toBeInTheDocument();
   });
 
-  test("shows edit and delete buttons for each donation after loading data", async () => {
+  test("displays multiple pickup slots when available", async () => {
+    surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
+
+    setup();
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/artisan bread selection/i)).toBeInTheDocument();
+    });
+
+    const breadCard = screen.getByLabelText(/artisan bread selection/i);
+    
+    // Should display "Pickup:" label once
+    const pickupLabels = within(breadCard).getAllByText(/Pickup:/i);
+    expect(pickupLabels).toHaveLength(1);
+    
+    // Should display the divider between slots
+    expect(within(breadCard).getByText(/\|/)).toBeInTheDocument();
+  });
+
+  test("shows edit and delete buttons for AVAILABLE status donations", async () => {
     surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
 
     setup();
@@ -216,11 +246,43 @@ describe("DonorListFood", () => {
       expect(screen.getByLabelText(/fresh apples/i)).toBeInTheDocument();
     });
 
+    // Only the AVAILABLE item should have edit and delete buttons
     const editButtons = screen.getAllByRole("button", { name: /edit/i });
     const deleteButtons = screen.getAllByRole("button", { name: /delete/i });
 
-    expect(editButtons).toHaveLength(2);
-    expect(deleteButtons).toHaveLength(2);
+    expect(editButtons).toHaveLength(1);
+    expect(deleteButtons).toHaveLength(1);
+  });
+
+  test("shows reschedule button for NOT_COMPLETED status donations", async () => {
+    surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
+
+    setup();
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/artisan bread selection/i)).toBeInTheDocument();
+    });
+
+    const rescheduleButton = screen.getByRole("button", { name: /reschedule/i });
+    expect(rescheduleButton).toBeInTheDocument();
+  });
+
+  test("reschedule button shows alert when clicked", async () => {
+    surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
+    const user = userEvent.setup();
+
+    setup();
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/artisan bread selection/i)).toBeInTheDocument();
+    });
+
+    const rescheduleButton = screen.getByRole("button", { name: /reschedule/i });
+    await user.click(rescheduleButton);
+
+    expect(window.alert).toHaveBeenCalledWith(
+      "Reschedule functionality coming soon!"
+    );
   });
 
   test("edit button shows alert when clicked", async () => {
@@ -352,5 +414,113 @@ describe("DonorListFood", () => {
     // Open modal
     await user.click(screen.getByRole("button", { name: /\+ donate more/i }));
     expect(screen.getByTestId("surplus-form-modal")).toBeInTheDocument();
+  });
+
+  test("shows only confirmed pickup slot when confirmedPickupSlot exists", async () => {
+    const itemWithConfirmedSlot = {
+      id: 3,
+      title: "Confirmed Slot Item",
+      foodCategories: ["PREPARED_MEALS"],
+      quantity: { value: 3, unit: "SERVINGS" },
+      expiryDate: "2025-10-10",
+      pickupSlots: [
+        { pickupDate: "2025-10-05", startTime: "10:00", endTime: "12:00" },
+        { pickupDate: "2025-10-06", startTime: "14:00", endTime: "16:00" },
+      ],
+      confirmedPickupSlot: {
+        pickupDate: "2025-10-06",
+        startTime: "14:00",
+        endTime: "16:00",
+      },
+      pickupLocation: { address: "789 Test St" },
+      status: "CLAIMED",
+    };
+
+    surplusAPI.getMyPosts.mockResolvedValue({ data: [itemWithConfirmedSlot] });
+
+    setup();
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/confirmed slot item/i)).toBeInTheDocument();
+    });
+
+    const card = screen.getByLabelText(/confirmed slot item/i);
+    const pickupTimes = card.querySelectorAll(".pickup-time-item");
+
+    // Should only show ONE pickup time (the confirmed one)
+    expect(pickupTimes).toHaveLength(1);
+    
+    // Should not have divider since there's only one slot shown
+    expect(within(card).queryByText(/\|/)).not.toBeInTheDocument();
+  });
+
+  test("shows all pickup slots when no confirmedPickupSlot exists", async () => {
+    const itemWithoutConfirmedSlot = {
+      id: 4,
+      title: "No Confirmed Slot Item",
+      foodCategories: ["DAIRY_COLD"],
+      quantity: { value: 2, unit: "LITERS" },
+      expiryDate: "2025-10-08",
+      pickupSlots: [
+        { pickupDate: "2025-10-05", startTime: "10:00", endTime: "12:00" },
+        { pickupDate: "2025-10-06", startTime: "14:00", endTime: "16:00" },
+      ],
+      pickupLocation: { address: "321 Test Ave" },
+      status: "AVAILABLE",
+    };
+
+    surplusAPI.getMyPosts.mockResolvedValue({ data: [itemWithoutConfirmedSlot] });
+
+    setup();
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/no confirmed slot item/i)).toBeInTheDocument();
+    });
+
+    const card = screen.getByLabelText(/no confirmed slot item/i);
+    const pickupTimes = card.querySelectorAll(".pickup-time-item");
+
+    // Should show ALL pickup slots when not confirmed
+    expect(pickupTimes).toHaveLength(2);
+    
+    // Should have divider between multiple slots
+    expect(within(card).getByText(/\|/)).toBeInTheDocument();
+  });
+
+  test("shows only the confirmed slot for single slot item when confirmed", async () => {
+    const itemWithSingleConfirmedSlot = {
+      id: 5,
+      title: "Single Confirmed Slot",
+      foodCategories: ["FROZEN"],
+      quantity: { value: 5, unit: "PACKAGES" },
+      expiryDate: "2025-10-15",
+      pickupSlots: [
+        { pickupDate: "2025-10-10", startTime: "09:00", endTime: "11:00" },
+      ],
+      confirmedPickupSlot: {
+        pickupDate: "2025-10-10",
+        startTime: "09:00",
+        endTime: "11:00",
+      },
+      pickupLocation: { address: "555 Frozen Lane" },
+      status: "READY_FOR_PICKUP",
+    };
+
+    surplusAPI.getMyPosts.mockResolvedValue({ data: [itemWithSingleConfirmedSlot] });
+
+    setup();
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/single confirmed slot/i)).toBeInTheDocument();
+    });
+
+    const card = screen.getByLabelText(/single confirmed slot/i);
+    const pickupTimes = card.querySelectorAll(".pickup-time-item");
+
+    // Should show only one slot
+    expect(pickupTimes).toHaveLength(1);
+    
+    // Should not have divider for single slot
+    expect(within(card).queryByText(/\|/)).not.toBeInTheDocument();
   });
 });

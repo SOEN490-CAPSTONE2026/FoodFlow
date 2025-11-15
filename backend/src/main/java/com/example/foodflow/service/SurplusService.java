@@ -9,6 +9,7 @@ import com.example.foodflow.model.dto.SurplusFilterRequest;
 import com.example.foodflow.model.dto.PickupSlotRequest;
 import com.example.foodflow.model.dto.PickupSlotResponse;
 import com.example.foodflow.model.dto.SurplusResponse;
+import com.example.foodflow.model.entity.Claim;
 import com.example.foodflow.model.entity.PickupSlot;
 import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.entity.User;
@@ -16,14 +17,18 @@ import com.example.foodflow.model.types.ClaimStatus;
 import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.repository.ClaimRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
+import io.micrometer.core.annotation.Timed;
+import io.micrometer.core.instrument.Timer;
 
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,20 +37,25 @@ public class SurplusService {
     private final SurplusPostRepository surplusPostRepository;
     private final ClaimRepository claimRepository;
     private final PickupSlotValidationService pickupSlotValidationService;
+    private final BusinessMetricsService businessMetricsService;
 
     public SurplusService(SurplusPostRepository surplusPostRepository, 
                          ClaimRepository claimRepository,
-                         PickupSlotValidationService pickupSlotValidationService) {
+                         PickupSlotValidationService pickupSlotValidationService,
+                         BusinessMetricsService businessMetricsService) {
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;
         this.pickupSlotValidationService = pickupSlotValidationService;
+        this.businessMetricsService = businessMetricsService;
     }
     
     /**
      * Creates a new SurplusPost from the request DTO and saves it to the database.
      */
     @Transactional
+    @Timed(value = "surplus.service.create", description = "Time taken to create a surplus post")
     public SurplusResponse createSurplusPost(CreateSurplusRequest request, User donor) {
+        Timer.Sample sample = businessMetricsService.startTimer();
         SurplusPost post = new SurplusPost();
         
         post.setDonor(donor);
@@ -116,12 +126,17 @@ public class SurplusService {
         }
 
         SurplusPost savedPost = surplusPostRepository.save(post);
+
+        businessMetricsService.incrementSurplusPostCreated();
+        businessMetricsService.recordTimer(sample, "surplus.service.create", "status", savedPost.getStatus().toString());
+
         return convertToResponse(savedPost);
     }
     
     /**
      * Retrieves all surplus posts for a given user.
      */
+    @Timed(value = "surplus.service.getUserPosts", description = "Time taken to get user surplus posts")
     public List<SurplusResponse> getUserSurplusPosts(User user) {
         return surplusPostRepository.findByDonorId(user.getId())
                 .stream()
@@ -147,9 +162,12 @@ public class SurplusService {
         response.setStatus(post.getStatus());
         response.setOtpCode(post.getOtpCode());
         response.setDonorEmail(post.getDonor().getEmail());
+        response.setDonorName(post.getDonor().getOrganization() != null
+            ? post.getDonor().getOrganization().getName()
+            : null);
         response.setCreatedAt(post.getCreatedAt());
         response.setUpdatedAt(post.getUpdatedAt());
-        
+
         // Convert pickup slots
         if (post.getPickupSlots() != null && !post.getPickupSlots().isEmpty()) {
             List<PickupSlotResponse> slotResponses = post.getPickupSlots().stream()
@@ -157,9 +175,25 @@ public class SurplusService {
                 .collect(Collectors.toList());
             response.setPickupSlots(slotResponses);
         }
-        
+
+        // Include confirmed pickup slot if post has an active claim
+        claimRepository.findBySurplusPostIdAndStatus(post.getId(), ClaimStatus.ACTIVE)
+            .ifPresent(claim -> {
+                if (claim.getConfirmedPickupDate() != null &&
+                    claim.getConfirmedPickupStartTime() != null &&
+                    claim.getConfirmedPickupEndTime() != null) {
+                    PickupSlotResponse confirmedSlot = new PickupSlotResponse();
+                    confirmedSlot.setPickupDate(claim.getConfirmedPickupDate());
+                    confirmedSlot.setStartTime(claim.getConfirmedPickupStartTime());
+                    confirmedSlot.setEndTime(claim.getConfirmedPickupEndTime());
+                    response.setConfirmedPickupSlot(confirmedSlot);
+                }
+            });
+
         return response;
     }
+
+    @Timed(value = "surplus.service.getAllAvailablePosts", description = "Time taken to get all available surplus posts")
     public List<SurplusResponse> getAllAvailableSurplusPosts() {
         List<PostStatus> claimableStatuses = Arrays.asList(
             PostStatus.AVAILABLE,
@@ -222,8 +256,10 @@ public class SurplusService {
     }
 
     @Transactional
+    @Timed(value = "surplus.service.complete", description = "Time taken to complete a surplus post")
     public SurplusResponse completeSurplusPost(Long postId, String otpCode, User donor) {
-        // Fetch the surplus post
+        Timer.Sample sample = businessMetricsService.startTimer();
+        
         SurplusPost post = surplusPostRepository.findById(postId)
             .orElseThrow(() -> new RuntimeException("Surplus post not found"));
 
@@ -239,9 +275,11 @@ public class SurplusService {
             throw new RuntimeException("Invalid OTP code");
         }
 
-        // Mark as completed
         post.setStatus(PostStatus.COMPLETED);
         SurplusPost updatedPost = surplusPostRepository.save(post);
+
+        businessMetricsService.incrementSurplusPostCompleted();
+        businessMetricsService.recordTimer(sample, "surplus.service.complete", "status", "complete");
 
         return convertToResponse(updatedPost);
     }
@@ -251,4 +289,45 @@ public class SurplusService {
         int otp = 100000 + random.nextInt(900000);
         return String.valueOf(otp);
     }
+
+   @Transactional
+public SurplusResponse confirmPickup(long postId, String otpCode, User donor) {
+    
+    SurplusPost post = surplusPostRepository.findById(postId)
+            .orElseThrow(() -> new RuntimeException("Surplus post not found"));
+
+   
+    if (!post.getDonor().getId().equals(donor.getId())) {
+        throw new RuntimeException("You are not authorized to confirm this pickup.");
+    }
+
+
+    if (post.getOtpCode() == null) {
+        throw new RuntimeException("No OTP is set for this donation.");
+    }
+
+    if (!post.getOtpCode().equals(otpCode)) {
+        throw new RuntimeException("Invalid or expired OTP code.");
+    }
+
+    
+    if (post.getStatus() != PostStatus.READY_FOR_PICKUP) {
+        throw new RuntimeException("Donation is not ready for pickup. Current status: " + post.getStatus());
+    }
+
+    Claim claim = claimRepository.findBySurplusPost(post)
+        .orElseThrow(() -> new RuntimeException("No active claim found for this post"));
+
+    post.setStatus(PostStatus.COMPLETED);
+    post.setOtpCode(null);
+    claim.setStatus(ClaimStatus.COMPLETED);
+
+    surplusPostRepository.save(post);
+    claimRepository.save(claim);
+
+    return convertToResponse(post);
+}
+
+
+
 }

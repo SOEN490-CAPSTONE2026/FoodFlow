@@ -2,24 +2,30 @@ import React, { useState, useRef, useEffect } from "react";
 import { Outlet, useLocation, useNavigate, Link, useNavigationType } from "react-router-dom";
 import "./Receiver_Styles/ReceiverLayout.css";
 import Logo from "../../assets/Logo.png";
+import ProfilePhoto from "./pfp.png";
 import { AuthContext } from "../../contexts/AuthContext";
 import { NotificationProvider, useNotification } from "../../contexts/NotificationContext";
 import MessageNotification from "../MessagingDashboard/MessageNotification";
+import ReceiverPreferences from "./ReceiverPreferences";
 import { connectToUserQueue, disconnect } from '../../services/socket';
+import api from '../../services/api';
 import {
   Settings as IconSettings,
   HelpCircle as IconHelpCircle,
   LogOut as IconLogOut,
   Inbox as IconInbox,
-  CheckCircle
+  CheckCircle,
+  User as IconUser
 } from "lucide-react";
 
 function ReceiverLayoutContent() {
   const location = useLocation();
   const navigate = useNavigate();
   const navType = useNavigationType();
-  const { logout } = React.useContext(AuthContext);
+  const { logout, organizationName } = React.useContext(AuthContext);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showPreferences, setShowPreferences] = useState(false);
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const dropdownRef = useRef(null);
   const isActive = (path) => location.pathname === path;
   const { notification, showNotification, clearNotification } = useNotification();
@@ -35,12 +41,10 @@ function ReceiverLayoutContent() {
         return "Welcome";
       case "/receiver/browse":
         return "Browse Available Food";
-      case "/receiver/requests":
-        return "My Requests";
-      case "/receiver/search":
-        return "Search Organizations";
       case "/receiver/messages":
         return "Messages";
+      case "/receiver/settings":
+        return "Settings";
       default:
         return "Receiver Dashboard";
     }
@@ -55,12 +59,10 @@ function ReceiverLayoutContent() {
         return "Start here: search the map or browse nearby food";
       case "/receiver/browse":
         return "Browse available food listings";
-      case "/receiver/requests":
-        return "Manage your food requests";
-      case "/receiver/search":
-        return "Search for food donors";
       case "/receiver/messages":
         return "Communicate with donors and other users";
+      case "/receiver/settings":
+        return "Manage your preferences and account settings";
       default:
         return "FoodFlow Receiver Portal";
     }
@@ -76,12 +78,34 @@ function ReceiverLayoutContent() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Fetch unread message count
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const response = await api.get('/conversations');
+        const totalUnread = response.data.reduce((sum, conv) => sum + (conv.unreadCount || 0), 0);
+        setUnreadMessagesCount(totalUnread);
+      } catch (err) {
+        console.error('Error fetching unread message count:', err);
+      }
+    };
+
+    fetchUnreadCount();
+    // Refresh unread count every 30 seconds
+    const interval = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Connect to websocket for user-specific notifications (receiver)
   useEffect(() => {
     const onMessage = (payload) => {
       const senderName = payload.senderName || payload.sender?.email || payload.senderEmail || '';
       const message = payload.messageBody || payload.message || payload.body || '';
-      if (message) showNotification(senderName, message);
+      if (message) {
+        showNotification(senderName, message);
+        // Increment unread count when receiving a new message
+        setUnreadMessagesCount(prev => prev + 1);
+      }
     };
 
     const onClaimNotification = (payload) => {
@@ -90,11 +114,11 @@ function ReceiverLayoutContent() {
       const donorName = payload.surplusPost?.donorEmail || 'a donor';
       const status = payload.status || '';
       let message = `Successfully claimed "${foodTitle}" from ${donorName}`;
-      
+
       if (status === 'READY_FOR_PICKUP' || status === 'Ready for Pickup') {
         message = `"${foodTitle}" is ready for pickup! Check your claims for details.`;
       }
-      
+
       console.log('RECEIVER: Setting notification with message:', message);
       showNotification('Claim Confirmed', message);
     };
@@ -117,7 +141,20 @@ function ReceiverLayoutContent() {
     if (navType === "POP" && !location.pathname.startsWith("/receiver")) {
       navigate("/receiver/dashboard", { replace: true });
     }
-  }, [navType, location.pathname, navigate]);
+    // Refresh unread count when navigating away from messages page
+    if (!isMessagesPage) {
+      const fetchUnreadCount = async () => {
+        try {
+          const response = await api.get('/conversations');
+          const totalUnread = response.data.reduce((sum, conv) => sum + (conv.unreadCount || 0), 0);
+          setUnreadMessagesCount(totalUnread);
+        } catch (err) {
+          console.error('Error fetching unread message count:', err);
+        }
+      };
+      fetchUnreadCount();
+    }
+  }, [navType, location.pathname, navigate, isMessagesPage]);
 
   const toggleDropdown = () => setShowDropdown((s) => !s);
 
@@ -142,19 +179,15 @@ function ReceiverLayoutContent() {
 
         <div className="receiver-nav-links">
           <Link
-            to="/receiver/browse"
-            className={`receiver-nav-link ${location.pathname === "/receiver/browse" ? "active" : ""}`}
+            to="/receiver"
+            className={`receiver-nav-link ${location.pathname === "/receiver" || location.pathname === "/receiver/browse" ? "active" : ""}`}
           >
             Donations
           </Link>
 
           <Link
             to="/receiver/my-claims"
-            className={`receiver-nav-link ${isActive("/receiver/my-claims") ||
-                isActive("/receiver") ||
-                isActive("/receiver/dashboard")
-                ? "active" : ""
-              }`}
+            className={`receiver-nav-link ${isActive("/receiver/my-claims") || isActive("/receiver/dashboard") ? "active" : ""}`}
           >
             My Claims
           </Link>
@@ -165,20 +198,20 @@ function ReceiverLayoutContent() {
           >
             Saved Donations
           </Link>
-
-          <Link
-            to="/receiver/messages"
-            className={`receiver-nav-link ${location.pathname === "/receiver/messages" ? "active" : ""}`}
-          >
-            Messages
-          </Link>
         </div>
 
         <div className="receiver-user-info" ref={dropdownRef}>
           <div className="user-actions">
-            <button className="inbox-btn" type="button" aria-label="Inbox">
-              <IconInbox size={22} />
-              <span className="badge">5</span>
+            <button 
+              className="inbox-btn" 
+              type="button" 
+              aria-label="Messages"
+              onClick={() => navigate('/receiver/messages')}
+            >
+              <IconInbox size={32} />
+              {unreadMessagesCount > 0 && (
+                <span className="badge">{unreadMessagesCount}</span>
+              )}
             </button>
 
             <button
@@ -188,18 +221,31 @@ function ReceiverLayoutContent() {
               onClick={toggleDropdown}
               title="Account"
             >
-              <img src="/pfp.png" alt="" />
+              <img src={ProfilePhoto} alt="Profile" />
             </button>
           </div>
 
           {showDropdown && (
             <div className="dropdown-menu dropdown-menu--card">
-              <div className="dropdown-header">Hello John Doe!</div>
+              <div className="dropdown-header">
+                Hello {organizationName || 'User'}!
+              </div>
               <div className="dropdown-divider"></div>
 
-              <div className="dropdown-item dropdown-item--settings" onClick={() => setShowDropdown(false)}>
+              <div className="dropdown-item dropdown-item--settings" onClick={() => {
+                setShowDropdown(false);
+                navigate('/receiver/settings');
+              }}>
                 <IconSettings size={18} />
                 <span>Settings</span>
+              </div>
+
+              <div className="dropdown-item dropdown-item--preferences" onClick={() => {
+                setShowDropdown(false);
+                setShowPreferences(true);
+              }}>
+                <IconUser size={18} />
+                <span>Preferences</span>
               </div>
 
               <div
@@ -242,6 +288,15 @@ function ReceiverLayoutContent() {
           />
         </div>
       </div>
+
+      <ReceiverPreferences
+        isOpen={showPreferences}
+        onClose={() => setShowPreferences(false)}
+        onSave={(savedPreferences) => {
+          console.log('Preferences saved:', savedPreferences);
+          // You can add additional logic here if needed
+        }}
+      />
     </div>
   );
 }

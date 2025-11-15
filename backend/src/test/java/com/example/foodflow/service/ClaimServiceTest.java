@@ -45,6 +45,9 @@ class ClaimServiceTest {
 
     @Mock
     private SimpMessagingTemplate messagingTemplate;
+    
+    @Mock
+    private BusinessMetricsService businessMetricsService;
 
     @InjectMocks
     private ClaimService claimService;
@@ -476,18 +479,19 @@ class ClaimServiceTest {
 
     @Test
     void claimSurplusPost_WithPickupSlotToday_ChecksCurrentTime() {
-        // Given - pickup is today but hasn't started yet
-        LocalDate today = LocalDate.now();
-        LocalTime futureTime = LocalTime.now().plusHours(2);
+        // Given - pickup is tomorrow (future date means it stays CLAIMED)
+        LocalDate tomorrow = LocalDate.now().plusDays(1);
+        LocalTime pickupStart = LocalTime.of(10, 0);
+        LocalTime pickupEnd = LocalTime.of(12, 0);
         
         PickupSlotRequest pickupSlot = new PickupSlotRequest();
-        pickupSlot.setPickupDate(today);
-        pickupSlot.setStartTime(futureTime);
-        pickupSlot.setEndTime(futureTime.plusHours(2));
+        pickupSlot.setPickupDate(tomorrow);
+        pickupSlot.setStartTime(pickupStart);
+        pickupSlot.setEndTime(pickupEnd);
         
         claimRequest.setPickupSlot(pickupSlot);
-        surplusPost.setPickupDate(today);
-        surplusPost.setPickupFrom(futureTime);
+        surplusPost.setPickupDate(tomorrow);
+        surplusPost.setPickupFrom(pickupStart);
         
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
         when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
@@ -495,14 +499,15 @@ class ClaimServiceTest {
         Claim savedClaim = new Claim(surplusPost, receiver);
         savedClaim.setId(1L);
         when(claimRepository.save(any(Claim.class))).thenReturn(savedClaim);
-        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+        
+        ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
+        when(surplusPostRepository.save(postCaptor.capture())).thenReturn(surplusPost);
 
         // When
         claimService.claimSurplusPost(claimRequest, receiver);
 
-        // Then - status should be CLAIMED since pickup hasn't started
-        verify(surplusPostRepository).save(argThat(post -> 
-            post.getStatus() == PostStatus.CLAIMED
-        ));
+        // Then - status should be CLAIMED since pickup date is in the future
+        SurplusPost savedPost = postCaptor.getValue();
+        assertThat(savedPost.getStatus()).isEqualTo(PostStatus.CLAIMED);
     }
 }

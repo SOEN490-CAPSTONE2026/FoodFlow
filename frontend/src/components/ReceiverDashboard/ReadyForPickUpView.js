@@ -48,11 +48,6 @@ const ReadyForPickUpView = ({ claim, isOpen, onClose, onBack }) => {
     const pickupCode = post?.otpCode || claim?.surplusPost?.otpCode || '000000';
     const pickupCodeArray = pickupCode.split('');
 
-
-    const handleMarkAsCollected = () => {
-        console.log('Marking as collected...');
-    };
-
     return (
         <div className="claimed-modal-overlay" onClick={onClose}>
             <div
@@ -111,7 +106,10 @@ const ReadyForPickUpView = ({ claim, isOpen, onClose, onBack }) => {
                             <h4 className="PickupView-ready-pickup-step-title">Confirm Pickup</h4>
                             <p className="PickupView-ready-pickup-step-description">After collecting the food, mark this donation as collected.</p>
 
-                            <button className="PickupView-mark-collected-btn" onClick={handleMarkAsCollected}>
+                            <button 
+                                className="PickupView-mark-collected-btn"
+                                onClick={() => console.log("Marking as collected...")}
+                            >
                                 <CircleCheck size={20} />
                                 Mark as Collected
                             </button>

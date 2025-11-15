@@ -73,4 +73,20 @@ public class MetricsService {
                 .register(meterRegistry)
                 .increment();
     }
+
+     public void incrementAuthFailure(String reason) {
+        Counter.builder("auth.failures")
+                .description("Authentication failures")
+                .tag("reason", reason)
+                .register(meterRegistry)
+                .increment();
+    }
+
+    public void incrementSecurityEvent(String eventType) {
+        Counter.builder("security.events")
+                .description("Security-related events")
+                .tag("type", eventType)
+                .register(meterRegistry)
+                .increment();
+    }
 }

@@ -508,7 +508,7 @@ export default function ReceiverBrowse() {
                     </div>
                     <div className="receiver-donor-info">
                       <User size={16} />
-                      <span>Donated by {item.donor?.name || "Local Business"}</span>
+                      <span>Donated by {item.donorName || "Local Business"}</span>
                     </div>
                   </div>
 

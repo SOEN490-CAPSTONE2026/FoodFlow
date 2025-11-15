@@ -8,7 +8,7 @@ import {
   FileText,
   Mail,
   ChevronRight,
-  ChevronDown,
+  ChevronLeft,
   Settings,
   HelpCircle,
   MoreVertical,
@@ -26,23 +26,12 @@ export default function DonorLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const navType = useNavigationType();
-  const { logout } = useContext(AuthContext);
+  const { logout, organizationName, role } = useContext(AuthContext);
   const [open, setOpen] = useState(false);
-  const [messagesOpen, setMessagesOpen] = useState(false);
-  const [screenHeight, setScreenHeight] = useState(window.innerHeight);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const menuRef = useRef(null);
   const [notification, setNotification] = useState(null);
-
-
-  useEffect(() => {
-    const handleResize = () => {
-      setScreenHeight(window.innerHeight);
-    };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   const pageTitle = (() => {
     switch (location.pathname) {
@@ -57,6 +46,8 @@ export default function DonorLayout() {
         return " Pickup Schdule";
       case "/donor/messages":
         return "Messages";
+      case "/donor/settings":
+        return "Settings";
       case "/donor/help":
         return "Help";
       default:
@@ -77,6 +68,8 @@ export default function DonorLayout() {
         return "Recent activity and history";
       case "/donor/messages":
         return "Incoming communications";
+      case "/donor/settings":
+        return "Manage your preferences and account settings";
       case "/donor/help":
         return "Guides and support";
       default:
@@ -151,6 +144,11 @@ export default function DonorLayout() {
 
   const isMessagesPage = location.pathname === "/donor/messages";
 
+  // Close menu when navigating
+  useEffect(() => {
+    setOpen(false);
+  }, [location.pathname]);
+
   return (
     <div className="donor-layout">
       <div className="mobile-header">
@@ -173,69 +171,95 @@ export default function DonorLayout() {
           <Link to="/" state={{ scrollTo: "home", from: "donor" }} aria-label="FoodFlow Home">
             <img src={Logo} alt="FoodFlow" className="donor-logo" />
           </Link>
-          {/* <button 
+          <button 
             className="sidebar-toggle-btn"
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
             aria-label="Toggle sidebar"
           >
-            {sidebarCollapsed ? <ChevronRight size={20} /> : <X size={20} />}
-          </button> */}
+            {sidebarCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+          </button>
         </div>
 
         <nav className="donor-nav-links">
-          <Link to="/donor" className={`donor-nav-link ${isActive("/donor") ? "active" : ""}`}>
+          <Link 
+            to="/donor" 
+            className={`donor-nav-link ${isActive("/donor") ? "active" : ""}`}
+            data-tooltip="Home"
+          >
             <span className="nav-icon" aria-hidden>
               <Home size={18} className="lucide" />
             </span>
             Home
           </Link>
 
-          <Link to="/donor/dashboard" className={`donor-nav-link ${isActive("/donor/dashboard") ? "active" : ""}`}>
+          <Link 
+            to="/donor/dashboard" 
+            className={`donor-nav-link ${isActive("/donor/dashboard") ? "active" : ""}`}
+            data-tooltip="Dashboard"
+          >
             <span className="nav-icon" aria-hidden>
               <LayoutGrid size={18} className="lucide" />
             </span>
             Dashboard
           </Link>
 
-          <Link to="/donor/list" className={`donor-nav-link ${isActive("/donor/list") ? "active" : ""}`}>
+          <Link 
+            to="/donor/list" 
+            className={`donor-nav-link ${isActive("/donor/list") ? "active" : ""}`}
+            data-tooltip="Donate Now"
+          >
             <span className="nav-icon" aria-hidden>
               <Heart size={18} className="lucide" />
             </span>
             Donate Now
           </Link>
 
-          <Link to="/donor/requests" className={`donor-nav-link ${isActive("/donor/requests") ? "active" : ""}`}>
+          <Link 
+            to="/donor/requests" 
+            className={`donor-nav-link ${isActive("/donor/requests") ? "active" : ""}`}
+            data-tooltip="Requests & Claims"
+          >
             <span className="nav-icon" aria-hidden>
               <CalendarIcon size={18} className="lucide" />
             </span>
             Requests & Claims 
           </Link>
 
-          <Link to="/donor/search" className={`donor-nav-link ${isActive("/donor/search") ? "active" : ""}`}>
+          <Link 
+            to="/donor/search" 
+            className={`donor-nav-link ${isActive("/donor/search") ? "active" : ""}`}
+            data-tooltip="Pickup Schedule"
+          >
             <span className="nav-icon" aria-hidden>
               <FileText size={18} className="lucide" />
             </span>
             Pickup Schedule
           </Link>
 
-          <div className={`donor-nav-link messages-link ${isActive("/donor/messages") ? "active" : ""}`}>
-            <div onClick={() => navigate("/donor/messages")} className="messages-left">
-              <span className="nav-icon" aria-hidden>
-                <Mail size={18} className="lucide" />
-              </span>
-              Messages
-            </div>
-          </div>
+          <Link 
+            to="/donor/messages" 
+            className={`donor-nav-link ${isActive("/donor/messages") ? "active" : ""}`}
+            data-tooltip="Messages"
+          >
+            <span className="nav-icon" aria-hidden>
+              <Mail size={18} className="lucide" />
+            </span>
+            Messages
+          </Link>
         </nav>
 
-        <div className="donor-nav-bottom nav-bottom-abs">
-          <div className="donor-nav-link disabled">
+        <div className="donor-nav-bottom">
+          <Link 
+            to="/donor/settings" 
+            className={`donor-nav-link ${isActive("/donor/settings") ? "active" : ""}`}
+            data-tooltip="Settings"
+          >
             <span className="nav-icon" aria-hidden>
               <Settings size={18} className="lucide" />
             </span>
             Settings
-          </div>
-          <div className="donor-nav-link disabled">
+          </Link>
+          <div className="donor-nav-link disabled" data-tooltip="Help">
             <span className="nav-icon" aria-hidden>
               <HelpCircle size={18} className="lucide" />
             </span>
@@ -243,13 +267,13 @@ export default function DonorLayout() {
           </div>
         </div>
 
-        <div className="donor-sidebar-footer donor-user footer-abs" ref={menuRef}>
+        <div className="donor-sidebar-footer donor-user" ref={menuRef}>
           <div className="account-row">
             <button className="user-profile-pic" type="button">
               <div className="account-avatar"></div>
               <div className="account-text">
-                <span className="account-name">Donor</span>
-                <span className="account-role">donor</span>
+                <span className="account-name">{organizationName || 'Donor'}</span>
+                <span className="account-role">{role?.toLowerCase() || 'donor'}</span>
               </div>
             </button>
             <button className="account-dotted-menu" onClick={() => setOpen((s) => !s)} aria-label="Menu">

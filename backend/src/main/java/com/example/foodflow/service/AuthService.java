@@ -19,6 +19,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.foodflow.service.MetricsService;
+import io.micrometer.core.annotation.Timed;
+
 
 @Service
 public class AuthService {
@@ -54,6 +56,7 @@ public class AuthService {
 
 
     @Transactional
+    @Timed(value = "auth.service.registerDonor", description = "Time taken to register a donor")
     public AuthResponse registerDonor(RegisterDonorRequest request) {
         log.info("Starting donor registration for email: {}", request.getEmail());
         
@@ -92,13 +95,14 @@ public class AuthService {
         metricsService.incrementDonorRegistration();
         metricsService.incrementUserRegistration();
 
-        log.info("Donor registration successful: email={}, organization={}, type={}", 
+        log.info("Donor registration successful: email={}, organization={}, type={}",
             savedUser.getEmail(), request.getOrganizationName(), request.getOrganizationType());
 
-        return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), "Donor registered successfully", savedUser.getId());
+        return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), "Donor registered successfully", savedUser.getId(), request.getOrganizationName());
     }
 
     @Transactional
+    @Timed(value = "auth.service.registerReceiver", description = "Time taken to register a receiver")
     public AuthResponse registerReceiver(RegisterReceiverRequest request) {
         // Check if user already exists
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -131,31 +135,44 @@ public class AuthService {
         metricsService.incrementReceiverRegistration();
         metricsService.incrementUserRegistration();
 
-        return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), "Receiver registered successfully", savedUser.getId());
+        return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), "Receiver registered successfully", savedUser.getId(), request.getOrganizationName());
     }
 
+    @Transactional(readOnly = true)
+    @Timed(value = "auth.service.login", description = "Time taken to login")
     public AuthResponse login(LoginRequest request) {
         log.info("Login attempt for email: {}", request.getEmail());
-        
-        User user = userRepository.findByEmail(request.getEmail())
-            .orElseThrow(() -> {
-                log.warn("Login failed: User not found: {}", request.getEmail());
-                return new RuntimeException("User not found");
+        metricsService.incrementLoginAttempt();       
+        try {
+            User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> {
+                    log.warn("Login failed: User not found: {}", request.getEmail());
+                    metricsService.incrementAuthFailure("user_not_found");
+                    return new RuntimeException("User not found");
             });
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            log.warn("Login failed: Invalid credentials for user: {}", request.getEmail());
-            throw new RuntimeException("Invalid credentials");
+            if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+                    log.warn("Login failed: Invalid credentials for user: {}", request.getEmail());
+                    metricsService.incrementAuthFailure("invalid_credentials");
+                    throw new RuntimeException("Invalid credentials");
+            }
+
+            String token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole().toString());
+
+            metricsService.incrementLoginSuccess();
+
+            String organizationName = user.getOrganization() != null ? user.getOrganization().getName() : null;
+
+            log.info("Login successful: email={}, role={}, organizationName={}", user.getEmail(), user.getRole(), organizationName);
+            return new AuthResponse(token, user.getEmail(), user.getRole().toString(),
+                       "Account logged in successfully.", user.getId(), organizationName);
+        } catch (RuntimeException e) {
+            // Already logged failure metrics above
+            throw e;
         }
-
-        String token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole().toString());
-
-        metricsService.incrementLoginSuccess();
-
-        log.info("Login successful: email={}, role={}, userId={}", user.getEmail(), user.getRole(), user.getId());
-        return new AuthResponse(token, user.getEmail(), user.getRole().toString(), "Account logged in successfully.", user.getId());
     }
 
+    @Timed(value = "auth.service.logout", description = "Time taken to logout")
     public AuthResponse logout(LogoutRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));

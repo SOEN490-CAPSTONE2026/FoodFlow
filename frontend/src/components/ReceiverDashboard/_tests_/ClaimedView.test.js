@@ -1,7 +1,10 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import ClaimedView from "../ClaimedView";
+
+// Mock the current date to ensure consistent timer tests
+const MOCK_NOW = new Date("2025-10-27T10:00:00");
 
 const mockClaim = {
   surplusPost: {
@@ -9,8 +12,8 @@ const mockClaim = {
     foodType: "Frozen Food",
     quantity: { value: 20, unit: "pieces" },
     pickupDate: "2025-10-28",
-    pickupFrom: "09:00",
-    pickupTo: "11:00",
+    pickupFrom: "09:00:00",
+    pickupTo: "11:00:00",
     donorEmail: "pizza@example.com",
     pickupLocation: {
       address: "789 Pizza Lane",
@@ -21,6 +24,16 @@ const mockClaim = {
 };
 
 describe("ClaimedView", () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(MOCK_NOW);
+  });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+  });
+
   test("renders nothing when not open", () => {
     const { container } = render(
       <ClaimedView
@@ -100,6 +113,28 @@ describe("ClaimedView", () => {
     expect(
       screen.getByText(/Be on time to ensure your organization receives/i)
     ).toBeInTheDocument();
+  });
+
+  test("displays countdown timer in step 1", async () => {
+    const { container } = render(
+      <ClaimedView
+        claim={mockClaim}
+        isOpen={true}
+        onClose={jest.fn()}
+        onBack={jest.fn()}
+      />
+    );
+    
+    // Wait for the timer to render
+    await waitFor(() => {
+      const timer = container.querySelector(".pickup-step-timer");
+      expect(timer).toBeInTheDocument();
+    });
+
+    // Check for timer labels
+    expect(screen.getByText("hrs")).toBeInTheDocument();
+    expect(screen.getByText("min")).toBeInTheDocument();
+    expect(screen.getByText("sec")).toBeInTheDocument();
   });
 
   test("displays step 2 with placeholder dots", () => {
@@ -306,5 +341,51 @@ describe("ClaimedView", () => {
     );
     const placeholders = container.querySelectorAll(".pickup-step-placeholder");
     expect(placeholders.length).toBe(2);
+  });
+
+  test("timer updates every second", async () => {
+    const { container } = render(
+      <ClaimedView
+        claim={mockClaim}
+        isOpen={true}
+        onClose={jest.fn()}
+        onBack={jest.fn()}
+      />
+    );
+
+    await waitFor(() => {
+      const timer = container.querySelector(".pickup-step-timer");
+      expect(timer).toBeInTheDocument();
+    });
+
+    // Advance timer by 1 second
+    jest.advanceTimersByTime(1000);
+
+    // Timer should still be present
+    const timer = container.querySelector(".pickup-step-timer");
+    expect(timer).toBeInTheDocument();
+  });
+
+  test("handles missing pickup date gracefully", () => {
+    const claimWithoutPickupDate = {
+      ...mockClaim,
+      surplusPost: {
+        ...mockClaim.surplusPost,
+        pickupDate: null,
+        pickupFrom: null,
+      },
+    };
+    const { container } = render(
+      <ClaimedView
+        claim={claimWithoutPickupDate}
+        isOpen={true}
+        onClose={jest.fn()}
+        onBack={jest.fn()}
+      />
+    );
+    
+    // Timer should not render if pickup date is missing
+    const timer = container.querySelector(".pickup-step-timer");
+    expect(timer).not.toBeInTheDocument();
   });
 });
