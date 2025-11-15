@@ -103,6 +103,10 @@
     background: #E2E8F0;
     color: #314158;
 }
+.claimed-status-not-completed {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
 .claimed-modal-title {
     color: white;
     font-size: 1.6rem;
