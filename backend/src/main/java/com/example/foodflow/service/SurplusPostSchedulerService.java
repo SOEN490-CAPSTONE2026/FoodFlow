@@ -1,10 +1,7 @@
 package com.example.foodflow.service;
 
-import com.example.foodflow.model.entity.Claim;
 import com.example.foodflow.model.entity.SurplusPost;
-import com.example.foodflow.model.types.ClaimStatus;
 import com.example.foodflow.model.types.PostStatus;
-import com.example.foodflow.repository.ClaimRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,12 +23,9 @@ public class SurplusPostSchedulerService {
     private static final int GRACE_PERIOD_MINUTES = 2;
 
     private final SurplusPostRepository surplusPostRepository;
-    private final ClaimRepository claimRepository;
 
-    public SurplusPostSchedulerService(SurplusPostRepository surplusPostRepository, 
-                                     ClaimRepository claimRepository) {
+    public SurplusPostSchedulerService(SurplusPostRepository surplusPostRepository) {
         this.surplusPostRepository = surplusPostRepository;
-        this.claimRepository = claimRepository;
     }
 
     private String generateOtpCode() {
@@ -41,7 +35,7 @@ public class SurplusPostSchedulerService {
 
     /**
      * Every 5 seconds: mark CLAIMED posts as READY_FOR_PICKUP
-     * once the CONFIRMED pickup time has started, with a 2-minute grace period.
+     * once the pickup time has started, with a 2-minute grace period.
      */
     @Scheduled(fixedRate = 5000)
     @Transactional
@@ -52,14 +46,12 @@ public class SurplusPostSchedulerService {
 
         logger.info("===== updatePostsToReadyForPickup running at {} =====", now);
 
-        // Get claims with confirmed pickup times for CLAIMED posts
-        List<Claim> activeClaimsWithPickupTimes = claimRepository.findActiveClaimsWithConfirmedPickupTimes(ClaimStatus.ACTIVE);
-        logger.info("Found {} active claims with confirmed pickup times to evaluate", activeClaimsWithPickupTimes.size());
+        // Only CLAIMED posts can become READY_FOR_PICKUP
+        List<SurplusPost> claimedPosts = surplusPostRepository.findByStatus(PostStatus.CLAIMED);
+        logger.info("Found {} CLAIMED posts to evaluate", claimedPosts.size());
 
-        List<SurplusPost> postsToUpdate = activeClaimsWithPickupTimes.stream()
-            .filter(claim -> {
-                SurplusPost post = claim.getSurplusPost();
-                
+        List<SurplusPost> postsToUpdate = claimedPosts.stream()
+            .filter(post -> {
                 // Grace period: skip brand-new posts
                 if (post.getCreatedAt() != null &&
                     post.getCreatedAt().isAfter(now.minusMinutes(GRACE_PERIOD_MINUTES))) {
@@ -67,31 +59,24 @@ public class SurplusPostSchedulerService {
                     return false;
                 }
 
-                // Skip claims whose confirmed pickup date is still in the future
-                if (claim.getConfirmedPickupDate().isAfter(today)) {
-                    logger.debug("Skipping post ID {} — confirmed pickup date {} is in the future", 
-                               post.getId(), claim.getConfirmedPickupDate());
+                // Skip posts whose pickup date is still in the future
+                if (post.getPickupDate().isAfter(today)) {
                     return false;
                 }
 
-                // If confirmed pickup date is today, check if confirmed start time has arrived
-                if (claim.getConfirmedPickupDate().isEqual(today)) {
-                    boolean started = !currentTime.isBefore(claim.getConfirmedPickupStartTime());
-                    logger.debug("Post ID {} — confirmed pickup starts at {}, current time {}, started: {}", 
-                               post.getId(), claim.getConfirmedPickupStartTime(), currentTime, started);
+                // If pickup date is today, check if start time has arrived
+                if (post.getPickupDate().isEqual(today)) {
+                    boolean started = !currentTime.isBefore(post.getPickupFrom());
                     return started;
                 }
 
-                // Confirmed pickup date in the past → should be ready
-                logger.debug("Post ID {} — confirmed pickup date {} is in the past", 
-                           post.getId(), claim.getConfirmedPickupDate());
+                // Pickup date in the past → should be ready
                 return true;
             })
-            .map(Claim::getSurplusPost)
             .toList();
 
         if (postsToUpdate.isEmpty()) {
-            logger.info("No CLAIMED posts eligible for READY_FOR_PICKUP based on confirmed pickup times.");
+            logger.info("No CLAIMED posts eligible for READY_FOR_PICKUP.");
             return;
         }
 
@@ -105,13 +90,13 @@ public class SurplusPostSchedulerService {
             }
 
             surplusPostRepository.save(post);
-            logger.info("Post ID {} updated to READY_FOR_PICKUP based on confirmed pickup time", post.getId());
+            logger.info("Post ID {} updated to READY_FOR_PICKUP", post.getId());
         }
     }
 
     /**
      * Every minute: mark READY_FOR_PICKUP posts as NOT_COMPLETED
-     * if CONFIRMED pickup window has ended, with a 2-minute grace period.
+     * if pickup window has ended, with a 2-minute grace period.
      */
     @Scheduled(fixedRate = 60000)
     @Transactional
@@ -122,45 +107,11 @@ public class SurplusPostSchedulerService {
 
         logger.info("===== updatePostsToNotCompleted running at {} =====", now);
 
-        // Get READY_FOR_PICKUP posts and their associated claims
         List<SurplusPost> readyPosts = surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP);
         logger.info("Found {} READY_FOR_PICKUP posts to evaluate", readyPosts.size());
 
         List<SurplusPost> postsToUpdate = readyPosts.stream()
             .filter(post -> {
-                // Get the active claim for this post to check confirmed pickup times
-                var claimOpt = claimRepository.findBySurplusPostIdAndStatus(post.getId(), ClaimStatus.ACTIVE);
-                
-                if (claimOpt.isEmpty()) {
-                    logger.warn("No active claim found for READY_FOR_PICKUP post ID {}, marking as NOT_COMPLETED", post.getId());
-                    return true; // No claim means something went wrong, mark as not completed
-                }
-                
-                Claim claim = claimOpt.get();
-                
-                // If no confirmed pickup times, fall back to original post times (shouldn't happen but safety check)
-                if (claim.getConfirmedPickupDate() == null || claim.getConfirmedPickupEndTime() == null) {
-                    logger.warn("Post ID {} has no confirmed pickup times, falling back to post pickup window", post.getId());
-                    
-                    // Grace period: skip brand-new posts
-                    if (post.getCreatedAt() != null &&
-                        post.getCreatedAt().isAfter(now.minusMinutes(GRACE_PERIOD_MINUTES))) {
-                        return false;
-                    }
-                    
-                    // Pickup date before today → definitely missed
-                    if (post.getPickupDate().isBefore(today)) {
-                        return true;
-                    }
-                    
-                    // Pickup date today and window ended
-                    if (post.getPickupDate().isEqual(today)) {
-                        return currentTime.isAfter(post.getPickupTo());
-                    }
-                    
-                    return false;
-                }
-                
                 // Grace period: skip brand-new posts
                 if (post.getCreatedAt() != null &&
                     post.getCreatedAt().isAfter(now.minusMinutes(GRACE_PERIOD_MINUTES))) {
@@ -168,19 +119,14 @@ public class SurplusPostSchedulerService {
                     return false;
                 }
 
-                // Confirmed pickup date before today → definitely missed
-                if (claim.getConfirmedPickupDate().isBefore(today)) {
-                    logger.debug("Post ID {} — confirmed pickup date {} is in the past", 
-                               post.getId(), claim.getConfirmedPickupDate());
+                // Pickup date before today → definitely missed
+                if (post.getPickupDate().isBefore(today)) {
                     return true;
                 }
 
-                // Confirmed pickup date today and confirmed window ended
-                if (claim.getConfirmedPickupDate().isEqual(today)) {
-                    boolean windowEnded = currentTime.isAfter(claim.getConfirmedPickupEndTime());
-                    logger.debug("Post ID {} — confirmed pickup ends at {}, current time {}, window ended: {}", 
-                               post.getId(), claim.getConfirmedPickupEndTime(), currentTime, windowEnded);
-                    return windowEnded;
+                // Pickup date today and window ended
+                if (post.getPickupDate().isEqual(today)) {
+                    return currentTime.isAfter(post.getPickupTo());
                 }
 
                 return false;
@@ -188,26 +134,14 @@ public class SurplusPostSchedulerService {
             .toList();
 
         if (postsToUpdate.isEmpty()) {
-            logger.info("No posts eligible for NOT_COMPLETED update based on confirmed pickup times.");
+            logger.info("No posts eligible for NOT_COMPLETED update.");
             return;
         }
 
         for (SurplusPost post : postsToUpdate) {
-            // Update post status
             post.setStatus(PostStatus.NOT_COMPLETED);
             surplusPostRepository.save(post);
-            
-            // Also update the associated claim status to NOT_COMPLETED
-            var claimOpt = claimRepository.findBySurplusPostIdAndStatus(post.getId(), ClaimStatus.ACTIVE);
-            if (claimOpt.isPresent()) {
-                Claim claim = claimOpt.get();
-                claim.setStatus(ClaimStatus.NOT_COMPLETED);
-                claimRepository.save(claim);
-                logger.info("Post ID {} and associated claim ID {} both marked as NOT_COMPLETED due to missed pickup window", 
-                           post.getId(), claim.getId());
-            } else {
-                logger.info("Post ID {} marked as NOT_COMPLETED based on confirmed pickup window", post.getId());
-            }
+            logger.info("Post ID {} marked as NOT_COMPLETED", post.getId());
         }
     }
 }

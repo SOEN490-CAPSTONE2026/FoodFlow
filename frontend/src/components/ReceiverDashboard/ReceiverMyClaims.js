@@ -153,11 +153,11 @@ export default function ReceiverMyClaims() {
   };
 
   const filters = [
-    { name: 'All', count: getStatusCount('All') },
     { name: 'Claimed', count: getStatusCount('Claimed') },
     { name: 'Ready', count: getStatusCount('Ready') },
     { name: 'Completed', count: getStatusCount('Completed') },
-    { name: 'Not Completed', count: getStatusCount('Not Completed') }
+    { name: 'Not Completed', count: getStatusCount('Not Completed') },
+    { name: 'All', count: getStatusCount('All') }
   ];
 
   const filteredClaims = claims.filter(claim => {

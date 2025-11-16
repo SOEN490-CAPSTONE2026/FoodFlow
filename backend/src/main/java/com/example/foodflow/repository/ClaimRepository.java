@@ -43,14 +43,4 @@ public interface ClaimRepository extends JpaRepository<Claim, Long> {
     );
 
     long countByStatus(ClaimStatus status);
-    
-    // Find active claims with confirmed pickup times for scheduler
-    @Query("SELECT c FROM Claim c " +
-           "JOIN FETCH c.surplusPost sp " +
-           "WHERE c.status = :status " +
-           "AND c.confirmedPickupDate IS NOT NULL " +
-           "AND c.confirmedPickupStartTime IS NOT NULL " +
-           "AND c.confirmedPickupEndTime IS NOT NULL " +
-           "AND sp.status = com.example.foodflow.model.types.PostStatus.CLAIMED")
-    List<Claim> findActiveClaimsWithConfirmedPickupTimes(@Param("status") ClaimStatus status);
 }
