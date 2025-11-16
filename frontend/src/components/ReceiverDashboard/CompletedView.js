@@ -1,12 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { X, CircleCheck } from 'lucide-react';
 import Confetti from 'react-confetti';
-import BakeryPastryImage from '../../assets/foodtypes/Pastry&Bakery.jpg';
-import FruitsVeggiesImage from '../../assets/foodtypes/Fruits&Vegetables.jpg';
-import PackagedPantryImage from '../../assets/foodtypes/PackagedItems.jpg';
-import DairyColdImage from '../../assets/foodtypes/Dairy.jpg';
-import FrozenFoodImage from '../../assets/foodtypes/FrozenFood.jpg';
-import PreparedMealsImage from '../../assets/foodtypes/PreparedFood.jpg';
+import { foodTypeImages, getPrimaryFoodCategory } from '../../constants/foodConstants';
 import './Receiver_Styles/CompletedView.css';
 
 const CompletedView = ({ claim, isOpen, onClose, onBack }) => {
@@ -25,24 +20,7 @@ const CompletedView = ({ claim, isOpen, onClose, onBack }) => {
 
     if (!isOpen || !claim) return null;
 
-    const getFoodTypeImage = (foodType) => {
-        switch (foodType) {
-            case 'Bakery & Pastry':
-                return BakeryPastryImage;
-            case 'Fruits & Vegetables':
-                return FruitsVeggiesImage;
-            case 'Packaged / Pantry Items':
-                return PackagedPantryImage;
-            case 'Dairy & Cold Items':
-                return DairyColdImage;
-            case 'Frozen Food':
-                return FrozenFoodImage;
-            case 'Prepared Meals':
-                return PreparedMealsImage;
-            default:
-                return PreparedMealsImage;
-        }
-    };
+
 
     return (
         <div className="claimed-modal-overlay" onClick={onClose}>
@@ -71,7 +49,7 @@ const CompletedView = ({ claim, isOpen, onClose, onBack }) => {
                 {/* Header with Image */}
                 <div className="claimed-modal-header">
                     <img
-                        src={getFoodTypeImage(post?.foodType)}
+                        src={foodTypeImages[getPrimaryFoodCategory(post?.foodCategories)] || foodTypeImages['Prepared Meals']}
                         alt={post?.title || 'Donation'}
                         className="claimed-modal-header-image"
                     />
@@ -95,7 +73,7 @@ const CompletedView = ({ claim, isOpen, onClose, onBack }) => {
                         <div className="CompletedView-pickup-step-content">
                             <h4 className="CompletedView-pickup-step-title">Donation Claimed! </h4>
                             <p className="CompletedView-pickup-step-description">
-                                Your claim is confirmed. Wait for the pickup window to start, and your pickup code will be available!
+                                Your donation has been successfully claimed! Thank you for making a difference in your community.
                             </p>
                         </div>
                     </div>

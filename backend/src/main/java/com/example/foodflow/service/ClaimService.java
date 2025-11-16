@@ -95,19 +95,28 @@ public class ClaimService {
         
         claim = claimRepository.save(claim);
 
-        // Check if pickup time has already started
+        // Check if CONFIRMED pickup time has already started
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
         java.time.LocalDate today = now.toLocalDate();
         java.time.LocalTime currentTime = now.toLocalTime();
 
         boolean pickupTimeStarted = false;
         
-        if (surplusPost.getPickupDate() != null) {
-          if (surplusPost.getPickupDate().isBefore(today)) {
-              pickupTimeStarted = true;
-          } else if (surplusPost.getPickupDate().isEqual(today)) {
-              pickupTimeStarted = !currentTime.isBefore(surplusPost.getPickupFrom());
-          }
+        // Use the confirmed pickup times from the claim, not the general post times
+        if (claim.getConfirmedPickupDate() != null) {
+            if (claim.getConfirmedPickupDate().isBefore(today)) {
+                pickupTimeStarted = true;
+                logger.info("Claim {} pickup time started - confirmed date {} is before today {}", 
+                           claim.getId(), claim.getConfirmedPickupDate(), today);
+            } else if (claim.getConfirmedPickupDate().isEqual(today)) {
+                pickupTimeStarted = claim.getConfirmedPickupStartTime() != null && 
+                                   !currentTime.isBefore(claim.getConfirmedPickupStartTime());
+                logger.info("Claim {} pickup time started: {} - confirmed start time {} vs current time {}", 
+                           claim.getId(), pickupTimeStarted, claim.getConfirmedPickupStartTime(), currentTime);
+            } else {
+                logger.info("Claim {} pickup time not started - confirmed date {} is after today {}", 
+                           claim.getId(), claim.getConfirmedPickupDate(), today);
+            }
         }
          
         // Update surplus post status

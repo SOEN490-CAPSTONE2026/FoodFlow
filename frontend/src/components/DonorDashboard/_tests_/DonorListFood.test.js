@@ -43,6 +43,32 @@ jest.mock("../../../services/api", () => ({
   },
 }));
 
+jest.mock("../../../constants/foodConstants", () => ({
+  getFoodTypeLabel: (value) => {
+    const mapping = {
+      FRUITS_VEGETABLES: "Fruits & Vegetables",
+      BAKERY_ITEMS: "Bakery & Pastry",
+      PREPARED_MEALS: "Prepared Meals",
+      DAIRY_COLD: "Dairy & Cold",
+      FROZEN: "Frozen",
+    };
+    return mapping[value] || value;
+  },
+  getUnitLabel: (value) => {
+    const mapping = {
+      KILOGRAM: "kg",
+      LOAF: "loaves",
+      SERVINGS: "servings",
+      ITEM: "items",
+      LITER: "liters",
+      POUND: "lbs",
+      BOX: "boxes",
+      PACKAGES: "packages",
+    };
+    return mapping[value] || value;
+  }
+}));
+
 jest.mock("lucide-react", () => ({
   Calendar: () => "CalendarIcon",
   Clock: () => "ClockIcon",
@@ -60,12 +86,12 @@ import DonorListFood from "../DonorListFood";
 import { surplusAPI } from "../../../services/api";
 import { AuthContext } from "../../../contexts/AuthContext";
 
-// Mock data
+// Mock data - changed to use objects with name property like the real API
 const mockItems = [
   {
     id: 1,
     title: "Fresh Apples",
-    foodCategories: ["FRUITS_VEGETABLES"],
+    foodCategories: [{ name: "FRUITS_VEGETABLES" }],
     quantity: {
       value: 5,
       unit: "KILOGRAM",
@@ -81,7 +107,7 @@ const mockItems = [
   {
     id: 2,
     title: "Artisan Bread Selection",
-    foodCategories: ["BAKERY_ITEMS"],
+    foodCategories: [{ name: "BAKERY_ITEMS" }],
     quantity: {
       value: 10,
       unit: "LOAF",
@@ -195,7 +221,11 @@ describe("DonorListFood", () => {
     });
 
     const appleCard = screen.getByLabelText(/fresh apples/i);
-    expect(within(appleCard).getByText(/5 kilograms/i)).toBeInTheDocument();
+    // Check for quantity by finding the donation-quantity div
+    const quantityDiv = appleCard.querySelector('.donation-quantity');
+    expect(quantityDiv).toBeInTheDocument();
+    expect(quantityDiv).toHaveTextContent('5');
+    expect(quantityDiv).toHaveTextContent('kg');
     expect(within(appleCard).getByText(/Available/i)).toBeInTheDocument();
     expect(
       within(appleCard).getByText(/Fruits & Vegetables/i)
@@ -420,7 +450,7 @@ describe("DonorListFood", () => {
     const itemWithConfirmedSlot = {
       id: 3,
       title: "Confirmed Slot Item",
-      foodCategories: ["PREPARED_MEALS"],
+      foodCategories: [{ name: "PREPARED_MEALS" }],
       quantity: { value: 3, unit: "SERVINGS" },
       expiryDate: "2025-10-10",
       pickupSlots: [
@@ -458,8 +488,8 @@ describe("DonorListFood", () => {
     const itemWithoutConfirmedSlot = {
       id: 4,
       title: "No Confirmed Slot Item",
-      foodCategories: ["DAIRY_COLD"],
-      quantity: { value: 2, unit: "LITERS" },
+      foodCategories: [{ name: "DAIRY_COLD" }],
+      quantity: { value: 2, unit: "LITER" },
       expiryDate: "2025-10-08",
       pickupSlots: [
         { pickupDate: "2025-10-05", startTime: "10:00", endTime: "12:00" },
@@ -491,7 +521,7 @@ describe("DonorListFood", () => {
     const itemWithSingleConfirmedSlot = {
       id: 5,
       title: "Single Confirmed Slot",
-      foodCategories: ["FROZEN"],
+      foodCategories: [{ name: "FROZEN" }],
       quantity: { value: 5, unit: "PACKAGES" },
       expiryDate: "2025-10-15",
       pickupSlots: [

@@ -4,12 +4,7 @@ import useGoogleMap from '../../hooks/useGoogleMaps';
 import ClaimedView from './ClaimedView';
 import CompletedView from './CompletedView';
 import ReadyForPickUpView from './ReadyForPickUpView';
-import BakeryPastryImage from '../../assets/foodtypes/Pastry&Bakery.jpg';
-import FruitsVeggiesImage from '../../assets/foodtypes/Fruits&Vegetables.jpg';
-import PackagedPantryImage from '../../assets/foodtypes/PackagedItems.jpg';
-import DairyColdImage from '../../assets/foodtypes/Dairy.jpg';
-import FrozenFoodImage from '../../assets/foodtypes/FrozenFood.jpg';
-import PreparedMealsImage from '../../assets/foodtypes/PreparedFood.jpg';
+import { getPrimaryFoodCategory, foodTypeImages, getUnitLabel } from '../../constants/foodConstants';
 import './Receiver_Styles/ClaimDetailModal.css';
 
 const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
@@ -50,29 +45,13 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
         }
     );
 
-    const getFoodTypeImage = (foodType) => {
-        switch (foodType) {
-            case 'Bakery & Pastry':
-                return BakeryPastryImage;
-            case 'Fruits & Vegetables':
-                return FruitsVeggiesImage;
-            case 'Packaged / Pantry Items':
-                return PackagedPantryImage;
-            case 'Dairy & Cold Items':
-                return DairyColdImage;
-            case 'Frozen Food':
-                return FrozenFoodImage;
-            case 'Prepared Meals':
-                return PreparedMealsImage;
-            default:
-                return PreparedMealsImage;
-        }
-    };
+
 
     const getDisplayStatus = () => {
         const postStatus = post?.status;
         if (postStatus === 'READY_FOR_PICKUP') return 'Ready for Pickup';
         if (postStatus === 'COMPLETED') return 'Completed';
+        if (postStatus === 'NOT_COMPLETED') return 'Not Completed';
         return 'Claimed';
     };
 
@@ -99,7 +78,7 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                     {/* Modal Header with Image */}
                     <div className="claimed-modal-header">
                         <img
-                            src={getFoodTypeImage(post?.foodType || 'Prepared Meals')}
+                            src={foodTypeImages[getPrimaryFoodCategory(post?.foodCategories)] || foodTypeImages['Prepared Meals']}
                             alt={post?.title || 'Donation'}
                             className="claimed-modal-header-image"
                         />
@@ -139,7 +118,7 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                                 <div className="claimed-modal-detail-content">
                                     <span className="claimed-modal-detail-label">Quantity</span>
                                     <span className="claimed-modal-detail-value">
-                                        {post?.quantity?.value || 0} {post?.quantity?.unit || 'items'}
+                                        {post?.quantity?.value || 0} {getUnitLabel(post?.quantity?.unit) || 'items'}
                                     </span>
                                 </div>
                             </div>
@@ -231,16 +210,18 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
 
                         {/* Action Buttons */}
                         <div className="claimed-modal-actions">
-                            <button className="claimed-modal-btn-secondary" onClick={onClose}>
-                                Back to Details
-                            </button>
                             {(getDisplayStatus() === 'Claimed' || getDisplayStatus() === 'Ready for Pickup' || getDisplayStatus() === 'Completed') && (
-                                <button
-                                    className="claimed-modal-btn-primary"
-                                    onClick={handleViewPickupSteps}
-                                >
-                                    View Pickup Steps
-                                </button>
+                                <>
+                                    <button className="claimed-modal-btn-secondary" onClick={onClose}>
+                                        Back to Details
+                                    </button>
+                                    <button
+                                        className="claimed-modal-btn-primary"
+                                        onClick={handleViewPickupSteps}
+                                    >
+                                        View Pickup Steps
+                                    </button>
+                                </>
                             )}
                         </div>
                     </div>

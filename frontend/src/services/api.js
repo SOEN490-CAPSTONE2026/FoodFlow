@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getFoodTypeValue } from '../constants/foodConstants';
 
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "http://localhost:8080/api";
@@ -148,16 +149,7 @@ export const claimsAPI = {
  * @returns {string} Backend enum value
  */
 function mapFrontendCategoryToBackend(frontendCategory) {
-  const categoryMap = {
-    "Fruits & Vegetables": "FRUITS_VEGETABLES",
-    "Bakery & Pastry": "BAKERY_PASTRY",
-    "Packaged / Pantry Items": "PACKAGED_PANTRY",
-    "Dairy & Cold Items": "DAIRY_COLD",
-    "Frozen Food": "FROZEN",
-    "Prepared Meals": "PREPARED_MEALS",
-  };
-
-  return categoryMap[frontendCategory] || frontendCategory;
+  return getFoodTypeValue(frontendCategory);
 }
 
 export default api;

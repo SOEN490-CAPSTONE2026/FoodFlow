@@ -93,9 +93,10 @@ describe("CompletedView", () => {
       />
     );
     expect(screen.getByText("Donation Claimed!")).toBeInTheDocument();
+    // The actual text in the component
     expect(
       screen.getByText(
-        /Your claim is confirmed. Wait for the pickup window to start/i
+        /Your donation has been successfully claimed! Thank you for making a difference in your community./i
       )
     ).toBeInTheDocument();
   });

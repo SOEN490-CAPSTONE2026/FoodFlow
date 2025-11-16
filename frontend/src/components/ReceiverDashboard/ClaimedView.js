@@ -1,11 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, ArrowLeft } from 'lucide-react';
-import BakeryPastryImage from '../../assets/foodtypes/Pastry&Bakery.jpg';
-import FruitsVeggiesImage from '../../assets/foodtypes/Fruits&Vegetables.jpg';
-import PackagedPantryImage from '../../assets/foodtypes/PackagedItems.jpg';
-import DairyColdImage from '../../assets/foodtypes/Dairy.jpg';
-import FrozenFoodImage from '../../assets/foodtypes/FrozenFood.jpg';
-import PreparedMealsImage from '../../assets/foodtypes/PreparedFood.jpg';
+import { foodTypeImages, getPrimaryFoodCategory } from '../../constants/foodConstants';
 import './Receiver_Styles/ClaimedView.css';
 
 const ClaimedView = ({ claim, isOpen, onClose, onBack }) => {
@@ -13,9 +8,13 @@ const ClaimedView = ({ claim, isOpen, onClose, onBack }) => {
     const [timeRemaining, setTimeRemaining] = useState(null);
 
     useEffect(() => {
-        // Get pickup time from the post data
-        const pickupDate = post?.pickupDate;
-        const pickupFrom = post?.pickupFrom;
+        // Get pickup time - prioritize confirmedPickupSlot, fallback to post data
+        const pickupDate = claim?.confirmedPickupSlot?.pickupDate || 
+                          claim?.confirmedPickupSlot?.date || 
+                          post?.pickupDate;
+        const pickupFrom = claim?.confirmedPickupSlot?.startTime || 
+                          claim?.confirmedPickupSlot?.pickupFrom || 
+                          post?.pickupFrom;
 
         if (!pickupDate || !pickupFrom) return;
 
@@ -46,24 +45,7 @@ const ClaimedView = ({ claim, isOpen, onClose, onBack }) => {
 
     if (!isOpen || !claim) return null;
 
-    const getFoodTypeImage = (foodType) => {
-        switch (foodType) {
-            case 'BAKERY_PASTRY':
-                return BakeryPastryImage;
-            case 'Fruits & Vegetables':
-                return FruitsVeggiesImage;
-            case 'Packaged / Pantry Items':
-                return PackagedPantryImage;
-            case 'Dairy & Cold Items':
-                return DairyColdImage;
-            case 'Frozen Food':
-                return FrozenFoodImage;
-            case 'Prepared Meals':
-                return PreparedMealsImage;
-            default:
-                return PreparedMealsImage;
-        }
-    };
+
 
     return (
         <div className="claimed-modal-overlay" onClick={onClose}>
@@ -76,7 +58,7 @@ const ClaimedView = ({ claim, isOpen, onClose, onBack }) => {
                 {/* Header with Image */}
                 <div className="claimed-modal-header">
                     <img
-                        src={getFoodTypeImage(post?.foodType)}
+                        src={foodTypeImages[getPrimaryFoodCategory(post?.foodCategories)] || foodTypeImages['Prepared Meals']}
                         alt={post?.title || 'Donation'}
                         className="claimed-modal-header-image"
                     />

@@ -12,25 +12,15 @@ import {
   Filter,
 } from "lucide-react";
 import { useLoadScript } from "@react-google-maps/api";
-// import { AuthContext } from '../../contexts/AuthContext';
 import { surplusAPI } from "../../services/api";
 import SurplusFormModal from "../DonorDashboard/SurplusFormModal";
 import ConfirmPickupModal from "../DonorDashboard/ConfirmPickupModal";
 import ClaimedSuccessModal from "../DonorDashboard/ClaimedSuccessModal";
+import { getFoodTypeLabel, getUnitLabel } from "../../constants/foodConstants";
 import "../DonorDashboard/Donor_Styles/DonorListFood.css";
 
 // Define libraries for Google Maps
 const libraries = ["places"];
-
-// Food category mapping from enum values to display labels
-const foodCategoryLabels = {
-  PREPARED_MEALS: "Prepared Meals",
-  BAKERY_PASTRY: "Bakery & Pastry",
-  FRUITS_VEGETABLES: "Fruits & Vegetables",
-  PACKAGED_PANTRY: "Packaged / Pantry Items",
-  DAIRY_COLD: "Dairy & Cold Items",
-  FROZEN: "Frozen Food",
-};
 
 function statusClass(status) {
   switch (status) {
@@ -103,28 +93,7 @@ function formatPickupTime(pickupDate, pickupFrom, pickupTo) {
   }
 }
 
-// Helper function to format quantity text (singular/plural)
-function formatQuantityText(value, unit) {
-  const numValue = parseFloat(value);
-  const unitLower = unit.toLowerCase();
-  
-  // If value is 1, make unit singular
-  if (numValue === 1) {
-    // For units ending in 's', remove the 's' for singular
-    if (unitLower.endsWith('s')) {
-      return `${value} ${unitLower.slice(0, -1)}`;
-    }
-    return `${value} ${unitLower}`;
-  }
-  
-  // For values other than 1, ensure plural form
-  // If unit doesn't end in 's', add 's' for plural
-  if (!unitLower.endsWith('s')) {
-    return `${value} ${unitLower}s`;
-  }
-  
-  return `${value} ${unitLower}`;
-}
+
 
 export default function DonorListFood() {
   const { isLoaded } = useLoadScript({
@@ -360,12 +329,8 @@ export default function DonorListFood() {
                   {item.foodCategories.map((category, index) => {
                     // Get the category value (handle both object and string formats)
                     const categoryValue = category.name || category;
-                    // Map to display label, fallback to formatted version if not in mapping
-                    const displayLabel = foodCategoryLabels[categoryValue] || 
-                      categoryValue.replace(/_/g, ' ').toLowerCase()
-                        .split(' ')
-                        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                        .join(' ');
+                    // Map to display label using centralized helper function
+                    const displayLabel = getFoodTypeLabel(categoryValue);
                     
                     return (
                       <span key={index} className="donation-tag">
@@ -377,7 +342,7 @@ export default function DonorListFood() {
               )}
 
               <div className="donation-quantity">
-                {formatQuantityText(item.quantity.value, item.quantity.unit)}
+                {item.quantity.value} {getUnitLabel(item.quantity.unit)}
               </div>
 
               <ul className="donation-meta" aria-label="details">

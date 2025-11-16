@@ -4,26 +4,11 @@ import { Autocomplete } from "@react-google-maps/api";
 import Select from "react-select";
 import DatePicker from "react-datepicker";
 import { surplusAPI } from "../../services/api";
+import { foodTypeOptions, unitOptions } from "../../constants/foodConstants";
 import "./Donor_Styles/SurplusFormModal.css";
 import "react-datepicker/dist/react-datepicker.css";
 
 const SurplusFormModal = ({ isOpen, onClose }) => {
-  const foodTypeOptions = [
-    { value: "PREPARED_MEALS", label: "Prepared Meals" },
-    { value: "BAKERY_PASTRY", label: "Bakery & Pastry" },
-    { value: "FRUITS_VEGETABLES", label: "Fruits & Vegetables" },
-    { value: "PACKAGED_PANTRY", label: "Packaged / Pantry Items" },
-    { value: "DAIRY_COLD", label: "Dairy & Cold Items" },
-    { value: "FROZEN", label: "Frozen Food" },
-  ];
-
-  const unitOptions = [
-    { value: "KILOGRAM", label: "kg" },
-    { value: "ITEM", label: "items" },
-    { value: "LITER", label: "liters" },
-    { value: "POUND", label: "lbs" },
-    { value: "BOX", label: "boxes" },
-  ];
 
   const [formData, setFormData] = useState({
     title: "",

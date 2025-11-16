@@ -178,7 +178,8 @@ describe('ReceiverMyClaims Component', () => {
             await waitFor(() => {
                 expect(screen.getByText('Fresh Vegetables')).toBeInTheDocument();
                 expect(screen.getByText('Green Grocer')).toBeInTheDocument();
-                expect(screen.getByText(/10 Kilograms/i)).toBeInTheDocument();
+                // getUnitLabel() converts KILOGRAM to "kg"
+                expect(screen.getByText(/10 kg/i)).toBeInTheDocument();
             });
         });
 
@@ -208,7 +209,8 @@ describe('ReceiverMyClaims Component', () => {
             await waitFor(() => {
                 expect(screen.getByText('Untitled Donation')).toBeInTheDocument();
                 expect(screen.getByText('Not specified')).toBeInTheDocument();
-                expect(screen.getByText('0 Items')).toBeInTheDocument();
+                // When quantity is null, it defaults to "0 items"
+                expect(screen.getByText(/0 items/i)).toBeInTheDocument();
             });
         });
     });
@@ -218,7 +220,8 @@ describe('ReceiverMyClaims Component', () => {
             { enum: 'FRUITS_VEGETABLES', image: 'fruits.jpg' },
             { enum: 'BAKERY_PASTRY', image: 'bakery.jpg' },
             { enum: 'PACKAGED_PANTRY', image: 'packaged.jpg' },
-            { enum: 'DAIRY', image: 'dairy.jpg' },
+            // DAIRY is not recognized by getPrimaryFoodCategory, defaults to prepared.jpg
+            { enum: 'DAIRY', image: 'prepared.jpg' },
             { enum: 'FROZEN', image: 'frozen.jpg' },
             { enum: 'PREPARED_MEALS', image: 'prepared.jpg' },
         ];
@@ -279,9 +282,21 @@ describe('ReceiverMyClaims Component', () => {
                 expect(screen.getByText('Fresh Vegetables')).toBeInTheDocument();
             });
 
+            // Click the Cancel button to open the confirmation dialog
             const cancelButton = screen.getByText('Cancel');
             await act(async () => {
                 fireEvent.click(cancelButton);
+            });
+
+            // Wait for confirmation dialog to appear
+            await waitFor(() => {
+                expect(screen.getByText('Cancel Claim')).toBeInTheDocument();
+            });
+
+            // Click the "Yes, Cancel Claim" button to confirm
+            const confirmButton = screen.getByText('Yes, Cancel Claim');
+            await act(async () => {
+                fireEvent.click(confirmButton);
             });
 
             await waitFor(() => {

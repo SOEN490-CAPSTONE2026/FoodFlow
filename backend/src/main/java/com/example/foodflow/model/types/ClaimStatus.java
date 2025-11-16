@@ -3,7 +3,8 @@ package com.example.foodflow.model.types;
 public enum ClaimStatus {
     ACTIVE,
     CANCELLED,
-    COMPLETED;
+    COMPLETED,
+    NOT_COMPLETED;
     
     public String getDisplayName() {
         String name = this.name();
