@@ -61,6 +61,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/surplus").hasAuthority("DONOR")
                 .requestMatchers(HttpMethod.GET, "/api/surplus").hasAuthority("RECEIVER")
                 .requestMatchers(HttpMethod.GET, "/api/surplus/my-posts").hasAuthority("DONOR")
+                .requestMatchers(HttpMethod.DELETE, "/api/surplus/**").hasAuthority("DONOR")
+
                 
                 // ✅ NEW: Claims endpoints  
                 .requestMatchers(HttpMethod.GET, "/api/claims/post/**").hasAnyAuthority("DONOR", "RECEIVER")

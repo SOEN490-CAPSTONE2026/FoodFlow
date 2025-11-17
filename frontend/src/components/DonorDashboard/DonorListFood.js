@@ -209,15 +209,23 @@ export default function DonorListFood() {
     setIsSortDropdownOpen(false);
   };
 
-  function requestDelete(id) { //Needs to be connected to backend(code to come)
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this post?"
-    );
-    if (confirmDelete) {
-      setItems((prev) => prev.filter((it) => it.id !== id));
-      alert("Post deleted successfully.");
-    }
+ async function requestDelete(id) {
+  console.log("DELETE CLICKED for ID =", id); 
+  const confirmDelete = window.confirm(
+    "Are you sure you want to delete this post?"
+  );
+  if (!confirmDelete) return;
+
+  try {
+    await surplusAPI.deletePost(id);
+    setItems(prev => prev.filter(item => item.id !== id));
+
+    alert("Post deleted successfully.");
+  } catch (err) {
+    alert(err.response?.data?.message || "Failed to delete post.");
   }
+}
+
 
   function openEdit(item) {
     alert(
