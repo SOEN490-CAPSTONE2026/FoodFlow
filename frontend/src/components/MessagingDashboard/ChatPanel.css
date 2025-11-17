@@ -386,6 +386,10 @@
     z-index: 1000 !important;
   }
   
+  .chat-header-left {
+    margin-left: -55px;
+  }
+  
   .chat-header-info h3 {
     font-size: 16px;
   }
