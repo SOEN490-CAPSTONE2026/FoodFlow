@@ -48,9 +48,9 @@ export default function ReceiverBrowse() {
   const getRecommendationData = (item) => {
     // Mock logic to determine if item is recommended
     const mockRecommendations = {
-      1: { score: 100, reasons: ['Matches Bakery & Pastry preference', 'Fits your quantity range (10-60 kg)', 'Within your capacity (50 kg)'] },
-      2: { score: 95, reasons: ['Matches Fruits & Vegetables preference', 'Perfect quantity match', 'Close to your location'] },
-      3: { score: 88, reasons: ['Popular in your area', 'Good expiry window', 'Reliable donor'] }
+      '-1': { score: 100, reasons: ['Matches Bakery & Pastry preference', 'Fits your quantity range (10-60 kg)', 'Within your capacity (50 kg)'] },
+      '-2': { score: 95, reasons: ['Matches Fruits & Vegetables preference', 'Perfect quantity match', 'Close to your location'] },
+      '-3': { score: 88, reasons: ['Popular in your area', 'Good expiry window', 'Reliable donor'] }
     };
     return mockRecommendations[item.id] || null;
   };
@@ -64,7 +64,7 @@ export default function ReceiverBrowse() {
       // Add mock data for testing recommended tags
       const mockRecommendedItems = [
         {
-          id: 1,
+          id: -1,
           title: "Fresh Bakery Items",
           foodCategories: ["Bakery & Pastry"],
           expiryDate: "2025-11-18",
@@ -79,7 +79,7 @@ export default function ReceiverBrowse() {
           createdAt: "2025-11-16T10:00:00Z"
         },
         {
-          id: 2,
+          id: -2,
           title: "Fresh Organic Apples & Vegetables",
           foodCategories: ["Fruits & Vegetables"],
           expiryDate: "2025-11-20",
@@ -94,7 +94,7 @@ export default function ReceiverBrowse() {
           createdAt: "2025-11-16T09:30:00Z"
         },
         {
-          id: 3,
+          id: -3,
           title: "Prepared Meals",
           foodCategories: ["Prepared Meals"],
           expiryDate: "2025-11-17",
