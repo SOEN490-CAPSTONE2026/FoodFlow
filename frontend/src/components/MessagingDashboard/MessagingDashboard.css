@@ -27,6 +27,16 @@
 /* Mobile adjustments */
 @media (max-width: 768px) {
   .messaging-dashboard {
-    position: absolute;
+    position: relative;
+    height: 100%;
+    max-height: 100%;
+    overflow: hidden;
+  }
+  
+  .error-message {
+    top: 80px;
+    right: 10px;
+    left: 10px;
+    width: auto;
   }
 }
