@@ -1,15 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import {
-  Calendar,
-  MapPin,
-  Clock,
-  Package2,
-  Bookmark,
-  ChevronDown,
-  ChevronUp,
-  Package,
-  User,
-} from "lucide-react";
+import {Calendar, MapPin, Clock, Package2, Bookmark, ChevronDown, ChevronUp, Package, User, Target, ArrowUpDown, Star} from "lucide-react";
 import { useLoadScript } from "@react-google-maps/api";
 import { surplusAPI } from "../../services/api";
 import { getFoodCategoryDisplays, getPrimaryFoodCategory, getFoodImageClass, foodTypeImages, getUnitLabel } from "../../constants/foodConstants";
@@ -51,13 +41,77 @@ export default function ReceiverBrowse() {
   const [claimTargetItem, setClaimTargetItem] = useState(null);
   const [selectedSlotIndex, setSelectedSlotIndex] = useState(0);
   const [claiming, setClaiming] = useState(false);
+  const [sortBy, setSortBy] = useState('relevance');
+  const [hoveredRecommended, setHoveredRecommended] = useState(null);
+
+  // Mock recommendation data (will be replaced with actual data from backend later)
+  const getRecommendationData = (item) => {
+    // Mock logic to determine if item is recommended
+    const mockRecommendations = {
+      1: { score: 100, reasons: ['Matches Bakery & Pastry preference', 'Fits your quantity range (10-60 kg)', 'Within your capacity (50 kg)'] },
+      2: { score: 95, reasons: ['Matches Fruits & Vegetables preference', 'Perfect quantity match', 'Close to your location'] },
+      3: { score: 88, reasons: ['Popular in your area', 'Good expiry window', 'Reliable donor'] }
+    };
+    return mockRecommendations[item.id] || null;
+  };
 
   const fetchDonations = useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await surplusAPI.list();
       const availableItems = Array.isArray(data) ? data : [];
-      setItems(availableItems);
+      
+      // Add mock data for testing recommended tags
+      const mockRecommendedItems = [
+        {
+          id: 1,
+          title: "Fresh Bakery Items",
+          foodCategories: ["Bakery & Pastry"],
+          expiryDate: "2025-11-18",
+          pickupLocation: { address: "123 Main St, Westmount" },
+          pickupDate: "2025-11-17",
+          pickupFrom: "16:00",
+          pickupTo: "18:00",
+          quantity: { value: 25, unit: "KILOGRAM" },
+          description: "Assorted fresh bread, pastries, and baked goods from our daily batch. Perfect for community meals!",
+          donorName: "Local Bakery Co.",
+          status: "AVAILABLE",
+          createdAt: "2025-11-16T10:00:00Z"
+        },
+        {
+          id: 2,
+          title: "Fresh Organic Apples & Vegetables",
+          foodCategories: ["Fruits & Vegetables"],
+          expiryDate: "2025-11-20",
+          pickupLocation: { address: "456 Green Ave, Downtown Montreal" },
+          pickupDate: "2025-11-17",
+          pickupFrom: "14:00",
+          pickupTo: "19:00",
+          quantity: { value: 40, unit: "KILOGRAM" },
+          description: "Mix of organic apples, carrots, and leafy greens. Great quality, just past retail prime!",
+          donorName: "Green Organic Market",
+          status: "AVAILABLE",
+          createdAt: "2025-11-16T09:30:00Z"
+        },
+        {
+          id: 3,
+          title: "Prepared Meals",
+          foodCategories: ["Prepared Meals"],
+          expiryDate: "2025-11-17",
+          pickupLocation: { address: "789 Business Blvd, Downtown" },
+          pickupDate: "2025-11-16",
+          pickupFrom: "15:00",
+          pickupTo: "17:00",
+          quantity: { value: 15, unit: "KILOGRAM" },
+          description: "Freshly prepared sandwiches and salads from corporate catering event. Must be picked up today!",
+          donorName: "Corporate Catering Ltd.",
+          status: "AVAILABLE",
+          createdAt: "2025-11-16T12:00:00Z"
+        }
+      ];
+      
+      // Combine mock data with real data
+      setItems([...mockRecommendedItems, ...availableItems]);
       setError(null);
     } catch (e) {
       console.error("Error fetching donations:", e);
@@ -279,7 +333,32 @@ export default function ReceiverBrowse() {
 
   return (
     <div className="receiver-browse-container">
-      <h1 className="receiver-section-title">Explore Available Donations</h1>
+      <div className="receiver-browse-header">
+        <h1 className="receiver-section-title">Explore Available Donations</h1>
+        
+        <div className="sort-controls">
+          <span className="sort-label">
+            <ArrowUpDown size={16} />
+            Sort by:
+          </span>
+          <div className="sort-buttons">
+            <button 
+              className={`sort-button ${sortBy === 'relevance' ? 'active' : ''}`}
+              onClick={() => setSortBy('relevance')}
+            >
+              <Target size={16} />
+              Relevance
+            </button>
+            <button 
+              className={`sort-button ${sortBy === 'date' ? 'active' : ''}`}
+              onClick={() => setSortBy('date')}
+            >
+              <Calendar size={16} />
+              Date Posted
+            </button>
+          </div>
+        </div>
+      </div>
       
       {/* Only render FiltersPanel when Google Maps is loaded */}
       {isLoaded && (
@@ -314,9 +393,31 @@ export default function ReceiverBrowse() {
         </div>
       )}
 
-      {!loading && !error && items.length > 0 && (
-        <div className="receiver-donations-list">
-          {items.map((item) => {
+      {!loading && !error && items.length > 0 && (() => {
+        // Filter and sort items based on selected sort option
+        let filteredItems = [...items];
+        
+        if (sortBy === 'relevance') {
+          // Show only recommended items when relevance is selected
+          filteredItems = items.filter(item => getRecommendationData(item) !== null);
+          // Sort by recommendation score (highest first)
+          filteredItems.sort((a, b) => {
+            const scoreA = getRecommendationData(a)?.score || 0;
+            const scoreB = getRecommendationData(b)?.score || 0;
+            return scoreB - scoreA;
+          });
+        } else {
+          // Sort by creation date (newest first) for date filter
+          filteredItems.sort((a, b) => {
+            const dateA = new Date(a.createdAt || a.pickupDate);
+            const dateB = new Date(b.createdAt || b.pickupDate);
+            return dateB.getTime() - dateA.getTime();
+          });
+        }
+        
+        return (
+          <div className="receiver-donations-list">
+            {filteredItems.map((item) => {
             const categoryDisplays = getFoodCategoryDisplays(item.foodCategories);
             const primaryFoodCategory = getPrimaryFoodCategory(item.foodCategories);
 
@@ -327,6 +428,36 @@ export default function ReceiverBrowse() {
                   expandedCardId === item.id ? "expanded" : ""
                 }`}
               >
+                {/* Corner Recommended Badge */}
+                {getRecommendationData(item) && (
+                  <div 
+                    className="recommended-badge"
+                    onMouseEnter={() => setHoveredRecommended(item.id)}
+                    onMouseLeave={() => setHoveredRecommended(null)}
+                  >
+                    <Star size={14} fill="#ffffff" color="#ffffff" />
+                    
+                    {/* Tooltip */}
+                    {hoveredRecommended === item.id && (
+                      <div className="recommendation-tooltip">
+                        <div className="tooltip-header">
+                          <span className="match-label">Match Score</span>                          
+                          <span className="match-score">{getRecommendationData(item).score}%</span>
+
+                        </div>
+                        <div className="tooltip-reasons">
+                          {getRecommendationData(item).reasons.map((reason, index) => (
+                            <div key={index} className="reason-item">
+                              <span className="reason-check">✓</span>
+                              <span>{reason}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+                
                 <div
                   className={`receiver-donation-image ${getFoodImageClass(
                     primaryFoodCategory
@@ -536,9 +667,10 @@ export default function ReceiverBrowse() {
                 </div>
               </div>
             );
-          })}
-        </div>
-      )}
+            })}
+          </div>
+        );
+      })()}
 
       <ClaimModal
         open={claimModalOpen}
