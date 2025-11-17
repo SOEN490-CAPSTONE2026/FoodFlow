@@ -144,6 +144,9 @@ a[href^="#"] {
 @media screen and (max-width: 968px) {
     .navbar {
         padding: 1rem 5%;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 1000 !important;
     }
     
     .menu {
