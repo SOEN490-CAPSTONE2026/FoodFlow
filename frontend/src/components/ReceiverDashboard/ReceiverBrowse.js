@@ -398,13 +398,23 @@ export default function ReceiverBrowse() {
         let filteredItems = [...items];
         
         if (sortBy === 'relevance') {
-          // Show only recommended items when relevance is selected
-          filteredItems = items.filter(item => getRecommendationData(item) !== null);
-          // Sort by recommendation score (highest first)
+          // Sort by recommendation score (recommended items first, then non-recommended)
           filteredItems.sort((a, b) => {
             const scoreA = getRecommendationData(a)?.score || 0;
             const scoreB = getRecommendationData(b)?.score || 0;
-            return scoreB - scoreA;
+            
+            // If both have recommendations, sort by score (highest first)
+            if (scoreA > 0 && scoreB > 0) {
+              return scoreB - scoreA;
+            }
+            // If only one has recommendations, prioritize it
+            if (scoreA > 0 && scoreB === 0) return -1;
+            if (scoreA === 0 && scoreB > 0) return 1;
+            
+            // If neither has recommendations, sort by date (newest first)
+            const dateA = new Date(a.createdAt || a.pickupDate);
+            const dateB = new Date(b.createdAt || b.pickupDate);
+            return dateB.getTime() - dateA.getTime();
           });
         } else {
           // Sort by creation date (newest first) for date filter

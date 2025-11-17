@@ -141,6 +141,28 @@ describe("ReceiverBrowse Component", () => {
       expect(dateBtn.closest('button')).toHaveClass('active');
       expect(relevanceBtn.closest('button')).not.toHaveClass('active');
     });
+
+    test("shows all items in relevance mode with recommended items first", async () => {
+      const nonRecommendedDonation = createMockDonation({ 
+        id: 999, 
+        title: "Non-Recommended Item",
+        createdAt: "2025-11-17T10:00:00Z" // Recent date
+      });
+      
+      surplusAPI.list.mockResolvedValue({ data: [nonRecommendedDonation] });
+      await act(async () => { render(<ReceiverBrowse />); });
+
+      // Should be in relevance mode by default
+      await waitFor(() => {
+        // Should show both recommended (mock) and non-recommended (API) items
+        expect(screen.getByRole('heading', { name: 'Fresh Bakery Items' })).toBeInTheDocument(); // Recommended
+        expect(screen.getByRole('heading', { name: 'Non-Recommended Item' })).toBeInTheDocument(); // Non-recommended
+        
+        // Verify recommended items have badges by checking for the badge containers
+        const recommendedBadges = document.querySelectorAll('.recommended-badge');
+        expect(recommendedBadges.length).toBeGreaterThanOrEqual(3); // Mock recommended items have badges
+      });
+    });
   });
 
   describe("Recommendation System", () => {
@@ -194,17 +216,10 @@ describe("ReceiverBrowse Component", () => {
       surplusAPI.list.mockResolvedValue({ data: [createMockDonation()] });
       await act(async () => { render(<ReceiverBrowse />); });
 
-      // Switch to date sort to show all items (not just recommended)
       await waitFor(() => {
-        expect(screen.getByText("Date Posted")).toBeInTheDocument();
-      });
-      
-      fireEvent.click(screen.getByText("Date Posted"));
-      
-      await waitFor(() => {
-        // Should show both mock data and API data when sorted by date
-        expect(screen.getByRole('heading', { name: 'Fresh Bakery Items' })).toBeInTheDocument(); // Mock data
-        expect(screen.getByRole('heading', { name: 'Test Donation Item' })).toBeInTheDocument(); // API data
+        // Should show both mock data and API data in relevance mode (recommended items first, then others)
+        expect(screen.getByRole('heading', { name: 'Fresh Bakery Items' })).toBeInTheDocument(); // Mock data (recommended)
+        expect(screen.getByRole('heading', { name: 'Test Donation Item' })).toBeInTheDocument(); // API data (non-recommended)
         expect(screen.getByText("Test Address")).toBeInTheDocument();
         // Multiple Available badges from both sources
         const availableBadges = screen.getAllByText("Available");
