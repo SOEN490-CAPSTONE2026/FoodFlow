@@ -12,13 +12,8 @@ import {
 } from "lucide-react";
 import { useLoadScript } from "@react-google-maps/api";
 import { surplusAPI } from "../../services/api";
+import { getFoodCategoryDisplays, getPrimaryFoodCategory, getFoodImageClass, foodTypeImages, getUnitLabel } from "../../constants/foodConstants";
 import FiltersPanel from "./FiltersPanel";
-import BakeryPastryImage from "../../assets/foodtypes/Pastry&Bakery.jpg";
-import FruitsVeggiesImage from "../../assets/foodtypes/Fruits&Vegetables.jpg";
-import PackagedPantryImage from "../../assets/foodtypes/PackagedItems.jpg";
-import DairyColdImage from "../../assets/foodtypes/Dairy.jpg";
-import FrozenFoodImage from "../../assets/foodtypes/FrozenFood.jpg";
-import PreparedMealsImage from "../../assets/foodtypes/PreparedFood.jpg";
 import "./ReceiverBrowseModal.css";
 import "./ReceiverBrowse.css";
 
@@ -188,93 +183,6 @@ export default function ReceiverBrowse() {
     confirmClaim(item, legacySlot);
   }, [confirmClaim]);
 
-  const getFoodCategoryDisplays = useCallback((foodCategories) => {
-    if (!foodCategories || !Array.isArray(foodCategories) || foodCategories.length === 0) {
-      return ["Other"];
-    }
-
-    return foodCategories.map((category) => {
-      switch (category) {
-        case "FRUITS_VEGETABLES":
-          return "Fruits & Vegetables";
-        case "BAKERY_PASTRY":
-          return "Bakery & Pastry";
-        case "PACKAGED_PANTRY":
-          return "Packaged / Pantry Items";
-        case "DAIRY":
-          return "Dairy & Cold Items";
-        case "FROZEN":
-          return "Frozen Food";
-        case "PREPARED_MEALS":
-          return "Prepared Meals";
-        default:
-          return category;
-      }
-    });
-  }, []);
-
-  const getPrimaryFoodCategory = useCallback((foodCategories) => {
-    if (!foodCategories || !Array.isArray(foodCategories) || foodCategories.length === 0) {
-      return "Other";
-    }
-
-    const category = foodCategories[0];
-    switch (category) {
-      case "FRUITS_VEGETABLES":
-        return "Fruits & Vegetables";
-      case "BAKERY_PASTRY":
-        return "Bakery & Pastry";
-      case "PACKAGED_PANTRY":
-        return "Packaged / Pantry Items";
-      case "DAIRY":
-        return "Dairy & Cold Items";
-      case "FROZEN":
-        return "Frozen Food";
-      case "PREPARED_MEALS":
-        return "Prepared Meals";
-      default:
-        return "Other";
-    }
-  }, []);
-
-  const getFoodTypeImage = useCallback((foodType) => {
-    switch (foodType) {
-      case "Bakery & Pastry":
-        return BakeryPastryImage;
-      case "Fruits & Vegetables":
-        return FruitsVeggiesImage;
-      case "Packaged / Pantry Items":
-        return PackagedPantryImage;
-      case "Dairy & Cold Items":
-        return DairyColdImage;
-      case "Frozen Food":
-        return FrozenFoodImage;
-      case "Prepared Meals":
-        return PreparedMealsImage;
-      default:
-        return PreparedMealsImage;
-    }
-  }, []);
-
-  const getFoodImageClass = useCallback((foodType) => {
-    switch (foodType) {
-      case "Bakery & Pastry":
-        return "food-image-bakery";
-      case "Fruits & Vegetables":
-        return "food-image-fruits-veg";
-      case "Packaged / Pantry Items":
-        return "food-image-packaged";
-      case "Dairy & Cold Items":
-        return "food-image-dairy";
-      case "Frozen Food":
-        return "food-image-frozen";
-      case "Prepared Meals":
-        return "food-image-prepared";
-      default:
-        return "food-image-packaged";
-    }
-  }, []);
-
   const formatExpiryDate = useCallback((dateString) => {
     if (!dateString) return "—";
     try {
@@ -425,7 +333,7 @@ export default function ReceiverBrowse() {
                   )}`}
                 >
                   <img
-                    src={getFoodTypeImage(primaryFoodCategory)}
+                    src={foodTypeImages[primaryFoodCategory] || foodTypeImages['Prepared Meals']}
                     alt={primaryFoodCategory || "Food donation"}
                     className="receiver-food-type-image"
                     onError={(e) => {
@@ -524,7 +432,7 @@ export default function ReceiverBrowse() {
                                 className="receiver-quantity-icon-detail"
                                 style={{ display: "inline", marginRight: "8px" }}
                               />
-                              {item.quantity?.value || 0} {item.quantity?.unit || "items"}
+                              {item.quantity?.value || 0} {getUnitLabel(item.quantity?.unit) || "items"}
                             </div>
                           </div>
                           <div className="receiver-detail-item">
