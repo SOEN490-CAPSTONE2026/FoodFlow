@@ -42,6 +42,8 @@
   border-bottom: 1px solid #e0e0e0;
   background-color: white;
   flex-shrink: 0;
+  position: relative;
+  z-index: 10;
 }
 
 .chat-header-left {
@@ -383,7 +385,7 @@
     border-bottom: 1px solid #e0e0e0;
     position: sticky !important;
     top: 0 !important;
-    z-index: 1000 !important;
+    z-index: 10 !important;
   }
   
   .chat-header-left {
