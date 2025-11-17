@@ -40,6 +40,7 @@ jest.mock("../../../contexts/AuthContext", () => {
 jest.mock("../../../services/api", () => ({
   surplusAPI: {
     getMyPosts: jest.fn(),
+    deletePost: jest.fn(),
   },
 }));
 
@@ -333,10 +334,13 @@ describe("DonorListFood", () => {
     );
   });
 
-  test("delete button shows confirmation and removes item when confirmed", async () => {
-    surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
-    window.confirm.mockReturnValue(true);
-    const user = userEvent.setup();
+test("delete button shows confirmation and removes item when confirmed", async () => {
+  surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
+
+  surplusAPI.deletePost = jest.fn(() => Promise.resolve({}));
+
+  window.confirm.mockReturnValue(true);
+  const user = userEvent.setup();
 
     setup();
 
