@@ -251,7 +251,7 @@ const FiltersPanel = ({
                   (autocompleteRef.current = autocomplete)
                 }
                 onPlaceChanged={handlePlaceSelect}
-                types={["(regions)"].concat(["establishment"])}
+                types={["geocode", "establishment"]}
                 componentRestrictions={{ country: ["us", "ca"] }}
               >
                 <input
