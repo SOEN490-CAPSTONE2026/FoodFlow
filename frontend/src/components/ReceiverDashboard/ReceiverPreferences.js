@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { foodTypeOptions } from '../../constants/foodConstants';
+import api from '../../services/api';
 import './Receiver_Styles/ReceiverPreferences.css';
 
-
+const PICKUP_WINDOWS = ['MORNING', 'AFTERNOON', 'EVENING'];
 
 const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
   const [preferences, setPreferences] = useState({
@@ -36,7 +37,7 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
       if (response.data) {
         setPreferences({
           preferredCategories: (response.data.preferredFoodTypes || []).map(type => 
-            FOOD_CATEGORIES.find(cat => cat.value === type) || { value: type, label: type }
+            foodTypeOptions.find(cat => cat.value === type) || { value: type, label: type }
           ),
           storageCapacity: response.data.maxCapacity || 50,
           quantityMin: response.data.minQuantity || 0,
