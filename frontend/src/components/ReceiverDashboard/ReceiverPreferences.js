@@ -1,18 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
-import api from '../../services/api';
+import { foodTypeOptions } from '../../constants/foodConstants';
 import './Receiver_Styles/ReceiverPreferences.css';
 
-const FOOD_CATEGORIES = [
-  { value: "Prepared Meals", label: "Prepared Meals" },
-  { value: "Bakery & Pastry", label: "Bakery & Pastry" },
-  { value: "Fruits & Vegetables", label: "Fruits & Vegetables" },
-  { value: "Packaged / Pantry Items", label: "Packaged / Pantry Items" },
-  { value: "Dairy & Cold Items", label: "Dairy & Cold Items" },
-  { value: "Frozen Food", label: "Frozen Food" },
-];
 
-const PICKUP_WINDOWS = ['MORNING', 'AFTERNOON', 'EVENING'];
 
 const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
   const [preferences, setPreferences] = useState({
@@ -213,7 +204,7 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
             
             {showCategoryDropdown && (
               <div className="category-dropdown">
-                {FOOD_CATEGORIES.map(category => (
+                {foodTypeOptions.map(category => (
                   <label key={category.value} className="category-option">
                     <input
                       type="checkbox"

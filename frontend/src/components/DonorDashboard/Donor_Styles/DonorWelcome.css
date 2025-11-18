@@ -271,9 +271,9 @@
 
 .donation-row {
   display: grid;
-  grid-template-columns: 100px 1fr 1fr 180px;
+  grid-template-columns: 90px 1fr 1.2fr 140px;
   gap: 16px;
-  padding: 16px;
+  padding: 16px 20px;
   background: #F9FAFB;
   border-radius: 12px;
   align-items: center;
@@ -286,7 +286,7 @@
 }
 
 .donation-date {
-  font-size: 14px;
+  font-size: 13px;
   color: #6B7280;
   font-weight: 500;
 }
@@ -295,19 +295,28 @@
   font-size: 14px;
   color: #1B4965;
   font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .donation-items {
-  font-size: 14px;
+  font-size: 13px;
   color: #6B7280;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .donation-status {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   padding: 6px 12px;
-  border-radius: 6px;
+  border-radius: 8px;
   text-align: center;
+  display: inline-block;
+  justify-self: center;
+  min-width: 100px;
 }
 
 .donation-status.completed {
@@ -687,19 +696,61 @@
 
 @media (max-width: 768px) {
   .donor-welcome-page {
-    padding: 20px;
+    padding: 20px 16px;
+  }
+
+  .welcome-header {
+    text-align: center;
+    margin-bottom: 20px;
   }
 
   .welcome-header h1 {
-    font-size: 24px;
+    font-size: 20px;
+    display: inline-flex;
+    gap: 8px;
+  }
+
+  .wave-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .stats-grid {
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card {
+    padding: 16px;
+    border-radius: 12px;
+    gap: 12px;
+  }
+
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    margin-bottom: 2px;
   }
 
   .stat-value {
-    font-size: 24px;
+    font-size: 20px;
+    line-height: 1.2;
   }
 
   .action-cards-grid {
     grid-template-columns: 1fr;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .action-card {
+    padding: 16px;
+    gap: 12px;
   }
 
   .donation-row {

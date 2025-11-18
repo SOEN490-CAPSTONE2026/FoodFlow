@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getFoodTypeValue } from '../constants/foodConstants';
 
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "http://localhost:8080/api";
@@ -57,6 +58,7 @@ export const surplusAPI = {
   create: (data) => api.post("/surplus", data),
   // claim now accepts an optional `slot` parameter. If `slot` has an `id` we send `pickupSlotId`,
   // otherwise we include the slot object as `pickupSlot` so the backend can interpret it.
+  deletePost: (id) => api.delete(`/surplus/${id}/delete`),
   claim: (postId, slot) => {
     const payload = { surplusPostId: postId };
     if (slot) {
@@ -148,16 +150,7 @@ export const claimsAPI = {
  * @returns {string} Backend enum value
  */
 function mapFrontendCategoryToBackend(frontendCategory) {
-  const categoryMap = {
-    "Fruits & Vegetables": "FRUITS_VEGETABLES",
-    "Bakery & Pastry": "BAKERY_PASTRY",
-    "Packaged / Pantry Items": "PACKAGED_PANTRY",
-    "Dairy & Cold Items": "DAIRY_COLD",
-    "Frozen Food": "FROZEN",
-    "Prepared Meals": "PREPARED_MEALS",
-  };
-
-  return categoryMap[frontendCategory] || frontendCategory;
+  return getFoodTypeValue(frontendCategory);
 }
 
 export default api;

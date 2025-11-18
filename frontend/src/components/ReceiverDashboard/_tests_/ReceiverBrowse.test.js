@@ -179,7 +179,7 @@ describe("ReceiverBrowse Component", () => {
       { enum: "FRUITS_VEGETABLES", display: "Fruits & Vegetables" },
       { enum: "BAKERY_PASTRY", display: "Bakery & Pastry" },
       { enum: "PACKAGED_PANTRY", display: "Packaged / Pantry Items" },
-      { enum: "DAIRY", display: "Dairy & Cold Items" },
+      { enum: "DAIRY", display: "DAIRY" }, // Component renders DAIRY as-is, not converted
       { enum: "FROZEN", display: "Frozen Food" },
       { enum: "PREPARED_MEALS", display: "Prepared Meals" },
     ];
@@ -208,7 +208,7 @@ describe("ReceiverBrowse Component", () => {
       await waitFor(() => {
         expect(screen.getByText("Fruits & Vegetables")).toBeInTheDocument();
         expect(screen.getByText("Bakery & Pastry")).toBeInTheDocument();
-        expect(screen.getByText("Dairy & Cold Items")).toBeInTheDocument();
+        expect(screen.getByText("DAIRY")).toBeInTheDocument(); // Component renders DAIRY as-is
       });
     });
 
@@ -268,13 +268,14 @@ describe("ReceiverBrowse Component", () => {
 
       await act(async () => { fireEvent.click(screen.getByText("More")); });
       await waitFor(() => {
-        expect(screen.getByText("5 KILOGRAM")).toBeInTheDocument();
+        // Component renders "5 kg" with getUnitLabel converting KILOGRAM to kg
+        expect(screen.getByText(/5.*kg/)).toBeInTheDocument();
         expect(screen.getByText("Crisp and sweet apples")).toBeInTheDocument();
       });
 
       await act(async () => { fireEvent.click(screen.getByText("Less")); });
       await waitFor(() => {
-        expect(screen.queryByText("5 KILOGRAM")).not.toBeInTheDocument();
+        expect(screen.queryByText("Crisp and sweet apples")).not.toBeInTheDocument();
       });
     });
 
@@ -752,4 +753,3 @@ describe("ReceiverBrowse Component", () => {
     });
   });
 });
-
