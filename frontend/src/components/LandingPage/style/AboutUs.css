@@ -60,11 +60,11 @@
 
 
 .about-title.animate-in {
-  animation: fadeInDown 1.2s ease forwards;
+  animation: fadeInDown 0.4s ease forwards;
 }
 
 .about-subtitle.animate-in {
-  animation: fadeInUp 1.5s ease forwards;
+  animation: fadeInUp 0.4s ease forwards;
 }
 
 .carousel-container.animate-in {

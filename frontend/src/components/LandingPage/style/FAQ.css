@@ -52,7 +52,7 @@
 .faq-left {
   opacity: 0;
   transform: translateY(40px);
-  transition: all 0.8s ease;
+  transition: all 0.7s ease;
 }
 
 .faq-left.animate-in {
