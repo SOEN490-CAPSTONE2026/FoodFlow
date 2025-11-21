@@ -131,7 +131,17 @@ function ReceiverLayoutContent() {
       showNotification('Claim Status', message);
     };
 
-    connectToUserQueue(onMessage, onClaimNotification, onClaimCancelled);
+    const onNewPostNotification = (payload) => {
+      console.log('RECEIVER: New post notification received:', payload);
+      const title = payload.title || 'New donation';
+      const quantity = payload.quantity || 0;
+      const matchReason = payload.matchReason || 'Matches your preferences';
+      const message = `${title} (${quantity} items) - ${matchReason}`;
+      console.log('RECEIVER: Showing notification:', message);
+      showNotification('🔔 New Donation Available', message);
+    };
+
+    connectToUserQueue(onMessage, onClaimNotification, onClaimCancelled, onNewPostNotification);
     return () => {
       try { disconnect(); } catch (e) { /* ignore */ }
     };

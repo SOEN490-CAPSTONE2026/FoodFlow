@@ -8,8 +8,9 @@ let stompClient = null;
  * @param {Function} onMessage - Called with parsed message payload from /user/queue/messages
  * @param {Function} onClaimNotification - Called with parsed claim notification from /user/queue/claims
  * @param {Function} onClaimCancelled - Called with parsed cancellation from /user/queue/claims/cancelled
+ * @param {Function} onNewPostNotification - Called with parsed new post notification from /user/queue/notifications
  */
-export function connectToUserQueue(onMessage, onClaimNotification, onClaimCancelled) {
+export function connectToUserQueue(onMessage, onClaimNotification, onClaimCancelled, onNewPostNotification) {
   console.log('connectToUserQueue called');
   
   if (stompClient && stompClient.active) {
@@ -92,6 +93,24 @@ export function connectToUserQueue(onMessage, onClaimNotification, onClaimCancel
         console.log('Subscribed to /user/queue/claims/cancelled');
       } catch (e) {
         console.error('Failed to subscribe to claim cancellations', e);
+      }
+
+      // Subscribe to new post notifications (for receivers)
+      try {
+        stompClient.subscribe('/user/queue/notifications', (msg) => {
+          if (msg.body) {
+            try {
+              const payload = JSON.parse(msg.body);
+              console.log('Received new post notification:', payload);
+              onNewPostNotification && onNewPostNotification(payload);
+            } catch (e) {
+              console.error('Failed to parse new post notification', e);
+            }
+          }
+        });
+        console.log('Subscribed to /user/queue/notifications');
+      } catch (e) {
+        console.error('Failed to subscribe to new post notifications', e);
       }
     },
     onStompError: (frame) => {

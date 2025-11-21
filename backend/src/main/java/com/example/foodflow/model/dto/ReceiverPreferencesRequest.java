@@ -30,6 +30,8 @@ public class ReceiverPreferencesRequest {
     @NotNull(message = "Accept frozen preference is required")
     private Boolean acceptFrozen;
     
+    private Boolean notificationPreferencesEnabled;
+    
     // Constructors
     public ReceiverPreferencesRequest() {}
     
@@ -88,6 +90,14 @@ public class ReceiverPreferencesRequest {
     
     public void setAcceptFrozen(Boolean acceptFrozen) {
         this.acceptFrozen = acceptFrozen;
+    }
+    
+    public Boolean getNotificationPreferencesEnabled() {
+        return notificationPreferencesEnabled;
+    }
+    
+    public void setNotificationPreferencesEnabled(Boolean notificationPreferencesEnabled) {
+        this.notificationPreferencesEnabled = notificationPreferencesEnabled;
     }
     
     // Validation method
