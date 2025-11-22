@@ -21,6 +21,7 @@ public class UserDTO {
     private LocalDateTime createdAt;
     @JsonProperty("updated_at")
     private LocalDateTime updatedAt;
+    private String languagePreference;
 
     public static UserDTO toDTO(com.example.foodflow.model.entity.User user) {
         if (user == null) return null;
@@ -31,6 +32,7 @@ public class UserDTO {
         dto.setOrganization(OrganizationDTO.toDTO(user.getOrganization()));
         dto.setCreatedAt(user.getCreatedAt());
         dto.setUpdatedAt(user.getUpdatedAt());
+        dto.setLanguagePreference(user.getLanguagePreference());
         return dto;
     }
 }
