@@ -52,6 +52,7 @@ class AuthServiceTest {
         donorRequest = new RegisterDonorRequest();
         donorRequest.setEmail("donor@test.com");
         donorRequest.setPassword("password123");
+        donorRequest.setConfirmPassword("password123");
         donorRequest.setOrganizationName("Test Restaurant");
         donorRequest.setContactPerson("John Doe");
         donorRequest.setPhone("123-456-7890");
@@ -60,10 +61,33 @@ class AuthServiceTest {
         receiverRequest = new RegisterReceiverRequest();
         receiverRequest.setEmail("receiver@test.com");
         receiverRequest.setPassword("password123");
+        receiverRequest.setConfirmPassword("password123");
         receiverRequest.setOrganizationName("Test Charity");
         receiverRequest.setContactPerson("Jane Smith");
         receiverRequest.setPhone("987-654-3210");
         receiverRequest.setAddress("456 Oak Ave");
+    }
+
+    @Test
+    void registerDonor_PasswordsDoNotMatch_ThrowsException() {
+        // Given
+        donorRequest.setConfirmPassword("different");
+
+        // When & Then
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> authService.registerDonor(donorRequest));
+        assertEquals("Passwords do not match", ex.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void registerReceiver_PasswordsDoNotMatch_ThrowsException() {
+        // Given
+        receiverRequest.setConfirmPassword("different");
+
+        // When & Then
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> authService.registerReceiver(receiverRequest));
+        assertEquals("Passwords do not match", ex.getMessage());
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
