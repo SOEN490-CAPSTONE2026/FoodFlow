@@ -59,6 +59,11 @@ public class AuthService {
     @Timed(value = "auth.service.registerDonor", description = "Time taken to register a donor")
     public AuthResponse registerDonor(RegisterDonorRequest request) {
         log.info("Starting donor registration for email: {}", request.getEmail());
+        // Validate password confirmation
+        if (request.getConfirmPassword() == null || !request.getPassword().equals(request.getConfirmPassword())) {
+            log.warn("Registration failed: Passwords do not match for email: {}", request.getEmail());
+            throw new RuntimeException("Passwords do not match");
+        }
         
         // Check if user already exists
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -104,6 +109,10 @@ public class AuthService {
     @Transactional
     @Timed(value = "auth.service.registerReceiver", description = "Time taken to register a receiver")
     public AuthResponse registerReceiver(RegisterReceiverRequest request) {
+        // Validate password confirmation
+        if (request.getConfirmPassword() == null || !request.getPassword().equals(request.getConfirmPassword())) {
+            throw new RuntimeException("Passwords do not match");
+        }
         // Check if user already exists
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already exists");
