@@ -29,12 +29,13 @@ const LoginPage = () => {
     const userRole = response?.data?.role;
     const userId = response?.data?.userId;
     const organizationName = response?.data?.organizationName;
+    const verificationStatus = response?.data?.verificationStatus;
 
     if (!token || !userRole || !userId) {
       throw new Error('Invalid server response');
     }
 
-    login(token, userRole, userId, organizationName); // this automatically updates localStorage and context
+    login(token, userRole, userId, organizationName, verificationStatus); // this automatically updates localStorage and context
     trackLogin(true);
 
     // redirect based on role

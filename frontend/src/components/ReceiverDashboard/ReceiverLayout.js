@@ -22,7 +22,7 @@ function ReceiverLayoutContent() {
   const location = useLocation();
   const navigate = useNavigate();
   const navType = useNavigationType();
-  const { logout, organizationName } = React.useContext(AuthContext);
+  const { logout, organizationName, organizationVerificationStatus, role } = React.useContext(AuthContext);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
@@ -291,6 +291,11 @@ function ReceiverLayoutContent() {
         )}
 
         <div className={`receiver-content ${isMessagesPage ? 'messages-page' : ''}`}>
+          {role === 'RECEIVER' && organizationVerificationStatus === 'PENDING' && (
+            <div className="verification-banner" role="status" aria-live="polite">
+              Your account is pending verification. Some features may be limited until your organization is verified.
+            </div>
+          )}
           <Outlet />
           <MessageNotification
             notification={notification}
