@@ -134,6 +134,7 @@ describe('ReceiverRegistration', () => {
 
         await user.type(screen.getByLabelText(/email address/i), 'a@b.com');
         await user.type(screen.getByLabelText(/^password$/i), 'password123');
+        await user.type(screen.getByLabelText(/^confirm password$/i), 'password123');
         await user.type(screen.getByLabelText(/organization name/i), 'Org');
         await user.type(screen.getByLabelText(/contact person/i), 'Person');
         await user.type(screen.getByLabelText(/phone number/i), '1112223333');
