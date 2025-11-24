@@ -114,7 +114,7 @@ const DonorRegistration = () => {
                 type="button"
                 className="toggle-password"
                 onClick={() => setShowPassword(s => !s)}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-label={showPassword ? 'Toggle password visibility (hide)' : 'Toggle password visibility (show)'}
               >
                 {showPassword ? 'Hide' : 'Show'}
               </button>
@@ -139,7 +139,7 @@ const DonorRegistration = () => {
                 type="button"
                 className="toggle-password"
                 onClick={() => setShowConfirmPassword(s => !s)}
-                aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                aria-label={showConfirmPassword ? 'Toggle confirm-password visibility (hide)' : 'Toggle confirm-password visibility (show)'}
               >
                 {showConfirmPassword ? 'Hide' : 'Show'}
               </button>
