@@ -36,6 +36,8 @@ public class Organization {
 
     private Integer capacity; // For receivers
     private String businessLicense; // For donors
+    @Column(name = "charity_registration_number")
+    private String charityRegistrationNumber;
 
     @Enumerated(EnumType.STRING)
     private VerificationStatus verificationStatus = VerificationStatus.PENDING;
@@ -73,6 +75,9 @@ public class Organization {
     
     public String getBusinessLicense() { return businessLicense; }
     public void setBusinessLicense(String businessLicense) { this.businessLicense = businessLicense; }
+    
+    public String getCharityRegistrationNumber() { return charityRegistrationNumber; }
+    public void setCharityRegistrationNumber(String charityRegistrationNumber) { this.charityRegistrationNumber = charityRegistrationNumber; }
     
     public VerificationStatus getVerificationStatus() { return verificationStatus; }
     public void setVerificationStatus(VerificationStatus verificationStatus) { this.verificationStatus = verificationStatus; }
