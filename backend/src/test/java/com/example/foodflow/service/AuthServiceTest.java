@@ -64,6 +64,7 @@ class AuthServiceTest {
         receiverRequest.setContactPerson("Jane Smith");
         receiverRequest.setPhone("987-654-3210");
         receiverRequest.setAddress("456 Oak Ave");
+        receiverRequest.setCharityRegistrationNumber("CRN-12345");
     }
 
     @Test
@@ -116,7 +117,13 @@ class AuthServiceTest {
         savedOrg.setName("Test Charity");
         
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
-        when(organizationRepository.save(any(Organization.class))).thenReturn(savedOrg);
+        // Capture organization passed to save to assert fields set correctly
+        when(organizationRepository.save(any(Organization.class))).thenAnswer(invocation -> {
+            Organization orgArg = invocation.getArgument(0);
+            // Simulate DB assigning id
+            orgArg.setId(1L);
+            return orgArg;
+        });
 
         // When
         AuthResponse response = authService.registerReceiver(receiverRequest);
@@ -125,10 +132,17 @@ class AuthServiceTest {
         assertNotNull(response);
         assertEquals("jwt-token", response.getToken());
         assertEquals("receiver@test.com", response.getEmail());
+        // verificationStatus should be included in response and set to PENDING
+        assertEquals("PENDING", response.getVerificationStatus());
         
         verify(userRepository).existsByEmail("receiver@test.com");
         verify(userRepository).save(any(User.class));
         verify(organizationRepository).save(any(Organization.class));
+        // Assert the organization saved had charity registration number and PENDING status
+        verify(organizationRepository).save(argThat(org -> 
+            "CRN-12345".equals(org.getCharityRegistrationNumber()) && org.getVerificationStatus() == VerificationStatus.PENDING
+            && org.getOrganizationType() == com.example.foodflow.model.entity.OrganizationType.CHARITY
+        ));
         verify(jwtTokenProvider).generateToken("receiver@test.com", "RECEIVER");
     }
 
