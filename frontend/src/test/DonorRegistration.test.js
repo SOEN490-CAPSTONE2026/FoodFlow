@@ -54,7 +54,7 @@ describe('DonorRegistration', () => {
     const fillAllFields = async (user) => {
         await user.type(screen.getByLabelText(/^email address$/i), 'donor@example.com');
         await user.type(screen.getByLabelText(/^password$/i), 'password123');
-        await user.type(screen.getByLabelText(/confirm password/i), 'password123');
+        await user.type(screen.getByLabelText(/^confirm password$/i), 'password123');
         await user.type(screen.getByLabelText(/organization name/i), 'Donor Org');
         await user.type(screen.getByLabelText(/contact person/i), 'Jane Doe');
         await user.type(screen.getByLabelText(/phone number/i), '1234567890');
@@ -69,7 +69,7 @@ describe('DonorRegistration', () => {
 
         await user.type(screen.getByLabelText(/^email address$/i), 'donor@example.com');
         await user.type(screen.getByLabelText(/^password$/i), 'password123');
-        await user.type(screen.getByLabelText(/confirm password/i), 'different123');
+        await user.type(screen.getByLabelText(/^confirm password$/i), 'different123');
 
         const submitButton = screen.getByRole('button', { name: /register as donor/i });
         await user.click(submitButton);
