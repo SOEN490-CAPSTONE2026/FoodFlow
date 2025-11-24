@@ -2,12 +2,41 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ReceiverPreferences from '../components/ReceiverDashboard/ReceiverPreferences';
 
+// Mock the api module to prevent axios import issues
+jest.mock('../services/api', () => ({
+  __esModule: true,
+  default: {
+    get: jest.fn(),
+    put: jest.fn(),
+    post: jest.fn(),
+  }
+}));
+
+// Import mocked api
+import api from '../services/api';
+
 describe('ReceiverPreferences', () => {
   const mockOnClose = jest.fn();
   const mockOnSave = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    // Mock successful API responses
+    api.get.mockResolvedValue({
+      data: {
+        preferredFoodTypes: [],
+        maxCapacity: 50,
+        minQuantity: 0,
+        maxQuantity: 100,
+        preferredPickupWindows: ['EVENING'],
+        acceptRefrigerated: true,
+        acceptFrozen: true
+      }
+    });
+    
+    api.put.mockResolvedValue({ data: { success: true } });
+    api.post.mockResolvedValue({ data: { success: true } });
   });
 
   test('renders preferences panel when open', () => {
@@ -105,6 +134,8 @@ describe('ReceiverPreferences', () => {
   });
 
   test('saves preferences successfully', async () => {
+    jest.useFakeTimers();
+    
     render(
       <ReceiverPreferences 
         isOpen={true} 
@@ -113,14 +144,22 @@ describe('ReceiverPreferences', () => {
       />
     );
 
-    const saveButton = screen.getByText('Save');
+    // Wait for the component to finish loading preferences
+    const saveButton = await screen.findByText('Save');
     fireEvent.click(saveButton);
 
     await waitFor(() => {
-      // component no longer calls backend; it should call onSave with the current preferences
       expect(mockOnSave).toHaveBeenCalled();
+    });
+
+    // Component waits 1.5 seconds before calling onClose
+    jest.advanceTimersByTime(1500);
+    
+    await waitFor(() => {
       expect(mockOnClose).toHaveBeenCalled();
     });
+
+    jest.useRealTimers();
   });
 
   test('shows error when min quantity is greater than max quantity', async () => {
@@ -131,6 +170,9 @@ describe('ReceiverPreferences', () => {
         onSave={mockOnSave} 
       />
     );
+
+    // Wait for the component to finish loading
+    await screen.findByText('Save');
 
     const minInput = screen.getByPlaceholderText('Min');
     const maxInput = screen.getByPlaceholderText('Max');

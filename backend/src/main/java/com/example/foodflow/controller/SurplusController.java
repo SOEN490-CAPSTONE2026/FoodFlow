@@ -116,7 +116,7 @@ public class SurplusController {
     }
 
    @PostMapping("/pickup/confirm")
-public ResponseEntity<SurplusResponse> confirmPickup(
+    public ResponseEntity<SurplusResponse> confirmPickup(
         @RequestBody ConfirmPickupRequest request,
         @AuthenticationPrincipal User donor) {
 
@@ -126,6 +126,16 @@ public ResponseEntity<SurplusResponse> confirmPickup(
         donor
     );
     return ResponseEntity.ok(response);
+}
+
+    @DeleteMapping("/{id}/delete")
+    @PreAuthorize("hasAuthority('DONOR')")
+    public ResponseEntity<Void> deleteSurplusPost(
+        @PathVariable Long id,
+        @AuthenticationPrincipal User donor) {
+
+    surplusService.deleteSurplusPost(id, donor);
+    return ResponseEntity.noContent().build(); // 204
 }
 
 
