@@ -1,43 +1,63 @@
-import React, { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { authAPI } from '../services/api';
-import { AuthContext } from '../contexts/AuthContext';
+import React, { useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { authAPI } from "../services/api";
+import { AuthContext } from "../contexts/AuthContext";
 import DonorIllustration from "../assets/illustrations/donor-illustration.jpg";
-import '../style/Registration.css';
+import "../style/Registration.css";
 
 const DonorRegistration = () => {
   const navigate = useNavigate();
   const { login } = useContext(AuthContext);
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    organizationName: '',
-    contactPerson: '',
-    phone: '',
-    address: '',
-    organizationType: 'RESTAURANT',
-    businessLicense: ''
+    email: "",
+    password: "",
+    organizationName: "",
+    contactPerson: "",
+    phone: "",
+    address: "",
+    organizationType: "RESTAURANT",
+    businessLicense: "",
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
+  };
+
+  const validateForm = () => {
+    const errors = {};
+
+    if (!formData.businessLicense || formData.businessLicense.trim() === "") {
+      errors.businessLicense =
+        "Business license is required for donor registration";
+    }
+
+    setFieldErrors(errors);
+
+    // Return true if no errors
+    return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Run client-side validation first
+    if (!validateForm()) {
+      return; // stop submission if validation fails
+    }
+
     setLoading(true);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     try {
       const response = await authAPI.registerDonor(formData);
-      setSuccess('Registration successful! Welcome to FoodFlow.');
+      setSuccess("Registration successful! Welcome to FoodFlow.");
 
       // Extract token, role, and userId from response
       const token = response?.data?.token;
@@ -50,11 +70,12 @@ const DonorRegistration = () => {
 
       // Redirect after success
       setTimeout(() => {
-        navigate('/donor'); // Redirect to donor dashboard
+        navigate("/donor"); // Redirect to donor dashboard
       }, 2000);
-
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      setError(
+        err.response?.data?.message || "Registration failed. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -63,8 +84,17 @@ const DonorRegistration = () => {
   return (
     <div className="registration-page">
       <div className="background-image">
-        <img src={DonorIllustration} alt="Donor Illustration" height={500} width={900} />
-        <p>Your generosity provides meals, care, and hope for families in need. Every donation helps strengthen communities and build a brighter, kinder future together, we can make lasting change!</p>
+        <img
+          src={DonorIllustration}
+          alt="Donor Illustration"
+          height={500}
+          width={900}
+        />
+        <p>
+          Your generosity provides meals, care, and hope for families in need.
+          Every donation helps strengthen communities and build a brighter,
+          kinder future together, we can make lasting change!
+        </p>
       </div>
       <div className="form-container">
         <h1>Register as a Donor</h1>
@@ -170,7 +200,9 @@ const DonorRegistration = () => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="businessLicense">Business License Number</label>
+            <label htmlFor="businessLicense">
+              Business License Number <span style={{ color: "red" }}>*</span>
+            </label>
             <input
               type="text"
               id="businessLicense"
@@ -179,23 +211,23 @@ const DonorRegistration = () => {
               onChange={handleChange}
               placeholder="Enter your business license number"
             />
-            <small>Optional but recommended for verification</small>
+            {fieldErrors.businessLicense && (
+              <small style={{ color: "red" }}>
+                {fieldErrors.businessLicense}
+              </small>
+            )}
           </div>
 
           <div className="form-actions">
             <button
               type="button"
               className="back-button"
-              onClick={() => navigate('/register')}
+              onClick={() => navigate("/register")}
             >
               Back
             </button>
-            <button
-              type="submit"
-              className="submit-button"
-              disabled={loading}
-            >
-              {loading ? 'Registering...' : 'Register as Donor'}
+            <button type="submit" className="submit-button" disabled={loading}>
+              {loading ? "Registering..." : "Register as Donor"}
             </button>
           </div>
         </form>
