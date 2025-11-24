@@ -57,7 +57,7 @@ describe('ReceiverRegistration', () => {
         await user.type(screen.getByLabelText(/phone number/i), '5145551234');
         await user.type(screen.getByLabelText(/^address$/i), '123 Main St, Montreal, QC');
         await user.selectOptions(screen.getByLabelText(/organization type/i), 'SHELTER');
-        await user.type(screen.getByLabelText(/charity registration number/i), 'CRN-12345');
+        await user.type(screen.getByLabelText(/charity.*registration number/i), 'CRN-12345');
         await user.type(screen.getByLabelText(/daily capacity/i), '150');
     };
 
@@ -71,7 +71,7 @@ describe('ReceiverRegistration', () => {
         expect(screen.getByLabelText(/phone number/i)).toBeInTheDocument();
         expect(screen.getByLabelText(/^address$/i)).toBeInTheDocument();
         expect(screen.getByLabelText(/organization type/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/charity registration number/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/charity.*registration number/i)).toBeInTheDocument();
         expect(screen.getByLabelText(/daily capacity/i)).toBeInTheDocument();
     });
 
