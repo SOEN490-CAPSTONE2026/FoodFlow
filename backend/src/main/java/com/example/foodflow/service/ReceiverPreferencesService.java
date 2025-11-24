@@ -47,6 +47,11 @@ public class ReceiverPreferencesService {
         preferences.setAcceptRefrigerated(request.getAcceptRefrigerated());
         preferences.setAcceptFrozen(request.getAcceptFrozen());
         
+        // Update notification preferences if provided
+        if (request.getNotificationPreferencesEnabled() != null) {
+            preferences.setNotificationPreferencesEnabled(request.getNotificationPreferencesEnabled());
+        }
+        
         // Save to database
         ReceiverPreferences saved = preferencesRepository.save(preferences);
         
@@ -87,6 +92,7 @@ public class ReceiverPreferencesService {
         defaultPrefs.setMaxQuantity(100);
         defaultPrefs.setAcceptRefrigerated(true);
         defaultPrefs.setAcceptFrozen(true);
+        defaultPrefs.setNotificationPreferencesEnabled(true); // Default to enabled
         
         ReceiverPreferences saved = preferencesRepository.save(defaultPrefs);
         return new ReceiverPreferencesResponse(saved);

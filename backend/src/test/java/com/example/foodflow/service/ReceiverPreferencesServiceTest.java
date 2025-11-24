@@ -248,4 +248,128 @@ class ReceiverPreferencesServiceTest {
         assertThat(result.getPreferredPickupWindows()).isEmpty();
         verify(preferencesRepository).save(any(ReceiverPreferences.class));
     }
+
+    // ==================== Tests for notificationPreferencesEnabled field ====================
+
+    @Test
+    void testSavePreferences_WithNotificationPreferencesEnabled_True() {
+        // Given
+        validRequest.setNotificationPreferencesEnabled(true);
+        when(preferencesRepository.findByUserId(receiver.getId())).thenReturn(Optional.empty());
+        when(preferencesRepository.save(any(ReceiverPreferences.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // When
+        ReceiverPreferencesResponse result = preferencesService.savePreferences(receiver, validRequest);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getNotificationPreferencesEnabled()).isTrue();
+        verify(preferencesRepository).save(any(ReceiverPreferences.class));
+    }
+
+    @Test
+    void testSavePreferences_WithNotificationPreferencesEnabled_False() {
+        // Given
+        validRequest.setNotificationPreferencesEnabled(false);
+        when(preferencesRepository.findByUserId(receiver.getId())).thenReturn(Optional.empty());
+        when(preferencesRepository.save(any(ReceiverPreferences.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // When
+        ReceiverPreferencesResponse result = preferencesService.savePreferences(receiver, validRequest);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getNotificationPreferencesEnabled()).isFalse();
+        verify(preferencesRepository).save(any(ReceiverPreferences.class));
+    }
+
+    @Test
+    void testSavePreferences_UpdatesNotificationPreferencesEnabled() {
+        // Given - Existing preferences with smart notifications enabled
+        existingPreferences.setNotificationPreferencesEnabled(true);
+        
+        // Request to disable smart notifications
+        validRequest.setNotificationPreferencesEnabled(false);
+        
+        when(preferencesRepository.findByUserId(receiver.getId())).thenReturn(Optional.of(existingPreferences));
+        when(preferencesRepository.save(any(ReceiverPreferences.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // When
+        ReceiverPreferencesResponse result = preferencesService.savePreferences(receiver, validRequest);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getNotificationPreferencesEnabled()).isFalse();
+        verify(preferencesRepository).save(existingPreferences);
+    }
+
+    @Test
+    void testGetPreferences_ReturnsNotificationPreferencesEnabled() {
+        // Given
+        existingPreferences.setNotificationPreferencesEnabled(true);
+        when(preferencesRepository.findByUserId(receiver.getId())).thenReturn(Optional.of(existingPreferences));
+
+        // When
+        Optional<ReceiverPreferencesResponse> result = preferencesService.getPreferences(receiver);
+
+        // Then
+        assertThat(result).isPresent();
+        assertThat(result.get().getNotificationPreferencesEnabled()).isTrue();
+        verify(preferencesRepository).findByUserId(receiver.getId());
+    }
+
+    @Test
+    void testGetOrCreateDefaultPreferences_CreatesWithNotificationPreferencesEnabled() {
+        // Given
+        when(preferencesRepository.findByUserId(receiver.getId())).thenReturn(Optional.empty());
+        when(preferencesRepository.save(any(ReceiverPreferences.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // When
+        ReceiverPreferencesResponse result = preferencesService.getOrCreateDefaultPreferences(receiver);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getNotificationPreferencesEnabled()).isTrue(); // Default should be true
+        verify(preferencesRepository).save(any(ReceiverPreferences.class));
+    }
+
+    @Test
+    void testSavePreferences_WithNullNotificationPreferencesEnabled_UsesDefaultTrue() {
+        // Given - Request with null notification preferences (should default to true)
+        validRequest.setNotificationPreferencesEnabled(null);
+        when(preferencesRepository.findByUserId(receiver.getId())).thenReturn(Optional.empty());
+        when(preferencesRepository.save(any(ReceiverPreferences.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // When
+        ReceiverPreferencesResponse result = preferencesService.savePreferences(receiver, validRequest);
+
+        // Then
+        assertThat(result).isNotNull();
+        // Should use the entity's default value (true)
+        assertThat(result.getNotificationPreferencesEnabled()).isTrue();
+        verify(preferencesRepository).save(any(ReceiverPreferences.class));
+    }
+
+    @Test
+    void testSavePreferences_ToggleNotificationPreferencesMultipleTimes() {
+        // Given - Existing preferences
+        existingPreferences.setNotificationPreferencesEnabled(true);
+        when(preferencesRepository.findByUserId(receiver.getId())).thenReturn(Optional.of(existingPreferences));
+        when(preferencesRepository.save(any(ReceiverPreferences.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // When - Toggle to false
+        validRequest.setNotificationPreferencesEnabled(false);
+        ReceiverPreferencesResponse result1 = preferencesService.savePreferences(receiver, validRequest);
+
+        // Then
+        assertThat(result1.getNotificationPreferencesEnabled()).isFalse();
+
+        // When - Toggle back to true
+        validRequest.setNotificationPreferencesEnabled(true);
+        ReceiverPreferencesResponse result2 = preferencesService.savePreferences(receiver, validRequest);
+
+        // Then
+        assertThat(result2.getNotificationPreferencesEnabled()).isTrue();
+        verify(preferencesRepository, times(2)).save(existingPreferences);
+    }
 }

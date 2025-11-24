@@ -15,6 +15,7 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
     pickupAvailability: ['EVENING'],
     acceptsRefrigerated: true,
     acceptsFrozen: true,
+    notificationPreferencesEnabled: true,
     noStrictPreferences: false
   });
   const [loading, setLoading] = useState(false);
@@ -45,6 +46,7 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
           pickupAvailability: response.data.preferredPickupWindows || ['EVENING'],
           acceptsRefrigerated: response.data.acceptRefrigerated !== undefined ? response.data.acceptRefrigerated : true,
           acceptsFrozen: response.data.acceptFrozen !== undefined ? response.data.acceptFrozen : true,
+          notificationPreferencesEnabled: response.data.notificationPreferencesEnabled !== undefined ? response.data.notificationPreferencesEnabled : true,
           noStrictPreferences: (response.data.preferredFoodTypes || []).length === 0
         });
       }
@@ -127,7 +129,8 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
         maxQuantity: maxQty,
         preferredPickupWindows: preferences.pickupAvailability,
         acceptRefrigerated: preferences.acceptsRefrigerated,
-        acceptFrozen: preferences.acceptsFrozen
+        acceptFrozen: preferences.acceptsFrozen,
+        notificationPreferencesEnabled: preferences.notificationPreferencesEnabled
       };
 
       console.log('Saving preferences to backend:', requestData);
@@ -302,6 +305,21 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
                 <span>Accepts Frozen Items</span>
               </label>
             </div>
+          </div>
+
+          {/* Smart Notifications */}
+          <div className="preference-field checkbox-field">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={preferences.notificationPreferencesEnabled}
+                onChange={() => handleInputChange('notificationPreferencesEnabled', !preferences.notificationPreferencesEnabled)}
+              />
+              <span>Smart Notifications - Only notify me about matching donations</span>
+            </label>
+            <small style={{marginLeft: '24px', color: '#666', display: 'block', marginTop: '4px'}}>
+              When enabled, you'll only receive notifications for donations that match your preferences and fit within your capacity.
+            </small>
           </div>
 
           {/* No Strict Preferences */}
