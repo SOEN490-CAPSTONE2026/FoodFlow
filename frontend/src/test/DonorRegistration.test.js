@@ -54,6 +54,7 @@ describe('DonorRegistration', () => {
     const fillAllFields = async (user) => {
         await user.type(screen.getByLabelText(/^email address$/i), 'donor@example.com');
         await user.type(screen.getByLabelText(/^password$/i), 'password123');
+        await user.type(screen.getByLabelText(/confirm password/i), 'password123');
         await user.type(screen.getByLabelText(/organization name/i), 'Donor Org');
         await user.type(screen.getByLabelText(/contact person/i), 'Jane Doe');
         await user.type(screen.getByLabelText(/phone number/i), '1234567890');
@@ -61,6 +62,24 @@ describe('DonorRegistration', () => {
         await user.selectOptions(screen.getByLabelText(/organization type/i), 'RESTAURANT');
         await user.type(screen.getByLabelText(/business license/i), 'BL-123456');
     };
+
+    it('shows error when passwords do not match and prevents submission', async () => {
+        const user = userEvent.setup({ delay: null });
+        renderWithAuth(<DonorRegistration />);
+
+        await user.type(screen.getByLabelText(/^email address$/i), 'donor@example.com');
+        await user.type(screen.getByLabelText(/^password$/i), 'password123');
+        await user.type(screen.getByLabelText(/confirm password/i), 'different123');
+
+        const submitButton = screen.getByRole('button', { name: /register as donor/i });
+        await user.click(submitButton);
+
+        await waitFor(() => {
+            expect(screen.getByText(/passwords do not match/i)).toBeInTheDocument();
+        });
+
+        expect(authAPI.registerDonor).not.toHaveBeenCalled();
+    });
 
     it('renders the form with all required fields', () => {
         renderWithAuth(<DonorRegistration />);
@@ -160,6 +179,7 @@ describe('DonorRegistration', () => {
             expect(authAPI.registerDonor).toHaveBeenCalledWith({
                 email: 'donor@example.com',
                 password: 'password123',
+                confirmPassword: 'password123',
                 organizationName: 'Donor Org',
                 contactPerson: 'Jane Doe',
                 phone: '1234567890',
