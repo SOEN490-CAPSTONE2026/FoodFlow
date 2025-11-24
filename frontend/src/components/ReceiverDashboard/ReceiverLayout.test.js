@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { AuthContext } from '../../contexts/AuthContext';
 
 // Mock non-JS assets and heavy modules before importing the component so Jest doesn't try to
@@ -19,9 +20,11 @@ const ReceiverLayoutContent = require('./ReceiverLayout').default;
 describe('ReceiverLayout verification banner', () => {
   it('shows pending verification banner for receiver role with PENDING status', () => {
     render(
-      <AuthContext.Provider value={{ role: 'RECEIVER', organizationVerificationStatus: 'PENDING' }}>
-        <ReceiverLayoutContent />
-      </AuthContext.Provider>
+      <MemoryRouter>
+        <AuthContext.Provider value={{ role: 'RECEIVER', organizationVerificationStatus: 'PENDING' }}>
+          <ReceiverLayoutContent />
+        </AuthContext.Provider>
+      </MemoryRouter>
     );
 
     const banner = screen.getByText(/Your account is pending verification/i);
@@ -30,9 +33,11 @@ describe('ReceiverLayout verification banner', () => {
 
   it('does not show banner for non-receiver roles', () => {
     render(
-      <AuthContext.Provider value={{ role: 'DONOR', organizationVerificationStatus: 'PENDING' }}>
-        <ReceiverLayoutContent />
-      </AuthContext.Provider>
+      <MemoryRouter>
+        <AuthContext.Provider value={{ role: 'DONOR', organizationVerificationStatus: 'PENDING' }}>
+          <ReceiverLayoutContent />
+        </AuthContext.Provider>
+      </MemoryRouter>
     );
 
     const results = screen.queryByText(/Your account is pending verification/i);
@@ -41,9 +46,11 @@ describe('ReceiverLayout verification banner', () => {
 
   it('does not show banner when verification status is not PENDING', () => {
     render(
-      <AuthContext.Provider value={{ role: 'RECEIVER', organizationVerificationStatus: 'VERIFIED' }}>
-        <ReceiverLayoutContent />
-      </AuthContext.Provider>
+      <MemoryRouter>
+        <AuthContext.Provider value={{ role: 'RECEIVER', organizationVerificationStatus: 'VERIFIED' }}>
+          <ReceiverLayoutContent />
+        </AuthContext.Provider>
+      </MemoryRouter>
     );
 
     const results = screen.queryByText(/Your account is pending verification/i);
