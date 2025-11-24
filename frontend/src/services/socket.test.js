@@ -72,8 +72,9 @@ describe('socket service', () => {
     const onMessage = jest.fn();
     const onClaim = jest.fn();
     const onCancel = jest.fn();
+    const onNewPost = jest.fn();
 
-    socketService.connectToUserQueue(onMessage, onClaim, onCancel);
+    socketService.connectToUserQueue(onMessage, onClaim, onCancel, onNewPost);
 
     const client = stompModule.__getLastClient();
     expect(client).toBeTruthy();
@@ -86,7 +87,7 @@ describe('socket service', () => {
     const subs = client.__getSubscriptions();
     const topics = subs.map(s => s.destination).sort();
     expect(topics).toEqual(
-      ['/user/queue/messages', '/user/queue/claims', '/user/queue/claims/cancelled'].sort()
+      ['/user/queue/messages', '/user/queue/claims', '/user/queue/claims/cancelled', '/user/queue/notifications'].sort()
     );
 
     subs.find(s => s.destination === '/user/queue/messages')
@@ -95,24 +96,29 @@ describe('socket service', () => {
         .cb({ body: JSON.stringify({ claim: true }) });
     subs.find(s => s.destination === '/user/queue/claims/cancelled')
         .cb({ body: JSON.stringify({ cancelled: 1 }) });
+    subs.find(s => s.destination === '/user/queue/notifications')
+        .cb({ body: JSON.stringify({ type: 'NEW_POST', postId: 123 }) });
 
     expect(onMessage).toHaveBeenCalledWith({ a: 1 });
     expect(onClaim).toHaveBeenCalledWith({ claim: true });
     expect(onCancel).toHaveBeenCalledWith({ cancelled: 1 });
+    expect(onNewPost).toHaveBeenCalledWith({ type: 'NEW_POST', postId: 123 });
   });
 
   test('ignores messages without a body', () => {
     const onMessage = jest.fn();
     const onClaim = jest.fn();
     const onCancel = jest.fn();
+    const onNewPost = jest.fn();
 
-    socketService.connectToUserQueue(onMessage, onClaim, onCancel);
+    socketService.connectToUserQueue(onMessage, onClaim, onCancel, onNewPost);
     const client = triggerConnect();
     client.__getSubscriptions().forEach(s => s.cb({}));
 
     expect(onMessage).not.toHaveBeenCalled();
     expect(onClaim).not.toHaveBeenCalled();
     expect(onCancel).not.toHaveBeenCalled();
+    expect(onNewPost).not.toHaveBeenCalled();
   });
 
   test('appends token to WS URL and sets Authorization header when present', () => {
