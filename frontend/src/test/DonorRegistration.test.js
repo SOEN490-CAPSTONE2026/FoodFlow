@@ -174,8 +174,8 @@ describe('DonorRegistration', () => {
             expect(screen.getByText(/registration successful/i)).toBeInTheDocument();
         });
 
-        // Check login was called
-        expect(mockAuthContextValue.login).toHaveBeenCalledWith('fake-token-123', 'DONOR', 'user-123');
+        // Check login was called (new optional args may be present)
+        expect(mockAuthContextValue.login).toHaveBeenCalledWith('fake-token-123', 'DONOR', 'user-123', undefined, undefined);
         
         // Fast-forward timers to trigger navigation
         jest.advanceTimersByTime(2000);
