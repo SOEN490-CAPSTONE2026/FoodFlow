@@ -27,6 +27,8 @@ public class RegisterDonorRequest {
     private String address;
 
     private OrganizationType organizationType;
+
+    @NotBlank(message = "Business license is required for donor registration")
     private String businessLicense;
 
     // Constructors, getters, setters
