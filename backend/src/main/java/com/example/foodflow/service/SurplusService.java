@@ -38,15 +38,18 @@ public class SurplusService {
     private final ClaimRepository claimRepository;
     private final PickupSlotValidationService pickupSlotValidationService;
     private final BusinessMetricsService businessMetricsService;
+    private final NotificationService notificationService;
 
     public SurplusService(SurplusPostRepository surplusPostRepository, 
                          ClaimRepository claimRepository,
                          PickupSlotValidationService pickupSlotValidationService,
-                         BusinessMetricsService businessMetricsService) {
+                         BusinessMetricsService businessMetricsService,
+                         NotificationService notificationService) {
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;
         this.pickupSlotValidationService = pickupSlotValidationService;
         this.businessMetricsService = businessMetricsService;
+        this.notificationService = notificationService;
     }
     
     /**
@@ -129,6 +132,15 @@ public class SurplusService {
 
         businessMetricsService.incrementSurplusPostCreated();
         businessMetricsService.recordTimer(sample, "surplus.service.create", "status", savedPost.getStatus().toString());
+
+        // Send notifications to eligible receivers
+        try {
+            notificationService.sendNewPostNotification(savedPost);
+        } catch (Exception e) {
+            // Log error but don't fail the post creation
+            org.slf4j.LoggerFactory.getLogger(SurplusService.class)
+                .error("Failed to send notifications for postId={}: {}", savedPost.getId(), e.getMessage());
+        }
 
         return convertToResponse(savedPost);
     }

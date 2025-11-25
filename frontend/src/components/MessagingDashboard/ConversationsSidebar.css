@@ -255,7 +255,19 @@
     width: 100%;
     max-width: 100%;
     min-width: 100%;
+    height: 100%;
     max-height: 100%;
+    border-right: none;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  
+  .conversations-sidebar.hide-mobile {
+    display: none;
+  }
+  
+  .conversations-sidebar.show-mobile {
+    display: flex;
   }
   
   .sidebar-header {
@@ -268,6 +280,12 @@
   
   .filter-tabs {
     padding: 10px 16px;
+  }
+  
+  .conversations-list {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
   }
   
   .conversation-item {

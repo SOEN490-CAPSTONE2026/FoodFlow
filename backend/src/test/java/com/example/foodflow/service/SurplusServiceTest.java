@@ -51,6 +51,9 @@ class SurplusServiceTest {
     @Mock
     private BusinessMetricsService businessMetricsService;
 
+    @Mock
+    private NotificationService notificationService;
+
     @InjectMocks
     private SurplusService surplusService;
 
@@ -816,6 +819,115 @@ class SurplusServiceTest {
             .hasMessageContaining("CLAIMED");
 
         verify(surplusPostRepository, never()).save(any(SurplusPost.class));
+    }
+
+    // ==================== Tests for NotificationService Integration ====================
+
+    @Test
+    void testCreateSurplusPost_CallsNotificationService() {
+        // Given
+        SurplusPost savedPost = new SurplusPost();
+        savedPost.setId(1L);
+        savedPost.setDonor(donor);
+        savedPost.setTitle(request.getTitle());
+        savedPost.setFoodCategories(request.getFoodCategories());
+        savedPost.setQuantity(request.getQuantity());
+        savedPost.setPickupLocation(request.getPickupLocation());
+        savedPost.setExpiryDate(request.getExpiryDate());
+        savedPost.setPickupDate(request.getPickupDate());
+        savedPost.setPickupFrom(request.getPickupFrom());
+        savedPost.setPickupTo(request.getPickupTo());
+        savedPost.setDescription(request.getDescription());
+
+        doNothing().when(pickupSlotValidationService).validateSlots(any());
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
+        doNothing().when(notificationService).sendNewPostNotification(any(SurplusPost.class));
+
+        // When
+        surplusService.createSurplusPost(request, donor);
+
+        // Then
+        verify(notificationService, times(1)).sendNewPostNotification(savedPost);
+    }
+
+    @Test
+    void testCreateSurplusPost_NotificationServiceException_DoesNotFailPostCreation() {
+        // Given
+        SurplusPost savedPost = new SurplusPost();
+        savedPost.setId(1L);
+        savedPost.setDonor(donor);
+        savedPost.setTitle(request.getTitle());
+        savedPost.setFoodCategories(request.getFoodCategories());
+        savedPost.setQuantity(request.getQuantity());
+        savedPost.setPickupLocation(request.getPickupLocation());
+        savedPost.setExpiryDate(request.getExpiryDate());
+        savedPost.setPickupDate(request.getPickupDate());
+        savedPost.setPickupFrom(request.getPickupFrom());
+        savedPost.setPickupTo(request.getPickupTo());
+        savedPost.setDescription(request.getDescription());
+
+        doNothing().when(pickupSlotValidationService).validateSlots(any());
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
+        doThrow(new RuntimeException("Notification failed")).when(notificationService).sendNewPostNotification(any(SurplusPost.class));
+
+        // When
+        SurplusResponse response = surplusService.createSurplusPost(request, donor);
+
+        // Then - Post creation succeeds even if notifications fail
+        assertThat(response).isNotNull();
+        assertThat(response.getId()).isEqualTo(1L);
+        verify(notificationService, times(1)).sendNewPostNotification(savedPost);
+        verify(surplusPostRepository, times(1)).save(any(SurplusPost.class));
+    }
+
+    @Test
+    void testCreateSurplusPost_NotificationServiceCalledAfterSave() {
+        // Given
+        SurplusPost savedPost = new SurplusPost();
+        savedPost.setId(1L);
+        savedPost.setDonor(donor);
+        savedPost.setTitle(request.getTitle());
+        savedPost.setFoodCategories(request.getFoodCategories());
+        savedPost.setQuantity(request.getQuantity());
+
+        doNothing().when(pickupSlotValidationService).validateSlots(any());
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
+        doNothing().when(notificationService).sendNewPostNotification(any(SurplusPost.class));
+
+        // When
+        surplusService.createSurplusPost(request, donor);
+
+        // Then - Verify order: save happens before notification
+        var inOrder = inOrder(surplusPostRepository, notificationService);
+        inOrder.verify(surplusPostRepository).save(any(SurplusPost.class));
+        inOrder.verify(notificationService).sendNewPostNotification(savedPost);
+    }
+
+    @Test
+    void testCreateSurplusPost_NotificationServiceReceivesCorrectPost() {
+        // Given
+        SurplusPost savedPost = new SurplusPost();
+        savedPost.setId(1L);
+        savedPost.setDonor(donor);
+        savedPost.setTitle("Test Notification Post");
+        savedPost.setFoodCategories(Set.of(FoodCategory.BAKERY_PASTRY));
+        savedPost.setQuantity(new Quantity(15.0, Quantity.Unit.ITEM));
+
+        doNothing().when(pickupSlotValidationService).validateSlots(any());
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
+
+        ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
+        doNothing().when(notificationService).sendNewPostNotification(postCaptor.capture());
+
+        // When
+        surplusService.createSurplusPost(request, donor);
+
+        // Then
+        SurplusPost capturedPost = postCaptor.getValue();
+        assertThat(capturedPost.getId()).isEqualTo(1L);
+        assertThat(capturedPost.getTitle()).isEqualTo("Test Notification Post");
+        assertThat(capturedPost.getFoodCategories()).contains(FoodCategory.BAKERY_PASTRY);
+        assertThat(capturedPost.getQuantity().getValue()).isEqualTo(15.0);
     }
 
     @Test
