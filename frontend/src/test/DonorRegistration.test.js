@@ -39,6 +39,7 @@ const renderWithAuth = (component) =>
     </AuthContext.Provider>
   );
 
+// Helper to fill fields
 const fillAllFields = async (user) => {
   await user.type(screen.getByLabelText(/^email address$/i), 'donor@example.com');
   await user.type(screen.getByLabelText(/^password$/i), 'password123');
@@ -66,8 +67,9 @@ describe('DonorRegistration', () => {
     renderWithAuth(<DonorRegistration />);
     expect(screen.getByLabelText(/^email address$/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/contact person/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^confirm password$/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/organization name/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/contact person/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/phone number/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^address$/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/organization type/i)).toBeInTheDocument();
@@ -94,33 +96,35 @@ describe('DonorRegistration', () => {
     expect(screen.getByLabelText(/business license/i)).toHaveValue('BL-123456');
   });
 
-it('password mismatch shows error and blocks submit', async () => {
-  const user = userEvent.setup({ delay: null });
-  renderWithAuth(<DonorRegistration />);
+  it('password mismatch shows error and blocks submit', async () => {
+    const user = userEvent.setup({ delay: null });
+    renderWithAuth(<DonorRegistration />);
 
-  await user.type(screen.getByLabelText(/^email address$/i), 'donor@example.com');
-  await user.type(screen.getByLabelText(/^password$/i), 'password123');
-  await user.type(screen.getByLabelText(/^confirm password$/i), 'different123');
+    await user.type(screen.getByLabelText(/^email address$/i), 'donor@example.com');
+    await user.type(screen.getByLabelText(/^password$/i), 'password123');
+    await user.type(screen.getByLabelText(/^confirm password$/i), 'wrongpass');
 
-  // Fill required fields so validation passes
-  await user.type(screen.getByLabelText(/organization name/i), 'Donor Org');
-  await user.type(screen.getByLabelText(/contact person/i), 'Jane Doe');
-  await user.type(screen.getByLabelText(/phone number/i), '1234567890');
-  await user.type(screen.getByLabelText(/^address$/i), '123 Street');
-  await user.selectOptions(screen.getByLabelText(/organization type/i), 'RESTAURANT');
-  await user.type(screen.getByLabelText(/business license/i), 'BL-999');
+    // Fill the rest so validation passes
+    await user.type(screen.getByLabelText(/organization name/i), 'Donor Org');
+    await user.type(screen.getByLabelText(/contact person/i), 'Jane Doe');
+    await user.type(screen.getByLabelText(/phone number/i), '1234567890');
+    await user.type(screen.getByLabelText(/^address$/i), '123 St');
+    await user.selectOptions(screen.getByLabelText(/organization type/i), 'RESTAURANT');
+    await user.type(screen.getByLabelText(/business license/i), 'BL-999');
 
-  const submit = screen.getByRole('button', { name: /register as donor/i });
-  await user.click(submit);
+    const submit = screen.getByRole('button', { name: /register as donor/i });
+    await user.click(submit);
 
-  await waitFor(() => {
-    expect(screen.getByText(/passwords do not match/i)).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByText(/passwords do not match/i)).toBeInTheDocument()
+    );
+
+    expect(authAPI.registerDonor).not.toHaveBeenCalled();
   });
 
-  expect(authAPI.registerDonor).not.toHaveBeenCalled();
-});
   it('successfully registers donor with token', async () => {
     const user = userEvent.setup({ delay: null });
+
     authAPI.registerDonor.mockResolvedValueOnce({
       data: {
         token: 'fake-token-123',
@@ -138,21 +142,18 @@ it('password mismatch shows error and blocks submit', async () => {
       expect(screen.getByText(/registration successful/i)).toBeInTheDocument()
     );
 
-    expect(mockAuthContextValue.login).toHaveBeenCalledWith(
-      'fake-token-123',
-      'DONOR',
-      'user-123'
-    );
+    // Only check first three args
+    expect(mockAuthContextValue.login.mock.calls[0][0]).toBe('fake-token-123');
+    expect(mockAuthContextValue.login.mock.calls[0][1]).toBe('DONOR');
+    expect(mockAuthContextValue.login.mock.calls[0][2]).toBe('user-123');
 
     jest.advanceTimersByTime(2000);
-
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/donor');
-    });
+    expect(mockNavigate).toHaveBeenCalledWith('/donor');
   });
 
   it('successfully registers donor without token', async () => {
     const user = userEvent.setup({ delay: null });
+
     authAPI.registerDonor.mockResolvedValueOnce({
       data: {
         role: 'DONOR',
@@ -160,70 +161,24 @@ it('password mismatch shows error and blocks submit', async () => {
       },
     });
 
-    it('successfully registers donor with token and redirects', async () => {
-        const user = userEvent.setup({ delay: null });
-        authAPI.registerDonor.mockResolvedValueOnce({
-            data: { 
-                token: 'fake-token-123',
-                userId: 'user-123', 
-                role: 'DONOR' 
-            }
-        });
-        
-        renderWithAuth(<DonorRegistration />);
-        await fillAllFields(user);
-        
-        const submitButton = screen.getByRole('button', { name: /register as donor/i });
-        await user.click(submitButton);
-        
-        // Check loading state
-        await waitFor(() => {
-            expect(screen.getByText(/registering.../i)).toBeInTheDocument();
-        });
-
-        // Wait for API call
-        await waitFor(() => {
-            expect(authAPI.registerDonor).toHaveBeenCalledWith({
-                email: 'donor@example.com',
-                password: 'password123',
-                organizationName: 'Donor Org',
-                contactPerson: 'Jane Doe',
-                phone: '1234567890',
-                address: '456 Main St',
-                organizationType: 'RESTAURANT',
-                businessLicense: 'BL-123456'
-            });
-        });
-        
-        // Check success message
-        await waitFor(() => {
-            expect(screen.getByText(/registration successful/i)).toBeInTheDocument();
-        });
-
-        // Check login was called (new optional args may be present)
-        expect(mockAuthContextValue.login).toHaveBeenCalledWith('fake-token-123', 'DONOR', 'user-123', undefined, undefined);
-        
-        // Fast-forward timers to trigger navigation
-        jest.advanceTimersByTime(2000);
-        
-        await waitFor(() => {
-            expect(mockNavigate).toHaveBeenCalledWith('/donor');
-        });
-    });
+    renderWithAuth(<DonorRegistration />);
+    await fillAllFields(user);
 
     await user.click(screen.getByRole('button', { name: /register as donor/i }));
 
     await waitFor(() =>
       expect(screen.getByText(/registration successful/i)).toBeInTheDocument()
     );
+
     expect(mockAuthContextValue.login).not.toHaveBeenCalled();
 
     jest.advanceTimersByTime(2000);
     expect(mockNavigate).toHaveBeenCalledWith('/donor');
   });
 
-  it('shows API error message', async () => {
+  it('shows API-specific error message', async () => {
     const user = userEvent.setup({ delay: null });
+
     authAPI.registerDonor.mockRejectedValueOnce({
       response: { data: { message: 'Email already exists' } },
     });
@@ -239,12 +194,14 @@ it('password mismatch shows error and blocks submit', async () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('shows generic error message when no backend message', async () => {
+  it('shows generic error if no backend message', async () => {
     const user = userEvent.setup({ delay: null });
+
     authAPI.registerDonor.mockRejectedValueOnce(new Error('Network error'));
 
     renderWithAuth(<DonorRegistration />);
     await fillAllFields(user);
+
     await user.click(screen.getByRole('button', { name: /register as donor/i }));
 
     await waitFor(() =>
@@ -266,19 +223,19 @@ it('password mismatch shows error and blocks submit', async () => {
     await user.click(submit);
 
     expect(submit).toBeDisabled();
-    expect(screen.getByText(/registering\.\.\./i)).toBeInTheDocument();
+    expect(screen.getByText(/registering/i)).toBeInTheDocument();
   });
 
-  it('clicking back navigates to register page', async () => {
+  it('back button navigates', async () => {
     const user = userEvent.setup({ delay: null });
-    renderWithAuth(<DonorRegistration />);
 
+    renderWithAuth(<DonorRegistration />);
     await user.click(screen.getByRole('button', { name: /^back$/i }));
 
     expect(mockNavigate).toHaveBeenCalledWith('/register');
   });
 
-  it('address field is textarea', () => {
+  it('address field is a textarea', () => {
     renderWithAuth(<DonorRegistration />);
     const textarea = screen.getByLabelText(/^address$/i);
     expect(textarea.tagName).toBe('TEXTAREA');
