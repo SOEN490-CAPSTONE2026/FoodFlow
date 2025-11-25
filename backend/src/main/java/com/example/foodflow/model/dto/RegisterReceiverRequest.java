@@ -17,6 +17,10 @@ public class RegisterReceiverRequest {
     private String password;
 
     @NotBlank
+    @Size(min = 8)
+    private String confirmPassword;
+
+    @NotBlank
     private String organizationName;
 
     @NotBlank
@@ -41,6 +45,9 @@ public class RegisterReceiverRequest {
     
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+
+    public String getConfirmPassword() { return confirmPassword; }
+    public void setConfirmPassword(String confirmPassword) { this.confirmPassword = confirmPassword; }
     
     public String getOrganizationName() { return organizationName; }
     public void setOrganizationName(String organizationName) { this.organizationName = organizationName; }

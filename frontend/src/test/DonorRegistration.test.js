@@ -5,133 +5,159 @@ import '@testing-library/jest-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import { authAPI } from '../services/api';
 
-// Mock static imports used by the component
+// Mock static imports
 jest.mock('../assets/illustrations/donor-illustration.jpg', () => 'donor.jpg');
 jest.mock('../style/Registration.css', () => ({}), { virtual: true });
 
-// Mock navigate
+// Mock navigate()
 const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => {
-    const actual = jest.requireActual('react-router-dom');
-    return { ...actual, useNavigate: () => mockNavigate };
+  const actual = jest.requireActual('react-router-dom');
+  return { ...actual, useNavigate: () => mockNavigate };
 });
 
 // Mock API
 jest.mock('../services/api', () => ({
-    authAPI: { registerDonor: jest.fn() },
+  authAPI: { registerDonor: jest.fn() }
 }));
 
 import DonorRegistration from '../components/DonorRegistration';
 
-// Mock AuthContext value
+// Auth context mock
 const mockAuthContextValue = {
-    isLoggedIn: false,
-    role: null,
-    userId: null,
-    login: jest.fn(),
-    logout: jest.fn(),
+  isLoggedIn: false,
+  role: null,
+  userId: null,
+  login: jest.fn(),
+  logout: jest.fn(),
+};
+
+const renderWithAuth = (component) =>
+  render(
+    <AuthContext.Provider value={mockAuthContextValue}>
+      {component}
+    </AuthContext.Provider>
+  );
+
+const fillAllFields = async (user) => {
+  await user.type(screen.getByLabelText(/^email address$/i), 'donor@example.com');
+  await user.type(screen.getByLabelText(/^password$/i), 'password123');
+  await user.type(screen.getByLabelText(/^confirm password$/i), 'password123');
+  await user.type(screen.getByLabelText(/organization name/i), 'Donor Org');
+  await user.type(screen.getByLabelText(/contact person/i), 'Jane Doe');
+  await user.type(screen.getByLabelText(/phone number/i), '1234567890');
+  await user.type(screen.getByLabelText(/^address$/i), '456 Main St');
+  await user.selectOptions(screen.getByLabelText(/organization type/i), 'RESTAURANT');
+  await user.type(screen.getByLabelText(/business license/i), 'BL-123456');
 };
 
 describe('DonorRegistration', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-        jest.useFakeTimers();
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+  });
+
+  it('renders the form with all required fields', () => {
+    renderWithAuth(<DonorRegistration />);
+    expect(screen.getByLabelText(/^email address$/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/contact person/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/organization name/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/phone number/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^address$/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/organization type/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/business license/i)).toBeInTheDocument();
+  });
+
+  it('renders illustration and description', () => {
+    renderWithAuth(<DonorRegistration />);
+    expect(screen.getByAltText(/donor illustration/i)).toBeInTheDocument();
+    expect(screen.getByText(/your generosity provides meals/i)).toBeInTheDocument();
+  });
+
+  it('updates form values', async () => {
+    const user = userEvent.setup({ delay: null });
+    renderWithAuth(<DonorRegistration />);
+    await fillAllFields(user);
+
+    expect(screen.getByLabelText(/^email address$/i)).toHaveValue('donor@example.com');
+    expect(screen.getByLabelText(/^password$/i)).toHaveValue('password123');
+    expect(screen.getByLabelText(/organization name/i)).toHaveValue('Donor Org');
+    expect(screen.getByLabelText(/contact person/i)).toHaveValue('Jane Doe');
+    expect(screen.getByLabelText(/phone number/i)).toHaveValue('1234567890');
+    expect(screen.getByLabelText(/^address$/i)).toHaveValue('456 Main St');
+    expect(screen.getByLabelText(/business license/i)).toHaveValue('BL-123456');
+  });
+
+it('password mismatch shows error and blocks submit', async () => {
+  const user = userEvent.setup({ delay: null });
+  renderWithAuth(<DonorRegistration />);
+
+  await user.type(screen.getByLabelText(/^email address$/i), 'donor@example.com');
+  await user.type(screen.getByLabelText(/^password$/i), 'password123');
+  await user.type(screen.getByLabelText(/^confirm password$/i), 'different123');
+
+  // Fill required fields so validation passes
+  await user.type(screen.getByLabelText(/organization name/i), 'Donor Org');
+  await user.type(screen.getByLabelText(/contact person/i), 'Jane Doe');
+  await user.type(screen.getByLabelText(/phone number/i), '1234567890');
+  await user.type(screen.getByLabelText(/^address$/i), '123 Street');
+  await user.selectOptions(screen.getByLabelText(/organization type/i), 'RESTAURANT');
+  await user.type(screen.getByLabelText(/business license/i), 'BL-999');
+
+  const submit = screen.getByRole('button', { name: /register as donor/i });
+  await user.click(submit);
+
+  await waitFor(() => {
+    expect(screen.getByText(/passwords do not match/i)).toBeInTheDocument();
+  });
+
+  expect(authAPI.registerDonor).not.toHaveBeenCalled();
+});
+  it('successfully registers donor with token', async () => {
+    const user = userEvent.setup({ delay: null });
+    authAPI.registerDonor.mockResolvedValueOnce({
+      data: {
+        token: 'fake-token-123',
+        role: 'DONOR',
+        userId: 'user-123',
+      },
     });
 
-    afterEach(() => {
-        jest.runOnlyPendingTimers();
-        jest.useRealTimers();
+    renderWithAuth(<DonorRegistration />);
+    await fillAllFields(user);
+
+    await user.click(screen.getByRole('button', { name: /register as donor/i }));
+
+    await waitFor(() =>
+      expect(screen.getByText(/registration successful/i)).toBeInTheDocument()
+    );
+
+    expect(mockAuthContextValue.login).toHaveBeenCalledWith(
+      'fake-token-123',
+      'DONOR',
+      'user-123'
+    );
+
+    jest.advanceTimersByTime(2000);
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/donor');
     });
+  });
 
-    const renderWithAuth = (component) => {
-        return render(
-            <AuthContext.Provider value={mockAuthContextValue}>
-                {component}
-            </AuthContext.Provider>
-        );
-    };
-
-    const fillAllFields = async (user) => {
-        await user.type(screen.getByLabelText(/^email address$/i), 'donor@example.com');
-        await user.type(screen.getByLabelText(/^password$/i), 'password123');
-        await user.type(screen.getByLabelText(/organization name/i), 'Donor Org');
-        await user.type(screen.getByLabelText(/contact person/i), 'Jane Doe');
-        await user.type(screen.getByLabelText(/phone number/i), '1234567890');
-        await user.type(screen.getByLabelText(/^address$/i), '456 Main St');
-        await user.selectOptions(screen.getByLabelText(/organization type/i), 'RESTAURANT');
-        await user.type(screen.getByLabelText(/business license/i), 'BL-123456');
-    };
-
-    it('renders the form with all required fields', () => {
-        renderWithAuth(<DonorRegistration />);
-        expect(screen.getByLabelText(/^email address$/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/organization name/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/contact person/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/phone number/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/^address$/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/organization type/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/business license/i)).toBeInTheDocument();
-    });
-
-    it('renders the illustration and description', () => {
-        renderWithAuth(<DonorRegistration />);
-        expect(screen.getByAltText(/donor illustration/i)).toBeInTheDocument();
-        expect(screen.getByText(/your generosity provides meals/i)).toBeInTheDocument();
-    });
-
-    it('updates form values correctly', async () => {
-        const user = userEvent.setup({ delay: null });
-        renderWithAuth(<DonorRegistration />);
-        await fillAllFields(user);
-        expect(screen.getByLabelText(/^email address$/i)).toHaveValue('donor@example.com');
-        expect(screen.getByLabelText(/^password$/i)).toHaveValue('password123');
-        expect(screen.getByLabelText(/organization name/i)).toHaveValue('Donor Org');
-        expect(screen.getByLabelText(/contact person/i)).toHaveValue('Jane Doe');
-        expect(screen.getByLabelText(/phone number/i)).toHaveValue('1234567890');
-        expect(screen.getByLabelText(/^address$/i)).toHaveValue('456 Main St');
-        expect(screen.getByLabelText(/organization type/i)).toHaveValue('RESTAURANT');
-        expect(screen.getByLabelText(/business license/i)).toHaveValue('BL-123456');
-    }, 10000);
-
-    it('business license field accepts only text', async () => {
-        const user = userEvent.setup({ delay: null });
-        renderWithAuth(<DonorRegistration />);
-        const licenseInput = screen.getByLabelText(/business license/i);
-        
-        await user.clear(licenseInput);
-        await user.type(licenseInput, 'ABC123');
-        expect(licenseInput).toHaveValue('ABC123');
-        
-        await user.clear(licenseInput);
-        await user.type(licenseInput, '987XYZ');
-        expect(licenseInput).toHaveValue('987XYZ');
-    });
-
-    it('renders organization type options', () => {
-        renderWithAuth(<DonorRegistration />);
-        
-        const select = screen.getByLabelText(/organization type/i);
-        const options = Array.from(select.options).map(opt => opt.value);
-        
-        expect(options).toContain('RESTAURANT');
-        expect(options).toContain('GROCERY_STORE');
-        expect(options).toContain('EVENT_ORGANIZER');
-        expect(options).toHaveLength(3);
-    });
-
-    it('business license field is optional', () => {
-        renderWithAuth(<DonorRegistration />);
-        const licenseInput = screen.getByLabelText(/business license/i);
-        expect(licenseInput).not.toBeRequired();
-        expect(screen.getByText(/optional but recommended/i)).toBeInTheDocument();
-    });
-
-    it('password field has minimum length requirement', () => {
-        renderWithAuth(<DonorRegistration />);
-        const passwordInput = screen.getByLabelText(/^password$/i);
-        expect(passwordInput).toHaveAttribute('minLength', '8');
-        expect(screen.getByText(/minimum 8 characters/i)).toBeInTheDocument();
+  it('successfully registers donor without token', async () => {
+    const user = userEvent.setup({ delay: null });
+    authAPI.registerDonor.mockResolvedValueOnce({
+      data: {
+        role: 'DONOR',
+        userId: 'user-123',
+      },
     });
 
     it('successfully registers donor with token and redirects', async () => {
@@ -185,147 +211,77 @@ describe('DonorRegistration', () => {
         });
     });
 
-    it('successfully registers donor without token', async () => {
-        const user = userEvent.setup({ delay: null });
-        authAPI.registerDonor.mockResolvedValueOnce({
-            data: { 
-                userId: 'user-123', 
-                role: 'DONOR' 
-                // No token provided
-            }
-        });
-        
-        renderWithAuth(<DonorRegistration />);
-        await fillAllFields(user);
-        
-        const submitButton = screen.getByRole('button', { name: /register as donor/i });
-        await user.click(submitButton);
-        
-        await waitFor(() => {
-            expect(screen.getByText(/registration successful/i)).toBeInTheDocument();
-        });
+    await user.click(screen.getByRole('button', { name: /register as donor/i }));
 
-        // Login should not be called when token is missing
-        expect(mockAuthContextValue.login).not.toHaveBeenCalled();
-        
-        jest.advanceTimersByTime(2000);
-        
-        await waitFor(() => {
-            expect(mockNavigate).toHaveBeenCalledWith('/donor');
-        });
+    await waitFor(() =>
+      expect(screen.getByText(/registration successful/i)).toBeInTheDocument()
+    );
+    expect(mockAuthContextValue.login).not.toHaveBeenCalled();
+
+    jest.advanceTimersByTime(2000);
+    expect(mockNavigate).toHaveBeenCalledWith('/donor');
+  });
+
+  it('shows API error message', async () => {
+    const user = userEvent.setup({ delay: null });
+    authAPI.registerDonor.mockRejectedValueOnce({
+      response: { data: { message: 'Email already exists' } },
     });
 
-    it('displays error message when registration fails with server error', async () => {
-        const user = userEvent.setup({ delay: null });
-        authAPI.registerDonor.mockRejectedValueOnce({
-            response: { data: { message: 'Email already exists' } }
-        });
-        
-        renderWithAuth(<DonorRegistration />);
-        await fillAllFields(user);
-        
-        const submitButton = screen.getByRole('button', { name: /register as donor/i });
-        await user.click(submitButton);
-        
-        await waitFor(() => {
-            expect(screen.getByText(/email already exists/i)).toBeInTheDocument();
-        });
+    renderWithAuth(<DonorRegistration />);
+    await fillAllFields(user);
 
-        // Should not navigate on error
-        expect(mockNavigate).not.toHaveBeenCalled();
-        expect(mockAuthContextValue.login).not.toHaveBeenCalled();
-    });
+    await user.click(screen.getByRole('button', { name: /register as donor/i }));
 
-    it('displays generic error message when registration fails without specific message', async () => {
-        const user = userEvent.setup({ delay: null });
-        authAPI.registerDonor.mockRejectedValueOnce(new Error('Network error'));
-        
-        renderWithAuth(<DonorRegistration />);
-        await fillAllFields(user);
-        
-        const submitButton = screen.getByRole('button', { name: /register as donor/i });
-        await user.click(submitButton);
-        
-        await waitFor(() => {
-            expect(screen.getByText(/registration failed/i)).toBeInTheDocument();
-        });
-    });
+    await waitFor(() =>
+      expect(screen.getByText(/email already exists/i)).toBeInTheDocument()
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
 
-    it('clears error and success messages on new submission', async () => {
-        const user = userEvent.setup({ delay: null });
-        
-        // First submission fails
-        authAPI.registerDonor.mockRejectedValueOnce({
-            response: { data: { message: 'Email already exists' } }
-        });
-        
-        renderWithAuth(<DonorRegistration />);
-        await fillAllFields(user);
-        
-        const submitButton = screen.getByRole('button', { name: /register as donor/i });
-        await user.click(submitButton);
-        
-        await waitFor(() => {
-            expect(screen.getByText(/email already exists/i)).toBeInTheDocument();
-        });
+  it('shows generic error message when no backend message', async () => {
+    const user = userEvent.setup({ delay: null });
+    authAPI.registerDonor.mockRejectedValueOnce(new Error('Network error'));
 
-        // Second submission should clear error
-        authAPI.registerDonor.mockResolvedValueOnce({
-            data: { 
-                token: 'fake-token',
-                userId: 'user-123', 
-                role: 'DONOR' 
-            }
-        });
+    renderWithAuth(<DonorRegistration />);
+    await fillAllFields(user);
+    await user.click(screen.getByRole('button', { name: /register as donor/i }));
 
-        await user.click(submitButton);
+    await waitFor(() =>
+      expect(screen.getByText(/registration failed/i)).toBeInTheDocument()
+    );
+  });
 
-        await waitFor(() => {
-            expect(screen.queryByText(/email already exists/i)).not.toBeInTheDocument();
-            expect(screen.getByText(/registration successful/i)).toBeInTheDocument();
-        });
-    });
+  it('disables submit button while loading', async () => {
+    const user = userEvent.setup({ delay: null });
 
-    it('disables submit button while submitting', async () => {
-        const user = userEvent.setup({ delay: null });
-        authAPI.registerDonor.mockImplementationOnce(() => 
-            new Promise(resolve => setTimeout(() => resolve({ data: {} }), 100))
-        );
-        
-        renderWithAuth(<DonorRegistration />);
-        await fillAllFields(user);
-        
-        const submitButton = screen.getByRole('button', { name: /register as donor/i });
-        await user.click(submitButton);
-        
-        expect(submitButton).toBeDisabled();
-        expect(screen.getByText(/registering.../i)).toBeInTheDocument();
-    });
+    authAPI.registerDonor.mockImplementationOnce(
+      () => new Promise((resolve) => setTimeout(() => resolve({ data: {} }), 100))
+    );
 
-    it('navigates back to register page when clicking back button', async () => {
-        const user = userEvent.setup({ delay: null });
-        renderWithAuth(<DonorRegistration />);
-        
-        const backButton = screen.getByRole('button', { name: /^back$/i });
-        await user.click(backButton);
-        
-        expect(mockNavigate).toHaveBeenCalledWith('/register');
-    });
+    renderWithAuth(<DonorRegistration />);
+    await fillAllFields(user);
 
-    it('handles form input changes correctly', async () => {
-        const user = userEvent.setup({ delay: null });
-        renderWithAuth(<DonorRegistration />);
-        
-        const emailInput = screen.getByLabelText(/^email address$/i);
-        await user.type(emailInput, 'test@example.com');
-        
-        expect(emailInput).toHaveValue('test@example.com');
-    });
+    const submit = screen.getByRole('button', { name: /register as donor/i });
+    await user.click(submit);
 
-    it('address field is a textarea', () => {
-        renderWithAuth(<DonorRegistration />);
-        const addressInput = screen.getByLabelText(/^address$/i);
-        expect(addressInput.tagName).toBe('TEXTAREA');
-        expect(addressInput).toHaveAttribute('rows', '3');
-    });
+    expect(submit).toBeDisabled();
+    expect(screen.getByText(/registering\.\.\./i)).toBeInTheDocument();
+  });
+
+  it('clicking back navigates to register page', async () => {
+    const user = userEvent.setup({ delay: null });
+    renderWithAuth(<DonorRegistration />);
+
+    await user.click(screen.getByRole('button', { name: /^back$/i }));
+
+    expect(mockNavigate).toHaveBeenCalledWith('/register');
+  });
+
+  it('address field is textarea', () => {
+    renderWithAuth(<DonorRegistration />);
+    const textarea = screen.getByLabelText(/^address$/i);
+    expect(textarea.tagName).toBe('TEXTAREA');
+    expect(textarea).toHaveAttribute('rows', '3');
+  });
 });

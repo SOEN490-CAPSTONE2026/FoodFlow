@@ -103,6 +103,29 @@
     font-size: 0.85rem;
 }
 
+.password-input {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-input input {
+    width: 100%;
+    padding-right: 70px; /* space for the toggle */
+    box-sizing: border-box;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 8px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    color: #333;
+    padding: 6px 10px;
+}
+
 .form-actions {
     display: flex;
     gap: 15px;

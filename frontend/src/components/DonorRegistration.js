@@ -1,9 +1,9 @@
-import React, { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { authAPI } from '../services/api';
-import { AuthContext } from '../contexts/AuthContext';
+import React, { useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { authAPI } from "../services/api";
+import { AuthContext } from "../contexts/AuthContext";
 import DonorIllustration from "../assets/illustrations/donor-illustration.jpg";
-import '../style/Registration.css';
+import "../style/Registration.css";
 
 const DonorRegistration = () => {
   const navigate = useNavigate();
@@ -11,6 +11,7 @@ const DonorRegistration = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    confirmPassword: '',
     organizationName: '',
     contactPerson: '',
     phone: '',
@@ -18,25 +19,55 @@ const DonorRegistration = () => {
     organizationType: 'RESTAURANT',
     businessLicense: ''
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
+  };
+
+  const validateForm = () => {
+    const errors = {};
+
+    if (!formData.businessLicense || formData.businessLicense.trim() === "") {
+      errors.businessLicense =
+        "Business license is required for donor registration";
+    }
+
+    setFieldErrors(errors);
+
+    // Return true if no errors
+    return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Run client-side validation first
+    if (!validateForm()) {
+      return; // stop submission if validation fails
+    }
+
     setLoading(true);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
+
+    // Ensure passwords match before sending request
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      setLoading(false);
+      return;
+    }
 
     try {
-      const response = await authAPI.registerDonor(formData);
+      const payload = { ...formData };
+      const response = await authAPI.registerDonor(payload);
       setSuccess('Registration successful! Welcome to FoodFlow.');
 
       // Extract token, role, userId, organizationName and verificationStatus from response
@@ -52,11 +83,12 @@ const DonorRegistration = () => {
 
       // Redirect after success
       setTimeout(() => {
-        navigate('/donor'); // Redirect to donor dashboard
+        navigate("/donor"); // Redirect to donor dashboard
       }, 2000);
-
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      setError(
+        err.response?.data?.message || "Registration failed. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -65,8 +97,17 @@ const DonorRegistration = () => {
   return (
     <div className="registration-page">
       <div className="background-image">
-        <img src={DonorIllustration} alt="Donor Illustration" height={500} width={900} />
-        <p>Your generosity provides meals, care, and hope for families in need. Every donation helps strengthen communities and build a brighter, kinder future together, we can make lasting change!</p>
+        <img
+          src={DonorIllustration}
+          alt="Donor Illustration"
+          height={500}
+          width={900}
+        />
+        <p>
+          Your generosity provides meals, care, and hope for families in need.
+          Every donation helps strengthen communities and build a brighter,
+          kinder future together, we can make lasting change!
+        </p>
       </div>
       <div className="form-container">
         <h1>Register as a Donor</h1>
@@ -88,19 +129,53 @@ const DonorRegistration = () => {
             />
           </div>
 
-          <div className="form-group">
+          <div className="form-group password-wrapper">
             <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              minLength="8"
-              placeholder="Enter your password"
-              required
-            />
+            <div className="password-input">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                minLength="8"
+                placeholder="Enter your password"
+                required
+              />
+              <button
+                type="button"
+                className="toggle-password"
+                onClick={() => setShowPassword(s => !s)}
+                aria-label={showPassword ? 'Toggle password visibility (hide)' : 'Toggle password visibility (show)'}
+              >
+                {showPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
             <small>Minimum 8 characters</small>
+          </div>
+
+          <div className="form-group password-wrapper">
+            <label htmlFor="confirmPassword">Confirm Password</label>
+            <div className="password-input">
+              <input
+                type={showConfirmPassword ? 'text' : 'password'}
+                id="confirmPassword"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                minLength="8"
+                placeholder="Re-enter your password"
+                required
+              />
+              <button
+                type="button"
+                className="toggle-password"
+                onClick={() => setShowConfirmPassword(s => !s)}
+                aria-label={showConfirmPassword ? 'Toggle confirm-password visibility (hide)' : 'Toggle confirm-password visibility (show)'}
+              >
+                {showConfirmPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
           </div>
 
           <div className="form-group">
@@ -172,7 +247,9 @@ const DonorRegistration = () => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="businessLicense">Business License Number</label>
+            <label htmlFor="businessLicense">
+              Business License Number <span style={{ color: "red" }}>*</span>
+            </label>
             <input
               type="text"
               id="businessLicense"
@@ -181,23 +258,23 @@ const DonorRegistration = () => {
               onChange={handleChange}
               placeholder="Enter your business license number"
             />
-            <small>Optional but recommended for verification</small>
+            {fieldErrors.businessLicense && (
+              <small style={{ color: "red" }}>
+                {fieldErrors.businessLicense}
+              </small>
+            )}
           </div>
 
           <div className="form-actions">
             <button
               type="button"
               className="back-button"
-              onClick={() => navigate('/register')}
+              onClick={() => navigate("/register")}
             >
               Back
             </button>
-            <button
-              type="submit"
-              className="submit-button"
-              disabled={loading}
-            >
-              {loading ? 'Registering...' : 'Register as Donor'}
+            <button type="submit" className="submit-button" disabled={loading}>
+              {loading ? "Registering..." : "Register as Donor"}
             </button>
           </div>
         </form>
