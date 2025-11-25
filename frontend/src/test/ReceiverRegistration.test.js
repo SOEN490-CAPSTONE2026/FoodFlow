@@ -51,7 +51,8 @@ describe('ReceiverRegistration', () => {
 
     const fillAllFields = async (user) => {
         await user.type(screen.getByLabelText(/email address/i), 'test@example.com');
-        await user.type(screen.getByLabelText(/password/i), 'password123');
+        await user.type(screen.getByLabelText(/^password$/i), 'password123');
+        await user.type(screen.getByLabelText(/^confirm password$/i), 'password123');
         await user.type(screen.getByLabelText(/organization name/i), 'Food Helpers');
         await user.type(screen.getByLabelText(/contact person/i), 'Alex Doe');
         await user.type(screen.getByLabelText(/phone number/i), '5145551234');
@@ -60,11 +61,25 @@ describe('ReceiverRegistration', () => {
         await user.type(screen.getByLabelText(/daily capacity/i), '150');
     };
 
+    test('shows error when passwords do not match and prevents submission', async () => {
+        const user = userEvent.setup();
+        renderWithAuth(<ReceiverRegistration />);
+
+        await user.type(screen.getByLabelText(/email address/i), 'a@b.com');
+        await user.type(screen.getByLabelText(/^password$/i), 'password123');
+        await user.type(screen.getByLabelText(/^confirm password$/i), 'different');
+
+        await user.click(screen.getByRole('button', { name: /register as receiver/i }));
+
+        expect(await screen.findByText(/passwords do not match/i)).toBeTruthy();
+        expect(authAPI.registerReceiver).not.toHaveBeenCalled();
+    });
+
     test('renders the form with all required fields', () => {
         renderWithAuth(<ReceiverRegistration />);
         expect(screen.getByRole('heading', { name: /register as receiver/i })).toBeInTheDocument();
         expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
         expect(screen.getByLabelText(/organization name/i)).toBeInTheDocument();
         expect(screen.getByLabelText(/contact person/i)).toBeInTheDocument();
         expect(screen.getByLabelText(/phone number/i)).toBeInTheDocument();
@@ -79,7 +94,7 @@ describe('ReceiverRegistration', () => {
         await userEvent.type(email, 'test@example.com');
         expect(email).toHaveValue('test@example.com');
 
-        const password = screen.getByLabelText(/password/i);
+        const password = screen.getByLabelText(/^password$/i);
         await userEvent.type(password, 'password123');
         expect(password).toHaveValue('password123');
 
@@ -118,7 +133,8 @@ describe('ReceiverRegistration', () => {
         renderWithAuth(<ReceiverRegistration />);
 
         await user.type(screen.getByLabelText(/email address/i), 'a@b.com');
-        await user.type(screen.getByLabelText(/password/i), 'password123');
+        await user.type(screen.getByLabelText(/^password$/i), 'password123');
+        await user.type(screen.getByLabelText(/^confirm password$/i), 'password123');
         await user.type(screen.getByLabelText(/organization name/i), 'Org');
         await user.type(screen.getByLabelText(/contact person/i), 'Person');
         await user.type(screen.getByLabelText(/phone number/i), '1112223333');

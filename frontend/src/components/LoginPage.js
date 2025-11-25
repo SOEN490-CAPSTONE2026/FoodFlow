@@ -99,7 +99,7 @@ const LoginPage = () => {
                   <label htmlFor="password" className="form-label">Password</label>
                   <div className="password-wrapper">
                     <input id="password" type={showPassword? 'text':'password'} className="form-input" placeholder="Enter your password" value={password} onChange={(e)=>setPassword(e.target.value)} autoComplete="current-password" required />
-                    <button type="button" className="password-toggle" aria-label={showPassword? 'Hide password':'Show password'} onClick={()=>setShowPassword(s=>!s)}>
+                    <button type="button" className="password-toggle" aria-label={showPassword ? 'Toggle password visibility (hide)' : 'Toggle password visibility (show)'} onClick={()=>setShowPassword(s=>!s)}>
                       {showPassword ? (
                         <EyeOff size={20} color="#64748b" />
                       ) : (

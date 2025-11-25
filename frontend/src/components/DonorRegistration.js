@@ -9,15 +9,18 @@ const DonorRegistration = () => {
   const navigate = useNavigate();
   const { login } = useContext(AuthContext);
   const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    organizationName: "",
-    contactPerson: "",
-    phone: "",
-    address: "",
-    organizationType: "RESTAURANT",
-    businessLicense: "",
+    email: '',
+    password: '',
+    confirmPassword: '',
+    organizationName: '',
+    contactPerson: '',
+    phone: '',
+    address: '',
+    organizationType: 'RESTAURANT',
+    businessLicense: ''
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -55,9 +58,17 @@ const DonorRegistration = () => {
     setError("");
     setSuccess("");
 
+    // Ensure passwords match before sending request
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      setLoading(false);
+      return;
+    }
+
     try {
-      const response = await authAPI.registerDonor(formData);
-      setSuccess("Registration successful! Welcome to FoodFlow.");
+      const payload = { ...formData };
+      const response = await authAPI.registerDonor(payload);
+      setSuccess('Registration successful! Welcome to FoodFlow.');
 
       // Extract token, role, and userId from response
       const token = response?.data?.token;
@@ -116,19 +127,53 @@ const DonorRegistration = () => {
             />
           </div>
 
-          <div className="form-group">
+          <div className="form-group password-wrapper">
             <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              minLength="8"
-              placeholder="Enter your password"
-              required
-            />
+            <div className="password-input">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                minLength="8"
+                placeholder="Enter your password"
+                required
+              />
+              <button
+                type="button"
+                className="toggle-password"
+                onClick={() => setShowPassword(s => !s)}
+                aria-label={showPassword ? 'Toggle password visibility (hide)' : 'Toggle password visibility (show)'}
+              >
+                {showPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
             <small>Minimum 8 characters</small>
+          </div>
+
+          <div className="form-group password-wrapper">
+            <label htmlFor="confirmPassword">Confirm Password</label>
+            <div className="password-input">
+              <input
+                type={showConfirmPassword ? 'text' : 'password'}
+                id="confirmPassword"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                minLength="8"
+                placeholder="Re-enter your password"
+                required
+              />
+              <button
+                type="button"
+                className="toggle-password"
+                onClick={() => setShowConfirmPassword(s => !s)}
+                aria-label={showConfirmPassword ? 'Toggle confirm-password visibility (hide)' : 'Toggle confirm-password visibility (show)'}
+              >
+                {showConfirmPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
           </div>
 
           <div className="form-group">
