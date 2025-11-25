@@ -141,7 +141,7 @@ describe('LoginPage', () => {
     });
 
     await waitFor(() => {
-      expect(defaultAuthValue.login).toHaveBeenCalledWith('abc123', 'donor', '42', 'Test Organization');
+      expect(defaultAuthValue.login).toHaveBeenCalledWith('abc123', 'donor', '42', 'Test Organization', undefined);
     });
 
     await waitFor(() => {

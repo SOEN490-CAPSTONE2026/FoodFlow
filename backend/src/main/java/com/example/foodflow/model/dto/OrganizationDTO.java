@@ -23,6 +23,8 @@ public class OrganizationDTO {
     private Integer capacity;
     @JsonProperty("business_license")
     private String businessLicense;
+    @JsonProperty("charity_registration_number")
+    private String charityRegistrationNumber;
     @JsonProperty("verification_status")
     private VerificationStatus verificationStatus;
     @JsonProperty("created_at")
@@ -42,6 +44,7 @@ public class OrganizationDTO {
         dto.setOrganizationType(org.getOrganizationType());
         dto.setCapacity(org.getCapacity());
         dto.setBusinessLicense(org.getBusinessLicense());
+        dto.setCharityRegistrationNumber(org.getCharityRegistrationNumber());
         dto.setVerificationStatus(org.getVerificationStatus());
         dto.setCreatedAt(org.getCreatedAt());
         return dto;

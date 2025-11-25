@@ -7,6 +7,7 @@ import com.example.foodflow.model.dto.RegisterReceiverRequest;
 import com.example.foodflow.model.dto.LoginRequest;
 import com.example.foodflow.model.dto.LogoutRequest;
 import com.example.foodflow.model.entity.Organization;
+import com.example.foodflow.model.entity.VerificationStatus;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.UserRole;
 import com.example.foodflow.repository.OrganizationRepository;
@@ -88,6 +89,8 @@ public class AuthService {
         organization.setPhone(request.getPhone());
         organization.setAddress(request.getAddress());
         organization.setOrganizationType(request.getOrganizationType());
+        // Default verification status to PENDING on registration
+        organization.setVerificationStatus(VerificationStatus.PENDING);
         organization.setBusinessLicense(request.getBusinessLicense());
 
         organizationRepository.save(organization);
@@ -103,7 +106,7 @@ public class AuthService {
         log.info("Donor registration successful: email={}, organization={}, type={}",
             savedUser.getEmail(), request.getOrganizationName(), request.getOrganizationType());
 
-        return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), "Donor registered successfully", savedUser.getId(), request.getOrganizationName());
+        return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), "Donor registered successfully", savedUser.getId(), request.getOrganizationName(), organization.getVerificationStatus() != null ? organization.getVerificationStatus().toString() : null);
     }
 
     @Transactional
@@ -133,8 +136,21 @@ public class AuthService {
         organization.setContactPerson(request.getContactPerson());
         organization.setPhone(request.getPhone());
         organization.setAddress(request.getAddress());
-        organization.setOrganizationType(request.getOrganizationType());
-        organization.setCapacity(request.getCapacity());
+        // If frontend left organizationType empty/null for receivers, default to CHARITY
+        organization.setOrganizationType(request.getOrganizationType() != null ? request.getOrganizationType() : com.example.foodflow.model.entity.OrganizationType.CHARITY);
+                organization.setCapacity(request.getCapacity());
+                // Default verification status to PENDING on registration
+                organization.setVerificationStatus(VerificationStatus.PENDING);
+        // Store charity registration number for verification (optional)
+        if (request.getClass().getSimpleName().equals("RegisterReceiverRequest")) {
+            // Safe cast because method signature accepts RegisterReceiverRequest
+            try {
+                String charityReg = (String) request.getClass().getMethod("getCharityRegistrationNumber").invoke(request);
+                organization.setCharityRegistrationNumber(charityReg);
+            } catch (Exception ignored) {
+                // If the getter is not present or invocation fails, skip setting the field
+            }
+        }
 
         organizationRepository.save(organization);
 
@@ -144,7 +160,7 @@ public class AuthService {
         metricsService.incrementReceiverRegistration();
         metricsService.incrementUserRegistration();
 
-        return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), "Receiver registered successfully", savedUser.getId(), request.getOrganizationName());
+        return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), "Receiver registered successfully", savedUser.getId(), request.getOrganizationName(), organization.getVerificationStatus() != null ? organization.getVerificationStatus().toString() : null);
     }
 
     @Transactional(readOnly = true)
@@ -171,10 +187,11 @@ public class AuthService {
             metricsService.incrementLoginSuccess();
 
             String organizationName = user.getOrganization() != null ? user.getOrganization().getName() : null;
+            String verificationStatus = user.getOrganization() != null && user.getOrganization().getVerificationStatus() != null ? user.getOrganization().getVerificationStatus().toString() : null;
 
-            log.info("Login successful: email={}, role={}, organizationName={}", user.getEmail(), user.getRole(), organizationName);
+            log.info("Login successful: email={}, role={}, organizationName={}, verificationStatus={}", user.getEmail(), user.getRole(), organizationName, verificationStatus);
             return new AuthResponse(token, user.getEmail(), user.getRole().toString(),
-                       "Account logged in successfully.", user.getId(), organizationName);
+                       "Account logged in successfully.", user.getId(), organizationName, verificationStatus);
         } catch (RuntimeException e) {
             // Already logged failure metrics above
             throw e;

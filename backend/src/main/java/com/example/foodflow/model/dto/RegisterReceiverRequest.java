@@ -1,6 +1,8 @@
 package com.example.foodflow.model.dto;
 
 import com.example.foodflow.model.entity.OrganizationType;
+import com.example.foodflow.config.jackson.OrganizationTypeDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -30,8 +32,10 @@ public class RegisterReceiverRequest {
     @NotBlank
     private String address;
 
+    @JsonDeserialize(using = OrganizationTypeDeserializer.class)
     private OrganizationType organizationType;
     private Integer capacity;
+    private String charityRegistrationNumber;
 
     // Constructors, getters, setters
     public RegisterReceiverRequest() {}
@@ -62,4 +66,7 @@ public class RegisterReceiverRequest {
     
     public Integer getCapacity() { return capacity; }
     public void setCapacity(Integer capacity) { this.capacity = capacity; }
+
+    public String getCharityRegistrationNumber() { return charityRegistrationNumber; }
+    public void setCharityRegistrationNumber(String charityRegistrationNumber) { this.charityRegistrationNumber = charityRegistrationNumber; }
 }

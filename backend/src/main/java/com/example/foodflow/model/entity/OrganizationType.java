@@ -5,4 +5,5 @@ public enum OrganizationType {
     RESTAURANT, GROCERY_STORE, EVENT_ORGANIZER,
     // Receiver types
     CHARITY, SHELTER, COMMUNITY_KITCHEN
+    , FOOD_BANK
 }

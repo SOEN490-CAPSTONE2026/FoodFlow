@@ -16,8 +16,8 @@ const ReceiverRegistration = () => {
     contactPerson: '',
     phone: '',
     address: '',
-    organizationType: 'CHARITY',
-    capacity: ''
+    organizationType: '',
+    capacity: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -54,13 +54,15 @@ const ReceiverRegistration = () => {
 
       setSuccess('Registration successful! Welcome to FoodFlow.');
 
-      // Extract token, role, and userId from response
+      // Extract token, role, userId, organizationName and verificationStatus from response
       const token = response?.data?.token;
       const userRole = response?.data?.role;
       const userId = response?.data?.userId;
+      const organizationName = response?.data?.organizationName;
+      const verificationStatus = response?.data?.verificationStatus;
 
       if (token && userRole && userId) {
-        login(token, userRole, userId); // Store in context and localStorage
+        login(token, userRole, userId, organizationName, verificationStatus); // Store in context and localStorage
       }
 
       // Redirect after success
@@ -217,7 +219,21 @@ const ReceiverRegistration = () => {
               <option value="CHARITY">Charity</option>
               <option value="SHELTER">Shelter</option>
               <option value="COMMUNITY_KITCHEN">Community Kitchen</option>
+              <option value="FOOD_BANK">Food Bank</option>
             </select>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="charityRegistrationNumber">Charity / Nonprofit Registration Number</label>
+            <input
+              type="text"
+              id="charityRegistrationNumber"
+              name="charityRegistrationNumber"
+              value={formData.charityRegistrationNumber}
+              onChange={handleChange}
+              placeholder='Enter your charity registration number (if applicable)'
+            />
+            <small>Optional — used to verify your organization. Verification may take 1-3 business days.</small>
           </div>
 
           <div className="form-group">

@@ -70,13 +70,15 @@ const DonorRegistration = () => {
       const response = await authAPI.registerDonor(payload);
       setSuccess('Registration successful! Welcome to FoodFlow.');
 
-      // Extract token, role, and userId from response
+      // Extract token, role, userId, organizationName and verificationStatus from response
       const token = response?.data?.token;
       const userRole = response?.data?.role;
       const userId = response?.data?.userId;
+      const organizationName = response?.data?.organizationName;
+      const verificationStatus = response?.data?.verificationStatus;
 
       if (token && userRole && userId) {
-        login(token, userRole, userId); // Store in context and localStorage
+        login(token, userRole, userId, organizationName, verificationStatus); // Store in context and localStorage
       }
 
       // Redirect after success
