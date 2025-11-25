@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import {Calendar, MapPin, Clock, Package2, Bookmark, ChevronDown, ChevronUp, Package, User, Target, ArrowUpDown, Star} from "lucide-react";
 import { useLoadScript } from "@react-google-maps/api";
-import { surplusAPI } from "../../services/api";
+import { surplusAPI, recommendationAPI } from "../../services/api";
 import { getFoodCategoryDisplays, getPrimaryFoodCategory, getFoodImageClass, foodTypeImages, getUnitLabel } from "../../constants/foodConstants";
 import FiltersPanel from "./FiltersPanel";
 import "./ReceiverBrowseModal.css";
@@ -43,8 +43,9 @@ export default function ReceiverBrowse() {
   const [claiming, setClaiming] = useState(false);
   const [sortBy, setSortBy] = useState('relevance');
   const [hoveredRecommended, setHoveredRecommended] = useState(null);
+  const [recommendations, setRecommendations] = useState({});
 
-  // Mock recommendation data (will be replaced with actual data from backend later)
+
   const getRecommendationData = (item) => {
     // Mock logic to determine if item is recommended
     const mockRecommendations = {
@@ -52,8 +53,20 @@ export default function ReceiverBrowse() {
       '-2': { score: 95, reasons: ['Matches Fruits & Vegetables preference', 'Perfect quantity match', 'Close to your location'] },
       '-3': { score: 88, reasons: ['Popular in your area', 'Good expiry window', 'Reliable donor'] }
     };
-    return mockRecommendations[item.id] || null;
+
+    if (item.id < 0) {
+      // Keep mock data for testing
+      return mockRecommendations[item.id] || null;
+    }
+
+    return recommendations[item.id.toString()] || null;
   };
+
+  const fetchRecommendations = useCallback(async (items) => {
+     const postIds = items.map(item => item.id).filter(id => id > 0);
+     const recommendationData = await recommendationAPI.getBrowseRecommendations(postIds);
+     setRecommendations(recommendationData);
+   }, []);
 
   const fetchDonations = useCallback(async () => {
     setLoading(true);
@@ -151,6 +164,12 @@ export default function ReceiverBrowse() {
   useEffect(() => {
     fetchDonations();
   }, [fetchDonations]);
+
+  useEffect(() => {
+    if (items.length > 0) {
+      fetchRecommendations(items);
+    }
+  }, [items, fetchRecommendations]);
 
   const handleFiltersChange = useCallback((filterType, value) => {
     setFilters((prev) => ({
