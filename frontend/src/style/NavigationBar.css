@@ -59,6 +59,7 @@ a[href^="#"] {
     font-weight: 600;
     cursor: pointer;
     border-radius: 50px;
+    white-space: nowrap;
 }
 
 .buttons .login-button{
@@ -94,12 +95,14 @@ a[href^="#"] {
 }
 
 .mobile-buttons button {
-    width: 25%;
-    padding: 0.7rem 1.5rem;
+    width: 90%;
+    max-width: 300px;
+    padding: 0.8rem 1.5rem;
     font-size: 1rem;
     font-weight: 600;
     border-radius: 50px;
     transition: all 0.3s ease;
+    cursor: pointer;
 }
 .mobile-buttons .login-button{
     background-color: transparent;
@@ -141,9 +144,19 @@ a[href^="#"] {
     transform: rotate(-45deg) translate(7px, -6px);
 }
 
+@media screen and (max-width: 1200px) {
+    .buttons button {
+        padding: 0.6rem 1.4rem;
+        font-size: 1rem;
+    }
+}
+
 @media screen and (max-width: 968px) {
     .navbar {
         padding: 1rem 5%;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 1000 !important;
     }
     
     .menu {
@@ -191,9 +204,17 @@ a[href^="#"] {
     }
 }
 
+@media screen and (max-width: 768px) {
+    .mobile-buttons button {
+        width: 92%;
+        padding: 0.8rem 1.2rem;
+        font-size: 0.98rem;
+    }
+}
+
 @media screen and (max-width: 576px) {
     .navbar {
-        padding: 0.8rem 5%;
+        padding: 0.8rem 4%;
     }
     
     .logo img {
@@ -201,9 +222,34 @@ a[href^="#"] {
         height: 50px;
     }
     
+    .mobile-buttons {
+        padding: 0.8rem;
+    }
+    
     .mobile-buttons button {
-        padding: 0.6rem 1rem;
+        width: 96%;
+        padding: 0.75rem 0.8rem;
         font-size: 0.9rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+@media screen and (max-width: 400px) {
+    .navbar {
+        padding: 0.7rem 3%;
+    }
+    
+    .logo img {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .mobile-buttons button {
+        width: 98%;
+        padding: 0.7rem 0.6rem;
+        font-size: 0.85rem;
     }
 }
 

@@ -5,7 +5,8 @@ const ConversationsSidebar = ({
   conversations, 
   selectedConversation, 
   onSelectConversation, 
-  onNewConversation
+  onNewConversation,
+  showOnMobile = true
 }) => {
   const [filter, setFilter] = useState('all'); // 'all' or 'unread'
   
@@ -34,7 +35,7 @@ const ConversationsSidebar = ({
   const unreadCount = conversations.filter(conv => conv.unreadCount > 0).length;
 
   return (
-    <div className="conversations-sidebar">
+    <div className={`conversations-sidebar ${showOnMobile ? 'show-mobile' : 'hide-mobile'}`}>
       <div className="sidebar-header">
         <div className="header-content">
           <h2>Messages</h2>

@@ -11,6 +11,7 @@ const MessagingDashboard = () => {
   const [showNewConversationModal, setShowNewConversationModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showChatOnMobile, setShowChatOnMobile] = useState(false);
 
   // Load conversations on mount
   useEffect(() => {
@@ -33,6 +34,11 @@ const MessagingDashboard = () => {
 
   const handleSelectConversation = (conversation) => {
     setSelectedConversation(conversation);
+    setShowChatOnMobile(true);
+  };
+
+  const handleBackToConversations = () => {
+    setShowChatOnMobile(false);
   };
 
   const handleConversationRead = () => {
@@ -63,12 +69,15 @@ const MessagingDashboard = () => {
         onSelectConversation={handleSelectConversation}
         onNewConversation={handleNewConversation}
         loading={loading}
+        showOnMobile={!showChatOnMobile}
       />
       
       <ChatPanel
         conversation={selectedConversation}
         onMessageSent={handleMessageSent}
         onConversationRead={handleConversationRead}
+        onBack={handleBackToConversations}
+        showOnMobile={showChatOnMobile}
       />
 
       {showNewConversationModal && (
