@@ -113,6 +113,22 @@
         </root>
     </springProfile>
 
+    <springProfile name="local">
+    <logger name="com.example.foodflow" level="DEBUG"/>
+
+    <logger name="org.springframework" level="INFO"/>
+    <logger name="org.springframework.web" level="DEBUG"/>
+    <logger name="org.springframework.security" level="DEBUG"/>
+
+    <!-- Show SQL + bindings -->
+    <logger name="org.hibernate.SQL" level="DEBUG"/>
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
+
+    <root level="DEBUG">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</springProfile>
+
     <!-- Test Profile -->
     <springProfile name="test">
         <!-- Minimal logging for tests -->
