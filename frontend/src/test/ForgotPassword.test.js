@@ -1,177 +1,134 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import React from 'react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
 import ForgotPassword from '../components/ForgotPassword';
 
-// Wrapper component to provide router context
-const renderWithRouter = (component) => {
-  return render(
-    <BrowserRouter>
-      {component}
-    </BrowserRouter>
-  );
-};
+const renderWithRouter = (ui) => render(<BrowserRouter>{ui}</BrowserRouter>);
 
-describe('ForgotPassword Component', () => {
-  test('renders forgot password form', () => {
+describe('ForgotPassword - selection and basic flows', () => {
+  test('selecting Email shows email input and highlights the Email option', async () => {
     renderWithRouter(<ForgotPassword />);
-    
-    expect(screen.getByText('Forgot Password?')).toBeInTheDocument();
-    expect(screen.getByText('No worries! Enter your email address and we\'ll send you a link to reset your password.')).toBeInTheDocument();
-    expect(screen.getByLabelText('Email Address')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /send reset link/i })).toBeInTheDocument();
+    const user = userEvent.setup();
+
+    const emailOption = screen.getByTestId('option-email');
+    const smsOption = screen.getByTestId('option-sms');
+
+    await user.click(emailOption);
+
+    // email input should appear
+    const emailInput = screen.getByPlaceholderText(/enter your email/i);
+    expect(emailInput).toBeInTheDocument();
+
+    // Email option should be marked pressed
+    expect(emailOption).toHaveAttribute('aria-pressed', 'true');
+    expect(smsOption).toHaveAttribute('aria-pressed', 'false');
   });
 
-  test('renders back to login link', () => {
+  test('selecting SMS shows phone input and highlights the SMS option', async () => {
     renderWithRouter(<ForgotPassword />);
-    
-    const backLink = screen.getByText('Back to Login');
-    expect(backLink).toBeInTheDocument();
-    expect(backLink.closest('a')).toHaveAttribute('href', '/login');
+    const user = userEvent.setup();
+
+    const smsOption = screen.getByTestId('option-sms');
+    const emailOption = screen.getByTestId('option-email');
+
+    await user.click(smsOption);
+
+    // phone input should appear
+    const phoneInput = screen.getByPlaceholderText(/enter your phone number/i);
+    expect(phoneInput).toBeInTheDocument();
+
+    // SMS option should be marked pressed
+    expect(smsOption).toHaveAttribute('aria-pressed', 'true');
+    expect(emailOption).toHaveAttribute('aria-pressed', 'false');
+  });
+});
+
+describe('ForgotPassword - SMS code timer and expiry', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
-  test('shows error when email is empty', async () => {
+  test('submitting SMS shows code entry and countdown', async () => {
     renderWithRouter(<ForgotPassword />);
-    
-    const submitButton = screen.getByRole('button', { name: /send reset link/i });
-    fireEvent.click(submitButton);
+    const user = userEvent.setup();
 
+    const smsOption = screen.getByTestId('option-sms');
+    await user.click(smsOption);
+
+    const phoneInput = screen.getByPlaceholderText(/enter your phone number/i);
+    await user.type(phoneInput, '+14165551234');
+
+    // submit - button text can be "Send Code" for SMS
+    const submitButton = screen.getByRole('button', { name: /send code|send reset link/i });
+    await user.click(submitButton);
+
+    // advance simulated API timeout used by component (1500ms)
+    jest.advanceTimersByTime(1500);
+
+    // Wait for code sent title
+    expect(await screen.findByText(/code sent/i)).toBeInTheDocument();
+
+    // Countdown should show (initially 60s)
+    expect(screen.getByText(/expires in/i)).toBeInTheDocument();
+    expect(screen.getByText(/expires in 60s/i)).toBeInTheDocument();
+
+    // Advance 5 seconds and verify the countdown decreased
+    jest.advanceTimersByTime(5000);
+    expect(screen.getByText(/expires in 55s/i)).toBeInTheDocument();
+  });
+
+  test('timer expiry shows oops message with resend and back to login', async () => {
+    renderWithRouter(<ForgotPassword />);
+    const user = userEvent.setup();
+
+    // start SMS flow
+    await user.click(screen.getByTestId('option-sms'));
+    await user.type(screen.getByPlaceholderText(/enter your phone number/i), '+14165551234');
+    await user.click(screen.getByRole('button', { name: /send code|send reset link/i }));
+    jest.advanceTimersByTime(1500); // API
+
+    // ensure we're on code view
+    expect(await screen.findByText(/code sent/i)).toBeInTheDocument();
+
+    // fast-forward to expiry (60s)
+    jest.advanceTimersByTime(60000);
+
+    // run pending timers to trigger state updates
     await waitFor(() => {
-      expect(screen.getByText('Please enter your email address')).toBeInTheDocument();
+      expect(screen.getByText(/oops! you did not submit in time/i)).toBeInTheDocument();
     });
+
+    // Resend button and Back to Login link should be visible
+    expect(screen.getByRole('button', { name: /resend code/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /back to login/i })).toBeInTheDocument();
   });
 
-  test('shows error when email is invalid', async () => {
+  test('resend resets expiry and shows code inputs again', async () => {
     renderWithRouter(<ForgotPassword />);
-    
-    const emailInput = screen.getByLabelText('Email Address');
-    const submitButton = screen.getByRole('button', { name: /send reset link/i });
+    const user = userEvent.setup();
 
-    fireEvent.change(emailInput, { target: { value: 'invalidemail' } });
-    fireEvent.click(submitButton);
+    // start SMS flow and expire
+    await user.click(screen.getByTestId('option-sms'));
+    await user.type(screen.getByPlaceholderText(/enter your phone number/i), '+14165551234');
+    await user.click(screen.getByRole('button', { name: /send code|send reset link/i }));
+    jest.advanceTimersByTime(1500); // API
+    expect(await screen.findByText(/code sent/i)).toBeInTheDocument();
+    jest.advanceTimersByTime(60000); // expire
 
-    await waitFor(() => {
-      expect(screen.getByText('Please enter a valid email address')).toBeInTheDocument();
-    });
-  });
+    // confirm expired state
+    await waitFor(() => expect(screen.getByText(/oops! you did not submit in time/i)).toBeInTheDocument());
 
-  test('submits form with valid email and shows success message', async () => {
-    renderWithRouter(<ForgotPassword />);
-    
-    const emailInput = screen.getByLabelText('Email Address');
-    const submitButton = screen.getByRole('button', { name: /send reset link/i });
+    // click resend
+    await user.click(screen.getByRole('button', { name: /resend code/i }));
 
-    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
-    fireEvent.click(submitButton);
-
-    // Check loading state
-    await waitFor(() => {
-      expect(screen.getByText('Sending...')).toBeInTheDocument();
-    });
-
-    // Check success state
-    await waitFor(() => {
-      expect(screen.getByText('Check Your Email')).toBeInTheDocument();
-      expect(screen.getByText(/We've sent a password reset link to/i)).toBeInTheDocument();
-      expect(screen.getByText('test@example.com')).toBeInTheDocument();
-    }, { timeout: 3000 });
-  });
-
-  test('disables input and button while submitting', async () => {
-    renderWithRouter(<ForgotPassword />);
-    
-    const emailInput = screen.getByLabelText('Email Address');
-    const submitButton = screen.getByRole('button', { name: /send reset link/i });
-
-    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
-    fireEvent.click(submitButton);
-
-    await waitFor(() => {
-      expect(emailInput).toBeDisabled();
-      expect(submitButton).toBeDisabled();
-    });
-  });
-
-  test('allows user to try again from success screen', async () => {
-    renderWithRouter(<ForgotPassword />);
-    
-    const emailInput = screen.getByLabelText('Email Address');
-    const submitButton = screen.getByRole('button', { name: /send reset link/i });
-
-    // Submit form
-    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
-    fireEvent.click(submitButton);
-
-    // Wait for success screen
-    await waitFor(() => {
-      expect(screen.getByText('Check Your Email')).toBeInTheDocument();
-    }, { timeout: 3000 });
-
-    // Click try again
-    const tryAgainButton = screen.getByRole('button', { name: /try again/i });
-    fireEvent.click(tryAgainButton);
-
-    // Should be back to form
-    await waitFor(() => {
-      expect(screen.getByText('Forgot Password?')).toBeInTheDocument();
-      expect(screen.getByLabelText('Email Address')).toHaveValue('');
-    });
-  });
-
-  test('renders mail icon', () => {
-    renderWithRouter(<ForgotPassword />);
-    
-    const iconWrapper = screen.getByText('Forgot Password?').previousSibling;
-    expect(iconWrapper).toBeInTheDocument();
-  });
-
-  test('renders success screen with check circle icon', async () => {
-    renderWithRouter(<ForgotPassword />);
-    
-    const emailInput = screen.getByLabelText('Email Address');
-    const submitButton = screen.getByRole('button', { name: /send reset link/i });
-
-    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
-    fireEvent.click(submitButton);
-
-    await waitFor(() => {
-      expect(screen.getByText('Check Your Email')).toBeInTheDocument();
-    }, { timeout: 3000 });
-
-    // Success icon should be visible
-    const successIcon = screen.getByText('Check Your Email').previousSibling;
-    expect(successIcon).toBeInTheDocument();
-  });
-
-  test('success screen shows back to login button', async () => {
-    renderWithRouter(<ForgotPassword />);
-    
-    const emailInput = screen.getByLabelText('Email Address');
-    const submitButton = screen.getByRole('button', { name: /send reset link/i });
-
-    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
-    fireEvent.click(submitButton);
-
-    await waitFor(() => {
-      expect(screen.getByText('Check Your Email')).toBeInTheDocument();
-    }, { timeout: 3000 });
-
-    const backToLoginButton = screen.getByRole('link', { name: /back to login/i });
-    expect(backToLoginButton).toBeInTheDocument();
-    expect(backToLoginButton).toHaveAttribute('href', '/login');
-  });
-
-  test('email input has correct placeholder', () => {
-    renderWithRouter(<ForgotPassword />);
-    
-    const emailInput = screen.getByLabelText('Email Address');
-    expect(emailInput).toHaveAttribute('placeholder', 'Enter your email');
-  });
-
-  test('email input has correct type', () => {
-    renderWithRouter(<ForgotPassword />);
-    
-    const emailInput = screen.getByLabelText('Email Address');
-    expect(emailInput).toHaveAttribute('type', 'email');
+    // after resend, inputs should be present again and timer reset to 60
+    expect(screen.getAllByRole('textbox').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText(/expires in 60s/i)).toBeInTheDocument();
   });
 });
