@@ -12,12 +12,53 @@ const PICKUP_WINDOW_META = {
   EVENING: { label: 'Evening', time: '7:00 PM – 12:00 AM' },
 };
 
+const DONATION_SIZES = ['SMALL', 'MEDIUM', 'LARGE', 'BULK'];
+
+const DONATION_SIZE_META = {
+  SMALL: { label: 'Small donations', tooltip: '1–5 small portions OR <3kg' },
+  MEDIUM: { label: 'Medium donations', tooltip: '5–20 portions OR 3–10kg' },
+  LARGE: { label: 'Large donations', tooltip: '20–50 portions OR 10–25kg' },
+  BULK: { label: 'Bulk donations', tooltip: '50+ portions OR >25kg' },
+};
+
+// Custom Tooltip component
+function Tooltip({ children, text }) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <span
+      style={{ position: 'relative', display: 'inline-block' }}
+      onMouseEnter={() => setVisible(true)}
+      onMouseLeave={() => setVisible(false)}
+    >
+      {children}
+      {visible && (
+        <span
+          style={{
+            position: 'absolute',
+            bottom: '120%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: '#222',
+            color: '#fff',
+            padding: '6px 12px',
+            borderRadius: '6px',
+            fontSize: '13px',
+            whiteSpace: 'nowrap',
+            zIndex: 1000,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+          }}
+        >
+          {text}
+        </span>
+      )}
+    </span>
+  );
+}
+
 const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
   const [preferences, setPreferences] = useState({
     preferredCategories: [],
-    storageCapacity: 50,
-    quantityMin: 0,
-    quantityMax: 100,
+    preferredDonationSizes: [],
     pickupAvailability: ['EVENING'],
     acceptsRefrigerated: true,
     acceptsFrozen: true,
@@ -46,9 +87,7 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
           preferredCategories: (response.data.preferredFoodTypes || []).map(type => 
             foodTypeOptions.find(cat => cat.value === type) || { value: type, label: type }
           ),
-          storageCapacity: response.data.maxCapacity || 50,
-          quantityMin: response.data.minQuantity || 0,
-          quantityMax: response.data.maxQuantity || 100,
+          preferredDonationSizes: response.data.preferredDonationSizes || [],
           pickupAvailability: response.data.preferredPickupWindows || ['EVENING'],
           acceptsRefrigerated: response.data.acceptRefrigerated !== undefined ? response.data.acceptRefrigerated : true,
           acceptsFrozen: response.data.acceptFrozen !== undefined ? response.data.acceptFrozen : true,
@@ -122,6 +161,15 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
     });
   };
 
+  const handleDonationSizeChange = (size) => {
+    setPreferences(prev => {
+      const sizes = prev.preferredDonationSizes.includes(size)
+        ? prev.preferredDonationSizes.filter(s => s !== size)
+        : [...prev.preferredDonationSizes, size];
+      return { ...prev, preferredDonationSizes: sizes };
+    });
+  };
+
   const handleFoodHandlingToggle = (field) => {
     setPreferences(prev => ({ ...prev, [field]: !prev[field] }));
   };
@@ -131,27 +179,19 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
       setLoading(true);
       setError('');
       setSuccess(false);
-      
-      // Validate quantity range
-      const minQty = parseInt(preferences.quantityMin) || 0;
-      const maxQty = parseInt(preferences.quantityMax) || 0;
-      
-      if (minQty > maxQty) {
-        setError('Minimum quantity cannot be greater than maximum quantity');
-        setLoading(false);
-        return;
-      }
 
       // Prepare data for backend
       const requestData = {
         preferredFoodTypes: preferences.noStrictPreferences ? [] : preferences.preferredCategories.map(c => c.value),
-        maxCapacity: parseInt(preferences.storageCapacity) || 50,
-        minQuantity: minQty,
-        maxQuantity: maxQty,
+        preferredDonationSizes: preferences.preferredDonationSizes,
         preferredPickupWindows: preferences.pickupAvailability,
         acceptRefrigerated: preferences.acceptsRefrigerated,
         acceptFrozen: preferences.acceptsFrozen,
-        notificationPreferencesEnabled: preferences.notificationPreferencesEnabled
+        notificationPreferencesEnabled: preferences.notificationPreferencesEnabled,
+        // TODO: Remove these once backend makes them optional - they're legacy fields
+        maxCapacity: 100,
+        minQuantity: 0,
+        maxQuantity: 1000
       };
 
       console.log('Saving preferences to backend:', requestData);
@@ -230,14 +270,16 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
 
             {/* No Strict Preferences Checkbox (moved here) */}
             <div className="checkbox-field" style={{marginTop: '8px'}}>
-              <label className="checkbox-label">
+              <div className="checkbox-label">
                 <input
                   type="checkbox"
                   checked={preferences.noStrictPreferences}
                   onChange={handleNoPreferencesToggle}
                 />
-                <span>No strict preferences (allow all food types)</span>
-              </label>
+                <span className="checkbox-text">
+                  No strict preferences (allow all food types)
+                </span>
+              </div>
             </div>
 
             {showCategoryDropdown && !preferences.noStrictPreferences && (
@@ -267,37 +309,25 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
             )}
           </div>
 
-          {/* Storage Capacity */}
+          {/* Preferred Donation Size */}
           <div className="preference-field">
-            <label>Storage Capacity (items)</label>
-            <input
-              type="number"
-              placeholder="Enter storage capacity"
-              value={preferences.storageCapacity}
-              onChange={(e) => handleInputChange('storageCapacity', e.target.value)}
-              min="0"
-            />
-          </div>
-
-          {/* Quantity Range */}
-          <div className="preference-field">
-            <label>Quantity Range</label>
-            <div className="quantity-range">
-              <input
-                type="number"
-                placeholder="Min"
-                value={preferences.quantityMin}
-                onChange={(e) => handleInputChange('quantityMin', e.target.value)}
-                min="0"
-              />
-              <span className="range-separator">-</span>
-              <input
-                type="number"
-                placeholder="Max"
-                value={preferences.quantityMax}
-                onChange={(e) => handleInputChange('quantityMax', e.target.value)}
-                min="0"
-              />
+            <label>Preferred Donation Size (choose all that apply)</label>
+            <div className="donation-sizes">
+              {DONATION_SIZES.map(size => {
+                const meta = DONATION_SIZE_META[size];
+                const isSelected = preferences.preferredDonationSizes.includes(size);
+                return (
+                  <Tooltip key={size} text={meta.tooltip}>
+                    <button
+                      type="button"
+                      className={`size-btn ${isSelected ? 'active' : ''}`}
+                      onClick={() => handleDonationSizeChange(size)}
+                    >
+                      {meta.label}
+                    </button>
+                  </Tooltip>
+                );
+              })}
             </div>
           </div>
 
