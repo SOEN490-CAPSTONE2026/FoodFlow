@@ -6,6 +6,12 @@ import './Receiver_Styles/ReceiverPreferences.css';
 
 const PICKUP_WINDOWS = ['MORNING', 'AFTERNOON', 'EVENING'];
 
+const PICKUP_WINDOW_META = {
+  MORNING: { label: 'Morning', time: '8:00 AM – 12:00 PM' },
+  AFTERNOON: { label: 'Afternoon', time: '12:00 PM – 7:00 PM' },
+  EVENING: { label: 'Evening', time: '7:00 PM – 12:00 AM' },
+};
+
 const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
   const [preferences, setPreferences] = useState({
     preferredCategories: [],
@@ -299,16 +305,22 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
           <div className="preference-field">
             <label>Pickup Availability (select multiple)</label>
             <div className="pickup-availability">
-              {PICKUP_WINDOWS.map(window => (
-                <button
-                  key={window}
-                  type="button"
-                  className={`pickup-btn ${preferences.pickupAvailability.includes(window) ? 'active' : ''}`}
-                  onClick={() => handlePickupAvailabilityChange(window)}
-                >
-                  {window.charAt(0) + window.slice(1).toLowerCase()}
-                </button>
-              ))}
+              {PICKUP_WINDOWS.map((window) => {
+                const isActive = preferences.pickupAvailability.includes(window);
+                const meta = PICKUP_WINDOW_META[window];
+
+                return (
+                  <button
+                    key={window}
+                    type="button"
+                    className={`pickup-btn ${isActive ? 'active' : ''}`}
+                    onClick={() => handlePickupAvailabilityChange(window)}
+                    title={meta.time}
+                  >
+                    {isActive ? meta.time : meta.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
