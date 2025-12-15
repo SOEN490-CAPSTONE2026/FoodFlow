@@ -77,10 +77,18 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
 
   const handleCategoryToggle = (category) => {
     setPreferences(prev => {
-      const categories = prev.preferredCategories.find(c => c.value === category.value)
-        ? prev.preferredCategories.filter(c => c.value !== category.value)
-        : [...prev.preferredCategories, category];
-      return { ...prev, preferredCategories: categories };
+      // If "No strict preferences" is checked, uncheck it when user manually selects/deselects
+      let newNoStrict = prev.noStrictPreferences;
+      let categories;
+      if (prev.preferredCategories.find(c => c.value === category.value)) {
+        categories = prev.preferredCategories.filter(c => c.value !== category.value);
+      } else {
+        categories = [...prev.preferredCategories, category];
+      }
+      if (prev.noStrictPreferences) {
+        newNoStrict = false;
+      }
+      return { ...prev, preferredCategories: categories, noStrictPreferences: newNoStrict };
     });
   };
 
@@ -89,7 +97,14 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
   };
 
   const handleNoPreferencesToggle = () => {
-    setPreferences(prev => ({ ...prev, noStrictPreferences: !prev.noStrictPreferences }));
+    setPreferences(prev => {
+      const newValue = !prev.noStrictPreferences;
+      return {
+        ...prev,
+        noStrictPreferences: newValue,
+        preferredCategories: newValue ? [...foodTypeOptions] : [],
+      };
+    });
   };
 
   const handlePickupAvailabilityChange = (time) => {
@@ -192,21 +207,34 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
           <div className="preference-field" ref={dropdownRef}>
             <label>Preferred Food Categories</label>
             <div className="category-select" onClick={() => {
-              console.log('Toggling dropdown, current state:', showCategoryDropdown);
               setShowCategoryDropdown(!showCategoryDropdown);
             }}>
               <input
                 type="text"
                 readOnly
-                value={preferences.preferredCategories.length > 0 
-                  ? `${preferences.preferredCategories.length} categories selected`
-                  : 'Select food categories...'}
+                value={preferences.noStrictPreferences
+                  ? 'All food categories selected'
+                  : preferences.preferredCategories.length > 0 
+                    ? `${preferences.preferredCategories.length} categories selected`
+                    : 'Select food categories...'}
                 placeholder="Select food categories..."
               />
               <span className="dropdown-arrow">▼</span>
             </div>
-            
-            {showCategoryDropdown && (
+
+            {/* No Strict Preferences Checkbox (moved here) */}
+            <div className="checkbox-field" style={{marginTop: '8px'}}>
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={preferences.noStrictPreferences}
+                  onChange={handleNoPreferencesToggle}
+                />
+                <span>No strict preferences (allow all food types)</span>
+              </label>
+            </div>
+
+            {showCategoryDropdown && !preferences.noStrictPreferences && (
               <div className="category-dropdown">
                 {foodTypeOptions.map(category => (
                   <label key={category.value} className="category-option">
@@ -220,8 +248,8 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
                 ))}
               </div>
             )}
-            
-            {preferences.preferredCategories.length > 0 && (
+
+            {preferences.preferredCategories.length > 0 && !preferences.noStrictPreferences && (
               <div className="selected-categories">
                 {preferences.preferredCategories.map(category => (
                   <span key={category.value} className="category-tag">
@@ -322,17 +350,7 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
             </small>
           </div>
 
-          {/* No Strict Preferences */}
-          <div className="preference-field checkbox-field">
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
-                checked={preferences.noStrictPreferences}
-                onChange={handleNoPreferencesToggle}
-              />
-              <span>No strict preferences (allow all food types)</span>
-            </label>
-          </div>
+          {/* ...removed No Strict Preferences from here... */}
         </div>
 
         <div className="preferences-footer">
