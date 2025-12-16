@@ -18,6 +18,7 @@ public class ReceiverPreferencesResponse {
     private Boolean acceptRefrigerated;
     private Boolean acceptFrozen;
     private Boolean notificationPreferencesEnabled;
+    private List<String> preferredDonationSizes;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     
@@ -35,6 +36,8 @@ public class ReceiverPreferencesResponse {
         this.acceptRefrigerated = preferences.getAcceptRefrigerated();
         this.acceptFrozen = preferences.getAcceptFrozen();
         this.notificationPreferencesEnabled = preferences.getNotificationPreferencesEnabled();
+        this.preferredDonationSizes = preferences.getPreferredDonationSizes() != null ? 
+            new ArrayList<>(preferences.getPreferredDonationSizes()) : new ArrayList<>();
         this.createdAt = preferences.getCreatedAt();
         this.updatedAt = preferences.getUpdatedAt();
     }
@@ -121,6 +124,14 @@ public class ReceiverPreferencesResponse {
     
     public void setNotificationPreferencesEnabled(Boolean notificationPreferencesEnabled) {
         this.notificationPreferencesEnabled = notificationPreferencesEnabled;
+    }
+    
+    public List<String> getPreferredDonationSizes() {
+        return preferredDonationSizes;
+    }
+    
+    public void setPreferredDonationSizes(List<String> preferredDonationSizes) {
+        this.preferredDonationSizes = preferredDonationSizes;
     }
     
     public LocalDateTime getCreatedAt() {
