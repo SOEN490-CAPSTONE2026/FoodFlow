@@ -20,7 +20,6 @@ const Settings = () => {
       'Claim & Pickup Flow': [
         { key: 'donationClaimed', label: 'Donation Claimed', desc: 'A receiver claimed your donation' },
         { key: 'claimCanceled', label: 'Claim Canceled', desc: 'A receiver canceled their claim' },
-        { key: 'pickupTimeSelected', label: 'Pickup Time Selected', desc: 'A receiver selected a pickup time' },
         { key: 'pickupReminder', label: 'Pickup Reminders', desc: 'Upcoming pickup time reminders' },
         { key: 'donationPickedUp', label: 'Donation Picked Up', desc: 'Receiver marked the donation as picked up' },
         { key: 'donationExpired', label: 'Donation Expired', desc: 'Donation automatically marked expired or overdue' }
