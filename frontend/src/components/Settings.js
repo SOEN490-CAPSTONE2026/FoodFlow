@@ -165,8 +165,11 @@ const Settings = () => {
   };
 
   const handleRegionChange = (regionData) => {
-    setRegionSettings(regionData);
-    console.log('Region settings updated:', regionData);
+    // Only update if the data has actually changed
+    if (JSON.stringify(regionData) !== JSON.stringify(regionSettings)) {
+      setRegionSettings(regionData);
+      console.log('Region settings updated:', regionData);
+    }
   };
 
   const handleImageUpload = (e) => {
