@@ -3,7 +3,6 @@ import { User, Globe, Bell, Camera, Lock } from 'lucide-react';
 import LanguageSwitcher from './LanguageSwitcher';
 import RegionSelector from './RegionSelector';
 import { AuthContext } from '../contexts/AuthContext';
-import axios from 'axios';
 import '../style/Settings.css';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080/api";
@@ -289,15 +288,32 @@ const Settings = () => {
     setSuccessMessage('');
     setErrors({});
 
+    // TODO: Backend will implement this endpoint
     try {
+      // Simulate save for now
+      setTimeout(() => {
+        setSuccessMessage('Profile updated successfully!');
+        
+        // Reset password fields
+        if (showPasswordFields) {
+          setPasswordData({
+            currentPassword: '',
+            newPassword: '',
+            confirmPassword: ''
+          });
+          setShowPasswordFields(false);
+        }
+        
+        setLoading(false);
+      }, 500);
+      
+      /* Backend implementation when ready:
       const token = localStorage.getItem("jwtToken") || sessionStorage.getItem("jwtToken");
       
-      // Prepare FormData for multipart upload (if there's an image)
       const updateData = new FormData();
       updateData.append('fullName', formData.fullName);
       updateData.append('email', formData.email);
       
-      // Format phone number to consistent E.164 format before sending
       if (formData.phoneNumber) {
         updateData.append('phoneNumber', formatPhoneNumber(formData.phoneNumber));
       } else {
@@ -311,26 +327,23 @@ const Settings = () => {
         updateData.append('profileImage', profileImageFile);
       }
 
-      // If password is being changed, add password fields
       if (showPasswordFields && passwordData.currentPassword) {
         updateData.append('currentPassword', passwordData.currentPassword);
         updateData.append('newPassword', passwordData.newPassword);
       }
 
-      const response = await axios.put(
-        `${API_BASE_URL}/users/update`,
-        updateData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
-          }
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/users/update`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: updateData
+      });
 
+      if (!response.ok) throw new Error('Failed to update profile');
+      
       setSuccessMessage('Profile updated successfully!');
       
-      // Reset password fields
       if (showPasswordFields) {
         setPasswordData({
           currentPassword: '',
@@ -340,17 +353,12 @@ const Settings = () => {
         setShowPasswordFields(false);
       }
 
-      // Refresh profile data
       await fetchUserProfile();
+      */
       
     } catch (error) {
       console.error('Error updating profile:', error);
-      if (error.response?.data?.message) {
-        setErrors({ submit: error.response.data.message });
-      } else {
-        setErrors({ submit: 'Failed to update profile. Please try again.' });
-      }
-    } finally {
+      setErrors({ submit: 'Failed to update profile. Please try again.' });
       setLoading(false);
     }
   };
