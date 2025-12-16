@@ -137,11 +137,30 @@ const RegionSelector = ({ value, onChange }) => {
   // Persist changes
   useEffect(() => {
     if (selectedCountry && selectedCity && selectedTimezone) {
+      // Calculate UTC offset
+      const getUTCOffset = (timezone) => {
+        try {
+          const now = new Date();
+          const tzDate = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
+          const utcDate = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
+          const offset = (tzDate - utcDate) / (1000 * 60 * 60); // offset in hours
+          const sign = offset >= 0 ? '+' : '-';
+          const absOffset = Math.abs(offset);
+          const hours = Math.floor(absOffset);
+          const minutes = Math.round((absOffset - hours) * 60);
+          return `UTC${sign}${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        } catch (e) {
+          return 'UTC+00:00';
+        }
+      };
+
       const regionData = {
         country: selectedCountry,
         countryName: countries.find(c => c.code === selectedCountry)?.name,
         city: selectedCity,
-        timezone: selectedTimezone,
+        timezone: selectedTimezone, 
+        timezoneOffset: getUTCOffset(selectedTimezone), // UTC offset (exemple : "UTC-05:00")
+        utcOffset: getUTCOffset(selectedTimezone), // Alias for backend compatibility
       };
       
       localStorage.setItem('userRegion', JSON.stringify(regionData));
