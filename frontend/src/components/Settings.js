@@ -91,24 +91,35 @@ const Settings = () => {
     return phoneRegex.test(phone);
   };
 
+  const formatPhoneNumber = (phone) => {
+    const cleaned = phone.replace(/\D/g, '');
+    
+    // Format as E.164 standard with country code (assuming North America +1)
+    if (cleaned.length === 10) {
+      return `+1${cleaned}`;
+    } else if (cleaned.length === 11 && cleaned.startsWith('1')) {
+      return `+${cleaned}`;
+    } else if (cleaned.startsWith('+')) {
+      return phone;
+    }
+    return `+${cleaned}`;
+  };
+
   const validateForm = () => {
     const newErrors = {};
 
-    // Full Name validation
     if (!formData.fullName || formData.fullName.trim().length === 0) {
       newErrors.fullName = 'Full name is required';
     } else if (formData.fullName.trim().length < 2) {
       newErrors.fullName = 'Full name must be at least 2 characters';
     }
 
-    // Email validation
     if (!formData.email || formData.email.trim().length === 0) {
       newErrors.email = 'Email is required';
     } else if (!validateEmail(formData.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
 
-    // Phone validation
     if (formData.phoneNumber && !validatePhoneNumber(formData.phoneNumber)) {
       newErrors.phoneNumber = 'Please enter a valid phone number';
     }
@@ -208,7 +219,14 @@ const Settings = () => {
       const updateData = new FormData();
       updateData.append('fullName', formData.fullName);
       updateData.append('email', formData.email);
-      updateData.append('phoneNumber', formData.phoneNumber || '');
+      
+      // Format phone number to consistent E.164 format before sending
+      if (formData.phoneNumber) {
+        updateData.append('phoneNumber', formatPhoneNumber(formData.phoneNumber));
+      } else {
+        updateData.append('phoneNumber', '');
+      }
+      
       updateData.append('organization', formData.organization || '');
       updateData.append('address', formData.address || '');
       
