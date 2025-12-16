@@ -205,6 +205,33 @@ export const recommendationAPI = {
   },
 };
 
+export const userAPI = {
+  /**
+   * Get user profile by ID
+   * @param {string} userId - User ID
+   * @returns {Promise} User data
+   */
+  getProfile: (userId) => api.get(`/users/${userId}`),
+
+  /**
+   * Update user profile
+   * @param {FormData} userData - User data including optional profile image
+   * @returns {Promise} Updated user data
+   */
+  updateProfile: (userData) => api.put("/users/update", userData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  }),
+
+  /**
+   * Update user password
+   * @param {Object} passwordData - Current and new password
+   * @returns {Promise} Response
+   */
+  updatePassword: (passwordData) => api.put("/users/update-password", passwordData),
+};
+
 /**
  * Maps frontend food categories to backend enum values.
  * @param {string} frontendCategory - Frontend category name
