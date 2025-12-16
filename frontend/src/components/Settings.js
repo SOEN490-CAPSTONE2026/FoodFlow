@@ -12,16 +12,87 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:808
  * Reusable Settings page component for all dashboards (Donor, Receiver, Admin)
  */
 const Settings = () => {
-  const { userId, organizationName } = useContext(AuthContext);
+  const { userId, organizationName, role } = useContext(AuthContext);
   
-  const [notifications, setNotifications] = useState({
-    newDonations: true,
-    pickupReminders: true,
-    messagesFromDonors: true,
-    weeklyImpactReport: false,
-    emailDigest: true,
-    smsAlerts: false,
-  });
+  // Role-based notification categories
+  const notificationCategories = {
+    DONOR: {
+      'Claim & Pickup Flow': [
+        { key: 'donationClaimed', label: 'Donation Claimed', desc: 'A receiver claimed your donation' },
+        { key: 'claimCanceled', label: 'Claim Canceled', desc: 'A receiver canceled their claim' },
+        { key: 'pickupTimeSelected', label: 'Pickup Time Selected', desc: 'A receiver selected a pickup time' },
+        { key: 'pickupReminder', label: 'Pickup Reminders', desc: 'Upcoming pickup time reminders' },
+        { key: 'donationPickedUp', label: 'Donation Picked Up', desc: 'Receiver marked the donation as picked up' },
+        { key: 'donationExpired', label: 'Donation Expired', desc: 'Donation automatically marked expired or overdue' }
+      ],
+      'Messaging': [
+        { key: 'newMessageFromReceiver', label: 'New Messages', desc: 'New chat message from the receiver' }
+      ],
+      'Feedback': [
+        { key: 'receiverReview', label: 'Reviews & Ratings', desc: 'Receiver left you a rating or review' }
+      ],
+      'Admin & System': [
+        { key: 'donationFlagged', label: 'Donation Flagged', desc: 'Admin flagged your donation' },
+        { key: 'donationStatusUpdated', label: 'Status Updates', desc: 'Admin updated your donation status' },
+        { key: 'complianceWarning', label: 'Compliance Warnings', desc: 'Admin sent a compliance warning' },
+        { key: 'issueResolved', label: 'Issue Resolved', desc: 'Admin resolved an issue related to your donation' },
+        { key: 'verificationStatusChanged', label: 'Verification Status', desc: 'Your account verification status changed' }
+      ]
+    },
+    RECEIVER: {
+      'Matching & Claim Flow': [
+        { key: 'newDonationAvailable', label: 'New Donations', desc: 'New donation available matching your preferences' },
+        { key: 'donationReadyForPickup', label: 'Ready for Pickup', desc: 'Donation marked "Ready for Pickup"' },
+        { key: 'pickupReminder', label: 'Pickup Reminders', desc: 'Approaching pickup time reminders' },
+        { key: 'donationCompleted', label: 'Donation Completed', desc: 'Donor marked donation as completed' }
+      ],
+      'Messaging': [
+        { key: 'newMessageFromDonor', label: 'New Messages', desc: 'New chat message from the donor' }
+      ],
+      'Feedback': [
+        { key: 'donorReview', label: 'Reviews & Ratings', desc: 'Donor left you a rating or review' }
+      ],
+      'Admin & System': [
+        { key: 'claimFlagged', label: 'Claim Flagged', desc: 'Admin flagged your claim' },
+        { key: 'donationStatusChanged', label: 'Status Changes', desc: 'Admin changed donation status' },
+        { key: 'disputeResolved', label: 'Dispute Resolved', desc: 'Admin resolved your dispute/case' },
+        { key: 'verificationStatusChanged', label: 'Verification Status', desc: 'Organization verification status changed' }
+      ]
+    },
+    ADMIN: {
+      'System Oversight': [
+        { key: 'donationFlagged', label: 'Flagged Donations', desc: 'New flagged donation (safety/fraud/inappropriate content)' },
+        { key: 'suspiciousActivity', label: 'Suspicious Activity', desc: 'New suspicious user action detected' },
+        { key: 'verificationRequest', label: 'Verification Requests', desc: 'New verification request (receiver/donor)' }
+      ],
+      'Dispute & Compliance': [
+        { key: 'newDispute', label: 'New Disputes', desc: 'New dispute/case opened' },
+        { key: 'escalatedIssue', label: 'Escalated Issues', desc: 'Repeat offender, unsafe food, dangerous temperature logs' },
+        { key: 'safetyAlert', label: 'Safety Alerts', desc: 'Automated safety alerts (expired donations, cold-chain issues)' }
+      ],
+      'Operational': [
+        { key: 'systemError', label: 'System Errors', desc: 'System errors/failures (internal use)' },
+        { key: 'highVolumeDonation', label: 'High Volume Alerts', desc: 'High-volume donation alert' }
+      ]
+    }
+  };
+
+  // Initialize notifications based on role with all enabled by default
+  const [notifications, setNotifications] = useState({});
+
+  // Load notifications when role is available
+  useEffect(() => {
+    if (role && Object.keys(notifications).length === 0) {
+      const initialNotifications = {};
+      const categories = notificationCategories[role] || notificationCategories.RECEIVER;
+      
+      Object.values(categories).flat().forEach(notification => {
+        initialNotifications[notification.key] = true;
+      });
+      
+      setNotifications(initialNotifications);
+    }
+  }, [role]);
 
   // Profile form state
   const [formData, setFormData] = useState({
@@ -160,8 +231,25 @@ const Settings = () => {
     }
   };
 
-  const handleToggle = (key) => {
-    setNotifications(prev => ({ ...prev, [key]: !prev[key] }));
+  const handleToggle = async (key) => {
+    const newValue = !notifications[key];
+    setNotifications(prev => ({ ...prev, [key]: newValue }));
+    
+    // Auto-save notification preference to backend
+    try {
+      const token = localStorage.getItem("jwtToken") || sessionStorage.getItem("jwtToken");
+      await axios.put(
+        `${API_BASE_URL}/users/notifications`,
+        { [key]: newValue },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+    } catch (error) {
+      console.error('Error saving notification preference:', error);
+      // Revert on error
+      setNotifications(prev => ({ ...prev, [key]: !newValue }));
+    }
   };
 
   const handleRegionChange = (regionData) => {
@@ -515,101 +603,33 @@ const Settings = () => {
             </div>
             <div className="section-title-group">
               <h2>Notifications</h2>
-              <p className="section-description">Customize how you receive updates</p>
+              <p className="section-description">Customize how you receive updates based on your role</p>
             </div>
           </div>
           <div className="section-content">
-            <div className="notification-list">
-              <div className="notification-item">
-                <div className="notification-info">
-                  <h3 className="notification-title">New Donations Available</h3>
-                  <p className="notification-desc">Get notified when new food donations are posted in your area</p>
+            {Object.entries(notificationCategories[role] || notificationCategories.RECEIVER).map(([categoryName, categoryItems]) => (
+              <div key={categoryName} className="notification-category">
+                <h3 className="notification-category-title">{categoryName}</h3>
+                <div className="notification-list">
+                  {categoryItems.map((notification) => (
+                    <div key={notification.key} className="notification-item">
+                      <div className="notification-info">
+                        <h4 className="notification-title">{notification.label}</h4>
+                        <p className="notification-desc">{notification.desc}</p>
+                      </div>
+                      <label className="toggle-switch">
+                        <input
+                          type="checkbox"
+                          checked={notifications[notification.key] || false}
+                          onChange={() => handleToggle(notification.key)}
+                        />
+                        <span className="toggle-slider"></span>
+                      </label>
+                    </div>
+                  ))}
                 </div>
-                <label className="toggle-switch">
-                  <input
-                    type="checkbox"
-                    checked={notifications.newDonations}
-                    onChange={() => handleToggle('newDonations')}
-                  />
-                  <span className="toggle-slider"></span>
-                </label>
               </div>
-
-              <div className="notification-item">
-                <div className="notification-info">
-                  <h3 className="notification-title">Pickup Reminders</h3>
-                  <p className="notification-desc">Receive reminders before scheduled pickup times</p>
-                </div>
-                <label className="toggle-switch">
-                  <input
-                    type="checkbox"
-                    checked={notifications.pickupReminders}
-                    onChange={() => handleToggle('pickupReminders')}
-                  />
-                  <span className="toggle-slider"></span>
-                </label>
-              </div>
-
-              <div className="notification-item">
-                <div className="notification-info">
-                  <h3 className="notification-title">Messages</h3>
-                  <p className="notification-desc">Notifications when a user send you messages</p>
-                </div>
-                <label className="toggle-switch">
-                  <input
-                    type="checkbox"
-                    checked={notifications.messagesFromDonors}
-                    onChange={() => handleToggle('messagesFromDonors')}
-                  />
-                  <span className="toggle-slider"></span>
-                </label>
-              </div>
-
-              <div className="notification-item">
-                <div className="notification-info">
-                  <h3 className="notification-title">Weekly Impact Report</h3>
-                  <p className="notification-desc">Summary of meals saved and impact created</p>
-                </div>
-                <label className="toggle-switch">
-                  <input
-                    type="checkbox"
-                    checked={notifications.weeklyImpactReport}
-                    onChange={() => handleToggle('weeklyImpactReport')}
-                  />
-                  <span className="toggle-slider"></span>
-                </label>
-              </div>
-
-              <div className="notification-item">
-                <div className="notification-info">
-                  <h3 className="notification-title">Email Digest</h3>
-                  <p className="notification-desc">Daily summary of activity via email</p>
-                </div>
-                <label className="toggle-switch">
-                  <input
-                    type="checkbox"
-                    checked={notifications.emailDigest}
-                    onChange={() => handleToggle('emailDigest')}
-                  />
-                  <span className="toggle-slider"></span>
-                </label>
-              </div>
-
-              <div className="notification-item">
-                <div className="notification-info">
-                  <h3 className="notification-title">SMS Alerts</h3>
-                  <p className="notification-desc">Urgent notifications via text message</p>
-                </div>
-                <label className="toggle-switch">
-                  <input
-                    type="checkbox"
-                    checked={notifications.smsAlerts}
-                    onChange={() => handleToggle('smsAlerts')}
-                  />
-                  <span className="toggle-slider"></span>
-                </label>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 
