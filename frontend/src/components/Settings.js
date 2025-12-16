@@ -232,23 +232,10 @@ const Settings = () => {
 
   const handleToggle = async (key) => {
     const newValue = !notifications[key];
-    setNotifications(prev => ({ ...prev, [key]: newValue }));
     
-    // Auto-save notification preference to backend
-    try {
-      const token = localStorage.getItem("jwtToken") || sessionStorage.getItem("jwtToken");
-      await axios.put(
-        `${API_BASE_URL}/users/notifications`,
-        { [key]: newValue },
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
-    } catch (error) {
-      console.error('Error saving notification preference:', error);
-      // Revert on error
-      setNotifications(prev => ({ ...prev, [key]: !newValue }));
-    }
+    // Update state immediately for responsiveness
+    setNotifications(prev => ({ ...prev, [key]: newValue }));
+ 
   };
 
   const handleRegionChange = (regionData) => {
