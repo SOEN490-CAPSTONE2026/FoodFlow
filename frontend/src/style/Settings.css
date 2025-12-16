@@ -273,11 +273,50 @@
 /* Language & Region Grid */
 .language-region-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr;
   gap: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
-/* Override LanguageSwitcher styles when inside form field */
+/* Language & Region Container */
+.language-region-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
+.language-region-container .language-switcher-wrapper {
+  max-width: 400px;
+  width: 100%;
+}
+
+/* Subsection Headers */
+.subsection-header {
+  margin-bottom: 12px;
+}
+
+.subsection-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1F2937;
+  margin: 0 0 4px 0;
+}
+
+.subsection-description {
+  font-size: 14px;
+  color: #6B7280;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Region Settings Divider */
+.region-settings-divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, #E5E7EB 20%, #E5E7EB 80%, transparent);
+  margin: 2rem 0;
+}
+
 .form-field .language-switcher {
   flex-direction: column;
   gap: 0;
@@ -291,7 +330,7 @@
   max-width: 100%;
 }
 
-/* Notification List */
+
 .notification-list {
   display: flex;
   flex-direction: column;

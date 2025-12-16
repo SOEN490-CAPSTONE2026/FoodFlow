@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { User, Globe, Bell, Camera, Lock } from 'lucide-react';
 import LanguageSwitcher from './LanguageSwitcher';
+import RegionSelector from './RegionSelector';
 import '../style/Settings.css';
 
 /**
@@ -18,10 +19,17 @@ const Settings = () => {
 
   const [profileImage, setProfileImage] = useState(null);
   const [showPasswordFields, setShowPasswordFields] = useState(false);
+  const [regionSettings, setRegionSettings] = useState(null);
   const fileInputRef = useRef(null);
 
   const handleToggle = (key) => {
     setNotifications(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleRegionChange = (regionData) => {
+    setRegionSettings(regionData);
+    console.log('Region settings updated:', regionData);
+    // You can add API call here to save to backend
   };
 
   const handleImageUpload = (e) => {
@@ -176,24 +184,26 @@ const Settings = () => {
             </div>
             <div className="section-title-group">
               <h2>Language & Region</h2>
-              <p className="section-description">Set your language and timezone preferences</p>
+              <p className="section-description">Set your language, location, and timezone preferences</p>
             </div>
           </div>
           <div className="section-content">
-            <div className="language-region-grid">
-              <div className="form-field">
-                <label className="field-label">Language</label>
-                <LanguageSwitcher />
+            <div className="language-region-container">
+              <div className="subsection-header">
+                <h3 className="subsection-title">Language Preference</h3>
+                <p className="subsection-description">Choose your preferred language for the interface</p>
               </div>
-              <div className="form-field">
-                <label className="field-label">Timezone</label>
-                <select className="field-select">
-                  <option>Pacific Time (PT)</option>
-                  <option>Eastern Time (ET)</option>
-                  <option>Central Time (CT)</option>
-                  <option>Mountain Time (MT)</option>
-                </select>
+              <LanguageSwitcher />
+            </div>
+            
+            <div className="region-settings-divider"></div>
+            
+            <div className="language-region-container">
+              <div className="subsection-header">
+                <h3 className="subsection-title">Location & Timezone</h3>
+                <p className="subsection-description">Set your location to ensure accurate date and time information</p>
               </div>
+              <RegionSelector value={regionSettings} onChange={handleRegionChange} />
             </div>
           </div>
         </div>
