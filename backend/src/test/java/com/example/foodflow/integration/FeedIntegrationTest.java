@@ -35,6 +35,7 @@ class FeedIntegrationTest {
         RegisterReceiverRequest registerRequest = new RegisterReceiverRequest();
         registerRequest.setEmail("receiver@test.com");
         registerRequest.setPassword("password123");
+        registerRequest.setConfirmPassword("password123");
         registerRequest.setOrganizationName("Test Charity");
         registerRequest.setContactPerson("Test Receiver");
         registerRequest.setPhone("123-456-7890");
@@ -68,10 +69,12 @@ class FeedIntegrationTest {
         RegisterDonorRequest registerRequest = new RegisterDonorRequest();
         registerRequest.setEmail("donor@test.com");
         registerRequest.setPassword("password123");
+        registerRequest.setConfirmPassword("password123");
         registerRequest.setOrganizationName("Test Restaurant");
         registerRequest.setContactPerson("Test Donor");
         registerRequest.setPhone("123-456-7890");
         registerRequest.setAddress("123 Test St");
+        registerRequest.setBusinessLicense("FEED-TEST-LICENSE-123");
 
         // Login and get token
         mockMvc.perform(post("/api/auth/register/donor")
@@ -117,10 +120,12 @@ class FeedIntegrationTest {
         RegisterDonorRequest donorRequest = new RegisterDonorRequest();
         donorRequest.setEmail("donor2@test.com");
         donorRequest.setPassword("password123");
+        donorRequest.setConfirmPassword("password123");
         donorRequest.setOrganizationName("Test Restaurant 2");
         donorRequest.setContactPerson("Test Donor 2");
         donorRequest.setPhone("123-456-7890");
         donorRequest.setAddress("123 Test St");
+        donorRequest.setBusinessLicense("FEED-TEST-LICENSE-456");
 
         mockMvc.perform(post("/api/auth/register/donor")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -140,6 +145,7 @@ class FeedIntegrationTest {
         RegisterReceiverRequest receiverRequest = new RegisterReceiverRequest();
         receiverRequest.setEmail("receiver2@test.com");
         receiverRequest.setPassword("password123");
+        receiverRequest.setConfirmPassword("password123");
         receiverRequest.setOrganizationName("Test Charity 2");
         receiverRequest.setContactPerson("Test Receiver 2");
         receiverRequest.setPhone("987-654-3210");
