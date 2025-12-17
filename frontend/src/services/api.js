@@ -43,8 +43,24 @@ export const authAPI = {
     }
     return response;
   },
-  registerDonor: (data) => api.post("/auth/register/donor", data),
-  registerReceiver: (data) => api.post("/auth/register/receiver", data),
+  registerDonor: (data) => {
+    // If data is FormData, set appropriate headers
+    const config = data instanceof FormData ? {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      }
+    } : {};
+    return api.post("/auth/register/donor", data, config);
+  },
+  registerReceiver: (data) => {
+    // If data is FormData, set appropriate headers
+    const config = data instanceof FormData ? {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      }
+    } : {};
+    return api.post("/auth/register/receiver", data, config);
+  },
   logout: () => {
     localStorage.removeItem("jwtToken");
     return api.post("/auth/logout");

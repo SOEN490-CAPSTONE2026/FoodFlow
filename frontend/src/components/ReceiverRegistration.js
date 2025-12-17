@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
 import ReceiverIllustration from "../assets/illustrations/receiver-ilustration.jpg";
+
 import '../style/Registration.css';
 
 // Phone number formatting utility
@@ -376,7 +377,7 @@ const ReceiverRegistration = () => {
   // Success screen after submission
   if (submitted) {
     return (
-      <div className="registration-page">
+      <div className="registration-page receiver-registration">
         <div className="background-image">
           <img src={ReceiverIllustration} alt="Receiver Illustration" height={500} width={900} />
         </div>
@@ -429,6 +430,24 @@ const ReceiverRegistration = () => {
       ))}
     </div>
   );
+
+  // Get step title
+  const getStepTitle = (step) => {
+    switch (step) {
+      case 1:
+        return 'Account Credentials';
+      case 2:
+        return 'Organization Information';
+      case 3:
+        return 'Location Details';
+      case 4:
+        return 'Contact & Operations';
+      case 5:
+        return 'Review & Submit';
+      default:
+        return '';
+    }
+  };
 
   // Render step content
   const renderStepContent = () => {
@@ -857,62 +876,72 @@ const ReceiverRegistration = () => {
   };
 
   return (
-    <div className="registration-page">
+    <div className="registration-page receiver-registration">
+      <button 
+        type="button" 
+        className="exit-registration-button"
+        onClick={() => navigate('/register')}
+        aria-label="Back to registration selection"
+      >
+        ← Back
+      </button>
       <div className="background-image">
         <img src={ReceiverIllustration} alt="Receiver Illustration" height={500} width={900} />
-        <p>Join our network to receive quality food donations for your community.
-          We connect you with local businesses to reduce waste and support those in need.
-          Together, we can create sustainable solutions for food distribution.</p>
+        <p>We connect you with local associations to reduce waste and support those in need</p>
       </div>
-      <div className="form-container">
-        <h1>Register as Receiver</h1>
-        <p className="form-subtitle">Step {currentStep} of {totalSteps}</p>
-
-        <StepIndicator />
+      <div className={`form-container ${currentStep === 5 ? 'step-5' : ''}`}>
+        <div className="form-header-fixed">
+          <h1>Register as Receiver</h1>
+          <p className="form-subtitle">Step {currentStep} of {totalSteps}</p>
+          <StepIndicator />
+          <h2 className="step-title-fixed">{getStepTitle(currentStep)}</h2>
+        </div>
 
         {error && <div className="error-message">{error}</div>}
 
-        <div className="registration-form">
-          {renderStepContent()}
+        <div className="registration-form-scrollable">
+          <div className="registration-form">
+            {renderStepContent()}
 
-          <div className="form-actions">
-            {currentStep > 1 ? (
-              <button
-                type="button"
-                className="back-button"
-                onClick={handleBack}
-                disabled={loading}
-              >
-                Back
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="back-button"
-                onClick={() => navigate('/register')}
-              >
-                Cancel
-              </button>
-            )}
-            {currentStep < totalSteps ? (
-              <button
-                type="button"
-                className="submit-button"
-                onClick={handleNext}
-                disabled={!isStepValid(currentStep)}
-              >
-                Next
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="submit-button"
-                onClick={handleSubmit}
-                disabled={loading || !isStepValid(currentStep)}
-              >
-                {loading ? 'Submitting...' : 'Submit Registration'}
-              </button>
-            )}
+            <div className="form-actions">
+              {currentStep > 1 ? (
+                <button
+                  type="button"
+                  className="back-button"
+                  onClick={handleBack}
+                  disabled={loading}
+                >
+                  Back
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="back-button"
+                  onClick={() => navigate('/register')}
+                >
+                  Cancel
+                </button>
+              )}
+              {currentStep < totalSteps ? (
+                <button
+                  type="button"
+                  className="submit-button"
+                  onClick={handleNext}
+                  disabled={!isStepValid(currentStep)}
+                >
+                  Next
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="submit-button"
+                  onClick={handleSubmit}
+                  disabled={loading || !isStepValid(currentStep)}
+                >
+                  {loading ? 'Submitting...' : 'Submit Registration'}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
