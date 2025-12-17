@@ -54,6 +54,10 @@ public class ReceiverPreferences {
     @Column(name = "notification_preferences_enabled", nullable = false)
     private Boolean notificationPreferencesEnabled = true; // Default to enabled
     
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "preferred_donation_sizes", columnDefinition = "text array")
+    private List<String> preferredDonationSizes = new ArrayList<>();
+    
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -148,6 +152,14 @@ public class ReceiverPreferences {
     
     public void setNotificationPreferencesEnabled(Boolean notificationPreferencesEnabled) {
         this.notificationPreferencesEnabled = notificationPreferencesEnabled;
+    }
+    
+    public List<String> getPreferredDonationSizes() {
+        return preferredDonationSizes;
+    }
+    
+    public void setPreferredDonationSizes(List<String> preferredDonationSizes) {
+        this.preferredDonationSizes = preferredDonationSizes != null ? preferredDonationSizes : new ArrayList<>();
     }
     
     public LocalDateTime getCreatedAt() {

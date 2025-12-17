@@ -46,6 +46,7 @@ public class ReceiverPreferencesService {
         preferences.setPreferredPickupWindows(request.getPreferredPickupWindows());
         preferences.setAcceptRefrigerated(request.getAcceptRefrigerated());
         preferences.setAcceptFrozen(request.getAcceptFrozen());
+        preferences.setPreferredDonationSizes(request.getPreferredDonationSizes());
         
         // Update notification preferences if provided
         if (request.getNotificationPreferencesEnabled() != null) {
