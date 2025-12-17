@@ -5,8 +5,6 @@ import RegionSelector from './RegionSelector';
 import { AuthContext } from '../contexts/AuthContext';
 import '../style/Settings.css';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080/api";
-
 /**
  * Reusable Settings page component for all dashboards (Donor, Receiver, Admin)
  */
@@ -106,6 +104,15 @@ const Settings = () => {
   const [showPasswordFields, setShowPasswordFields] = useState(false);
   const [regionSettings, setRegionSettings] = useState(null);
   
+  // Notification preferences state
+  const [notificationPreferences, setNotificationPreferences] = useState({
+    emailAlerts: false,
+    smsAlerts: false,
+    smsPhoneNumber: ''
+  });
+  const [preferencesMessage, setPreferencesMessage] = useState('');
+  const [preferencesError, setPreferencesError] = useState('');
+  
   // Password state
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
@@ -142,6 +149,17 @@ const Settings = () => {
       return () => clearTimeout(timer);
     }
   }, [successMessage]);
+
+  // Auto-clear preferences messages after 3 seconds
+  useEffect(() => {
+    if (preferencesMessage || preferencesError) {
+      const timer = setTimeout(() => {
+        setPreferencesMessage('');
+        setPreferencesError('');
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [preferencesMessage, preferencesError]);
 
   const fetchUserProfile = async () => {
     // Backend will implement this endpoint
@@ -306,61 +324,43 @@ const Settings = () => {
         
         setLoading(false);
       }, 500);
-      
-      /* Backend implementation when ready:
-      const token = localStorage.getItem("jwtToken") || sessionStorage.getItem("jwtToken");
-      
-      const updateData = new FormData();
-      updateData.append('fullName', formData.fullName);
-      updateData.append('email', formData.email);
-      
-      if (formData.phoneNumber) {
-        updateData.append('phoneNumber', formatPhoneNumber(formData.phoneNumber));
-      } else {
-        updateData.append('phoneNumber', '');
-      }
-      
-      updateData.append('organization', formData.organization || '');
-      updateData.append('address', formData.address || '');
-      
-      if (profileImageFile) {
-        updateData.append('profileImage', profileImageFile);
-      }
-
-      if (showPasswordFields && passwordData.currentPassword) {
-        updateData.append('currentPassword', passwordData.currentPassword);
-        updateData.append('newPassword', passwordData.newPassword);
-      }
-
-      const response = await fetch(`${API_BASE_URL}/users/update`, {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: updateData
-      });
-
-      if (!response.ok) throw new Error('Failed to update profile');
-      
-      setSuccessMessage('Profile updated successfully!');
-      
-      if (showPasswordFields) {
-        setPasswordData({
-          currentPassword: '',
-          newPassword: '',
-          confirmPassword: ''
-        });
-        setShowPasswordFields(false);
-      }
-
-      await fetchUserProfile();
-      */
+    
       
     } catch (error) {
       console.error('Error updating profile:', error);
       setErrors({ submit: 'Failed to update profile. Please try again.' });
       setLoading(false);
     }
+  };
+
+  const handleEmailAlertsToggle = () => {
+    const newValue = !notificationPreferences.emailAlerts;
+    setNotificationPreferences(prev => ({
+      ...prev,
+      emailAlerts: newValue
+    }));
+    
+    // Show toast notification like language switcher
+    const toast = document.createElement('div');
+    toast.className = 'language-toast';
+    toast.textContent = `Email alerts ${newValue ? 'enabled' : 'disabled'}`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2000);
+  };
+
+  const handleSmsAlertsToggle = () => {
+    const newValue = !notificationPreferences.smsAlerts;
+    setNotificationPreferences(prev => ({
+      ...prev,
+      smsAlerts: newValue
+    }));
+    
+    // Show toast notification like language switcher
+    const toast = document.createElement('div');
+    toast.className = 'language-toast';
+    toast.textContent = `SMS alerts ${newValue ? 'enabled' : 'disabled'}`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2000);
   };
 
   return (
@@ -589,6 +589,61 @@ const Settings = () => {
           </div>
         </div>
 
+        {/* Notification Preferences Section */}
+        <div className="settings-section">
+          <div className="section-header-with-icon">
+            <div className="icon-circle">
+              <Bell size={24} />
+            </div>
+            <div className="section-title-group">
+              <h2>Notification Preferences</h2>
+              <p className="section-description">Choose how you want to receive notifications</p>
+            </div>
+          </div>
+          <div className="section-content">
+            {preferencesMessage && (
+              <div className="success-banner">{preferencesMessage}</div>
+            )}
+            {preferencesError && (
+              <div className="error-banner">{preferencesError}</div>
+            )}
+            
+            <div className="notification-preferences">
+              {/* Email Alerts Toggle */}
+              <div className="preference-item">
+                <div className="preference-info">
+                  <h4>Email Alerts</h4>
+                  <p>Receive notifications via email at {formData.email || 'your email address'}</p>
+                </div>
+                <label className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={notificationPreferences.emailAlerts}
+                    onChange={handleEmailAlertsToggle}
+                  />
+                  <span className="toggle-slider"></span>
+                </label>
+              </div>
+
+              {/* SMS Alerts Toggle */}
+              <div className="preference-item">
+                <div className="preference-info">
+                  <h4>SMS Alerts</h4>
+                  <p>Receive notifications via text message{formData.phoneNumber ? ` at ${formData.phoneNumber}` : ''}</p>
+                </div>
+                <label className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={notificationPreferences.smsAlerts}
+                    onChange={handleSmsAlertsToggle}
+                  />
+                  <span className="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Notifications Section */}
         <div className="settings-section">
           <div className="section-header-with-icon">
@@ -596,8 +651,8 @@ const Settings = () => {
               <Bell size={24} />
             </div>
             <div className="section-title-group">
-              <h2>Notifications</h2>
-              <p className="section-description">Customize how you receive updates based on your role</p>
+              <h2>Notification Types</h2>
+              <p className="section-description">Customize which types of notifications you want to receive</p>
             </div>
           </div>
           <div className="section-content">
