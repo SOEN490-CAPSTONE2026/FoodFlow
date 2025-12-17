@@ -373,18 +373,19 @@ const DonorRegistration = () => {
         <div className="form-container">
           <div className="success-screen">
             <div className="success-icon">✓</div>
-            <h1>Registration Successful!</h1>
+            <h1>Registration Submitted Successfully!</h1>
             <div className="success-details">
+              <p className="status-badge">Status: Verification Pending</p>
               <p className="success-message">
-                Thank you for registering with FoodFlow as a donor. Your account has been created successfully!
+                Thank you for registering with FoodFlow. Your application has been submitted and is currently under review by our admin team.
               </p>
               <div className="info-box">
-                <h3>What's next?</h3>
+                <h3>What happens next?</h3>
                 <ul>
-                  <li>Start creating donation listings to share surplus food</li>
-                  <li>Connect with local charities and organizations in need</li>
-                  <li>Track your donations and their impact</li>
-                  <li>Make a difference in your community</li>
+                  <li>Our team will review your application and verify your organization details</li>
+                  <li>This process typically takes 1–3 business days</li>
+                  <li>You'll receive an email notification once your account is verified</li>
+                  <li>After verification, you'll have full access to create donation listings</li>
                 </ul>
               </div>
               <p className="redirect-message">Redirecting to your dashboard in a moment...</p>
