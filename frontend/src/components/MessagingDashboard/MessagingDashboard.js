@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import ConversationsSidebar from './ConversationsSidebar';
 import ChatPanel from './ChatPanel';
 import NewConversationModal from './NewConversationModal';
@@ -6,6 +7,7 @@ import api from '../../services/api';
 import './MessagingDashboard.css';
 
 const MessagingDashboard = () => {
+  const { t } = useTranslation();
   const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [showNewConversationModal, setShowNewConversationModal] = useState(false);
@@ -25,7 +27,7 @@ const MessagingDashboard = () => {
       setError(null);
     } catch (err) {
       console.error('Error loading conversations:', err);
-      setError('Failed to load conversations');
+      setError(t('messaging.failedToLoad'));
     } finally {
       setLoading(false);
     }

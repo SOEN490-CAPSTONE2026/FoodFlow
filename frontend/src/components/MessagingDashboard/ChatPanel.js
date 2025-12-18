@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Send } from 'lucide-react';
 import api from '../../services/api';
 import './ChatPanel.css';
 
 const ChatPanel = ({ conversation, onMessageSent, onConversationRead }) => {
+  const { t, i18n } = useTranslation();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -83,7 +85,7 @@ const ChatPanel = ({ conversation, onMessageSent, onConversationRead }) => {
       onMessageSent();
     } catch (err) {
       console.error('Error sending message:', err);
-      alert('Failed to send message');
+      alert(t('chat.failedToSend'));
     } finally {
       setSending(false);
     }
@@ -91,7 +93,7 @@ const ChatPanel = ({ conversation, onMessageSent, onConversationRead }) => {
 
   const formatMessageTime = (timestamp) => {
     const date = new Date(timestamp);
-    return date.toLocaleTimeString('en-US', { 
+    return date.toLocaleTimeString(i18n.language, { 
       hour: 'numeric', 
       minute: '2-digit',
       hour12: true 
@@ -109,11 +111,11 @@ const ChatPanel = ({ conversation, onMessageSent, onConversationRead }) => {
     yesterday.setHours(0, 0, 0, 0);
 
     if (messageDate.getTime() === today.getTime()) {
-      return 'Today';
+      return t('chat.today');
     } else if (messageDate.getTime() === yesterday.getTime()) {
-      return 'Yesterday';
+      return t('chat.yesterday');
     } else {
-      return messageDate.toLocaleDateString('en-US', { 
+      return messageDate.toLocaleDateString(i18n.language, { 
         month: 'long', 
         day: 'numeric', 
         year: 'numeric' 
@@ -137,8 +139,8 @@ const ChatPanel = ({ conversation, onMessageSent, onConversationRead }) => {
     return (
       <div className="chat-panel empty">
         <div className="empty-state">
-          <h3>No conversation selected</h3>
-          <p>Select a conversation from the sidebar or start a new one</p>
+          <h3>{t('chat.noConversationSelected')}</h3>
+          <p>{t('chat.selectConversation')}</p>
         </div>
       </div>
     );
@@ -150,15 +152,15 @@ const ChatPanel = ({ conversation, onMessageSent, onConversationRead }) => {
         <div className="chat-header-left">
           <div className="chat-header-info">
             <h3>{conversation.postTitle || conversation.otherUserName}</h3>
-            <p className="chat-header-subtitle">with {conversation.otherUserName}</p>
+            <p className="chat-header-subtitle">{t('chat.with')} {conversation.otherUserName}</p>
           </div>
         </div>
         <div className="chat-header-actions">
           <span className="status-badge claimed">
-            Claimed
+            {t('chat.claimed')}
           </span>
           <button className="view-post-btn">
-            View Post
+            {t('chat.viewPost')}
           </button>
           <button className="menu-btn">⋮</button>
         </div>
@@ -168,7 +170,7 @@ const ChatPanel = ({ conversation, onMessageSent, onConversationRead }) => {
         {messages.length === 0 ? (
           !loading && (
             <div className="no-messages">
-              <p>No messages yet. Start the conversation!</p>
+              <p>{t('chat.noMessagesYet')}</p>
             </div>
           )
         ) : (
@@ -206,7 +208,7 @@ const ChatPanel = ({ conversation, onMessageSent, onConversationRead }) => {
         <textarea
           ref={textareaRef}
           className="message-input"
-          placeholder="Type your message here..."
+          placeholder={t('chat.typeMessage')}
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           onKeyDown={(e) => {
@@ -224,7 +226,7 @@ const ChatPanel = ({ conversation, onMessageSent, onConversationRead }) => {
           type="submit" 
           className="send-button"
           disabled={!newMessage.trim() || sending}
-          title="Send message"
+          title={t('chat.sendMessage')}
         >
           <Send size={20} />
         </button>

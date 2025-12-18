@@ -32,7 +32,7 @@ i18n
 const RTL_LANGS = ['ar'];
 
 function setHtmlLangDir(lang) {
-    if (!typeof window === 'undefined' && document && document.documentElement) {
+    if (typeof window !== 'undefined' && document && document.documentElement) {
         try {
             const normalized = (lang || '').split('-')[0];
             document.documentElement.lang = lang || 'en';

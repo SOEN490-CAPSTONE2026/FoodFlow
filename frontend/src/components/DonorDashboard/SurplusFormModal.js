@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { useTranslation } from 'react-i18next';
 import { X, Calendar, Clock, Plus, Trash2 } from "lucide-react";
 import { Autocomplete } from "@react-google-maps/api";
 import Select from "react-select";
@@ -8,21 +9,23 @@ import "./Donor_Styles/SurplusFormModal.css";
 import "react-datepicker/dist/react-datepicker.css";
 
 const SurplusFormModal = ({ isOpen, onClose }) => {
+  const { t } = useTranslation();
+  
   const foodTypeOptions = [
-    { value: "PREPARED_MEALS", label: "Prepared Meals" },
-    { value: "BAKERY_PASTRY", label: "Bakery & Pastry" },
-    { value: "FRUITS_VEGETABLES", label: "Fruits & Vegetables" },
-    { value: "PACKAGED_PANTRY", label: "Packaged / Pantry Items" },
-    { value: "DAIRY_COLD", label: "Dairy & Cold Items" },
-    { value: "FROZEN", label: "Frozen Food" },
+    { value: "PREPARED_MEALS", label: t('surplusForm.foodTypes.preparedMeals') },
+    { value: "BAKERY_PASTRY", label: t('surplusForm.foodTypes.bakeryPastry') },
+    { value: "FRUITS_VEGETABLES", label: t('surplusForm.foodTypes.fruitsVegetables') },
+    { value: "PACKAGED_PANTRY", label: t('surplusForm.foodTypes.packagedPantry') },
+    { value: "DAIRY_COLD", label: t('surplusForm.foodTypes.dairyCold') },
+    { value: "FROZEN", label: t('surplusForm.foodTypes.frozen') },
   ];
 
   const unitOptions = [
-    { value: "KILOGRAM", label: "kg" },
-    { value: "ITEM", label: "items" },
-    { value: "LITER", label: "liters" },
-    { value: "POUND", label: "lbs" },
-    { value: "BOX", label: "boxes" },
+    { value: "KILOGRAM", label: t('surplusForm.units.kilogram') },
+    { value: "ITEM", label: t('surplusForm.units.item') },
+    { value: "LITER", label: t('surplusForm.units.liter') },
+    { value: "POUND", label: t('surplusForm.units.pound') },
+    { value: "BOX", label: t('surplusForm.units.box') },
   ];
 
   const [formData, setFormData] = useState({
@@ -134,7 +137,7 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
     try {
       const response = await surplusAPI.create(submissionData);
 
-      setMessage(`Success! Post created with ID: ${response.data.id}`);
+      setMessage(t('surplusForm.success', { id: response.data.id }));
       setFormData({
         title: "",
         quantityValue: "",
@@ -159,12 +162,12 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
         onClose();
       }, 1500);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to create surplus post");
+      setError(err.response?.data?.message || t('surplusForm.failed'));
     }
   };
 
   const handleCancel = () => {
-    if (window.confirm("Cancel donation creation?")) {
+    if (window.confirm(t('surplusForm.cancelConfirm'))) {
       setFormData({
         title: "",
         quantityValue: "",
@@ -192,7 +195,7 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
     <div className="modal-overlay" onClick={handleCancel}>
       <div className="modal-container" onClick={(e) => e.stopPropagation()}>
         <div className="surplus-modal-header">
-          <h2>Add New Donation</h2>
+          <h2>{t('surplusForm.title')}</h2>
           <button className="close-button" onClick={handleCancel}>
             <X size={24} />
           </button>
@@ -201,14 +204,14 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
         <form onSubmit={handleSubmit} className="modal-form">
           {/* Title */}
           <div className="form-section">
-            <label className="input-label">Title</label>
+            <label className="input-label">{t('surplusForm.titleLabel')}</label>
             <input
               type="text"
               name="title"
               value={formData.title}
               onChange={handleChange}
               className="input-field"
-              placeholder="e.g., Vegetable Lasagna"
+              placeholder={t('surplusForm.titlePlaceholder')}
               required
             />
           </div>
@@ -216,7 +219,7 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
           {/* Categories & Expiry */}
           <div className="form-section row-group">
             <div className="input-group half-width">
-              <label className="input-label">Food Categories</label>
+              <label className="input-label">{t('surplusForm.foodCategoriesLabel')}</label>
               <Select
                 isMulti
                 options={foodTypeOptions}
@@ -225,13 +228,13 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
                   setFormData((prev) => ({ ...prev, foodCategories: selected }))
                 }
                 classNamePrefix="react-select"
-                placeholder="Select categories"
+                placeholder={t('surplusForm.foodCategoriesPlaceholder')}
                 required
               />
             </div>
 
             <div className="input-group half-width">
-              <label className="input-label">Expiry Date</label>
+              <label className="input-label">{t('surplusForm.expiryDateLabel')}</label>
               <DatePicker
                 selected={formData.expiryDate}
                 onChange={(date) =>
@@ -240,7 +243,7 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
                 minDate={new Date()}
                 dateFormat="yyyy-MM-dd"
                 className="input-field"
-                placeholderText="Select expiry date"
+                placeholderText={t('surplusForm.expiryDatePlaceholder')}
                 required
               />
             </div>
@@ -249,14 +252,14 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
           {/* Quantity */}
           <div className="form-section row-group">
             <div className="input-group half-width">
-              <label className="input-label">Quantity</label>
+              <label className="input-label">{t('surplusForm.quantityLabel')}</label>
               <input
                 type="number"
                 name="quantityValue"
                 value={formData.quantityValue}
                 onChange={handleChange}
                 className="input-field"
-                placeholder="0"
+                placeholder={t('surplusForm.quantityPlaceholder')}
                 min="0"
                 step="0.1"
                 required
@@ -264,7 +267,7 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
             </div>
 
             <div className="input-group half-width">
-              <label className="input-label">Unit</label>
+              <label className="input-label">{t('surplusForm.unitLabel')}</label>
               <Select
                 name="quantityUnit"
                 options={unitOptions}
@@ -278,7 +281,7 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
                   }))
                 }
                 classNamePrefix="react-select"
-                placeholder="Select unit"
+                placeholder={t('surplusForm.unitPlaceholder')}
                 required
               />
             </div>
@@ -287,20 +290,20 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
           {/* Pickup Time Slots */}
           <div className="form-section">
             <div className="pickup-slots-header">
-              <label className="input-label">Pickup Time Slots</label>
+              <label className="input-label">{t('surplusForm.pickupTimeSlotsLabel')}</label>
               <button
                 type="button"
                 className="btn-add-slot"
                 onClick={addPickupSlot}
               >
-                <Plus size={16} /> Add Another Slot
+                <Plus size={16} /> {t('surplusForm.addAnotherSlot')}
               </button>
             </div>
 
             {pickupSlots.map((slot, index) => (
               <div key={index} className="pickup-slot-card">
                 <div className="slot-header">
-                  <span className="slot-number">Slot {index + 1}</span>
+                  <span className="slot-number">{t('surplusForm.slot')} {index + 1}</span>
                   {pickupSlots.length > 1 && (
                     <button
                       type="button"
@@ -315,7 +318,7 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
                 <div className="slot-content">
                   <div className="slot-row">
                     <div className="input-group third-width">
-                      <label className="input-label-small">Date</label>
+                      <label className="input-label-small">{t('surplusForm.dateLabel')}</label>
                       <DatePicker
                         selected={slot.pickupDate}
                         onChange={(date) =>
@@ -324,13 +327,13 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
                         minDate={new Date()}
                         dateFormat="yyyy-MM-dd"
                         className="input-field-small"
-                        placeholderText="Select date"
+                        placeholderText={t('surplusForm.datePlaceholder')}
                         required
                       />
                     </div>
 
                     <div className="input-group third-width">
-                      <label className="input-label-small">Start Time</label>
+                      <label className="input-label-small">{t('surplusForm.startTimeLabel')}</label>
                       <DatePicker
                         selected={slot.startTime}
                         onChange={(date) =>
@@ -339,16 +342,16 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
                         showTimeSelect
                         showTimeSelectOnly
                         timeIntervals={15}
-                        timeCaption="Time"
+                        timeCaption={t('common.time', 'Time')}
                         dateFormat="HH:mm"
                         className="input-field-small"
-                        placeholderText="Start"
+                        placeholderText={t('surplusForm.startTimePlaceholder')}
                         required
                       />
                     </div>
 
                     <div className="input-group third-width">
-                      <label className="input-label-small">End Time</label>
+                      <label className="input-label-small">{t('surplusForm.endTimeLabel')}</label>
                       <DatePicker
                         selected={slot.endTime}
                         onChange={(date) =>
@@ -357,10 +360,10 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
                         showTimeSelect
                         showTimeSelectOnly
                         timeIntervals={15}
-                        timeCaption="Time"
+                        timeCaption={t('common.time', 'Time')}
                         dateFormat="HH:mm"
                         className="input-field-small"
-                        placeholderText="End"
+                        placeholderText={t('surplusForm.endTimePlaceholder')}
                         required
                       />
                     </div>
@@ -369,7 +372,7 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
                   <div className="slot-row">
                     <div className="input-group full-width">
                       <label className="input-label-small">
-                        Notes (optional)
+                        {t('surplusForm.notesLabel')}
                       </label>
                       <input
                         type="text"
@@ -378,7 +381,7 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
                           updatePickupSlot(index, "notes", e.target.value)
                         }
                         className="input-field-small"
-                        placeholder="e.g., Use back entrance, Ask for manager"
+                        placeholder={t('surplusForm.notesPlaceholder')}
                       />
                     </div>
                   </div>
@@ -389,7 +392,7 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
 
           {/* Location */}
           <div className="form-section">
-            <label className="input-label">Pickup Location</label>
+            <label className="input-label">{t('surplusForm.pickupLocationLabel')}</label>
             <Autocomplete
               onLoad={onLoadAutocomplete}
               onPlaceChanged={onPlaceChanged}
@@ -408,7 +411,7 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
                   }))
                 }
                 className="input-field"
-                placeholder="Start typing address..."
+                placeholder={t('surplusForm.pickupLocationPlaceholder')}
                 required
               />
             </Autocomplete>
@@ -416,13 +419,13 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
 
           {/* Description */}
           <div className="form-section">
-            <label className="input-label">Description</label>
+            <label className="input-label">{t('surplusForm.descriptionLabel')}</label>
             <textarea
               name="description"
               value={formData.description}
               onChange={handleChange}
               className="input-field textarea"
-              placeholder="Describe the food (ingredients, freshness, etc.)"
+              placeholder={t('surplusForm.descriptionPlaceholder')}
               rows="4"
               required
             />
@@ -439,10 +442,10 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
               className="btn btn-cancel"
               onClick={handleCancel}
             >
-              Cancel
+              {t('surplusForm.cancel')}
             </button>
             <button type="submit" className="btn btn-create">
-              Create Donation
+              {t('surplusForm.createDonation')}
             </button>
           </div>
         </form>

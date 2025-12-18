@@ -164,7 +164,10 @@
     "about": "About",
     "logout": "Logout",
     "profile": "Profile",
-    "download": "Download"
+    "download": "Download",
+    "hidePassword": "Hide password",
+    "showPassword": "Show password",
+    "time": "Time"
   },
   "validation": {
     "required": "This field is required",
@@ -197,5 +200,263 @@
     "network": "Network error. Please try again.",
     "server": "Server error. Contact support.",
     "validation": "Please check the fields and try again."
+  },
+  "landing": {
+    "home": {
+      "title1": "Connect surplus with",
+      "title2": "those in need",
+      "title3": "Receive quality food",
+      "title4": "for your community",
+      "description": "Connecting food businesses with community organizations. Turn surplus into impact—whether it's event leftovers, restaurant excess, or grocery overstock.",
+      "joinUs": "Join Us Now"
+    },
+    "about": {
+      "title": "About FoodFlow",
+      "subtitle": "Our platform connects food donors with verified organizations to reduce waste and fight hunger through smart technology and community collaboration.",
+      "verifiedOrgs": {
+        "title": "Verified Organizations",
+        "content": "All our partner organizations undergo thorough verification and background checks to ensure safety, legitimacy, and compliance with food safety standards."
+      },
+      "realTimeNotifications": {
+        "title": "Real-Time Notifications",
+        "content": "Instant alerts when food donations become available. Our system tracks temperature, pickup times, and compliance automatically for complete transparency."
+      },
+      "smartMatching": {
+        "title": "Smart Matching",
+        "content": "Our intelligent algorithm matches food type, quantity, and location with the most suitable nearby organization to maximize efficiency and impact."
+      }
+    },
+    "howItWorks": {
+      "title": "How FoodFlow Works",
+      "subtitle": "Surplus food reaches charities in minutes, not hours. Our smart matching prevents good food from going to waste.",
+      "step1": {
+        "number": "01",
+        "title": "Post Surplus Instantly",
+        "text": "Restaurants, events, and stores post surplus food with quantity, pickup location, and time window before it spoils."
+      },
+      "step2": {
+        "number": "02",
+        "title": "Smart Instant Matching",
+        "text": "Our algorithm instantly alerts the nearest verified charity, shelter, or volunteer who can pick up within the time window."
+      },
+      "step3": {
+        "number": "03",
+        "title": "Tracked Safe Pickup",
+        "text": "Built-in food safety tracking logs temperature, expiry dates, and pickup times for compliance while ensuring meals reach people fast."
+      }
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "q1": {
+        "question": "How can I use FoodFlow to donate my surplus food?",
+        "answer": "Donating surplus food through FoodFlow is simple! First, create an account on our platform. Once logged in, you can quickly post available surplus food by providing details like food type, quantity, pickup location, and time window. Nearby charities and community organizations will be instantly notified and can claim the donation."
+      },
+      "q2": {
+        "question": "What kind of organizations can receive food through FoodFlow?",
+        "answer": "FoodFlow works with verified charitable organizations including food banks, homeless shelters, community kitchens, schools, and non-profits serving vulnerable populations. All receiving organizations undergo a verification process to ensure they can properly handle and distribute food according to safety standards."
+      },
+      "q3": {
+        "question": "Is there any cost to use FoodFlow?",
+        "answer": "FoodFlow is completely free for both food donors and receiving organizations. Our mission is to reduce food waste and help communities, so we've designed the platform to be accessible to everyone."
+      },
+      "q4": {
+        "question": "How does FoodFlow ensure food safety?",
+        "answer": "Food safety is our top priority. Our platform includes built-in safety guidelines and tracking features. Donors provide information about storage conditions, preparation time, and expiration dates. We also provide temperature logging for perishable items and ensure all pickups happen within safe time windows."
+      }
+    }
+  },
+  "login": {
+    "title": "Log in to your account",
+    "backHome": "← Back Home",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "Enter your email",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "forgotPassword": "Forgot password?",
+    "loggingIn": "Logging in…",
+    "logIn": "LOG IN",
+    "dontHaveAccount": "Don't have an account?",
+    "signUp": "Sign up"
+  },
+  "donorRegistration": {
+    "title": "Register as a Donor",
+    "description": "Your generosity provides meals, care, and hope for families in need. Every donation helps strengthen communities and build a brighter, kinder future together, we can make lasting change!",
+    "emailLabel": "Email Address",
+    "emailPlaceholder": "Enter your email address",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "passwordMinLength": "Minimum 8 characters",
+    "organizationNameLabel": "Organization Name",
+    "organizationNamePlaceholder": "Enter your organization name",
+    "contactPersonLabel": "Contact Person",
+    "contactPersonPlaceholder": "Enter your contact person's name",
+    "phoneLabel": "Phone Number",
+    "phonePlaceholder": "Enter your phone number",
+    "addressLabel": "Address",
+    "addressPlaceholder": "Enter your address",
+    "organizationTypeLabel": "Organization Type",
+    "organizationTypeRestaurant": "Restaurant",
+    "organizationTypeGrocery": "Grocery Store",
+    "organizationTypeEvent": "Event Organizer",
+    "businessLicenseLabel": "Business License Number",
+    "businessLicensePlaceholder": "Enter your business license number",
+    "businessLicenseOptional": "Optional but recommended for verification",
+    "back": "Back",
+    "registering": "Registering...",
+    "registerAsDonor": "Register as Donor",
+    "registrationSuccess": "Registration successful! Welcome to FoodFlow.",
+    "registrationFailed": "Registration failed. Please try again."
+  },
+  "receiverRegistration": {
+    "title": "Register as Receiver",
+    "description": "Join our network to receive quality food donations for your community. We connect you with local businesses to reduce waste and support those in need. Together, we can create sustainable solutions for food distribution.",
+    "emailLabel": "Email Address",
+    "emailPlaceholder": "Enter your email address",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "passwordMinLength": "Minimum 8 characters",
+    "organizationNameLabel": "Organization Name",
+    "organizationNamePlaceholder": "Enter your organization name",
+    "contactPersonLabel": "Contact Person",
+    "contactPersonPlaceholder": "Enter your contact person name",
+    "phoneLabel": "Phone Number",
+    "phonePlaceholder": "Enter your phone number",
+    "addressLabel": "Address",
+    "addressPlaceholder": "Enter your address",
+    "organizationTypeLabel": "Organization Type",
+    "organizationTypeCharity": "Charity",
+    "organizationTypeShelter": "Shelter",
+    "organizationTypeKitchen": "Community Kitchen",
+    "capacityLabel": "Daily Capacity (People Served)",
+    "capacityPlaceholder": "Enter your daily capacity",
+    "capacityHint": "Approximate number of people you serve daily",
+    "back": "Back",
+    "registering": "Registering...",
+    "registerAsReceiver": "Register as Receiver",
+    "registrationSuccess": "Registration successful! Welcome to FoodFlow.",
+    "registrationFailed": "Registration failed. Please try again."
+  },
+  "donorWelcome": {
+    "welcomeBack": "Welcome back, {{name}}",
+    "totalDonations": "Total Donations",
+    "mealsServed": "Meals Served",
+    "co2Saved": "CO₂ Saved",
+    "donateFood": {
+      "title": "Donate Food",
+      "description": "Submit a new donation to share with community organizations",
+      "button": "Create Donation"
+    },
+    "impactReports": {
+      "title": "Impact Reports",
+      "description": "View detailed statistics about your donation impact",
+      "button": "View Reports"
+    },
+    "recentDonations": "Recent Donations",
+    "viewAll": "View All",
+    "noDonationsYet": "No donations yet. Create your first donation to get started!",
+    "noNameYet": "No name yet",
+    "foodDonation": "Food donation",
+    "status": {
+      "available": "Available",
+      "claimed": "Claimed",
+      "completed": "Completed",
+      "readyForPickup": "Ready for Pickup",
+      "notCompleted": "Not Completed",
+      "expired": "Expired"
+    }
+  },
+  "receiverWelcome": {
+    "title": "Find Food Near You",
+    "subtitle": "We help organizations connect with available food—quickly and reliably. Start with the map to see nearby donations and request what you need today.",
+    "tip": "Tip: Set your pickup hours and capacity to get matched faster.",
+    "searchMap": {
+      "title": "Search the map",
+      "description": "Browse current listings and filter by category or expiry to quickly find the items your organization needs.",
+      "button": "Open map & search"
+    },
+    "needAssistance": {
+      "title": "Need assistance?",
+      "description": "Email us at {{email}} and we'll help you coordinate a pickup.",
+      "newHere": "New here? Read common questions.",
+      "button": "View FAQs"
+    }
+  },
+  "surplusForm": {
+    "title": "Add New Donation",
+    "cancelConfirm": "Cancel donation creation?",
+    "titleLabel": "Title",
+    "titlePlaceholder": "e.g., Vegetable Lasagna",
+    "foodCategoriesLabel": "Food Categories",
+    "foodCategoriesPlaceholder": "Select categories",
+    "expiryDateLabel": "Expiry Date",
+    "expiryDatePlaceholder": "Select expiry date",
+    "quantityLabel": "Quantity",
+    "quantityPlaceholder": "0",
+    "unitLabel": "Unit",
+    "unitPlaceholder": "Select unit",
+    "pickupTimeSlotsLabel": "Pickup Time Slots",
+    "addAnotherSlot": "Add Another Slot",
+    "slot": "Slot",
+    "dateLabel": "Date",
+    "datePlaceholder": "Select date",
+    "startTimeLabel": "Start Time",
+    "startTimePlaceholder": "Start",
+    "endTimeLabel": "End Time",
+    "endTimePlaceholder": "End",
+    "notesLabel": "Notes (optional)",
+    "notesPlaceholder": "e.g., Use back entrance, Ask for manager",
+    "pickupLocationLabel": "Pickup Location",
+    "pickupLocationPlaceholder": "Start typing address...",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Describe the food (ingredients, freshness, etc.)",
+    "cancel": "Cancel",
+    "createDonation": "Create Donation",
+    "success": "Success! Post created with ID: {{id}}",
+    "failed": "Failed to create surplus post",
+    "foodTypes": {
+      "preparedMeals": "Prepared Meals",
+      "bakeryPastry": "Bakery & Pastry",
+      "fruitsVegetables": "Fruits & Vegetables",
+      "packagedPantry": "Packaged / Pantry Items",
+      "dairyCold": "Dairy & Cold Items",
+      "frozen": "Frozen Food"
+    },
+    "units": {
+      "kilogram": "kg",
+      "item": "items",
+      "liter": "liters",
+      "pound": "lbs",
+      "box": "boxes"
+    }
+  },
+  "chat": {
+    "noConversationSelected": "No conversation selected",
+    "selectConversation": "Select a conversation from the sidebar or start a new one",
+    "with": "with",
+    "claimed": "Claimed",
+    "viewPost": "View Post",
+    "noMessagesYet": "No messages yet. Start the conversation!",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "typeMessage": "Type your message here...",
+    "sendMessage": "Send message",
+    "failedToSend": "Failed to send message"
+  },
+  "messaging": {
+    "failedToLoad": "Failed to load conversations"
+  },
+  "footer": {
+    "description": "Discover a charity shop platform designed to revolutionize food distribution. Connect charities with food sources across distances, enhance communications and ensure fresh food reaches those in need. FoodFlow boosts an intuitive and user-friendly interface.",
+    "company": "Company",
+    "home": "Home",
+    "howItWorks": "How it works",
+    "about": "About Us",
+    "faqs": "FAQs",
+    "contact": "Contact",
+    "email": "foodflow.group@gmail.com",
+    "phone": "1-800-122-4567",
+    "copyright": "Copyright © 2025. All right reserved to FoodFlow",
+    "privacyPolicy": "Privacy Policy",
+    "termsConditions": "Terms & Conditions"
   }
 }

@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { AuthContext } from '../contexts/AuthContext';
 import { FaBars, FaTimes } from 'react-icons/fa';
 import Logo from "../assets/Logo.png";
@@ -8,19 +9,21 @@ import '../style/NavigationBar.css';
 const NavigationBar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t, i18n } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { isLoggedIn, role } = useContext(AuthContext);
   const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState('EN');
 
   const languages = [
-    { code: 'EN', name: 'English', flag: '🇬🇧' },
-    { code: 'FR', name: 'Français', flag: '🇫🇷' },
-    { code: 'ES', name: 'Español', flag: '🇪🇸' },
-    { code: 'ZH', name: '中文', flag: '🇨🇳' },
-    { code: 'AR', name: 'العربية', flag: '🇸🇦' },
-    { code: 'PT', name: 'Português', flag: '🇵🇹' },
+    { code: 'en', name: t('language.english'), flag: '🇬🇧' },
+    { code: 'fr', name: t('language.french'), flag: '🇫🇷' },
+    { code: 'es', name: t('language.spanish'), flag: '🇪🇸' },
+    { code: 'zh', name: t('language.chinese'), flag: '🇨🇳' },
+    { code: 'ar', name: t('language.arabic'), flag: '🇸🇦' },
+    { code: 'pt', name: t('language.portuguese'), flag: '🇵🇹' },
   ];
+
+  const currentLanguage = languages.find(lang => lang.code === i18n.language.split('-')[0]) || languages[0];
 
   const [from, setFrom] = useState(
     () => location.state?.from || sessionStorage.getItem('returnFrom') || null
@@ -91,9 +94,8 @@ const NavigationBar = () => {
   };
 
   const handleLanguageSelect = (langCode) => {
-    setSelectedLanguage(langCode);
+    i18n.changeLanguage(langCode);
     setIsLangDropdownOpen(false);
-    console.log(`Language selected: ${langCode}`);
   };
 
   const toggleLangDropdown = () => {
@@ -130,31 +132,31 @@ const NavigationBar = () => {
       <div id="primary-menu" className={`menu ${isMenuOpen ? 'active' : ''}`}>
         <ul>
           <li>
-            <a href="#home" onClick={(e) => scrollToSection('home', e)}>Home</a>
+            <a href="#home" onClick={(e) => scrollToSection('home', e)}>{t('nav.home')}</a>
           </li>
           <li>
-            <a href="#how-it-works" onClick={(e) => scrollToSection('how-it-works', e)}>How it works</a>
+            <a href="#how-it-works" onClick={(e) => scrollToSection('how-it-works', e)}>{t('nav.howItWorks')}</a>
           </li>
           <li>
-            <a href="#about" onClick={(e) => scrollToSection('about', e)}>About Us</a>
+            <a href="#about" onClick={(e) => scrollToSection('about', e)}>{t('nav.about')}</a>
           </li>
           <li>
-            <a href="#faqs" onClick={(e) => scrollToSection('faqs', e)}>FAQs</a>
+            <a href="#faqs" onClick={(e) => scrollToSection('faqs', e)}>{t('nav.faqs')}</a>
           </li>
           <li>
-            <a href="#contact" onClick={(e) => scrollToSection('contact', e)}>Contact Us</a>
+            <a href="#contact" onClick={(e) => scrollToSection('contact', e)}>{t('nav.contact')}</a>
           </li>
         </ul>
 
         <div className="mobile-buttons">
           {isLoggedIn ? (
             <button className="signup-button" onClick={handleReturnToDashboard}>
-              Return to Dashboard
+              {t('nav.returnToDashboard')}
             </button>
           ) : (
             <>
-              <button className="login-button" onClick={handleLogin}>Login</button>
-              <button className="signup-button" onClick={handleSignUp}>Register</button>
+              <button className="login-button" onClick={handleLogin}>{t('nav.login')}</button>
+              <button className="signup-button" onClick={handleSignUp}>{t('nav.register')}</button>
             </>
           )}
           
@@ -164,9 +166,9 @@ const NavigationBar = () => {
               <button 
                 className="lang-button"
                 onClick={toggleLangDropdown}
-                aria-label="Select Language"
+                aria-label={t('language.select')}
               >
-                {selectedLanguage} ▼
+                {currentLanguage.code.toUpperCase()} ▼
               </button>
               
               {isLangDropdownOpen && (
@@ -174,12 +176,12 @@ const NavigationBar = () => {
                   {languages.map((lang) => (
                     <button
                       key={lang.code}
-                      className={`lang-option ${selectedLanguage === lang.code ? 'selected' : ''}`}
+                      className={`lang-option ${i18n.language.split('-')[0] === lang.code ? 'selected' : ''}`}
                       onClick={() => handleLanguageSelect(lang.code)}
                     >
                       <span className="lang-flag">{lang.flag}</span>
                       <span className="lang-name">{lang.name}</span>
-                      {selectedLanguage === lang.code && <span className="lang-check">✓</span>}
+                      {i18n.language.split('-')[0] === lang.code && <span className="lang-check">✓</span>}
                     </button>
                   ))}
                 </div>
@@ -192,12 +194,12 @@ const NavigationBar = () => {
       <div className="buttons">
         {isLoggedIn ? (
           <button className="signup-button" onClick={handleReturnToDashboard}>
-            Return to Dashboard
+            {t('nav.returnToDashboard')}
           </button>
         ) : (
           <>
-            <button className="login-button" onClick={handleLogin}>Login</button>
-            <button className="signup-button" onClick={handleSignUp}>Register</button>
+            <button className="login-button" onClick={handleLogin}>{t('nav.login')}</button>
+            <button className="signup-button" onClick={handleSignUp}>{t('nav.register')}</button>
           </>
         )}
         
@@ -207,9 +209,9 @@ const NavigationBar = () => {
             <button 
               className="lang-button"
               onClick={toggleLangDropdown}
-              aria-label="Select Language"
+              aria-label={t('language.select')}
             >
-              {selectedLanguage} ▼
+              {currentLanguage.code.toUpperCase()} ▼
             </button>
             
             {isLangDropdownOpen && (
@@ -217,12 +219,12 @@ const NavigationBar = () => {
                 {languages.map((lang) => (
                   <button
                     key={lang.code}
-                    className={`lang-option ${selectedLanguage === lang.code ? 'selected' : ''}`}
+                    className={`lang-option ${i18n.language.split('-')[0] === lang.code ? 'selected' : ''}`}
                     onClick={() => handleLanguageSelect(lang.code)}
                   >
                     <span className="lang-flag">{lang.flag}</span>
                     <span className="lang-name">{lang.name}</span>
-                    {selectedLanguage === lang.code && <span className="lang-check">✓</span>}
+                    {i18n.language.split('-')[0] === lang.code && <span className="lang-check">✓</span>}
                   </button>
                 ))}
               </div>
