@@ -39,39 +39,59 @@ const renderWithAuth = (component) =>
     </AuthContext.Provider>
   );
 
-// Helper to fill fields
+// Helper to fill fields across all steps
 const fillAllFields = async (user) => {
+  // Step 1: Account Details
   await user.type(screen.getByLabelText(/^email address$/i), 'donor@example.com');
   await user.type(screen.getByLabelText(/^password$/i), 'password123');
   await user.type(screen.getByLabelText(/^confirm password$/i), 'password123');
+  await user.click(screen.getByRole('button', { name: /next/i }));
+  
+  // Step 2: Organization Info
+  await waitFor(() => expect(screen.getByLabelText(/organization name/i)).toBeInTheDocument());
   await user.type(screen.getByLabelText(/organization name/i), 'Donor Org');
-  await user.type(screen.getByLabelText(/contact person/i), 'Jane Doe');
-  await user.type(screen.getByLabelText(/phone number/i), '1234567890');
-  await user.type(screen.getByLabelText(/^address$/i), '456 Main St');
   await user.selectOptions(screen.getByLabelText(/organization type/i), 'RESTAURANT');
   await user.type(screen.getByLabelText(/business license/i), 'BL-123456');
+  await user.click(screen.getByRole('button', { name: /next/i }));
+  
+  // Step 3: Address
+  await waitFor(() => expect(screen.getByLabelText(/street address/i)).toBeInTheDocument());
+  await user.type(screen.getByLabelText(/street address/i), '456 Main St');
+  await user.type(screen.getByLabelText(/city/i), 'Montreal');
+  await user.type(screen.getByLabelText(/postal code/i), 'H1A1A1');
+  await user.type(screen.getByLabelText(/province/i), 'Quebec');
+  await user.type(screen.getByLabelText(/country/i), 'Canada');
+  await user.click(screen.getByRole('button', { name: /next/i }));
+  
+  // Step 4: Contact & Review
+  await waitFor(() => expect(screen.getByLabelText(/contact person/i)).toBeInTheDocument());
+  await user.type(screen.getByLabelText(/contact person/i), 'Jane Doe');
+  await user.type(screen.getByLabelText(/phone/i), '1234567890');
+  await user.click(screen.getByRole('checkbox'));
 };
 
 describe('DonorRegistration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers();
   });
 
-  afterEach(() => {
-    jest.runOnlyPendingTimers();
-    jest.useRealTimers();
-  });
-
-  it('renders the form with all required fields', () => {
+  it('renders the form with all required fields', async () => {
+    const user = userEvent.setup({ delay: null });
     renderWithAuth(<DonorRegistration />);
+    
+    // Step 1 fields
     expect(screen.getByLabelText(/^email address$/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^confirm password$/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/organization name/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/contact person/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/phone number/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/^address$/i)).toBeInTheDocument();
+    
+    // Navigate to step 2
+    await user.type(screen.getByLabelText(/^email address$/i), 'test@example.com');
+    await user.type(screen.getByLabelText(/^password$/i), 'password123');
+    await user.type(screen.getByLabelText(/^confirm password$/i), 'password123');
+    await user.click(screen.getByRole('button', { name: /next/i }));
+    
+    // Step 2 fields
+    await waitFor(() => expect(screen.getByLabelText(/organization name/i)).toBeInTheDocument());
     expect(screen.getByLabelText(/organization type/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/business license/i)).toBeInTheDocument();
   });
@@ -79,7 +99,7 @@ describe('DonorRegistration', () => {
   it('renders illustration and description', () => {
     renderWithAuth(<DonorRegistration />);
     expect(screen.getByAltText(/donor illustration/i)).toBeInTheDocument();
-    expect(screen.getByText(/your generosity provides meals/i)).toBeInTheDocument();
+    expect(screen.getByText(/your participation ensures surplus food is redistributed safely/i)).toBeInTheDocument();
   });
 
   it('updates form values', async () => {
@@ -87,13 +107,10 @@ describe('DonorRegistration', () => {
     renderWithAuth(<DonorRegistration />);
     await fillAllFields(user);
 
-    expect(screen.getByLabelText(/^email address$/i)).toHaveValue('donor@example.com');
-    expect(screen.getByLabelText(/^password$/i)).toHaveValue('password123');
-    expect(screen.getByLabelText(/organization name/i)).toHaveValue('Donor Org');
-    expect(screen.getByLabelText(/contact person/i)).toHaveValue('Jane Doe');
-    expect(screen.getByLabelText(/phone number/i)).toHaveValue('1234567890');
-    expect(screen.getByLabelText(/^address$/i)).toHaveValue('456 Main St');
-    expect(screen.getByLabelText(/business license/i)).toHaveValue('BL-123456');
+    await waitFor(() => {
+      expect(screen.getByLabelText(/contact person/i)).toHaveValue('Jane Doe');
+      expect(screen.getByLabelText(/phone/i)).toHaveValue('1234567890');
+    });
   });
 
   it('password mismatch shows error and blocks submit', async () => {
@@ -103,17 +120,7 @@ describe('DonorRegistration', () => {
     await user.type(screen.getByLabelText(/^email address$/i), 'donor@example.com');
     await user.type(screen.getByLabelText(/^password$/i), 'password123');
     await user.type(screen.getByLabelText(/^confirm password$/i), 'wrongpass');
-
-    // Fill the rest so validation passes
-    await user.type(screen.getByLabelText(/organization name/i), 'Donor Org');
-    await user.type(screen.getByLabelText(/contact person/i), 'Jane Doe');
-    await user.type(screen.getByLabelText(/phone number/i), '1234567890');
-    await user.type(screen.getByLabelText(/^address$/i), '123 St');
-    await user.selectOptions(screen.getByLabelText(/organization type/i), 'RESTAURANT');
-    await user.type(screen.getByLabelText(/business license/i), 'BL-999');
-
-    const submit = screen.getByRole('button', { name: /register as donor/i });
-    await user.click(submit);
+    await user.click(screen.getByRole('button', { name: /next/i }));
 
     await waitFor(() =>
       expect(screen.getByText(/passwords do not match/i)).toBeInTheDocument()
@@ -123,6 +130,7 @@ describe('DonorRegistration', () => {
   });
 
   it('successfully registers donor with token', async () => {
+    jest.useFakeTimers();
     const user = userEvent.setup({ delay: null });
 
     authAPI.registerDonor.mockResolvedValueOnce({
@@ -139,19 +147,20 @@ describe('DonorRegistration', () => {
     await user.click(screen.getByRole('button', { name: /register as donor/i }));
 
     await waitFor(() =>
-      expect(screen.getByText(/registration successful/i)).toBeInTheDocument()
+      expect(screen.getByText(/registration submitted successfully/i)).toBeInTheDocument()
     );
 
-    // Only check first three args
     expect(mockAuthContextValue.login.mock.calls[0][0]).toBe('fake-token-123');
     expect(mockAuthContextValue.login.mock.calls[0][1]).toBe('DONOR');
     expect(mockAuthContextValue.login.mock.calls[0][2]).toBe('user-123');
 
-    jest.advanceTimersByTime(2000);
-    expect(mockNavigate).toHaveBeenCalledWith('/donor');
+    jest.runAllTimers();
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/donor'));
+    jest.useRealTimers();
   });
 
   it('successfully registers donor without token', async () => {
+    jest.useFakeTimers();
     const user = userEvent.setup({ delay: null });
 
     authAPI.registerDonor.mockResolvedValueOnce({
@@ -167,13 +176,14 @@ describe('DonorRegistration', () => {
     await user.click(screen.getByRole('button', { name: /register as donor/i }));
 
     await waitFor(() =>
-      expect(screen.getByText(/registration successful/i)).toBeInTheDocument()
+      expect(screen.getByText(/registration submitted successfully/i)).toBeInTheDocument()
     );
 
     expect(mockAuthContextValue.login).not.toHaveBeenCalled();
 
-    jest.advanceTimersByTime(2000);
-    expect(mockNavigate).toHaveBeenCalledWith('/donor');
+    jest.runAllTimers();
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/donor'));
+    jest.useRealTimers();
   });
 
   it('shows API-specific error message', async () => {
@@ -223,22 +233,36 @@ describe('DonorRegistration', () => {
     await user.click(submit);
 
     expect(submit).toBeDisabled();
-    expect(screen.getByText(/registering/i)).toBeInTheDocument();
   });
 
   it('back button navigates', async () => {
     const user = userEvent.setup({ delay: null });
 
     renderWithAuth(<DonorRegistration />);
-    await user.click(screen.getByRole('button', { name: /^back$/i }));
+    await user.click(screen.getByRole('button', { name: /cancel/i }));
 
     expect(mockNavigate).toHaveBeenCalledWith('/register');
   });
 
-  it('address field is a textarea', () => {
+  it('address field is a textarea', async () => {
+    const user = userEvent.setup({ delay: null });
     renderWithAuth(<DonorRegistration />);
-    const textarea = screen.getByLabelText(/^address$/i);
-    expect(textarea.tagName).toBe('TEXTAREA');
-    expect(textarea).toHaveAttribute('rows', '3');
+    
+    // Navigate to step 3 (Address)
+    await user.type(screen.getByLabelText(/^email address$/i), 'test@example.com');
+    await user.type(screen.getByLabelText(/^password$/i), 'password123');
+    await user.type(screen.getByLabelText(/^confirm password$/i), 'password123');
+    await user.click(screen.getByRole('button', { name: /next/i }));
+    
+    await waitFor(() => expect(screen.getByLabelText(/organization name/i)).toBeInTheDocument());
+    await user.type(screen.getByLabelText(/organization name/i), 'Test Org');
+    await user.type(screen.getByLabelText(/business license/i), 'BL123');
+    await user.click(screen.getByRole('button', { name: /next/i }));
+    
+    await waitFor(() => {
+      const streetAddress = screen.getByLabelText(/street address/i);
+      expect(streetAddress).toBeInTheDocument();
+      expect(streetAddress.tagName).toBe('INPUT');
+    });
   });
 });

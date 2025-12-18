@@ -3,6 +3,13 @@ import ReactCountryFlag from 'react-country-flag';
 import { Check, Search } from 'lucide-react';
 import '../style/LanguageSwitcher.css';
 
+import ENIcon from '../assets/lang-icons/EN.svg';
+import FRIcon from '../assets/lang-icons/FR.svg';
+import ESIcon from '../assets/lang-icons/ES.svg';
+import ZHIcon from '../assets/lang-icons/ZH.svg';
+import ARIcon from '../assets/lang-icons/AR.svg';
+import PRIcon from '../assets/lang-icons/PR.svg';
+
 /**
  * LanguageSwitcher component - UI only (no i18n functionality yet)
  * Displays 6 languages with flags, native names, search, and selection indicator
@@ -13,12 +20,12 @@ const LanguageSwitcher = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const languages = [
-    { code: 'en', name: 'English', nativeName: 'English', countryCode: 'GB', dir: 'ltr' },
-    { code: 'fr', name: 'French', nativeName: 'Français', countryCode: 'FR', dir: 'ltr' },
-    { code: 'es', name: 'Spanish', nativeName: 'Español', countryCode: 'ES', dir: 'ltr' },
-    { code: 'zh', name: 'Chinese', nativeName: '中文', countryCode: 'CN', dir: 'ltr' },
-    { code: 'ar', name: 'Arabic', nativeName: 'العربية', countryCode: 'SA', dir: 'rtl' },
-    { code: 'pt', name: 'Portuguese', nativeName: 'Português', countryCode: 'PT', dir: 'ltr' },
+    { code: 'en', name: 'English', nativeName: 'English', dir: 'ltr', icon: ENIcon },
+    { code: 'fr', name: 'French', nativeName: 'Français', dir: 'ltr', icon: FRIcon },
+    { code: 'es', name: 'Spanish', nativeName: 'Español', dir: 'ltr', icon: ESIcon },
+    { code: 'zh', name: 'Chinese', nativeName: '中文', dir: 'ltr', icon: ZHIcon },
+    { code: 'ar', name: 'Arabic', nativeName: 'العربية', dir: 'rtl', icon: ARIcon },
+    { code: 'pt', name: 'Portuguese', nativeName: 'Português', dir: 'ltr', icon: PRIcon },
   ];
 
   const filteredLanguages = languages.filter(lang =>
@@ -61,14 +68,31 @@ const LanguageSwitcher = () => {
           aria-haspopup="listbox"
         >
           <span className="selected-language">
-            <span className="flag-emoji">
-              {selectedLang?.countryCode && (
-                <ReactCountryFlag countryCode={selectedLang.countryCode} svg style={{ width: '1.5em', height: '1.5em' }} title={selectedLang?.name} />
-              )}
+            <span className="language-icon">
+              <img
+                src={selectedLang?.icon}
+                alt=""
+                aria-hidden="true"
+              />
             </span>
             <span className="language-name">{selectedLang?.nativeName}</span>
           </span>
-          <span className={`dropdown-arrow ${isOpen ? 'open' : ''}`}>▼</span>
+          <svg 
+            className={`dropdown-icon ${isOpen ? 'open' : ''}`}
+            width="20" 
+            height="20" 
+            viewBox="0 0 20 20" 
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path 
+              d="M5 7.5L10 12.5L15 7.5" 
+              stroke="currentColor" 
+              strokeWidth="1.5" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            />
+          </svg>
         </button>
 
         {isOpen && (
@@ -95,12 +119,13 @@ const LanguageSwitcher = () => {
                     role="option"
                     aria-selected={selectedLanguage === lang.code}
                   >
-                    <span className="flag-emoji">{lang.flag}</span>
-                <span className="flag-emoji">
-                  {lang.countryCode && (
-                    <ReactCountryFlag countryCode={lang.countryCode} svg style={{ width: '1.5em', height: '1.5em' }} title={lang.name} />
-                  )}
-                </span>
+                    <span className="language-icon">
+                      <img
+                        src={lang.icon}
+                        alt=""
+                        aria-hidden="true"
+                      />
+                    </span>
                     <span className="language-details">
                       <span className="language-native">{lang.nativeName}</span>
                       <span className="language-english">{lang.name}</span>
