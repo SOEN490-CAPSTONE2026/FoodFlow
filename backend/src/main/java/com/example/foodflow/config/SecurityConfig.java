@@ -75,6 +75,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/feed/**").hasAuthority("RECEIVER")
                 .requestMatchers("/api/requests/**").hasAnyAuthority("DONOR", "RECEIVER")
                 
+                // Admin API endpoints
+                .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
+                
                 // Dashboard endpoints
                 .requestMatchers("/donor/**").hasAuthority("DONOR")
                 .requestMatchers("/receiver/**").hasAuthority("RECEIVER")

@@ -34,7 +34,7 @@ const AdminUsers = () => {
     setError(null);
     
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
       const params = {
         page: currentPage,
         size: pageSize,
@@ -44,7 +44,7 @@ const AdminUsers = () => {
       if (statusFilter) params.accountStatus = statusFilter;
       if (debouncedSearchTerm) params.search = debouncedSearchTerm;
       
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/admin/users`, {
+      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/admin/users`, {
         headers: { Authorization: `Bearer ${token}` },
         params
       });
@@ -86,9 +86,9 @@ const AdminUsers = () => {
     }
     
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
       await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/admin/users/${selectedUser.id}/deactivate`,
+        `${process.env.REACT_APP_API_BASE_URL}/admin/users/${selectedUser.id}/deactivate`,
         { adminNotes },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -109,9 +109,9 @@ const AdminUsers = () => {
     if (!selectedUser) return;
     
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
       await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/admin/users/${selectedUser.id}/reactivate`,
+        `${process.env.REACT_APP_API_BASE_URL}/admin/users/${selectedUser.id}/reactivate`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -134,9 +134,9 @@ const AdminUsers = () => {
     }
     
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
       await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/admin/users/${selectedUser.id}/send-alert`,
+        `${process.env.REACT_APP_API_BASE_URL}/admin/users/${selectedUser.id}/send-alert`,
         { message: alertMessage },
         { headers: { Authorization: `Bearer ${token}` } }
       );

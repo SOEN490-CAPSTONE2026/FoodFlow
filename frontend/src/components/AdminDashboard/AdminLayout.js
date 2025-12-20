@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useContext } from "react";
 import { Outlet, useLocation, useNavigate, Link, useNavigationType } from "react-router-dom";
 import {
   Home,
@@ -18,9 +18,11 @@ import {
   X
 } from "lucide-react";
 import Logo from "../../assets/Logo_White.png";
+import { AuthContext } from "../../contexts/AuthContext";
 import "./Admin_Styles/AdminLayout.css";
 
 export default function AdminLayout() {
+  const { logout } = useContext(AuthContext);
   const location = useLocation();
   const navigate = useNavigate();
   const navType = useNavigationType();
@@ -108,13 +110,9 @@ export default function AdminLayout() {
   }, [navType, location.pathname, navigate]);
 
   const handleLogout = () => {
-    try {
-    } finally {
-      localStorage.removeItem("token");
-      sessionStorage.clear();
-      setOpen(false);
-      navigate("/", { replace: true, state: { scrollTo: "home" } });
-    }
+    logout(); // Use AuthContext logout to clear all auth state
+    setOpen(false);
+    navigate("/", { replace: true, state: { scrollTo: "home" } });
   };
 
   const isActive = (path) => {

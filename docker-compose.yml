@@ -49,10 +49,9 @@ services:
       context: ./frontend
       args:
         REACT_APP_GOOGLE_MAPS_API_KEY: ${REACT_APP_GOOGLE_MAPS_API_KEY}
+        REACT_APP_API_BASE_URL: ${REACT_APP_API_BASE_URL}
       dockerfile: Dockerfile
     container_name: foodflow-frontend
-    environment:
-      - REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL}
     ports:
       - "3000:80"
     depends_on:
