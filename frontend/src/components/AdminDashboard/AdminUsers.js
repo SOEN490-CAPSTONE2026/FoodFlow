@@ -12,6 +12,7 @@ const AdminUsers = () => {
   const [roleFilter, setRoleFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   
   // Pagination
   const [currentPage, setCurrentPage] = useState(0);
@@ -41,16 +42,20 @@ const AdminUsers = () => {
       
       if (roleFilter) params.role = roleFilter;
       if (statusFilter) params.accountStatus = statusFilter;
-      if (searchTerm) params.search = searchTerm;
+      if (debouncedSearchTerm) params.search = debouncedSearchTerm;
       
       const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/admin/users`, {
         headers: { Authorization: `Bearer ${token}` },
         params
       });
       
-      setUsers(response.data.content);
-      setFilteredUsers(response.data.content);
-      setTotalPages(response.data.totalPages);
+      // Handle paginated response
+      const content = response.data.content || [];
+      const totalPagesCount = response.data.totalPages || 0;
+      
+      setUsers(content);
+      setFilteredUsers(content);
+      setTotalPages(totalPagesCount);
     } catch (err) {
       console.error('Error fetching users:', err);
       setError('Failed to load users. Please try again.');
@@ -59,9 +64,19 @@ const AdminUsers = () => {
     }
   };
 
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500); // Wait 500ms after user stops typing
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Fetch users when debounced search term or other filters change
   useEffect(() => {
     fetchUsers();
-  }, [currentPage, roleFilter, statusFilter, searchTerm]);
+  }, [currentPage, roleFilter, statusFilter, debouncedSearchTerm]);
 
   // Deactivate user
   const handleDeactivate = async () => {
