@@ -3,6 +3,7 @@ import { Outlet, useLocation, useNavigate, Link, useNavigationType } from "react
 import {
   Home,
   LayoutGrid,
+  Users,
   Heart,
   Calendar as CalendarIcon,
   FileText,
@@ -57,6 +58,8 @@ export default function AdminLayout() {
       case "/admin":
       case "/admin/dashboard":
         return "Admin Dashboard";
+      case "/admin/users":
+        return "User Management";
       case "/admin/analytics":
         return "Analytics";
       case "/admin/calendar":
@@ -75,6 +78,8 @@ export default function AdminLayout() {
       case "/admin":
       case "/admin/dashboard":
         return "Overview and quick actions";
+      case "/admin/users":
+        return "Manage and monitor all platform users";
       case "/admin/analytics":
         return "Metrics and insights";
       case "/admin/calendar":
@@ -156,6 +161,13 @@ export default function AdminLayout() {
               <LayoutGrid size={18} className="lucide" />
             </span>
             Dashboard
+          </Link>
+
+          <Link to="/admin/users" className={`admin-nav-link ${isActive("/admin/users") ? "active" : ""}`}>
+            <span className="nav-icon" aria-hidden>
+              <Users size={18} className="lucide" />
+            </span>
+            Users
           </Link>
 
           <Link to="/admin/analytics" className={`admin-nav-link ${isActive("/admin/analytics") ? "active" : ""}`}>
