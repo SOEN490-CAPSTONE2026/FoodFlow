@@ -68,6 +68,8 @@ public class SurplusService {
         post.setQuantity(request.getQuantity());
         post.setPickupLocation(request.getPickupLocation());
         post.setExpiryDate(request.getExpiryDate());
+        post.setTemperatureCategory(request.getTemperatureCategory());
+        post.setPackagingType(request.getPackagingType());
 
         // Handle pickup slots
         List<PickupSlotRequest> slotsToProcess;
@@ -179,6 +181,8 @@ public class SurplusService {
             : null);
         response.setCreatedAt(post.getCreatedAt());
         response.setUpdatedAt(post.getUpdatedAt());
+        response.setTemperatureCategory(post.getTemperatureCategory());
+        response.setPackagingType(post.getPackagingType());
 
         // Convert pickup slots
         if (post.getPickupSlots() != null && !post.getPickupSlots().isEmpty()) {

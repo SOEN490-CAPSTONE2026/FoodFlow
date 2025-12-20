@@ -4,6 +4,8 @@ import com.example.foodflow.model.types.FoodCategory;
 import com.example.foodflow.model.types.Quantity;
 import com.example.foodflow.model.types.Location;
 import com.example.foodflow.model.types.PostStatus;
+import com.example.foodflow.model.types.TemperatureCategory;
+import com.example.foodflow.model.types.PackagingType;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -38,6 +40,8 @@ public class SurplusResponse {
     private LocalDateTime updatedAt;
     private List<PickupSlotResponse> pickupSlots = new ArrayList<>();
     private PickupSlotResponse confirmedPickupSlot;
+    private TemperatureCategory temperatureCategory;
+    private PackagingType packagingType;
 
     // Constructors
     public SurplusResponse() {}
@@ -84,6 +88,8 @@ public class SurplusResponse {
             : null;
         this.createdAt = surplusPost.getCreatedAt();
         this.updatedAt = surplusPost.getUpdatedAt();
+        this.temperatureCategory = surplusPost.getTemperatureCategory();
+        this.packagingType = surplusPost.getPackagingType();
 
         // Convert pickup slots
         if (surplusPost.getPickupSlots() != null) {
@@ -147,4 +153,10 @@ public class SurplusResponse {
 
     public PickupSlotResponse getConfirmedPickupSlot() { return confirmedPickupSlot; }
     public void setConfirmedPickupSlot(PickupSlotResponse confirmedPickupSlot) { this.confirmedPickupSlot = confirmedPickupSlot; }
+
+    public TemperatureCategory getTemperatureCategory() { return temperatureCategory; }
+    public void setTemperatureCategory(TemperatureCategory temperatureCategory) { this.temperatureCategory = temperatureCategory; }
+
+    public PackagingType getPackagingType() { return packagingType; }
+    public void setPackagingType(PackagingType packagingType) { this.packagingType = packagingType; }
 }

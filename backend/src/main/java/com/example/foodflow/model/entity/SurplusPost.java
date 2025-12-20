@@ -12,6 +12,8 @@ import com.example.foodflow.model.types.FoodCategory;
 import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.model.types.Quantity;
 import com.example.foodflow.model.types.Location;
+import com.example.foodflow.model.types.TemperatureCategory;
+import com.example.foodflow.model.types.PackagingType;
 
 @Entity
 @Table(name = "surplus_posts")
@@ -60,6 +62,14 @@ public class SurplusPost {
 
     @Column(name = "otp_code", length = 6)
     private String otpCode;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "temperature_category")
+    private TemperatureCategory temperatureCategory;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "packaging_type")
+    private PackagingType packagingType;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "donor_id", nullable = false)
@@ -134,6 +144,12 @@ public class SurplusPost {
 
     public List<PickupSlot> getPickupSlots() { return pickupSlots; }
     public void setPickupSlots(List<PickupSlot> pickupSlots) { this.pickupSlots = pickupSlots; }
+
+    public TemperatureCategory getTemperatureCategory() { return temperatureCategory; }
+    public void setTemperatureCategory(TemperatureCategory temperatureCategory) { this.temperatureCategory = temperatureCategory; }
+
+    public PackagingType getPackagingType() { return packagingType; }
+    public void setPackagingType(PackagingType packagingType) { this.packagingType = packagingType; }
 
     public boolean isClaimed() { return status==PostStatus.CLAIMED; }
 }

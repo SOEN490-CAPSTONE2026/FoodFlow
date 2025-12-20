@@ -4,6 +4,8 @@ import com.example.foodflow.model.types.FoodCategory;
 import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.model.types.Quantity;
 import com.example.foodflow.model.types.Location;
+import com.example.foodflow.model.types.TemperatureCategory;
+import com.example.foodflow.model.types.PackagingType;
 
 import jakarta.validation.constraints.*;
 import java.time.LocalDate;
@@ -50,6 +52,12 @@ public class CreateSurplusRequest {
 
     private PostStatus status = PostStatus.AVAILABLE; // default value
 
+    @NotNull(message = "Temperature category is required")
+    private TemperatureCategory temperatureCategory;
+
+    @NotNull(message = "Packaging type is required")
+    private PackagingType packagingType;
+
     // Constructors
     public CreateSurplusRequest() {}
 
@@ -86,4 +94,10 @@ public class CreateSurplusRequest {
 
     public List<PickupSlotRequest> getPickupSlots() { return pickupSlots; }
     public void setPickupSlots(List<PickupSlotRequest> pickupSlots) { this.pickupSlots = pickupSlots; }
+
+    public TemperatureCategory getTemperatureCategory() { return temperatureCategory; }
+    public void setTemperatureCategory(TemperatureCategory temperatureCategory) { this.temperatureCategory = temperatureCategory; }
+
+    public PackagingType getPackagingType() { return packagingType; }
+    public void setPackagingType(PackagingType packagingType) { this.packagingType = packagingType; }
 }
