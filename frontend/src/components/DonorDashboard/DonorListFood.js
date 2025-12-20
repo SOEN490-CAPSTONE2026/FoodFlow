@@ -16,7 +16,7 @@ import { surplusAPI } from "../../services/api";
 import SurplusFormModal from "../DonorDashboard/SurplusFormModal";
 import ConfirmPickupModal from "../DonorDashboard/ConfirmPickupModal";
 import ClaimedSuccessModal from "../DonorDashboard/ClaimedSuccessModal";
-import { getFoodTypeLabel, getUnitLabel } from "../../constants/foodConstants";
+import { getFoodTypeLabel, getUnitLabel, getTemperatureCategoryLabel, getTemperatureCategoryIcon, getPackagingTypeLabel } from "../../constants/foodConstants";
 import "../DonorDashboard/Donor_Styles/DonorListFood.css";
 
 // Define libraries for Google Maps
@@ -346,6 +346,24 @@ export default function DonorListFood() {
                       </span>
                     );
                   })}
+                </div>
+              )}
+
+              {/* Food Safety Compliance Info */}
+              {(item.temperatureCategory || item.packagingType) && (
+                <div className="compliance-badges">
+                  {item.temperatureCategory && (
+                    <span className="compliance-badge temperature">
+                      <span className="badge-icon">{getTemperatureCategoryIcon(item.temperatureCategory)}</span>
+                      <span className="badge-label">{getTemperatureCategoryLabel(item.temperatureCategory)}</span>
+                    </span>
+                  )}
+                  {item.packagingType && (
+                    <span className="compliance-badge packaging">
+                      <Package size={14} />
+                      <span className="badge-label">{getPackagingTypeLabel(item.packagingType)}</span>
+                    </span>
+                  )}
                 </div>
               )}
 

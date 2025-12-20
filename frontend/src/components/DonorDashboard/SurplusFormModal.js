@@ -4,7 +4,7 @@ import { Autocomplete } from "@react-google-maps/api";
 import Select from "react-select";
 import DatePicker from "react-datepicker";
 import { surplusAPI } from "../../services/api";
-import { foodTypeOptions, unitOptions } from "../../constants/foodConstants";
+import { foodTypeOptions, unitOptions, temperatureCategoryOptions, packagingTypeOptions } from "../../constants/foodConstants";
 import "./Donor_Styles/SurplusFormModal.css";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -18,6 +18,8 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
     expiryDate: "",
     pickupLocation: { latitude: "", longitude: "", address: "" },
     description: "",
+    temperatureCategory: "",
+    packagingType: "",
   });
 
   const [pickupSlots, setPickupSlots] = useState([
@@ -114,6 +116,8 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
       pickupTo: formattedSlots[0].endTime,
       pickupLocation: formData.pickupLocation,
       description: formData.description,
+      temperatureCategory: formData.temperatureCategory,
+      packagingType: formData.packagingType,
     };
 
     try {
@@ -128,6 +132,8 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
         expiryDate: "",
         pickupLocation: { latitude: "", longitude: "", address: "" },
         description: "",
+        temperatureCategory: "",
+        packagingType: "",
       });
 
       setPickupSlots([
@@ -158,6 +164,8 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
         expiryDate: "",
         pickupLocation: { latitude: "", longitude: "", address: "" },
         description: "",
+        temperatureCategory: "",
+        packagingType: "",
       });
       setPickupSlots([
         {
@@ -266,6 +274,59 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
                 placeholder="Select unit"
                 required
               />
+            </div>
+          </div>
+
+          {/* Food Safety Compliance */}
+          <div className="form-section row-group">
+            <div className="input-group half-width">
+              <label className="input-label">
+                Temperature Category <span className="required-badge">Required for Compliance</span>
+              </label>
+              <Select
+                name="temperatureCategory"
+                options={temperatureCategoryOptions}
+                value={temperatureCategoryOptions.find(
+                  (opt) => opt.value === formData.temperatureCategory
+                )}
+                onChange={(selected) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    temperatureCategory: selected.value,
+                  }))
+                }
+                classNamePrefix="react-select"
+                placeholder="Select temperature category"
+                required
+              />
+              <span className="input-help-text">
+                Select the storage temperature for food safety verification
+              </span>
+            </div>
+
+            <div className="input-group half-width">
+              <label className="input-label">
+                Packaging Type <span className="required-badge">Required for Compliance</span>
+              </label>
+              <Select
+                name="packagingType"
+                options={packagingTypeOptions}
+                value={packagingTypeOptions.find(
+                  (opt) => opt.value === formData.packagingType
+                )}
+                onChange={(selected) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    packagingType: selected.value,
+                  }))
+                }
+                classNamePrefix="react-select"
+                placeholder="Select packaging type"
+                required
+              />
+              <span className="input-help-text">
+                Specify how the food is packaged for safety compliance
+              </span>
             </div>
           </div>
 

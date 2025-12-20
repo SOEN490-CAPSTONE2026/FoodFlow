@@ -236,6 +236,10 @@
     color: #0891B2;
 }
 
+.claimed-modal-detail-icon.temperature {
+    background-color: #f0f9ff;
+    border-color: #bae6fd;
+}
 
 .claimed-modal-detail-content {
     display: flex;
@@ -370,6 +374,19 @@
 
 .claimed-modal-btn-primary:hover {
     background: #164058;
+}
+
+/* Temperature badge styling */
+.temperature-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    background-color: #f0f9ff;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
 }
 
 /* Responsive Design */

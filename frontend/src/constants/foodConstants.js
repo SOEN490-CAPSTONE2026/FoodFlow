@@ -25,6 +25,27 @@ export const unitOptions = [
   { value: "BOX", label: "boxes" },
 ];
 
+// Temperature category options for food safety compliance
+export const temperatureCategoryOptions = [
+  { value: "FROZEN", label: "Frozen (below 0°C)", icon: "❄️" },
+  { value: "REFRIGERATED", label: "Refrigerated (0–4°C)", icon: "🧊" },
+  { value: "ROOM_TEMPERATURE", label: "Room Temperature", icon: "🌡️" },
+  { value: "HOT_COOKED", label: "Hot / Cooked", icon: "🔥" },
+];
+
+// Packaging type options for food safety compliance
+export const packagingTypeOptions = [
+  { value: "SEALED", label: "Sealed" },
+  { value: "LOOSE", label: "Loose" },
+  { value: "REFRIGERATED_CONTAINER", label: "Refrigerated Container" },
+  { value: "FROZEN_CONTAINER", label: "Frozen Container" },
+  { value: "VACUUM_PACKED", label: "Vacuum Packed" },
+  { value: "BOXED", label: "Boxed" },
+  { value: "WRAPPED", label: "Wrapped" },
+  { value: "BULK", label: "Bulk" },
+  { value: "OTHER", label: "Other" },
+];
+
 // Helper function to get label from value
 export const getFoodTypeLabel = (value) => {
   const option = foodTypeOptions.find(opt => opt.value === value);
@@ -34,6 +55,24 @@ export const getFoodTypeLabel = (value) => {
 // Helper function to get unit label from value  
 export const getUnitLabel = (value) => {
   const option = unitOptions.find(opt => opt.value === value);
+  return option ? option.label : value;
+};
+
+// Helper function to get temperature category label from value
+export const getTemperatureCategoryLabel = (value) => {
+  const option = temperatureCategoryOptions.find(opt => opt.value === value);
+  return option ? option.label : value;
+};
+
+// Helper function to get temperature category icon from value
+export const getTemperatureCategoryIcon = (value) => {
+  const option = temperatureCategoryOptions.find(opt => opt.value === value);
+  return option ? option.icon : "🌡️";
+};
+
+// Helper function to get packaging type label from value
+export const getPackagingTypeLabel = (value) => {
+  const option = packagingTypeOptions.find(opt => opt.value === value);
   return option ? option.label : value;
 };
 

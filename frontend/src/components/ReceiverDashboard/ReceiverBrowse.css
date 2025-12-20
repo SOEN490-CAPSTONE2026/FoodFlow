@@ -573,6 +573,109 @@
   gap: 6px;
 }
 
+/* Food Safety Compliance Section */
+.receiver-compliance-section {
+  background: linear-gradient(135deg, #f0f9ff 0%, #f8fafc 100%);
+  border: 1px solid #e0f2fe;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.receiver-compliance-header {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e293b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.receiver-compliance-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.receiver-compliance-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid;
+  transition: all 0.2s ease;
+}
+
+.receiver-compliance-item.temperature {
+  border-color: #bae6fd;
+  background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+}
+
+.receiver-compliance-item.packaging {
+  border-color: #e9d5ff;
+  background: linear-gradient(135deg, #ffffff 0%, #faf5ff 100%);
+}
+
+.receiver-compliance-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
+}
+
+.receiver-compliance-item .compliance-icon {
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+}
+
+.receiver-compliance-item.temperature .compliance-icon {
+  background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
+  color: #075985;
+}
+
+.receiver-compliance-item.packaging .compliance-icon {
+  background: linear-gradient(135deg, #f3e8ff 0%, #ede9fe 100%);
+  color: #6b21a8;
+}
+
+.receiver-compliance-item .compliance-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.receiver-compliance-item .compliance-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.receiver-compliance-item .compliance-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.receiver-compliance-item.temperature .compliance-value {
+  color: #075985;
+}
+
+.receiver-compliance-item.packaging .compliance-value {
+  color: #6b21a8;
+}
+
 /* Donor note */
 .receiver-donor-note {
   background: #f8f9fa;

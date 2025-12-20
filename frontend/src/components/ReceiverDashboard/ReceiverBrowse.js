@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import {Calendar, MapPin, Clock, Package2, Bookmark, ChevronDown, ChevronUp, Package, User, Target, ArrowUpDown, Star} from "lucide-react";
 import { useLoadScript } from "@react-google-maps/api";
 import { surplusAPI, recommendationAPI } from "../../services/api";
-import { getFoodCategoryDisplays, getPrimaryFoodCategory, getFoodImageClass, foodTypeImages, getUnitLabel } from "../../constants/foodConstants";
+import { getFoodCategoryDisplays, getPrimaryFoodCategory, getFoodImageClass, foodTypeImages, getUnitLabel, getTemperatureCategoryLabel, getTemperatureCategoryIcon, getPackagingTypeLabel } from "../../constants/foodConstants";
 import FiltersPanel from "./FiltersPanel";
 import "./ReceiverBrowseModal.css";
 import "./ReceiverBrowse.css";
@@ -655,6 +655,33 @@ export default function ReceiverBrowse() {
                           </div>
                         </div>
                       </div>
+
+                      {/* Food Safety Compliance Section */}
+                      {(item.temperatureCategory || item.packagingType) && (
+                        <div className="receiver-compliance-section">
+                          <div className="receiver-compliance-header">Food Safety Compliance</div>
+                          <div className="receiver-compliance-grid">
+                            {item.temperatureCategory && (
+                              <div className="receiver-compliance-item temperature">
+                                <span className="compliance-icon">{getTemperatureCategoryIcon(item.temperatureCategory)}</span>
+                                <div className="compliance-content">
+                                  <span className="compliance-label">Temperature</span>
+                                  <span className="compliance-value">{getTemperatureCategoryLabel(item.temperatureCategory)}</span>
+                                </div>
+                              </div>
+                            )}
+                            {item.packagingType && (
+                              <div className="receiver-compliance-item packaging">
+                                <Package size={18} className="compliance-icon" />
+                                <div className="compliance-content">
+                                  <span className="compliance-label">Packaging</span>
+                                  <span className="compliance-value">{getPackagingTypeLabel(item.packagingType)}</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
 
                       {item.description && (
                         <div className="receiver-donor-note">

@@ -808,3 +808,25 @@
     padding: 12px;
   }
 }
+
+/* Food Safety Compliance Styles */
+.required-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  background-color: #fef3c7;
+  color: #92400e;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.input-help-text {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: #64748b;
+  font-style: italic;
+}
