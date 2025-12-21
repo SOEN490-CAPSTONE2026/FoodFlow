@@ -28,13 +28,16 @@ public class AdminUserService {
     private final UserRepository userRepository;
     private final SurplusPostRepository surplusPostRepository;
     private final ClaimRepository claimRepository;
+    private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
 
     public AdminUserService(UserRepository userRepository,
                            SurplusPostRepository surplusPostRepository,
-                           ClaimRepository claimRepository) {
+                           ClaimRepository claimRepository,
+                           org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate) {
         this.userRepository = userRepository;
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;
+        this.messagingTemplate = messagingTemplate;
     }
 
     /**
@@ -137,7 +140,7 @@ public class AdminUserService {
     }
 
     /**
-     * Send alert to user (placeholder for email/notification service)
+     * Send alert to user via WebSocket notification (using same channel as messages)
      */
     @Transactional
     public void sendAlertToUser(Long userId, String message) {
@@ -146,11 +149,22 @@ public class AdminUserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
 
-        // TODO: Integrate with email service or notification system
-        // For now, just log the alert
-        log.info("Alert sent to user {} ({}): {}", userId, user.getEmail(), message);
+        // Create a notification object similar to MessageResponse
+        java.util.Map<String, Object> alertNotification = new java.util.HashMap<>();
+        alertNotification.put("senderName", "🔔 Admin Alert");
+        alertNotification.put("messageBody", message);
+        alertNotification.put("timestamp", LocalDateTime.now().toString());
         
-        // Could also add this to admin_notes
+        // Send via WebSocket using the SAME pattern as MessageService
+        messagingTemplate.convertAndSendToUser(
+            user.getId().toString(),
+            "/queue/messages",
+            alertNotification
+        );
+        
+        log.info("WebSocket alert sent to userId={} ({})", user.getId(), user.getEmail());
+        
+        // Also add to admin_notes for record-keeping
         String currentNotes = user.getAdminNotes() != null ? user.getAdminNotes() : "";
         String alertNote = String.format("\n[ALERT %s]: %s", LocalDateTime.now(), message);
         user.setAdminNotes(currentNotes + alertNote);
