@@ -434,38 +434,50 @@
 
 .receiver-time-icon-detail {
   color: #0891b2;
-  background-color: #eff6ff;
+  background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
   border-radius: 8px;
-  display: flex;
+  display: inline-flex;
   justify-content: center;
   align-items: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
 }
 
 .receiver-quantity-icon-detail {
-  color: rgb(113, 82, 32);
-  background-color: #f54a0049;
-  border-radius: 5px;
-  display: flex;
+  color: #b45309;
+  background: linear-gradient(135deg, #fef3c7 0%, #fef9c3 100%);
+  border-radius: 8px;
+  display: inline-flex;
   justify-content: center;
   align-items: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
 }
 
 .receiver-expiry-icon-detail {
-  color: #9f2d00;
-  background-color: #fef2f2;
-  border-radius: 2px;
-  display: flex;
+  color: #dc2626;
+  background: linear-gradient(135deg, #fee2e2 0%, #fef2f2 100%);
+  border-radius: 8px;
+  display: inline-flex;
   justify-content: center;
   align-items: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
 }
 
 .receiver-location-icon-detail {
   color: #047857;
-  background-color: #e6fff3;
+  background: linear-gradient(135deg, #d1fae5 0%, #e6fff3 100%);
   border-radius: 8px;
-  display: flex;
+  display: inline-flex;
   justify-content: center;
   align-items: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
 }
 
 /* Meta section */
@@ -548,6 +560,22 @@
   gap: 12px;
 }
 
+.receiver-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1b4965;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.receiver-detail-separator {
+  width: 100%;
+  height: 1px;
+  background: #e2e8f0;
+  margin: 16px 0;
+}
+
 .receiver-detail-item {
   display: flex;
   flex-direction: column;
@@ -571,6 +599,18 @@
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.receiver-compliance-icon-bg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+  border-radius: 8px;
+  color: #0369a1;
+  flex-shrink: 0;
 }
 
 /* Food Safety Compliance Section */
