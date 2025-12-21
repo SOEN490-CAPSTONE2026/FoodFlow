@@ -108,25 +108,10 @@ public class SurplusService {
         }
         post.setPickupSlots(pickupSlots);
 
-        // Check if pickup time has already started - set status immediately
-        java.time.LocalDateTime now = java.time.LocalDateTime.now();
-        java.time.LocalDate today = now.toLocalDate();
-        java.time.LocalTime currentTime = now.toLocalTime();
-
-        boolean pickupTimeStarted = false;
-        if (firstSlot.getPickupDate().isBefore(today)) {
-            pickupTimeStarted = true;
-        } else if (firstSlot.getPickupDate().isEqual(today)) {
-            pickupTimeStarted = !currentTime.isBefore(firstSlot.getStartTime());
-        }
-
-        if (pickupTimeStarted) {
-            post.setStatus(PostStatus.READY_FOR_PICKUP);
-            // Generate OTP immediately
-            post.setOtpCode(generateOtpCode());
-        } else {
-            post.setStatus(request.getStatus() != null ? request.getStatus() : PostStatus.AVAILABLE);
-        }
+        // Always set status to AVAILABLE on creation
+        // Status will only change to READY_FOR_PICKUP after being claimed
+        // and when the confirmed pickup slot time arrives (handled by scheduler)
+        post.setStatus(request.getStatus() != null ? request.getStatus() : PostStatus.AVAILABLE);
 
         SurplusPost savedPost = surplusPostRepository.save(post);
 
