@@ -298,14 +298,10 @@ export default function ReceiverMyClaims() {
                   <div className="claimed-page detail-item">
                     <Clock size={16} className="claimed-page date-detail-icon" />
                     <span>
-                      {claim?.confirmedPickupSlot ? (
-                        formatPickupTime(
-                          claim.confirmedPickupSlot.pickupDate || claim.confirmedPickupSlot.date,
-                          claim.confirmedPickupSlot.startTime || claim.confirmedPickupSlot.pickupFrom,
-                          claim.confirmedPickupSlot.endTime || claim.confirmedPickupSlot.pickupTo
-                        )
-                      ) : (
-                        formatPickupTime(post?.pickupDate, post?.pickupFrom, post?.pickupTo)
+                      {formatPickupTime(
+                        claim.confirmedPickupSlot?.pickupDate || claim.confirmedPickupSlot?.date,
+                        claim.confirmedPickupSlot?.startTime || claim.confirmedPickupSlot?.pickupFrom,
+                        claim.confirmedPickupSlot?.endTime || claim.confirmedPickupSlot?.pickupTo
                       )}
                     </span>
                   </div>

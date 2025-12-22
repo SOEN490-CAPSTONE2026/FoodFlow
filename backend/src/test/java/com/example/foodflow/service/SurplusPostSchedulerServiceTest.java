@@ -1,14 +1,17 @@
 package com.example.foodflow.service;
 
+import com.example.foodflow.model.entity.Claim;
 import com.example.foodflow.model.entity.Organization;
 import com.example.foodflow.model.entity.OrganizationType;
 import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.UserRole;
+import com.example.foodflow.model.types.ClaimStatus;
 import com.example.foodflow.model.types.FoodCategory;
 import com.example.foodflow.model.types.Location;
 import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.model.types.Quantity;
+import com.example.foodflow.repository.ClaimRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,10 +44,14 @@ class SurplusPostSchedulerServiceTest {
     @Mock
     private SurplusPostRepository surplusPostRepository;
 
+    @Mock
+    private ClaimRepository claimRepository;
+
     @InjectMocks
     private SurplusPostSchedulerService schedulerService;
 
     private User donor;
+    private User receiver;
     private SurplusPost availablePost;
     private SurplusPost claimedPost;
     private SurplusPost readyPost;
@@ -63,6 +70,12 @@ class SurplusPostSchedulerServiceTest {
         donor.setEmail("donor@test.com");
         donor.setRole(UserRole.DONOR);
         donor.setOrganization(organization);
+
+        // Create test receiver
+        receiver = new User();
+        receiver.setId(2L);
+        receiver.setEmail("receiver@test.com");
+        receiver.setRole(UserRole.RECEIVER);
 
         // Create test posts
         availablePost = createTestPost(1L, PostStatus.AVAILABLE);
@@ -83,6 +96,7 @@ class SurplusPostSchedulerServiceTest {
 
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
             .thenReturn(Collections.singletonList(claimedPost));
+        mockClaimForPost(claimedPost, LocalDate.now().minusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
 
         // When
@@ -109,6 +123,7 @@ class SurplusPostSchedulerServiceTest {
 
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
             .thenReturn(Collections.singletonList(claimedPost));
+        mockClaimForPost(claimedPost, LocalDate.now().minusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
 
         // When
@@ -132,6 +147,7 @@ class SurplusPostSchedulerServiceTest {
 
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
             .thenReturn(Collections.singletonList(claimedPost));
+        mockClaimForPost(claimedPost, LocalDate.now().plusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
 
         // When
         schedulerService.updatePostsToReadyForPickup();
@@ -157,6 +173,8 @@ class SurplusPostSchedulerServiceTest {
 
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
             .thenReturn(Arrays.asList(claimedPost, claimedPost2));
+        mockClaimForPost(claimedPost, LocalDate.now().minusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
+        mockClaimForPost(claimedPost2, LocalDate.now().minusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
         when(surplusPostRepository.save(any(SurplusPost.class)))
             .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -178,6 +196,7 @@ class SurplusPostSchedulerServiceTest {
 
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
             .thenReturn(Collections.singletonList(claimedPost));
+        mockClaimForPost(claimedPost, LocalDate.now().minusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
 
         // When
@@ -202,6 +221,7 @@ class SurplusPostSchedulerServiceTest {
 
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
             .thenReturn(Collections.singletonList(claimedPost));
+        mockClaimForPost(claimedPost, LocalDate.now().minusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
 
         // When
@@ -241,6 +261,7 @@ class SurplusPostSchedulerServiceTest {
 
         when(surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP))
             .thenReturn(Collections.singletonList(readyPost));
+        mockClaimForPost(readyPost, LocalDate.now().minusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(readyPost);
 
         // When
@@ -264,6 +285,7 @@ class SurplusPostSchedulerServiceTest {
 
         when(surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP))
             .thenReturn(Collections.singletonList(readyPost));
+        mockClaimForPost(readyPost, LocalDate.now().minusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(readyPost);
 
         // When
@@ -287,6 +309,7 @@ class SurplusPostSchedulerServiceTest {
 
         when(surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP))
             .thenReturn(Collections.singletonList(readyPost));
+        mockClaimForPost(readyPost, LocalDate.now(), LocalTime.of(9, 0), LocalTime.of(23, 59));
 
         // When
         schedulerService.updatePostsToNotCompleted();
@@ -306,6 +329,7 @@ class SurplusPostSchedulerServiceTest {
 
         when(surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP))
             .thenReturn(Collections.singletonList(readyPost));
+        mockClaimForPost(readyPost, LocalDate.now().plusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
 
         // When
         schedulerService.updatePostsToNotCompleted();
@@ -331,6 +355,8 @@ class SurplusPostSchedulerServiceTest {
 
         when(surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP))
             .thenReturn(Arrays.asList(readyPost, readyPost2));
+        mockClaimForPost(readyPost, LocalDate.now().minusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
+        mockClaimForPost(readyPost2, LocalDate.now().minusDays(2), LocalTime.of(10, 0), LocalTime.of(18, 0));
         when(surplusPostRepository.save(any(SurplusPost.class)))
             .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -381,5 +407,19 @@ class SurplusPostSchedulerServiceTest {
         } catch (Exception e) {
             throw new RuntimeException("Failed to set createdAt", e);
         }
+    }
+
+    private Claim createClaimForPost(SurplusPost post, LocalDate pickupDate, LocalTime startTime, LocalTime endTime) {
+        Claim claim = new Claim(post, receiver);
+        claim.setConfirmedPickupDate(pickupDate);
+        claim.setConfirmedPickupStartTime(startTime);
+        claim.setConfirmedPickupEndTime(endTime);
+        claim.setStatus(ClaimStatus.ACTIVE);
+        return claim;
+    }
+
+    private void mockClaimForPost(SurplusPost post, LocalDate pickupDate, LocalTime startTime, LocalTime endTime) {
+        Claim claim = createClaimForPost(post, pickupDate, startTime, endTime);
+        when(claimRepository.findBySurplusPost(post)).thenReturn(java.util.Optional.of(claim));
     }
 }
