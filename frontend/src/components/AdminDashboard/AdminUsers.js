@@ -34,6 +34,7 @@ const AdminUsers = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [adminNotes, setAdminNotes] = useState('');
   const [alertMessage, setAlertMessage] = useState('');
+  const [alertType, setAlertType] = useState('');
   
   // Expanded rows
   const [expandedRows, setExpandedRows] = useState(new Set());
@@ -198,13 +199,19 @@ const AdminUsers = () => {
       );
       
       alert('Alert sent successfully');
-      setShowAlertModal(false);
-      setAlertMessage('');
-      setSelectedUser(null);
+      closeAlertModal();
     } catch (err) {
       console.error('Error sending alert:', err);
       alert('Failed to send alert');
     }
+  };
+
+  // Close alert modal and reset states
+  const closeAlertModal = () => {
+    setShowAlertModal(false);
+    setAlertMessage('');
+    setAlertType('');
+    setSelectedUser(null);
   };
 
   // Reset filters
@@ -563,11 +570,11 @@ const AdminUsers = () => {
       {/* Deactivate Modal */}
       {showDeactivateModal && (
         <div className="modal-overlay" onClick={() => setShowDeactivateModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h2>Deactivate User</h2>
-            <p>
-              Are you sure you want to deactivate <strong>{selectedUser?.email}</strong>?
-            </p>
+          <div className="modal-content modal-alert" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowDeactivateModal(false)}>×</button>
+            <h2>Deactivate User:</h2>
+            <p className="alert-user-name">{selectedUser?.email}</p>
+            
             <textarea
               placeholder="Enter reason for deactivation (required)..."
               value={adminNotes}
@@ -576,11 +583,11 @@ const AdminUsers = () => {
               rows="4"
             />
             <div className="modal-actions">
-              <button onClick={handleDeactivate} className="btn-confirm">
-                Deactivate
-              </button>
               <button onClick={() => setShowDeactivateModal(false)} className="btn-cancel">
                 Cancel
+              </button>
+              <button onClick={handleDeactivate} className="btn-confirm">
+                Deactivate
               </button>
             </div>
           </div>
@@ -609,25 +616,120 @@ const AdminUsers = () => {
 
       {/* Send Alert Modal */}
       {showAlertModal && (
-        <div className="modal-overlay" onClick={() => setShowAlertModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h2>Send Alert</h2>
-            <p>
-              Send an alert to <strong>{selectedUser?.email}</strong>
-            </p>
-            <textarea
-              placeholder="Enter alert message..."
-              value={alertMessage}
-              onChange={(e) => setAlertMessage(e.target.value)}
-              className="modal-textarea"
-              rows="4"
-            />
+        <div className="modal-overlay" onClick={closeAlertModal}>
+          <div className="modal-content modal-alert" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={closeAlertModal}>×</button>
+            <h2>Send Alert to:</h2>
+            <p className="alert-user-name">{selectedUser?.contactPerson || selectedUser?.email}</p>
+            
+            <div className="alert-type-section">
+              <label className="alert-section-label">Alert Type</label>
+              
+              <div className="alert-options">
+                <label 
+                  className={`alert-option ${alertType === 'warning' ? 'selected' : ''}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setAlertType(alertType === 'warning' ? '' : 'warning');
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="alertType"
+                    value="warning"
+                    checked={alertType === 'warning'}
+                    onChange={() => {}}
+                    readOnly
+                  />
+                  <div className="alert-option-content">
+                    <div className="alert-option-title">Warning</div>
+                    <div className="alert-option-desc">Send a warning about policy violations</div>
+                  </div>
+                </label>
+
+                <label 
+                  className={`alert-option ${alertType === 'safety' ? 'selected' : ''}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setAlertType(alertType === 'safety' ? '' : 'safety');
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="alertType"
+                    value="safety"
+                    checked={alertType === 'safety'}
+                    onChange={() => {}}
+                    readOnly
+                  />
+                  <div className="alert-option-content">
+                    <div className="alert-option-title">Safety Notice</div>
+                    <div className="alert-option-desc">Important safety information</div>
+                  </div>
+                </label>
+
+                <label 
+                  className={`alert-option ${alertType === 'compliance' ? 'selected' : ''}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setAlertType(alertType === 'compliance' ? '' : 'compliance');
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="alertType"
+                    value="compliance"
+                    checked={alertType === 'compliance'}
+                    onChange={() => {}}
+                    readOnly
+                  />
+                  <div className="alert-option-content">
+                    <div className="alert-option-title">Compliance Reminder</div>
+                    <div className="alert-option-desc">Remind about compliance requirements</div>
+                  </div>
+                </label>
+
+                <label 
+                  className={`alert-option ${alertType === 'custom' ? 'selected' : ''}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setAlertType(alertType === 'custom' ? '' : 'custom');
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="alertType"
+                    value="custom"
+                    checked={alertType === 'custom'}
+                    onChange={() => {}}
+                    readOnly
+                  />
+                  <div className="alert-option-content">
+                    <div className="alert-option-title">Custom Alert</div>
+                    <div className="alert-option-desc">Send a custom message</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            {alertType === 'custom' && (
+              <div className="custom-message-section">
+                <textarea
+                  placeholder="Enter your custom message..."
+                  value={alertMessage}
+                  onChange={(e) => setAlertMessage(e.target.value)}
+                  className="modal-textarea"
+                  rows="4"
+                />
+              </div>
+            )}
+
             <div className="modal-actions">
-              <button onClick={handleSendAlert} className="btn-confirm">
-                Send Alert
-              </button>
-              <button onClick={() => setShowAlertModal(false)} className="btn-cancel">
+              <button onClick={closeAlertModal} className="btn-cancel">
                 Cancel
+              </button>
+              <button onClick={handleSendAlert} className="btn-confirm btn-send-alert">
+                Send Alert
               </button>
             </div>
           </div>
