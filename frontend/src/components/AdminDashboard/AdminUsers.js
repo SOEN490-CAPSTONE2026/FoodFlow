@@ -44,35 +44,6 @@ const AdminUsers = () => {
     setLoading(true);
     setError(null);
     
-    // TEMPORARY: Hardcoded user for UI preview - REMOVE LATER
-    const tempUser = {
-      id: 1,
-      email: 'donor@foodflow.com',
-      role: 'DONOR',
-      organizationName: 'Fresh Foods Inc.',
-      contactPerson: 'John Smith',
-      phone: '514-555-0123',
-      accountStatus: 'ACTIVE',
-      verificationStatus: 'VERIFIED',
-      donationCount: 24,
-      createdAt: '2025-01-15T10:30:00',
-      adminNotes: null
-    };
-    
-    setStats({
-      totalUsers: 1,
-      totalDonors: 1,
-      totalReceivers: 0,
-      newUsers: 1
-    });
-    
-    setUsers([tempUser]);
-    setFilteredUsers([tempUser]);
-    setTotalPages(1);
-    setLoading(false);
-    return;
-    // END TEMPORARY - REMOVE ABOVE SECTION LATER
-    
     try {
       const token = localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
       const params = {
