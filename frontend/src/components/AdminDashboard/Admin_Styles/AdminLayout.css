@@ -194,7 +194,7 @@ body {
 }
 
 .admin-sidebar.collapsed ~ .admin-main {
-  margin-left: 70px;
+  margin-left: 0 !important;
 }
 
 /* Tooltips for collapsed sidebar */
@@ -543,6 +543,7 @@ body {
   margin-left: 0px;
   height: 100vh;
   overflow: hidden;
+  transition: margin-left 0.3s ease;
 }
 
 .admin-topbar {
