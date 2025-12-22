@@ -9,6 +9,7 @@ import {
   FileText,
   Mail,
   ChevronRight,
+  ChevronLeft,
   ChevronDown,
   Settings,
   HelpCircle,
@@ -30,6 +31,7 @@ export default function AdminLayout() {
   const [messagesOpen, setMessagesOpen] = useState(false);
   const [screenHeight, setScreenHeight] = useState(window.innerHeight);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const menuRef = useRef(null);
 
   const contacts = [
@@ -139,57 +141,64 @@ export default function AdminLayout() {
 
       {mobileMenuOpen && <div className="mobile-overlay" onClick={() => setMobileMenuOpen(false)}></div>}
 
-      <aside className={`admin-sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}>
+      <aside className={`admin-sidebar ${mobileMenuOpen ? 'mobile-open' : ''} ${sidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="admin-sidebar-header">
           <Link to="/" replace state={{ scrollTo: "home", from: "admin" }} aria-label="FoodFlow Home">
             <img src={Logo} alt="FoodFlow" className="admin-logo" />
           </Link>
+          <button 
+            className="sidebar-toggle-btn"
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            aria-label="Toggle sidebar"
+          >
+            {sidebarCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+          </button>
         </div>
 
         <nav className="admin-nav-links">
-          <Link to="/admin/welcome" className={`admin-nav-link ${isActive("/admin/welcome") ? "active" : ""}`}>
+          <Link to="/admin/welcome" className={`admin-nav-link ${isActive("/admin/welcome") ? "active" : ""}`} data-tooltip="Home">
             <span className="nav-icon" aria-hidden>
               <Home size={18} className="lucide" />
             </span>
             Home
           </Link>
 
-          <Link to="/admin" className={`admin-nav-link ${isActive("/admin") ? "active" : ""}`}>
+          <Link to="/admin" className={`admin-nav-link ${isActive("/admin") ? "active" : ""}`} data-tooltip="Dashboard">
             <span className="nav-icon" aria-hidden>
               <LayoutGrid size={18} className="lucide" />
             </span>
             Dashboard
           </Link>
 
-          <Link to="/admin/users" className={`admin-nav-link ${isActive("/admin/users") ? "active" : ""}`}>
+          <Link to="/admin/users" className={`admin-nav-link ${isActive("/admin/users") ? "active" : ""}`} data-tooltip="Users">
             <span className="nav-icon" aria-hidden>
               <Users size={18} className="lucide" />
             </span>
             Users
           </Link>
 
-          <Link to="/admin/analytics" className={`admin-nav-link ${isActive("/admin/analytics") ? "active" : ""}`}>
+          <Link to="/admin/analytics" className={`admin-nav-link ${isActive("/admin/analytics") ? "active" : ""}`} data-tooltip="Donations">
             <span className="nav-icon" aria-hidden>
               <Heart size={18} className="lucide" />
             </span>
             Donations
           </Link>
 
-          <Link to="/admin/calendar" className={`admin-nav-link ${isActive("/admin/calendar") ? "active" : ""}`}>
+          <Link to="/admin/calendar" className={`admin-nav-link ${isActive("/admin/calendar") ? "active" : ""}`} data-tooltip="Compliance Queue">
             <span className="nav-icon" aria-hidden>
               <CalendarIcon size={18} className="lucide" />
             </span>
             Compliance Queue
           </Link>
 
-          <Link to="/admin/help" className={`admin-nav-link ${isActive("/admin/help") ? "active" : ""}`}>
+          <Link to="/admin/help" className={`admin-nav-link ${isActive("/admin/help") ? "active" : ""}`} data-tooltip="Activity log">
             <span className="nav-icon" aria-hidden>
               <FileText size={18} className="lucide" />
             </span>
             Activity log
           </Link>
 
-          <div className={`admin-nav-link messages-link ${isActive("/admin/messages") ? "active" : ""}`}>
+          <div className={`admin-nav-link messages-link ${isActive("/admin/messages") ? "active" : ""}`} data-tooltip="Messages">
             <div onClick={() => navigate("/admin/messages")} className="messages-left">
               <span className="nav-icon" aria-hidden>
                 <Mail size={18} className="lucide" />

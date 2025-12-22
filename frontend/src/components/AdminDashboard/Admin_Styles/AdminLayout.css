@@ -75,8 +75,155 @@ body {
 }
 
 .admin-sidebar-header {
-  padding: 14px;
+  padding: 20px 16px;
   border-bottom: 1px solid rgba(255, 255, 255, .1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.sidebar-toggle-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.sidebar-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-50%) scale(1.05);
+}
+
+/* Collapsed Sidebar Styles */
+.admin-sidebar.collapsed {
+  width: 70px;
+}
+
+.admin-sidebar.collapsed .admin-logo {
+  display: none;
+}
+
+.admin-sidebar.collapsed .admin-sidebar-header {
+  padding: 16px 8px;
+  justify-content: center;
+  border-bottom: 1px solid rgba(255, 255, 255, .1);
+}
+
+.admin-sidebar.collapsed .sidebar-toggle-btn {
+  position: relative;
+  top: auto;
+  right: auto;
+  transform: none;
+  margin: 0 auto;
+}
+
+.admin-sidebar.collapsed .admin-nav-links {
+  padding: 24px 8px;
+}
+
+.admin-sidebar.collapsed .admin-nav-link {
+  justify-content: center;
+  padding: 14px 8px;
+  gap: 0;
+  font-size: 0;
+}
+
+.admin-sidebar.collapsed .admin-nav-link .nav-icon {
+  font-size: 16px;
+}
+
+.admin-sidebar.collapsed .admin-nav-link::before {
+  display: none;
+}
+
+.admin-sidebar.collapsed .admin-nav-bottom {
+  padding: 16px 8px;
+}
+
+.admin-sidebar.collapsed .account-text {
+  display: none;
+}
+
+.admin-sidebar.collapsed .account-avatar {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+}
+
+.admin-sidebar.collapsed .account-dotted-menu {
+  display: flex;
+  margin: 0 auto;
+}
+
+.admin-sidebar.collapsed .user-profile-pic {
+  justify-content: center;
+  padding: 6px 0;
+  gap: 0;
+}
+
+.admin-sidebar.collapsed .account-row {
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-sidebar.collapsed .messages-left {
+  font-size: 0;
+}
+
+.admin-sidebar.collapsed .messages-toggle {
+  margin-left: 0;
+}
+
+.admin-sidebar.collapsed .messages-dropdown {
+  display: none;
+}
+
+.admin-sidebar.collapsed ~ .admin-main {
+  margin-left: 70px;
+}
+
+/* Tooltips for collapsed sidebar */
+.admin-sidebar.collapsed .admin-nav-link {
+  position: relative;
+}
+
+.admin-sidebar.collapsed .admin-nav-link::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: #1B4965;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 1000;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.admin-sidebar.collapsed .admin-nav-link:hover::after {
+  opacity: 1;
 }
 
 .admin-logo {
@@ -467,6 +614,10 @@ body {
     height: calc(100vh - 60px);
   }
 
+  .admin-sidebar.collapsed {
+    width: 280px;
+  }
+
   .admin-sidebar.mobile-open {
     transform: translateX(0);
   }
@@ -474,6 +625,10 @@ body {
   .admin-main {
     margin-left: 0;
     padding-top: calc(60px + 56px);
+  }
+
+  .admin-sidebar.collapsed ~ .admin-main {
+    margin-left: 0;
   }
 
   .admin-topbar {
