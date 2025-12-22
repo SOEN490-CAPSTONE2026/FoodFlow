@@ -47,111 +47,12 @@ const AdminUsers = () => {
   // Expanded rows
   const [expandedRows, setExpandedRows] = useState(new Set());
 
-  // Mock data for testing
-  const mockUsers = [
-    {
-      id: 1,
-      email: "john.donor@foodflow.com",
-      role: "DONOR",
-      organizationName: "Fresh Farms Co.",
-      contactPerson: "John Smith",
-      phone: "514-555-0123",
-      accountStatus: "ACTIVE",
-      verificationStatus: "VERIFIED",
-      donationCount: 45,
-      createdAt: "2024-11-15T10:00:00",
-      adminNotes: null,
-    },
-    {
-      id: 2,
-      email: "sarah.receiver@foodbank.org",
-      role: "RECEIVER",
-      organizationName: "Montreal Food Bank",
-      contactPerson: "Sarah Johnson",
-      phone: "514-555-0124",
-      accountStatus: "ACTIVE",
-      verificationStatus: "VERIFIED",
-      claimCount: 23,
-      createdAt: "2024-10-20T14:30:00",
-      adminNotes: null,
-    },
-    {
-      id: 3,
-      email: "mike.donor@restaurant.com",
-      role: "DONOR",
-      organizationName: "Le Gourmet Restaurant",
-      contactPerson: "Mike Chen",
-      phone: "514-555-0125",
-      accountStatus: "ACTIVE",
-      verificationStatus: "PENDING",
-      donationCount: 12,
-      createdAt: "2024-12-01T09:15:00",
-      adminNotes: null,
-    },
-    {
-      id: 4,
-      email: "emma.receiver@shelter.org",
-      role: "RECEIVER",
-      organizationName: "Community Shelter",
-      contactPerson: "Emma Wilson",
-      phone: "514-555-0126",
-      accountStatus: "DEACTIVATED",
-      verificationStatus: "VERIFIED",
-      claimCount: 8,
-      createdAt: "2024-09-10T11:00:00",
-      adminNotes: "Account suspended pending review",
-    },
-    {
-      id: 5,
-      email: "david.donor@bakery.com",
-      role: "DONOR",
-      organizationName: "Daily Bread Bakery",
-      contactPerson: "David Brown",
-      phone: "514-555-0127",
-      accountStatus: "ACTIVE",
-      verificationStatus: "VERIFIED",
-      donationCount: 67,
-      createdAt: "2024-08-05T08:45:00",
-      adminNotes: null,
-    },
-  ];
-
   // Fetch users from API
   const fetchUsers = async () => {
     setLoading(true);
     setError(null);
     
     try {
-      // TEMPORARY: Use mock data for testing
-      setTimeout(() => {
-        const content = mockUsers;
-        const totalPagesCount = 1;
-        
-        // Calculate stats
-        const totalDonors = content.filter(u => u.role === 'DONOR').length;
-        const totalReceivers = content.filter(u => u.role === 'RECEIVER').length;
-        const newUsers = content.filter(u => {
-          const createdDate = new Date(u.createdAt);
-          const thirtyDaysAgo = new Date();
-          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-          return createdDate > thirtyDaysAgo;
-        }).length;
-        
-        setStats({
-          totalUsers: content.length,
-          totalDonors,
-          totalReceivers,
-          newUsers
-        });
-        
-        setUsers(content);
-        setFilteredUsers(content);
-        setTotalPages(totalPagesCount);
-        setLoading(false);
-      }, 500);
-      
-      // UNCOMMENT BELOW TO USE REAL API
-      /*
       const token = localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
       const params = {
         page: currentPage,
@@ -191,7 +92,7 @@ const AdminUsers = () => {
       setUsers(content);
       setFilteredUsers(content);
       setTotalPages(totalPagesCount);
-      */
+      setLoading(false);
     } catch (err) {
       console.error('Error fetching users:', err);
       setError('Failed to load users. Please try again.');
