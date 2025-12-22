@@ -26,31 +26,35 @@ public class UserController {
     }
     
     @GetMapping("/notifications/preferences")
-    public ResponseEntity<Map<String, Boolean>> getNotificationPreferences(
+    public ResponseEntity<Map<String, Object>> getNotificationPreferences(
             @AuthenticationPrincipal User currentUser) {
         logger.info("Getting notification preferences for user: {}", currentUser.getId());
         
         User user = userService.getUserById(currentUser.getId());
+        Map<String, Boolean> notificationTypes = userService.getNotificationTypePreferences(currentUser.getId());
         
-        Map<String, Boolean> preferences = new HashMap<>();
+        Map<String, Object> preferences = new HashMap<>();
         preferences.put("emailNotificationsEnabled", user.getEmailNotificationsEnabled());
         preferences.put("smsNotificationsEnabled", user.getSmsNotificationsEnabled());
+        preferences.put("notificationTypes", notificationTypes);
         
         return ResponseEntity.ok(preferences);
     }
     
     @PutMapping("/notifications/preferences")
-    public ResponseEntity<Map<String, Boolean>> updateNotificationPreferences(
+    public ResponseEntity<Map<String, Object>> updateNotificationPreferences(
             @AuthenticationPrincipal User currentUser,
             @RequestBody UpdateNotificationPreferencesRequest request) {
         logger.info("Updating notification preferences for user: {}", currentUser.getId());
         
         try {
             User updatedUser = userService.updateNotificationPreferences(currentUser.getId(), request);
+            Map<String, Boolean> notificationTypes = userService.getNotificationTypePreferences(currentUser.getId());
             
-            Map<String, Boolean> preferences = new HashMap<>();
+            Map<String, Object> preferences = new HashMap<>();
             preferences.put("emailNotificationsEnabled", updatedUser.getEmailNotificationsEnabled());
             preferences.put("smsNotificationsEnabled", updatedUser.getSmsNotificationsEnabled());
+            preferences.put("notificationTypes", notificationTypes);
             
             return ResponseEntity.ok(preferences);
         } catch (IllegalArgumentException e) {

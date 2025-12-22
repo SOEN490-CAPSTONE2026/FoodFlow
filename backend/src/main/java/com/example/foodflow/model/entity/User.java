@@ -49,6 +49,9 @@ public class User {
     @Column(name = "sms_notifications_enabled")
     private Boolean smsNotificationsEnabled = false;
 
+    @Column(name = "notification_type_preferences", columnDefinition = "TEXT")
+    private String notificationTypePreferences;
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Organization organization;
 
@@ -106,4 +109,7 @@ public class User {
     
     public Boolean getSmsNotificationsEnabled() { return smsNotificationsEnabled; }
     public void setSmsNotificationsEnabled(Boolean smsNotificationsEnabled) { this.smsNotificationsEnabled = smsNotificationsEnabled; }
+    
+    public String getNotificationTypePreferences() { return notificationTypePreferences; }
+    public void setNotificationTypePreferences(String notificationTypePreferences) { this.notificationTypePreferences = notificationTypePreferences; }
 }

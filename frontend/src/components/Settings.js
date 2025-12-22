@@ -146,6 +146,11 @@ const Settings = () => {
           smsAlerts: response.data.smsNotificationsEnabled || false,
           smsPhoneNumber: formData.phoneNumber || ''
         });
+        
+        // Load notification types
+        if (response.data.notificationTypes) {
+          setNotifications(response.data.notificationTypes);
+        }
       } catch (error) {
         console.error('Error fetching notification preferences:', error);
       }
@@ -273,7 +278,19 @@ const Settings = () => {
     
     // Update state immediately for responsiveness
     setNotifications(prev => ({ ...prev, [key]: newValue }));
- 
+    
+    // Update backend
+    try {
+      await notificationPreferencesAPI.updatePreferences({
+        emailNotificationsEnabled: notificationPreferences.emailAlerts,
+        smsNotificationsEnabled: notificationPreferences.smsAlerts,
+        notificationTypes: { ...notifications, [key]: newValue }
+      });
+    } catch (error) {
+      console.error('Error updating notification type:', error);
+      // Revert on error
+      setNotifications(prev => ({ ...prev, [key]: !newValue }));
+    }
   };
 
   const handleRegionChange = (regionData) => {
