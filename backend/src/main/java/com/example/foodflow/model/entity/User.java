@@ -43,6 +43,12 @@ public class User {
     @Column(name = "deactivated_by")
     private Long deactivatedBy;
 
+    @Column(name = "email_notifications_enabled")
+    private Boolean emailNotificationsEnabled = false;
+
+    @Column(name = "sms_notifications_enabled")
+    private Boolean smsNotificationsEnabled = false;
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Organization organization;
 
@@ -94,4 +100,10 @@ public class User {
     
     public Long getDeactivatedBy() { return deactivatedBy; }
     public void setDeactivatedBy(Long deactivatedBy) { this.deactivatedBy = deactivatedBy; }
+    
+    public Boolean getEmailNotificationsEnabled() { return emailNotificationsEnabled; }
+    public void setEmailNotificationsEnabled(Boolean emailNotificationsEnabled) { this.emailNotificationsEnabled = emailNotificationsEnabled; }
+    
+    public Boolean getSmsNotificationsEnabled() { return smsNotificationsEnabled; }
+    public void setSmsNotificationsEnabled(Boolean smsNotificationsEnabled) { this.smsNotificationsEnabled = smsNotificationsEnabled; }
 }
