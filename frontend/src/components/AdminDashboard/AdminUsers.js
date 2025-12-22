@@ -3,6 +3,14 @@ import axios from 'axios';
 import Select from 'react-select';
 import { ChevronRight, ChevronDown, Power, Bell, Edit3, Search, Users, Gift, Sparkles, Handshake } from 'lucide-react';
 import './Admin_Styles/AdminUsers.css';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../ui/table";
 
 const AdminUsers = () => {
   const [users, setUsers] = useState([]);
@@ -39,12 +47,111 @@ const AdminUsers = () => {
   // Expanded rows
   const [expandedRows, setExpandedRows] = useState(new Set());
 
+  // Mock data for testing
+  const mockUsers = [
+    {
+      id: 1,
+      email: "john.donor@foodflow.com",
+      role: "DONOR",
+      organizationName: "Fresh Farms Co.",
+      contactPerson: "John Smith",
+      phone: "514-555-0123",
+      accountStatus: "ACTIVE",
+      verificationStatus: "VERIFIED",
+      donationCount: 45,
+      createdAt: "2024-11-15T10:00:00",
+      adminNotes: null,
+    },
+    {
+      id: 2,
+      email: "sarah.receiver@foodbank.org",
+      role: "RECEIVER",
+      organizationName: "Montreal Food Bank",
+      contactPerson: "Sarah Johnson",
+      phone: "514-555-0124",
+      accountStatus: "ACTIVE",
+      verificationStatus: "VERIFIED",
+      claimCount: 23,
+      createdAt: "2024-10-20T14:30:00",
+      adminNotes: null,
+    },
+    {
+      id: 3,
+      email: "mike.donor@restaurant.com",
+      role: "DONOR",
+      organizationName: "Le Gourmet Restaurant",
+      contactPerson: "Mike Chen",
+      phone: "514-555-0125",
+      accountStatus: "ACTIVE",
+      verificationStatus: "PENDING",
+      donationCount: 12,
+      createdAt: "2024-12-01T09:15:00",
+      adminNotes: null,
+    },
+    {
+      id: 4,
+      email: "emma.receiver@shelter.org",
+      role: "RECEIVER",
+      organizationName: "Community Shelter",
+      contactPerson: "Emma Wilson",
+      phone: "514-555-0126",
+      accountStatus: "DEACTIVATED",
+      verificationStatus: "VERIFIED",
+      claimCount: 8,
+      createdAt: "2024-09-10T11:00:00",
+      adminNotes: "Account suspended pending review",
+    },
+    {
+      id: 5,
+      email: "david.donor@bakery.com",
+      role: "DONOR",
+      organizationName: "Daily Bread Bakery",
+      contactPerson: "David Brown",
+      phone: "514-555-0127",
+      accountStatus: "ACTIVE",
+      verificationStatus: "VERIFIED",
+      donationCount: 67,
+      createdAt: "2024-08-05T08:45:00",
+      adminNotes: null,
+    },
+  ];
+
   // Fetch users from API
   const fetchUsers = async () => {
     setLoading(true);
     setError(null);
     
     try {
+      // TEMPORARY: Use mock data for testing
+      setTimeout(() => {
+        const content = mockUsers;
+        const totalPagesCount = 1;
+        
+        // Calculate stats
+        const totalDonors = content.filter(u => u.role === 'DONOR').length;
+        const totalReceivers = content.filter(u => u.role === 'RECEIVER').length;
+        const newUsers = content.filter(u => {
+          const createdDate = new Date(u.createdAt);
+          const thirtyDaysAgo = new Date();
+          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+          return createdDate > thirtyDaysAgo;
+        }).length;
+        
+        setStats({
+          totalUsers: content.length,
+          totalDonors,
+          totalReceivers,
+          newUsers
+        });
+        
+        setUsers(content);
+        setFilteredUsers(content);
+        setTotalPages(totalPagesCount);
+        setLoading(false);
+      }, 500);
+      
+      // UNCOMMENT BELOW TO USE REAL API
+      /*
       const token = localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
       const params = {
         page: currentPage,
@@ -84,10 +191,10 @@ const AdminUsers = () => {
       setUsers(content);
       setFilteredUsers(content);
       setTotalPages(totalPagesCount);
+      */
     } catch (err) {
       console.error('Error fetching users:', err);
       setError('Failed to load users. Please try again.');
-    } finally {
       setLoading(false);
     }
   };
@@ -367,33 +474,33 @@ const AdminUsers = () => {
 
       {/* Users Table */}
       <div className="users-table-container">
-        <table className="users-table">
-          <thead>
-            <tr>
-              <th></th>
-              <th>ID</th>
-              <th>Name</th>
-              <th>Role</th>
-              <th>Verification</th>
-              <th>Status</th>
-              <th>Email</th>
-              <th>Phone</th>
-              <th>Activity</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table className="users-table">
+          <TableHeader>
+            <TableRow>
+              <TableHead></TableHead>
+              <TableHead>ID</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Verification</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Phone</TableHead>
+              <TableHead>Activity</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {filteredUsers.length === 0 ? (
-              <tr>
-                <td colSpan="10" className="no-users">
+              <TableRow>
+                <TableCell colSpan="10" className="no-users">
                   No users found
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : (
               filteredUsers.map((user) => (
                 <React.Fragment key={user.id}>
-                  <tr className={expandedRows.has(user.id) ? 'expanded' : ''}>
-                    <td>
+                  <TableRow className={expandedRows.has(user.id) ? 'expanded' : ''}>
+                    <TableCell>
                       <button 
                         className="expand-btn"
                         onClick={() => {
@@ -408,39 +515,39 @@ const AdminUsers = () => {
                       >
                         {expandedRows.has(user.id) ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
                       </button>
-                    </td>
-                  <td className="id-cell">{user.id}</td>
-                  <td>
+                    </TableCell>
+                  <TableCell className="id-cell">{user.id}</TableCell>
+                  <TableCell>
                     <div className="user-name-info">
                       <div className="user-name">{user.contactPerson || 'N/A'}</div>
                       <div className="user-org">{user.organizationName || 'N/A'}</div>
                     </div>
-                  </td>
-                  <td>
+                  </TableCell>
+                  <TableCell>
                     <span className={`pill pill-${user.role.toLowerCase()}`}>
                       {user.role === 'DONOR' ? 'Donor' : user.role === 'RECEIVER' ? 'Receiver' : 'Admin'}
                     </span>
-                  </td>
-                  <td>
+                  </TableCell>
+                  <TableCell>
                     {user.verificationStatus && (
                       <span className={`pill pill-${user.verificationStatus.toLowerCase()}`}>
                         {user.verificationStatus === 'VERIFIED' ? 'Verified' : 'Pending'}
                       </span>
                     )}
-                  </td>
-                  <td>
+                  </TableCell>
+                  <TableCell>
                     <span className={`pill pill-status-${user.accountStatus.toLowerCase()}`}>
                       {user.accountStatus === 'ACTIVE' ? 'Active' : 'Deactivated'}
                     </span>
-                  </td>
-                  <td className="email-cell">{user.email}</td>
-                  <td>{user.phone || 'N/A'}</td>
-                  <td className="activity-cell">
+                  </TableCell>
+                  <TableCell className="email-cell">{user.email}</TableCell>
+                  <TableCell>{user.phone || 'N/A'}</TableCell>
+                  <TableCell className="activity-cell">
                     {user.role === 'DONOR' && (user.donationCount || 0)}
                     {user.role === 'RECEIVER' && (user.claimCount || 0)}
                     {user.role === 'ADMIN' && '-'}
-                  </td>
-                  <td>
+                  </TableCell>
+                  <TableCell>
                     <div className="action-buttons">
                       {user.accountStatus === 'ACTIVE' && user.role !== 'ADMIN' && (
                         <button
@@ -477,13 +584,13 @@ const AdminUsers = () => {
                         <Bell size={16} />
                       </button>
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
                 
                 {/* Expanded details row */}
                 {expandedRows.has(user.id) && (
-                  <tr className="details-row">
-                    <td colSpan="10">
+                  <TableRow className="details-row">
+                    <TableCell colSpan="10">
                       <div className="user-details-expanded">
                         <div className="details-grid">
                           <div className="details-section">
@@ -526,14 +633,14 @@ const AdminUsers = () => {
                           </ul>
                         </div>
                       </div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 )}
                 </React.Fragment>
               ))
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
 
