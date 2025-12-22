@@ -61,7 +61,7 @@ const AdminUsers = () => {
       
       if (roleFilter) params.role = roleFilter;
       if (statusFilter) params.accountStatus = statusFilter;
-      if (debouncedSearchTerm) params.search = debouncedSearchTerm;
+      // Remove search from API call - handle it frontend only
       
       const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/admin/users`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -90,7 +90,6 @@ const AdminUsers = () => {
       });
       
       setUsers(content);
-      setFilteredUsers(content);
       setTotalPages(totalPagesCount);
       setLoading(false);
     } catch (err) {
@@ -109,10 +108,33 @@ const AdminUsers = () => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Fetch users when debounced search term or other filters change
+  // Fetch users when filters change (not search - that's frontend only)
   useEffect(() => {
     fetchUsers();
-  }, [currentPage, roleFilter, statusFilter, debouncedSearchTerm]);
+  }, [currentPage, roleFilter, statusFilter]);
+
+  // Apply client-side filtering if backend doesn't support search
+  useEffect(() => {
+    if (!debouncedSearchTerm) {
+      setFilteredUsers(users);
+      return;
+    }
+
+    const searchLower = debouncedSearchTerm.toLowerCase();
+    const filtered = users.filter(user => {
+      const name = (user.contactPerson || '').toLowerCase();
+      const email = (user.email || '').toLowerCase();
+      const org = (user.organizationName || '').toLowerCase();
+      const phone = (user.phone || '').toLowerCase();
+      
+      return name.includes(searchLower) || 
+             email.includes(searchLower) || 
+             org.includes(searchLower) ||
+             phone.includes(searchLower);
+    });
+    
+    setFilteredUsers(filtered);
+  }, [users, debouncedSearchTerm]);
 
   // Deactivate user
   const handleDeactivate = async () => {
