@@ -384,4 +384,62 @@ public class TimezoneResolver {
                 return "UTC";
         }
     }
+    
+    /**
+     * Converts a LocalDateTime from one timezone to another.
+     * 
+     * @param dateTime The date-time to convert
+     * @param fromTimezone Source timezone (e.g., "America/Toronto")
+     * @param toTimezone Target timezone (e.g., "UTC")
+     * @return Converted LocalDateTime in target timezone
+     */
+    public static java.time.LocalDateTime convertTimezone(
+            java.time.LocalDateTime dateTime, 
+            String fromTimezone, 
+            String toTimezone) {
+        
+        if (dateTime == null) {
+            return null;
+        }
+        
+        try {
+            ZoneId fromZone = ZoneId.of(fromTimezone != null ? fromTimezone : "UTC");
+            ZoneId toZone = ZoneId.of(toTimezone != null ? toTimezone : "UTC");
+            
+            // Convert LocalDateTime to ZonedDateTime in source timezone
+            ZonedDateTime zonedDateTime = dateTime.atZone(fromZone);
+            
+            // Convert to target timezone
+            ZonedDateTime convertedDateTime = zonedDateTime.withZoneSameInstant(toZone);
+            
+            // Return as LocalDateTime (strips timezone info but represents correct time)
+            return convertedDateTime.toLocalDateTime();
+        } catch (Exception e) {
+            // If conversion fails, return original
+            return dateTime;
+        }
+    }
+    
+    /**
+     * Converts LocalDate and LocalTime from one timezone to another, returning LocalDateTime.
+     * 
+     * @param date The date
+     * @param time The time
+     * @param fromTimezone Source timezone
+     * @param toTimezone Target timezone
+     * @return Converted LocalDateTime in target timezone
+     */
+    public static java.time.LocalDateTime convertDateTime(
+            java.time.LocalDate date,
+            java.time.LocalTime time,
+            String fromTimezone,
+            String toTimezone) {
+        
+        if (date == null || time == null) {
+            return null;
+        }
+        
+        java.time.LocalDateTime dateTime = java.time.LocalDateTime.of(date, time);
+        return convertTimezone(dateTime, fromTimezone, toTimezone);
+    }
 }
