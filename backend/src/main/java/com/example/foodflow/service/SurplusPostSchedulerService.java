@@ -5,6 +5,7 @@ import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.repository.SurplusPostRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +24,9 @@ public class SurplusPostSchedulerService {
     private static final int GRACE_PERIOD_MINUTES = 2;
 
     private final SurplusPostRepository surplusPostRepository;
+
+    @Value("${foodflow.expiry.enable-auto-flagging:true}")
+    private boolean enableAutoFlagging;
 
     public SurplusPostSchedulerService(SurplusPostRepository surplusPostRepository) {
         this.surplusPostRepository = surplusPostRepository;
@@ -143,5 +147,43 @@ public class SurplusPostSchedulerService {
             surplusPostRepository.save(post);
             logger.info("Post ID {} marked as NOT_COMPLETED", post.getId());
         }
+    }
+
+    /**
+     * Every hour: mark AVAILABLE or CLAIMED posts as EXPIRED
+     * if their expiry date has passed. Prevents expired food from being claimed.
+     */
+    @Scheduled(fixedRate = 3600000) // Run every hour
+    @Transactional
+    public void markExpiredPosts() {
+        if (!enableAutoFlagging) {
+            logger.debug("Auto-flagging of expired posts is disabled");
+            return;
+        }
+
+        LocalDate today = LocalDate.now();
+        logger.info("===== markExpiredPosts running at {} =====", LocalDateTime.now());
+
+        // Find posts that are AVAILABLE or CLAIMED but have expired
+        List<PostStatus> activeStatuses = List.of(PostStatus.AVAILABLE, PostStatus.CLAIMED);
+        List<SurplusPost> activePosts = surplusPostRepository.findByStatusIn(activeStatuses);
+        logger.info("Found {} active posts to check for expiry", activePosts.size());
+
+        List<SurplusPost> expiredPosts = activePosts.stream()
+            .filter(post -> post.getExpiryDate() != null && post.getExpiryDate().isBefore(today))
+            .toList();
+
+        if (expiredPosts.isEmpty()) {
+            logger.info("No expired posts found.");
+            return;
+        }
+
+        for (SurplusPost post : expiredPosts) {
+            post.setStatus(PostStatus.EXPIRED);
+            surplusPostRepository.save(post);
+            logger.info("Post ID {} marked as EXPIRED (expiry date: {})", post.getId(), post.getExpiryDate());
+        }
+
+        logger.info("Marked {} posts as EXPIRED", expiredPosts.size());
     }
 }

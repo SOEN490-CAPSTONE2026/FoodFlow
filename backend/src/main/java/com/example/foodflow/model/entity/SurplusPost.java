@@ -41,6 +41,9 @@ public class SurplusPost {
     @Embedded
     private Location pickupLocation;
 
+    @Column(name = "fabrication_date")
+    private LocalDate fabricationDate;
+
     @Column(nullable = false)
     private LocalDate expiryDate;
 
@@ -114,6 +117,9 @@ public class SurplusPost {
 
     public Location getPickupLocation() { return pickupLocation; }
     public void setPickupLocation(Location pickupLocation) { this.pickupLocation = pickupLocation; }
+
+    public LocalDate getFabricationDate() { return fabricationDate; }
+    public void setFabricationDate(LocalDate fabricationDate) { this.fabricationDate = fabricationDate; }
 
     public LocalDate getExpiryDate() { return expiryDate; }
     public void setExpiryDate(LocalDate expiryDate) { this.expiryDate = expiryDate; }

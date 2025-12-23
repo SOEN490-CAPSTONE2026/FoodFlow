@@ -28,6 +28,8 @@ public class CreateSurplusRequest {
     @NotNull(message = "Quantity is required")
     private Quantity quantity;
 
+    private LocalDate fabricationDate;
+
     @NotNull(message = "Expiry date is required")
     @Future(message = "Expiry date must be in the future")
     private LocalDate expiryDate;
@@ -70,6 +72,9 @@ public class CreateSurplusRequest {
 
     public Quantity getQuantity() { return quantity; }
     public void setQuantity(Quantity quantity) { this.quantity = quantity; }
+
+    public LocalDate getFabricationDate() { return fabricationDate; }
+    public void setFabricationDate(LocalDate fabricationDate) { this.fabricationDate = fabricationDate; }
 
     public LocalDate getExpiryDate() { return expiryDate; }
     public void setExpiryDate(LocalDate expiryDate) { this.expiryDate = expiryDate; }
