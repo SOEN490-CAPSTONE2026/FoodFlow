@@ -306,4 +306,82 @@ public class TimezoneResolver {
             return false;
         }
     }
+    
+    /**
+     * Converts a UTC offset string (e.g., "UTC-05:00", "UTC+03:30") to a representative IANA timezone ID.
+     * 
+     * @param offsetString The UTC offset string
+     * @return IANA timezone ID, or "UTC" if no match found
+     */
+    public static String convertOffsetToTimezone(String offsetString) {
+        if (offsetString == null || offsetString.trim().isEmpty()) {
+            return "UTC";
+        }
+        
+        String normalized = offsetString.trim().toUpperCase();
+        
+        // Remove "UTC" or "GMT" prefix
+        if (normalized.startsWith("UTC")) {
+            normalized = normalized.substring(3);
+        } else if (normalized.startsWith("GMT")) {
+            normalized = normalized.substring(3);
+        } else {
+            return "UTC";
+        }
+        
+        // Map UTC offsets to representative IANA timezones
+        // Format: UTC±HH:MM
+        switch (normalized) {
+            // Negative offsets (Western Hemisphere)
+            case "-12:00": return "Pacific/Baker_Island";
+            case "-11:00": return "Pacific/Pago_Pago";
+            case "-10:00": return "Pacific/Honolulu";
+            case "-09:30": return "Pacific/Marquesas";
+            case "-09:00": return "America/Anchorage";
+            case "-08:00": return "America/Los_Angeles";
+            case "-07:00": return "America/Denver";
+            case "-06:00": return "America/Chicago";
+            case "-05:00": return "America/New_York";
+            case "-04:00": return "America/Halifax";
+            case "-03:30": return "America/St_Johns";
+            case "-03:00": return "America/Argentina/Buenos_Aires";
+            case "-02:00": return "Atlantic/South_Georgia";
+            case "-01:00": return "Atlantic/Azores";
+            
+            // Zero offset
+            case "+00:00":
+            case "-00:00":
+            case "": return "UTC";
+            
+            // Positive offsets (Eastern Hemisphere)
+            case "+01:00": return "Europe/London";
+            case "+02:00": return "Europe/Paris";
+            case "+03:00": return "Europe/Moscow";
+            case "+03:30": return "Asia/Tehran";
+            case "+04:00": return "Asia/Dubai";
+            case "+04:30": return "Asia/Kabul";
+            case "+05:00": return "Asia/Karachi";
+            case "+05:30": return "Asia/Kolkata";
+            case "+05:45": return "Asia/Kathmandu";
+            case "+06:00": return "Asia/Dhaka";
+            case "+06:30": return "Asia/Yangon";
+            case "+07:00": return "Asia/Bangkok";
+            case "+08:00": return "Asia/Shanghai";
+            case "+08:30": return "Asia/Pyongyang";
+            case "+08:45": return "Australia/Eucla";
+            case "+09:00": return "Asia/Tokyo";
+            case "+09:30": return "Australia/Darwin";
+            case "+10:00": return "Australia/Sydney";
+            case "+10:30": return "Australia/Lord_Howe";
+            case "+11:00": return "Pacific/Guadalcanal";
+            case "+12:00": return "Pacific/Auckland";
+            case "+12:45": return "Pacific/Chatham";
+            case "+13:00": return "Pacific/Tongatapu";
+            case "+14:00": return "Pacific/Kiritimati";
+            
+            default:
+                // If format doesn't match, return UTC
+                return "UTC";
+        }
+    }
 }

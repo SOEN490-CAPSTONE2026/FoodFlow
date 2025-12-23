@@ -29,8 +29,28 @@ public class UserProfileService {
      */
     @Transactional
     public RegionResponse updateRegionSettings(User user, UpdateRegionRequest request) {
-        // Resolve timezone from city and country
-        String timezone = TimezoneResolver.resolveTimezone(request.getCity(), request.getCountry());
+        // Use manual timezone if provided, otherwise resolve from city and country
+        String timezone;
+        if (request.getTimezone() != null && !request.getTimezone().trim().isEmpty()) {
+            String providedTimezone = request.getTimezone().trim();
+            
+            // Check if it's a UTC offset string (e.g., "UTC-03:30", "UTC+05:00")
+            if (providedTimezone.startsWith("UTC") || providedTimezone.startsWith("GMT")) {
+                // It's an offset string - convert it to IANA timezone
+                timezone = TimezoneResolver.convertOffsetToTimezone(providedTimezone);
+            } else {
+                // It's (hopefully) a valid IANA timezone ID - validate and use it
+                if (TimezoneResolver.isValidTimezone(providedTimezone)) {
+                    timezone = providedTimezone;
+                } else {
+                    // Invalid timezone, fall back to resolution
+                    timezone = TimezoneResolver.resolveTimezone(request.getCity(), request.getCountry());
+                }
+            }
+        } else {
+            // Auto-resolve timezone from city and country
+            timezone = TimezoneResolver.resolveTimezone(request.getCity(), request.getCountry());
+        }
         
         // Update user entity
         user.setCountry(request.getCountry());

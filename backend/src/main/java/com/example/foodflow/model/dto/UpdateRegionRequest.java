@@ -13,6 +13,9 @@ public class UpdateRegionRequest {
     @Size(max = 100, message = "City must be less than 100 characters")
     private String city;
     
+    // Optional: Manual timezone override
+    private String timezone;
+    
     // Constructors
     public UpdateRegionRequest() {}
     
@@ -36,5 +39,13 @@ public class UpdateRegionRequest {
     
     public void setCity(String city) {
         this.city = city;
+    }
+    
+    public String getTimezone() {
+        return timezone;
+    }
+    
+    public void setTimezone(String timezone) {
+        this.timezone = timezone;
     }
 }

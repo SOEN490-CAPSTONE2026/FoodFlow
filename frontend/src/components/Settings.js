@@ -266,7 +266,8 @@ const Settings = () => {
       try {
         await api.put('/profile/region', {
           country: regionData.countryName || regionData.country,
-          city: regionData.city
+          city: regionData.city,
+          timezone: regionData.timezone  // Send the selected timezone
         });
         
         console.log('Region saved to backend successfully');
