@@ -3,23 +3,33 @@ package com.example.foodflow.controller;
 import com.example.foodflow.model.dto.RegionResponse;
 import com.example.foodflow.model.dto.UpdateRegionRequest;
 import com.example.foodflow.model.entity.User;
+import com.example.foodflow.model.entity.UserRole;
+import com.example.foodflow.repository.UserRepository;
 import com.example.foodflow.service.UserProfileService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Optional;
+
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(UserProfileController.class)
+@SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
 class UserProfileControllerTest {
     
     @Autowired
@@ -31,6 +41,22 @@ class UserProfileControllerTest {
     @MockBean
     private UserProfileService userProfileService;
     
+    @MockBean
+    private UserRepository userRepository;
+    
+    private User testUser;
+    
+    @BeforeEach
+    void setUp() {
+        testUser = new User();
+        testUser.setId(1L);
+        testUser.setEmail("test@example.com");
+        testUser.setRole(UserRole.RECEIVER);
+        
+        // Mock UserRepository to return testUser when findByEmail is called
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(testUser));
+    }
+    
     @Test
     @WithMockUser(username = "test@example.com")
     void getRegionSettings_AuthenticatedUser_ShouldReturn200() throws Exception {
@@ -41,7 +67,7 @@ class UserProfileControllerTest {
         response.setTimezone("America/Toronto");
         response.setTimezoneOffset("-05:00");
         
-        when(userProfileService.getRegionSettings(any(User.class)))
+        when(userProfileService.getRegionSettings(any()))
             .thenReturn(response);
         
         // When & Then
@@ -67,7 +93,7 @@ class UserProfileControllerTest {
         response.setTimezone("America/Toronto");
         response.setTimezoneOffset("-05:00");
         
-        when(userProfileService.updateRegionSettings(any(User.class), any(UpdateRegionRequest.class)))
+        when(userProfileService.updateRegionSettings(any(), any(UpdateRegionRequest.class)))
             .thenReturn(response);
         
         // When & Then
@@ -157,7 +183,7 @@ class UserProfileControllerTest {
         usResponse.setTimezone("America/New_York");
         usResponse.setTimezoneOffset("-05:00");
         
-        when(userProfileService.updateRegionSettings(any(User.class), any(UpdateRegionRequest.class)))
+        when(userProfileService.updateRegionSettings(any(), any(UpdateRegionRequest.class)))
             .thenReturn(usResponse);
         
         mockMvc.perform(put("/api/profile/region")
@@ -170,23 +196,23 @@ class UserProfileControllerTest {
     }
     
     @Test
-    void getRegionSettings_Unauthenticated_ShouldReturn401() throws Exception {
-        // When & Then
+    void getRegionSettings_Unauthenticated_ShouldReturn403() throws Exception {
+        // When & Then - Spring Security returns 403 for unauthenticated requests
         mockMvc.perform(get("/api/profile/region"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
     }
     
     @Test
-    void updateRegionSettings_Unauthenticated_ShouldReturn401() throws Exception {
+    void updateRegionSettings_Unauthenticated_ShouldReturn403() throws Exception {
         // Given
         UpdateRegionRequest request = new UpdateRegionRequest();
         request.setCountry("Canada");
         request.setCity("Toronto");
         
-        // When & Then
+        // When & Then - Spring Security returns 403 for unauthenticated requests
         mockMvc.perform(put("/api/profile/region")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
     }
 }

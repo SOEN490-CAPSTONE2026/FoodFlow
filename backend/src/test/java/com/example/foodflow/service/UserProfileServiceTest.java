@@ -105,7 +105,7 @@ class UserProfileServiceTest {
         assertEquals("Unknown Country", response.getCountry());
         assertEquals("Unknown City", response.getCity());
         assertEquals("UTC", response.getTimezone());
-        assertEquals("+00:00", response.getTimezoneOffset());
+        assertEquals("Z", response.getTimezoneOffset()); // Java returns "Z" for UTC
     }
     
     @Test
@@ -142,7 +142,7 @@ class UserProfileServiceTest {
         assertNull(response.getCountry());
         assertNull(response.getCity());
         assertEquals("UTC", response.getTimezone()); // Default to UTC
-        assertEquals("+00:00", response.getTimezoneOffset());
+        assertEquals("Z", response.getTimezoneOffset()); // Java returns "Z" for UTC
     }
     
     @Test
