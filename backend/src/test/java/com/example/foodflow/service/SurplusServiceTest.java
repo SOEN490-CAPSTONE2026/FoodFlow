@@ -54,6 +54,9 @@ class SurplusServiceTest {
     @Mock
     private NotificationService notificationService;
 
+    @Mock
+    private ExpiryCalculationService expiryCalculationService;
+
     @InjectMocks
     private SurplusService surplusService;
 
@@ -966,4 +969,354 @@ class SurplusServiceTest {
         assertThat(postCaptor.getValue().getOtpCode()).isNull();
     }
 
+    // ==================== Tests for Fabrication Date Feature ====================
+
+    @Test
+    void testCreateSurplusPost_WithFabricationDate_AutoCalculatesExpiry() {
+        // Given
+        CreateSurplusRequest requestWithFabrication = new CreateSurplusRequest();
+        requestWithFabrication.setTitle("Fresh Prepared Meal");
+        requestWithFabrication.getFoodCategories().add(FoodCategory.PREPARED_MEALS);
+        requestWithFabrication.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        requestWithFabrication.setFabricationDate(LocalDate.now().minusDays(1));
+        // No expiry date provided - should be auto-calculated
+        requestWithFabrication.setPickupDate(LocalDate.now());
+        requestWithFabrication.setPickupFrom(LocalTime.now().plusHours(3));
+        requestWithFabrication.setPickupTo(LocalTime.now().plusHours(5));
+        requestWithFabrication.setPickupLocation(new Location(45.2903, -34.0987, "123 Main St"));
+
+        List<PickupSlotRequest> slots = new ArrayList<>();
+        PickupSlotRequest slot = new PickupSlotRequest();
+        slot.setPickupDate(LocalDate.now());
+        slot.setStartTime(LocalTime.now().plusHours(3));
+        slot.setEndTime(LocalTime.now().plusHours(5));
+        slots.add(slot);
+        requestWithFabrication.setPickupSlots(slots);
+
+        SurplusPost savedPost = new SurplusPost();
+        savedPost.setId(1L);
+        savedPost.setDonor(donor);
+        savedPost.setTitle(requestWithFabrication.getTitle());
+        savedPost.setFoodCategories(requestWithFabrication.getFoodCategories());
+        savedPost.setQuantity(requestWithFabrication.getQuantity());
+        savedPost.setPickupLocation(requestWithFabrication.getPickupLocation());
+        savedPost.setFabricationDate(requestWithFabrication.getFabricationDate());
+        savedPost.setExpiryDate(requestWithFabrication.getFabricationDate().plusDays(3)); // Prepared meals = 3 days
+
+        doNothing().when(pickupSlotValidationService).validateSlots(any());
+        when(expiryCalculationService.isValidFabricationDate(any())).thenReturn(true);
+        when(expiryCalculationService.calculateExpiryDate(any(), any())).thenReturn(LocalDate.now().plusDays(2));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
+
+        // When
+        SurplusResponse response = surplusService.createSurplusPost(requestWithFabrication, donor);
+
+        // Then
+        assertThat(response).isNotNull();
+        verify(expiryCalculationService).isValidFabricationDate(LocalDate.now().minusDays(1));
+        verify(expiryCalculationService).calculateExpiryDate(eq(LocalDate.now().minusDays(1)), any());
+
+        ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
+        verify(surplusPostRepository).save(postCaptor.capture());
+
+        SurplusPost capturedPost = postCaptor.getValue();
+        assertThat(capturedPost.getFabricationDate()).isEqualTo(LocalDate.now().minusDays(1));
+        assertThat(capturedPost.getExpiryDate()).isNotNull();
+    }
+
+    @Test
+    void testCreateSurplusPost_WithFabricationAndExpiryDate_UsesProvidedExpiry() {
+        // Given
+        CreateSurplusRequest requestWithBoth = new CreateSurplusRequest();
+        requestWithBoth.setTitle("Custom Expiry Meal");
+        requestWithBoth.getFoodCategories().add(FoodCategory.PREPARED_MEALS);
+        requestWithBoth.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        requestWithBoth.setFabricationDate(LocalDate.now().minusDays(1));
+        requestWithBoth.setExpiryDate(LocalDate.now().plusDays(1)); // Custom expiry
+        requestWithBoth.setPickupDate(LocalDate.now());
+        requestWithBoth.setPickupFrom(LocalTime.now().plusHours(3));
+        requestWithBoth.setPickupTo(LocalTime.now().plusHours(5));
+        requestWithBoth.setPickupLocation(new Location(45.2903, -34.0987, "123 Main St"));
+
+        List<PickupSlotRequest> slots = new ArrayList<>();
+        PickupSlotRequest slot = new PickupSlotRequest();
+        slot.setPickupDate(LocalDate.now());
+        slot.setStartTime(LocalTime.now().plusHours(3));
+        slot.setEndTime(LocalTime.now().plusHours(5));
+        slots.add(slot);
+        requestWithBoth.setPickupSlots(slots);
+
+        SurplusPost savedPost = new SurplusPost();
+        savedPost.setId(1L);
+        savedPost.setDonor(donor);
+        savedPost.setTitle(requestWithBoth.getTitle());
+        savedPost.setFoodCategories(requestWithBoth.getFoodCategories());
+        savedPost.setQuantity(requestWithBoth.getQuantity());
+        savedPost.setPickupLocation(requestWithBoth.getPickupLocation());
+        savedPost.setFabricationDate(requestWithBoth.getFabricationDate());
+        savedPost.setExpiryDate(requestWithBoth.getExpiryDate());
+
+        doNothing().when(pickupSlotValidationService).validateSlots(any());
+        when(expiryCalculationService.isValidFabricationDate(any())).thenReturn(true);
+        when(expiryCalculationService.isValidExpiryDate(any(), any())).thenReturn(true);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
+
+        // When
+        SurplusResponse response = surplusService.createSurplusPost(requestWithBoth, donor);
+
+        // Then
+        assertThat(response).isNotNull();
+        verify(expiryCalculationService).isValidFabricationDate(LocalDate.now().minusDays(1));
+        verify(expiryCalculationService).isValidExpiryDate(LocalDate.now().minusDays(1), LocalDate.now().plusDays(1));
+
+        ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
+        verify(surplusPostRepository).save(postCaptor.capture());
+
+        SurplusPost capturedPost = postCaptor.getValue();
+        assertThat(capturedPost.getFabricationDate()).isEqualTo(LocalDate.now().minusDays(1));
+        assertThat(capturedPost.getExpiryDate()).isEqualTo(LocalDate.now().plusDays(1)); // Uses provided
+    }
+
+    @Test
+    void testCreateSurplusPost_FutureFabricationDate_ThrowsException() {
+        // Given
+        CreateSurplusRequest requestWithFutureFabrication = new CreateSurplusRequest();
+        requestWithFutureFabrication.setTitle("Invalid Future Meal");
+        requestWithFutureFabrication.getFoodCategories().add(FoodCategory.PREPARED_MEALS);
+        requestWithFutureFabrication.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        requestWithFutureFabrication.setFabricationDate(LocalDate.now().plusDays(1)); // Future date - invalid
+        requestWithFutureFabrication.setPickupDate(LocalDate.now());
+        requestWithFutureFabrication.setPickupFrom(LocalTime.now().plusHours(3));
+        requestWithFutureFabrication.setPickupTo(LocalTime.now().plusHours(5));
+        requestWithFutureFabrication.setPickupLocation(new Location(45.2903, -34.0987, "123 Main St"));
+
+        List<PickupSlotRequest> slots = new ArrayList<>();
+        PickupSlotRequest slot = new PickupSlotRequest();
+        slot.setPickupDate(LocalDate.now());
+        slot.setStartTime(LocalTime.now().plusHours(3));
+        slot.setEndTime(LocalTime.now().plusHours(5));
+        slots.add(slot);
+        requestWithFutureFabrication.setPickupSlots(slots);
+
+        doNothing().when(pickupSlotValidationService).validateSlots(any());
+        when(expiryCalculationService.isValidFabricationDate(any())).thenReturn(false);
+
+        // When & Then
+        assertThatThrownBy(() -> surplusService.createSurplusPost(requestWithFutureFabrication, donor))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Fabrication date cannot be in the future");
+
+        verify(expiryCalculationService).isValidFabricationDate(LocalDate.now().plusDays(1));
+    }
+
+    @Test
+    void testCreateSurplusPost_ExpiryBeforeFabrication_ThrowsException() {
+        // Given
+        CreateSurplusRequest requestWithInvalidExpiry = new CreateSurplusRequest();
+        requestWithInvalidExpiry.setTitle("Invalid Expiry Meal");
+        requestWithInvalidExpiry.getFoodCategories().add(FoodCategory.PREPARED_MEALS);
+        requestWithInvalidExpiry.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        requestWithInvalidExpiry.setFabricationDate(LocalDate.now());
+        requestWithInvalidExpiry.setExpiryDate(LocalDate.now().minusDays(1)); // Before fabrication - invalid
+        requestWithInvalidExpiry.setPickupDate(LocalDate.now());
+        requestWithInvalidExpiry.setPickupFrom(LocalTime.now().plusHours(3));
+        requestWithInvalidExpiry.setPickupTo(LocalTime.now().plusHours(5));
+        requestWithInvalidExpiry.setPickupLocation(new Location(45.2903, -34.0987, "123 Main St"));
+
+        List<PickupSlotRequest> slots = new ArrayList<>();
+        PickupSlotRequest slot = new PickupSlotRequest();
+        slot.setPickupDate(LocalDate.now());
+        slot.setStartTime(LocalTime.now().plusHours(3));
+        slot.setEndTime(LocalTime.now().plusHours(5));
+        slots.add(slot);
+        requestWithInvalidExpiry.setPickupSlots(slots);
+
+        doNothing().when(pickupSlotValidationService).validateSlots(any());
+        when(expiryCalculationService.isValidFabricationDate(any())).thenReturn(true);
+        when(expiryCalculationService.isValidExpiryDate(any(), any())).thenReturn(false);
+
+        // When & Then
+        assertThatThrownBy(() -> surplusService.createSurplusPost(requestWithInvalidExpiry, donor))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Expiry date must be after fabrication date");
+
+        verify(expiryCalculationService).isValidFabricationDate(LocalDate.now());
+        verify(expiryCalculationService).isValidExpiryDate(LocalDate.now(), LocalDate.now().minusDays(1));
+    }
+
+    @Test
+    void testCreateSurplusPost_NoFabricationDate_RequiresExpiryDate() {
+        // Given
+        CreateSurplusRequest requestWithoutFabrication = new CreateSurplusRequest();
+        requestWithoutFabrication.setTitle("No Fabrication Meal");
+        requestWithoutFabrication.getFoodCategories().add(FoodCategory.PREPARED_MEALS);
+        requestWithoutFabrication.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        // No fabrication date and no expiry date
+        requestWithoutFabrication.setExpiryDate(LocalDate.now().plusDays(2)); // Must provide expiry
+        requestWithoutFabrication.setPickupDate(LocalDate.now());
+        requestWithoutFabrication.setPickupFrom(LocalTime.now().plusHours(3));
+        requestWithoutFabrication.setPickupTo(LocalTime.now().plusHours(5));
+        requestWithoutFabrication.setPickupLocation(new Location(45.2903, -34.0987, "123 Main St"));
+
+        List<PickupSlotRequest> slots = new ArrayList<>();
+        PickupSlotRequest slot = new PickupSlotRequest();
+        slot.setPickupDate(LocalDate.now());
+        slot.setStartTime(LocalTime.now().plusHours(3));
+        slot.setEndTime(LocalTime.now().plusHours(5));
+        slots.add(slot);
+        requestWithoutFabrication.setPickupSlots(slots);
+
+        SurplusPost savedPost = new SurplusPost();
+        savedPost.setId(1L);
+        savedPost.setDonor(donor);
+        savedPost.setTitle(requestWithoutFabrication.getTitle());
+        savedPost.setFoodCategories(requestWithoutFabrication.getFoodCategories());
+        savedPost.setQuantity(requestWithoutFabrication.getQuantity());
+        savedPost.setPickupLocation(requestWithoutFabrication.getPickupLocation());
+        savedPost.setExpiryDate(requestWithoutFabrication.getExpiryDate());
+
+        doNothing().when(pickupSlotValidationService).validateSlots(any());
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
+
+        // When
+        SurplusResponse response = surplusService.createSurplusPost(requestWithoutFabrication, donor);
+
+        // Then
+        assertThat(response).isNotNull();
+        verify(surplusPostRepository, times(1)).save(any(SurplusPost.class));
+    }
+
+    @Test
+    void testCreateSurplusPost_WithoutFabricationOrExpiry_ThrowsException() {
+        // Given
+        CreateSurplusRequest requestWithoutDates = new CreateSurplusRequest();
+        requestWithoutDates.setTitle("No Dates Meal");
+        requestWithoutDates.getFoodCategories().add(FoodCategory.PREPARED_MEALS);
+        requestWithoutDates.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        // No fabrication date and no expiry date - should fail
+        requestWithoutDates.setPickupDate(LocalDate.now());
+        requestWithoutDates.setPickupFrom(LocalTime.now().plusHours(3));
+        requestWithoutDates.setPickupTo(LocalTime.now().plusHours(5));
+        requestWithoutDates.setPickupLocation(new Location(45.2903, -34.0987, "123 Main St"));
+
+        List<PickupSlotRequest> slots = new ArrayList<>();
+        PickupSlotRequest slot = new PickupSlotRequest();
+        slot.setPickupDate(LocalDate.now());
+        slot.setStartTime(LocalTime.now().plusHours(3));
+        slot.setEndTime(LocalTime.now().plusHours(5));
+        slots.add(slot);
+        requestWithoutDates.setPickupSlots(slots);
+
+        doNothing().when(pickupSlotValidationService).validateSlots(any());
+
+        // When & Then
+        assertThatThrownBy(() -> surplusService.createSurplusPost(requestWithoutDates, donor))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Expiry date is required");
+    }
+
+    @Test
+    void testCreateSurplusPost_MultipleCategories_UsesShortestShelfLife() {
+        // Given
+        CreateSurplusRequest requestWithMultipleCategories = new CreateSurplusRequest();
+        requestWithMultipleCategories.setTitle("Mixed Food");
+        requestWithMultipleCategories.getFoodCategories().add(FoodCategory.PREPARED_MEALS); // 3 days
+        requestWithMultipleCategories.getFoodCategories().add(FoodCategory.FROZEN); // 30 days
+        requestWithMultipleCategories.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        requestWithMultipleCategories.setFabricationDate(LocalDate.now());
+        // No expiry - should calculate using shortest (3 days)
+        requestWithMultipleCategories.setPickupDate(LocalDate.now());
+        requestWithMultipleCategories.setPickupFrom(LocalTime.now().plusHours(3));
+        requestWithMultipleCategories.setPickupTo(LocalTime.now().plusHours(5));
+        requestWithMultipleCategories.setPickupLocation(new Location(45.2903, -34.0987, "123 Main St"));
+
+        List<PickupSlotRequest> slots = new ArrayList<>();
+        PickupSlotRequest slot = new PickupSlotRequest();
+        slot.setPickupDate(LocalDate.now());
+        slot.setStartTime(LocalTime.now().plusHours(3));
+        slot.setEndTime(LocalTime.now().plusHours(5));
+        slots.add(slot);
+        requestWithMultipleCategories.setPickupSlots(slots);
+
+        SurplusPost savedPost = new SurplusPost();
+        savedPost.setId(1L);
+        savedPost.setDonor(donor);
+        savedPost.setTitle(requestWithMultipleCategories.getTitle());
+        savedPost.setFoodCategories(requestWithMultipleCategories.getFoodCategories());
+        savedPost.setQuantity(requestWithMultipleCategories.getQuantity());
+        savedPost.setPickupLocation(requestWithMultipleCategories.getPickupLocation());
+        savedPost.setFabricationDate(LocalDate.now());
+        savedPost.setExpiryDate(LocalDate.now().plusDays(3)); // Shortest shelf life
+
+        doNothing().when(pickupSlotValidationService).validateSlots(any());
+        when(expiryCalculationService.isValidFabricationDate(any())).thenReturn(true);
+        when(expiryCalculationService.calculateExpiryDate(any(), any())).thenReturn(LocalDate.now().plusDays(3));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
+
+        // When
+        SurplusResponse response = surplusService.createSurplusPost(requestWithMultipleCategories, donor);
+
+        // Then
+        assertThat(response).isNotNull();
+        verify(expiryCalculationService).calculateExpiryDate(eq(LocalDate.now()), any());
+
+        ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
+        verify(surplusPostRepository).save(postCaptor.capture());
+
+        SurplusPost capturedPost = postCaptor.getValue();
+        assertThat(capturedPost.getExpiryDate()).isNotNull();
+    }
+
+    @Test
+    void testCreateSurplusPost_FrozenFood_LongerShelfLife() {
+        // Given
+        CreateSurplusRequest requestWithFrozen = new CreateSurplusRequest();
+        requestWithFrozen.setTitle("Frozen Meals");
+        requestWithFrozen.getFoodCategories().add(FoodCategory.FROZEN_MEALS);
+        requestWithFrozen.setQuantity(new Quantity(10.0, Quantity.Unit.KILOGRAM));
+        requestWithFrozen.setFabricationDate(LocalDate.now());
+        // No expiry - should calculate 30 days for frozen
+        requestWithFrozen.setPickupDate(LocalDate.now());
+        requestWithFrozen.setPickupFrom(LocalTime.now().plusHours(3));
+        requestWithFrozen.setPickupTo(LocalTime.now().plusHours(5));
+        requestWithFrozen.setPickupLocation(new Location(45.2903, -34.0987, "123 Main St"));
+
+        List<PickupSlotRequest> slots = new ArrayList<>();
+        PickupSlotRequest slot = new PickupSlotRequest();
+        slot.setPickupDate(LocalDate.now());
+        slot.setStartTime(LocalTime.now().plusHours(3));
+        slot.setEndTime(LocalTime.now().plusHours(5));
+        slots.add(slot);
+        requestWithFrozen.setPickupSlots(slots);
+
+        SurplusPost savedPost = new SurplusPost();
+        savedPost.setId(1L);
+        savedPost.setDonor(donor);
+        savedPost.setTitle(requestWithFrozen.getTitle());
+        savedPost.setFoodCategories(requestWithFrozen.getFoodCategories());
+        savedPost.setQuantity(requestWithFrozen.getQuantity());
+        savedPost.setPickupLocation(requestWithFrozen.getPickupLocation());
+        savedPost.setFabricationDate(LocalDate.now());
+        savedPost.setExpiryDate(LocalDate.now().plusDays(30)); // Frozen = 30 days
+
+        doNothing().when(pickupSlotValidationService).validateSlots(any());
+        when(expiryCalculationService.isValidFabricationDate(any())).thenReturn(true);
+        when(expiryCalculationService.calculateExpiryDate(any(), any())).thenReturn(LocalDate.now().plusDays(30));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
+
+        // When
+        SurplusResponse response = surplusService.createSurplusPost(requestWithFrozen, donor);
+
+        // Then
+        assertThat(response).isNotNull();
+        verify(expiryCalculationService).calculateExpiryDate(eq(LocalDate.now()), any());
+
+        ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
+        verify(surplusPostRepository).save(postCaptor.capture());
+
+        SurplusPost capturedPost = postCaptor.getValue();
+        assertThat(capturedPost.getExpiryDate()).isNotNull();
+    }
+
 }
+
