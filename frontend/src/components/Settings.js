@@ -3,6 +3,7 @@ import { User, Globe, Bell, Camera, Lock } from 'lucide-react';
 import LanguageSwitcher from './LanguageSwitcher';
 import RegionSelector from './RegionSelector';
 import { AuthContext } from '../contexts/AuthContext';
+import api from '../services/api';
 import '../style/Settings.css';
 
 /**
@@ -255,11 +256,27 @@ const Settings = () => {
  
   };
 
-  const handleRegionChange = (regionData) => {
+  const handleRegionChange = async (regionData) => {
     // Only update if the data has actually changed
     if (JSON.stringify(regionData) !== JSON.stringify(regionSettings)) {
       setRegionSettings(regionData);
       console.log('Region settings updated:', regionData);
+      
+      // Save to backend using api service
+      try {
+        await api.put('/profile/region', {
+          country: regionData.countryName || regionData.country,
+          city: regionData.city
+        });
+        
+        console.log('Region saved to backend successfully');
+        // Refresh timezone context
+        if (window.location.pathname.includes('/messages')) {
+          window.location.reload(); // Reload to pick up new timezone
+        }
+      } catch (error) {
+        console.error('Error saving region:', error);
+      }
     }
   };
 
