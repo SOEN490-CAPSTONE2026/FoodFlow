@@ -130,7 +130,7 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                                 </div>
                                 <div className="claimed-modal-detail-content">
                                     <span className="claimed-modal-detail-label">Expiry Date</span>
-                                    <span className="claimed-modal-detail-value">{post?.pickupDate || 'Date TBD'}</span>
+                                    <span className="claimed-modal-detail-value">{post?.expiryDate || 'Not specified'}</span>
                                 </div>
                             </div>
 

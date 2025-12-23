@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { X, Calendar, Clock, Plus, Trash2 } from "lucide-react";
 import { Autocomplete } from "@react-google-maps/api";
 import Select from "react-select";
@@ -15,7 +15,9 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
     quantityValue: "",
     quantityUnit: "KILOGRAM",
     foodCategories: [],
+    fabricationDate: "",
     expiryDate: "",
+    calculatedExpiryDate: "",
     pickupLocation: { latitude: "", longitude: "", address: "" },
     description: "",
     temperatureCategory: "",
@@ -34,6 +36,70 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const autocompleteRef = useRef(null);
+
+  const formatDate = (date) => (date ? date.toISOString().split("T")[0] : "");
+  const formatTime = (date) => {
+    if (!date) return "";
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${hours}:${minutes}`;
+  };
+
+  // Calculate expiry date based on food category shelf life rules
+  const calculateExpiryDate = (fabricationDate, foodCategories) => {
+    if (!fabricationDate) return "";
+
+    // Shelf-life mapping (in days) - matches backend rules
+    const shelfLifeMap = {
+      PREPARED_MEALS: 3,
+      BAKERY_PASTRY: 3,
+      FRUITS_VEGETABLES: 7,
+      DAIRY_COLD: 10,
+      FROZEN: 30,
+      PACKAGED_PANTRY: 90,
+    };
+
+    // Get minimum shelf life from selected categories
+    const minShelfLife = foodCategories.reduce((min, category) => {
+      const days = shelfLifeMap[category.value] || 7;
+      return Math.min(min, days);
+    }, Infinity);
+
+    const fabrication = new Date(fabricationDate);
+    const expiry = new Date(fabrication);
+    expiry.setDate(expiry.getDate() + (minShelfLife === Infinity ? 7 : minShelfLife));
+    return expiry;
+  };
+
+  // Auto-calculate expiry date when fabrication date or food categories change
+  useEffect(() => {
+    if (formData.fabricationDate && formData.foodCategories.length > 0) {
+      const calculatedExpiry = calculateExpiryDate(
+        formData.fabricationDate,
+        formData.foodCategories
+      );
+
+      // Only update if the calculated date is different from current expiry
+      const currentExpiryStr = formData.expiryDate ? formatDate(formData.expiryDate) : "";
+      const calculatedExpiryStr = formatDate(calculatedExpiry);
+
+      if (currentExpiryStr !== calculatedExpiryStr) {
+        setFormData((prev) => ({
+          ...prev,
+          calculatedExpiryDate: calculatedExpiry,
+          expiryDate: calculatedExpiry,
+        }));
+      }
+    } else if (!formData.fabricationDate || formData.foodCategories.length === 0) {
+      // Clear calculated dates if fabrication date or categories are missing
+      setFormData((prev) => ({
+        ...prev,
+        calculatedExpiryDate: "",
+        expiryDate: "",
+      }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.fabricationDate, formData.foodCategories.map(c => c.value).join(',')]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -56,13 +122,6 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
     }
   };
 
-  const formatDate = (date) => (date ? date.toISOString().split("T")[0] : "");
-  const formatTime = (date) => {
-    if (!date) return "";
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-    return `${hours}:${minutes}`;
-  };
 
   const addPickupSlot = () => {
     setPickupSlots([
@@ -108,6 +167,7 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
         unit: formData.quantityUnit,
       },
       foodCategories: formData.foodCategories.map((fc) => fc.value),
+      fabricationDate: formatDate(formData.fabricationDate),
       expiryDate: formatDate(formData.expiryDate),
       pickupSlots: formattedSlots,
       // Keep legacy fields for backward compatibility (backend will use first slot)
@@ -129,7 +189,9 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
         quantityValue: "",
         quantityUnit: "KILOGRAM",
         foodCategories: [],
+        fabricationDate: "",
         expiryDate: "",
+        calculatedExpiryDate: "",
         pickupLocation: { latitude: "", longitude: "", address: "" },
         description: "",
         temperatureCategory: "",
@@ -161,7 +223,9 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
         quantityValue: "",
         quantityUnit: "KILOGRAM",
         foodCategories: [],
+        fabricationDate: "",
         expiryDate: "",
+        calculatedExpiryDate: "",
         pickupLocation: { latitude: "", longitude: "", address: "" },
         description: "",
         temperatureCategory: "",
@@ -224,18 +288,51 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
             </div>
 
             <div className="input-group half-width">
-              <label className="input-label">Expiry Date</label>
+              <label className="input-label">
+                Fabrication/Production Date
+              </label>
+              <DatePicker
+                selected={formData.fabricationDate}
+                onChange={(date) =>
+                  setFormData((prev) => ({ ...prev, fabricationDate: date }))
+                }
+                maxDate={new Date()}
+                dateFormat="yyyy-MM-dd"
+                className="input-field"
+                placeholderText="When was it made?"
+                required
+              />
+              <span className="input-help-text">
+                System will auto-calculate expiry date based on food type
+              </span>
+            </div>
+          </div>
+
+          {/* Expiry Date */}
+          <div className="form-section">
+            <div className="input-group">
+              <label className="input-label">
+                Expiry Date
+                {formData.calculatedExpiryDate && (
+                  <span className="input-help-text-inline"> (Auto-calculated, you can edit)</span>
+                )}
+              </label>
               <DatePicker
                 selected={formData.expiryDate}
                 onChange={(date) =>
                   setFormData((prev) => ({ ...prev, expiryDate: date }))
                 }
-                minDate={new Date()}
+                minDate={formData.fabricationDate || new Date()}
                 dateFormat="yyyy-MM-dd"
                 className="input-field"
                 placeholderText="Select expiry date"
                 required
               />
+              {formData.calculatedExpiryDate && formData.fabricationDate && (
+                <span className="input-help-text">
+                  Suggested expiry: {formatDate(formData.calculatedExpiryDate)} (based on food category)
+                </span>
+              )}
             </div>
           </div>
 
