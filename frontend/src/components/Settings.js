@@ -3,6 +3,7 @@ import { User, Globe, Bell, Camera, Lock } from 'lucide-react';
 import LanguageSwitcher from './LanguageSwitcher';
 import RegionSelector from './RegionSelector';
 import { AuthContext } from '../contexts/AuthContext';
+import { userAPI } from '../services/api';
 import '../style/Settings.css';
 
 /**
@@ -162,8 +163,31 @@ const Settings = () => {
   }, [preferencesMessage, preferencesError]);
 
   const fetchUserProfile = async () => {
-    // Backend will implement this endpoint
-    setLoadingProfile(false);
+    try {
+      setLoadingProfile(true);
+      const response = await userAPI.getProfile();
+      const userData = response.data;
+      
+      // Set form data from user profile
+      setFormData({
+        fullName: userData.organization?.contactPerson || '',
+        email: userData.email || '',
+        phoneNumber: userData.organization?.phone || '',
+        organization: userData.organization?.name || organizationName || '',
+        address: userData.organization?.address || ''
+      });
+      
+      // Set profile image if available
+      if (userData.profilePhoto) {
+        setProfileImage(userData.profilePhoto);
+      }
+      
+      setLoadingProfile(false);
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      setLoadingProfile(false);
+      setErrors({ submit: 'Failed to load profile. Please refresh the page.' });
+    }
   };
 
   // Validation functions
@@ -263,7 +287,7 @@ const Settings = () => {
     }
   };
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
       // Validate file size (max 5MB)
@@ -272,10 +296,15 @@ const Settings = () => {
         return;
       }
 
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        setErrors({ profileImage: 'Please upload a valid image file' });
+      // Validate file type (JPEG and PNG)
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+      if (!allowedTypes.includes(file.type)) {
+        setErrors({ profileImage: 'Please upload a JPEG or PNG image file' });
         return;
+      }
+
+      if (errors.profileImage) {
+        setErrors(prev => ({ ...prev, profileImage: '' }));
       }
 
       setProfileImageFile(file);
@@ -284,10 +313,28 @@ const Settings = () => {
         setProfileImage(reader.result);
       };
       reader.readAsDataURL(file);
-      
-      // Clear any previous image errors
-      if (errors.profileImage) {
-        setErrors(prev => ({ ...prev, profileImage: '' }));
+
+      // Upload to backend
+      try {
+        setLoading(true);
+        const response = await userAPI.uploadProfilePhoto(file);
+        const updatedUser = response.data;
+        
+        // Update profile image with the base64 from backend
+        if (updatedUser.profilePhoto) {
+          setProfileImage(updatedUser.profilePhoto);
+        }
+        
+        setSuccessMessage('Profile photo uploaded successfully!');
+        setLoading(false);
+      } catch (error) {
+        console.error('Error uploading profile photo:', error);
+        const errorMessage = error.response?.data?.error || 'Failed to upload profile photo. Please try again.';
+        setErrors({ profileImage: errorMessage });
+        setLoading(false);
+        // Reset preview on error
+        setProfileImageFile(null);
+        setProfileImage(null);
       }
     }
   };
@@ -306,29 +353,53 @@ const Settings = () => {
     setSuccessMessage('');
     setErrors({});
 
-    // TODO: Backend will implement this endpoint
     try {
-      // Simulate save for now
-      setTimeout(() => {
-        setSuccessMessage('Profile updated successfully!');
-        
-        // Reset password fields
-        if (showPasswordFields) {
-          setPasswordData({
-            currentPassword: '',
-            newPassword: '',
-            confirmPassword: ''
-          });
-          setShowPasswordFields(false);
+      const updateData = {
+        name: formData.fullName,
+        email: formData.email,
+        phone: formData.phoneNumber ? formatPhoneNumber(formData.phoneNumber) : null,
+        organizationName: formData.organization || null,
+        address: formData.address || null,
+        contactPerson: formData.fullName
+      };
+
+      Object.keys(updateData).forEach(key => {
+        if (updateData[key] === null || updateData[key] === '') {
+          delete updateData[key];
         }
-        
-        setLoading(false);
-      }, 500);
-    
+      });
+
+      // Update profile
+      const response = await userAPI.updateProfile(updateData);
+      const updatedUser = response.data;
+
+      // Update form 
+      setFormData(prev => ({
+        ...prev,
+        fullName: updatedUser.organization?.contactPerson || prev.fullName,
+        email: updatedUser.email || prev.email,
+        phoneNumber: updatedUser.organization?.phone || prev.phoneNumber,
+        organization: updatedUser.organization?.name || prev.organization,
+        address: updatedUser.organization?.address || prev.address
+      }));
+
+      setSuccessMessage('Profile updated successfully!');
       
+      // Reset password fields
+      if (showPasswordFields) {
+        setPasswordData({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        });
+        setShowPasswordFields(false);
+      }
+      
+      setLoading(false);
     } catch (error) {
       console.error('Error updating profile:', error);
-      setErrors({ submit: 'Failed to update profile. Please try again.' });
+      const errorMessage = error.response?.data?.error || 'Failed to update profile. Please try again.';
+      setErrors({ submit: errorMessage });
       setLoading(false);
     }
   };
@@ -418,7 +489,7 @@ const Settings = () => {
                       <input
                         ref={fileInputRef}
                         type="file"
-                        accept="image/*"
+                        accept="image/jpeg,image/jpg,image/png"
                         onChange={handleImageUpload}
                         style={{ display: 'none' }}
                       />

@@ -30,6 +30,9 @@ public class User {
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
+    @Column(columnDefinition = "TEXT")
+    private String profilePhoto;
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Organization organization;
 
@@ -69,4 +72,7 @@ public class User {
     
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public String getProfilePhoto() { return profilePhoto; }
+    public void setProfilePhoto(String profilePhoto) { this.profilePhoto = profilePhoto; }
 }

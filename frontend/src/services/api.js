@@ -18,6 +18,10 @@ api.interceptors.request.use(
     if (token) {
       config.headers["Authorization"] = `Bearer ${token}`;
     }
+    // If FormData, let browser set Content-Type with boundary
+    if (config.data instanceof FormData) {
+      delete config.headers["Content-Type"];
+    }
     return config;
   },
   (error) => Promise.reject(error)
@@ -223,22 +227,28 @@ export const recommendationAPI = {
 
 export const userAPI = {
   /**
-   * Get user profile by ID
-   * @param {string} userId - User ID
+   * Get current user profile
    * @returns {Promise} User data
    */
-  getProfile: (userId) => api.get(`/users/${userId}`),
+  getProfile: () => api.get("/users/profile"),
 
   /**
    * Update user profile
-   * @param {FormData} userData - User data including optional profile image
+   * @param {Object} userData - User data (name, email, phone, organizationName, address, profilePhoto)
    * @returns {Promise} Updated user data
    */
-  updateProfile: (userData) => api.put("/users/update", userData, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  }),
+  updateProfile: (userData) => api.put("/users/profile", userData),
+
+  /**
+   * Upload profile photo (JPEG or PNG)
+   * @param {File} file - Image file to upload
+   * @returns {Promise} Updated user data with profile photo
+   */
+  uploadProfilePhoto: (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post("/users/profile/photo", formData);
+  },
 
   /**
    * Update user password

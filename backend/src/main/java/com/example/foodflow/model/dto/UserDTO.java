@@ -16,6 +16,8 @@ public class UserDTO {
     @JsonIgnore
     private String password;
     private UserRole role;
+    @JsonProperty("profile_photo")
+    private String profilePhoto;
     private OrganizationDTO organization;
     @JsonProperty("created_at")
     private LocalDateTime createdAt;
@@ -28,6 +30,7 @@ public class UserDTO {
         dto.setId(user.getId());
         dto.setEmail(user.getEmail());
         dto.setRole(user.getRole());
+        dto.setProfilePhoto(user.getProfilePhoto());
         dto.setOrganization(OrganizationDTO.toDTO(user.getOrganization()));
         dto.setCreatedAt(user.getCreatedAt());
         dto.setUpdatedAt(user.getUpdatedAt());
