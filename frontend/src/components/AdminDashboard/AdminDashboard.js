@@ -8,6 +8,8 @@ import AdminMessages from "./AdminMessages.js";
 import AdminHelp from "./AdminHelp";
 import AdminWelcome from "./AdminWelcome";
 import AdminUsers from "./AdminUsers";
+import AdminDisputes from "./AdminDisputes";
+import AdminDisputeDetail from "./AdminDisputeDetail";
 
 export default function AdminDashboard() {
   return (
@@ -21,6 +23,8 @@ export default function AdminDashboard() {
         <Route path="analytics" element={<AdminAnalytics />} />
         <Route path="calendar" element={<AdminCalendar />} />
         <Route path="messages" element={<AdminMessages />} />
+        <Route path="disputes" element={<AdminDisputes />} />
+        <Route path="disputes/:id" element={<AdminDisputeDetail />} />
         <Route path="help" element={<AdminHelp />} />
         <Route path="*" element={<Navigate to="." replace />} />
       </Route>

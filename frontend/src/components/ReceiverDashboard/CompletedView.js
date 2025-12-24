@@ -1,13 +1,15 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { X, CircleCheck } from 'lucide-react';
+import { X, CircleCheck, AlertTriangle } from 'lucide-react';
 import Confetti from 'react-confetti';
 import { foodTypeImages, getPrimaryFoodCategory } from '../../constants/foodConstants';
+import ReportUserModal from '../ReportUserModal';
 import './Receiver_Styles/CompletedView.css';
 
 const CompletedView = ({ claim, isOpen, onClose, onBack }) => {
     const post = claim?.surplusPost;
     const containerRef = useRef(null);
     const [dimensions, setDimensions] = useState({ width: 750, height: 800 });
+    const [showReportModal, setShowReportModal] = useState(false);
 
     useEffect(() => {
         if (containerRef.current && isOpen) {
@@ -19,6 +21,17 @@ const CompletedView = ({ claim, isOpen, onClose, onBack }) => {
     }, [isOpen]);
 
     if (!isOpen || !claim) return null;
+
+    const handleReportSubmit = async (reportData) => {
+        console.log('Report submitted:', reportData);
+        // Mock - will be connected to backend later
+        setShowReportModal(false);
+    };
+
+    const donorInfo = post?.donor || {
+        id: post?.donorId,
+        name: post?.donorName || 'Donor'
+    };
 
 
 
@@ -83,12 +96,24 @@ const CompletedView = ({ claim, isOpen, onClose, onBack }) => {
                         <button className="claimed-view-btn-back" onClick={onBack}>
                             Back to Details
                         </button>
-                        <button className="claimed-view-btn-view">
-                            View Pickup Steps
+                        <button 
+                            className="report-donor-btn"
+                            onClick={() => setShowReportModal(true)}
+                        >
+                            <AlertTriangle size={16} />
+                            Report Donor
                         </button>
                     </div>
                 </div>
             </div>
+
+            <ReportUserModal
+                isOpen={showReportModal}
+                onClose={() => setShowReportModal(false)}
+                reportedUser={donorInfo}
+                donationId={post?.id}
+                onSubmit={handleReportSubmit}
+            />
         </div>
     );
 };
