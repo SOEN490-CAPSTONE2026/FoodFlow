@@ -1,5 +1,5 @@
 package com.example.foodflow.audit;
-
+//dummy comment to trigger CI pipeline
 import com.example.foodflow.model.entity.AuditLog;
 import com.example.foodflow.repository.AuditLogRepository;
 import org.junit.jupiter.api.BeforeEach;
