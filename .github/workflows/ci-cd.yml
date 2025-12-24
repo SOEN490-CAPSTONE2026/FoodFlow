@@ -5,6 +5,7 @@ on:
     branches:
       - 'main'
       - 'cicd'
+      - '226-task-add-backend-tests-to-cicd-pipeline'
   pull_request:
     branches:
       - 'main'
