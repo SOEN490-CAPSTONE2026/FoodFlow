@@ -13,30 +13,15 @@ import {
 } from "../ui/table";
 
 const AdminUsers = () => {
-  // Mock data for testing
-  const mockUser = {
-    id: 999,
-    email: "mock@test.com",
-    role: "DONOR",
-    organizationName: "Mock Organization",
-    contactPerson: "Mock User",
-    phone: "555-555-5555",
-    accountStatus: "ACTIVE",
-    verificationStatus: "VERIFIED",
-    donationCount: 5,
-    createdAt: "2025-12-01T10:00:00",
-    adminNotes: null,
-  };
-
-  const [users, setUsers] = useState([mockUser]);
-  const [filteredUsers, setFilteredUsers] = useState([mockUser]);
+  const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [stats, setStats] = useState({
-    totalUsers: 1,
-    totalDonors: 1,
+    totalUsers: 0,
+    totalDonors: 0,
     totalReceivers: 0,
-    newUsers: 1
+    newUsers: 0
   });
   
   // Filters
