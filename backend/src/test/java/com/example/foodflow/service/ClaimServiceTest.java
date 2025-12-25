@@ -450,10 +450,13 @@ class ClaimServiceTest {
     void claimSurplusPost_WithPickupSlotInPast_SetsStatusToReadyForPickup() {
         // Given - pickup date is in the past
         LocalDate pastDate = LocalDate.now().minusDays(1);
+        LocalTime startTime = LocalTime.of(10, 0);
+        LocalTime endTime = LocalTime.of(12, 0);
+        
         PickupSlotRequest pickupSlot = new PickupSlotRequest();
         pickupSlot.setPickupDate(pastDate);
-        pickupSlot.setStartTime(LocalTime.of(10, 0));
-        pickupSlot.setEndTime(LocalTime.of(12, 0));
+        pickupSlot.setStartTime(startTime);
+        pickupSlot.setEndTime(endTime);
         
         claimRequest.setPickupSlot(pickupSlot);
         surplusPost.setPickupDate(pastDate);
@@ -461,8 +464,12 @@ class ClaimServiceTest {
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
         when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
         
+        // Mock needs to return a claim with confirmed pickup dates set!
         Claim savedClaim = new Claim(surplusPost, receiver);
         savedClaim.setId(1L);
+        savedClaim.setConfirmedPickupDate(pastDate);
+        savedClaim.setConfirmedPickupStartTime(startTime);
+        savedClaim.setConfirmedPickupEndTime(endTime);
         when(claimRepository.save(any(Claim.class))).thenReturn(savedClaim);
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
 
