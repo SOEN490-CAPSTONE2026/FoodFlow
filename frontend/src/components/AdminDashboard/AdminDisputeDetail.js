@@ -88,14 +88,14 @@ const AdminDisputeDetail = () => {
         </button>
 
         <div className="modal-header">
-          <div className="header-title-row">
-            <span className="created-text">Created on {dispute.createdDate} at {dispute.createdTime}</span>
-          </div>
           <div className="case-title-row">
             <h1>Case {dispute.caseId}</h1>
             <span className={`status-pill status-${dispute.status.toLowerCase()}`}>
               {dispute.status}
             </span>
+          </div>
+          <div className="header-title-row">
+            <span className="created-text">Created on {dispute.createdDate} at {dispute.createdTime}</span>
           </div>
         </div>
 
