@@ -332,13 +332,16 @@ body {
 
 .admin-nav-bottom {
   padding: 0 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .nav-bottom-abs {
   position: absolute;
   left: 14px;
   right: 14px;
-  bottom: 80px;
+  bottom: 100px;
 }
 
 .footer-abs {
@@ -346,6 +349,7 @@ body {
   left: 14px;
   right: 14px;
   bottom: 14px;
+  padding: 12px 0;
 }
 
 .admin-user {
@@ -470,8 +474,9 @@ body {
 .admin-sidebar-footer {
   margin-top: auto;
   position: relative;
-  padding: 1px 14px;
+  padding: 0;
   border-top: 1px solid rgba(255, 255, 255, .1);
+  padding-top: 12px;
 }
 
 .admin-main {

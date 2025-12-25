@@ -58,6 +58,12 @@ const AdminUsers = () => {
   const [adminNotes, setAdminNotes] = useState('');
   const [alertMessage, setAlertMessage] = useState('');
   const [alertType, setAlertType] = useState('');
+  const [mouseDownInsideModal, setMouseDownInsideModal] = useState(false);
+  
+  // Notification modal
+  const [showNotification, setShowNotification] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState('');
+  const [notificationType, setNotificationType] = useState('info'); // 'success', 'error', 'info'
   
   // Expanded rows
   const [expandedRows, setExpandedRows] = useState(new Set());
@@ -154,7 +160,9 @@ const AdminUsers = () => {
   // Deactivate user
   const handleDeactivate = async () => {
     if (!selectedUser || !adminNotes.trim()) {
-      alert('Please provide a reason for deactivation');
+      setNotificationMessage('Please provide a reason for deactivation');
+      setNotificationType('error');
+      setShowNotification(true);
       return;
     }
     
@@ -166,14 +174,18 @@ const AdminUsers = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      alert('User deactivated successfully');
+      setNotificationMessage('User deactivated successfully');
+      setNotificationType('success');
+      setShowNotification(true);
       setShowDeactivateModal(false);
       setAdminNotes('');
       setSelectedUser(null);
       fetchUsers();
     } catch (err) {
       console.error('Error deactivating user:', err);
-      alert(err.response?.data || 'Failed to deactivate user');
+      setNotificationMessage(err.response?.data || 'Failed to deactivate user');
+      setNotificationType('error');
+      setShowNotification(true);
     }
   };
 
@@ -189,20 +201,26 @@ const AdminUsers = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      alert('User reactivated successfully');
+      setNotificationMessage('User reactivated successfully');
+      setNotificationType('success');
+      setShowNotification(true);
       setShowReactivateModal(false);
       setSelectedUser(null);
       fetchUsers();
     } catch (err) {
       console.error('Error reactivating user:', err);
-      alert(err.response?.data || 'Failed to reactivate user');
+      setNotificationMessage(err.response?.data || 'Failed to reactivate user');
+      setNotificationType('error');
+      setShowNotification(true);
     }
   };
 
   // Send alert
   const handleSendAlert = async () => {
     if (!selectedUser || !alertMessage.trim()) {
-      alert('Please enter an alert message');
+      setNotificationMessage('Please enter an alert message');
+      setNotificationType('error');
+      setShowNotification(true);
       return;
     }
     
@@ -214,11 +232,15 @@ const AdminUsers = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      alert('Alert sent successfully');
+      setNotificationMessage('Alert sent successfully');
+      setNotificationType('success');
+      setShowNotification(true);
       closeAlertModal();
     } catch (err) {
       console.error('Error sending alert:', err);
-      alert('Failed to send alert');
+      setNotificationMessage('Failed to send alert');
+      setNotificationType('error');
+      setShowNotification(true);
     }
   };
 
@@ -632,8 +654,24 @@ const AdminUsers = () => {
 
       {/* Send Alert Modal */}
       {showAlertModal && (
-        <div className="modal-overlay" onClick={closeAlertModal}>
-          <div className="modal-content modal-alert" onClick={(e) => e.stopPropagation()}>
+        <div 
+          className="modal-overlay" 
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) {
+              setMouseDownInsideModal(false);
+            }
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !mouseDownInsideModal) {
+              closeAlertModal();
+            }
+          }}
+        >
+          <div 
+            className="modal-content modal-alert" 
+            onMouseDown={() => setMouseDownInsideModal(true)}
+            onClick={(e) => e.stopPropagation()}
+          >
             <button className="modal-close" onClick={closeAlertModal}>×</button>
             <h2>Send Alert to:</h2>
             <p className="alert-user-name">{selectedUser?.contactPerson || selectedUser?.email}</p>
@@ -646,7 +684,13 @@ const AdminUsers = () => {
                   className={`alert-option ${alertType === 'warning' ? 'selected' : ''}`}
                   onClick={(e) => {
                     e.preventDefault();
-                    setAlertType(alertType === 'warning' ? '' : 'warning');
+                    if (alertType === 'warning') {
+                      setAlertType('');
+                      setAlertMessage('');
+                    } else {
+                      setAlertType('warning');
+                      setAlertMessage('Dear User,\n\nWe have detected a policy violation in your recent activity. Please review our platform policies and ensure compliance to avoid further action.\n\nThank you for your cooperation.');
+                    }
                   }}
                 >
                   <input
@@ -667,7 +711,13 @@ const AdminUsers = () => {
                   className={`alert-option ${alertType === 'safety' ? 'selected' : ''}`}
                   onClick={(e) => {
                     e.preventDefault();
-                    setAlertType(alertType === 'safety' ? '' : 'safety');
+                    if (alertType === 'safety') {
+                      setAlertType('');
+                      setAlertMessage('');
+                    } else {
+                      setAlertType('safety');
+                      setAlertMessage('Important Safety Notice\n\nPlease be aware of the following safety guidelines when handling food donations:\n\n- Maintain proper food storage temperatures\n- Check expiration dates regularly\n- Follow hygiene protocols\n\nYour safety and the safety of recipients is our top priority.');
+                    }
                   }}
                 >
                   <input
@@ -688,7 +738,13 @@ const AdminUsers = () => {
                   className={`alert-option ${alertType === 'compliance' ? 'selected' : ''}`}
                   onClick={(e) => {
                     e.preventDefault();
-                    setAlertType(alertType === 'compliance' ? '' : 'compliance');
+                    if (alertType === 'compliance') {
+                      setAlertType('');
+                      setAlertMessage('');
+                    } else {
+                      setAlertType('compliance');
+                      setAlertMessage('Compliance Reminder\n\nThis is a friendly reminder to ensure your account meets all compliance requirements:\n\n✓ Complete profile information\n✓ Updated documentation\n✓ Adherence to platform policies\n\nPlease review your account settings and update any missing information.\n\nThank you for maintaining compliance.');
+                    }
                   }}
                 >
                   <input
@@ -709,7 +765,13 @@ const AdminUsers = () => {
                   className={`alert-option ${alertType === 'custom' ? 'selected' : ''}`}
                   onClick={(e) => {
                     e.preventDefault();
-                    setAlertType(alertType === 'custom' ? '' : 'custom');
+                    if (alertType === 'custom') {
+                      setAlertType('');
+                      setAlertMessage('');
+                    } else {
+                      setAlertType('custom');
+                      setAlertMessage('');
+                    }
                   }}
                 >
                   <input
@@ -728,14 +790,17 @@ const AdminUsers = () => {
               </div>
             </div>
 
-            {alertType === 'custom' && (
-              <div className="custom-message-section">
+            {alertType && (
+              <div className="custom-message-section" onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
                 <textarea
-                  placeholder="Enter your custom message..."
+                  placeholder={alertType === 'custom' ? "Enter your custom message..." : "Edit message"}
                   value={alertMessage}
                   onChange={(e) => setAlertMessage(e.target.value)}
                   className="modal-textarea"
                   rows="4"
+                  onClick={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onFocus={(e) => e.stopPropagation()}
                 />
               </div>
             )}
@@ -746,6 +811,25 @@ const AdminUsers = () => {
               </button>
               <button onClick={handleSendAlert} className="btn-confirm btn-send-alert">
                 Send Alert
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Notification Modal */}
+      {showNotification && (
+        <div className="modal-overlay" onClick={() => setShowNotification(false)}>
+          <div className="modal-content modal-notification" onClick={(e) => e.stopPropagation()}>
+            <div className={`notification-header notification-${notificationType}`}>
+              <h3>{notificationType === 'success' ? '✓ Success' : notificationType === 'error' ? 'Error' : 'ℹ Notice'}</h3>
+            </div>
+            <div className="notification-body">
+              <p>{notificationMessage}</p>
+            </div>
+            <div className="modal-actions">
+              <button onClick={() => setShowNotification(false)} className="btn-confirm">
+                OK
               </button>
             </div>
           </div>

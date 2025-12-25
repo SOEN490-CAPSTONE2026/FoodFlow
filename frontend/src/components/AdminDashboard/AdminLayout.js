@@ -223,13 +223,13 @@ export default function AdminLayout() {
         </nav>
 
         <div className="admin-nav-bottom nav-bottom-abs">
-          <div className="admin-nav-link disabled">
+          <div className="admin-nav-link disabled" data-tooltip="Settings">
             <span className="nav-icon" aria-hidden>
               <Settings size={18} className="lucide" />
             </span>
             Settings
           </div>
-          <div className="admin-nav-link disabled">
+          <div className="admin-nav-link disabled" data-tooltip="Help">
             <span className="nav-icon" aria-hidden>
               <HelpCircle size={18} className="lucide" />
             </span>

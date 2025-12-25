@@ -1101,3 +1101,63 @@
   transform: rotate(0deg);
 }
 
+/* Notification Modal */
+.modal-notification {
+  max-width: 520px;
+  padding: 32px;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.modal-notification + .modal-overlay,
+.modal-overlay:has(.modal-notification) {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.notification-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.notification-header h3 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #1B4965;
+}
+
+.notification-success .notification-header h3 {
+  color: #059669;
+}
+
+.notification-error .notification-header h3 {
+  color: #DC2626;
+}
+
+.notification-info .notification-header h3 {
+  color: #2563EB;
+}
+
+.notification-body {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.notification-body p {
+  margin: 0;
+  font-size: 16px;
+  color: #374151;
+  line-height: 1.6;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.modal-notification .modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.modal-notification .btn-confirm {
+  min-width: 120px;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
