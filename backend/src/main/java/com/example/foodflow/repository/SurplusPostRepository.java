@@ -15,6 +15,7 @@ public interface SurplusPostRepository extends JpaRepository<SurplusPost, Long>,
                                                JpaSpecificationExecutor<SurplusPost> {
     
     List<SurplusPost> findByDonorId(Long donorId);
+    long countByDonorId(Long donorId);
     
     List<SurplusPost> findByPickupLocation_Address(String address);
     List<SurplusPost> findByPickupLocation_LatitudeAndPickupLocation_Longitude(Double lat, Double lon);

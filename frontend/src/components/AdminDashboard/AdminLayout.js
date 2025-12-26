@@ -1,8 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useContext } from "react";
 import { Outlet, useLocation, useNavigate, Link, useNavigationType } from "react-router-dom";
 import {
   Home,
   LayoutGrid,
+  Users,
   Heart,
   Calendar as CalendarIcon,
   FileText,
@@ -17,9 +18,11 @@ import {
   X
 } from "lucide-react";
 import Logo from "../../assets/Logo_White.png";
+import { AuthContext } from "../../contexts/AuthContext";
 import "./Admin_Styles/AdminLayout.css";
 
 export default function AdminLayout() {
+  const { logout } = useContext(AuthContext);
   const location = useLocation();
   const navigate = useNavigate();
   const navType = useNavigationType();
@@ -57,6 +60,8 @@ export default function AdminLayout() {
       case "/admin":
       case "/admin/dashboard":
         return "Admin Dashboard";
+      case "/admin/users":
+        return "User Management";
       case "/admin/analytics":
         return "Analytics";
       case "/admin/calendar":
@@ -75,6 +80,8 @@ export default function AdminLayout() {
       case "/admin":
       case "/admin/dashboard":
         return "Overview and quick actions";
+      case "/admin/users":
+        return "Manage and monitor all platform users";
       case "/admin/analytics":
         return "Metrics and insights";
       case "/admin/calendar":
@@ -103,13 +110,9 @@ export default function AdminLayout() {
   }, [navType, location.pathname, navigate]);
 
   const handleLogout = () => {
-    try {
-    } finally {
-      localStorage.removeItem("token");
-      sessionStorage.clear();
-      setOpen(false);
-      navigate("/", { replace: true, state: { scrollTo: "home" } });
-    }
+    logout(); // Use AuthContext logout to clear all auth state
+    setOpen(false);
+    navigate("/", { replace: true, state: { scrollTo: "home" } });
   };
 
   const isActive = (path) => {
@@ -156,6 +159,13 @@ export default function AdminLayout() {
               <LayoutGrid size={18} className="lucide" />
             </span>
             Dashboard
+          </Link>
+
+          <Link to="/admin/users" className={`admin-nav-link ${isActive("/admin/users") ? "active" : ""}`}>
+            <span className="nav-icon" aria-hidden>
+              <Users size={18} className="lucide" />
+            </span>
+            Users
           </Link>
 
           <Link to="/admin/analytics" className={`admin-nav-link ${isActive("/admin/analytics") ? "active" : ""}`}>

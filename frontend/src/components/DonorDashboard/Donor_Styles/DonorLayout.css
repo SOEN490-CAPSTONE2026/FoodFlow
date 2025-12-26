@@ -553,6 +553,8 @@ body {
     flex-wrap: wrap;
     gap: 12px;
     flex-shrink: 0;
+    position: relative;
+    z-index: 1;
 }
 
 .donor-topbar-left {
@@ -694,6 +696,7 @@ body {
   
   .donor-topbar {
     padding: 16px 20px;
+    position: relative;
   }
   
   .donor-topbar-left h1 {

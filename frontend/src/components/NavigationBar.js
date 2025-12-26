@@ -4,6 +4,12 @@ import { AuthContext } from '../contexts/AuthContext';
 import { FaBars, FaTimes } from 'react-icons/fa';
 import Logo from "../assets/Logo.png";
 import '../style/NavigationBar.css';
+import ENIcon from '../assets/lang-icons/EN.svg';
+import FRIcon from '../assets/lang-icons/FR.svg';
+import ESIcon from '../assets/lang-icons/ES.svg';
+import ZHIcon from '../assets/lang-icons/ZH.svg';
+import ARIcon from '../assets/lang-icons/AR.svg';
+import PRIcon from '../assets/lang-icons/PR.svg';
 
 const NavigationBar = () => {
   const navigate = useNavigate();
@@ -11,16 +17,17 @@ const NavigationBar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { isLoggedIn, role } = useContext(AuthContext);
   const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState('EN');
 
   const languages = [
-    { code: 'EN', name: 'English', flag: '🇬🇧' },
-    { code: 'FR', name: 'Français', flag: '🇫🇷' },
-    { code: 'ES', name: 'Español', flag: '🇪🇸' },
-    { code: 'ZH', name: '中文', flag: '🇨🇳' },
-    { code: 'AR', name: 'العربية', flag: '🇸🇦' },
-    { code: 'PT', name: 'Português', flag: '🇵🇹' },
+    { code: 'en', name: 'English', nativeName: 'English', dir: 'ltr', icon: ENIcon },
+    { code: 'fr', name: 'French', nativeName: 'Français', dir: 'ltr', icon: FRIcon },
+    { code: 'es', name: 'Spanish', nativeName: 'Español', dir: 'ltr', icon: ESIcon },
+    { code: 'zh', name: 'Chinese', nativeName: '中文', dir: 'ltr', icon: ZHIcon },
+    { code: 'ar', name: 'Arabic', nativeName: 'العربية', dir: 'rtl', icon: ARIcon },
+    { code: 'pt', name: 'Portuguese', nativeName: 'Português', dir: 'ltr', icon: PRIcon },
   ];
+
+  const [selectedLanguage, setSelectedLanguage] = useState(languages[0]);
 
   const [from, setFrom] = useState(
     () => location.state?.from || sessionStorage.getItem('returnFrom') || null
@@ -90,10 +97,10 @@ const NavigationBar = () => {
     }
   };
 
-  const handleLanguageSelect = (langCode) => {
-    setSelectedLanguage(langCode);
+  const handleLanguageSelect = (lang) => {
+    setSelectedLanguage(lang);
     setIsLangDropdownOpen(false);
-    console.log(`Language selected: ${langCode}`);
+    console.log(`Language selected: ${lang.code}`);
   };
 
   const toggleLangDropdown = () => {
@@ -166,7 +173,11 @@ const NavigationBar = () => {
                 onClick={toggleLangDropdown}
                 aria-label="Select Language"
               >
-                {selectedLanguage} ▼
+                <span className="lang-icon">
+                  <img src={selectedLanguage.icon} alt="" />
+                </span>
+                <span className="lang-name">{selectedLanguage.code.toUpperCase()}</span>
+                ▼
               </button>
               
               {isLangDropdownOpen && (
@@ -174,12 +185,12 @@ const NavigationBar = () => {
                   {languages.map((lang) => (
                     <button
                       key={lang.code}
-                      className={`lang-option ${selectedLanguage === lang.code ? 'selected' : ''}`}
-                      onClick={() => handleLanguageSelect(lang.code)}
+                      className={`lang-option ${selectedLanguage.code === lang.code ? 'selected' : ''}`}
+                      onClick={() => handleLanguageSelect(lang)}
                     >
-                      <span className="lang-flag">{lang.flag}</span>
+                      <span className="lang-icon"><img src={lang.icon} alt={`${lang.name} icon`} /></span>
                       <span className="lang-name">{lang.name}</span>
-                      {selectedLanguage === lang.code && <span className="lang-check">✓</span>}
+                      {selectedLanguage.code === lang.code && <span className="lang-check">✓</span>}
                     </button>
                   ))}
                 </div>
@@ -209,7 +220,11 @@ const NavigationBar = () => {
               onClick={toggleLangDropdown}
               aria-label="Select Language"
             >
-              {selectedLanguage} ▼
+              <span className="lang-icon">
+                <img src={selectedLanguage.icon} alt="" />
+              </span>
+              <span className="lang-name">{selectedLanguage.code.toUpperCase()}</span>
+              ▼
             </button>
             
             {isLangDropdownOpen && (
@@ -217,12 +232,12 @@ const NavigationBar = () => {
                 {languages.map((lang) => (
                   <button
                     key={lang.code}
-                    className={`lang-option ${selectedLanguage === lang.code ? 'selected' : ''}`}
-                    onClick={() => handleLanguageSelect(lang.code)}
+                    className={`lang-option ${selectedLanguage.code === lang.code ? 'selected' : ''}`}
+                    onClick={() => handleLanguageSelect(lang)}
                   >
-                    <span className="lang-flag">{lang.flag}</span>
+                    <span className="lang-icon"><img src={lang.icon} alt={`${lang.name} icon`} /></span>
                     <span className="lang-name">{lang.name}</span>
-                    {selectedLanguage === lang.code && <span className="lang-check">✓</span>}
+                    {selectedLanguage.code === lang.code && <span className="lang-check">✓</span>}
                   </button>
                 ))}
               </div>

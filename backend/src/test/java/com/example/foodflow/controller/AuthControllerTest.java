@@ -42,10 +42,12 @@ class AuthControllerTest {
         RegisterDonorRequest request = new RegisterDonorRequest();
         request.setEmail("donor@test.com");
         request.setPassword("password123");
+        request.setConfirmPassword("password123");
         request.setOrganizationName("Test Restaurant");
         request.setContactPerson("John Doe");
         request.setPhone("123-456-7890");
         request.setAddress("123 Main St");
+        request.setBusinessLicense("TEST-LICENSE-123");
 
         AuthResponse response = new AuthResponse("jwt-token", "donor@test.com", "DONOR", "Registration successful");
         response.setToken("jwt-token");
@@ -68,6 +70,7 @@ class AuthControllerTest {
         RegisterReceiverRequest request = new RegisterReceiverRequest();
         request.setEmail("receiver@test.com");
         request.setPassword("password123");
+        request.setConfirmPassword("password123");
         request.setOrganizationName("Test Charity");
         request.setContactPerson("Jane Smith");
         request.setPhone("987-654-3210");

@@ -30,6 +30,19 @@ public class User {
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "account_status")
+    private AccountStatus accountStatus = AccountStatus.ACTIVE;
+
+    @Column(name = "admin_notes", columnDefinition = "TEXT")
+    private String adminNotes;
+
+    @Column(name = "deactivated_at")
+    private LocalDateTime deactivatedAt;
+
+    @Column(name = "deactivated_by")
+    private Long deactivatedBy;
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Organization organization;
 
@@ -69,4 +82,16 @@ public class User {
     
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    
+    public AccountStatus getAccountStatus() { return accountStatus; }
+    public void setAccountStatus(AccountStatus accountStatus) { this.accountStatus = accountStatus; }
+    
+    public String getAdminNotes() { return adminNotes; }
+    public void setAdminNotes(String adminNotes) { this.adminNotes = adminNotes; }
+    
+    public LocalDateTime getDeactivatedAt() { return deactivatedAt; }
+    public void setDeactivatedAt(LocalDateTime deactivatedAt) { this.deactivatedAt = deactivatedAt; }
+    
+    public Long getDeactivatedBy() { return deactivatedBy; }
+    public void setDeactivatedBy(Long deactivatedBy) { this.deactivatedBy = deactivatedBy; }
 }

@@ -29,12 +29,13 @@ const LoginPage = () => {
     const userRole = response?.data?.role;
     const userId = response?.data?.userId;
     const organizationName = response?.data?.organizationName;
+    const verificationStatus = response?.data?.verificationStatus;
 
     if (!token || !userRole || !userId) {
       throw new Error('Invalid server response');
     }
 
-    login(token, userRole, userId, organizationName); // this automatically updates localStorage and context
+    login(token, userRole, userId, organizationName, verificationStatus); // this automatically updates localStorage and context
     trackLogin(true);
 
     // redirect based on role
@@ -99,7 +100,7 @@ const LoginPage = () => {
                   <label htmlFor="password" className="form-label">Password</label>
                   <div className="password-wrapper">
                     <input id="password" type={showPassword? 'text':'password'} className="form-input" placeholder="Enter your password" value={password} onChange={(e)=>setPassword(e.target.value)} autoComplete="current-password" required />
-                    <button type="button" className="password-toggle" aria-label={showPassword? 'Hide password':'Show password'} onClick={()=>setShowPassword(s=>!s)}>
+                    <button type="button" className="password-toggle" aria-label={showPassword ? 'Toggle password visibility (hide)' : 'Toggle password visibility (show)'} onClick={()=>setShowPassword(s=>!s)}>
                       {showPassword ? (
                         <EyeOff size={20} color="#64748b" />
                       ) : (

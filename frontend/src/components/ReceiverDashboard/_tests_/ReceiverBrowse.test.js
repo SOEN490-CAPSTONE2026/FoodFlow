@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import { surplusAPI } from "../../../services/api";
+import { surplusAPI, recommendationAPI } from "../../../services/api";
 
 // Mock the API
 jest.mock("../../../services/api", () => ({
@@ -9,6 +9,11 @@ jest.mock("../../../services/api", () => ({
     list: jest.fn(),
     search: jest.fn(),
     claim: jest.fn(),
+  },
+  recommendationAPI: {
+    getBrowseRecommendations: jest.fn(),
+    getRecommendationForPost: jest.fn(),
+    getTopRecommendations: jest.fn(),
   },
 }));
 
@@ -77,6 +82,15 @@ describe("ReceiverBrowse Component", () => {
     surplusAPI.list.mockReset();
     surplusAPI.search.mockReset();
     surplusAPI.claim.mockReset();
+    recommendationAPI.getBrowseRecommendations.mockReset();
+    recommendationAPI.getRecommendationForPost.mockReset();
+    recommendationAPI.getTopRecommendations.mockReset();
+    
+    // Set default mock implementations
+    recommendationAPI.getBrowseRecommendations.mockResolvedValue({});
+    recommendationAPI.getRecommendationForPost.mockResolvedValue(null);
+    recommendationAPI.getTopRecommendations.mockResolvedValue([]);
+    
     ReceiverBrowse = require("../ReceiverBrowse").default;
   });
 
@@ -173,6 +187,22 @@ describe("ReceiverBrowse Component", () => {
       await waitFor(() => {
         const badges = document.querySelectorAll('.recommended-badge');
         expect(badges.length).toBeGreaterThan(0);
+      });
+    });
+
+    test("fetches recommendations for real posts", async () => {
+      const realPost = createMockDonation({ id: 123 });
+      surplusAPI.list.mockResolvedValue({ data: [realPost] });
+      
+      // Mock recommendation response
+      recommendationAPI.getBrowseRecommendations.mockResolvedValue({
+        '123': { score: 85, reasons: ['Great match!'], isRecommended: true }
+      });
+
+      await act(async () => { render(<ReceiverBrowse />); });
+
+      await waitFor(() => {
+        expect(recommendationAPI.getBrowseRecommendations).toHaveBeenCalledWith([123]);
       });
     });
 

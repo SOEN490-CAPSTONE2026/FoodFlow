@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send } from 'lucide-react';
+import { Send, ArrowLeft } from 'lucide-react';
 import api from '../../services/api';
 import './ChatPanel.css';
 
-const ChatPanel = ({ conversation, onMessageSent, onConversationRead }) => {
+const ChatPanel = ({ conversation, onMessageSent, onConversationRead, onBack, showOnMobile = true }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -135,7 +135,7 @@ const ChatPanel = ({ conversation, onMessageSent, onConversationRead }) => {
 
   if (!conversation) {
     return (
-      <div className="chat-panel empty">
+      <div className={`chat-panel empty ${showOnMobile ? 'show-mobile' : 'hide-mobile'}`}>
         <div className="empty-state">
           <h3>No conversation selected</h3>
           <p>Select a conversation from the sidebar or start a new one</p>
@@ -145,8 +145,11 @@ const ChatPanel = ({ conversation, onMessageSent, onConversationRead }) => {
   }
 
   return (
-    <div className="chat-panel">
+    <div className={`chat-panel ${showOnMobile ? 'show-mobile' : 'hide-mobile'}`}>
       <div className="chat-header">
+        <button className="back-button" onClick={onBack}>
+          <ArrowLeft size={20} />
+        </button>
         <div className="chat-header-left">
           <div className="chat-header-info">
             <h3>{conversation.postTitle || conversation.otherUserName}</h3>

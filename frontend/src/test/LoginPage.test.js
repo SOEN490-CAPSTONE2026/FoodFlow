@@ -79,7 +79,7 @@ describe('LoginPage', () => {
     renderWithProviders();
 
     expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/password/i, { selector: 'input' })).toBeInTheDocument();
+    expect(screen.getByLabelText(/^password$/i, { selector: 'input' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /log in/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /forgot password\?/i })).toHaveAttribute(
       'href',
@@ -91,17 +91,17 @@ describe('LoginPage', () => {
   test('password visibility toggle switches input type and aria-label', () => {
     renderWithProviders();
 
-    const pwd = screen.getByLabelText(/password/i, { selector: 'input' });
-    const toggle = screen.getByRole('button', { name: /show password/i });
+    const pwd = screen.getByLabelText(/^password$/i, { selector: 'input' });
+    const toggle = screen.getByRole('button', { name: /toggle password visibility \(show\)/i });
 
     expect(pwd).toHaveAttribute('type', 'password');
     fireEvent.click(toggle);
 
-    expect(screen.getByLabelText(/password/i, { selector: 'input' })).toHaveAttribute('type', 'text');
-    expect(screen.getByRole('button', { name: /hide password/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/^password$/i, { selector: 'input' })).toHaveAttribute('type', 'text');
+    expect(screen.getByRole('button', { name: /toggle password visibility \(hide\)/i })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: /hide password/i }));
-    expect(screen.getByLabelText(/password/i, { selector: 'input' })).toHaveAttribute('type', 'password');
+    fireEvent.click(screen.getByRole('button', { name: /toggle password visibility \(hide\)/i }));
+    expect(screen.getByLabelText(/^password$/i, { selector: 'input' })).toHaveAttribute('type', 'password');
   });
 
   test('successful login calls AuthContext.login and navigates by role', async () => {
@@ -126,7 +126,7 @@ describe('LoginPage', () => {
     fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: 'user@example.com' },
     });
-    fireEvent.change(screen.getByLabelText(/password/i, { selector: 'input' }), {
+    fireEvent.change(screen.getByLabelText(/^password$/i, { selector: 'input' }), {
       target: { value: 'secret' },
     });
 
@@ -141,7 +141,7 @@ describe('LoginPage', () => {
     });
 
     await waitFor(() => {
-      expect(defaultAuthValue.login).toHaveBeenCalledWith('abc123', 'donor', '42', 'Test Organization');
+      expect(defaultAuthValue.login).toHaveBeenCalledWith('abc123', 'donor', '42', 'Test Organization', undefined);
     });
 
     await waitFor(() => {
@@ -167,7 +167,7 @@ describe('LoginPage', () => {
     fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: 'user@example.com' },
     });
-    fireEvent.change(screen.getByLabelText(/password/i, { selector: 'input' }), {
+    fireEvent.change(screen.getByLabelText(/^password$/i, { selector: 'input' }), {
       target: { value: 'wrong' },
     });
 

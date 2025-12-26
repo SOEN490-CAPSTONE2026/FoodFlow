@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getFoodTypeValue } from '../constants/foodConstants';
+import { getFoodTypeValue } from "../constants/foodConstants";
 
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "http://localhost:8080/api";
@@ -43,8 +43,24 @@ export const authAPI = {
     }
     return response;
   },
-  registerDonor: (data) => api.post("/auth/register/donor", data),
-  registerReceiver: (data) => api.post("/auth/register/receiver", data),
+  registerDonor: (data) => {
+    // If data is FormData, set appropriate headers
+    const config = data instanceof FormData ? {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      }
+    } : {};
+    return api.post("/auth/register/donor", data, config);
+  },
+  registerReceiver: (data) => {
+    // If data is FormData, set appropriate headers
+    const config = data instanceof FormData ? {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      }
+    } : {};
+    return api.post("/auth/register/receiver", data, config);
+  },
   logout: () => {
     localStorage.removeItem("jwtToken");
     return api.post("/auth/logout");
@@ -142,6 +158,94 @@ export const claimsAPI = {
   myClaims: () => api.get("/claims/my-claims"), // ✅ No /api prefix
   claim: (postId) => api.post("/claims", { surplusPostId: postId }),
   cancel: (claimId) => api.delete(`/claims/${claimId}`),
+};
+
+/**
+ * Recommendation API functions
+ */
+export const recommendationAPI = {
+  /**
+   * Get recommendation data for multiple posts (for browse page)
+   * @param {Array<number>} postIds - Array of post IDs to get recommendations for
+   * @returns {Promise<Object>} - Object mapping post IDs to recommendation data
+   */
+  getBrowseRecommendations: async (postIds) => {
+    try {
+      if (!postIds || postIds.length === 0) {
+        return {};
+      }
+
+      const response = await api.get("/recommendations/browse", {
+        params: {
+          postIds: postIds.join(","),
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching browse recommendations:", error);
+      return {};
+    }
+  },
+
+  /**
+   * Get recommendation for a single post
+   * @param {number} postId - Post ID
+   * @returns {Promise<Object>} - Recommendation data
+   */
+  getRecommendationForPost: async (postId) => {
+    try {
+      const response = await api.get(`/recommendations/post/${postId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching post recommendation:", error);
+      return null;
+    }
+  },
+
+  /**
+   * Get top recommended posts above threshold
+   * @param {number} minScore - Minimum recommendation score (default: 50)
+   * @returns {Promise<Array>} - Array of highly recommended posts
+   */
+  getTopRecommendations: async (minScore = 50) => {
+    try {
+      const response = await api.get("/recommendations/top", {
+        params: { minScore },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching top recommendations:", error);
+      return [];
+    }
+  },
+};
+
+export const userAPI = {
+  /**
+   * Get user profile by ID
+   * @param {string} userId - User ID
+   * @returns {Promise} User data
+   */
+  getProfile: (userId) => api.get(`/users/${userId}`),
+
+  /**
+   * Update user profile
+   * @param {FormData} userData - User data including optional profile image
+   * @returns {Promise} Updated user data
+   */
+  updateProfile: (userData) => api.put("/users/update", userData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  }),
+
+  /**
+   * Update user password
+   * @param {Object} passwordData - Current and new password
+   * @returns {Promise} Response
+   */
+  updatePassword: (passwordData) => api.put("/users/update-password", passwordData),
 };
 
 /**
