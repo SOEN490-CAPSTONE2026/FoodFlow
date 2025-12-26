@@ -177,7 +177,8 @@ export default function AdminLayout() {
             Users
           </Link>
 
-          <Link to="/admin/analytics" className={`admin-nav-link ${isActive("/admin/analytics") ? "active" : ""}`} data-tooltip="Donations">
+
+          <Link to="/admin/donations" className={`admin-nav-link ${isActive("/admin/donations") ? "active" : ""}`} data-tooltip="Donations">
             <span className="nav-icon" aria-hidden>
               <Heart size={18} className="lucide" />
             </span>

@@ -8,7 +8,9 @@ import AdminMessages from "./AdminMessages.js";
 import AdminHelp from "./AdminHelp";
 import AdminWelcome from "./AdminWelcome";
 import AdminUsers from "./AdminUsers";
+
 import AdminSettings from "./AdminSettings";
+import AdminDonations from "./AdminDonations";
 
 export default function AdminDashboard() {
   return (
@@ -19,6 +21,7 @@ export default function AdminDashboard() {
         <Route path="dashboard" element={<AdminHome />} />
         <Route path="users" element={<AdminUsers />} />
         <Route path="analytics" element={<AdminAnalytics />} />
+        <Route path="donations" element={<AdminDonations />} />
         <Route path="calendar" element={<AdminCalendar />} />
         <Route path="messages" element={<AdminMessages />} />
         <Route path="help" element={<AdminHelp />} />
