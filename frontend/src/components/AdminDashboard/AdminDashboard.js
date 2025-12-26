@@ -8,6 +8,7 @@ import AdminMessages from "./AdminMessages.js";
 import AdminHelp from "./AdminHelp";
 import AdminWelcome from "./AdminWelcome";
 import AdminUsers from "./AdminUsers";
+import AdminSettings from "./AdminSettings";
 
 export default function AdminDashboard() {
   return (
@@ -15,13 +16,13 @@ export default function AdminDashboard() {
       <Route element={<AdminLayout />}>
         <Route index element={<AdminHome />} />
         <Route path="welcome" element={<AdminWelcome />} />
-
         <Route path="dashboard" element={<AdminHome />} />
         <Route path="users" element={<AdminUsers />} />
         <Route path="analytics" element={<AdminAnalytics />} />
         <Route path="calendar" element={<AdminCalendar />} />
         <Route path="messages" element={<AdminMessages />} />
         <Route path="help" element={<AdminHelp />} />
+        <Route path="settings" element={<AdminSettings />} />
         <Route path="*" element={<Navigate to="." replace />} />
       </Route>
     </Routes>

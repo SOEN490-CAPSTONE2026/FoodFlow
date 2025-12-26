@@ -155,7 +155,7 @@ export default function AdminLayout() {
           </button>
         </div>
 
-        <nav className="admin-nav-links">
+        <nav className="admin-nav-links" style={{ flex: '0 1 auto' }}>
           <Link to="/admin/welcome" className={`admin-nav-link ${isActive("/admin/welcome") ? "active" : ""}`} data-tooltip="Home">
             <span className="nav-icon" aria-hidden>
               <Home size={18} className="lucide" />
@@ -222,13 +222,14 @@ export default function AdminLayout() {
           )}
         </nav>
 
-        <div className="admin-nav-bottom nav-bottom-abs">
-          <div className="admin-nav-link disabled" data-tooltip="Settings">
+        <div style={{ flex: 1 }} />
+        <div className="admin-nav-bottom">
+          <Link to="/admin/settings" className={`admin-nav-link ${isActive("/admin/settings") ? "active" : ""}`} data-tooltip="Settings">
             <span className="nav-icon" aria-hidden>
               <Settings size={18} className="lucide" />
             </span>
             Settings
-          </div>
+          </Link>
           <div className="admin-nav-link disabled" data-tooltip="Help">
             <span className="nav-icon" aria-hidden>
               <HelpCircle size={18} className="lucide" />
@@ -237,7 +238,7 @@ export default function AdminLayout() {
           </div>
         </div>
 
-        <div className="admin-sidebar-footer admin-user footer-abs" ref={menuRef}>
+        <div className="admin-sidebar-footer admin-user" ref={menuRef}>
           <div className="account-row">
             <button className="user-profile-pic" type="button">
               <div className="account-avatar"></div>
