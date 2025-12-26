@@ -474,7 +474,7 @@ body {
 .admin-sidebar-footer {
   margin-top: auto;
   position: relative;
-  padding: 0;
+  padding: 18px;
   border-top: 1px solid rgba(255, 255, 255, .1);
   padding-top: 12px;
 }
