@@ -21,46 +21,26 @@ public class AuthController {
 
     @PostMapping("/register/donor")
     public ResponseEntity<AuthResponse> registerDonor(@Valid @RequestBody RegisterDonorRequest request) {
-        try {
-            AuthResponse response = authService.registerDonor(request);
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest()
-                .body(new AuthResponse(null, null, null, e.getMessage()));
-        }
+        AuthResponse response = authService.registerDonor(request);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/register/receiver")
     public ResponseEntity<AuthResponse> registerReceiver(@Valid @RequestBody RegisterReceiverRequest request) {
-        try {
-            AuthResponse response = authService.registerReceiver(request);
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest()
-                .body(new AuthResponse(null, null, null, e.getMessage()));
-        }
+        AuthResponse response = authService.registerReceiver(request);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-    try {
         AuthResponse response = authService.login(request);
         return ResponseEntity.ok(response);
-    } catch (RuntimeException e) {
-        return ResponseEntity.badRequest()
-            .body(new AuthResponse(null, null, null, e.getMessage()));
     }
-}
 
     @PostMapping("/logout")
     public ResponseEntity<AuthResponse> logout(@Valid @RequestBody LogoutRequest request) {
-        try {
-            AuthResponse response = authService.logout(request);
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest()
-                    .body(new AuthResponse(null, null, null, e.getMessage()));
-        }
+        AuthResponse response = authService.logout(request);
+        return ResponseEntity.ok(response);
     }
 
 
