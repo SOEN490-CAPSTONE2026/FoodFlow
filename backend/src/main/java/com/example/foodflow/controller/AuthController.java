@@ -6,6 +6,8 @@ import com.example.foodflow.model.dto.RegisterReceiverRequest;
 import com.example.foodflow.model.dto.LoginRequest;
 import com.example.foodflow.model.dto.LogoutRequest;
 import com.example.foodflow.model.dto.ForgotPasswordRequest;
+import com.example.foodflow.model.dto.VerifyResetCodeRequest;
+import com.example.foodflow.model.dto.ResetPasswordRequest;
 import com.example.foodflow.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,5 +79,38 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/verify-reset-code")
+    public ResponseEntity<Map<String, String>> verifyResetCode(@Valid @RequestBody VerifyResetCodeRequest request) {
+        try {
+            boolean isValid = authService.verifyResetCode(request.getEmail(), request.getCode());
+            if (isValid) {
+                return ResponseEntity.ok(Map.of(
+                    "message", "Code verified successfully",
+                    "email", request.getEmail()
+                ));
+            } else {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("message", "Invalid code"));
+            }
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Map<String, String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        try {
+            Map<String, String> response = authService.resetPassword(
+                request.getEmail(), 
+                request.getCode(), 
+                request.getNewPassword()
+            );
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", e.getMessage()));
+        }
+    }
 
 }
