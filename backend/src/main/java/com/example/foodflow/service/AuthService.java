@@ -6,6 +6,7 @@ import com.example.foodflow.model.dto.RegisterDonorRequest;
 import com.example.foodflow.model.dto.RegisterReceiverRequest;
 import com.example.foodflow.model.dto.LoginRequest;
 import com.example.foodflow.model.dto.LogoutRequest;
+import com.example.foodflow.model.dto.ForgotPasswordRequest;
 import com.example.foodflow.model.entity.Organization;
 import com.example.foodflow.model.entity.VerificationStatus;
 import com.example.foodflow.model.entity.User;
@@ -21,6 +22,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.foodflow.service.MetricsService;
 import io.micrometer.core.annotation.Timed;
+import java.security.SecureRandom;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
 
 
 @Service
@@ -41,6 +45,24 @@ public class AuthService {
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
+    
+    @Autowired
+    private EmailService emailService;
+    
+    // In-memory storage for reset codes (expiry handled by timestamp)
+    private final Map<String, ResetCodeData> resetCodes = new ConcurrentHashMap<>();
+    private final SecureRandom secureRandom = new SecureRandom();
+    
+    // Helper class to store code with timestamp
+    private static class ResetCodeData {
+        String code;
+        long timestamp;
+        
+        ResetCodeData(String code, long timestamp) {
+            this.code = code;
+            this.timestamp = timestamp;
+        }
+    }
 
     // Update the constructor to include MetricsService:
     public AuthService(UserRepository userRepository, 
@@ -216,4 +238,52 @@ public class AuthService {
 
         return new AuthResponse(null, user.getEmail(), user.getRole().toString(), "Account logged out successfully.");
     }
+    
+    /**
+     * Initiate password reset flow by generating and sending a 6-digit code via email
+     * @param request contains user's email
+     * @return success message
+     */
+    @Timed(value = "auth.service.forgotPassword", description = "Time taken to process forgot password")
+    public Map<String, String> forgotPassword(ForgotPasswordRequest request) {
+        log.info("Forgot password request for email: {}", request.getEmail());
+        
+        // Verify user exists
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> {
+                    log.warn("Forgot password failed: User not found: {}", request.getEmail());
+                    return new RuntimeException("User not found");
+                });
+        
+        // Generate 6-digit code
+        String resetCode = generateSixDigitCode();
+        
+        // Store code with timestamp (60 second expiry)
+        resetCodes.put(request.getEmail(), new ResetCodeData(resetCode, System.currentTimeMillis()));
+        
+        try {
+            // Send email via Brevo
+            emailService.sendPasswordResetEmail(request.getEmail(), resetCode);
+            log.info("Password reset email sent successfully to: {}", request.getEmail());
+            
+            return Map.of(
+                "message", "Reset code sent successfully",
+                "email", request.getEmail()
+            );
+        } catch (Exception e) {
+            log.error("Failed to send password reset email to: {}", request.getEmail(), e);
+            // Remove the stored code if email fails
+            resetCodes.remove(request.getEmail());
+            throw new RuntimeException("Failed to send reset email. Please try again.");
+        }
+    }
+    
+    /**
+     * Generate a secure 6-digit code
+     */
+    private String generateSixDigitCode() {
+        int code = secureRandom.nextInt(900000) + 100000; // 100000 to 999999
+        return String.valueOf(code);
+    }
 }
+
