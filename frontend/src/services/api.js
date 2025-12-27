@@ -65,6 +65,7 @@ export const authAPI = {
     localStorage.removeItem("jwtToken");
     return api.post("/auth/logout");
   },
+  forgotPassword: (data) => api.post("/auth/forgot-password", data),
 };
 
 export const surplusAPI = {
