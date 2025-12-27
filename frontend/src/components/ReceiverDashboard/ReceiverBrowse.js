@@ -3,6 +3,7 @@ import {Calendar, MapPin, Clock, Package2, Bookmark, ChevronDown, ChevronUp, Pac
 import { useLoadScript } from "@react-google-maps/api";
 import { surplusAPI, recommendationAPI } from "../../services/api";
 import { getFoodCategoryDisplays, getPrimaryFoodCategory, getFoodImageClass, foodTypeImages, getUnitLabel } from "../../constants/foodConstants";
+import { useTimezone } from "../../contexts/TimezoneContext";
 import FiltersPanel from "./FiltersPanel";
 import "./ReceiverBrowseModal.css";
 import "./ReceiverBrowse.css";
@@ -14,6 +15,8 @@ export default function ReceiverBrowse() {
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY || "",
     libraries: libraries,
   });
+  
+  const { userTimezone } = useTimezone();
 
   const [filters, setFilters] = useState({
     foodType: [],
@@ -163,7 +166,7 @@ export default function ReceiverBrowse() {
 
   useEffect(() => {
     fetchDonations();
-  }, [fetchDonations]);
+  }, [fetchDonations, userTimezone]);
 
   useEffect(() => {
     if (items.length > 0) {
