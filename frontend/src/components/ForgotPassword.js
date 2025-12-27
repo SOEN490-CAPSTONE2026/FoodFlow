@@ -179,15 +179,11 @@ export default function ForgotPassword() {
     setCodeExpired(false);
     setCodeIncorrect(false);
     setSecondsLeft(selectedMethod === 'sms' ? 30 : 60);
-    
-    // Resend the verification code
     setIsSubmitted(false);
-    setTimeout(() => {
-      // Trigger the submit to resend
-      const form = document.querySelector('.forgot-password-form');
-      if (form) {
-        form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-      }
+    
+    // Re-submit to resend the verification code
+    setTimeout(async () => {
+      await handleSubmit({ preventDefault: () => {} });
     }, 100);
   };
 
@@ -308,7 +304,7 @@ export default function ForgotPassword() {
                   </div>
                   <h1 className="forgot-password-title">Forgot Password?</h1>
                   <p className="forgot-password-subtitle">
-                    No worries! Please select how you would like to receive your password reset to continue.
+                    No worries! Please select how you would like to receive your OTP. After entering the code, you will be eligible for a password reset.
                   </p>
                 </div>
 
@@ -470,11 +466,11 @@ export default function ForgotPassword() {
                       setIsLoading(true);
                       try {
                         // Call backend to reset password
-                        await authAPI.resetPassword({
-                          email: selectedMethod === 'sms' ? phone : email,
-                          code: verificationCode.join(''),
-                          newPassword: newPassword
-                        });
+                        const resetData = selectedMethod === 'sms' 
+                          ? { phone: phone, code: verificationCode.join(''), newPassword: newPassword }
+                          : { email: email, code: verificationCode.join(''), newPassword: newPassword };
+                        
+                        await authAPI.resetPassword(resetData);
                         
                         setResetSuccess(true);
                         // Redirect after 3 seconds
