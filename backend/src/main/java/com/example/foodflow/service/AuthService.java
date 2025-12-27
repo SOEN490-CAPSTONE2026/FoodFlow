@@ -1,5 +1,6 @@
 package com.example.foodflow.service;
 
+import com.example.foodflow.exception.BusinessException;
 import com.example.foodflow.filter.RequestCorrelationFilter;
 import com.example.foodflow.model.dto.AuthResponse;
 import com.example.foodflow.model.dto.RegisterDonorRequest;
@@ -63,7 +64,7 @@ public class AuthService {
         // Check if user already exists
         if (userRepository.existsByEmail(request.getEmail())) {
             log.warn("Registration failed: Email already exists: {}", request.getEmail());
-            throw new RuntimeException("Email already exists");
+            throw new BusinessException("error.auth.email_exists");
         }
 
         // Create user
@@ -106,7 +107,7 @@ public class AuthService {
     public AuthResponse registerReceiver(RegisterReceiverRequest request) {
         // Check if user already exists
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists");
+            throw new BusinessException("error.auth.email_exists");
         }
 
         // Create user
@@ -148,13 +149,13 @@ public class AuthService {
                 .orElseThrow(() -> {
                     log.warn("Login failed: User not found: {}", request.getEmail());
                     metricsService.incrementAuthFailure("user_not_found");
-                    return new RuntimeException("User not found");
+                    return new BusinessException("error.auth.user_not_found");
             });
 
             if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
                     log.warn("Login failed: Invalid credentials for user: {}", request.getEmail());
                     metricsService.incrementAuthFailure("invalid_credentials");
-                    throw new RuntimeException("Invalid credentials");
+                    throw new BusinessException("error.auth.invalid_credentials");
             }
 
             String token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole().toString());
@@ -175,10 +176,10 @@ public class AuthService {
     @Timed(value = "auth.service.logout", description = "Time taken to logout")
     public AuthResponse logout(LogoutRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BusinessException("error.auth.user_not_found"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid credentials");
+            throw new BusinessException("error.auth.invalid_credentials");
         }
 
         return new AuthResponse(null, user.getEmail(), user.getRole().toString(), "Account logged out successfully.");

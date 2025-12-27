@@ -5,8 +5,8 @@ import jakarta.validation.constraints.Pattern;
 
 public class CompleteSurplusRequest {
 
-    @NotBlank(message = "OTP code is required")
-    @Pattern(regexp = "^[0-9]{6}$", message = "OTP code must be exactly 6 digits")
+    @NotBlank(message = "{validation.otpCode.required}")
+    @Pattern(regexp = "^[0-9]{6}$", message = "{validation.otpCode.pattern}")
     private String otpCode;
 
     // Constructors

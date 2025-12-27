@@ -7,10 +7,10 @@ import jakarta.validation.constraints.NotNull;
 
 public class ConfirmPickupRequest {
 
-    @NotNull
+    @NotNull(message = "{validation.postId.required}")
     private long postId;
 
-    @NotBlank
+    @NotBlank(message = "{validation.otpCode.required}")
     private String otpCode;
 
     // Getters and setters
