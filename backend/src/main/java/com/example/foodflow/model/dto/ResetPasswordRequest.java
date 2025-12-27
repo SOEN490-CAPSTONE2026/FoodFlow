@@ -8,8 +8,9 @@ import jakarta.validation.constraints.Size;
 public class ResetPasswordRequest {
     
     @Email(message = "Invalid email format")
-    @NotBlank(message = "Email is required")
     private String email;
+    
+    private String phone;
     
     @Pattern(regexp = "^[0-9]{6}$", message = "Code must be exactly 6 digits")
     @NotBlank(message = "Verification code is required")
@@ -26,6 +27,14 @@ public class ResetPasswordRequest {
     
     public void setEmail(String email) {
         this.email = email;
+    }
+    
+    public String getPhone() {
+        return phone;
+    }
+    
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
     
     public String getCode() {

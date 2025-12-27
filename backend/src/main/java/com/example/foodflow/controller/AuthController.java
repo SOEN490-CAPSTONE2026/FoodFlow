@@ -102,7 +102,8 @@ public class AuthController {
     public ResponseEntity<Map<String, String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         try {
             Map<String, String> response = authService.resetPassword(
-                request.getEmail(), 
+                request.getEmail(),
+                request.getPhone(),
                 request.getCode(), 
                 request.getNewPassword()
             );

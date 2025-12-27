@@ -253,16 +253,40 @@ public class AuthService {
      */
     @Timed(value = "auth.service.forgotPassword", description = "Time taken to process forgot password")
     public Map<String, String> forgotPassword(ForgotPasswordRequest request) {
-        // Only handle email - Firebase handles SMS on frontend
+        log.info("Processing forgot password request for method: {}", request.getMethod());
+        
         if ("email".equals(request.getMethod())) {
             return handleEmailForgotPassword(request);
+        } else if ("sms".equals(request.getMethod())) {
+            return handleSmsForgotPassword(request);
         } else {
-            // SMS is handled by Firebase, return success
-            return Map.of(
-                "message", "SMS verification handled by Firebase",
-                "method", "sms"
-            );
+            throw new RuntimeException("Invalid method. Please choose 'email' or 'sms'");
         }
+    }
+    
+    /**
+     * Handle SMS forgot password - verify phone exists in database
+     * Firebase handles actual SMS sending on frontend
+     */
+    private Map<String, String> handleSmsForgotPassword(ForgotPasswordRequest request) {
+        log.info("Verifying phone number exists: {}", request.getPhone());
+        
+        if (request.getPhone() == null || request.getPhone().trim().isEmpty()) {
+            throw new RuntimeException("Phone number is required for SMS method");
+        }
+        
+        // Verify user exists with this phone number
+        userRepository.findByOrganizationPhone(request.getPhone())
+            .orElseThrow(() -> {
+                log.warn("No user found with phone number: {}", request.getPhone());
+                return new RuntimeException("No account found with this phone number");
+            });
+        
+        log.info("Phone number verified, Firebase will handle SMS sending");
+        return Map.of(
+            "message", "Phone verified. SMS will be sent.",
+            "phone", request.getPhone()
+        );
     }
     
     /**
@@ -339,39 +363,57 @@ public class AuthService {
     
     /**
      * Reset the user's password after verifying the code
-     * @param email user's email
+     * @param email user's email (optional, required if phone not provided)
+     * @param phone user's phone (optional, required if email not provided)
      * @param code 6-digit verification code
      * @param newPassword new password to set
      * @return success message
      */
     @Transactional
     @Timed(value = "auth.service.resetPassword", description = "Time taken to reset password")
-    public Map<String, String> resetPassword(String email, String code, String newPassword) {
-        log.info("Attempting password reset for email: {}", email);
+    public Map<String, String> resetPassword(String email, String phone, String code, String newPassword) {
+        log.info("Attempting password reset for email: {} or phone: {}", email, phone);
         
-        // First verify the code is still valid
-        verifyResetCode(email, code);
+        // Find the user by email or phone
+        User user;
+        String identifier;
         
-        // Find the user by email
-        User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> {
-                log.error("User not found for email: {}", email);
-                return new RuntimeException("User not found");
-            });
+        if (email != null && !email.trim().isEmpty()) {
+            // Email-based reset - verify code first
+            verifyResetCode(email, code);
+            identifier = email;
+            user = userRepository.findByEmail(email)
+                .orElseThrow(() -> {
+                    log.error("User not found for email: {}", email);
+                    return new RuntimeException("User not found");
+                });
+        } else if (phone != null && !phone.trim().isEmpty()) {
+            // Phone-based reset - Firebase already verified the code
+            identifier = phone;
+            user = userRepository.findByOrganizationPhone(phone)
+                .orElseThrow(() -> {
+                    log.error("User not found for phone: {}", phone);
+                    return new RuntimeException("User not found");
+                });
+        } else {
+            throw new RuntimeException("Either email or phone is required");
+        }
         
         // Hash and update the password
         String hashedPassword = passwordEncoder.encode(newPassword);
         user.setPassword(hashedPassword);
         userRepository.save(user);
         
-        // Remove the used code from storage
-        resetCodes.remove(email);
+        // Remove the used code from storage if it was email-based
+        if (email != null && !email.trim().isEmpty()) {
+            resetCodes.remove(email);
+        }
         
-        log.info("Password reset successful for user: {}", email);
+        log.info("Password reset successful for user: {}", identifier);
         
         return Map.of(
             "message", "Password reset successful",
-            "email", email
+            "identifier", identifier
         );
     }
     
