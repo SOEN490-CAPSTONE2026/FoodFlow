@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, ArrowLeft, CheckCircle, Smartphone, Lock, XCircle } from 'lucide-react';
+import { authAPI } from '../services/api';
 import '../style/ForgotPassword.css';
 
 export default function ForgotPassword() {
@@ -12,9 +13,9 @@ export default function ForgotPassword() {
   const [selectedMethod, setSelectedMethod] = useState(null); // 'email' | 'sms'
   const [verificationCode, setVerificationCode] = useState(Array(6).fill(''));
   const inputsRef = useRef([]);
-  const [smsSecondsLeft, setSmsSecondsLeft] = useState(10);
-  const [smsExpired, setSmsExpired] = useState(false);
-  const smsTimerRef = useRef(null);
+  const [secondsLeft, setSecondsLeft] = useState(60);
+  const [codeExpired, setCodeExpired] = useState(false);
+  const timerRef = useRef(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -53,19 +54,23 @@ export default function ForgotPassword() {
     setIsLoading(true);
 
     try {
-      // TODO: Replace with actual API call
-      // const response = await authAPI.forgotPassword({ email });
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      if (selectedMethod === 'email') {
+        // Call backend API for email reset
+        const response = await authAPI.forgotPassword({ email });
+        console.log('Password reset email sent:', response.data);
+      } else {
+        // SMS flow - still simulated for now (TODO: backend SMS integration)
+        await new Promise(resolve => setTimeout(resolve, 1500));
+      }
 
-      // mark submitted and reset SMS expiry/timer state when we request a code
-      setSmsExpired(false);
-      setSmsSecondsLeft(10);
+      // mark submitted and reset expiry/timer state when we request a code
+      setCodeExpired(false);
+      setSecondsLeft(selectedMethod === 'sms' ? 10 : 60);
       setIsSubmitted(true);
-      // focus first input after render (no-op for email flow)
+      // focus first input after render
       setTimeout(() => inputsRef.current[0]?.focus(), 0);
     } catch (err) {
+      console.error('Forgot password error:', err.response?.data);
       setError(err.response?.data?.message || 'Failed to send reset link. Please try again.');
     } finally {
       setIsLoading(false);
@@ -111,32 +116,33 @@ export default function ForgotPassword() {
   };
 
   const handleResend = () => {
-    // For now just reset code inputs and show a (no-op) message
+    // Reset code inputs and timer
     setVerificationCode(Array(6).fill(''));
     setError('');
-    setSmsExpired(false);
-    setSmsSecondsLeft(10);
+    setCodeExpired(false);
+    setSecondsLeft(selectedMethod === 'sms' ? 10 : 60);
     // focus first input when resent
     setTimeout(() => inputsRef.current[0]?.focus(), 0);
     // in real flow we'd trigger resend API
   };
 
-  // start/stop SMS countdown when SMS code view becomes active
+  // start/stop countdown when code view becomes active
   useEffect(() => {
     // clear existing timer
-    if (smsTimerRef.current) {
-      clearInterval(smsTimerRef.current);
-      smsTimerRef.current = null;
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
     }
 
-    if (isSubmitted && selectedMethod === 'sms' && !smsExpired) {
-      setSmsSecondsLeft(10);
-      smsTimerRef.current = setInterval(() => {
-        setSmsSecondsLeft((s) => {
+    if (isSubmitted && !codeExpired) {
+      const initialTime = selectedMethod === 'sms' ? 10 : 60;
+      setSecondsLeft(initialTime);
+      timerRef.current = setInterval(() => {
+        setSecondsLeft((s) => {
               if (s <= 1) {
-                clearInterval(smsTimerRef.current);
-                smsTimerRef.current = null;
-                setSmsExpired(true);
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+                setCodeExpired(true);
                 return 0;
               }
           return s - 1;
@@ -145,12 +151,12 @@ export default function ForgotPassword() {
     }
 
     return () => {
-      if (smsTimerRef.current) {
-        clearInterval(smsTimerRef.current);
-        smsTimerRef.current = null;
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
       }
     };
-  }, [isSubmitted, selectedMethod, smsExpired]);
+  }, [isSubmitted, selectedMethod, codeExpired]);
 
   return (
     <div className="forgot-password-page">
@@ -261,7 +267,7 @@ export default function ForgotPassword() {
                       className="submit-btn"
                       disabled={isLoading}
                     >
-                      {isLoading ? 'Sending...' : (selectedMethod === 'sms' ? 'Send Code' : 'Send Reset Link')}
+                      {isLoading ? 'Sending...' : 'Send Code'}
                     </button>
                   )}
                 </form>
@@ -269,96 +275,68 @@ export default function ForgotPassword() {
             ) : (
               <div className="forgot-password-card success-card">
                 <div className="success-icon">
-                  {selectedMethod === 'sms' && smsExpired ? (
+                  {codeExpired ? (
                     <XCircle size={64} strokeWidth={1.5} style={{ color: '#b91c1c' }} />
                   ) : (
                     <CheckCircle size={64} strokeWidth={1.5} style={{ color: '#16a34a' }} />
                   )}
                 </div>
-                {selectedMethod === 'sms' ? (
-                  <>
-                    {smsExpired ? (
-                      <div className="code-entry" style={{ textAlign: 'center' }}>
-                        <h2 style={{ color: '#b91c1c' }}>Oops! You did not submit in time.</h2>
-                        <p style={{ color: '#6b7280', marginTop: 8 }}>The code has expired. You can resend a new code or go back to login.</p>
-                        <div style={{ marginTop: 24 }}>
-                          <button className="resend-link" type="button" onClick={handleResend}>Resend code</button>
-                        </div>
-                        <div style={{ marginTop: 12 }}>
-                          <Link to="/login" className="back-to-login-btn">Back to Login</Link>
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        <h1 className="success-title">Code Sent</h1>
-                        <p className="success-message">
-                          We've sent a 6-digit verification code to <strong>{phone}</strong>
-                        </p>
-                        <p className="success-info">Enter the 6 digits you received via text message.</p>
-
-                        <div className="code-entry">
-                          <div className="code-inputs">
-                            {verificationCode.map((digit, idx) => (
-                              <input
-                                key={idx}
-                                data-testid={`code-digit-${idx}`}
-                                className="code-input"
-                                inputMode="numeric"
-                                pattern="[0-9]*"
-                                maxLength={1}
-                                value={digit}
-                                onChange={(e) => handleCodeChange(idx, e.target.value)}
-                                onKeyDown={(e) => handleCodeKeyDown(e, idx)}
-                                onPaste={(e) => {
-                                  const paste = e.clipboardData.getData('text');
-                                  e.preventDefault();
-                                  handleCodeChange(idx, paste);
-                                }}
-                                ref={(el) => (inputsRef.current[idx] = el)}
-                              />
-                            ))}
-                          </div>
-
-                          <div style={{ marginTop: 12 }}>
-                            <div style={{ color: '#6b7280', fontSize: 13 }}>Expires in {smsSecondsLeft}s</div>
-                          </div>
-
-                          <div style={{ marginTop: 16 }}>
-                            <button className="resend-link" type="button" onClick={handleResend}>Resend code</button>
-                          </div>
-
-                          <div style={{ marginTop: 20 }}>
-                            <Link to="/login" className="back-to-login-btn">Back to Login</Link>
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </>
+                {codeExpired ? (
+                  <div className="code-entry" style={{ textAlign: 'center' }}>
+                    <h2 style={{ color: '#b91c1c' }}>Oops! You did not submit in time.</h2>
+                    <p style={{ color: '#6b7280', marginTop: 8 }}>The code has expired. You can resend a new code or go back to login.</p>
+                    <div style={{ marginTop: 24 }}>
+                      <button className="resend-link" type="button" onClick={handleResend}>Resend code</button>
+                    </div>
+                    <div style={{ marginTop: 12 }}>
+                      <Link to="/login" className="back-to-login-btn">Back to Login</Link>
+                    </div>
+                  </div>
                 ) : (
                   <>
-                    <h1 className="success-title">Check Your Email</h1>
+                    <h1 className="success-title">Code Sent</h1>
                     <p className="success-message">
-                      We've sent a password reset message to <strong>{email}</strong>
+                      We've sent a 6-digit verification code to <strong>{selectedMethod === 'sms' ? phone : email}</strong>
                     </p>
                     <p className="success-info">
-                      Please check your inbox and click on the link to reset your password. 
-                      The link will expire in 1 hour.
+                      Enter the 6 digits you received via {selectedMethod === 'sms' ? 'text message' : 'email'}.
                     </p>
-                    <p className="success-note">
-                      Didn't receive the email? Check your spam folder or{' '}
-                      <button 
-                        className="resend-link"
-                        onClick={() => {
-                          setIsSubmitted(false);
-                          setEmail('');
-                        }}
-                      >
-                        try again
-                      </button>
-                    </p>
-                    <Link to="/login" className="back-to-login-btn">
-                      Back to Login
-                    </Link>
+
+                    <div className="code-entry">
+                      <div className="code-inputs">
+                        {verificationCode.map((digit, idx) => (
+                          <input
+                            key={idx}
+                            data-testid={`code-digit-${idx}`}
+                            className="code-input"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            maxLength={1}
+                            value={digit}
+                            onChange={(e) => handleCodeChange(idx, e.target.value)}
+                            onKeyDown={(e) => handleCodeKeyDown(e, idx)}
+                            onPaste={(e) => {
+                              const paste = e.clipboardData.getData('text');
+                              e.preventDefault();
+                              handleCodeChange(idx, paste);
+                            }}
+                            ref={(el) => (inputsRef.current[idx] = el)}
+                          />
+                        ))}
+                      </div>
+
+                      <div style={{ marginTop: 12 }}>
+                        <div style={{ color: '#6b7280', fontSize: 13 }}>Expires in {secondsLeft}s</div>
+                      </div>
+
+                      <div style={{ marginTop: 16 }}>
+                        <button className="resend-link" type="button" onClick={handleResend}>Resend code</button>
+                      </div>
+
+                      <div style={{ marginTop: 20 }}>
+                        <Link to="/login" className="back-to-login-btn">Back to Login</Link>
+                      </div>
+                    </div>
                   </>
                 )}
               </div>
