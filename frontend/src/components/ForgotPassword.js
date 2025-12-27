@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, ArrowLeft, CheckCircle, Smartphone, Lock, XCircle } from 'lucide-react';
+import { Mail, ArrowLeft, CheckCircle, Smartphone, Lock, XCircle, Eye, EyeOff } from 'lucide-react';
 import { authAPI } from '../services/api';
+import { auth } from '../services/firebase';
+import { signInWithPhoneNumber, RecaptchaVerifier } from 'firebase/auth';
 import '../style/ForgotPassword.css';
 
 export default function ForgotPassword() {
@@ -15,7 +17,26 @@ export default function ForgotPassword() {
   const inputsRef = useRef([]);
   const [secondsLeft, setSecondsLeft] = useState(60);
   const [codeExpired, setCodeExpired] = useState(false);
+  const [codeIncorrect, setCodeIncorrect] = useState(false);
+  const [codeVerified, setCodeVerified] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [resetSuccess, setResetSuccess] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const timerRef = useRef(null);
+  const recaptchaVerifierRef = useRef(null);
+  const confirmationResultRef = useRef(null);
+
+  // Check password matching in real-time
+  useEffect(() => {
+    if (confirmPassword && newPassword !== confirmPassword) {
+      setPasswordError('Passwords do not match');
+    } else {
+      setPasswordError('');
+    }
+  }, [newPassword, confirmPassword]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -56,22 +77,58 @@ export default function ForgotPassword() {
     try {
       if (selectedMethod === 'email') {
         // Call backend API for email reset
-        const response = await authAPI.forgotPassword({ email });
+        const response = await authAPI.forgotPassword({ 
+          email, 
+          method: 'email' 
+        });
         console.log('Password reset email sent:', response.data);
       } else {
-        // SMS flow - still simulated for now (TODO: backend SMS integration)
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // Use Firebase Phone Authentication for SMS
+        // Normalize phone number to E.164 format
+        let normalizedPhone = phone.trim();
+        if (!normalizedPhone.startsWith('+')) {
+          // If no country code, assume North America (+1)
+          normalizedPhone = normalizedPhone.replace(/[^\d]/g, ''); // Remove non-digits
+          if (normalizedPhone.length === 10) {
+            normalizedPhone = '+1' + normalizedPhone;
+          } else if (normalizedPhone.startsWith('1') && normalizedPhone.length === 11) {
+            normalizedPhone = '+' + normalizedPhone;
+          } else {
+            normalizedPhone = '+1' + normalizedPhone;
+          }
+        }
+
+        // Initialize reCAPTCHA if not already done
+        if (!recaptchaVerifierRef.current) {
+          recaptchaVerifierRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
+            'size': 'invisible',
+            'callback': () => {
+              console.log('reCAPTCHA solved');
+            }
+          });
+        }
+
+        // Send SMS via Firebase
+        const confirmationResult = await signInWithPhoneNumber(auth, normalizedPhone, recaptchaVerifierRef.current);
+        confirmationResultRef.current = confirmationResult;
+        console.log('Firebase SMS sent to:', normalizedPhone);
       }
 
       // mark submitted and reset expiry/timer state when we request a code
       setCodeExpired(false);
-      setSecondsLeft(selectedMethod === 'sms' ? 10 : 60);
+      setSecondsLeft(selectedMethod === 'sms' ? 30 : 60);
       setIsSubmitted(true);
       // focus first input after render
       setTimeout(() => inputsRef.current[0]?.focus(), 0);
     } catch (err) {
-      console.error('Forgot password error:', err.response?.data);
-      setError(err.response?.data?.message || 'Failed to send reset link. Please try again.');
+      console.error('Forgot password error:', err);
+      if (err.code === 'auth/invalid-phone-number') {
+        setError('Invalid phone number format. Please use format: +14165551234');
+      } else if (err.code === 'auth/too-many-requests') {
+        setError('Too many requests. Please try again later.');
+      } else {
+        setError(err.response?.data?.message || err.message || 'Failed to send verification code. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -115,15 +172,75 @@ export default function ForgotPassword() {
     }
   };
 
-  const handleResend = () => {
+  const handleResend = async () => {
     // Reset code inputs and timer
     setVerificationCode(Array(6).fill(''));
     setError('');
     setCodeExpired(false);
-    setSecondsLeft(selectedMethod === 'sms' ? 10 : 60);
-    // focus first input when resent
-    setTimeout(() => inputsRef.current[0]?.focus(), 0);
-    // in real flow we'd trigger resend API
+    setCodeIncorrect(false);
+    setSecondsLeft(selectedMethod === 'sms' ? 30 : 60);
+    
+    // Resend the verification code
+    setIsSubmitted(false);
+    setTimeout(() => {
+      // Trigger the submit to resend
+      const form = document.querySelector('.forgot-password-form');
+      if (form) {
+        form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+      }
+    }, 100);
+  };
+
+  // Auto-verify when all 6 digits are entered
+  useEffect(() => {
+    const code = verificationCode.join('');
+    if (code.length === 6 && isSubmitted && !codeExpired) {
+      handleVerifyCode(code);
+    }
+  }, [verificationCode, isSubmitted, codeExpired]);
+
+  const handleVerifyCode = async (code) => {
+    if (selectedMethod === 'sms' && confirmationResultRef.current) {
+      try {
+        setIsLoading(true);
+        const result = await confirmationResultRef.current.confirm(code);
+        console.log('Phone verified successfully:', result.user.phoneNumber);
+        setCodeVerified(true);
+        setCodeIncorrect(false);
+        // Stop the timer when code is verified
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+          timerRef.current = null;
+        }
+      } catch (err) {
+        console.error('Code verification error:', err);
+        setCodeIncorrect(true);
+        setVerificationCode(Array(6).fill(''));
+        setTimeout(() => inputsRef.current[0]?.focus(), 100);
+      } finally {
+        setIsLoading(false);
+      }
+    } else if (selectedMethod === 'email') {
+      try {
+        setIsLoading(true);
+        await authAPI.verifyResetCode({ email, code });
+        console.log('Email code verified successfully');
+        setCodeVerified(true);
+        setCodeIncorrect(false);
+        // Stop the timer when code is verified
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+          timerRef.current = null;
+        }
+      } catch (err) {
+        console.error('Code verification error:', err);
+        setCodeIncorrect(true);
+        setVerificationCode(Array(6).fill(''));
+        setTimeout(() => inputsRef.current[0]?.focus(), 100);
+      } finally {
+        setIsLoading(false);
+      }
+    }
   };
 
   // start/stop countdown when code view becomes active
@@ -134,8 +251,9 @@ export default function ForgotPassword() {
       timerRef.current = null;
     }
 
-    if (isSubmitted && !codeExpired) {
-      const initialTime = selectedMethod === 'sms' ? 10 : 60;
+    // Don't start timer if code is already verified
+    if (isSubmitted && !codeExpired && !codeVerified) {
+      const initialTime = selectedMethod === 'sms' ? 30 : 60;
       setSecondsLeft(initialTime);
       timerRef.current = setInterval(() => {
         setSecondsLeft((s) => {
@@ -156,7 +274,7 @@ export default function ForgotPassword() {
         timerRef.current = null;
       }
     };
-  }, [isSubmitted, selectedMethod, codeExpired]);
+  }, [isSubmitted, selectedMethod, codeExpired, codeVerified]);
 
   return (
     <div className="forgot-password-page">
@@ -275,13 +393,27 @@ export default function ForgotPassword() {
             ) : (
               <div className="forgot-password-card success-card">
                 <div className="success-icon">
-                  {codeExpired ? (
+                  {codeExpired || codeIncorrect ? (
                     <XCircle size={64} strokeWidth={1.5} style={{ color: '#b91c1c' }} />
+                  ) : resetSuccess ? (
+                    <div style={{ fontSize: 64 }}>🎉</div>
+                  ) : codeVerified ? (
+                    <CheckCircle size={64} strokeWidth={1.5} style={{ color: '#16a34a' }} />
                   ) : (
                     <CheckCircle size={64} strokeWidth={1.5} style={{ color: '#16a34a' }} />
                   )}
                 </div>
-                {codeExpired ? (
+                {resetSuccess ? (
+                  <div className="code-entry" style={{ textAlign: 'center' }}>
+                    <h1 className="success-title" style={{ color: '#16a34a', marginTop: 16 }}>Password Reset!</h1>
+                    <p className="success-message" style={{ marginTop: 12, fontSize: 16 }}>
+                      Your password has been successfully reset.
+                    </p>
+                    <p style={{ color: '#6b7280', marginTop: 8, fontSize: 14 }}>
+                      You will be redirected to the login page now...
+                    </p>
+                  </div>
+                ) : codeExpired ? (
                   <div className="code-entry" style={{ textAlign: 'center' }}>
                     <h2 style={{ color: '#b91c1c' }}>Oops! You did not submit in time.</h2>
                     <p style={{ color: '#6b7280', marginTop: 8 }}>The code has expired. You can resend a new code or go back to login.</p>
@@ -291,6 +423,138 @@ export default function ForgotPassword() {
                     <div style={{ marginTop: 12 }}>
                       <Link to="/login" className="back-to-login-btn">Back to Login</Link>
                     </div>
+                  </div>
+                ) : codeIncorrect ? (
+                  <div className="code-entry" style={{ textAlign: 'center' }}>
+                    <h2 style={{ color: '#b91c1c' }}>Oops! The code you submitted is incorrect.</h2>
+                    <p style={{ color: '#6b7280', marginTop: 8 }}>Please check the code and try again, or request a new one.</p>
+                    <div style={{ marginTop: 12, color: '#6b7280', fontSize: 14 }}>Time remaining: {secondsLeft}s</div>
+                    <div style={{ marginTop: 24 }}>
+                      <button className="resend-link" type="button" onClick={() => {
+                        setCodeIncorrect(false);
+                        setTimeout(() => inputsRef.current[0]?.focus(), 100);
+                      }}>Try Again</button>
+                    </div>
+                    <div style={{ marginTop: 12 }}>
+                      <button className="resend-link" type="button" onClick={handleResend}>Resend code</button>
+                    </div>
+                    <div style={{ marginTop: 12 }}>
+                      <Link to="/login" className="back-to-login-btn">Back to Login</Link>
+                    </div>
+                  </div>
+                ) : codeVerified ? (
+                  <div className="code-entry" style={{ textAlign: 'center' }}>
+                    <h1 className="success-title" style={{ color: '#16a34a' }}>Success!</h1>
+                    <p className="success-message" style={{ marginTop: 8 }}>
+                      Your identity has been verified. Please enter your new password below.
+                    </p>
+                    
+                    <form onSubmit={async (e) => {
+                      e.preventDefault();
+                      setError('');
+                      setPasswordError('');
+                      
+                      if (!newPassword || !confirmPassword) {
+                        setPasswordError('Please enter both password fields');
+                        return;
+                      }
+                      if (newPassword !== confirmPassword) {
+                        setPasswordError('Passwords do not match');
+                        return;
+                      }
+                      if (newPassword.length < 8) {
+                        setPasswordError('Password must be at least 8 characters');
+                        return;
+                      }
+                      
+                      setIsLoading(true);
+                      try {
+                        // Call backend to reset password
+                        await authAPI.resetPassword({
+                          email: selectedMethod === 'sms' ? phone : email,
+                          code: verificationCode.join(''),
+                          newPassword: newPassword
+                        });
+                        
+                        setResetSuccess(true);
+                        // Redirect after 3 seconds
+                        setTimeout(() => {
+                          window.location.href = '/login';
+                        }, 3000);
+                      } catch (err) {
+                        setPasswordError(err.response?.data?.message || 'Failed to reset password. Please try again.');
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    }} style={{ marginTop: 24, width: '100%' }}>
+                      <div style={{ marginBottom: 16, position: 'relative' }}>
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          placeholder="New Password"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          className="input-field"
+                          style={{ width: '100%', padding: 12, paddingRight: 45, fontSize: 16, borderRadius: 5, border: '1px solid #d1d5db' }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          style={{
+                            position: 'absolute',
+                            right: 12,
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: 4,
+                            display: 'flex',
+                            alignItems: 'center',
+                            color: '#6b7280'
+                          }}
+                        >
+                          {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                        </button>
+                      </div>
+                      <div style={{ marginBottom: 16, position: 'relative' }}>
+                        <input
+                          type={showConfirmPassword ? "text" : "password"}
+                          placeholder="Confirm New Password"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          className="input-field"
+                          style={{ width: '100%', padding: 12, paddingRight: 45, fontSize: 16, borderRadius: 5, border: '1px solid #d1d5db' }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          style={{
+                            position: 'absolute',
+                            right: 12,
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: 4,
+                            display: 'flex',
+                            alignItems: 'center',
+                            color: '#6b7280'
+                          }}
+                        >
+                          {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                        </button>
+                      </div>
+                      {passwordError && <p style={{ color: '#b91c1c', fontSize: 14, marginBottom: 12, textAlign: 'left' }}>{passwordError}</p>}
+                      <button 
+                        type="submit" 
+                        disabled={isLoading || !!passwordError || !newPassword || !confirmPassword}
+                        className="submit-btn"
+                        style={{ width: '100%', padding: 12, fontSize: 16, opacity: (isLoading || !!passwordError || !newPassword || !confirmPassword) ? 0.5 : 1 }}
+                      >
+                        {isLoading ? 'Resetting...' : 'Reset Password'}
+                      </button>
+                    </form>
                   </div>
                 ) : (
                   <>
@@ -344,6 +608,8 @@ export default function ForgotPassword() {
           </div>
         </div>
       </div>
+      {/* Hidden reCAPTCHA container for Firebase Phone Auth */}
+      <div id="recaptcha-container"></div>
     </div>
   );
 }
