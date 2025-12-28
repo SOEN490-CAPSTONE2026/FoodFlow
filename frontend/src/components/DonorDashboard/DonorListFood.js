@@ -149,7 +149,6 @@ const getRecipientEmailForClaimedPost = async (item) => {
   try {
     setError(null);
     const { data: claims } = await claimsAPI.getClaimForSurplusPost(item.id);
-    console.log(claims);
 
     if (!claims || claims.length === 0) {
       setError(`Failed to fetch the recipient email for post "${item.title}"`);
@@ -173,9 +172,8 @@ const getRecipientEmailForClaimedPost = async (item) => {
 
 const contactReceiver = async (item) => {
   const recipientEmail = await getRecipientEmailForClaimedPost(item);
-  console.log(recipientEmail);
-  if (!recipientEmail) return;
 
+  if (!recipientEmail) return;
   navigate(`/donor/messages?recipientEmail=${encodeURIComponent(recipientEmail)}`);
 };
 
