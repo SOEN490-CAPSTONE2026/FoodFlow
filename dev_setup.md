@@ -5,7 +5,7 @@ This guide explains how to set up and run the backend and frontend **locally**, 
 
 ---
 
-# MAC USERS
+## Mac users
 
 ## 1. Install PostgreSQL
 
@@ -35,7 +35,7 @@ cd ../frontend/frontend_scripts
 ./start-frontend.sh
 ```
 
-# WINDOWS USERS
+# Windows users
 
 ## 1. Install PostgreSQL
 Install PostgreSQL using **Chocolatey** (recommended).
