@@ -9,8 +9,9 @@ body {
 
 .admin-layout {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
   background: #F7FBFD;
+  overflow: hidden;
 }
 
 .mobile-header {
@@ -342,6 +343,19 @@ body {
   flex-shrink: 0;
 }
 
+.logout-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 99, 71, 0.15);
+}
+
 .nav-bottom-abs {
   position: absolute;
   left: 14px;
@@ -490,8 +504,9 @@ body {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  margin-left: 0px;
-  min-height: 100vh;
+  margin-left: 0;
+  height: 100vh;
+  overflow: hidden;
   transition: margin-left 0.3s ease;
 }
 
@@ -504,9 +519,8 @@ body {
   justify-content: space-between;
   flex-wrap: nowrap;
   gap: 0;
-  position: sticky;
-  top: 0;
-  z-index: 900;
+  position: relative;
+  z-index: 1;
   box-shadow: 0 1px 0 #e2e8f0;
   flex-shrink: 0;
 }
@@ -527,8 +541,9 @@ body {
 .admin-content {
   padding: 24px;
   flex: 1;
-  overflow: auto;
-  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
 }
 
 .admin-nav-bottom {

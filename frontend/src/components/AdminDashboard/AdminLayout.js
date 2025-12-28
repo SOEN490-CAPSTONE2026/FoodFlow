@@ -237,6 +237,12 @@ export default function AdminLayout() {
             </span>
             Help
           </div>
+          <button onClick={handleLogout} className="admin-nav-link logout-btn" data-tooltip="Logout">
+            <span className="nav-icon" aria-hidden>
+              <LogOut size={18} className="lucide" />
+            </span>
+            Logout
+          </button>
         </div>
 
         <div className="admin-sidebar-footer admin-user" ref={menuRef}>
@@ -252,14 +258,6 @@ export default function AdminLayout() {
               <MoreVertical size={18} className="lucide" />
             </button>
           </div>
-          {open && (
-            <div className="account-menu">
-              <button className="account-menu-item logout" onClick={handleLogout}>
-                <LogOut size={16} className="lucide" />
-                Logout
-              </button>
-            </div>
-          )}
         </div>
       </aside>
 
