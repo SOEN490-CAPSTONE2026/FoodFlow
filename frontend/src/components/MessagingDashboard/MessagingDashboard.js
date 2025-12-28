@@ -51,7 +51,9 @@ const MessagingDashboard = () => {
   };
 
   const handleConversationCreated = (newConversation) => {
-    setConversations([newConversation, ...conversations]);
+    if (!newConversation.alreadyExists){
+      setConversations([newConversation, ...conversations]);
+    }
     setSelectedConversation(newConversation);
     setShowNewConversationModal(false);
   };

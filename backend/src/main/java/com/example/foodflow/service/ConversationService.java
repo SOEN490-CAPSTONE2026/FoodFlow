@@ -11,6 +11,7 @@ import com.example.foodflow.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.Optional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -48,7 +49,7 @@ public class ConversationService {
                     currentUser.getId()
                 );
                 
-                return new ConversationResponse(conv, currentUser, lastMessagePreview, unreadCount);
+                return new ConversationResponse(conv, currentUser, lastMessagePreview, unreadCount, true);
             })
             .collect(Collectors.toList());
     }
@@ -70,18 +71,37 @@ public class ConversationService {
         // Check if conversation already exists
         Long userId1 = Math.min(currentUser.getId(), recipient.getId());
         Long userId2 = Math.max(currentUser.getId(), recipient.getId());
+
+        Optional<Conversation> conversationOptional = conversationRepository.findByUsers(userId1, userId2);
+        boolean conversationAlreadyExists = conversationOptional.isPresent();
         
-        Conversation conversation = conversationRepository.findByUsers(userId1, userId2)
-            .orElseGet(() -> {
-                // Create new conversation
-                User user1 = currentUser.getId().equals(userId1) ? currentUser : recipient;
-                User user2 = currentUser.getId().equals(userId2) ? currentUser : recipient;
+        Conversation conversation;
+        String lastMessagePreview = "No messages yet";
+        Long unreadCount = 0L;
+
+        if (conversationAlreadyExists){
+            conversation = conversationOptional.get();
+
+            //This can be done more efficiently by creating a service that returns the most recent message
+            List<Message> messages = messageRepository.findByConversationId(conversation.getId());
+            if (!messages.isEmpty()) { 
+                lastMessagePreview = messages.get(messages.size() - 1).getMessageBody();
+            }
+
+            unreadCount = messageRepository.countUnreadInConversation(
+            conversation.getId(), 
+            currentUser.getId() );
+        }
+        else {
+            // Create new conversation
+            User user1 = currentUser.getId().equals(userId1) ? currentUser : recipient;
+            User user2 = currentUser.getId().equals(userId2) ? currentUser : recipient;
                 
-                Conversation newConv = new Conversation(user1, user2);
-                return conversationRepository.save(newConv);
-            });
+            conversation = new Conversation(user1, user2);
+            conversationRepository.save(conversation);
+        }
         
-        return new ConversationResponse(conversation, currentUser, "No messages yet", 0);
+        return new ConversationResponse(conversation, currentUser, lastMessagePreview, unreadCount, conversationAlreadyExists);
     }
     
     /**
@@ -119,6 +139,6 @@ public class ConversationService {
             currentUser.getId()
         );
         
-        return new ConversationResponse(conversation, currentUser, lastMessagePreview, unreadCount);
+        return new ConversationResponse(conversation, currentUser, lastMessagePreview, unreadCount, true);
     }
 }
