@@ -1,7 +1,7 @@
 # ===============================
 # Load environment variables
 # ===============================
-$envFile = Join-Path $PSScriptRoot ".." ".." ".env"
+$envFile = Join-Path $PSScriptRoot "..\..\.env"
 if (Test-Path $envFile) {
     Get-Content $envFile | ForEach-Object {
         if ($_ -match '^\s*([^#][^=]+)=(.*)$') {
