@@ -5,8 +5,6 @@ This guide explains how to set up and run the backend and frontend **locally**, 
 
 ---
 
-# MAC USERS
-
 ## 1. Install PostgreSQL
 
 The backend requires a local PostgreSQL instance.
@@ -16,45 +14,26 @@ The backend requires a local PostgreSQL instance.
 brew install postgresql
 brew services start postgresql
 ```
+### Windows (Chocolatey)
+```bash
+choco install postgresql
+net start postgresql
+```
 
 ## 2. Make scripts executable
 ```bash
-cd backend/backend_scripts
-chmod +x start-local-db.sh
+cd backend
+chmod +x setup-local-db.sh
 
-cd ../frontend/frontend_scripts
+cd ../frontend
 chmod +x start-frontend.sh
 ```
 
-## 3. Run scripts (start with the backend script)
+## 3. Run the scripts (start with the backend script)
 ```bash
-cd backend/backend_scripts
-./start-local-db.sh
+cd backend
+./setup-local-db.sh
 
-cd ../frontend/frontend_scripts
+cd ../frontend
 ./start-frontend.sh
-```
-
-# WINDOWS USERS
-
-## 1. Install PostgreSQL
-Install PostgreSQL using **Chocolatey** (recommended).
-
-
-### How to install Chocolatey (if not installed)
-Open **PowerShell as Administrator** and run:
-```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force
-iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-```
-
-As a fallback, you can manually install Chocolatey by following the official guide on the Chocolatey website. After installation, close and reopen PowerShell so the choco command is available.
-
-## 2. Run scripts (start with the backend script)
-```bash
-cd backend\\backend_scripts
-powershell -ExecutionPolicy Bypass -File .\\start-local-db.ps1
-
-cd frontend\\frontend_scripts
-powershell -ExecutionPolicy Bypass -File .\\start-frontend.ps1
 ```
