@@ -3,9 +3,9 @@ import { MapPin, Clock, Loader, ChevronDown, Check } from 'lucide-react';
 import '../style/RegionSelector.css';
 
 const RegionSelector = ({ value, onChange }) => {
-  const [selectedCountry, setSelectedCountry] = useState(value?.country || '');
-  const [selectedCity, setSelectedCity] = useState(value?.city || '');
-  const [selectedTimezone, setSelectedTimezone] = useState(value?.timezone || '');
+  const [selectedCountry, setSelectedCountry] = useState('');
+  const [selectedCity, setSelectedCity] = useState('');
+  const [selectedTimezone, setSelectedTimezone] = useState('');
   
   const [countries, setCountries] = useState([]);
   const [timezones, setTimezones] = useState([]);
@@ -45,21 +45,6 @@ const RegionSelector = ({ value, onChange }) => {
     
     loadCountries();
   }, []);
-
-  // Load saved values on mount
-  useEffect(() => {
-    const saved = localStorage.getItem('userRegion');
-    if (saved && !value) {
-      try {
-        const parsed = JSON.parse(saved);
-        setSelectedCountry(parsed.country);
-        setSelectedCity(parsed.city);
-        setSelectedTimezone(parsed.timezone);
-      } catch (e) {
-        console.error('Error loading saved region:', e);
-      }
-    }
-  }, [value]);
 
   // Update timezones when country changes
   useEffect(() => {
@@ -134,43 +119,6 @@ const RegionSelector = ({ value, onChange }) => {
     );
   };
 
-  // Persist changes
-  useEffect(() => {
-    if (selectedCountry && selectedCity && selectedTimezone) {
-      // Calculate UTC offset
-      const getUTCOffset = (timezone) => {
-        try {
-          const now = new Date();
-          const tzDate = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
-          const utcDate = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
-          const offset = (tzDate - utcDate) / (1000 * 60 * 60); // offset in hours
-          const sign = offset >= 0 ? '+' : '-';
-          const absOffset = Math.abs(offset);
-          const hours = Math.floor(absOffset);
-          const minutes = Math.round((absOffset - hours) * 60);
-          return `UTC${sign}${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-        } catch (e) {
-          return 'UTC+00:00';
-        }
-      };
-
-      const regionData = {
-        country: selectedCountry,
-        countryName: countries.find(c => c.code === selectedCountry)?.name,
-        city: selectedCity,
-        timezone: selectedTimezone, 
-        timezoneOffset: getUTCOffset(selectedTimezone), // UTC offset (exemple : "UTC-05:00")
-        utcOffset: getUTCOffset(selectedTimezone), // Alias for backend compatibility
-      };
-      
-      localStorage.setItem('userRegion', JSON.stringify(regionData));
-      
-      if (onChange) {
-        onChange(regionData);
-      }
-    }
-  }, [selectedCountry, selectedCity, selectedTimezone, onChange, countries]);
-
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -200,6 +148,38 @@ const RegionSelector = ({ value, onChange }) => {
   const handleTimezoneSelect = (timezone) => {
     setSelectedTimezone(timezone);
     setShowTimezoneDropdown(false);
+    
+    // Only save to backend when user explicitly selects timezone
+    if (selectedCountry && selectedCity && timezone) {
+      const getUTCOffset = (tz) => {
+        try {
+          const now = new Date();
+          const tzDate = new Date(now.toLocaleString('en-US', { timeZone: tz }));
+          const utcDate = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
+          const offset = (tzDate - utcDate) / (1000 * 60 * 60);
+          const sign = offset >= 0 ? '+' : '-';
+          const absOffset = Math.abs(offset);
+          const hours = Math.floor(absOffset);
+          const minutes = Math.round((absOffset - hours) * 60);
+          return `UTC${sign}${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        } catch (e) {
+          return 'UTC+00:00';
+        }
+      };
+
+      const regionData = {
+        country: selectedCountry,
+        countryName: countries.find(c => c.code === selectedCountry)?.name,
+        city: selectedCity,
+        timezone: timezone,
+        timezoneOffset: getUTCOffset(timezone),
+        utcOffset: getUTCOffset(timezone),
+      };
+      
+      if (onChange) {
+        onChange(regionData);
+      }
+    }
   };
 
   const formatTimezone = (timezone) => {
@@ -354,16 +334,16 @@ const RegionSelector = ({ value, onChange }) => {
         )}
       </div>
 
-      {/* Current Selection Summary */}
-      {selectedCountry && selectedCity && selectedTimezone && (
+      {/* Current Selection Summary - Shows backend data */}
+      {value && value.timezone && (
         <div className="region-summary">
           <div className="region-summary-item">
             <MapPin size={14} />
-            <span>{selectedCity}, {selectedCountryData?.name}</span>
+            <span>{value.city}, {value.country}</span>
           </div>
           <div className="region-summary-item">
             <Clock size={14} />
-            <span>{formatTimezone(selectedTimezone)}</span>
+            <span>{formatTimezone(value.timezone)}</span>
           </div>
         </div>
       )}
