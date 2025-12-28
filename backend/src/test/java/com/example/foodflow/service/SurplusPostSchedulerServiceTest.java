@@ -301,22 +301,21 @@ class SurplusPostSchedulerServiceTest {
 
     @Test
     void testUpdatePostsToNotCompleted_PickupWindowNotEnded_DoesNotUpdate() {
-        // Given - Pickup window is still active (use fixed future time to avoid race conditions)
-        readyPost.setPickupDate(LocalDate.now());
+        // Given - Pickup window is still active (use tomorrow's date to ensure it's in the future in UTC)
+        readyPost.setPickupDate(LocalDate.now().plusDays(1));
         readyPost.setPickupFrom(LocalTime.of(9, 0));
-        readyPost.setPickupTo(LocalTime.of(23, 59)); // Definitely in the future
+        readyPost.setPickupTo(LocalTime.of(23, 59));
         readyPost.setOtpCode("123456");
 
         when(surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP))
             .thenReturn(Collections.singletonList(readyPost));
-        mockClaimForPost(readyPost, LocalDate.now(), LocalTime.of(9, 0), LocalTime.of(23, 59));
+        mockClaimForPost(readyPost, LocalDate.now().plusDays(1), LocalTime.of(9, 0), LocalTime.of(23, 59));
 
         // When
         schedulerService.updatePostsToNotCompleted();
 
         // Then - Should not update since pickup window hasn't ended
-        ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
-        verify(surplusPostRepository, atMost(0)).save(postCaptor.capture());
+        verify(surplusPostRepository, never()).save(any(SurplusPost.class));
     }
 
     @Test
