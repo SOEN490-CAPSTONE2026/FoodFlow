@@ -378,7 +378,7 @@ const AdminDonations = () => {
             <div><strong>Pickup Evidence:</strong> {selectedDonation.pickupEvidence ? <a href={selectedDonation.pickupEvidence} target="_blank" rel="noopener noreferrer">View Evidence</a> : 'N/A'}</div>
             {/* Timeline (admins only) */}
             <div className="timeline-section">
-              <h3>Timeline (Admin Only)</h3>
+              <h3>Timeline <span>(Admin Only)</span></h3>
               <ul className="timeline-list">
                 {selectedDonation.timeline && selectedDonation.timeline.length > 0 ? (
                   selectedDonation.timeline.map((event, idx) => (

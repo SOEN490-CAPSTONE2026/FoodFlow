@@ -1,30 +1,31 @@
-/*
-  AdminDonations.css
-  Styles for the AdminDonations component
-*/
 .admin-donations-container {
   padding: 32px 24px;
 }
+
 .donations-header {
   display: flex;
   flex-direction: column;
   gap: 16px;
   margin-bottom: 24px;
 }
+
 .search-bar-container {
   display: flex;
   gap: 16px;
   align-items: center;
 }
+
 .search-input-wrapper {
   position: relative;
 }
+
 .search-input {
   padding: 8px 32px 8px 32px;
   border: 1px solid #e5e7eb;
   border-radius: 6px;
   min-width: 260px;
 }
+
 .search-icon {
   position: absolute;
   left: 8px;
@@ -32,14 +33,17 @@
   transform: translateY(-50%);
   color: #888;
 }
+
 .filters-wrapper {
   display: flex;
   gap: 12px;
   align-items: center;
 }
+
 .filter-select-react {
   min-width: 140px;
 }
+
 .filter-reset-btn {
   background: #f5f5f5;
   border: 1px solid #e0e0e0;
@@ -49,222 +53,397 @@
   color: #444;
   transition: background 0.2s;
 }
+
 .filter-reset-btn:hover {
   background: #e0e0e0;
 }
+
 .donations-table-container {
   margin-top: 16px;
 }
+
 .donations-table {
   width: 100%;
   border-collapse: collapse;
 }
+
 .no-donations {
   text-align: center;
   color: #888;
   padding: 24px 0;
 }
+
 .expand-btn {
   background: none;
   border: none;
   cursor: pointer;
   padding: 0;
 }
+
 .details-row {
   background: #fafbfc;
 }
+
 .donation-details-expanded {
   display: flex;
   flex-wrap: wrap;
   gap: 24px;
   padding: 12px 0;
 }
+
 .modal-overlay {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.18);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
   z-index: 1000;
+  backdrop-filter: blur(4px);
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  padding: 32px;
+  border-radius: 16px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 85vh;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.modal-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: white;
+  border: none;
+  font-size: 28px;
+  color: #6B7280;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
+  line-height: 1;
+  transition: color 0.2s;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  z-index: 10;
 }
-.modal-content {
-  background: #fff;
-  border-radius: 18px;
-  padding: 36px 32px 28px 32px;
-  min-width: 340px;
-  max-width: 440px;
-  box-shadow: 0 8px 32px 0 rgba(30, 41, 59, 0.18), 0 1.5px 8px 0 rgba(30,41,59,0.10);
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  border: 1.5px solid #e3e8f0;
-  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-  transition: box-shadow 0.2s;
+
+.modal-close:hover {
+  color: #1B4965;
 }
-.modal-close {
-  position: absolute;
-  top: 12px;
-  right: 16px;
-  background: none;
-  border: none;
-  font-size: 22px;
-  cursor: pointer;
-  color: #888;
+
+.modal-donation-detail {
+  max-width: 700px;
 }
+
 .modal-donation-detail h2 {
-  margin-top: 0;
-  margin-bottom: 20px;
-  font-size: 1.5rem;
-  color: #1e293b;
-  font-weight: 800;
-  text-align: center;
-  letter-spacing: 0.01em;
+  margin: 0 0 24px 0;
+  color: #1B4965;
+  font-size: 24px;
+  font-weight: 600;
+  text-align: left;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  padding-right: 40px;
 }
 
-.modal-donation-detail .donation-details-list {
-  margin: 0 0 22px 0;
-  padding: 0;
-  list-style: none;
-  text-align: left;
-  width: 100%;
-  max-width: 420px;
-  background: #f8fafc;
-  border-radius: 10px;
-  box-shadow: 0 1px 4px 0 rgba(30,41,59,0.04);
-  padding: 18px 18px 10px 18px;
-}
-.modal-donation-detail .donation-details-list li {
-  margin-bottom: 10px;
-  font-size: 1.08rem;
+.modal-donation-detail > div {
+  padding: 14px 0;
+  border-bottom: 1px solid #f3f4f6;
   display: flex;
-  align-items: baseline;
+  gap: 16px;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  text-align: left;
 }
-.modal-donation-detail .donation-details-list b {
+
+.modal-donation-detail > div:last-child {
+  border-bottom: none;
+}
+
+.modal-donation-detail > div strong {
+  min-width: 180px;
+  color: #6b7280;
   font-weight: 600;
-  color: #2563eb;
-  margin-right: 8px;
-  min-width: 110px;
+  font-size: 14px;
+  flex-shrink: 0;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  text-align: left;
+}
+
+.modal-donation-detail > div:not(:has(.timeline-section, .override-section)) {
+  align-items: flex-start;
+  font-size: 14px;
+  color: #374151;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  text-align: left;
+}
+
+.pill-status-active {
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
   display: inline-block;
-}
-.modal-donation-detail .timeline-section {
-  margin-top: 18px;
-  width: 100%;
-  max-width: 420px;
-  text-align: left;
-  background: #f1f5f9;
-  border-radius: 10px;
-  box-shadow: 0 1px 4px 0 rgba(30,41,59,0.04);
-  padding: 16px 18px 10px 18px;
-}
-.modal-donation-detail .timeline-section h3 {
-  font-size: 1.13rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 10px;
-  letter-spacing: 0.01em;
-}
-.modal-donation-detail .timeline-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.modal-donation-detail .timeline-list li {
-  margin-bottom: 8px;
-  font-size: 1.01rem;
-  display: flex;
-  align-items: baseline;
-}
-.modal-donation-detail .timeline-event-type {
-  font-weight: 600;
-  color: #0ea5e9;
-  margin-right: 8px;
-}
-.modal-donation-detail .timeline-timestamp {
-  color: #64748b;
-  font-size: 0.97em;
-  margin-left: 6px;
-}
-.modal-donation-detail .timeline-actor {
-  color: #22c55e;
-  font-size: 0.97em;
-  margin-left: 6px;
-}
-.modal-donation-detail .timeline-status-change {
-  color: #f59e42;
-  font-size: 0.97em;
-  margin-left: 6px;
+  text-transform: capitalize;
 }
 
-.modal-donation-detail .close-btn {
-  position: absolute;
-  top: 18px;
-  right: 22px;
-  background: none;
-  border: none;
-  font-size: 1.3rem;
-  color: #64748b;
-  cursor: pointer;
-  transition: color 0.15s;
+.pill-status-completed {
+  background: #d1fae5;
+  color: #065f46;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-block;
+  text-transform: capitalize;
 }
-.modal-donation-detail .close-btn:hover {
-  color: #1e293b;
+
+.pill-status-canceled {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-block;
+  text-transform: capitalize;
 }
+
+.pill-status-expired {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-block;
+  text-transform: capitalize;
+}
+
+.pill-status-flagged {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-block;
+  text-transform: capitalize;
+}
+
 .timeline-section {
-  margin-top: 18px;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 2px solid #E8F4F8;
+  width: 100%;
+  display: block;
+  text-align: left;
 }
+
+.timeline-section h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1B4965;
+  margin: 0 0 4px 0;
+  text-align: left;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.timeline-section h3 span {
+  display: block;
+  font-size: 11px;
+  font-weight: 400;
+  color: #9ca3af;
+  margin-top: 2px;
+}
+
 .timeline-list {
   list-style: none;
   padding: 0;
   margin: 0;
+  margin-top: 12px;
+  text-align: left;
 }
+
+.timeline-list li {
+  padding: 12px 16px;
+  background: #f9fafb;
+  border-left: 3px solid #62B6CB;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.6;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  text-align: left;
+}
+
+.timeline-list li:last-child {
+  margin-bottom: 0;
+}
+
 .timeline-event-type {
-  font-weight: bold;
-  color: #1976d2;
+  font-weight: 600;
+  color: #1B4965;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
+
 .timeline-timestamp {
-  color: #888;
-  font-size: 0.95em;
+  color: #6b7280;
+  font-size: 13px;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
+
 .timeline-actor {
-  color: #4caf50;
-  font-size: 0.95em;
+  color: #62B6CB;
+  font-weight: 500;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
+
 .timeline-status-change {
-  color: #ff9800;
-  font-size: 0.95em;
+  color: #f59e0b;
+  font-weight: 500;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
+
 .override-section {
-  margin-top: 18px;
+  margin-top: 24px;
+  padding-top: 24px;
+  padding-bottom: 200px;
+  border-top: 2px solid #E8F4F8;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
 }
+
+.override-section label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1B4965;
+  margin-bottom: 4px;
+  text-align: left;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.override-section .filter-select-react {
+  width: 100%;
+  text-align: left;
+  position: relative;
+  z-index: 1;
+}
+
 .btn-confirm {
-  background: #1976d2;
-  color: #fff;
+  padding: 12px 28px;
+  background: #62B6CB;
+  color: white;
   border: none;
-  border-radius: 5px;
-  padding: 8px 18px;
+  border-radius: 8px;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  align-self: flex-start;
   margin-top: 8px;
 }
+
+.btn-confirm:hover {
+  background: #4A9FB5;
+  transform: translateY(-1px);
+}
+
 .btn-confirm:disabled {
-  background: #b0bec5;
+  background: #cbd5e1;
   cursor: not-allowed;
+  transform: none;
 }
+
 .error-message {
-  color: #e53935;
+  padding: 12px 16px;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #991b1b;
   margin-top: 8px;
+  font-size: 14px;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  text-align: left;
 }
+
 .success-message {
-  color: #43a047;
+  padding: 12px 16px;
+  background: #d1fae5;
+  border: 1px solid #a7f3d0;
+  border-radius: 8px;
+  color: #065f46;
   margin-top: 8px;
+  font-size: 14px;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  text-align: left;
 }
+
 .admin-donations-loading {
   text-align: center;
   color: #888;
   padding: 32px 0;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    padding: 24px;
+    max-height: 90vh;
+  }
+
+  .modal-donation-detail h2 {
+    font-size: 20px;
+  }
+
+  .modal-donation-detail > div strong {
+    min-width: 120px;
+    font-size: 13px;
+  }
+
+  .modal-donation-detail > div {
+    font-size: 13px;
+  }
+  
+  .override-section {
+    padding-bottom: 220px;
+  }
 }
