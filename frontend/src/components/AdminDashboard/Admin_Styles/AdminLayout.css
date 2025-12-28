@@ -76,6 +76,8 @@ body {
   overflow-x: hidden;
 }
 
+
+
 .admin-sidebar-header {
   padding: 20px 16px;
   border-bottom: 1px solid rgba(255, 255, 255, .1);
@@ -110,7 +112,6 @@ body {
   transform: translateY(-50%) scale(1.05);
 }
 
-/* Collapsed Sidebar Styles */
 .admin-sidebar.collapsed {
   width: 70px;
 }
@@ -195,7 +196,6 @@ body {
   margin-left: 0 !important;
 }
 
-/* Tooltips for collapsed sidebar */
 .admin-sidebar.collapsed .admin-nav-link {
   position: relative;
 }

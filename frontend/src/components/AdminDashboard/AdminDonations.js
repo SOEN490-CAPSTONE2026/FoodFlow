@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
 import { ChevronRight, ChevronDown, Search, Gift, Users, Flag, Edit3, Eye, Sparkles, Handshake } from 'lucide-react';
@@ -12,7 +11,6 @@ import {
   TableRow,
 } from "../ui/table";
 
-
 const statusOptions = [
   { value: '', label: 'All Status' },
   { value: 'ACTIVE', label: 'Active' },
@@ -22,73 +20,14 @@ const statusOptions = [
   { value: 'FLAGGED', label: 'Flagged' },
 ];
 
-const mockDonations = [
-  {
-    id: 101,
-    title: 'Fresh Apples',
-    status: 'ACTIVE',
-    donorName: 'Green Farm',
-    receiverName: 'Food Bank A',
-    flagged: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    type: 'Produce',
-    quantity: '50kg',
-    temperature: '4°C',
-    packaging: 'Boxed',
-    pickupEvidence: '',
-    timeline: [
-      { eventType: 'CREATED', timestamp: new Date().toISOString(), actor: 'admin', oldStatus: null, newStatus: 'ACTIVE' }
-    ]
-  },
-  {
-    id: 102,
-    title: 'Canned Beans',
-    status: 'COMPLETED',
-    donorName: 'SuperMart',
-    receiverName: 'Shelter B',
-    flagged: true,
-    createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-    updatedAt: new Date(Date.now() - 86400000).toISOString(),
-    type: 'Canned',
-    quantity: '100 cans',
-    temperature: 'Room',
-    packaging: 'Crate',
-    pickupEvidence: '',
-    timeline: [
-      { eventType: 'CREATED', timestamp: new Date(Date.now() - 86400000 * 2).toISOString(), actor: 'admin', oldStatus: null, newStatus: 'ACTIVE' },
-      { eventType: 'COMPLETED', timestamp: new Date(Date.now() - 86400000).toISOString(), actor: 'admin', oldStatus: 'ACTIVE', newStatus: 'COMPLETED' }
-    ]
-  },
-  {
-    id: 103,
-    title: 'Bakery Items',
-    status: 'FLAGGED',
-    donorName: 'Bakery House',
-    receiverName: 'Charity C',
-    flagged: true,
-    createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
-    updatedAt: new Date(Date.now() - 86400000 * 3).toISOString(),
-    type: 'Bakery',
-    quantity: '30kg',
-    temperature: 'Room',
-    packaging: 'Bagged',
-    pickupEvidence: '',
-    timeline: [
-      { eventType: 'CREATED', timestamp: new Date(Date.now() - 86400000 * 5).toISOString(), actor: 'admin', oldStatus: null, newStatus: 'ACTIVE' },
-      { eventType: 'FLAGGED', timestamp: new Date(Date.now() - 86400000 * 3).toISOString(), actor: 'admin', oldStatus: 'ACTIVE', newStatus: 'FLAGGED' }
-    ]
-  }
-];
-
 const AdminDonations = () => {
-  const [donations] = useState(mockDonations);
-  const [filteredDonations, setFilteredDonations] = useState(mockDonations);
+  const [donations] = useState([]);
+  const [filteredDonations, setFilteredDonations] = useState([]);
   const [stats] = useState({
-    totalDonations: mockDonations.length,
-    active: mockDonations.filter(d => d.status === 'ACTIVE').length,
-    completed: mockDonations.filter(d => d.status === 'COMPLETED').length,
-    flagged: mockDonations.filter(d => d.flagged).length,
+    totalDonations: 0,
+    active: 0,
+    completed: 0,
+    flagged: 0,
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
@@ -101,11 +40,6 @@ const AdminDonations = () => {
   const [overrideError, setOverrideError] = useState('');
   const [overrideSuccess, setOverrideSuccess] = useState('');
 
-
-
-  // No API, only hardcoded mock data
-
-  // Debounce search
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
@@ -113,7 +47,6 @@ const AdminDonations = () => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Client-side search
   useEffect(() => {
     if (!debouncedSearchTerm) {
       setFilteredDonations(donations);
@@ -155,9 +88,6 @@ const AdminDonations = () => {
     }, 800);
   };
 
-  // No loading state needed for hardcoded data
-
-  // Custom styles for React Select
   const selectStyles = {
     control: (base) => ({
       ...base,
@@ -184,7 +114,6 @@ const AdminDonations = () => {
 
   return (
     <div className="admin-users-container">
-      {/* Stats Cards */}
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-icon" style={{ background: '#e3f2fd' }}>
@@ -224,7 +153,6 @@ const AdminDonations = () => {
         </div>
       </div>
 
-      {/* All Donations Section */}
       <div className="users-section">
         <div className="users-section-header">
           <h2>All Donations</h2>
@@ -235,7 +163,6 @@ const AdminDonations = () => {
           </div>
         </div>
 
-        {/* Search Bar and Filters */}
         <div className="search-bar-container">
           <div className="search-input-wrapper">
             <Search className="search-icon" size={18} />
@@ -257,15 +184,11 @@ const AdminDonations = () => {
               placeholder="All Status"
               isSearchable={false}
             />
-            {/* Add donor/receiver/flagged/date filters as needed */}
             <button onClick={handleResetFilters} className="filter-reset-btn">Reset</button>
           </div>
         </div>
       </div>
 
-      {/* No error message for hardcoded data */}
-
-      {/* Donations Table */}
       <div className="users-table-container">
         <Table className="users-table">
           <TableHeader>
@@ -359,7 +282,6 @@ const AdminDonations = () => {
         </Table>
       </div>
 
-      {/* Donation Detail Modal */}
       {showDetailModal && selectedDonation && (
         <div className="modal-overlay" onClick={() => setShowDetailModal(false)}>
           <div className="modal-content modal-donation-detail" onClick={e => e.stopPropagation()}>
@@ -376,7 +298,6 @@ const AdminDonations = () => {
             <div><strong>Temperature:</strong> {selectedDonation.temperature}</div>
             <div><strong>Packaging:</strong> {selectedDonation.packaging}</div>
             <div><strong>Pickup Evidence:</strong> {selectedDonation.pickupEvidence ? <a href={selectedDonation.pickupEvidence} target="_blank" rel="noopener noreferrer">View Evidence</a> : 'N/A'}</div>
-            {/* Timeline (admins only) */}
             <div className="timeline-section">
               <h3>Timeline <span>(Admin Only)</span></h3>
               <ul className="timeline-list">
@@ -396,7 +317,6 @@ const AdminDonations = () => {
                 )}
               </ul>
             </div>
-            {/* Status Override */}
             <div className="override-section">
               <label>Adjust Status</label>
               <Select
