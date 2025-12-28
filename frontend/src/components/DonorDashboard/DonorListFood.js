@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Calendar,
   Clock,
@@ -12,7 +13,7 @@ import {
   Filter,
 } from "lucide-react";
 import { useLoadScript } from "@react-google-maps/api";
-import { surplusAPI } from "../../services/api";
+import { surplusAPI, claimsAPI } from "../../services/api";
 import SurplusFormModal from "../DonorDashboard/SurplusFormModal";
 import ConfirmPickupModal from "../DonorDashboard/ConfirmPickupModal";
 import ClaimedSuccessModal from "../DonorDashboard/ClaimedSuccessModal";
@@ -109,6 +110,7 @@ export default function DonorListFood() {
   const [error, setError] = useState(null);
   const [sortBy, setSortBy] = useState("date"); // "date" or "status"
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchMyPosts();
@@ -142,6 +144,42 @@ export default function DonorListFood() {
       setLoading(false);
     }
   };
+
+const getRecipientEmailForClaimedPost = async (item) => {
+  try {
+    setError(null);
+    const { data: claims } = await claimsAPI.getClaimForSurplusPost(item.id);
+    console.log(claims);
+
+    if (!claims || claims.length === 0) {
+      setError(`Failed to fetch the recipient email for post "${item.title}"`);
+      return null; 
+    }
+
+    return claims[0].receiverEmail;
+
+  } catch (err) {
+    console.error('Error fetching recipient email:', err);
+
+    if (err.response?.status === 400) {
+      setError('Receiver not found or invalid email');
+    } else {
+      setError('Failed to fetch recipient email. Please try again.');
+    }
+
+    return null;
+  }
+};
+
+const contactReceiver = async (item) => {
+  const recipientEmail = await getRecipientEmailForClaimedPost(item);
+  console.log(recipientEmail);
+  if (!recipientEmail) return;
+
+  navigate(`/donor/messages?recipientEmail=${encodeURIComponent(recipientEmail)}`);
+};
+
+
 
   // Sort posts based on creation date or status
   const sortPosts = (posts, sortOrder) => {
@@ -468,7 +506,7 @@ export default function DonorListFood() {
                     </button>
                   )}
                   {item.status === "CLAIMED" && (
-                    <button className="donation-action-button primary">
+                    <button className="donation-action-button primary" onClick={() => contactReceiver(item)}>
                       OPEN CHAT
                     </button>
                   )}
