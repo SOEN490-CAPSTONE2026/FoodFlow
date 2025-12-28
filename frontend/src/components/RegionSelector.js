@@ -102,6 +102,37 @@ const RegionSelector = ({ value, onChange }) => {
               // Timezone from browser
               const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
               setSelectedTimezone(browserTz);
+              
+              // Save to backend immediately after auto-detect
+              const getUTCOffset = (tz) => {
+                try {
+                  const now = new Date();
+                  const tzDate = new Date(now.toLocaleString('en-US', { timeZone: tz }));
+                  const utcDate = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
+                  const offset = (tzDate - utcDate) / (1000 * 60 * 60);
+                  const sign = offset >= 0 ? '+' : '-';
+                  const absOffset = Math.abs(offset);
+                  const hours = Math.floor(absOffset);
+                  const minutes = Math.round((absOffset - hours) * 60);
+                  return `UTC${sign}${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                } catch (e) {
+                  return 'UTC+00:00';
+                }
+              };
+
+              const country = countries.find(c => c.code === countryCode);
+              const regionData = {
+                country: countryCode,
+                countryName: country?.name || countryCode,
+                city: city,
+                timezone: browserTz,
+                timezoneOffset: getUTCOffset(browserTz),
+                utcOffset: getUTCOffset(browserTz),
+              };
+              
+              if (onChange) {
+                onChange(regionData);
+              }
             }
           }
         } catch (error) {
