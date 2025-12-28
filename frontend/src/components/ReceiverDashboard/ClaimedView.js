@@ -21,7 +21,12 @@ const ClaimedView = ({ claim, isOpen, onClose, onBack }) => {
         const calculateTimeRemaining = () => {
             const now = new Date();
             // Combine pickupDate (YYYY-MM-DD) and pickupFrom (HH:MM:SS) to create full datetime
-            const pickupTime = new Date(`${pickupDate}T${pickupFrom}`);
+            // Add 'Z' to treat as UTC (same timezone as backend scheduler)
+            let pickupTimeStr = `${pickupDate}T${pickupFrom}`;
+            if (!pickupTimeStr.endsWith('Z') && !pickupTimeStr.includes('+')) {
+                pickupTimeStr = pickupTimeStr + 'Z';
+            }
+            const pickupTime = new Date(pickupTimeStr);
             const diff = pickupTime - now;
 
             if (diff <= 0) {
