@@ -72,6 +72,8 @@ body {
   left: 0;
   top: 0;
   z-index: 1000;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .admin-sidebar-header {
@@ -236,8 +238,9 @@ body {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 0 14px;
-  padding-bottom: 180px;
+  padding: 24px 14px;
+  flex: 1;
+  overflow-y: auto;
 }
 
 .admin-nav-link {
@@ -331,10 +334,12 @@ body {
 }
 
 .admin-nav-bottom {
-  padding: 0 14px;
+  padding: 0 14px 14px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  margin-top: auto;
+  flex-shrink: 0;
 }
 
 .nav-bottom-abs {
@@ -477,6 +482,7 @@ body {
   padding: 18px;
   border-top: 1px solid rgba(255, 255, 255, .1);
   padding-top: 12px;
+  flex-shrink: 0;
 }
 
 .admin-main {
@@ -485,8 +491,7 @@ body {
   flex-direction: column;
   min-width: 0;
   margin-left: 0px;
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
   transition: margin-left 0.3s ease;
 }
 
@@ -503,6 +508,7 @@ body {
   top: 0;
   z-index: 900;
   box-shadow: 0 1px 0 #e2e8f0;
+  flex-shrink: 0;
 }
 
 .admin-topbar-left h1 {
@@ -522,6 +528,7 @@ body {
   padding: 24px;
   flex: 1;
   overflow: auto;
+  min-height: 0;
 }
 
 .admin-nav-bottom {
@@ -562,6 +569,7 @@ body {
   .admin-main {
     margin-left: 0;
     padding-top: calc(60px + 56px);
+    min-height: 100vh;
   }
 
   .admin-sidebar.collapsed ~ .admin-main {
