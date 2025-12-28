@@ -182,6 +182,13 @@ public class AuthService {
                     throw new RuntimeException("Invalid credentials");
             }
 
+            // Check if account is deactivated
+            if (user.getAccountStatus() == com.example.foodflow.model.entity.AccountStatus.DEACTIVATED) {
+                    log.warn("Login failed: Account deactivated for user: {}", request.getEmail());
+                    metricsService.incrementAuthFailure("account_deactivated");
+                    throw new RuntimeException("Your account has been deactivated. Please contact support for assistance.");
+            }
+
             String token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole().toString());
 
             metricsService.incrementLoginSuccess();

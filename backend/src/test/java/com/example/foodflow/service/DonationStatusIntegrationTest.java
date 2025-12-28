@@ -1,9 +1,11 @@
 package com.example.foodflow.service;
 
+import com.example.foodflow.model.entity.Claim;
 import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.UserRole;
 import com.example.foodflow.model.types.*;
+import com.example.foodflow.repository.ClaimRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
 import com.example.foodflow.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,6 +36,9 @@ class DonationStatusIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
+    private ClaimRepository claimRepository;
+
+    @Autowired
     private SurplusService surplusService;
 
     @Autowired
@@ -41,6 +46,7 @@ class DonationStatusIntegrationTest {
 
     private User donor;
     private User otherDonor;
+    private User receiver;
 
     @BeforeEach
     void setUp() {
@@ -57,6 +63,13 @@ class DonationStatusIntegrationTest {
         otherDonor.setPassword("password123");
         otherDonor.setRole(UserRole.DONOR);
         otherDonor = userRepository.save(otherDonor);
+        
+        // Create test receiver for claims
+        receiver = new User();
+        receiver.setEmail("receiver@test.com");
+        receiver.setPassword("password123");
+        receiver.setRole(UserRole.RECEIVER);
+        receiver = userRepository.save(receiver);
     }
 
     @Test
@@ -80,11 +93,23 @@ class DonationStatusIntegrationTest {
     @Test
     void testSchedulerGeneratesOtpForReadyForPickup() {
         // Create a CLAIMED post with pickup time in the past
+        LocalDate pastDate = LocalDate.now().minusDays(1);
+        LocalTime startTime = LocalTime.of(9, 0);
+        LocalTime endTime = LocalTime.of(12, 0);
+        
         SurplusPost post = createTestPost(PostStatus.CLAIMED);
-        post.setPickupDate(LocalDate.now().minusDays(1));
-        post.setPickupFrom(LocalTime.of(9, 0));
-        post.setPickupTo(LocalTime.of(12, 0));
+        post.setPickupDate(pastDate);
+        post.setPickupFrom(startTime);
+        post.setPickupTo(endTime);
         post = surplusPostRepository.save(post);
+        
+        // Create a claim with confirmed pickup date in the past (scheduler needs this!)
+        Claim claim = new Claim(post, receiver);
+        claim.setStatus(ClaimStatus.ACTIVE);
+        claim.setConfirmedPickupDate(pastDate);
+        claim.setConfirmedPickupStartTime(startTime);
+        claim.setConfirmedPickupEndTime(endTime);
+        claimRepository.save(claim);
         
         // Set createdAt to bypass grace period using reflection
         setCreatedAt(post, LocalDateTime.now().minusMinutes(3));
@@ -106,12 +131,24 @@ class DonationStatusIntegrationTest {
     @Test
     void testSchedulerMarksNotCompletedWhenWindowEnds() {
         // Create a READY_FOR_PICKUP post with pickup window that ended
+        LocalDate pastDate = LocalDate.now().minusDays(1);
+        LocalTime startTime = LocalTime.of(9, 0);
+        LocalTime endTime = LocalTime.of(12, 0);
+        
         SurplusPost post = createTestPost(PostStatus.READY_FOR_PICKUP);
         post.setOtpCode("123456");
-        post.setPickupDate(LocalDate.now().minusDays(1));
-        post.setPickupFrom(LocalTime.of(9, 0));
-        post.setPickupTo(LocalTime.of(12, 0));
+        post.setPickupDate(pastDate);
+        post.setPickupFrom(startTime);
+        post.setPickupTo(endTime);
         post = surplusPostRepository.save(post);
+        
+        // Create a claim with confirmed pickup date that ended (scheduler needs this!)
+        Claim claim = new Claim(post, receiver);
+        claim.setStatus(ClaimStatus.ACTIVE);
+        claim.setConfirmedPickupDate(pastDate);
+        claim.setConfirmedPickupStartTime(startTime);
+        claim.setConfirmedPickupEndTime(endTime);
+        claimRepository.save(claim);
         
         // Set createdAt to bypass grace period using reflection
         setCreatedAt(post, LocalDateTime.now().minusMinutes(3));

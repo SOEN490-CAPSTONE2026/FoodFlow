@@ -32,9 +32,25 @@ jest.mock("axios", () => {
 
 import SurplusFormModal from "../SurplusFormModal";
 import axios from "axios";
+import { TimezoneProvider } from "../../../contexts/TimezoneContext";
 
 // Get reference to the mocked instance for use in tests
 const mockAxiosInstance = axios.create();
+
+// Helper function to render with required providers
+const renderWithProviders = (ui, options = {}) => {
+  const mockTimezoneContext = {
+    userTimezone: "America/Toronto",
+    userRegion: "CA",
+  };
+
+  return render(
+    <TimezoneProvider value={mockTimezoneContext}>
+      {ui}
+    </TimezoneProvider>,
+    options
+  );
+};
 
 // Mock @react-google-maps/api with  autocomplete simulation
 jest.mock("@react-google-maps/api", () => {
@@ -200,7 +216,7 @@ describe("SurplusFormModal", () => {
 
   // Component renders when isOpen is true
   test("renders modal when isOpen is true", () => {
-    render(<SurplusFormModal {...defaultProps} />);
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     expect(screen.getByText("Add New Donation")).toBeInTheDocument();
     expect(
@@ -211,7 +227,7 @@ describe("SurplusFormModal", () => {
 
   // Component doesn't render when isOpen is false
   test("does not render modal when isOpen is false", () => {
-    const { container } = render(
+    const { container } = renderWithProviders(
       <SurplusFormModal {...defaultProps} isOpen={false} />
     );
 
@@ -224,7 +240,7 @@ describe("SurplusFormModal", () => {
     const mockResponse = { data: { id: 123 } };
     mockAxiosInstance.post.mockResolvedValue(mockResponse);
 
-    render(<SurplusFormModal {...defaultProps} />);
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     // Fill the form
     await userEvent.type(
@@ -271,7 +287,7 @@ describe("SurplusFormModal", () => {
       response: { data: { message: "Validation error" } },
     });
 
-    render(<SurplusFormModal {...defaultProps} />);
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     fireEvent.submit(screen.getByText("Create Donation").closest("form"));
 
@@ -287,7 +303,7 @@ describe("SurplusFormModal", () => {
       response: { data: { message: errorMessage } },
     });
 
-    render(<SurplusFormModal {...defaultProps} />);
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     // Fill required fields and submit
     await userEvent.type(
@@ -316,7 +332,7 @@ describe("SurplusFormModal", () => {
 
   // Cancel button functionality
   test("cancels form and resets data when cancel button is clicked", async () => {
-    render(<SurplusFormModal {...defaultProps} />);
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     // Fill some data
     await userEvent.type(
@@ -333,7 +349,7 @@ describe("SurplusFormModal", () => {
 
   // Close button functionality
   test("closes modal when close button is clicked", () => {
-    render(<SurplusFormModal {...defaultProps} />);
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     const closeButton = screen.getByTestId("x-icon").closest("button");
     fireEvent.click(closeButton);
@@ -347,7 +363,7 @@ describe("SurplusFormModal", () => {
     const mockResponse = { data: { id: 123 } };
     mockAxiosInstance.post.mockResolvedValue(mockResponse);
 
-    render(<SurplusFormModal {...defaultProps} />);
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     // Fill required fields
     await userEvent.type(
@@ -381,7 +397,7 @@ describe("SurplusFormModal", () => {
     const mockResponse = { data: { id: 123 } };
     mockAxiosInstance.post.mockResolvedValue(mockResponse);
 
-    render(<SurplusFormModal {...defaultProps} />);
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     // Fill minimal required fields
     await userEvent.type(
@@ -415,7 +431,7 @@ describe("SurplusFormModal", () => {
   test("does not close modal when cancel is declined", () => {
     mockConfirm.mockReturnValue(false);
 
-    render(<SurplusFormModal {...defaultProps} />);
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     fireEvent.click(screen.getByText("Cancel"));
 
@@ -425,7 +441,7 @@ describe("SurplusFormModal", () => {
 
   // Input field changes update form state
   test("updates form state when input fields change", async () => {
-    render(<SurplusFormModal {...defaultProps} />);
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     const titleInput = screen.getByPlaceholderText("e.g., Vegetable Lasagna");
     await userEvent.type(titleInput, "Banana Bread");
@@ -450,7 +466,7 @@ describe("SurplusFormModal", () => {
     const mockResponse = { data: { id: 123 } };
     mockAxiosInstance.post.mockResolvedValue(mockResponse);
 
-    render(<SurplusFormModal {...defaultProps} />);
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     // Fill minimal required fields
     await userEvent.type(
@@ -489,7 +505,7 @@ describe("SurplusFormModal", () => {
 
   // Multi-select food categories
   test("handles multi-select food categories", async () => {
-    render(<SurplusFormModal {...defaultProps} />);
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     const categoriesSelect = screen.getByTestId("mock-select-default");
     
@@ -502,7 +518,7 @@ describe("SurplusFormModal", () => {
 
   // Unit selection change
   test("changes quantity unit selection", async () => {
-    render(<SurplusFormModal {...defaultProps} />);
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     const unitSelect = screen.getByTestId("mock-select-quantityUnit");
     
@@ -515,7 +531,7 @@ describe("SurplusFormModal", () => {
 
   // Expiry date selection
   test("selects expiry date", async () => {
-    render(<SurplusFormModal {...defaultProps} />);
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     const datePickers = screen.getAllByTestId("date-picker");
     const expiryDatePicker = datePickers[0]; // First date picker is expiry date
@@ -527,7 +543,7 @@ describe("SurplusFormModal", () => {
 
   // Add multiple pickup slots
   test("adds multiple pickup slots", async () => {
-    render(<SurplusFormModal {...defaultProps} />);
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     const addButton = screen.getByText("Add Another Slot");
     
@@ -541,7 +557,7 @@ describe("SurplusFormModal", () => {
 
   // Remove pickup slot
   test("removes a pickup slot", async () => {
-    render(<SurplusFormModal {...defaultProps} />);
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     // Add a second slot
     const addButton = screen.getByText("Add Another Slot");
@@ -560,7 +576,7 @@ describe("SurplusFormModal", () => {
 
   // Cannot remove last pickup slot
   test("does not remove the last remaining pickup slot", async () => {
-    render(<SurplusFormModal {...defaultProps} />);
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     // Try to find remove button (should not exist for single slot)
     const trashIcons = screen.queryAllByTestId("trash-icon");
@@ -569,7 +585,7 @@ describe("SurplusFormModal", () => {
 
   // Update pickup slot date
   test("updates pickup slot date", async () => {
-    render(<SurplusFormModal {...defaultProps} />);
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     const datePickers = screen.getAllByTestId("date-picker");
     const slotDatePicker = datePickers[1]; // Second date picker is pickup slot date
@@ -581,7 +597,7 @@ describe("SurplusFormModal", () => {
 
   // Update pickup slot start time
   test("updates pickup slot start time", async () => {
-    render(<SurplusFormModal {...defaultProps} />);
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     const timePickers = screen.getAllByTestId("time-picker");
     const startTimePicker = timePickers[0];
@@ -593,7 +609,7 @@ describe("SurplusFormModal", () => {
 
   // Update pickup slot end time
   test("updates pickup slot end time", async () => {
-    render(<SurplusFormModal {...defaultProps} />);
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     const timePickers = screen.getAllByTestId("time-picker");
     const endTimePicker = timePickers[1];
@@ -605,7 +621,7 @@ describe("SurplusFormModal", () => {
 
   // Update pickup slot notes
   test("updates pickup slot notes", async () => {
-    render(<SurplusFormModal {...defaultProps} />);
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     const notesInput = screen.getByPlaceholderText(
       "e.g., Use back entrance, Ask for manager"
@@ -618,7 +634,7 @@ describe("SurplusFormModal", () => {
 
   // Google Places Autocomplete address selection
   test("handles Google Places autocomplete selection", async () => {
-    render(<SurplusFormModal {...defaultProps} />);
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     const addressInput = screen.getByPlaceholderText("Start typing address...");
     
@@ -632,7 +648,7 @@ describe("SurplusFormModal", () => {
 
   // Manual address input without autocomplete
   test("handles manual address input", async () => {
-    render(<SurplusFormModal {...defaultProps} />);
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     const addressInput = screen.getByPlaceholderText("Start typing address...");
     
@@ -646,7 +662,7 @@ describe("SurplusFormModal", () => {
   test("handles API error without response message", async () => {
     mockAxiosInstance.post.mockRejectedValue({});
 
-    render(<SurplusFormModal {...defaultProps} />);
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     await userEvent.type(
       screen.getByPlaceholderText("e.g., Vegetable Lasagna"),
@@ -674,7 +690,7 @@ describe("SurplusFormModal", () => {
 
   // Click on modal overlay
   test("handles click on modal overlay", () => {
-    render(<SurplusFormModal {...defaultProps} />);
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     const overlay = screen.getByText("Add New Donation").closest(".modal-overlay");
     fireEvent.click(overlay);
@@ -686,7 +702,7 @@ describe("SurplusFormModal", () => {
   test("does not close when clicking inside modal content", () => {
     mockConfirm.mockClear();
 
-    render(<SurplusFormModal {...defaultProps} />);
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     const modalContainer = screen.getByText("Add New Donation").closest(".modal-container");
     fireEvent.click(modalContainer);
@@ -699,7 +715,7 @@ describe("SurplusFormModal", () => {
     const mockResponse = { data: { id: 456 } };
     mockAxiosInstance.post.mockResolvedValue(mockResponse);
 
-    render(<SurplusFormModal {...defaultProps} />);
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     // Add a second slot
     fireEvent.click(screen.getByText("Add Another Slot"));
@@ -739,7 +755,7 @@ describe("SurplusFormModal", () => {
 
   // Quantity with decimal values
   test("handles decimal quantity values", async () => {
-    render(<SurplusFormModal {...defaultProps} />);
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     const quantityInput = screen.getByPlaceholderText("0");
     await userEvent.type(quantityInput, "5.5");
@@ -752,7 +768,7 @@ describe("SurplusFormModal", () => {
     const mockResponse = { data: { id: 789 } };
     mockAxiosInstance.post.mockResolvedValue(mockResponse);
 
-    render(<SurplusFormModal {...defaultProps} />);
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     await userEvent.type(
       screen.getByPlaceholderText("e.g., Vegetable Lasagna"),

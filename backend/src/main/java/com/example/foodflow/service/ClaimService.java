@@ -95,18 +95,19 @@ public class ClaimService {
         
         claim = claimRepository.save(claim);
 
-        // Check if pickup time has already started
+        // Check if the CONFIRMED pickup time has already started (not the first slot!)
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
         java.time.LocalDate today = now.toLocalDate();
         java.time.LocalTime currentTime = now.toLocalTime();
 
         boolean pickupTimeStarted = false;
         
-        if (surplusPost.getPickupDate() != null) {
-          if (surplusPost.getPickupDate().isBefore(today)) {
+        // Use the CONFIRMED pickup slot that receiver selected, not the first slot
+        if (claim.getConfirmedPickupDate() != null && claim.getConfirmedPickupStartTime() != null) {
+          if (claim.getConfirmedPickupDate().isBefore(today)) {
               pickupTimeStarted = true;
-          } else if (surplusPost.getPickupDate().isEqual(today)) {
-              pickupTimeStarted = !currentTime.isBefore(surplusPost.getPickupFrom());
+          } else if (claim.getConfirmedPickupDate().isEqual(today)) {
+              pickupTimeStarted = !currentTime.isBefore(claim.getConfirmedPickupStartTime());
           }
         }
          

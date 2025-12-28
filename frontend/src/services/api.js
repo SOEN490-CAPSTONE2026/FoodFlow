@@ -43,8 +43,24 @@ export const authAPI = {
     }
     return response;
   },
-  registerDonor: (data) => api.post("/auth/register/donor", data),
-  registerReceiver: (data) => api.post("/auth/register/receiver", data),
+  registerDonor: (data) => {
+    // If data is FormData, set appropriate headers
+    const config = data instanceof FormData ? {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      }
+    } : {};
+    return api.post("/auth/register/donor", data, config);
+  },
+  registerReceiver: (data) => {
+    // If data is FormData, set appropriate headers
+    const config = data instanceof FormData ? {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      }
+    } : {};
+    return api.post("/auth/register/receiver", data, config);
+  },
   logout: () => {
     localStorage.removeItem("jwtToken");
     return api.post("/auth/logout");
@@ -203,6 +219,33 @@ export const recommendationAPI = {
       return [];
     }
   },
+};
+
+export const userAPI = {
+  /**
+   * Get user profile by ID
+   * @param {string} userId - User ID
+   * @returns {Promise} User data
+   */
+  getProfile: (userId) => api.get(`/users/${userId}`),
+
+  /**
+   * Update user profile
+   * @param {FormData} userData - User data including optional profile image
+   * @returns {Promise} Updated user data
+   */
+  updateProfile: (userData) => api.put("/users/update", userData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  }),
+
+  /**
+   * Update user password
+   * @param {Object} passwordData - Current and new password
+   * @returns {Promise} Response
+   */
+  updatePassword: (passwordData) => api.put("/users/update-password", passwordData),
 };
 
 /**

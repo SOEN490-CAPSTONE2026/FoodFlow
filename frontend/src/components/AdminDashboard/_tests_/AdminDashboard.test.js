@@ -3,7 +3,16 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import AdminDashboard from '../AdminDashboard';
 
+// Mock axios to prevent ES module issues
+jest.mock('axios');
+
 // Mock all child components
+jest.mock('../AdminUsers', () => {
+  return function MockAdminUsers() {
+    return <div data-testid="admin-users">Admin Users</div>;
+  };
+});
+
 jest.mock('../AdminLayout', () => {
   const { Outlet } = require('react-router-dom');
   return function MockAdminLayout() {
