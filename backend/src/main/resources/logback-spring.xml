@@ -113,10 +113,7 @@
         </root>
     </springProfile>
 
-<<<<<<< HEAD
-=======
     <!-- Local profile (dev setup )-->
->>>>>>> a50a71d34488d22b68f19ed387a858668904323e
     <springProfile name="local">
     <logger name="com.example.foodflow" level="DEBUG"/>
 
@@ -131,11 +128,7 @@
     <root level="DEBUG">
         <appender-ref ref="CONSOLE"/>
     </root>
-<<<<<<< HEAD
-</springProfile>
-=======
     </springProfile>
->>>>>>> a50a71d34488d22b68f19ed387a858668904323e
 
     <!-- Test Profile -->
     <springProfile name="test">
