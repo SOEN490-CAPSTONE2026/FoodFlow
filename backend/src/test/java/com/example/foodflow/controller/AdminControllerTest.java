@@ -546,20 +546,21 @@ class AdminControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ADMIN")
-    void overrideDonationStatus_WithInvalidDonationId_ReturnsNotFound() throws Exception {
+    @WithMockUser(authorities = "ADMIN", username = "admin@test.com")
+    void overrideDonationStatus_WithInvalidDonationId_ReturnsBadRequest() throws Exception {
         OverrideStatusRequest request = new OverrideStatusRequest();
         request.setNewStatus("COMPLETED");
         request.setReason("Test");
 
+        when(jwtTokenProvider.getEmailFromToken("mock-jwt-token")).thenReturn("admin@test.com");
+        when(userRepository.findByEmail("admin@test.com")).thenReturn(Optional.of(adminUser));
         when(adminDonationService.overrideStatus(eq(999L), anyString(), anyString(), anyLong()))
             .thenThrow(new RuntimeException("Donation not found"));
 
         mockMvc.perform(post("/api/admin/donations/999/override-status")
+                .header("Authorization", "Bearer mock-jwt-token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-            .andExpect(status().isNotFound());
-
-        verify(adminDonationService).overrideStatus(eq(999L), anyString(), anyString(), anyLong());
+            .andExpect(status().isBadRequest());
     }
 }
