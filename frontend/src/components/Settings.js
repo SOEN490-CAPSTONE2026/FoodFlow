@@ -163,8 +163,20 @@ const Settings = () => {
   }, [preferencesMessage, preferencesError]);
 
   const fetchUserProfile = async () => {
-    // Backend will implement this endpoint
-    setLoadingProfile(false);
+    try {
+      const response = await api.get('/profile/region');
+      if (response.data) {
+        setRegionSettings({
+          country: response.data.country,
+          city: response.data.city,
+          timezone: response.data.timezone
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching region from backend:', error);
+    } finally {
+      setLoadingProfile(false);
+    }
   };
 
   // Validation functions
