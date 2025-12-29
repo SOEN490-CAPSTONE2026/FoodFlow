@@ -36,6 +36,8 @@ const AdminDonations = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
   const [expandedRows, setExpandedRows] = useState(new Set());
   const [selectedDonation, setSelectedDonation] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -59,7 +61,7 @@ const AdminDonations = () => {
   // Fetch donations when filters change
   useEffect(() => {
     fetchDonations();
-  }, [debouncedSearchTerm, statusFilter, currentPage]);
+  }, [debouncedSearchTerm, statusFilter, fromDate, toDate, currentPage]);
 
   const fetchDonations = async () => {
     try {
@@ -69,6 +71,8 @@ const AdminDonations = () => {
       const filters = {
         search: debouncedSearchTerm || undefined,
         status: statusFilter || undefined,
+        fromDate: fromDate || undefined,
+        toDate: toDate || undefined,
         page: currentPage,
         size: 20,
       };
@@ -104,6 +108,8 @@ const AdminDonations = () => {
   const handleResetFilters = () => {
     setStatusFilter('');
     setSearchTerm('');
+    setFromDate('');
+    setToDate('');
     setCurrentPage(0);
   };
 
@@ -262,6 +268,32 @@ const AdminDonations = () => {
               className="filter-select-react"
               placeholder="All Status"
               isSearchable={false}
+            />
+            <input
+              type="date"
+              value={fromDate}
+              onChange={e => setFromDate(e.target.value)}
+              placeholder="From Date"
+              style={{
+                minHeight: '42px',
+                padding: '0 10px',
+                border: '1px solid #e5e7eb',
+                borderRadius: '6px',
+                fontSize: '14px'
+              }}
+            />
+            <input
+              type="date"
+              value={toDate}
+              onChange={e => setToDate(e.target.value)}
+              placeholder="To Date"
+              style={{
+                minHeight: '42px',
+                padding: '0 10px',
+                border: '1px solid #e5e7eb',
+                borderRadius: '6px',
+                fontSize: '14px'
+              }}
             />
             <button onClick={handleResetFilters} className="filter-reset-btn">Reset</button>
           </div>

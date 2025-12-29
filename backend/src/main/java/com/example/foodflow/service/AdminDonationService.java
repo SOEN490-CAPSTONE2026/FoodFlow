@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Subquery;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -177,20 +178,53 @@ public class AdminDonationService {
                 predicates.add(cb.lessThanOrEqualTo(root.get("createdAt"), toDate.atTime(23, 59, 59)));
             }
             
-            // Search by title, donor email, organization name, or donation ID
+            // Search by ID (if numeric), title, donor/receiver email, or organization name
             if (search != null && !search.isEmpty()) {
+                List<Predicate> searchPredicates = new ArrayList<>();
                 String searchPattern = "%" + search.toLowerCase() + "%";
-                Predicate titleMatch = cb.like(cb.lower(root.get("title")), searchPattern);
-                Predicate donorEmailMatch = cb.like(cb.lower(root.get("donor").get("email")), searchPattern);
-                Predicate idMatch = cb.like(root.get("id").as(String.class), searchPattern);
                 
-                // Organization search - handle null organizations
-                Predicate donorOrgMatch = cb.and(
+                // Check if search is numeric for ID search
+                try {
+                    Long searchId = Long.parseLong(search);
+                    searchPredicates.add(cb.equal(root.get("id"), searchId));
+                } catch (NumberFormatException e) {
+                    // Not a number, skip ID search
+                }
+                
+                // Title search
+                searchPredicates.add(cb.like(cb.lower(root.get("title")), searchPattern));
+                
+                // Donor email search
+                searchPredicates.add(cb.like(cb.lower(root.get("donor").get("email")), searchPattern));
+                
+                // Donor organization search - handle null organizations
+                searchPredicates.add(cb.and(
                     cb.isNotNull(root.get("donor").get("organization")),
                     cb.like(cb.lower(root.get("donor").get("organization").get("name")), searchPattern)
+                ));
+                
+                // Receiver search through Claim subquery
+                Subquery<Long> claimSubquery = query.subquery(Long.class);
+                var claimRoot = claimSubquery.from(Claim.class);
+                claimSubquery.select(claimRoot.get("surplusPost").get("id"));
+                
+                // Receiver email or organization match
+                Predicate receiverEmailMatch = cb.like(cb.lower(claimRoot.get("receiver").get("email")), searchPattern);
+                Predicate receiverOrgMatch = cb.and(
+                    cb.isNotNull(claimRoot.get("receiver").get("organization")),
+                    cb.like(cb.lower(claimRoot.get("receiver").get("organization").get("name")), searchPattern)
                 );
                 
-                predicates.add(cb.or(titleMatch, donorEmailMatch, donorOrgMatch, idMatch));
+                claimSubquery.where(
+                    cb.and(
+                        cb.equal(claimRoot.get("surplusPost").get("id"), root.get("id")),
+                        cb.or(receiverEmailMatch, receiverOrgMatch)
+                    )
+                );
+                
+                searchPredicates.add(cb.exists(claimSubquery));
+                
+                predicates.add(cb.or(searchPredicates.toArray(new Predicate[0])));
             }
             
             return cb.and(predicates.toArray(new Predicate[0]));

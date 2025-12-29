@@ -1,12 +1,12 @@
 package com.example.foodflow.controller;
 
-import com.example.foodflow.model.dto.AdminUserResponse;
-import com.example.foodflow.model.dto.DeactivateUserRequest;
-import com.example.foodflow.model.dto.SendAlertRequest;
+import com.example.foodflow.model.dto.*;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.UserRole;
+import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.repository.UserRepository;
 import com.example.foodflow.security.JwtTokenProvider;
+import com.example.foodflow.service.AdminDonationService;
 import com.example.foodflow.service.AdminUserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,12 +44,16 @@ class AdminControllerTest {
     private AdminUserService adminUserService;
 
     @MockBean
+    private AdminDonationService adminDonationService;
+
+    @MockBean
     private JwtTokenProvider jwtTokenProvider;
 
     @MockBean
     private UserRepository userRepository;
 
     private AdminUserResponse testUserResponse;
+    private AdminDonationResponse testDonationResponse;
     private User adminUser;
 
     @BeforeEach
@@ -68,6 +72,16 @@ class AdminControllerTest {
         adminUser.setId(999L);
         adminUser.setEmail("admin@test.com");
         adminUser.setRole(UserRole.ADMIN);
+
+        // Setup test donation response
+        testDonationResponse = new AdminDonationResponse();
+        testDonationResponse.setId(1L);
+        testDonationResponse.setTitle("Test Donation");
+        testDonationResponse.setStatus(PostStatus.CLAIMED);
+        testDonationResponse.setDonorId(1L);
+        testDonationResponse.setDonorEmail("donor@test.com");
+        testDonationResponse.setDonorName("Test Donor");
+        testDonationResponse.setFlagged(false);
     }
 
     @Test
@@ -324,5 +338,228 @@ class AdminControllerTest {
             .andExpect(status().isBadRequest());
 
         verify(adminUserService, never()).deactivateUser(anyLong(), any(), anyLong());
+    }
+
+    // ==================== DONATION ENDPOINT TESTS ====================
+
+    @Test
+    @WithMockUser(authorities = "ADMIN")
+    void getAllDonations_WithAdminAuth_ReturnsDonationList() throws Exception {
+        Page<AdminDonationResponse> donationPage = new PageImpl<>(Arrays.asList(testDonationResponse));
+        when(adminDonationService.getAllDonations(null, null, null, null, null, null, null, 0, 20))
+            .thenReturn(donationPage);
+
+        mockMvc.perform(get("/api/admin/donations")
+                .param("page", "0")
+                .param("size", "20"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content").isArray())
+            .andExpect(jsonPath("$.content[0].id").value(1))
+            .andExpect(jsonPath("$.content[0].title").value("Test Donation"))
+            .andExpect(jsonPath("$.totalElements").value(1));
+
+        verify(adminDonationService).getAllDonations(null, null, null, null, null, null, null, 0, 20);
+    }
+
+    @Test
+    @WithMockUser(authorities = "ADMIN")
+    void getAllDonations_WithStatusFilter_ReturnsFilteredDonations() throws Exception {
+        Page<AdminDonationResponse> donationPage = new PageImpl<>(Arrays.asList(testDonationResponse));
+        when(adminDonationService.getAllDonations("CLAIMED", null, null, null, null, null, null, 0, 20))
+            .thenReturn(donationPage);
+
+        mockMvc.perform(get("/api/admin/donations")
+                .param("status", "CLAIMED")
+                .param("page", "0")
+                .param("size", "20"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content[0].status").value("CLAIMED"));
+
+        verify(adminDonationService).getAllDonations("CLAIMED", null, null, null, null, null, null, 0, 20);
+    }
+
+    @Test
+    @WithMockUser(authorities = "ADMIN")
+    void getAllDonations_WithSearchParam_ReturnsMatchingDonations() throws Exception {
+        Page<AdminDonationResponse> donationPage = new PageImpl<>(Arrays.asList(testDonationResponse));
+        when(adminDonationService.getAllDonations(null, null, null, null, null, null, "test", 0, 20))
+            .thenReturn(donationPage);
+
+        mockMvc.perform(get("/api/admin/donations")
+                .param("search", "test")
+                .param("page", "0")
+                .param("size", "20"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content[0].title").value("Test Donation"));
+
+        verify(adminDonationService).getAllDonations(null, null, null, null, null, null, "test", 0, 20);
+    }
+
+    @Test
+    @WithMockUser(authorities = "ADMIN")
+    void getAllDonations_WithFlaggedFilter_ReturnsOnlyFlaggedDonations() throws Exception {
+        testDonationResponse.setFlagged(true);
+        Page<AdminDonationResponse> donationPage = new PageImpl<>(Arrays.asList(testDonationResponse));
+        when(adminDonationService.getAllDonations(null, null, null, true, null, null, null, 0, 20))
+            .thenReturn(donationPage);
+
+        mockMvc.perform(get("/api/admin/donations")
+                .param("flagged", "true")
+                .param("page", "0")
+                .param("size", "20"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content[0].flagged").value(true));
+
+        verify(adminDonationService).getAllDonations(null, null, null, true, null, null, null, 0, 20);
+    }
+
+    @Test
+    @WithMockUser(authorities = "DONOR")
+    void getAllDonations_WithoutAdminAuth_ReturnsForbidden() throws Exception {
+        mockMvc.perform(get("/api/admin/donations")
+                .param("page", "0")
+                .param("size", "20"))
+            .andExpect(status().isForbidden());
+
+        verify(adminDonationService, never()).getAllDonations(any(), any(), any(), any(), any(), any(), any(), anyInt(), anyInt());
+    }
+
+    @Test
+    @WithMockUser(authorities = "ADMIN")
+    void getDonationById_WithValidId_ReturnsDonationDetails() throws Exception {
+        when(adminDonationService.getDonationById(1L)).thenReturn(testDonationResponse);
+
+        mockMvc.perform(get("/api/admin/donations/1"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(1))
+            .andExpect(jsonPath("$.title").value("Test Donation"))
+            .andExpect(jsonPath("$.status").value("CLAIMED"))
+            .andExpect(jsonPath("$.donorEmail").value("donor@test.com"));
+
+        verify(adminDonationService).getDonationById(1L);
+    }
+
+    @Test
+    @WithMockUser(authorities = "ADMIN")
+    void getDonationById_WithInvalidId_ReturnsNotFound() throws Exception {
+        when(adminDonationService.getDonationById(999L))
+            .thenThrow(new RuntimeException("Donation not found"));
+
+        mockMvc.perform(get("/api/admin/donations/999"))
+            .andExpect(status().isNotFound());
+
+        verify(adminDonationService).getDonationById(999L);
+    }
+
+    @Test
+    @WithMockUser(authorities = "DONOR")
+    void getDonationById_WithoutAdminAuth_ReturnsForbidden() throws Exception {
+        mockMvc.perform(get("/api/admin/donations/1"))
+            .andExpect(status().isForbidden());
+
+        verify(adminDonationService, never()).getDonationById(anyLong());
+    }
+
+    @Test
+    @WithMockUser(authorities = "ADMIN", username = "admin@test.com")
+    void overrideDonationStatus_WithValidRequest_ReturnsUpdatedDonation() throws Exception {
+        OverrideStatusRequest request = new OverrideStatusRequest();
+        request.setNewStatus("COMPLETED");
+        request.setReason("Admin manually completed");
+
+        testDonationResponse.setStatus(PostStatus.COMPLETED);
+        
+        when(jwtTokenProvider.getEmailFromToken("mock-jwt-token")).thenReturn("admin@test.com");
+        when(userRepository.findByEmail("admin@test.com")).thenReturn(Optional.of(adminUser));
+        when(adminDonationService.overrideStatus(eq(1L), eq("COMPLETED"), eq("Admin manually completed"), eq(999L)))
+            .thenReturn(testDonationResponse);
+
+        mockMvc.perform(post("/api/admin/donations/1/override-status")
+                .header("Authorization", "Bearer mock-jwt-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value("COMPLETED"));
+
+        verify(adminDonationService).overrideStatus(eq(1L), eq("COMPLETED"), eq("Admin manually completed"), eq(999L));
+    }
+
+    @Test
+    @WithMockUser(authorities = "ADMIN")
+    void overrideDonationStatus_WithInvalidStatus_ReturnsBadRequest() throws Exception {
+        OverrideStatusRequest request = new OverrideStatusRequest();
+        request.setNewStatus("INVALID_STATUS");
+        request.setReason("Test");
+
+        when(adminDonationService.overrideStatus(anyLong(), eq("INVALID_STATUS"), anyString(), anyLong()))
+            .thenThrow(new RuntimeException("Invalid status"));
+
+        mockMvc.perform(post("/api/admin/donations/1/override-status")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(authorities = "ADMIN")
+    void overrideDonationStatus_WithMissingNewStatus_ReturnsBadRequest() throws Exception {
+        OverrideStatusRequest request = new OverrideStatusRequest();
+        // newStatus is null
+        request.setReason("Test reason");
+
+        mockMvc.perform(post("/api/admin/donations/1/override-status")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isBadRequest());
+
+        verify(adminDonationService, never()).overrideStatus(anyLong(), any(), any(), anyLong());
+    }
+
+    @Test
+    @WithMockUser(authorities = "ADMIN")
+    void overrideDonationStatus_WithMissingReason_ReturnsBadRequest() throws Exception {
+        OverrideStatusRequest request = new OverrideStatusRequest();
+        request.setNewStatus("COMPLETED");
+        // reason is null
+
+        mockMvc.perform(post("/api/admin/donations/1/override-status")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isBadRequest());
+
+        verify(adminDonationService, never()).overrideStatus(anyLong(), any(), any(), anyLong());
+    }
+
+    @Test
+    @WithMockUser(authorities = "DONOR")
+    void overrideDonationStatus_WithoutAdminAuth_ReturnsForbidden() throws Exception {
+        OverrideStatusRequest request = new OverrideStatusRequest();
+        request.setNewStatus("COMPLETED");
+        request.setReason("Test");
+
+        mockMvc.perform(post("/api/admin/donations/1/override-status")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isForbidden());
+
+        verify(adminDonationService, never()).overrideStatus(anyLong(), any(), any(), anyLong());
+    }
+
+    @Test
+    @WithMockUser(authorities = "ADMIN")
+    void overrideDonationStatus_WithInvalidDonationId_ReturnsNotFound() throws Exception {
+        OverrideStatusRequest request = new OverrideStatusRequest();
+        request.setNewStatus("COMPLETED");
+        request.setReason("Test");
+
+        when(adminDonationService.overrideStatus(eq(999L), anyString(), anyString(), anyLong()))
+            .thenThrow(new RuntimeException("Donation not found"));
+
+        mockMvc.perform(post("/api/admin/donations/999/override-status")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isNotFound());
+
+        verify(adminDonationService).overrideStatus(eq(999L), anyString(), anyString(), anyLong());
     }
 }
