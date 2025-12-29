@@ -440,7 +440,7 @@ class ExpiryCalculationServiceTest {
             FoodCategory.PREPARED_MEALS,  // 3 days
             FoodCategory.LEAFY_GREENS,    // 5 days
             FoodCategory.DAIRY_COLD,      // 10 days
-            FoodCategory.VEGETABLES       // Not in map, uses default 7
+            FoodCategory.ROOT_VEGETABLES  // Not in map, uses default 7
         );
 
         LocalDate expiryDate = expiryCalculationService.calculateExpiryDate(fabricationDate, categories);
