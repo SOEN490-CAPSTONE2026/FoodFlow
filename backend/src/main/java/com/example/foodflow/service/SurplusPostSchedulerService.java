@@ -15,6 +15,8 @@ import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,11 +47,12 @@ public class SurplusPostSchedulerService {
     @Scheduled(fixedRate = 5000)
     @Transactional
     public void updatePostsToReadyForPickup() {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDate today = now.toLocalDate();
-        LocalTime currentTime = now.toLocalTime();
+        // Use UTC for all time comparisons
+        ZonedDateTime nowUtc = ZonedDateTime.now(ZoneId.of("UTC"));
+        LocalDate today = nowUtc.toLocalDate();
+        LocalTime currentTime = nowUtc.toLocalTime();
 
-        logger.info("===== updatePostsToReadyForPickup running at {} =====", now);
+        logger.info("===== updatePostsToReadyForPickup running at {} UTC =====", nowUtc);
 
         // Only CLAIMED posts can become READY_FOR_PICKUP
         List<SurplusPost> claimedPosts = surplusPostRepository.findByStatus(PostStatus.CLAIMED);
@@ -59,7 +62,7 @@ public class SurplusPostSchedulerService {
             .filter(post -> {
                 // Grace period: skip brand-new posts
                 if (post.getCreatedAt() != null &&
-                    post.getCreatedAt().isAfter(now.minusMinutes(GRACE_PERIOD_MINUTES))) {
+                    post.getCreatedAt().isAfter(nowUtc.toLocalDateTime().minusMinutes(GRACE_PERIOD_MINUTES))) {
                     logger.debug("Skipping post ID {} — created recently (grace period active)", post.getId());
                     return false;
                 }
@@ -124,11 +127,12 @@ public class SurplusPostSchedulerService {
     @Scheduled(fixedRate = 60000)
     @Transactional
     public void updatePostsToNotCompleted() {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDate today = now.toLocalDate();
-        LocalTime currentTime = now.toLocalTime();
+        // Use UTC for all time comparisons
+        ZonedDateTime nowUtc = ZonedDateTime.now(ZoneId.of("UTC"));
+        LocalDate today = nowUtc.toLocalDate();
+        LocalTime currentTime = nowUtc.toLocalTime();
 
-        logger.info("===== updatePostsToNotCompleted running at {} =====", now);
+        logger.info("===== updatePostsToNotCompleted running at {} UTC =====", nowUtc);
 
         List<SurplusPost> readyPosts = surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP);
         logger.info("Found {} READY_FOR_PICKUP posts to evaluate", readyPosts.size());
@@ -137,7 +141,7 @@ public class SurplusPostSchedulerService {
             .filter(post -> {
                 // Grace period: skip brand-new posts
                 if (post.getCreatedAt() != null &&
-                    post.getCreatedAt().isAfter(now.minusMinutes(GRACE_PERIOD_MINUTES))) {
+                    post.getCreatedAt().isAfter(nowUtc.toLocalDateTime().minusMinutes(GRACE_PERIOD_MINUTES))) {
                     logger.debug("Skipping post ID {} — created recently (grace period active)", post.getId());
                     return false;
                 }

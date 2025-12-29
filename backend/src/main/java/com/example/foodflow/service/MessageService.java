@@ -1,5 +1,9 @@
 package com.example.foodflow.service;
 
+import com.example.foodflow.model.dto.MessageHistoryResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import com.example.foodflow.model.dto.MessageRequest;
 import com.example.foodflow.model.dto.MessageResponse;
 import com.example.foodflow.model.entity.Conversation;
@@ -146,4 +150,37 @@ public class MessageService {
     public long getUnreadCount(User user) {
         return messageRepository.countUnreadByUser(user.getId());
     }
+
+      /**
+     * Get paginated message history for a specific post
+     */
+    @Transactional(readOnly = true)
+    public MessageHistoryResponse getMessageHistoryByPostId(Long postId, User currentUser, int page, int size) {
+        // Find conversation for this post where user is a participant
+        Conversation conversation = conversationRepository.findByPostIdAndUserId(postId, currentUser.getId())
+            .orElseThrow(() -> new IllegalArgumentException("No conversation found for this post"));
+        
+        // Get paginated messages
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Message> messagePage = messageRepository.findByConversationIdWithPagination(
+            conversation.getId(), 
+            pageable
+        );
+        
+        // Convert to response DTOs
+        List<MessageResponse> messageResponses = messagePage.getContent()
+            .stream()
+            .map(MessageResponse::new)
+            .collect(Collectors.toList());
+        
+        // Build response with pagination metadata
+        return new MessageHistoryResponse(
+            messageResponses,
+            messagePage.getNumber(),
+            messagePage.getTotalPages(),
+            messagePage.getTotalElements(),
+            messagePage.hasNext()
+        );
+    }
+
 }
