@@ -189,8 +189,8 @@ public class ExpiryCalculationService {
             return true; // Both optional
         }
 
-        // Expiry must be after fabrication
-        if (expiryDate.isBefore(fabricationDate)) {
+        // Expiry must be after fabrication (not equal)
+        if (expiryDate.isBefore(fabricationDate) || expiryDate.isEqual(fabricationDate)) {
             return false;
         }
 

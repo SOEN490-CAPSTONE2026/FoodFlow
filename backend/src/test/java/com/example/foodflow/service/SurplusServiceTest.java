@@ -1098,7 +1098,6 @@ class SurplusServiceTest {
         slots.add(slot);
         requestWithFutureFabrication.setPickupSlots(slots);
 
-        doNothing().when(pickupSlotValidationService).validateSlots(any());
         when(expiryCalculationService.isValidFabricationDate(any())).thenReturn(false);
 
         // When & Then
@@ -1131,7 +1130,6 @@ class SurplusServiceTest {
         slots.add(slot);
         requestWithInvalidExpiry.setPickupSlots(slots);
 
-        doNothing().when(pickupSlotValidationService).validateSlots(any());
         when(expiryCalculationService.isValidFabricationDate(any())).thenReturn(true);
         when(expiryCalculationService.isValidExpiryDate(any(), any())).thenReturn(false);
 
@@ -1206,8 +1204,6 @@ class SurplusServiceTest {
         slot.setEndTime(LocalTime.now().plusHours(5));
         slots.add(slot);
         requestWithoutDates.setPickupSlots(slots);
-
-        doNothing().when(pickupSlotValidationService).validateSlots(any());
 
         // When & Then
         assertThatThrownBy(() -> surplusService.createSurplusPost(requestWithoutDates, donor))
