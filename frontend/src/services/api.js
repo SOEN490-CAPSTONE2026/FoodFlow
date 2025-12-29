@@ -249,6 +249,65 @@ export const userAPI = {
 };
 
 /**
+ * Report/Dispute API functions
+ */
+export const reportAPI = {
+  /**
+   * Create a new report/dispute
+   * @param {Object} reportData - Report data
+   * @param {number} reportData.reportedId - User ID being reported
+   * @param {number} reportData.donationId - Optional donation ID
+   * @param {string} reportData.description - Report description
+   * @param {string} reportData.imageUrl - Optional evidence image URL
+   * @returns {Promise} Created report data
+   */
+  createReport: (reportData) => api.post('/reports', reportData),
+};
+
+/**
+ * Admin API functions for dispute management
+ */
+export const adminDisputeAPI = {
+  /**
+   * Get all disputes with filtering and pagination
+   * @param {Object} filters - Filter criteria
+   * @param {string} filters.status - Filter by dispute status (OPEN, UNDER_REVIEW, RESOLVED, CLOSED)
+   * @param {number} filters.page - Page number (default: 0)
+   * @param {number} filters.size - Page size (default: 20)
+   * @returns {Promise} Paginated dispute list
+   */
+  getAllDisputes: (filters = {}) => {
+    const params = new URLSearchParams();
+    
+    if (filters.status) params.append('status', filters.status);
+    params.append('page', filters.page || 0);
+    params.append('size', filters.size || 20);
+    
+    return api.get(`/admin/disputes?${params.toString()}`);
+  },
+
+  /**
+   * Get detailed information about a specific dispute
+   * @param {number} disputeId - Dispute ID
+   * @returns {Promise} Dispute details with admin notes
+   */
+  getDisputeById: (disputeId) => api.get(`/admin/disputes/${disputeId}`),
+
+  /**
+   * Update dispute status
+   * @param {number} disputeId - Dispute ID
+   * @param {string} status - New status (OPEN, UNDER_REVIEW, RESOLVED, CLOSED)
+   * @param {string} adminNotes - Optional admin notes
+   * @returns {Promise} Updated dispute data
+   */
+  updateDisputeStatus: (disputeId, status, adminNotes) => 
+    api.put(`/admin/disputes/${disputeId}/status`, {
+      status,
+      adminNotes
+    }),
+};
+
+/**
  * Admin API functions for donation management
  */
 export const adminDonationAPI = {

@@ -10,6 +10,10 @@ import com.example.foodflow.repository.UserRepository;
 import com.example.foodflow.security.JwtTokenProvider;
 import com.example.foodflow.service.AdminDonationService;
 import com.example.foodflow.service.AdminUserService;
+import com.example.foodflow.service.DisputeService;
+import com.example.foodflow.model.dto.AdminDisputeResponse;
+import com.example.foodflow.model.dto.UpdateDisputeStatusRequest;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -30,13 +34,16 @@ public class AdminController {
 
     private final AdminUserService adminUserService;
     private final AdminDonationService adminDonationService;
+    private final DisputeService disputeService;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
 
-    public AdminController(AdminUserService adminUserService, AdminDonationService adminDonationService, 
-                          JwtTokenProvider jwtTokenProvider, UserRepository userRepository) {
+    public AdminController(AdminUserService adminUserService, AdminDonationService adminDonationService,
+                          DisputeService disputeService, JwtTokenProvider jwtTokenProvider, 
+                          UserRepository userRepository) {
         this.adminUserService = adminUserService;
         this.adminDonationService = adminDonationService;
+        this.disputeService = disputeService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.userRepository = userRepository;
     }
@@ -270,6 +277,77 @@ public class AdminController {
         } catch (Exception e) {
             log.error("Error overriding status for donation {}", donationId, e);
             return ResponseEntity.internalServerError().body("Failed to override donation status");
+        }
+    }
+
+    // ========== DISPUTE/REPORT MANAGEMENT ENDPOINTS ==========
+
+    /**
+     * Get all disputes/reports for admin with optional filtering
+     * GET /api/admin/disputes?status=OPEN&page=0&size=20
+     */
+    @GetMapping("/disputes")
+    public ResponseEntity<Page<AdminDisputeResponse>> getAllDisputes(
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        
+        log.info("Admin fetching disputes - status: {}, page: {}, size: {}", status, page, size);
+        
+        try {
+            Page<AdminDisputeResponse> disputes = disputeService.getAllDisputes(status, page, size);
+            return ResponseEntity.ok(disputes);
+        } catch (Exception e) {
+            log.error("Error fetching disputes", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * Get dispute details by ID
+     * GET /api/admin/disputes/{disputeId}
+     */
+    @GetMapping("/disputes/{disputeId}")
+    public ResponseEntity<AdminDisputeResponse> getDisputeById(@PathVariable Long disputeId) {
+        log.info("Admin fetching dispute details for disputeId: {}", disputeId);
+        
+        try {
+            AdminDisputeResponse dispute = disputeService.getDisputeById(disputeId);
+            return ResponseEntity.ok(dispute);
+        } catch (RuntimeException e) {
+            log.error("Error fetching dispute {}: {}", disputeId, e.getMessage());
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            log.error("Error fetching dispute {}", disputeId, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * Update dispute status (resolve, close, etc.)
+     * PUT /api/admin/disputes/{disputeId}/status
+     */
+    @PutMapping("/disputes/{disputeId}/status")
+    public ResponseEntity<?> updateDisputeStatus(
+            @PathVariable Long disputeId,
+            @Valid @RequestBody UpdateDisputeStatusRequest request) {
+        
+        log.info("Admin updating dispute {} status to {}", disputeId, request.getStatus());
+        
+        try {
+            AdminDisputeResponse updatedDispute = disputeService.updateDisputeStatus(
+                disputeId,
+                request.getStatus(),
+                request.getAdminNotes()
+            );
+            
+            return ResponseEntity.ok(updatedDispute);
+        } catch (RuntimeException e) {
+            log.error("Error updating dispute {} status: {}", disputeId, e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            log.error("Error updating dispute {} status", disputeId, e);
+            return ResponseEntity.internalServerError().body("Failed to update dispute status");
         }
     }
 }
