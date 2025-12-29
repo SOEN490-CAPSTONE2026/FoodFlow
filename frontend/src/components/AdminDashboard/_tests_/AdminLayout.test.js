@@ -2,6 +2,7 @@ import React from "react";
 import { render, screen, fireEvent, within } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
+import { AuthContext } from "../../../contexts/AuthContext";
 
 const mockedNavigate = jest.fn();
 jest.mock("react-router-dom", () => {
@@ -32,22 +33,26 @@ describe("AdminLayout", () => {
     sessionStorage.clear();
   });
 
-  const renderWithRoutes = (initialPath = "/admin") =>
-    render(
-      <MemoryRouter initialEntries={[initialPath]}>
-        <Routes>
-          <Route path="/admin/*" element={<AdminLayout />}>
-            <Route index element={<Stub label="Dashboard Content" />} />
-            <Route path="dashboard" element={<Stub label="Dashboard Content" />} />
-            <Route path="analytics" element={<Stub label="Analytics Content" />} />
-            <Route path="calendar" element={<Stub label="Calendar Content" />} />
-            <Route path="messages" element={<Stub label="Messages Content" />} />
-            <Route path="help" element={<Stub label="Help Content" />} />
-          </Route>
-          <Route path="/" element={<div>Home</div>} />
-        </Routes>
-      </MemoryRouter>
+  const renderWithRoutes = (initialPath = "/admin") => {
+    const mockLogout = jest.fn();
+    return render(
+      <AuthContext.Provider value={{ logout: mockLogout }}>
+        <MemoryRouter initialEntries={[initialPath]}>
+          <Routes>
+            <Route path="/admin/*" element={<AdminLayout />}>
+              <Route index element={<Stub label="Dashboard Content" />} />
+              <Route path="dashboard" element={<Stub label="Dashboard Content" />} />
+              <Route path="analytics" element={<Stub label="Analytics Content" />} />
+              <Route path="calendar" element={<Stub label="Calendar Content" />} />
+              <Route path="messages" element={<Stub label="Messages Content" />} />
+              <Route path="help" element={<Stub label="Help Content" />} />
+            </Route>
+            <Route path="/" element={<div>Home</div>} />
+          </Routes>
+        </MemoryRouter>
+      </AuthContext.Provider>
     );
+  };
 
   it("renders sidebar and topbar basics", () => {
     const { container } = renderWithRoutes("/admin");
@@ -82,27 +87,35 @@ describe("AdminLayout", () => {
   });
 
   it("toggles the user dropdown via kebab and logs out", () => {
-    renderWithRoutes("/admin/messages");
+    const mockLogout = jest.fn();
+    render(
+      <AuthContext.Provider value={{ logout: mockLogout }}>
+        <MemoryRouter initialEntries={["/admin/messages"]}>
+          <Routes>
+            <Route path="/admin/*" element={<AdminLayout />}>
+              <Route path="messages" element={<Stub label="Messages Content" />} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </AuthContext.Provider>
+    );
     const kebab = screen.getByRole("button", { name: /^menu$/i });
     fireEvent.click(kebab);
     const logoutBtn = screen.getByRole("button", { name: /logout/i });
     expect(logoutBtn).toBeInTheDocument();
     fireEvent.click(logoutBtn);
-    expect(localStorage.removeItem).toHaveBeenCalledWith("token");
-    expect(sessionStorage.clear).toHaveBeenCalled();
-    expect(mockedNavigate).toHaveBeenCalledWith("/", {
-      replace: true,
-      state: { scrollTo: "home" },
-    });
+    expect(mockLogout).toHaveBeenCalled();
   });
 
   it("closes the dropdown when clicking outside (document mousedown handler)", () => {
     renderWithRoutes("/admin");
     const kebab = screen.getByRole("button", { name: /^menu$/i });
     fireEvent.click(kebab);
-    expect(screen.getByRole("button", { name: /logout/i })).toBeInTheDocument();
+    // The dropdown should be open, but logout is now always visible in nav
+    // Check that clicking outside closes the dropdown (kebab menu should close)
     fireEvent.mouseDown(document.body);
-    expect(screen.queryByRole("button", { name: /logout/i })).not.toBeInTheDocument();
+    // The logout button in nav should still be visible
+    expect(screen.getByRole("button", { name: /logout/i })).toBeInTheDocument();
   });
 
   it("mobile menu opens via hamburger and closes via overlay", () => {

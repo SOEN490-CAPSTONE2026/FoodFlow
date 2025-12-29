@@ -18,6 +18,11 @@ public class Conversation {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user2_id", nullable = false)
     private User user2;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "surplus_post_id")
+    private SurplusPost surplusPost;
+
     
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -41,6 +46,12 @@ public class Conversation {
             this.user2 = user1;
         }
     }
+
+        public Conversation(User user1, User user2, SurplusPost surplusPost) {
+        this(user1, user2);
+        this.surplusPost = surplusPost;
+    }
+    
     
     // Helper method to get the other participant
     public User getOtherParticipant(Long currentUserId) {
@@ -84,6 +95,13 @@ public class Conversation {
     
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+     public SurplusPost getSurplusPost() {
+        return surplusPost;
+    }
+    
+     public void setSurplusPost(SurplusPost surplusPost) {
+        this.surplusPost = surplusPost;
     }
     
     public void setCreatedAt(LocalDateTime createdAt) {

@@ -43,4 +43,5 @@ public interface ClaimRepository extends JpaRepository<Claim, Long> {
     );
 
     long countByStatus(ClaimStatus status);
+    long countByReceiverId(Long receiverId);
 }

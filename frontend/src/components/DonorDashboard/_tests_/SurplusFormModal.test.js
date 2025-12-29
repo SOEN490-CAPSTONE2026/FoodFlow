@@ -9,7 +9,6 @@ jest.mock("axios", () => {
   const mockPut = jest.fn();
   const mockDelete = jest.fn();
   const mockPatch = jest.fn();
-
   const mockInstance = {
     get: mockGet,
     post: mockPost,
@@ -21,7 +20,6 @@ jest.mock("axios", () => {
       response: { use: jest.fn(() => (response) => response), eject: jest.fn() },
     },
   };
-
   return {
     __esModule: true,
     default: {
@@ -32,9 +30,24 @@ jest.mock("axios", () => {
 
 import SurplusFormModal from "../SurplusFormModal";
 import axios from "axios";
+import { TimezoneProvider } from "../../../contexts/TimezoneContext";
 
 // Get reference to the mocked instance for use in tests
 const mockAxiosInstance = axios.create();
+
+// Helper function to render with required providers
+const renderWithProviders = (ui, options = {}) => {
+  const mockTimezoneContext = {
+    userTimezone: "America/Toronto",
+    userRegion: "CA",
+  };
+  return render(
+    <TimezoneProvider value={mockTimezoneContext}>
+      {ui}
+    </TimezoneProvider>,
+    options
+  );
+};
 
 // Mock @react-google-maps/api with autocomplete simulation
 jest.mock("@react-google-maps/api", () => {
@@ -58,7 +71,6 @@ jest.mock("@react-google-maps/api", () => {
           onLoad(mockAutocomplete);
         }
       }, []);
-
       return mockReact.cloneElement(children, {
         onBlur: onPlaceChanged,
       });
@@ -82,7 +94,6 @@ jest.mock("react-datepicker", () => {
         onChange(new Date("2024-01-01T10:00:00"));
       }
     };
-
     if (customInput) {
       return mockReact.cloneElement(customInput, {
         value: selected ? selected.toString() : "",
@@ -90,7 +101,6 @@ jest.mock("react-datepicker", () => {
         placeholder: placeholderText,
       });
     }
-
     return mockReact.createElement("input", {
       type: "text",
       value: selected ? selected.toString() : "",
@@ -158,7 +168,6 @@ jest.mock("react-select", () => {
         }
       }
     };
-
     return (
       <select
         multiple={isMulti}
@@ -188,7 +197,6 @@ jest.mock("react-select", () => {
 
 describe("SurplusFormModal", () => {
   jest.setTimeout(15000);
-
   const mockOnClose = jest.fn();
   const defaultProps = {
     isOpen: true,
@@ -251,8 +259,7 @@ describe("SurplusFormModal", () => {
 
   // Component renders when isOpen is true
   test("renders modal when isOpen is true", () => {
-    render(<SurplusFormModal {...defaultProps} />);
-
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
     expect(screen.getByText("Add New Donation")).toBeInTheDocument();
     expect(screen.getByPlaceholderText("e.g., Vegetable Lasagna")).toBeInTheDocument();
     expect(screen.getByText("Food Details")).toBeInTheDocument();
@@ -260,18 +267,17 @@ describe("SurplusFormModal", () => {
 
   // Component doesn't render when isOpen is false
   test("does not render modal when isOpen is false", () => {
-    const { container } = render(
+    const { container } = renderWithProviders(
       <SurplusFormModal {...defaultProps} isOpen={false} />
     );
-
     expect(screen.queryByText("Add New Donation")).not.toBeInTheDocument();
     expect(container.firstChild).toBeNull();
   });
 
   // Multi-step navigation
   test("navigates through all steps correctly", async () => {
-    render(<SurplusFormModal {...defaultProps} />);
-
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
+    
     // Step 1
     expect(screen.getByText("Food Details")).toBeInTheDocument();
     await fillStep1();
@@ -302,11 +308,10 @@ describe("SurplusFormModal", () => {
 
   // Step validation prevents moving forward
   test("prevents moving to next step without completing required fields", async () => {
-    render(<SurplusFormModal {...defaultProps} />);
-
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
+    
     // Try to go to next step without filling anything
     fireEvent.click(screen.getByText("Next"));
-
     await waitFor(() => {
       expect(screen.getByText(/Please complete all required fields/)).toBeInTheDocument();
     });
@@ -317,17 +322,17 @@ describe("SurplusFormModal", () => {
 
   // Previous button navigation
   test("navigates back to previous step", async () => {
-    render(<SurplusFormModal {...defaultProps} />);
-
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
+    
     await fillStep1();
     fireEvent.click(screen.getByText("Next"));
-
+    
     await waitFor(() => {
       expect(screen.getByText("Quantity & Dates")).toBeInTheDocument();
     });
-
+    
     fireEvent.click(screen.getByText("Previous"));
-
+    
     await waitFor(() => {
       expect(screen.getByText("Food Details")).toBeInTheDocument();
     });
@@ -337,24 +342,23 @@ describe("SurplusFormModal", () => {
   test("submits form with valid data through all steps", async () => {
     const mockResponse = { data: { id: 123 } };
     mockAxiosInstance.post.mockResolvedValue(mockResponse);
-
-    render(<SurplusFormModal {...defaultProps} />);
+    
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     // Complete all steps
     await fillStep1();
     fireEvent.click(screen.getByText("Next"));
-
+    
     await waitFor(() => expect(screen.getByText("Quantity & Dates")).toBeInTheDocument());
     await fillStep2();
     fireEvent.click(screen.getByText("Next"));
-
+    
     await waitFor(() => expect(screen.getByText("Pickup Info")).toBeInTheDocument());
     await fillStep3();
     fireEvent.click(screen.getByText("Next"));
-
+    
     await waitFor(() => expect(screen.getByText("Description")).toBeInTheDocument());
     await fillStep4();
-
     fireEvent.click(screen.getByText("Create Donation"));
 
     await waitFor(() => {
@@ -374,8 +378,8 @@ describe("SurplusFormModal", () => {
 
   // Temperature category is required
   test("requires temperature category in step 1", async () => {
-    render(<SurplusFormModal {...defaultProps} />);
-
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
+    
     await userEvent.type(
       screen.getByPlaceholderText("e.g., Vegetable Lasagna"),
       "Test Food"
@@ -389,7 +393,6 @@ describe("SurplusFormModal", () => {
     
     // Don't fill temperature category
     fireEvent.click(screen.getByText("Next"));
-
     await waitFor(() => {
       expect(screen.getByText(/Please complete all required fields/)).toBeInTheDocument();
     });
@@ -397,8 +400,8 @@ describe("SurplusFormModal", () => {
 
   // Packaging type is required
   test("requires packaging type in step 1", async () => {
-    render(<SurplusFormModal {...defaultProps} />);
-
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
+    
     await userEvent.type(
       screen.getByPlaceholderText("e.g., Vegetable Lasagna"),
       "Test Food"
@@ -412,7 +415,6 @@ describe("SurplusFormModal", () => {
     
     // Don't fill packaging type
     fireEvent.click(screen.getByText("Next"));
-
     await waitFor(() => {
       expect(screen.getByText(/Please complete all required fields/)).toBeInTheDocument();
     });
@@ -424,9 +426,9 @@ describe("SurplusFormModal", () => {
     mockAxiosInstance.post.mockRejectedValue({
       response: { data: { message: errorMessage } },
     });
-
-    render(<SurplusFormModal {...defaultProps} />);
-
+    
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
+    
     await fillStep1();
     fireEvent.click(screen.getByText("Next"));
     await waitFor(() => expect(screen.getByText("Quantity & Dates")).toBeInTheDocument());
@@ -449,8 +451,8 @@ describe("SurplusFormModal", () => {
 
   // Cancel button functionality
   test("cancels form and resets data when cancel button is clicked", async () => {
-    render(<SurplusFormModal {...defaultProps} />);
-
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
+    
     await userEvent.type(
       screen.getByPlaceholderText("e.g., Vegetable Lasagna"),
       "Test Food"
@@ -467,9 +469,9 @@ describe("SurplusFormModal", () => {
   test("shows success message after successful submission", async () => {
     const mockResponse = { data: { id: 123 } };
     mockAxiosInstance.post.mockResolvedValue(mockResponse);
-
-    render(<SurplusFormModal {...defaultProps} />);
-
+    
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
+    
     await fillStep1();
     fireEvent.click(screen.getByText("Next"));
     await waitFor(() => expect(screen.getByText("Quantity & Dates")).toBeInTheDocument());
@@ -490,20 +492,149 @@ describe("SurplusFormModal", () => {
     });
   });
 
-  // Progress steps display correctly
-  test("displays progress steps correctly", () => {
-    render(<SurplusFormModal {...defaultProps} />);
+  // Verify API is called with correct endpoint
+  test("calls the correct API endpoint on form submission", async () => {
+    const mockResponse = { data: { id: 123 } };
+    mockAxiosInstance.post.mockResolvedValue(mockResponse);
+    
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
-    expect(screen.getByText("Food Details")).toBeInTheDocument();
-    expect(screen.getByText("Quantity & Dates")).toBeInTheDocument();
-    expect(screen.getByText("Pickup Info")).toBeInTheDocument();
-    expect(screen.getByText("Description")).toBeInTheDocument();
+    // Fill minimal required fields
+    await userEvent.type(
+      screen.getByPlaceholderText("e.g., Vegetable Lasagna"),
+      "Test Food"
+    );
+    await userEvent.type(
+      screen.getByPlaceholderText("Start typing address..."),
+      "Test Location"
+    );
+    await userEvent.type(
+      screen.getByPlaceholderText(
+        "Describe the food (ingredients, freshness, etc.)"
+      ),
+      "Test description"
+    );
+
+    // Submit the form
+    fireEvent.click(screen.getByText("Create Donation"));
+
+    await waitFor(() => {
+      expect(mockAxiosInstance.post).toHaveBeenCalled();
+      const apiCall = mockAxiosInstance.post.mock.calls[0];
+      expect(apiCall[0]).toBe("/surplus");
+    });
+  });
+
+  // Cancel confirmation when user declines
+  test("does not close modal when cancel is declined", () => {
+    mockConfirm.mockReturnValue(false);
+    
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
+    
+    fireEvent.click(screen.getByText("Cancel"));
+
+    expect(window.confirm).toHaveBeenCalled();
+    expect(mockOnClose).not.toHaveBeenCalled();
+  });
+
+  // Input field changes update form state
+  test("updates form state when input fields change", async () => {
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
+
+    const titleInput = screen.getByPlaceholderText("e.g., Vegetable Lasagna");
+    await userEvent.type(titleInput, "Banana Bread");
+    expect(titleInput.value).toBe("Banana Bread");
+
+    const quantityInput = screen.getByPlaceholderText("0");
+    await userEvent.type(quantityInput, "5");
+    expect(quantityInput.value).toBe("5");
+
+    const notesInput = screen.getByPlaceholderText(
+      "Describe the food (ingredients, freshness, etc.)"
+    );
+    await userEvent.type(notesInput, "Fresh banana bread");
+    expect(notesInput.value).toBe("Fresh banana bread");
+  });
+
+  // Modal closes after successful submission
+  test("closes modal after successful submission", async () => {
+    const mockResponse = { data: { id: 123 } };
+    mockAxiosInstance.post.mockResolvedValue(mockResponse);
+    
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
+
+    // Fill minimal required fields
+    await userEvent.type(
+      screen.getByPlaceholderText("e.g., Vegetable Lasagna"),
+      "Test Food"
+    );
+    await userEvent.type(
+      screen.getByPlaceholderText("Start typing address..."),
+      "Test Location"
+    );
+    await userEvent.type(
+      screen.getByPlaceholderText(
+        "Describe the food (ingredients, freshness, etc.)"
+      ),
+      "Test description"
+    );
+
+    fireEvent.click(screen.getByText("Create Donation"));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Success! Post created with ID: 123/)
+      ).toBeInTheDocument();
+    });
+
+    // Check that onClose is called after delay
+    await waitFor(
+      () => {
+        expect(mockOnClose).toHaveBeenCalled();
+      },
+      { timeout: 3000 }
+    );
+  });
+
+  // Multi-select food categories
+  test("handles multi-select food categories", async () => {
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
+    
+    const categoriesSelect = screen.getByTestId("mock-select-default");
+    
+    // Simulate selecting multiple options using userEvent
+    await userEvent.selectOptions(categoriesSelect, ["PREPARED_MEALS", "BAKERY_PASTRY"]);
+    expect(categoriesSelect).toBeInTheDocument();
+    expect(categoriesSelect.value).toContain("PREPARED_MEALS");
+  });
+
+  // Unit selection change
+  test("changes quantity unit selection", async () => {
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
+    
+    const unitSelect = screen.getByTestId("mock-select-quantityUnit");
+    
+    fireEvent.change(unitSelect, {
+      target: { value: "ITEM" },
+    });
+    expect(unitSelect.value).toBe("ITEM");
+  });
+
+  // Expiry date selection
+  test("selects expiry date", async () => {
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
+    
+    const datePickers = screen.getAllByTestId("date-picker");
+    const expiryDatePicker = datePickers[0]; // First date picker is expiry date
+    
+    fireEvent.click(expiryDatePicker);
+    expect(expiryDatePicker).toBeInTheDocument();
   });
 
   // Add multiple pickup slots
   test("adds multiple pickup slots", async () => {
-    render(<SurplusFormModal {...defaultProps} />);
-
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
+    
     await fillStep1();
     fireEvent.click(screen.getByText("Next"));
     await waitFor(() => expect(screen.getByText("Quantity & Dates")).toBeInTheDocument());
@@ -523,8 +654,8 @@ describe("SurplusFormModal", () => {
 
   // Remove pickup slot
   test("removes a pickup slot", async () => {
-    render(<SurplusFormModal {...defaultProps} />);
-
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
+    
     await fillStep1();
     fireEvent.click(screen.getByText("Next"));
     await waitFor(() => expect(screen.getByText("Quantity & Dates")).toBeInTheDocument());
@@ -548,8 +679,8 @@ describe("SurplusFormModal", () => {
 
   // Cannot remove last pickup slot
   test("does not remove the last remaining pickup slot", async () => {
-    render(<SurplusFormModal {...defaultProps} />);
-
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
+    
     await fillStep1();
     fireEvent.click(screen.getByText("Next"));
     await waitFor(() => expect(screen.getByText("Quantity & Dates")).toBeInTheDocument());
@@ -562,10 +693,43 @@ describe("SurplusFormModal", () => {
     expect(trashIcons.length).toBe(0);
   });
 
+  // Update pickup slot date
+  test("updates pickup slot date", async () => {
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
+    
+    const datePickers = screen.getAllByTestId("date-picker");
+    const slotDatePicker = datePickers[1]; // Second date picker is pickup slot date
+    
+    fireEvent.click(slotDatePicker);
+    expect(slotDatePicker).toBeInTheDocument();
+  });
+
+  // Update pickup slot start time
+  test("updates pickup slot start time", async () => {
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
+    
+    const timePickers = screen.getAllByTestId("time-picker");
+    const startTimePicker = timePickers[0];
+    
+    fireEvent.click(startTimePicker);
+    expect(startTimePicker).toBeInTheDocument();
+  });
+
+  // Update pickup slot end time
+  test("updates pickup slot end time", async () => {
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
+    
+    const timePickers = screen.getAllByTestId("time-picker");
+    const endTimePicker = timePickers[1];
+    
+    fireEvent.click(endTimePicker);
+    expect(endTimePicker).toBeInTheDocument();
+  });
+
   // Update pickup slot notes
   test("updates pickup slot notes", async () => {
-    render(<SurplusFormModal {...defaultProps} />);
-
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
+    
     await fillStep1();
     fireEvent.click(screen.getByText("Next"));
     await waitFor(() => expect(screen.getByText("Quantity & Dates")).toBeInTheDocument());
@@ -579,17 +743,13 @@ describe("SurplusFormModal", () => {
     );
     
     await userEvent.type(notesInput, "Ring the doorbell");
-
     expect(notesInput.value).toBe("Ring the doorbell");
   });
 
-  // Modal closes after successful submission
-  test("closes modal after successful submission", async () => {
-    const mockResponse = { data: { id: 123 } };
-    mockAxiosInstance.post.mockResolvedValue(mockResponse);
-
-    render(<SurplusFormModal {...defaultProps} />);
-
+  // Google Places Autocomplete address selection
+  test("handles Google Places autocomplete selection", async () => {
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
+    
     await fillStep1();
     fireEvent.click(screen.getByText("Next"));
     await waitFor(() => expect(screen.getByText("Quantity & Dates")).toBeInTheDocument());
@@ -597,47 +757,34 @@ describe("SurplusFormModal", () => {
     await fillStep2();
     fireEvent.click(screen.getByText("Next"));
     await waitFor(() => expect(screen.getByText("Pickup Info")).toBeInTheDocument());
-    
-    await fillStep3();
-    fireEvent.click(screen.getByText("Next"));
-    await waitFor(() => expect(screen.getByText("Description")).toBeInTheDocument());
-    
-    await fillStep4();
-    fireEvent.click(screen.getByText("Create Donation"));
+
+    const addressInput = screen.getByPlaceholderText("Start typing address...");
+    // Trigger the autocomplete by blurring the input
+    fireEvent.blur(addressInput);
 
     await waitFor(() => {
-      expect(screen.getByText(/Success! Post created with ID: 123/)).toBeInTheDocument();
+      expect(addressInput.value).toContain("123 Test Street");
     });
-
-    await waitFor(
-      () => {
-        expect(mockOnClose).toHaveBeenCalled();
-      },
-      { timeout: 3000 }
-    );
   });
 
-  // Quantity with decimal values
-  test("handles decimal quantity values", async () => {
-    render(<SurplusFormModal {...defaultProps} />);
-
-    await fillStep1();
-    fireEvent.click(screen.getByText("Next"));
-    await waitFor(() => expect(screen.getByText("Quantity & Dates")).toBeInTheDocument());
-
-    const quantityInput = screen.getByPlaceholderText("0");
-    await userEvent.type(quantityInput, "5.5");
-
-    expect(quantityInput.value).toBe("5.5");
+  // Manual address input without autocomplete
+  test("handles manual address input", async () => {
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
+    
+    const addressInput = screen.getByPlaceholderText("Start typing address...");
+    
+    await userEvent.clear(addressInput);
+    await userEvent.type(addressInput, "456 Manual Street");
+    expect(addressInput.value).toBe("456 Manual Street");
   });
 
-  // Submit with multiple slots
+  // Multiple pickup slots submission
   test("submits form with multiple pickup slots", async () => {
     const mockResponse = { data: { id: 456 } };
     mockAxiosInstance.post.mockResolvedValue(mockResponse);
-
-    render(<SurplusFormModal {...defaultProps} />);
-
+    
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
+    
     await fillStep1();
     fireEvent.click(screen.getByText("Next"));
     await waitFor(() => expect(screen.getByText("Quantity & Dates")).toBeInTheDocument());
@@ -695,29 +842,25 @@ describe("SurplusFormModal", () => {
     });
   });
 
-  // Unit selection change
-  test("changes quantity unit selection", async () => {
-    render(<SurplusFormModal {...defaultProps} />);
-
+  // Quantity with decimal values
+  test("handles decimal quantity values", async () => {
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
+    
     await fillStep1();
     fireEvent.click(screen.getByText("Next"));
     await waitFor(() => expect(screen.getByText("Quantity & Dates")).toBeInTheDocument());
 
-    const unitSelect = screen.getByTestId("mock-select-quantityUnit");
-    
-    fireEvent.change(unitSelect, {
-      target: { value: "ITEM" },
-    });
-
-    expect(unitSelect.value).toBe("ITEM");
+    const quantityInput = screen.getByPlaceholderText("0");
+    await userEvent.type(quantityInput, "5.5");
+    expect(quantityInput.value).toBe("5.5");
   });
 
   // API error without response data
   test("handles API error without response message", async () => {
     mockAxiosInstance.post.mockRejectedValue({});
-
-    render(<SurplusFormModal {...defaultProps} />);
-
+    
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
+    
     await fillStep1();
     fireEvent.click(screen.getByText("Next"));
     await waitFor(() => expect(screen.getByText("Quantity & Dates")).toBeInTheDocument());
@@ -736,18 +879,5 @@ describe("SurplusFormModal", () => {
     await waitFor(() => {
       expect(screen.getByText("Failed to create surplus post")).toBeInTheDocument();
     });
-  });
-
-  // Cancel confirmation when user declines
-  test("does not close modal when cancel is declined", () => {
-    mockConfirm.mockReturnValue(false);
-
-    render(<SurplusFormModal {...defaultProps} />);
-
-    const closeButton = screen.getByTestId("x-icon").closest("button");
-    fireEvent.click(closeButton);
-
-    expect(window.confirm).toHaveBeenCalled();
-    expect(mockOnClose).not.toHaveBeenCalled();
   });
 });

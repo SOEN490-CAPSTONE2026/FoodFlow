@@ -5,12 +5,14 @@ import Select from "react-select";
 import DatePicker from "react-datepicker";
 import { surplusAPI } from "../../services/api";
 import { foodTypeOptions, unitOptions, temperatureCategoryOptions, packagingTypeOptions } from "../../constants/foodConstants";
+import { useTimezone } from "../../contexts/TimezoneContext";
 import "./Donor_Styles/SurplusFormModal.css";
 import "react-datepicker/dist/react-datepicker.css";
 
 const SurplusFormModal = ({ isOpen, onClose }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 4;
+  const { userTimezone } = useTimezone();
 
   const [formData, setFormData] = useState({
     title: "",
@@ -180,6 +182,7 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
       description: formData.description,
       temperatureCategory: formData.temperatureCategory,
       packagingType: formData.packagingType,
+      donorTimezone: userTimezone || "UTC", // Include donor's timezone
     };
 
     try {

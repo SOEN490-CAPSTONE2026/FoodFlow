@@ -53,6 +53,9 @@ public class CreateSurplusRequest {
     private List<PickupSlotRequest> pickupSlots = new ArrayList<>();
 
     private PostStatus status = PostStatus.AVAILABLE; // default value
+    
+    // Donor's timezone (e.g., "America/Toronto") - all times in this request are in this timezone
+    private String donorTimezone;
 
     @NotNull(message = "Temperature category is required")
     private TemperatureCategory temperatureCategory;
@@ -105,4 +108,7 @@ public class CreateSurplusRequest {
 
     public PackagingType getPackagingType() { return packagingType; }
     public void setPackagingType(PackagingType packagingType) { this.packagingType = packagingType; }
+    
+    public String getDonorTimezone() { return donorTimezone; }
+    public void setDonorTimezone(String donorTimezone) { this.donorTimezone = donorTimezone; }
 }

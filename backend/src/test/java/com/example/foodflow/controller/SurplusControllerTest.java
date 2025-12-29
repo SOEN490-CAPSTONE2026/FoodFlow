@@ -4,12 +4,14 @@ import com.example.foodflow.model.dto.CompleteSurplusRequest;
 import com.example.foodflow.model.dto.CreateSurplusRequest;
 import com.example.foodflow.model.dto.SurplusResponse;
 import com.example.foodflow.model.entity.User;
+import com.example.foodflow.model.entity.UserRole;
 import com.example.foodflow.model.types.FoodCategory;
 import com.example.foodflow.model.types.Location;
 import com.example.foodflow.model.types.PackagingType;
 import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.model.types.Quantity;
 import com.example.foodflow.model.types.TemperatureCategory;
+import com.example.foodflow.repository.UserRepository;
 import com.example.foodflow.service.SurplusService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -28,8 +30,10 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.HashSet;
 import java.time.LocalDate;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -47,6 +51,9 @@ class SurplusControllerTest {
 
     @MockBean
     private SurplusService surplusService;
+    
+    @MockBean
+    private UserRepository userRepository;
 
     private ObjectMapper objectMapper;
     private CreateSurplusRequest request;
@@ -56,6 +63,20 @@ class SurplusControllerTest {
     void setUp() {
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
+        
+        // Mock users for donor and receiver roles
+        User donorUser = new User();
+        donorUser.setId(1L);
+        donorUser.setEmail("donor@test.com");
+        donorUser.setRole(UserRole.DONOR);
+        
+        User receiverUser = new User();
+        receiverUser.setId(2L);
+        receiverUser.setEmail("receiver@test.com");
+        receiverUser.setRole(UserRole.RECEIVER);
+        
+        when(userRepository.findByEmail("donor@test.com")).thenReturn(Optional.of(donorUser));
+        when(userRepository.findByEmail("receiver@test.com")).thenReturn(Optional.of(receiverUser));
 
         // Create test request with NEW field structure
         request = new CreateSurplusRequest();
@@ -82,7 +103,7 @@ class SurplusControllerTest {
 
         HashSet<FoodCategory> foodCategories2 = new HashSet<FoodCategory>();
         foodCategories2.add(FoodCategory.PREPARED_MEALS);
-        request.setFoodCategories(foodCategories2);
+        response.setFoodCategories(foodCategories2);  // FIX: Set on response, not request
         
         response.setQuantity(new Quantity(10.0, Quantity.Unit.KILOGRAM)); 
 
@@ -90,7 +111,7 @@ class SurplusControllerTest {
         response.setPickupDate(request.getPickupDate());
         response.setPickupFrom(request.getPickupFrom()); 
         response.setPickupTo(request.getPickupTo()); 
-        request.setPickupLocation(new Location(45.2903, -34.0987, "123 Main St"));
+        response.setPickupLocation(new Location(45.2903, -34.0987, "123 Main St"));  // FIX: Set on response
         response.setDescription("Vegetarian lasagna with spinach");
         response.setDonorEmail("donor@test.com");
         response.setCreatedAt(LocalDateTime.now());
@@ -99,7 +120,7 @@ class SurplusControllerTest {
     @Test
     @WithMockUser(username = "donor@test.com", authorities = {"DONOR"})
     void testCreateSurplusPost_Success() throws Exception {
-        when(surplusService.createSurplusPost(any(CreateSurplusRequest.class), any(User.class)))
+        when(surplusService.createSurplusPost(any(CreateSurplusRequest.class), any()))
             .thenReturn(response);
 
         mockMvc.perform(post("/api/surplus")
@@ -152,7 +173,7 @@ class SurplusControllerTest {
         completedResponse.setPickupTo(LocalTime.of(17, 0));
         completedResponse.setCreatedAt(LocalDateTime.now());
 
-        when(surplusService.completeSurplusPost(eq(1L), eq("123456"), any(User.class)))
+        when(surplusService.completeSurplusPost(eq(1L), eq("123456"), any()))
             .thenReturn(completedResponse);
 
         // When & Then
@@ -233,7 +254,7 @@ class SurplusControllerTest {
         // Given
         CompleteSurplusRequest completionRequest = new CompleteSurplusRequest("999999");
 
-        when(surplusService.completeSurplusPost(eq(1L), eq("999999"), any(User.class)))
+        when(surplusService.completeSurplusPost(eq(1L), eq("999999"), any()))
             .thenThrow(new RuntimeException("Invalid OTP code"));
 
         // When & Then - Service exceptions result in 500 error or are not caught
@@ -253,7 +274,7 @@ class SurplusControllerTest {
         // Given
         CompleteSurplusRequest completionRequest = new CompleteSurplusRequest("123456");
 
-        when(surplusService.completeSurplusPost(eq(1L), eq("123456"), any(User.class)))
+        when(surplusService.completeSurplusPost(eq(1L), eq("123456"), any()))
             .thenThrow(new RuntimeException("You are not authorized to complete this post"));
 
         // When & Then - Service exceptions result in 500 error or are not caught
@@ -339,7 +360,7 @@ class SurplusControllerTest {
     void testGetAllAvailableSurplus_Success() throws Exception {
         // Given
         java.util.List<SurplusResponse> availablePosts = java.util.Arrays.asList(response);
-        when(surplusService.getAllAvailableSurplusPosts())
+        when(surplusService.searchSurplusPostsForReceiver(any(com.example.foodflow.model.dto.SurplusFilterRequest.class), any()))
             .thenReturn(availablePosts);
 
         // When & Then
@@ -353,7 +374,7 @@ class SurplusControllerTest {
     @WithMockUser(username = "receiver@test.com", authorities = {"RECEIVER"})
     void testGetAllAvailableSurplus_EmptyList() throws Exception {
         // Given
-        when(surplusService.getAllAvailableSurplusPosts())
+        when(surplusService.searchSurplusPostsForReceiver(any(com.example.foodflow.model.dto.SurplusFilterRequest.class), any()))
             .thenReturn(java.util.Collections.emptyList());
 
         // When & Then
@@ -381,7 +402,7 @@ class SurplusControllerTest {
         filterRequest.setStatus("AVAILABLE");
         
         java.util.List<SurplusResponse> filteredPosts = java.util.Arrays.asList(response);
-        when(surplusService.searchSurplusPosts(any(com.example.foodflow.model.dto.SurplusFilterRequest.class)))
+        when(surplusService.searchSurplusPostsForReceiver(any(com.example.foodflow.model.dto.SurplusFilterRequest.class), any()))
             .thenReturn(filteredPosts);
 
         // When & Then
@@ -401,7 +422,7 @@ class SurplusControllerTest {
         filterRequest.setFoodCategories(java.util.Arrays.asList("PREPARED_MEALS"));
         
         java.util.List<SurplusResponse> filteredPosts = java.util.Arrays.asList(response);
-        when(surplusService.searchSurplusPosts(any(com.example.foodflow.model.dto.SurplusFilterRequest.class)))
+        when(surplusService.searchSurplusPostsForReceiver(any(com.example.foodflow.model.dto.SurplusFilterRequest.class), any()))
             .thenReturn(filteredPosts);
 
         // When & Then
@@ -432,7 +453,7 @@ class SurplusControllerTest {
     void testSearchSurplusPostsViaParams_Success() throws Exception {
         // Given
         java.util.List<SurplusResponse> filteredPosts = java.util.Arrays.asList(response);
-        when(surplusService.searchSurplusPosts(any(com.example.foodflow.model.dto.SurplusFilterRequest.class)))
+        when(surplusService.searchSurplusPostsForReceiver(any(com.example.foodflow.model.dto.SurplusFilterRequest.class), any()))
             .thenReturn(filteredPosts);
 
         // When & Then
@@ -448,7 +469,7 @@ class SurplusControllerTest {
     void testSearchSurplusPostsViaParams_WithFoodCategories() throws Exception {
         // Given
         java.util.List<SurplusResponse> filteredPosts = java.util.Arrays.asList(response);
-        when(surplusService.searchSurplusPosts(any(com.example.foodflow.model.dto.SurplusFilterRequest.class)))
+        when(surplusService.searchSurplusPostsForReceiver(any(com.example.foodflow.model.dto.SurplusFilterRequest.class), any()))
             .thenReturn(filteredPosts);
 
         // When & Then
@@ -464,7 +485,7 @@ class SurplusControllerTest {
     void testSearchSurplusPostsViaParams_WithExpiryBefore() throws Exception {
         // Given
         java.util.List<SurplusResponse> filteredPosts = java.util.Arrays.asList(response);
-        when(surplusService.searchSurplusPosts(any(com.example.foodflow.model.dto.SurplusFilterRequest.class)))
+        when(surplusService.searchSurplusPostsForReceiver(any(com.example.foodflow.model.dto.SurplusFilterRequest.class), any()))
             .thenReturn(filteredPosts);
 
         // When & Then
@@ -480,7 +501,7 @@ class SurplusControllerTest {
     void testSearchSurplusPostsViaParams_InvalidExpiryDate() throws Exception {
         // Given
         java.util.List<SurplusResponse> filteredPosts = java.util.Arrays.asList(response);
-        when(surplusService.searchSurplusPosts(any(com.example.foodflow.model.dto.SurplusFilterRequest.class)))
+        when(surplusService.searchSurplusPostsForReceiver(any(com.example.foodflow.model.dto.SurplusFilterRequest.class), any()))
             .thenReturn(filteredPosts);
 
         // When & Then - Invalid date format should be handled gracefully
@@ -495,7 +516,7 @@ class SurplusControllerTest {
     void testSearchSurplusPostsViaParams_NoParams() throws Exception {
         // Given
         java.util.List<SurplusResponse> filteredPosts = java.util.Arrays.asList(response);
-        when(surplusService.searchSurplusPosts(any(com.example.foodflow.model.dto.SurplusFilterRequest.class)))
+        when(surplusService.searchSurplusPostsForReceiver(any(com.example.foodflow.model.dto.SurplusFilterRequest.class), any()))
             .thenReturn(filteredPosts);
 
         // When & Then - Default to AVAILABLE status
