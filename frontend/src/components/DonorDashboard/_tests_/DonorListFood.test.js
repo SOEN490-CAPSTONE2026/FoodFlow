@@ -81,6 +81,11 @@ jest.mock("lucide-react", () => ({
   Package: () => "PackageIcon",
   ChevronDown: () => "ChevronDownIcon",
   Filter: () => "FilterIcon",
+  Camera: () => "CameraIcon",
+  Image: () => "ImageIcon",
+  ChevronLeft: () => "ChevronLeftIcon",
+  ChevronRight: () => "ChevronRightIcon",
+  Upload: () => "UploadIcon",
 }));
 
 import DonorListFood from "../DonorListFood";
