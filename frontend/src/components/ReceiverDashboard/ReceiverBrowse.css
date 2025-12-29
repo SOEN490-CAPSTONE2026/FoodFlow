@@ -32,8 +32,8 @@
 }
 
 /* Section title */
-.receiver-section-title {
-  font-size: 28px;
+.receiver-section-title-browse {
+  font-size: 1.5rem;
   font-weight: 700;
   color: #1b4965;
   margin: 0;
@@ -607,9 +607,9 @@
   justify-content: center;
   width: 28px;
   height: 28px;
-  background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+  background: linear-gradient(135deg, #e9d5ff 0%, #faf5ff 100%);
   border-radius: 8px;
-  color: #0369a1;
+  color: #7c3aed;
   flex-shrink: 0;
 }
 

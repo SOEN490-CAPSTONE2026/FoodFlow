@@ -296,7 +296,7 @@ export default function ReceiverBrowse() {
   return (
     <div className="receiver-browse-container">
       <div className="receiver-browse-header">
-        <h1 className="receiver-section-title">Explore Available Donations</h1>
+        <h1 className="receiver-section-title-browse">Explore Available Donations</h1>
         
         <div className="sort-controls">
           <span className="sort-label">
@@ -525,7 +525,6 @@ export default function ReceiverBrowse() {
 
                   {expandedCardId === item.id && (
                     <div className="receiver-donation-details">
-                      <div className="receiver-section-title">Donation Details</div>
                       <div className="receiver-details-grid">
                         <div className="receiver-details-section">
                           <div className="receiver-detail-item">
@@ -595,8 +594,6 @@ export default function ReceiverBrowse() {
                       {/* Food Compliance Section */}
                       {(item.temperatureCategory || item.packagingType) && (
                         <>
-                          <div className="receiver-detail-separator"></div>
-                          <div className="receiver-section-title">Food Compliance</div>
                           <div className="receiver-details-grid">
                             <div className="receiver-details-section">
                               {item.temperatureCategory && (
