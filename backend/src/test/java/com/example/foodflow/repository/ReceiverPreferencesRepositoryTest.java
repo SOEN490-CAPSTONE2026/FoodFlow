@@ -10,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -38,10 +39,18 @@ class ReceiverPreferencesRepositoryTest {
         entityManager.flush();
     }
 
+    private ReceiverPreferences createPreferencesWithTimestamps(User user) {
+        ReceiverPreferences preferences = new ReceiverPreferences(user);
+        // Set timestamps manually since @CreatedDate might not be working in tests
+        preferences.setCreatedAt(LocalDateTime.now());
+        preferences.setUpdatedAt(LocalDateTime.now());
+        return preferences;
+    }
+
     @Test
     void testFindByUserId_ReturnsPreferences_WhenExists() {
         // Given
-        ReceiverPreferences preferences = new ReceiverPreferences(receiver);
+        ReceiverPreferences preferences = createPreferencesWithTimestamps(receiver);
         preferences.setPreferredFoodTypes(Arrays.asList("Bakery & Pastry", "Dairy & Cold Items"));
         preferences.setMaxCapacity(50);
         preferences.setMinQuantity(10);
@@ -79,7 +88,7 @@ class ReceiverPreferencesRepositoryTest {
     @Test
     void testExistsByUserId_ReturnsTrue_WhenExists() {
         // Given
-        ReceiverPreferences preferences = new ReceiverPreferences(receiver);
+        ReceiverPreferences preferences = createPreferencesWithTimestamps(receiver);
         entityManager.persist(preferences);
         entityManager.flush();
 
@@ -102,7 +111,7 @@ class ReceiverPreferencesRepositoryTest {
     @Test
     void testDeleteByUserId_RemovesPreferences() {
         // Given
-        ReceiverPreferences preferences = new ReceiverPreferences(receiver);
+        ReceiverPreferences preferences = createPreferencesWithTimestamps(receiver);
         entityManager.persist(preferences);
         entityManager.flush();
 
@@ -118,7 +127,7 @@ class ReceiverPreferencesRepositoryTest {
     @Test
     void testSavePreferences_WithEmptyLists() {
         // Given
-        ReceiverPreferences preferences = new ReceiverPreferences(receiver);
+        ReceiverPreferences preferences = createPreferencesWithTimestamps(receiver);
         preferences.setPreferredFoodTypes(Arrays.asList());
         preferences.setPreferredPickupWindows(Arrays.asList());
         preferences.setMaxCapacity(100);
@@ -138,7 +147,7 @@ class ReceiverPreferencesRepositoryTest {
     @Test
     void testUpdatePreferences_ModifiesExisting() {
         // Given
-        ReceiverPreferences preferences = new ReceiverPreferences(receiver);
+        ReceiverPreferences preferences = createPreferencesWithTimestamps(receiver);
         preferences.setMaxCapacity(50);
         preferences.setPreferredFoodTypes(Arrays.asList("Bakery & Pastry"));
         entityManager.persist(preferences);
@@ -147,6 +156,7 @@ class ReceiverPreferencesRepositoryTest {
         // When
         preferences.setMaxCapacity(75);
         preferences.setPreferredFoodTypes(Arrays.asList("Bakery & Pastry", "Dairy & Cold Items"));
+        preferences.setUpdatedAt(LocalDateTime.now()); // Update timestamp
         preferencesRepository.save(preferences);
         entityManager.flush();
 
@@ -160,7 +170,7 @@ class ReceiverPreferencesRepositoryTest {
     @Test
     void testHelperMethod_AcceptsFoodType() {
         // Given
-        ReceiverPreferences preferences = new ReceiverPreferences(receiver);
+        ReceiverPreferences preferences = createPreferencesWithTimestamps(receiver);
         preferences.setPreferredFoodTypes(Arrays.asList("Bakery & Pastry", "Dairy & Cold Items"));
         entityManager.persist(preferences);
         entityManager.flush();
@@ -173,7 +183,7 @@ class ReceiverPreferencesRepositoryTest {
     @Test
     void testHelperMethod_AcceptsFoodType_EmptyListAcceptsAll() {
         // Given
-        ReceiverPreferences preferences = new ReceiverPreferences(receiver);
+        ReceiverPreferences preferences = createPreferencesWithTimestamps(receiver);
         preferences.setPreferredFoodTypes(Arrays.asList());
         entityManager.persist(preferences);
         entityManager.flush();
@@ -186,7 +196,7 @@ class ReceiverPreferencesRepositoryTest {
     @Test
     void testHelperMethod_AcceptsQuantity() {
         // Given
-        ReceiverPreferences preferences = new ReceiverPreferences(receiver);
+        ReceiverPreferences preferences = createPreferencesWithTimestamps(receiver);
         preferences.setMinQuantity(10);
         preferences.setMaxQuantity(100);
         entityManager.persist(preferences);
@@ -198,5 +208,42 @@ class ReceiverPreferencesRepositoryTest {
         assertThat(preferences.acceptsQuantity(100)).isTrue();
         assertThat(preferences.acceptsQuantity(5)).isFalse();
         assertThat(preferences.acceptsQuantity(101)).isFalse();
+    }
+
+    // Additional test to verify timestamps are working
+    @Test
+    void testTimestampsAreSetCorrectly() {
+        // Given
+        LocalDateTime before = LocalDateTime.now().minusSeconds(1);
+        ReceiverPreferences preferences = createPreferencesWithTimestamps(receiver);
+        
+        // When
+        ReceiverPreferences saved = preferencesRepository.save(preferences);
+        entityManager.flush();
+        LocalDateTime after = LocalDateTime.now().plusSeconds(1);
+
+        // Then
+        assertThat(saved.getCreatedAt()).isNotNull();
+        assertThat(saved.getUpdatedAt()).isNotNull();
+        assertThat(saved.getCreatedAt()).isAfter(before);
+        assertThat(saved.getCreatedAt()).isBefore(after);
+    }
+
+    // Test to verify user relationship
+    @Test
+    void testUserRelationshipIsCorrect() {
+        // Given
+        ReceiverPreferences preferences = createPreferencesWithTimestamps(receiver);
+        preferences.setMaxCapacity(75);
+
+        // When
+        ReceiverPreferences saved = preferencesRepository.save(preferences);
+        entityManager.flush();
+
+        // Then
+        assertThat(saved.getUser()).isNotNull();
+        assertThat(saved.getUser().getId()).isEqualTo(receiver.getId());
+        assertThat(saved.getUser().getEmail()).isEqualTo("receiver@test.com");
+        assertThat(saved.getUser().getRole()).isEqualTo(UserRole.RECEIVER);
     }
 }

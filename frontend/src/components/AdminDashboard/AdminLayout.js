@@ -16,7 +16,8 @@ import {
   MoreVertical,
   LogOut,
   Menu,
-  X
+  X,
+  AlertTriangle
 } from "lucide-react";
 import Logo from "../../assets/Logo_White.png";
 import { AuthContext } from "../../contexts/AuthContext";
@@ -70,9 +71,14 @@ export default function AdminLayout() {
         return "Calendar";
       case "/admin/messages":
         return "Messages";
+      case "/admin/disputes":
+        return "Disputes & Reports";
       case "/admin/help":
         return "Help";
       default:
+        if (location.pathname.startsWith("/admin/disputes/")) {
+          return "Dispute Details";
+        }
         return "Admin";
     }
   })();
@@ -90,9 +96,14 @@ export default function AdminLayout() {
         return "Events and schedules";
       case "/admin/messages":
         return "Incoming communications";
+      case "/admin/disputes":
+        return "Track, review, and resolve reported issues";
       case "/admin/help":
         return "Guides and support";
       default:
+        if (location.pathname.startsWith("/admin/disputes/")) {
+          return "View and manage case details";
+        }
         return "Administration";
     }
   })();
@@ -197,6 +208,13 @@ export default function AdminLayout() {
               <FileText size={18} className="lucide" />
             </span>
             Activity log
+          </Link>
+
+          <Link to="/admin/disputes" className={`admin-nav-link ${isActive("/admin/disputes") ? "active" : ""}`} data-tooltip="Disputes">
+            <span className="nav-icon" aria-hidden>
+              <AlertTriangle size={18} className="lucide" />
+            </span>
+            Disputes
           </Link>
 
           <div className={`admin-nav-link messages-link ${isActive("/admin/messages") ? "active" : ""}`} data-tooltip="Messages">
