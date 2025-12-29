@@ -1,5 +1,6 @@
 package com.example.foodflow.controller;
 
+import com.example.foodflow.model.dto.MessageHistoryResponse;
 import com.example.foodflow.model.dto.MessageRequest;
 import com.example.foodflow.model.dto.MessageResponse;
 import com.example.foodflow.model.entity.User;
@@ -59,4 +60,24 @@ public class MessageController {
         long count = messageService.getUnreadCount(currentUser);
         return ResponseEntity.ok(Map.of("unreadCount", count));
     }
+
+       /**
+     * Get paginated message history for a specific donation post
+     */
+    @GetMapping("/history/{postId}")
+    public ResponseEntity<MessageHistoryResponse> getMessageHistoryByPost(
+            @PathVariable Long postId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size,
+            @AuthenticationPrincipal User currentUser) {
+        try {
+            MessageHistoryResponse response = messageService.getMessageHistoryByPostId(
+                postId, currentUser, page, size
+            );
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
 }
