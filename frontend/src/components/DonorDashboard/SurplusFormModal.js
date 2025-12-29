@@ -5,10 +5,12 @@ import Select from "react-select";
 import DatePicker from "react-datepicker";
 import { surplusAPI } from "../../services/api";
 import { foodTypeOptions, unitOptions } from "../../constants/foodConstants";
+import { useTimezone } from "../../contexts/TimezoneContext";
 import "./Donor_Styles/SurplusFormModal.css";
 import "react-datepicker/dist/react-datepicker.css";
 
 const SurplusFormModal = ({ isOpen, onClose }) => {
+  const { userTimezone } = useTimezone();
 
   const [formData, setFormData] = useState({
     title: "",
@@ -114,6 +116,7 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
       pickupTo: formattedSlots[0].endTime,
       pickupLocation: formData.pickupLocation,
       description: formData.description,
+      donorTimezone: userTimezone || "UTC", // Include donor's timezone
     };
 
     try {

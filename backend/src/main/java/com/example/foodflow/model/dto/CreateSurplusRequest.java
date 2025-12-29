@@ -49,6 +49,9 @@ public class CreateSurplusRequest {
     private List<PickupSlotRequest> pickupSlots = new ArrayList<>();
 
     private PostStatus status = PostStatus.AVAILABLE; // default value
+    
+    // Donor's timezone (e.g., "America/Toronto") - all times in this request are in this timezone
+    private String donorTimezone;
 
     // Constructors
     public CreateSurplusRequest() {}
@@ -86,4 +89,7 @@ public class CreateSurplusRequest {
 
     public List<PickupSlotRequest> getPickupSlots() { return pickupSlots; }
     public void setPickupSlots(List<PickupSlotRequest> pickupSlots) { this.pickupSlots = pickupSlots; }
+    
+    public String getDonorTimezone() { return donorTimezone; }
+    public void setDonorTimezone(String donorTimezone) { this.donorTimezone = donorTimezone; }
 }

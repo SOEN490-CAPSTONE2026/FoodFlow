@@ -3,12 +3,14 @@ import { Package, User, ArrowRight, Filter, Clock } from 'lucide-react';
 import Select from 'react-select';
 import { claimsAPI } from '../../services/api';
 import { useNotification } from '../../contexts/NotificationContext';
+import { useTimezone } from '../../contexts/TimezoneContext';
 import { getPrimaryFoodCategory, foodTypeImages, getUnitLabel } from '../../constants/foodConstants';
 import ClaimDetailModal from './ClaimDetailModal.js';
 import "./Receiver_Styles/ReceiverMyClaims.css";
 
 export default function ReceiverMyClaims() {
   const { showNotification } = useNotification();
+  const { userTimezone } = useTimezone();
   const [claims, setClaims] = useState([]);
   const [activeFilter, setActiveFilter] = useState('All');
   const [sortBy, setSortBy] = useState({ value: 'date', label: 'Sort by Date' });
@@ -99,27 +101,43 @@ export default function ReceiverMyClaims() {
   };
 
   // Format pickup time consistently with ReceiverBrowse
-  const formatPickupTime = (pickupDate, pickupFrom, pickupTo) => {
+  const formatPickupTime = (pickupDate, pickupFrom, pickupTo, userTimezone = 'UTC') => {
     if (!pickupDate || !pickupFrom || !pickupTo) return "—";
     try {
-      const fromDate = new Date(`${pickupDate}T${pickupFrom}`);
+      // Backend sends LocalDateTime, treat as UTC by adding 'Z'
+      let fromDateStr = `${pickupDate}T${pickupFrom}`;
+      if (!fromDateStr.endsWith('Z') && !fromDateStr.includes('+')) {
+        fromDateStr = fromDateStr + 'Z';
+      }
+      let toDateStr = `${pickupDate}T${pickupTo}`;
+      if (!toDateStr.endsWith('Z') && !toDateStr.includes('+')) {
+        toDateStr = toDateStr + 'Z';
+      }
+      
+      const fromDate = new Date(fromDateStr);
+      const toDate = new Date(toDateStr);
+      
       const dateStr = fromDate.toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
         year: "numeric",
+        timeZone: userTimezone
       });
       const fromTime = fromDate.toLocaleTimeString("en-US", {
         hour: "numeric",
         minute: "2-digit",
         hour12: true,
+        timeZone: userTimezone
       });
-      const [hours, minutes] = pickupTo.split(":");
-      const hour = parseInt(hours, 10);
-      const isPM = hour >= 12;
-      const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-      const toTime = `${displayHour}:${minutes} ${isPM ? "PM" : "AM"}`;
+      const toTime = toDate.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+        timeZone: userTimezone
+      });
       return `${dateStr} ${fromTime}-${toTime}`;
-    } catch {
+    } catch (error) {
+      console.error('Error formatting pickup time:', error);
       return "—";
     }
   };
@@ -301,7 +319,8 @@ export default function ReceiverMyClaims() {
                       {formatPickupTime(
                         claim.confirmedPickupSlot?.pickupDate || claim.confirmedPickupSlot?.date,
                         claim.confirmedPickupSlot?.startTime || claim.confirmedPickupSlot?.pickupFrom,
-                        claim.confirmedPickupSlot?.endTime || claim.confirmedPickupSlot?.pickupTo
+                        claim.confirmedPickupSlot?.endTime || claim.confirmedPickupSlot?.pickupTo,
+                        userTimezone
                       )}
                     </span>
                   </div>
