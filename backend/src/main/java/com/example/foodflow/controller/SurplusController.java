@@ -49,27 +49,33 @@ public class SurplusController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('RECEIVER')")
-    public ResponseEntity<List<SurplusResponse>> getAllAvailableSurplus() {
-        List<SurplusResponse> availablePosts = surplusService.getAllAvailableSurplusPosts();
+    public ResponseEntity<List<SurplusResponse>> getAllAvailableSurplus(
+            @AuthenticationPrincipal User receiver) {
+        // Use empty filter to get all available posts, but with timezone conversion
+        SurplusFilterRequest filterRequest = new SurplusFilterRequest();
+        filterRequest.setStatus("AVAILABLE");
+        List<SurplusResponse> availablePosts = surplusService.searchSurplusPostsForReceiver(filterRequest, receiver);
         return ResponseEntity.ok(availablePosts);
     }
 
      /**
      * New endpoint for filtered surplus posts based on receiver criteria.
      * If no filters are provided, returns all available posts.
+     * Times are converted to receiver's timezone.
      */
     @PostMapping("/search")
     @PreAuthorize("hasAuthority('RECEIVER')")
     public ResponseEntity<List<SurplusResponse>> searchSurplusPosts(
             @Valid @RequestBody SurplusFilterRequest filterRequest,
             @AuthenticationPrincipal User receiver) {
-        List<SurplusResponse> filteredPosts = surplusService.searchSurplusPosts(filterRequest);
+        List<SurplusResponse> filteredPosts = surplusService.searchSurplusPostsForReceiver(filterRequest, receiver);
         return ResponseEntity.ok(filteredPosts);
 
     }
     /**
      * Alternative GET endpoint for basic filtering via query parameters.
      * Useful for simple filters without complex objects like Location.
+     * Times are converted to receiver's timezone.
      */
     @GetMapping("/search")
     @PreAuthorize("hasAuthority('RECEIVER')")
@@ -98,7 +104,7 @@ public class SurplusController {
             }
 
         }
-        List<SurplusResponse> filteredPosts = surplusService.searchSurplusPosts(filterRequest);
+        List<SurplusResponse> filteredPosts = surplusService.searchSurplusPostsForReceiver(filterRequest, receiver);
         return ResponseEntity.ok(filteredPosts);
 
     }
