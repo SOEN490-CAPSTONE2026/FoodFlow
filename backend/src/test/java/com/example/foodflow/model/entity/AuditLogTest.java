@@ -125,15 +125,20 @@ class AuditLogTest {
 
     @Test
     void testEquals_EqualObjects() {
+        // Use the same timestamp for both objects to avoid microsecond differences
+        LocalDateTime fixedTimestamp = LocalDateTime.of(2024, 6, 15, 10, 30, 0);
+        
         AuditLog log1 = new AuditLog();
         log1.setId(1L);
         log1.setUsername("user");
         log1.setAction("CREATE");
+        log1.setTimestamp(fixedTimestamp); // Set same timestamp
         
         AuditLog log2 = new AuditLog();
         log2.setId(1L);
         log2.setUsername("user");
         log2.setAction("CREATE");
+        log2.setTimestamp(fixedTimestamp); // Set same timestamp
         
         assertEquals(log1, log2);
     }
@@ -153,13 +158,18 @@ class AuditLogTest {
 
     @Test
     void testHashCode() {
+        // Use the same timestamp for consistent hashCode
+        LocalDateTime fixedTimestamp = LocalDateTime.of(2024, 6, 15, 10, 30, 0);
+        
         AuditLog log1 = new AuditLog();
         log1.setId(1L);
         log1.setUsername("user");
+        log1.setTimestamp(fixedTimestamp);
         
         AuditLog log2 = new AuditLog();
         log2.setId(1L);
         log2.setUsername("user");
+        log2.setTimestamp(fixedTimestamp);
         
         assertEquals(log1.hashCode(), log2.hashCode());
     }
