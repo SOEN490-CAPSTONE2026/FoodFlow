@@ -1,3 +1,5 @@
+
+
 # Local Development Setup (Docker-Free)
 
 This guide explains how to set up and run the backend and frontend **locally**, without Docker.  
@@ -5,7 +7,7 @@ This guide explains how to set up and run the backend and frontend **locally**, 
 
 ---
 
-## Mac users
+# MAC USERS
 
 ## 1. Install PostgreSQL
 
@@ -16,6 +18,7 @@ The backend requires a local PostgreSQL instance.
 brew install postgresql
 brew services start postgresql
 ```
+
 
 ## 2. Make scripts executable
 ```bash
@@ -30,12 +33,11 @@ chmod +x start-frontend.sh
 ```bash
 cd backend/backend_scripts
 ./start-local-db.sh
-
 cd ../frontend/frontend_scripts
 ./start-frontend.sh
 ```
 
-# Windows users
+# WINDOWS USERS
 
 ## 1. Install PostgreSQL
 Install PostgreSQL using **Chocolatey** (recommended).
