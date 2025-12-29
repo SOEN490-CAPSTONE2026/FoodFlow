@@ -244,7 +244,7 @@ describe("DonorListFood", () => {
 
     const appleCard = screen.getByLabelText(/fresh apples/i);
     expect(
-      within(appleCard).getByText(/Expires: 2025-10-08/)
+      within(appleCard).getByText(/Expires:\s*Oct 8, 2025/)
     ).toBeInTheDocument();
     expect(within(appleCard).getByText(/Pickup:/)).toBeInTheDocument();
   });

@@ -50,6 +50,22 @@ function addressLabel(full) {
   return `${parts[0]}, ${parts[1]}…`;
 }
 
+function formatExpiryDate(dateString) {
+  if (!dateString) return "Not specified";
+  try {
+    // Parse as local date to avoid timezone conversion issues
+    const [year, month, day] = dateString.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  } catch {
+    return "Not specified";
+  }
+}
+
 // Format the pickup time range
 function formatPickupTime(pickupDate, pickupFrom, pickupTo) {
   if (!pickupDate) return "Flexible";
@@ -374,7 +390,7 @@ export default function DonorListFood() {
               <ul className="donation-meta" aria-label="details">
                 <li>
                   <Calendar size={16} className="calendar-icon" />
-                  <span>Expires: {item.expiryDate || "Not specified"}</span>
+                  <span>Expires: {formatExpiryDate(item.expiryDate)}</span>
                 </li>
                 <li>
                   <Clock size={16} className="time-icon" />
