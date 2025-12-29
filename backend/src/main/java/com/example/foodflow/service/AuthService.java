@@ -23,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 import io.micrometer.core.annotation.Timed;
 import java.security.SecureRandom;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.Map;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -316,6 +315,7 @@ public class AuthService {
             log.error("Failed to initialize notification preferences for user {}: {}", user.getEmail(), e.getMessage());
             // Don't fail registration if notification preferences initialization fails
         }
+    }
     
     /**
      * Initiate password reset flow by generating and sending a 6-digit code via email
