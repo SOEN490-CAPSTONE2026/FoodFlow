@@ -249,6 +249,62 @@ export const userAPI = {
 };
 
 /**
+ * Admin API functions for donation management
+ */
+export const adminDonationAPI = {
+  /**
+   * Get all donations with filtering and pagination
+   * @param {Object} filters - Filter criteria
+   * @param {string} filters.status - Filter by donation status
+   * @param {number} filters.donorId - Filter by donor user ID
+   * @param {number} filters.receiverId - Filter by receiver user ID
+   * @param {boolean} filters.flagged - Filter by flagged status
+   * @param {string} filters.fromDate - Filter by creation date from (YYYY-MM-DD)
+   * @param {string} filters.toDate - Filter by creation date to (YYYY-MM-DD)
+   * @param {string} filters.search - Search term
+   * @param {number} filters.page - Page number (default: 0)
+   * @param {number} filters.size - Page size (default: 20)
+   * @returns {Promise} Paginated donation list
+   */
+  getAllDonations: (filters = {}) => {
+    const params = new URLSearchParams();
+    
+    if (filters.status) params.append('status', filters.status);
+    if (filters.donorId) params.append('donorId', filters.donorId);
+    if (filters.receiverId) params.append('receiverId', filters.receiverId);
+    if (filters.flagged !== undefined) params.append('flagged', filters.flagged);
+    if (filters.fromDate) params.append('fromDate', filters.fromDate);
+    if (filters.toDate) params.append('toDate', filters.toDate);
+    if (filters.search) params.append('search', filters.search);
+    
+    params.append('page', filters.page || 0);
+    params.append('size', filters.size || 20);
+    
+    return api.get(`/admin/donations?${params.toString()}`);
+  },
+
+  /**
+   * Get detailed information about a specific donation
+   * @param {number} donationId - Donation ID
+   * @returns {Promise} Donation details with full timeline
+   */
+  getDonationById: (donationId) => api.get(`/admin/donations/${donationId}`),
+
+  /**
+   * Override donation status manually
+   * @param {number} donationId - Donation ID
+   * @param {string} newStatus - New status value
+   * @param {string} reason - Reason for override
+   * @returns {Promise} Updated donation data
+   */
+  overrideStatus: (donationId, newStatus, reason) => 
+    api.post(`/admin/donations/${donationId}/override-status`, {
+      newStatus,
+      reason
+    }),
+};
+
+/**
  * Maps frontend food categories to backend enum values.
  * @param {string} frontendCategory - Frontend category name
  * @returns {string} Backend enum value

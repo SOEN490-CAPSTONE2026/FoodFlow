@@ -1,18 +1,24 @@
 package com.example.foodflow.controller;
 
+import com.example.foodflow.model.dto.AdminDonationResponse;
 import com.example.foodflow.model.dto.AdminUserResponse;
 import com.example.foodflow.model.dto.DeactivateUserRequest;
+import com.example.foodflow.model.dto.OverrideStatusRequest;
 import com.example.foodflow.model.dto.SendAlertRequest;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.repository.UserRepository;
 import com.example.foodflow.security.JwtTokenProvider;
+import com.example.foodflow.service.AdminDonationService;
 import com.example.foodflow.service.AdminUserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -23,11 +29,14 @@ public class AdminController {
     private static final Logger log = LoggerFactory.getLogger(AdminController.class);
 
     private final AdminUserService adminUserService;
+    private final AdminDonationService adminDonationService;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
 
-    public AdminController(AdminUserService adminUserService, JwtTokenProvider jwtTokenProvider, UserRepository userRepository) {
+    public AdminController(AdminUserService adminUserService, AdminDonationService adminDonationService, 
+                          JwtTokenProvider jwtTokenProvider, UserRepository userRepository) {
         this.adminUserService = adminUserService;
+        this.adminDonationService = adminDonationService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.userRepository = userRepository;
     }
@@ -172,6 +181,95 @@ public class AdminController {
         } catch (Exception e) {
             log.error("Error fetching activity for user {}", userId, e);
             return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    // ========== DONATION MANAGEMENT ENDPOINTS ==========
+
+    /**
+     * Get all donations with filtering and pagination
+     * GET /api/admin/donations?status=CLAIMED&donorId=1&receiverId=2&flagged=true&fromDate=2024-01-01&toDate=2024-12-31&search=food&page=0&size=20
+     */
+    @GetMapping("/donations")
+    public ResponseEntity<Page<AdminDonationResponse>> getAllDonations(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long donorId,
+            @RequestParam(required = false) Long receiverId,
+            @RequestParam(required = false) Boolean flagged,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        
+        log.info("Admin fetching donations - status: {}, donor: {}, receiver: {}, flagged: {}, fromDate: {}, toDate: {}, search: {}", 
+                 status, donorId, receiverId, flagged, fromDate, toDate, search);
+        
+        try {
+            Page<AdminDonationResponse> donations = adminDonationService.getAllDonations(
+                status, donorId, receiverId, flagged, fromDate, toDate, search, page, size
+            );
+            return ResponseEntity.ok(donations);
+        } catch (Exception e) {
+            log.error("Error fetching donations", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * Get a specific donation by ID with full details and timeline
+     * GET /api/admin/donations/{donationId}
+     */
+    @GetMapping("/donations/{donationId}")
+    public ResponseEntity<AdminDonationResponse> getDonationById(@PathVariable Long donationId) {
+        log.info("Admin fetching donation details for donationId: {}", donationId);
+        
+        try {
+            AdminDonationResponse donation = adminDonationService.getDonationById(donationId);
+            return ResponseEntity.ok(donation);
+        } catch (RuntimeException e) {
+            log.error("Error fetching donation {}: {}", donationId, e.getMessage());
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            log.error("Error fetching donation {}", donationId, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * Override donation status manually (force-complete, force-cancel, force-expire, etc.)
+     * POST /api/admin/donations/{donationId}/override-status
+     */
+    @PostMapping("/donations/{donationId}/override-status")
+    public ResponseEntity<?> overrideDonationStatus(
+            @PathVariable Long donationId,
+            @RequestBody OverrideStatusRequest request,
+            @RequestHeader("Authorization") String authHeader) {
+        
+        log.info("Admin overriding status for donation: {} to {}", donationId, request.getNewStatus());
+        
+        try {
+            // Extract admin user ID from JWT token
+            String token = authHeader.substring(7); // Remove "Bearer " prefix
+            String adminEmail = jwtTokenProvider.getEmailFromToken(token);
+            User adminUser = userRepository.findByEmail(adminEmail)
+                    .orElseThrow(() -> new RuntimeException("Admin user not found"));
+            Long adminId = adminUser.getId();
+            
+            AdminDonationResponse updatedDonation = adminDonationService.overrideStatus(
+                donationId, 
+                request.getNewStatus(), 
+                request.getReason(), 
+                adminId
+            );
+            
+            return ResponseEntity.ok(updatedDonation);
+        } catch (RuntimeException e) {
+            log.error("Error overriding status for donation {}: {}", donationId, e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            log.error("Error overriding status for donation {}", donationId, e);
+            return ResponseEntity.internalServerError().body("Failed to override donation status");
         }
     }
 }
