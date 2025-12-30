@@ -1,4 +1,5 @@
 import React from 'react';
+import api from '../../../services/api';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import MessagingDashboard from '../MessagingDashboard';
@@ -84,18 +85,18 @@ describe('MessagingDashboard', () => {
     mockGet.mockClear();
   });
 
-  test('renders loading state initially', () => {
-    // Create a promise that never resolves
-    const neverResolvingPromise = new Promise(() => {});
-    mockGet.mockReturnValue(neverResolvingPromise);
-    
-    render(<MemoryRouter>
-      <MessagingDashboard />
-    </MemoryRouter>);
-    
-    // Use a more flexible matcher in case the text is split
-    expect(screen.getByText("Loading...")).toBeInTheDocument();
-  });
+test('renders loading state initially', () => {
+  const neverResolvingPromise = new Promise(() => {});
+  mockGet.mockReturnValue(neverResolvingPromise);
+  
+  // Also mock the POST request that runs in the second useEffect
+  const mockPost = jest.fn().mockReturnValue(neverResolvingPromise);
+  api.post = mockPost;
+  
+  render(<MemoryRouter><MessagingDashboard /></MemoryRouter>);
+  
+  expect(screen.getByText("Loading...")).toBeInTheDocument();
+});
 
   test('loads and displays conversations', async () => {
     const mockConversations = [
