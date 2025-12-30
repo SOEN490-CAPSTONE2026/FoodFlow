@@ -2,6 +2,22 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ChatPanel from '../ChatPanel';
+import { TimezoneProvider } from '../../../contexts/TimezoneContext';
+
+// Helper function to render with required providers
+const renderWithProviders = (ui, options = {}) => {
+  const mockTimezoneContext = {
+    userTimezone: "America/Toronto",
+    userRegion: "CA",
+  };
+
+  return render(
+    <TimezoneProvider value={mockTimezoneContext}>
+      {ui}
+    </TimezoneProvider>,
+    options
+  );
+};
 
 const mockGet = jest.fn();
 const mockPut = jest.fn();
@@ -57,7 +73,7 @@ describe('ChatPanel', () => {
   });
 
   test('shows empty state when no conversation selected', () => {
-    render(<ChatPanel conversation={null} onMessageSent={mockOnMessageSent} />);
+    renderWithProviders(<ChatPanel conversation={null} onMessageSent={mockOnMessageSent} />);
     
     expect(screen.getByText('No conversation selected')).toBeInTheDocument();
     expect(screen.getByText('Select a conversation from the sidebar or start a new one')).toBeInTheDocument();
@@ -67,7 +83,7 @@ describe('ChatPanel', () => {
     mockGet.mockResolvedValue({ data: mockMessages });
     mockPut.mockResolvedValue({});
 
-    render(<ChatPanel conversation={mockConversation} onMessageSent={mockOnMessageSent} />);
+    renderWithProviders(<ChatPanel conversation={mockConversation} onMessageSent={mockOnMessageSent} />);
 
     await waitFor(() => {
       expect(screen.getByText('Hello there')).toBeInTheDocument();
@@ -82,7 +98,7 @@ describe('ChatPanel', () => {
     mockGet.mockResolvedValue({ data: [] });
     mockPut.mockResolvedValue({});
 
-    render(<ChatPanel conversation={mockConversation} onMessageSent={mockOnMessageSent} />);
+    renderWithProviders(<ChatPanel conversation={mockConversation} onMessageSent={mockOnMessageSent} />);
 
     await waitFor(() => {
       expect(screen.getByText('John Doe')).toBeInTheDocument();
@@ -93,7 +109,7 @@ describe('ChatPanel', () => {
     mockGet.mockResolvedValue({ data: [] });
     mockPut.mockResolvedValue({});
 
-    render(<ChatPanel conversation={mockConversation} onMessageSent={mockOnMessageSent} />);
+    renderWithProviders(<ChatPanel conversation={mockConversation} onMessageSent={mockOnMessageSent} />);
 
     await waitFor(() => {
       expect(screen.getByText('No messages yet. Start the conversation!')).toBeInTheDocument();
@@ -112,7 +128,7 @@ describe('ChatPanel', () => {
     mockPut.mockResolvedValue({});
     mockPost.mockResolvedValue({ data: newMessage });
 
-    render(<ChatPanel conversation={mockConversation} onMessageSent={mockOnMessageSent} />);
+    renderWithProviders(<ChatPanel conversation={mockConversation} onMessageSent={mockOnMessageSent} />);
 
     await waitFor(() => {
       expect(screen.getByPlaceholderText('Type your message here...')).toBeInTheDocument();
@@ -139,7 +155,7 @@ describe('ChatPanel', () => {
     mockGet.mockResolvedValue({ data: [] });
     mockPut.mockResolvedValue({});
 
-    render(<ChatPanel conversation={mockConversation} onMessageSent={mockOnMessageSent} />);
+    renderWithProviders(<ChatPanel conversation={mockConversation} onMessageSent={mockOnMessageSent} />);
 
     await waitFor(() => {
       expect(screen.getByPlaceholderText('Type your message here...')).toBeInTheDocument();
@@ -153,7 +169,7 @@ describe('ChatPanel', () => {
     mockGet.mockImplementation(() => new Promise(() => {})); // Never resolves
     mockPut.mockResolvedValue({});
 
-    render(<ChatPanel conversation={mockConversation} onMessageSent={mockOnMessageSent} />);
+    renderWithProviders(<ChatPanel conversation={mockConversation} onMessageSent={mockOnMessageSent} />);
 
     // We intentionally do not render a loading text anymore
     expect(screen.queryByText('Loading messages...')).not.toBeInTheDocument();

@@ -173,7 +173,7 @@ describe("CompletedView", () => {
     expect(mockOnBack).toHaveBeenCalledTimes(1);
   });
 
-  test("renders View Pickup Steps button", () => {
+  test("renders Back to Details button", () => {
     render(
       <CompletedView
         claim={mockClaim}
@@ -182,7 +182,7 @@ describe("CompletedView", () => {
         onBack={jest.fn()}
       />
     );
-    expect(screen.getByText("View Pickup Steps")).toBeInTheDocument();
+    expect(screen.getByText("Back to Details")).toBeInTheDocument();
   });
 
   test("handles different food types correctly", () => {

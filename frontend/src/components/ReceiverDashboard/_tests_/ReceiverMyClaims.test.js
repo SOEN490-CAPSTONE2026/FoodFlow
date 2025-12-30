@@ -4,6 +4,7 @@ import '@testing-library/jest-dom';
 import ReceiverMyClaims from '../ReceiverMyClaims';
 import { claimsAPI } from '../../../services/api';
 import { NotificationProvider } from '../../../contexts/NotificationContext';
+import { TimezoneProvider } from '../../../contexts/TimezoneContext';
 
 // Mock the API
 jest.mock('../../../services/api', () => ({
@@ -36,6 +37,15 @@ jest.mock('../ClaimDetailModal.js', () => {
 });
 
 global.confirm = jest.fn();
+
+// Wrapper component to provide both contexts
+const Wrapper = ({ children }) => (
+    <TimezoneProvider>
+        <NotificationProvider>
+            {children}
+        </NotificationProvider>
+    </TimezoneProvider>
+);
 
 const createMockClaim = (overrides = {}) => ({
     id: 1,
@@ -76,9 +86,9 @@ describe('ReceiverMyClaims Component', () => {
             claimsAPI.myClaims.mockImplementation(() => new Promise(() => {}));
 
             render(
-                <NotificationProvider>
+                <Wrapper>
                     <ReceiverMyClaims />
-                </NotificationProvider>
+                </Wrapper>
             );
 
             expect(screen.getByText(/loading/i)).toBeInTheDocument();
@@ -89,9 +99,9 @@ describe('ReceiverMyClaims Component', () => {
 
             await act(async () => {
                 render(
-                    <NotificationProvider>
+                    <Wrapper>
                         <ReceiverMyClaims />
-                    </NotificationProvider>
+                    </Wrapper>
                 );
             });
 
@@ -106,9 +116,9 @@ describe('ReceiverMyClaims Component', () => {
 
             await act(async () => {
                 render(
-                    <NotificationProvider>
+                    <Wrapper>
                         <ReceiverMyClaims />
-                    </NotificationProvider>
+                    </Wrapper>
                 );
             });
 
@@ -125,9 +135,9 @@ describe('ReceiverMyClaims Component', () => {
 
             await act(async () => {
                 render(
-                    <NotificationProvider>
+                    <Wrapper>
                         <ReceiverMyClaims />
-                    </NotificationProvider>
+                    </Wrapper>
                 );
             });
 
@@ -152,9 +162,9 @@ describe('ReceiverMyClaims Component', () => {
 
             await act(async () => {
                 render(
-                    <NotificationProvider>
+                    <Wrapper>
                         <ReceiverMyClaims />
-                    </NotificationProvider>
+                    </Wrapper>
                 );
             });
 
@@ -169,9 +179,9 @@ describe('ReceiverMyClaims Component', () => {
 
             await act(async () => {
                 render(
-                    <NotificationProvider>
+                    <Wrapper>
                         <ReceiverMyClaims />
-                    </NotificationProvider>
+                    </Wrapper>
                 );
             });
 
@@ -200,9 +210,9 @@ describe('ReceiverMyClaims Component', () => {
 
             await act(async () => {
                 render(
-                    <NotificationProvider>
+                    <Wrapper>
                         <ReceiverMyClaims />
-                    </NotificationProvider>
+                    </Wrapper>
                 );
             });
 
@@ -233,9 +243,9 @@ describe('ReceiverMyClaims Component', () => {
 
                 await act(async () => {
                     render(
-                        <NotificationProvider>
+                        <Wrapper>
                             <ReceiverMyClaims />
-                        </NotificationProvider>
+                        </Wrapper>
                     );
                 });
 
@@ -252,9 +262,9 @@ describe('ReceiverMyClaims Component', () => {
 
             await act(async () => {
                 render(
-                    <NotificationProvider>
+                    <Wrapper>
                         <ReceiverMyClaims />
-                    </NotificationProvider>
+                    </Wrapper>
                 );
             });
 
@@ -272,9 +282,9 @@ describe('ReceiverMyClaims Component', () => {
 
             await act(async () => {
                 render(
-                    <NotificationProvider>
+                    <Wrapper>
                         <ReceiverMyClaims />
-                    </NotificationProvider>
+                    </Wrapper>
                 );
             });
 
@@ -311,9 +321,9 @@ describe('ReceiverMyClaims Component', () => {
 
             await act(async () => {
                 render(
-                    <NotificationProvider>
+                    <Wrapper>
                         <ReceiverMyClaims />
-                    </NotificationProvider>
+                    </Wrapper>
                 );
             });
 
@@ -332,9 +342,9 @@ describe('ReceiverMyClaims Component', () => {
 
             await act(async () => {
                 render(
-                    <NotificationProvider>
+                    <Wrapper>
                         <ReceiverMyClaims />
-                    </NotificationProvider>
+                    </Wrapper>
                 );
             });
 

@@ -65,6 +65,9 @@ export const authAPI = {
     localStorage.removeItem("jwtToken");
     return api.post("/auth/logout");
   },
+  forgotPassword: (data) => api.post("/auth/forgot-password", data),
+  verifyResetCode: (data) => api.post("/auth/verify-reset-code", data),
+  resetPassword: (data) => api.post("/auth/reset-password", data),
 };
 
 export const surplusAPI = {
@@ -257,5 +260,11 @@ export const userAPI = {
 function mapFrontendCategoryToBackend(frontendCategory) {
   return getFoodTypeValue(frontendCategory);
 }
+
+// Notification Preferences API
+export const notificationPreferencesAPI = {
+  getPreferences: () => api.get('/user/notifications/preferences'),
+  updatePreferences: (data) => api.put('/user/notifications/preferences', data)
+};
 
 export default api;

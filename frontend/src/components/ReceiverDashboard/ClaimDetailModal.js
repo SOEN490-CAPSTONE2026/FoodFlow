@@ -6,34 +6,52 @@ import ClaimedView from './ClaimedView';
 import CompletedView from './CompletedView';
 import ReadyForPickUpView from './ReadyForPickUpView';
 import { getPrimaryFoodCategory, foodTypeImages, getUnitLabel } from '../../constants/foodConstants';
+import { useTimezone } from '../../contexts/TimezoneContext';
 import './Receiver_Styles/ClaimDetailModal.css';
 
 const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
     const post = claim?.surplusPost;
     const [showPickupSteps, setShowPickupSteps] = useState(false);
     const navigate = useNavigate();
+    const { userTimezone } = useTimezone();
 
     const formatPickupTime = (pickupDate, pickupFrom, pickupTo) => {
         if (!pickupDate || !pickupFrom || !pickupTo) return "—";
         try {
-            const fromDate = new Date(`${pickupDate}T${pickupFrom}`);
+            // Backend sends LocalDateTime, treat as UTC by adding 'Z'
+            let fromDateStr = `${pickupDate}T${pickupFrom}`;
+            if (!fromDateStr.endsWith('Z') && !fromDateStr.includes('+')) {
+                fromDateStr = fromDateStr + 'Z';
+            }
+            let toDateStr = `${pickupDate}T${pickupTo}`;
+            if (!toDateStr.endsWith('Z') && !toDateStr.includes('+')) {
+                toDateStr = toDateStr + 'Z';
+            }
+            
+            const fromDate = new Date(fromDateStr);
+            const toDate = new Date(toDateStr);
+            
             const dateStr = fromDate.toLocaleDateString("en-US", {
                 month: "short",
                 day: "numeric",
                 year: "numeric",
+                timeZone: userTimezone
             });
             const fromTime = fromDate.toLocaleTimeString("en-US", {
                 hour: "numeric",
                 minute: "2-digit",
                 hour12: true,
+                timeZone: userTimezone
             });
-            const [hours, minutes] = pickupTo.split(":");
-            const hour = parseInt(hours, 10);
-            const isPM = hour >= 12;
-            const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-            const toTime = `${displayHour}:${minutes} ${isPM ? "PM" : "AM"}`;
+            const toTime = toDate.toLocaleTimeString("en-US", {
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true,
+                timeZone: userTimezone
+            });
             return `${dateStr} ${fromTime}-${toTime}`;
-        } catch {
+        } catch (error) {
+            console.error('Error formatting pickup time:', error);
             return "—";
         }
     };
