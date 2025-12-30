@@ -10,13 +10,18 @@ import {
   Package,
   ChevronDown,
   Filter,
+  Camera,
+  Image as ImageIcon,
+  ChevronLeft,
+  ChevronRight,
+  Upload,
 } from "lucide-react";
 import { useLoadScript } from "@react-google-maps/api";
 import { surplusAPI } from "../../services/api";
 import SurplusFormModal from "../DonorDashboard/SurplusFormModal";
 import ConfirmPickupModal from "../DonorDashboard/ConfirmPickupModal";
 import ClaimedSuccessModal from "../DonorDashboard/ClaimedSuccessModal";
-import { getFoodTypeLabel, getUnitLabel } from "../../constants/foodConstants";
+import { getFoodTypeLabel, getUnitLabel, getTemperatureCategoryLabel, getTemperatureCategoryIcon, getPackagingTypeLabel } from "../../constants/foodConstants";
 import "../DonorDashboard/Donor_Styles/DonorListFood.css";
 
 // Define libraries for Google Maps
@@ -48,6 +53,22 @@ function addressLabel(full) {
     .map((s) => s.trim());
   if (parts.length <= 2) return full;
   return `${parts[0]}, ${parts[1]}…`;
+}
+
+function formatExpiryDate(dateString) {
+  if (!dateString) return "Not specified";
+  try {
+    // Parse as local date to avoid timezone conversion issues
+    const [year, month, day] = dateString.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  } catch {
+    return "Not specified";
+  }
 }
 
 // Format the pickup time range
@@ -109,6 +130,11 @@ export default function DonorListFood() {
   const [error, setError] = useState(null);
   const [sortBy, setSortBy] = useState("date"); // "date" or "status"
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
+  
+  // Photo upload states
+  const [donationPhotos, setDonationPhotos] = useState({}); // { donationId: [photo urls] }
+  const [viewingPhotos, setViewingPhotos] = useState({}); // { donationId: true/false }
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState({}); // { donationId: index }
 
   useEffect(() => {
     fetchMyPosts();
@@ -227,6 +253,51 @@ export default function DonorListFood() {
 
   const handleCloseSuccessModal = () => {
     setIsSuccessModalOpen(false);
+  };
+
+  // Photo upload handlers
+  const handlePhotoUpload = (donationId, event) => {
+    const files = Array.from(event.target.files);
+    if (files.length === 0) return;
+
+    // Create preview URLs for uploaded files
+    const newPhotoUrls = files.map(file => URL.createObjectURL(file));
+    
+    setDonationPhotos(prev => ({
+      ...prev,
+      [donationId]: [...(prev[donationId] || []), ...newPhotoUrls]
+    }));
+
+    // Initialize photo index if first upload
+    if (!donationPhotos[donationId] || donationPhotos[donationId].length === 0) {
+      setCurrentPhotoIndex(prev => ({ ...prev, [donationId]: 0 }));
+    }
+  };
+
+  const toggleViewPhotos = (donationId) => {
+    setViewingPhotos(prev => ({
+      ...prev,
+      [donationId]: !prev[donationId]
+    }));
+    
+    // Initialize photo index when first viewing
+    if (!currentPhotoIndex[donationId]) {
+      setCurrentPhotoIndex(prev => ({ ...prev, [donationId]: 0 }));
+    }
+  };
+
+  const navigatePhoto = (donationId, direction) => {
+    const photos = donationPhotos[donationId] || [];
+    const currentIndex = currentPhotoIndex[donationId] || 0;
+    
+    let newIndex;
+    if (direction === 'next') {
+      newIndex = (currentIndex + 1) % photos.length;
+    } else {
+      newIndex = currentIndex === 0 ? photos.length - 1 : currentIndex - 1;
+    }
+    
+    setCurrentPhotoIndex(prev => ({ ...prev, [donationId]: newIndex }));
   };
 
   if (loading) {
@@ -349,6 +420,24 @@ export default function DonorListFood() {
                 </div>
               )}
 
+              {/* Food Safety Compliance Info */}
+              {(item.temperatureCategory || item.packagingType) && (
+                <div className="compliance-badges">
+                  {item.temperatureCategory && (
+                    <span className="compliance-badge temperature">
+                      <span className="badge-icon">{getTemperatureCategoryIcon(item.temperatureCategory)}</span>
+                      <span className="badge-label">{getTemperatureCategoryLabel(item.temperatureCategory)}</span>
+                    </span>
+                  )}
+                  {item.packagingType && (
+                    <span className="compliance-badge packaging">
+                      <Package size={14} />
+                      <span className="badge-label">{getPackagingTypeLabel(item.packagingType)}</span>
+                    </span>
+                  )}
+                </div>
+              )}
+
               <div className="donation-quantity">
                 {item.quantity.value} {getUnitLabel(item.quantity.unit)}
               </div>
@@ -356,7 +445,7 @@ export default function DonorListFood() {
               <ul className="donation-meta" aria-label="details">
                 <li>
                   <Calendar size={16} className="calendar-icon" />
-                  <span>Expires: {item.expiryDate || "Not specified"}</span>
+                  <span>Expires: {formatExpiryDate(item.expiryDate)}</span>
                 </li>
                 <li>
                   <Clock size={16} className="time-icon" />
@@ -423,6 +512,93 @@ export default function DonorListFood() {
 
               {item.description && (
                 <p className="donation-notes">{item.description}</p>
+              )}
+
+              {/* Photo Upload/View Section - Only visible for CLAIMED or READY_FOR_PICKUP */}
+              {(item.status === "CLAIMED" || item.status === "READY_FOR_PICKUP") && (
+              <div className="donation-photos-section">
+                {!viewingPhotos[item.id] ? (
+                  // Upload mode
+                  <label className="photo-upload-button">
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={(e) => handlePhotoUpload(item.id, e)}
+                      style={{ display: 'none' }}
+                    />
+                    <Camera size={14} />
+                    <span>
+                      {donationPhotos[item.id]?.length > 0
+                        ? `${donationPhotos[item.id].length} photo${donationPhotos[item.id].length > 1 ? 's' : ''} uploaded`
+                        : 'Upload photo of donation'}
+                    </span>
+                  </label>
+                ) : null}
+
+                {donationPhotos[item.id]?.length > 0 && (
+                  <>
+                    {!viewingPhotos[item.id] ? (
+                      <button
+                        className="view-photos-button"
+                        onClick={() => toggleViewPhotos(item.id)}
+                      >
+                        <ImageIcon size={14} />
+                        View photos
+                      </button>
+                    ) : (
+                      <div className="photo-slideshow">
+                        <button
+                          className="slideshow-close"
+                          onClick={() => toggleViewPhotos(item.id)}
+                        >
+                          <X size={16} />
+                        </button>
+                        
+                        <div className="slideshow-content">
+                          <button
+                            className="slideshow-nav prev"
+                            onClick={() => navigatePhoto(item.id, 'prev')}
+                            disabled={donationPhotos[item.id].length <= 1}
+                          >
+                            <ChevronLeft size={20} />
+                          </button>
+
+                          <img
+                            src={donationPhotos[item.id][currentPhotoIndex[item.id] || 0]}
+                            alt={`Donation ${(currentPhotoIndex[item.id] || 0) + 1}`}
+                            className="slideshow-image"
+                          />
+
+                          <button
+                            className="slideshow-nav next"
+                            onClick={() => navigatePhoto(item.id, 'next')}
+                            disabled={donationPhotos[item.id].length <= 1}
+                          >
+                            <ChevronRight size={20} />
+                          </button>
+                        </div>
+
+                        <div className="slideshow-counter">
+                          {(currentPhotoIndex[item.id] || 0) + 1} / {donationPhotos[item.id].length}
+                        </div>
+
+                        <label className="slideshow-add-more">
+                          <input
+                            type="file"
+                            multiple
+                            accept="image/*"
+                            onChange={(e) => handlePhotoUpload(item.id, e)}
+                            style={{ display: 'none' }}
+                          />
+                          <Upload size={14} />
+                          Add more photos
+                        </label>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
               )}
 
               {item.status === "AVAILABLE" ? (

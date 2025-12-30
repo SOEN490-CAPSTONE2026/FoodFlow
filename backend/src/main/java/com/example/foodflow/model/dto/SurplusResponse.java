@@ -4,6 +4,8 @@ import com.example.foodflow.model.types.FoodCategory;
 import com.example.foodflow.model.types.Quantity;
 import com.example.foodflow.model.types.Location;
 import com.example.foodflow.model.types.PostStatus;
+import com.example.foodflow.model.types.TemperatureCategory;
+import com.example.foodflow.model.types.PackagingType;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -23,6 +25,7 @@ public class SurplusResponse {
     private Set<FoodCategory> foodCategories;
     private Quantity quantity;
     private Location pickupLocation;
+    private LocalDate fabricationDate;
     private LocalDate expiryDate;
 
     // Changed fields
@@ -38,13 +41,15 @@ public class SurplusResponse {
     private LocalDateTime updatedAt;
     private List<PickupSlotResponse> pickupSlots = new ArrayList<>();
     private PickupSlotResponse confirmedPickupSlot;
+    private TemperatureCategory temperatureCategory;
+    private PackagingType packagingType;
 
     // Constructors
     public SurplusResponse() {}
 
     public SurplusResponse(Long id, String title, String description, Set<FoodCategory> foodCategories,
                            Quantity quantity, Location pickupLocation,
-                           LocalDate expiryDate, LocalDate pickupDate, LocalTime pickupFrom, LocalTime pickupTo,
+                           LocalDate fabricationDate, LocalDate expiryDate, LocalDate pickupDate, LocalTime pickupFrom, LocalTime pickupTo,
                            PostStatus status, String otpCode, String donorEmail, String donorName,
                            LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
@@ -53,6 +58,7 @@ public class SurplusResponse {
         this.foodCategories = foodCategories;
         this.quantity = quantity;
         this.pickupLocation = pickupLocation;
+        this.fabricationDate = fabricationDate;
         this.expiryDate = expiryDate;
         this.pickupDate = pickupDate;
         this.pickupFrom = pickupFrom;
@@ -72,6 +78,7 @@ public class SurplusResponse {
         this.foodCategories = surplusPost.getFoodCategories();
         this.quantity = surplusPost.getQuantity();
         this.pickupLocation = surplusPost.getPickupLocation();
+        this.fabricationDate = surplusPost.getFabricationDate();
         this.expiryDate = surplusPost.getExpiryDate();
         this.pickupDate = surplusPost.getPickupDate();
         this.pickupFrom = surplusPost.getPickupFrom();
@@ -84,6 +91,8 @@ public class SurplusResponse {
             : null;
         this.createdAt = surplusPost.getCreatedAt();
         this.updatedAt = surplusPost.getUpdatedAt();
+        this.temperatureCategory = surplusPost.getTemperatureCategory();
+        this.packagingType = surplusPost.getPackagingType();
 
         // Convert pickup slots
         if (surplusPost.getPickupSlots() != null) {
@@ -111,6 +120,9 @@ public class SurplusResponse {
 
     public Location getPickupLocation() { return pickupLocation; }
     public void setPickupLocation(Location pickupLocation) { this.pickupLocation = pickupLocation; }
+
+    public LocalDate getFabricationDate() { return fabricationDate; }
+    public void setFabricationDate(LocalDate fabricationDate) { this.fabricationDate = fabricationDate; }
 
     public LocalDate getExpiryDate() { return expiryDate; }
     public void setExpiryDate(LocalDate expiryDate) { this.expiryDate = expiryDate; }
@@ -147,4 +159,10 @@ public class SurplusResponse {
 
     public PickupSlotResponse getConfirmedPickupSlot() { return confirmedPickupSlot; }
     public void setConfirmedPickupSlot(PickupSlotResponse confirmedPickupSlot) { this.confirmedPickupSlot = confirmedPickupSlot; }
+
+    public TemperatureCategory getTemperatureCategory() { return temperatureCategory; }
+    public void setTemperatureCategory(TemperatureCategory temperatureCategory) { this.temperatureCategory = temperatureCategory; }
+
+    public PackagingType getPackagingType() { return packagingType; }
+    public void setPackagingType(PackagingType packagingType) { this.packagingType = packagingType; }
 }

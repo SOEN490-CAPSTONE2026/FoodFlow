@@ -81,6 +81,11 @@ jest.mock("lucide-react", () => ({
   Package: () => "PackageIcon",
   ChevronDown: () => "ChevronDownIcon",
   Filter: () => "FilterIcon",
+  Camera: () => "CameraIcon",
+  Image: () => "ImageIcon",
+  ChevronLeft: () => "ChevronLeftIcon",
+  ChevronRight: () => "ChevronRightIcon",
+  Upload: () => "UploadIcon",
 }));
 
 import DonorListFood from "../DonorListFood";
@@ -244,7 +249,7 @@ describe("DonorListFood", () => {
 
     const appleCard = screen.getByLabelText(/fresh apples/i);
     expect(
-      within(appleCard).getByText(/Expires: 2025-10-08/)
+      within(appleCard).getByText(/Expires:\s*Oct 8, 2025/)
     ).toBeInTheDocument();
     expect(within(appleCard).getByText(/Pickup:/)).toBeInTheDocument();
   });

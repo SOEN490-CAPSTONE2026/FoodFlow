@@ -12,6 +12,8 @@ import com.example.foodflow.model.types.FoodCategory;
 import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.model.types.Quantity;
 import com.example.foodflow.model.types.Location;
+import com.example.foodflow.model.types.TemperatureCategory;
+import com.example.foodflow.model.types.PackagingType;
 
 @Entity
 @Table(name = "surplus_posts")
@@ -39,6 +41,9 @@ public class SurplusPost {
     @Embedded
     private Location pickupLocation;
 
+    @Column(name = "fabrication_date")
+    private LocalDate fabricationDate;
+
     @Column(nullable = false)
     private LocalDate expiryDate;
 
@@ -60,6 +65,14 @@ public class SurplusPost {
 
     @Column(name = "otp_code", length = 6)
     private String otpCode;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "temperature_category")
+    private TemperatureCategory temperatureCategory;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "packaging_type")
+    private PackagingType packagingType;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "donor_id", nullable = false)
@@ -115,6 +128,9 @@ public class SurplusPost {
     public Location getPickupLocation() { return pickupLocation; }
     public void setPickupLocation(Location pickupLocation) { this.pickupLocation = pickupLocation; }
 
+    public LocalDate getFabricationDate() { return fabricationDate; }
+    public void setFabricationDate(LocalDate fabricationDate) { this.fabricationDate = fabricationDate; }
+
     public LocalDate getExpiryDate() { return expiryDate; }
     public void setExpiryDate(LocalDate expiryDate) { this.expiryDate = expiryDate; }
 
@@ -153,6 +169,13 @@ public class SurplusPost {
 
     public String getFlagReason() { return flagReason; }
     public void setFlagReason(String flagReason) { this.flagReason = flagReason; }
+
+    public TemperatureCategory getTemperatureCategory() { return temperatureCategory; }
+    public void setTemperatureCategory(TemperatureCategory temperatureCategory) { this.temperatureCategory = temperatureCategory; }
+
+    public PackagingType getPackagingType() { return packagingType; }
+    public void setPackagingType(PackagingType packagingType) { this.packagingType = packagingType; }
+
 
     public boolean isClaimed() { return status==PostStatus.CLAIMED; }
 }

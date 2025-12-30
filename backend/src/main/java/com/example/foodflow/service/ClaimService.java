@@ -51,6 +51,17 @@ public class ClaimService {
         SurplusPost surplusPost = surplusPostRepository.findById(request.getSurplusPostId())
             .orElseThrow(() -> new RuntimeException("Surplus post not found"));
 
+        // Check if post has expired
+        if (surplusPost.getExpiryDate() != null &&
+            surplusPost.getExpiryDate().isBefore(java.time.LocalDate.now())) {
+            throw new RuntimeException("This donation has expired and cannot be claimed");
+        }
+
+        // Check if post status is EXPIRED
+        if (surplusPost.getStatus() == PostStatus.EXPIRED) {
+            throw new RuntimeException("This donation has expired and cannot be claimed");
+        }
+
         if (surplusPost.getStatus() != PostStatus.AVAILABLE &&
             surplusPost.getStatus() != PostStatus.READY_FOR_PICKUP) {
             throw new RuntimeException("This post is no longer available for claiming");
