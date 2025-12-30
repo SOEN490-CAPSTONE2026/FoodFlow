@@ -496,6 +496,36 @@ public class AuthService {
         int code = secureRandom.nextInt(900000) + 100000; // 100000 to 999999
         return String.valueOf(code);
     }
+
+    /**
+     * Check if email exists in the system
+     * Mimics the logic from handleEmailForgotPassword without sending email
+     */
+    public boolean checkEmailExists(String email) {
+        log.info("Checking if email exists: {}", email);
+        
+        if (email == null || email.trim().isEmpty()) {
+            return false;
+        }
+        
+        // Use the same repository method as forgot password
+        return userRepository.findByEmail(email).isPresent();
+    }
+
+    /**
+     * Check if phone number exists in the system
+     * Mimics the logic from handleSmsForgotPassword without sending SMS
+     */
+    public boolean checkPhoneExists(String phone) {
+        log.info("Checking if phone exists: {}", phone);
+        
+        if (phone == null || phone.trim().isEmpty()) {
+            return false;
+        }
+        
+        // Use the same repository method as forgot password
+        return userRepository.findByOrganizationPhone(phone).isPresent();
+    }
 }
 
 
