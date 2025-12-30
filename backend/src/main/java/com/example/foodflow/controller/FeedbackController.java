@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,9 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.foodflow.model.dto.FeedbackRequestDTO;
 import com.example.foodflow.model.dto.FeedbackResponseDTO;
 import com.example.foodflow.model.dto.UserRatingDTO;
+import com.example.foodflow.model.dto.AdminRatingDashboardDTO;
 import com.example.foodflow.model.entity.Claim;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.service.FeedbackService;
+import com.example.foodflow.repository.UserRepository;
 
 import jakarta.validation.Valid;
 
@@ -32,6 +35,9 @@ public class FeedbackController {
     
     @Autowired
     private FeedbackService feedbackService;
+    
+    @Autowired
+    private UserRepository userRepository;
     
     /**
      * Submit feedback for a completed donation
@@ -82,24 +88,32 @@ public class FeedbackController {
     }
     
     /**
-     * Get user rating summary
+     * Get user rating summary - For story: "users see only their own rating summary"
      * GET /api/feedback/rating/{userId}
      */
     @GetMapping("/rating/{userId}")
-    public ResponseEntity<UserRatingDTO> getUserRating(@PathVariable Long userId) {
-        // Note: This would need UserService to get user by ID
-        // For now, assuming we have a way to get user
-        User user = getUserById(userId); // You'll need to implement this
-        if (user == null) {
+    public ResponseEntity<UserRatingDTO> getUserRating(
+            @PathVariable Long userId,
+            @AuthenticationPrincipal User currentUser) {
+        
+        try {
+            User targetUser = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+            
+            // Users can only see their own ratings, unless they're admin
+            if (!currentUser.getId().equals(userId) && !isAdmin(currentUser)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            
+            UserRatingDTO rating = feedbackService.getUserRating(targetUser);
+            return ResponseEntity.ok(rating);
+        } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
-        
-        UserRatingDTO rating = feedbackService.getUserRating(user);
-        return ResponseEntity.ok(rating);
     }
     
     /**
-     * Get current user's rating summary
+     * Get current user's rating summary - For story: "visible average rating shown on profile"
      * GET /api/feedback/my-rating
      */
     @GetMapping("/my-rating")
@@ -145,7 +159,12 @@ public class FeedbackController {
             @RequestParam(defaultValue = "5") int limit,
             @AuthenticationPrincipal User currentUser) {
         
-        User targetUser = userId != null ? getUserById(userId) : currentUser;
+        User targetUser = currentUser;
+        
+        if (userId != null){  
+            targetUser = userRepository.findById(userId) .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+        }
+
         if (targetUser == null) {
             return ResponseEntity.notFound().build();
         }
@@ -164,10 +183,71 @@ public class FeedbackController {
         return ResponseEntity.ok(isComplete);
     }
     
-    // Helper method - you'll need to implement this based on your UserService
-    private User getUserById(Long userId) {
-        // TODO: Implement user lookup through UserService or UserRepository
-        // return userService.findById(userId);
-        return null; // Placeholder
+    // ====== NEW ADMIN ENDPOINTS FOR THIS STORY ======
+    
+    /**
+     * ADMIN: Get full rating history for any user - For story: "Admin sees every user's full rating history"
+     * GET /admin/users/{userId}/ratings
+     */
+    @GetMapping("/admin/users/{userId}/ratings")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<FeedbackResponseDTO>> getAdminUserRatings(
+            @PathVariable Long userId) {
+        
+        try {
+            User targetUser = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+
+            List<FeedbackResponseDTO> allFeedback = feedbackService.getAllFeedbackForUser(targetUser);
+            return ResponseEntity.ok(allFeedback);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+    /**
+     * ADMIN: Get rating dashboard with filters - For story: "Admin dashboard filter with ratings"
+     * GET /admin/ratings/dashboard?filter=top-rated|low-rated|flagged
+     */
+    @GetMapping("/admin/ratings/dashboard")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<AdminRatingDashboardDTO> getAdminRatingDashboard(
+            @RequestParam(required = false) String filter,
+            @RequestParam(defaultValue = "20") int limit) {
+        
+        AdminRatingDashboardDTO dashboard = feedbackService.getAdminRatingDashboard(filter, limit);
+        return ResponseEntity.ok(dashboard);
+    }
+    
+    /**
+     * ADMIN: Get users below rating threshold - For story: "Low-rating thresholds trigger automatic admin alert"
+     * GET /admin/ratings/below-threshold
+     */
+    @GetMapping("/admin/ratings/below-threshold")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<UserRatingDTO>> getUsersBelowThreshold(
+            @RequestParam(defaultValue = "2.0") Double threshold,
+            @RequestParam(defaultValue = "3") Integer minReviews) {
+        
+        List<UserRatingDTO> lowRatedUsers = feedbackService.getUsersBelowThreshold(threshold, minReviews);
+        return ResponseEntity.ok(lowRatedUsers);
+    }
+    
+    /**
+     * ADMIN: Get flagged/problematic ratings - For story: "Flags or reports associated with low ratings"
+     * GET /admin/ratings/flagged
+     */
+    @GetMapping("/admin/ratings/flagged")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<FeedbackResponseDTO>> getFlaggedRatings() {
+        
+        List<FeedbackResponseDTO> flaggedFeedback = feedbackService.getFlaggedFeedback();
+        return ResponseEntity.ok(flaggedFeedback);
+    }
+    
+    // Helper method to check admin status
+    private boolean isAdmin(User user) {
+        return user != null && user.getRole() != null && 
+               "ADMIN".equals(user.getRole().toString());
     }
 }

@@ -94,4 +94,93 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
     @Query("SELECT DISTINCT f.claim FROM Feedback f WHERE f.claim.status = com.example.foodflow.model.types.ClaimStatus.COMPLETED " +
            "AND (SELECT COUNT(feedback) FROM Feedback feedback WHERE feedback.claim = f.claim) < 2")
     List<Claim> findClaimsNeedingFeedback();
+    
+    // ====== NEW ADMIN QUERIES FOR THE STORY ======
+    
+    /**
+     * Find users with average rating below threshold and minimum number of reviews
+     */
+    @Query("SELECT f.reviewee, AVG(f.rating) as avgRating, COUNT(f) as reviewCount " +
+           "FROM Feedback f " +
+           "GROUP BY f.reviewee " +
+           "HAVING COUNT(f) >= :minReviews AND AVG(f.rating) < :threshold " +
+           "ORDER BY AVG(f.rating) ASC")
+    List<Object[]> findUsersBelowRatingThreshold(@Param("threshold") Double threshold, 
+                                                @Param("minReviews") Integer minReviews);
+    
+    /**
+     * Find top-rated users with minimum number of reviews
+     */
+    @Query("SELECT f.reviewee, AVG(f.rating) as avgRating, COUNT(f) as reviewCount " +
+           "FROM Feedback f " +
+           "GROUP BY f.reviewee " +
+           "HAVING COUNT(f) >= :minReviews " +
+           "ORDER BY AVG(f.rating) DESC")
+    List<Object[]> findTopRatedUsers(@Param("minReviews") Integer minReviews, 
+                                    org.springframework.data.domain.Pageable pageable);
+    
+    /**
+     * Find low-rated users (bottom percentile)
+     */
+    @Query("SELECT f.reviewee, AVG(f.rating) as avgRating, COUNT(f) as reviewCount " +
+           "FROM Feedback f " +
+           "GROUP BY f.reviewee " +
+           "HAVING COUNT(f) >= :minReviews " +
+           "ORDER BY AVG(f.rating) ASC")
+    List<Object[]> findLowRatedUsers(@Param("minReviews") Integer minReviews, 
+                                    org.springframework.data.domain.Pageable pageable);
+    
+    /**
+     * Get overall platform statistics
+     */
+    @Query("SELECT AVG(f.rating), COUNT(DISTINCT f.reviewee), COUNT(f) FROM Feedback f")
+    List<Object[]> getPlatformRatingStatistics();
+    
+    /**
+     * Find feedback that might be flagged (very low ratings with negative keywords)
+     */
+    @Query("SELECT f FROM Feedback f WHERE f.rating <= 2 AND " +
+           "(LOWER(f.reviewText) LIKE '%terrible%' OR " +
+           "LOWER(f.reviewText) LIKE '%awful%' OR " +
+           "LOWER(f.reviewText) LIKE '%scam%' OR " +
+           "LOWER(f.reviewText) LIKE '%fraud%' OR " +
+           "LOWER(f.reviewText) LIKE '%never again%' OR " +
+           "LOWER(f.reviewText) LIKE '%worst%') " +
+           "ORDER BY f.createdAt DESC")
+    List<Feedback> findPotentiallyFlaggedFeedback();
+    
+    /**
+     * Find all feedback for a user (both given and received) - for admin view
+     */
+    @Query("SELECT f FROM Feedback f WHERE f.reviewee = :user OR f.reviewer = :user ORDER BY f.createdAt DESC")
+    List<Feedback> findAllFeedbackForUser(@Param("user") User user);
+    
+    /**
+     * Find recently submitted feedback across the platform
+     */
+    @Query("SELECT f.reviewee, AVG(f.rating), COUNT(f) " +
+           "FROM Feedback f " +
+           "WHERE f.createdAt >= :since " +
+           "GROUP BY f.reviewee " +
+           "ORDER BY f.createdAt DESC")
+    List<Object[]> findRecentlyRatedUsers(@Param("since") java.time.LocalDateTime since, 
+                                         org.springframework.data.domain.Pageable pageable);
+    
+    /**
+     * Count users above threshold
+     */
+    @Query("SELECT COUNT(DISTINCT f.reviewee) " +
+           "FROM Feedback f " +
+           "GROUP BY f.reviewee " +
+           "HAVING COUNT(f) >= :minReviews AND AVG(f.rating) >= :threshold")
+    Long countUsersAboveThreshold(@Param("threshold") Double threshold, @Param("minReviews") Integer minReviews);
+    
+    /**
+     * Count users below threshold  
+     */
+    @Query("SELECT COUNT(DISTINCT f.reviewee) " +
+           "FROM Feedback f " +
+           "GROUP BY f.reviewee " +
+           "HAVING COUNT(f) >= :minReviews AND AVG(f.rating) < :threshold")
+    Long countUsersBelowThreshold(@Param("threshold") Double threshold, @Param("minReviews") Integer minReviews);
 }
