@@ -203,6 +203,7 @@ export default function ForgotPassword() {
         console.log('Phone verified successfully:', result.user.phoneNumber);
         setCodeVerified(true);
         setCodeIncorrect(false);
+        setCodeExpired(false); // Reset expired state when code is verified
         // Stop the timer when code is verified
         if (timerRef.current) {
           clearInterval(timerRef.current);
@@ -223,6 +224,7 @@ export default function ForgotPassword() {
         console.log('Email code verified successfully');
         setCodeVerified(true);
         setCodeIncorrect(false);
+        setCodeExpired(false); // Reset expired state when code is verified
         // Stop the timer when code is verified
         if (timerRef.current) {
           clearInterval(timerRef.current);
