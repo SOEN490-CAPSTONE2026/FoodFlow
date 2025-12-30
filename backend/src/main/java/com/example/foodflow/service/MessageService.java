@@ -39,6 +39,9 @@ public class MessageService {
     
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
+    
+    @Autowired
+    private NotificationPreferenceService notificationPreferenceService;
 
     private final BusinessMetricsService businessMetricsService;
     
@@ -72,12 +75,27 @@ public class MessageService {
         
         // Send via WebSocket to the other participant
         User otherUser = conversation.getOtherParticipant(sender.getId());
-        messagingTemplate.convertAndSendToUser(
-            otherUser.getId().toString(),
-            "/queue/messages",
-            response
-        );
-        logger.info("Sent websocket message to userId={} conversationId={} messageId={}", otherUser.getId(), conversation.getId(), response.getId());
+        
+        // Determine notification type based on sender's role
+        String notificationType = sender.getRole().toString().equals("DONOR") ? 
+            "newMessageFromDonor" : "newMessageFromReceiver";
+        
+        if (notificationPreferenceService.shouldSendNotification(otherUser, notificationType, "websocket")) {
+            try {
+                messagingTemplate.convertAndSendToUser(
+                    otherUser.getId().toString(),
+                    "/queue/messages",
+                    response
+                );
+                logger.info("Sent websocket message to userId={} conversationId={} messageId={} (type: {})", 
+                    otherUser.getId(), conversation.getId(), response.getId(), notificationType);
+            } catch (Exception e) {
+                logger.error("Failed to send message notification: {}", e.getMessage());
+            }
+        } else {
+            logger.info("Skipped message notification to userId={} - notification type '{}' disabled", 
+                otherUser.getId(), notificationType);
+        }
         
         businessMetricsService.incrementMessagesSent();
         businessMetricsService.recordTimer(sample, "message.service.send", "conversationId", conversation.getId().toString());

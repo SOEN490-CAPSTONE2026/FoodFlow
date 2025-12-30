@@ -8,6 +8,8 @@ public class AuthResponse {
     private Long userId;
     private String organizationName;
     private String verificationStatus;
+    private Boolean emailNotificationsEnabled;
+    private Boolean smsNotificationsEnabled;
 
     public AuthResponse(String token, String email, String role, String message) {
         this.token = token;
@@ -43,6 +45,18 @@ public class AuthResponse {
         this.verificationStatus = verificationStatus;
     }
 
+    public AuthResponse(String token, String email, String role, String message, Long userId, String organizationName, String verificationStatus, Boolean emailNotificationsEnabled, Boolean smsNotificationsEnabled) {
+        this.token = token;
+        this.email = email;
+        this.role = role;
+        this.message = message;
+        this.userId = userId;
+        this.organizationName = organizationName;
+        this.verificationStatus = verificationStatus;
+        this.emailNotificationsEnabled = emailNotificationsEnabled;
+        this.smsNotificationsEnabled = smsNotificationsEnabled;
+    }
+
     // Getters and setters
     public String getToken() { return token; }
     public void setToken(String token) { this.token = token; }
@@ -64,4 +78,10 @@ public class AuthResponse {
 
     public String getVerificationStatus() { return verificationStatus; }
     public void setVerificationStatus(String verificationStatus) { this.verificationStatus = verificationStatus; }
+
+    public Boolean getEmailNotificationsEnabled() { return emailNotificationsEnabled; }
+    public void setEmailNotificationsEnabled(Boolean emailNotificationsEnabled) { this.emailNotificationsEnabled = emailNotificationsEnabled; }
+
+    public Boolean getSmsNotificationsEnabled() { return smsNotificationsEnabled; }
+    public void setSmsNotificationsEnabled(Boolean smsNotificationsEnabled) { this.smsNotificationsEnabled = smsNotificationsEnabled; }
 }

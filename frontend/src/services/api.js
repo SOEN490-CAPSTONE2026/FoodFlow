@@ -384,4 +384,10 @@ function mapFrontendCategoryToBackend(frontendCategory) {
   return getFoodTypeValue(frontendCategory);
 }
 
+// Notification Preferences API
+export const notificationPreferencesAPI = {
+  getPreferences: () => api.get('/user/notifications/preferences'),
+  updatePreferences: (data) => api.put('/user/notifications/preferences', data)
+};
+
 export default api;

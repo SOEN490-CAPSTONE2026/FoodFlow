@@ -37,6 +37,9 @@ class NotificationServiceTest {
 
     @Mock
     private UserRepository userRepository;
+    
+    @Mock
+    private NotificationPreferenceService notificationPreferenceService;
 
     @InjectMocks
     private NotificationService notificationService;
@@ -86,6 +89,10 @@ class NotificationServiceTest {
         preferences2.setPreferredFoodTypes(Arrays.asList("FROZEN"));
         preferences2.setMaxCapacity(30);
         preferences2.setNotificationPreferencesEnabled(true);
+        
+        // Mock notification preference service to allow all notifications by default
+        lenient().when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("newDonationAvailable"), eq("websocket")))
+            .thenReturn(true);
     }
 
     @Test

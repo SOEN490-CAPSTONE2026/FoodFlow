@@ -21,6 +21,8 @@ public class UserDTO {
     private LocalDateTime createdAt;
     @JsonProperty("updated_at")
     private LocalDateTime updatedAt;
+    private Boolean emailNotificationsEnabled;
+    private Boolean smsNotificationsEnabled;
 
     public static UserDTO toDTO(com.example.foodflow.model.entity.User user) {
         if (user == null) return null;
@@ -31,6 +33,8 @@ public class UserDTO {
         dto.setOrganization(OrganizationDTO.toDTO(user.getOrganization()));
         dto.setCreatedAt(user.getCreatedAt());
         dto.setUpdatedAt(user.getUpdatedAt());
+        dto.setEmailNotificationsEnabled(user.getEmailNotificationsEnabled());
+        dto.setSmsNotificationsEnabled(user.getSmsNotificationsEnabled());
         return dto;
     }
 }

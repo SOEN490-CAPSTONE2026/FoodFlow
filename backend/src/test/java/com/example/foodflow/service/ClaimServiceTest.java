@@ -48,6 +48,9 @@ class ClaimServiceTest {
     
     @Mock
     private BusinessMetricsService businessMetricsService;
+    
+    @Mock
+    private NotificationPreferenceService notificationPreferenceService;
 
     @InjectMocks
     private ClaimService claimService;
@@ -81,6 +84,11 @@ class ClaimServiceTest {
 
         claimRequest = new ClaimRequest();
         claimRequest.setSurplusPostId(1L);
+        
+        // Mock notification preference service to allow all notifications by default
+        // Use lenient() because not all tests use this mock
+        lenient().when(notificationPreferenceService.shouldSendNotification(any(User.class), any(String.class), any(String.class)))
+            .thenReturn(true);
     }
 
     @Test
