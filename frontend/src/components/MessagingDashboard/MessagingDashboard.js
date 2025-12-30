@@ -40,7 +40,7 @@ const MessagingDashboard = () => {
 
   const handleRecipientEmailQueryParam = async () => {
 
-    const recipientEmail = decodeURIComponent(searchParams.get("recipientEmail").trim());
+    const recipientEmail = decodeURIComponent(searchParams.get("recipientEmail"));
     
     if (!recipientEmail) {
       return;
@@ -51,7 +51,7 @@ const MessagingDashboard = () => {
       setError(null);
       
       const response = await api.post('/conversations', {
-        recipientEmail: recipientEmail
+        recipientEmail: recipientEmail.trim()
       });
       
       handleConversationCreated(response.data);

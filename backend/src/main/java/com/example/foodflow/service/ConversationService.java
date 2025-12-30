@@ -168,7 +168,7 @@ public class ConversationService {
             currentUser.getId()
         );
         
-        return new ConversationResponse(conversation, currentUser, lastMessagePreview, unreadCount);
+        return new ConversationResponse(conversation, currentUser, lastMessagePreview, unreadCount, true);
     }
 
      /**
@@ -210,6 +210,6 @@ public class ConversationService {
             currentUser.getId()
         );
         
-        return new ConversationResponse(conversation, currentUser, lastMessagePreview, unreadCount);
+        return new ConversationResponse(conversation, currentUser, lastMessagePreview, unreadCount, true);
     }
 }
