@@ -29,15 +29,18 @@ public class ClaimService {
     private final SurplusPostRepository surplusPostRepository;
     private final BusinessMetricsService businessMetricsService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final NotificationPreferenceService notificationPreferenceService;
     
     public ClaimService(ClaimRepository claimRepository,
                        SurplusPostRepository surplusPostRepository,
                        BusinessMetricsService businessMetricsService,
-                       SimpMessagingTemplate messagingTemplate) {
+                       SimpMessagingTemplate messagingTemplate,
+                       NotificationPreferenceService notificationPreferenceService) {
         this.claimRepository = claimRepository;
         this.surplusPostRepository = surplusPostRepository;
         this.businessMetricsService = businessMetricsService;
         this.messagingTemplate = messagingTemplate;
+        this.notificationPreferenceService = notificationPreferenceService;
     }
                        
     @Transactional
@@ -130,17 +133,22 @@ public class ClaimService {
 
         ClaimResponse response = new ClaimResponse(claim);
         
-        // Broadcast websocket event to donor
-        try {
-            messagingTemplate.convertAndSendToUser(
-                surplusPost.getDonor().getId().toString(),
-                "/queue/claims",
-                response
-            );
-            logger.info("Sent claim notification to donor userId={} for surplusPostId={}", 
-                surplusPost.getDonor().getId(), surplusPost.getId());
-        } catch (Exception e) {
-            logger.error("Failed to send websocket notification to donor: {}", e.getMessage());
+        // Broadcast websocket event to donor (if they have notifications enabled)
+        User donor = surplusPost.getDonor();
+        if (notificationPreferenceService.shouldSendNotification(donor, "donationClaimed", "websocket")) {
+            try {
+                messagingTemplate.convertAndSendToUser(
+                    donor.getId().toString(),
+                    "/queue/claims",
+                    response
+                );
+                logger.info("Sent claim notification to donor userId={} for surplusPostId={} (type: donationClaimed)", 
+                    donor.getId(), surplusPost.getId());
+            } catch (Exception e) {
+                logger.error("Failed to send websocket notification to donor: {}", e.getMessage());
+            }
+        } else {
+            logger.info("Skipped claim notification to donor userId={} - notification type disabled", donor.getId());
         }
         
         // Broadcast websocket event to receiver
@@ -208,6 +216,25 @@ public class ClaimService {
         // Record metrics
         businessMetricsService.incrementClaimCancelled();
         businessMetricsService.recordTimer(sample, "claim.service.cancel", "status", "cancelled");
+        
+        // Notify donor that the claim was cancelled (if they have notifications enabled)
+        User donor = post.getDonor();
+        if (notificationPreferenceService.shouldSendNotification(donor, "claimCanceled", "websocket")) {
+            try {
+                messagingTemplate.convertAndSendToUser(
+                    donor.getId().toString(),
+                    "/queue/claims/cancelled",
+                    new ClaimResponse(claim)
+                );
+                logger.info("Sent claim cancellation notification to donor userId={} for claimId={} (type: claimCanceled)", 
+                    donor.getId(), claimId);
+            } catch (Exception e) {
+                logger.error("Failed to send claim cancellation notification: {}", e.getMessage());
+            }
+        } else {
+            logger.info("Skipped claim cancellation notification to donor userId={} - claimCanceled disabled", 
+                donor.getId());
+        }
     }
 
     @Transactional
@@ -226,20 +253,5 @@ public class ClaimService {
 
         // Record timer
         businessMetricsService.recordTimer(sample, "claim.service.complete", "status", "completed");
-        
-        // Notify donor that the claim was cancelled
-        SurplusPost post = claim.getSurplusPost();
-      
-        try {
-            messagingTemplate.convertAndSendToUser(
-                post.getDonor().getId().toString(),
-                "/queue/claims/cancelled",
-                new ClaimResponse(claim)
-            );
-            logger.info("Sent claim cancellation notification to donor userId={} for claimId={}", 
-                post.getDonor().getId(), claimId);
-        } catch (Exception e) {
-            logger.error("Failed to send websocket notification for claim cancellation: {}", e.getMessage());
-        }
     }
 }

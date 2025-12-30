@@ -13,6 +13,7 @@ import com.example.foodflow.model.entity.UserRole;
 import com.example.foodflow.repository.OrganizationRepository;
 import com.example.foodflow.repository.UserRepository;
 import com.example.foodflow.security.JwtTokenProvider;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 import io.micrometer.core.annotation.Timed;
 import java.security.SecureRandom;
 import java.util.concurrent.ConcurrentHashMap;
+
+import java.util.HashMap;
 import java.util.Map;
 
 
@@ -31,6 +34,7 @@ public class AuthService {
     private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
     private final MetricsService metricsService;
+    private final ObjectMapper objectMapper;
 
     @Autowired
     private UserRepository userRepository;
@@ -75,12 +79,14 @@ public class AuthService {
                     OrganizationRepository organizationRepository,
                     PasswordEncoder passwordEncoder, 
                     JwtTokenProvider jwtTokenProvider,
-                    MetricsService metricsService) {
+                    MetricsService metricsService,
+                    ObjectMapper objectMapper) {
         this.userRepository = userRepository;
         this.organizationRepository = organizationRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.metricsService = metricsService;
+        this.objectMapper = objectMapper;
     }
 
 
@@ -105,6 +111,9 @@ public class AuthService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(UserRole.DONOR);
+
+        // Initialize default notification preferences
+        initializeDefaultNotificationPreferences(user);
 
         User savedUser = userRepository.save(user);
         log.debug("User created with ID: {} for email: {}", savedUser.getId(), savedUser.getEmail());
@@ -154,6 +163,9 @@ public class AuthService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(UserRole.RECEIVER);
+
+        // Initialize default notification preferences
+        initializeDefaultNotificationPreferences(user);
 
         User savedUser = userRepository.save(user);
 
@@ -243,6 +255,66 @@ public class AuthService {
         }
 
         return new AuthResponse(null, user.getEmail(), user.getRole().toString(), "Account logged out successfully.");
+    }
+
+    private void initializeDefaultNotificationPreferences(User user) {
+        try {
+            Map<String, Boolean> defaultPreferences = new HashMap<>();
+            
+            // Set all notification types to true based on role
+            if (user.getRole() == UserRole.DONOR) {
+                // Claim & Pickup Flow
+                defaultPreferences.put("donationClaimed", true);
+                defaultPreferences.put("claimCanceled", true);
+                defaultPreferences.put("pickupReminder", true);
+                defaultPreferences.put("donationPickedUp", true);
+                defaultPreferences.put("donationExpired", true);
+                // Messaging
+                defaultPreferences.put("newMessageFromReceiver", true);
+                // Feedback
+                defaultPreferences.put("receiverReview", true);
+                // Admin & System
+                defaultPreferences.put("donationFlagged", true);
+                defaultPreferences.put("donationStatusUpdated", true);
+                defaultPreferences.put("complianceWarning", true);
+                defaultPreferences.put("issueResolved", true);
+                defaultPreferences.put("verificationStatusChanged", true);
+            } else if (user.getRole() == UserRole.RECEIVER) {
+                // Matching & Claim Flow
+                defaultPreferences.put("newDonationAvailable", true);
+                defaultPreferences.put("donationReadyForPickup", true);
+                defaultPreferences.put("pickupReminder", true);
+                defaultPreferences.put("donationCompleted", true);
+                // Messaging
+                defaultPreferences.put("newMessageFromDonor", true);
+                // Feedback
+                defaultPreferences.put("donorReview", true);
+                // Admin & System
+                defaultPreferences.put("claimFlagged", true);
+                defaultPreferences.put("donationStatusChanged", true);
+                defaultPreferences.put("disputeResolved", true);
+                defaultPreferences.put("verificationStatusChanged", true);
+            } else if (user.getRole() == UserRole.ADMIN) {
+                // System Oversight
+                defaultPreferences.put("donationFlagged", true);
+                defaultPreferences.put("suspiciousActivity", true);
+                defaultPreferences.put("verificationRequest", true);
+                // Dispute & Compliance
+                defaultPreferences.put("newDispute", true);
+                defaultPreferences.put("escalatedIssue", true);
+                defaultPreferences.put("safetyAlert", true);
+                // Operational
+                defaultPreferences.put("systemError", true);
+                defaultPreferences.put("highVolumeDonation", true);
+            }
+            
+            String json = objectMapper.writeValueAsString(defaultPreferences);
+            user.setNotificationTypePreferences(json);
+        
+        } catch (Exception e) {
+            log.error("Failed to initialize notification preferences for user {}: {}", user.getEmail(), e.getMessage());
+            // Don't fail registration if notification preferences initialization fails
+        }
     }
     
     /**

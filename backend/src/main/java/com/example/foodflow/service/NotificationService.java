@@ -29,16 +29,19 @@ public class NotificationService {
     private final ReceiverPreferencesRepository receiverPreferencesRepository;
     private final ClaimRepository claimRepository;
     private final UserRepository userRepository;
+    private final NotificationPreferenceService notificationPreferenceService;
     
     public NotificationService(
             SimpMessagingTemplate messagingTemplate,
             ReceiverPreferencesRepository receiverPreferencesRepository,
             ClaimRepository claimRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            NotificationPreferenceService notificationPreferenceService) {
         this.messagingTemplate = messagingTemplate;
         this.receiverPreferencesRepository = receiverPreferencesRepository;
         this.claimRepository = claimRepository;
         this.userRepository = userRepository;
+        this.notificationPreferenceService = notificationPreferenceService;
     }
     
     /**
@@ -245,6 +248,13 @@ public class NotificationService {
      * Send notification to a specific receiver via WebSocket
      */
     private void sendNotificationToReceiver(User receiver, SurplusPost surplusPost, String matchReason) {
+        // Check if user has this notification type enabled
+        if (!notificationPreferenceService.shouldSendNotification(receiver, "newDonationAvailable", "websocket")) {
+            logger.info("Skipping notification to receiverId={} for postId={} - notification type disabled", 
+                receiver.getId(), surplusPost.getId());
+            return;
+        }
+        
         Map<String, Object> notification = new HashMap<>();
         notification.put("type", "NEW_POST");
         notification.put("postId", surplusPost.getId());
@@ -260,6 +270,8 @@ public class NotificationService {
                 "/queue/notifications",
                 notification
             );
+            logger.info("Sent notification to receiverId={} for postId={} (type: newDonationAvailable)", 
+                receiver.getId(), surplusPost.getId());
         } catch (Exception e) {
             logger.error("Failed to send websocket notification to receiverId={}: {}", 
                 receiver.getId(), e.getMessage());

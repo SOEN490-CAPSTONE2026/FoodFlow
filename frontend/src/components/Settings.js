@@ -3,6 +3,7 @@ import { User, Globe, Bell, Camera, Lock } from 'lucide-react';
 import LanguageSwitcher from './LanguageSwitcher';
 import RegionSelector from './RegionSelector';
 import { AuthContext } from '../contexts/AuthContext';
+import { notificationPreferencesAPI } from '../services/api';
 import api from '../services/api';
 import '../style/Settings.css';
 
@@ -136,6 +137,31 @@ const Settings = () => {
     }
   }, [userId]);
 
+  // Load notification preferences on component mount
+  useEffect(() => {
+    const fetchNotificationPreferences = async () => {
+      try {
+        const response = await notificationPreferencesAPI.getPreferences();
+        setNotificationPreferences({
+          emailAlerts: response.data.emailNotificationsEnabled || false,
+          smsAlerts: response.data.smsNotificationsEnabled || false,
+          smsPhoneNumber: formData.phoneNumber || ''
+        });
+        
+        // Load notification types
+        if (response.data.notificationTypes) {
+          setNotifications(response.data.notificationTypes);
+        }
+      } catch (error) {
+        console.error('Error fetching notification preferences:', error);
+      }
+    };
+
+    if (userId) {
+      fetchNotificationPreferences();
+    }
+  }, [userId]);
+
   // Sync organization name from context
   useEffect(() => {
     if (organizationName && !formData.organization) {
@@ -265,7 +291,19 @@ const Settings = () => {
     
     // Update state immediately for responsiveness
     setNotifications(prev => ({ ...prev, [key]: newValue }));
- 
+    
+    // Update backend
+    try {
+      await notificationPreferencesAPI.updatePreferences({
+        emailNotificationsEnabled: notificationPreferences.emailAlerts,
+        smsNotificationsEnabled: notificationPreferences.smsAlerts,
+        notificationTypes: { ...notifications, [key]: newValue }
+      });
+    } catch (error) {
+      console.error('Error updating notification type:', error);
+      // Revert on error
+      setNotifications(prev => ({ ...prev, [key]: !newValue }));
+    }
   };
 
   const handleRegionChange = async (regionData) => {
@@ -363,7 +401,7 @@ const Settings = () => {
     }
   };
 
-  const handleEmailAlertsToggle = () => {
+  const handleEmailAlertsToggle = async () => {
     const newValue = !notificationPreferences.emailAlerts;
     setNotificationPreferences(prev => ({
       ...prev,
@@ -376,9 +414,25 @@ const Settings = () => {
     toast.textContent = `Email alerts ${newValue ? 'enabled' : 'disabled'}`;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 2000);
+    
+    // Update backend
+    try {
+      await notificationPreferencesAPI.updatePreferences({
+        emailNotificationsEnabled: newValue,
+        smsNotificationsEnabled: notificationPreferences.smsAlerts
+      });
+    } catch (error) {
+      console.error('Error updating email alerts:', error);
+      // Revert on error
+      setNotificationPreferences(prev => ({
+        ...prev,
+        emailAlerts: !newValue
+      }));
+      setPreferencesError('Failed to update email alerts. Please try again.');
+    }
   };
 
-  const handleSmsAlertsToggle = () => {
+  const handleSmsAlertsToggle = async () => {
     const newValue = !notificationPreferences.smsAlerts;
     setNotificationPreferences(prev => ({
       ...prev,
@@ -391,6 +445,22 @@ const Settings = () => {
     toast.textContent = `SMS alerts ${newValue ? 'enabled' : 'disabled'}`;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 2000);
+    
+    // Update backend
+    try {
+      await notificationPreferencesAPI.updatePreferences({
+        emailNotificationsEnabled: notificationPreferences.emailAlerts,
+        smsNotificationsEnabled: newValue
+      });
+    } catch (error) {
+      console.error('Error updating SMS alerts:', error);
+      // Revert on error
+      setNotificationPreferences(prev => ({
+        ...prev,
+        smsAlerts: !newValue
+      }));
+      setPreferencesError('Failed to update SMS alerts. Please try again.');
+    }
   };
 
   return (
