@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
+import { adminDisputeAPI } from '../../services/api';
 import './Admin_Styles/AdminDisputes.css';
 
 const AdminDisputes = () => {
@@ -30,123 +31,36 @@ const AdminDisputes = () => {
   const fetchDisputes = async () => {
     try {
       setLoading(true);
-      // Mock data - replace with actual API call when backend is ready
-      const mockData = [
-        {
-          id: 1,
-          caseId: 'DR-2024-001',
-          reporterId: 101,
-          reporterName: 'Green Grocers LLC',
-          reporterType: 'DONOR',
-          reportedUserId: 202,
-          reportedUserName: 'Hope Center',
-          reportedUserType: 'RECEIVER',
-          donationId: 891,
-          donationTitle: 'Fresh Vegetables',
-          description: 'Receiver did not show up for scheduled pickup',
-          status: 'OPEN',
-          createdAt: '2024-12-22T14:32:00'
-        },
-        {
-          id: 2,
-          caseId: 'DR-2024-002',
-          reporterId: 303,
-          reporterName: 'City Food Bank',
-          reporterType: 'RECEIVER',
-          reportedUserId: 104,
-          reportedUserName: 'Riverside Restaurant',
-          reportedUserType: 'DONOR',
-          donationId: 867,
-          donationTitle: 'Surplus Meals',
-          description: 'Food quality was not as described, items were expired',
-          status: 'UNDER_REVIEW',
-          createdAt: '2024-12-21T09:15:00'
-        },
-        {
-          id: 3,
-          caseId: 'DR-2024-003',
-          reporterId: 105,
-          reporterName: 'Urban Harvest Shelter',
-          reporterType: 'RECEIVER',
-          reportedUserId: 206,
-          reportedUserName: 'Metro Bakery',
-          reportedUserType: 'DONOR',
-          donationId: 823,
-          donationTitle: 'Bread and Pastries',
-          description: 'Donation was already claimed by another organization',
-          status: 'RESOLVED',
-          createdAt: '2024-12-20T16:48:00',
-          resolvedAt: '2024-12-20T18:30:00'
-        },
-        {
-          id: 4,
-          caseId: 'DR-2024-004',
-          reporterId: 107,
-          reporterName: 'Fresh Market Downtown',
-          reporterType: 'DONOR',
-          reportedUserId: 308,
-          reportedUserName: 'Community Kitchen Network',
-          reportedUserType: 'RECEIVER',
-          donationId: 788,
-          donationTitle: 'Produce Mix',
-          description: 'Inappropriate behavior during pickup',
-          status: 'UNDER_REVIEW',
-          createdAt: '2024-12-19T11:23:00'
-        },
-        {
-          id: 5,
-          caseId: 'DR-2024-005',
-          reporterId: 209,
-          reporterName: 'Northwest Food Rescue',
-          reporterType: 'RECEIVER',
-          reportedUserId: 110,
-          reportedUserName: 'Campus Dining Services',
-          reportedUserType: 'DONOR',
-          donationId: 776,
-          donationTitle: 'Cafeteria Surplus',
-          description: 'Pickup location was incorrect, wasted trip',
-          status: 'CLOSED',
-          createdAt: '2024-12-18T13:52:00',
-          resolvedAt: '2024-12-18T15:20:00'
-        },
-        {
-          id: 6,
-          caseId: 'DR-2024-006',
-          reporterId: 211,
-          reporterName: 'Eastside Grocery Co',
-          reporterType: 'DONOR',
-          reportedUserId: 312,
-          reportedUserName: 'Neighborhood Outreach Program',
-          reportedUserType: 'RECEIVER',
-          donationId: 743,
-          donationTitle: 'Canned Goods',
-          description: 'Failed to provide proper OTP verification',
-          status: 'OPEN',
-          createdAt: '2024-12-17T10:05:00'
-        },
-        {
-          id: 7,
-          caseId: 'DR-2024-007',
-          reporterId: 113,
-          reporterName: 'Valley Food Coalition',
-          reporterType: 'RECEIVER',
-          reportedUserId: 214,
-          reportedUserName: 'Lakeside Catering',
-          reportedUserType: 'DONOR',
-          donationId: 712,
-          donationTitle: 'Event Leftovers',
-          description: 'Donation amount significantly less than posted',
-          status: 'RESOLVED',
-          createdAt: '2024-12-16T15:30:00',
-          resolvedAt: '2024-12-17T09:15:00'
-        }
-      ];
+      setError('');
+      const response = await adminDisputeAPI.getAllDisputes();
       
-      setDisputes(mockData);
-      calculateStats(mockData);
+      // Backend returns Spring Page object with content array
+      const disputeData = response.data.content || [];
+      
+      // Transform backend data to match frontend expectations
+      const transformedData = disputeData.map(dispute => ({
+        id: dispute.id,
+        caseId: `DR-${new Date().getFullYear()}-${String(dispute.id).padStart(3, '0')}`,
+        reporterId: dispute.reporterId,
+        reporterName: dispute.reporterName,
+        reporterType: dispute.reporterType || 'DONOR',
+        reportedUserId: dispute.reportedUserId,
+        reportedUserName: dispute.reportedUserName,
+        reportedUserType: dispute.reportedUserType || 'RECEIVER',
+        donationId: dispute.donationId,
+        donationTitle: dispute.donationTitle || '',
+        description: dispute.description,
+        status: dispute.status,
+        createdAt: dispute.createdAt,
+        resolvedAt: dispute.resolvedAt
+      }));
+      
+      setDisputes(transformedData);
+      calculateStats(transformedData);
     } catch (err) {
       setError('Error loading disputes');
-      console.error(err);
+      console.error('Failed to fetch disputes:', err);
+      setDisputes([]);
     } finally {
       setLoading(false);
     }
@@ -187,7 +101,6 @@ const AdminDisputes = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    // Search is handled by applyFilters which runs on searchTerm change
     applyFilters();
   };
 
@@ -231,6 +144,17 @@ const AdminDisputes = () => {
     return (
       <div className="admin-disputes-container">
         <div className="loading-spinner">Loading disputes...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="admin-disputes-container">
+        <div className="error-message">
+          {error}
+          <button onClick={fetchDisputes} className="retry-btn">Retry</button>
+        </div>
       </div>
     );
   }

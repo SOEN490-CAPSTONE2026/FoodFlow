@@ -258,13 +258,22 @@ export const reportAPI = {
   /**
    * Create a new report/dispute
    * @param {Object} reportData - Report data
-   * @param {number} reportData.reportedId - User ID being reported
+   * @param {number} reportData.reportedUserId - User ID being reported
    * @param {number} reportData.donationId - Optional donation ID
    * @param {string} reportData.description - Report description
-   * @param {string} reportData.imageUrl - Optional evidence image URL
+   * @param {string} reportData.photoEvidenceUrl - Optional evidence image URL
    * @returns {Promise} Created report data
    */
-  createReport: (reportData) => api.post('/reports', reportData),
+  createReport: (reportData) => {
+    // Transform frontend field names to backend field names
+    const backendRequest = {
+      reportedId: reportData.reportedUserId,
+      donationId: reportData.donationId,
+      description: reportData.description,
+      imageUrl: reportData.photoEvidenceUrl
+    };
+    return api.post('/reports', backendRequest);
+  },
 };
 
 /**

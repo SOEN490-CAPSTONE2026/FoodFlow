@@ -1,6 +1,6 @@
 -- Create disputes table for the ticket/case system
 CREATE TABLE IF NOT EXISTS disputes (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     reporter_id BIGINT NOT NULL,
     reported_id BIGINT NOT NULL,
     donation_id BIGINT,
@@ -9,13 +9,27 @@ CREATE TABLE IF NOT EXISTS disputes (
     status VARCHAR(50) NOT NULL DEFAULT 'OPEN',
     admin_notes TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     
     CONSTRAINT fk_disputes_reporter FOREIGN KEY (reporter_id) REFERENCES users(id),
     CONSTRAINT fk_disputes_reported FOREIGN KEY (reported_id) REFERENCES users(id),
     CONSTRAINT fk_disputes_donation FOREIGN KEY (donation_id) REFERENCES surplus_posts(id) ON DELETE SET NULL,
     CONSTRAINT chk_disputes_status CHECK (status IN ('OPEN', 'UNDER_REVIEW', 'RESOLVED', 'CLOSED'))
 );
+
+-- Create trigger to auto-update updated_at timestamp
+CREATE OR REPLACE FUNCTION update_disputes_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_update_disputes_updated_at
+BEFORE UPDATE ON disputes
+FOR EACH ROW
+EXECUTE FUNCTION update_disputes_updated_at();
 
 -- Create indexes for better query performance
 CREATE INDEX idx_disputes_reporter ON disputes(reporter_id);

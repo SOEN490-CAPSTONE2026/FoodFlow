@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, AlertTriangle } from 'lucide-react';
 import ReportUserModal from '../ReportUserModal';
+import { reportAPI } from '../../services/api';
 import './Donor_Styles/ClaimedSuccessModal.css';
 
 const ClaimedSuccessModal = ({ isOpen, onClose, receiverInfo, donationId }) => {
@@ -9,9 +10,14 @@ const ClaimedSuccessModal = ({ isOpen, onClose, receiverInfo, donationId }) => {
   if (!isOpen) return null;
 
   const handleReportSubmit = async (reportData) => {
-    console.log('Report submitted:', reportData);
-    // Mock - will be connected to backend later
-    setShowReportModal(false);
+    try {
+      await reportAPI.createReport(reportData);
+      alert('Report submitted successfully! An admin will review it shortly.');
+      setShowReportModal(false);
+    } catch (error) {
+      console.error('Failed to submit report:', error);
+      alert('Failed to submit report. Please try again.');
+    }
   };
 
   return (
