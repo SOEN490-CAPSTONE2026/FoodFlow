@@ -36,29 +36,47 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
   const validateForm = () => {
     const newErrors = {};
     
+    // Validate current password
     if (!formData.currentPassword) {
       newErrors.currentPassword = 'Current password is required';
+      setErrors(newErrors);
+      return false;
     }
     
+    // Validate new password
     if (!formData.newPassword) {
       newErrors.newPassword = 'New password is required';
-    } else if (formData.newPassword.length < 8) {
-      newErrors.newPassword = 'Password must be at least 8 characters long';
+      setErrors(newErrors);
+      return false;
     }
     
+    if (formData.newPassword.length < 8) {
+      newErrors.newPassword = 'Password must be at least 8 characters long';
+      setErrors(newErrors);
+      return false;
+    }
+    
+    if (formData.currentPassword === formData.newPassword) {
+      newErrors.newPassword = 'New password must be different from current password';
+      setErrors(newErrors);
+      return false;
+    }
+    
+    // Validate confirm password
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = 'Please confirm your new password';
-    } else if (formData.newPassword !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      setErrors(newErrors);
+      return false;
     }
     
-    if (formData.currentPassword && formData.newPassword && 
-        formData.currentPassword === formData.newPassword) {
-      newErrors.newPassword = 'New password must be different from current password';
+    if (formData.newPassword !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+      setErrors(newErrors);
+      return false;
     }
     
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return true;
   };
 
   const handleSubmit = (e) => {
