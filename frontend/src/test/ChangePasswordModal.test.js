@@ -1,6 +1,14 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ChangePasswordModal from '../components/ChangePasswordModal';
+import { authAPI } from '../services/api';
+
+// Mock the API
+jest.mock('../services/api', () => ({
+  authAPI: {
+    changePassword: jest.fn()
+  }
+}));
 
 describe('ChangePasswordModal', () => {
   const mockOnClose = jest.fn();
@@ -209,6 +217,11 @@ describe('ChangePasswordModal', () => {
 
   describe('Form Submission', () => {
     test('closes modal after valid submission', async () => {
+      // Mock successful API response
+      authAPI.changePassword.mockResolvedValue({
+        data: { message: 'Password changed successfully' }
+      });
+
       render(<ChangePasswordModal isOpen={true} onClose={mockOnClose} />);
       
       const currentPasswordInput = screen.getByLabelText(/current password/i);
@@ -222,10 +235,15 @@ describe('ChangePasswordModal', () => {
       fireEvent.change(confirmPasswordInput, { target: { value: 'newpass123' } });
       fireEvent.click(confirmButton);
       
-      // Modal should close after successful validation
+      // Wait for success message
+      await waitFor(() => {
+        expect(screen.getByText(/password changed successfully/i)).toBeInTheDocument();
+      });
+
+      // Wait for modal to close (after 2 second delay)
       await waitFor(() => {
         expect(mockOnClose).toHaveBeenCalledTimes(1);
-      });
+      }, { timeout: 3000 });
     });
 
     test('clears form data on cancel', () => {
