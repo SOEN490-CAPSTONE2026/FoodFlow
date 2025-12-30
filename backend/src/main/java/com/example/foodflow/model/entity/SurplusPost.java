@@ -82,6 +82,16 @@ public class SurplusPost {
     @OrderBy("slotOrder ASC")
     private List<PickupSlot> pickupSlots = new ArrayList<>();
 
+    @OneToMany(mappedBy = "surplusPost", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("timestamp DESC")
+    private List<DonationTimeline> timeline = new ArrayList<>();
+
+    @Column(name = "flagged")
+    private Boolean flagged = false;
+    
+    @Column(name = "flag_reason", columnDefinition = "TEXT")
+    private String flagReason;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
@@ -151,11 +161,21 @@ public class SurplusPost {
     public List<PickupSlot> getPickupSlots() { return pickupSlots; }
     public void setPickupSlots(List<PickupSlot> pickupSlots) { this.pickupSlots = pickupSlots; }
 
+    public List<DonationTimeline> getTimeline() { return timeline; }
+    public void setTimeline(List<DonationTimeline> timeline) { this.timeline = timeline; }
+
+    public Boolean getFlagged() { return flagged; }
+    public void setFlagged(Boolean flagged) { this.flagged = flagged; }
+
+    public String getFlagReason() { return flagReason; }
+    public void setFlagReason(String flagReason) { this.flagReason = flagReason; }
+
     public TemperatureCategory getTemperatureCategory() { return temperatureCategory; }
     public void setTemperatureCategory(TemperatureCategory temperatureCategory) { this.temperatureCategory = temperatureCategory; }
 
     public PackagingType getPackagingType() { return packagingType; }
     public void setPackagingType(PackagingType packagingType) { this.packagingType = packagingType; }
+
 
     public boolean isClaimed() { return status==PostStatus.CLAIMED; }
 }
