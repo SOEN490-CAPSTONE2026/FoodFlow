@@ -39,12 +39,14 @@ const MessagingDashboard = () => {
   };
 
   const handleRecipientEmailQueryParam = async () => {
-
-    const recipientEmail = decodeURIComponent(searchParams.get("recipientEmail"));
     
-    if (!recipientEmail) {
-      return;
+    const recipientEmailParam = searchParams.get("recipientEmail");
+
+    if (!recipientEmailParam) {
+      return;  // Exit early if no param exists
     }
+    
+    const recipientEmail = decodeURIComponent(recipientEmailParam);
 
     try {
       setLoading(true);
