@@ -18,19 +18,25 @@ The backend requires a local PostgreSQL instance.
 brew install postgresql
 brew services start postgresql
 ```
+### Windows (Chocolatey)
+```bash
+choco install postgresql
+net start postgresql
+```
 
 
 ## 2. Make scripts executable
 ```bash
-cd backend/backend_scripts
-chmod +x start-local-db.sh
+cd backend
+chmod +x setup-local-db.sh
 
-cd ../frontend/frontend_scripts
+cd ../frontend
 chmod +x start-frontend.sh
 ```
 
-## 3. Run scripts (start with the backend script)
+## 3. Run the scripts (start with the backend script)
 ```bash
+
 cd backend/backend_scripts
 ./start-local-db.sh
 cd ../frontend/frontend_scripts

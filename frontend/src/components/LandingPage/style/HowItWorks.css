@@ -1,13 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
-* {
-    font-family: 'Poppins', sans-serif;
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-.how-it-works-container {
+.hiw-container {
     background-color: #fff;
     padding: 80px 5%;
     position: relative;
@@ -18,12 +11,12 @@
     box-sizing: border-box;
 }
 
-.how-it-works-container.animate-in {
+.hiw-container.hiw-animate-in {
     opacity: 1;
     transform: translateY(0);
 }
 
-.how-it-works-header {
+.hiw-header {
     text-align: center;
     margin-bottom: 60px;
     opacity: 0;
@@ -32,12 +25,12 @@
     padding: 0 20px;
 }
 
-.how-it-works-container.animate-in .how-it-works-header {
+.hiw-container.hiw-animate-in .hiw-header {
     opacity: 1;
     transform: translateY(0);
 }
 
-.how-it-works-header h1 {
+.hiw-header h1 {
     font-size: clamp(2rem, 5vw, 3.5rem);
     font-weight: 700;
     color: #1B4965;
@@ -49,7 +42,7 @@
     word-wrap: break-word;
 }
 
-.how-it-works-header p {
+.hiw-header p {
     font-size: 1.1rem;
     color: #64748b;
     font-weight: 400;
@@ -58,7 +51,7 @@
     line-height: 1.6;
 }
 
-.steps-wrapper {
+.hiw-steps-wrapper {
     display: flex;
     justify-content: center;
     opacity: 0;
@@ -66,12 +59,12 @@
     transition: opacity 0.8s ease 0.6s, transform 0.8s ease 0.6s;
 }
 
-.how-it-works-container.animate-in .steps-wrapper {
+.hiw-container.hiw-animate-in .hiw-steps-wrapper {
     opacity: 1;
     transform: translateY(0);
 }
 
-.steps-container {
+.hiw-steps-container {
     display: flex;
     justify-content: space-between;
     position: relative;
@@ -80,7 +73,7 @@
     gap: 40px;
 }
 
-.step-column {
+.hiw-step-column {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -89,7 +82,7 @@
 }
 
 /* Step Card Styles */
-.step-card {
+.hiw-step-card {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -105,20 +98,20 @@
     margin-bottom: 40px;
 }
 
-.step-card.active {
+.hiw-step-card.hiw-active {
     opacity: 1;
     transform: translateY(0);
     box-shadow: 0 20px 40px rgba(27, 73, 101, 0.15);
 }
 
 /* Step Visual */
-.step-visual {
+.hiw-step-visual {
     margin-bottom: 20px;
 }
 
-.icon-circle {
-    width: 100px;
-    height: 100px;
+.hiw-icon-circle {
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
     background: #1B4965;
     display: flex;
@@ -128,20 +121,20 @@
     border: 6px solid #fff;
     box-shadow: 0 10px 30px rgba(27, 73, 101, 0.15);
     transition: all 0.3s ease;
-    font-size: 2rem;
+    font-size: 1.5rem;
     margin: 0 auto;
 }
 
-.step-card.active .icon-circle {
+.hiw-step-card.hiw-active .hiw-icon-circle {
     background: #62B6CB;
     transform: scale(1.05);
 }
 
-.step-content {
+.hiw-step-content {
     max-width: 100%;
 }
 
-.step-number {
+.hiw-step-number {
     font-size: 1rem;
     font-weight: 700;
     color: #62B6CB;
@@ -149,14 +142,14 @@
     letter-spacing: 1px;
 }
 
-.step-content h3 {
+.hiw-step-content h3 {
     font-size: 1.8rem;
     font-weight: 600;
     color: #1B4965;
     margin-bottom: 1rem;
 }
 
-.step-content p {
+.hiw-step-content p {
     font-size: 1.1rem;
     color: #64748b;
     line-height: 1.6;
@@ -164,7 +157,7 @@
 }
 
 /* Progress Bar Styles */
-.progress-container {
+.hiw-progress-container {
     width: 100%;
     height: 8px;
     background: #e2e8f0;
@@ -173,7 +166,7 @@
     position: relative;
 }
 
-.progress-bar {
+.hiw-progress-bar {
     width: 0%;
     height: 100%;
     background: linear-gradient(to right, #1B4965, #62B6CB);
@@ -181,40 +174,40 @@
     transition: width 0.3s ease;
 }
 
-.progress-bar.completed {
+.hiw-progress-bar.hiw-completed {
     width: 100%;
 }
 
-.progress-bar.animating {
-    animation: progressFill linear forwards;
+.hiw-progress-bar.hiw-animating {
+    animation: hiw-progressFill linear forwards;
 }
 
-@keyframes progressFill {
+@keyframes hiw-progressFill {
     from { width: 0%; }
     to { width: 100%; }
 }
 
-.floating-food {
+.hiw-floating-food {
     position: absolute;
     font-size: 3rem;
     opacity: 0.1;
     z-index: 1;
-    animation: floatAround 20s infinite linear;
+    animation: hiw-floatAround 20s infinite linear;
     opacity: 0;
     transition: opacity 1s ease 0.9s;
 }
 
-.how-it-works-container.animate-in .floating-food {
+.hiw-container.hiw-animate-in .hiw-floating-food {
     opacity: 0.1;
 }
 
-.food-1 { top: 10%; left: 5%; animation-delay: 0s; }
-.food-2 { top: 20%; right: 8%; animation-delay: -5s; }
-.food-3 { bottom: 30%; left: 10%; animation-delay: -10s; }
-.food-4 { bottom: 20%; right: 5%; animation-delay: -15s; }
+.hiw-food-1 { top: 10%; left: 5%; animation-delay: 0s; }
+.hiw-food-2 { top: 20%; right: 8%; animation-delay: -5s; }
+.hiw-food-3 { bottom: 30%; left: 10%; animation-delay: -10s; }
+.hiw-food-4 { bottom: 20%; right: 5%; animation-delay: -15s; }
 
 /* Animations */
-@keyframes floatAround {
+@keyframes hiw-floatAround {
     0% { transform: translate(0, 0) rotate(0deg); }
     25% { transform: translate(20px, -30px) rotate(90deg); }
     50% { transform: translate(-15px, -60px) rotate(180deg); }
@@ -223,7 +216,7 @@
 }
 
 /* Entrance Animation*/
-@keyframes fadeInUp {
+@keyframes hiw-fadeInUp {
     from {
         opacity: 0;
         transform: translateY(30px);
@@ -236,195 +229,195 @@
 
 /* Responsive Style */
 @media (max-width: 1400px) {
-    .how-it-works-container {
+    .hiw-container {
         padding: 80px 5%;
     }
     
-    .steps-container {
+    .hiw-steps-container {
         max-width: 1100px;
         gap: 30px;
     }
 }
 
 @media (max-width: 1200px) {
-    .steps-container {
+    .hiw-steps-container {
         max-width: 950px;
         gap: 25px;
     }
     
-    .step-content h3 {
+    .hiw-step-content h3 {
         font-size: 1.6rem;
     }
     
-    .step-content p {
+    .hiw-step-content p {
         font-size: 1rem;
     }
 }
 
 @media (max-width: 1024px) {
-    .steps-container {
+    .hiw-steps-container {
         gap: 20px;
     }
     
-    .step-card {
+    .hiw-step-card {
         padding: 25px 15px;
     }
     
-    .icon-circle {
-        width: 80px;
-        height: 80px;
-        font-size: 1.7rem;
+    .hiw-icon-circle {
+        width: 60px;
+        height: 60px;
+        font-size: 1.3rem;
     }
     
-    .step-content h3 {
+    .hiw-step-content h3 {
         font-size: 1.5rem;
     }
     
-    .step-content p {
+    .hiw-step-content p {
         font-size: 0.95rem;
     }
 }
 
 @media (max-width: 900px) {
-    .how-it-works-container {
+    .hiw-container {
         padding: 60px 5%;
     }
     
-    .steps-container {
+    .hiw-steps-container {
         flex-direction: column;
         gap: 40px;
         align-items: center;
     }
     
-    .step-column {
+    .hiw-step-column {
         max-width: 500px;
         width: 100%;
     }
     
-    .step-card {
+    .hiw-step-card {
         transform: translateY(0);
         opacity: 1;
         margin-bottom: 20px;
     }
     
-    .step-card.active {
+    .hiw-step-card.hiw-active {
         transform: translateY(0);
     }
     
-    .progress-container {
+    .hiw-progress-container {
         width: 100%;
         max-width: 400px;
     }
 }
 
 @media (max-width: 768px) {
-    .how-it-works-container {
+    .hiw-container {
         padding: 50px 5%;
     }
     
-    .how-it-works-header {
+    .hiw-header {
         margin-bottom: 40px;
     }
     
-    .how-it-works-header h1 {
+    .hiw-header h1 {
         font-size: 2.5rem;
     }
     
-    .how-it-works-header p {
+    .hiw-header p {
         font-size: 1rem;
     }
     
-    .step-column {
+    .hiw-step-column {
         max-width: 450px;
     }
     
-    .steps-container {
+    .hiw-steps-container {
         gap: 35px;
     }
 }
 
 @media (max-width: 600px) {
-    .how-it-works-header h1 {
+    .hiw-header h1 {
         font-size: 2rem;
     }
     
-    .icon-circle {
-        width: 75px;
-        height: 75px;
-        font-size: 1.6rem;
+    .hiw-icon-circle {
+        width: 55px;
+        height: 55px;
+        font-size: 1.2rem;
     }
     
-    .step-content h3 {
+    .hiw-step-content h3 {
         font-size: 1.4rem;
     }
 }
 
 @media (max-width: 480px) {
-    .how-it-works-container {
+    .hiw-container {
         padding: 40px 4%;
     }
     
-    .how-it-works-header {
+    .hiw-header {
         padding: 0 10px;
         margin-bottom: 35px;
     }
     
-    .how-it-works-header h1 {
+    .hiw-header h1 {
         font-size: 1.75rem;
         margin-bottom: 0.75rem;
     }
     
-    .how-it-works-header p {
+    .hiw-header p {
         font-size: 0.95rem;
     }
     
-    .step-card {
+    .hiw-step-card {
         padding: 20px 15px;
     }
     
-    .step-content {
+    .hiw-step-content {
         padding: 0 10px;
     }
     
-    .icon-circle {
-        width: 70px;
-        height: 70px;
-        font-size: 1.5rem;
+    .hiw-icon-circle {
+        width: 50px;
+        height: 50px;
+        font-size: 1.1rem;
     }
     
-    .step-content h3 {
+    .hiw-step-content h3 {
         font-size: 1.3rem;
     }
     
-    .step-content p {
+    .hiw-step-content p {
         font-size: 0.9rem;
     }
     
-    .steps-container {
+    .hiw-steps-container {
         gap: 30px;
     }
     
-    .progress-container {
+    .hiw-progress-container {
         max-width: 300px;
     }
 }
 
 @media (max-width: 375px) {
-    .how-it-works-header h1 {
+    .hiw-header h1 {
         font-size: 1.6rem;
     }
     
-    .step-content h3 {
+    .hiw-step-content h3 {
         font-size: 1.2rem;
     }
     
-    .step-content p {
+    .hiw-step-content p {
         font-size: 0.85rem;
     }
     
-    .icon-circle {
-        width: 65px;
-        height: 65px;
-        font-size: 1.4rem;
+    .hiw-icon-circle {
+        width: 48px;
+        height: 48px;
+        font-size: 1rem;
     }
 }

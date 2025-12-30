@@ -25,6 +25,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,17 +41,20 @@ public class SurplusService {
     private final PickupSlotValidationService pickupSlotValidationService;
     private final BusinessMetricsService businessMetricsService;
     private final NotificationService notificationService;
+    private final ExpiryCalculationService expiryCalculationService;
 
     public SurplusService(SurplusPostRepository surplusPostRepository, 
                          ClaimRepository claimRepository,
                          PickupSlotValidationService pickupSlotValidationService,
                          BusinessMetricsService businessMetricsService,
-                         NotificationService notificationService) {
+                         NotificationService notificationService,
+                         ExpiryCalculationService expiryCalculationService) {
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;
         this.pickupSlotValidationService = pickupSlotValidationService;
         this.businessMetricsService = businessMetricsService;
         this.notificationService = notificationService;
+        this.expiryCalculationService = expiryCalculationService;
     }
     
     /**
@@ -68,7 +72,41 @@ public class SurplusService {
         post.setFoodCategories(request.getFoodCategories());
         post.setQuantity(request.getQuantity());
         post.setPickupLocation(request.getPickupLocation());
-        post.setExpiryDate(request.getExpiryDate());
+        post.setTemperatureCategory(request.getTemperatureCategory());
+        post.setPackagingType(request.getPackagingType());
+
+        // Handle fabrication date and expiry date calculation
+        LocalDate fabricationDate = request.getFabricationDate();
+        LocalDate expiryDate = request.getExpiryDate();
+
+        if (fabricationDate != null) {
+            // Validate fabrication date is not in the future
+            if (!expiryCalculationService.isValidFabricationDate(fabricationDate)) {
+                throw new IllegalArgumentException("Fabrication date cannot be in the future");
+            }
+            post.setFabricationDate(fabricationDate);
+
+            // If expiry date not provided, calculate it automatically
+            if (expiryDate == null) {
+                expiryDate = expiryCalculationService.calculateExpiryDate(
+                    fabricationDate,
+                    request.getFoodCategories()
+                );
+            } else {
+                // Validate provided expiry date makes sense
+                if (!expiryCalculationService.isValidExpiryDate(fabricationDate, expiryDate)) {
+                    throw new IllegalArgumentException(
+                        "Expiry date must be after fabrication date and within reasonable limits"
+                    );
+                }
+            }
+        }
+
+        // Ensure expiry date is set (either provided or calculated)
+        if (expiryDate == null) {
+            throw new IllegalArgumentException("Expiry date is required");
+        }
+        post.setExpiryDate(expiryDate);
 
         // Handle pickup slots
         List<PickupSlotRequest> slotsToProcess;
@@ -193,6 +231,7 @@ public class SurplusService {
         response.setFoodCategories(post.getFoodCategories());
         response.setQuantity(post.getQuantity());
         response.setPickupLocation(post.getPickupLocation());
+        response.setFabricationDate(post.getFabricationDate());
         response.setExpiryDate(post.getExpiryDate());
         response.setPickupDate(post.getPickupDate());
         response.setPickupFrom(post.getPickupFrom());
@@ -205,6 +244,8 @@ public class SurplusService {
             : null);
         response.setCreatedAt(post.getCreatedAt());
         response.setUpdatedAt(post.getUpdatedAt());
+        response.setTemperatureCategory(post.getTemperatureCategory());
+        response.setPackagingType(post.getPackagingType());
 
         // Convert pickup slots
         if (post.getPickupSlots() != null && !post.getPickupSlots().isEmpty()) {

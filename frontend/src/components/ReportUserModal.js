@@ -59,10 +59,7 @@ const ReportUserModal = ({
         photoEvidenceUrl: photoUrl
       });
 
-      // Show success message
-      alert('Report submitted successfully! Case ID will be provided once processed.');
-
-      // Reset form
+      // Reset form and close - parent will handle success message
       setDescription('');
       setPhotoFile(null);
       setPhotoPreview(null);

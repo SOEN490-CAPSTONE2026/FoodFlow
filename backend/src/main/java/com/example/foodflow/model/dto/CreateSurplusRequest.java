@@ -4,6 +4,8 @@ import com.example.foodflow.model.types.FoodCategory;
 import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.model.types.Quantity;
 import com.example.foodflow.model.types.Location;
+import com.example.foodflow.model.types.TemperatureCategory;
+import com.example.foodflow.model.types.PackagingType;
 
 import jakarta.validation.constraints.*;
 import java.time.LocalDate;
@@ -25,6 +27,8 @@ public class CreateSurplusRequest {
     @Valid
     @NotNull(message = "Quantity is required")
     private Quantity quantity;
+
+    private LocalDate fabricationDate;
 
     @NotNull(message = "Expiry date is required")
     @Future(message = "Expiry date must be in the future")
@@ -53,6 +57,12 @@ public class CreateSurplusRequest {
     // Donor's timezone (e.g., "America/Toronto") - all times in this request are in this timezone
     private String donorTimezone;
 
+    @NotNull(message = "Temperature category is required")
+    private TemperatureCategory temperatureCategory;
+
+    @NotNull(message = "Packaging type is required")
+    private PackagingType packagingType;
+
     // Constructors
     public CreateSurplusRequest() {}
 
@@ -65,6 +75,9 @@ public class CreateSurplusRequest {
 
     public Quantity getQuantity() { return quantity; }
     public void setQuantity(Quantity quantity) { this.quantity = quantity; }
+
+    public LocalDate getFabricationDate() { return fabricationDate; }
+    public void setFabricationDate(LocalDate fabricationDate) { this.fabricationDate = fabricationDate; }
 
     public LocalDate getExpiryDate() { return expiryDate; }
     public void setExpiryDate(LocalDate expiryDate) { this.expiryDate = expiryDate; }
@@ -89,6 +102,12 @@ public class CreateSurplusRequest {
 
     public List<PickupSlotRequest> getPickupSlots() { return pickupSlots; }
     public void setPickupSlots(List<PickupSlotRequest> pickupSlots) { this.pickupSlots = pickupSlots; }
+
+    public TemperatureCategory getTemperatureCategory() { return temperatureCategory; }
+    public void setTemperatureCategory(TemperatureCategory temperatureCategory) { this.temperatureCategory = temperatureCategory; }
+
+    public PackagingType getPackagingType() { return packagingType; }
+    public void setPackagingType(PackagingType packagingType) { this.packagingType = packagingType; }
     
     public String getDonorTimezone() { return donorTimezone; }
     public void setDonorTimezone(String donorTimezone) { this.donorTimezone = donorTimezone; }

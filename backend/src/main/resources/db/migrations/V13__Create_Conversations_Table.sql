@@ -3,21 +3,16 @@ CREATE TABLE conversations (
     id BIGSERIAL PRIMARY KEY,
     user1_id BIGINT NOT NULL,
     user2_id BIGINT NOT NULL,
-    surplus_post_id BIGINT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_message_at TIMESTAMP,
     
     FOREIGN KEY (user1_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (user2_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (surplus_post_id) REFERENCES surplus_posts(id) ON DELETE CASCADE,
     
     -- Ensure unique conversation per user pair (order-independent)
     CONSTRAINT unique_conversation CHECK (user1_id < user2_id),
     UNIQUE(user1_id, user2_id)
 );
-
--- Add comment explaining the relationship
-COMMENT ON COLUMN conversations.surplus_post_id IS 'Links conversation to the surplus post it is related to';
 
 -- Drop the old messages table and recreate with conversation_id
 DROP TABLE IF EXISTS messages CASCADE;
@@ -37,7 +32,6 @@ CREATE TABLE messages (
 -- Indexes for efficient querying
 CREATE INDEX idx_conversations_user1 ON conversations(user1_id);
 CREATE INDEX idx_conversations_user2 ON conversations(user2_id);
-CREATE INDEX idx_conversations_surplus_post ON conversations(surplus_post_id);
 CREATE INDEX idx_conversations_last_message ON conversations(last_message_at DESC);
 
 CREATE INDEX idx_messages_conversation ON messages(conversation_id);
