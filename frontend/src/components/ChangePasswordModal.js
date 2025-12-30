@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, X } from 'lucide-react';
+import { authAPI } from '../services/api';
 import './ChangePasswordModal.css';
 
 const ChangePasswordModal = ({ isOpen, onClose }) => {
@@ -16,6 +17,8 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
   });
   
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -79,23 +82,52 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
     return true;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!validateForm()) {
       return;
     }
     
-    // TODO: Backend integration will go here
-    console.log('Password change submitted:', formData);
+    setLoading(true);
+    setErrors({});
     
-    // Clear form and close modal
-    setFormData({
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    });
-    onClose();
+    try {
+      const response = await authAPI.changePassword({
+        currentPassword: formData.currentPassword,
+        newPassword: formData.newPassword,
+        confirmPassword: formData.confirmPassword
+      });
+      
+      setSuccessMessage(response.data.message || 'Password changed successfully');
+      
+      // Clear form after 2 seconds and close modal
+      setTimeout(() => {
+        setFormData({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        });
+        setSuccessMessage('');
+        onClose();
+      }, 2000);
+      
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 'Failed to change password';
+      
+      // Map backend errors to specific fields
+      if (errorMessage.toLowerCase().includes('incorrect current password')) {
+        setErrors({ currentPassword: errorMessage });
+      } else if (errorMessage.toLowerCase().includes('do not match')) {
+        setErrors({ confirmPassword: errorMessage });
+      } else if (errorMessage.toLowerCase().includes('same as current')) {
+        setErrors({ newPassword: errorMessage });
+      } else {
+        setErrors({ general: errorMessage });
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const togglePasswordVisibility = (field) => {
@@ -217,6 +249,14 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
               <li>Must be different from your current password</li>
             </ul>
           </div>
+
+          {errors.general && (
+            <div className="error-message general-error">{errors.general}</div>
+          )}
+
+          {successMessage && (
+            <div className="success-message">{successMessage}</div>
+          )}
         </form>
 
         <div className="modal-actions">
@@ -224,6 +264,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
             type="button"
             className="cancel-button"
             onClick={handleCancel}
+            disabled={loading}
           >
             Cancel
           </button>
@@ -231,8 +272,9 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
             type="submit"
             className="confirm-button"
             onClick={handleSubmit}
+            disabled={loading}
           >
-            Confirm
+            {loading ? 'Changing...' : 'Confirm'}
           </button>
         </div>
       </div>

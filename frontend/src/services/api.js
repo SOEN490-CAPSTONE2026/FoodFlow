@@ -68,6 +68,7 @@ export const authAPI = {
   forgotPassword: (data) => api.post("/auth/forgot-password", data),
   verifyResetCode: (data) => api.post("/auth/verify-reset-code", data),
   resetPassword: (data) => api.post("/auth/reset-password", data),
+  changePassword: (data) => api.post("/auth/change-password", data),
 };
 
 export const surplusAPI = {
