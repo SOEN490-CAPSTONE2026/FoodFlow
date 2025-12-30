@@ -21,7 +21,7 @@ import { surplusAPI } from "../../services/api";
 import SurplusFormModal from "../DonorDashboard/SurplusFormModal";
 import ConfirmPickupModal from "../DonorDashboard/ConfirmPickupModal";
 import ClaimedSuccessModal from "../DonorDashboard/ClaimedSuccessModal";
-import { getFoodTypeLabel, getUnitLabel } from "../../constants/foodConstants";
+import { getFoodTypeLabel, getUnitLabel, getTemperatureCategoryLabel, getTemperatureCategoryIcon, getPackagingTypeLabel } from "../../constants/foodConstants";
 import "../DonorDashboard/Donor_Styles/DonorListFood.css";
 
 // Define libraries for Google Maps
@@ -53,6 +53,22 @@ function addressLabel(full) {
     .map((s) => s.trim());
   if (parts.length <= 2) return full;
   return `${parts[0]}, ${parts[1]}…`;
+}
+
+function formatExpiryDate(dateString) {
+  if (!dateString) return "Not specified";
+  try {
+    // Parse as local date to avoid timezone conversion issues
+    const [year, month, day] = dateString.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  } catch {
+    return "Not specified";
+  }
 }
 
 // Format the pickup time range
@@ -404,6 +420,24 @@ export default function DonorListFood() {
                 </div>
               )}
 
+              {/* Food Safety Compliance Info */}
+              {(item.temperatureCategory || item.packagingType) && (
+                <div className="compliance-badges">
+                  {item.temperatureCategory && (
+                    <span className="compliance-badge temperature">
+                      <span className="badge-icon">{getTemperatureCategoryIcon(item.temperatureCategory)}</span>
+                      <span className="badge-label">{getTemperatureCategoryLabel(item.temperatureCategory)}</span>
+                    </span>
+                  )}
+                  {item.packagingType && (
+                    <span className="compliance-badge packaging">
+                      <Package size={14} />
+                      <span className="badge-label">{getPackagingTypeLabel(item.packagingType)}</span>
+                    </span>
+                  )}
+                </div>
+              )}
+
               <div className="donation-quantity">
                 {item.quantity.value} {getUnitLabel(item.quantity.unit)}
               </div>
@@ -411,7 +445,7 @@ export default function DonorListFood() {
               <ul className="donation-meta" aria-label="details">
                 <li>
                   <Calendar size={16} className="calendar-icon" />
-                  <span>Expires: {item.expiryDate || "Not specified"}</span>
+                  <span>Expires: {formatExpiryDate(item.expiryDate)}</span>
                 </li>
                 <li>
                   <Clock size={16} className="time-icon" />

@@ -101,7 +101,9 @@ class FeedIntegrationTest {
         + "\"expiryDate\": \"2030-01-01\","
         + "\"pickupDate\": \"2030-01-01\","
         + "\"pickupFrom\": \"15:00:00\","
-        + "\"pickupTo\": \"18:00:00\""
+        + "\"pickupTo\": \"18:00:00\","
+        + "\"temperatureCategory\": \"REFRIGERATED\","
+        + "\"packagingType\": \"SEALED\""
         + "}";
 
 
@@ -175,7 +177,9 @@ class FeedIntegrationTest {
         + "\"expiryDate\": \"2030-01-01\","
         + "\"pickupDate\": \"2030-01-01\","
         + "\"pickupFrom\": \"15:00:00\","
-        + "\"pickupTo\": \"18:00:00\""
+        + "\"pickupTo\": \"18:00:00\","
+        + "\"temperatureCategory\": \"ROOM_TEMPERATURE\","
+        + "\"packagingType\": \"BOXED\""
         + "}";
 
         mockMvc.perform(post("/api/surplus")

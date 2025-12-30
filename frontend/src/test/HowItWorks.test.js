@@ -84,45 +84,45 @@ describe('HowItWorks Component', () => {
   test('starts with first step active', () => {
     render(<HowItWorks />);
 
-    const stepCards = document.querySelectorAll('.step-card');
-    expect(stepCards[0]).toHaveClass('active');
-    expect(stepCards[1]).not.toHaveClass('active');
-    expect(stepCards[2]).not.toHaveClass('active');
+    const stepCards = document.querySelectorAll('.hiw-step-card');
+    expect(stepCards[0]).toHaveClass('hiw-active');
+    expect(stepCards[1]).not.toHaveClass('hiw-active');
+    expect(stepCards[2]).not.toHaveClass('hiw-active');
   });
 
   test('maintains proper DOM structure', () => {
     render(<HowItWorks />);
 
     // Should have exactly 3 steps
-    const stepCards = document.querySelectorAll('.step-card');
+    const stepCards = document.querySelectorAll('.hiw-step-card');
     expect(stepCards.length).toBe(3);
 
     // Should have progress bars between steps
-    const progressBars = document.querySelectorAll('.progress-bar');
+    const progressBars = document.querySelectorAll('.hiw-progress-bar');
     expect(progressBars.length).toBe(3);
 
     // Should have step columns
-    const stepColumns = document.querySelectorAll('.step-column');
+    const stepColumns = document.querySelectorAll('.hiw-step-column');
     expect(stepColumns.length).toBe(3);
 
     // Should have proper container structure
-    expect(document.querySelector('.how-it-works-container')).toBeInTheDocument();
-    expect(document.querySelector('.how-it-works-header')).toBeInTheDocument();
-    expect(document.querySelector('.steps-wrapper')).toBeInTheDocument();
-    expect(document.querySelector('.steps-container')).toBeInTheDocument();
+    expect(document.querySelector('.hiw-container')).toBeInTheDocument();
+    expect(document.querySelector('.hiw-header')).toBeInTheDocument();
+    expect(document.querySelector('.hiw-steps-wrapper')).toBeInTheDocument();
+    expect(document.querySelector('.hiw-steps-container')).toBeInTheDocument();
   });
 
   test('step cards have correct structure', () => {
     render(<HowItWorks />);
 
-    const stepCards = document.querySelectorAll('.step-card');
+    const stepCards = document.querySelectorAll('.hiw-step-card');
     
     stepCards.forEach((card) => {
-      expect(card.querySelector('.step-visual')).toBeInTheDocument();
-      expect(card.querySelector('.step-icon')).toBeInTheDocument();
-      expect(card.querySelector('.icon-circle')).toBeInTheDocument();
-      expect(card.querySelector('.step-content')).toBeInTheDocument();
-      expect(card.querySelector('.step-number')).toBeInTheDocument();
+      expect(card.querySelector('.hiw-step-visual')).toBeInTheDocument();
+      expect(card.querySelector('.hiw-step-icon')).toBeInTheDocument();
+      expect(card.querySelector('.hiw-icon-circle')).toBeInTheDocument();
+      expect(card.querySelector('.hiw-step-content')).toBeInTheDocument();
+      expect(card.querySelector('.hiw-step-number')).toBeInTheDocument();
       expect(card.querySelector('h3')).toBeInTheDocument();
       expect(card.querySelector('p')).toBeInTheDocument();
     });
@@ -131,14 +131,14 @@ describe('HowItWorks Component', () => {
   test('floating food elements are present', () => {
     render(<HowItWorks />);
 
-    const floatingFoods = document.querySelectorAll('.floating-food');
+    const floatingFoods = document.querySelectorAll('.hiw-floating-food');
     expect(floatingFoods.length).toBe(4);
     
     // Check they have the correct classes
-    expect(document.querySelector('.food-1')).toBeInTheDocument();
-    expect(document.querySelector('.food-2')).toBeInTheDocument();
-    expect(document.querySelector('.food-3')).toBeInTheDocument();
-    expect(document.querySelector('.food-4')).toBeInTheDocument();
+    expect(document.querySelector('.hiw-food-1')).toBeInTheDocument();
+    expect(document.querySelector('.hiw-food-2')).toBeInTheDocument();
+    expect(document.querySelector('.hiw-food-3')).toBeInTheDocument();
+    expect(document.querySelector('.hiw-food-4')).toBeInTheDocument();
   });
 });
 
@@ -173,8 +173,8 @@ describe('HowItWorks Component - Animation Behavior', () => {
     render(<HowItWorks />);
 
     // Initial state - first step active
-    let stepCards = document.querySelectorAll('.step-card');
-    expect(stepCards[0]).toHaveClass('active');
+    let stepCards = document.querySelectorAll('.hiw-step-card');
+    expect(stepCards[0]).toHaveClass('hiw-active');
 
     // Advance to trigger step transition
     act(() => {
@@ -182,9 +182,9 @@ describe('HowItWorks Component - Animation Behavior', () => {
     });
 
     // Second step should now be active
-    stepCards = document.querySelectorAll('.step-card');
-    expect(stepCards[1]).toHaveClass('active');
-    expect(stepCards[0]).not.toHaveClass('active');
+    stepCards = document.querySelectorAll('.hiw-step-card');
+    expect(stepCards[1]).toHaveClass('hiw-active');
+    expect(stepCards[0]).not.toHaveClass('hiw-active');
   });
 
   test('cycles back to first step after last step', () => {
@@ -204,19 +204,19 @@ describe('HowItWorks Component - Animation Behavior', () => {
     });
 
     // Should be back at first step
-    const stepCards = document.querySelectorAll('.step-card');
-    expect(stepCards[0]).toHaveClass('active');
-    expect(stepCards[1]).not.toHaveClass('active');
-    expect(stepCards[2]).not.toHaveClass('active');
+    const stepCards = document.querySelectorAll('.hiw-step-card');
+    expect(stepCards[0]).toHaveClass('hiw-active');
+    expect(stepCards[1]).not.toHaveClass('hiw-active');
+    expect(stepCards[2]).not.toHaveClass('hiw-active');
   });
 
   test('progress bar animates on active step', () => {
     render(<HowItWorks />);
 
-    const progressBars = document.querySelectorAll('.progress-bar');
+    const progressBars = document.querySelectorAll('.hiw-progress-bar');
     
     // First progress bar should be animating
-    expect(progressBars[0]).toHaveClass('animating');
+    expect(progressBars[0]).toHaveClass('hiw-animating');
   });
 
   test('component handles timer cleanup on unmount', () => {
@@ -254,8 +254,8 @@ describe('HowItWorks Component - Animation Behavior', () => {
     });
 
     // Should still be on first step since not in view
-    const stepCards = document.querySelectorAll('.step-card');
-    expect(stepCards[0]).toHaveClass('active');
+    const stepCards = document.querySelectorAll('.hiw-step-card');
+    expect(stepCards[0]).toHaveClass('hiw-active');
   });
 });
 

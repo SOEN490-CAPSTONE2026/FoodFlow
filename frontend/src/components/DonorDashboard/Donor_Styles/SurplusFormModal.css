@@ -60,6 +60,7 @@
   font-weight: 600;
   color: #1b4965;
   margin: 0;
+  margin-top: 12px;
   text-align: left;
 }
 .close-button {
@@ -75,8 +76,7 @@
   justify-content: center;
   position: absolute;
   right: 20px;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 24px;
 }
 
 .close-button:hover {
@@ -806,5 +806,129 @@
 
   .pickup-slot-card {
     padding: 12px;
+  }
+}
+
+/* Food Safety Compliance Styles */
+.required-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  background-color: #fef3c7;
+  color: #92400e;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.input-help-text {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: #64748b;
+  font-style: italic;
+}
+
+/* Progress Steps */
+.progress-steps {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 auto 24px;
+  max-width: 750px;
+  padding: 0 40px;
+}
+
+.step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+  z-index: 2;
+}
+
+.step-item::after {
+  content: '';
+  position: absolute;
+  left: calc(50% + 25px);
+  top: 25px;
+  width: 150px;
+  height: 2px;
+  background: #e2e8f0;
+  z-index: -1;
+}
+
+.step-item:last-child::after {
+  display: none;
+}
+
+.step-item:has(.step-circle.completed)::after {
+  background: #1B4965;
+}
+
+.step-circle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1.05rem;
+  background-color: #e2e8f0;
+  color: #94a3b8;
+  transition: all 0.25s ease;
+}
+
+.step-circle.active {
+  background-color: white;
+  color: #1B4965;
+  border: 2.5px solid #1B4965;
+  box-shadow: 0 2px 8px rgba(27, 73, 101, 0.15);
+}
+
+.step-circle.completed {
+  background-color: #1B4965;
+  color: white;
+}
+
+.step-label {
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 500;
+  text-align: center;
+  white-space: nowrap;
+  transition: color 0.25s ease;
+}
+
+.step-item:has(.step-circle.active) .step-label {
+  color: #1B4965;
+  font-weight: 600;
+}
+
+.step-item:has(.step-circle.completed) .step-label {
+  color: #1B4965;
+}
+
+.step-line {
+  display: none;
+}
+
+/* Form Step Content */
+.form-step-content {
+  padding: 24px;
+  min-height: 400px;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
