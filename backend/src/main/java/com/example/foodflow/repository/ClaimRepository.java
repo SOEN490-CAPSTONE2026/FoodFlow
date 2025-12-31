@@ -2,6 +2,7 @@ package com.example.foodflow.repository;
 
 import com.example.foodflow.model.entity.Claim;
 import com.example.foodflow.model.entity.SurplusPost;
+import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.types.ClaimStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -44,4 +45,12 @@ public interface ClaimRepository extends JpaRepository<Claim, Long> {
 
     long countByStatus(ClaimStatus status);
     long countByReceiverId(Long receiverId);
+
+    /**
+     * Find completed claims for a user (either as donor or receiver)
+     */
+    @Query("SELECT c FROM Claim c WHERE " +
+        "c.status = com.example.foodflow.model.types.ClaimStatus.COMPLETED AND " +
+        "(c.surplusPost.donor = :user OR c.receiver = :user)")
+    List<Claim> findCompletedClaimsForUser(@Param("user") User user);
 }

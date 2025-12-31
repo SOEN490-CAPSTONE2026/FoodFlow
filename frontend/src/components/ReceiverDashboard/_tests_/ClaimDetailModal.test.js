@@ -2,6 +2,9 @@ import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { TimezoneProvider } from "../../../contexts/TimezoneContext";
+import { MemoryRouter } from 'react-router-dom';
+import ClaimDetailModal from "../ClaimDetailModal";
+
 
 // Mock the custom hook
 jest.mock("../../../hooks/useGoogleMaps", () => ({
@@ -9,11 +12,11 @@ jest.mock("../../../hooks/useGoogleMaps", () => ({
   default: jest.fn(() => ({ current: null })),
 }));
 
-import ClaimDetailModal from "../ClaimDetailModal";
-
 // Wrapper component to provide TimezoneContext
 const Wrapper = ({ children }) => (
-  <TimezoneProvider>{children}</TimezoneProvider>
+  <MemoryRouter>
+    <TimezoneProvider>{children}</TimezoneProvider>
+  </MemoryRouter>
 );
 
 // Mock the child components

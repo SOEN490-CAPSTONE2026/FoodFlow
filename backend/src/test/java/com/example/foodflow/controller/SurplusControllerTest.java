@@ -7,8 +7,10 @@ import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.UserRole;
 import com.example.foodflow.model.types.FoodCategory;
 import com.example.foodflow.model.types.Location;
+import com.example.foodflow.model.types.PackagingType;
 import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.model.types.Quantity;
+import com.example.foodflow.model.types.TemperatureCategory;
 import com.example.foodflow.repository.UserRepository;
 import com.example.foodflow.service.SurplusService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -91,6 +93,8 @@ class SurplusControllerTest {
         request.setPickupTo(LocalTime.now().plusHours(5));
         request.setPickupLocation(new Location(45.2903, -34.0987, "123 Main St"));
         request.setDescription("Vegetarian lasagna with spinach");
+        request.setTemperatureCategory(TemperatureCategory.REFRIGERATED);
+        request.setPackagingType(PackagingType.SEALED);
 
 
         response = new SurplusResponse();

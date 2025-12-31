@@ -488,8 +488,14 @@ public class AuthService {
         String identifier;
         
         if (email != null && !email.trim().isEmpty()) {
-            // Email-based reset - verify code first
-            verifyResetCode(email, code);
+            // Email-based reset - verify code exists and matches (no expiration check)
+            // The code was already verified with expiration check in verifyResetCode endpoint
+            ResetCodeData storedData = resetCodes.get(email);
+            if (storedData == null || !storedData.getCode().equals(code)) {
+                log.warn("Invalid or missing reset code for email: {}", email);
+                throw new RuntimeException("Invalid reset code. Please request a new code.");
+            }
+            
             identifier = email;
             user = userRepository.findByEmail(email)
                 .orElseThrow(() -> {

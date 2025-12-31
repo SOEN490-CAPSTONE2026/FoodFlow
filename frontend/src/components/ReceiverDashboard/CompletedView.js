@@ -3,6 +3,7 @@ import { X, CircleCheck, AlertTriangle } from 'lucide-react';
 import Confetti from 'react-confetti';
 import { foodTypeImages, getPrimaryFoodCategory } from '../../constants/foodConstants';
 import ReportUserModal from '../ReportUserModal';
+import { reportAPI } from '../../services/api';
 import './Receiver_Styles/CompletedView.css';
 
 const CompletedView = ({ claim, isOpen, onClose, onBack }) => {
@@ -23,9 +24,14 @@ const CompletedView = ({ claim, isOpen, onClose, onBack }) => {
     if (!isOpen || !claim) return null;
 
     const handleReportSubmit = async (reportData) => {
-        console.log('Report submitted:', reportData);
-        // Mock - will be connected to backend later
-        setShowReportModal(false);
+        try {
+            await reportAPI.createReport(reportData);
+            alert('Report submitted successfully! An admin will review it shortly.');
+            setShowReportModal(false);
+        } catch (error) {
+            console.error('Failed to submit report:', error);
+            alert('Failed to submit report. Please try again.');
+        }
     };
 
     const donorInfo = post?.donor || {

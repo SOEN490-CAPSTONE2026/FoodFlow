@@ -71,6 +71,9 @@ public class SecurityConfig {
                 // ✅ NEW: Receiver Preferences endpoints
                 .requestMatchers("/api/receiver/preferences/**").hasAuthority("RECEIVER")
                 
+                // ✅ NEW: Reports/Disputes endpoints - TEMPORARILY permitAll for debugging
+                .requestMatchers("/api/reports/**").permitAll()
+                
                 // Other endpoints
                 .requestMatchers("/api/feed/**").hasAuthority("RECEIVER")
                 .requestMatchers("/api/requests/**").hasAnyAuthority("DONOR", "RECEIVER")

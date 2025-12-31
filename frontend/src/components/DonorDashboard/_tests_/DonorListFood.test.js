@@ -1,5 +1,6 @@
 import React from "react";
 import { render, screen, within, waitFor } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 
@@ -81,6 +82,11 @@ jest.mock("lucide-react", () => ({
   Package: () => "PackageIcon",
   ChevronDown: () => "ChevronDownIcon",
   Filter: () => "FilterIcon",
+  Camera: () => "CameraIcon",
+  Image: () => "ImageIcon",
+  ChevronLeft: () => "ChevronLeftIcon",
+  ChevronRight: () => "ChevronRightIcon",
+  Upload: () => "UploadIcon",
 }));
 
 import DonorListFood from "../DonorListFood";
@@ -132,13 +138,15 @@ const mockItems = [
   },
 ];
 
-// Create a wrapper component to provide the AuthContext
+// Create a wrapper component to provide the AuthContext AND Router
 const TestWrapper = ({ children }) => {
   const mockUser = { id: 1, name: "Test User" };
   return (
-    <AuthContext.Provider value={{ user: mockUser }}>
-      {children}
-    </AuthContext.Provider>
+    <MemoryRouter>
+      <AuthContext.Provider value={{ user: mockUser }}>
+        {children}
+      </AuthContext.Provider>
+    </MemoryRouter>
   );
 };
 
@@ -244,7 +252,7 @@ describe("DonorListFood", () => {
 
     const appleCard = screen.getByLabelText(/fresh apples/i);
     expect(
-      within(appleCard).getByText(/Expires: 2025-10-08/)
+      within(appleCard).getByText(/Expires:\s*Oct 8, 2025/)
     ).toBeInTheDocument();
     expect(within(appleCard).getByText(/Pickup:/)).toBeInTheDocument();
   });
@@ -556,5 +564,30 @@ test("delete button shows confirmation and removes item when confirmed", async (
     
     // Should not have divider for single slot
     expect(within(card).queryByText(/\|/)).not.toBeInTheDocument();
+  });
+
+  // Additional test to verify navigation functionality works
+  test("handles navigation functionality when buttons are clicked", async () => {
+    surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
+    const user = userEvent.setup();
+
+    setup();
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/fresh apples/i)).toBeInTheDocument();
+    });
+
+    // Test that components with navigation hooks render properly
+    // This would fail with the Router error if not wrapped properly
+    expect(screen.getByRole("button", { name: /\+ donate more/i })).toBeInTheDocument();
+    
+    // If your buttons trigger navigation, they should work without throwing Router errors
+    const editButtons = screen.getAllByRole("button", { name: /edit/i });
+    await user.click(editButtons[0]);
+    
+    // The alert should work fine with proper Router context
+    expect(window.alert).toHaveBeenCalledWith(
+      expect.stringContaining("Opening edit form for: Fresh Apples")
+    );
   });
 });

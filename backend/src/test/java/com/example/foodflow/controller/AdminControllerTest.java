@@ -1,4 +1,11 @@
 package com.example.foodflow.controller;
+import com.example.foodflow.model.dto.*;
+import com.example.foodflow.model.entity.User;
+import com.example.foodflow.model.entity.UserRole;
+import com.example.foodflow.model.types.PostStatus;
+import com.example.foodflow.repository.UserRepository;
+import com.example.foodflow.security.JwtTokenProvider;
+import com.example.foodflow.service.AdminDonationService;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -20,9 +27,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import com.example.foodflow.model.dto.AdminUserResponse;
-import com.example.foodflow.model.dto.DeactivateUserRequest;
-import com.example.foodflow.model.dto.SendAlertRequest;
 import com.example.foodflow.service.AdminUserService;
 
 /**
@@ -35,11 +39,13 @@ class AdminControllerTest {
 
     @Mock
     private AdminUserService adminUserService;
-
+    private AdminDonationResponse testDonationResponse;
+    private User adminUser;
     @InjectMocks
     private AdminController adminController;
 
     private AdminUserResponse testUserResponse;
+
 
     @BeforeEach
     void setUp() {
@@ -52,6 +58,22 @@ class AdminControllerTest {
         testUserResponse.setOrganizationName("Test Org");
         testUserResponse.setDonationCount(5L);
         testUserResponse.setClaimCount(0L);
+
+        adminUser = new User();
+        adminUser.setId(999L);
+        adminUser.setEmail("admin@test.com");
+        adminUser.setRole(UserRole.ADMIN);
+
+        // Setup test donation response
+        testDonationResponse = new AdminDonationResponse();
+        testDonationResponse.setId(1L);
+        testDonationResponse.setTitle("Test Donation");
+        testDonationResponse.setStatus(PostStatus.CLAIMED);
+        testDonationResponse.setDonorId(1L);
+        testDonationResponse.setDonorEmail("donor@test.com");
+        testDonationResponse.setDonorName("Test Donor");
+        testDonationResponse.setFlagged(false);
+
     }
 
     @Nested
