@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from "react-router-dom";
 import { X, Package, Calendar, MapPin, User, Clock, MessageCircle } from 'lucide-react';
 import useGoogleMap from '../../hooks/useGoogleMaps';
 import ClaimedView from './ClaimedView';
@@ -11,6 +12,7 @@ import './Receiver_Styles/ClaimDetailModal.css';
 const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
     const post = claim?.surplusPost;
     const [showPickupSteps, setShowPickupSteps] = useState(false);
+    const navigate = useNavigate();
     const { userTimezone } = useTimezone();
 
     const formatPickupTime = (pickupDate, pickupFrom, pickupTo) => {
@@ -118,7 +120,7 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                                 onClick={(e) => {
                                     e.preventDefault();
                                     // Navigate to chat with donor
-                                    console.log('Navigate to chat with donor:', post?.donorName);
+                                    navigate(`/receiver/messages?recipientEmail=${encodeURIComponent(post?.donorEmail)}`);
                                 }}
                                 title={`Chat with ${post?.donorName || 'donor'}`}
                             >

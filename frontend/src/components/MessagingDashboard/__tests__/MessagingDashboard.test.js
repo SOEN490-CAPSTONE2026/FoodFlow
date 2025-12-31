@@ -1,7 +1,9 @@
 import React from 'react';
+import api from '../../../services/api';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import MessagingDashboard from '../MessagingDashboard';
+import { MemoryRouter } from 'react-router-dom';
 
 const mockGet = jest.fn();
 
@@ -83,11 +85,18 @@ describe('MessagingDashboard', () => {
     mockGet.mockClear();
   });
 
-  test('renders loading state initially', () => {
-    mockGet.mockImplementation(() => new Promise(() => {})); // never resolves
-    render(<MessagingDashboard />);
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
-  });
+test('renders loading state initially', () => {
+  const neverResolvingPromise = new Promise(() => {});
+  mockGet.mockReturnValue(neverResolvingPromise);
+  
+  // Also mock the POST request that runs in the second useEffect
+  const mockPost = jest.fn().mockReturnValue(neverResolvingPromise);
+  api.post = mockPost;
+  
+  render(<MemoryRouter><MessagingDashboard /></MemoryRouter>);
+  
+  expect(screen.getByText("Loading...")).toBeInTheDocument();
+});
 
   test('loads and displays conversations', async () => {
     const mockConversations = [
@@ -96,7 +105,9 @@ describe('MessagingDashboard', () => {
     ];
     mockGet.mockResolvedValue({ data: mockConversations });
 
-    render(<MessagingDashboard />);
+    render(<MemoryRouter>
+    <MessagingDashboard />
+  </MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('Conversations: 2')).toBeInTheDocument();
@@ -107,7 +118,9 @@ describe('MessagingDashboard', () => {
   test('displays error message when loading fails', async () => {
     mockGet.mockRejectedValue(new Error('Network error'));
 
-    render(<MessagingDashboard />);
+    render(<MemoryRouter>
+    <MessagingDashboard />
+  </MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('Failed to load conversations')).toBeInTheDocument();
@@ -117,7 +130,9 @@ describe('MessagingDashboard', () => {
   test('shows empty state when no conversations', async () => {
     mockGet.mockResolvedValue({ data: [] });
 
-    render(<MessagingDashboard />);
+    render(<MemoryRouter>
+    <MessagingDashboard />
+  </MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('Conversations: 0')).toBeInTheDocument();
@@ -127,7 +142,9 @@ describe('MessagingDashboard', () => {
   test('renders chat panel and sidebar', async () => {
     mockGet.mockResolvedValue({ data: [] });
 
-    render(<MessagingDashboard />);
+    render(<MemoryRouter>
+    <MessagingDashboard />
+  </MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByTestId('conversations-sidebar')).toBeInTheDocument();
@@ -144,7 +161,9 @@ describe('MessagingDashboard', () => {
     ];
     mockGet.mockResolvedValue({ data: mockConversations });
 
-    render(<MessagingDashboard />);
+    render(<MemoryRouter>
+    <MessagingDashboard />
+  </MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('Conversations: 2')).toBeInTheDocument();
@@ -157,7 +176,9 @@ describe('MessagingDashboard', () => {
   test('clicking New Conversation opens modal; Create prepends, selects, and closes modal (handleNewConversation & handleConversationCreated)', async () => {
     mockGet.mockResolvedValue({ data: [] });
 
-    render(<MessagingDashboard />);
+    render(<MemoryRouter>
+    <MessagingDashboard />
+  </MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('Conversations: 0')).toBeInTheDocument();
@@ -182,7 +203,9 @@ describe('MessagingDashboard', () => {
   test('closing modal without creating hides the modal (show/hide branch)', async () => {
     mockGet.mockResolvedValue({ data: [] });
 
-    render(<MessagingDashboard />);
+    render(<MemoryRouter>
+    <MessagingDashboard />
+  </MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('Conversations: 0')).toBeInTheDocument();
@@ -201,7 +224,9 @@ describe('MessagingDashboard', () => {
       .mockResolvedValueOnce({ data: [{ id: 1, otherUserName: 'A', otherUserEmail: 'a@test.com' }] })
       .mockResolvedValueOnce({ data: [{ id: 1, otherUserName: 'A', otherUserEmail: 'a@test.com' }] });
 
-    render(<MessagingDashboard />);
+    render(<MemoryRouter>
+    <MessagingDashboard />
+  </MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('Conversations: 1')).toBeInTheDocument();
@@ -225,7 +250,9 @@ describe('MessagingDashboard', () => {
       .mockResolvedValueOnce({ data: [{ id: 2, otherUserName: 'B', otherUserEmail: 'b@test.com' }] })
       .mockResolvedValueOnce({ data: [{ id: 2, otherUserName: 'B', otherUserEmail: 'b@test.com' }] });
 
-    render(<MessagingDashboard />);
+    render(<MemoryRouter>
+    <MessagingDashboard />
+  </MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('Conversations: 1')).toBeInTheDocument();

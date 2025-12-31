@@ -4,6 +4,7 @@ import { Mail, ArrowLeft, CheckCircle, Smartphone, Lock, XCircle, Eye, EyeOff } 
 import { authAPI } from '../services/api';
 import { auth } from '../services/firebase';
 import { signInWithPhoneNumber, RecaptchaVerifier } from 'firebase/auth';
+import PhoneInput from './PhoneInput';
 import '../style/ForgotPassword.css';
 
 export default function ForgotPassword() {
@@ -50,7 +51,6 @@ export default function ForgotPassword() {
 
     // Validation depending on method
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^\+?[0-9]{7,15}$/; // simple international phone check
 
     if (selectedMethod === 'email') {
       if (!email) {
@@ -66,8 +66,15 @@ export default function ForgotPassword() {
         setError('Please enter your phone number');
         return;
       }
-      if (!phoneRegex.test(phone)) {
-        setError('Please enter a valid phone number (e.g. +14165551234)');
+      // Enforce E.164 format: must start with + and have country code
+      if (!phone.startsWith('+')) {
+        setError('Please select a country code from the dropdown');
+        return;
+      }
+      // Validate E.164 format: +[1-3 digits country code][4-15 digits phone number]
+      const e164Regex = /^\+[1-9]\d{1,14}$/;
+      if (!e164Regex.test(phone)) {
+        setError('Please enter a valid phone number with country code');
         return;
       }
     }
@@ -83,20 +90,13 @@ export default function ForgotPassword() {
         });
         console.log('Password reset email sent:', response.data);
       } else {
-        // Use Firebase Phone Authentication for SMS
-        // Normalize phone number to E.164 format
-        let normalizedPhone = phone.trim();
-        if (!normalizedPhone.startsWith('+')) {
-          // If no country code, assume North America (+1)
-          normalizedPhone = normalizedPhone.replace(/[^\d]/g, ''); // Remove non-digits
-          if (normalizedPhone.length === 10) {
-            normalizedPhone = '+1' + normalizedPhone;
-          } else if (normalizedPhone.startsWith('1') && normalizedPhone.length === 11) {
-            normalizedPhone = '+' + normalizedPhone;
-          } else {
-            normalizedPhone = '+1' + normalizedPhone;
-          }
-        }
+        // SMS flow - verify phone exists in backend BEFORE sending OTP
+        // Assume phone is already in E.164 format with country code (e.g., +15145551234)
+        await authAPI.forgotPassword({ 
+          phone: phone.trim(), 
+          method: 'sms' 
+        });
+        console.log('Phone number verified in database');
 
         // Initialize reCAPTCHA if not already done
         if (!recaptchaVerifierRef.current) {
@@ -109,9 +109,9 @@ export default function ForgotPassword() {
         }
 
         // Send SMS via Firebase
-        const confirmationResult = await signInWithPhoneNumber(auth, normalizedPhone, recaptchaVerifierRef.current);
+        const confirmationResult = await signInWithPhoneNumber(auth, phone.trim(), recaptchaVerifierRef.current);
         confirmationResultRef.current = confirmationResult;
-        console.log('Firebase SMS sent to:', normalizedPhone);
+        console.log('Firebase SMS sent to:', phone.trim());
       }
 
       // mark submitted and reset expiry/timer state when we request a code
@@ -203,6 +203,7 @@ export default function ForgotPassword() {
         console.log('Phone verified successfully:', result.user.phoneNumber);
         setCodeVerified(true);
         setCodeIncorrect(false);
+        setCodeExpired(false); // Reset expired state when code is verified
         // Stop the timer when code is verified
         if (timerRef.current) {
           clearInterval(timerRef.current);
@@ -223,6 +224,7 @@ export default function ForgotPassword() {
         console.log('Email code verified successfully');
         setCodeVerified(true);
         setCodeIncorrect(false);
+        setCodeExpired(false); // Reset expired state when code is verified
         // Stop the timer when code is verified
         if (timerRef.current) {
           clearInterval(timerRef.current);
@@ -358,14 +360,11 @@ export default function ForgotPassword() {
                         ) : (
                           <>
                             <label htmlFor="phone" className="form-label">Phone Number</label>
-                            <input
-                              id="phone"
-                              type="tel"
-                              className="form-input"
-                              placeholder="Enter your phone number"
+                            <PhoneInput
                               value={phone}
-                              onChange={(e) => setPhone(e.target.value)}
+                              onChange={setPhone}
                               disabled={isLoading}
+                              placeholder="Phone number"
                             />
                           </>
                         )}

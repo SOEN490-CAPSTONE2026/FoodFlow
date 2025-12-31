@@ -14,12 +14,14 @@ public class ConversationResponse {
     private LocalDateTime lastMessageAt;
     private String lastMessagePreview;
     private long unreadCount;
+    private boolean alreadyExists;
     
     // Constructors
     public ConversationResponse() {}
     
     public ConversationResponse(Conversation conversation, User currentUser, 
-                                String lastMessagePreview, long unreadCount) {
+                                String lastMessagePreview, long unreadCount,
+                                boolean conversationAlreadyExists) {
         this.id = conversation.getId();
         this.createdAt = conversation.getCreatedAt();
         this.lastMessageAt = conversation.getLastMessageAt();
@@ -33,6 +35,8 @@ public class ConversationResponse {
                               otherUser.getOrganization().getName() : 
                               otherUser.getEmail();
         this.otherUserEmail = otherUser.getEmail();
+
+        this.alreadyExists = conversationAlreadyExists;
     }
     
     // Getters and Setters
@@ -98,5 +102,13 @@ public class ConversationResponse {
     
     public void setUnreadCount(long unreadCount) {
         this.unreadCount = unreadCount;
+    }
+
+    public boolean getAlreadyExists() {
+        return alreadyExists;
+    }
+
+    public void setAlreadyExists(boolean conversationAlreadyExists) {
+        this.alreadyExists = conversationAlreadyExists;
     }
 }
