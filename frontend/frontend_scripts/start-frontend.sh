@@ -8,11 +8,9 @@ fi
 # Navigate to frontend directory
 cd ..
 
-# Install dependencies if node_modules is missing
-if [ ! -d "node_modules" ]; then
-    echo "Installing frontend dependencies..."
-    npm install
-fi
+# Always install dependencies
+echo "Installing frontend dependencies..."
+npm install
 
 # Start React development server
 echo "Starting frontend..."
