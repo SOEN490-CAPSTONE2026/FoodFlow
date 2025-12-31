@@ -102,6 +102,8 @@ describe('ReceiverRegistration', () => {
 
     test('renders the form with all required fields', async () => {
         const user = userEvent.setup();
+        authAPI.checkEmailExists.mockResolvedValue({ data: { exists: false } });
+        
         renderWithAuth(<ReceiverRegistration />);
         
         // Check step 1 fields
@@ -123,6 +125,8 @@ describe('ReceiverRegistration', () => {
 
     test('updates form values', async () => {
         const user = userEvent.setup();
+        authAPI.checkEmailExists.mockResolvedValue({ data: { exists: false } });
+        
         renderWithAuth(<ReceiverRegistration />);
         
         const email = screen.getByLabelText(/email address/i);
@@ -207,7 +211,7 @@ describe('ReceiverRegistration', () => {
     });
 
     test('prevents proceeding if phone already exists', async () => {
-        const user = userEvent.setup();
+        const user = userEvent.setup({ delay: null });
         
         authAPI.checkEmailExists.mockResolvedValueOnce({ data: { exists: false } });
         authAPI.checkPhoneExists.mockResolvedValueOnce({ data: { exists: true } });
@@ -240,12 +244,13 @@ describe('ReceiverRegistration', () => {
         await waitFor(() => expect(screen.getByLabelText(/contact person/i)).toBeInTheDocument());
         await user.type(screen.getByLabelText(/contact person/i), 'John Smith');
         await user.type(screen.getByLabelText(/phone number/i), '4165551234');
+        await user.type(screen.getByLabelText(/daily capacity/i), '200');
         
         // Try to go to next step - should be blocked
         await user.click(screen.getByRole('button', { name: /next/i }));
         
         await waitFor(() =>
-            expect(screen.getByText(/phone number already registered/i)).toBeInTheDocument()
+            expect(screen.getByText(/an account with this phone number already exists/i)).toBeInTheDocument()
         );
         
         // Should still be on step 4

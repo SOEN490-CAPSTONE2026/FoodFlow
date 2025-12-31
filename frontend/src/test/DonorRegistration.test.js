@@ -96,6 +96,9 @@ describe('DonorRegistration', () => {
     await user.type(screen.getByLabelText(/^confirm password$/i), 'password123');
     await user.click(screen.getByRole('button', { name: /next/i }));
     
+    await waitFor(() =>
+    expect(screen.queryByLabelText(/^email address$/i)).not.toBeInTheDocument()
+    );
     // Step 2 fields
     await waitFor(() => expect(screen.getByLabelText(/organization name/i)).toBeInTheDocument());
     expect(screen.getByLabelText(/organization type/i)).toBeInTheDocument();
@@ -265,6 +268,8 @@ describe('DonorRegistration', () => {
 
   it('address field is a textarea', async () => {
     const user = userEvent.setup({ delay: null });
+    authAPI.checkEmailExists.mockResolvedValue({ data: { exists: false } });
+    
     renderWithAuth(<DonorRegistration />);
     
     // Navigate to step 3 (Address)
@@ -272,7 +277,7 @@ describe('DonorRegistration', () => {
     await user.type(screen.getByLabelText(/^password$/i), 'password123');
     await user.type(screen.getByLabelText(/^confirm password$/i), 'password123');
     await user.click(screen.getByRole('button', { name: /next/i }));
-    
+
     await waitFor(() => expect(screen.getByLabelText(/organization name/i)).toBeInTheDocument());
     await user.type(screen.getByLabelText(/organization name/i), 'Test Org');
     await user.type(screen.getByLabelText(/business license/i), 'BL123');
@@ -360,7 +365,7 @@ describe('DonorRegistration', () => {
     await user.click(screen.getByRole('button', { name: /register as donor/i }));
     
     await waitFor(() =>
-      expect(screen.getByText(/phone number already registered/i)).toBeInTheDocument()
+      expect(screen.getByText(/an account with this phone number already exists/i)).toBeInTheDocument()
     );
     
     // Should still be on step 4
