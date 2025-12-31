@@ -7,6 +7,7 @@ import com.example.foodflow.repository.ClaimRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +16,8 @@ import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,6 +30,9 @@ public class SurplusPostSchedulerService {
 
     private final SurplusPostRepository surplusPostRepository;
     private final ClaimRepository claimRepository;
+
+    @Value("${foodflow.expiry.enable-auto-flagging:true}")
+    private boolean enableAutoFlagging;
 
     public SurplusPostSchedulerService(SurplusPostRepository surplusPostRepository, ClaimRepository claimRepository) {
         this.surplusPostRepository = surplusPostRepository;
@@ -45,11 +51,12 @@ public class SurplusPostSchedulerService {
     @Scheduled(fixedRate = 5000)
     @Transactional
     public void updatePostsToReadyForPickup() {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDate today = now.toLocalDate();
-        LocalTime currentTime = now.toLocalTime();
+        // Use UTC for all time comparisons
+        ZonedDateTime nowUtc = ZonedDateTime.now(ZoneId.of("UTC"));
+        LocalDate today = nowUtc.toLocalDate();
+        LocalTime currentTime = nowUtc.toLocalTime();
 
-        logger.info("===== updatePostsToReadyForPickup running at {} =====", now);
+        logger.info("===== updatePostsToReadyForPickup running at {} UTC =====", nowUtc);
 
         // Only CLAIMED posts can become READY_FOR_PICKUP
         List<SurplusPost> claimedPosts = surplusPostRepository.findByStatus(PostStatus.CLAIMED);
@@ -59,7 +66,7 @@ public class SurplusPostSchedulerService {
             .filter(post -> {
                 // Grace period: skip brand-new posts
                 if (post.getCreatedAt() != null &&
-                    post.getCreatedAt().isAfter(now.minusMinutes(GRACE_PERIOD_MINUTES))) {
+                    post.getCreatedAt().isAfter(nowUtc.toLocalDateTime().minusMinutes(GRACE_PERIOD_MINUTES))) {
                     logger.debug("Skipping post ID {} — created recently (grace period active)", post.getId());
                     return false;
                 }
@@ -124,11 +131,12 @@ public class SurplusPostSchedulerService {
     @Scheduled(fixedRate = 60000)
     @Transactional
     public void updatePostsToNotCompleted() {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDate today = now.toLocalDate();
-        LocalTime currentTime = now.toLocalTime();
+        // Use UTC for all time comparisons
+        ZonedDateTime nowUtc = ZonedDateTime.now(ZoneId.of("UTC"));
+        LocalDate today = nowUtc.toLocalDate();
+        LocalTime currentTime = nowUtc.toLocalTime();
 
-        logger.info("===== updatePostsToNotCompleted running at {} =====", now);
+        logger.info("===== updatePostsToNotCompleted running at {} UTC =====", nowUtc);
 
         List<SurplusPost> readyPosts = surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP);
         logger.info("Found {} READY_FOR_PICKUP posts to evaluate", readyPosts.size());
@@ -137,7 +145,7 @@ public class SurplusPostSchedulerService {
             .filter(post -> {
                 // Grace period: skip brand-new posts
                 if (post.getCreatedAt() != null &&
-                    post.getCreatedAt().isAfter(now.minusMinutes(GRACE_PERIOD_MINUTES))) {
+                    post.getCreatedAt().isAfter(nowUtc.toLocalDateTime().minusMinutes(GRACE_PERIOD_MINUTES))) {
                     logger.debug("Skipping post ID {} — created recently (grace period active)", post.getId());
                     return false;
                 }
@@ -184,5 +192,43 @@ public class SurplusPostSchedulerService {
             surplusPostRepository.save(post);
             logger.info("Post ID {} marked as NOT_COMPLETED", post.getId());
         }
+    }
+
+    /**
+     * Every hour: mark AVAILABLE or CLAIMED posts as EXPIRED
+     * if their expiry date has passed. Prevents expired food from being claimed.
+     */
+    @Scheduled(fixedRate = 3600000) // Run every hour
+    @Transactional
+    public void markExpiredPosts() {
+        if (!enableAutoFlagging) {
+            logger.debug("Auto-flagging of expired posts is disabled");
+            return;
+        }
+
+        LocalDate today = LocalDate.now();
+        logger.info("===== markExpiredPosts running at {} =====", LocalDateTime.now());
+
+        // Find posts that are AVAILABLE or CLAIMED but have expired
+        List<PostStatus> activeStatuses = List.of(PostStatus.AVAILABLE, PostStatus.CLAIMED);
+        List<SurplusPost> activePosts = surplusPostRepository.findByStatusIn(activeStatuses);
+        logger.info("Found {} active posts to check for expiry", activePosts.size());
+
+        List<SurplusPost> expiredPosts = activePosts.stream()
+            .filter(post -> post.getExpiryDate() != null && post.getExpiryDate().isBefore(today))
+            .toList();
+
+        if (expiredPosts.isEmpty()) {
+            logger.info("No expired posts found.");
+            return;
+        }
+
+        for (SurplusPost post : expiredPosts) {
+            post.setStatus(PostStatus.EXPIRED);
+            surplusPostRepository.save(post);
+            logger.info("Post ID {} marked as EXPIRED (expiry date: {})", post.getId(), post.getExpiryDate());
+        }
+
+        logger.info("Marked {} posts as EXPIRED", expiredPosts.size());
     }
 }

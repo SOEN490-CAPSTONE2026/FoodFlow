@@ -43,6 +43,23 @@ public class User {
     @Column(name = "deactivated_by")
     private Long deactivatedBy;
 
+    @Column(name = "email_notifications_enabled")
+    private Boolean emailNotificationsEnabled = false;
+
+    @Column(name = "sms_notifications_enabled")
+    private Boolean smsNotificationsEnabled = false;
+
+    @Column(name = "notification_type_preferences", columnDefinition = "TEXT")
+    private String notificationTypePreferences;
+    @Column(name = "country", length = 100)
+    private String country;
+
+    @Column(name = "city", length = 100)
+    private String city;
+
+    @Column(name = "timezone", length = 50)
+    private String timezone;
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Organization organization;
 
@@ -94,4 +111,21 @@ public class User {
     
     public Long getDeactivatedBy() { return deactivatedBy; }
     public void setDeactivatedBy(Long deactivatedBy) { this.deactivatedBy = deactivatedBy; }
+    
+    public Boolean getEmailNotificationsEnabled() { return emailNotificationsEnabled; }
+    public void setEmailNotificationsEnabled(Boolean emailNotificationsEnabled) { this.emailNotificationsEnabled = emailNotificationsEnabled; }
+    
+    public Boolean getSmsNotificationsEnabled() { return smsNotificationsEnabled; }
+    public void setSmsNotificationsEnabled(Boolean smsNotificationsEnabled) { this.smsNotificationsEnabled = smsNotificationsEnabled; }
+    
+    public String getNotificationTypePreferences() { return notificationTypePreferences; }
+    public void setNotificationTypePreferences(String notificationTypePreferences) { this.notificationTypePreferences = notificationTypePreferences; }
+    public String getCountry() { return country; }
+    public void setCountry(String country) { this.country = country; }
+    
+    public String getCity() { return city; }
+    public void setCity(String city) { this.city = city; }
+    
+    public String getTimezone() { return timezone; }
+    public void setTimezone(String timezone) { this.timezone = timezone; }
 }

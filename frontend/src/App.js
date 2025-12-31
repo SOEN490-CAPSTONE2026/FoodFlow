@@ -8,6 +8,7 @@ import LoginPage from './components/LoginPage';
 import ForgotPassword from './components/ForgotPassword';
 import NavigationBar from './components/NavigationBar';
 import { AuthProvider } from './contexts/AuthContext';
+import { TimezoneProvider } from './contexts/TimezoneContext';
 import { useAnalytics } from './hooks/useAnalytics';
 import PrivateRoutes from './components/PrivateRoutes';
 
@@ -88,9 +89,11 @@ function AppContent() {
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <AppContent />
-      </Router>
+      <TimezoneProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </TimezoneProvider>
     </AuthProvider>
   );
 }

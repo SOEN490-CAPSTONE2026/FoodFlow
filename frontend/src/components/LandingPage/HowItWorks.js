@@ -74,10 +74,10 @@ const HowItWorks = () => {
 
   return (
     <div 
-      className={`how-it-works-container ${isInView ? "animate-in" : ""}`} 
+      className={`hiw-container ${isInView ? "hiw-animate-in" : ""}`} 
       ref={sectionRef}
     >
-      <div className="how-it-works-header">
+      <div className="hiw-header">
         <h1>How FoodFlow Works</h1>
         <p>
           Surplus food reaches charities in minutes, not hours. Our smart
@@ -85,27 +85,27 @@ const HowItWorks = () => {
         </p>
       </div>
 
-      <div className="steps-wrapper">
-        <div className="steps-container">
+      <div className="hiw-steps-wrapper">
+        <div className="hiw-steps-container">
           {steps.map((step, i) => (
-            <div key={i} className="step-column">
-              <div className={`step-card ${i === currentStep ? "active" : ""}`}>
-                <div className="step-visual">
-                  <div className="step-icon">
-                    <div className="icon-circle">{step.icon}</div>
+            <div key={i} className="hiw-step-column">
+              <div className={`hiw-step-card ${i === currentStep ? "hiw-active" : ""}`}>
+                <div className="hiw-step-visual">
+                  <div className="hiw-step-icon">
+                    <div className="hiw-icon-circle">{step.icon}</div>
                   </div>
                 </div>
-                <div className="step-content">
-                  <div className="step-number">{step.number}</div>
+                <div className="hiw-step-content">
+                  <div className="hiw-step-number">{step.number}</div>
                   <h3>{step.title}</h3>
                   <p>{step.text}</p>
                 </div>
               </div>
-              <div className="progress-container">
+              <div className="hiw-progress-container">
                 <div 
-                  className={`progress-bar ${
-                    i < currentStep ? "completed" : 
-                    i === currentStep && isAnimating ? "animating" : ""
+                  className={`hiw-progress-bar ${
+                    i < currentStep ? "hiw-completed" : 
+                    i === currentStep && isAnimating ? "hiw-animating" : ""
                   }`}
                   style={i === currentStep && isAnimating ? {animationDuration: `${duration}ms`} : {}}
                 ></div>
@@ -115,10 +115,10 @@ const HowItWorks = () => {
         </div>
       </div>
 
-      <div className="floating-food food-1">🍎</div>
-      <div className="floating-food food-2">🥖</div>
-      <div className="floating-food food-3">🥦</div>
-      <div className="floating-food food-4">🚚</div>
+      <div className="hiw-floating-food hiw-food-1">🍎</div>
+      <div className="hiw-floating-food hiw-food-2">🥖</div>
+      <div className="hiw-floating-food hiw-food-3">🥦</div>
+      <div className="hiw-floating-food hiw-food-4">🚚</div>
     </div>
   );
 };

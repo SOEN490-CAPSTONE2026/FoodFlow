@@ -65,6 +65,9 @@ export const authAPI = {
     localStorage.removeItem("jwtToken");
     return api.post("/auth/logout");
   },
+  forgotPassword: (data) => api.post("/auth/forgot-password", data),
+  verifyResetCode: (data) => api.post("/auth/verify-reset-code", data),
+  resetPassword: (data) => api.post("/auth/reset-password", data),
 };
 
 export const surplusAPI = {
@@ -158,6 +161,7 @@ export const claimsAPI = {
   myClaims: () => api.get("/claims/my-claims"), // ✅ No /api prefix
   claim: (postId) => api.post("/claims", { surplusPostId: postId }),
   cancel: (claimId) => api.delete(`/claims/${claimId}`),
+  getClaimForSurplusPost: (postId) => api.get(`/claims/post/${postId}`),
 };
 
 /**
@@ -249,6 +253,130 @@ export const userAPI = {
 };
 
 /**
+ * Report/Dispute API functions
+ */
+export const reportAPI = {
+  /**
+   * Create a new report/dispute
+   * @param {Object} reportData - Report data
+   * @param {number} reportData.reportedUserId - User ID being reported
+   * @param {number} reportData.donationId - Optional donation ID
+   * @param {string} reportData.description - Report description
+   * @param {string} reportData.photoEvidenceUrl - Optional evidence image URL
+   * @returns {Promise} Created report data
+   */
+  createReport: (reportData) => {
+    // Transform frontend field names to backend field names
+    const backendRequest = {
+      reportedId: reportData.reportedUserId,
+      donationId: reportData.donationId,
+      description: reportData.description,
+      imageUrl: reportData.photoEvidenceUrl
+    };
+    return api.post('/reports', backendRequest);
+  },
+};
+
+/**
+ * Admin API functions for dispute management
+ */
+export const adminDisputeAPI = {
+  /**
+   * Get all disputes with filtering and pagination
+   * @param {Object} filters - Filter criteria
+   * @param {string} filters.status - Filter by dispute status (OPEN, UNDER_REVIEW, RESOLVED, CLOSED)
+   * @param {number} filters.page - Page number (default: 0)
+   * @param {number} filters.size - Page size (default: 20)
+   * @returns {Promise} Paginated dispute list
+   */
+  getAllDisputes: (filters = {}) => {
+    const params = new URLSearchParams();
+    
+    if (filters.status) params.append('status', filters.status);
+    params.append('page', filters.page || 0);
+    params.append('size', filters.size || 20);
+    
+    return api.get(`/admin/disputes?${params.toString()}`);
+  },
+
+  /**
+   * Get detailed information about a specific dispute
+   * @param {number} disputeId - Dispute ID
+   * @returns {Promise} Dispute details with admin notes
+   */
+  getDisputeById: (disputeId) => api.get(`/admin/disputes/${disputeId}`),
+
+  /**
+   * Update dispute status
+   * @param {number} disputeId - Dispute ID
+   * @param {string} status - New status (OPEN, UNDER_REVIEW, RESOLVED, CLOSED)
+   * @param {string} adminNotes - Optional admin notes
+   * @returns {Promise} Updated dispute data
+   */
+  updateDisputeStatus: (disputeId, status, adminNotes) => 
+    api.put(`/admin/disputes/${disputeId}/status`, {
+      status,
+      adminNotes
+    }),
+};
+
+/**
+ * Admin API functions for donation management
+ */
+export const adminDonationAPI = {
+  /**
+   * Get all donations with filtering and pagination
+   * @param {Object} filters - Filter criteria
+   * @param {string} filters.status - Filter by donation status
+   * @param {number} filters.donorId - Filter by donor user ID
+   * @param {number} filters.receiverId - Filter by receiver user ID
+   * @param {boolean} filters.flagged - Filter by flagged status
+   * @param {string} filters.fromDate - Filter by creation date from (YYYY-MM-DD)
+   * @param {string} filters.toDate - Filter by creation date to (YYYY-MM-DD)
+   * @param {string} filters.search - Search term
+   * @param {number} filters.page - Page number (default: 0)
+   * @param {number} filters.size - Page size (default: 20)
+   * @returns {Promise} Paginated donation list
+   */
+  getAllDonations: (filters = {}) => {
+    const params = new URLSearchParams();
+    
+    if (filters.status) params.append('status', filters.status);
+    if (filters.donorId) params.append('donorId', filters.donorId);
+    if (filters.receiverId) params.append('receiverId', filters.receiverId);
+    if (filters.flagged !== undefined) params.append('flagged', filters.flagged);
+    if (filters.fromDate) params.append('fromDate', filters.fromDate);
+    if (filters.toDate) params.append('toDate', filters.toDate);
+    if (filters.search) params.append('search', filters.search);
+    
+    params.append('page', filters.page || 0);
+    params.append('size', filters.size || 20);
+    
+    return api.get(`/admin/donations?${params.toString()}`);
+  },
+
+  /**
+   * Get detailed information about a specific donation
+   * @param {number} donationId - Donation ID
+   * @returns {Promise} Donation details with full timeline
+   */
+  getDonationById: (donationId) => api.get(`/admin/donations/${donationId}`),
+
+  /**
+   * Override donation status manually
+   * @param {number} donationId - Donation ID
+   * @param {string} newStatus - New status value
+   * @param {string} reason - Reason for override
+   * @returns {Promise} Updated donation data
+   */
+  overrideStatus: (donationId, newStatus, reason) => 
+    api.post(`/admin/donations/${donationId}/override-status`, {
+      newStatus,
+      reason
+    }),
+};
+
+/**
  * Maps frontend food categories to backend enum values.
  * @param {string} frontendCategory - Frontend category name
  * @returns {string} Backend enum value
@@ -256,5 +384,11 @@ export const userAPI = {
 function mapFrontendCategoryToBackend(frontendCategory) {
   return getFoodTypeValue(frontendCategory);
 }
+
+// Notification Preferences API
+export const notificationPreferencesAPI = {
+  getPreferences: () => api.get('/user/notifications/preferences'),
+  updatePreferences: (data) => api.put('/user/notifications/preferences', data)
+};
 
 export default api;

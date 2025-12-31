@@ -1,6 +1,10 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
+import { TimezoneProvider } from "../../../contexts/TimezoneContext";
+import { MemoryRouter } from 'react-router-dom';
+import ClaimDetailModal from "../ClaimDetailModal";
+
 
 // Mock the custom hook
 jest.mock("../../../hooks/useGoogleMaps", () => ({
@@ -8,7 +12,12 @@ jest.mock("../../../hooks/useGoogleMaps", () => ({
   default: jest.fn(() => ({ current: null })),
 }));
 
-import ClaimDetailModal from "../ClaimDetailModal";
+// Wrapper component to provide TimezoneContext
+const Wrapper = ({ children }) => (
+  <MemoryRouter>
+    <TimezoneProvider>{children}</TimezoneProvider>
+  </MemoryRouter>
+);
 
 // Mock the child components
 jest.mock("../ClaimedView", () => {
@@ -70,28 +79,36 @@ const mockClaim = {
 describe("ClaimDetailModal", () => {
   test("renders nothing when not open", () => {
     const { container } = render(
-      <ClaimDetailModal claim={mockClaim} isOpen={false} onClose={jest.fn()} />
+      <Wrapper>
+        <ClaimDetailModal claim={mockClaim} isOpen={false} onClose={jest.fn()} />
+      </Wrapper>
     );
     expect(container.firstChild).toBeNull();
   });
 
   test("renders nothing when claim is null", () => {
-    const { container } = render(
-      <ClaimDetailModal claim={null} isOpen={true} onClose={jest.fn()} />
+    const { container} = render(
+      <Wrapper>
+        <ClaimDetailModal claim={null} isOpen={true} onClose={jest.fn()} />
+      </Wrapper>
     );
     expect(container.firstChild).toBeNull();
   });
 
   test("renders modal with donation title", () => {
     render(
-      <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
+      <Wrapper>
+        <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
+      </Wrapper>
     );
     expect(screen.getByText("Fresh Dairy Products")).toBeInTheDocument();
   });
 
   test("displays Claimed status badge for CLAIMED status", () => {
     render(
-      <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
+      <Wrapper>
+        <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
+      </Wrapper>
     );
     expect(screen.getByText("Claimed")).toBeInTheDocument();
   });
@@ -105,7 +122,9 @@ describe("ClaimDetailModal", () => {
       },
     };
     render(
-      <ClaimDetailModal claim={readyClaim} isOpen={true} onClose={jest.fn()} />
+      <Wrapper>
+        <ClaimDetailModal claim={readyClaim} isOpen={true} onClose={jest.fn()} />
+      </Wrapper>
     );
     expect(screen.getByText("Ready for Pickup")).toBeInTheDocument();
   });
@@ -119,25 +138,31 @@ describe("ClaimDetailModal", () => {
       },
     };
     render(
-      <ClaimDetailModal
-        claim={completedClaim}
-        isOpen={true}
-        onClose={jest.fn()}
-      />
+      <Wrapper>
+        <ClaimDetailModal
+          claim={completedClaim}
+          isOpen={true}
+          onClose={jest.fn()}
+        />
+      </Wrapper>
     );
     expect(screen.getByText("Completed")).toBeInTheDocument();
   });
 
   test("displays donation details section", () => {
     render(
-      <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
+      <Wrapper>
+        <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
+      </Wrapper>
     );
     expect(screen.getByText("Donation Details")).toBeInTheDocument();
   });
 
   test("displays quantity information", () => {
     render(
-      <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
+      <Wrapper>
+        <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
+      </Wrapper>
     );
     expect(screen.getByText("Quantity")).toBeInTheDocument();
     expect(screen.getByText("15 bottles")).toBeInTheDocument();
@@ -145,7 +170,9 @@ describe("ClaimDetailModal", () => {
 
   test("displays expiry date", () => {
     render(
-      <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
+      <Wrapper>
+        <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
+      </Wrapper>
     );
     expect(screen.getByText("Expiry Date")).toBeInTheDocument();
     expect(screen.getByText("2025-10-29")).toBeInTheDocument();
@@ -153,7 +180,9 @@ describe("ClaimDetailModal", () => {
 
   test("displays donor email", () => {
     render(
-      <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
+      <Wrapper>
+        <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
+      </Wrapper>
     );
     expect(screen.getByText("Donor")).toBeInTheDocument();
     expect(screen.getByText("dairy@example.com")).toBeInTheDocument();
@@ -161,7 +190,9 @@ describe("ClaimDetailModal", () => {
 
   test("displays pickup date and time", () => {
     render(
-      <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
+      <Wrapper>
+        <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
+      </Wrapper>
     );
     expect(screen.getByText("Pickup Date & Time")).toBeInTheDocument();
     // Changed to match the actual formatted output
@@ -170,7 +201,9 @@ describe("ClaimDetailModal", () => {
 
   test("displays pickup location with link", () => {
     render(
-      <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
+      <Wrapper>
+        <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
+      </Wrapper>
     );
     expect(screen.getByText("Pickup Location")).toBeInTheDocument();
     const link = screen.getByText("321 Dairy Drive");
@@ -189,11 +222,13 @@ describe("ClaimDetailModal", () => {
       },
     };
     render(
-      <ClaimDetailModal
-        claim={claimNoCoords}
-        isOpen={true}
-        onClose={jest.fn()}
-      />
+      <Wrapper>
+        <ClaimDetailModal
+          claim={claimNoCoords}
+          isOpen={true}
+          onClose={jest.fn()}
+        />
+      </Wrapper>
     );
     expect(screen.getByText("Map view coming soon")).toBeInTheDocument();
   });
@@ -201,7 +236,9 @@ describe("ClaimDetailModal", () => {
   test("calls onClose when close button is clicked", () => {
     const mockOnClose = jest.fn();
     render(
-      <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={mockOnClose} />
+      <Wrapper>
+        <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={mockOnClose} />
+      </Wrapper>
     );
     const closeButton = screen.getAllByRole("button")[0];
     fireEvent.click(closeButton);
@@ -211,7 +248,9 @@ describe("ClaimDetailModal", () => {
   test("calls onClose when overlay is clicked", () => {
     const mockOnClose = jest.fn();
     const { container } = render(
-      <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={mockOnClose} />
+      <Wrapper>
+        <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={mockOnClose} />
+      </Wrapper>
     );
     const overlay = container.querySelector(".claimed-modal-overlay");
     fireEvent.click(overlay);
@@ -220,14 +259,18 @@ describe("ClaimDetailModal", () => {
 
   test("shows View Pickup Steps button for claimed status", () => {
     render(
-      <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
+      <Wrapper>
+        <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
+      </Wrapper>
     );
     expect(screen.getByText("View Pickup Steps")).toBeInTheDocument();
   });
 
   test("opens ClaimedView when View Pickup Steps is clicked for CLAIMED status", () => {
     render(
-      <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
+      <Wrapper>
+        <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
+      </Wrapper>
     );
     const viewStepsButton = screen.getByText("View Pickup Steps");
     fireEvent.click(viewStepsButton);
@@ -243,7 +286,9 @@ describe("ClaimDetailModal", () => {
       },
     };
     render(
-      <ClaimDetailModal claim={readyClaim} isOpen={true} onClose={jest.fn()} />
+      <Wrapper>
+        <ClaimDetailModal claim={readyClaim} isOpen={true} onClose={jest.fn()} />
+      </Wrapper>
     );
     const viewStepsButton = screen.getByText("View Pickup Steps");
     fireEvent.click(viewStepsButton);
@@ -259,11 +304,13 @@ describe("ClaimDetailModal", () => {
       },
     };
     render(
-      <ClaimDetailModal
-        claim={completedClaim}
-        isOpen={true}
-        onClose={jest.fn()}
-      />
+      <Wrapper>
+        <ClaimDetailModal
+          claim={completedClaim}
+          isOpen={true}
+          onClose={jest.fn()}
+        />
+      </Wrapper>
     );
     const viewStepsButton = screen.getByText("View Pickup Steps");
     fireEvent.click(viewStepsButton);
@@ -272,7 +319,9 @@ describe("ClaimDetailModal", () => {
 
   test("handles back navigation from pickup steps view", () => {
     render(
-      <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
+      <Wrapper>
+        <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
+      </Wrapper>
     );
     const viewStepsButton = screen.getByText("View Pickup Steps");
     fireEvent.click(viewStepsButton);
@@ -292,11 +341,13 @@ describe("ClaimDetailModal", () => {
       },
     };
     render(
-      <ClaimDetailModal
-        claim={claimNoQuantity}
-        isOpen={true}
-        onClose={jest.fn()}
-      />
+      <Wrapper>
+        <ClaimDetailModal
+          claim={claimNoQuantity}
+          isOpen={true}
+          onClose={jest.fn()}
+        />
+      </Wrapper>
     );
     expect(screen.getByText("0 items")).toBeInTheDocument();
   });
@@ -310,11 +361,13 @@ describe("ClaimDetailModal", () => {
       },
     };
     render(
-      <ClaimDetailModal
-        claim={claimNoDate}
-        isOpen={true}
-        onClose={jest.fn()}
-      />
+      <Wrapper>
+        <ClaimDetailModal
+          claim={claimNoDate}
+          isOpen={true}
+          onClose={jest.fn()}
+        />
+      </Wrapper>
     );
     // The component should still render even with null pickup date
     expect(screen.getByText("Expiry Date")).toBeInTheDocument();
@@ -331,11 +384,13 @@ describe("ClaimDetailModal", () => {
       },
     };
     render(
-      <ClaimDetailModal
-        claim={claimNoDonor}
-        isOpen={true}
-        onClose={jest.fn()}
-      />
+      <Wrapper>
+        <ClaimDetailModal
+          claim={claimNoDonor}
+          isOpen={true}
+          onClose={jest.fn()}
+        />
+      </Wrapper>
     );
     expect(screen.getByText("Not specified")).toBeInTheDocument();
   });
@@ -349,11 +404,13 @@ describe("ClaimDetailModal", () => {
       },
     };
     const { container } = render(
-      <ClaimDetailModal
-        claim={claimNoFoodType}
-        isOpen={true}
-        onClose={jest.fn()}
-      />
+      <Wrapper>
+        <ClaimDetailModal
+          claim={claimNoFoodType}
+          isOpen={true}
+          onClose={jest.fn()}
+        />
+      </Wrapper>
     );
     const img = container.querySelector(".claimed-modal-header-image");
     expect(img).toBeInTheDocument();

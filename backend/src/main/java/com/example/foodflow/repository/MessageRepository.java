@@ -1,5 +1,7 @@
 package com.example.foodflow.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import com.example.foodflow.model.entity.Message;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -47,4 +49,11 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
            "AND m.readStatus = false")
     long countUnreadInConversation(@Param("conversationId") Long conversationId, 
                                     @Param("userId") Long userId);
+
+                                        /**
+     * Find messages in a conversation with pagination (ordered by creation time)
+     */
+    @Query("SELECT m FROM Message m WHERE m.conversation.id = :conversationId ORDER BY m.createdAt ASC")
+    Page<Message> findByConversationIdWithPagination(@Param("conversationId") Long conversationId, Pageable pageable);
+
 }

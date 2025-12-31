@@ -17,6 +17,7 @@ import com.example.foodflow.model.types.ClaimStatus;
 import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.repository.ClaimRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
+import com.example.foodflow.util.TimezoneResolver;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.Timer;
 
@@ -24,6 +25,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,17 +41,20 @@ public class SurplusService {
     private final PickupSlotValidationService pickupSlotValidationService;
     private final BusinessMetricsService businessMetricsService;
     private final NotificationService notificationService;
+    private final ExpiryCalculationService expiryCalculationService;
 
     public SurplusService(SurplusPostRepository surplusPostRepository, 
                          ClaimRepository claimRepository,
                          PickupSlotValidationService pickupSlotValidationService,
                          BusinessMetricsService businessMetricsService,
-                         NotificationService notificationService) {
+                         NotificationService notificationService,
+                         ExpiryCalculationService expiryCalculationService) {
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;
         this.pickupSlotValidationService = pickupSlotValidationService;
         this.businessMetricsService = businessMetricsService;
         this.notificationService = notificationService;
+        this.expiryCalculationService = expiryCalculationService;
     }
     
     /**
@@ -67,7 +72,41 @@ public class SurplusService {
         post.setFoodCategories(request.getFoodCategories());
         post.setQuantity(request.getQuantity());
         post.setPickupLocation(request.getPickupLocation());
-        post.setExpiryDate(request.getExpiryDate());
+        post.setTemperatureCategory(request.getTemperatureCategory());
+        post.setPackagingType(request.getPackagingType());
+
+        // Handle fabrication date and expiry date calculation
+        LocalDate fabricationDate = request.getFabricationDate();
+        LocalDate expiryDate = request.getExpiryDate();
+
+        if (fabricationDate != null) {
+            // Validate fabrication date is not in the future
+            if (!expiryCalculationService.isValidFabricationDate(fabricationDate)) {
+                throw new IllegalArgumentException("Fabrication date cannot be in the future");
+            }
+            post.setFabricationDate(fabricationDate);
+
+            // If expiry date not provided, calculate it automatically
+            if (expiryDate == null) {
+                expiryDate = expiryCalculationService.calculateExpiryDate(
+                    fabricationDate,
+                    request.getFoodCategories()
+                );
+            } else {
+                // Validate provided expiry date makes sense
+                if (!expiryCalculationService.isValidExpiryDate(fabricationDate, expiryDate)) {
+                    throw new IllegalArgumentException(
+                        "Expiry date must be after fabrication date and within reasonable limits"
+                    );
+                }
+            }
+        }
+
+        // Ensure expiry date is set (either provided or calculated)
+        if (expiryDate == null) {
+            throw new IllegalArgumentException("Expiry date is required");
+        }
+        post.setExpiryDate(expiryDate);
 
         // Handle pickup slots
         List<PickupSlotRequest> slotsToProcess;
@@ -87,21 +126,57 @@ public class SurplusService {
             slotsToProcess = List.of(legacySlot);
         }
 
-        // Set legacy fields from first slot (for backward compatibility)
-        PickupSlotRequest firstSlot = slotsToProcess.get(0);
-        post.setPickupDate(firstSlot.getPickupDate());
-        post.setPickupFrom(firstSlot.getStartTime());
-        post.setPickupTo(firstSlot.getEndTime());
+        // Get donor's timezone, fallback to user's timezone or UTC
+        String donorTimezone = request.getDonorTimezone();
+        if (donorTimezone == null || donorTimezone.trim().isEmpty()) {
+            donorTimezone = donor.getTimezone() != null ? donor.getTimezone() : "UTC";
+        }
 
-        // Create pickup slot entities
+        // Convert first slot times from donor timezone to UTC for legacy fields
+        PickupSlotRequest firstSlot = slotsToProcess.get(0);
+        LocalDateTime startTimeUTC = TimezoneResolver.convertDateTime(
+            firstSlot.getPickupDate(), 
+            firstSlot.getStartTime(),
+            donorTimezone,
+            "UTC"
+        );
+        LocalDateTime endTimeUTC = TimezoneResolver.convertDateTime(
+            firstSlot.getPickupDate(),
+            firstSlot.getEndTime(),
+            donorTimezone,
+            "UTC"
+        );
+        
+        // Set legacy fields with UTC times
+        post.setPickupDate(startTimeUTC != null ? startTimeUTC.toLocalDate() : firstSlot.getPickupDate());
+        post.setPickupFrom(startTimeUTC != null ? startTimeUTC.toLocalTime() : firstSlot.getStartTime());
+        post.setPickupTo(endTimeUTC != null ? endTimeUTC.toLocalTime() : firstSlot.getEndTime());
+
+        // Create pickup slot entities, converting all times to UTC
         List<PickupSlot> pickupSlots = new ArrayList<>();
         for (int i = 0; i < slotsToProcess.size(); i++) {
             PickupSlotRequest slotReq = slotsToProcess.get(i);
+            
+            // Convert slot times from donor timezone to UTC
+            LocalDateTime slotStartUTC = TimezoneResolver.convertDateTime(
+                slotReq.getPickupDate(),
+                slotReq.getStartTime(),
+                donorTimezone,
+                "UTC"
+            );
+            LocalDateTime slotEndUTC = TimezoneResolver.convertDateTime(
+                slotReq.getPickupDate(),
+                slotReq.getEndTime(),
+                donorTimezone,
+                "UTC"
+            );
+            
             PickupSlot slot = new PickupSlot();
             slot.setSurplusPost(post);
-            slot.setPickupDate(slotReq.getPickupDate());
-            slot.setStartTime(slotReq.getStartTime());
-            slot.setEndTime(slotReq.getEndTime());
+            // Store in UTC
+            slot.setPickupDate(slotStartUTC != null ? slotStartUTC.toLocalDate() : slotReq.getPickupDate());
+            slot.setStartTime(slotStartUTC != null ? slotStartUTC.toLocalTime() : slotReq.getStartTime());
+            slot.setEndTime(slotEndUTC != null ? slotEndUTC.toLocalTime() : slotReq.getEndTime());
             slot.setNotes(slotReq.getNotes());
             slot.setSlotOrder(i + 1); // 1-indexed
             pickupSlots.add(slot);
@@ -131,18 +206,22 @@ public class SurplusService {
     }
     
     /**
-     * Retrieves all surplus posts for a given user.
+     * Retrieves all surplus posts for a given user (donor).
+     * Converts times from UTC back to donor's timezone.
      */
     @Timed(value = "surplus.service.getUserPosts", description = "Time taken to get user surplus posts")
     public List<SurplusResponse> getUserSurplusPosts(User user) {
+        String donorTimezone = user.getTimezone() != null ? user.getTimezone() : "UTC";
+        
         return surplusPostRepository.findByDonorId(user.getId())
                 .stream()
-                .map(this::convertToResponse)
+                .map(post -> convertToResponseForDonor(post, donorTimezone))
                 .collect(Collectors.toList());
     }
     
     /**
      * Converts a SurplusPost entity to the SurplusResponse DTO.
+     * Times are kept in UTC (as stored in database).
      */
     private SurplusResponse convertToResponse(SurplusPost post) {
         SurplusResponse response = new SurplusResponse();
@@ -152,6 +231,7 @@ public class SurplusService {
         response.setFoodCategories(post.getFoodCategories());
         response.setQuantity(post.getQuantity());
         response.setPickupLocation(post.getPickupLocation());
+        response.setFabricationDate(post.getFabricationDate());
         response.setExpiryDate(post.getExpiryDate());
         response.setPickupDate(post.getPickupDate());
         response.setPickupFrom(post.getPickupFrom());
@@ -164,6 +244,8 @@ public class SurplusService {
             : null);
         response.setCreatedAt(post.getCreatedAt());
         response.setUpdatedAt(post.getUpdatedAt());
+        response.setTemperatureCategory(post.getTemperatureCategory());
+        response.setPackagingType(post.getPackagingType());
 
         // Convert pickup slots
         if (post.getPickupSlots() != null && !post.getPickupSlots().isEmpty()) {
@@ -189,6 +271,194 @@ public class SurplusService {
 
         return response;
     }
+    
+    /**
+     * Converts a SurplusPost entity to the SurplusResponse DTO with times converted to donor's timezone.
+     * All UTC times from database are converted back to the donor's local timezone.
+     */
+    private SurplusResponse convertToResponseForDonor(SurplusPost post, String donorTimezone) {
+        // Get the base response (in UTC)
+        SurplusResponse response = convertToResponse(post);
+        
+        // If donor has no timezone, return UTC times
+        if (donorTimezone == null || donorTimezone.trim().isEmpty()) {
+            return response;
+        }
+        
+        // Convert legacy pickup times from UTC to donor timezone
+        if (response.getPickupDate() != null && response.getPickupFrom() != null && response.getPickupTo() != null) {
+            LocalDateTime pickupFromDonor = TimezoneResolver.convertDateTime(
+                response.getPickupDate(),
+                response.getPickupFrom(),
+                "UTC",
+                donorTimezone
+            );
+            LocalDateTime pickupToDonor = TimezoneResolver.convertDateTime(
+                response.getPickupDate(),
+                response.getPickupTo(),
+                "UTC",
+                donorTimezone
+            );
+            
+            if (pickupFromDonor != null) {
+                response.setPickupDate(pickupFromDonor.toLocalDate());
+                response.setPickupFrom(pickupFromDonor.toLocalTime());
+            }
+            if (pickupToDonor != null) {
+                response.setPickupTo(pickupToDonor.toLocalTime());
+            }
+        }
+        
+        // Convert pickup slots from UTC to donor timezone
+        if (response.getPickupSlots() != null && !response.getPickupSlots().isEmpty()) {
+            List<PickupSlotResponse> convertedSlots = new ArrayList<>();
+            for (PickupSlotResponse slot : response.getPickupSlots()) {
+                LocalDateTime slotStartDonor = TimezoneResolver.convertDateTime(
+                    slot.getPickupDate(),
+                    slot.getStartTime(),
+                    "UTC",
+                    donorTimezone
+                );
+                LocalDateTime slotEndDonor = TimezoneResolver.convertDateTime(
+                    slot.getPickupDate(),
+                    slot.getEndTime(),
+                    "UTC",
+                    donorTimezone
+                );
+                
+                PickupSlotResponse convertedSlot = new PickupSlotResponse();
+                convertedSlot.setId(slot.getId());
+                convertedSlot.setPickupDate(slotStartDonor != null ? slotStartDonor.toLocalDate() : slot.getPickupDate());
+                convertedSlot.setStartTime(slotStartDonor != null ? slotStartDonor.toLocalTime() : slot.getStartTime());
+                convertedSlot.setEndTime(slotEndDonor != null ? slotEndDonor.toLocalTime() : slot.getEndTime());
+                convertedSlot.setNotes(slot.getNotes());
+                convertedSlot.setSlotOrder(slot.getSlotOrder());
+                convertedSlots.add(convertedSlot);
+            }
+            response.setPickupSlots(convertedSlots);
+        }
+        
+        // Convert confirmed pickup slot from UTC to donor timezone
+        if (response.getConfirmedPickupSlot() != null) {
+            PickupSlotResponse confirmedSlot = response.getConfirmedPickupSlot();
+            LocalDateTime confirmedStartDonor = TimezoneResolver.convertDateTime(
+                confirmedSlot.getPickupDate(),
+                confirmedSlot.getStartTime(),
+                "UTC",
+                donorTimezone
+            );
+            LocalDateTime confirmedEndDonor = TimezoneResolver.convertDateTime(
+                confirmedSlot.getPickupDate(),
+                confirmedSlot.getEndTime(),
+                "UTC",
+                donorTimezone
+            );
+            
+            if (confirmedStartDonor != null) {
+                confirmedSlot.setPickupDate(confirmedStartDonor.toLocalDate());
+                confirmedSlot.setStartTime(confirmedStartDonor.toLocalTime());
+            }
+            if (confirmedEndDonor != null) {
+                confirmedSlot.setEndTime(confirmedEndDonor.toLocalTime());
+            }
+        }
+        
+        return response;
+    }
+    
+    /**
+     * Converts a SurplusPost entity to the SurplusResponse DTO with times converted to receiver's timezone.
+     * All UTC times from database are converted to the receiver's local timezone.
+     */
+    private SurplusResponse convertToResponseForReceiver(SurplusPost post, String receiverTimezone) {
+        // Get the base response (in UTC)
+        SurplusResponse response = convertToResponse(post);
+        
+        // If receiver has no timezone, return UTC times
+        if (receiverTimezone == null || receiverTimezone.trim().isEmpty()) {
+            return response;
+        }
+        
+        // Convert legacy pickup times from UTC to receiver timezone
+        if (response.getPickupDate() != null && response.getPickupFrom() != null && response.getPickupTo() != null) {
+            LocalDateTime pickupFromReceiver = TimezoneResolver.convertDateTime(
+                response.getPickupDate(),
+                response.getPickupFrom(),
+                "UTC",
+                receiverTimezone
+            );
+            LocalDateTime pickupToReceiver = TimezoneResolver.convertDateTime(
+                response.getPickupDate(),
+                response.getPickupTo(),
+                "UTC",
+                receiverTimezone
+            );
+            
+            if (pickupFromReceiver != null) {
+                response.setPickupDate(pickupFromReceiver.toLocalDate());
+                response.setPickupFrom(pickupFromReceiver.toLocalTime());
+            }
+            if (pickupToReceiver != null) {
+                response.setPickupTo(pickupToReceiver.toLocalTime());
+            }
+        }
+        
+        // Convert pickup slots from UTC to receiver timezone
+        if (response.getPickupSlots() != null && !response.getPickupSlots().isEmpty()) {
+            List<PickupSlotResponse> convertedSlots = new ArrayList<>();
+            for (PickupSlotResponse slot : response.getPickupSlots()) {
+                LocalDateTime slotStartReceiver = TimezoneResolver.convertDateTime(
+                    slot.getPickupDate(),
+                    slot.getStartTime(),
+                    "UTC",
+                    receiverTimezone
+                );
+                LocalDateTime slotEndReceiver = TimezoneResolver.convertDateTime(
+                    slot.getPickupDate(),
+                    slot.getEndTime(),
+                    "UTC",
+                    receiverTimezone
+                );
+                
+                PickupSlotResponse convertedSlot = new PickupSlotResponse();
+                convertedSlot.setId(slot.getId());
+                convertedSlot.setPickupDate(slotStartReceiver != null ? slotStartReceiver.toLocalDate() : slot.getPickupDate());
+                convertedSlot.setStartTime(slotStartReceiver != null ? slotStartReceiver.toLocalTime() : slot.getStartTime());
+                convertedSlot.setEndTime(slotEndReceiver != null ? slotEndReceiver.toLocalTime() : slot.getEndTime());
+                convertedSlot.setNotes(slot.getNotes());
+                convertedSlot.setSlotOrder(slot.getSlotOrder());
+                convertedSlots.add(convertedSlot);
+            }
+            response.setPickupSlots(convertedSlots);
+        }
+        
+        // Convert confirmed pickup slot from UTC to receiver timezone
+        if (response.getConfirmedPickupSlot() != null) {
+            PickupSlotResponse confirmedSlot = response.getConfirmedPickupSlot();
+            LocalDateTime confirmedStartReceiver = TimezoneResolver.convertDateTime(
+                confirmedSlot.getPickupDate(),
+                confirmedSlot.getStartTime(),
+                "UTC",
+                receiverTimezone
+            );
+            LocalDateTime confirmedEndReceiver = TimezoneResolver.convertDateTime(
+                confirmedSlot.getPickupDate(),
+                confirmedSlot.getEndTime(),
+                "UTC",
+                receiverTimezone
+            );
+            
+            if (confirmedStartReceiver != null) {
+                confirmedSlot.setPickupDate(confirmedStartReceiver.toLocalDate());
+                confirmedSlot.setStartTime(confirmedStartReceiver.toLocalTime());
+            }
+            if (confirmedEndReceiver != null) {
+                confirmedSlot.setEndTime(confirmedEndReceiver.toLocalTime());
+            }
+        }
+        
+        return response;
+    }
 
     @Timed(value = "surplus.service.getAllAvailablePosts", description = "Time taken to get all available surplus posts")
     public List<SurplusResponse> getAllAvailableSurplusPosts() {
@@ -207,6 +477,7 @@ public class SurplusService {
     /**
      * Search surplus posts based on filter criteria using our custom filter classes.
      * If no filters are provided, returns all available posts.
+     * Times returned in UTC.
      */
     public List<SurplusResponse> searchSurplusPosts(SurplusFilterRequest filterRequest) {
         Specification<SurplusPost> specification = buildSpecificationFromFilter(filterRequest);
@@ -215,6 +486,27 @@ public class SurplusService {
         
         return posts.stream()
                 .map(this::convertToResponse)
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * Search surplus posts for a receiver with times converted to their timezone.
+     * 
+     * @param filterRequest Filter criteria
+     * @param receiver The receiver user (for timezone conversion)
+     * @return List of surplus posts with times in receiver's timezone
+     */
+    public List<SurplusResponse> searchSurplusPostsForReceiver(SurplusFilterRequest filterRequest, User receiver) {
+        Specification<SurplusPost> specification = buildSpecificationFromFilter(filterRequest);
+        
+        List<SurplusPost> posts = surplusPostRepository.findAll(specification);
+        
+        String receiverTimezone = receiver != null && receiver.getTimezone() != null 
+            ? receiver.getTimezone() 
+            : "UTC";
+        
+        return posts.stream()
+                .map(post -> convertToResponseForReceiver(post, receiverTimezone))
                 .collect(Collectors.toList());
     }
 

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, ArrowLeft } from 'lucide-react';
 import api from '../../services/api';
+import { useTimezone } from '../../contexts/TimezoneContext';
+import { formatTimeInTimezone, getDateSeparatorInTimezone, areDifferentDaysInTimezone } from '../../utils/timezoneUtils';
 import './ChatPanel.css';
 
 const ChatPanel = ({ conversation, onMessageSent, onConversationRead, onBack, showOnMobile = true }) => {
@@ -11,6 +13,10 @@ const ChatPanel = ({ conversation, onMessageSent, onConversationRead, onBack, sh
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
   const currentUserId = localStorage.getItem('userId');
+  const { userTimezone } = useTimezone();
+  
+  // Debug: log timezone
+  console.log('ChatPanel using timezone:', userTimezone);
 
   // Load messages when conversation changes
   useEffect(() => {
@@ -177,9 +183,9 @@ const ChatPanel = ({ conversation, onMessageSent, onConversationRead, onBack, sh
         ) : (
           messages.map((message, index) => (
             <React.Fragment key={message.id}>
-              {shouldShowDateSeparator(message, messages[index - 1]) && (
+              {areDifferentDaysInTimezone(message.createdAt, messages[index - 1]?.createdAt, userTimezone) && (
                 <div className="date-separator">
-                  <span>{getDateSeparator(message.createdAt)}</span>
+                  <span>{getDateSeparatorInTimezone(message.createdAt, userTimezone)}</span>
                 </div>
               )}
               <div
@@ -195,7 +201,7 @@ const ChatPanel = ({ conversation, onMessageSent, onConversationRead, onBack, sh
                 <div className="message-content">
                   <p className="message-text">{message.messageBody}</p>
                   <span className="message-time">
-                    {formatMessageTime(message.createdAt)}
+                    {formatTimeInTimezone(message.createdAt, userTimezone)}
                   </span>
                 </div>
               </div>

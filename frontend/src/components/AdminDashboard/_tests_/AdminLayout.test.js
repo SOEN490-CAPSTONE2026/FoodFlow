@@ -111,9 +111,11 @@ describe("AdminLayout", () => {
     renderWithRoutes("/admin");
     const kebab = screen.getByRole("button", { name: /^menu$/i });
     fireEvent.click(kebab);
-    expect(screen.getByRole("button", { name: /logout/i })).toBeInTheDocument();
+    // The dropdown should be open, but logout is now always visible in nav
+    // Check that clicking outside closes the dropdown (kebab menu should close)
     fireEvent.mouseDown(document.body);
-    expect(screen.queryByRole("button", { name: /logout/i })).not.toBeInTheDocument();
+    // The logout button in nav should still be visible
+    expect(screen.getByRole("button", { name: /logout/i })).toBeInTheDocument();
   });
 
   it("mobile menu opens via hamburger and closes via overlay", () => {

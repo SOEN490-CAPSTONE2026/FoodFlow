@@ -1,37 +1,57 @@
 import React, { useState } from 'react';
+import { useNavigate } from "react-router-dom";
 import { X, Package, Calendar, MapPin, User, Clock, MessageCircle } from 'lucide-react';
 import useGoogleMap from '../../hooks/useGoogleMaps';
 import ClaimedView from './ClaimedView';
 import CompletedView from './CompletedView';
 import ReadyForPickUpView from './ReadyForPickUpView';
-import { getPrimaryFoodCategory, foodTypeImages, getUnitLabel } from '../../constants/foodConstants';
+import { getPrimaryFoodCategory, foodTypeImages, getUnitLabel, getTemperatureCategoryLabel, getTemperatureCategoryIcon, getPackagingTypeLabel } from '../../constants/foodConstants';
+import { useTimezone } from '../../contexts/TimezoneContext';
 import './Receiver_Styles/ClaimDetailModal.css';
 
 const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
     const post = claim?.surplusPost;
     const [showPickupSteps, setShowPickupSteps] = useState(false);
+    const navigate = useNavigate();
+    const { userTimezone } = useTimezone();
 
     const formatPickupTime = (pickupDate, pickupFrom, pickupTo) => {
         if (!pickupDate || !pickupFrom || !pickupTo) return "—";
         try {
-            const fromDate = new Date(`${pickupDate}T${pickupFrom}`);
+            // Backend sends LocalDateTime, treat as UTC by adding 'Z'
+            let fromDateStr = `${pickupDate}T${pickupFrom}`;
+            if (!fromDateStr.endsWith('Z') && !fromDateStr.includes('+')) {
+                fromDateStr = fromDateStr + 'Z';
+            }
+            let toDateStr = `${pickupDate}T${pickupTo}`;
+            if (!toDateStr.endsWith('Z') && !toDateStr.includes('+')) {
+                toDateStr = toDateStr + 'Z';
+            }
+            
+            const fromDate = new Date(fromDateStr);
+            const toDate = new Date(toDateStr);
+            
             const dateStr = fromDate.toLocaleDateString("en-US", {
                 month: "short",
                 day: "numeric",
                 year: "numeric",
+                timeZone: userTimezone
             });
             const fromTime = fromDate.toLocaleTimeString("en-US", {
                 hour: "numeric",
                 minute: "2-digit",
                 hour12: true,
+                timeZone: userTimezone
             });
-            const [hours, minutes] = pickupTo.split(":");
-            const hour = parseInt(hours, 10);
-            const isPM = hour >= 12;
-            const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-            const toTime = `${displayHour}:${minutes} ${isPM ? "PM" : "AM"}`;
+            const toTime = toDate.toLocaleTimeString("en-US", {
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true,
+                timeZone: userTimezone
+            });
             return `${dateStr} ${fromTime}-${toTime}`;
-        } catch {
+        } catch (error) {
+            console.error('Error formatting pickup time:', error);
             return "—";
         }
     };
@@ -100,7 +120,7 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                                 onClick={(e) => {
                                     e.preventDefault();
                                     // Navigate to chat with donor
-                                    console.log('Navigate to chat with donor:', post?.donorName);
+                                    navigate(`/receiver/messages?recipientEmail=${encodeURIComponent(post?.donorEmail)}`);
                                 }}
                                 title={`Chat with ${post?.donorName || 'donor'}`}
                             >
@@ -130,7 +150,7 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                                 </div>
                                 <div className="claimed-modal-detail-content">
                                     <span className="claimed-modal-detail-label">Expiry Date</span>
-                                    <span className="claimed-modal-detail-value">{post?.pickupDate || 'Date TBD'}</span>
+                                    <span className="claimed-modal-detail-value">{post?.expiryDate || 'Not specified'}</span>
                                 </div>
                             </div>
 
@@ -144,6 +164,36 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                                     <span className="claimed-modal-detail-value">{post?.donorName || 'Not specified'}</span>
                                 </div>
                             </div>
+
+                            {/* Temperature Category */}
+                            {post?.temperatureCategory && (
+                                <div className="claimed-modal-detail-item">
+                                    <div className="claimed-modal-detail-icon temperature">
+                                        <span style={{ fontSize: '20px' }}>{getTemperatureCategoryIcon(post.temperatureCategory)}</span>
+                                    </div>
+                                    <div className="claimed-modal-detail-content">
+                                        <span className="claimed-modal-detail-label">Temperature</span>
+                                        <span className="claimed-modal-detail-value temperature-badge">
+                                            {getTemperatureCategoryLabel(post.temperatureCategory)}
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Packaging Type */}
+                            {post?.packagingType && (
+                                <div className="claimed-modal-detail-item">
+                                    <div className="claimed-modal-detail-icon package">
+                                        <Package size={20} />
+                                    </div>
+                                    <div className="claimed-modal-detail-content">
+                                        <span className="claimed-modal-detail-label">Packaging</span>
+                                        <span className="claimed-modal-detail-value">
+                                            {getPackagingTypeLabel(post.packagingType)}
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Pickup Date & Time */}
