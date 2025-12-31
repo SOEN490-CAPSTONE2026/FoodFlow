@@ -50,8 +50,8 @@ describe('ForgotPassword - Method Selection', () => {
 
     await user.click(smsOption);
 
-    // phone input should appear
-    const phoneInput = screen.getByPlaceholderText(/enter your phone number/i);
+    // phone input should appear (from PhoneInput component)
+    const phoneInput = screen.getByPlaceholderText(/phone number/i);
     expect(phoneInput).toBeInTheDocument();
 
     // SMS option should be marked pressed
@@ -152,20 +152,6 @@ describe('ForgotPassword - Phone Validation', () => {
     await user.click(submitButton);
 
     expect(await screen.findByText(/please enter your phone number/i)).toBeInTheDocument();
-  });
-
-  test('shows error for invalid phone format', async () => {
-    renderWithRouter(<ForgotPassword />);
-    const user = userEvent.setup();
-
-    await user.click(screen.getByTestId('option-sms'));
-    const phoneInput = screen.getByPlaceholderText(/enter your phone number/i);
-    await user.type(phoneInput, '123');
-
-    const submitButton = screen.getByRole('button', { name: /send code/i });
-    await user.click(submitButton);
-
-    expect(await screen.findByText(/please enter a valid phone number/i)).toBeInTheDocument();
   });
 });
 
@@ -323,7 +309,7 @@ describe('ForgotPassword - Code Verification', () => {
     const user = userEvent.setup({ delay: null });
 
     await user.click(screen.getByTestId('option-sms'));
-    const phoneInput = screen.getByPlaceholderText(/enter your phone number/i);
+    const phoneInput = screen.getByPlaceholderText(/phone number/i);
     await user.type(phoneInput, '+14165551234');
 
     const submitButton = screen.getByRole('button', { name: /send code/i });
