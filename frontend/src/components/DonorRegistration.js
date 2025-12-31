@@ -279,29 +279,6 @@ const DonorRegistration = () => {
       }
     }
 
-    // Check phone exists before leaving step 4 (Contact Info)
-    if (currentStep === 4) {
-      setLoading(true);
-      try {
-        const formattedPhone = formatPhoneNumber(formData.phone);
-        const response = await authAPI.checkPhoneExists(formattedPhone);
-        if (response.data.exists) {
-          setFieldErrors({ phone: 'An account with this phone number already exists' });
-          setError('Phone number already registered. Please use a different number.');
-          setLoading(false);
-          return;
-        }
-      } catch (err) {
-        console.error('Error checking phone:', err);
-        const errorMessage = err.response?.data?.message || 'Phone number already exists in the system';
-        setError(errorMessage);
-        setLoading(false);
-        return;
-      } finally {
-        setLoading(false);
-      }
-    }
-
     setError('');
     setFieldErrors({});
     setCurrentStep(currentStep + 1);
@@ -325,6 +302,24 @@ const DonorRegistration = () => {
   const handleSubmit = async () => {
     setLoading(true);
     setError('');
+
+    // Check phone exists before submitting
+    try {
+      const formattedPhone = formatPhoneNumber(formData.phone);
+      const response = await authAPI.checkPhoneExists(formattedPhone);
+      if (response.data.exists) {
+        setFieldErrors({ phone: 'An account with this phone number already exists' });
+        setError('Phone number already registered. Please use a different number.');
+        setLoading(false);
+        return;
+      }
+    } catch (err) {
+      console.error('Error checking phone:', err);
+      const errorMessage = err.response?.data?.message || 'Phone number already exists in the system';
+      setError(errorMessage);
+      setLoading(false);
+      return;
+    }
 
     try {
       // Address as single field for backend compatibility
