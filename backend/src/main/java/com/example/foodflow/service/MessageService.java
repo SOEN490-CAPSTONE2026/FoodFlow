@@ -1,5 +1,6 @@
 package com.example.foodflow.service;
 
+import com.example.foodflow.exception.BusinessException;
 import com.example.foodflow.model.dto.MessageRequest;
 import com.example.foodflow.model.dto.MessageResponse;
 import com.example.foodflow.model.entity.Conversation;
@@ -105,17 +106,17 @@ public class MessageService {
     @Transactional
     public void markAsRead(Long messageId, User currentUser) {
         Message message = messageRepository.findById(messageId)
-            .orElseThrow(() -> new IllegalArgumentException("Message not found"));
-        
+            .orElseThrow(() -> new BusinessException("error.resource.not_found"));
+
         // Only the recipient (not the sender) can mark as read
         if (message.getSender().getId().equals(currentUser.getId())) {
-            throw new IllegalArgumentException("Cannot mark your own message as read");
+            throw new BusinessException("error.message.mark_own_read");
         }
         
         // Verify user is participant in the conversation
         Conversation conversation = message.getConversation();
         if (!conversation.isParticipant(currentUser.getId())) {
-            throw new IllegalArgumentException("Unauthorized to mark this message as read");
+            throw new BusinessException("error.message.unauthorized_read");
         }
         
         message.setReadStatus(true);

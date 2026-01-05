@@ -18,13 +18,13 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Email
-    @NotBlank
+    @Email(message = "{validation.email.invalid}")
+    @NotBlank(message = "{validation.email.required}")
     @Column(unique = true)
     private String email;
 
-    @NotBlank
-    @Size(min = 8)
+    @NotBlank(message = "{validation.password.required}")
+    @Size(min = 8, message = "{validation.password.minLength}")
     private String password;
 
     @Enumerated(EnumType.STRING)

@@ -27,12 +27,8 @@ public class MessageController {
     public ResponseEntity<MessageResponse> sendMessage(
             @Valid @RequestBody MessageRequest request,
             @AuthenticationPrincipal User sender) {
-        try {
-            MessageResponse response = messageService.sendMessage(request, sender);
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        MessageResponse response = messageService.sendMessage(request, sender);
+        return ResponseEntity.ok(response);
     }
     
     /**
@@ -42,12 +38,8 @@ public class MessageController {
     public ResponseEntity<Void> markAsRead(
             @PathVariable Long messageId,
             @AuthenticationPrincipal User currentUser) {
-        try {
-            messageService.markAsRead(messageId, currentUser);
-            return ResponseEntity.ok().build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        messageService.markAsRead(messageId, currentUser);
+        return ResponseEntity.ok().build();
     }
     
     /**

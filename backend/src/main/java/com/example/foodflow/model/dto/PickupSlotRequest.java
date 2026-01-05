@@ -6,13 +6,13 @@ import java.time.LocalTime;
 
 public class PickupSlotRequest {
     
-    @NotNull(message = "Pickup date is required")
+    @NotNull(message = "{validation.pickupSlot.date.required}")
     private LocalDate pickupDate;
     
-    @NotNull(message = "Start time is required")
+    @NotNull(message = "{validation.pickupSlot.startTime.required}")
     private LocalTime startTime;
     
-    @NotNull(message = "End time is required")
+    @NotNull(message = "{validation.pickupSlot.endTime.required}")
     private LocalTime endTime;
     
     private String notes;

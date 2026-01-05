@@ -1,5 +1,6 @@
 package com.example.foodflow.service;
 
+import com.example.foodflow.exception.BusinessException;
 import com.example.foodflow.helpers.ArrayFilter;
 import com.example.foodflow.helpers.BasicFilter;
 import com.example.foodflow.helpers.LocationFilter;
@@ -261,18 +262,18 @@ public class SurplusService {
         Timer.Sample sample = businessMetricsService.startTimer();
         
         SurplusPost post = surplusPostRepository.findById(postId)
-            .orElseThrow(() -> new RuntimeException("Surplus post not found"));
+            .orElseThrow(() -> new BusinessException("error.resource.not_found"));
 
         if (!post.getDonor().getId().equals(donor.getId())) {
-            throw new RuntimeException("You are not authorized to complete this post. Only the post owner can mark it as completed.");
+            throw new BusinessException("error.surplus.unauthorized_complete");
         }
 
         if (post.getStatus() != PostStatus.READY_FOR_PICKUP) {
-            throw new RuntimeException("Post must be in READY_FOR_PICKUP status to be completed. Current status: " + post.getStatus());
+            throw new BusinessException("error.surplus.invalid_status");
         }
 
         if (post.getOtpCode() == null || !post.getOtpCode().equals(otpCode)) {
-            throw new RuntimeException("Invalid OTP code");
+            throw new BusinessException("error.auth.invalid_credentials");
         }
 
         post.setStatus(PostStatus.COMPLETED);
@@ -294,29 +295,29 @@ public class SurplusService {
 public SurplusResponse confirmPickup(long postId, String otpCode, User donor) {
     
     SurplusPost post = surplusPostRepository.findById(postId)
-            .orElseThrow(() -> new RuntimeException("Surplus post not found"));
+            .orElseThrow(() -> new BusinessException("error.resource.not_found"));
 
    
     if (!post.getDonor().getId().equals(donor.getId())) {
-        throw new RuntimeException("You are not authorized to confirm this pickup.");
+        throw new BusinessException("error.surplus.unauthorized_complete");
     }
 
 
     if (post.getOtpCode() == null) {
-        throw new RuntimeException("No OTP is set for this donation.");
+        throw new BusinessException("error.auth.invalid_credentials");
     }
 
     if (!post.getOtpCode().equals(otpCode)) {
-        throw new RuntimeException("Invalid or expired OTP code.");
+        throw new BusinessException("error.auth.invalid_credentials");
     }
 
     
     if (post.getStatus() != PostStatus.READY_FOR_PICKUP) {
-        throw new RuntimeException("Donation is not ready for pickup. Current status: " + post.getStatus());
+        throw new BusinessException("error.surplus.invalid_status");
     }
 
     Claim claim = claimRepository.findBySurplusPost(post)
-        .orElseThrow(() -> new RuntimeException("No active claim found for this post"));
+        .orElseThrow(() -> new BusinessException("error.resource.not_found"));
 
     post.setStatus(PostStatus.COMPLETED);
     post.setOtpCode(null);

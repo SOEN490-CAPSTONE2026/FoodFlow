@@ -5,8 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 
 public class StartConversationRequest {
     
-    @NotBlank(message = "Recipient email is required")
-    @Email(message = "Invalid email format")
+    @NotBlank(message = "{validation.recipientEmail.required}")
+    @Email(message = "{validation.recipientEmail.invalid}")
     private String recipientEmail;
     
     // Constructors

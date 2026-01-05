@@ -5,6 +5,7 @@ import { Autocomplete } from "@react-google-maps/api";
 import Select from "react-select";
 import DatePicker from "react-datepicker";
 import { surplusAPI } from "../../services/api";
+import { foodTypeOptions, unitOptions } from "../../constants/foodConstants";
 import "./Donor_Styles/SurplusFormModal.css";
 import "react-datepicker/dist/react-datepicker.css";
 
