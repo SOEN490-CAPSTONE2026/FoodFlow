@@ -42,19 +42,22 @@ public class SurplusService {
     private final BusinessMetricsService businessMetricsService;
     private final NotificationService notificationService;
     private final ExpiryCalculationService expiryCalculationService;
+    private final TimelineService timelineService;
 
     public SurplusService(SurplusPostRepository surplusPostRepository, 
                          ClaimRepository claimRepository,
                          PickupSlotValidationService pickupSlotValidationService,
                          BusinessMetricsService businessMetricsService,
                          NotificationService notificationService,
-                         ExpiryCalculationService expiryCalculationService) {
+                         ExpiryCalculationService expiryCalculationService,
+                         TimelineService timelineService) {
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;
         this.pickupSlotValidationService = pickupSlotValidationService;
         this.businessMetricsService = businessMetricsService;
         this.notificationService = notificationService;
         this.expiryCalculationService = expiryCalculationService;
+        this.timelineService = timelineService;
     }
     
     /**
@@ -189,6 +192,18 @@ public class SurplusService {
         post.setStatus(request.getStatus() != null ? request.getStatus() : PostStatus.AVAILABLE);
 
         SurplusPost savedPost = surplusPostRepository.save(post);
+
+        // Create timeline event for donation posting
+        timelineService.createTimelineEvent(
+            savedPost,
+            "DONATION_POSTED",
+            "donor",
+            donor.getId(),
+            null,
+            PostStatus.AVAILABLE,
+            "Donation posted by " + (donor.getOrganization() != null ? donor.getOrganization().getName() : donor.getEmail()),
+            true
+        );
 
         businessMetricsService.incrementSurplusPostCreated();
         businessMetricsService.recordTimer(sample, "surplus.service.create", "status", savedPost.getStatus().toString());
@@ -613,6 +628,18 @@ public SurplusResponse confirmPickup(long postId, String otpCode, User donor) {
 
     surplusPostRepository.save(post);
     claimRepository.save(claim);
+
+    // Create timeline event for pickup confirmation
+    timelineService.createTimelineEvent(
+        post,
+        "PICKUP_CONFIRMED",
+        "donor",
+        donor.getId(),
+        PostStatus.READY_FOR_PICKUP,
+        PostStatus.COMPLETED,
+        "Pickup confirmed with OTP code",
+        true
+    );
 
     return convertToResponse(post);
 }

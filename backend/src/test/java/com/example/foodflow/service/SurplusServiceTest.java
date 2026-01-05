@@ -56,7 +56,9 @@ class SurplusServiceTest {
 
     @Mock
     private ExpiryCalculationService expiryCalculationService;
-
+    
+    @Mock
+    private TimelineService timelineService;
     @InjectMocks
     private SurplusService surplusService;
 

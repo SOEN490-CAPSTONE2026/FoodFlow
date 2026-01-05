@@ -46,6 +46,9 @@ class SurplusPostSchedulerServiceTest {
 
     @Mock
     private ClaimRepository claimRepository;
+    
+    @Mock
+    private TimelineService timelineService;
 
     @InjectMocks
     private SurplusPostSchedulerService schedulerService;
