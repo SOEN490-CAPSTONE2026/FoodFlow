@@ -184,5 +184,95 @@
     "terms": "Conditions de Service",
     "followUs": "Nous Suivre",
     "copyright": "© 2025 FoodFlow. Tous droits réservés."
+  },
+  "donorListFood": {
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "reschedule": "REPROGRAMMER",
+    "enterPickupCode": "ENTRER LE CODE DE RETRAIT",
+    "thankYou": "MERCI",
+    "openChat": "OUVRIR LE CHAT",
+    "postDeletedSuccess": "Publication supprimée avec succès.",
+    "postDeleteFailed": "Échec de la suppression de la publication",
+    "rescheduleComingSoon": "La fonctionnalité de reprogrammation arrive bientôt !"
+  },
+  "confirmPickup": {
+    "title": "Confirmer le Retrait",
+    "subtitle": "Entrez le code à 6 chiffres affiché par le destinataire :",
+    "codeRequired": "Veuillez entrer le code à 6 chiffres complet",
+    "invalidDonation": "Article de don invalide",
+    "verifyFailed": "Échec de la vérification du code",
+    "info": "Le destinataire peut trouver ce code dans son compte :",
+    "myClaims": "Mes Réclamations",
+    "cancel": "Annuler",
+    "verifying": "Vérification...",
+    "confirm": "Confirmer le Retrait"
+  },
+  "admin": {
+    "dashboard": "Tableau de Bord Administrateur",
+    "analytics": "Analytique",
+    "calendar": "Calendrier",
+    "messages": "Messages",
+    "help": "Aide",
+    "overview": "Vue d'ensemble et actions rapides",
+    "metrics": "Métriques et informations",
+    "events": "Événements et horaires",
+    "communications": "Communications entrantes",
+    "guides": "Guides et support",
+    "administration": "Administration"
+  },
+  "claimDetail": {
+    "readyForPickup": "Prêt pour le Retrait",
+    "completed": "Complété",
+    "notCompleted": "Non Complété",
+    "claimed": "Réclamé",
+    "donationDetails": "Détails du Don",
+    "untitledDonation": "Don Sans Titre"
+  },
+  "claimedView": {
+    "claimed": "Réclamé",
+    "untitledDonation": "Don Sans Titre",
+    "pickupSteps": "Étapes de Retrait",
+    "reviewPickup": {
+      "title": "Vérifier l'heure et le lieu de retrait",
+      "description": "Soyez à l'heure pour garantir que votre organisation reçoive ce don."
+    },
+    "timeUnits": {
+      "day": "jour",
+      "days": "jours",
+      "hrs": "h",
+      "min": "min",
+      "sec": "sec"
+    }
+  },
+  "filtersPanel": {
+    "foodCategories": {
+      "fruitsVegetables": "Fruits et Légumes",
+      "bakeryPastry": "Boulangerie et Pâtisserie",
+      "packagedPantry": "Articles Emballés / Épicerie",
+      "dairyCold": "Produits Laitiers et Articles Froids",
+      "frozen": "Aliments Surgelés",
+      "preparedMeals": "Repas Préparés"
+    },
+    "selectDate": "Sélectionner la date"
+  },
+  "receiverBrowse": {
+    "confirmClaim": "Êtes-vous sûr de vouloir réclamer ce don ?",
+    "claimSuccess": "Don réclamé avec succès",
+    "claimFailed": "Échec de la réclamation du don"
+  },
+  "receiverMyClaims": {
+    "readyForPickup": "Prêt pour le Retrait",
+    "completed": "Complété",
+    "notCompleted": "Non Complété",
+    "claimed": "Réclamé"
+  },
+  "notifications": {
+    "newMessageFrom": "Nouveau message de",
+    "claimConfirmed": "Réclamation Confirmée",
+    "claimStatus": "Statut de la Réclamation",
+    "successfullyClaimed": "Réclamation réussie de \"{{foodTitle}}\" de {{donorName}}",
+    "readyForPickup": "\"{{foodTitle}}\" est prêt pour le retrait ! Consultez vos réclamations pour plus de détails.",
+    "claimCancelled": "Votre réclamation sur \"{{foodTitle}}\" a été annulée"
   }
 }

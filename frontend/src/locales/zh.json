@@ -184,5 +184,95 @@
     "terms": "服务条款",
     "followUs": "关注我们",
     "copyright": "© 2025 FoodFlow。版权所有。"
+  },
+  "donorListFood": {
+    "edit": "编辑",
+    "delete": "删除",
+    "reschedule": "重新安排",
+    "enterPickupCode": "输入取货代码",
+    "thankYou": "谢谢",
+    "openChat": "打开聊天",
+    "postDeletedSuccess": "帖子已成功删除。",
+    "postDeleteFailed": "删除帖子失败",
+    "rescheduleComingSoon": "重新安排功能即将推出！"
+  },
+  "confirmPickup": {
+    "title": "确认取货",
+    "subtitle": "输入接收者显示的6位代码：",
+    "codeRequired": "请输入完整的6位代码",
+    "invalidDonation": "无效的捐赠项目",
+    "verifyFailed": "验证代码失败",
+    "info": "接收者可以在其账户中找到此代码：",
+    "myClaims": "我的认领",
+    "cancel": "取消",
+    "verifying": "验证中...",
+    "confirm": "确认取货"
+  },
+  "admin": {
+    "dashboard": "管理员仪表板",
+    "analytics": "分析",
+    "calendar": "日历",
+    "messages": "消息",
+    "help": "帮助",
+    "overview": "概览和快速操作",
+    "metrics": "指标和洞察",
+    "events": "活动和日程",
+    "communications": "传入的通信",
+    "guides": "指南和支持",
+    "administration": "管理"
+  },
+  "claimDetail": {
+    "readyForPickup": "准备取货",
+    "completed": "已完成",
+    "notCompleted": "未完成",
+    "claimed": "已认领",
+    "donationDetails": "捐赠详情",
+    "untitledDonation": "未命名捐赠"
+  },
+  "claimedView": {
+    "claimed": "已认领",
+    "untitledDonation": "未命名捐赠",
+    "pickupSteps": "取货步骤",
+    "reviewPickup": {
+      "title": "查看取货时间和地点",
+      "description": "请准时到达，以确保您的组织收到此捐赠。"
+    },
+    "timeUnits": {
+      "day": "天",
+      "days": "天",
+      "hrs": "小时",
+      "min": "分钟",
+      "sec": "秒"
+    }
+  },
+  "filtersPanel": {
+    "foodCategories": {
+      "fruitsVegetables": "水果和蔬菜",
+      "bakeryPastry": "烘焙和糕点",
+      "packagedPantry": "包装/ pantry物品",
+      "dairyCold": "乳制品和冷品",
+      "frozen": "冷冻食品",
+      "preparedMeals": "预制餐"
+    },
+    "selectDate": "选择日期"
+  },
+  "receiverBrowse": {
+    "confirmClaim": "您确定要认领此捐赠吗？",
+    "claimSuccess": "成功认领捐赠",
+    "claimFailed": "认领捐赠失败"
+  },
+  "receiverMyClaims": {
+    "readyForPickup": "准备取货",
+    "completed": "已完成",
+    "notCompleted": "未完成",
+    "claimed": "已认领"
+  },
+  "notifications": {
+    "newMessageFrom": "来自的新消息",
+    "claimConfirmed": "认领已确认",
+    "claimStatus": "认领状态",
+    "successfullyClaimed": "成功认领了来自{{donorName}}的\"{{foodTitle}}\"",
+    "readyForPickup": "\"{{foodTitle}}\"已准备好取货！请查看您的认领以获取详细信息。",
+    "claimCancelled": "您对\"{{foodTitle}}\"的认领已被取消"
   }
 }

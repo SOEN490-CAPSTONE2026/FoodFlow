@@ -16,10 +16,12 @@ import {
   Menu,
   X
 } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 import Logo from "../../assets/Logo_White.png";
 import "./Admin_Styles/AdminLayout.css";
 
 export default function AdminLayout() {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const navType = useNavigationType();
@@ -56,17 +58,17 @@ export default function AdminLayout() {
     switch (location.pathname) {
       case "/admin":
       case "/admin/dashboard":
-        return "Admin Dashboard";
+        return t('admin.dashboard');
       case "/admin/analytics":
-        return "Analytics";
+        return t('admin.analytics');
       case "/admin/calendar":
-        return "Calendar";
+        return t('admin.calendar');
       case "/admin/messages":
-        return "Messages";
+        return t('admin.messages');
       case "/admin/help":
-        return "Help";
+        return t('admin.help');
       default:
-        return "Admin";
+        return t('admin.dashboard');
     }
   })();
 
@@ -74,17 +76,17 @@ export default function AdminLayout() {
     switch (location.pathname) {
       case "/admin":
       case "/admin/dashboard":
-        return "Overview and quick actions";
+        return t('admin.overview');
       case "/admin/analytics":
-        return "Metrics and insights";
+        return t('admin.metrics');
       case "/admin/calendar":
-        return "Events and schedules";
+        return t('admin.events');
       case "/admin/messages":
-        return "Incoming communications";
+        return t('admin.communications');
       case "/admin/help":
-        return "Guides and support";
+        return t('admin.guides');
       default:
-        return "Administration";
+        return t('admin.administration');
     }
   })();
 

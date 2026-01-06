@@ -197,5 +197,95 @@
     "network": "خطأ في الشبكة. حاول مرة أخرى.",
     "server": "خطأ في الخادم. اتصل بالدعم.",
     "validation": "يرجى التحقق من الحقول والمحاولة مرة أخرى."
+  },
+  "donorListFood": {
+    "edit": "تعديل",
+    "delete": "حذف",
+    "reschedule": "إعادة الجدولة",
+    "enterPickupCode": "أدخل رمز الاستلام",
+    "thankYou": "شكراً لك",
+    "openChat": "فتح الدردشة",
+    "postDeletedSuccess": "تم حذف المنشور بنجاح.",
+    "postDeleteFailed": "فشل في حذف المنشور",
+    "rescheduleComingSoon": "ستكون وظيفة إعادة الجدولة متاحة قريباً!"
+  },
+  "confirmPickup": {
+    "title": "تأكيد الاستلام",
+    "subtitle": "أدخل الرمز المكون من 6 أرقام الذي يعرضه المستقبل:",
+    "codeRequired": "يرجى إدخال الرمز المكون من 6 أرقام كاملاً",
+    "invalidDonation": "عنصر تبرع غير صالح",
+    "verifyFailed": "فشل في التحقق من الرمز",
+    "info": "يمكن للمستقبل العثور على هذا الرمز في حسابه:",
+    "myClaims": "مطالباتي",
+    "cancel": "إلغاء",
+    "verifying": "جارٍ التحقق...",
+    "confirm": "تأكيد الاستلام"
+  },
+  "admin": {
+    "dashboard": "لوحة تحكم الإدارة",
+    "analytics": "التحليلات",
+    "calendar": "التقويم",
+    "messages": "الرسائل",
+    "help": "المساعدة",
+    "overview": "نظرة عامة وإجراءات سريعة",
+    "metrics": "المقاييس والرؤى",
+    "events": "الأحداث والجداول",
+    "communications": "الاتصالات الواردة",
+    "guides": "الأدلة والدعم",
+    "administration": "الإدارة"
+  },
+  "claimDetail": {
+    "readyForPickup": "جاهز للاستلام",
+    "completed": "مكتمل",
+    "notCompleted": "غير مكتمل",
+    "claimed": "مطالب به",
+    "donationDetails": "تفاصيل التبرع",
+    "untitledDonation": "تبرع بدون عنوان"
+  },
+  "claimedView": {
+    "claimed": "مطالب به",
+    "untitledDonation": "تبرع بدون عنوان",
+    "pickupSteps": "خطوات الاستلام",
+    "reviewPickup": {
+      "title": "مراجعة وقت ومكان الاستلام",
+      "description": "كن في الوقت المحدد لضمان حصول منظمتك على هذا التبرع."
+    },
+    "timeUnits": {
+      "day": "يوم",
+      "days": "أيام",
+      "hrs": "ساعة",
+      "min": "دقيقة",
+      "sec": "ثانية"
+    }
+  },
+  "filtersPanel": {
+    "foodCategories": {
+      "fruitsVegetables": "الفواكه والخضروات",
+      "bakeryPastry": "المخبوزات والمعجنات",
+      "packagedPantry": "المنتجات المعبأة / مواد البقالة",
+      "dairyCold": "منتجات الألبان والمنتجات الباردة",
+      "frozen": "الأطعمة المجمدة",
+      "preparedMeals": "الوجبات الجاهزة"
+    },
+    "selectDate": "اختر التاريخ"
+  },
+  "receiverBrowse": {
+    "confirmClaim": "هل أنت متأكد من أنك تريد المطالبة بهذا التبرع؟",
+    "claimSuccess": "تم المطالبة بالتبرع بنجاح",
+    "claimFailed": "فشل في المطالبة بالتبرع"
+  },
+  "receiverMyClaims": {
+    "readyForPickup": "جاهز للاستلام",
+    "completed": "مكتمل",
+    "notCompleted": "غير مكتمل",
+    "claimed": "مطالب به"
+  },
+  "notifications": {
+    "newMessageFrom": "رسالة جديدة من",
+    "claimConfirmed": "تم تأكيد المطالبة",
+    "claimStatus": "حالة المطالبة",
+    "successfullyClaimed": "تم المطالبة بنجاح بـ \"{{foodTitle}}\" من {{donorName}}",
+    "readyForPickup": "\"{{foodTitle}}\" جاهز للاستلام! تحقق من مطالباتك للحصول على التفاصيل.",
+    "claimCancelled": "تم إلغاء مطالبتك على \"{{foodTitle}}\""
   }
 }

@@ -196,5 +196,95 @@
     "network": "Erro de rede. Tente novamente.",
     "server": "Erro no servidor. Entre em contato com o suporte.",
     "validation": "Por favor, verifique os campos e tente novamente."
+  },
+  "donorListFood": {
+    "edit": "Editar",
+    "delete": "Excluir",
+    "reschedule": "REAGENDAR",
+    "enterPickupCode": "INSERIR CÓDIGO DE RETIRADA",
+    "thankYou": "OBRIGADO",
+    "openChat": "ABRIR CHAT",
+    "postDeletedSuccess": "Publicação excluída com sucesso.",
+    "postDeleteFailed": "Falha ao excluir publicação",
+    "rescheduleComingSoon": "A funcionalidade de reagendamento chegará em breve!"
+  },
+  "confirmPickup": {
+    "title": "Confirmar Retirada",
+    "subtitle": "Digite o código de 6 dígitos mostrado pelo receptor:",
+    "codeRequired": "Por favor, digite o código de 6 dígitos completo",
+    "invalidDonation": "Item de doação inválido",
+    "verifyFailed": "Falha ao verificar código",
+    "info": "O receptor pode encontrar este código em sua conta:",
+    "myClaims": "Minhas Reivindicações",
+    "cancel": "Cancelar",
+    "verifying": "Verificando...",
+    "confirm": "Confirmar Retirada"
+  },
+  "admin": {
+    "dashboard": "Dashboard do Administrador",
+    "analytics": "Análises",
+    "calendar": "Calendário",
+    "messages": "Mensagens",
+    "help": "Ajuda",
+    "overview": "Visão geral e ações rápidas",
+    "metrics": "Métricas e insights",
+    "events": "Eventos e horários",
+    "communications": "Comunicações recebidas",
+    "guides": "Guias e suporte",
+    "administration": "Administração"
+  },
+  "claimDetail": {
+    "readyForPickup": "Pronto para Retirada",
+    "completed": "Concluído",
+    "notCompleted": "Não Concluído",
+    "claimed": "Reivindicado",
+    "donationDetails": "Detalhes da Doação",
+    "untitledDonation": "Doação Sem Título"
+  },
+  "claimedView": {
+    "claimed": "Reivindicado",
+    "untitledDonation": "Doação Sem Título",
+    "pickupSteps": "Passos de Retirada",
+    "reviewPickup": {
+      "title": "Revisar horário e local de retirada",
+      "description": "Chegue no horário para garantir que sua organização receba esta doação."
+    },
+    "timeUnits": {
+      "day": "dia",
+      "days": "dias",
+      "hrs": "h",
+      "min": "min",
+      "sec": "seg"
+    }
+  },
+  "filtersPanel": {
+    "foodCategories": {
+      "fruitsVegetables": "Frutas e Vegetais",
+      "bakeryPastry": "Padaria e Confeitaria",
+      "packagedPantry": "Itens Embalados / Despensa",
+      "dairyCold": "Laticínios e Itens Frios",
+      "frozen": "Alimentos Congelados",
+      "preparedMeals": "Refeições Prontas"
+    },
+    "selectDate": "Selecionar data"
+  },
+  "receiverBrowse": {
+    "confirmClaim": "Tem certeza de que deseja reivindicar esta doação?",
+    "claimSuccess": "Doação reivindicada com sucesso",
+    "claimFailed": "Falha ao reivindicar doação"
+  },
+  "receiverMyClaims": {
+    "readyForPickup": "Pronto para Retirada",
+    "completed": "Concluído",
+    "notCompleted": "Não Concluído",
+    "claimed": "Reivindicado"
+  },
+  "notifications": {
+    "newMessageFrom": "Nova mensagem de",
+    "claimConfirmed": "Reivindicação Confirmada",
+    "claimStatus": "Status da Reivindicação",
+    "successfullyClaimed": "Reivindicação bem-sucedida de \"{{foodTitle}}\" de {{donorName}}",
+    "readyForPickup": "\"{{foodTitle}}\" está pronto para retirada! Verifique suas reivindicações para mais detalhes.",
+    "claimCancelled": "Sua reivindicação sobre \"{{foodTitle}}\" foi cancelada"
   }
 }

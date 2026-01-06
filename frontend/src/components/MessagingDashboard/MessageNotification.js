@@ -1,7 +1,10 @@
 import React, { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import './MessageNotification.css';
 
 const MessageNotification = ({ notification, onClose }) => {
+  const { t } = useTranslation();
+  
   useEffect(() => {
     if (!notification) return;
 
@@ -24,7 +27,7 @@ const MessageNotification = ({ notification, onClose }) => {
   
   const headerText = isClaimNotification 
     ? notification.senderName 
-    : `New message from ${notification.senderName}`;
+    : t('notifications.newMessageFrom', { senderName: notification.senderName });
 
   return (
     <div className="message-notification">

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Outlet, useLocation, useNavigate, Link, useNavigationType } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 import "./Receiver_Styles/ReceiverLayout.css";
 import Logo from "../../assets/Logo.png";
 import ProfilePhoto from "./pfp.png";
@@ -19,6 +20,7 @@ import {
 } from "lucide-react";
 
 function ReceiverLayoutContent() {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const navType = useNavigationType();
@@ -113,22 +115,22 @@ function ReceiverLayoutContent() {
       const foodTitle = payload.surplusPostTitle || 'a food item';
       const donorName = payload.surplusPost?.donorEmail || 'a donor';
       const status = payload.status || '';
-      let message = `Successfully claimed "${foodTitle}" from ${donorName}`;
+      let message = t('notifications.successfullyClaimed', { foodTitle, donorName });
 
       if (status === 'READY_FOR_PICKUP' || status === 'Ready for Pickup') {
-        message = `"${foodTitle}" is ready for pickup! Check your claims for details.`;
+        message = t('notifications.readyForPickup', { foodTitle });
       }
 
       console.log('RECEIVER: Setting notification with message:', message);
-      showNotification('Claim Confirmed', message);
+      showNotification(t('notifications.claimConfirmed'), message);
     };
 
     const onClaimCancelled = (payload) => {
       console.log('RECEIVER: Claim cancellation received:', payload);
       const foodTitle = payload.surplusPostTitle || 'a food item';
-      const message = `Your claim on "${foodTitle}" has been cancelled`;
+      const message = t('notifications.claimCancelled', { foodTitle });
       console.log('RECEIVER: Setting notification with message:', message);
-      showNotification('Claim Status', message);
+      showNotification(t('notifications.claimStatus'), message);
     };
 
     connectToUserQueue(onMessage, onClaimNotification, onClaimCancelled);

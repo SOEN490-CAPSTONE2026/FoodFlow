@@ -458,5 +458,95 @@
     "copyright": "Copyright © 2025. All right reserved to FoodFlow",
     "privacyPolicy": "Privacy Policy",
     "termsConditions": "Terms & Conditions"
+  },
+  "donorListFood": {
+    "edit": "Edit",
+    "delete": "Delete",
+    "reschedule": "RESCHEDULE",
+    "enterPickupCode": "ENTER PICKUP CODE",
+    "thankYou": "THANK YOU",
+    "openChat": "OPEN CHAT",
+    "postDeletedSuccess": "Post deleted successfully.",
+    "postDeleteFailed": "Failed to delete post",
+    "rescheduleComingSoon": "Reschedule functionality coming soon!"
+  },
+  "confirmPickup": {
+    "title": "Confirm Pickup",
+    "subtitle": "Enter the 6-digit code shown by the receiver:",
+    "codeRequired": "Please enter the complete 6-digit code",
+    "invalidDonation": "Invalid donation item",
+    "verifyFailed": "Failed to verify code",
+    "info": "The receiver can find this code in their account:",
+    "myClaims": "My Claims",
+    "cancel": "Cancel",
+    "verifying": "Verifying...",
+    "confirm": "Confirm Pickup"
+  },
+  "admin": {
+    "dashboard": "Admin Dashboard",
+    "analytics": "Analytics",
+    "calendar": "Calendar",
+    "messages": "Messages",
+    "help": "Help",
+    "overview": "Overview and quick actions",
+    "metrics": "Metrics and insights",
+    "events": "Events and schedules",
+    "communications": "Incoming communications",
+    "guides": "Guides and support",
+    "administration": "Administration"
+  },
+  "claimDetail": {
+    "readyForPickup": "Ready for Pickup",
+    "completed": "Completed",
+    "notCompleted": "Not Completed",
+    "claimed": "Claimed",
+    "donationDetails": "Donation Details",
+    "untitledDonation": "Untitled Donation"
+  },
+  "claimedView": {
+    "claimed": "Claimed",
+    "untitledDonation": "Untitled Donation",
+    "pickupSteps": "Pickup Steps",
+    "reviewPickup": {
+      "title": "Review pickup time and location",
+      "description": "Be on time to ensure your organization receives this donation."
+    },
+    "timeUnits": {
+      "day": "day",
+      "days": "days",
+      "hrs": "hrs",
+      "min": "min",
+      "sec": "sec"
+    }
+  },
+  "filtersPanel": {
+    "foodCategories": {
+      "fruitsVegetables": "Fruits & Vegetables",
+      "bakeryPastry": "Bakery & Pastry",
+      "packagedPantry": "Packaged / Pantry Items",
+      "dairyCold": "Dairy & Cold Items",
+      "frozen": "Frozen Food",
+      "preparedMeals": "Prepared Meals"
+    },
+    "selectDate": "Select date"
+  },
+  "receiverBrowse": {
+    "confirmClaim": "Are you sure you want to claim this donation?",
+    "claimSuccess": "Successfully claimed donation",
+    "claimFailed": "Failed to claim donation"
+  },
+  "receiverMyClaims": {
+    "readyForPickup": "Ready for Pickup",
+    "completed": "Completed",
+    "notCompleted": "Not Completed",
+    "claimed": "Claimed"
+  },
+  "notifications": {
+    "newMessageFrom": "New message from",
+    "claimConfirmed": "Claim Confirmed",
+    "claimStatus": "Claim Status",
+    "successfullyClaimed": "Successfully claimed \"{{foodTitle}}\" from {{donorName}}",
+    "readyForPickup": "\"{{foodTitle}}\" is ready for pickup! Check your claims for details.",
+    "claimCancelled": "Your claim on \"{{foodTitle}}\" has been cancelled"
   }
 }

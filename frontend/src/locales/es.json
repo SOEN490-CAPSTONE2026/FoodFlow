@@ -184,5 +184,95 @@
     "terms": "Términos de Servicio",
     "followUs": "Síguenos",
     "copyright": "© 2025 FoodFlow. Todos los derechos reservados."
+  },
+  "donorListFood": {
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "reschedule": "REPROGRAMAR",
+    "enterPickupCode": "INGRESAR CÓDIGO DE RECOGIDA",
+    "thankYou": "GRACIAS",
+    "openChat": "ABRIR CHAT",
+    "postDeletedSuccess": "Publicación eliminada exitosamente.",
+    "postDeleteFailed": "Error al eliminar la publicación",
+    "rescheduleComingSoon": "¡La funcionalidad de reprogramación llegará pronto!"
+  },
+  "confirmPickup": {
+    "title": "Confirmar Recogida",
+    "subtitle": "Ingrese el código de 6 dígitos mostrado por el receptor:",
+    "codeRequired": "Por favor ingrese el código de 6 dígitos completo",
+    "invalidDonation": "Artículo de donación inválido",
+    "verifyFailed": "Error al verificar el código",
+    "info": "El receptor puede encontrar este código en su cuenta:",
+    "myClaims": "Mis Reclamaciones",
+    "cancel": "Cancelar",
+    "verifying": "Verificando...",
+    "confirm": "Confirmar Recogida"
+  },
+  "admin": {
+    "dashboard": "Panel de Administración",
+    "analytics": "Analítica",
+    "calendar": "Calendario",
+    "messages": "Mensajes",
+    "help": "Ayuda",
+    "overview": "Resumen y acciones rápidas",
+    "metrics": "Métricas e información",
+    "events": "Eventos y horarios",
+    "communications": "Comunicaciones entrantes",
+    "guides": "Guías y soporte",
+    "administration": "Administración"
+  },
+  "claimDetail": {
+    "readyForPickup": "Listo para Recogida",
+    "completed": "Completado",
+    "notCompleted": "No Completado",
+    "claimed": "Reclamado",
+    "donationDetails": "Detalles de la Donación",
+    "untitledDonation": "Donación Sin Título"
+  },
+  "claimedView": {
+    "claimed": "Reclamado",
+    "untitledDonation": "Donación Sin Título",
+    "pickupSteps": "Pasos de Recogida",
+    "reviewPickup": {
+      "title": "Revisar hora y lugar de recogida",
+      "description": "Llegue a tiempo para asegurar que su organización reciba esta donación."
+    },
+    "timeUnits": {
+      "day": "día",
+      "days": "días",
+      "hrs": "h",
+      "min": "min",
+      "sec": "seg"
+    }
+  },
+  "filtersPanel": {
+    "foodCategories": {
+      "fruitsVegetables": "Frutas y Verduras",
+      "bakeryPastry": "Panadería y Pastelería",
+      "packagedPantry": "Artículos Empaquetados / Despensa",
+      "dairyCold": "Lácteos y Artículos Fríos",
+      "frozen": "Alimentos Congelados",
+      "preparedMeals": "Comidas Preparadas"
+    },
+    "selectDate": "Seleccionar fecha"
+  },
+  "receiverBrowse": {
+    "confirmClaim": "¿Está seguro de que desea reclamar esta donación?",
+    "claimSuccess": "Donación reclamada exitosamente",
+    "claimFailed": "Error al reclamar la donación"
+  },
+  "receiverMyClaims": {
+    "readyForPickup": "Listo para Recogida",
+    "completed": "Completado",
+    "notCompleted": "No Completado",
+    "claimed": "Reclamado"
+  },
+  "notifications": {
+    "newMessageFrom": "Nuevo mensaje de",
+    "claimConfirmed": "Reclamación Confirmada",
+    "claimStatus": "Estado de la Reclamación",
+    "successfullyClaimed": "Reclamación exitosa de \"{{foodTitle}}\" de {{donorName}}",
+    "readyForPickup": "¡\"{{foodTitle}}\" está listo para recogida! Consulte sus reclamaciones para más detalles.",
+    "claimCancelled": "Su reclamación sobre \"{{foodTitle}}\" ha sido cancelada"
   }
 }

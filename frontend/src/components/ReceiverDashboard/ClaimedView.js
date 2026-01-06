@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { X, ArrowLeft } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { foodTypeImages, getPrimaryFoodCategory } from '../../constants/foodConstants';
 import './Receiver_Styles/ClaimedView.css';
 
 const ClaimedView = ({ claim, isOpen, onClose, onBack }) => {
+    const { t } = useTranslation();
     const post = claim?.surplusPost;
     const [timeRemaining, setTimeRemaining] = useState(null);
 
@@ -63,25 +65,25 @@ const ClaimedView = ({ claim, isOpen, onClose, onBack }) => {
                         className="claimed-modal-header-image"
                     />
                     <span className="claimed-modal-status-badge claimed-status-claimed">
-                        Claimed
+                        {t('claimedView.claimed')}
                     </span>
                     <div className="claimed-modal-header-overlay">
-                        <h2 className="claimed-modal-title">{post?.title || 'Untitled Donation'}</h2>
+                        <h2 className="claimed-modal-title">{post?.title || t('claimedView.untitledDonation')}</h2>
                     </div>
                 </div>
 
                 {/* Body */}
                 <div className="claimed-modal-body">
-                    <h3 className="claimed-modal-section-title">Pickup Steps</h3>
+                    <h3 className="claimed-modal-section-title">{t('claimedView.pickupSteps')}</h3>
 
                     {/* Step 1 */}
                     <div className="pickup-step">
                         <div className="pickup-step-header">
                             <div className="pickup-step-number">1</div>
                             <div className="pickup-step-content">
-                                <h4 className="pickup-step-title">Review pickup time and location</h4>
+                                <h4 className="pickup-step-title">{t('claimedView.reviewPickup.title')}</h4>
                                 <p className="pickup-step-description">
-                                    Be on time to ensure your organization receives this donation.
+                                    {t('claimedView.reviewPickup.description')}
                                 </p>
                             </div>
                         </div>
@@ -92,22 +94,22 @@ const ClaimedView = ({ claim, isOpen, onClose, onBack }) => {
                                         {timeRemaining.days > 0 && (
                                             <div className="timer-unit">
                                                 <span className="timer-value">{timeRemaining.days}</span>
-                                                <span className="timer-unit-label">{timeRemaining.days === 1 ? 'day' : 'days'}</span>
+                                                <span className="timer-unit-label">{timeRemaining.days === 1 ? t('claimedView.timeUnits.day') : t('claimedView.timeUnits.days')}</span>
                                             </div>
                                         )}
                                         <div className="timer-unit">
                                             <span className="timer-value">{String(timeRemaining.hours).padStart(2, '0')}</span>
-                                            <span className="timer-unit-label">hrs</span>
+                                            <span className="timer-unit-label">{t('claimedView.timeUnits.hrs')}</span>
                                         </div>
                                         <div className="timer-separator">:</div>
                                         <div className="timer-unit">
                                             <span className="timer-value">{String(timeRemaining.minutes).padStart(2, '0')}</span>
-                                            <span className="timer-unit-label">min</span>
+                                            <span className="timer-unit-label">{t('claimedView.timeUnits.min')}</span>
                                         </div>
                                         <div className="timer-separator">:</div>
                                         <div className="timer-unit">
                                             <span className="timer-value">{String(timeRemaining.seconds).padStart(2, '0')}</span>
-                                            <span className="timer-unit-label">sec</span>
+                                            <span className="timer-unit-label">{t('claimedView.timeUnits.sec')}</span>
                                         </div>
                                     </div>
                                 </div>
