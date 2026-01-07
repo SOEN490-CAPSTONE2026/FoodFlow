@@ -332,6 +332,85 @@ class AuthServiceTest {
     }
 
     @Test
+    void changePassword_Success() {
+        // Given
+        User user = new User();
+        user.setId(1L);
+        user.setEmail("user@test.com");
+        user.setPassword("encoded-old-password");
+        
+        when(passwordEncoder.matches("oldPassword123", "encoded-old-password")).thenReturn(true);
+        when(passwordEncoder.matches("newPassword123", "encoded-old-password")).thenReturn(false);
+        when(passwordEncoder.encode("newPassword123")).thenReturn("encoded-new-password");
+        when(userRepository.save(any(User.class))).thenReturn(user);
+
+        // When
+        var response = authService.changePassword(user, "oldPassword123", "newPassword123", "newPassword123");
+
+        // Then
+        assertNotNull(response);
+        assertEquals("Password changed successfully", response.get("message"));
+        verify(passwordEncoder).encode("newPassword123");
+        verify(userRepository).save(user);
+        assertEquals("encoded-new-password", user.getPassword());
+    }
+
+    @Test
+    void changePassword_IncorrectCurrentPassword_ThrowsException() {
+        // Given
+        User user = new User();
+        user.setId(1L);
+        user.setEmail("user@test.com");
+        user.setPassword("encoded-old-password");
+        
+        when(passwordEncoder.matches("wrongPassword", "encoded-old-password")).thenReturn(false);
+
+        // When & Then
+        RuntimeException ex = assertThrows(RuntimeException.class, 
+            () -> authService.changePassword(user, "wrongPassword", "newPassword123", "newPassword123"));
+        
+        assertEquals("Incorrect current password", ex.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void changePassword_NewPasswordSameAsCurrent_ThrowsException() {
+        // Given
+        User user = new User();
+        user.setId(1L);
+        user.setEmail("user@test.com");
+        user.setPassword("encoded-password");
+        
+        when(passwordEncoder.matches("samePassword123", "encoded-password")).thenReturn(true);
+
+        // When & Then
+        RuntimeException ex = assertThrows(RuntimeException.class, 
+            () -> authService.changePassword(user, "samePassword123", "samePassword123", "samePassword123"));
+        
+        assertEquals("New password must be different from current password", ex.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void changePassword_PasswordsDoNotMatch_ThrowsException() {
+        // Given
+        User user = new User();
+        user.setId(1L);
+        user.setEmail("user@test.com");
+        user.setPassword("encoded-old-password");
+        
+        when(passwordEncoder.matches("oldPassword123", "encoded-old-password")).thenReturn(true);
+
+        // When & Then
+        RuntimeException ex = assertThrows(RuntimeException.class, 
+            () -> authService.changePassword(user, "oldPassword123", "newPassword123", "differentPassword123"));
+        
+        assertEquals("New password and confirmation do not match", ex.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+}
+
+    @Test
     void checkEmailExists_EmailExists_ReturnsTrue() {
         // Given
         String email = "existing@test.com";

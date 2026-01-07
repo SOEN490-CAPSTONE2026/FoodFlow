@@ -37,16 +37,19 @@ public class AdminDonationService {
     private final ClaimRepository claimRepository;
     private final DonationTimelineRepository timelineRepository;
     private final UserRepository userRepository;
+    private final TimelineService timelineService;
     
     public AdminDonationService(
             SurplusPostRepository surplusPostRepository,
             ClaimRepository claimRepository,
             DonationTimelineRepository timelineRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            TimelineService timelineService) {
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;
         this.timelineRepository = timelineRepository;
         this.userRepository = userRepository;
+        this.timelineService = timelineService;
     }
     
     /**

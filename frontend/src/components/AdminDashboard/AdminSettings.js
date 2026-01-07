@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useContext } from 'react';
 import { User, Globe, Bell, Camera, Lock } from 'lucide-react';
 import LanguageSwitcher from '../LanguageSwitcher';
 import RegionSelector from '../RegionSelector';
+import ChangePasswordModal from '../ChangePasswordModal';
 import { AuthContext } from '../../contexts/AuthContext';
 import './Admin_Styles/AdminSettings.css';
 
@@ -53,7 +54,7 @@ const AdminSettings = () => {
   });
   const [profileImage, setProfileImage] = useState(null);
   const [profileImageFile, setProfileImageFile] = useState(null);
-  const [showPasswordFields, setShowPasswordFields] = useState(false);
+  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
   const [regionSettings, setRegionSettings] = useState(null);
   const [notificationPreferences, setNotificationPreferences] = useState({
     emailAlerts: false,
@@ -110,12 +111,6 @@ const AdminSettings = () => {
     if (!formData.email || formData.email.trim().length === 0) newErrors.email = 'Email is required';
     else if (!validateEmail(formData.email)) newErrors.email = 'Please enter a valid email address';
     if (formData.phoneNumber && !validatePhoneNumber(formData.phoneNumber)) newErrors.phoneNumber = 'Please enter a valid phone number';
-    if (showPasswordFields) {
-      if (!passwordData.currentPassword) newErrors.currentPassword = 'Current password is required';
-      if (!passwordData.newPassword) newErrors.newPassword = 'New password is required';
-      else if (passwordData.newPassword.length < 8) newErrors.newPassword = 'Password must be at least 8 characters';
-      if (passwordData.newPassword !== passwordData.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
-    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -164,10 +159,6 @@ const AdminSettings = () => {
     try {
       setTimeout(() => {
         setSuccessMessage('Profile updated successfully!');
-        if (showPasswordFields) {
-          setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-          setShowPasswordFields(false);
-        }
         setLoading(false);
       }, 500);
     } catch (error) {
@@ -256,26 +247,7 @@ const AdminSettings = () => {
                   </div>
                 </div>
                 <div className="password-section">
-                  <button className="password-toggle-btn" onClick={() => setShowPasswordFields(!showPasswordFields)} type="button"><Lock size={18} /><span>Change Password</span></button>
-                  {showPasswordFields && (
-                    <div className="password-fields">
-                      <div className="form-field">
-                        <label className="field-label">Current Password *</label>
-                        <input type="password" name="currentPassword" className={`field-input ${errors.currentPassword ? 'error' : ''}`} placeholder="Enter current password" value={passwordData.currentPassword} onChange={handlePasswordChange} />
-                        {errors.currentPassword && <span className="field-error">{errors.currentPassword}</span>}
-                      </div>
-                      <div className="form-field">
-                        <label className="field-label">New Password *</label>
-                        <input type="password" name="newPassword" className={`field-input ${errors.newPassword ? 'error' : ''}`} placeholder="Enter new password" value={passwordData.newPassword} onChange={handlePasswordChange} />
-                        {errors.newPassword && <span className="field-error">{errors.newPassword}</span>}
-                      </div>
-                      <div className="form-field">
-                        <label className="field-label">Confirm New Password *</label>
-                        <input type="password" name="confirmPassword" className={`field-input ${errors.confirmPassword ? 'error' : ''}`} placeholder="Confirm new password" value={passwordData.confirmPassword} onChange={handlePasswordChange} />
-                        {errors.confirmPassword && <span className="field-error">{errors.confirmPassword}</span>}
-                      </div>
-                    </div>
-                  )}
+                  <button className="password-toggle-btn" onClick={() => setIsChangePasswordModalOpen(true)} type="button"><Lock size={18} /><span>Change Password</span></button>
                 </div>
                 <button className="save-changes-btn" onClick={handleSaveChanges} disabled={loading}>{loading ? 'Saving...' : 'Save Changes'}</button>
               </>
@@ -374,6 +346,11 @@ const AdminSettings = () => {
           </div>
         </div>
       </div>
+
+      <ChangePasswordModal 
+        isOpen={isChangePasswordModalOpen} 
+        onClose={() => setIsChangePasswordModalOpen(false)} 
+      />
     </div>
   );
 };

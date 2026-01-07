@@ -30,17 +30,20 @@ public class ClaimService {
     private final BusinessMetricsService businessMetricsService;
     private final SimpMessagingTemplate messagingTemplate;
     private final NotificationPreferenceService notificationPreferenceService;
+    private final TimelineService timelineService;
     
     public ClaimService(ClaimRepository claimRepository,
                        SurplusPostRepository surplusPostRepository,
                        BusinessMetricsService businessMetricsService,
                        SimpMessagingTemplate messagingTemplate,
-                       NotificationPreferenceService notificationPreferenceService) {
+                       NotificationPreferenceService notificationPreferenceService,
+                       TimelineService timelineService) {
         this.claimRepository = claimRepository;
         this.surplusPostRepository = surplusPostRepository;
         this.businessMetricsService = businessMetricsService;
         this.messagingTemplate = messagingTemplate;
         this.notificationPreferenceService = notificationPreferenceService;
+        this.timelineService = timelineService;
     }
                        
     @Transactional
@@ -138,6 +141,21 @@ public class ClaimService {
 
         surplusPostRepository.save(surplusPost);
 
+        // Create timeline event for donation being claimed
+        String receiverName = receiver.getOrganization() != null 
+            ? receiver.getOrganization().getName() 
+            : receiver.getEmail();
+        timelineService.createTimelineEvent(
+            surplusPost,
+            "DONATION_CLAIMED",
+            "receiver",
+            receiver.getId(),
+            PostStatus.AVAILABLE,
+            surplusPost.getStatus(),
+            "Claimed by " + receiverName,
+            true
+        );
+
         businessMetricsService.incrementClaimCreated();
         businessMetricsService.incrementSurplusPostClaimed();
         businessMetricsService.recordTimer(sample, "claim.service.create", "status", claim.getStatus().toString());
@@ -221,8 +239,24 @@ public class ClaimService {
         
         // Make post available again
         SurplusPost post = claim.getSurplusPost();
+        PostStatus oldStatus = post.getStatus();
         post.setStatus(PostStatus.AVAILABLE);
         surplusPostRepository.save(post);
+
+        // Create timeline event for claim cancellation
+        String receiverName = receiver.getOrganization() != null 
+            ? receiver.getOrganization().getName() 
+            : receiver.getEmail();
+        timelineService.createTimelineEvent(
+            post,
+            "CLAIM_CANCELLED",
+            "receiver",
+            receiver.getId(),
+            oldStatus,
+            PostStatus.AVAILABLE,
+            "Claim cancelled by " + receiverName,
+            true
+        );
 
         // Record metrics
         businessMetricsService.incrementClaimCancelled();
