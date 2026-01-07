@@ -408,4 +408,106 @@ class AuthServiceTest {
         assertEquals("New password and confirmation do not match", ex.getMessage());
         verify(userRepository, never()).save(any(User.class));
     }
+
+    @Test
+    void checkEmailExists_EmailExists_ReturnsTrue() {
+        // Given
+        String email = "existing@test.com";
+        User user = new User();
+        user.setEmail(email);
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+
+        // When
+        boolean exists = authService.checkEmailExists(email);
+
+        // Then
+        assertTrue(exists);
+        verify(userRepository).findByEmail(email);
+    }
+
+    @Test
+    void checkEmailExists_EmailDoesNotExist_ReturnsFalse() {
+        // Given
+        String email = "nonexistent@test.com";
+        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+        // When
+        boolean exists = authService.checkEmailExists(email);
+
+        // Then
+        assertFalse(exists);
+        verify(userRepository).findByEmail(email);
+    }
+
+    @Test
+    void checkEmailExists_NullEmail_ReturnsFalse() {
+        // When
+        boolean exists = authService.checkEmailExists(null);
+
+        // Then
+        assertFalse(exists);
+        verify(userRepository, never()).findByEmail(any());
+    }
+
+    @Test
+    void checkEmailExists_EmptyEmail_ReturnsFalse() {
+        // When
+        boolean exists = authService.checkEmailExists("   ");
+
+        // Then
+        assertFalse(exists);
+        verify(userRepository, never()).findByEmail(any());
+    }
+
+    @Test
+    void checkPhoneExists_PhoneExists_ReturnsTrue() {
+        // Given
+        String phone = "+15145551234";
+        User user = new User();
+        Organization org = new Organization();
+        org.setPhone(phone);
+        user.setOrganization(org);
+        when(userRepository.findByOrganizationPhone(phone)).thenReturn(Optional.of(user));
+
+        // When
+        boolean exists = authService.checkPhoneExists(phone);
+
+        // Then
+        assertTrue(exists);
+        verify(userRepository).findByOrganizationPhone(phone);
+    }
+
+    @Test
+    void checkPhoneExists_PhoneDoesNotExist_ReturnsFalse() {
+        // Given
+        String phone = "+15145551234";
+        when(userRepository.findByOrganizationPhone(phone)).thenReturn(Optional.empty());
+
+        // When
+        boolean exists = authService.checkPhoneExists(phone);
+
+        // Then
+        assertFalse(exists);
+        verify(userRepository).findByOrganizationPhone(phone);
+    }
+
+    @Test
+    void checkPhoneExists_NullPhone_ReturnsFalse() {
+        // When
+        boolean exists = authService.checkPhoneExists(null);
+
+        // Then
+        assertFalse(exists);
+        verify(userRepository, never()).findByOrganizationPhone(any());
+    }
+
+    @Test
+    void checkPhoneExists_EmptyPhone_ReturnsFalse() {
+        // When
+        boolean exists = authService.checkPhoneExists("   ");
+
+        // Then
+        assertFalse(exists);
+        verify(userRepository, never()).findByOrganizationPhone(any());
+    }
 }

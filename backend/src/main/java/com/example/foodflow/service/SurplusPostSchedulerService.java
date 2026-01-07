@@ -30,13 +30,17 @@ public class SurplusPostSchedulerService {
 
     private final SurplusPostRepository surplusPostRepository;
     private final ClaimRepository claimRepository;
+    private final TimelineService timelineService;
 
     @Value("${foodflow.expiry.enable-auto-flagging:true}")
     private boolean enableAutoFlagging;
 
-    public SurplusPostSchedulerService(SurplusPostRepository surplusPostRepository, ClaimRepository claimRepository) {
+    public SurplusPostSchedulerService(SurplusPostRepository surplusPostRepository, 
+                                      ClaimRepository claimRepository,
+                                      TimelineService timelineService) {
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;
+        this.timelineService = timelineService;
     }
 
     private String generateOtpCode() {
@@ -120,6 +124,19 @@ public class SurplusPostSchedulerService {
             }
 
             surplusPostRepository.save(post);
+            
+            // Create timeline event for automatic status transition
+            timelineService.createTimelineEvent(
+                post,
+                "READY_FOR_PICKUP",
+                "system",
+                null,
+                PostStatus.CLAIMED,
+                PostStatus.READY_FOR_PICKUP,
+                "Pickup time arrived - OTP generated automatically",
+                true
+            );
+            
             logger.info("Post ID {} updated to READY_FOR_PICKUP", post.getId());
         }
     }
@@ -190,6 +207,19 @@ public class SurplusPostSchedulerService {
         for (SurplusPost post : postsToUpdate) {
             post.setStatus(PostStatus.NOT_COMPLETED);
             surplusPostRepository.save(post);
+            
+            // Create timeline event for missed pickup
+            timelineService.createTimelineEvent(
+                post,
+                "PICKUP_MISSED",
+                "system",
+                null,
+                PostStatus.READY_FOR_PICKUP,
+                PostStatus.NOT_COMPLETED,
+                "Pickup window expired - marked as not completed automatically",
+                true
+            );
+            
             logger.info("Post ID {} marked as NOT_COMPLETED", post.getId());
         }
     }
@@ -224,8 +254,22 @@ public class SurplusPostSchedulerService {
         }
 
         for (SurplusPost post : expiredPosts) {
+            PostStatus oldStatus = post.getStatus();
             post.setStatus(PostStatus.EXPIRED);
             surplusPostRepository.save(post);
+            
+            // Create timeline event for expiration
+            timelineService.createTimelineEvent(
+                post,
+                "DONATION_EXPIRED",
+                "system",
+                null,
+                oldStatus,
+                PostStatus.EXPIRED,
+                "Expired automatically (expiry date: " + post.getExpiryDate() + ")",
+                true
+            );
+            
             logger.info("Post ID {} marked as EXPIRED (expiry date: {})", post.getId(), post.getExpiryDate());
         }
 

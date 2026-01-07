@@ -51,6 +51,9 @@ class ClaimServiceTest {
     
     @Mock
     private NotificationPreferenceService notificationPreferenceService;
+    
+    @Mock
+    private TimelineService timelineService;
 
     @InjectMocks
     private ClaimService claimService;

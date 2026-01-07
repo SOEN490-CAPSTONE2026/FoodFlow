@@ -18,7 +18,11 @@ jest.mock('react-router-dom', () => {
 
 // Mock API
 jest.mock('../services/api', () => ({
-  authAPI: { registerDonor: jest.fn() }
+  authAPI: { 
+    registerDonor: jest.fn(),
+    checkEmailExists: jest.fn(),
+    checkPhoneExists: jest.fn(),
+  }
 }));
 
 import DonorRegistration from '../components/DonorRegistration';
@@ -66,7 +70,7 @@ const fillAllFields = async (user) => {
   // Step 4: Contact & Review
   await waitFor(() => expect(screen.getByLabelText(/contact person/i)).toBeInTheDocument());
   await user.type(screen.getByLabelText(/contact person/i), 'Jane Doe');
-  await user.type(screen.getByLabelText(/phone/i), '1234567890');
+  await user.type(screen.getByLabelText(/phone number/i), '1234567890');
   await user.click(screen.getByRole('checkbox'));
 };
 
@@ -77,6 +81,8 @@ describe('DonorRegistration', () => {
 
   it('renders the form with all required fields', async () => {
     const user = userEvent.setup({ delay: null });
+    authAPI.checkEmailExists.mockResolvedValue({ data: { exists: false } });
+    
     renderWithAuth(<DonorRegistration />);
     
     // Step 1 fields
@@ -90,6 +96,9 @@ describe('DonorRegistration', () => {
     await user.type(screen.getByLabelText(/^confirm password$/i), 'password123');
     await user.click(screen.getByRole('button', { name: /next/i }));
     
+    await waitFor(() =>
+    expect(screen.queryByLabelText(/^email address$/i)).not.toBeInTheDocument()
+    );
     // Step 2 fields
     await waitFor(() => expect(screen.getByLabelText(/organization name/i)).toBeInTheDocument());
     expect(screen.getByLabelText(/organization type/i)).toBeInTheDocument();
@@ -104,12 +113,15 @@ describe('DonorRegistration', () => {
 
   it('updates form values', async () => {
     const user = userEvent.setup({ delay: null });
+    authAPI.checkEmailExists.mockResolvedValue({ data: { exists: false } });
+    authAPI.checkPhoneExists.mockResolvedValue({ data: { exists: false } });
+    
     renderWithAuth(<DonorRegistration />);
     await fillAllFields(user);
 
     await waitFor(() => {
       expect(screen.getByLabelText(/contact person/i)).toHaveValue('Jane Doe');
-      expect(screen.getByLabelText(/phone/i)).toHaveValue('1234567890');
+      expect(screen.getByLabelText(/phone number/i)).toHaveValue('1234567890');
     });
   });
 
@@ -133,6 +145,8 @@ describe('DonorRegistration', () => {
     jest.useFakeTimers();
     const user = userEvent.setup({ delay: null });
 
+    authAPI.checkEmailExists.mockResolvedValue({ data: { exists: false } });
+    authAPI.checkPhoneExists.mockResolvedValue({ data: { exists: false } });
     authAPI.registerDonor.mockResolvedValueOnce({
       data: {
         token: 'fake-token-123',
@@ -163,6 +177,8 @@ describe('DonorRegistration', () => {
     jest.useFakeTimers();
     const user = userEvent.setup({ delay: null });
 
+    authAPI.checkEmailExists.mockResolvedValue({ data: { exists: false } });
+    authAPI.checkPhoneExists.mockResolvedValue({ data: { exists: false } });
     authAPI.registerDonor.mockResolvedValueOnce({
       data: {
         role: 'DONOR',
@@ -189,6 +205,8 @@ describe('DonorRegistration', () => {
   it('shows API-specific error message', async () => {
     const user = userEvent.setup({ delay: null });
 
+    authAPI.checkEmailExists.mockResolvedValue({ data: { exists: false } });
+    authAPI.checkPhoneExists.mockResolvedValue({ data: { exists: false } });
     authAPI.registerDonor.mockRejectedValueOnce({
       response: { data: { message: 'Email already exists' } },
     });
@@ -207,6 +225,8 @@ describe('DonorRegistration', () => {
   it('shows generic error if no backend message', async () => {
     const user = userEvent.setup({ delay: null });
 
+    authAPI.checkEmailExists.mockResolvedValue({ data: { exists: false } });
+    authAPI.checkPhoneExists.mockResolvedValue({ data: { exists: false } });
     authAPI.registerDonor.mockRejectedValueOnce(new Error('Network error'));
 
     renderWithAuth(<DonorRegistration />);
@@ -222,6 +242,8 @@ describe('DonorRegistration', () => {
   it('disables submit button while loading', async () => {
     const user = userEvent.setup({ delay: null });
 
+    authAPI.checkEmailExists.mockResolvedValue({ data: { exists: false } });
+    authAPI.checkPhoneExists.mockResolvedValue({ data: { exists: false } });
     authAPI.registerDonor.mockImplementationOnce(
       () => new Promise((resolve) => setTimeout(() => resolve({ data: {} }), 100))
     );
@@ -246,6 +268,8 @@ describe('DonorRegistration', () => {
 
   it('address field is a textarea', async () => {
     const user = userEvent.setup({ delay: null });
+    authAPI.checkEmailExists.mockResolvedValue({ data: { exists: false } });
+    
     renderWithAuth(<DonorRegistration />);
     
     // Navigate to step 3 (Address)
@@ -253,7 +277,7 @@ describe('DonorRegistration', () => {
     await user.type(screen.getByLabelText(/^password$/i), 'password123');
     await user.type(screen.getByLabelText(/^confirm password$/i), 'password123');
     await user.click(screen.getByRole('button', { name: /next/i }));
-    
+
     await waitFor(() => expect(screen.getByLabelText(/organization name/i)).toBeInTheDocument());
     await user.type(screen.getByLabelText(/organization name/i), 'Test Org');
     await user.type(screen.getByLabelText(/business license/i), 'BL123');
@@ -264,5 +288,87 @@ describe('DonorRegistration', () => {
       expect(streetAddress).toBeInTheDocument();
       expect(streetAddress.tagName).toBe('INPUT');
     });
+  });
+
+  it('prevents proceeding to step 2 if email already exists', async () => {
+    const user = userEvent.setup({ delay: null });
+    
+    authAPI.checkEmailExists.mockResolvedValueOnce({ data: { exists: true } });
+    
+    renderWithAuth(<DonorRegistration />);
+    
+    await user.type(screen.getByLabelText(/^email address$/i), 'existing@example.com');
+    await user.type(screen.getByLabelText(/^password$/i), 'password123');
+    await user.type(screen.getByLabelText(/^confirm password$/i), 'password123');
+    await user.click(screen.getByRole('button', { name: /next/i }));
+    
+    await waitFor(() =>
+      expect(screen.getByText(/an account with this email already exists/i)).toBeInTheDocument()
+    );
+    
+    // Should still be on step 1
+    expect(screen.getByLabelText(/^email address$/i)).toBeInTheDocument();
+  });
+
+  it('proceeds to step 2 if email does not exist', async () => {
+    const user = userEvent.setup({ delay: null });
+    
+    authAPI.checkEmailExists.mockResolvedValueOnce({ data: { exists: false } });
+    
+    renderWithAuth(<DonorRegistration />);
+    
+    await user.type(screen.getByLabelText(/^email address$/i), 'new@example.com');
+    await user.type(screen.getByLabelText(/^password$/i), 'password123');
+    await user.type(screen.getByLabelText(/^confirm password$/i), 'password123');
+    await user.click(screen.getByRole('button', { name: /next/i }));
+    
+    // Wait for step 2 to render after email validation completes
+    await waitFor(() => {
+      expect(screen.getByLabelText(/organization name/i)).toBeInTheDocument();
+    }, { timeout: 3000 });
+  });
+
+  it('prevents submission if phone already exists', async () => {
+    const user = userEvent.setup({ delay: null });
+    
+    authAPI.checkEmailExists.mockResolvedValueOnce({ data: { exists: false } });
+    authAPI.checkPhoneExists.mockResolvedValueOnce({ data: { exists: true } });
+    
+    renderWithAuth(<DonorRegistration />);
+    
+    // Navigate through steps
+    await user.type(screen.getByLabelText(/^email address$/i), 'donor@example.com');
+    await user.type(screen.getByLabelText(/^password$/i), 'password123');
+    await user.type(screen.getByLabelText(/^confirm password$/i), 'password123');
+    await user.click(screen.getByRole('button', { name: /next/i }));
+    
+    await waitFor(() => expect(screen.getByLabelText(/organization name/i)).toBeInTheDocument());
+    await user.type(screen.getByLabelText(/organization name/i), 'Donor Org');
+    await user.selectOptions(screen.getByLabelText(/organization type/i), 'RESTAURANT');
+    await user.type(screen.getByLabelText(/business license/i), 'BL-123456');
+    await user.click(screen.getByRole('button', { name: /next/i }));
+    
+    await waitFor(() => expect(screen.getByLabelText(/street address/i)).toBeInTheDocument());
+    await user.type(screen.getByLabelText(/street address/i), '456 Main St');
+    await user.type(screen.getByLabelText(/city/i), 'Montreal');
+    await user.type(screen.getByLabelText(/postal code/i), 'H1A1A1');
+    await user.type(screen.getByLabelText(/province/i), 'Quebec');
+    await user.type(screen.getByLabelText(/country/i), 'Canada');
+    await user.click(screen.getByRole('button', { name: /next/i }));
+    
+    await waitFor(() => expect(screen.getByLabelText(/contact person/i)).toBeInTheDocument());
+    await user.type(screen.getByLabelText(/contact person/i), 'Jane Doe');
+    await user.type(screen.getByLabelText(/phone number/i), '1234567890');
+    await user.click(screen.getByRole('checkbox'));
+    
+    // Try to submit - should be blocked by phone validation
+    await user.click(screen.getByRole('button', { name: /register as donor/i }));
+    
+    await waitFor(() =>
+      expect(screen.getByText(/an account with this phone number already exists/i)).toBeInTheDocument()
+    );
+    
+    // Should still be on step 4
+    expect(screen.getByLabelText(/contact person/i)).toBeInTheDocument();
   });
 });

@@ -267,13 +267,58 @@ const ReceiverRegistration = () => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     const errors = validateStep(currentStep);
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       setError('Please fix the errors before proceeding');
       return;
     }
+
+    // Check email exists before leaving step 1 (Account Credentials)
+    if (currentStep === 1) {
+      setLoading(true);
+      try {
+        const response = await authAPI.checkEmailExists(formData.email);
+        if (response.data.exists) {
+          setFieldErrors({ email: 'An account with this email already exists' });
+          setError('Email already registered. Please use a different email or login.');
+          setLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.error('Error checking email:', err);
+        setError('Unable to validate email. Please try again.');
+        setLoading(false);
+        return;
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    // Check phone exists before leaving step 4 (Contact Info)
+    if (currentStep === 4) {
+      setLoading(true);
+      try {
+        const formattedPhone = formatPhoneNumber(formData.phone);
+        const response = await authAPI.checkPhoneExists(formattedPhone);
+        if (response.data.exists) {
+          setFieldErrors({ phone: 'An account with this phone number already exists' });
+          setError('Phone number already registered. Please use a different number.');
+          setLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.error('Error checking phone:', err);
+        const errorMessage = err.response?.data?.message || 'Phone number already exists in the system';
+        setError(errorMessage);
+        setLoading(false);
+        return;
+      } finally {
+        setLoading(false);
+      }
+    }
+
     setError('');
     setFieldErrors({});
     setCurrentStep(currentStep + 1);

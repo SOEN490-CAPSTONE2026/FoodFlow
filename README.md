@@ -61,7 +61,7 @@ Our team values diversity and collaboration, creating an environment of mutual r
 
 4. __Access the application__
 
-   - Frontend: [](http://localhost:3000)<http://localhost:3000>
+   - Frontend: [](http://localhost:3000)<http://localhost:3000> or [](http://127.0.0.1:3000/)<http://127.0.0.1:3000/> (for SMS support)
    - Backend API: [](http://localhost:8080)<http://localhost:8080>
    - Prometheus: [](http://localhost:9090)<http://localhost:9090>
    - Grafana: [](http://localhost:3001)<http://localhost:3001> (admin/admin)

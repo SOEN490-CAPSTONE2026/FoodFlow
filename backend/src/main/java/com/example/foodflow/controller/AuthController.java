@@ -135,4 +135,26 @@ public class AuthController {
         }
     }
 
+    @GetMapping("/check-email")
+    public ResponseEntity<Map<String, Boolean>> checkEmailExists(@RequestParam String email) {
+        try {
+            boolean exists = authService.checkEmailExists(email);
+            return ResponseEntity.ok(Map.of("exists", exists));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("exists", false));
+        }
+    }
+
+    @GetMapping("/check-phone")
+    public ResponseEntity<Map<String, Boolean>> checkPhoneExists(@RequestParam String phone) {
+        try {
+            boolean exists = authService.checkPhoneExists(phone);
+            return ResponseEntity.ok(Map.of("exists", exists));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("exists", false));
+        }
+    }
+
 }
