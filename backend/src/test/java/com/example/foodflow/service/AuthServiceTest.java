@@ -408,7 +408,6 @@ class AuthServiceTest {
         assertEquals("New password and confirmation do not match", ex.getMessage());
         verify(userRepository, never()).save(any(User.class));
     }
-}
 
     @Test
     void checkEmailExists_EmailExists_ReturnsTrue() {
@@ -512,4 +511,3 @@ class AuthServiceTest {
         verify(userRepository, never()).findByOrganizationPhone(any());
     }
 }
-
