@@ -143,7 +143,10 @@ public class AuthService {
         log.info("Donor registration successful: email={}, organization={}, type={}",
             savedUser.getEmail(), request.getOrganizationName(), request.getOrganizationType());
 
-        return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), "Donor registered successfully", savedUser.getId(), request.getOrganizationName(), organization.getVerificationStatus() != null ? organization.getVerificationStatus().toString() : null);
+        return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), 
+            "Donor registered successfully", savedUser.getId(), request.getOrganizationName(), 
+            organization.getVerificationStatus() != null ? organization.getVerificationStatus().toString() : null,
+            savedUser.getEmailNotificationsEnabled(), savedUser.getSmsNotificationsEnabled(), savedUser.getOnboardingCompleted());
     }
 
     @Transactional
@@ -200,7 +203,10 @@ public class AuthService {
         metricsService.incrementReceiverRegistration();
         metricsService.incrementUserRegistration();
 
-        return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), "Receiver registered successfully", savedUser.getId(), request.getOrganizationName(), organization.getVerificationStatus() != null ? organization.getVerificationStatus().toString() : null);
+        return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), 
+            "Receiver registered successfully", savedUser.getId(), request.getOrganizationName(), 
+            organization.getVerificationStatus() != null ? organization.getVerificationStatus().toString() : null,
+            savedUser.getEmailNotificationsEnabled(), savedUser.getSmsNotificationsEnabled(), savedUser.getOnboardingCompleted());
     }
 
     @Transactional(readOnly = true)
@@ -238,7 +244,8 @@ public class AuthService {
 
             log.info("Login successful: email={}, role={}, organizationName={}, verificationStatus={}", user.getEmail(), user.getRole(), organizationName, verificationStatus);
             return new AuthResponse(token, user.getEmail(), user.getRole().toString(),
-                       "Account logged in successfully.", user.getId(), organizationName, verificationStatus);
+                       "Account logged in successfully.", user.getId(), organizationName, verificationStatus,
+                       user.getEmailNotificationsEnabled(), user.getSmsNotificationsEnabled(), user.getOnboardingCompleted());
         } catch (RuntimeException e) {
             // Already logged failure metrics above
             throw e;
