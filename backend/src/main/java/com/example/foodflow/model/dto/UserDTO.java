@@ -23,6 +23,7 @@ public class UserDTO {
     private LocalDateTime updatedAt;
     private Boolean emailNotificationsEnabled;
     private Boolean smsNotificationsEnabled;
+    private Boolean onboardingCompleted;
 
     public static UserDTO toDTO(com.example.foodflow.model.entity.User user) {
         if (user == null) return null;
@@ -35,6 +36,7 @@ public class UserDTO {
         dto.setUpdatedAt(user.getUpdatedAt());
         dto.setEmailNotificationsEnabled(user.getEmailNotificationsEnabled());
         dto.setSmsNotificationsEnabled(user.getSmsNotificationsEnabled());
+        dto.setOnboardingCompleted(user.getOnboardingCompleted());
         return dto;
     }
 }

@@ -51,6 +51,10 @@ public class User {
 
     @Column(name = "notification_type_preferences", columnDefinition = "TEXT")
     private String notificationTypePreferences;
+
+    @Column(name = "onboarding_completed")
+    private Boolean onboardingCompleted = false;
+
     @Column(name = "country", length = 100)
     private String country;
 
@@ -120,6 +124,10 @@ public class User {
     
     public String getNotificationTypePreferences() { return notificationTypePreferences; }
     public void setNotificationTypePreferences(String notificationTypePreferences) { this.notificationTypePreferences = notificationTypePreferences; }
+    
+    public Boolean getOnboardingCompleted() { return onboardingCompleted; }
+    public void setOnboardingCompleted(Boolean onboardingCompleted) { this.onboardingCompleted = onboardingCompleted; }
+    
     public String getCountry() { return country; }
     public void setCountry(String country) { this.country = country; }
     
