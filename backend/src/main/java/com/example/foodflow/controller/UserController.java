@@ -65,4 +65,23 @@ public class UserController {
             return ResponseEntity.internalServerError().build();
         }
     }
+    
+    @PutMapping("/onboarding/complete")
+    public ResponseEntity<Map<String, Object>> completeOnboarding(
+            @AuthenticationPrincipal User currentUser) {
+        logger.info("Marking onboarding as completed for user: {}", currentUser.getId());
+        
+        try {
+            User updatedUser = userService.completeOnboarding(currentUser.getId());
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("onboardingCompleted", updatedUser.getOnboardingCompleted());
+            response.put("message", "Onboarding marked as completed");
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("Error completing onboarding: {}", e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 }

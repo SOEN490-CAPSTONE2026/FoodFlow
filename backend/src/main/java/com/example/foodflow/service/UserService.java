@@ -120,4 +120,17 @@ public class UserService {
             throw new RuntimeException("Error deserializing notification preferences", e);
         }
     }
+    
+    @Transactional
+    public User completeOnboarding(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+        
+        logger.info("Marking onboarding as completed for userId={}", userId);
+        user.setOnboardingCompleted(true);
+        
+        User savedUser = userRepository.save(user);
+        logger.info("Successfully marked onboarding as completed for userId={}", userId);
+        return savedUser;
+    }
 }
