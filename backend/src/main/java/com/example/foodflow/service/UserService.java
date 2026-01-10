@@ -41,28 +41,44 @@ public class UserService {
             user.setEmail(request.getEmail());
         }
 
-        if (request.getProfilePhoto() != null) {
-            user.setProfilePhoto(request.getProfilePhoto());
+        if (request.getProfilePhoto() != null && !request.getProfilePhoto().trim().isEmpty()) {
+            // Validate and normalize the base64 data URI
+            String validatedDataUri = imageService.validateAndNormalizeDataUri(request.getProfilePhoto());
+            user.setProfilePhoto(validatedDataUri);
         }
 
         Organization organization = user.getOrganization();
         if (organization != null) {
-            if (request.getName() != null) {
+            // Handle name: prefer contactPerson field, fallback to name
+            if (request.getContactPerson() != null && !request.getContactPerson().trim().isEmpty()) {
+                organization.setContactPerson(request.getContactPerson());
+            } else if (request.getName() != null && !request.getName().trim().isEmpty()) {
                 organization.setContactPerson(request.getName());
             }
-            if (request.getContactPerson() != null) {
-                organization.setContactPerson(request.getContactPerson());
-            }
-            if (request.getPhone() != null) {
+            
+            if (request.getPhone() != null && !request.getPhone().trim().isEmpty()) {
                 organization.setPhone(request.getPhone());
             }
-            if (request.getOrganizationName() != null) {
+            if (request.getOrganizationName() != null && !request.getOrganizationName().trim().isEmpty()) {
                 organization.setName(request.getOrganizationName());
             }
-            if (request.getAddress() != null) {
+            if (request.getAddress() != null && !request.getAddress().trim().isEmpty()) {
                 organization.setAddress(request.getAddress());
             }
             organizationRepository.save(organization);
+        } else {
+            // Check if user is trying to update organization-related fields
+            boolean hasOrgFields = (request.getName() != null && !request.getName().trim().isEmpty()) ||
+                    (request.getContactPerson() != null && !request.getContactPerson().trim().isEmpty()) ||
+                    (request.getPhone() != null && !request.getPhone().trim().isEmpty()) ||
+                    (request.getOrganizationName() != null && !request.getOrganizationName().trim().isEmpty()) ||
+                    (request.getAddress() != null && !request.getAddress().trim().isEmpty());
+            
+            if (hasOrgFields) {
+                logger.warn("User {} attempted to update organization fields but has no organization", userId);
+                throw new RuntimeException("Cannot update organization fields: User does not have an organization");
+            }
+            // If only email or profile photo are being updated, allow it
         }
 
         User updatedUser = userRepository.save(user);

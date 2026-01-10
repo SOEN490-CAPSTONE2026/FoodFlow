@@ -71,6 +71,9 @@ public class SecurityConfig {
                 // ✅ NEW: Receiver Preferences endpoints
                 .requestMatchers("/api/receiver/preferences/**").hasAuthority("RECEIVER")
                 
+                // User profile endpoints - accessible to all authenticated users
+                .requestMatchers("/api/users/profile/**").hasAnyAuthority("DONOR", "RECEIVER")
+                
                 // Other endpoints
                 .requestMatchers("/api/feed/**").hasAuthority("RECEIVER")
                 .requestMatchers("/api/requests/**").hasAnyAuthority("DONOR", "RECEIVER")

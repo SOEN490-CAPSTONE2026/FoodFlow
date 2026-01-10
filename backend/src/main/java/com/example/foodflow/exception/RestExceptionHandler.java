@@ -9,9 +9,13 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @ControllerAdvice
@@ -68,5 +72,29 @@ public class RestExceptionHandler {
 
         // Default fallback
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new AuthResponse(null, null, null, "Data integrity violation"));
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, Object>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        Map<String, Object> errors = new HashMap<>();
+        Map<String, String> fieldErrors = new HashMap<>();
+        
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            fieldErrors.put(fieldName, errorMessage);
+        });
+        
+        if (fieldErrors.size() == 1) {
+            // Single error - return simple format
+            String firstError = fieldErrors.values().iterator().next();
+            errors.put("error", firstError);
+        } else {
+            // Multiple errors - return detailed format
+            errors.put("error", "Validation failed");
+            errors.put("errors", fieldErrors);
+        }
+        
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
     }
 }

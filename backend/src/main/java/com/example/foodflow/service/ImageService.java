@@ -70,6 +70,71 @@ public class ImageService {
         }
     }
     
+    /**
+     * Validates a base64 data URI string (e.g., "data:image/png;base64,...")
+     * Ensures it's a valid image format and within size limits
+     * 
+     * @param dataUri The data URI string to validate
+     * @return The validated data URI string
+     * @throws RuntimeException if validation fails
+     */
+    public String validateAndNormalizeDataUri(String dataUri) {
+        if (dataUri == null || dataUri.trim().isEmpty()) {
+            throw new RuntimeException("Profile photo data URI is required");
+        }
+        
+        // Check if it's a data URI format
+        if (!dataUri.startsWith("data:")) {
+            throw new RuntimeException("Invalid data URI format. Must start with 'data:'");
+        }
+        
+        // Extract content type and base64 data
+        String[] parts = dataUri.split(",", 2);
+        if (parts.length != 2) {
+            throw new RuntimeException("Invalid data URI format. Missing comma separator");
+        }
+        
+        String header = parts[0].toLowerCase();
+        String base64Data = parts[1];
+        
+        // Validate content type
+        if (!header.contains("image/png") && !header.contains("image/jpeg") && !header.contains("image/jpg")) {
+            throw new RuntimeException("Invalid image format. Only JPEG and PNG images are allowed");
+        }
+        
+        // Validate base64 data
+        if (base64Data == null || base64Data.trim().isEmpty()) {
+            throw new RuntimeException("Base64 image data is empty");
+        }
+        
+        // Decode and validate size
+        try {
+            byte[] imageBytes = Base64.getDecoder().decode(base64Data.trim());
+            
+            if (imageBytes.length > MAX_FILE_SIZE) {
+                throw new RuntimeException("Image file size exceeds maximum limit of 5MB");
+            }
+            
+            if (imageBytes.length < 8) {
+                throw new RuntimeException("Image file is too small to be valid");
+            }
+            
+            // Validate image magic bytes
+            String contentType = header.contains("image/png") ? "image/png" : "image/jpeg";
+            if (!isValidImageFile(imageBytes, contentType)) {
+                throw new RuntimeException("File does not appear to be a valid JPEG or PNG image");
+            }
+            
+            // Normalize the data URI format
+            String normalizedContentType = header.contains("image/png") ? "image/png" : 
+                                          header.contains("image/jpeg") ? "image/jpeg" : "image/jpg";
+            return "data:" + normalizedContentType + ";base64," + base64Data.trim();
+            
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid base64 encoding: " + e.getMessage());
+        }
+    }
+    
     private boolean isValidImageFile(byte[] fileBytes, String contentType) {
         if (fileBytes.length < 8) {
             return false;

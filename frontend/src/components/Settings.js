@@ -197,22 +197,49 @@ const Settings = () => {
   };
 
   const validatePhoneNumber = (phone) => {
-    // Accepts various formats: (123) 456-7890, 123-456-7890, 1234567890, +1234567890
-    const phoneRegex = /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/;
-    return phoneRegex.test(phone);
+    if (!phone || phone.trim().length === 0) {
+      return true; // Phone is optional
+    }
+    
+    // Backend expects: ^\+?[0-9]{10,15}$ (10-15 digits)
+    // Accepts various input formats but validates the actual digit count
+    const cleaned = phone.replace(/\D/g, '');
+    
+    // Must have between 10 and 15 digits
+    if (cleaned.length < 10 || cleaned.length > 15) {
+      return false;
+    }
+    
+    // Basic format check - should have some digits
+    return /^[\+]?[0-9\s\-\(\)\.]{10,}$/.test(phone) && cleaned.length >= 10 && cleaned.length <= 15;
   };
 
   const formatPhoneNumber = (phone) => {
+    if (!phone) return null;
+    
     const cleaned = phone.replace(/\D/g, '');
+    
+    // Backend expects: ^\+?[0-9]{10,15}$ (10-15 digits)
+    // Validate length before formatting
+    if (cleaned.length < 10 || cleaned.length > 15) {
+      throw new Error('Phone number must be between 10 and 15 digits');
+    }
     
     // Format as E.164 standard with country code (assuming North America +1)
     if (cleaned.length === 10) {
       return `+1${cleaned}`;
     } else if (cleaned.length === 11 && cleaned.startsWith('1')) {
       return `+${cleaned}`;
-    } else if (cleaned.startsWith('+')) {
-      return phone;
+    } else if (phone.startsWith('+')) {
+      // Already has + prefix, validate it has 10-15 digits after +
+      const digitsAfterPlus = phone.replace(/^\+/, '').replace(/\D/g, '');
+      if (digitsAfterPlus.length >= 10 && digitsAfterPlus.length <= 15) {
+        return `+${digitsAfterPlus}`;
+      }
+      throw new Error('Phone number must be between 10 and 15 digits');
     }
+    
+    // If no + prefix and has valid length, add +
     return `+${cleaned}`;
   };
 
@@ -357,11 +384,21 @@ const Settings = () => {
       const updateData = {
         name: formData.fullName,
         email: formData.email,
-        phone: formData.phoneNumber ? formatPhoneNumber(formData.phoneNumber) : null,
         organizationName: formData.organization || null,
         address: formData.address || null,
         contactPerson: formData.fullName
       };
+
+      // Format phone number if provided
+      if (formData.phoneNumber && formData.phoneNumber.trim().length > 0) {
+        try {
+          updateData.phone = formatPhoneNumber(formData.phoneNumber);
+        } catch (error) {
+          setErrors({ phoneNumber: error.message });
+          setLoading(false);
+          return;
+        }
+      }
 
       Object.keys(updateData).forEach(key => {
         if (updateData[key] === null || updateData[key] === '') {
@@ -373,7 +410,7 @@ const Settings = () => {
       const response = await userAPI.updateProfile(updateData);
       const updatedUser = response.data;
 
-      // Update form 
+      // Update form with response data
       setFormData(prev => ({
         ...prev,
         fullName: updatedUser.organization?.contactPerson || prev.fullName,
@@ -382,6 +419,11 @@ const Settings = () => {
         organization: updatedUser.organization?.name || prev.organization,
         address: updatedUser.organization?.address || prev.address
       }));
+
+      // Update profile photo if returned
+      if (updatedUser.profile_photo || updatedUser.profilePhoto) {
+        setProfileImage(updatedUser.profile_photo || updatedUser.profilePhoto);
+      }
 
       setSuccessMessage('Profile updated successfully!');
       
@@ -398,8 +440,35 @@ const Settings = () => {
       setLoading(false);
     } catch (error) {
       console.error('Error updating profile:', error);
-      const errorMessage = error.response?.data?.error || 'Failed to update profile. Please try again.';
-      setErrors({ submit: errorMessage });
+      
+      // Handle validation errors from backend
+      const errorData = error.response?.data;
+      if (errorData) {
+        if (errorData.errors && typeof errorData.errors === 'object') {
+          // Field-level validation errors
+          const fieldErrors = {};
+          Object.keys(errorData.errors).forEach(field => {
+            // Map backend field names to frontend field names
+            const fieldMapping = {
+              'email': 'email',
+              'phone': 'phoneNumber',
+              'name': 'fullName',
+              'organization_name': 'organization',
+              'address': 'address',
+              'contact_person': 'fullName'
+            };
+            const frontendField = fieldMapping[field] || field;
+            fieldErrors[frontendField] = errorData.errors[field];
+          });
+          setErrors(fieldErrors);
+        } else {
+          // Single error message
+          const errorMessage = errorData.error || 'Failed to update profile. Please try again.';
+          setErrors({ submit: errorMessage });
+        }
+      } else {
+        setErrors({ submit: 'Failed to update profile. Please try again.' });
+      }
       setLoading(false);
     }
   };
