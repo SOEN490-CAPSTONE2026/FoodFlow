@@ -14,7 +14,7 @@
     overflow: hidden;
     opacity: 0;
     transform: translateY(30px);
-    transition: opacity 0.8s ease, transform 0.8s ease;
+    transition: opacity 0.3s ease, transform 0.3s ease;
     box-sizing: border-box;
 }
 
@@ -28,7 +28,7 @@
     margin-bottom: 60px;
     opacity: 0;
     transform: translateY(20px);
-    transition: opacity 0.8s ease 0.3s, transform 0.8s ease 0.3s;
+    transition: opacity 0.4s ease 0.15s, transform 0.4s ease 0.15s;
     padding: 0 20px;
 }
 

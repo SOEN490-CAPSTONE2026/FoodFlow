@@ -329,6 +329,29 @@ public SurplusResponse confirmPickup(long postId, String otpCode, User donor) {
     return convertToResponse(post);
 }
 
+@Transactional
+public void deleteSurplusPost(Long postId, User donor) {
+
+    SurplusPost post = surplusPostRepository.findById(postId)
+            .orElseThrow(() -> new RuntimeException("Surplus post not found"));
+
+    if (!post.getDonor().getId().equals(donor.getId())) {
+        throw new RuntimeException("You are not authorized to delete this post.");
+    }
+
+    if (post.getStatus() == PostStatus.CLAIMED ||
+        post.getStatus() == PostStatus.READY_FOR_PICKUP ||
+        post.getStatus() == PostStatus.COMPLETED) {
+
+        throw new RuntimeException("You cannot delete a post that has already been claimed or completed.");
+    }
+
+    List<Claim> claims = claimRepository.findBySurplusPostId(postId);
+    if (!claims.isEmpty()) {
+        claimRepository.deleteAll(claims);
+    }
+    surplusPostRepository.delete(post);
+}
 
 
 }

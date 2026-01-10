@@ -39,6 +39,9 @@ public class User {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
+    @Column(length = 5)
+    private String languagePreference = "en";
+
     // Constructors, getters, setters
     public User() {}
 
@@ -69,4 +72,7 @@ public class User {
     
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    
+    public String getLanguagePreference() { return languagePreference; }
+    public void setLanguagePreference(String languagePreference) { this.languagePreference = languagePreference; }
 }

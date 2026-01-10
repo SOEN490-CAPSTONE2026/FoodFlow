@@ -61,10 +61,15 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/surplus").hasAuthority("DONOR")
                 .requestMatchers(HttpMethod.GET, "/api/surplus").hasAuthority("RECEIVER")
                 .requestMatchers(HttpMethod.GET, "/api/surplus/my-posts").hasAuthority("DONOR")
+                .requestMatchers(HttpMethod.DELETE, "/api/surplus/**").hasAuthority("DONOR")
+
                 
                 // ✅ NEW: Claims endpoints  
                 .requestMatchers(HttpMethod.GET, "/api/claims/post/**").hasAnyAuthority("DONOR", "RECEIVER")
                 .requestMatchers("/api/claims/**").hasAuthority("RECEIVER")
+                
+                // ✅ NEW: Receiver Preferences endpoints
+                .requestMatchers("/api/receiver/preferences/**").hasAuthority("RECEIVER")
                 
                 // Other endpoints
                 .requestMatchers("/api/feed/**").hasAuthority("RECEIVER")
