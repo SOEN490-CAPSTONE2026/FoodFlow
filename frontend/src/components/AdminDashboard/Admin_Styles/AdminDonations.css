@@ -91,7 +91,7 @@
   padding: 12px 0;
 }
 
-.modal-overlay {
+.donation-admin-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -106,7 +106,7 @@
   padding: 20px;
 }
 
-.modal-content {
+.donation-admin-modal-content {
   background: white;
   padding: 32px;
   border-radius: 16px;
@@ -120,32 +120,24 @@
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-.modal-content::-webkit-scrollbar {
-  width: 8px;
+.donation-admin-modal-content::-webkit-scrollbar {
+  width: 0;
+  display: none;
 }
 
-.modal-content::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 10px;
+.donation-admin-modal-content {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-.modal-content::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 10px;
-}
-
-.modal-content::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-.modal-close {
+.donation-admin-modal-close {
   position: absolute;
   top: 20px;
   right: 20px;
   background: white;
   border: none;
   font-size: 28px;
-  color: #6B7280;
+  color: #1B4965;
   cursor: pointer;
   width: 32px;
   height: 32px;
@@ -155,59 +147,530 @@
   line-height: 1;
   transition: color 0.2s;
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  z-index: 11;
+}
+
+.donation-admin-modal-close:hover {
+  color: #9ca3af;
+}
+
+.donation-admin-modal-detail {
+  max-width: 750px;
+  padding: 0;
+  position: relative;
+}
+
+/* Modal Header */
+.donation-admin-modal-header {
+  background: #ffffff;
+  padding: 24px 32px;
+  margin: -32px -32px 0 -32px;
+  border-radius: 16px 16px 0 0;
+  position: sticky;
+  top: 0;
   z-index: 10;
+  border-bottom: 2px solid #f3f4f6;
 }
 
-.modal-close:hover {
-  color: #1B4965;
-}
-
-.modal-donation-detail {
-  max-width: 700px;
-}
-
-.modal-donation-detail h2 {
-  margin: 0 0 24px 0;
-  color: #1B4965;
-  font-size: 24px;
-  font-weight: 600;
-  text-align: left;
-  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  padding-right: 40px;
-}
-
-.modal-donation-detail > div {
-  padding: 14px 0;
-  border-bottom: 1px solid #f3f4f6;
+.donation-admin-modal-title {
   display: flex;
-  gap: 16px;
-  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  text-align: left;
-}
-
-.modal-donation-detail > div:last-child {
-  border-bottom: none;
-}
-
-.modal-donation-detail > div strong {
-  min-width: 180px;
-  color: #6b7280;
+  align-items: center;
+  color: #1B4965;
+  font-size: 26px;
   font-weight: 600;
-  font-size: 14px;
-  flex-shrink: 0;
-  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  text-align: left;
+  margin: 0;
+  padding: 0;
+  padding-left: 40px;
 }
 
-.modal-donation-detail > div:not(:has(.timeline-section, .override-section)) {
-  align-items: flex-start;
+/* Modal Body */
+.donation-admin-modal-body {
+  padding: 24px 32px;
+  padding-top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Info Cards */
+.donation-admin-info-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.2s;
+}
+
+.donation-admin-info-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.donation-admin-info-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.donation-admin-info-card-header svg {
+  color: #62B6CB;
+  flex-shrink: 0;
+}
+
+.donation-admin-info-card-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1B4965;
+  flex: 1;
+}
+
+/* Info Grid */
+.donation-admin-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  padding: 20px;
+}
+
+.donation-admin-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.donation-admin-info-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.donation-admin-info-value {
   font-size: 14px;
-  color: #374151;
-  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  text-align: left;
+  color: #1f2937;
+  font-weight: 500;
+}
+
+.donation-admin-flagged-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #dc2626;
+  font-weight: 500;
+}
+
+.donation-admin-not-flagged {
+  color: #10b981;
+  font-weight: 500;
+}
+
+/* Participants */
+.donation-admin-participants-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  padding: 20px;
+}
+
+.donation-admin-participant-card {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.donation-admin-participant-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.donation-admin-participant-header svg {
+  color: #62B6CB;
+}
+
+.donation-admin-participant-role {
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.donation-admin-participant-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+
+.donation-admin-participant-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1B4965;
+  text-align: center;
+}
+
+.donation-admin-participant-email {
+  font-size: 13px;
+  color: #64748b;
+  text-align: center;
+}
+
+.donation-admin-participant-org {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #475569;
+  margin-top: 4px;
+}
+
+.donation-admin-participant-org svg {
+  color: #94a3b8;
+}
+
+.donation-admin-claimed-at {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #10b981;
+  font-weight: 500;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* Timeline */
+.donation-admin-timeline-card {
+  background: linear-gradient(to bottom, #ffffff 0%, #f8fafc 100%);
+}
+
+.donation-admin-timeline-container {
+  padding: 20px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.donation-admin-timeline-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.donation-admin-timeline-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.donation-admin-timeline-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.donation-admin-timeline-item {
+  position: relative;
+  padding-left: 32px;
+  padding-bottom: 20px;
+  border-left: 2px solid #e5e7eb;
+  margin-left: 8px;
+}
+
+.donation-admin-timeline-item:last-child {
+  border-left-color: transparent;
+  padding-bottom: 0;
+}
+
+.donation-admin-timeline-item.donation-admin-only {
+  border-left-color: #a855f7;
+}
+
+.donation-admin-timeline-marker {
+  position: absolute;
+  left: -9px;
+  top: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #62B6CB;
+  border: 3px solid #ffffff;
+  box-shadow: 0 0 0 2px #e5e7eb;
+}
+
+.donation-admin-timeline-item.donation-admin-only .donation-admin-timeline-marker {
+  background: #a855f7;
+  box-shadow: 0 0 0 2px #f3e8ff;
+}
+
+.donation-admin-timeline-content {
+  background: #f9fafb;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.donation-admin-timeline-item.donation-admin-only .donation-admin-timeline-content {
+  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+  border-color: #e9d5ff;
+}
+
+.donation-admin-timeline-event-type {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 6px;
+}
+
+.donation-admin-timeline-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 6px;
+  justify-content: space-between;
+}
+
+.donation-admin-timeline-actor {
+  color: #1f2937;
+  font-weight: 500;
+  margin-left: auto;
+}
+
+.donation-admin-only-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #a855f7;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.donation-admin-timeline-status-change {
+  font-size: 13px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed #e5e7eb;
+  color: #475569;
+}
+
+.donation-admin-old-status {
+  color: #62B6CB;
+  font-weight: 600;
+}
+
+.donation-admin-arrow {
+  margin: 0 6px;
+  color: #94a3b8;
+}
+
+.donation-admin-new-status {
+  color: #1B4965;
+  font-weight: 600;
+}
+
+.donation-admin-timeline-details {
+  font-size: 13px;
+  color: #64748b;
+  font-style: italic;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed #e5e7eb;
+}
+
+.donation-admin-no-timeline {
+  text-align: center;
+  color: #94a3b8;
+  padding: 24px;
+  font-size: 14px;
+}
+
+/* Override Section */
+.donation-admin-override-card {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border: 2px solid #fbbf24;
+}
+
+.donation-admin-override-header {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-bottom-color: #fbbf24;
+}
+
+.donation-admin-override-header svg {
+  color: #d97706;
+}
+
+.donation-admin-override-form {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.donation-admin-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.donation-admin-form-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #92400e;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.donation-admin-override-textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px;
+  border: 2px solid #fbbf24;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  transition: all 0.2s;
+  background: white;
+}
+
+.donation-admin-override-textarea:focus {
+  outline: none;
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.1);
+}
+
+.donation-admin-override-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.donation-admin-override-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(251, 191, 36, 0.5);
+}
+
+.donation-admin-override-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.donation-admin-override-btn:disabled {
+  background: #d1d5db;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Alerts */
+.donation-admin-alert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.donation-admin-alert svg {
+  flex-shrink: 0;
+}
+
+.donation-admin-alert-error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+.donation-admin-alert-success {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #6ee7b7;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .donation-admin-modal-detail {
+    max-width: 95%;
+  }
+
+  .donation-admin-modal-header,
+  .donation-admin-modal-body {
+    padding: 20px;
+  }
+
+  .donation-admin-modal-header {
+    margin: -20px -20px 0 -20px;
+  }
+
+  .donation-admin-modal-title {
+    font-size: 22px;
+  }
+
+  .donation-admin-info-grid {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+
+  .donation-admin-participants-grid {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+
+  .donation-admin-timeline-container {
+    padding: 16px;
+  }
 }
 
 .pill-status-active {
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-block;
+  text-transform: capitalize;
+}
+
+.pill-status-available {
+  background: #d1fae5;
+  color: #065f46;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-block;
+  text-transform: capitalize;
+}
+
+.pill-status-claimed {
   background: #dbeafe;
   color: #1e40af;
   padding: 4px 12px;
@@ -251,9 +714,9 @@
   text-transform: capitalize;
 }
 
-.pill-status-flagged {
-  background: #fee2e2;
-  color: #991b1b;
+.pill-status-ready_for_pickup {
+  background: #e0e7ff;
+  color: #4338ca;
   padding: 4px 12px;
   border-radius: 16px;
   font-size: 12px;
@@ -262,160 +725,16 @@
   text-transform: capitalize;
 }
 
-.timeline-section {
-  margin-top: 24px;
-  padding-top: 24px;
-  border-top: 2px solid #E8F4F8;
-  width: 100%;
-  display: block;
-  text-align: left;
-}
-
-.timeline-section h3 {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1B4965;
-  margin: 0 0 4px 0;
-  text-align: left;
-  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
-
-.timeline-section h3 span {
-  display: block;
-  font-size: 11px;
-  font-weight: 400;
-  color: #9ca3af;
-  margin-top: 2px;
-}
-
-.timeline-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  margin-top: 12px;
-  text-align: left;
-}
-
-.timeline-list li {
-  padding: 12px 16px;
-  background: #f9fafb;
-  border-left: 3px solid #62B6CB;
-  border-radius: 6px;
-  margin-bottom: 10px;
-  font-size: 14px;
-  color: #374151;
-  line-height: 1.6;
-  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  text-align: left;
-}
-
-.timeline-list li:last-child {
-  margin-bottom: 0;
-}
-
-.timeline-event-type {
-  font-weight: 600;
-  color: #1B4965;
-  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
-
-.timeline-timestamp {
-  color: #6b7280;
-  font-size: 13px;
-  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
-
-.timeline-actor {
-  color: #62B6CB;
+.pill-status-not_completed {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
   font-weight: 500;
-  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  display: inline-block;
+  text-transform: capitalize;
 }
-
-.timeline-status-change {
-  color: #f59e0b;
-  font-weight: 500;
-  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
-
-.override-section {
-  margin-top: 24px;
-  padding-top: 24px;
-  padding-bottom: 200px;
-  border-top: 2px solid #E8F4F8;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 100%;
-  text-align: left;
-}
-
-.override-section label {
-  display: block;
-  font-size: 14px;
-  font-weight: 600;
-  color: #1B4965;
-  margin-bottom: 4px;
-  text-align: left;
-  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
-
-.override-section .filter-select-react {
-  width: 100%;
-  text-align: left;
-  position: relative;
-  z-index: 1;
-}
-
-.btn-confirm {
-  padding: 12px 28px;
-  background: #62B6CB;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 14px;
-  transition: all 0.2s;
-  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  align-self: flex-start;
-  margin-top: 8px;
-}
-
-.btn-confirm:hover {
-  background: #4A9FB5;
-  transform: translateY(-1px);
-}
-
-.btn-confirm:disabled {
-  background: #cbd5e1;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.error-message {
-  padding: 12px 16px;
-  background: #fee2e2;
-  border: 1px solid #fecaca;
-  border-radius: 8px;
-  color: #991b1b;
-  margin-top: 8px;
-  font-size: 14px;
-  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  text-align: left;
-}
-
-.success-message {
-  padding: 12px 16px;
-  background: #d1fae5;
-  border: 1px solid #a7f3d0;
-  border-radius: 8px;
-  color: #065f46;
-  margin-top: 8px;
-  font-size: 14px;
-  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  text-align: left;
-}
-
 .admin-donations-loading {
   text-align: center;
   color: #888;
@@ -423,27 +742,57 @@
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-@media (max-width: 768px) {
-  .modal-content {
-    width: 95%;
-    padding: 24px;
-    max-height: 90vh;
-  }
+/* Modal Footer Navigation */
+.donation-admin-modal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-top: 1px solid #e5e7eb;
+  gap: 12px;
+}
 
-  .modal-donation-detail h2 {
-    font-size: 20px;
-  }
+.donation-admin-modal-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #62B6CB;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
 
-  .modal-donation-detail > div strong {
-    min-width: 120px;
-    font-size: 13px;
-  }
+.donation-admin-modal-nav-btn:hover {
+  background: #1B4965;
+}
 
-  .modal-donation-detail > div {
-    font-size: 13px;
-  }
-  
-  .override-section {
-    padding-bottom: 220px;
-  }
+.donation-admin-modal-nav-btn:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.donation-admin-modal-nav-btn:disabled:hover {
+  background: #f3f4f6;
+}
+
+.donation-admin-modal-page-indicator {
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.donation-admin-current-status-display {
+  margin-bottom: 0px;
+}
+
+.donation-admin-current-status-text {
+  font-size: 16px;
+  color: #b45309;
+  font-weight: 600;
 }
