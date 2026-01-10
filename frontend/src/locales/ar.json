@@ -1,8 +1,8 @@
 {
   "nav": {
     "home": "الرئيسية",
-    "howItWorks": "كيفية العمل",
-    "about": "معلومات عنا",
+    "howItWorks": "كيف يعمل",
+    "about": "من نحن",
     "faqs": "الأسئلة الشائعة",
     "contact": "اتصل بنا",
     "login": "تسجيل الدخول",
@@ -28,18 +28,18 @@
     "alreadyHaveAccount": "هل لديك حساب بالفعل؟",
     "signIn": "تسجيل الدخول",
     "signUp": "إنشاء حساب",
-    "invalidEmailPassword": "بريد إلكتروني أو كلمة مرور غير صحيحة",
+    "invalidEmailPassword": "البريد الإلكتروني أو كلمة المرور غير صحيحة",
     "passwordMismatch": "كلمات المرور غير متطابقة",
     "emailRequired": "البريد الإلكتروني مطلوب",
     "passwordRequired": "كلمة المرور مطلوبة",
-    "passwordTooShort": "يجب أن تكون كلمة المرور 8 أحرف على الأقل",
+    "passwordTooShort": "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل",
     "resetPassword": "إعادة تعيين كلمة المرور",
     "sendResetLink": "إرسال رابط إعادة التعيين",
     "enterEmail": "أدخل عنوان بريدك الإلكتروني"
   },
   "registration": {
-    "registerAsDonor": "التسجيل كمانح",
-    "registerAsReceiver": "التسجيل كمستقبل",
+    "registerAsDonor": "التسجيل كمتبرع",
+    "registerAsReceiver": "التسجيل كمستفيد",
     "selectRole": "اختر دورك",
     "firstName": "الاسم الأول",
     "lastName": "اسم العائلة",
@@ -48,7 +48,7 @@
     "address": "العنوان",
     "city": "المدينة",
     "zipCode": "الرمز البريدي",
-    "country": "الدولة",
+    "country": "البلد",
     "fullName": "الاسم الكامل",
     "acceptTerms": "أوافق على شروط الخدمة",
     "privacyPolicy": "سياسة الخصوصية",
@@ -57,14 +57,14 @@
     "registrationError": "خطأ في التسجيل"
   },
   "donor": {
-    "dashboard": "لوحة تحكم المانح",
-    "addSurplus": "إضافة الغذاء الفائض",
+    "dashboard": "لوحة تحكم المتبرع",
+    "addSurplus": "إضافة فائض طعام",
     "listFood": "قائمة الأطعمة",
-    "myListings": "قوائمي",
+    "myListings": "منشوراتي",
     "requests": "الطلبات",
     "messages": "الرسائل",
-    "surplus": "الغذاء الفائض",
-    "foodType": "نوع الغذاء",
+    "surplus": "فائض الطعام",
+    "foodType": "نوع الطعام",
     "quantity": "الكمية",
     "unit": "الوحدة",
     "expiryDate": "تاريخ الانتهاء",
@@ -75,22 +75,22 @@
     "pickupTime": "وقت الاستلام",
     "status": "الحالة",
     "active": "نشط",
-    "claimed": "مطالب به",
+    "claimed": "تم المطالبة به",
     "completed": "مكتمل",
     "cancelled": "ملغى",
     "edit": "تعديل",
     "delete": "حذف",
     "claim": "المطالبة",
     "confirmPickup": "تأكيد الاستلام",
-    "markComplete": "وضع علامة كمكتمل",
-    "selectFoodType": "اختر نوع الغذاء",
+    "markComplete": "وضع علامة مكتمل",
+    "selectFoodType": "اختر نوع الطعام",
     "enterQuantity": "أدخل الكمية",
     "selectUnit": "اختر الوحدة",
     "selectExpiryDate": "اختر تاريخ الانتهاء"
   },
   "receiver": {
-    "dashboard": "لوحة تحكم المستقبل",
-    "browse": "استعرض الأطعمة",
+    "dashboard": "لوحة تحكم المستفيد",
+    "browse": "تصفح الطعام",
     "preferences": "التفضيلات",
     "claims": "المطالبات",
     "messages": "الرسائل",
@@ -98,29 +98,15 @@
     "filter": "تصفية",
     "distance": "المسافة",
     "km": "كم",
-    "foodType": "نوع الغذاء",
+    "foodType": "نوع الطعام",
     "expiryDate": "تاريخ الانتهاء",
     "available": "متاح",
-    "claimed": "مطالب به",
+    "claimed": "تم المطالبة به",
     "noResults": "لم يتم العثور على نتائج"
-  },
-  "admin": {
-    "dashboard": "لوحة تحكم الإدارة",
-    "analytics": "التحليلات",
-    "users": "المستخدمون",
-    "reports": "التقارير",
-    "settings": "الإعدادات",
-    "totalUsers": "إجمالي المستخدمين",
-    "totalDonors": "إجمالي المانحين",
-    "totalReceivers": "إجمالي المستقبلين",
-    "activeClaims": "المطالبات النشطة",
-    "completedClaims": "المطالبات المكتملة",
-    "foodDistributed": "الغذاء الموزع",
-    "welcome": "مرحبا بك في لوحة تحكم الإدارة"
   },
   "messages": {
     "inbox": "صندوق الوارد",
-    "sentMessages": "الرسائل المرسلة",
+    "sentMessages": "المرسلة",
     "newMessage": "رسالة جديدة",
     "compose": "كتابة",
     "to": "إلى",
@@ -137,14 +123,14 @@
     "cancel": "إلغاء",
     "close": "إغلاق",
     "submit": "إرسال",
-    "back": "السابق",
+    "back": "رجوع",
     "next": "التالي",
     "finish": "إنهاء",
     "loading": "جاري التحميل...",
     "error": "خطأ",
     "success": "نجاح",
     "warning": "تحذير",
-    "info": "معلومة",
+    "info": "معلومات",
     "yes": "نعم",
     "no": "لا",
     "confirm": "تأكيد",
@@ -164,28 +150,18 @@
     "about": "حول",
     "logout": "تسجيل الخروج",
     "profile": "الملف الشخصي",
-    "download": "تحميل"
+    "download": "تحميل",
+    "hidePassword": "إخفاء كلمة المرور",
+    "showPassword": "إظهار كلمة المرور",
+    "time": "الوقت"
   },
   "validation": {
     "required": "هذا الحقل مطلوب",
-    "email": "يرجى إدخال بريد إلكتروني صحيح",
+    "email": "يرجى إدخال بريد إلكتروني صالح",
     "minLength": "الحد الأدنى {{count}} أحرف مطلوبة",
-    "maxLength": "الحد الأقصى {{count}} أحرف مسموحة",
-    "pattern": "صيغة غير صحيحة"
+    "maxLength": "الحد الأقصى {{count}} حرف مسموح",
+    "pattern": "تنسيق غير صالح"
   },
-  "footer": {
-    "company": "الشركة",
-    "about": "حول FoodFlow",
-    "blog": "مدونة",
-    "careers": "الوظائف",
-    "contact": "اتصل بنا",
-    "legal": "قانوني",
-    "privacy": "سياسة الخصوصية",
-    "terms": "شروط الخدمة",
-    "followUs": "تابعنا",
-    "copyright": "© 2025 FoodFlow. جميع الحقوق محفوظة."
-  }
-  ,
   "toast": {
     "saved": "تم الحفظ",
     "deleted": "تم الحذف",
@@ -194,42 +170,300 @@
     "claimError": "تعذر إكمال المطالبة"
   },
   "errors": {
-    "network": "خطأ في الشبكة. حاول مرة أخرى.",
+    "network": "خطأ في الشبكة. يرجى المحاولة مرة أخرى.",
     "server": "خطأ في الخادم. اتصل بالدعم.",
     "validation": "يرجى التحقق من الحقول والمحاولة مرة أخرى."
+  },
+  "landing": {
+    "home": {
+      "title1": "ربط الفائض مع",
+      "title2": "المحتاجين",
+      "title3": "احصل على طعام عالي الجودة",
+      "title4": "لمجتمعك",
+      "description": "ربط شركات الأغذية بالمنظمات المجتمعية. حوّل الفائض إلى تأثير—سواء كانت بقايا فعاليات أو فائض مطاعم أو مخزون بقالة زائد.",
+      "joinUs": "انضم إلينا الآن"
+    },
+    "about": {
+      "title": "عن FoodFlow",
+      "subtitle": "منصتنا تربط المتبرعين بالطعام مع المنظمات المعتمدة لتقليل الهدر ومكافحة الجوع من خلال التكنولوجيا الذكية والتعاون المجتمعي.",
+      "verifiedOrgs": {
+        "title": "منظمات معتمدة",
+        "content": "تخضع جميع منظماتنا الشريكة للتحقق الشامل وفحص الخلفية لضمان السلامة والشرعية والامتثال لمعايير سلامة الأغذية."
+      },
+      "realTimeNotifications": {
+        "title": "إشعارات فورية",
+        "content": "تنبيهات فورية عندما تصبح التبرعات الغذائية متاحة. يتتبع نظامنا درجة الحرارة وأوقات الاستلام والامتثال تلقائيًا لشفافية كاملة."
+      },
+      "smartMatching": {
+        "title": "مطابقة ذكية",
+        "content": "يطابق خوارزميتنا الذكية نوع الطعام والكمية والموقع مع المنظمة القريبة الأنسب لتعظيم الكفاءة والتأثير."
+      }
+    },
+    "howItWorks": {
+      "title": "كيف يعمل FoodFlow",
+      "subtitle": "يصل الطعام الفائض إلى الجمعيات الخيرية في دقائق وليس ساعات. تمنع مطابقتنا الذكية هدر الطعام الجيد.",
+      "step1": {
+        "number": "01",
+        "title": "نشر الفائض فورًا",
+        "text": "المطاعم والفعاليات والمتاجر تنشر الطعام الفائض مع الكمية وموقع الاستلام والإطار الزمني قبل أن يفسد."
+      },
+      "step2": {
+        "number": "02",
+        "title": "مطابقة ذكية فورية",
+        "text": "تنبه خوارزميتنا فورًا أقرب جمعية خيرية أو ملجأ أو متطوع معتمد يمكنه الاستلام خلال الإطار الزمني."
+      },
+      "step3": {
+        "number": "03",
+        "title": "استلام آمن متتبع",
+        "text": "تتبع سلامة الأغذية المدمج يسجل درجة الحرارة وتواريخ الانتهاء وأوقات الاستلام للامتثال بينما يضمن وصول الوجبات إلى الناس بسرعة."
+      }
+    },
+    "faq": {
+      "title": "الأسئلة الشائعة",
+      "q1": {
+        "question": "كيف يمكنني استخدام FoodFlow للتبرع بفائض الطعام الخاص بي؟",
+        "answer": "التبرع بفائض الطعام عبر FoodFlow بسيط! أولاً، أنشئ حسابًا على منصتنا. بمجرد تسجيل الدخول، يمكنك نشر الطعام الفائض المتاح بسرعة من خلال تقديم تفاصيل مثل نوع الطعام والكمية وموقع الاستلام والإطار الزمني. سيتم إخطار الجمعيات الخيرية والمنظمات المجتمعية القريبة على الفور ويمكنها المطالبة بالتبرع."
+      },
+      "q2": {
+        "question": "ما نوع المنظمات التي يمكنها تلقي الطعام من خلال FoodFlow؟",
+        "answer": "يعمل FoodFlow مع المنظمات الخيرية المعتمدة بما في ذلك بنوك الطعام وملاجئ المشردين والمطابخ المجتمعية والمدارس والمنظمات غير الربحية التي تخدم الفئات الضعيفة. تخضع جميع المنظمات المستفيدة لعملية تحقق لضمان قدرتها على التعامل مع الطعام وتوزيعه بشكل صحيح وفقًا لمعايير السلامة."
+      },
+      "q3": {
+        "question": "هل هناك أي تكلفة لاستخدام FoodFlow؟",
+        "answer": "FoodFlow مجاني تمامًا للمتبرعين بالطعام والمنظمات المستفيدة. مهمتنا هي تقليل هدر الطعام ومساعدة المجتمعات، لذلك صممنا المنصة لتكون متاحة للجميع."
+      },
+      "q4": {
+        "question": "كيف يضمن FoodFlow سلامة الأغذية؟",
+        "answer": "سلامة الأغذية هي أولويتنا القصوى. تتضمن منصتنا إرشادات السلامة المدمجة وميزات التتبع. يقدم المتبرعون معلومات حول ظروف التخزين ووقت التحضير وتواريخ الانتهاء. نوفر أيضًا تسجيل درجة الحرارة للعناصر القابلة للتلف ونضمن حدوث جميع عمليات الاستلام ضمن أطر زمنية آمنة."
+      }
+    }
+  },
+  "login": {
+    "title": "تسجيل الدخول إلى حسابك",
+    "backHome": "← العودة إلى الرئيسية",
+    "emailLabel": "عنوان البريد الإلكتروني",
+    "emailPlaceholder": "أدخل بريدك الإلكتروني",
+    "passwordLabel": "كلمة المرور",
+    "passwordPlaceholder": "أدخل كلمة المرور",
+    "forgotPassword": "هل نسيت كلمة المرور؟",
+    "loggingIn": "جاري تسجيل الدخول…",
+    "logIn": "تسجيل الدخول",
+    "dontHaveAccount": "ليس لديك حساب؟",
+    "signUp": "سجل الآن"
+  },
+  "donorRegistration": {
+    "title": "التسجيل كمتبرع",
+    "description": "كرمك يوفر وجبات ورعاية وأمل للعائلات المحتاجة. كل تبرع يساعد في تقوية المجتمعات وبناء مستقبل أكثر إشراقًا ولطفًا. معًا، يمكننا إحداث تغيير دائم!",
+    "emailLabel": "عنوان البريد الإلكتروني",
+    "emailPlaceholder": "أدخل عنوان بريدك الإلكتروني",
+    "passwordLabel": "كلمة المرور",
+    "passwordPlaceholder": "أدخل كلمة المرور",
+    "passwordMinLength": "8 أحرف على الأقل",
+    "organizationNameLabel": "اسم المنظمة",
+    "organizationNamePlaceholder": "أدخل اسم منظمتك",
+    "contactPersonLabel": "الشخص المسؤول",
+    "contactPersonPlaceholder": "أدخل اسم الشخص المسؤول",
+    "phoneLabel": "رقم الهاتف",
+    "phonePlaceholder": "أدخل رقم هاتفك",
+    "addressLabel": "العنوان",
+    "addressPlaceholder": "أدخل عنوانك",
+    "organizationTypeLabel": "نوع المنظمة",
+    "organizationTypeRestaurant": "مطعم",
+    "organizationTypeGrocery": "متجر بقالة",
+    "organizationTypeEvent": "منظم فعاليات",
+    "businessLicenseLabel": "رقم الترخيص التجاري",
+    "businessLicensePlaceholder": "أدخل رقم ترخيصك التجاري",
+    "businessLicenseOptional": "اختياري ولكنه موصى به للتحقق",
+    "back": "رجوع",
+    "registering": "جاري التسجيل...",
+    "registerAsDonor": "التسجيل كمتبرع",
+    "registrationSuccess": "تم التسجيل بنجاح! مرحبًا بك في FoodFlow.",
+    "registrationFailed": "فشل التسجيل. يرجى المحاولة مرة أخرى."
+  },
+  "receiverRegistration": {
+    "title": "التسجيل كمستفيد",
+    "description": "انضم إلى شبكتنا لتلقي تبرعات غذائية عالية الجودة لمجتمعك. نربطك بالشركات المحلية لتقليل الهدر ودعم المحتاجين. معًا، يمكننا إنشاء حلول مستدامة لتوزيع الطعام.",
+    "emailLabel": "عنوان البريد الإلكتروني",
+    "emailPlaceholder": "أدخل عنوان بريدك الإلكتروني",
+    "passwordLabel": "كلمة المرور",
+    "passwordPlaceholder": "أدخل كلمة المرور",
+    "passwordMinLength": "8 أحرف على الأقل",
+    "organizationNameLabel": "اسم المنظمة",
+    "organizationNamePlaceholder": "أدخل اسم منظمتك",
+    "contactPersonLabel": "الشخص المسؤول",
+    "contactPersonPlaceholder": "أدخل اسم الشخص المسؤول",
+    "phoneLabel": "رقم الهاتف",
+    "phonePlaceholder": "أدخل رقم هاتفك",
+    "addressLabel": "العنوان",
+    "addressPlaceholder": "أدخل عنوانك",
+    "organizationTypeLabel": "نوع المنظمة",
+    "organizationTypeCharity": "جمعية خيرية",
+    "organizationTypeShelter": "ملجأ",
+    "organizationTypeKitchen": "مطبخ مجتمعي",
+    "capacityLabel": "السعة اليومية (الأشخاص المخدومون)",
+    "capacityPlaceholder": "أدخل سعتك اليومية",
+    "capacityHint": "العدد التقريبي للأشخاص الذين تخدمهم يوميًا",
+    "back": "رجوع",
+    "registering": "جاري التسجيل...",
+    "registerAsReceiver": "التسجيل كمستفيد",
+    "registrationSuccess": "تم التسجيل بنجاح! مرحبًا بك في FoodFlow.",
+    "registrationFailed": "فشل التسجيل. يرجى المحاولة مرة أخرى."
+  },
+  "donorWelcome": {
+    "welcomeBack": "مرحبًا بعودتك، {{name}}",
+    "totalDonations": "إجمالي التبرعات",
+    "mealsServed": "الوجبات المقدمة",
+    "co2Saved": "CO₂ تم توفيره",
+    "donateFood": {
+      "title": "التبرع بالطعام",
+      "description": "قدم تبرعًا جديدًا لمشاركته مع المنظمات المجتمعية",
+      "button": "إنشاء تبرع"
+    },
+    "impactReports": {
+      "title": "تقارير التأثير",
+      "description": "عرض إحصائيات مفصلة حول تأثير تبرعاتك",
+      "button": "عرض التقارير"
+    },
+    "recentDonations": "التبرعات الأخيرة",
+    "viewAll": "عرض الكل",
+    "noDonationsYet": "لا توجد تبرعات بعد. أنشئ تبرعك الأول للبدء!",
+    "noNameYet": "لا يوجد اسم بعد",
+    "foodDonation": "تبرع بالطعام",
+    "status": {
+      "available": "متاح",
+      "claimed": "تم المطالبة به",
+      "completed": "مكتمل",
+      "readyForPickup": "جاهز للاستلام",
+      "notCompleted": "غير مكتمل",
+      "expired": "منتهي الصلاحية"
+    }
+  },
+  "receiverWelcome": {
+    "title": "ابحث عن طعام بالقرب منك",
+    "subtitle": "نساعد المنظمات على الاتصال بالطعام المتاح—بسرعة وموثوقية. ابدأ بالخريطة لرؤية التبرعات القريبة واطلب ما تحتاجه اليوم.",
+    "tip": "نصيحة: حدد ساعات الاستلام والسعة الخاصة بك لتتم مطابقتك بشكل أسرع.",
+    "searchMap": {
+      "title": "البحث على الخريطة",
+      "description": "تصفح القوائم الحالية وقم بالتصفية حسب الفئة أو الانتهاء للعثور بسرعة على العناصر التي تحتاجها منظمتك.",
+      "button": "افتح الخريطة وابحث"
+    },
+    "needAssistance": {
+      "title": "تحتاج مساعدة؟",
+      "description": "راسلنا على {{email}} وسنساعدك في تنسيق الاستلام.",
+      "newHere": "جديد هنا؟ اقرأ الأسئلة الشائعة.",
+      "button": "عرض الأسئلة الشائعة"
+    }
+  },
+  "surplusForm": {
+    "title": "إضافة تبرع جديد",
+    "cancelConfirm": "إلغاء إنشاء التبرع؟",
+    "titleLabel": "العنوان",
+    "titlePlaceholder": "مثال: لازانيا الخضار",
+    "foodCategoriesLabel": "فئات الطعام",
+    "foodCategoriesPlaceholder": "اختر الفئات",
+    "expiryDateLabel": "تاريخ الانتهاء",
+    "expiryDatePlaceholder": "اختر تاريخ الانتهاء",
+    "quantityLabel": "الكمية",
+    "quantityPlaceholder": "0",
+    "unitLabel": "الوحدة",
+    "unitPlaceholder": "اختر الوحدة",
+    "pickupTimeSlotsLabel": "فترات وقت الاستلام",
+    "addAnotherSlot": "إضافة فترة أخرى",
+    "slot": "الفترة",
+    "dateLabel": "التاريخ",
+    "datePlaceholder": "اختر التاريخ",
+    "startTimeLabel": "وقت البدء",
+    "startTimePlaceholder": "البدء",
+    "endTimeLabel": "وقت الانتهاء",
+    "endTimePlaceholder": "الانتهاء",
+    "notesLabel": "ملاحظات (اختياري)",
+    "notesPlaceholder": "مثال: استخدم المدخل الخلفي، اسأل عن المدير",
+    "pickupLocationLabel": "موقع الاستلام",
+    "pickupLocationPlaceholder": "ابدأ بكتابة العنوان...",
+    "descriptionLabel": "الوصف",
+    "descriptionPlaceholder": "صف الطعام (المكونات، النضارة، إلخ)",
+    "cancel": "إلغاء",
+    "createDonation": "إنشاء تبرع",
+    "success": "نجاح! تم إنشاء المنشور بالمعرف: {{id}}",
+    "failed": "فشل إنشاء منشور الفائض",
+    "foodTypes": {
+      "preparedMeals": "وجبات جاهزة",
+      "bakeryPastry": "مخبوزات وحلويات",
+      "fruitsVegetables": "فواكه وخضروات",
+      "packagedPantry": "عناصر معبأة / مخزن",
+      "dairyCold": "ألبان ومنتجات باردة",
+      "frozen": "طعام مجمد"
+    },
+    "units": {
+      "kilogram": "كجم",
+      "item": "عناصر",
+      "liter": "لتر",
+      "pound": "رطل",
+      "box": "صناديق"
+    }
+  },
+  "chat": {
+    "noConversationSelected": "لم يتم اختيار محادثة",
+    "selectConversation": "اختر محادثة من الشريط الجانبي أو ابدأ محادثة جديدة",
+    "with": "مع",
+    "claimed": "تم المطالبة به",
+    "viewPost": "عرض المنشور",
+    "noMessagesYet": "لا توجد رسائل بعد. ابدأ المحادثة!",
+    "today": "اليوم",
+    "yesterday": "أمس",
+    "typeMessage": "اكتب رسالتك هنا...",
+    "sendMessage": "إرسال رسالة",
+    "failedToSend": "فشل إرسال الرسالة"
+  },
+  "messaging": {
+    "failedToLoad": "فشل تحميل المحادثات"
+  },
+  "footer": {
+    "description": "اكتشف منصة متجر خيري مصممة لإحداث ثورة في توزيع الطعام. ربط الجمعيات الخيرية بمصادر الطعام عبر المسافات، وتعزيز الاتصالات وضمان وصول الطعام الطازج إلى المحتاجين. يتميز FoodFlow بواجهة بديهية وسهلة الاستخدام.",
+    "company": "الشركة",
+    "home": "الرئيسية",
+    "howItWorks": "كيف يعمل",
+    "about": "من نحن",
+    "faqs": "الأسئلة الشائعة",
+    "contact": "اتصل بنا",
+    "email": "foodflow.group@gmail.com",
+    "phone": "1-800-122-4567",
+    "copyright": "حقوق النشر © 2025. جميع الحقوق محفوظة لـ FoodFlow",
+    "privacyPolicy": "سياسة الخصوصية",
+    "termsConditions": "الشروط والأحكام"
   },
   "donorListFood": {
     "edit": "تعديل",
     "delete": "حذف",
     "reschedule": "إعادة الجدولة",
-    "enterPickupCode": "أدخل رمز الاستلام",
-    "thankYou": "شكراً لك",
+    "enterPickupCode": "إدخال رمز الاستلام",
+    "thankYou": "شكرًا لك",
     "openChat": "فتح الدردشة",
     "postDeletedSuccess": "تم حذف المنشور بنجاح.",
-    "postDeleteFailed": "فشل في حذف المنشور",
-    "rescheduleComingSoon": "ستكون وظيفة إعادة الجدولة متاحة قريباً!"
+    "postDeleteFailed": "فشل حذف المنشور",
+    "rescheduleComingSoon": "ميزة إعادة الجدولة قادمة قريبًا!"
   },
   "confirmPickup": {
     "title": "تأكيد الاستلام",
-    "subtitle": "أدخل الرمز المكون من 6 أرقام الذي يعرضه المستقبل:",
-    "codeRequired": "يرجى إدخال الرمز المكون من 6 أرقام كاملاً",
+    "subtitle": "أدخل الرمز المكون من 6 أرقام الذي يعرضه المستفيد:",
+    "codeRequired": "يرجى إدخال الرمز الكامل المكون من 6 أرقام",
     "invalidDonation": "عنصر تبرع غير صالح",
-    "verifyFailed": "فشل في التحقق من الرمز",
-    "info": "يمكن للمستقبل العثور على هذا الرمز في حسابه:",
+    "verifyFailed": "فشل التحقق من الرمز",
+    "info": "يمكن للمستفيد العثور على هذا الرمز في حسابه:",
     "myClaims": "مطالباتي",
     "cancel": "إلغاء",
-    "verifying": "جارٍ التحقق...",
+    "verifying": "جاري التحقق...",
     "confirm": "تأكيد الاستلام"
   },
   "admin": {
-    "dashboard": "لوحة تحكم الإدارة",
+    "dashboard": "لوحة تحكم المسؤول",
     "analytics": "التحليلات",
     "calendar": "التقويم",
     "messages": "الرسائل",
     "help": "المساعدة",
     "overview": "نظرة عامة وإجراءات سريعة",
     "metrics": "المقاييس والرؤى",
-    "events": "الأحداث والجداول",
+    "events": "الفعاليات والجداول",
     "communications": "الاتصالات الواردة",
     "guides": "الأدلة والدعم",
     "administration": "الإدارة"
@@ -238,17 +472,17 @@
     "readyForPickup": "جاهز للاستلام",
     "completed": "مكتمل",
     "notCompleted": "غير مكتمل",
-    "claimed": "مطالب به",
+    "claimed": "تم المطالبة به",
     "donationDetails": "تفاصيل التبرع",
     "untitledDonation": "تبرع بدون عنوان"
   },
   "claimedView": {
-    "claimed": "مطالب به",
+    "claimed": "تم المطالبة به",
     "untitledDonation": "تبرع بدون عنوان",
     "pickupSteps": "خطوات الاستلام",
     "reviewPickup": {
-      "title": "مراجعة وقت ومكان الاستلام",
-      "description": "كن في الوقت المحدد لضمان حصول منظمتك على هذا التبرع."
+      "title": "مراجعة وقت وموقع الاستلام",
+      "description": "كن في الموعد لضمان تلقي منظمتك لهذا التبرع."
     },
     "timeUnits": {
       "day": "يوم",
@@ -260,32 +494,32 @@
   },
   "filtersPanel": {
     "foodCategories": {
-      "fruitsVegetables": "الفواكه والخضروات",
-      "bakeryPastry": "المخبوزات والمعجنات",
-      "packagedPantry": "المنتجات المعبأة / مواد البقالة",
-      "dairyCold": "منتجات الألبان والمنتجات الباردة",
-      "frozen": "الأطعمة المجمدة",
-      "preparedMeals": "الوجبات الجاهزة"
+      "fruitsVegetables": "فواكه وخضروات",
+      "bakeryPastry": "مخبوزات وحلويات",
+      "packagedPantry": "عناصر معبأة / مخزن",
+      "dairyCold": "ألبان ومنتجات باردة",
+      "frozen": "طعام مجمد",
+      "preparedMeals": "وجبات جاهزة"
     },
     "selectDate": "اختر التاريخ"
   },
   "receiverBrowse": {
-    "confirmClaim": "هل أنت متأكد من أنك تريد المطالبة بهذا التبرع؟",
-    "claimSuccess": "تم المطالبة بالتبرع بنجاح",
-    "claimFailed": "فشل في المطالبة بالتبرع"
+    "confirmClaim": "هل أنت متأكد من رغبتك في المطالبة بهذا التبرع؟",
+    "claimSuccess": "تمت المطالبة بالتبرع بنجاح",
+    "claimFailed": "فشلت المطالبة بالتبرع"
   },
   "receiverMyClaims": {
     "readyForPickup": "جاهز للاستلام",
     "completed": "مكتمل",
     "notCompleted": "غير مكتمل",
-    "claimed": "مطالب به"
+    "claimed": "تم المطالبة به"
   },
   "notifications": {
     "newMessageFrom": "رسالة جديدة من",
     "claimConfirmed": "تم تأكيد المطالبة",
     "claimStatus": "حالة المطالبة",
-    "successfullyClaimed": "تم المطالبة بنجاح بـ \"{{foodTitle}}\" من {{donorName}}",
+    "successfullyClaimed": "تمت المطالبة بنجاح بـ \"{{foodTitle}}\" من {{donorName}}",
     "readyForPickup": "\"{{foodTitle}}\" جاهز للاستلام! تحقق من مطالباتك للحصول على التفاصيل.",
-    "claimCancelled": "تم إلغاء مطالبتك على \"{{foodTitle}}\""
+    "claimCancelled": "تم إلغاء مطالبتك بـ \"{{foodTitle}}\""
   }
 }

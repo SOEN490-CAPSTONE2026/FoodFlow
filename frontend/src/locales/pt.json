@@ -4,10 +4,10 @@
     "howItWorks": "Como funciona",
     "about": "Sobre nós",
     "faqs": "Perguntas frequentes",
-    "contact": "Contate-nos",
-    "login": "Fazer login",
+    "contact": "Contato",
+    "login": "Entrar",
     "register": "Registrar",
-    "returnToDashboard": "Voltar ao Dashboard",
+    "returnToDashboard": "Voltar ao painel",
     "logout": "Sair"
   },
   "language": {
@@ -20,36 +20,36 @@
     "portuguese": "Português"
   },
   "auth": {
-    "email": "Email",
+    "email": "E-mail",
     "password": "Senha",
-    "confirmPassword": "Confirmar Senha",
+    "confirmPassword": "Confirmar senha",
     "forgotPassword": "Esqueceu a senha?",
     "dontHaveAccount": "Não tem uma conta?",
     "alreadyHaveAccount": "Já tem uma conta?",
-    "signIn": "Fazer login",
-    "signUp": "Criar conta",
-    "invalidEmailPassword": "Email ou senha inválidos",
+    "signIn": "Entrar",
+    "signUp": "Registrar",
+    "invalidEmailPassword": "E-mail ou senha inválidos",
     "passwordMismatch": "As senhas não correspondem",
-    "emailRequired": "Email é obrigatório",
-    "passwordRequired": "Senha é obrigatória",
+    "emailRequired": "O e-mail é obrigatório",
+    "passwordRequired": "A senha é obrigatória",
     "passwordTooShort": "A senha deve ter pelo menos 8 caracteres",
-    "resetPassword": "Redefinir Senha",
-    "sendResetLink": "Enviar Link de Redefinição",
-    "enterEmail": "Digite seu endereço de email"
+    "resetPassword": "Redefinir senha",
+    "sendResetLink": "Enviar link de redefinição",
+    "enterEmail": "Digite seu endereço de e-mail"
   },
   "registration": {
-    "registerAsDonor": "Registrar como Doador",
-    "registerAsReceiver": "Registrar como Receptor",
+    "registerAsDonor": "Registrar como doador",
+    "registerAsReceiver": "Registrar como receptor",
     "selectRole": "Selecione seu papel",
-    "firstName": "Primeiro Nome",
+    "firstName": "Nome",
     "lastName": "Sobrenome",
-    "organizationName": "Nome da Organização",
-    "phone": "Número de Telefone",
+    "organizationName": "Nome da organização",
+    "phone": "Número de telefone",
     "address": "Endereço",
     "city": "Cidade",
     "zipCode": "CEP",
     "country": "País",
-    "fullName": "Nome Completo",
+    "fullName": "Nome completo",
     "acceptTerms": "Aceito os Termos de Serviço",
     "privacyPolicy": "Política de Privacidade",
     "termsOfService": "Termos de Serviço",
@@ -57,71 +57,57 @@
     "registrationError": "Erro no registro"
   },
   "donor": {
-    "dashboard": "Dashboard do Doador",
-    "addSurplus": "Adicionar Alimento Excedente",
-    "listFood": "Listar Alimentos",
-    "myListings": "Meus Anúncios",
+    "dashboard": "Painel do doador",
+    "addSurplus": "Adicionar excedente de alimentos",
+    "listFood": "Listar alimentos",
+    "myListings": "Minhas publicações",
     "requests": "Solicitações",
     "messages": "Mensagens",
-    "surplus": "Alimento Excedente",
-    "foodType": "Tipo de Alimento",
+    "surplus": "Excedente de alimentos",
+    "foodType": "Tipo de alimento",
     "quantity": "Quantidade",
     "unit": "Unidade",
-    "expiryDate": "Data de Validade",
+    "expiryDate": "Data de validade",
     "description": "Descrição",
     "address": "Endereço",
     "city": "Cidade",
     "zipCode": "CEP",
-    "pickupTime": "Horário de Retirada",
+    "pickupTime": "Horário de retirada",
     "status": "Status",
     "active": "Ativo",
-    "claimed": "Reivindicado",
+    "claimed": "Reclamado",
     "completed": "Concluído",
     "cancelled": "Cancelado",
     "edit": "Editar",
     "delete": "Excluir",
-    "claim": "Reivindicar",
-    "confirmPickup": "Confirmar Retirada",
-    "markComplete": "Marcar como Concluído",
-    "selectFoodType": "Selecione o tipo de alimento",
-    "enterQuantity": "Digite a quantidade",
-    "selectUnit": "Selecione a unidade",
-    "selectExpiryDate": "Selecione a data de validade"
+    "claim": "Reclamar",
+    "confirmPickup": "Confirmar retirada",
+    "markComplete": "Marcar como concluído",
+    "selectFoodType": "Selecionar tipo de alimento",
+    "enterQuantity": "Inserir quantidade",
+    "selectUnit": "Selecionar unidade",
+    "selectExpiryDate": "Selecionar data de validade"
   },
   "receiver": {
-    "dashboard": "Dashboard do Receptor",
-    "browse": "Procurar Alimentos",
+    "dashboard": "Painel do receptor",
+    "browse": "Explorar alimentos",
     "preferences": "Preferências",
-    "claims": "Reivindicações",
+    "claims": "Reclamações",
     "messages": "Mensagens",
-    "search": "Pesquisar",
-    "filter": "Filtro",
+    "search": "Buscar",
+    "filter": "Filtrar",
     "distance": "Distância",
     "km": "km",
-    "foodType": "Tipo de Alimento",
-    "expiryDate": "Data de Validade",
+    "foodType": "Tipo de alimento",
+    "expiryDate": "Data de validade",
     "available": "Disponível",
-    "claimed": "Reivindicado",
+    "claimed": "Reclamado",
     "noResults": "Nenhum resultado encontrado"
   },
-  "admin": {
-    "dashboard": "Dashboard do Administrador",
-    "analytics": "Análises",
-    "users": "Usuários",
-    "reports": "Relatórios",
-    "settings": "Configurações",
-    "totalUsers": "Total de Usuários",
-    "totalDonors": "Total de Doadores",
-    "totalReceivers": "Total de Receptores",
-    "activeClaims": "Reivindicações Ativas",
-    "completedClaims": "Reivindicações Concluídas",
-    "foodDistributed": "Alimento Distribuído",
-    "welcome": "Bem-vindo ao Dashboard do Administrador"
-  },
   "messages": {
-    "inbox": "Caixa de Entrada",
+    "inbox": "Caixa de entrada",
     "sentMessages": "Enviados",
-    "newMessage": "Nova Mensagem",
+    "newMessage": "Nova mensagem",
     "compose": "Compor",
     "to": "Para",
     "subject": "Assunto",
@@ -129,7 +115,7 @@
     "send": "Enviar",
     "reply": "Responder",
     "delete": "Excluir",
-    "search": "Pesquisar mensagens",
+    "search": "Buscar mensagens",
     "noMessages": "Nenhuma mensagem"
   },
   "common": {
@@ -139,7 +125,7 @@
     "submit": "Enviar",
     "back": "Voltar",
     "next": "Próximo",
-    "finish": "Concluir",
+    "finish": "Finalizar",
     "loading": "Carregando...",
     "error": "Erro",
     "success": "Sucesso",
@@ -154,8 +140,8 @@
     "create": "Criar",
     "add": "Adicionar",
     "remove": "Remover",
-    "search": "Pesquisar",
-    "filter": "Filtro",
+    "search": "Buscar",
+    "filter": "Filtrar",
     "sort": "Ordenar",
     "export": "Exportar",
     "import": "Importar",
@@ -164,38 +150,287 @@
     "about": "Sobre",
     "logout": "Sair",
     "profile": "Perfil",
-    "download": "Baixar"
+    "download": "Baixar",
+    "hidePassword": "Ocultar senha",
+    "showPassword": "Mostrar senha",
+    "time": "Hora"
   },
   "validation": {
     "required": "Este campo é obrigatório",
-    "email": "Por favor, digite um email válido",
-    "minLength": "Mínimo {{count}} caracteres obrigatório",
-    "maxLength": "Máximo {{count}} caracteres permitido",
+    "email": "Por favor, insira um e-mail válido",
+    "minLength": "Mínimo de {{count}} caracteres necessários",
+    "maxLength": "Máximo de {{count}} caracteres permitidos",
     "pattern": "Formato inválido"
-  },
-  "footer": {
-    "company": "Empresa",
-    "about": "Sobre FoodFlow",
-    "blog": "Blog",
-    "careers": "Carreiras",
-    "contact": "Contate-nos",
-    "legal": "Legal",
-    "privacy": "Política de Privacidade",
-    "terms": "Termos de Serviço",
-    "followUs": "Nos siga",
-    "copyright": "© 2025 FoodFlow. Todos os direitos reservados."
   },
   "toast": {
     "saved": "Salvo",
     "deleted": "Excluído",
     "errorSaving": "Não foi possível salvar as alterações",
-    "claimSuccess": "Reivindicação bem-sucedida",
-    "claimError": "Não foi possível concluir a reivindicação"
+    "claimSuccess": "Reclamação bem-sucedida",
+    "claimError": "Não foi possível concluir a reclamação"
   },
   "errors": {
-    "network": "Erro de rede. Tente novamente.",
-    "server": "Erro no servidor. Entre em contato com o suporte.",
+    "network": "Erro de rede. Por favor, tente novamente.",
+    "server": "Erro do servidor. Entre em contato com o suporte.",
     "validation": "Por favor, verifique os campos e tente novamente."
+  },
+  "landing": {
+    "home": {
+      "title1": "Conecte excedentes com",
+      "title2": "quem precisa",
+      "title3": "Receba alimentos de qualidade",
+      "title4": "para sua comunidade",
+      "description": "Conectando empresas de alimentos com organizações comunitárias. Transforme excedente em impacto—sejam sobras de eventos, excesso de restaurantes ou sobras de supermercados.",
+      "joinUs": "Junte-se a nós agora"
+    },
+    "about": {
+      "title": "Sobre o FoodFlow",
+      "subtitle": "Nossa plataforma conecta doadores de alimentos com organizações verificadas para reduzir o desperdício e combater a fome através de tecnologia inteligente e colaboração comunitária.",
+      "verifiedOrgs": {
+        "title": "Organizações verificadas",
+        "content": "Todas as nossas organizações parceiras passam por verificação completa e verificação de antecedentes para garantir segurança, legitimidade e conformidade com os padrões de segurança alimentar."
+      },
+      "realTimeNotifications": {
+        "title": "Notificações em tempo real",
+        "content": "Alertas instantâneos quando doações de alimentos ficam disponíveis. Nosso sistema rastreia temperatura, horários de retirada e conformidade automaticamente para transparência completa."
+      },
+      "smartMatching": {
+        "title": "Correspondência inteligente",
+        "content": "Nosso algoritmo inteligente corresponde tipo de alimento, quantidade e localização com a organização próxima mais adequada para maximizar eficiência e impacto."
+      }
+    },
+    "howItWorks": {
+      "title": "Como funciona o FoodFlow",
+      "subtitle": "Alimentos excedentes chegam a instituições de caridade em minutos, não em horas. Nossa correspondência inteligente evita que bons alimentos sejam desperdiçados.",
+      "step1": {
+        "number": "01",
+        "title": "Publique excedentes instantaneamente",
+        "text": "Restaurantes, eventos e lojas publicam alimentos excedentes com quantidade, local de retirada e janela de tempo antes de estragarem."
+      },
+      "step2": {
+        "number": "02",
+        "title": "Correspondência inteligente instantânea",
+        "text": "Nosso algoritmo alerta instantaneamente a instituição de caridade, abrigo ou voluntário verificado mais próximo que possa retirar dentro da janela de tempo."
+      },
+      "step3": {
+        "number": "03",
+        "title": "Retirada segura rastreada",
+        "text": "O rastreamento integrado de segurança alimentar registra temperatura, datas de validade e horários de retirada para conformidade, garantindo que as refeições cheguem rapidamente às pessoas."
+      }
+    },
+    "faq": {
+      "title": "Perguntas frequentes",
+      "q1": {
+        "question": "Como posso usar o FoodFlow para doar meu excedente de alimentos?",
+        "answer": "Doar excedente de alimentos através do FoodFlow é simples! Primeiro, crie uma conta em nossa plataforma. Uma vez logado, você pode publicar rapidamente alimentos excedentes disponíveis fornecendo detalhes como tipo de alimento, quantidade, local de retirada e janela de tempo. Instituições de caridade e organizações comunitárias próximas serão notificadas instantaneamente e poderão reclamar a doação."
+      },
+      "q2": {
+        "question": "Que tipo de organizações podem receber alimentos através do FoodFlow?",
+        "answer": "O FoodFlow trabalha com organizações de caridade verificadas, incluindo bancos de alimentos, abrigos para sem-teto, cozinhas comunitárias, escolas e organizações sem fins lucrativos que atendem populações vulneráveis. Todas as organizações receptoras passam por um processo de verificação para garantir que possam manusear e distribuir alimentos adequadamente de acordo com os padrões de segurança."
+      },
+      "q3": {
+        "question": "Há algum custo para usar o FoodFlow?",
+        "answer": "O FoodFlow é completamente gratuito tanto para doadores de alimentos quanto para organizações receptoras. Nossa missão é reduzir o desperdício de alimentos e ajudar as comunidades, por isso projetamos a plataforma para ser acessível a todos."
+      },
+      "q4": {
+        "question": "Como o FoodFlow garante a segurança alimentar?",
+        "answer": "A segurança alimentar é nossa principal prioridade. Nossa plataforma inclui diretrizes de segurança integradas e recursos de rastreamento. Os doadores fornecem informações sobre condições de armazenamento, tempo de preparação e datas de validade. Também fornecemos registro de temperatura para itens perecíveis e garantimos que todas as retiradas ocorram dentro de janelas de tempo seguras."
+      }
+    }
+  },
+  "login": {
+    "title": "Entre na sua conta",
+    "backHome": "← Voltar ao início",
+    "emailLabel": "Endereço de e-mail",
+    "emailPlaceholder": "Digite seu e-mail",
+    "passwordLabel": "Senha",
+    "passwordPlaceholder": "Digite sua senha",
+    "forgotPassword": "Esqueceu a senha?",
+    "loggingIn": "Entrando…",
+    "logIn": "ENTRAR",
+    "dontHaveAccount": "Não tem uma conta?",
+    "signUp": "Registre-se"
+  },
+  "donorRegistration": {
+    "title": "Registrar como doador",
+    "description": "Sua generosidade fornece refeições, cuidado e esperança para famílias necessitadas. Cada doação ajuda a fortalecer comunidades e construir um futuro mais brilhante e gentil. Juntos, podemos criar mudanças duradouras!",
+    "emailLabel": "Endereço de e-mail",
+    "emailPlaceholder": "Digite seu endereço de e-mail",
+    "passwordLabel": "Senha",
+    "passwordPlaceholder": "Digite sua senha",
+    "passwordMinLength": "Mínimo de 8 caracteres",
+    "organizationNameLabel": "Nome da organização",
+    "organizationNamePlaceholder": "Digite o nome da sua organização",
+    "contactPersonLabel": "Pessoa de contato",
+    "contactPersonPlaceholder": "Digite o nome da pessoa de contato",
+    "phoneLabel": "Número de telefone",
+    "phonePlaceholder": "Digite seu número de telefone",
+    "addressLabel": "Endereço",
+    "addressPlaceholder": "Digite seu endereço",
+    "organizationTypeLabel": "Tipo de organização",
+    "organizationTypeRestaurant": "Restaurante",
+    "organizationTypeGrocery": "Supermercado",
+    "organizationTypeEvent": "Organizador de eventos",
+    "businessLicenseLabel": "Número da licença comercial",
+    "businessLicensePlaceholder": "Digite o número da sua licença comercial",
+    "businessLicenseOptional": "Opcional, mas recomendado para verificação",
+    "back": "Voltar",
+    "registering": "Registrando...",
+    "registerAsDonor": "Registrar como doador",
+    "registrationSuccess": "Registro bem-sucedido! Bem-vindo ao FoodFlow.",
+    "registrationFailed": "Registro falhou. Por favor, tente novamente."
+  },
+  "receiverRegistration": {
+    "title": "Registrar como receptor",
+    "description": "Junte-se à nossa rede para receber doações de alimentos de qualidade para sua comunidade. Conectamos você com empresas locais para reduzir o desperdício e apoiar quem precisa. Juntos, podemos criar soluções sustentáveis para distribuição de alimentos.",
+    "emailLabel": "Endereço de e-mail",
+    "emailPlaceholder": "Digite seu endereço de e-mail",
+    "passwordLabel": "Senha",
+    "passwordPlaceholder": "Digite sua senha",
+    "passwordMinLength": "Mínimo de 8 caracteres",
+    "organizationNameLabel": "Nome da organização",
+    "organizationNamePlaceholder": "Digite o nome da sua organização",
+    "contactPersonLabel": "Pessoa de contato",
+    "contactPersonPlaceholder": "Digite o nome da pessoa de contato",
+    "phoneLabel": "Número de telefone",
+    "phonePlaceholder": "Digite seu número de telefone",
+    "addressLabel": "Endereço",
+    "addressPlaceholder": "Digite seu endereço",
+    "organizationTypeLabel": "Tipo de organização",
+    "organizationTypeCharity": "Instituição de caridade",
+    "organizationTypeShelter": "Abrigo",
+    "organizationTypeKitchen": "Cozinha comunitária",
+    "capacityLabel": "Capacidade diária (pessoas atendidas)",
+    "capacityPlaceholder": "Digite sua capacidade diária",
+    "capacityHint": "Número aproximado de pessoas que você atende diariamente",
+    "back": "Voltar",
+    "registering": "Registrando...",
+    "registerAsReceiver": "Registrar como receptor",
+    "registrationSuccess": "Registro bem-sucedido! Bem-vindo ao FoodFlow.",
+    "registrationFailed": "Registro falhou. Por favor, tente novamente."
+  },
+  "donorWelcome": {
+    "welcomeBack": "Bem-vindo de volta, {{name}}",
+    "totalDonations": "Total de doações",
+    "mealsServed": "Refeições servidas",
+    "co2Saved": "CO₂ economizado",
+    "donateFood": {
+      "title": "Doar alimentos",
+      "description": "Envie uma nova doação para compartilhar com organizações comunitárias",
+      "button": "Criar doação"
+    },
+    "impactReports": {
+      "title": "Relatórios de impacto",
+      "description": "Ver estatísticas detalhadas sobre o impacto das suas doações",
+      "button": "Ver relatórios"
+    },
+    "recentDonations": "Doações recentes",
+    "viewAll": "Ver todas",
+    "noDonationsYet": "Ainda não há doações. Crie sua primeira doação para começar!",
+    "noNameYet": "Ainda sem nome",
+    "foodDonation": "Doação de alimentos",
+    "status": {
+      "available": "Disponível",
+      "claimed": "Reclamado",
+      "completed": "Concluído",
+      "readyForPickup": "Pronto para retirada",
+      "notCompleted": "Não concluído",
+      "expired": "Expirado"
+    }
+  },
+  "receiverWelcome": {
+    "title": "Encontre alimentos perto de você",
+    "subtitle": "Ajudamos organizações a se conectar com alimentos disponíveis—rapidamente e de forma confiável. Comece com o mapa para ver doações próximas e solicite o que você precisa hoje.",
+    "tip": "Dica: Configure seus horários de retirada e capacidade para ser correspondido mais rapidamente.",
+    "searchMap": {
+      "title": "Buscar no mapa",
+      "description": "Navegue pelas publicações atuais e filtre por categoria ou validade para encontrar rapidamente os itens que sua organização precisa.",
+      "button": "Abrir mapa e buscar"
+    },
+    "needAssistance": {
+      "title": "Precisa de ajuda?",
+      "description": "Envie-nos um e-mail para {{email}} e ajudaremos você a coordenar uma retirada.",
+      "newHere": "Novo aqui? Leia as perguntas comuns.",
+      "button": "Ver perguntas frequentes"
+    }
+  },
+  "surplusForm": {
+    "title": "Adicionar nova doação",
+    "cancelConfirm": "Cancelar criação da doação?",
+    "titleLabel": "Título",
+    "titlePlaceholder": "ex., Lasanha de legumes",
+    "foodCategoriesLabel": "Categorias de alimentos",
+    "foodCategoriesPlaceholder": "Selecionar categorias",
+    "expiryDateLabel": "Data de validade",
+    "expiryDatePlaceholder": "Selecionar data de validade",
+    "quantityLabel": "Quantidade",
+    "quantityPlaceholder": "0",
+    "unitLabel": "Unidade",
+    "unitPlaceholder": "Selecionar unidade",
+    "pickupTimeSlotsLabel": "Horários de retirada",
+    "addAnotherSlot": "Adicionar outro horário",
+    "slot": "Horário",
+    "dateLabel": "Data",
+    "datePlaceholder": "Selecionar data",
+    "startTimeLabel": "Hora de início",
+    "startTimePlaceholder": "Início",
+    "endTimeLabel": "Hora de término",
+    "endTimePlaceholder": "Término",
+    "notesLabel": "Notas (opcional)",
+    "notesPlaceholder": "ex., Usar entrada dos fundos, Perguntar pelo gerente",
+    "pickupLocationLabel": "Local de retirada",
+    "pickupLocationPlaceholder": "Comece a digitar o endereço...",
+    "descriptionLabel": "Descrição",
+    "descriptionPlaceholder": "Descreva os alimentos (ingredientes, frescor, etc.)",
+    "cancel": "Cancelar",
+    "createDonation": "Criar doação",
+    "success": "Sucesso! Publicação criada com ID: {{id}}",
+    "failed": "Falha ao criar publicação de excedente",
+    "foodTypes": {
+      "preparedMeals": "Refeições preparadas",
+      "bakeryPastry": "Padaria e confeitaria",
+      "fruitsVegetables": "Frutas e vegetais",
+      "packagedPantry": "Itens embalados / despensa",
+      "dairyCold": "Laticínios e produtos frios",
+      "frozen": "Alimentos congelados"
+    },
+    "units": {
+      "kilogram": "kg",
+      "item": "itens",
+      "liter": "litros",
+      "pound": "lbs",
+      "box": "caixas"
+    }
+  },
+  "chat": {
+    "noConversationSelected": "Nenhuma conversa selecionada",
+    "selectConversation": "Selecione uma conversa da barra lateral ou inicie uma nova",
+    "with": "com",
+    "claimed": "Reclamado",
+    "viewPost": "Ver publicação",
+    "noMessagesYet": "Ainda não há mensagens. Inicie a conversa!",
+    "today": "Hoje",
+    "yesterday": "Ontem",
+    "typeMessage": "Digite sua mensagem aqui...",
+    "sendMessage": "Enviar mensagem",
+    "failedToSend": "Falha ao enviar mensagem"
+  },
+  "messaging": {
+    "failedToLoad": "Falha ao carregar conversas"
+  },
+  "footer": {
+    "description": "Descubra uma plataforma de loja de caridade projetada para revolucionar a distribuição de alimentos. Conecte instituições de caridade com fontes de alimentos através de distâncias, melhore as comunicações e garanta que alimentos frescos cheguem a quem precisa. O FoodFlow possui uma interface intuitiva e fácil de usar.",
+    "company": "Empresa",
+    "home": "Início",
+    "howItWorks": "Como funciona",
+    "about": "Sobre",
+    "faqs": "Perguntas frequentes",
+    "contact": "Contato",
+    "email": "foodflow.group@gmail.com",
+    "phone": "1-800-122-4567",
+    "copyright": "Copyright © 2025. Todos os direitos reservados ao FoodFlow",
+    "privacyPolicy": "Política de privacidade",
+    "termsConditions": "Termos e condições"
   },
   "donorListFood": {
     "edit": "Editar",
@@ -206,22 +441,22 @@
     "openChat": "ABRIR CHAT",
     "postDeletedSuccess": "Publicação excluída com sucesso.",
     "postDeleteFailed": "Falha ao excluir publicação",
-    "rescheduleComingSoon": "A funcionalidade de reagendamento chegará em breve!"
+    "rescheduleComingSoon": "A funcionalidade de reagendamento está chegando em breve!"
   },
   "confirmPickup": {
-    "title": "Confirmar Retirada",
+    "title": "Confirmar retirada",
     "subtitle": "Digite o código de 6 dígitos mostrado pelo receptor:",
-    "codeRequired": "Por favor, digite o código de 6 dígitos completo",
+    "codeRequired": "Por favor, digite o código completo de 6 dígitos",
     "invalidDonation": "Item de doação inválido",
     "verifyFailed": "Falha ao verificar código",
     "info": "O receptor pode encontrar este código em sua conta:",
-    "myClaims": "Minhas Reivindicações",
+    "myClaims": "Minhas reclamações",
     "cancel": "Cancelar",
     "verifying": "Verificando...",
-    "confirm": "Confirmar Retirada"
+    "confirm": "Confirmar retirada"
   },
   "admin": {
-    "dashboard": "Dashboard do Administrador",
+    "dashboard": "Painel do administrador",
     "analytics": "Análises",
     "calendar": "Calendário",
     "messages": "Mensagens",
@@ -234,57 +469,57 @@
     "administration": "Administração"
   },
   "claimDetail": {
-    "readyForPickup": "Pronto para Retirada",
+    "readyForPickup": "Pronto para retirada",
     "completed": "Concluído",
-    "notCompleted": "Não Concluído",
-    "claimed": "Reivindicado",
-    "donationDetails": "Detalhes da Doação",
-    "untitledDonation": "Doação Sem Título"
+    "notCompleted": "Não concluído",
+    "claimed": "Reclamado",
+    "donationDetails": "Detalhes da doação",
+    "untitledDonation": "Doação sem título"
   },
   "claimedView": {
-    "claimed": "Reivindicado",
-    "untitledDonation": "Doação Sem Título",
-    "pickupSteps": "Passos de Retirada",
+    "claimed": "Reclamado",
+    "untitledDonation": "Doação sem título",
+    "pickupSteps": "Etapas de retirada",
     "reviewPickup": {
       "title": "Revisar horário e local de retirada",
-      "description": "Chegue no horário para garantir que sua organização receba esta doação."
+      "description": "Seja pontual para garantir que sua organização receba esta doação."
     },
     "timeUnits": {
       "day": "dia",
       "days": "dias",
-      "hrs": "h",
+      "hrs": "hrs",
       "min": "min",
       "sec": "seg"
     }
   },
   "filtersPanel": {
     "foodCategories": {
-      "fruitsVegetables": "Frutas e Vegetais",
-      "bakeryPastry": "Padaria e Confeitaria",
-      "packagedPantry": "Itens Embalados / Despensa",
-      "dairyCold": "Laticínios e Itens Frios",
-      "frozen": "Alimentos Congelados",
-      "preparedMeals": "Refeições Prontas"
+      "fruitsVegetables": "Frutas e vegetais",
+      "bakeryPastry": "Padaria e confeitaria",
+      "packagedPantry": "Itens embalados / despensa",
+      "dairyCold": "Laticínios e produtos frios",
+      "frozen": "Alimentos congelados",
+      "preparedMeals": "Refeições preparadas"
     },
     "selectDate": "Selecionar data"
   },
   "receiverBrowse": {
-    "confirmClaim": "Tem certeza de que deseja reivindicar esta doação?",
-    "claimSuccess": "Doação reivindicada com sucesso",
-    "claimFailed": "Falha ao reivindicar doação"
+    "confirmClaim": "Tem certeza de que deseja reclamar esta doação?",
+    "claimSuccess": "Doação reclamada com sucesso",
+    "claimFailed": "Falha ao reclamar doação"
   },
   "receiverMyClaims": {
-    "readyForPickup": "Pronto para Retirada",
+    "readyForPickup": "Pronto para retirada",
     "completed": "Concluído",
-    "notCompleted": "Não Concluído",
-    "claimed": "Reivindicado"
+    "notCompleted": "Não concluído",
+    "claimed": "Reclamado"
   },
   "notifications": {
     "newMessageFrom": "Nova mensagem de",
-    "claimConfirmed": "Reivindicação Confirmada",
-    "claimStatus": "Status da Reivindicação",
-    "successfullyClaimed": "Reivindicação bem-sucedida de \"{{foodTitle}}\" de {{donorName}}",
-    "readyForPickup": "\"{{foodTitle}}\" está pronto para retirada! Verifique suas reivindicações para mais detalhes.",
-    "claimCancelled": "Sua reivindicação sobre \"{{foodTitle}}\" foi cancelada"
+    "claimConfirmed": "Reclamação confirmada",
+    "claimStatus": "Status da reclamação",
+    "successfullyClaimed": "Reclamação bem-sucedida de \"{{foodTitle}}\" de {{donorName}}",
+    "readyForPickup": "\"{{foodTitle}}\" está pronto para retirada! Verifique suas reclamações para mais detalhes.",
+    "claimCancelled": "Sua reclamação de \"{{foodTitle}}\" foi cancelada"
   }
 }

@@ -104,20 +104,6 @@
     "claimed": "Claimed",
     "noResults": "No results found"
   },
-  "admin": {
-    "dashboard": "Admin Dashboard",
-    "analytics": "Analytics",
-    "users": "Users",
-    "reports": "Reports",
-    "settings": "Settings",
-    "totalUsers": "Total Users",
-    "totalDonors": "Total Donors",
-    "totalReceivers": "Total Receivers",
-    "activeClaims": "Active Claims",
-    "completedClaims": "Completed Claims",
-    "foodDistributed": "Food Distributed",
-    "welcome": "Welcome to Admin Dashboard"
-  },
   "messages": {
     "inbox": "Inbox",
     "sentMessages": "Sent",
@@ -176,19 +162,6 @@
     "maxLength": "Maximum {{count}} characters allowed",
     "pattern": "Invalid format"
   },
-  "footer": {
-    "company": "Company",
-    "about": "About FoodFlow",
-    "blog": "Blog",
-    "careers": "Careers",
-    "contact": "Contact Us",
-    "legal": "Legal",
-    "privacy": "Privacy Policy",
-    "terms": "Terms of Service",
-    "followUs": "Follow Us",
-    "copyright": "© 2025 FoodFlow. All rights reserved."
-  }
-  ,
   "toast": {
     "saved": "Saved",
     "deleted": "Deleted",

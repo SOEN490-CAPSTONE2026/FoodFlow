@@ -1,14 +1,14 @@
 {
   "nav": {
     "home": "首页",
-    "howItWorks": "工作原理",
+    "howItWorks": "如何运作",
     "about": "关于我们",
     "faqs": "常见问题",
     "contact": "联系我们",
     "login": "登录",
     "register": "注册",
-    "returnToDashboard": "返回仪表板",
-    "logout": "退出登录"
+    "returnToDashboard": "返回控制台",
+    "logout": "登出"
   },
   "language": {
     "select": "选择语言",
@@ -20,26 +20,26 @@
     "portuguese": "Português"
   },
   "auth": {
-    "email": "电子邮件",
+    "email": "电子邮箱",
     "password": "密码",
     "confirmPassword": "确认密码",
     "forgotPassword": "忘记密码？",
-    "dontHaveAccount": "没有帐户？",
-    "alreadyHaveAccount": "已有帐户？",
+    "dontHaveAccount": "没有账户？",
+    "alreadyHaveAccount": "已有账户？",
     "signIn": "登录",
     "signUp": "注册",
-    "invalidEmailPassword": "无效的电子邮件或密码",
+    "invalidEmailPassword": "电子邮箱或密码无效",
     "passwordMismatch": "密码不匹配",
-    "emailRequired": "电子邮件为必填项",
+    "emailRequired": "电子邮箱为必填项",
     "passwordRequired": "密码为必填项",
-    "passwordTooShort": "密码至少需要8个字符",
+    "passwordTooShort": "密码必须至少8个字符",
     "resetPassword": "重置密码",
     "sendResetLink": "发送重置链接",
-    "enterEmail": "输入您的电子邮件地址"
+    "enterEmail": "输入您的电子邮箱地址"
   },
   "registration": {
     "registerAsDonor": "注册为捐赠者",
-    "registerAsReceiver": "注册为接收者",
+    "registerAsReceiver": "注册为受助者",
     "selectRole": "选择您的角色",
     "firstName": "名字",
     "lastName": "姓氏",
@@ -57,17 +57,17 @@
     "registrationError": "注册错误"
   },
   "donor": {
-    "dashboard": "捐赠者仪表板",
+    "dashboard": "捐赠者控制台",
     "addSurplus": "添加剩余食物",
-    "listFood": "列出食物",
-    "myListings": "我的列表",
+    "listFood": "食物列表",
+    "myListings": "我的发布",
     "requests": "请求",
     "messages": "消息",
     "surplus": "剩余食物",
     "foodType": "食物类型",
     "quantity": "数量",
     "unit": "单位",
-    "expiryDate": "过期日期",
+    "expiryDate": "保质期",
     "description": "描述",
     "address": "地址",
     "city": "城市",
@@ -86,12 +86,12 @@
     "selectFoodType": "选择食物类型",
     "enterQuantity": "输入数量",
     "selectUnit": "选择单位",
-    "selectExpiryDate": "选择过期日期"
+    "selectExpiryDate": "选择保质期"
   },
   "receiver": {
-    "dashboard": "接收者仪表板",
+    "dashboard": "受助者控制台",
     "browse": "浏览食物",
-    "preferences": "偏好",
+    "preferences": "偏好设置",
     "claims": "认领",
     "messages": "消息",
     "search": "搜索",
@@ -99,24 +99,10 @@
     "distance": "距离",
     "km": "公里",
     "foodType": "食物类型",
-    "expiryDate": "过期日期",
+    "expiryDate": "保质期",
     "available": "可用",
     "claimed": "已认领",
     "noResults": "未找到结果"
-  },
-  "admin": {
-    "dashboard": "管理员仪表板",
-    "analytics": "分析",
-    "users": "用户",
-    "reports": "报告",
-    "settings": "设置",
-    "totalUsers": "总用户数",
-    "totalDonors": "总捐赠者数",
-    "totalReceivers": "总接收者数",
-    "activeClaims": "活跃认领",
-    "completedClaims": "已完成认领",
-    "foodDistributed": "分配的食物",
-    "welcome": "欢迎使用管理员仪表板"
   },
   "messages": {
     "inbox": "收件箱",
@@ -130,7 +116,7 @@
     "reply": "回复",
     "delete": "删除",
     "search": "搜索消息",
-    "noMessages": "无消息"
+    "noMessages": "没有消息"
   },
   "common": {
     "save": "保存",
@@ -162,28 +148,289 @@
     "settings": "设置",
     "help": "帮助",
     "about": "关于",
-    "logout": "退出登录",
+    "logout": "登出",
     "profile": "个人资料",
-    "download": "下载"
+    "download": "下载",
+    "hidePassword": "隐藏密码",
+    "showPassword": "显示密码",
+    "time": "时间"
   },
   "validation": {
     "required": "此字段为必填项",
-    "email": "请输入有效的电子邮件",
-    "minLength": "最少需要{{count}}个字符",
+    "email": "请输入有效的电子邮箱",
+    "minLength": "至少需要{{count}}个字符",
     "maxLength": "最多允许{{count}}个字符",
-    "pattern": "无效的格式"
+    "pattern": "格式无效"
+  },
+  "toast": {
+    "saved": "已保存",
+    "deleted": "已删除",
+    "errorSaving": "无法保存更改",
+    "claimSuccess": "认领成功",
+    "claimError": "无法完成认领"
+  },
+  "errors": {
+    "network": "网络错误。请重试。",
+    "server": "服务器错误。请联系支持。",
+    "validation": "请检查字段并重试。"
+  },
+  "landing": {
+    "home": {
+      "title1": "连接剩余食物与",
+      "title2": "有需要的人",
+      "title3": "为您的社区",
+      "title4": "获取优质食物",
+      "description": "连接食品企业与社区组织。将剩余转化为影响力——无论是活动剩余、餐厅多余还是超市积压。",
+      "joinUs": "立即加入我们"
+    },
+    "about": {
+      "title": "关于FoodFlow",
+      "subtitle": "我们的平台通过智能技术和社区合作，将食物捐赠者与经过验证的组织联系起来，减少浪费并对抗饥饿。",
+      "verifiedOrgs": {
+        "title": "经过验证的组织",
+        "content": "我们所有的合作组织都经过全面验证和背景调查，以确保安全、合法性并符合食品安全标准。"
+      },
+      "realTimeNotifications": {
+        "title": "实时通知",
+        "content": "当食物捐赠可用时即时提醒。我们的系统自动跟踪温度、取货时间和合规性，实现完全透明。"
+      },
+      "smartMatching": {
+        "title": "智能匹配",
+        "content": "我们的智能算法将食物类型、数量和位置与最合适的附近组织匹配，以最大化效率和影响力。"
+      }
+    },
+    "howItWorks": {
+      "title": "FoodFlow如何运作",
+      "subtitle": "剩余食物在几分钟内到达慈善机构，而不是几小时。我们的智能匹配防止好食物被浪费。",
+      "step1": {
+        "number": "01",
+        "title": "即时发布剩余",
+        "text": "餐厅、活动和商店发布剩余食物，包括数量、取货地点和时间窗口，在变质之前。"
+      },
+      "step2": {
+        "number": "02",
+        "title": "智能即时匹配",
+        "text": "我们的算法即时提醒最近的经过验证的慈善机构、庇护所或志愿者，他们可以在时间窗口内取货。"
+      },
+      "step3": {
+        "number": "03",
+        "title": "跟踪安全取货",
+        "text": "内置食品安全跟踪记录温度、保质期和取货时间以确保合规，同时确保食物快速到达人们手中。"
+      }
+    },
+    "faq": {
+      "title": "常见问题",
+      "q1": {
+        "question": "如何使用FoodFlow捐赠我的剩余食物？",
+        "answer": "通过FoodFlow捐赠剩余食物很简单！首先，在我们的平台上创建一个账户。登录后，您可以快速发布可用的剩余食物，提供食物类型、数量、取货地点和时间窗口等详细信息。附近的慈善机构和社区组织将立即收到通知并可以认领捐赠。"
+      },
+      "q2": {
+        "question": "哪些组织可以通过FoodFlow接收食物？",
+        "answer": "FoodFlow与经过验证的慈善组织合作，包括食物银行、无家可归者收容所、社区厨房、学校和为弱势群体服务的非营利组织。所有接收组织都经过验证流程，以确保他们能够根据安全标准正确处理和分发食物。"
+      },
+      "q3": {
+        "question": "使用FoodFlow需要付费吗？",
+        "answer": "FoodFlow对食物捐赠者和接收组织完全免费。我们的使命是减少食物浪费并帮助社区，因此我们将平台设计为对所有人都可访问。"
+      },
+      "q4": {
+        "question": "FoodFlow如何确保食品安全？",
+        "answer": "食品安全是我们的首要任务。我们的平台包括内置安全指南和跟踪功能。捐赠者提供有关储存条件、准备时间和保质期的信息。我们还为易腐物品提供温度记录，并确保所有取货都在安全的时间窗口内进行。"
+      }
+    }
+  },
+  "login": {
+    "title": "登录您的账户",
+    "backHome": "← 返回首页",
+    "emailLabel": "电子邮箱地址",
+    "emailPlaceholder": "输入您的电子邮箱",
+    "passwordLabel": "密码",
+    "passwordPlaceholder": "输入您的密码",
+    "forgotPassword": "忘记密码？",
+    "loggingIn": "正在登录…",
+    "logIn": "登录",
+    "dontHaveAccount": "没有账户？",
+    "signUp": "注册"
+  },
+  "donorRegistration": {
+    "title": "注册为捐赠者",
+    "description": "您的慷慨为有需要的家庭提供食物、关怀和希望。每一次捐赠都有助于加强社区，共同建设更光明、更友善的未来，我们可以创造持久的改变！",
+    "emailLabel": "电子邮箱地址",
+    "emailPlaceholder": "输入您的电子邮箱地址",
+    "passwordLabel": "密码",
+    "passwordPlaceholder": "输入您的密码",
+    "passwordMinLength": "至少8个字符",
+    "organizationNameLabel": "组织名称",
+    "organizationNamePlaceholder": "输入您的组织名称",
+    "contactPersonLabel": "联系人",
+    "contactPersonPlaceholder": "输入联系人姓名",
+    "phoneLabel": "电话号码",
+    "phonePlaceholder": "输入您的电话号码",
+    "addressLabel": "地址",
+    "addressPlaceholder": "输入您的地址",
+    "organizationTypeLabel": "组织类型",
+    "organizationTypeRestaurant": "餐厅",
+    "organizationTypeGrocery": "杂货店",
+    "organizationTypeEvent": "活动组织者",
+    "businessLicenseLabel": "营业执照号码",
+    "businessLicensePlaceholder": "输入您的营业执照号码",
+    "businessLicenseOptional": "可选但建议用于验证",
+    "back": "返回",
+    "registering": "正在注册...",
+    "registerAsDonor": "注册为捐赠者",
+    "registrationSuccess": "注册成功！欢迎来到FoodFlow。",
+    "registrationFailed": "注册失败。请重试。"
+  },
+  "receiverRegistration": {
+    "title": "注册为受助者",
+    "description": "加入我们的网络，为您的社区接收优质食物捐赠。我们将您与当地企业联系起来，减少浪费并支持有需要的人。我们可以一起为食物分配创造可持续的解决方案。",
+    "emailLabel": "电子邮箱地址",
+    "emailPlaceholder": "输入您的电子邮箱地址",
+    "passwordLabel": "密码",
+    "passwordPlaceholder": "输入您的密码",
+    "passwordMinLength": "至少8个字符",
+    "organizationNameLabel": "组织名称",
+    "organizationNamePlaceholder": "输入您的组织名称",
+    "contactPersonLabel": "联系人",
+    "contactPersonPlaceholder": "输入联系人姓名",
+    "phoneLabel": "电话号码",
+    "phonePlaceholder": "输入您的电话号码",
+    "addressLabel": "地址",
+    "addressPlaceholder": "输入您的地址",
+    "organizationTypeLabel": "组织类型",
+    "organizationTypeCharity": "慈善机构",
+    "organizationTypeShelter": "收容所",
+    "organizationTypeKitchen": "社区厨房",
+    "capacityLabel": "日服务能力（服务人数）",
+    "capacityPlaceholder": "输入您的日服务能力",
+    "capacityHint": "您每天服务的大约人数",
+    "back": "返回",
+    "registering": "正在注册...",
+    "registerAsReceiver": "注册为受助者",
+    "registrationSuccess": "注册成功！欢迎来到FoodFlow。",
+    "registrationFailed": "注册失败。请重试。"
+  },
+  "donorWelcome": {
+    "welcomeBack": "欢迎回来，{{name}}",
+    "totalDonations": "总捐赠数",
+    "mealsServed": "提供的餐食",
+    "co2Saved": "节省的CO₂",
+    "donateFood": {
+      "title": "捐赠食物",
+      "description": "提交新的捐赠与社区组织分享",
+      "button": "创建捐赠"
+    },
+    "impactReports": {
+      "title": "影响报告",
+      "description": "查看有关您捐赠影响的详细统计数据",
+      "button": "查看报告"
+    },
+    "recentDonations": "最近的捐赠",
+    "viewAll": "查看全部",
+    "noDonationsYet": "还没有捐赠。创建您的第一个捐赠开始吧！",
+    "noNameYet": "尚未命名",
+    "foodDonation": "食物捐赠",
+    "status": {
+      "available": "可用",
+      "claimed": "已认领",
+      "completed": "已完成",
+      "readyForPickup": "准备取货",
+      "notCompleted": "未完成",
+      "expired": "已过期"
+    }
+  },
+  "receiverWelcome": {
+    "title": "在您附近寻找食物",
+    "subtitle": "我们帮助组织快速可靠地连接可用食物。从地图开始查看附近的捐赠，并请求您今天需要的内容。",
+    "tip": "提示：设置您的取货时间和能力以更快匹配。",
+    "searchMap": {
+      "title": "搜索地图",
+      "description": "浏览当前列表并按类别或保质期筛选，快速找到您的组织需要的物品。",
+      "button": "打开地图并搜索"
+    },
+    "needAssistance": {
+      "title": "需要帮助？",
+      "description": "发送电子邮件至{{email}}，我们将帮助您协调取货。",
+      "newHere": "新来的？阅读常见问题。",
+      "button": "查看常见问题"
+    }
+  },
+  "surplusForm": {
+    "title": "添加新捐赠",
+    "cancelConfirm": "取消创建捐赠？",
+    "titleLabel": "标题",
+    "titlePlaceholder": "例如：蔬菜千层面",
+    "foodCategoriesLabel": "食物类别",
+    "foodCategoriesPlaceholder": "选择类别",
+    "expiryDateLabel": "保质期",
+    "expiryDatePlaceholder": "选择保质期",
+    "quantityLabel": "数量",
+    "quantityPlaceholder": "0",
+    "unitLabel": "单位",
+    "unitPlaceholder": "选择单位",
+    "pickupTimeSlotsLabel": "取货时间段",
+    "addAnotherSlot": "添加另一个时间段",
+    "slot": "时间段",
+    "dateLabel": "日期",
+    "datePlaceholder": "选择日期",
+    "startTimeLabel": "开始时间",
+    "startTimePlaceholder": "开始",
+    "endTimeLabel": "结束时间",
+    "endTimePlaceholder": "结束",
+    "notesLabel": "备注（可选）",
+    "notesPlaceholder": "例如：使用后门，询问经理",
+    "pickupLocationLabel": "取货地点",
+    "pickupLocationPlaceholder": "开始输入地址...",
+    "descriptionLabel": "描述",
+    "descriptionPlaceholder": "描述食物（成分、新鲜度等）",
+    "cancel": "取消",
+    "createDonation": "创建捐赠",
+    "success": "成功！已创建帖子，ID：{{id}}",
+    "failed": "创建剩余帖子失败",
+    "foodTypes": {
+      "preparedMeals": "预制餐",
+      "bakeryPastry": "烘焙和糕点",
+      "fruitsVegetables": "水果和蔬菜",
+      "packagedPantry": "包装/储藏室物品",
+      "dairyCold": "乳制品和冷藏品",
+      "frozen": "冷冻食品"
+    },
+    "units": {
+      "kilogram": "公斤",
+      "item": "件",
+      "liter": "升",
+      "pound": "磅",
+      "box": "盒"
+    }
+  },
+  "chat": {
+    "noConversationSelected": "未选择对话",
+    "selectConversation": "从侧边栏选择对话或开始新对话",
+    "with": "与",
+    "claimed": "已认领",
+    "viewPost": "查看帖子",
+    "noMessagesYet": "还没有消息。开始对话吧！",
+    "today": "今天",
+    "yesterday": "昨天",
+    "typeMessage": "在这里输入您的消息...",
+    "sendMessage": "发送消息",
+    "failedToSend": "发送消息失败"
+  },
+  "messaging": {
+    "failedToLoad": "加载对话失败"
   },
   "footer": {
+    "description": "发现一个旨在革新食物分配的慈善商店平台。跨越距离连接慈善机构与食物来源，增强沟通并确保新鲜食物到达有需要的人手中。FoodFlow拥有直观且用户友好的界面。",
     "company": "公司",
-    "about": "关于FoodFlow",
-    "blog": "博客",
-    "careers": "职业",
-    "contact": "联系我们",
-    "legal": "法律",
-    "privacy": "隐私政策",
-    "terms": "服务条款",
-    "followUs": "关注我们",
-    "copyright": "© 2025 FoodFlow。版权所有。"
+    "home": "首页",
+    "howItWorks": "如何运作",
+    "about": "关于我们",
+    "faqs": "常见问题",
+    "contact": "联系",
+    "email": "foodflow.group@gmail.com",
+    "phone": "1-800-122-4567",
+    "copyright": "版权所有 © 2025。FoodFlow保留所有权利",
+    "privacyPolicy": "隐私政策",
+    "termsConditions": "条款和条件"
   },
   "donorListFood": {
     "edit": "编辑",
@@ -192,32 +439,32 @@
     "enterPickupCode": "输入取货代码",
     "thankYou": "谢谢",
     "openChat": "打开聊天",
-    "postDeletedSuccess": "帖子已成功删除。",
+    "postDeletedSuccess": "帖子删除成功。",
     "postDeleteFailed": "删除帖子失败",
     "rescheduleComingSoon": "重新安排功能即将推出！"
   },
   "confirmPickup": {
     "title": "确认取货",
-    "subtitle": "输入接收者显示的6位代码：",
-    "codeRequired": "请输入完整的6位代码",
+    "subtitle": "输入受助者显示的6位数代码：",
+    "codeRequired": "请输入完整的6位数代码",
     "invalidDonation": "无效的捐赠项目",
     "verifyFailed": "验证代码失败",
-    "info": "接收者可以在其账户中找到此代码：",
+    "info": "受助者可以在他们的账户中找到此代码：",
     "myClaims": "我的认领",
     "cancel": "取消",
-    "verifying": "验证中...",
+    "verifying": "正在验证...",
     "confirm": "确认取货"
   },
   "admin": {
-    "dashboard": "管理员仪表板",
+    "dashboard": "管理员控制台",
     "analytics": "分析",
     "calendar": "日历",
     "messages": "消息",
     "help": "帮助",
     "overview": "概览和快速操作",
-    "metrics": "指标和洞察",
+    "metrics": "指标和见解",
     "events": "活动和日程",
-    "communications": "传入的通信",
+    "communications": "收到的通信",
     "guides": "指南和支持",
     "administration": "管理"
   },
@@ -235,7 +482,7 @@
     "pickupSteps": "取货步骤",
     "reviewPickup": {
       "title": "查看取货时间和地点",
-      "description": "请准时到达，以确保您的组织收到此捐赠。"
+      "description": "准时以确保您的组织收到此捐赠。"
     },
     "timeUnits": {
       "day": "天",
@@ -249,8 +496,8 @@
     "foodCategories": {
       "fruitsVegetables": "水果和蔬菜",
       "bakeryPastry": "烘焙和糕点",
-      "packagedPantry": "包装/ pantry物品",
-      "dairyCold": "乳制品和冷品",
+      "packagedPantry": "包装/储藏室物品",
+      "dairyCold": "乳制品和冷藏品",
       "frozen": "冷冻食品",
       "preparedMeals": "预制餐"
     },
@@ -271,8 +518,8 @@
     "newMessageFrom": "来自的新消息",
     "claimConfirmed": "认领已确认",
     "claimStatus": "认领状态",
-    "successfullyClaimed": "成功认领了来自{{donorName}}的\"{{foodTitle}}\"",
-    "readyForPickup": "\"{{foodTitle}}\"已准备好取货！请查看您的认领以获取详细信息。",
+    "successfullyClaimed": "成功认领来自{{donorName}}的\"{{foodTitle}}\"",
+    "readyForPickup": "\"{{foodTitle}}\"已准备好取货！查看您的认领了解详情。",
     "claimCancelled": "您对\"{{foodTitle}}\"的认领已被取消"
   }
 }
