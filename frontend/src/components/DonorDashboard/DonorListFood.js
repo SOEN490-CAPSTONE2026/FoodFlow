@@ -16,12 +16,15 @@ import {
   ChevronLeft,
   ChevronRight,
   Upload,
+  Star,
 } from "lucide-react";
 import { useLoadScript } from "@react-google-maps/api";
-import { surplusAPI, claimsAPI } from "../../services/api";
+import { surplusAPI, claimsAPI, reportAPI } from "../../services/api";
 import SurplusFormModal from "../DonorDashboard/SurplusFormModal";
 import ConfirmPickupModal from "../DonorDashboard/ConfirmPickupModal";
 import ClaimedSuccessModal from "../DonorDashboard/ClaimedSuccessModal";
+import ReportUserModal from "../ReportUserModal";
+import FeedbackModal from "../FeedbackModal/FeedbackModal";
 import { getFoodTypeLabel, getUnitLabel, getTemperatureCategoryLabel, getTemperatureCategoryIcon, getPackagingTypeLabel } from "../../constants/foodConstants";
 import "../DonorDashboard/Donor_Styles/DonorListFood.css";
 
@@ -134,6 +137,13 @@ export default function DonorListFood() {
   const [error, setError] = useState(null);
   const [sortBy, setSortBy] = useState("date"); // "date" or "status"
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
+  
+  // Report and Feedback modal states
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [reportTargetUser, setReportTargetUser] = useState(null);
+  const [feedbackTargetUser, setFeedbackTargetUser] = useState(null);
+  const [feedbackClaimId, setFeedbackClaimId] = useState(null);
   const navigate = useNavigate();
   
   // Photo upload states
@@ -312,6 +322,61 @@ const contactReceiver = async (item) => {
 
   const handleCloseSuccessModal = () => {
     setIsSuccessModalOpen(false);
+  };
+
+  // Report handler
+  const handleOpenReport = async (item) => {
+    try {
+      const { data: claims } = await claimsAPI.getClaimForSurplusPost(item.id);
+      if (claims && claims.length > 0) {
+        const claim = claims[0];
+        const receiver = claim.receiver || {
+          id: claim.receiverId,
+          name: claim.receiverName || claim.receiverEmail,
+        };
+        setReportTargetUser(receiver);
+        setCompletedDonationId(item.id);
+        setShowReportModal(true);
+      }
+    } catch (err) {
+      console.error('Failed to fetch claim details for report', err);
+      alert('Unable to report at this time. Please try again.');
+    }
+  };
+
+  const handleReportSubmit = async (reportData) => {
+    try {
+      await reportAPI.createReport(reportData);
+      alert('Report submitted successfully! An admin will review it shortly.');
+      setShowReportModal(false);
+    } catch (error) {
+      console.error('Failed to submit report:', error);
+      alert('Failed to submit report. Please try again.');
+    }
+  };
+
+  // Feedback handler
+  const handleOpenFeedback = async (item) => {
+    try {
+      console.log('Opening feedback for item:', item);
+      const { data: claims } = await claimsAPI.getClaimForSurplusPost(item.id);
+      console.log('Claims for post:', claims);
+      if (claims && claims.length > 0) {
+        const claim = claims[0];
+        console.log('Claim details for feedback:', claim);
+        console.log('Claim status:', claim.status);
+        const receiver = claim.receiver || {
+          id: claim.receiverId,
+          name: claim.receiverName || claim.receiverEmail,
+        };
+        setFeedbackTargetUser(receiver);
+        setFeedbackClaimId(claim.id);
+        setShowFeedbackModal(true);
+      }
+    } catch (err) {
+      console.error('Failed to fetch claim details for feedback', err);
+      alert('Unable to leave feedback at this time. Please try again.');
+    }
   };
 
   // Photo upload handlers
@@ -683,29 +748,59 @@ const contactReceiver = async (item) => {
                   >
                     RESCHEDULE
                   </button>
+                  <button
+                    className="donation-link danger"
+                    onClick={() => handleOpenReport(item)}
+                  >
+                    <AlertTriangle size={16} /> Report Issue
+                  </button>
                 </div>
               ) : (
                 <div className="donation-actions">
                   {item.status === "READY_FOR_PICKUP" && (
-                    <button
-                      className="donation-action-button primary"
-                      onClick={() => handleOpenPickupModal(item)}
-                    >
-                      ENTER PICKUP CODE
-                    </button>
+                    <>
+                      <button
+                        className="donation-action-button primary"
+                        onClick={() => handleOpenPickupModal(item)}
+                      >
+                        ENTER PICKUP CODE
+                      </button>
+                      <button
+                        className="donation-link danger"
+                        onClick={() => handleOpenReport(item)}
+                      >
+                        <AlertTriangle size={16} /> Report Issue
+                      </button>
+                    </>
                   )}
-                  {item.status === "COMPLETED" && (
-                    <button
-                      className="donation-action-button secondary"
-                      disabled
-                    >
-                      THANK YOU
-                    </button>
+                  {(item.status === "COMPLETED" || item.status === "NOT_COMPLETED") && (
+                    <>
+                      <button
+                        className="donation-action-button primary"
+                        onClick={() => handleOpenFeedback(item)}
+                      >
+                        <Star size={16} /> Leave Feedback
+                      </button>
+                      <button
+                        className="donation-link danger"
+                        onClick={() => handleOpenReport(item)}
+                      >
+                        <AlertTriangle size={16} /> Report Issue
+                      </button>
+                    </>
                   )}
                   {item.status === "CLAIMED" && (
-                    <button className="donation-action-button primary" onClick={() => contactReceiver(item)}>
-                      OPEN CHAT
-                    </button>
+                    <>
+                      <button className="donation-action-button primary" onClick={() => contactReceiver(item)}>
+                        OPEN CHAT
+                      </button>
+                      <button
+                        className="donation-link danger"
+                        onClick={() => handleOpenReport(item)}
+                      >
+                        <AlertTriangle size={16} /> Report Issue
+                      </button>
+                    </>
                   )}
                 </div>
               )}
@@ -724,9 +819,22 @@ const contactReceiver = async (item) => {
       <ClaimedSuccessModal
         isOpen={isSuccessModalOpen}
         onClose={handleCloseSuccessModal}
-        receiverInfo={completedReceiverInfo}
+      />
+
+      <ReportUserModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        reportedUser={reportTargetUser}
         donationId={completedDonationId}
-        claimId={completedClaimId}
+        onSubmit={handleReportSubmit}
+      />
+
+      <FeedbackModal
+        isOpen={showFeedbackModal}
+        onClose={() => setShowFeedbackModal(false)}
+        claimId={feedbackClaimId}
+        targetUser={feedbackTargetUser}
+        onSubmitted={() => fetchMyPosts()}
       />
     </div>
   );

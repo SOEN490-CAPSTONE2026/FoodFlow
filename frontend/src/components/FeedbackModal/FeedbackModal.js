@@ -11,17 +11,27 @@ const FeedbackModal = ({ isOpen, onClose, claimId, targetUser, onSubmitted }) =>
   const [alreadySubmitted, setAlreadySubmitted] = useState(false);
 
   useEffect(() => {
-    if (!isOpen || !claimId) return;
+    if (!isOpen || !claimId) {
+      // Reset state if modal closes or claimId is missing
+      setAlreadySubmitted(false);
+      return;
+    }
     // Check if current user can provide feedback for this claim
     const check = async () => {
       try {
-        const response = await feedbackAPI.canProvideFeedback(claimId);
-        // Backend returns true if user CAN provide feedback, false if already submitted
-        const canProvide = response.data === true;
-        setAlreadySubmitted(!canProvide);
+        console.log('Checking feedback for claimId:', claimId);
+        
+        // Check actual feedback data instead of relying on canProvideFeedback endpoint
+        const existingFeedback = await feedbackAPI.getFeedbackForClaim(claimId);
+        console.log('Existing feedback for claim:', existingFeedback.data);
+        
+        // If there's ANY feedback for this claim, user has already submitted
+        const hasSubmitted = existingFeedback.data && existingFeedback.data.length > 0;
+        console.log('Has already submitted:', hasSubmitted);
+        setAlreadySubmitted(hasSubmitted);
       } catch (err) {
         console.error('Error checking feedback status:', err);
-        // If error, assume they haven't submitted yet
+        // If error (like 404 or 500), assume they haven't submitted yet
         setAlreadySubmitted(false);
       }
     };
@@ -34,19 +44,23 @@ const FeedbackModal = ({ isOpen, onClose, claimId, targetUser, onSubmitted }) =>
     if (!rating) return;
     setIsSubmitting(true);
     try {
-      await feedbackAPI.submitFeedback({
+      const payload = {
         claimId,
-        targetUserId: targetUser?.id,
         rating,
-        review: review.trim() || null,
-      });
+        reviewText: review.trim() || null,
+      };
+      console.log('Submitting feedback payload:', payload);
+      await feedbackAPI.submitFeedback(payload);
       setAlreadySubmitted(true);
       alert('Thank you for your feedback!');
       if (onSubmitted) onSubmitted();
       onClose();
     } catch (err) {
       console.error('Failed to submit feedback', err);
-      alert(err.response?.data?.message || 'Failed to submit feedback');
+      console.error('Error response:', err.response);
+      console.error('Error status:', err.response?.status);
+      console.error('Error data:', err.response?.data);
+      alert(err.response?.data?.message || err.response?.data || 'Failed to submit feedback. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

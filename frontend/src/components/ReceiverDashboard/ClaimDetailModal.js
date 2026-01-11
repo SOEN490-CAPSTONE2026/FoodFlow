@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
-import { X, Package, Calendar, MapPin, User, Clock, MessageCircle } from 'lucide-react';
+import { X, Package, Calendar, MapPin, User, Clock, MessageCircle, AlertTriangle, Star } from 'lucide-react';
 import useGoogleMap from '../../hooks/useGoogleMaps';
 import ClaimedView from './ClaimedView';
 import CompletedView from './CompletedView';
 import ReadyForPickUpView from './ReadyForPickUpView';
+import ReportUserModal from '../ReportUserModal';
+import FeedbackModal from '../FeedbackModal/FeedbackModal';
+import { reportAPI } from '../../services/api';
 import { getPrimaryFoodCategory, foodTypeImages, getUnitLabel, getTemperatureCategoryLabel, getTemperatureCategoryIcon, getPackagingTypeLabel } from '../../constants/foodConstants';
 import { useTimezone } from '../../contexts/TimezoneContext';
 import './Receiver_Styles/ClaimDetailModal.css';
@@ -12,6 +15,8 @@ import './Receiver_Styles/ClaimDetailModal.css';
 const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
     const post = claim?.surplusPost;
     const [showPickupSteps, setShowPickupSteps] = useState(false);
+    const [showReportModal, setShowReportModal] = useState(false);
+    const [showFeedbackModal, setShowFeedbackModal] = useState(false);
     const navigate = useNavigate();
     const { userTimezone } = useTimezone();
 
@@ -82,6 +87,22 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
 
     const handleBackToDetails = () => {
         setShowPickupSteps(false);
+    };
+
+    const handleReportSubmit = async (reportData) => {
+        try {
+            await reportAPI.createReport(reportData);
+            alert('Report submitted successfully! An admin will review it shortly.');
+            setShowReportModal(false);
+        } catch (error) {
+            console.error('Failed to submit report:', error);
+            alert('Failed to submit report. Please try again.');
+        }
+    };
+
+    const donorInfo = post?.donor || {
+        id: post?.donorId,
+        name: post?.donorName || 'Donor'
     };
 
     if (!isOpen || !claim) return null;
@@ -271,6 +292,20 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                                     >
                                         View Pickup Steps
                                     </button>
+                                    {(getDisplayStatus() === 'Completed' || getDisplayStatus() === 'Not Completed') && (
+                                        <button
+                                            className="claimed-modal-btn-feedback"
+                                            onClick={() => setShowFeedbackModal(true)}
+                                        >
+                                            <Star size={16} /> Leave Feedback
+                                        </button>
+                                    )}
+                                    <button
+                                        className="claimed-modal-btn-report"
+                                        onClick={() => setShowReportModal(true)}
+                                    >
+                                        <AlertTriangle size={16} /> Report Issue
+                                    </button>
                                 </>
                             )}
                         </div>
@@ -310,6 +345,22 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                     onBack={handleBackToDetails}
                 />
             )}
+
+            <ReportUserModal
+                isOpen={showReportModal}
+                onClose={() => setShowReportModal(false)}
+                reportedUser={donorInfo}
+                donationId={post?.id}
+                onSubmit={handleReportSubmit}
+            />
+
+            <FeedbackModal
+                isOpen={showFeedbackModal}
+                onClose={() => setShowFeedbackModal(false)}
+                claimId={claim?.id}
+                targetUser={donorInfo}
+                onSubmitted={() => {}}
+            />
         </>
     );
 };

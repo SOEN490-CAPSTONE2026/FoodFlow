@@ -381,6 +381,45 @@
     background: #164058;
 }
 
+.claimed-modal-btn-feedback {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.875rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    background: #0092B8;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.claimed-modal-btn-feedback:hover {
+    background: #007a9a;
+}
+
+.claimed-modal-btn-report {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.875rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    background: transparent;
+    color: #dc2626;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.claimed-modal-btn-report:hover {
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
 /* Temperature badge styling */
 .temperature-badge {
     display: inline-flex;
