@@ -158,6 +158,13 @@ export const surplusAPI = {
 
     return api.get(`/surplus/search?${params.toString()}`);
   },
+
+  /**
+   * Get timeline events for a donation post
+   * @param {number} postId - Surplus post ID
+   * @returns {Promise} API response with timeline events
+   */
+  getTimeline: (postId) => api.get(`/surplus/${postId}/timeline`),
 };
 
 export const claimsAPI = {
