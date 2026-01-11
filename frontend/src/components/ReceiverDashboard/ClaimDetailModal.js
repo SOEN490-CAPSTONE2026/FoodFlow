@@ -20,6 +20,15 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
     const navigate = useNavigate();
     const { userTimezone } = useTimezone();
 
+    // Reset timeline state when modal closes or claim changes
+    useEffect(() => {
+        if (!isOpen) {
+            setExpandedTimeline(false);
+            setTimeline([]);
+            setLoadingTimeline(false);
+        }
+    }, [isOpen, claim?.surplusPost?.id]);
+
     // Fetch timeline when modal opens and post ID is available
     useEffect(() => {
         if (isOpen && post?.id && expandedTimeline && timeline.length === 0) {
