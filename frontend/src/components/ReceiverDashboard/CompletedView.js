@@ -3,6 +3,7 @@ import { X, CircleCheck, AlertTriangle } from 'lucide-react';
 import Confetti from 'react-confetti';
 import { foodTypeImages, getPrimaryFoodCategory } from '../../constants/foodConstants';
 import ReportUserModal from '../ReportUserModal';
+import FeedbackModal from '../FeedbackModal/FeedbackModal';
 import { reportAPI } from '../../services/api';
 import './Receiver_Styles/CompletedView.css';
 
@@ -11,6 +12,7 @@ const CompletedView = ({ claim, isOpen, onClose, onBack }) => {
     const containerRef = useRef(null);
     const [dimensions, setDimensions] = useState({ width: 750, height: 800 });
     const [showReportModal, setShowReportModal] = useState(false);
+    const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
     useEffect(() => {
         if (containerRef.current && isOpen) {
@@ -102,13 +104,20 @@ const CompletedView = ({ claim, isOpen, onClose, onBack }) => {
                         <button className="claimed-view-btn-back" onClick={onBack}>
                             Back to Details
                         </button>
-                        <button 
-                            className="report-donor-btn"
-                            onClick={() => setShowReportModal(true)}
-                        >
-                            <AlertTriangle size={16} />
-                            Report Donor
-                        </button>
+                            <button 
+                                className="report-donor-btn"
+                                onClick={() => setShowReportModal(true)}
+                            >
+                                <AlertTriangle size={16} />
+                                Report Donor
+                            </button>
+
+                            <button
+                                className="leave-feedback-btn"
+                                onClick={() => setShowFeedbackModal(true)}
+                            >
+                                Leave Feedback
+                            </button>
                     </div>
                 </div>
             </div>
@@ -119,6 +128,14 @@ const CompletedView = ({ claim, isOpen, onClose, onBack }) => {
                 reportedUser={donorInfo}
                 donationId={post?.id}
                 onSubmit={handleReportSubmit}
+            />
+
+            <FeedbackModal
+                isOpen={showFeedbackModal}
+                onClose={() => setShowFeedbackModal(false)}
+                claimId={claim?.id}
+                targetUser={donorInfo}
+                onSubmitted={() => {}}
             />
         </div>
     );

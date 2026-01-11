@@ -127,6 +127,9 @@ export default function DonorListFood() {
   const [isPickupModalOpen, setIsPickupModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [completedReceiverInfo, setCompletedReceiverInfo] = useState(null);
+  const [completedDonationId, setCompletedDonationId] = useState(null);
+  const [completedClaimId, setCompletedClaimId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [sortBy, setSortBy] = useState("date"); // "date" or "status"
@@ -282,9 +285,29 @@ const contactReceiver = async (item) => {
   };
 
   const handlePickupSuccess = () => {
-    setIsSuccessModalOpen(true);
-    // Refresh the posts list to show updated status
-    fetchMyPosts();
+    (async () => {
+      try {
+        if (selectedItem && selectedItem.id) {
+          const { data: claims } = await claimsAPI.getClaimForSurplusPost(selectedItem.id);
+          if (claims && claims.length > 0) {
+            const claim = claims[0];
+            const receiver = claim.receiver || {
+              id: claim.receiverId,
+              name: claim.receiverName || claim.receiverEmail,
+            };
+            setCompletedReceiverInfo(receiver);
+            setCompletedDonationId(selectedItem.id);
+            setCompletedClaimId(claim.id);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch claim details after pickup', err);
+      } finally {
+        setIsSuccessModalOpen(true);
+        // Refresh the posts list to show updated status
+        fetchMyPosts();
+      }
+    })();
   };
 
   const handleCloseSuccessModal = () => {
@@ -701,6 +724,9 @@ const contactReceiver = async (item) => {
       <ClaimedSuccessModal
         isOpen={isSuccessModalOpen}
         onClose={handleCloseSuccessModal}
+        receiverInfo={completedReceiverInfo}
+        donationId={completedDonationId}
+        claimId={completedClaimId}
       />
     </div>
   );

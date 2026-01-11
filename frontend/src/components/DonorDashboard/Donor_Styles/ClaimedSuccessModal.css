@@ -104,6 +104,10 @@
   margin-top: 24px;
   padding-top: 24px;
   border-top: 1px solid #e5e7eb;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .report-issue-btn {
@@ -129,6 +133,26 @@
 
 .report-issue-btn svg {
   flex-shrink: 0;
+}
+
+.leave-feedback-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #0092B8;
+  border: 1px solid #0092B8;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.leave-feedback-btn:hover {
+  background: #007a9a;
+  border-color: #007a9a;
 }
 
 @keyframes scaleIn {

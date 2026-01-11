@@ -1,24 +1,10 @@
-import React, { useState } from 'react';
-import { X, AlertTriangle } from 'lucide-react';
-import ReportUserModal from '../ReportUserModal';
-import { reportAPI } from '../../services/api';
+import React from 'react';
+import { X } from 'lucide-react';
 import './Donor_Styles/ClaimedSuccessModal.css';
 
-const ClaimedSuccessModal = ({ isOpen, onClose, receiverInfo, donationId }) => {
-  const [showReportModal, setShowReportModal] = useState(false);
+const ClaimedSuccessModal = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
-
-  const handleReportSubmit = async (reportData) => {
-    try {
-      await reportAPI.createReport(reportData);
-      alert('Report submitted successfully! An admin will review it shortly.');
-      setShowReportModal(false);
-    } catch (error) {
-      console.error('Failed to submit report:', error);
-      alert('Failed to submit report. Please try again.');
-    }
-  };
 
   return (
     <>
@@ -44,30 +30,12 @@ const ClaimedSuccessModal = ({ isOpen, onClose, receiverInfo, donationId }) => {
               </svg>
             </div>
 
-            {receiverInfo && (
-              <div className="claimed-success-actions">
-                <button 
-                  className="report-issue-btn"
-                  onClick={() => setShowReportModal(true)}
-                >
-                  <AlertTriangle size={16} />
-                  Report an Issue
-                </button>
-              </div>
-            )}
+
           </div>
         </div>
       </div>
 
-      {receiverInfo && (
-        <ReportUserModal
-          isOpen={showReportModal}
-          onClose={() => setShowReportModal(false)}
-          reportedUser={receiverInfo}
-          donationId={donationId}
-          onSubmit={handleReportSubmit}
-        />
-      )}
+
     </>
   );
 };
