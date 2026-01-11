@@ -1,8 +1,10 @@
 import React from 'react';
 import { X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import './Donor_Styles/ClaimedSuccessModal.css';
 
 const ClaimedSuccessModal = ({ isOpen, onClose }) => {
+  const { t } = useTranslation();
   if (!isOpen) return null;
 
   return (
@@ -13,9 +15,9 @@ const ClaimedSuccessModal = ({ isOpen, onClose }) => {
         </button>
 
         <div className="claimed-success-content">
-          <h2 className="claimed-success-title">Your donation has been claimed !</h2>
+          <h2 className="claimed-success-title">{t('claimedSuccessModal.title')}</h2>
           <p className="claimed-success-subtitle">
-            Your generosity is making a real difference.
+            {t('claimedSuccessModal.subtitle')}
           </p>
 
           <div className="claimed-success-icon">

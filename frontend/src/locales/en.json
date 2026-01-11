@@ -432,17 +432,6 @@
     "privacyPolicy": "Privacy Policy",
     "termsConditions": "Terms & Conditions"
   },
-  "donorListFood": {
-    "edit": "Edit",
-    "delete": "Delete",
-    "reschedule": "RESCHEDULE",
-    "enterPickupCode": "ENTER PICKUP CODE",
-    "thankYou": "THANK YOU",
-    "openChat": "OPEN CHAT",
-    "postDeletedSuccess": "Post deleted successfully.",
-    "postDeleteFailed": "Failed to delete post",
-    "rescheduleComingSoon": "Reschedule functionality coming soon!"
-  },
   "confirmPickup": {
     "title": "Confirm Pickup",
     "subtitle": "Enter the 6-digit code shown by the receiver:",
@@ -521,5 +510,115 @@
     "successfullyClaimed": "Successfully claimed \"{{foodTitle}}\" from {{donorName}}",
     "readyForPickup": "\"{{foodTitle}}\" is ready for pickup! Check your claims for details.",
     "claimCancelled": "Your claim on \"{{foodTitle}}\" has been cancelled"
+  },
+  "donorLayout": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "donateNow": "Donate Now",
+    "requestsClaims": "Requests & Claims",
+    "pickupSchedule": "Pickup Schedule",
+    "messages": "Messages",
+    "settings": "Settings",
+    "help": "Help",
+    "logout": "Logout",
+    "pageTitles": {
+      "donorDashboard": "Donor Dashboard",
+      "donateNow": "Donate Now",
+      "requestsClaims": "Requests & Claims",
+      "pickupSchedule": "Pickup Schedule",
+      "messages": "Messages",
+      "settings": "Settings",
+      "help": "Help",
+      "donor": "Donor"
+    },
+    "pageDescriptions": {
+      "donorDashboard": "Overview and quick actions",
+      "donateNow": "Create and manage donation listings",
+      "requestsClaims": "Incoming requests and status",
+      "pickupSchedule": "Recent activity and history",
+      "messages": "Incoming communications",
+      "settings": "Manage your preferences and account settings",
+      "help": "Guides and support",
+      "donorPortal": "FoodFlow Donor Portal"
+    },
+    "notifications": {
+      "newClaim": "New Claim",
+      "claimCancelled": "Claim Cancelled",
+      "hasClaimed": "{{receiverName}} has claimed your \"{{foodTitle}}\"",
+      "cancelledClaim": "{{receiverName}} cancelled their claim on \"{{foodTitle}}\""
+    }
+  },
+  "donorListFood": {
+    "edit": "Edit",
+    "delete": "Delete",
+    "reschedule": "RESCHEDULE",
+    "enterPickupCode": "ENTER PICKUP CODE",
+    "thankYou": "THANK YOU",
+    "openChat": "OPEN CHAT",
+    "postDeletedSuccess": "Post deleted successfully.",
+    "postDeleteFailed": "Failed to delete post",
+    "rescheduleComingSoon": "Reschedule functionality coming soon!",
+    "loading": "Loading your donations...",
+    "sortByDate": "Sort by Date",
+    "sortByStatus": "Sort by Status",
+    "donateMore": "Donate More",
+    "emptyStateTitle": "You haven't posted anything yet",
+    "emptyStateDescription": "Create your first donation post to start helping your community reduce food waste.",
+    "status": {
+      "available": "Available",
+      "readyForPickup": "Ready for Pickup",
+      "claimed": "Claimed",
+      "notCompleted": "Not Completed",
+      "completed": "Completed",
+      "expired": "Expired"
+    },
+    "expires": "Expires",
+    "pickup": "Pickup",
+    "notSpecified": "Not specified",
+    "addressNotSpecified": "Address not specified",
+    "confirmDelete": "Are you sure you want to delete this post?",
+    "failedToFetch": "Failed to fetch posts",
+    "editFunctionality": "Opening edit form for: {{title}}\n(Edit functionality to be implemented)"
+  },
+  "claimedSuccessModal": {
+    "title": "Your donation has been claimed !",
+    "subtitle": "Your generosity is making a real difference."
+  },
+  "donorDashboardHome": {
+    "dashboard": "Dashboard",
+    "subtitle": "Overview of your donations",
+    "noData": "No data provided.",
+    "metrics": {
+      "totalListedItems": "Total Listed Items",
+      "completedRequests": "Completed Requests",
+      "pendingRequests": "Pending Requests",
+      "rejectedRequests": "Rejected Requests"
+    },
+    "tiles": {
+      "totalListedFood": "Total Listed Food",
+      "takeAwayCompleted": "Take Away / Request Completed",
+      "rejectedRequests": "Rejected Requests",
+      "allRequests": "All Requests",
+      "newRequests": "New Requests",
+      "tips": "Tips",
+      "tipsText": "Keep listings up to date for faster matching."
+    },
+    "charts": {
+      "analyticsInsights": "Analytics & Insights",
+      "monthlyDonationActivity": "Monthly Donation Activity",
+      "requestStatusDistribution": "Request Status Distribution",
+      "requestTrends": "Request Trends",
+      "foodCategories": "Food Categories",
+      "total": "Total",
+      "distribution": "Distribution"
+    }
+  },
+  "donorSearch": {
+    "title": "Search",
+    "description": "Find organizations and receivers (coming soon)."
+  },
+  "donorRequests": {
+    "title": "Requests",
+    "description": "Manage incoming requests for your donations (coming soon)."
   }
 }

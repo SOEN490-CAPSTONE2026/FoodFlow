@@ -432,17 +432,6 @@
     "privacyPolicy": "سياسة الخصوصية",
     "termsConditions": "الشروط والأحكام"
   },
-  "donorListFood": {
-    "edit": "تعديل",
-    "delete": "حذف",
-    "reschedule": "إعادة الجدولة",
-    "enterPickupCode": "إدخال رمز الاستلام",
-    "thankYou": "شكرًا لك",
-    "openChat": "فتح الدردشة",
-    "postDeletedSuccess": "تم حذف المنشور بنجاح.",
-    "postDeleteFailed": "فشل حذف المنشور",
-    "rescheduleComingSoon": "ميزة إعادة الجدولة قادمة قريبًا!"
-  },
   "confirmPickup": {
     "title": "تأكيد الاستلام",
     "subtitle": "أدخل الرمز المكون من 6 أرقام الذي يعرضه المستفيد:",
@@ -521,5 +510,115 @@
     "successfullyClaimed": "تمت المطالبة بنجاح بـ \"{{foodTitle}}\" من {{donorName}}",
     "readyForPickup": "\"{{foodTitle}}\" جاهز للاستلام! تحقق من مطالباتك للحصول على التفاصيل.",
     "claimCancelled": "تم إلغاء مطالبتك بـ \"{{foodTitle}}\""
+  },
+  "donorLayout": {
+    "home": "الرئيسية",
+    "dashboard": "لوحة التحكم",
+    "donateNow": "تبرع الآن",
+    "requestsClaims": "الطلبات والمطالبات",
+    "pickupSchedule": "جدول الاستلام",
+    "messages": "الرسائل",
+    "settings": "الإعدادات",
+    "help": "المساعدة",
+    "logout": "تسجيل الخروج",
+    "pageTitles": {
+      "donorDashboard": "لوحة تحكم المتبرع",
+      "donateNow": "تبرع الآن",
+      "requestsClaims": "الطلبات والمطالبات",
+      "pickupSchedule": "جدول الاستلام",
+      "messages": "الرسائل",
+      "settings": "الإعدادات",
+      "help": "المساعدة",
+      "donor": "متبرع"
+    },
+    "pageDescriptions": {
+      "donorDashboard": "نظرة عامة وإجراءات سريعة",
+      "donateNow": "إنشاء وإدارة إعلانات التبرعات",
+      "requestsClaims": "الطلبات الواردة والحالة",
+      "pickupSchedule": "النشاط الأخير والسجل",
+      "messages": "الاتصالات الواردة",
+      "settings": "إدارة تفضيلاتك وإعدادات الحساب",
+      "help": "الأدلة والدعم",
+      "donorPortal": "بوابة المتبرع FoodFlow"
+    },
+    "notifications": {
+      "newClaim": "مطالبة جديدة",
+      "claimCancelled": "تم إلغاء المطالبة",
+      "hasClaimed": "{{receiverName}} طالب بـ \"{{foodTitle}}\"",
+      "cancelledClaim": "{{receiverName}} ألغى مطالبته بـ \"{{foodTitle}}\""
+    }
+  },
+  "donorListFood": {
+    "edit": "تعديل",
+    "delete": "حذف",
+    "reschedule": "إعادة الجدولة",
+    "enterPickupCode": "أدخل رمز الاستلام",
+    "thankYou": "شكراً لك",
+    "openChat": "فتح المحادثة",
+    "postDeletedSuccess": "تم حذف المنشور بنجاح.",
+    "postDeleteFailed": "فشل حذف المنشور",
+    "rescheduleComingSoon": "وظيفة إعادة الجدولة قريباً!",
+    "loading": "جارٍ تحميل تبرعاتك...",
+    "sortByDate": "ترتيب حسب التاريخ",
+    "sortByStatus": "ترتيب حسب الحالة",
+    "donateMore": "تبرع بالمزيد",
+    "emptyStateTitle": "لم تنشر أي شيء بعد",
+    "emptyStateDescription": "أنشئ منشور التبرع الأول لبدء مساعدة مجتمعك في تقليل هدر الطعام.",
+    "status": {
+      "available": "متاح",
+      "readyForPickup": "جاهز للاستلام",
+      "claimed": "مطالب به",
+      "notCompleted": "غير مكتمل",
+      "completed": "مكتمل",
+      "expired": "منتهي الصلاحية"
+    },
+    "expires": "تنتهي الصلاحية",
+    "pickup": "الاستلام",
+    "notSpecified": "غير محدد",
+    "addressNotSpecified": "العنوان غير محدد",
+    "confirmDelete": "هل أنت متأكد من رغبتك في حذف هذا المنشور؟",
+    "failedToFetch": "فشل جلب المنشورات",
+    "editFunctionality": "فتح نموذج التعديل لـ: {{title}}\n(وظيفة التعديل قيد التنفيذ)"
+  },
+  "claimedSuccessModal": {
+    "title": "تم المطالبة بتبرعك!",
+    "subtitle": "كرمك يصنع فرقاً حقيقياً."
+  },
+  "donorDashboardHome": {
+    "dashboard": "لوحة التحكم",
+    "subtitle": "نظرة عامة على تبرعاتك",
+    "noData": "لا توجد بيانات متوفرة.",
+    "metrics": {
+      "totalListedItems": "إجمالي العناصر المدرجة",
+      "completedRequests": "الطلبات المكتملة",
+      "pendingRequests": "الطلبات المعلقة",
+      "rejectedRequests": "الطلبات المرفوضة"
+    },
+    "tiles": {
+      "totalListedFood": "إجمالي الأطعمة المدرجة",
+      "takeAwayCompleted": "الاستلام / الطلب المكتمل",
+      "rejectedRequests": "الطلبات المرفوضة",
+      "allRequests": "جميع الطلبات",
+      "newRequests": "طلبات جديدة",
+      "tips": "نصائح",
+      "tipsText": "حافظ على تحديث إعلاناتك للحصول على مطابقة أسرع."
+    },
+    "charts": {
+      "analyticsInsights": "التحليلات والرؤى",
+      "monthlyDonationActivity": "نشاط التبرع الشهري",
+      "requestStatusDistribution": "توزيع حالة الطلبات",
+      "requestTrends": "اتجاهات الطلبات",
+      "foodCategories": "فئات الأطعمة",
+      "total": "الإجمالي",
+      "distribution": "التوزيع"
+    }
+  },
+  "donorSearch": {
+    "title": "بحث",
+    "description": "ابحث عن المنظمات والمستفيدين (قريباً)."
+  },
+  "donorRequests": {
+    "title": "الطلبات",
+    "description": "إدارة الطلبات الواردة لتبرعاتك (قريباً)."
   }
 }

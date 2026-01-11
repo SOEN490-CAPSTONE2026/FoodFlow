@@ -432,17 +432,6 @@
     "privacyPolicy": "Politique de confidentialité",
     "termsConditions": "Conditions générales"
   },
-  "donorListFood": {
-    "edit": "Modifier",
-    "delete": "Supprimer",
-    "reschedule": "REPROGRAMMER",
-    "enterPickupCode": "ENTRER LE CODE DE COLLECTE",
-    "thankYou": "MERCI",
-    "openChat": "OUVRIR LE CLAVARDAGE",
-    "postDeletedSuccess": "Publication supprimée avec succès.",
-    "postDeleteFailed": "Échec de la suppression de la publication",
-    "rescheduleComingSoon": "La fonctionnalité de reprogrammation arrive bientôt!"
-  },
   "confirmPickup": {
     "title": "Confirmer la collecte",
     "subtitle": "Entrez le code à 6 chiffres affiché par le bénéficiaire:",
@@ -521,5 +510,115 @@
     "successfullyClaimed": "Réclamation réussie de \"{{foodTitle}}\" de {{donorName}}",
     "readyForPickup": "\"{{foodTitle}}\" est prêt pour la collecte! Consultez vos réclamations pour plus de détails.",
     "claimCancelled": "Votre réclamation sur \"{{foodTitle}}\" a été annulée"
+  },
+  "donorLayout": {
+    "home": "Accueil",
+    "dashboard": "Tableau de bord",
+    "donateNow": "Faire un don",
+    "requestsClaims": "Demandes et réclamations",
+    "pickupSchedule": "Calendrier de collecte",
+    "messages": "Messages",
+    "settings": "Paramètres",
+    "help": "Aide",
+    "logout": "Déconnexion",
+    "pageTitles": {
+      "donorDashboard": "Tableau de bord donateur",
+      "donateNow": "Faire un don",
+      "requestsClaims": "Demandes et réclamations",
+      "pickupSchedule": "Calendrier de collecte",
+      "messages": "Messages",
+      "settings": "Paramètres",
+      "help": "Aide",
+      "donor": "Donateur"
+    },
+    "pageDescriptions": {
+      "donorDashboard": "Aperçu et actions rapides",
+      "donateNow": "Créer et gérer les annonces de dons",
+      "requestsClaims": "Demandes entrantes et statut",
+      "pickupSchedule": "Activité récente et historique",
+      "messages": "Communications entrantes",
+      "settings": "Gérer vos préférences et paramètres de compte",
+      "help": "Guides et support",
+      "donorPortal": "Portail donateur FoodFlow"
+    },
+    "notifications": {
+      "newClaim": "Nouvelle réclamation",
+      "claimCancelled": "Réclamation annulée",
+      "hasClaimed": "{{receiverName}} a réclamé votre \"{{foodTitle}}\"",
+      "cancelledClaim": "{{receiverName}} a annulé sa réclamation sur \"{{foodTitle}}\""
+    }
+  },
+  "donorListFood": {
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "reschedule": "REPROGRAMMER",
+    "enterPickupCode": "ENTRER LE CODE DE COLLECTE",
+    "thankYou": "MERCI",
+    "openChat": "OUVRIR LA DISCUSSION",
+    "postDeletedSuccess": "Publication supprimée avec succès.",
+    "postDeleteFailed": "Échec de la suppression de la publication",
+    "rescheduleComingSoon": "Fonctionnalité de reprogrammation bientôt disponible !",
+    "loading": "Chargement de vos dons...",
+    "sortByDate": "Trier par date",
+    "sortByStatus": "Trier par statut",
+    "donateMore": "Donner plus",
+    "emptyStateTitle": "Vous n'avez encore rien publié",
+    "emptyStateDescription": "Créez votre première annonce de don pour commencer à aider votre communauté à réduire le gaspillage alimentaire.",
+    "status": {
+      "available": "Disponible",
+      "readyForPickup": "Prêt pour la collecte",
+      "claimed": "Réclamé",
+      "notCompleted": "Non complété",
+      "completed": "Complété",
+      "expired": "Expiré"
+    },
+    "expires": "Expire",
+    "pickup": "Collecte",
+    "notSpecified": "Non spécifié",
+    "addressNotSpecified": "Adresse non spécifiée",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer cette publication ?",
+    "failedToFetch": "Échec de la récupération des publications",
+    "editFunctionality": "Ouverture du formulaire de modification pour : {{title}}\n(Fonctionnalité de modification à implémenter)"
+  },
+  "claimedSuccessModal": {
+    "title": "Votre don a été réclamé !",
+    "subtitle": "Votre générosité fait une réelle différence."
+  },
+  "donorDashboardHome": {
+    "dashboard": "Tableau de bord",
+    "subtitle": "Aperçu de vos dons",
+    "noData": "Aucune donnée fournie.",
+    "metrics": {
+      "totalListedItems": "Total des articles listés",
+      "completedRequests": "Demandes complétées",
+      "pendingRequests": "Demandes en attente",
+      "rejectedRequests": "Demandes rejetées"
+    },
+    "tiles": {
+      "totalListedFood": "Total des aliments listés",
+      "takeAwayCompleted": "À emporter / Demande complétée",
+      "rejectedRequests": "Demandes rejetées",
+      "allRequests": "Toutes les demandes",
+      "newRequests": "Nouvelles demandes",
+      "tips": "Conseils",
+      "tipsText": "Maintenez vos annonces à jour pour une correspondance plus rapide."
+    },
+    "charts": {
+      "analyticsInsights": "Analyses et aperçus",
+      "monthlyDonationActivity": "Activité de don mensuelle",
+      "requestStatusDistribution": "Distribution du statut des demandes",
+      "requestTrends": "Tendances des demandes",
+      "foodCategories": "Catégories d'aliments",
+      "total": "Total",
+      "distribution": "Distribution"
+    }
+  },
+  "donorSearch": {
+    "title": "Recherche",
+    "description": "Trouver des organisations et bénéficiaires (bientôt disponible)."
+  },
+  "donorRequests": {
+    "title": "Demandes",
+    "description": "Gérer les demandes entrantes pour vos dons (bientôt disponible)."
   }
 }

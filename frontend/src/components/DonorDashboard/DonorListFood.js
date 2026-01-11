@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import {
   Calendar,
   Clock,
@@ -96,6 +97,7 @@ function formatPickupTime(pickupDate, pickupFrom, pickupTo) {
 
 
 export default function DonorListFood() {
+  const { t } = useTranslation();
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
     libraries: libraries,
@@ -136,7 +138,7 @@ export default function DonorListFood() {
       setError(null);
     } catch (err) {
       const errorMessage =
-        err.response?.data?.message || err.message || "Failed to fetch posts";
+        err.response?.data?.message || err.message || t('donorListFood.failedToFetch');
       setError(`Error: ${errorMessage}`);
     } finally {
       setLoading(false);
@@ -181,7 +183,7 @@ export default function DonorListFood() {
  async function requestDelete(id) {
   console.log("DELETE CLICKED for ID =", id); 
   const confirmDelete = window.confirm(
-    "Are you sure you want to delete this post?"
+    t('donorListFood.confirmDelete')
   );
   if (!confirmDelete) return;
 
@@ -189,16 +191,16 @@ export default function DonorListFood() {
     await surplusAPI.deletePost(id);
     setItems(prev => prev.filter(item => item.id !== id));
 
-    alert("Post deleted successfully.");
+    alert(t('donorListFood.postDeletedSuccess'));
   } catch (err) {
-    alert(err.response?.data?.message || "Failed to delete post.");
+    alert(err.response?.data?.message || t('donorListFood.postDeleteFailed'));
   }
 }
 
 
   function openEdit(item) {
     alert(
-      `Opening edit form for: ${item.title}\n(Edit functionality to be implemented)`
+      t('donorListFood.editFunctionality', { title: item.title })
     );
   }
 
@@ -234,7 +236,7 @@ export default function DonorListFood() {
       <div className="donor-list-wrapper">
         <div className="loading-state">
           <Package className="loading-icon" size={48} />
-          <h3>Loading your donations...</h3>
+          <h3>{t('donorListFood.loading')}</h3>
         </div>
       </div>
     );
@@ -261,7 +263,7 @@ export default function DonorListFood() {
               onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
             >
               <span className="sort-label">
-                {sortBy === "date" ? "Sort by Date" : "Sort by Status"}
+                {sortBy === "date" ? t('donorListFood.sortByDate') : t('donorListFood.sortByStatus')}
               </span>
               <ChevronDown size={18} className={`chevron ${isSortDropdownOpen ? "open" : ""}`} />
             </button>
@@ -272,13 +274,13 @@ export default function DonorListFood() {
                   className={`sort-option ${sortBy === "date" ? "active" : ""}`}
                   onClick={() => handleSortChange("date")}
                 >
-                  Sort by Date
+                  {t('donorListFood.sortByDate')}
                 </button>
                 <button
                   className={`sort-option ${sortBy === "status" ? "active" : ""}`}
                   onClick={() => handleSortChange("status")}
                 >
-                  Sort by Status
+                  {t('donorListFood.sortByStatus')}
                 </button>
               </div>
             )}
@@ -289,7 +291,7 @@ export default function DonorListFood() {
           className="donor-add-button"
           onClick={() => setIsModalOpen(true)}
         >
-          + Donate More
+          + {t('donorListFood.donateMore')}
         </button>
         {isLoaded && (
           <SurplusFormModal isOpen={isModalOpen} onClose={handleModalClose} />
@@ -299,10 +301,9 @@ export default function DonorListFood() {
       {items.length === 0 ? (
         <div className="empty-state">
           <Package className="empty-state-icon" size={64} />
-          <h3 className="empty-state-title">You haven't posted anything yet</h3>
+          <h3 className="empty-state-title">{t('donorListFood.emptyStateTitle')}</h3>
           <p className="empty-state-description">
-            Create your first donation post to start helping your community
-            reduce food waste.
+            {t('donorListFood.emptyStateDescription')}
           </p>
         </div>
       ) : (
@@ -317,17 +318,17 @@ export default function DonorListFood() {
                 <h3 className="donation-title">{item.title}</h3>
                 <span className={statusClass(item.status)}>
                   {item.status === "AVAILABLE"
-                    ? "Available"
+                    ? t('donorListFood.status.available')
                     : item.status === "READY_FOR_PICKUP"
-                      ? "Ready for Pickup"
+                      ? t('donorListFood.status.readyForPickup')
                       : item.status === "CLAIMED"
-                        ? "Claimed"
+                        ? t('donorListFood.status.claimed')
                         : item.status === "NOT_COMPLETED"
-                          ? "Not Completed"
+                          ? t('donorListFood.status.notCompleted')
                           : item.status === "COMPLETED"
-                            ? "Completed"
+                            ? t('donorListFood.status.completed')
                             : item.status === "EXPIRED"
-                              ? "Expired"
+                              ? t('donorListFood.status.expired')
                               : item.status}
                 </span>
               </div>
@@ -356,12 +357,12 @@ export default function DonorListFood() {
               <ul className="donation-meta" aria-label="details">
                 <li>
                   <Calendar size={16} className="calendar-icon" />
-                  <span>Expires: {item.expiryDate || "Not specified"}</span>
+                  <span>{t('donorListFood.expires')}: {item.expiryDate || t('donorListFood.notSpecified')}</span>
                 </li>
                 <li>
                   <Clock size={16} className="time-icon" />
                   <div className="pickup-times-container">
-                    <span className="pickup-label">Pickup:</span>
+                    <span className="pickup-label">{t('donorListFood.pickup')}:</span>
                     {/* Show only confirmed pickup slot if it exists, otherwise show all slots */}
                     {item.confirmedPickupSlot ? (
                       <span className="pickup-time-item">
@@ -413,11 +414,11 @@ export default function DonorListFood() {
                     >
                       {addressLabel(item.pickupLocation.address)}
                     </a>
-                  ) : (
-                    <span className="donation-address">
-                      Address not specified
-                    </span>
-                  )}
+                    ) : (
+                      <span className="donation-address">
+                        {t('donorListFood.addressNotSpecified')}
+                      </span>
+                    )}
                 </li>
               </ul>
 
@@ -431,22 +432,22 @@ export default function DonorListFood() {
                     className="donation-link"
                     onClick={() => openEdit(item)}
                   >
-                    <Edit className="icon" /> Edit
+                    <Edit className="icon" /> {t('donorListFood.edit')}
                   </button>
                   <button
                     className="donation-link danger"
                     onClick={() => requestDelete(item.id)}
                   >
-                    <Trash2 className="icon" /> Delete
+                    <Trash2 className="icon" /> {t('donorListFood.delete')}
                   </button>
                 </div>
               ) : item.status === "NOT_COMPLETED" ? (
                 <div className="donation-actions">
                   <button
                     className="donation-action-button primary"
-                    onClick={() => alert('Reschedule functionality coming soon!')}
+                    onClick={() => alert(t('donorListFood.rescheduleComingSoon'))}
                   >
-                    RESCHEDULE
+                    {t('donorListFood.reschedule')}
                   </button>
                 </div>
               ) : (
@@ -456,7 +457,7 @@ export default function DonorListFood() {
                       className="donation-action-button primary"
                       onClick={() => handleOpenPickupModal(item)}
                     >
-                      ENTER PICKUP CODE
+                      {t('donorListFood.enterPickupCode')}
                     </button>
                   )}
                   {item.status === "COMPLETED" && (
@@ -464,12 +465,12 @@ export default function DonorListFood() {
                       className="donation-action-button secondary"
                       disabled
                     >
-                      THANK YOU
+                      {t('donorListFood.thankYou')}
                     </button>
                   )}
                   {item.status === "CLAIMED" && (
                     <button className="donation-action-button primary">
-                      OPEN CHAT
+                      {t('donorListFood.openChat')}
                     </button>
                   )}
                 </div>

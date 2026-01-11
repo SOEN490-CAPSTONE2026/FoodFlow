@@ -432,17 +432,6 @@
     "privacyPolicy": "隐私政策",
     "termsConditions": "条款和条件"
   },
-  "donorListFood": {
-    "edit": "编辑",
-    "delete": "删除",
-    "reschedule": "重新安排",
-    "enterPickupCode": "输入取货代码",
-    "thankYou": "谢谢",
-    "openChat": "打开聊天",
-    "postDeletedSuccess": "帖子删除成功。",
-    "postDeleteFailed": "删除帖子失败",
-    "rescheduleComingSoon": "重新安排功能即将推出！"
-  },
   "confirmPickup": {
     "title": "确认取货",
     "subtitle": "输入受助者显示的6位数代码：",
@@ -521,5 +510,115 @@
     "successfullyClaimed": "成功认领来自{{donorName}}的\"{{foodTitle}}\"",
     "readyForPickup": "\"{{foodTitle}}\"已准备好取货！查看您的认领了解详情。",
     "claimCancelled": "您对\"{{foodTitle}}\"的认领已被取消"
+  },
+  "donorLayout": {
+    "home": "主页",
+    "dashboard": "仪表板",
+    "donateNow": "立即捐赠",
+    "requestsClaims": "请求与认领",
+    "pickupSchedule": "取货时间表",
+    "messages": "消息",
+    "settings": "设置",
+    "help": "帮助",
+    "logout": "退出登录",
+    "pageTitles": {
+      "donorDashboard": "捐赠者仪表板",
+      "donateNow": "立即捐赠",
+      "requestsClaims": "请求与认领",
+      "pickupSchedule": "取货时间表",
+      "messages": "消息",
+      "settings": "设置",
+      "help": "帮助",
+      "donor": "捐赠者"
+    },
+    "pageDescriptions": {
+      "donorDashboard": "概览和快速操作",
+      "donateNow": "创建和管理捐赠列表",
+      "requestsClaims": "收到的请求和状态",
+      "pickupSchedule": "最近活动和历史记录",
+      "messages": "收到的通信",
+      "settings": "管理您的偏好和账户设置",
+      "help": "指南和支持",
+      "donorPortal": "FoodFlow 捐赠者门户"
+    },
+    "notifications": {
+      "newClaim": "新认领",
+      "claimCancelled": "认领已取消",
+      "hasClaimed": "{{receiverName}} 已认领您的 \"{{foodTitle}}\"",
+      "cancelledClaim": "{{receiverName}} 取消了对 \"{{foodTitle}}\" 的认领"
+    }
+  },
+  "donorListFood": {
+    "edit": "编辑",
+    "delete": "删除",
+    "reschedule": "重新安排",
+    "enterPickupCode": "输入取货代码",
+    "thankYou": "谢谢您",
+    "openChat": "打开聊天",
+    "postDeletedSuccess": "帖子删除成功。",
+    "postDeleteFailed": "删除帖子失败",
+    "rescheduleComingSoon": "重新安排功能即将推出！",
+    "loading": "正在加载您的捐赠...",
+    "sortByDate": "按日期排序",
+    "sortByStatus": "按状态排序",
+    "donateMore": "捐赠更多",
+    "emptyStateTitle": "您还没有发布任何内容",
+    "emptyStateDescription": "创建您的第一个捐赠帖子，开始帮助您的社区减少食物浪费。",
+    "status": {
+      "available": "可用",
+      "readyForPickup": "准备取货",
+      "claimed": "已认领",
+      "notCompleted": "未完成",
+      "completed": "已完成",
+      "expired": "已过期"
+    },
+    "expires": "过期时间",
+    "pickup": "取货",
+    "notSpecified": "未指定",
+    "addressNotSpecified": "地址未指定",
+    "confirmDelete": "您确定要删除此帖子吗？",
+    "failedToFetch": "获取帖子失败",
+    "editFunctionality": "打开编辑表单：{{title}}\n（编辑功能待实现）"
+  },
+  "claimedSuccessModal": {
+    "title": "您的捐赠已被认领！",
+    "subtitle": "您的慷慨正在产生真正的影响。"
+  },
+  "donorDashboardHome": {
+    "dashboard": "仪表板",
+    "subtitle": "您的捐赠概览",
+    "noData": "未提供数据。",
+    "metrics": {
+      "totalListedItems": "列出的总项目",
+      "completedRequests": "已完成的请求",
+      "pendingRequests": "待处理的请求",
+      "rejectedRequests": "被拒绝的请求"
+    },
+    "tiles": {
+      "totalListedFood": "列出的总食物",
+      "takeAwayCompleted": "外带 / 请求已完成",
+      "rejectedRequests": "被拒绝的请求",
+      "allRequests": "所有请求",
+      "newRequests": "新请求",
+      "tips": "提示",
+      "tipsText": "保持列表更新以获得更快的匹配。"
+    },
+    "charts": {
+      "analyticsInsights": "分析与洞察",
+      "monthlyDonationActivity": "每月捐赠活动",
+      "requestStatusDistribution": "请求状态分布",
+      "requestTrends": "请求趋势",
+      "foodCategories": "食物类别",
+      "total": "总计",
+      "distribution": "分布"
+    }
+  },
+  "donorSearch": {
+    "title": "搜索",
+    "description": "查找组织和接收者（即将推出）。"
+  },
+  "donorRequests": {
+    "title": "请求",
+    "description": "管理您的捐赠的收到请求（即将推出）。"
   }
 }
