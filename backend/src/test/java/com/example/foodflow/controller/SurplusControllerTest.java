@@ -28,15 +28,21 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -571,5 +577,180 @@ class SurplusControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(confirmRequest)))
                 .andExpect(status().isForbidden());
+    }
+
+    // ==================== Timeline Endpoint Tests ====================
+
+    @Test
+    @WithMockUser(username = "donor@test.com", authorities = {"DONOR"})
+    void testGetTimeline_AsDonor_Success() throws Exception {
+        // Given
+        List<com.example.foodflow.model.dto.DonationTimelineDTO> timeline = new ArrayList<>();
+
+        com.example.foodflow.model.dto.DonationTimelineDTO event1 = new com.example.foodflow.model.dto.DonationTimelineDTO();
+        event1.setId(1L);
+        event1.setEventType("DONATION_POSTED");
+        event1.setTimestamp(LocalDateTime.now().minusHours(2));
+        event1.setActor("donor");
+        event1.setActorUserId(1L);
+        event1.setNewStatus("AVAILABLE");
+        event1.setDetails("Donation created");
+        event1.setVisibleToUsers(true);
+
+        com.example.foodflow.model.dto.DonationTimelineDTO event2 = new com.example.foodflow.model.dto.DonationTimelineDTO();
+        event2.setId(2L);
+        event2.setEventType("DONATION_CLAIMED");
+        event2.setTimestamp(LocalDateTime.now().minusHours(1));
+        event2.setActor("receiver");
+        event2.setActorUserId(2L);
+        event2.setOldStatus("AVAILABLE");
+        event2.setNewStatus("CLAIMED");
+        event2.setDetails("Claimed by Test Organization");
+        event2.setVisibleToUsers(true);
+
+        timeline.add(event2);
+        timeline.add(event1);
+
+        when(surplusService.getTimelineForPost(eq(1L), any(User.class))).thenReturn(timeline);
+
+        // When & Then
+        mockMvc.perform(get("/api/surplus/1/timeline"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].eventType").value("DONATION_CLAIMED"))
+                .andExpect(jsonPath("$[0].actor").value("receiver"))
+                .andExpect(jsonPath("$[0].oldStatus").value("AVAILABLE"))
+                .andExpect(jsonPath("$[0].newStatus").value("CLAIMED"))
+                .andExpect(jsonPath("$[1].eventType").value("DONATION_POSTED"))
+                .andExpect(jsonPath("$[1].actor").value("donor"));
+
+        verify(surplusService).getTimelineForPost(eq(1L), any(User.class));
+    }
+
+    @Test
+    @WithMockUser(username = "receiver@test.com", authorities = {"RECEIVER"})
+    void testGetTimeline_AsReceiver_Success() throws Exception {
+        // Given
+        List<com.example.foodflow.model.dto.DonationTimelineDTO> timeline = new ArrayList<>();
+
+        com.example.foodflow.model.dto.DonationTimelineDTO event = new com.example.foodflow.model.dto.DonationTimelineDTO();
+        event.setId(1L);
+        event.setEventType("DONATION_CLAIMED");
+        event.setTimestamp(LocalDateTime.now());
+        event.setActor("receiver");
+        event.setActorUserId(2L);
+        event.setOldStatus("AVAILABLE");
+        event.setNewStatus("CLAIMED");
+        event.setVisibleToUsers(true);
+
+        timeline.add(event);
+
+        when(surplusService.getTimelineForPost(eq(1L), any(User.class))).thenReturn(timeline);
+
+        // When & Then
+        mockMvc.perform(get("/api/surplus/1/timeline"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].eventType").value("DONATION_CLAIMED"))
+                .andExpect(jsonPath("$[0].actorUserId").value(2));
+
+        verify(surplusService).getTimelineForPost(eq(1L), any(User.class));
+    }
+
+    @Test
+    void testGetTimeline_Unauthenticated_Forbidden() throws Exception {
+        // When & Then - No authentication, should be forbidden
+        mockMvc.perform(get("/api/surplus/1/timeline"))
+                .andExpect(status().isForbidden());
+
+        verify(surplusService, never()).getTimelineForPost(anyLong(), any(User.class));
+    }
+
+    @Test
+    @WithMockUser(username = "receiver@test.com", authorities = {"RECEIVER"})
+    void testGetTimeline_UnauthorizedReceiver_ThrowsException() throws Exception {
+        // Given - Receiver without claim
+        when(surplusService.getTimelineForPost(eq(1L), any(User.class)))
+                .thenThrow(new RuntimeException("You are not authorized to view this timeline"));
+
+        // When & Then
+        mockMvc.perform(get("/api/surplus/1/timeline"))
+                .andExpect(status().isInternalServerError());
+
+        verify(surplusService).getTimelineForPost(eq(1L), any(User.class));
+    }
+
+    @Test
+    @WithMockUser(username = "donor@test.com", authorities = {"DONOR"})
+    void testGetTimeline_PostNotFound_ThrowsException() throws Exception {
+        // Given
+        when(surplusService.getTimelineForPost(eq(999L), any(User.class)))
+                .thenThrow(new RuntimeException("Surplus post not found"));
+
+        // When & Then
+        mockMvc.perform(get("/api/surplus/999/timeline"))
+                .andExpect(status().isInternalServerError());
+
+        verify(surplusService).getTimelineForPost(eq(999L), any(User.class));
+    }
+
+    @Test
+    @WithMockUser(username = "donor@test.com", authorities = {"DONOR"})
+    void testGetTimeline_EmptyTimeline_ReturnsEmptyArray() throws Exception {
+        // Given
+        when(surplusService.getTimelineForPost(eq(1L), any(User.class)))
+                .thenReturn(Collections.emptyList());
+
+        // When & Then
+        mockMvc.perform(get("/api/surplus/1/timeline"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(0));
+
+        verify(surplusService).getTimelineForPost(eq(1L), any(User.class));
+    }
+
+    @Test
+    @WithMockUser(username = "donor@test.com", authorities = {"DONOR"})
+    void testGetTimeline_WithAllFields_ReturnsCompleteDTO() throws Exception {
+        // Given
+        List<com.example.foodflow.model.dto.DonationTimelineDTO> timeline = new ArrayList<>();
+
+        com.example.foodflow.model.dto.DonationTimelineDTO event = new com.example.foodflow.model.dto.DonationTimelineDTO();
+        event.setId(1L);
+        event.setEventType("PICKUP_CONFIRMED");
+        event.setTimestamp(LocalDateTime.now());
+        event.setActor("receiver");
+        event.setActorUserId(2L);
+        event.setOldStatus("READY_FOR_PICKUP");
+        event.setNewStatus("COMPLETED");
+        event.setDetails("Pickup confirmed successfully");
+        event.setVisibleToUsers(true);
+        event.setTemperature(4.5);
+        event.setPackagingCondition("GOOD");
+        event.setPickupEvidenceUrl("https://example.com/evidence.jpg");
+
+        timeline.add(event);
+
+        when(surplusService.getTimelineForPost(eq(1L), any(User.class))).thenReturn(timeline);
+
+        // When & Then
+        mockMvc.perform(get("/api/surplus/1/timeline"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].eventType").value("PICKUP_CONFIRMED"))
+                .andExpect(jsonPath("$[0].actor").value("receiver"))
+                .andExpect(jsonPath("$[0].actorUserId").value(2))
+                .andExpect(jsonPath("$[0].oldStatus").value("READY_FOR_PICKUP"))
+                .andExpect(jsonPath("$[0].newStatus").value("COMPLETED"))
+                .andExpect(jsonPath("$[0].details").value("Pickup confirmed successfully"))
+                .andExpect(jsonPath("$[0].visibleToUsers").value(true))
+                .andExpect(jsonPath("$[0].temperature").value(4.5))
+                .andExpect(jsonPath("$[0].packagingCondition").value("GOOD"))
+                .andExpect(jsonPath("$[0].pickupEvidenceUrl").value("https://example.com/evidence.jpg"));
+
+        verify(surplusService).getTimelineForPost(eq(1L), any(User.class));
     }
 }
