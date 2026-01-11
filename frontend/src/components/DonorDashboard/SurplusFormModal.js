@@ -9,10 +9,11 @@ import { useTimezone } from "../../contexts/TimezoneContext";
 import "./Donor_Styles/SurplusFormModal.css";
 import "react-datepicker/dist/react-datepicker.css";
 
-const SurplusFormModal = ({ isOpen, onClose }) => {
+const SurplusFormModal = ({ isOpen, onClose, editMode = false, postId = null }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 4;
   const { userTimezone } = useTimezone();
+  const [isLoading, setIsLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -75,9 +76,75 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
     return expiry;
   };
 
-  // Auto-calculate expiry date when fabrication date or food categories change
+  // Load existing post data in edit mode
   useEffect(() => {
-    if (formData.fabricationDate && formData.foodCategories.length > 0) {
+    if (editMode && postId && isOpen) {
+      setIsLoading(true);
+      surplusAPI.getPost(postId)
+        .then((response) => {
+          const post = response.data;
+          
+          // Parse food categories
+          const categories = post.foodCategories.map(cat => 
+            foodTypeOptions.find(opt => opt.value === cat) || { value: cat, label: cat }
+          );
+
+          // Parse dates
+          const fabricationDate = post.fabricationDate ? new Date(post.fabricationDate) : "";
+          const expiryDate = post.expiryDate ? new Date(post.expiryDate) : "";
+
+          // Parse pickup slots
+          const slots = post.pickupSlots && post.pickupSlots.length > 0 
+            ? post.pickupSlots.map(slot => ({
+                pickupDate: slot.pickupDate ? new Date(slot.pickupDate) : "",
+                startTime: slot.startTime ? parseTimeToDate(slot.startTime) : "",
+                endTime: slot.endTime ? parseTimeToDate(slot.endTime) : "",
+                notes: slot.notes || "",
+              }))
+            : [{
+                pickupDate: post.pickupDate ? new Date(post.pickupDate) : "",
+                startTime: post.pickupFrom ? parseTimeToDate(post.pickupFrom) : "",
+                endTime: post.pickupTo ? parseTimeToDate(post.pickupTo) : "",
+                notes: "",
+              }];
+
+          setFormData({
+            title: post.title || "",
+            quantityValue: post.quantity?.value?.toString() || "",
+            quantityUnit: post.quantity?.unit || "KILOGRAM",
+            foodCategories: categories,
+            fabricationDate: fabricationDate,
+            expiryDate: expiryDate,
+            calculatedExpiryDate: "",
+            pickupLocation: post.pickupLocation || { latitude: "", longitude: "", address: "" },
+            description: post.description || "",
+            temperatureCategory: post.temperatureCategory || "",
+            packagingType: post.packagingType || "",
+          });
+
+          setPickupSlots(slots);
+          setIsLoading(false);
+        })
+        .catch((err) => {
+          setError(err.response?.data?.message || "Failed to load post data");
+          setIsLoading(false);
+        });
+    }
+  }, [editMode, postId, isOpen]);
+
+  // Helper function to parse time string (HH:mm) to Date object for DatePicker
+  const parseTimeToDate = (timeString) => {
+    if (!timeString) return "";
+    const [hours, minutes] = timeString.split(':');
+    const date = new Date();
+    date.setHours(parseInt(hours, 10));
+    date.setMinutes(parseInt(minutes, 10));
+    return date;
+  };
+
+  // Auto-calculate expiry date when fabrication date or food categories change (only in create mode)
+  useEffect(() => {
+    if (!editMode && formData.fabricationDate && formData.foodCategories.length > 0) {
       const calculatedExpiry = calculateExpiryDate(
         formData.fabricationDate,
         formData.foodCategories
@@ -94,7 +161,7 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
           expiryDate: calculatedExpiry,
         }));
       }
-    } else if (!formData.fabricationDate || formData.foodCategories.length === 0) {
+    } else if (!editMode && (!formData.fabricationDate || formData.foodCategories.length === 0)) {
       // Clear calculated dates if fabrication date or categories are missing
       setFormData((prev) => ({
         ...prev,
@@ -103,7 +170,7 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
       }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData.fabricationDate, formData.foodCategories.map(c => c.value).join(',')]);
+  }, [editMode, formData.fabricationDate, formData.foodCategories.map(c => c.value).join(',')]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -186,43 +253,55 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
     };
 
     try {
-      const response = await surplusAPI.create(submissionData);
+      let response;
+      if (editMode && postId) {
+        // Update existing post
+        response = await surplusAPI.update(postId, submissionData);
+        setMessage(`Success! Donation updated successfully.`);
+      } else {
+        // Create new post
+        response = await surplusAPI.create(submissionData);
+        setMessage(`Success! Post created with ID: ${response.data.id}`);
+      }
 
-      setMessage(`Success! Post created with ID: ${response.data.id}`);
-      setFormData({
-        title: "",
-        quantityValue: "",
-        quantityUnit: "KILOGRAM",
-        foodCategories: [],
-        fabricationDate: "",
-        expiryDate: "",
-        calculatedExpiryDate: "",
-        pickupLocation: { latitude: "", longitude: "", address: "" },
-        description: "",
-        temperatureCategory: "",
-        packagingType: "",
-      });
+      // Reset form only in create mode
+      if (!editMode) {
+        setFormData({
+          title: "",
+          quantityValue: "",
+          quantityUnit: "KILOGRAM",
+          foodCategories: [],
+          fabricationDate: "",
+          expiryDate: "",
+          calculatedExpiryDate: "",
+          pickupLocation: { latitude: "", longitude: "", address: "" },
+          description: "",
+          temperatureCategory: "",
+          packagingType: "",
+        });
 
-      setPickupSlots([
-        {
-          pickupDate: "",
-          startTime: "",
-          endTime: "",
-          notes: "",
-        },
-      ]);
+        setPickupSlots([
+          {
+            pickupDate: "",
+            startTime: "",
+            endTime: "",
+            notes: "",
+          },
+        ]);
+      }
 
       setTimeout(() => {
         setMessage("");
         onClose();
       }, 1500);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to create surplus post");
+      setError(err.response?.data?.message || (editMode ? "Failed to update donation" : "Failed to create surplus post"));
     }
   };
 
   const handleCancel = () => {
-    if (window.confirm("Cancel donation creation?")) {
+    const confirmMessage = editMode ? "Cancel editing? Your changes will be lost." : "Cancel donation creation?";
+    if (window.confirm(confirmMessage)) {
       setCurrentStep(1);
       setFormData({
         title: "",
@@ -283,7 +362,8 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
     }
   };
 
-  const handleNext = () => {
+  const handleNext = (e) => {
+    e.preventDefault(); // Prevent form submission
     if (validateStep(currentStep)) {
       setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
       setError("");
@@ -292,9 +372,18 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
     }
   };
 
-  const handlePrevious = () => {
+  const handlePrevious = (e) => {
+    e.preventDefault(); // Prevent form submission
     setCurrentStep((prev) => Math.max(prev - 1, 1));
     setError("");
+  };
+
+  // Prevent Enter key from submitting the form when not on last step
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && currentStep < totalSteps) {
+      e.preventDefault();
+      handleNext(e);
+    }
   };
 
   if (!isOpen) return null;
@@ -336,10 +425,22 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
             ))}
           </div>
 
-          <h2>Add New Donation</h2>
+          <h2>{editMode ? "Edit Donation" : "Add New Donation"}</h2>
         </div>
 
-        <form onSubmit={handleSubmit} className="modal-form">
+        <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="modal-form">
+          {/* Loading State */}
+          {isLoading && (
+            <div className="form-step-content">
+              <div className="loading-state" style={{ textAlign: 'center', padding: '2rem' }}>
+                <p>Loading donation details...</p>
+              </div>
+            </div>
+          )}
+
+          {/* Form Content - Only show when not loading */}
+          {!isLoading && (
+            <>
           {/* Step 1: Food Details */}
           {currentStep === 1 && (
             <div className="form-step-content">
@@ -701,10 +802,12 @@ const SurplusFormModal = ({ isOpen, onClose }) => {
               </button>
             ) : (
               <button type="submit" className="btn btn-create">
-                Create Donation
+                {editMode ? "Update Donation" : "Create Donation"}
               </button>
             )}
           </div>
+          </>
+          )}
         </form>
       </div>
     </div>

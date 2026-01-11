@@ -47,6 +47,27 @@ public class SurplusController {
         return ResponseEntity.ok(myPosts);
     }
 
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('DONOR')")
+    public ResponseEntity<SurplusResponse> getSurplusPostById(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User donor) {
+
+        SurplusResponse post = surplusService.getSurplusPostByIdForDonor(id, donor);
+        return ResponseEntity.ok(post);
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('DONOR')")
+    public ResponseEntity<SurplusResponse> updateSurplusPost(
+            @PathVariable Long id,
+            @Valid @RequestBody CreateSurplusRequest request,
+            @AuthenticationPrincipal User donor) {
+
+        SurplusResponse response = surplusService.updateSurplusPost(id, request, donor);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping
     @PreAuthorize("hasAuthority('RECEIVER')")
     public ResponseEntity<List<SurplusResponse>> getAllAvailableSurplus(
