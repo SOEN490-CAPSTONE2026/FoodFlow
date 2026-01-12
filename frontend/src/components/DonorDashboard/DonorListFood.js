@@ -128,6 +128,8 @@ export default function DonorListFood() {
   const [isPickupModalOpen, setIsPickupModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [editPostId, setEditPostId] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [sortBy, setSortBy] = useState("date"); // "date" or "status"
@@ -265,14 +267,16 @@ const contactReceiver = async (item) => {
 
 
   function openEdit(item) {
-    alert(
-      `Opening edit form for: ${item.title}\n(Edit functionality to be implemented)`
-    );
+    setEditPostId(item.id);
+    setIsEditMode(true);
+    setIsModalOpen(true);
   }
 
   const handleModalClose = async () => {
     setIsModalOpen(false);
-    // Small delay to ensure backend has processed the new post
+    setIsEditMode(false);
+    setEditPostId(null);
+    // Small delay to ensure backend has processed the changes
     await new Promise(resolve => setTimeout(resolve, 300));
     fetchMyPosts();
   };
@@ -435,12 +439,21 @@ const contactReceiver = async (item) => {
         
         <button
           className="donor-add-button"
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            setIsEditMode(false);
+            setEditPostId(null);
+            setIsModalOpen(true);
+          }}
         >
           + Donate More
         </button>
         {isLoaded && (
-          <SurplusFormModal isOpen={isModalOpen} onClose={handleModalClose} />
+          <SurplusFormModal 
+            isOpen={isModalOpen} 
+            onClose={handleModalClose} 
+            editMode={isEditMode}
+            postId={editPostId}
+          />
         )}
       </header>
 

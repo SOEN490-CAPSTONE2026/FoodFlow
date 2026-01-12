@@ -240,6 +240,183 @@ public class SurplusService {
                 .map(post -> convertToResponseForDonor(post, donorTimezone))
                 .collect(Collectors.toList());
     }
+
+    /**
+     * Retrieves a single surplus post by ID for the donor.
+     * Validates that the requesting user is the owner of the post.
+     * Converts times from UTC back to donor's timezone.
+     */
+    @Timed(value = "surplus.service.getById", description = "Time taken to get surplus post by ID")
+    public SurplusResponse getSurplusPostByIdForDonor(Long postId, User donor) {
+        SurplusPost post = surplusPostRepository.findById(postId)
+            .orElseThrow(() -> new RuntimeException("Surplus post not found"));
+
+        // Verify the requesting user is the owner
+        if (!post.getDonor().getId().equals(donor.getId())) {
+            throw new RuntimeException("You are not authorized to view this post");
+        }
+
+        String donorTimezone = donor.getTimezone() != null ? donor.getTimezone() : "UTC";
+        return convertToResponseForDonor(post, donorTimezone);
+    }
+
+    /**
+     * Updates an existing surplus post.
+     * Only allows updates if the post is in AVAILABLE status (not yet claimed).
+     */
+    @Transactional
+    @Timed(value = "surplus.service.update", description = "Time taken to update a surplus post")
+    public SurplusResponse updateSurplusPost(Long postId, CreateSurplusRequest request, User donor) {
+        Timer.Sample sample = businessMetricsService.startTimer();
+        
+        SurplusPost post = surplusPostRepository.findById(postId)
+            .orElseThrow(() -> new RuntimeException("Surplus post not found"));
+
+        // Verify the requesting user is the owner
+        if (!post.getDonor().getId().equals(donor.getId())) {
+            throw new RuntimeException("You are not authorized to update this post");
+        }
+
+        // Only allow updates for AVAILABLE posts
+        if (post.getStatus() != PostStatus.AVAILABLE) {
+            throw new RuntimeException("Cannot edit a post that has been claimed or completed. Current status: " + post.getStatus());
+        }
+
+        // Update basic fields
+        post.setTitle(request.getTitle());
+        post.setDescription(request.getDescription());
+        post.setFoodCategories(request.getFoodCategories());
+        post.setQuantity(request.getQuantity());
+        post.setPickupLocation(request.getPickupLocation());
+        post.setTemperatureCategory(request.getTemperatureCategory());
+        post.setPackagingType(request.getPackagingType());
+
+        // Handle fabrication date and expiry date
+        LocalDate fabricationDate = request.getFabricationDate();
+        LocalDate expiryDate = request.getExpiryDate();
+
+        if (fabricationDate != null) {
+            if (!expiryCalculationService.isValidFabricationDate(fabricationDate)) {
+                throw new IllegalArgumentException("Fabrication date cannot be in the future");
+            }
+            post.setFabricationDate(fabricationDate);
+
+            if (expiryDate == null) {
+                expiryDate = expiryCalculationService.calculateExpiryDate(
+                    fabricationDate,
+                    request.getFoodCategories()
+                );
+            } else {
+                if (!expiryCalculationService.isValidExpiryDate(fabricationDate, expiryDate)) {
+                    throw new IllegalArgumentException(
+                        "Expiry date must be after fabrication date and within reasonable limits"
+                    );
+                }
+            }
+        }
+
+        if (expiryDate == null) {
+            throw new IllegalArgumentException("Expiry date is required");
+        }
+        post.setExpiryDate(expiryDate);
+
+        // Handle pickup slots update
+        List<PickupSlotRequest> slotsToProcess;
+        
+        if (request.getPickupSlots() != null && !request.getPickupSlots().isEmpty()) {
+            slotsToProcess = request.getPickupSlots();
+            pickupSlotValidationService.validateSlots(slotsToProcess);
+        } else {
+            // Backward compatibility: create single slot from legacy fields
+            PickupSlotRequest legacySlot = new PickupSlotRequest(
+                request.getPickupDate(),
+                request.getPickupFrom(),
+                request.getPickupTo(),
+                null
+            );
+            slotsToProcess = List.of(legacySlot);
+        }
+
+        // Get donor's timezone
+        String donorTimezone = request.getDonorTimezone();
+        if (donorTimezone == null || donorTimezone.trim().isEmpty()) {
+            donorTimezone = donor.getTimezone() != null ? donor.getTimezone() : "UTC";
+        }
+
+        // Convert first slot times from donor timezone to UTC for legacy fields
+        PickupSlotRequest firstSlot = slotsToProcess.get(0);
+        LocalDateTime startTimeUTC = TimezoneResolver.convertDateTime(
+            firstSlot.getPickupDate(), 
+            firstSlot.getStartTime(),
+            donorTimezone,
+            "UTC"
+        );
+        LocalDateTime endTimeUTC = TimezoneResolver.convertDateTime(
+            firstSlot.getPickupDate(),
+            firstSlot.getEndTime(),
+            donorTimezone,
+            "UTC"
+        );
+        
+        // Update legacy fields with UTC times
+        post.setPickupDate(startTimeUTC != null ? startTimeUTC.toLocalDate() : firstSlot.getPickupDate());
+        post.setPickupFrom(startTimeUTC != null ? startTimeUTC.toLocalTime() : firstSlot.getStartTime());
+        post.setPickupTo(endTimeUTC != null ? endTimeUTC.toLocalTime() : firstSlot.getEndTime());
+
+        // Update pickup slots - properly handle the bidirectional relationship
+        // Remove old slots by nullifying the parent reference first
+        List<PickupSlot> oldSlots = new ArrayList<>(post.getPickupSlots());
+        post.getPickupSlots().clear();
+        
+        // Save to trigger orphan removal
+        surplusPostRepository.saveAndFlush(post);
+        
+        // Now add new slots
+        for (int i = 0; i < slotsToProcess.size(); i++) {
+            PickupSlotRequest slotReq = slotsToProcess.get(i);
+            
+            // Convert slot times from donor timezone to UTC
+            LocalDateTime slotStartUTC = TimezoneResolver.convertDateTime(
+                slotReq.getPickupDate(),
+                slotReq.getStartTime(),
+                donorTimezone,
+                "UTC"
+            );
+            LocalDateTime slotEndUTC = TimezoneResolver.convertDateTime(
+                slotReq.getPickupDate(),
+                slotReq.getEndTime(),
+                donorTimezone,
+                "UTC"
+            );
+            
+            PickupSlot slot = new PickupSlot();
+            slot.setSurplusPost(post);
+            slot.setPickupDate(slotStartUTC != null ? slotStartUTC.toLocalDate() : slotReq.getPickupDate());
+            slot.setStartTime(slotStartUTC != null ? slotStartUTC.toLocalTime() : slotReq.getStartTime());
+            slot.setEndTime(slotEndUTC != null ? slotEndUTC.toLocalTime() : slotReq.getEndTime());
+            slot.setNotes(slotReq.getNotes());
+            slot.setSlotOrder(i + 1);
+            post.getPickupSlots().add(slot);
+        }
+
+        SurplusPost updatedPost = surplusPostRepository.saveAndFlush(post);
+
+        // Create timeline event for donation update
+        timelineService.createTimelineEvent(
+            updatedPost,
+            "DONATION_UPDATED",
+            "donor",
+            donor.getId(),
+            null,
+            PostStatus.AVAILABLE,
+            "Donation details updated by " + (donor.getOrganization() != null ? donor.getOrganization().getName() : donor.getEmail()),
+            true
+        );
+
+        businessMetricsService.recordTimer(sample, "surplus.service.update", "status", "success");
+
+        return convertToResponseForDonor(updatedPost, donorTimezone);
+    }
     
     /**
      * Converts a SurplusPost entity to the SurplusResponse DTO.

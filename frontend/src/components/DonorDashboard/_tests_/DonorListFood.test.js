@@ -324,7 +324,7 @@ describe("DonorListFood", () => {
     );
   });
 
-  test("edit button shows alert when clicked", async () => {
+  test("edit button opens modal in edit mode when clicked", async () => {
     surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
     const user = userEvent.setup();
 
@@ -337,9 +337,8 @@ describe("DonorListFood", () => {
     const editButtons = screen.getAllByRole("button", { name: /edit/i });
     await user.click(editButtons[0]);
 
-    expect(window.alert).toHaveBeenCalledWith(
-      expect.stringContaining("Opening edit form for: Fresh Apples")
-    );
+    // Modal should open
+    expect(screen.getByTestId("surplus-form-modal")).toBeInTheDocument();
   });
 
 test("delete button shows confirmation and removes item when confirmed", async () => {
@@ -585,10 +584,8 @@ test("delete button shows confirmation and removes item when confirmed", async (
     const editButtons = screen.getAllByRole("button", { name: /edit/i });
     await user.click(editButtons[0]);
     
-    // The alert should work fine with proper Router context
-    expect(window.alert).toHaveBeenCalledWith(
-      expect.stringContaining("Opening edit form for: Fresh Apples")
-    );
+    // Modal should open properly with Router context
+    expect(screen.getByTestId("surplus-form-modal")).toBeInTheDocument();
   });
 
   describe('Timeline Feature', () => {
@@ -754,4 +751,5 @@ test("delete button shows confirmation and removes item when confirmed", async (
       expect(surplusAPI.getTimeline).toHaveBeenCalledTimes(1);
     });
   });
+});
 });
