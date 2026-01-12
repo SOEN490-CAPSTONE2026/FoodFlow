@@ -38,17 +38,17 @@ function ReceiverLayoutContent() {
     switch (location.pathname) {
       case "/receiver":
       case "/receiver/dashboard":
-        return "Receiver Dashboard";
+        return t('receiverLayout.pageTitles.receiverDashboard');
       case "/receiver/welcome":
-        return "Welcome";
+        return t('receiverLayout.pageTitles.welcome');
       case "/receiver/browse":
-        return "Browse Available Food";
+        return t('receiverLayout.pageTitles.browse');
       case "/receiver/messages":
-        return "Messages";
+        return t('receiverLayout.pageTitles.messages');
       case "/receiver/settings":
-        return "Settings";
+        return t('receiverLayout.pageTitles.settings');
       default:
-        return "Receiver Dashboard";
+        return t('receiverLayout.pageTitles.default');
     }
   };
 
@@ -56,17 +56,17 @@ function ReceiverLayoutContent() {
     switch (location.pathname) {
       case "/receiver":
       case "/receiver/dashboard":
-        return "Overview of nearby food and your activity";
+        return t('receiverLayout.pageDescriptions.receiverDashboard');
       case "/receiver/welcome":
-        return "Start here: search the map or browse nearby food";
+        return t('receiverLayout.pageDescriptions.welcome');
       case "/receiver/browse":
-        return "Browse available food listings";
+        return t('receiverLayout.pageDescriptions.browse');
       case "/receiver/messages":
-        return "Communicate with donors and other users";
+        return t('receiverLayout.pageDescriptions.messages');
       case "/receiver/settings":
-        return "Manage your preferences and account settings";
+        return t('receiverLayout.pageDescriptions.settings');
       default:
-        return "FoodFlow Receiver Portal";
+        return t('receiverLayout.pageDescriptions.default');
     }
   };
 
@@ -184,21 +184,21 @@ function ReceiverLayoutContent() {
             to="/receiver"
             className={`receiver-nav-link ${location.pathname === "/receiver" || location.pathname === "/receiver/browse" ? "active" : ""}`}
           >
-            Donations
+            {t('receiverLayout.donations')}
           </Link>
 
           <Link
             to="/receiver/my-claims"
             className={`receiver-nav-link ${isActive("/receiver/my-claims") || isActive("/receiver/dashboard") ? "active" : ""}`}
           >
-            My Claims
+            {t('receiverLayout.myClaims')}
           </Link>
 
           <Link
             to="/receiver/welcome"
             className={`receiver-nav-link ${location.pathname === "/receiver/welcome" ? "active" : ""}`}
           >
-            Saved Donations
+            {t('receiverLayout.savedDonations')}
           </Link>
         </div>
 
@@ -219,9 +219,9 @@ function ReceiverLayoutContent() {
             <button
               className="avatar-btn"
               type="button"
-              aria-label="Account menu"
+              aria-label={t('receiverLayout.account')}
               onClick={toggleDropdown}
-              title="Account"
+              title={t('receiverLayout.account')}
             >
               <img src={ProfilePhoto} alt="Profile" />
             </button>
@@ -230,7 +230,7 @@ function ReceiverLayoutContent() {
           {showDropdown && (
             <div className="dropdown-menu dropdown-menu--card">
               <div className="dropdown-header">
-                Hello {organizationName || 'User'}!
+                {t('receiverLayout.hello', { name: organizationName || t('receiverLayout.user') })}
               </div>
               <div className="dropdown-divider"></div>
 
@@ -239,7 +239,7 @@ function ReceiverLayoutContent() {
                 navigate('/receiver/settings');
               }}>
                 <IconSettings size={18} />
-                <span>Settings</span>
+                <span>{t('receiverLayout.settings')}</span>
               </div>
 
               <div className="dropdown-item dropdown-item--preferences" onClick={() => {
@@ -247,7 +247,7 @@ function ReceiverLayoutContent() {
                 setShowPreferences(true);
               }}>
                 <IconUser size={18} />
-                <span>Preferences</span>
+                <span>{t('receiverLayout.preferences')}</span>
               </div>
 
               <div
@@ -258,14 +258,14 @@ function ReceiverLayoutContent() {
                 }}
               >
                 <IconHelpCircle size={18} />
-                <span>Help</span>
+                <span>{t('receiverLayout.help')}</span>
               </div>
 
               <div className="dropdown-divider"></div>
 
               <div className="dropdown-item dropdown-item-logout" onClick={handleLogout}>
                 <IconLogOut size={18} />
-                <span>Logout</span>
+                <span>{t('receiverLayout.logout')}</span>
               </div>
             </div>
           )}

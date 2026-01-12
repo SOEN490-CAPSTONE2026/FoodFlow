@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Package, User, ArrowRight, Filter, Clock } from 'lucide-react';
 import Select from 'react-select';
 import { claimsAPI } from '../../services/api';
@@ -8,6 +9,7 @@ import ClaimDetailModal from './ClaimDetailModal.js';
 import "./Receiver_Styles/ReceiverMyClaims.css";
 
 export default function ReceiverMyClaims() {
+  const { t } = useTranslation();
   const { showNotification } = useNotification();
   const [claims, setClaims] = useState([]);
   const [activeFilter, setActiveFilter] = useState('All');
@@ -19,8 +21,8 @@ export default function ReceiverMyClaims() {
   const [confirmCancel, setConfirmCancel] = useState({ show: false, claimId: null, postTitle: '' });
 
   const sortOptions = [
-    { value: 'date', label: 'Sort by Date' },
-    { value: 'status', label: 'Sort by Status' }
+    { value: 'date', label: t('receiverMyClaims.sortByDate') },
+    { value: 'status', label: t('receiverMyClaims.sortByStatus') }
   ];
 
   useEffect(() => {
@@ -42,7 +44,7 @@ export default function ReceiverMyClaims() {
       setError(null);
     } catch (error) {
       console.error('Error fetching claims:', error);
-      setError('Failed to load your claimed donations');
+      setError(t('receiverMyClaims.failedToLoad'));
       setClaims([]);
     } finally {
       setLoading(false);
@@ -69,7 +71,7 @@ export default function ReceiverMyClaims() {
       console.log('Claim cancelled successfully');
       
       // Show toast notification
-      showNotification('Claim Cancelled', `Your claim on "${postTitle}" has been cancelled`);
+      showNotification(t('receiverMyClaims.claimCancelled'), t('receiverMyClaims.claimCancelledMessage', { postTitle }));
       
       // Close confirmation dialog
       setConfirmCancel({ show: false, claimId: null, postTitle: '' });
@@ -77,7 +79,7 @@ export default function ReceiverMyClaims() {
       fetchMyClaims(); // Refresh list
     } catch (error) {
       console.error('Error cancelling claim:', error);
-      showNotification('Error', 'Failed to cancel claim. Please try again.');
+      showNotification(t('common.error'), t('receiverMyClaims.cancelFailed'));
       // Close confirmation dialog even on error
       setConfirmCancel({ show: false, claimId: null, postTitle: '' });
     }
@@ -127,24 +129,24 @@ export default function ReceiverMyClaims() {
   // Map claim status to display status
   const getDisplayStatus = (claim) => {
     const postStatus = claim.surplusPost?.status;
-    if (postStatus === 'READY_FOR_PICKUP') return 'Ready for Pickup';
-    if (postStatus === 'COMPLETED') return 'Completed';
-    if (postStatus === 'NOT_COMPLETED') return 'Not Completed';
-    return 'Claimed';
+    if (postStatus === 'READY_FOR_PICKUP') return t('receiverMyClaims.readyForPickup');
+    if (postStatus === 'COMPLETED') return t('receiverMyClaims.completed');
+    if (postStatus === 'NOT_COMPLETED') return t('receiverMyClaims.notCompleted');
+    return t('receiverMyClaims.claimed');
   };
 
   const getStatusCount = (status) => {
-    if (status === 'All') return claims.length;
-    if (status === 'Ready') {
+    if (status === t('receiverMyClaims.filters.all')) return claims.length;
+    if (status === t('receiverMyClaims.filters.ready')) {
       return claims.filter(c => c.surplusPost?.status === 'READY_FOR_PICKUP').length;
     }
-    if (status === 'Completed') {
+    if (status === t('receiverMyClaims.filters.completed')) {
       return claims.filter(c => c.surplusPost?.status === 'COMPLETED').length;
     }
-    if (status === 'Not Completed') {
+    if (status === t('receiverMyClaims.filters.notCompleted')) {
       return claims.filter(c => c.surplusPost?.status === 'NOT_COMPLETED').length;
     }
-    if (status === 'Claimed') {
+    if (status === t('receiverMyClaims.filters.claimed')) {
       return claims.filter(c => c.surplusPost?.status !== 'READY_FOR_PICKUP' && 
                                 c.surplusPost?.status !== 'COMPLETED' && 
                                 c.surplusPost?.status !== 'NOT_COMPLETED').length;
@@ -153,19 +155,19 @@ export default function ReceiverMyClaims() {
   };
 
   const filters = [
-    { name: 'Claimed', count: getStatusCount('Claimed') },
-    { name: 'Ready', count: getStatusCount('Ready') },
-    { name: 'Completed', count: getStatusCount('Completed') },
-    { name: 'Not Completed', count: getStatusCount('Not Completed') },
-    { name: 'All', count: getStatusCount('All') }
+    { name: t('receiverMyClaims.filters.claimed'), count: getStatusCount(t('receiverMyClaims.filters.claimed')) },
+    { name: t('receiverMyClaims.filters.ready'), count: getStatusCount(t('receiverMyClaims.filters.ready')) },
+    { name: t('receiverMyClaims.filters.completed'), count: getStatusCount(t('receiverMyClaims.filters.completed')) },
+    { name: t('receiverMyClaims.filters.notCompleted'), count: getStatusCount(t('receiverMyClaims.filters.notCompleted')) },
+    { name: t('receiverMyClaims.filters.all'), count: getStatusCount(t('receiverMyClaims.filters.all')) }
   ];
 
   const filteredClaims = claims.filter(claim => {
-    if (activeFilter === 'All') return true;
-    if (activeFilter === 'Ready') return claim.surplusPost?.status === 'READY_FOR_PICKUP';
-    if (activeFilter === 'Completed') return claim.surplusPost?.status === 'COMPLETED';
-    if (activeFilter === 'Not Completed') return claim.surplusPost?.status === 'NOT_COMPLETED';
-    if (activeFilter === 'Claimed') {
+    if (activeFilter === t('receiverMyClaims.filters.all')) return true;
+    if (activeFilter === t('receiverMyClaims.filters.ready')) return claim.surplusPost?.status === 'READY_FOR_PICKUP';
+    if (activeFilter === t('receiverMyClaims.filters.completed')) return claim.surplusPost?.status === 'COMPLETED';
+    if (activeFilter === t('receiverMyClaims.filters.notCompleted')) return claim.surplusPost?.status === 'NOT_COMPLETED';
+    if (activeFilter === t('receiverMyClaims.filters.claimed')) {
       return claim.surplusPost?.status !== 'READY_FOR_PICKUP' && 
              claim.surplusPost?.status !== 'COMPLETED' && 
              claim.surplusPost?.status !== 'NOT_COMPLETED';
@@ -197,9 +199,9 @@ export default function ReceiverMyClaims() {
     }
     if (sortBy.value === 'status') {
       const statusPriority = {
-        'Ready for Pickup': 1,
-        'Claimed': 2,
-        'Completed': 3
+        [t('receiverMyClaims.readyForPickup')]: 1,
+        [t('receiverMyClaims.claimed')]: 2,
+        [t('receiverMyClaims.completed')]: 3
       };
       
       const statusA = getDisplayStatus(a);
@@ -213,15 +215,15 @@ export default function ReceiverMyClaims() {
   if (loading && claims.length === 0) {
     return (
       <div className="claimed-page claimed-donations-container">
-        <div className="claimed-page loading">Loading your claims...</div>
+        <div className="claimed-page loading">{t('receiverMyClaims.loading')}</div>
       </div>
     );
   }
 
   return (
     <div className="claimed-page claimed-donations-container">
-      <h1>My Claimed Donations</h1>
-      <p className="claimed-page claimed-subtitle">Track your donations and get ready for pickup — every claim helps reduce waste and feed our community.</p>
+      <h1>{t('receiverMyClaims.title')}</h1>
+      <p className="claimed-page claimed-subtitle">{t('receiverMyClaims.subtitle')}</p>
 
       {error && (
         <div className="claimed-page error-message">
@@ -282,7 +284,7 @@ export default function ReceiverMyClaims() {
 
               {/* Content */}
               <div className="claimed-page card-content">
-                <h3 className="claimed-page card-title">{post?.title || 'Untitled Donation'}</h3>
+                <h3 className="claimed-page card-title">{post?.title || t('receiverMyClaims.untitledDonation')}</h3>
 
                  <div className="claimed-page card-details">
                   <div className="claimed-page detail-item">
@@ -293,7 +295,7 @@ export default function ReceiverMyClaims() {
                   </div>
                   <div className="claimed-page detail-item">
                     <User size={16} className="claimed-page donor-detail-icon" />
-                    <span>{post?.donorName || 'Not specified'}</span>
+                    <span>{post?.donorName || t('receiverMyClaims.notSpecified')}</span>
                   </div>
                   <div className="claimed-page detail-item">
                     <Clock size={16} className="claimed-page date-detail-icon" />
@@ -318,12 +320,12 @@ export default function ReceiverMyClaims() {
                       onClick={() => handleCancelClick(claim.id)}
                       className="claimed-page cancel-claim-btn"
                     >
-                      Cancel
+                      {t('receiverMyClaims.cancel')}
                     </button>
                   )}
                   
                   <div className="claimed-page view-details-container" onClick={() => handleViewDetails(claim)}>
-                    <span>View details</span>
+                    <span>{t('receiverMyClaims.viewDetails')}</span>
                     <button className="claimed-page view-details-btn">
                       <ArrowRight size={16} className="claimed-page arrow-icon" />
                     </button>
@@ -339,9 +341,9 @@ export default function ReceiverMyClaims() {
         <div className="claimed-page empty-state">
           <Package size={48} className="claimed-page empty-icon" />
           <p>
-            {activeFilter === 'All' 
-              ? "You haven't claimed any donations yet. Browse available donations to make your first claim!"
-              : `No donations found for the "${activeFilter}" filter.`}
+            {activeFilter === t('receiverMyClaims.filters.all')
+              ? t('receiverMyClaims.noClaimsYet')
+              : t('receiverMyClaims.noDonationsForFilter', { filter: activeFilter })}
           </p>
         </div>
       )}
@@ -350,23 +352,22 @@ export default function ReceiverMyClaims() {
       {confirmCancel.show && (
         <div className="claimed-page confirmation-overlay">
           <div className="confirmation-dialog">
-            <h3>Cancel Claim</h3>
+            <h3>{t('receiverMyClaims.cancelClaim')}</h3>
             <p>
-              Are you sure you want to cancel your claim on <strong>"{confirmCancel.postTitle}"</strong>? 
-              This action cannot be undone.
+              {t('receiverMyClaims.confirmCancelMessage', { postTitle: confirmCancel.postTitle })}
             </p>
             <div className="confirmation-buttons">
               <button 
                 onClick={handleCancelCancel}
                 className="btn btn-cancel"
               >
-                Keep Claim
+                {t('receiverMyClaims.keepClaim')}
               </button>
               <button 
                 onClick={handleConfirmCancel}
                 className="btn btn-create"
               >
-                Yes, Cancel Claim
+                {t('receiverMyClaims.yesCancelClaim')}
               </button>
             </div>
           </div>
