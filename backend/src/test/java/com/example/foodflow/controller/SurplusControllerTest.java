@@ -780,6 +780,8 @@ class SurplusControllerTest {
                 .andExpect(jsonPath("$[0].pickupEvidenceUrl").value("https://example.com/evidence.jpg"));
 
         verify(surplusService).getTimelineForPost(eq(1L), any(User.class));
+    }
+
     // ==================== Tests for getSurplusPostById (Edit Functionality) ====================
 
     @Test

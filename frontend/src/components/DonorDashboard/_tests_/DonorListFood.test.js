@@ -752,4 +752,4 @@ test("delete button shows confirmation and removes item when confirmed", async (
     });
   });
 });
-});
+
