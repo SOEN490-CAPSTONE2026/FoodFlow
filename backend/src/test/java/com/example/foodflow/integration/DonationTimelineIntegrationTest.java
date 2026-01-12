@@ -60,6 +60,7 @@ class DonationTimelineIntegrationTest {
         donorOrg.setOrganizationType(OrganizationType.RESTAURANT);
         donorOrg.setAddress("123 Main St");
         donorOrg.setPhone("555-1234");
+        donorOrg.setContactPerson("John Doe");
         donorOrg = organizationRepository.save(donorOrg);
 
         // Create test donor user
@@ -76,6 +77,7 @@ class DonationTimelineIntegrationTest {
         receiverOrg.setOrganizationType(OrganizationType.CHARITY);
         receiverOrg.setAddress("456 Elm St");
         receiverOrg.setPhone("555-5678");
+        receiverOrg.setContactPerson("Jane Smith");
         receiverOrg = organizationRepository.save(receiverOrg);
 
         // Create test receiver user
