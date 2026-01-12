@@ -389,6 +389,14 @@ const AdminDonations = () => {
                                 <h4>Pickup Date</h4>
                                 <p className="details-value">{donation.pickupDate || 'N/A'}</p>
                               </div>
+                              <div className="details-section">
+                                <h4>Temperature</h4>
+                                <p className="details-value">{donation.temperature || 'N/A'}</p>
+                              </div>
+                              <div className="details-section">
+                                <h4>Packaging Conditions</h4>
+                                <p className="details-value">{donation.packagingConditions || 'N/A'}</p>
+                              </div>
                             </div>
                             <div className="details-section">
                               <h4>Description</h4>
