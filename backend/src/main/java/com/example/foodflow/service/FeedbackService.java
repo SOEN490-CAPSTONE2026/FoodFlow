@@ -57,9 +57,9 @@ public class FeedbackService {
         Claim claim = claimRepository.findById(requestDTO.getClaimId())
                 .orElseThrow(() -> new IllegalArgumentException("Claim not found"));
 
-        // Validate claim is not cancelled (allow ACTIVE, COMPLETED, and NOT_COMPLETED)
-        if (claim.getStatus() == ClaimStatus.CANCELLED) {
-            throw new IllegalStateException("Cannot provide feedback for cancelled claims");
+        // Validate claim is COMPLETED (only allow feedback for completed claims)
+        if (claim.getStatus() != ClaimStatus.COMPLETED) {
+            throw new IllegalStateException("Feedback can only be provided for completed claims");
         }
 
         // Validate reviewer is part of this claim
