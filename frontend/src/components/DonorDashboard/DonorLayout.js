@@ -215,28 +215,6 @@ export default function DonorLayout() {
           </Link>
 
           <Link 
-            to="/donor/requests" 
-            className={`donor-nav-link ${isActive("/donor/requests") ? "active" : ""}`}
-            data-tooltip="Requests & Claims"
-          >
-            <span className="nav-icon" aria-hidden>
-              <CalendarIcon size={18} className="lucide" />
-            </span>
-            Requests & Claims 
-          </Link>
-
-          <Link 
-            to="/donor/search" 
-            className={`donor-nav-link ${isActive("/donor/search") ? "active" : ""}`}
-            data-tooltip="Pickup Schedule"
-          >
-            <span className="nav-icon" aria-hidden>
-              <FileText size={18} className="lucide" />
-            </span>
-            Pickup Schedule
-          </Link>
-
-          <Link 
             to="/donor/messages" 
             className={`donor-nav-link ${isActive("/donor/messages") ? "active" : ""}`}
             data-tooltip="Messages"

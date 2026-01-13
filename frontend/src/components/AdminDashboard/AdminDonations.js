@@ -88,6 +88,12 @@ const AdminDonations = () => {
 
       // Calculate stats
       calculateStats(data.content || []);
+      
+      // Fetch feedback for all donations with claims
+      const donationsWithClaims = (data.content || []).filter(d => d.claimId);
+      donationsWithClaims.forEach(donation => {
+        fetchFeedbackForDonation(donation);
+      });
     } catch (err) {
       console.error('Error fetching donations:', err);
       setError('Failed to load donations. Please try again.');
@@ -118,18 +124,46 @@ const AdminDonations = () => {
     if (!donation.claimId || feedbackData[donation.id]) return;
     
     try {
-      const feedbackResponse = await feedbackAPI.getFeedbackForClaim(donation.claimId);
-      const feedbacks = feedbackResponse.data || [];
+      console.log('🔍 Fetching feedback for donation:', donation.id, 'claimId:', donation.claimId);
+      console.log('🔍 Donation donorId:', donation.donorId, 'receiverId:', donation.receiverId);
       
-      const donorFeedback = feedbacks.find(f => f.reviewerId === donation.receiverId);
-      const receiverFeedback = feedbacks.find(f => f.reviewerId === donation.donorId);
+      const feedbackResponse = await feedbackAPI.getFeedbackForClaim(donation.claimId);
+      console.log('📦 Full response:', feedbackResponse);
+      
+      const feedbacks = feedbackResponse.data || [];
+      console.log('📦 Received feedbacks array:', feedbacks);
+      console.log('📦 Number of feedbacks:', feedbacks.length);
+      
+      if (feedbacks.length > 0) {
+        feedbacks.forEach((fb, idx) => {
+          console.log(`📦 Feedback ${idx}:`, fb);
+          console.log(`   - reviewerId: ${fb.reviewerId}, revieweeId: ${fb.revieweeId}`);
+        });
+      }
+      
+      // Donor feedback: reviewer is donor (donorId), reviewee is receiver (receiverId)
+      const donorFeedback = feedbacks.find(f => f.reviewerId === donation.donorId);
+      // Receiver feedback: reviewer is receiver (receiverId), reviewee is donor (donorId)
+      const receiverFeedback = feedbacks.find(f => f.reviewerId === donation.receiverId);
+      
+      console.log('✅ Donor feedback (reviewerId should be donorId):', donorFeedback);
+      console.log('✅ Receiver feedback (reviewerId should be receiverId):', receiverFeedback);
       
       setFeedbackData(prev => ({
         ...prev,
         [donation.id]: { donorFeedback, receiverFeedback }
       }));
     } catch (err) {
-      console.error('Error fetching feedback:', err);
+      // 404 means no feedback yet - this is normal, not an error
+      if (err.response?.status === 404) {
+        console.log('ℹ️ No feedback found for claim', donation.claimId);
+        setFeedbackData(prev => ({
+          ...prev,
+          [donation.id]: { donorFeedback: null, receiverFeedback: null }
+        }));
+      } else {
+        console.error('❌ Error fetching feedback:', err);
+      }
     }
   };
 
@@ -139,12 +173,37 @@ const AdminDonations = () => {
       newExpanded.delete(donation.id);
     } else {
       newExpanded.add(donation.id);
-      // Fetch feedback when expanding
-      if (donation.claimId) {
+      // Fetch feedback when expanding (if not already fetched)
+      if (donation.claimId && !feedbackData[donation.id]) {
         await fetchFeedbackForDonation(donation);
       }
     }
     setExpandedRows(newExpanded);
+  };
+
+  // Calculate average rating for a donation
+  const getAverageRating = (donation) => {
+    if (!feedbackData[donation.id]) return null;
+    
+    const donorRating = feedbackData[donation.id].donorFeedback?.rating;
+    const receiverRating = feedbackData[donation.id].receiverFeedback?.rating;
+    
+    if (donorRating && receiverRating) {
+      return ((donorRating + receiverRating) / 2).toFixed(1);
+    } else if (donorRating) {
+      return donorRating.toFixed(1);
+    } else if (receiverRating) {
+      return receiverRating.toFixed(1);
+    }
+    return null;
+  };
+
+  // Check if any rating is low (≤2)
+  const hasLowRating = (donation) => {
+    if (!feedbackData[donation.id]) return false;
+    const donorRating = feedbackData[donation.id].donorFeedback?.rating;
+    const receiverRating = feedbackData[donation.id].receiverFeedback?.rating;
+    return (donorRating && donorRating <= 2) || (receiverRating && receiverRating <= 2);
   };
 
   const openDetailModal = async (donation) => {
@@ -402,26 +461,32 @@ const AdminDonations = () => {
                       <TableCell>{donation.receiverName || 'N/A'}</TableCell>
                       <TableCell>
                         {!donation.claimId ? (
-                          <span style={{ fontSize: '12px', color: '#9ca3af' }}>No claim</span>
-                        ) : feedbackData[donation.id] ? (
-                          (feedbackData[donation.id].donorFeedback || feedbackData[donation.id].receiverFeedback) ? (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <Star size={14} fill="#fbbf24" stroke="#fbbf24" />
-                              <span style={{ fontSize: '13px' }}>
-                                {feedbackData[donation.id].donorFeedback?.rating || feedbackData[donation.id].receiverFeedback?.rating}
-                              </span>
-                              {(feedbackData[donation.id].donorFeedback?.rating <= 2 || feedbackData[donation.id].receiverFeedback?.rating <= 2) && (
-                                <Flag size={12} color="#ef4444" />
+                          <span className="table-muted">—</span>
+                        ) : (() => {
+                          const avgRating = getAverageRating(donation);
+                          return avgRating ? (
+                            <div className="rating-cell">
+                              <Star size={16} fill="#fbbf24" stroke="#fbbf24" />
+                              <span>{avgRating}</span>
+                              {hasLowRating(donation) && (
+                                <Flag size={14} color="#ef4444" />
                               )}
                             </div>
                           ) : (
-                            <span style={{ fontSize: '12px', color: '#9ca3af' }}>No feedback</span>
-                          )
+                            <span className="table-muted">—</span>
+                          );
+                        })()}
+                      </TableCell>
+                      <TableCell>
+                        {donation.flagged ? (
+                          <div className="flagged-cell" title={donation.flagReason || 'Flagged donation'}>
+                            <Flag color="#ef4444" size={16} />
+                            <span className="flagged-text">Yes</span>
+                          </div>
                         ) : (
-                          <span style={{ fontSize: '12px', color: '#9ca3af' }}>—</span>
+                          <span className="table-muted">—</span>
                         )}
                       </TableCell>
-                      <TableCell>{donation.flagged ? <Flag color="red" size={16} /> : ''}</TableCell>
                       <TableCell>{formatDate(donation.createdAt)}</TableCell>
                       <TableCell>{formatDate(donation.updatedAt)}</TableCell>
                       <TableCell>
@@ -461,47 +526,51 @@ const AdminDonations = () => {
                             
                             {/* Feedback in expanded row */}
                             {donation.claimId && (
-                              <div className="details-section" style={{ width: '100%', marginTop: '12px' }}>
+                              <div className="feedback-section">
                                 <h4>Feedback & Ratings</h4>
                                 {!feedbackData[donation.id] ? (
-                                  <div style={{ padding: '12px', background: '#f9fafb', borderRadius: '6px', color: '#6b7280', fontSize: '13px', fontStyle: 'italic' }}>
+                                  <div className="feedback-loading">
                                     Click to expand and load feedback...
                                   </div>
                                 ) : (feedbackData[donation.id].donorFeedback || feedbackData[donation.id].receiverFeedback) ? (
-                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                  <div className="feedback-container">
                                     {feedbackData[donation.id].receiverFeedback && (
-                                      <div style={{ width: '100%', padding: '12px', background: feedbackData[donation.id].receiverFeedback.rating <= 2 ? '#fef2f2' : '#f9fafb', borderRadius: '6px', border: feedbackData[donation.id].receiverFeedback.rating <= 2 ? '1px solid #fecaca' : '1px solid #e5e7eb' }}>
-                                        <div style={{ fontWeight: '600', fontSize: '13px', marginBottom: '6px' }}>Donor → Receiver</div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '6px' }}>
-                                          {[1, 2, 3, 4, 5].map(star => (
-                                            <Star key={star} size={14} fill={star <= feedbackData[donation.id].receiverFeedback.rating ? '#fbbf24' : 'none'} stroke={star <= feedbackData[donation.id].receiverFeedback.rating ? '#fbbf24' : '#d1d5db'} />
-                                          ))}
-                                          <span style={{ fontSize: '13px', fontWeight: '600', marginLeft: '4px' }}>{feedbackData[donation.id].receiverFeedback.rating}/5</span>
-                                          {feedbackData[donation.id].receiverFeedback.rating <= 2 && <Flag size={12} color="#ef4444" style={{ marginLeft: '4px' }} />}
+                                      <div className={`feedback-card ${feedbackData[donation.id].receiverFeedback.rating <= 2 ? 'low-rating' : ''}`}>
+                                        <div className="feedback-header">
+                                          <div className="feedback-direction">Donor → Receiver</div>
+                                          <div className="rating-display">
+                                            {[1, 2, 3, 4, 5].map(star => (
+                                              <Star key={star} size={16} fill={star <= feedbackData[donation.id].receiverFeedback.rating ? '#fbbf24' : 'none'} stroke={star <= feedbackData[donation.id].receiverFeedback.rating ? '#fbbf24' : '#d1d5db'} />
+                                            ))}
+                                            <span className="rating-value">{feedbackData[donation.id].receiverFeedback.rating}/5</span>
+                                            {feedbackData[donation.id].receiverFeedback.rating <= 2 && <Flag size={14} color="#ef4444" className="low-rating-flag" />}
+                                          </div>
                                         </div>
                                         {feedbackData[donation.id].receiverFeedback.reviewText && (
-                                          <div style={{ fontSize: '12px', fontStyle: 'italic', color: '#6b7280' }}>"{feedbackData[donation.id].receiverFeedback.reviewText}"</div>
+                                          <div className="feedback-text">"{feedbackData[donation.id].receiverFeedback.reviewText}"</div>
                                         )}
                                       </div>
                                     )}
                                     {feedbackData[donation.id].donorFeedback && (
-                                      <div style={{ width: '100%', padding: '12px', background: feedbackData[donation.id].donorFeedback.rating <= 2 ? '#fef2f2' : '#f9fafb', borderRadius: '6px', border: feedbackData[donation.id].donorFeedback.rating <= 2 ? '1px solid #fecaca' : '1px solid #e5e7eb' }}>
-                                        <div style={{ fontWeight: '600', fontSize: '13px', marginBottom: '6px' }}>Receiver → Donor</div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '6px' }}>
-                                          {[1, 2, 3, 4, 5].map(star => (
-                                            <Star key={star} size={14} fill={star <= feedbackData[donation.id].donorFeedback.rating ? '#fbbf24' : 'none'} stroke={star <= feedbackData[donation.id].donorFeedback.rating ? '#fbbf24' : '#d1d5db'} />
-                                          ))}
-                                          <span style={{ fontSize: '13px', fontWeight: '600', marginLeft: '4px' }}>{feedbackData[donation.id].donorFeedback.rating}/5</span>
-                                          {feedbackData[donation.id].donorFeedback.rating <= 2 && <Flag size={12} color="#ef4444" style={{ marginLeft: '4px' }} />}
+                                      <div className={`feedback-card ${feedbackData[donation.id].donorFeedback.rating <= 2 ? 'low-rating' : ''}`}>
+                                        <div className="feedback-header">
+                                          <div className="feedback-direction">Receiver → Donor</div>
+                                          <div className="rating-display">
+                                            {[1, 2, 3, 4, 5].map(star => (
+                                              <Star key={star} size={16} fill={star <= feedbackData[donation.id].donorFeedback.rating ? '#fbbf24' : 'none'} stroke={star <= feedbackData[donation.id].donorFeedback.rating ? '#fbbf24' : '#d1d5db'} />
+                                            ))}
+                                            <span className="rating-value">{feedbackData[donation.id].donorFeedback.rating}/5</span>
+                                            {feedbackData[donation.id].donorFeedback.rating <= 2 && <Flag size={14} color="#ef4444" className="low-rating-flag" />}
+                                          </div>
                                         </div>
                                         {feedbackData[donation.id].donorFeedback.reviewText && (
-                                          <div style={{ fontSize: '12px', fontStyle: 'italic', color: '#6b7280' }}>"{feedbackData[donation.id].donorFeedback.reviewText}"</div>
+                                          <div className="feedback-text">"{feedbackData[donation.id].donorFeedback.reviewText}"</div>
                                         )}
                                       </div>
                                     )}
                                   </div>
                                 ) : (
-                                  <div style={{ padding: '12px', background: '#f9fafb', borderRadius: '6px', color: '#6b7280', fontSize: '13px', fontStyle: 'italic', textAlign: 'center' }}>
+                                  <div className="feedback-empty">
                                     No feedback has been provided yet for this donation.
                                   </div>
                                 )}

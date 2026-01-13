@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { X, Star } from 'lucide-react';
 import { feedbackAPI } from '../../services/api';
+import { AuthContext } from '../../contexts/AuthContext';
 import './FeedbackModal.css';
 
 const FeedbackModal = ({ isOpen, onClose, claimId, targetUser, onSubmitted }) => {
+  const { userId } = useContext(AuthContext);
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [review, setReview] = useState('');
@@ -11,23 +13,29 @@ const FeedbackModal = ({ isOpen, onClose, claimId, targetUser, onSubmitted }) =>
   const [alreadySubmitted, setAlreadySubmitted] = useState(false);
 
   useEffect(() => {
-    if (!isOpen || !claimId) {
-      // Reset state if modal closes or claimId is missing
+    if (!isOpen || !claimId || !userId) {
+      // Reset state if modal closes or claimId/userId is missing
       setAlreadySubmitted(false);
       return;
     }
-    // Check if current user can provide feedback for this claim
+    // Check if current user has already provided feedback for this claim
     const check = async () => {
       try {
-        console.log('Checking feedback for claimId:', claimId);
+        console.log('Checking feedback for claimId:', claimId, 'userId:', userId, 'userId type:', typeof userId);
         
-        // Check actual feedback data instead of relying on canProvideFeedback endpoint
+        // Get all feedback for this claim
         const existingFeedback = await feedbackAPI.getFeedbackForClaim(claimId);
         console.log('Existing feedback for claim:', existingFeedback.data);
         
-        // If there's ANY feedback for this claim, user has already submitted
-        const hasSubmitted = existingFeedback.data && existingFeedback.data.length > 0;
-        console.log('Has already submitted:', hasSubmitted);
+        // Check if the current user has already submitted feedback
+        // (their userId should match a reviewerId in the feedback list)
+        // Use == instead of === to handle string vs number comparison
+        const hasSubmitted = existingFeedback.data && 
+          existingFeedback.data.some(feedback => {
+            console.log('Comparing reviewerId:', feedback.reviewerId, 'type:', typeof feedback.reviewerId, 'with userId:', userId, 'type:', typeof userId);
+            return feedback.reviewerId == userId; // Use == for type coercion
+          });
+        console.log('Current user has already submitted:', hasSubmitted);
         setAlreadySubmitted(hasSubmitted);
       } catch (err) {
         console.error('Error checking feedback status:', err);
@@ -36,12 +44,21 @@ const FeedbackModal = ({ isOpen, onClose, claimId, targetUser, onSubmitted }) =>
       }
     };
     check();
-  }, [isOpen, claimId]);
+  }, [isOpen, claimId, userId]);
 
   if (!isOpen) return null;
 
   const handleSubmit = async () => {
-    if (!rating) return;
+    console.log('🎯 Submit button clicked');
+    console.log('🎯 Current rating:', rating);
+    console.log('🎯 Current review:', review);
+    console.log('🎯 Claim ID:', claimId);
+    
+    if (!rating) {
+      console.log('❌ No rating selected, cannot submit');
+      return;
+    }
+    
     setIsSubmitting(true);
     try {
       const payload = {
@@ -49,17 +66,18 @@ const FeedbackModal = ({ isOpen, onClose, claimId, targetUser, onSubmitted }) =>
         rating,
         reviewText: review.trim() || null,
       };
-      console.log('Submitting feedback payload:', payload);
-      await feedbackAPI.submitFeedback(payload);
+      console.log('📤 Submitting feedback payload:', payload);
+      const response = await feedbackAPI.submitFeedback(payload);
+      console.log('✅ Feedback submitted successfully:', response);
       setAlreadySubmitted(true);
       alert('Thank you for your feedback!');
       if (onSubmitted) onSubmitted();
       onClose();
     } catch (err) {
-      console.error('Failed to submit feedback', err);
-      console.error('Error response:', err.response);
-      console.error('Error status:', err.response?.status);
-      console.error('Error data:', err.response?.data);
+      console.error('❌ Failed to submit feedback', err);
+      console.error('❌ Error response:', err.response);
+      console.error('❌ Error status:', err.response?.status);
+      console.error('❌ Error data:', err.response?.data);
       alert(err.response?.data?.message || err.response?.data || 'Failed to submit feedback. Please try again.');
     } finally {
       setIsSubmitting(false);

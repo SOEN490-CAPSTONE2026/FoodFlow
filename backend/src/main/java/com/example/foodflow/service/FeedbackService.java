@@ -96,9 +96,12 @@ public class FeedbackService {
         Claim claim = claimRepository.findById(claimId)
                 .orElseThrow(() -> new IllegalArgumentException("Claim not found"));
 
-        // Validate user is part of this claim
-        if (!user.getId().equals(claim.getSurplusPost().getDonor().getId()) &&
-                !user.getId().equals(claim.getReceiver().getId())) {
+        // Validate user is part of this claim OR is an admin
+        boolean isAdmin = user.getRole() != null && user.getRole().name().equals("ADMIN");
+        boolean isDonor = user.getId().equals(claim.getSurplusPost().getDonor().getId());
+        boolean isReceiver = user.getId().equals(claim.getReceiver().getId());
+
+        if (!isAdmin && !isDonor && !isReceiver) {
             throw new IllegalArgumentException("You can only view feedback for your own donations");
         }
 
