@@ -1,13 +1,20 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { X, CircleCheck } from 'lucide-react';
+import { X, CircleCheck, AlertTriangle, Clock, ChevronDown } from 'lucide-react';
 import Confetti from 'react-confetti';
 import { foodTypeImages, getPrimaryFoodCategory } from '../../constants/foodConstants';
+import ReportUserModal from '../ReportUserModal';
+import DonationTimeline from '../shared/DonationTimeline';
+import { reportAPI, surplusAPI } from '../../services/api';
 import './Receiver_Styles/CompletedView.css';
 
 const CompletedView = ({ claim, isOpen, onClose, onBack }) => {
     const post = claim?.surplusPost;
     const containerRef = useRef(null);
     const [dimensions, setDimensions] = useState({ width: 750, height: 800 });
+    const [showReportModal, setShowReportModal] = useState(false);
+    const [timeline, setTimeline] = useState([]);
+    const [loadingTimeline, setLoadingTimeline] = useState(false);
+    const [expandedTimeline, setExpandedTimeline] = useState(false);
 
     useEffect(() => {
         if (containerRef.current && isOpen) {
@@ -18,7 +25,50 @@ const CompletedView = ({ claim, isOpen, onClose, onBack }) => {
         }
     }, [isOpen]);
 
+    useEffect(() => {
+        if (isOpen && post?.id && expandedTimeline && timeline.length === 0) {
+            fetchTimeline();
+        }
+    }, [isOpen, post?.id, expandedTimeline]);
+
+    const fetchTimeline = async () => {
+        if (!post?.id) return;
+
+        setLoadingTimeline(true);
+        try {
+            const response = await surplusAPI.getTimeline(post.id);
+            setTimeline(response.data);
+        } catch (error) {
+            console.error('Error fetching timeline:', error);
+            setTimeline([]);
+        } finally {
+            setLoadingTimeline(false);
+        }
+    };
+
+    const toggleTimeline = () => {
+        setExpandedTimeline(!expandedTimeline);
+    };
+
     if (!isOpen || !claim) return null;
+
+    const handleReportSubmit = async (reportData) => {
+        try {
+            await reportAPI.createReport(reportData);
+            alert('Report submitted successfully! An admin will review it shortly.');
+            setShowReportModal(false);
+        } catch (error) {
+            console.error('Failed to submit report:', error);
+            alert('Failed to submit report. Please try again.');
+        }
+    };
+
+    const donorInfo = post?.donor || {
+        id: post?.donorId,
+        name: post?.donorName || 'Donor'
+    };
+
+
 
     return (
         <div className="claimed-modal-overlay" onClick={onClose}>
@@ -76,14 +126,55 @@ const CompletedView = ({ claim, isOpen, onClose, onBack }) => {
                         </div>
                     </div>
 
+                    {/* Timeline Section */}
+                    <div className="completed-timeline-section">
+                        <button
+                            className="completed-timeline-toggle-button"
+                            onClick={toggleTimeline}
+                        >
+                            <Clock size={16} />
+                            <span>
+                                {expandedTimeline ? 'Hide' : 'View'} Donation Timeline
+                            </span>
+                            <ChevronDown
+                                size={16}
+                                className={`chevron ${expandedTimeline ? 'open' : ''}`}
+                            />
+                        </button>
+
+                        {expandedTimeline && (
+                            <div className="completed-timeline-content-wrapper">
+                                <DonationTimeline
+                                    timeline={timeline}
+                                    loading={loadingTimeline}
+                                />
+                            </div>
+                        )}
+                    </div>
+
                     {/* Action Buttons */}
                     <div className="claimed-modal-actions">
                         <button className="claimed-view-btn-back" onClick={onBack}>
                             Back to Details
                         </button>
+                        <button 
+                            className="report-donor-btn"
+                            onClick={() => setShowReportModal(true)}
+                        >
+                            <AlertTriangle size={16} />
+                            Report Donor
+                        </button>
                     </div>
                 </div>
             </div>
+
+            <ReportUserModal
+                isOpen={showReportModal}
+                onClose={() => setShowReportModal(false)}
+                reportedUser={donorInfo}
+                donationId={post?.id}
+                onSubmit={handleReportSubmit}
+            />
         </div>
     );
 };

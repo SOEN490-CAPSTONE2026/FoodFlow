@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
-import { ChevronRight, ChevronDown, Search, Gift, Users, Flag, Eye, Sparkles, Star } from 'lucide-react';
+import { ChevronRight, ChevronDown, ChevronLeft, Search, Gift, Users, Flag, Eye, Sparkles, Calendar, Clock, User, Building2, CheckCircle, AlertCircle, Info, ShieldAlert, Star } from 'lucide-react';
 import './Admin_Styles/AdminDonations.css';
 import {
   Table,
@@ -50,6 +50,7 @@ const AdminDonations = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
   const [feedbackData, setFeedbackData] = useState({});
+  const [modalPage, setModalPage] = useState(1);
 
   // Debounce search term
   useEffect(() => {
@@ -232,6 +233,7 @@ const AdminDonations = () => {
       
       setSelectedDonation(donationData);
       setShowDetailModal(true);
+      setModalPage(1); // Reset to first page
       setOverrideStatus('');
       setOverrideReason('');
       setOverrideError('');
@@ -279,27 +281,33 @@ const AdminDonations = () => {
     }
   };
 
-  const selectStyles = {
+  const overrideSelectStyles = {
     control: (base) => ({
       ...base,
       minHeight: '42px',
-      border: '1px solid #e5e7eb',
+      border: '2px solid #fbbf24',
       borderRadius: '6px',
       boxShadow: 'none',
+      backgroundColor: 'white',
       '&:hover': {
-        borderColor: '#d1d5db'
+        borderColor: '#f59e0b'
       }
     }),
     option: (base, state) => ({
       ...base,
-      backgroundColor: state.isSelected ? '#3b82f6' : state.isFocused ? '#f3f4f6' : 'white',
-      color: state.isSelected ? 'white' : '#374151',
+      backgroundColor: state.isSelected ? '#f59e0b' : state.isFocused ? '#fef3c7' : 'white',
+      color: state.isSelected ? 'white' : '#92400e',
       cursor: 'pointer'
     }),
     menu: (base) => ({
       ...base,
       borderRadius: '6px',
-      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+      boxShadow: '0 4px 12px rgba(251, 191, 36, 0.2)',
+      border: '1px solid #fbbf24'
+    }),
+    singleValue: (base) => ({
+      ...base,
+      color: '#92400e'
     })
   };
 
@@ -377,7 +385,6 @@ const AdminDonations = () => {
               value={statusOptions.find(opt => opt.value === statusFilter)}
               onChange={option => setStatusFilter(option.value)}
               options={statusOptions}
-              styles={selectStyles}
               className="filter-select-react"
               placeholder="All Status"
               isSearchable={false}
@@ -518,6 +525,14 @@ const AdminDonations = () => {
                                 <h4>Pickup Date</h4>
                                 <p className="details-value">{donation.pickupDate || 'N/A'}</p>
                               </div>
+                              <div className="details-section">
+                                <h4>Temperature</h4>
+                                <p className="details-value">{donation.temperature || 'N/A'}</p>
+                              </div>
+                              <div className="details-section">
+                                <h4>Packaging Conditions</h4>
+                                <p className="details-value">{donation.packagingConditions || 'N/A'}</p>
+                              </div>
                             </div>
                             <div className="details-section">
                               <h4>Description</h4>
@@ -610,31 +625,218 @@ const AdminDonations = () => {
       )}
 
       {showDetailModal && selectedDonation && (
-        <div className="modal-overlay" onClick={() => setShowDetailModal(false)}>
-          <div className="modal-content modal-donation-detail" onClick={e => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setShowDetailModal(false)}>×</button>
-            <h2>Donation Details</h2>
+        <div className="donation-admin-modal-overlay" onClick={() => setShowDetailModal(false)}>
+          <div className="donation-admin-modal-content donation-admin-modal-detail" onClick={e => e.stopPropagation()}>
+            <button className="donation-admin-modal-close" onClick={() => setShowDetailModal(false)}>×</button>
             
-            <div className="modal-section">
-              <h3>Basic Information</h3>
-              <div><strong>ID:</strong> {selectedDonation.id}</div>
-              <div><strong>Title:</strong> {selectedDonation.title}</div>
-              <div><strong>Status:</strong> <span className={`pill pill-status-${selectedDonation.status?.toLowerCase()}`}>{selectedDonation.status}</span></div>
-              <div><strong>Flagged:</strong> {selectedDonation.flagged ? <span style={{color: 'red'}}>Yes - {selectedDonation.flagReason}</span> : 'No'}</div>
-              <div><strong>Created:</strong> {formatDate(selectedDonation.createdAt)}</div>
-              <div><strong>Updated:</strong> {formatDate(selectedDonation.updatedAt)}</div>
+            <div className="donation-admin-modal-header">
+              <h2 className="donation-admin-modal-title">
+                Donation Details {modalPage === 1 && '- Basic Info & Participants'}
+                {modalPage === 2 && '- Timeline'}
+                {modalPage === 3 && '- Override Status'}
+              </h2>
             </div>
-
-            <div className="modal-section">
-              <h3>Participants</h3>
-              <div><strong>Donor:</strong> {selectedDonation.donorName} ({selectedDonation.donorEmail})</div>
-              {selectedDonation.donorOrganization && <div><strong>Donor Organization:</strong> {selectedDonation.donorOrganization}</div>}
-              {selectedDonation.receiverName && (
+            
+            <div className="donation-admin-modal-body">
+              {/* Page 1: Basic Information and Participants */}
+              {modalPage === 1 && (
                 <>
-                  <div><strong>Receiver:</strong> {selectedDonation.receiverName} ({selectedDonation.receiverEmail})</div>
-                  {selectedDonation.receiverOrganization && <div><strong>Receiver Organization:</strong> {selectedDonation.receiverOrganization}</div>}
-                  <div><strong>Claimed At:</strong> {formatDate(selectedDonation.claimedAt)}</div>
+                  <div className="donation-admin-info-card">
+                    <div className="donation-admin-info-card-header">
+                      <Info size={20} />
+                      <h3>Basic Information</h3>
+                    </div>
+                    <div className="donation-admin-info-grid">
+                      <div className="donation-admin-info-item">
+                        <span className="donation-admin-info-label">ID:</span>
+                        <span className="donation-admin-info-value">{selectedDonation.id}</span>
+                      </div>
+                      <div className="donation-admin-info-item">
+                        <span className="donation-admin-info-label">Title:</span>
+                        <span className="donation-admin-info-value">{selectedDonation.title}</span>
+                      </div>
+                      <div className="donation-admin-info-item">
+                        <span className="donation-admin-info-label">Status:</span>
+                        <span className="donation-admin-info-value">{selectedDonation.status}</span>
+                      </div>
+                      <div className="donation-admin-info-item">
+                        <span className="donation-admin-info-label">Flagged:</span>
+                        <span className="donation-admin-info-value">
+                          {selectedDonation.flagged ? `Yes - ${selectedDonation.flagReason}` : 'No'}
+                        </span>
+                      </div>
+                      <div className="donation-admin-info-item">
+                        <span className="donation-admin-info-label">
+                          <Calendar size={14} style={{ marginRight: '4px' }} />
+                          Created:
+                        </span>
+                        <span className="donation-admin-info-value">{formatDate(selectedDonation.createdAt)}</span>
+                      </div>
+                      <div className="donation-admin-info-item">
+                        <span className="donation-admin-info-label">
+                          <Clock size={14} style={{ marginRight: '4px' }} />
+                          Updated:
+                        </span>
+                        <span className="donation-admin-info-value">{formatDate(selectedDonation.updatedAt)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="donation-admin-info-card">
+                    <div className="donation-admin-info-card-header">
+                      <Users size={20} />
+                      <h3>Participants</h3>
+                    </div>
+                    <div className="donation-admin-participants-grid">
+                      <div className="donation-admin-participant-card">
+                        <div className="donation-admin-participant-header">
+                          <User size={18} />
+                          <span className="donation-admin-participant-role">Donor</span>
+                        </div>
+                        <div className="donation-admin-participant-info">
+                          <div className="donation-admin-participant-name">{selectedDonation.donorName}</div>
+                          <div className="donation-admin-participant-email">{selectedDonation.donorEmail}</div>
+                          {selectedDonation.donorOrganization && (
+                            <div className="donation-admin-participant-org">
+                              <Building2 size={14} />
+                              {selectedDonation.donorOrganization}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {selectedDonation.receiverName && (
+                        <div className="donation-admin-participant-card">
+                          <div className="donation-admin-participant-header">
+                            <User size={18} />
+                            <span className="donation-admin-participant-role">Receiver</span>
+                          </div>
+                          <div className="donation-admin-participant-info">
+                            <div className="donation-admin-participant-name">{selectedDonation.receiverName}</div>
+                            <div className="donation-admin-participant-email">{selectedDonation.receiverEmail}</div>
+                            {selectedDonation.receiverOrganization && (
+                              <div className="donation-admin-participant-org">
+                                <Building2 size={14} />
+                                {selectedDonation.receiverOrganization}
+                              </div>
+                            )}
+                            <div className="donation-admin-claimed-at">
+                              <CheckCircle size={14} />
+                              Claimed: {formatDate(selectedDonation.claimedAt)}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </>
+              )}
+
+              {/* Page 2: Timeline */}
+              {modalPage === 2 && (
+                <div className="donation-admin-info-card donation-admin-timeline-card">
+                  <div className="donation-admin-info-card-header">
+                    <Clock size={20} />
+                    <h3>Timeline</h3>
+                  </div>
+                  <div className="donation-admin-timeline-container">
+                    {selectedDonation.timeline && selectedDonation.timeline.length > 0 ? (
+                      selectedDonation.timeline.map((event, idx) => (
+                        <div 
+                          key={idx} 
+                          className={`donation-admin-timeline-item ${event.visibleToUsers === false ? 'donation-admin-only' : ''}`}
+                        >
+                          <div className="donation-admin-timeline-marker" />
+                          <div className="donation-admin-timeline-content">
+                            <div className="donation-admin-timeline-event-type">{event.eventType}</div>
+                            <div className="donation-admin-timeline-meta">
+                              <span>{formatDate(event.timestamp)}</span>
+                              <span className="donation-admin-timeline-actor">Actor: {event.actor}</span>
+                              {event.visibleToUsers === false && (
+                                <span className="donation-admin-only-badge">
+                                  <ShieldAlert size={14} />
+                                  ADMIN ONLY
+                                </span>
+                              )}
+                            </div>
+                            {event.oldStatus && event.newStatus && (
+                              <div className="donation-admin-timeline-status-change">
+                                Status: <span className="donation-admin-old-status">{event.oldStatus}</span>
+                                <span className="donation-admin-arrow">→</span>
+                                <span className="donation-admin-new-status">{event.newStatus}</span>
+                              </div>
+                            )}
+                            {event.details && (
+                              <div className="donation-admin-timeline-details">{event.details}</div>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="donation-admin-no-timeline">No timeline events available.</div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Page 3: Override Status */}
+              {modalPage === 3 && (
+                <div className="donation-admin-info-card donation-admin-override-card">
+                  <div className="donation-admin-info-card-header donation-admin-override-header">
+                    <AlertCircle size={20} />
+                    <h3>Override Status</h3>
+                  </div>
+                  <div className="donation-admin-override-form">
+                    <div className="donation-admin-form-group">
+                      <label className="donation-admin-form-label">Current Status:</label>
+                      <div className="donation-admin-current-status-display">
+                        <span className="donation-admin-current-status-text">
+                          {selectedDonation.status}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="donation-admin-form-group">
+                      <label className="donation-admin-form-label">New Status:</label>
+                      <Select
+                        value={statusOptions.find(opt => opt.value === overrideStatus)}
+                        onChange={option => setOverrideStatus(option.value)}
+                        options={statusOptions.filter(opt => opt.value && opt.value !== selectedDonation.status)}
+                        styles={overrideSelectStyles}
+                        className="filter-select-react"
+                        placeholder="Select new status"
+                        isSearchable={false}
+                      />
+                    </div>
+                    <div className="donation-admin-form-group">
+                      <label className="donation-admin-form-label">Reason:</label>
+                      <textarea
+                        value={overrideReason}
+                        onChange={e => setOverrideReason(e.target.value)}
+                        placeholder="Provide a reason for the status override..."
+                        className="donation-admin-override-textarea"
+                      />
+                    </div>
+                    <button 
+                      className="btn-confirm donation-admin-override-btn" 
+                      onClick={handleOverrideStatus} 
+                      disabled={overrideLoading}
+                    >
+                      {overrideLoading ? 'Updating...' : 'Override Status'}
+                    </button>
+                    {overrideError && (
+                      <div className="donation-admin-alert donation-admin-alert-error">
+                        <AlertCircle size={16} />
+                        {overrideError}
+                      </div>
+                    )}
+                    {overrideSuccess && (
+                      <div className="donation-admin-alert donation-admin-alert-success">
+                        <CheckCircle size={16} />
+                        {overrideSuccess}
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
 
@@ -762,16 +964,29 @@ const AdminDonations = () => {
                   resize: 'vertical'
                 }}
               />
+              {/* Navigation Buttons */}
+            <div className="donation-admin-modal-footer">
               <button 
-                className="btn-confirm" 
-                onClick={handleOverrideStatus} 
-                disabled={overrideLoading}
-                style={{marginTop: '15px', width: '100%'}}
+                className="donation-admin-modal-nav-btn"
+                onClick={() => setModalPage(modalPage - 1)}
+                disabled={modalPage === 1}
               >
-                {overrideLoading ? 'Updating...' : 'Override Status'}
+                <ChevronLeft size={18} />
+                <span>Back</span>
               </button>
-              {overrideError && <div className="error-message" style={{marginTop: '10px', color: '#c00'}}>{overrideError}</div>}
-              {overrideSuccess && <div className="success-message" style={{marginTop: '10px', color: '#4caf50'}}>{overrideSuccess}</div>}
+              
+              <div className="donation-admin-modal-page-indicator">
+                Page {modalPage} of 3
+              </div>
+              
+              <button 
+                className="donation-admin-modal-nav-btn"
+                onClick={() => setModalPage(modalPage + 1)}
+                disabled={modalPage === 3}
+              >
+                <span>Next</span>
+                <ChevronRight size={18} />
+              </button>
             </div>
           </div>
         </div>

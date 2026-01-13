@@ -163,6 +163,7 @@ export default function ReceiverMyClaims() {
     const postStatus = claim.surplusPost?.status;
     if (postStatus === 'READY_FOR_PICKUP') return 'Ready for Pickup';
     if (postStatus === 'COMPLETED') return 'Completed';
+    if (postStatus === 'EXPIRED') return 'EXPIRED';
     if (postStatus === 'NOT_COMPLETED') return 'Not Completed';
     return 'Claimed';
   };
@@ -178,6 +179,9 @@ export default function ReceiverMyClaims() {
     if (status === 'Not Completed') {
       return claims.filter(c => c.surplusPost?.status === 'NOT_COMPLETED').length;
     }
+    if (status === 'Expired') {
+      return claims.filter(c => c.surplusPost?.status === 'EXPIRED').length;
+    }
     if (status === 'Claimed') {
       return claims.filter(c => c.surplusPost?.status !== 'READY_FOR_PICKUP' && 
                                 c.surplusPost?.status !== 'COMPLETED' && 
@@ -191,6 +195,7 @@ export default function ReceiverMyClaims() {
     { name: 'Ready', count: getStatusCount('Ready') },
     { name: 'Completed', count: getStatusCount('Completed') },
     { name: 'Not Completed', count: getStatusCount('Not Completed') },
+    { name: 'Expired', count: getStatusCount('Expired') },
     { name: 'All', count: getStatusCount('All') }
   ];
 
@@ -199,6 +204,7 @@ export default function ReceiverMyClaims() {
     if (activeFilter === 'Ready') return claim.surplusPost?.status === 'READY_FOR_PICKUP';
     if (activeFilter === 'Completed') return claim.surplusPost?.status === 'COMPLETED';
     if (activeFilter === 'Not Completed') return claim.surplusPost?.status === 'NOT_COMPLETED';
+    if (activeFilter === 'Expired') return claim.surplusPost?.status === 'EXPIRED';
     if (activeFilter === 'Claimed') {
       return claim.surplusPost?.status !== 'READY_FOR_PICKUP' && 
              claim.surplusPost?.status !== 'COMPLETED' && 
