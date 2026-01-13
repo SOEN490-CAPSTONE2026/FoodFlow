@@ -79,7 +79,9 @@ export const surplusAPI = {
   list: () => api.get("/surplus"), // Just /surplus, not /api/surplus
   myPosts: () => api.get("/surplus/my-posts"),
   getMyPosts: () => api.get("/surplus/my-posts"),
+  getPost: (id) => api.get(`/surplus/${id}`),
   create: (data) => api.post("/surplus", data),
+  update: (id, data) => api.put(`/surplus/${id}`, data),
   // claim now accepts an optional `slot` parameter. If `slot` has an `id` we send `pickupSlotId`,
   // otherwise we include the slot object as `pickupSlot` so the backend can interpret it.
   deletePost: (id) => api.delete(`/surplus/${id}/delete`),
@@ -160,6 +162,13 @@ export const surplusAPI = {
 
     return api.get(`/surplus/search?${params.toString()}`);
   },
+
+  /**
+   * Get timeline events for a donation post
+   * @param {number} postId - Surplus post ID
+   * @returns {Promise} API response with timeline events
+   */
+  getTimeline: (postId) => api.get(`/surplus/${postId}/timeline`),
 };
 
 export const claimsAPI = {

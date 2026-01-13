@@ -4,6 +4,7 @@ public enum ClaimStatus {
     ACTIVE,
     CANCELLED,
     COMPLETED,
+    EXPIRED,
     NOT_COMPLETED;
     
     public String getDisplayName() {
