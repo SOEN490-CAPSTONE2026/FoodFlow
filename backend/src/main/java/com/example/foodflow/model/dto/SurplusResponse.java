@@ -35,6 +35,7 @@ public class SurplusResponse {
 
     private PostStatus status;
     private String otpCode;
+    private Long donorId;
     private String donorEmail;
     private String donorName;
     private LocalDateTime createdAt;
@@ -50,7 +51,7 @@ public class SurplusResponse {
     public SurplusResponse(Long id, String title, String description, Set<FoodCategory> foodCategories,
                            Quantity quantity, Location pickupLocation,
                            LocalDate fabricationDate, LocalDate expiryDate, LocalDate pickupDate, LocalTime pickupFrom, LocalTime pickupTo,
-                           PostStatus status, String otpCode, String donorEmail, String donorName,
+                           PostStatus status, String otpCode, Long donorId, String donorEmail, String donorName,
                            LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.title = title;
@@ -65,6 +66,7 @@ public class SurplusResponse {
         this.pickupTo = pickupTo;
         this.status = status;
         this.otpCode = otpCode;
+        this.donorId = donorId;
         this.donorEmail = donorEmail;
         this.donorName = donorName;
         this.createdAt = createdAt;
@@ -85,6 +87,7 @@ public class SurplusResponse {
         this.pickupTo = surplusPost.getPickupTo();
         this.status = surplusPost.getStatus();
         this.otpCode = surplusPost.getOtpCode();
+        this.donorId = surplusPost.getDonor().getId();
         this.donorEmail = surplusPost.getDonor().getEmail();
         this.donorName = surplusPost.getDonor().getOrganization() != null
             ? surplusPost.getDonor().getOrganization().getName()
@@ -141,6 +144,9 @@ public class SurplusResponse {
 
     public String getOtpCode() { return otpCode; }
     public void setOtpCode(String otpCode) { this.otpCode = otpCode; }
+
+    public Long getDonorId() { return donorId; }
+    public void setDonorId(Long donorId) { this.donorId = donorId; }
 
     public String getDonorEmail() { return donorEmail; }
     public void setDonorEmail(String donorEmail) { this.donorEmail = donorEmail; }
