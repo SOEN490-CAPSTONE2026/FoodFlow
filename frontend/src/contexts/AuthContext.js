@@ -23,6 +23,10 @@ export const AuthProvider = ({ children }) => {
     return localStorage.getItem("organizationVerificationStatus") || sessionStorage.getItem("organizationVerificationStatus") || null;
   });
 
+  const [accountStatus, setAccountStatus] = useState(() => {
+    return localStorage.getItem("accountStatus") || sessionStorage.getItem("accountStatus") || null;
+  });
+
   useEffect(() => {
     const handleStorage = () => {
       setIsLoggedIn(Boolean(localStorage.getItem("jwtToken") || sessionStorage.getItem("jwtToken")));
@@ -30,19 +34,21 @@ export const AuthProvider = ({ children }) => {
       setUserId(localStorage.getItem("userId") || sessionStorage.getItem("userId") || null);
       setOrganizationName(localStorage.getItem("organizationName") || sessionStorage.getItem("organizationName") || null);
       setOrganizationVerificationStatus(localStorage.getItem("organizationVerificationStatus") || sessionStorage.getItem("organizationVerificationStatus") || null);
+      setAccountStatus(localStorage.getItem("accountStatus") || sessionStorage.getItem("accountStatus") || null);
     };
     window.addEventListener("storage", handleStorage);
     return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
-  const login = (token, userRole, userId, arg4 = null, arg5 = null, arg6 = false) => {
+  const login = (token, userRole, userId, arg4 = null, arg5 = null, arg6 = null, arg7 = false) => {
     // Backwards-compatible handling of older call signatures:
     // - login(token, role, userId)
     // - login(token, role, userId, orgName)
     // - login(token, role, userId, orgName, useSession)
-    // New signature supports login(token, role, userId, orgName, orgVerificationStatus, useSession)
+    // New signature supports login(token, role, userId, orgName, orgVerificationStatus, accountStatus, useSession)
     let orgName = null;
     let orgVerificationStatus = null;
+    let accStatus = null;
     let useSession = false;
 
     if (typeof arg4 === 'boolean') {
@@ -52,11 +58,17 @@ export const AuthProvider = ({ children }) => {
       // login(token, role, userId, orgName, useSession)
       orgName = arg4;
       useSession = arg5;
-    } else {
-      // login(token, role, userId, orgName, orgVerificationStatus, useSession?)
+    } else if (typeof arg6 === 'boolean') {
+      // login(token, role, userId, orgName, orgVerificationStatus, useSession)
       orgName = arg4;
       orgVerificationStatus = arg5;
       useSession = arg6;
+    } else {
+      // login(token, role, userId, orgName, orgVerificationStatus, accountStatus, useSession)
+      orgName = arg4;
+      orgVerificationStatus = arg5;
+      accStatus = arg6;
+      useSession = arg7;
     }
 
     // Save auth values to the chosen storage (session or local).
@@ -88,11 +100,20 @@ export const AuthProvider = ({ children }) => {
       sessionStorage.removeItem("organizationVerificationStatus");
     }
 
+    if (accStatus !== undefined && accStatus !== null) {
+      storage.setItem("accountStatus", accStatus);
+      otherStorage.removeItem("accountStatus");
+    } else {
+      localStorage.removeItem("accountStatus");
+      sessionStorage.removeItem("accountStatus");
+    }
+
     setIsLoggedIn(true);
     setRole(userRole);
     setUserId(userId);
     setOrganizationName(orgName);
     setOrganizationVerificationStatus(orgVerificationStatus);
+    setAccountStatus(accStatus);
   };
 
   const logout = () => {
@@ -106,15 +127,18 @@ export const AuthProvider = ({ children }) => {
     sessionStorage.removeItem('organizationName');
     localStorage.removeItem('organizationVerificationStatus');
     sessionStorage.removeItem('organizationVerificationStatus');
+    localStorage.removeItem('accountStatus');
+    sessionStorage.removeItem('accountStatus');
     setIsLoggedIn(false);
     setRole(null);
     setUserId(null);
     setOrganizationName(null);
     setOrganizationVerificationStatus(null);
+    setAccountStatus(null);
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, role, userId, organizationName, organizationVerificationStatus, login, logout }}>
+    <AuthContext.Provider value={{ isLoggedIn, role, userId, organizationName, organizationVerificationStatus, accountStatus, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

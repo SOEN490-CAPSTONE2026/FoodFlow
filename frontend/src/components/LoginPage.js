@@ -1,6 +1,6 @@
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import '../style/LoginPage.css';
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { authAPI } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
 import { useAnalytics } from '../hooks/useAnalytics';
@@ -8,13 +8,24 @@ import { Eye, EyeOff } from 'lucide-react';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useContext(AuthContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { trackButtonClick, trackLogin } = useAnalytics();
+
+  // Check for success message from email verification
+  useEffect(() => {
+    if (location.state?.message) {
+      setSuccessMessage(location.state.message);
+      // Clear the message after 5 seconds
+      setTimeout(() => setSuccessMessage(''), 5000);
+    }
+  }, [location]);
 
   const handleLogin = async (e) => {
   e.preventDefault();
@@ -30,12 +41,13 @@ const LoginPage = () => {
     const userId = response?.data?.userId;
     const organizationName = response?.data?.organizationName;
     const verificationStatus = response?.data?.verificationStatus;
+    const accountStatus = response?.data?.accountStatus;
 
     if (!token || !userRole || !userId) {
       throw new Error('Invalid server response');
     }
 
-    login(token, userRole, userId, organizationName, verificationStatus); // this automatically updates localStorage and context
+    login(token, userRole, userId, organizationName, verificationStatus, accountStatus); // this automatically updates localStorage and context
     trackLogin(true);
 
     // redirect based on role
@@ -113,6 +125,7 @@ const LoginPage = () => {
                   </div>
                 </div>
 
+                {successMessage && <p className="form-success">{successMessage}</p>}
                 {error && <p className="form-error">{error}</p>}
 
                 <button

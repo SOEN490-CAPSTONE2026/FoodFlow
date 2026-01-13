@@ -71,6 +71,8 @@ export const authAPI = {
   checkEmailExists: (email) => api.get("/auth/check-email", { params: { email } }),
   checkPhoneExists: (phone) => api.get("/auth/check-phone", { params: { phone } }),
   changePassword: (data) => api.post("/auth/change-password", data),
+  verifyEmail: (token) => api.post("/auth/verify-email", null, { params: { token } }),
+  resendVerificationEmail: () => api.post("/auth/resend-verification-email"),
 };
 
 export const surplusAPI = {

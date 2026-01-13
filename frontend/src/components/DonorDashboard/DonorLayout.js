@@ -20,13 +20,15 @@ import { AuthContext } from "../../contexts/AuthContext";
 import Logo from "../../assets/Logo_White.png";
 import "./Donor_Styles/DonorLayout.css";
 import MessageNotification from "../MessagingDashboard/MessageNotification";
+import EmailVerificationRequired from '../EmailVerificationRequired';
+import AdminApprovalBanner from '../AdminApprovalBanner';
 import { connectToUserQueue, disconnect } from '../../services/socket';
 
 export default function DonorLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const navType = useNavigationType();
-  const { logout, organizationName, role } = useContext(AuthContext);
+  const { logout, organizationName, accountStatus, role } = useContext(AuthContext);
   const [open, setOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -292,27 +294,34 @@ export default function DonorLayout() {
       </aside>
 
       <main className="donor-main">
-        {!isMessagesPage && location.pathname !== "/donor" && location.pathname !== "/donor/" && (
-          <header className="donor-topbar">
-            <div className="donor-topbar-left">
-              <h1>{pageTitle}</h1>
-              <p>{pageDesc}</p>
-            </div>
-          </header>
+        {accountStatus === 'PENDING_VERIFICATION' ? (
+          <EmailVerificationRequired />
+        ) : (
+          <>
+            {/* Show admin approval banner if waiting for approval */}
+            {accountStatus === 'PENDING_ADMIN_APPROVAL' && <AdminApprovalBanner />}
+            
+            {!isMessagesPage && location.pathname !== "/donor" && location.pathname !== "/donor/" && (
+              <header className="donor-topbar">
+                <div className="donor-topbar-left">
+                  <h1>{pageTitle}</h1>
+                  <p>{pageDesc}</p>
+                </div>
+              </header>
+            )}
+
+            <section className={`donor-content ${isMessagesPage ? 'messages-page' : ''}`}>
+              <Outlet />
+
+              {notification && (
+                <MessageNotification
+                  notification={notification}
+                  onClose={() => setNotification(null)}
+                />
+              )}
+            </section>
+          </>
         )}
-
-        
-<section className={`donor-content ${isMessagesPage ? 'messages-page' : ''}`}>
-  <Outlet />
-
-  {notification && (
-    <MessageNotification
-      notification={notification}
-      onClose={() => setNotification(null)}
-    />
-  )}
-</section>
-
       </main>
     </div>
   );
