@@ -35,6 +35,12 @@ services:
       - BREVO_API_KEY=${BREVO_API_KEY}
       - BREVO_FROM_EMAIL=${BREVO_FROM_EMAIL}
       - BREVO_FROM_NAME=${BREVO_FROM_NAME}
+      - FRONTEND_URL=${FRONTEND_URL}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${POSTGRES_DB}
+      - DB_USERNAME=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
     ports:
       - "${SERVER_PORT}:8080"
     volumes:
