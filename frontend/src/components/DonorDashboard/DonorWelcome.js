@@ -191,7 +191,7 @@ export default function DonorWelcome() {
             <div className="stat-value">
               {stats.totalReviews > 0 ? (
                 <>
-                  {stats.averageRating.toFixed(1)}
+                  <div className="rating-number">{stats.averageRating.toFixed(1)}</div>
                   <span className="rating-count">★ ({stats.totalReviews})</span>
                 </>
               ) : (
