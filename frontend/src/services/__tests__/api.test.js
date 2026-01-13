@@ -93,4 +93,58 @@ describe('API service', () => {
     expect(mockGet).toHaveBeenCalledWith(expect.stringMatching(/\/surplus\/search\?.*foodCategories=BAKERY_PASTRY/));
     expect(resp).toEqual({ data: { items: [] } });
   });
+
+  test('test surplusAPI.getTimeline calls GET /surplus/{postId}/timeline', async () => {
+    const mockTimelineData = [
+      {
+        id: 1,
+        eventType: 'DONATION_POSTED',
+        timestamp: '2026-01-11T10:00:00',
+        actor: 'donor',
+        actorUserId: 1,
+        newStatus: 'AVAILABLE',
+        details: 'Donation created',
+        visibleToUsers: true,
+      },
+      {
+        id: 2,
+        eventType: 'DONATION_CLAIMED',
+        timestamp: '2026-01-11T11:00:00',
+        actor: 'receiver',
+        actorUserId: 2,
+        oldStatus: 'AVAILABLE',
+        newStatus: 'CLAIMED',
+        details: 'Claimed by Food Bank',
+        visibleToUsers: true,
+      },
+    ];
+
+    mockGet.mockResolvedValue({ data: mockTimelineData });
+    const { surplusAPI } = require('../api');
+    const postId = 123;
+    const resp = await surplusAPI.getTimeline(postId);
+
+    expect(mockGet).toHaveBeenCalledWith('/surplus/123/timeline');
+    expect(resp.data).toEqual(mockTimelineData);
+    expect(resp.data.length).toBe(2);
+  });
+
+  test('test surplusAPI.getTimeline handles empty timeline', async () => {
+    mockGet.mockResolvedValue({ data: [] });
+    const { surplusAPI } = require('../api');
+    const postId = 456;
+    const resp = await surplusAPI.getTimeline(postId);
+
+    expect(mockGet).toHaveBeenCalledWith('/surplus/456/timeline');
+    expect(resp.data).toEqual([]);
+  });
+
+  test('test surplusAPI.getTimeline handles API error', async () => {
+    mockGet.mockRejectedValue(new Error('Network error'));
+    const { surplusAPI } = require('../api');
+    const postId = 789;
+
+    await expect(surplusAPI.getTimeline(postId)).rejects.toThrow('Network error');
+    expect(mockGet).toHaveBeenCalledWith('/surplus/789/timeline');
+  });
 });

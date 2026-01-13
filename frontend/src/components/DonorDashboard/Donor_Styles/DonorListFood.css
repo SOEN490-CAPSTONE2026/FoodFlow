@@ -743,3 +743,48 @@
     max-height: 60vh;
   }
 }
+
+/* Donation Timeline Section */
+.donation-timeline-section {
+  margin-top: 16px;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 16px;
+}
+
+.timeline-toggle-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #0f172a;
+  width: 100%;
+  transition: all 0.2s ease;
+}
+
+.timeline-toggle-button:hover {
+  background: #e0f2fe;
+  border-color: #1B4965;
+}
+
+.timeline-toggle-button .chevron {
+  margin-left: auto;
+  transition: transform 0.2s ease;
+}
+
+.timeline-toggle-button .chevron.open {
+  transform: rotate(180deg);
+}
+
+.timeline-content-wrapper {
+  margin-top: 16px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
