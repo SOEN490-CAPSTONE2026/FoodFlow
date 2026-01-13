@@ -35,6 +35,7 @@ public class SurplusResponse {
 
     private PostStatus status;
     private String otpCode;
+    private Long donorId;
     private String donorEmail;
     private String donorName;
     private LocalDateTime createdAt;
@@ -212,6 +213,14 @@ public class SurplusResponse {
 
     public void setOtpCode(String otpCode) {
         this.otpCode = otpCode;
+    }
+
+    public Long getDonorId() {
+        return donorId;
+    }
+
+    public void setDonorId(Long donorId) {
+        this.donorId = donorId;
     }
 
     public String getDonorEmail() {
