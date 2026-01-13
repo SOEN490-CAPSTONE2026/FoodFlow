@@ -22,6 +22,7 @@ import { surplusAPI, claimsAPI } from "../../services/api";
 import SurplusFormModal from "../DonorDashboard/SurplusFormModal";
 import ConfirmPickupModal from "../DonorDashboard/ConfirmPickupModal";
 import ClaimedSuccessModal from "../DonorDashboard/ClaimedSuccessModal";
+import DonationTimeline from "../shared/DonationTimeline";
 import { getFoodTypeLabel, getUnitLabel, getTemperatureCategoryLabel, getTemperatureCategoryIcon, getPackagingTypeLabel } from "../../constants/foodConstants";
 import "../DonorDashboard/Donor_Styles/DonorListFood.css";
 
@@ -139,6 +140,11 @@ export default function DonorListFood() {
   const [donationPhotos, setDonationPhotos] = useState({}); // { donationId: [photo urls] }
   const [viewingPhotos, setViewingPhotos] = useState({}); // { donationId: true/false }
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState({}); // { donationId: index }
+
+  // Timeline states
+  const [expandedTimeline, setExpandedTimeline] = useState({}); // { donationId: true/false }
+  const [timelines, setTimelines] = useState({}); // { donationId: [timeline events] }
+  const [loadingTimelines, setLoadingTimelines] = useState({}); // { donationId: true/false }
 
   useEffect(() => {
     fetchMyPosts();
@@ -347,6 +353,41 @@ const contactReceiver = async (item) => {
       
       return { ...prev, [donationId]: newIndex };
     });
+  };
+
+  // Timeline handlers
+  const toggleTimeline = async (donationId) => {
+    const isExpanding = !expandedTimeline[donationId];
+
+    setExpandedTimeline(prev => ({
+      ...prev,
+      [donationId]: isExpanding
+    }));
+
+    // Fetch timeline data if expanding and not already loaded
+    if (isExpanding && !timelines[donationId]) {
+      await fetchTimeline(donationId);
+    }
+  };
+
+  const fetchTimeline = async (donationId) => {
+    setLoadingTimelines(prev => ({ ...prev, [donationId]: true }));
+
+    try {
+      const response = await surplusAPI.getTimeline(donationId);
+      setTimelines(prev => ({
+        ...prev,
+        [donationId]: response.data
+      }));
+    } catch (error) {
+      console.error('Error fetching timeline for donation', donationId, ':', error);
+      setTimelines(prev => ({
+        ...prev,
+        [donationId]: []
+      }));
+    } finally {
+      setLoadingTimelines(prev => ({ ...prev, [donationId]: false }));
+    }
   };
 
   if (loading) {
@@ -604,6 +645,37 @@ const contactReceiver = async (item) => {
                   </button>
                 )}
               </div>
+              )}
+
+              {/* Timeline Section - Show for CLAIMED, READY_FOR_PICKUP, COMPLETED, NOT_COMPLETED */}
+              {(item.status === "CLAIMED" ||
+                item.status === "READY_FOR_PICKUP" ||
+                item.status === "COMPLETED" ||
+                item.status === "NOT_COMPLETED") && (
+                <div className="donation-timeline-section">
+                  <button
+                    className="timeline-toggle-button"
+                    onClick={() => toggleTimeline(item.id)}
+                  >
+                    <Clock size={16} />
+                    <span>
+                      {expandedTimeline[item.id] ? 'Hide' : 'View'} Donation Timeline
+                    </span>
+                    <ChevronDown
+                      size={16}
+                      className={`chevron ${expandedTimeline[item.id] ? 'open' : ''}`}
+                    />
+                  </button>
+
+                  {expandedTimeline[item.id] && (
+                    <div className="timeline-content-wrapper">
+                      <DonationTimeline
+                        timeline={timelines[item.id] || []}
+                        loading={loadingTimelines[item.id]}
+                      />
+                    </div>
+                  )}
+                </div>
               )}
 
               {item.status === "AVAILABLE" ? (
