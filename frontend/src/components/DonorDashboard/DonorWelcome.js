@@ -30,6 +30,8 @@ export default function DonorWelcome() {
       
       if (response && response.data) {
         const donations = response.data;
+        console.log('📦 Donor donations response:', donations);
+        console.log('📦 First donation detailed:', donations[0]);
         
         // Calculate statistics
         const totalDonations = donations.length;
@@ -78,9 +80,17 @@ export default function DonorWelcome() {
             });
 
             // Get recipient or show status
-            const recipient = donation.claimant?.organizationName || 
-                            donation.claimant?.name || 
-                            "No name yet";
+            console.log('🔍 Donation receiver info:', {
+              receiverOrganization: donation.receiverOrganization,
+              receiverName: donation.receiverName,
+              receiverEmail: donation.receiverEmail,
+              status: donation.status,
+              id: donation.id
+            });
+            
+            const recipient = donation.receiverOrganization || 
+                            donation.receiverName || 
+                            "Not claimed yet";
 
             // Items is just the title
             const items = donation.title || "Food donation";
