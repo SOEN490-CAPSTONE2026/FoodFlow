@@ -569,6 +569,7 @@ describe('AdminDonations Component', () => {
     });
 
     test('navigates to timeline page when next is clicked', async () => {
+      adminDonationAPI.getDonationById.mockResolvedValue({ data: mockDonationDetails });
       render(<AdminDonations />);
       
       await waitFor(() => {
@@ -587,7 +588,7 @@ describe('AdminDonations Component', () => {
       
       await waitFor(() => {
         expect(screen.getByText('Donation Details - Timeline')).toBeInTheDocument();
-        expect(screen.getByText('Timeline')).toBeInTheDocument();
+        expect(screen.getAllByText('Timeline').length).toBeGreaterThan(0);
       });
     });
 
@@ -619,7 +620,7 @@ describe('AdminDonations Component', () => {
       await waitFor(() => {
         expect(screen.getByText('Donation Details - Override Status')).toBeInTheDocument();
         expect(screen.getByText('Current Status:')).toBeInTheDocument();
-        expect(screen.getByText('New Status:')).toBeInTheDocument();
+        expect(screen.getAllByText('New Status:').length).toBeGreaterThan(0);
       });
     });
 
@@ -640,6 +641,7 @@ describe('AdminDonations Component', () => {
     });
 
     test('displays timeline events correctly', async () => {
+      adminDonationAPI.getDonationById.mockResolvedValue({ data: mockDonationDetails });
       render(<AdminDonations />);
       
       await waitFor(() => {
@@ -661,8 +663,8 @@ describe('AdminDonations Component', () => {
       });
       
       await waitFor(() => {
-        expect(screen.getByText('DONATION_CREATED')).toBeInTheDocument();
-        expect(screen.getByText('Donation created')).toBeInTheDocument();
+        expect(screen.getAllByText('DONATION_CREATED').length).toBeGreaterThan(0);
+        expect(screen.getAllByText('Donation created').length).toBeGreaterThan(0);
       });
     });
   });
@@ -699,7 +701,7 @@ describe('AdminDonations Component', () => {
       
       await waitFor(() => {
         expect(screen.getByText('Current Status:')).toBeInTheDocument();
-        expect(screen.getByText('New Status:')).toBeInTheDocument();
+        expect(screen.getAllByText('New Status:').length).toBeGreaterThan(0);
       });
 
       const overrideButton = screen.getByRole('button', { name: 'Override Status' });
@@ -734,7 +736,7 @@ describe('AdminDonations Component', () => {
       
       await waitFor(() => {
         expect(screen.getByText('Current Status:')).toBeInTheDocument();
-        expect(screen.getByText('New Status:')).toBeInTheDocument();
+        expect(screen.getAllByText('New Status:').length).toBeGreaterThan(0);
       });
 
       // Select status but don't provide reason
@@ -774,7 +776,7 @@ describe('AdminDonations Component', () => {
       
       await waitFor(() => {
         expect(screen.getByText('Current Status:')).toBeInTheDocument();
-        expect(screen.getByText('New Status:')).toBeInTheDocument();
+        expect(screen.getAllByText('New Status:').length).toBeGreaterThan(0);
       });
 
       // Select status
@@ -783,7 +785,8 @@ describe('AdminDonations Component', () => {
       fireEvent.change(overrideSelect, { target: { value: 'COMPLETED' } });
       
       // Provide reason
-      const reasonTextarea = screen.getByPlaceholderText('Provide a reason for the status override...');
+      const reasonTextareas = screen.getAllByPlaceholderText('Provide a reason for the status override...');
+      const reasonTextarea = reasonTextareas[reasonTextareas.length - 1];
       await user.type(reasonTextarea, 'Admin override for testing');
       
       const overrideButton = screen.getByRole('button', { name: 'Override Status' });
@@ -860,7 +863,7 @@ describe('AdminDonations Component', () => {
       
       await waitFor(() => {
         expect(screen.getByText('Current Status:')).toBeInTheDocument();
-        expect(screen.getByText('New Status:')).toBeInTheDocument();
+        expect(screen.getAllByText('New Status:').length).toBeGreaterThan(0);
       });
 
       // Select status and provide reason
@@ -868,7 +871,8 @@ describe('AdminDonations Component', () => {
       const overrideSelect = statusSelects[statusSelects.length - 1];
       fireEvent.change(overrideSelect, { target: { value: 'COMPLETED' } });
       
-      const reasonTextarea = screen.getByPlaceholderText('Provide a reason for the status override...');
+      const reasonTextareas = screen.getAllByPlaceholderText('Provide a reason for the status override...');
+      const reasonTextarea = reasonTextareas[reasonTextareas.length - 1];
       await user.type(reasonTextarea, 'Test reason');
       
       const overrideButton = screen.getByRole('button', { name: 'Override Status' });

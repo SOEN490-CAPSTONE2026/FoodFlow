@@ -9,6 +9,15 @@ jest.mock("../../../services/api", () => ({
   surplusAPI: {
     getTimeline: jest.fn(),
   },
+  claimsAPI: {
+    getClaimForSurplusPost: jest.fn(),
+  },
+  reportAPI: {
+    reportUser: jest.fn(),
+  },
+  feedbackAPI: {
+    submitFeedback: jest.fn(),
+  },
 }));
 
 import { surplusAPI } from "../../../services/api";
@@ -61,6 +70,18 @@ jest.mock("../ReadyForPickUpView", () => {
         <button onClick={onClose}>Close Mock</button>
       </div>
     );
+  };
+});
+
+jest.mock("../../shared/DonationTimeline", () => {
+  return function MockDonationTimeline() {
+    return <div data-testid="donation-timeline">Timeline</div>;
+  };
+});
+
+jest.mock("../../FeedbackModal/FeedbackModal", () => {
+  return function MockFeedbackModal() {
+    return <div data-testid="feedback-modal">Feedback Modal</div>;
   };
 });
 
