@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
-import { ChevronRight, ChevronDown, Search, Gift, Users, Flag, Eye, Sparkles } from 'lucide-react';
+import { ChevronRight, ChevronDown, Search, Gift, Users, Flag, Eye, Sparkles, Star } from 'lucide-react';
 import './Admin_Styles/AdminDonations.css';
 import {
   Table,
@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
-import { adminDonationAPI } from '../../services/api';
+import { adminDonationAPI, feedbackAPI } from '../../services/api';
 
 const statusOptions = [
   { value: '', label: 'All Status' },
@@ -49,6 +49,7 @@ const AdminDonations = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
+  const [feedbackData, setFeedbackData] = useState({});
 
   // Debounce search term
   useEffect(() => {
@@ -113,11 +114,64 @@ const AdminDonations = () => {
     setCurrentPage(0);
   };
 
+  const fetchFeedbackForDonation = async (donation) => {
+    if (!donation.claimId || feedbackData[donation.id]) return;
+    
+    try {
+      const feedbackResponse = await feedbackAPI.getFeedbackForClaim(donation.claimId);
+      const feedbacks = feedbackResponse.data || [];
+      
+      const donorFeedback = feedbacks.find(f => f.reviewerId === donation.receiverId);
+      const receiverFeedback = feedbacks.find(f => f.reviewerId === donation.donorId);
+      
+      setFeedbackData(prev => ({
+        ...prev,
+        [donation.id]: { donorFeedback, receiverFeedback }
+      }));
+    } catch (err) {
+      console.error('Error fetching feedback:', err);
+    }
+  };
+
+  const toggleExpandRow = async (donation) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(donation.id)) {
+      newExpanded.delete(donation.id);
+    } else {
+      newExpanded.add(donation.id);
+      // Fetch feedback when expanding
+      if (donation.claimId) {
+        await fetchFeedbackForDonation(donation);
+      }
+    }
+    setExpandedRows(newExpanded);
+  };
+
   const openDetailModal = async (donation) => {
     try {
       // Fetch full details including timeline
       const response = await adminDonationAPI.getDonationById(donation.id);
-      setSelectedDonation(response.data);
+      const donationData = response.data;
+      
+      // Fetch feedback if claim exists
+      if (donationData.claimId) {
+        try {
+          const feedbackResponse = await feedbackAPI.getFeedbackForClaim(donationData.claimId);
+          const feedbacks = feedbackResponse.data || [];
+          
+          // Separate donor and receiver feedback
+          const donorFeedback = feedbacks.find(f => f.reviewerId === donationData.receiverId);
+          const receiverFeedback = feedbacks.find(f => f.reviewerId === donationData.donorId);
+          
+          donationData.donorFeedback = donorFeedback;
+          donationData.receiverFeedback = receiverFeedback;
+        } catch (feedbackErr) {
+          console.error('Error fetching feedback:', feedbackErr);
+          // Continue without feedback data
+        }
+      }
+      
+      setSelectedDonation(donationData);
       setShowDetailModal(true);
       setOverrideStatus('');
       setOverrideReason('');
@@ -315,6 +369,7 @@ const AdminDonations = () => {
                 <TableHead>Status</TableHead>
                 <TableHead>Donor</TableHead>
                 <TableHead>Receiver</TableHead>
+                <TableHead>Rating</TableHead>
                 <TableHead>Flagged</TableHead>
                 <TableHead>Created</TableHead>
                 <TableHead>Updated</TableHead>
@@ -333,12 +388,7 @@ const AdminDonations = () => {
                       <TableCell>
                         <button
                           className="expand-btn"
-                          onClick={() => {
-                            const newExpanded = new Set(expandedRows);
-                            if (newExpanded.has(donation.id)) newExpanded.delete(donation.id);
-                            else newExpanded.add(donation.id);
-                            setExpandedRows(newExpanded);
-                          }}
+                          onClick={() => toggleExpandRow(donation)}
                         >
                           {expandedRows.has(donation.id) ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
                         </button>
@@ -350,6 +400,27 @@ const AdminDonations = () => {
                       </TableCell>
                       <TableCell>{donation.donorName || 'N/A'}</TableCell>
                       <TableCell>{donation.receiverName || 'N/A'}</TableCell>
+                      <TableCell>
+                        {!donation.claimId ? (
+                          <span style={{ fontSize: '12px', color: '#9ca3af' }}>No claim</span>
+                        ) : feedbackData[donation.id] ? (
+                          (feedbackData[donation.id].donorFeedback || feedbackData[donation.id].receiverFeedback) ? (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <Star size={14} fill="#fbbf24" stroke="#fbbf24" />
+                              <span style={{ fontSize: '13px' }}>
+                                {feedbackData[donation.id].donorFeedback?.rating || feedbackData[donation.id].receiverFeedback?.rating}
+                              </span>
+                              {(feedbackData[donation.id].donorFeedback?.rating <= 2 || feedbackData[donation.id].receiverFeedback?.rating <= 2) && (
+                                <Flag size={12} color="#ef4444" />
+                              )}
+                            </div>
+                          ) : (
+                            <span style={{ fontSize: '12px', color: '#9ca3af' }}>No feedback</span>
+                          )
+                        ) : (
+                          <span style={{ fontSize: '12px', color: '#9ca3af' }}>—</span>
+                        )}
+                      </TableCell>
                       <TableCell>{donation.flagged ? <Flag color="red" size={16} /> : ''}</TableCell>
                       <TableCell>{formatDate(donation.createdAt)}</TableCell>
                       <TableCell>{formatDate(donation.updatedAt)}</TableCell>
@@ -387,6 +458,55 @@ const AdminDonations = () => {
                               <h4>Description</h4>
                               <p className="details-value">{donation.description || 'No description'}</p>
                             </div>
+                            
+                            {/* Feedback in expanded row */}
+                            {donation.claimId && (
+                              <div className="details-section" style={{ width: '100%', marginTop: '12px' }}>
+                                <h4>Feedback & Ratings</h4>
+                                {!feedbackData[donation.id] ? (
+                                  <div style={{ padding: '12px', background: '#f9fafb', borderRadius: '6px', color: '#6b7280', fontSize: '13px', fontStyle: 'italic' }}>
+                                    Click to expand and load feedback...
+                                  </div>
+                                ) : (feedbackData[donation.id].donorFeedback || feedbackData[donation.id].receiverFeedback) ? (
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    {feedbackData[donation.id].receiverFeedback && (
+                                      <div style={{ width: '100%', padding: '12px', background: feedbackData[donation.id].receiverFeedback.rating <= 2 ? '#fef2f2' : '#f9fafb', borderRadius: '6px', border: feedbackData[donation.id].receiverFeedback.rating <= 2 ? '1px solid #fecaca' : '1px solid #e5e7eb' }}>
+                                        <div style={{ fontWeight: '600', fontSize: '13px', marginBottom: '6px' }}>Donor → Receiver</div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '6px' }}>
+                                          {[1, 2, 3, 4, 5].map(star => (
+                                            <Star key={star} size={14} fill={star <= feedbackData[donation.id].receiverFeedback.rating ? '#fbbf24' : 'none'} stroke={star <= feedbackData[donation.id].receiverFeedback.rating ? '#fbbf24' : '#d1d5db'} />
+                                          ))}
+                                          <span style={{ fontSize: '13px', fontWeight: '600', marginLeft: '4px' }}>{feedbackData[donation.id].receiverFeedback.rating}/5</span>
+                                          {feedbackData[donation.id].receiverFeedback.rating <= 2 && <Flag size={12} color="#ef4444" style={{ marginLeft: '4px' }} />}
+                                        </div>
+                                        {feedbackData[donation.id].receiverFeedback.reviewText && (
+                                          <div style={{ fontSize: '12px', fontStyle: 'italic', color: '#6b7280' }}>"{feedbackData[donation.id].receiverFeedback.reviewText}"</div>
+                                        )}
+                                      </div>
+                                    )}
+                                    {feedbackData[donation.id].donorFeedback && (
+                                      <div style={{ width: '100%', padding: '12px', background: feedbackData[donation.id].donorFeedback.rating <= 2 ? '#fef2f2' : '#f9fafb', borderRadius: '6px', border: feedbackData[donation.id].donorFeedback.rating <= 2 ? '1px solid #fecaca' : '1px solid #e5e7eb' }}>
+                                        <div style={{ fontWeight: '600', fontSize: '13px', marginBottom: '6px' }}>Receiver → Donor</div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '6px' }}>
+                                          {[1, 2, 3, 4, 5].map(star => (
+                                            <Star key={star} size={14} fill={star <= feedbackData[donation.id].donorFeedback.rating ? '#fbbf24' : 'none'} stroke={star <= feedbackData[donation.id].donorFeedback.rating ? '#fbbf24' : '#d1d5db'} />
+                                          ))}
+                                          <span style={{ fontSize: '13px', fontWeight: '600', marginLeft: '4px' }}>{feedbackData[donation.id].donorFeedback.rating}/5</span>
+                                          {feedbackData[donation.id].donorFeedback.rating <= 2 && <Flag size={12} color="#ef4444" style={{ marginLeft: '4px' }} />}
+                                        </div>
+                                        {feedbackData[donation.id].donorFeedback.reviewText && (
+                                          <div style={{ fontSize: '12px', fontStyle: 'italic', color: '#6b7280' }}>"{feedbackData[donation.id].donorFeedback.reviewText}"</div>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <div style={{ padding: '12px', background: '#f9fafb', borderRadius: '6px', color: '#6b7280', fontSize: '13px', fontStyle: 'italic', textAlign: 'center' }}>
+                                    No feedback has been provided yet for this donation.
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
@@ -448,6 +568,73 @@ const AdminDonations = () => {
                 </>
               )}
             </div>
+
+            {/* Feedback Section */}
+            {selectedDonation.claimId && (selectedDonation.donorFeedback || selectedDonation.receiverFeedback) && (
+              <div className="modal-section feedback-section">
+                <h3>Feedback & Ratings</h3>
+                
+                {selectedDonation.receiverFeedback && (
+                  <div className={`feedback-card ${selectedDonation.receiverFeedback.rating <= 2 ? 'low-rating' : ''}`}>
+                    <div className="feedback-header">
+                      <h4>From Donor to Receiver</h4>
+                      <div className="rating-display">
+                        {[1, 2, 3, 4, 5].map(star => (
+                          <Star
+                            key={star}
+                            size={18}
+                            fill={star <= selectedDonation.receiverFeedback.rating ? '#fbbf24' : 'none'}
+                            stroke={star <= selectedDonation.receiverFeedback.rating ? '#fbbf24' : '#d1d5db'}
+                          />
+                        ))}
+                        <span className="rating-value">{selectedDonation.receiverFeedback.rating}/5</span>
+                        {selectedDonation.receiverFeedback.rating <= 2 && (
+                          <Flag size={16} color="#ef4444" style={{ marginLeft: '8px' }} title="Low rating" />
+                        )}
+                      </div>
+                    </div>
+                    {selectedDonation.receiverFeedback.reviewText && (
+                      <p className="feedback-text">"{selectedDonation.receiverFeedback.reviewText}"</p>
+                    )}
+                    <div className="feedback-meta">
+                      Given on {formatDate(selectedDonation.receiverFeedback.createdAt)}
+                    </div>
+                  </div>
+                )}
+                
+                {selectedDonation.donorFeedback && (
+                  <div className={`feedback-card ${selectedDonation.donorFeedback.rating <= 2 ? 'low-rating' : ''}`}>
+                    <div className="feedback-header">
+                      <h4>From Receiver to Donor</h4>
+                      <div className="rating-display">
+                        {[1, 2, 3, 4, 5].map(star => (
+                          <Star
+                            key={star}
+                            size={18}
+                            fill={star <= selectedDonation.donorFeedback.rating ? '#fbbf24' : 'none'}
+                            stroke={star <= selectedDonation.donorFeedback.rating ? '#fbbf24' : '#d1d5db'}
+                          />
+                        ))}
+                        <span className="rating-value">{selectedDonation.donorFeedback.rating}/5</span>
+                        {selectedDonation.donorFeedback.rating <= 2 && (
+                          <Flag size={16} color="#ef4444" style={{ marginLeft: '8px' }} title="Low rating" />
+                        )}
+                      </div>
+                    </div>
+                    {selectedDonation.donorFeedback.reviewText && (
+                      <p className="feedback-text">"{selectedDonation.donorFeedback.reviewText}"</p>
+                    )}
+                    <div className="feedback-meta">
+                      Given on {formatDate(selectedDonation.donorFeedback.createdAt)}
+                    </div>
+                  </div>
+                )}
+                
+                {!selectedDonation.receiverFeedback && !selectedDonation.donorFeedback && (
+                  <div className="no-feedback">No feedback provided yet for this donation.</div>
+                )}
+              </div>
+            )}
 
             <div className="timeline-section">
               <h3>Timeline <span style={{fontSize: '14px', color: '#666'}}>(Admin Only - Timestamps Visible)</span></h3>

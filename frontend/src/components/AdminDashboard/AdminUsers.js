@@ -404,14 +404,14 @@ const AdminUsers = () => {
 
         {/* Search Bar and Filters */}
         <div className="search-bar-container">
-          <div className="search-input-wrapper">
+          <div className="search-input-wrapper admin-users-search-wrapper">
             <Search className="search-icon" size={18} />
             <input
               type="text"
               placeholder="Search by name, email, or organization..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
+              className="search-input admin-users-search-input"
             />
           </div>
           

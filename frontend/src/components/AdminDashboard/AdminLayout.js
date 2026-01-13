@@ -174,12 +174,6 @@ export default function AdminLayout() {
             Home
           </Link>
 
-          <Link to="/admin" className={`admin-nav-link ${isActive("/admin") ? "active" : ""}`} data-tooltip="Dashboard">
-            <span className="nav-icon" aria-hidden>
-              <LayoutGrid size={18} className="lucide" />
-            </span>
-            Dashboard
-          </Link>
 
           <Link to="/admin/users" className={`admin-nav-link ${isActive("/admin/users") ? "active" : ""}`} data-tooltip="Users">
             <span className="nav-icon" aria-hidden>
@@ -194,20 +188,6 @@ export default function AdminLayout() {
               <Heart size={18} className="lucide" />
             </span>
             Donations
-          </Link>
-
-          <Link to="/admin/calendar" className={`admin-nav-link ${isActive("/admin/calendar") ? "active" : ""}`} data-tooltip="Compliance Queue">
-            <span className="nav-icon" aria-hidden>
-              <CalendarIcon size={18} className="lucide" />
-            </span>
-            Compliance Queue
-          </Link>
-
-          <Link to="/admin/help" className={`admin-nav-link ${isActive("/admin/help") ? "active" : ""}`} data-tooltip="Activity log">
-            <span className="nav-icon" aria-hidden>
-              <FileText size={18} className="lucide" />
-            </span>
-            Activity log
           </Link>
 
           <Link to="/admin/disputes" className={`admin-nav-link ${isActive("/admin/disputes") ? "active" : ""}`} data-tooltip="Disputes">
