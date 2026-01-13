@@ -40,23 +40,12 @@ public class AuthService {
     private final MetricsService metricsService;
     private final ObjectMapper objectMapper;
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private OrganizationRepository organizationRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private JwtTokenProvider jwtTokenProvider;
-    
-    @Autowired
-    private EmailService emailService;
-    
-    @Autowired
-    private EmailVerificationTokenRepository verificationTokenRepository;
+    private final UserRepository userRepository;
+    private final OrganizationRepository organizationRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final EmailService emailService;
+    private final EmailVerificationTokenRepository verificationTokenRepository;
         
     // In-memory storage for reset codes (expiry handled by timestamp)
     private final Map<String, ResetCodeData> resetCodes = new ConcurrentHashMap<>();
@@ -87,13 +76,17 @@ public class AuthService {
                     PasswordEncoder passwordEncoder, 
                     JwtTokenProvider jwtTokenProvider,
                     MetricsService metricsService,
-                    ObjectMapper objectMapper) {
+                    ObjectMapper objectMapper,
+                    EmailService emailService,
+                    EmailVerificationTokenRepository verificationTokenRepository) {
         this.userRepository = userRepository;
         this.organizationRepository = organizationRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.metricsService = metricsService;
         this.objectMapper = objectMapper;
+        this.emailService = emailService;
+        this.verificationTokenRepository = verificationTokenRepository;
     }
 
 
