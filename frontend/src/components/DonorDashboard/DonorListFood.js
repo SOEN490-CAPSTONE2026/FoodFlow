@@ -16,12 +16,15 @@ import {
   ChevronLeft,
   ChevronRight,
   Upload,
+  Star,
 } from "lucide-react";
 import { useLoadScript } from "@react-google-maps/api";
-import { surplusAPI, claimsAPI } from "../../services/api";
+import { surplusAPI, claimsAPI, reportAPI } from "../../services/api";
 import SurplusFormModal from "../DonorDashboard/SurplusFormModal";
 import ConfirmPickupModal from "../DonorDashboard/ConfirmPickupModal";
 import ClaimedSuccessModal from "../DonorDashboard/ClaimedSuccessModal";
+import ReportUserModal from "../ReportUserModal";
+import FeedbackModal from "../FeedbackModal/FeedbackModal";
 import DonationTimeline from "../shared/DonationTimeline";
 import { getFoodTypeLabel, getUnitLabel, getTemperatureCategoryLabel, getTemperatureCategoryIcon, getPackagingTypeLabel } from "../../constants/foodConstants";
 import "../DonorDashboard/Donor_Styles/DonorListFood.css";
@@ -134,6 +137,14 @@ export default function DonorListFood() {
   const [error, setError] = useState(null);
   const [sortBy, setSortBy] = useState("date"); // "date" or "status"
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
+  
+  // Report and Feedback modal states
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [reportTargetUser, setReportTargetUser] = useState(null);
+  const [feedbackTargetUser, setFeedbackTargetUser] = useState(null);
+  const [feedbackClaimId, setFeedbackClaimId] = useState(null);
+  const [completedDonationId, setCompletedDonationId] = useState(null);
   const navigate = useNavigate();
   
   // Photo upload states
@@ -179,39 +190,71 @@ export default function DonorListFood() {
     }
   };
 
-const getRecipientEmailForClaimedPost = async (item) => {
-  try {
-    setError(null);
-    const { data: claims } = await claimsAPI.getClaimForSurplusPost(item.id);
+  const getRecipientEmailForClaimedPost = async (item) => {
+    try {
+      setError(null);
+      const { data: claims } = await claimsAPI.getClaimForSurplusPost(item.id);
 
-    if (!claims || claims.length === 0) {
-      setError(`Failed to fetch the recipient email for post "${item.title}"`);
-      return null; 
+      if (!claims || claims.length === 0) {
+        setError(`Failed to fetch the recipient email for post "${item.title}"`);
+        return null; 
+      }
+
+      return claims[0].receiverEmail;
+
+    } catch (err) {
+      console.error('Error fetching recipient email:', err);
+
+      if (err.response?.status === 400) {
+        setError('Receiver not found or invalid email');
+      } else {
+        setError('Failed to fetch recipient email. Please try again.');
+      }
+
+      return null;
     }
+  };
 
-    return claims[0].receiverEmail;
+  const contactReceiver = async (item) => {
+    const recipientEmail = await getRecipientEmailForClaimedPost(item);
 
-  } catch (err) {
-    console.error('Error fetching recipient email:', err);
+    if (!recipientEmail) return;
+    navigate(`/donor/messages?recipientEmail=${encodeURIComponent(recipientEmail)}`);
+  };
 
-    if (err.response?.status === 400) {
-      setError('Receiver not found or invalid email');
-    } else {
-      setError('Failed to fetch recipient email. Please try again.');
+  const handleOpenFeedback = async (item) => {
+    try {
+      console.log("Opening feedback modal for item:", item);
+      
+      // Get claim details to find the receiver - returns an array
+      const { data: claims } = await claimsAPI.getClaimForSurplusPost(item.id);
+      console.log("Claims data:", claims);
+      
+      if (claims && claims.length > 0) {
+        const claim = claims[0];
+        if (claim.receiverId) {
+          const targetUser = {
+            id: claim.receiverId,
+            email: claim.receiverEmail,
+          };
+          console.log("Setting feedback target user:", targetUser);
+          setFeedbackTargetUser(targetUser);
+          setFeedbackClaimId(claim.id);
+          setShowFeedbackModal(true);
+          console.log("Feedback modal state set to true");
+        } else {
+          console.log("No receiver ID found in claim");
+          alert("Unable to load receiver information. Please try again.");
+        }
+      } else {
+        console.log("No claims found for this post");
+        alert("No claims found for this donation. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error fetching claim details for feedback:", error);
+      alert("Failed to open feedback modal. Please try again.");
     }
-
-    return null;
-  }
-};
-
-const contactReceiver = async (item) => {
-  const recipientEmail = await getRecipientEmailForClaimedPost(item);
-
-  if (!recipientEmail) return;
-  navigate(`/donor/messages?recipientEmail=${encodeURIComponent(recipientEmail)}`);
-};
-
-
+  };
 
   // Sort posts based on creation date or status
   const sortPosts = (posts, sortOrder) => {
@@ -299,6 +342,28 @@ const contactReceiver = async (item) => {
 
   const handleCloseSuccessModal = () => {
     setIsSuccessModalOpen(false);
+  };
+
+  const handleOpenReport = (item) => {
+    setReportTargetUser({
+      id: item.receiverId,
+      name: item.receiverName || item.receiverEmail,
+    });
+    setCompletedDonationId(item.id);
+    setShowReportModal(true);
+  };
+
+  const handleReportSubmit = async (reportData) => {
+    try {
+      await reportAPI.submitReport(reportData);
+      alert('Report submitted successfully');
+      setShowReportModal(false);
+      setReportTargetUser(null);
+      setCompletedDonationId(null);
+    } catch (err) {
+      console.error('Failed to submit report', err);
+      alert('Failed to submit report. Please try again.');
+    }
   };
 
   // Photo upload handlers
@@ -701,6 +766,12 @@ const contactReceiver = async (item) => {
                   >
                     RESCHEDULE
                   </button>
+                  <button
+                    className="donation-action-button secondary"
+                    onClick={() => handleOpenFeedback(item)}
+                  >
+                    <Star className="icon" /> LEAVE FEEDBACK
+                  </button>
                 </div>
               ) : (
                 <div className="donation-actions">
@@ -713,12 +784,20 @@ const contactReceiver = async (item) => {
                     </button>
                   )}
                   {item.status === "COMPLETED" && (
-                    <button
-                      className="donation-action-button secondary"
-                      disabled
-                    >
-                      THANK YOU
-                    </button>
+                    <>
+                      <button
+                        className="donation-action-button secondary"
+                        disabled
+                      >
+                        THANK YOU
+                      </button>
+                      <button
+                        className="donation-action-button secondary"
+                        onClick={() => handleOpenFeedback(item)}
+                      >
+                        <Star className="icon" /> LEAVE FEEDBACK
+                      </button>
+                    </>
                   )}
                   {item.status === "CLAIMED" && (
                     <button className="donation-action-button primary" onClick={() => contactReceiver(item)}>
@@ -813,6 +892,13 @@ const contactReceiver = async (item) => {
           </div>
         )
       )}
+
+      <FeedbackModal
+        claimId={feedbackClaimId}
+        targetUser={feedbackTargetUser}
+        isOpen={showFeedbackModal}
+        onClose={() => setShowFeedbackModal(false)}
+      />
     </div>
   );
 }

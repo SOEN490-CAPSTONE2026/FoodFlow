@@ -1,13 +1,14 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { X, CircleCheck, AlertTriangle, Clock, ChevronDown } from 'lucide-react';
+import { X, CircleCheck, AlertTriangle, Clock, ChevronDown, Star } from 'lucide-react';
 import Confetti from 'react-confetti';
 import { foodTypeImages, getPrimaryFoodCategory } from '../../constants/foodConstants';
 import ReportUserModal from '../ReportUserModal';
+import FeedbackModal from '../FeedbackModal/FeedbackModal';
 import DonationTimeline from '../shared/DonationTimeline';
 import { reportAPI, surplusAPI } from '../../services/api';
 import './Receiver_Styles/CompletedView.css';
 
-const CompletedView = ({ claim, isOpen, onClose, onBack }) => {
+const CompletedView = ({ claim, isOpen, onClose, onBack, showFeedbackModal, setShowFeedbackModal }) => {
     const post = claim?.surplusPost;
     const containerRef = useRef(null);
     const [dimensions, setDimensions] = useState({ width: 750, height: 800 });
@@ -163,6 +164,13 @@ const CompletedView = ({ claim, isOpen, onClose, onBack }) => {
                         >
                             <AlertTriangle size={16} />
                             Report Donor
+                        </button>
+                        <button 
+                            className="report-donor-btn"
+                            onClick={() => setShowFeedbackModal(true)}
+                        >
+                            <Star size={16} />
+                            Leave Feedback
                         </button>
                     </div>
                 </div>

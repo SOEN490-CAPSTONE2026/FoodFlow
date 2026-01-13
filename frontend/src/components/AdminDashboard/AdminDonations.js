@@ -944,7 +944,7 @@ const AdminDonations = () => {
                 value={statusOptions.find(opt => opt.value === overrideStatus)}
                 onChange={option => setOverrideStatus(option.value)}
                 options={statusOptions.filter(opt => opt.value && opt.value !== selectedDonation.status)}
-                styles={selectStyles}
+                styles={overrideSelectStyles}
                 className="filter-select-react"
                 placeholder="Select new status"
                 isSearchable={false}
@@ -964,7 +964,9 @@ const AdminDonations = () => {
                   resize: 'vertical'
                 }}
               />
-              {/* Navigation Buttons */}
+            </div>
+
+            {/* Navigation Buttons */}
             <div className="donation-admin-modal-footer">
               <button 
                 className="donation-admin-modal-nav-btn"
