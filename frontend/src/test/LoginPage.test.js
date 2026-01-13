@@ -117,7 +117,9 @@ describe('LoginPage', () => {
         token: 'abc123',
         role: 'donor',
         userId: '42',
-        organizationName: 'Test Organization'
+        organizationName: 'Test Organization',
+        verificationStatus: null,
+        accountStatus: 'ACTIVE'
       }
     });
 
@@ -141,7 +143,7 @@ describe('LoginPage', () => {
     });
 
     await waitFor(() => {
-      expect(defaultAuthValue.login).toHaveBeenCalledWith('abc123', 'donor', '42', 'Test Organization', undefined);
+      expect(defaultAuthValue.login).toHaveBeenCalledWith('abc123', 'donor', '42', 'Test Organization', null, 'ACTIVE');
     });
 
     await waitFor(() => {
