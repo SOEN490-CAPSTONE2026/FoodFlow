@@ -3,6 +3,7 @@ package com.example.foodflow.controller;
 import com.example.foodflow.model.dto.CompleteSurplusRequest;
 import com.example.foodflow.model.dto.ConfirmPickupRequest;
 import com.example.foodflow.model.dto.CreateSurplusRequest;
+import com.example.foodflow.model.dto.DonationTimelineDTO;
 import com.example.foodflow.model.dto.SurplusResponse;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.service.SurplusService;
@@ -154,6 +155,15 @@ public class SurplusController {
     );
     return ResponseEntity.ok(response);
 }
+
+    @GetMapping("/{id}/timeline")
+    public ResponseEntity<List<DonationTimelineDTO>> getTimeline(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User user) {
+
+        List<DonationTimelineDTO> timeline = surplusService.getTimelineForPost(id, user);
+        return ResponseEntity.ok(timeline);
+    }
 
     @DeleteMapping("/{id}/delete")
     @PreAuthorize("hasAuthority('DONOR')")

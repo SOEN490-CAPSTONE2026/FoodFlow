@@ -22,6 +22,7 @@ import { surplusAPI, claimsAPI } from "../../services/api";
 import SurplusFormModal from "../DonorDashboard/SurplusFormModal";
 import ConfirmPickupModal from "../DonorDashboard/ConfirmPickupModal";
 import ClaimedSuccessModal from "../DonorDashboard/ClaimedSuccessModal";
+import DonationTimeline from "../shared/DonationTimeline";
 import { getFoodTypeLabel, getUnitLabel, getTemperatureCategoryLabel, getTemperatureCategoryIcon, getPackagingTypeLabel } from "../../constants/foodConstants";
 import "../DonorDashboard/Donor_Styles/DonorListFood.css";
 
@@ -139,6 +140,11 @@ export default function DonorListFood() {
   const [donationPhotos, setDonationPhotos] = useState({}); // { donationId: [photo urls] }
   const [viewingPhotos, setViewingPhotos] = useState({}); // { donationId: true/false }
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState({}); // { donationId: index }
+
+  // Timeline states
+  const [expandedTimeline, setExpandedTimeline] = useState({}); // { donationId: true/false }
+  const [timelines, setTimelines] = useState({}); // { donationId: [timeline events] }
+  const [loadingTimelines, setLoadingTimelines] = useState({}); // { donationId: true/false }
 
   useEffect(() => {
     fetchMyPosts();
@@ -303,41 +309,85 @@ const contactReceiver = async (item) => {
     // Create preview URLs for uploaded files
     const newPhotoUrls = files.map(file => URL.createObjectURL(file));
     
-    setDonationPhotos(prev => ({
-      ...prev,
-      [donationId]: [...(prev[donationId] || []), ...newPhotoUrls]
-    }));
-
-    // Initialize photo index if first upload
-    if (!donationPhotos[donationId] || donationPhotos[donationId].length === 0) {
-      setCurrentPhotoIndex(prev => ({ ...prev, [donationId]: 0 }));
-    }
+    setDonationPhotos(prev => {
+      const existingPhotos = prev[donationId] || [];
+      // Initialize photo index if first upload
+      if (existingPhotos.length === 0) {
+        setCurrentPhotoIndex(prevIndex => ({ ...prevIndex, [donationId]: 0 }));
+      }
+      return {
+        ...prev,
+        [donationId]: [...existingPhotos, ...newPhotoUrls]
+      };
+    });
   };
 
   const toggleViewPhotos = (donationId) => {
+    // Initialize photo index when first viewing
+    setCurrentPhotoIndex(prev => {
+      if (prev[donationId] === undefined) {
+        return { ...prev, [donationId]: 0 };
+      }
+      return prev;
+    });
+    
     setViewingPhotos(prev => ({
       ...prev,
       [donationId]: !prev[donationId]
     }));
-    
-    // Initialize photo index when first viewing
-    if (!currentPhotoIndex[donationId]) {
-      setCurrentPhotoIndex(prev => ({ ...prev, [donationId]: 0 }));
-    }
   };
 
   const navigatePhoto = (donationId, direction) => {
     const photos = donationPhotos[donationId] || [];
-    const currentIndex = currentPhotoIndex[donationId] || 0;
+    if (photos.length === 0) return;
     
-    let newIndex;
-    if (direction === 'next') {
-      newIndex = (currentIndex + 1) % photos.length;
-    } else {
-      newIndex = currentIndex === 0 ? photos.length - 1 : currentIndex - 1;
+    setCurrentPhotoIndex(prev => {
+      const currentIndex = prev[donationId] ?? 0;
+      let newIndex;
+      
+      if (direction === 'next') {
+        newIndex = (currentIndex + 1) % photos.length;
+      } else {
+        newIndex = currentIndex === 0 ? photos.length - 1 : currentIndex - 1;
+      }
+      
+      return { ...prev, [donationId]: newIndex };
+    });
+  };
+
+  // Timeline handlers
+  const toggleTimeline = async (donationId) => {
+    const isExpanding = !expandedTimeline[donationId];
+
+    setExpandedTimeline(prev => ({
+      ...prev,
+      [donationId]: isExpanding
+    }));
+
+    // Fetch timeline data if expanding and not already loaded
+    if (isExpanding && !timelines[donationId]) {
+      await fetchTimeline(donationId);
     }
-    
-    setCurrentPhotoIndex(prev => ({ ...prev, [donationId]: newIndex }));
+  };
+
+  const fetchTimeline = async (donationId) => {
+    setLoadingTimelines(prev => ({ ...prev, [donationId]: true }));
+
+    try {
+      const response = await surplusAPI.getTimeline(donationId);
+      setTimelines(prev => ({
+        ...prev,
+        [donationId]: response.data
+      }));
+    } catch (error) {
+      console.error('Error fetching timeline for donation', donationId, ':', error);
+      setTimelines(prev => ({
+        ...prev,
+        [donationId]: []
+      }));
+    } finally {
+      setLoadingTimelines(prev => ({ ...prev, [donationId]: false }));
+    }
   };
 
   if (loading) {
@@ -586,68 +636,46 @@ const contactReceiver = async (item) => {
                 ) : null}
 
                 {donationPhotos[item.id]?.length > 0 && (
-                  <>
-                    {!viewingPhotos[item.id] ? (
-                      <button
-                        className="view-photos-button"
-                        onClick={() => toggleViewPhotos(item.id)}
-                      >
-                        <ImageIcon size={14} />
-                        View photos
-                      </button>
-                    ) : (
-                      <div className="photo-slideshow">
-                        <button
-                          className="slideshow-close"
-                          onClick={() => toggleViewPhotos(item.id)}
-                        >
-                          <X size={16} />
-                        </button>
-                        
-                        <div className="slideshow-content">
-                          <button
-                            className="slideshow-nav prev"
-                            onClick={() => navigatePhoto(item.id, 'prev')}
-                            disabled={donationPhotos[item.id].length <= 1}
-                          >
-                            <ChevronLeft size={20} />
-                          </button>
-
-                          <img
-                            src={donationPhotos[item.id][currentPhotoIndex[item.id] || 0]}
-                            alt={`Donation ${(currentPhotoIndex[item.id] || 0) + 1}`}
-                            className="slideshow-image"
-                          />
-
-                          <button
-                            className="slideshow-nav next"
-                            onClick={() => navigatePhoto(item.id, 'next')}
-                            disabled={donationPhotos[item.id].length <= 1}
-                          >
-                            <ChevronRight size={20} />
-                          </button>
-                        </div>
-
-                        <div className="slideshow-counter">
-                          {(currentPhotoIndex[item.id] || 0) + 1} / {donationPhotos[item.id].length}
-                        </div>
-
-                        <label className="slideshow-add-more">
-                          <input
-                            type="file"
-                            multiple
-                            accept="image/*"
-                            onChange={(e) => handlePhotoUpload(item.id, e)}
-                            style={{ display: 'none' }}
-                          />
-                          <Upload size={14} />
-                          Add more photos
-                        </label>
-                      </div>
-                    )}
-                  </>
+                  <button
+                    className="view-photos-button"
+                    onClick={() => toggleViewPhotos(item.id)}
+                  >
+                    <ImageIcon size={14} />
+                    View {donationPhotos[item.id].length} photo{donationPhotos[item.id].length > 1 ? 's' : ''}
+                  </button>
                 )}
               </div>
+              )}
+
+              {/* Timeline Section - Show for CLAIMED, READY_FOR_PICKUP, COMPLETED, NOT_COMPLETED */}
+              {(item.status === "CLAIMED" ||
+                item.status === "READY_FOR_PICKUP" ||
+                item.status === "COMPLETED" ||
+                item.status === "NOT_COMPLETED") && (
+                <div className="donation-timeline-section">
+                  <button
+                    className="timeline-toggle-button"
+                    onClick={() => toggleTimeline(item.id)}
+                  >
+                    <Clock size={16} />
+                    <span>
+                      {expandedTimeline[item.id] ? 'Hide' : 'View'} Donation Timeline
+                    </span>
+                    <ChevronDown
+                      size={16}
+                      className={`chevron ${expandedTimeline[item.id] ? 'open' : ''}`}
+                    />
+                  </button>
+
+                  {expandedTimeline[item.id] && (
+                    <div className="timeline-content-wrapper">
+                      <DonationTimeline
+                        timeline={timelines[item.id] || []}
+                        loading={loadingTimelines[item.id]}
+                      />
+                    </div>
+                  )}
+                </div>
               )}
 
               {item.status === "AVAILABLE" ? (
@@ -715,6 +743,76 @@ const contactReceiver = async (item) => {
         isOpen={isSuccessModalOpen}
         onClose={handleCloseSuccessModal}
       />
+
+      {/* Photo Viewer Modal - Outside of cards */}
+      {Object.keys(viewingPhotos).map(donationId => 
+        viewingPhotos[donationId] && donationPhotos[donationId]?.length > 0 && (
+          <div 
+            key={donationId} 
+            className="photo-modal-overlay"
+            onClick={() => toggleViewPhotos(donationId)}
+          >
+            <div className="photo-modal-container" onClick={e => e.stopPropagation()}>
+              <button
+                className="photo-modal-close"
+                onClick={() => toggleViewPhotos(donationId)}
+              >
+                <X size={20} />
+              </button>
+
+              <div className="photo-modal-main">
+                <button
+                  className="photo-nav-btn photo-nav-prev"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigatePhoto(donationId, 'prev');
+                  }}
+                  disabled={donationPhotos[donationId].length <= 1}
+                >
+                  <ChevronLeft size={24} />
+                </button>
+
+                <div className="photo-display-wrapper">
+                  <img
+                    src={donationPhotos[donationId][currentPhotoIndex[donationId] ?? 0]}
+                    alt={`Photo ${(currentPhotoIndex[donationId] ?? 0) + 1}`}
+                    className="photo-display-image"
+                    draggable={false}
+                  />
+                </div>
+
+                <button
+                  className="photo-nav-btn photo-nav-next"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigatePhoto(donationId, 'next');
+                  }}
+                  disabled={donationPhotos[donationId].length <= 1}
+                >
+                  <ChevronRight size={24} />
+                </button>
+              </div>
+
+              <div className="photo-modal-footer">
+                <div className="photo-count">
+                  {(currentPhotoIndex[donationId] ?? 0) + 1} / {donationPhotos[donationId].length}
+                </div>
+                <label className="photo-add-btn">
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={(e) => handlePhotoUpload(donationId, e)}
+                    style={{ display: 'none' }}
+                  />
+                  <Upload size={16} />
+                  Add More
+                </label>
+              </div>
+            </div>
+          </div>
+        )
+      )}
     </div>
   );
 }

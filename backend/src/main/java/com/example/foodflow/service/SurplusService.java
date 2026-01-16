@@ -5,17 +5,20 @@ import com.example.foodflow.helpers.BasicFilter;
 import com.example.foodflow.helpers.LocationFilter;
 import com.example.foodflow.helpers.SpecificationHandler;
 import com.example.foodflow.model.dto.CreateSurplusRequest;
+import com.example.foodflow.model.dto.DonationTimelineDTO;
 import com.example.foodflow.model.dto.SurplusFilterRequest;
 import com.example.foodflow.model.dto.PickupSlotRequest;
 import com.example.foodflow.model.dto.PickupSlotResponse;
 import com.example.foodflow.model.dto.SurplusResponse;
 import com.example.foodflow.model.entity.Claim;
+import com.example.foodflow.model.entity.DonationTimeline;
 import com.example.foodflow.model.entity.PickupSlot;
 import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.types.ClaimStatus;
 import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.repository.ClaimRepository;
+import com.example.foodflow.repository.DonationTimelineRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
 import com.example.foodflow.util.TimezoneResolver;
 import io.micrometer.core.annotation.Timed;
@@ -30,6 +33,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -43,6 +47,7 @@ public class SurplusService {
     private final NotificationService notificationService;
     private final ExpiryCalculationService expiryCalculationService;
     private final TimelineService timelineService;
+    private final DonationTimelineRepository timelineRepository;
 
     public SurplusService(SurplusPostRepository surplusPostRepository, 
                          ClaimRepository claimRepository,
@@ -50,7 +55,8 @@ public class SurplusService {
                          BusinessMetricsService businessMetricsService,
                          NotificationService notificationService,
                          ExpiryCalculationService expiryCalculationService,
-                         TimelineService timelineService) {
+                         TimelineService timelineService,
+                         DonationTimelineRepository timelineRepository) {
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;
         this.pickupSlotValidationService = pickupSlotValidationService;
@@ -58,6 +64,7 @@ public class SurplusService {
         this.notificationService = notificationService;
         this.expiryCalculationService = expiryCalculationService;
         this.timelineService = timelineService;
+        this.timelineRepository = timelineRepository;
     }
     
     /**
@@ -430,6 +437,7 @@ public class SurplusService {
         response.setPickupTo(post.getPickupTo());
         response.setStatus(post.getStatus());
         response.setOtpCode(post.getOtpCode());
+        response.setDonorId(post.getDonor().getId());
         response.setDonorEmail(post.getDonor().getEmail());
         response.setDonorName(post.getDonor().getOrganization() != null
             ? post.getDonor().getOrganization().getName()
@@ -845,5 +853,68 @@ public void deleteSurplusPost(Long postId, User donor) {
     surplusPostRepository.delete(post);
 }
 
+    /**
+     * Get timeline events for a donation post.
+     * Verifies that the requesting user is either the donor or a receiver who has claimed the post.
+     * Returns only events visible to users (visibleToUsers=true).
+     */
+    @Transactional(readOnly = true)
+    @Timed(value = "surplus.service.getTimeline", description = "Time taken to get timeline for a post")
+    public List<DonationTimelineDTO> getTimelineForPost(Long postId, User user) {
+        // Fetch the post
+        SurplusPost post = surplusPostRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Surplus post not found"));
+
+        // Authorization check: user must be the donor or a receiver with an active/completed claim
+        boolean isDonor = post.getDonor().getId().equals(user.getId());
+        boolean isReceiver = false;
+
+        if (!isDonor) {
+            // Check if user is a receiver with an active or completed claim on this post
+            Optional<Claim> activeClaim = claimRepository.findBySurplusPostIdAndStatus(postId, ClaimStatus.ACTIVE);
+            if (activeClaim.isPresent() && activeClaim.get().getReceiver().getId().equals(user.getId())) {
+                isReceiver = true;
+            } else {
+                // Also check for completed claims
+                Optional<Claim> completedClaim = claimRepository.findBySurplusPostIdAndStatus(postId, ClaimStatus.COMPLETED);
+                if (completedClaim.isPresent() && completedClaim.get().getReceiver().getId().equals(user.getId())) {
+                    isReceiver = true;
+                }
+            }
+        }
+
+        if (!isDonor && !isReceiver) {
+            throw new RuntimeException("You are not authorized to view this timeline");
+        }
+
+        // Fetch timeline events that are visible to users
+        List<DonationTimeline> timeline = timelineRepository
+                .findBySurplusPostIdAndVisibleToUsersOrderByTimestampDesc(postId, true);
+
+        // Map to DTOs
+        return timeline.stream()
+                .map(this::mapToTimelineDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Map DonationTimeline entity to DTO
+     */
+    private DonationTimelineDTO mapToTimelineDTO(DonationTimeline timeline) {
+        DonationTimelineDTO dto = new DonationTimelineDTO();
+        dto.setId(timeline.getId());
+        dto.setEventType(timeline.getEventType());
+        dto.setTimestamp(timeline.getTimestamp());
+        dto.setActor(timeline.getActor());
+        dto.setActorUserId(timeline.getActorUserId());
+        dto.setOldStatus(timeline.getOldStatus());
+        dto.setNewStatus(timeline.getNewStatus());
+        dto.setDetails(timeline.getDetails());
+        dto.setVisibleToUsers(timeline.getVisibleToUsers());
+        dto.setTemperature(timeline.getTemperature());
+        dto.setPackagingCondition(timeline.getPackagingCondition());
+        dto.setPickupEvidenceUrl(timeline.getPickupEvidenceUrl());
+        return dto;
+    }
 
 }
