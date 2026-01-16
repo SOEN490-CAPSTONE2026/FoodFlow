@@ -265,6 +265,14 @@ export const userAPI = {
 };
 
 /**
+ * Current authenticated user's profile endpoints
+ */
+export const profileAPI = {
+  get: () => api.get('/profile'),
+  update: (data) => api.put('/profile', data)
+};
+
+/**
  * Report/Dispute API functions
  */
 export const reportAPI = {

@@ -2,11 +2,17 @@ package com.example.foodflow.service;
 
 import com.example.foodflow.model.dto.RegionResponse;
 import com.example.foodflow.model.dto.UpdateRegionRequest;
+import com.example.foodflow.model.dto.UpdateProfileRequest;
+import com.example.foodflow.model.dto.UserProfileResponse;
+import com.example.foodflow.model.entity.Organization;
 import com.example.foodflow.model.entity.User;
+import com.example.foodflow.repository.OrganizationRepository;
 import com.example.foodflow.repository.UserRepository;
 import com.example.foodflow.util.TimezoneResolver;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.regex.Pattern;
 
 /**
  * Service for managing user profile settings including region and timezone.
@@ -15,9 +21,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserProfileService {
     
     private final UserRepository userRepository;
+    private final OrganizationRepository organizationRepository;
     
-    public UserProfileService(UserRepository userRepository) {
+    public UserProfileService(UserRepository userRepository, OrganizationRepository organizationRepository) {
         this.userRepository = userRepository;
+        this.organizationRepository = organizationRepository;
     }
     
     /**
@@ -74,7 +82,84 @@ public class UserProfileService {
     public RegionResponse getRegionSettings(User user) {
         return buildRegionResponse(user);
     }
-    
+
+    /**
+     * Returns basic profile information for the user
+     */
+    @Transactional(readOnly = true)
+    public UserProfileResponse getProfile(User user) {
+        UserProfileResponse response = new UserProfileResponse();
+        response.setId(user.getId());
+        response.setEmail(user.getEmail());
+        response.setFullName(user.getFullName());
+        response.setPhone(user.getPhone());
+        response.setProfilePhoto(user.getProfilePhoto());
+
+        if (user.getOrganization() != null) {
+            Organization org = user.getOrganization();
+            response.setOrganizationName(org.getName());
+            response.setOrganizationAddress(org.getAddress());
+        } else {
+            organizationRepository.findByUserId(user.getId()).ifPresent(org -> {
+                response.setOrganizationName(org.getName());
+                response.setOrganizationAddress(org.getAddress());
+            });
+        }
+
+        return response;
+    }
+
+    /**
+     * Updates user's profile fields and organization info when provided
+     */
+    @Transactional
+    public UserProfileResponse updateProfile(User user, UpdateProfileRequest request) {
+        // Validate email uniqueness if changing
+        if (request.getEmail() != null && !request.getEmail().equalsIgnoreCase(user.getEmail())) {
+            if (userRepository.existsByEmail(request.getEmail())) {
+                throw new IllegalArgumentException("Email already in use");
+            }
+            user.setEmail(request.getEmail());
+        }
+
+        // Validate and set phone ONLY if provided
+        if (request.getPhone() != null && !request.getPhone().trim().isEmpty()) {
+            final Pattern phonePattern = Pattern.compile("^[+0-9 ()-]{7,20}$");
+            if (!phonePattern.matcher(request.getPhone()).matches()) {
+                throw new IllegalArgumentException("Invalid phone format");
+            }
+            user.setPhone(request.getPhone());
+        }
+
+        // Full name required
+        if (request.getFullName() != null && !request.getFullName().trim().isEmpty()) {
+            user.setFullName(request.getFullName());
+        }
+
+        // Profile photo optional (store provided string base64)
+        if (request.getProfilePhoto() != null) {
+            user.setProfilePhoto(request.getProfilePhoto());
+        }
+
+        userRepository.save(user);
+
+        // Organization fields
+        if ((request.getOrganizationName() != null && !request.getOrganizationName().trim().isEmpty()) ||
+            (request.getOrganizationAddress() != null && !request.getOrganizationAddress().trim().isEmpty())) {
+
+            Organization org = organizationRepository.findByUserId(user.getId()).orElseGet(() -> {
+                Organization o = new Organization();
+                o.setUser(user);
+                return o;
+            });
+            if (request.getOrganizationName() != null) org.setName(request.getOrganizationName());
+            if (request.getOrganizationAddress() != null) org.setAddress(request.getOrganizationAddress());
+
+            organizationRepository.save(org);
+            user.setOrganization(org);
+        }
+        return getProfile(user);
+    }    
     /**
      * Builds a RegionResponse DTO from a User entity.
      * 

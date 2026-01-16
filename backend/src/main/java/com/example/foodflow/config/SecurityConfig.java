@@ -85,6 +85,10 @@ public class SecurityConfig {
                 .requestMatchers("/donor/**").hasAuthority("DONOR")
                 .requestMatchers("/receiver/**").hasAuthority("RECEIVER")
                 .requestMatchers("/admin/**").hasAuthority("ADMIN")
+
+                // Profile endpoints
+                .requestMatchers(HttpMethod.PUT, "/api/profile/**").hasAnyAuthority("RECEIVER", "DONOR", "ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/profile/**").hasAnyAuthority("RECEIVER", "DONOR", "ADMIN")
                 
                 // All other requests require authentication
                 .anyRequest().authenticated()

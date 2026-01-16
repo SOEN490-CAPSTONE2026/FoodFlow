@@ -4,7 +4,7 @@ import LanguageSwitcher from './LanguageSwitcher';
 import RegionSelector from './RegionSelector';
 import ChangePasswordModal from './ChangePasswordModal';
 import { AuthContext } from '../contexts/AuthContext';
-import { notificationPreferencesAPI } from '../services/api';
+import { notificationPreferencesAPI, profileAPI } from '../services/api';
 import api from '../services/api';
 import '../style/Settings.css';
 
@@ -191,16 +191,39 @@ const Settings = () => {
 
   const fetchUserProfile = async () => {
     try {
-      const response = await api.get('/profile/region');
-      if (response.data) {
+      // Fetch region settings
+      const regionResp = await api.get('/profile/region');
+      if (regionResp.data) {
         setRegionSettings({
-          country: response.data.country,
-          city: response.data.city,
-          timezone: response.data.timezone
+          country: regionResp.data.country,
+          city: regionResp.data.city,
+          timezone: regionResp.data.timezone
         });
       }
+
+      // Fetch full profile (name, email, phone, org, photo)
+      const profileResp = await profileAPI.get();
+      if (profileResp.data) {
+        const p = profileResp.data;
+        setFormData(prev => ({
+          ...prev,
+          fullName: p.fullName || prev.fullName || '',
+          email: p.email || prev.email || '',
+          phoneNumber: p.phone || prev.phoneNumber || '',
+          organization: p.organizationName || prev.organization || '',
+          address: p.organizationAddress || prev.address || ''
+        }));
+
+        if (p.profilePhoto) {
+          // If backend returned a URL or base64, use it directly
+          setProfileImage(p.profilePhoto);
+        }
+
+        // Update notification phone if missing
+        setNotificationPreferences(prev => ({ ...prev, smsPhoneNumber: p.phone || prev.smsPhoneNumber }));
+      }
     } catch (error) {
-      console.error('Error fetching region from backend:', error);
+      console.error('Error fetching profile from backend:', error);
     } finally {
       setLoadingProfile(false);
     }
@@ -360,19 +383,51 @@ const Settings = () => {
     setSuccessMessage('');
     setErrors({});
 
-    // TODO: Backend will implement this endpoint
     try {
-      // Simulate save for now
-      setTimeout(() => {
+      // Prepare payload
+      const payload = {
+        fullName: formData.fullName,
+        email: formData.email,
+        phone: formData.phoneNumber ? formatPhoneNumber(formData.phoneNumber) : '',
+        profilePhoto: profileImage || null,
+        organizationName: formData.organization || null,
+        organizationAddress: formData.address || null
+      };
+
+      const resp = await profileAPI.update(payload);
+
+      // Update local state with returned data
+      if (resp.data) {
+        setFormData(prev => ({
+          ...prev,
+          fullName: resp.data.fullName || prev.fullName,
+          email: resp.data.email || prev.email,
+          phoneNumber: resp.data.phone || prev.phoneNumber,
+          organization: resp.data.organizationName || prev.organization,
+          address: resp.data.organizationAddress || prev.address
+        }));
+
+        if (resp.data.profilePhoto) {
+          setProfileImage(resp.data.profilePhoto);
+        }
+
+        try {
+          localStorage.setItem('organizationName', resp.data.organizationName || '');
+        } catch (e) { /* ignore storage errors */ }
+
+        // Update notification phone for SMS toggles
+        setNotificationPreferences(prev => ({ ...prev, smsPhoneNumber: resp.data.phone || prev.smsPhoneNumber }));
+
         setSuccessMessage('Profile updated successfully!');
-        
-        setLoading(false);
-      }, 500);
-    
-      
+      }
     } catch (error) {
       console.error('Error updating profile:', error);
-      setErrors({ submit: 'Failed to update profile. Please try again.' });
+      if (error.response && error.response.data && error.response.data.message) {
+        setErrors({ submit: error.response.data.message });
+      } else {
+        setErrors({ submit: 'Failed to update profile. Please try again.' });
+      }
+    } finally {
       setLoading(false);
     }
   };
