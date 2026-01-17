@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Package, User, ArrowRight, Filter, Clock } from 'lucide-react';
+import { Package, User, ArrowRight, Filter, Clock, Star } from 'lucide-react';
 import Select from 'react-select';
-import { claimsAPI } from '../../services/api';
+import { claimsAPI, feedbackAPI } from '../../services/api';
 import { useNotification } from '../../contexts/NotificationContext';
 import { useTimezone } from '../../contexts/TimezoneContext';
 import { getPrimaryFoodCategory, foodTypeImages, getUnitLabel } from '../../constants/foodConstants';
@@ -19,6 +19,7 @@ export default function ReceiverMyClaims() {
   const [selectedClaim, setSelectedClaim] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState({ show: false, claimId: null, postTitle: '' });
+  const [rating, setRating] = useState({ averageRating: 0, totalReviews: 0 });
 
   const sortOptions = [
     { value: 'date', label: 'Sort by Date' },
@@ -27,6 +28,7 @@ export default function ReceiverMyClaims() {
 
   useEffect(() => {
     fetchMyClaims();
+    fetchMyRating();
 
     // Poll for updates every 10 seconds to catch status changes faster
     const intervalId = setInterval(() => {
@@ -48,6 +50,20 @@ export default function ReceiverMyClaims() {
       setClaims([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchMyRating = async () => {
+    try {
+      const response = await feedbackAPI.getMyRating();
+      if (response && response.data) {
+        setRating({
+          averageRating: Math.round((response.data.averageRating || 0) * 10) / 10,
+          totalReviews: response.data.totalReviews || 0
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching rating:', error);
     }
   };
 
@@ -244,6 +260,26 @@ export default function ReceiverMyClaims() {
 
   return (
     <div className="claimed-page claimed-donations-container">
+      {/* Rating Stats Box */}
+      <div className="receiver-stats-box">
+        <div className="stat-item">
+          <Star size={16} fill="#F59E0B" color="#F59E0B" />
+          <div className="stat-info">
+            <div className="stat-label">Rating:</div>
+            <div className="stat-value">
+              {rating.totalReviews > 0 ? (
+                <>
+                  {rating.averageRating.toFixed(1)}
+                  <span className="rating-count">★ ({rating.totalReviews})</span>
+                </>
+              ) : (
+                <span className="no-rating">—</span>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
       <h1>My Claimed Donations</h1>
       <p className="claimed-page claimed-subtitle">Track your donations and get ready for pickup — every claim helps reduce waste and feed our community.</p>
 

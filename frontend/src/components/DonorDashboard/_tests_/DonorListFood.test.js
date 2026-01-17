@@ -42,6 +42,17 @@ jest.mock("../../../services/api", () => ({
   surplusAPI: {
     getMyPosts: jest.fn(),
     deletePost: jest.fn(),
+    getTimeline: jest.fn(),
+  },
+  claimsAPI: {
+    getClaimForSurplusPost: jest.fn(),
+  },
+  reportAPI: {
+    createReport: jest.fn(),
+  },
+  feedbackAPI: {
+    getFeedbackForClaim: jest.fn(),
+    submitFeedback: jest.fn(),
   },
 }));
 
@@ -87,7 +98,38 @@ jest.mock("lucide-react", () => ({
   ChevronLeft: () => "ChevronLeftIcon",
   ChevronRight: () => "ChevronRightIcon",
   Upload: () => "UploadIcon",
+  Star: () => "StarIcon",
 }));
+
+jest.mock("../../shared/DonationTimeline", () => {
+  return function MockDonationTimeline() {
+    return <div data-testid="donation-timeline">Timeline</div>;
+  };
+});
+
+jest.mock("../ConfirmPickupModal", () => {
+  return function MockConfirmPickupModal() {
+    return <div data-testid="confirm-pickup-modal">Pickup Modal</div>;
+  };
+});
+
+jest.mock("../ClaimedSuccessModal", () => {
+  return function MockClaimedSuccessModal() {
+    return <div data-testid="claimed-success-modal">Success Modal</div>;
+  };
+});
+
+jest.mock("../../FeedbackModal/FeedbackModal", () => {
+  return function MockFeedbackModal() {
+    return <div data-testid="feedback-modal">Feedback Modal</div>;
+  };
+});
+
+jest.mock("../../ReportUserModal", () => {
+  return function MockReportUserModal() {
+    return <div data-testid="report-modal">Report Modal</div>;
+  };
+});
 
 import DonorListFood from "../DonorListFood";
 import { surplusAPI } from "../../../services/api";

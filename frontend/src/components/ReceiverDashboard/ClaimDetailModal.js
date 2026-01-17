@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
-import { X, Package, Calendar, MapPin, User, Clock, MessageCircle, ChevronDown } from 'lucide-react';
+import { X, Package, Calendar, MapPin, User, Clock, MessageCircle, ChevronDown, Star } from 'lucide-react';
 import useGoogleMap from '../../hooks/useGoogleMaps';
 import ClaimedView from './ClaimedView';
 import CompletedView from './CompletedView';
 import ReadyForPickUpView from './ReadyForPickUpView';
 import DonationTimeline from '../shared/DonationTimeline';
-import { surplusAPI } from '../../services/api';
+import FeedbackModal from '../FeedbackModal/FeedbackModal';
+import { surplusAPI, claimsAPI, reportAPI } from '../../services/api';
 import { getPrimaryFoodCategory, foodTypeImages, getUnitLabel, getTemperatureCategoryLabel, getTemperatureCategoryIcon, getPackagingTypeLabel } from '../../constants/foodConstants';
 import { useTimezone } from '../../contexts/TimezoneContext';
 import './Receiver_Styles/ClaimDetailModal.css';
@@ -14,6 +15,7 @@ import './Receiver_Styles/ClaimDetailModal.css';
 const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
     const post = claim?.surplusPost;
     const [showPickupSteps, setShowPickupSteps] = useState(false);
+    const [showFeedbackModal, setShowFeedbackModal] = useState(false);
     const [timeline, setTimeline] = useState([]);
     const [loadingTimeline, setLoadingTimeline] = useState(false);
     const [expandedTimeline, setExpandedTimeline] = useState(false);
@@ -374,8 +376,17 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                         onClose();
                     }}
                     onBack={handleBackToDetails}
+                    showFeedbackModal={showFeedbackModal}
+                    setShowFeedbackModal={setShowFeedbackModal}
                 />
             )}
+
+            <FeedbackModal
+                claimId={claim?.id}
+                targetUser={post?.donor}
+                isOpen={showFeedbackModal}
+                onClose={() => setShowFeedbackModal(false)}
+            />
         </>
     );
 };

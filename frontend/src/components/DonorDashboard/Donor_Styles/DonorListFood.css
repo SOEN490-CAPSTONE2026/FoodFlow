@@ -453,15 +453,18 @@
 }
 
 .donation-action-button {
-  padding: 10px 24px;
-  border-radius: 50px;
-  font-size: 13px;
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.02em;
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
   text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .donation-action-button.primary {
@@ -475,13 +478,20 @@
 }
 
 .donation-action-button.secondary {
-  background: #9ca3af;
+  background: #0092B8;
   color: #ffffff;
-  cursor: not-allowed;
+  cursor: pointer;
+}
+
+.donation-action-button.secondary:hover {
+  background: #0078a5;
+  transform: translateY(-1px);
 }
 
 .donation-action-button.secondary:disabled {
   opacity: 1;
+  cursor: not-allowed;
+  background: #d1d5db;
 }
 
 .donation-link:focus-visible,

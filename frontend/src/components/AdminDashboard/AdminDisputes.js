@@ -163,10 +163,7 @@ const AdminDisputes = () => {
     <div className="admin-disputes-container">
       {/* Header with Stats inline */}
       <div className="disputes-header-section">
-        <div className="disputes-header-text">
-          <h1>Disputes & Reports</h1>
-          <p className="disputes-subtitle">Track, review, and resolve reported issues across the platform</p>
-        </div>
+  
         <div className="disputes-header-stats">
           <span className="stat-item">Total cases: <strong>{stats.total}</strong></span>
           <span className="stat-item">Open: <strong>{stats.open}</strong></span>

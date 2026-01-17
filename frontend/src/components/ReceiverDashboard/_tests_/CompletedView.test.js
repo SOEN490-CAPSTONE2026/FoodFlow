@@ -5,9 +5,33 @@ import CompletedView from "../CompletedView";
 
 jest.mock("react-confetti");
 
+jest.mock("../../shared/DonationTimeline", () => {
+  return function MockDonationTimeline() {
+    return <div data-testid="donation-timeline">Timeline</div>;
+  };
+});
+
+jest.mock("../../ReportUserModal", () => {
+  return function MockReportUserModal() {
+    return <div data-testid="report-user-modal">Report Modal</div>;
+  };
+});
+
+jest.mock("../../FeedbackModal/FeedbackModal", () => {
+  return function MockFeedbackModal() {
+    return <div data-testid="feedback-modal">Feedback Modal</div>;
+  };
+});
+
 jest.mock("../../../services/api", () => ({
   surplusAPI: {
     getTimeline: jest.fn(),
+  },
+  reportAPI: {
+    reportUser: jest.fn(),
+  },
+  feedbackAPI: {
+    submitFeedback: jest.fn(),
   },
 }));
 

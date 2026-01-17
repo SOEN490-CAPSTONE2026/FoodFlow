@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Select from 'react-select';
 import { ChevronRight, ChevronDown, Power, Bell, Edit3, Search, Users, Gift, Sparkles, Handshake } from 'lucide-react';
+import { feedbackAPI } from '../../services/api';
 import './Admin_Styles/AdminUsers.css';
 import {
   Table,
@@ -52,6 +53,9 @@ const AdminUsers = () => {
   
   // Expanded rows
   const [expandedRows, setExpandedRows] = useState(new Set());
+  
+  // User ratings
+  const [userRatings, setUserRatings] = useState({});
 
   // Fetch users from API
   const fetchUsers = async () => {
@@ -102,6 +106,30 @@ const AdminUsers = () => {
       console.error('Error fetching users:', err);
       setError('Failed to load users. Please try again.');
       setLoading(false);
+    }
+  };
+
+  // Fetch user rating
+  const fetchUserRating = async (userId) => {
+    if (userRatings[userId]) return; // Already fetched
+    
+    try {
+      const response = await feedbackAPI.getUserRating(userId);
+      if (response && response.data) {
+        setUserRatings(prev => ({
+          ...prev,
+          [userId]: {
+            averageRating: response.data.averageRating || 0,
+            totalReviews: response.data.totalReviews || 0
+          }
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching user rating:', error);
+      setUserRatings(prev => ({
+        ...prev,
+        [userId]: { averageRating: 0, totalReviews: 0 }
+      }));
     }
   };
 
@@ -376,14 +404,14 @@ const AdminUsers = () => {
 
         {/* Search Bar and Filters */}
         <div className="search-bar-container">
-          <div className="search-input-wrapper">
+          <div className="search-input-wrapper admin-users-search-wrapper">
             <Search className="search-icon" size={18} />
             <input
               type="text"
               placeholder="Search by name, email, or organization..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
+              className="search-input admin-users-search-input"
             />
           </div>
           
@@ -454,6 +482,8 @@ const AdminUsers = () => {
                             newExpanded.delete(user.id);
                           } else {
                             newExpanded.add(user.id);
+                            // Fetch rating when expanding
+                            fetchUserRating(user.id);
                           }
                           setExpandedRows(newExpanded);
                         }}
@@ -554,7 +584,17 @@ const AdminUsers = () => {
                           
                           <div className="details-section">
                             <h4>Feedback Score</h4>
-                            <p className="details-value">4.9/5</p>
+                            <p className="details-value">
+                              {userRatings[user.id] ? (
+                                userRatings[user.id].totalReviews > 0 ? (
+                                  `${userRatings[user.id].averageRating.toFixed(1)}/5 (${userRatings[user.id].totalReviews} reviews)`
+                                ) : (
+                                  'No reviews yet'
+                                )
+                              ) : (
+                                'Loading...'
+                              )}
+                            </p>
                           </div>
                           
                           <div className="details-section">

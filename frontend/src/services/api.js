@@ -298,6 +298,19 @@ export const reportAPI = {
 };
 
 /**
+ * Feedback API functions
+ */
+export const feedbackAPI = {
+  submitFeedback: (payload) => api.post('/feedback', payload),
+  getFeedbackForClaim: (claimId) => api.get(`/feedback/claim/${claimId}`),
+  getMyRating: () => api.get('/feedback/my-rating'),
+  getUserRating: (userId) => api.get(`/feedback/rating/${userId}`),
+  canProvideFeedback: (claimId) => api.get(`/feedback/can-review/${claimId}`),
+  getPendingFeedback: () => api.get('/feedback/pending'),
+  getMyReviews: () => api.get('/feedback/my-reviews'),
+};
+
+/**
  * Admin API functions for dispute management
  */
 export const adminDisputeAPI = {
