@@ -18,21 +18,70 @@ import "./Donor_Styles/DonorHelp.css";
  * Reusable FAQ Item component with expand/collapse functionality
  */
 const FAQItem = ({ question, answer, isOpen, onClick }) => (
-  <div className={`faq-item ${isOpen ? 'open' : ''}`}>
+  <div 
+    data-no-animate="true"
+    style={{
+      border: '2px solid #e5e7eb',
+      borderRadius: '10px',
+      marginBottom: '12px',
+      backgroundColor: '#ffffff',
+      overflow: 'visible',
+      opacity: 1,
+      transform: 'none',
+      animation: 'none',
+      transition: 'none',
+      visibility: 'visible',
+      position: 'relative',
+      zIndex: 1
+    }}
+  >
     <button 
       className="faq-question" 
       onClick={onClick}
       aria-expanded={isOpen}
       aria-controls={`faq-answer-${question.replace(/\s+/g, '-').toLowerCase()}`}
+      style={{
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '16px 20px',
+        backgroundColor: isOpen ? '#e8f5e9' : '#ffffff',
+        border: 'none',
+        cursor: 'pointer',
+        textAlign: 'left',
+        color: isOpen ? '#2e7d32' : '#1a1a1a',
+        fontSize: '16px',
+        fontWeight: '600',
+        fontFamily: 'inherit'
+      }}
     >
-      <span>{question}</span>
-      {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+      <span style={{ 
+        color: isOpen ? '#2e7d32' : '#1a1a1a', 
+        flex: 1,
+        paddingRight: '16px'
+      }}>
+        {question}
+      </span>
+      {isOpen ? (
+        <ChevronUp size={24} style={{ color: '#4caf50', flexShrink: 0 }} />
+      ) : (
+        <ChevronDown size={24} style={{ color: '#4caf50', flexShrink: 0 }} />
+      )}
     </button>
     {isOpen && (
       <div 
         className="faq-answer"
         id={`faq-answer-${question.replace(/\s+/g, '-').toLowerCase()}`}
         role="region"
+        style={{
+          padding: '16px 20px',
+          backgroundColor: '#f9fffe',
+          color: '#333333',
+          fontSize: '15px',
+          lineHeight: '1.8',
+          borderTop: '1px solid #e8f5e9'
+        }}
       >
         {answer}
       </div>
@@ -155,7 +204,7 @@ export default function DonorHelp() {
           <HelpCircle size={24} />
           <h2>Frequently Asked Questions</h2>
         </div>
-        <div className="faq-list" role="list">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
           {faqs.map((faq, index) => (
             <FAQItem
               key={index}
