@@ -32,7 +32,10 @@ const FAQItem = ({ question, answer, isOpen, onClick }) => (
       transition: 'none',
       visibility: 'visible',
       position: 'relative',
-      zIndex: 1
+      zIndex: 1,
+      height: 'auto',
+      maxHeight: 'none',
+      minHeight: 'auto'
     }}
   >
     <button 
@@ -80,7 +83,14 @@ const FAQItem = ({ question, answer, isOpen, onClick }) => (
           color: '#333333',
           fontSize: '15px',
           lineHeight: '1.8',
-          borderTop: '1px solid #e8f5e9'
+          borderTop: '1px solid #e8f5e9',
+          overflow: 'visible',
+          height: 'auto',
+          maxHeight: 'none',
+          minHeight: 'auto',
+          display: 'block',
+          opacity: 1,
+          visibility: 'visible'
         }}
       >
         {answer}
