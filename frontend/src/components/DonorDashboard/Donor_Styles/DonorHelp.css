@@ -1,0 +1,392 @@
+/* DonorHelp.css - Donor Help Page Styling */
+
+.donor-help {
+  padding: 0 0 2rem 0;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Section Styling */
+.help-section {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e8e8e8;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.section-header svg {
+  color: #4caf50;
+  flex-shrink: 0;
+}
+
+.section-header h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.section-intro {
+  color: #666;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+/* Getting Started Section */
+.getting-started-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.25rem;
+}
+
+.step {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: #f9fafb;
+  border-radius: 10px;
+  padding: 1.25rem;
+  border: 1px solid #e5e7eb;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.step:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.step-number {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  box-shadow: 0 2px 6px rgba(76, 175, 80, 0.3);
+}
+
+.step-content {
+  padding-top: 0.5rem;
+}
+
+.step-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: #e8f5e9;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+}
+
+.step-icon svg {
+  color: #4caf50;
+}
+
+.step-content h4 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 0.5rem 0;
+}
+
+.step-content p {
+  font-size: 0.85rem;
+  color: #666;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* FAQ Section */
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.faq-item {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color 0.2s ease;
+}
+
+.faq-item:hover {
+  border-color: #4caf50;
+}
+
+.faq-item.open {
+  border-color: #4caf50;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.1);
+}
+
+.faq-question {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: #ffffff;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #1a1a1a;
+  transition: background-color 0.2s ease;
+}
+
+.faq-question:hover {
+  background: #f9fafb;
+}
+
+.faq-question:focus {
+  outline: 2px solid #4caf50;
+  outline-offset: -2px;
+}
+
+.faq-item.open .faq-question {
+  background: #f0fdf4;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.faq-question svg {
+  color: #4caf50;
+  flex-shrink: 0;
+  margin-left: 1rem;
+}
+
+.faq-answer {
+  padding: 1rem 1.25rem;
+  background: #ffffff;
+  font-size: 0.9rem;
+  color: #555;
+  line-height: 1.7;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Contact Section */
+.contact-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.contact-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s ease;
+}
+
+.contact-card:hover {
+  background: #f0fdf4;
+  border-color: #4caf50;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.1);
+}
+
+.contact-card:focus {
+  outline: 2px solid #4caf50;
+  outline-offset: 2px;
+}
+
+.contact-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.contact-icon svg {
+  color: white;
+}
+
+.contact-info h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 0.25rem 0;
+}
+
+.contact-info p {
+  font-size: 0.95rem;
+  color: #4caf50;
+  font-weight: 500;
+  margin: 0 0 0.25rem 0;
+}
+
+.contact-info .response-time {
+  font-size: 0.8rem;
+  color: #888;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .donor-help {
+    padding: 0 0 1.5rem 0;
+  }
+
+  .help-section {
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .section-header h2 {
+    font-size: 1.1rem;
+  }
+
+  .getting-started-content {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .step {
+    padding: 1rem;
+  }
+
+  .step-number {
+    width: 24px;
+    height: 24px;
+    font-size: 0.75rem;
+    top: -8px;
+    left: -8px;
+  }
+
+  .faq-question {
+    padding: 0.875rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .faq-answer {
+    padding: 0.875rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .contact-options {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-card {
+    padding: 1rem;
+  }
+
+  .contact-icon {
+    width: 42px;
+    height: 42px;
+  }
+}
+
+@media (max-width: 480px) {
+  .help-section {
+    padding: 1rem;
+    border-radius: 8px;
+  }
+
+  .section-header {
+    gap: 0.5rem;
+  }
+
+  .section-header svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .section-header h2 {
+    font-size: 1rem;
+  }
+
+  .step-content h4 {
+    font-size: 0.9rem;
+  }
+
+  .step-content p {
+    font-size: 0.8rem;
+  }
+}
+
+/* Dark mode support (optional - for future) */
+@media (prefers-color-scheme: dark) {
+  /* Can be implemented when dark mode is added to the app */
+}
+
+/* Accessibility - Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .step,
+  .contact-card,
+  .faq-item {
+    transition: none;
+  }
+
+  .faq-answer {
+    animation: none;
+  }
+
+  .step:hover,
+  .contact-card:hover {
+    transform: none;
+  }
+}
+
+/* Print styles */
+@media print {
+  .donor-help {
+    max-width: 100%;
+  }
+
+  .help-section {
+    box-shadow: none;
+    border: 1px solid #ccc;
+    break-inside: avoid;
+  }
+
+  .faq-answer {
+    display: block !important;
+  }
+
+  .contact-card {
+    background: none;
+    border: 1px solid #ccc;
+  }
+}
