@@ -214,7 +214,7 @@ export default function DonorHelp() {
           <HelpCircle size={24} />
           <h2>Frequently Asked Questions</h2>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+        <div role="list" style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
           {faqs.map((faq, index) => (
             <FAQItem
               key={index}
