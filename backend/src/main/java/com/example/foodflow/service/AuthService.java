@@ -443,6 +443,43 @@ public class AuthService {
      */
     @Transactional
     @Timed(value = "auth.service.resetPassword", description = "Time taken to reset password")
+    /**
+     * Change password for authenticated user
+     * Verifies current password before updating to new password
+     */
+    public Map<String, String> changePassword(User user, String currentPassword, String newPassword, String confirmPassword) {
+        log.info("Attempting password change for user: {}", user.getEmail());
+        
+        // Verify current password matches
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            log.warn("Incorrect current password provided for user: {}", user.getEmail());
+            throw new RuntimeException("Incorrect current password");
+        }
+        
+        // Verify new passwords match
+        if (!newPassword.equals(confirmPassword)) {
+            log.warn("New password and confirmation do not match for user: {}", user.getEmail());
+            throw new RuntimeException("New password and confirmation do not match");
+        }
+        
+        // Verify new password is different from current
+        if (passwordEncoder.matches(newPassword, user.getPassword())) {
+            log.warn("New password is same as current password for user: {}", user.getEmail());
+            throw new RuntimeException("New password must be different from current password");
+        }
+        
+        // Hash and update the password
+        String hashedPassword = passwordEncoder.encode(newPassword);
+        user.setPassword(hashedPassword);
+        userRepository.save(user);
+        
+        log.info("Password changed successfully for user: {}", user.getEmail());
+        
+        return Map.of(
+            "message", "Password changed successfully"
+        );
+    }
+    
     public Map<String, String> resetPassword(String email, String phone, String code, String newPassword) {
         log.info("Attempting password reset for email: {} or phone: {}", email, phone);
         
@@ -501,6 +538,36 @@ public class AuthService {
     private String generateSixDigitCode() {
         int code = secureRandom.nextInt(900000) + 100000; // 100000 to 999999
         return String.valueOf(code);
+    }
+
+    /**
+     * Check if email exists in the system
+     * Mimics the logic from handleEmailForgotPassword without sending email
+     */
+    public boolean checkEmailExists(String email) {
+        log.info("Checking if email exists: {}", email);
+        
+        if (email == null || email.trim().isEmpty()) {
+            return false;
+        }
+        
+        // Use the same repository method as forgot password
+        return userRepository.findByEmail(email).isPresent();
+    }
+
+    /**
+     * Check if phone number exists in the system
+     * Mimics the logic from handleSmsForgotPassword without sending SMS
+     */
+    public boolean checkPhoneExists(String phone) {
+        log.info("Checking if phone exists: {}", phone);
+        
+        if (phone == null || phone.trim().isEmpty()) {
+            return false;
+        }
+        
+        // Use the same repository method as forgot password
+        return userRepository.findByOrganizationPhone(phone).isPresent();
     }
 }
 

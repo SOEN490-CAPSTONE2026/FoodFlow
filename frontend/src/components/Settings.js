@@ -2,8 +2,9 @@ import React, { useState, useRef, useEffect, useContext } from 'react';
 import { User, Globe, Bell, Camera, Lock } from 'lucide-react';
 import LanguageSwitcher from './LanguageSwitcher';
 import RegionSelector from './RegionSelector';
+import ChangePasswordModal from './ChangePasswordModal';
 import { AuthContext } from '../contexts/AuthContext';
-import { notificationPreferencesAPI } from '../services/api';
+import { notificationPreferencesAPI, profileAPI } from '../services/api';
 import api from '../services/api';
 import '../style/Settings.css';
 
@@ -103,7 +104,7 @@ const Settings = () => {
 
   const [profileImage, setProfileImage] = useState(null);
   const [profileImageFile, setProfileImageFile] = useState(null);
-  const [showPasswordFields, setShowPasswordFields] = useState(false);
+  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
   const [regionSettings, setRegionSettings] = useState(null);
   
   // Notification preferences state
@@ -190,16 +191,39 @@ const Settings = () => {
 
   const fetchUserProfile = async () => {
     try {
-      const response = await api.get('/profile/region');
-      if (response.data) {
+      // Fetch region settings
+      const regionResp = await api.get('/profile/region');
+      if (regionResp.data) {
         setRegionSettings({
-          country: response.data.country,
-          city: response.data.city,
-          timezone: response.data.timezone
+          country: regionResp.data.country,
+          city: regionResp.data.city,
+          timezone: regionResp.data.timezone
         });
       }
+
+      // Fetch full profile (name, email, phone, org, photo)
+      const profileResp = await profileAPI.get();
+      if (profileResp.data) {
+        const p = profileResp.data;
+        setFormData(prev => ({
+          ...prev,
+          fullName: p.fullName || prev.fullName || '',
+          email: p.email || prev.email || '',
+          phoneNumber: p.phone || prev.phoneNumber || '',
+          organization: p.organizationName || prev.organization || '',
+          address: p.organizationAddress || prev.address || ''
+        }));
+
+        if (p.profilePhoto) {
+          // If backend returned a URL or base64, use it directly
+          setProfileImage(p.profilePhoto);
+        }
+
+        // Update notification phone if missing
+        setNotificationPreferences(prev => ({ ...prev, smsPhoneNumber: p.phone || prev.smsPhoneNumber }));
+      }
     } catch (error) {
-      console.error('Error fetching region from backend:', error);
+      console.error('Error fetching profile from backend:', error);
     } finally {
       setLoadingProfile(false);
     }
@@ -248,21 +272,6 @@ const Settings = () => {
 
     if (formData.phoneNumber && !validatePhoneNumber(formData.phoneNumber)) {
       newErrors.phoneNumber = 'Please enter a valid phone number';
-    }
-
-    // Password validation (if changing password)
-    if (showPasswordFields) {
-      if (!passwordData.currentPassword) {
-        newErrors.currentPassword = 'Current password is required';
-      }
-      if (!passwordData.newPassword) {
-        newErrors.newPassword = 'New password is required';
-      } else if (passwordData.newPassword.length < 8) {
-        newErrors.newPassword = 'Password must be at least 8 characters';
-      }
-      if (passwordData.newPassword !== passwordData.confirmPassword) {
-        newErrors.confirmPassword = 'Passwords do not match';
-      }
     }
 
     setErrors(newErrors);
@@ -374,29 +383,51 @@ const Settings = () => {
     setSuccessMessage('');
     setErrors({});
 
-    // TODO: Backend will implement this endpoint
     try {
-      // Simulate save for now
-      setTimeout(() => {
-        setSuccessMessage('Profile updated successfully!');
-        
-        // Reset password fields
-        if (showPasswordFields) {
-          setPasswordData({
-            currentPassword: '',
-            newPassword: '',
-            confirmPassword: ''
-          });
-          setShowPasswordFields(false);
+      // Prepare payload
+      const payload = {
+        fullName: formData.fullName,
+        email: formData.email,
+        phone: formData.phoneNumber ? formatPhoneNumber(formData.phoneNumber) : '',
+        profilePhoto: profileImage || null,
+        organizationName: formData.organization || null,
+        organizationAddress: formData.address || null
+      };
+
+      const resp = await profileAPI.update(payload);
+
+      // Update local state with returned data
+      if (resp.data) {
+        setFormData(prev => ({
+          ...prev,
+          fullName: resp.data.fullName || prev.fullName,
+          email: resp.data.email || prev.email,
+          phoneNumber: resp.data.phone || prev.phoneNumber,
+          organization: resp.data.organizationName || prev.organization,
+          address: resp.data.organizationAddress || prev.address
+        }));
+
+        if (resp.data.profilePhoto) {
+          setProfileImage(resp.data.profilePhoto);
         }
-        
-        setLoading(false);
-      }, 500);
-    
-      
+
+        try {
+          localStorage.setItem('organizationName', resp.data.organizationName || '');
+        } catch (e) { /* ignore storage errors */ }
+
+        // Update notification phone for SMS toggles
+        setNotificationPreferences(prev => ({ ...prev, smsPhoneNumber: resp.data.phone || prev.smsPhoneNumber }));
+
+        setSuccessMessage('Profile updated successfully!');
+      }
     } catch (error) {
       console.error('Error updating profile:', error);
-      setErrors({ submit: 'Failed to update profile. Please try again.' });
+      if (error.response && error.response.data && error.response.data.message) {
+        setErrors({ submit: error.response.data.message });
+      } else {
+        setErrors({ submit: 'Failed to update profile. Please try again.' });
+      }
+    } finally {
       setLoading(false);
     }
   };
@@ -596,53 +627,12 @@ const Settings = () => {
                 <div className="password-section">
                   <button 
                     className="password-toggle-btn"
-                    onClick={() => setShowPasswordFields(!showPasswordFields)}
+                    onClick={() => setIsChangePasswordModalOpen(true)}
                     type="button"
                   >
                     <Lock size={18} />
                     <span>Change Password</span>
                   </button>
-                  
-                  {showPasswordFields && (
-                    <div className="password-fields">
-                      <div className="form-field">
-                        <label className="field-label">Current Password *</label>
-                        <input 
-                          type="password"
-                          name="currentPassword"
-                          className={`field-input ${errors.currentPassword ? 'error' : ''}`}
-                          placeholder="Enter current password"
-                          value={passwordData.currentPassword}
-                          onChange={handlePasswordChange}
-                        />
-                        {errors.currentPassword && <span className="field-error">{errors.currentPassword}</span>}
-                      </div>
-                      <div className="form-field">
-                        <label className="field-label">New Password *</label>
-                        <input 
-                          type="password"
-                          name="newPassword"
-                          className={`field-input ${errors.newPassword ? 'error' : ''}`}
-                          placeholder="Enter new password"
-                          value={passwordData.newPassword}
-                          onChange={handlePasswordChange}
-                        />
-                        {errors.newPassword && <span className="field-error">{errors.newPassword}</span>}
-                      </div>
-                      <div className="form-field">
-                        <label className="field-label">Confirm New Password *</label>
-                        <input 
-                          type="password"
-                          name="confirmPassword"
-                          className={`field-input ${errors.confirmPassword ? 'error' : ''}`}
-                          placeholder="Confirm new password"
-                          value={passwordData.confirmPassword}
-                          onChange={handlePasswordChange}
-                        />
-                        {errors.confirmPassword && <span className="field-error">{errors.confirmPassword}</span>}
-                      </div>
-                    </div>
-                  )}
                 </div>
 
                 <button 
@@ -783,6 +773,11 @@ const Settings = () => {
         </div>
 
       </div>
+
+      <ChangePasswordModal 
+        isOpen={isChangePasswordModalOpen} 
+        onClose={() => setIsChangePasswordModalOpen(false)} 
+      />
     </div>
   );
 };

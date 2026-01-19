@@ -1,8 +1,10 @@
 package com.example.foodflow.service;
 
 import com.example.foodflow.model.dto.CreateSurplusRequest;
+import com.example.foodflow.model.dto.DonationTimelineDTO;
 import com.example.foodflow.model.dto.PickupSlotRequest;
 import com.example.foodflow.model.dto.SurplusResponse;
+import com.example.foodflow.model.entity.DonationTimeline;
 import com.example.foodflow.model.entity.Organization;
 import com.example.foodflow.model.entity.PickupSlot;
 import com.example.foodflow.model.entity.SurplusPost;
@@ -15,6 +17,7 @@ import com.example.foodflow.model.types.Location;
 import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.model.types.Quantity;
 import com.example.foodflow.repository.ClaimRepository;
+import com.example.foodflow.repository.DonationTimelineRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,11 +59,18 @@ class SurplusServiceTest {
 
     @Mock
     private ExpiryCalculationService expiryCalculationService;
+    
+    @Mock
+    private TimelineService timelineService;
+
+    @Mock
+    private DonationTimelineRepository timelineRepository;
 
     @InjectMocks
     private SurplusService surplusService;
 
     private User donor;
+    private User receiver;
     private CreateSurplusRequest request;
 
     @BeforeEach
@@ -77,6 +87,12 @@ class SurplusServiceTest {
         donor.setEmail("donor@test.com");
         donor.setRole(UserRole.DONOR);
         donor.setOrganization(organization);
+
+        // Create test receiver
+        receiver = new User();
+        receiver.setId(2L);
+        receiver.setEmail("receiver@test.com");
+        receiver.setRole(UserRole.RECEIVER);
 
         // Create test request with NEW structure
         request = new CreateSurplusRequest();
@@ -1312,6 +1328,295 @@ class SurplusServiceTest {
 
         SurplusPost capturedPost = postCaptor.getValue();
         assertThat(capturedPost.getExpiryDate()).isNotNull();
+    }
+
+    // ==================== Tests for Timeline Feature ====================
+
+    @Test
+    void testGetTimelineForPost_AsDonor_ReturnsTimeline() {
+        // Given
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setTitle("Test Food");
+        post.setStatus(PostStatus.AVAILABLE);
+
+        com.example.foodflow.model.entity.DonationTimeline timeline1 = new com.example.foodflow.model.entity.DonationTimeline();
+        timeline1.setId(1L);
+        timeline1.setSurplusPost(post);
+        timeline1.setEventType("DONATION_POSTED");
+        timeline1.setTimestamp(LocalDateTime.now().minusHours(2));
+        timeline1.setActor("donor");
+        timeline1.setActorUserId(donor.getId());
+        timeline1.setNewStatus("AVAILABLE");
+        timeline1.setVisibleToUsers(true);
+
+        com.example.foodflow.model.entity.DonationTimeline timeline2 = new com.example.foodflow.model.entity.DonationTimeline();
+        timeline2.setId(2L);
+        timeline2.setSurplusPost(post);
+        timeline2.setEventType("DONATION_CLAIMED");
+        timeline2.setTimestamp(LocalDateTime.now().minusHours(1));
+        timeline2.setActor("receiver");
+        timeline2.setActorUserId(receiver.getId());
+        timeline2.setOldStatus("AVAILABLE");
+        timeline2.setNewStatus("CLAIMED");
+        timeline2.setVisibleToUsers(true);
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+        when(timelineRepository.findBySurplusPostIdAndVisibleToUsersOrderByTimestampDesc(1L, true))
+                .thenReturn(Arrays.asList(timeline2, timeline1));
+
+        // When
+        List<com.example.foodflow.model.dto.DonationTimelineDTO> result =
+                surplusService.getTimelineForPost(1L, donor);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).getEventType()).isEqualTo("DONATION_CLAIMED");
+        assertThat(result.get(1).getEventType()).isEqualTo("DONATION_POSTED");
+
+        verify(surplusPostRepository).findById(1L);
+        verify(timelineRepository).findBySurplusPostIdAndVisibleToUsersOrderByTimestampDesc(1L, true);
+    }
+
+    @Test
+    void testGetTimelineForPost_AsReceiverWithActiveClaim_ReturnsTimeline() {
+        // Given
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setTitle("Test Food");
+        post.setStatus(PostStatus.CLAIMED);
+
+        com.example.foodflow.model.entity.Claim claim = new com.example.foodflow.model.entity.Claim();
+        claim.setId(1L);
+        claim.setReceiver(receiver);
+        claim.setSurplusPost(post);
+        claim.setStatus(ClaimStatus.ACTIVE);
+
+        com.example.foodflow.model.entity.DonationTimeline timeline = new com.example.foodflow.model.entity.DonationTimeline();
+        timeline.setId(1L);
+        timeline.setSurplusPost(post);
+        timeline.setEventType("DONATION_CLAIMED");
+        timeline.setTimestamp(LocalDateTime.now());
+        timeline.setActor("receiver");
+        timeline.setActorUserId(receiver.getId());
+        timeline.setVisibleToUsers(true);
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+        when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
+                .thenReturn(Optional.of(claim));
+        when(timelineRepository.findBySurplusPostIdAndVisibleToUsersOrderByTimestampDesc(1L, true))
+                .thenReturn(Collections.singletonList(timeline));
+
+        // When
+        List<com.example.foodflow.model.dto.DonationTimelineDTO> result =
+                surplusService.getTimelineForPost(1L, receiver);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getEventType()).isEqualTo("DONATION_CLAIMED");
+        assertThat(result.get(0).getActorUserId()).isEqualTo(receiver.getId());
+
+        verify(claimRepository).findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE);
+    }
+
+    @Test
+    void testGetTimelineForPost_AsReceiverWithCompletedClaim_ReturnsTimeline() {
+        // Given
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setTitle("Test Food");
+        post.setStatus(PostStatus.COMPLETED);
+
+        com.example.foodflow.model.entity.Claim claim = new com.example.foodflow.model.entity.Claim();
+        claim.setId(1L);
+        claim.setReceiver(receiver);
+        claim.setSurplusPost(post);
+        claim.setStatus(ClaimStatus.COMPLETED);
+
+        com.example.foodflow.model.entity.DonationTimeline timeline = new com.example.foodflow.model.entity.DonationTimeline();
+        timeline.setId(1L);
+        timeline.setSurplusPost(post);
+        timeline.setEventType("DONATION_COMPLETED");
+        timeline.setTimestamp(LocalDateTime.now());
+        timeline.setActor("donor");
+        timeline.setActorUserId(donor.getId());
+        timeline.setVisibleToUsers(true);
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+        when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
+                .thenReturn(Optional.empty());
+        when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.COMPLETED))
+                .thenReturn(Optional.of(claim));
+        when(timelineRepository.findBySurplusPostIdAndVisibleToUsersOrderByTimestampDesc(1L, true))
+                .thenReturn(Collections.singletonList(timeline));
+
+        // When
+        List<com.example.foodflow.model.dto.DonationTimelineDTO> result =
+                surplusService.getTimelineForPost(1L, receiver);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getEventType()).isEqualTo("DONATION_COMPLETED");
+
+        verify(claimRepository).findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE);
+        verify(claimRepository).findBySurplusPostIdAndStatus(1L, ClaimStatus.COMPLETED);
+    }
+
+    @Test
+    void testGetTimelineForPost_AsUnauthorizedUser_ThrowsException() {
+        // Given
+        User unauthorizedUser = new User();
+        unauthorizedUser.setId(999L);
+        unauthorizedUser.setEmail("unauthorized@test.com");
+        unauthorizedUser.setRole(UserRole.RECEIVER);
+
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setTitle("Test Food");
+        post.setStatus(PostStatus.AVAILABLE);
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+        when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
+                .thenReturn(Optional.empty());
+        when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.COMPLETED))
+                .thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> surplusService.getTimelineForPost(1L, unauthorizedUser))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("not authorized to view this timeline");
+
+        verify(timelineRepository, never()).findBySurplusPostIdAndVisibleToUsersOrderByTimestampDesc(anyLong(), anyBoolean());
+    }
+
+    @Test
+    void testGetTimelineForPost_PostNotFound_ThrowsException() {
+        // Given
+        when(surplusPostRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> surplusService.getTimelineForPost(999L, donor))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Surplus post not found");
+
+        verify(timelineRepository, never()).findBySurplusPostIdAndVisibleToUsersOrderByTimestampDesc(anyLong(), anyBoolean());
+    }
+
+    @Test
+    void testGetTimelineForPost_EmptyTimeline_ReturnsEmptyList() {
+        // Given
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setTitle("Test Food");
+        post.setStatus(PostStatus.AVAILABLE);
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+        when(timelineRepository.findBySurplusPostIdAndVisibleToUsersOrderByTimestampDesc(1L, true))
+                .thenReturn(Collections.emptyList());
+
+        // When
+        List<com.example.foodflow.model.dto.DonationTimelineDTO> result =
+                surplusService.getTimelineForPost(1L, donor);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result).isEmpty();
+
+        verify(timelineRepository).findBySurplusPostIdAndVisibleToUsersOrderByTimestampDesc(1L, true);
+    }
+
+    @Test
+    void testGetTimelineForPost_OnlyVisibleEvents_ReturnsFiltered() {
+        // Given
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setTitle("Test Food");
+        post.setStatus(PostStatus.AVAILABLE);
+
+        com.example.foodflow.model.entity.DonationTimeline visibleEvent = new com.example.foodflow.model.entity.DonationTimeline();
+        visibleEvent.setId(1L);
+        visibleEvent.setSurplusPost(post);
+        visibleEvent.setEventType("DONATION_POSTED");
+        visibleEvent.setTimestamp(LocalDateTime.now());
+        visibleEvent.setActor("donor");
+        visibleEvent.setVisibleToUsers(true);
+
+        // Admin-only event should not be returned by repository query
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+        when(timelineRepository.findBySurplusPostIdAndVisibleToUsersOrderByTimestampDesc(1L, true))
+                .thenReturn(Collections.singletonList(visibleEvent));
+
+        // When
+        List<com.example.foodflow.model.dto.DonationTimelineDTO> result =
+                surplusService.getTimelineForPost(1L, donor);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getVisibleToUsers()).isTrue();
+
+        // Verify repository was queried with visibleToUsers=true
+        verify(timelineRepository).findBySurplusPostIdAndVisibleToUsersOrderByTimestampDesc(1L, true);
+    }
+
+    @Test
+    void testGetTimelineForPost_MapsAllDTOFields() {
+        // Given
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setTitle("Test Food");
+        post.setStatus(PostStatus.COMPLETED);
+
+        LocalDateTime eventTime = LocalDateTime.now().minusHours(1);
+
+        com.example.foodflow.model.entity.DonationTimeline timeline = new com.example.foodflow.model.entity.DonationTimeline();
+        timeline.setId(1L);
+        timeline.setSurplusPost(post);
+        timeline.setEventType("PICKUP_CONFIRMED");
+        timeline.setTimestamp(eventTime);
+        timeline.setActor("receiver");
+        timeline.setActorUserId(receiver.getId());
+        timeline.setOldStatus("READY_FOR_PICKUP");
+        timeline.setNewStatus("COMPLETED");
+        timeline.setDetails("Pickup confirmed successfully");
+        timeline.setVisibleToUsers(true);
+        timeline.setTemperature(4.5);
+        timeline.setPackagingCondition("GOOD");
+        timeline.setPickupEvidenceUrl("https://example.com/evidence.jpg");
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+        when(timelineRepository.findBySurplusPostIdAndVisibleToUsersOrderByTimestampDesc(1L, true))
+                .thenReturn(Collections.singletonList(timeline));
+
+        // When
+        List<com.example.foodflow.model.dto.DonationTimelineDTO> result =
+                surplusService.getTimelineForPost(1L, donor);
+
+        // Then
+        assertThat(result).hasSize(1);
+        com.example.foodflow.model.dto.DonationTimelineDTO dto = result.get(0);
+        assertThat(dto.getId()).isEqualTo(1L);
+        assertThat(dto.getEventType()).isEqualTo("PICKUP_CONFIRMED");
+        assertThat(dto.getTimestamp()).isEqualTo(eventTime);
+        assertThat(dto.getActor()).isEqualTo("receiver");
+        assertThat(dto.getActorUserId()).isEqualTo(receiver.getId());
+        assertThat(dto.getOldStatus()).isEqualTo("READY_FOR_PICKUP");
+        assertThat(dto.getNewStatus()).isEqualTo("COMPLETED");
+        assertThat(dto.getDetails()).isEqualTo("Pickup confirmed successfully");
+        assertThat(dto.getVisibleToUsers()).isTrue();
+        assertThat(dto.getTemperature()).isEqualTo(4.5);
+        assertThat(dto.getPackagingCondition()).isEqualTo("GOOD");
+        assertThat(dto.getPickupEvidenceUrl()).isEqualTo("https://example.com/evidence.jpg");
     }
 
 }

@@ -3,11 +3,7 @@ import { render } from "@testing-library/react";
 import "@testing-library/jest-dom";
 
 // Mock axios before importing the component
-jest.mock("axios", () => ({
-  get: jest.fn(() => Promise.resolve({ data: { content: [], totalPages: 0 } })),
-  post: jest.fn(() => Promise.resolve({ data: {} })),
-  put: jest.fn(() => Promise.resolve({ data: {} })),
-}));
+jest.mock("axios");
 
 import AdminUsers from "../AdminUsers";
 

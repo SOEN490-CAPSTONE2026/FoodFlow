@@ -8,10 +8,13 @@ import com.example.foodflow.model.dto.LogoutRequest;
 import com.example.foodflow.model.dto.ForgotPasswordRequest;
 import com.example.foodflow.model.dto.VerifyResetCodeRequest;
 import com.example.foodflow.model.dto.ResetPasswordRequest;
+import com.example.foodflow.model.dto.ChangePasswordRequest;
+import com.example.foodflow.model.entity.User;
 import com.example.foodflow.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -111,6 +114,46 @@ public class AuthController {
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest()
                     .body(Map.of("message", e.getMessage()));
+        }
+    }
+    
+    @PostMapping("/change-password")
+    public ResponseEntity<Map<String, String>> changePassword(
+            @AuthenticationPrincipal User user,
+            @Valid @RequestBody ChangePasswordRequest request) {
+        try {
+            Map<String, String> response = authService.changePassword(
+                user,
+                request.getCurrentPassword(),
+                request.getNewPassword(),
+                request.getConfirmPassword()
+            );
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/check-email")
+    public ResponseEntity<Map<String, Boolean>> checkEmailExists(@RequestParam String email) {
+        try {
+            boolean exists = authService.checkEmailExists(email);
+            return ResponseEntity.ok(Map.of("exists", exists));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("exists", false));
+        }
+    }
+
+    @GetMapping("/check-phone")
+    public ResponseEntity<Map<String, Boolean>> checkPhoneExists(@RequestParam String phone) {
+        try {
+            boolean exists = authService.checkPhoneExists(phone);
+            return ResponseEntity.ok(Map.of("exists", exists));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("exists", false));
         }
     }
 

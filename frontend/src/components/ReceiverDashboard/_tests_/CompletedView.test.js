@@ -1,9 +1,41 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import CompletedView from "../CompletedView";
 
 jest.mock("react-confetti");
+
+jest.mock("../../shared/DonationTimeline", () => {
+  return function MockDonationTimeline() {
+    return <div data-testid="donation-timeline">Timeline</div>;
+  };
+});
+
+jest.mock("../../ReportUserModal", () => {
+  return function MockReportUserModal() {
+    return <div data-testid="report-user-modal">Report Modal</div>;
+  };
+});
+
+jest.mock("../../FeedbackModal/FeedbackModal", () => {
+  return function MockFeedbackModal() {
+    return <div data-testid="feedback-modal">Feedback Modal</div>;
+  };
+});
+
+jest.mock("../../../services/api", () => ({
+  surplusAPI: {
+    getTimeline: jest.fn(),
+  },
+  reportAPI: {
+    reportUser: jest.fn(),
+  },
+  feedbackAPI: {
+    submitFeedback: jest.fn(),
+  },
+}));
+
+import { surplusAPI } from "../../../services/api";
 
 const mockClaim = {
   surplusPost: {
@@ -255,5 +287,186 @@ describe("CompletedView", () => {
     );
     const modalContainer = container.querySelector(".claimed-modal-container");
     expect(modalContainer).toBeInTheDocument();
+  });
+
+  describe("Timeline Feature", () => {
+    const mockTimelineData = [
+      {
+        id: 1,
+        eventType: 'DONATION_POSTED',
+        timestamp: '2026-01-11T10:00:00',
+        actor: 'donor',
+        actorUserId: 1,
+        newStatus: 'AVAILABLE',
+        details: 'Donation created',
+        visibleToUsers: true,
+      },
+      {
+        id: 2,
+        eventType: 'DONATION_CLAIMED',
+        timestamp: '2026-01-11T11:00:00',
+        actor: 'receiver',
+        actorUserId: 2,
+        oldStatus: 'AVAILABLE',
+        newStatus: 'CLAIMED',
+        details: 'Claimed by Food Bank',
+        visibleToUsers: true,
+      },
+      {
+        id: 3,
+        eventType: 'PICKUP_CONFIRMED',
+        timestamp: '2026-01-11T13:00:00',
+        actor: 'receiver',
+        actorUserId: 2,
+        oldStatus: 'READY_FOR_PICKUP',
+        newStatus: 'COMPLETED',
+        details: 'Pickup confirmed',
+        visibleToUsers: true,
+      },
+    ];
+
+    const mockClaimWithId = {
+      ...mockClaim,
+      surplusPost: {
+        ...mockClaim.surplusPost,
+        id: 123,
+      },
+    };
+
+    beforeEach(() => {
+      surplusAPI.getTimeline.mockReset();
+      surplusAPI.getTimeline.mockResolvedValue({
+        data: mockTimelineData,
+      });
+    });
+
+    test("should render timeline toggle button", () => {
+      const { container } = render(
+        <CompletedView
+          claim={mockClaimWithId}
+          isOpen={true}
+          onClose={jest.fn()}
+          onBack={jest.fn()}
+        />
+      );
+      const button = container.querySelector('.completed-timeline-toggle-button');
+      expect(button).toBeInTheDocument();
+      expect(button.textContent).toMatch(/View.*Donation Timeline/);
+    });
+
+    test("should fetch and display timeline when toggle button is clicked", async () => {
+      const { container } = render(
+        <CompletedView
+          claim={mockClaimWithId}
+          isOpen={true}
+          onClose={jest.fn()}
+          onBack={jest.fn()}
+        />
+      );
+
+      const toggleButton = container.querySelector('.completed-timeline-toggle-button');
+      fireEvent.click(toggleButton);
+
+      await waitFor(() => {
+        expect(surplusAPI.getTimeline).toHaveBeenCalledWith(123);
+      });
+    });
+
+    test("should toggle timeline visibility", async () => {
+      const { container } = render(
+        <CompletedView
+          claim={mockClaimWithId}
+          isOpen={true}
+          onClose={jest.fn()}
+          onBack={jest.fn()}
+        />
+      );
+
+      // Click to expand
+      const viewButton = container.querySelector('.completed-timeline-toggle-button');
+      fireEvent.click(viewButton);
+
+      await waitFor(() => {
+        expect(viewButton.textContent).toMatch(/Hide.*Donation Timeline/);
+      });
+
+      // Click to collapse
+      fireEvent.click(viewButton);
+
+      await waitFor(() => {
+        expect(viewButton.textContent).toMatch(/View.*Donation Timeline/);
+      });
+    });
+
+    test("should handle timeline fetch error gracefully", async () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      surplusAPI.getTimeline.mockRejectedValue(new Error('Failed to fetch timeline'));
+
+      const { container } = render(
+        <CompletedView
+          claim={mockClaimWithId}
+          isOpen={true}
+          onClose={jest.fn()}
+          onBack={jest.fn()}
+        />
+      );
+
+      const toggleButton = container.querySelector('.completed-timeline-toggle-button');
+      fireEvent.click(toggleButton);
+
+      await waitFor(() => {
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+          'Error fetching timeline:',
+          expect.any(Error)
+        );
+      });
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    test("should only fetch timeline once when expanded", async () => {
+      const { container } = render(
+        <CompletedView
+          claim={mockClaimWithId}
+          isOpen={true}
+          onClose={jest.fn()}
+          onBack={jest.fn()}
+        />
+      );
+
+      // Click to expand
+      const viewButton = container.querySelector('.completed-timeline-toggle-button');
+      fireEvent.click(viewButton);
+
+      await waitFor(() => {
+        expect(surplusAPI.getTimeline).toHaveBeenCalledTimes(1);
+      });
+
+      // Collapse
+      fireEvent.click(viewButton);
+
+      // Expand again
+      fireEvent.click(viewButton);
+
+      // Should not fetch again
+      expect(surplusAPI.getTimeline).toHaveBeenCalledTimes(1);
+    });
+
+    test("should not fetch timeline if post ID is missing", async () => {
+      const { container } = render(
+        <CompletedView
+          claim={mockClaim}
+          isOpen={true}
+          onClose={jest.fn()}
+          onBack={jest.fn()}
+        />
+      );
+
+      const toggleButton = container.querySelector('.completed-timeline-toggle-button');
+      fireEvent.click(toggleButton);
+
+      // Should not call API without post ID
+      expect(surplusAPI.getTimeline).not.toHaveBeenCalled();
+    });
   });
 });

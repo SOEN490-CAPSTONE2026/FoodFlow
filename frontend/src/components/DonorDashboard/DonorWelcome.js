@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { Package2, UtensilsCrossed, Sprout, ArrowRight, BarChart3, PlusCircle, Sparkles } from "lucide-react";
-import { surplusAPI } from "../../services/api";
+import { Package2, UtensilsCrossed, Sprout, ArrowRight, BarChart3, PlusCircle, Sparkles, Star } from "lucide-react";
+import { surplusAPI, feedbackAPI } from "../../services/api";
 import { AuthContext } from "../../contexts/AuthContext";
 import "./Donor_Styles/DonorWelcome.css";
 
@@ -11,7 +11,9 @@ export default function DonorWelcome() {
   const [stats, setStats] = useState({
     totalDonations: 0,
     mealsServed: 0,
-    co2Saved: 0
+    co2Saved: 0,
+    averageRating: 0,
+    totalReviews: 0
   });
   const [recentDonations, setRecentDonations] = useState([]);
 
@@ -28,6 +30,8 @@ export default function DonorWelcome() {
       
       if (response && response.data) {
         const donations = response.data;
+        console.log('📦 Donor donations response:', donations);
+        console.log('📦 First donation detailed:', donations[0]);
         
         // Calculate statistics
         const totalDonations = donations.length;
@@ -42,10 +46,25 @@ export default function DonorWelcome() {
         // Calculate CO2 saved (estimate: ~0.5kg CO2 per meal)
         const co2Saved = Math.round((mealsServed * 0.5) * 10) / 10;
         
+        // Fetch rating data
+        let averageRating = 0;
+        let totalReviews = 0;
+        try {
+          const ratingResponse = await feedbackAPI.getMyRating();
+          if (ratingResponse && ratingResponse.data) {
+            averageRating = ratingResponse.data.averageRating || 0;
+            totalReviews = ratingResponse.data.totalReviews || 0;
+          }
+        } catch (err) {
+          console.error('Failed to fetch rating:', err);
+        }
+
         setStats({
           totalDonations,
           mealsServed: Math.round(mealsServed),
-          co2Saved
+          co2Saved,
+          averageRating: Math.round(averageRating * 10) / 10,
+          totalReviews
         });
 
         // Format recent donations (last 4)
@@ -61,9 +80,17 @@ export default function DonorWelcome() {
             });
 
             // Get recipient or show status
-            const recipient = donation.claimant?.organizationName || 
-                            donation.claimant?.name || 
-                            "No name yet";
+            console.log('🔍 Donation receiver info:', {
+              receiverOrganization: donation.receiverOrganization,
+              receiverName: donation.receiverName,
+              receiverEmail: donation.receiverEmail,
+              status: donation.status,
+              id: donation.id
+            });
+            
+            const recipient = donation.receiverOrganization || 
+                            donation.receiverName || 
+                            "Not claimed yet";
 
             // Items is just the title
             const items = donation.title || "Food donation";
@@ -93,7 +120,9 @@ export default function DonorWelcome() {
       setStats({
         totalDonations: 0,
         mealsServed: 0,
-        co2Saved: 0
+        co2Saved: 0,
+        averageRating: 0,
+        totalReviews: 0
       });
       setRecentDonations([]);
     }
@@ -150,6 +179,25 @@ export default function DonorWelcome() {
           <div className="stat-content">
             <div className="stat-label">CO₂ Saved</div>
             <div className="stat-value">{stats.co2Saved} kg</div>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon yellow">
+            <Star size={24} strokeWidth={2} fill="currentColor" />
+          </div>
+          <div className="stat-content">
+            <div className="stat-label">Your Rating</div>
+            <div className="stat-value">
+              {stats.totalReviews > 0 ? (
+                <>
+                  <div className="rating-number">{stats.averageRating.toFixed(1)}</div>
+                  <span className="rating-count">★ ({stats.totalReviews})</span>
+                </>
+              ) : (
+                <span className="no-rating">—</span>
+              )}
+            </div>
           </div>
         </div>
       </div>

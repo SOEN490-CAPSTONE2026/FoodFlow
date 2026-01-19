@@ -1,16 +1,21 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { X, CircleCheck, AlertTriangle } from 'lucide-react';
+import { X, CircleCheck, AlertTriangle, Clock, ChevronDown, Star } from 'lucide-react';
 import Confetti from 'react-confetti';
 import { foodTypeImages, getPrimaryFoodCategory } from '../../constants/foodConstants';
 import ReportUserModal from '../ReportUserModal';
-import { reportAPI } from '../../services/api';
+import FeedbackModal from '../FeedbackModal/FeedbackModal';
+import DonationTimeline from '../shared/DonationTimeline';
+import { reportAPI, surplusAPI } from '../../services/api';
 import './Receiver_Styles/CompletedView.css';
 
-const CompletedView = ({ claim, isOpen, onClose, onBack }) => {
+const CompletedView = ({ claim, isOpen, onClose, onBack, showFeedbackModal, setShowFeedbackModal }) => {
     const post = claim?.surplusPost;
     const containerRef = useRef(null);
     const [dimensions, setDimensions] = useState({ width: 750, height: 800 });
     const [showReportModal, setShowReportModal] = useState(false);
+    const [timeline, setTimeline] = useState([]);
+    const [loadingTimeline, setLoadingTimeline] = useState(false);
+    const [expandedTimeline, setExpandedTimeline] = useState(false);
 
     useEffect(() => {
         if (containerRef.current && isOpen) {
@@ -20,6 +25,31 @@ const CompletedView = ({ claim, isOpen, onClose, onBack }) => {
             });
         }
     }, [isOpen]);
+
+    useEffect(() => {
+        if (isOpen && post?.id && expandedTimeline && timeline.length === 0) {
+            fetchTimeline();
+        }
+    }, [isOpen, post?.id, expandedTimeline]);
+
+    const fetchTimeline = async () => {
+        if (!post?.id) return;
+
+        setLoadingTimeline(true);
+        try {
+            const response = await surplusAPI.getTimeline(post.id);
+            setTimeline(response.data);
+        } catch (error) {
+            console.error('Error fetching timeline:', error);
+            setTimeline([]);
+        } finally {
+            setLoadingTimeline(false);
+        }
+    };
+
+    const toggleTimeline = () => {
+        setExpandedTimeline(!expandedTimeline);
+    };
 
     if (!isOpen || !claim) return null;
 
@@ -97,6 +127,32 @@ const CompletedView = ({ claim, isOpen, onClose, onBack }) => {
                         </div>
                     </div>
 
+                    {/* Timeline Section */}
+                    <div className="completed-timeline-section">
+                        <button
+                            className="completed-timeline-toggle-button"
+                            onClick={toggleTimeline}
+                        >
+                            <Clock size={16} />
+                            <span>
+                                {expandedTimeline ? 'Hide' : 'View'} Donation Timeline
+                            </span>
+                            <ChevronDown
+                                size={16}
+                                className={`chevron ${expandedTimeline ? 'open' : ''}`}
+                            />
+                        </button>
+
+                        {expandedTimeline && (
+                            <div className="completed-timeline-content-wrapper">
+                                <DonationTimeline
+                                    timeline={timeline}
+                                    loading={loadingTimeline}
+                                />
+                            </div>
+                        )}
+                    </div>
+
                     {/* Action Buttons */}
                     <div className="claimed-modal-actions">
                         <button className="claimed-view-btn-back" onClick={onBack}>
@@ -108,6 +164,13 @@ const CompletedView = ({ claim, isOpen, onClose, onBack }) => {
                         >
                             <AlertTriangle size={16} />
                             Report Donor
+                        </button>
+                        <button 
+                            className="report-donor-btn"
+                            onClick={() => setShowFeedbackModal(true)}
+                        >
+                            <Star size={16} />
+                            Leave Feedback
                         </button>
                     </div>
                 </div>

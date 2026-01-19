@@ -68,13 +68,18 @@ export const authAPI = {
   forgotPassword: (data) => api.post("/auth/forgot-password", data),
   verifyResetCode: (data) => api.post("/auth/verify-reset-code", data),
   resetPassword: (data) => api.post("/auth/reset-password", data),
+  checkEmailExists: (email) => api.get("/auth/check-email", { params: { email } }),
+  checkPhoneExists: (phone) => api.get("/auth/check-phone", { params: { phone } }),
+  changePassword: (data) => api.post("/auth/change-password", data),
 };
 
 export const surplusAPI = {
   list: () => api.get("/surplus"), // Just /surplus, not /api/surplus
   myPosts: () => api.get("/surplus/my-posts"),
   getMyPosts: () => api.get("/surplus/my-posts"),
+  getPost: (id) => api.get(`/surplus/${id}`),
   create: (data) => api.post("/surplus", data),
+  update: (id, data) => api.put(`/surplus/${id}`, data),
   // claim now accepts an optional `slot` parameter. If `slot` has an `id` we send `pickupSlotId`,
   // otherwise we include the slot object as `pickupSlot` so the backend can interpret it.
   deletePost: (id) => api.delete(`/surplus/${id}/delete`),
@@ -155,6 +160,13 @@ export const surplusAPI = {
 
     return api.get(`/surplus/search?${params.toString()}`);
   },
+
+  /**
+   * Get timeline events for a donation post
+   * @param {number} postId - Surplus post ID
+   * @returns {Promise} API response with timeline events
+   */
+  getTimeline: (postId) => api.get(`/surplus/${postId}/timeline`),
 };
 
 export const claimsAPI = {
@@ -253,6 +265,14 @@ export const userAPI = {
 };
 
 /**
+ * Current authenticated user's profile endpoints
+ */
+export const profileAPI = {
+  get: () => api.get('/profile'),
+  update: (data) => api.put('/profile', data)
+};
+
+/**
  * Report/Dispute API functions
  */
 export const reportAPI = {
@@ -275,6 +295,19 @@ export const reportAPI = {
     };
     return api.post('/reports', backendRequest);
   },
+};
+
+/**
+ * Feedback API functions
+ */
+export const feedbackAPI = {
+  submitFeedback: (payload) => api.post('/feedback', payload),
+  getFeedbackForClaim: (claimId) => api.get(`/feedback/claim/${claimId}`),
+  getMyRating: () => api.get('/feedback/my-rating'),
+  getUserRating: (userId) => api.get(`/feedback/rating/${userId}`),
+  canProvideFeedback: (claimId) => api.get(`/feedback/can-review/${claimId}`),
+  getPendingFeedback: () => api.get('/feedback/pending'),
+  getMyReviews: () => api.get('/feedback/my-reviews'),
 };
 
 /**

@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
-import { X, Package, Calendar, MapPin, User, Clock, MessageCircle } from 'lucide-react';
+import { X, Package, Calendar, MapPin, User, Clock, MessageCircle, ChevronDown, Star } from 'lucide-react';
 import useGoogleMap from '../../hooks/useGoogleMaps';
 import ClaimedView from './ClaimedView';
 import CompletedView from './CompletedView';
 import ReadyForPickUpView from './ReadyForPickUpView';
+import DonationTimeline from '../shared/DonationTimeline';
+import FeedbackModal from '../FeedbackModal/FeedbackModal';
+import { surplusAPI, claimsAPI, reportAPI } from '../../services/api';
 import { getPrimaryFoodCategory, foodTypeImages, getUnitLabel, getTemperatureCategoryLabel, getTemperatureCategoryIcon, getPackagingTypeLabel } from '../../constants/foodConstants';
 import { useTimezone } from '../../contexts/TimezoneContext';
 import './Receiver_Styles/ClaimDetailModal.css';
@@ -12,8 +15,47 @@ import './Receiver_Styles/ClaimDetailModal.css';
 const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
     const post = claim?.surplusPost;
     const [showPickupSteps, setShowPickupSteps] = useState(false);
+    const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+    const [timeline, setTimeline] = useState([]);
+    const [loadingTimeline, setLoadingTimeline] = useState(false);
+    const [expandedTimeline, setExpandedTimeline] = useState(false);
     const navigate = useNavigate();
     const { userTimezone } = useTimezone();
+
+    // Reset timeline state when modal closes or claim changes
+    useEffect(() => {
+        if (!isOpen) {
+            setExpandedTimeline(false);
+            setTimeline([]);
+            setLoadingTimeline(false);
+        }
+    }, [isOpen, claim?.surplusPost?.id]);
+
+    // Fetch timeline when modal opens and post ID is available
+    useEffect(() => {
+        if (isOpen && post?.id && expandedTimeline && timeline.length === 0) {
+            fetchTimeline();
+        }
+    }, [isOpen, post?.id, expandedTimeline]);
+
+    const fetchTimeline = async () => {
+        if (!post?.id) return;
+
+        setLoadingTimeline(true);
+        try {
+            const response = await surplusAPI.getTimeline(post.id);
+            setTimeline(response.data);
+        } catch (error) {
+            console.error('Error fetching timeline:', error);
+            setTimeline([]);
+        } finally {
+            setLoadingTimeline(false);
+        }
+    };
+
+    const toggleTimeline = () => {
+        setExpandedTimeline(!expandedTimeline);
+    };
 
     const formatPickupTime = (pickupDate, pickupFrom, pickupTo) => {
         if (!pickupDate || !pickupFrom || !pickupTo) return "—";
@@ -258,6 +300,32 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                             </div>
                         </div>
 
+                        {/* Timeline Section */}
+                        <div className="claimed-modal-timeline-section">
+                            <button
+                                className="claimed-timeline-toggle-button"
+                                onClick={toggleTimeline}
+                            >
+                                <Clock size={16} />
+                                <span>
+                                    {expandedTimeline ? 'Hide' : 'View'} Donation Timeline
+                                </span>
+                                <ChevronDown
+                                    size={16}
+                                    className={`chevron ${expandedTimeline ? 'open' : ''}`}
+                                />
+                            </button>
+
+                            {expandedTimeline && (
+                                <div className="claimed-timeline-content-wrapper">
+                                    <DonationTimeline
+                                        timeline={timeline}
+                                        loading={loadingTimeline}
+                                    />
+                                </div>
+                            )}
+                        </div>
+
                         {/* Action Buttons */}
                         <div className="claimed-modal-actions">
                             {(getDisplayStatus() === 'Claimed' || getDisplayStatus() === 'Ready for Pickup' || getDisplayStatus() === 'Completed') && (
@@ -308,8 +376,17 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                         onClose();
                     }}
                     onBack={handleBackToDetails}
+                    showFeedbackModal={showFeedbackModal}
+                    setShowFeedbackModal={setShowFeedbackModal}
                 />
             )}
+
+            <FeedbackModal
+                claimId={claim?.id}
+                targetUser={post?.donor}
+                isOpen={showFeedbackModal}
+                onClose={() => setShowFeedbackModal(false)}
+            />
         </>
     );
 };

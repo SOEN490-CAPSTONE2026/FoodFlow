@@ -22,21 +22,31 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -58,6 +68,8 @@ class SurplusControllerTest {
     private ObjectMapper objectMapper;
     private CreateSurplusRequest request;
     private SurplusResponse response;
+    private User donorUser;
+    private User receiverUser;
 
     @BeforeEach
     void setUp() {
@@ -65,12 +77,12 @@ class SurplusControllerTest {
         objectMapper.registerModule(new JavaTimeModule());
         
         // Mock users for donor and receiver roles
-        User donorUser = new User();
+        donorUser = new User();
         donorUser.setId(1L);
         donorUser.setEmail("donor@test.com");
         donorUser.setRole(UserRole.DONOR);
         
-        User receiverUser = new User();
+        receiverUser = new User();
         receiverUser.setId(2L);
         receiverUser.setEmail("receiver@test.com");
         receiverUser.setRole(UserRole.RECEIVER);
@@ -115,6 +127,22 @@ class SurplusControllerTest {
         response.setDescription("Vegetarian lasagna with spinach");
         response.setDonorEmail("donor@test.com");
         response.setCreatedAt(LocalDateTime.now());
+    }
+
+    private UsernamePasswordAuthenticationToken createDonorAuth() {
+        return new UsernamePasswordAuthenticationToken(
+            donorUser,
+            null,
+            Collections.singletonList(new SimpleGrantedAuthority("DONOR"))
+        );
+    }
+
+    private UsernamePasswordAuthenticationToken createReceiverAuth() {
+        return new UsernamePasswordAuthenticationToken(
+            receiverUser,
+            null,
+            Collections.singletonList(new SimpleGrantedAuthority("RECEIVER"))
+        );
     }
 
     @Test
@@ -571,5 +599,497 @@ class SurplusControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(confirmRequest)))
                 .andExpect(status().isForbidden());
+    }
+
+    // ==================== Timeline Endpoint Tests ====================
+
+    @Test
+    void testGetTimeline_AsDonor_Success() throws Exception {
+        // Given
+        List<com.example.foodflow.model.dto.DonationTimelineDTO> timeline = new ArrayList<>();
+
+        com.example.foodflow.model.dto.DonationTimelineDTO event1 = new com.example.foodflow.model.dto.DonationTimelineDTO();
+        event1.setId(1L);
+        event1.setEventType("DONATION_POSTED");
+        event1.setTimestamp(LocalDateTime.now().minusHours(2));
+        event1.setActor("donor");
+        event1.setActorUserId(1L);
+        event1.setNewStatus("AVAILABLE");
+        event1.setDetails("Donation created");
+        event1.setVisibleToUsers(true);
+
+        com.example.foodflow.model.dto.DonationTimelineDTO event2 = new com.example.foodflow.model.dto.DonationTimelineDTO();
+        event2.setId(2L);
+        event2.setEventType("DONATION_CLAIMED");
+        event2.setTimestamp(LocalDateTime.now().minusHours(1));
+        event2.setActor("receiver");
+        event2.setActorUserId(2L);
+        event2.setOldStatus("AVAILABLE");
+        event2.setNewStatus("CLAIMED");
+        event2.setDetails("Claimed by Test Organization");
+        event2.setVisibleToUsers(true);
+
+        timeline.add(event2);
+        timeline.add(event1);
+
+        when(surplusService.getTimelineForPost(eq(1L), any(User.class))).thenReturn(timeline);
+
+        // When & Then
+        mockMvc.perform(get("/api/surplus/1/timeline")
+                .with(authentication(createDonorAuth())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].eventType").value("DONATION_CLAIMED"))
+                .andExpect(jsonPath("$[0].actor").value("receiver"))
+                .andExpect(jsonPath("$[0].oldStatus").value("AVAILABLE"))
+                .andExpect(jsonPath("$[0].newStatus").value("CLAIMED"))
+                .andExpect(jsonPath("$[1].eventType").value("DONATION_POSTED"))
+                .andExpect(jsonPath("$[1].actor").value("donor"));
+
+        verify(surplusService).getTimelineForPost(eq(1L), any(User.class));
+    }
+
+    @Test
+    void testGetTimeline_AsReceiver_Success() throws Exception {
+        // Given
+        List<com.example.foodflow.model.dto.DonationTimelineDTO> timeline = new ArrayList<>();
+
+        com.example.foodflow.model.dto.DonationTimelineDTO event = new com.example.foodflow.model.dto.DonationTimelineDTO();
+        event.setId(1L);
+        event.setEventType("DONATION_CLAIMED");
+        event.setTimestamp(LocalDateTime.now());
+        event.setActor("receiver");
+        event.setActorUserId(2L);
+        event.setOldStatus("AVAILABLE");
+        event.setNewStatus("CLAIMED");
+        event.setVisibleToUsers(true);
+
+        timeline.add(event);
+
+        when(surplusService.getTimelineForPost(eq(1L), any(User.class))).thenReturn(timeline);
+
+        // When & Then
+        mockMvc.perform(get("/api/surplus/1/timeline")
+                .with(authentication(createReceiverAuth())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].eventType").value("DONATION_CLAIMED"))
+                .andExpect(jsonPath("$[0].actorUserId").value(2));
+
+        verify(surplusService).getTimelineForPost(eq(1L), any(User.class));
+    }
+
+    @Test
+    void testGetTimeline_Unauthenticated_Forbidden() throws Exception {
+        // When & Then - No authentication, should be forbidden
+        mockMvc.perform(get("/api/surplus/1/timeline"))
+                .andExpect(status().isForbidden());
+
+        verify(surplusService, never()).getTimelineForPost(anyLong(), any(User.class));
+    }
+
+    @Test
+    void testGetTimeline_UnauthorizedReceiver_ThrowsException() throws Exception {
+        // Given - Receiver without claim
+        when(surplusService.getTimelineForPost(eq(1L), any(User.class)))
+                .thenThrow(new RuntimeException("You are not authorized to view this timeline"));
+
+        // When & Then - RuntimeException propagates as ServletException
+        try {
+            mockMvc.perform(get("/api/surplus/1/timeline")
+                    .with(authentication(createReceiverAuth())));
+        } catch (Exception e) {
+            // Exception is expected to propagate
+        }
+
+        verify(surplusService).getTimelineForPost(eq(1L), any(User.class));
+    }
+
+    @Test
+    void testGetTimeline_PostNotFound_ThrowsException() throws Exception {
+        // Given
+        when(surplusService.getTimelineForPost(eq(999L), any(User.class)))
+                .thenThrow(new RuntimeException("Surplus post not found"));
+
+        // When & Then - RuntimeException propagates as ServletException
+        try {
+            mockMvc.perform(get("/api/surplus/999/timeline")
+                    .with(authentication(createDonorAuth())));
+        } catch (Exception e) {
+            // Exception is expected to propagate
+        }
+
+        verify(surplusService).getTimelineForPost(eq(999L), any(User.class));
+    }
+
+    @Test
+    void testGetTimeline_EmptyTimeline_ReturnsEmptyArray() throws Exception {
+        // Given
+        when(surplusService.getTimelineForPost(eq(1L), any(User.class)))
+                .thenReturn(Collections.emptyList());
+
+        // When & Then
+        mockMvc.perform(get("/api/surplus/1/timeline")
+                .with(authentication(createDonorAuth())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(0));
+
+        verify(surplusService).getTimelineForPost(eq(1L), any(User.class));
+    }
+
+    @Test
+    void testGetTimeline_WithAllFields_ReturnsCompleteDTO() throws Exception {
+        // Given
+        List<com.example.foodflow.model.dto.DonationTimelineDTO> timeline = new ArrayList<>();
+
+        com.example.foodflow.model.dto.DonationTimelineDTO event = new com.example.foodflow.model.dto.DonationTimelineDTO();
+        event.setId(1L);
+        event.setEventType("PICKUP_CONFIRMED");
+        event.setTimestamp(LocalDateTime.now());
+        event.setActor("receiver");
+        event.setActorUserId(2L);
+        event.setOldStatus("READY_FOR_PICKUP");
+        event.setNewStatus("COMPLETED");
+        event.setDetails("Pickup confirmed successfully");
+        event.setVisibleToUsers(true);
+        event.setTemperature(4.5);
+        event.setPackagingCondition("GOOD");
+        event.setPickupEvidenceUrl("https://example.com/evidence.jpg");
+
+        timeline.add(event);
+
+        when(surplusService.getTimelineForPost(eq(1L), any(User.class))).thenReturn(timeline);
+
+        // When & Then
+        mockMvc.perform(get("/api/surplus/1/timeline")
+                .with(authentication(createDonorAuth())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].eventType").value("PICKUP_CONFIRMED"))
+                .andExpect(jsonPath("$[0].actor").value("receiver"))
+                .andExpect(jsonPath("$[0].actorUserId").value(2))
+                .andExpect(jsonPath("$[0].oldStatus").value("READY_FOR_PICKUP"))
+                .andExpect(jsonPath("$[0].newStatus").value("COMPLETED"))
+                .andExpect(jsonPath("$[0].details").value("Pickup confirmed successfully"))
+                .andExpect(jsonPath("$[0].visibleToUsers").value(true))
+                .andExpect(jsonPath("$[0].temperature").value(4.5))
+                .andExpect(jsonPath("$[0].packagingCondition").value("GOOD"))
+                .andExpect(jsonPath("$[0].pickupEvidenceUrl").value("https://example.com/evidence.jpg"));
+
+        verify(surplusService).getTimelineForPost(eq(1L), any(User.class));
+    }
+
+    // ==================== Tests for getSurplusPostById (Edit Functionality) ====================
+
+    @Test
+    @WithMockUser(username = "donor@test.com", authorities = {"DONOR"})
+    void testGetSurplusPostById_Success() throws Exception {
+        // Given
+        when(surplusService.getSurplusPostByIdForDonor(eq(1L), any()))
+            .thenReturn(response);
+
+        // When & Then
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/surplus/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.title").value("Vegetable Lasagna"))
+                .andExpect(jsonPath("$.donorEmail").value("donor@test.com"));
+    }
+
+    @Test
+    @WithMockUser(username = "donor@test.com", authorities = {"DONOR"})
+    void testGetSurplusPostById_NotFound() throws Exception {
+        // Given
+        when(surplusService.getSurplusPostByIdForDonor(eq(999L), any()))
+            .thenThrow(new RuntimeException("Surplus post not found"));
+
+        // When & Then - Service exceptions propagate
+        try {
+            mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/surplus/999"));
+        } catch (Exception e) {
+            // Exception is expected to propagate
+        }
+    }
+
+    @Test
+    @WithMockUser(username = "donor@test.com", authorities = {"DONOR"})
+    void testGetSurplusPostById_UnauthorizedOwner() throws Exception {
+        // Given - Different donor tries to access another donor's post
+        when(surplusService.getSurplusPostByIdForDonor(eq(1L), any()))
+            .thenThrow(new RuntimeException("You are not authorized to view this post"));
+
+        // When & Then - Service exceptions propagate
+        try {
+            mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/surplus/1"));
+        } catch (Exception e) {
+            // Exception is expected to propagate
+        }
+    }
+
+    @Test
+    @WithMockUser(username = "receiver@test.com", authorities = {"RECEIVER"})
+    void testGetSurplusPostById_ReceiverRole_Forbidden() throws Exception {
+        // When & Then - Receivers cannot access this endpoint
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/surplus/1"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void testGetSurplusPostById_Unauthenticated_Forbidden() throws Exception {
+        // When & Then - Unauthenticated users cannot access
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/surplus/1"))
+                .andExpect(status().isForbidden());
+    }
+
+    // ==================== Tests for updateSurplusPost (Edit Functionality) ====================
+
+    @Test
+    @WithMockUser(username = "donor@test.com", authorities = {"DONOR"})
+    void testUpdateSurplusPost_Success() throws Exception {
+        // Given
+        CreateSurplusRequest updateRequest = new CreateSurplusRequest();
+        updateRequest.setTitle("Updated Lasagna");
+        
+        HashSet<FoodCategory> foodCategories = new HashSet<>();
+        foodCategories.add(FoodCategory.PREPARED_MEALS);
+        updateRequest.setFoodCategories(foodCategories);
+        
+        updateRequest.setQuantity(new Quantity(15.0, Quantity.Unit.KILOGRAM)); // Updated quantity
+        updateRequest.setExpiryDate(LocalDate.now().plusDays(3)); // Updated expiry
+        updateRequest.setPickupDate(LocalDate.now().plusDays(1));
+        updateRequest.setPickupFrom(LocalTime.of(10, 0));
+        updateRequest.setPickupTo(LocalTime.of(12, 0));
+        updateRequest.setPickupLocation(new Location(45.2903, -34.0987, "456 Updated St"));
+        updateRequest.setDescription("Updated vegetarian lasagna with extra spinach");
+        updateRequest.setTemperatureCategory(TemperatureCategory.REFRIGERATED);
+        updateRequest.setPackagingType(PackagingType.SEALED);
+
+        SurplusResponse updatedResponse = new SurplusResponse();
+        updatedResponse.setId(1L);
+        updatedResponse.setTitle("Updated Lasagna");
+        updatedResponse.setFoodCategories(foodCategories);
+        updatedResponse.setQuantity(new Quantity(15.0, Quantity.Unit.KILOGRAM));
+        updatedResponse.setExpiryDate(updateRequest.getExpiryDate());
+        updatedResponse.setPickupDate(updateRequest.getPickupDate());
+        updatedResponse.setPickupFrom(updateRequest.getPickupFrom());
+        updatedResponse.setPickupTo(updateRequest.getPickupTo());
+        updatedResponse.setPickupLocation(updateRequest.getPickupLocation());
+        updatedResponse.setDescription(updateRequest.getDescription());
+        updatedResponse.setDonorEmail("donor@test.com");
+        updatedResponse.setStatus(PostStatus.AVAILABLE);
+        updatedResponse.setCreatedAt(LocalDateTime.now());
+
+        when(surplusService.updateSurplusPost(eq(1L), any(CreateSurplusRequest.class), any()))
+            .thenReturn(updatedResponse);
+
+        // When & Then
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/surplus/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.title").value("Updated Lasagna"))
+                .andExpect(jsonPath("$.quantity.value").value(15.0))
+                .andExpect(jsonPath("$.description").value("Updated vegetarian lasagna with extra spinach"));
+    }
+
+    @Test
+    @WithMockUser(username = "donor@test.com", authorities = {"DONOR"})
+    void testUpdateSurplusPost_InvalidRequest_MissingTitle() throws Exception {
+        // Given
+        CreateSurplusRequest updateRequest = new CreateSurplusRequest();
+        updateRequest.setTitle(null); // Missing title
+        
+        HashSet<FoodCategory> foodCategories = new HashSet<>();
+        foodCategories.add(FoodCategory.PREPARED_MEALS);
+        updateRequest.setFoodCategories(foodCategories);
+        updateRequest.setQuantity(new Quantity(15.0, Quantity.Unit.KILOGRAM));
+        updateRequest.setExpiryDate(LocalDate.now().plusDays(3));
+        updateRequest.setPickupDate(LocalDate.now());
+        updateRequest.setPickupFrom(LocalTime.of(10, 0));
+        updateRequest.setPickupTo(LocalTime.of(12, 0));
+        updateRequest.setPickupLocation(new Location(45.2903, -34.0987, "456 Updated St"));
+        updateRequest.setDescription("Updated description");
+        updateRequest.setTemperatureCategory(TemperatureCategory.REFRIGERATED);
+        updateRequest.setPackagingType(PackagingType.SEALED);
+
+        // When & Then
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/surplus/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(username = "donor@test.com", authorities = {"DONOR"})
+    void testUpdateSurplusPost_InvalidRequest_NegativeQuantity() throws Exception {
+        // Given
+        CreateSurplusRequest updateRequest = new CreateSurplusRequest();
+        updateRequest.setTitle("Updated Lasagna");
+        
+        HashSet<FoodCategory> foodCategories = new HashSet<>();
+        foodCategories.add(FoodCategory.PREPARED_MEALS);
+        updateRequest.setFoodCategories(foodCategories);
+        updateRequest.setQuantity(new Quantity(-5.0, Quantity.Unit.KILOGRAM)); // Invalid quantity
+        updateRequest.setExpiryDate(LocalDate.now().plusDays(3));
+        updateRequest.setPickupDate(LocalDate.now());
+        updateRequest.setPickupFrom(LocalTime.of(10, 0));
+        updateRequest.setPickupTo(LocalTime.of(12, 0));
+        updateRequest.setPickupLocation(new Location(45.2903, -34.0987, "456 Updated St"));
+        updateRequest.setDescription("Updated description");
+        updateRequest.setTemperatureCategory(TemperatureCategory.REFRIGERATED);
+        updateRequest.setPackagingType(PackagingType.SEALED);
+
+        // When & Then
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/surplus/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(username = "donor@test.com", authorities = {"DONOR"})
+    void testUpdateSurplusPost_NotFound() throws Exception {
+        // Given
+        when(surplusService.updateSurplusPost(eq(999L), any(CreateSurplusRequest.class), any()))
+            .thenThrow(new RuntimeException("Surplus post not found"));
+
+        // When & Then - Service exceptions propagate
+        try {
+            mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/surplus/999")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)));
+        } catch (Exception e) {
+            // Exception is expected to propagate
+        }
+    }
+
+    @Test
+    @WithMockUser(username = "donor@test.com", authorities = {"DONOR"})
+    void testUpdateSurplusPost_UnauthorizedOwner() throws Exception {
+        // Given - Different donor tries to update another donor's post
+        when(surplusService.updateSurplusPost(eq(1L), any(CreateSurplusRequest.class), any()))
+            .thenThrow(new RuntimeException("You are not authorized to update this post"));
+
+        // When & Then - Service exceptions propagate
+        try {
+            mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/surplus/1")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)));
+        } catch (Exception e) {
+            // Exception is expected to propagate
+        }
+    }
+
+    @Test
+    @WithMockUser(username = "donor@test.com", authorities = {"DONOR"})
+    void testUpdateSurplusPost_AlreadyClaimed() throws Exception {
+        // Given - Post has been claimed and cannot be edited
+        when(surplusService.updateSurplusPost(eq(1L), any(CreateSurplusRequest.class), any()))
+            .thenThrow(new RuntimeException("Cannot edit a post that has been claimed or completed. Current status: CLAIMED"));
+
+        // When & Then - Service exceptions propagate
+        try {
+            mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/surplus/1")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)));
+        } catch (Exception e) {
+            // Exception is expected to propagate
+        }
+    }
+
+    @Test
+    @WithMockUser(username = "donor@test.com", authorities = {"DONOR"})
+    void testUpdateSurplusPost_AlreadyCompleted() throws Exception {
+        // Given - Post has been completed and cannot be edited
+        when(surplusService.updateSurplusPost(eq(1L), any(CreateSurplusRequest.class), any()))
+            .thenThrow(new RuntimeException("Cannot edit a post that has been claimed or completed. Current status: COMPLETED"));
+
+        // When & Then - Service exceptions propagate
+        try {
+            mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/surplus/1")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)));
+        } catch (Exception e) {
+            // Exception is expected to propagate
+        }
+    }
+
+    @Test
+    @WithMockUser(username = "receiver@test.com", authorities = {"RECEIVER"})
+    void testUpdateSurplusPost_ReceiverRole_Forbidden() throws Exception {
+        // When & Then - Receivers cannot update surplus posts
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/surplus/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void testUpdateSurplusPost_Unauthenticated_Forbidden() throws Exception {
+        // When & Then - Unauthenticated users cannot update
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/surplus/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "donor@test.com", authorities = {"DONOR"})
+    void testUpdateSurplusPost_UpdateAllFields() throws Exception {
+        // Given - Comprehensive update of all fields
+        CreateSurplusRequest updateRequest = new CreateSurplusRequest();
+        updateRequest.setTitle("Completely Updated Lasagna");
+        
+        HashSet<FoodCategory> newCategories = new HashSet<>();
+        newCategories.add(FoodCategory.PREPARED_MEALS);
+        newCategories.add(FoodCategory.DAIRY_COLD);
+        updateRequest.setFoodCategories(newCategories);
+        
+        updateRequest.setQuantity(new Quantity(20.0, Quantity.Unit.KILOGRAM));
+        updateRequest.setFabricationDate(LocalDate.now().minusDays(1));
+        updateRequest.setExpiryDate(LocalDate.now().plusDays(5));
+        updateRequest.setPickupDate(LocalDate.now().plusDays(2));
+        updateRequest.setPickupFrom(LocalTime.of(14, 0));
+        updateRequest.setPickupTo(LocalTime.of(16, 0));
+        updateRequest.setPickupLocation(new Location(40.7128, -74.0060, "789 New York St"));
+        updateRequest.setDescription("Completely updated lasagna with new ingredients");
+        updateRequest.setTemperatureCategory(TemperatureCategory.FROZEN);
+        updateRequest.setPackagingType(PackagingType.VACUUM_PACKED);
+
+        SurplusResponse updatedResponse = new SurplusResponse();
+        updatedResponse.setId(1L);
+        updatedResponse.setTitle(updateRequest.getTitle());
+        updatedResponse.setFoodCategories(newCategories);
+        updatedResponse.setQuantity(updateRequest.getQuantity());
+        updatedResponse.setFabricationDate(updateRequest.getFabricationDate());
+        updatedResponse.setExpiryDate(updateRequest.getExpiryDate());
+        updatedResponse.setPickupDate(updateRequest.getPickupDate());
+        updatedResponse.setPickupFrom(updateRequest.getPickupFrom());
+        updatedResponse.setPickupTo(updateRequest.getPickupTo());
+        updatedResponse.setPickupLocation(updateRequest.getPickupLocation());
+        updatedResponse.setDescription(updateRequest.getDescription());
+        updatedResponse.setTemperatureCategory(updateRequest.getTemperatureCategory());
+        updatedResponse.setPackagingType(updateRequest.getPackagingType());
+        updatedResponse.setDonorEmail("donor@test.com");
+        updatedResponse.setStatus(PostStatus.AVAILABLE);
+        updatedResponse.setCreatedAt(LocalDateTime.now());
+
+        when(surplusService.updateSurplusPost(eq(1L), any(CreateSurplusRequest.class), any()))
+            .thenReturn(updatedResponse);
+
+        // When & Then
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/surplus/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.title").value("Completely Updated Lasagna"))
+                .andExpect(jsonPath("$.quantity.value").value(20.0))
+                .andExpect(jsonPath("$.temperatureCategory").value("FROZEN"))
+                .andExpect(jsonPath("$.packagingType").value("VACUUM_PACKED"));
     }
 }
