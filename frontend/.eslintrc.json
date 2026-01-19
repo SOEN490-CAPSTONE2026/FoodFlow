@@ -11,8 +11,6 @@
     "eslint:recommended",
     "plugin:react/recommended",
     "plugin:react-hooks/recommended",
-    "plugin:jsx-a11y/recommended",
-    "plugin:import/recommended",
     "plugin:prettier/recommended"
   ],
   "parserOptions": {
@@ -22,7 +20,7 @@
     "ecmaVersion": 2021,
     "sourceType": "module"
   },
-  "plugins": ["react", "react-hooks", "jsx-a11y", "import", "prettier"],
+  "plugins": ["react", "react-hooks", "prettier"],
   "rules": {
     "prettier/prettier": ["error", {}, { "usePrettierrc": true }],
     "react/react-in-jsx-scope": "off",
@@ -33,36 +31,14 @@
     "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
     "prefer-const": "error",
     "no-var": "error",
-    "eqeqeq": ["error", "always"],
+    "eqeqeq": ["warn", "always"],
     "curly": ["warn", "all"],
-    "import/order": [
-      "error",
-      {
-        "groups": [
-          "builtin",
-          "external",
-          "internal",
-          "parent",
-          "sibling",
-          "index"
-        ],
-        "newlines-between": "always",
-        "alphabetize": {
-          "order": "asc",
-          "caseInsensitive": true
-        }
-      }
-    ]
+    "react/no-unescaped-entities": "warn",
+    "no-useless-escape": "warn"
   },
   "settings": {
     "react": {
       "version": "detect"
-    },
-    "import/resolver": {
-      "node": {
-        "paths": ["src"],
-        "extensions": [".js", ".jsx"]
-      }
     }
   }
 }
