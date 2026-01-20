@@ -410,6 +410,56 @@ export const adminDonationAPI = {
 };
 
 /**
+ * Admin API functions for user verification queue management
+ */
+export const adminVerificationAPI = {
+  /**
+   * Get all pending users awaiting admin approval
+   * @param {Object} filters - Filter criteria
+   * @param {string} filters.userType - Filter by user type (DONOR, RECEIVER)
+   * @param {string} filters.search - Search by organization name or email
+   * @param {string} filters.sortBy - Sort field (date, userType, waitingTime)
+   * @param {string} filters.sortOrder - Sort order (asc, desc)
+   * @param {number} filters.page - Page number (default: 0)
+   * @param {number} filters.size - Page size (default: 20)
+   * @returns {Promise} Paginated pending users list
+   */
+  getPendingUsers: (filters = {}) => {
+    const params = new URLSearchParams();
+    
+    if (filters.userType) params.append('userType', filters.userType);
+    if (filters.search) params.append('search', filters.search);
+    if (filters.sortBy) params.append('sortBy', filters.sortBy);
+    if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
+    
+    params.append('page', filters.page || 0);
+    params.append('size', filters.size || 20);
+    
+    return api.get(`/admin/pending-users?${params.toString()}`);
+  },
+
+  /**
+   * Approve a pending user registration
+   * @param {number} userId - User ID to approve
+   * @returns {Promise} Updated user data
+   */
+  approveUser: (userId) => api.post(`/admin/approve/${userId}`),
+
+  /**
+   * Reject a pending user registration
+   * @param {number} userId - User ID to reject
+   * @param {string} reason - Rejection reason
+   * @param {string} message - Optional custom message
+   * @returns {Promise} Response data
+   */
+  rejectUser: (userId, reason, message) => 
+    api.post(`/admin/reject/${userId}`, {
+      reason,
+      message
+    }),
+};
+
+/**
  * Maps frontend food categories to backend enum values.
  * @param {string} frontendCategory - Frontend category name
  * @returns {string} Backend enum value
