@@ -7,14 +7,12 @@ import { TimezoneProvider } from '../../../contexts/TimezoneContext';
 // Helper function to render with required providers
 const renderWithProviders = (ui, options = {}) => {
   const mockTimezoneContext = {
-    userTimezone: "America/Toronto",
-    userRegion: "CA",
+    userTimezone: 'America/Toronto',
+    userRegion: 'CA',
   };
 
   return render(
-    <TimezoneProvider value={mockTimezoneContext}>
-      {ui}
-    </TimezoneProvider>,
+    <TimezoneProvider value={mockTimezoneContext}>{ui}</TimezoneProvider>,
     options
   );
 };
@@ -73,17 +71,28 @@ describe('ChatPanel', () => {
   });
 
   test('shows empty state when no conversation selected', () => {
-    renderWithProviders(<ChatPanel conversation={null} onMessageSent={mockOnMessageSent} />);
-    
+    renderWithProviders(
+      <ChatPanel conversation={null} onMessageSent={mockOnMessageSent} />
+    );
+
     expect(screen.getByText('No conversation selected')).toBeInTheDocument();
-    expect(screen.getByText('Select a conversation from the sidebar or start a new one')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Select a conversation from the sidebar or start a new one'
+      )
+    ).toBeInTheDocument();
   });
 
   test('loads and displays messages for selected conversation', async () => {
     mockGet.mockResolvedValue({ data: mockMessages });
     mockPut.mockResolvedValue({});
 
-    renderWithProviders(<ChatPanel conversation={mockConversation} onMessageSent={mockOnMessageSent} />);
+    renderWithProviders(
+      <ChatPanel
+        conversation={mockConversation}
+        onMessageSent={mockOnMessageSent}
+      />
+    );
 
     await waitFor(() => {
       expect(screen.getByText('Hello there')).toBeInTheDocument();
@@ -98,7 +107,12 @@ describe('ChatPanel', () => {
     mockGet.mockResolvedValue({ data: [] });
     mockPut.mockResolvedValue({});
 
-    renderWithProviders(<ChatPanel conversation={mockConversation} onMessageSent={mockOnMessageSent} />);
+    renderWithProviders(
+      <ChatPanel
+        conversation={mockConversation}
+        onMessageSent={mockOnMessageSent}
+      />
+    );
 
     await waitFor(() => {
       expect(screen.getByText('John Doe')).toBeInTheDocument();
@@ -109,10 +123,17 @@ describe('ChatPanel', () => {
     mockGet.mockResolvedValue({ data: [] });
     mockPut.mockResolvedValue({});
 
-    renderWithProviders(<ChatPanel conversation={mockConversation} onMessageSent={mockOnMessageSent} />);
+    renderWithProviders(
+      <ChatPanel
+        conversation={mockConversation}
+        onMessageSent={mockOnMessageSent}
+      />
+    );
 
     await waitFor(() => {
-      expect(screen.getByText('No messages yet. Start the conversation!')).toBeInTheDocument();
+      expect(
+        screen.getByText('No messages yet. Start the conversation!')
+      ).toBeInTheDocument();
     });
   });
 
@@ -128,10 +149,17 @@ describe('ChatPanel', () => {
     mockPut.mockResolvedValue({});
     mockPost.mockResolvedValue({ data: newMessage });
 
-    renderWithProviders(<ChatPanel conversation={mockConversation} onMessageSent={mockOnMessageSent} />);
+    renderWithProviders(
+      <ChatPanel
+        conversation={mockConversation}
+        onMessageSent={mockOnMessageSent}
+      />
+    );
 
     await waitFor(() => {
-      expect(screen.getByPlaceholderText('Type your message here...')).toBeInTheDocument();
+      expect(
+        screen.getByPlaceholderText('Type your message here...')
+      ).toBeInTheDocument();
     });
 
     const input = screen.getByPlaceholderText('Type your message here...');
@@ -155,10 +183,17 @@ describe('ChatPanel', () => {
     mockGet.mockResolvedValue({ data: [] });
     mockPut.mockResolvedValue({});
 
-    renderWithProviders(<ChatPanel conversation={mockConversation} onMessageSent={mockOnMessageSent} />);
+    renderWithProviders(
+      <ChatPanel
+        conversation={mockConversation}
+        onMessageSent={mockOnMessageSent}
+      />
+    );
 
     await waitFor(() => {
-      expect(screen.getByPlaceholderText('Type your message here...')).toBeInTheDocument();
+      expect(
+        screen.getByPlaceholderText('Type your message here...')
+      ).toBeInTheDocument();
     });
 
     const sendButton = screen.getByTitle('Send message');
@@ -169,11 +204,18 @@ describe('ChatPanel', () => {
     mockGet.mockImplementation(() => new Promise(() => {})); // Never resolves
     mockPut.mockResolvedValue({});
 
-    renderWithProviders(<ChatPanel conversation={mockConversation} onMessageSent={mockOnMessageSent} />);
+    renderWithProviders(
+      <ChatPanel
+        conversation={mockConversation}
+        onMessageSent={mockOnMessageSent}
+      />
+    );
 
     // We intentionally do not render a loading text anymore
     expect(screen.queryByText('Loading messages...')).not.toBeInTheDocument();
     // And we also don't show the empty state until loading finishes
-    expect(screen.queryByText('No messages yet. Start the conversation!')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('No messages yet. Start the conversation!')
+    ).not.toBeInTheDocument();
   });
 });

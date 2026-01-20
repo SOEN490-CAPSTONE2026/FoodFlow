@@ -1,10 +1,10 @@
 import { renderHook } from '@testing-library/react';
 import { useLocation } from 'react-router-dom';
-import { useAnalytics } from '../useAnalytics'; 
+import { useAnalytics } from '../useAnalytics';
 import analyticsService from '../../services/analyticsService';
 
 jest.mock('react-router-dom', () => ({
-  useLocation: jest.fn()
+  useLocation: jest.fn(),
 }));
 
 jest.mock('../../services/analyticsService', () => ({
@@ -13,7 +13,7 @@ jest.mock('../../services/analyticsService', () => ({
   trackFormSubmission: jest.fn(),
   trackUserRegistration: jest.fn(),
   trackLogin: jest.fn(),
-  trackEvent: jest.fn()
+  trackEvent: jest.fn(),
 }));
 
 describe('useAnalytics', () => {
@@ -93,20 +93,26 @@ describe('useAnalytics', () => {
     it('call analyticsService.trackButtonClick when trackButtonClick is called', () => {
       const { result } = renderHook(() => useAnalytics());
       result.current.trackButtonClick('submit-button');
-      expect(analyticsService.trackButtonClick).toHaveBeenCalledWith('submit-button');
+      expect(analyticsService.trackButtonClick).toHaveBeenCalledWith(
+        'submit-button'
+      );
     });
 
     it('call analyticsService.trackFormSubmission when trackFormSubmission is called', () => {
       const { result } = renderHook(() => useAnalytics());
       result.current.trackFormSubmission('contact-form');
-      expect(analyticsService.trackFormSubmission).toHaveBeenCalledWith('contact-form');
+      expect(analyticsService.trackFormSubmission).toHaveBeenCalledWith(
+        'contact-form'
+      );
     });
 
     it('call analyticsService.trackUserRegistration when trackUserRegistration is called', () => {
       const { result } = renderHook(() => useAnalytics());
       const userData = { email: 'test@example.com' };
       result.current.trackUserRegistration(userData);
-      expect(analyticsService.trackUserRegistration).toHaveBeenCalledWith(userData);
+      expect(analyticsService.trackUserRegistration).toHaveBeenCalledWith(
+        userData
+      );
     });
 
     it('call analyticsService.trackLogin when trackLogin is called', () => {
@@ -119,7 +125,9 @@ describe('useAnalytics', () => {
     it('call analyticsService.trackEvent when trackEvent is called', () => {
       const { result } = renderHook(() => useAnalytics());
       result.current.trackEvent('custom-event', { data: 'value' });
-      expect(analyticsService.trackEvent).toHaveBeenCalledWith('custom-event', { data: 'value' });
+      expect(analyticsService.trackEvent).toHaveBeenCalledWith('custom-event', {
+        data: 'value',
+      });
     });
 
     it('maintain correct context when calling bound methods', () => {
@@ -127,8 +135,14 @@ describe('useAnalytics', () => {
       result.current.trackButtonClick('button1');
       result.current.trackButtonClick('button2');
       expect(analyticsService.trackButtonClick).toHaveBeenCalledTimes(2);
-      expect(analyticsService.trackButtonClick).toHaveBeenNthCalledWith(1, 'button1');
-      expect(analyticsService.trackButtonClick).toHaveBeenNthCalledWith(2, 'button2');
+      expect(analyticsService.trackButtonClick).toHaveBeenNthCalledWith(
+        1,
+        'button1'
+      );
+      expect(analyticsService.trackButtonClick).toHaveBeenNthCalledWith(
+        2,
+        'button2'
+      );
     });
   });
 

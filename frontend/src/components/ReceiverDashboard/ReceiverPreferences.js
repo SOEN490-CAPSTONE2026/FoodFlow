@@ -45,7 +45,7 @@ function Tooltip({ children, text }) {
             fontSize: '13px',
             whiteSpace: 'nowrap',
             zIndex: 1000,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
           }}
         >
           {text}
@@ -63,7 +63,7 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
     acceptsRefrigerated: true,
     acceptsFrozen: true,
     notificationPreferencesEnabled: true,
-    noStrictPreferences: false
+    noStrictPreferences: false,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -84,15 +84,31 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
       const response = await api.get('/receiver/preferences');
       if (response.data) {
         setPreferences({
-          preferredCategories: (response.data.preferredFoodTypes || []).map(type => 
-            foodTypeOptions.find(cat => cat.value === type) || { value: type, label: type }
+          preferredCategories: (response.data.preferredFoodTypes || []).map(
+            type =>
+              foodTypeOptions.find(cat => cat.value === type) || {
+                value: type,
+                label: type,
+              }
           ),
           preferredDonationSizes: response.data.preferredDonationSizes || [],
-          pickupAvailability: response.data.preferredPickupWindows || ['EVENING'],
-          acceptsRefrigerated: response.data.acceptRefrigerated !== undefined ? response.data.acceptRefrigerated : true,
-          acceptsFrozen: response.data.acceptFrozen !== undefined ? response.data.acceptFrozen : true,
-          notificationPreferencesEnabled: response.data.notificationPreferencesEnabled !== undefined ? response.data.notificationPreferencesEnabled : true,
-          noStrictPreferences: (response.data.preferredFoodTypes || []).length === 0
+          pickupAvailability: response.data.preferredPickupWindows || [
+            'EVENING',
+          ],
+          acceptsRefrigerated:
+            response.data.acceptRefrigerated !== undefined
+              ? response.data.acceptRefrigerated
+              : true,
+          acceptsFrozen:
+            response.data.acceptFrozen !== undefined
+              ? response.data.acceptFrozen
+              : true,
+          notificationPreferencesEnabled:
+            response.data.notificationPreferencesEnabled !== undefined
+              ? response.data.notificationPreferencesEnabled
+              : true,
+          noStrictPreferences:
+            (response.data.preferredFoodTypes || []).length === 0,
         });
       }
     } catch (err) {
@@ -105,7 +121,7 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
 
   // Close dropdown when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event) => {
+    const handleClickOutside = event => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowCategoryDropdown(false);
       }
@@ -120,20 +136,26 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
     };
   }, [showCategoryDropdown]);
 
-  const handleCategoryToggle = (category) => {
+  const handleCategoryToggle = category => {
     setPreferences(prev => {
       // If "No strict preferences" is checked, uncheck it when user manually selects/deselects
       let newNoStrict = prev.noStrictPreferences;
       let categories;
       if (prev.preferredCategories.find(c => c.value === category.value)) {
-        categories = prev.preferredCategories.filter(c => c.value !== category.value);
+        categories = prev.preferredCategories.filter(
+          c => c.value !== category.value
+        );
       } else {
         categories = [...prev.preferredCategories, category];
       }
       if (prev.noStrictPreferences) {
         newNoStrict = false;
       }
-      return { ...prev, preferredCategories: categories, noStrictPreferences: newNoStrict };
+      return {
+        ...prev,
+        preferredCategories: categories,
+        noStrictPreferences: newNoStrict,
+      };
     });
   };
 
@@ -152,7 +174,7 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
     });
   };
 
-  const handlePickupAvailabilityChange = (time) => {
+  const handlePickupAvailabilityChange = time => {
     setPreferences(prev => {
       const windows = prev.pickupAvailability.includes(time)
         ? prev.pickupAvailability.filter(w => w !== time)
@@ -161,7 +183,7 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
     });
   };
 
-  const handleDonationSizeChange = (size) => {
+  const handleDonationSizeChange = size => {
     setPreferences(prev => {
       const sizes = prev.preferredDonationSizes.includes(size)
         ? prev.preferredDonationSizes.filter(s => s !== size)
@@ -170,7 +192,7 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
     });
   };
 
-  const handleFoodHandlingToggle = (field) => {
+  const handleFoodHandlingToggle = field => {
     setPreferences(prev => ({ ...prev, [field]: !prev[field] }));
   };
 
@@ -182,41 +204,46 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
 
       // Prepare data for backend
       const requestData = {
-        preferredFoodTypes: preferences.noStrictPreferences ? [] : preferences.preferredCategories.map(c => c.value),
+        preferredFoodTypes: preferences.noStrictPreferences
+          ? []
+          : preferences.preferredCategories.map(c => c.value),
         preferredDonationSizes: preferences.preferredDonationSizes,
         preferredPickupWindows: preferences.pickupAvailability,
         acceptRefrigerated: preferences.acceptsRefrigerated,
         acceptFrozen: preferences.acceptsFrozen,
-        notificationPreferencesEnabled: preferences.notificationPreferencesEnabled,
+        notificationPreferencesEnabled:
+          preferences.notificationPreferencesEnabled,
         // TODO: Remove these once backend makes them optional - they're legacy fields
         maxCapacity: 100,
         minQuantity: 0,
-        maxQuantity: 1000
+        maxQuantity: 1000,
       };
 
       console.log('Saving preferences to backend:', requestData);
-      
+
       // Try PUT first (update), if it fails try POST (create)
       try {
         await api.put('/receiver/preferences', requestData);
       } catch (putError) {
-        if (putError.response?.status === 404 || putError.response?.status === 409) {
+        if (
+          putError.response?.status === 404 ||
+          putError.response?.status === 409
+        ) {
           await api.post('/receiver/preferences', requestData);
         } else {
           throw putError;
         }
       }
-      
+
       setSuccess(true);
-      
+
       if (onSave) {
         onSave(preferences);
       }
-      
+
       setTimeout(() => {
         onClose();
       }, 1500);
-      
     } catch (err) {
       console.error('Error saving preferences:', err);
       setError(err.response?.data?.message || 'Failed to save preferences');
@@ -230,46 +257,61 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
     onClose();
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   return (
     <div className="preferences-overlay" onClick={handleCancel}>
-      <div className="preferences-panel" onClick={(e) => e.stopPropagation()}>
+      <div className="preferences-panel" onClick={e => e.stopPropagation()}>
         <div className="preferences-header">
           <div>
             <h2>Receiver Preferences</h2>
             <p>Set your organization's needs to improve food matching.</p>
           </div>
-          <button className="close-btn" onClick={handleCancel} aria-label="Close">
+          <button
+            className="close-btn"
+            onClick={handleCancel}
+            aria-label="Close"
+          >
             <X size={24} />
           </button>
         </div>
 
         <div className="preferences-body">
           {error && <div className="error-message">{error}</div>}
-          {success && <div className="success-message">Preferences saved successfully!</div>}
+          {success && (
+            <div className="success-message">
+              Preferences saved successfully!
+            </div>
+          )}
 
           {/* Preferred Food Categories */}
           <div className="preference-field" ref={dropdownRef}>
             <label>Preferred Food Categories</label>
-            <div className="category-select" onClick={() => {
-              setShowCategoryDropdown(!showCategoryDropdown);
-            }}>
+            <div
+              className="category-select"
+              onClick={() => {
+                setShowCategoryDropdown(!showCategoryDropdown);
+              }}
+            >
               <input
                 type="text"
                 readOnly
-                value={preferences.noStrictPreferences
-                  ? 'All food categories selected'
-                  : preferences.preferredCategories.length > 0 
-                    ? `${preferences.preferredCategories.length} categories selected`
-                    : 'Select food categories...'}
+                value={
+                  preferences.noStrictPreferences
+                    ? 'All food categories selected'
+                    : preferences.preferredCategories.length > 0
+                      ? `${preferences.preferredCategories.length} categories selected`
+                      : 'Select food categories...'
+                }
                 placeholder="Select food categories..."
               />
               <span className="dropdown-arrow">▼</span>
             </div>
 
             {/* No Strict Preferences Checkbox (moved here) */}
-            <div className="checkbox-field" style={{marginTop: '8px'}}>
+            <div className="checkbox-field" style={{ marginTop: '8px' }}>
               <div className="checkbox-label">
                 <input
                   type="checkbox"
@@ -288,7 +330,9 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
                   <label key={category.value} className="category-option">
                     <input
                       type="checkbox"
-                      checked={preferences.preferredCategories.some(c => c.value === category.value)}
+                      checked={preferences.preferredCategories.some(
+                        c => c.value === category.value
+                      )}
                       onChange={() => handleCategoryToggle(category)}
                     />
                     <span>{category.label}</span>
@@ -297,16 +341,19 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
               </div>
             )}
 
-            {preferences.preferredCategories.length > 0 && !preferences.noStrictPreferences && (
-              <div className="selected-categories">
-                {preferences.preferredCategories.map(category => (
-                  <span key={category.value} className="category-tag">
-                    {category.label}
-                    <button onClick={() => handleCategoryToggle(category)}>×</button>
-                  </span>
-                ))}
-              </div>
-            )}
+            {preferences.preferredCategories.length > 0 &&
+              !preferences.noStrictPreferences && (
+                <div className="selected-categories">
+                  {preferences.preferredCategories.map(category => (
+                    <span key={category.value} className="category-tag">
+                      {category.label}
+                      <button onClick={() => handleCategoryToggle(category)}>
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
           </div>
 
           {/* Preferred Donation Size */}
@@ -315,7 +362,8 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
             <div className="donation-sizes">
               {DONATION_SIZES.map(size => {
                 const meta = DONATION_SIZE_META[size];
-                const isSelected = preferences.preferredDonationSizes.includes(size);
+                const isSelected =
+                  preferences.preferredDonationSizes.includes(size);
                 return (
                   <Tooltip key={size} text={meta.tooltip}>
                     <button
@@ -335,8 +383,9 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
           <div className="preference-field">
             <label>Pickup Availability (select multiple)</label>
             <div className="pickup-availability">
-              {PICKUP_WINDOWS.map((window) => {
-                const isActive = preferences.pickupAvailability.includes(window);
+              {PICKUP_WINDOWS.map(window => {
+                const isActive =
+                  preferences.pickupAvailability.includes(window);
                 const meta = PICKUP_WINDOW_META[window];
 
                 return (
@@ -362,7 +411,9 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
                 <input
                   type="checkbox"
                   checked={preferences.acceptsRefrigerated}
-                  onChange={() => handleFoodHandlingToggle('acceptsRefrigerated')}
+                  onChange={() =>
+                    handleFoodHandlingToggle('acceptsRefrigerated')
+                  }
                 />
                 <span>Accepts Refrigerated Items</span>
               </label>
@@ -383,12 +434,27 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
               <input
                 type="checkbox"
                 checked={preferences.notificationPreferencesEnabled}
-                onChange={() => handleInputChange('notificationPreferencesEnabled', !preferences.notificationPreferencesEnabled)}
+                onChange={() =>
+                  handleInputChange(
+                    'notificationPreferencesEnabled',
+                    !preferences.notificationPreferencesEnabled
+                  )
+                }
               />
-              <span>Smart Notifications - Only notify me about matching donations</span>
+              <span>
+                Smart Notifications - Only notify me about matching donations
+              </span>
             </label>
-            <small style={{marginLeft: '24px', color: '#666', display: 'block', marginTop: '4px'}}>
-              When enabled, you'll only receive notifications for donations that match your preferences and fit within your capacity.
+            <small
+              style={{
+                marginLeft: '24px',
+                color: '#666',
+                display: 'block',
+                marginTop: '4px',
+              }}
+            >
+              When enabled, you'll only receive notifications for donations that
+              match your preferences and fit within your capacity.
             </small>
           </div>
 
@@ -396,18 +462,14 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
         </div>
 
         <div className="preferences-footer">
-          <button 
-            className="btn-cancel" 
+          <button
+            className="btn-cancel"
             onClick={handleCancel}
             disabled={loading}
           >
             Cancel
           </button>
-          <button 
-            className="btn-save" 
-            onClick={handleSave}
-            disabled={loading}
-          >
+          <button className="btn-save" onClick={handleSave} disabled={loading}>
             {loading ? 'Saving...' : 'Save'}
           </button>
         </div>

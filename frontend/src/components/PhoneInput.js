@@ -30,7 +30,13 @@ const COUNTRIES = [
   { code: 'ZA', dialCode: '+27', name: 'South Africa', flag: '🇿🇦' },
 ];
 
-export default function PhoneInput({ value, onChange, disabled, className, placeholder }) {
+export default function PhoneInput({
+  value,
+  onChange,
+  disabled,
+  className,
+  placeholder,
+}) {
   const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0]); // Default to US
   const [phoneNumber, setPhoneNumber] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -39,7 +45,7 @@ export default function PhoneInput({ value, onChange, disabled, className, place
 
   // Close dropdown when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event) => {
+    const handleClickOutside = event => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false);
         setSearchTerm('');
@@ -64,9 +70,9 @@ export default function PhoneInput({ value, onChange, disabled, className, place
     }
   }, []);
 
-  const handlePhoneChange = (e) => {
+  const handlePhoneChange = e => {
     let input = e.target.value;
-    
+
     // If user tries to paste a full number with +, extract country code and number
     if (input.startsWith('+')) {
       // Find matching country by dial code
@@ -78,30 +84,31 @@ export default function PhoneInput({ value, onChange, disabled, className, place
         }
       }
     }
-    
+
     // Only allow digits in the phone number field
     const digitsOnly = input.replace(/\D/g, '');
     setPhoneNumber(digitsOnly);
-    
+
     // Always combine country code + phone number in E.164 format
     // This ensures the number ALWAYS has a country code
     const fullNumber = selectedCountry.dialCode + digitsOnly;
     onChange(fullNumber);
   };
 
-  const handleCountrySelect = (country) => {
+  const handleCountrySelect = country => {
     setSelectedCountry(country);
     setDropdownOpen(false);
     setSearchTerm('');
-    
+
     // Update parent with new country code
     const fullNumber = country.dialCode + phoneNumber;
     onChange(fullNumber);
   };
 
-  const filteredCountries = COUNTRIES.filter((country) =>
-    country.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    country.dialCode.includes(searchTerm)
+  const filteredCountries = COUNTRIES.filter(
+    country =>
+      country.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      country.dialCode.includes(searchTerm)
   );
 
   return (
@@ -117,7 +124,10 @@ export default function PhoneInput({ value, onChange, disabled, className, place
           >
             <span className="country-flag">{selectedCountry.flag}</span>
             <span className="country-code">{selectedCountry.dialCode}</span>
-            <ChevronDown size={16} className={`chevron ${dropdownOpen ? 'open' : ''}`} />
+            <ChevronDown
+              size={16}
+              className={`chevron ${dropdownOpen ? 'open' : ''}`}
+            />
           </button>
 
           {dropdownOpen && (
@@ -127,14 +137,14 @@ export default function PhoneInput({ value, onChange, disabled, className, place
                   type="text"
                   placeholder="Search country..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={e => setSearchTerm(e.target.value)}
                   className="country-search-input"
                   autoFocus
                 />
               </div>
               <div className="country-list">
                 {filteredCountries.length > 0 ? (
-                  filteredCountries.map((country) => (
+                  filteredCountries.map(country => (
                     <button
                       key={country.code}
                       type="button"
@@ -145,7 +155,9 @@ export default function PhoneInput({ value, onChange, disabled, className, place
                     >
                       <span className="country-flag">{country.flag}</span>
                       <span className="country-name">{country.name}</span>
-                      <span className="country-dial-code">{country.dialCode}</span>
+                      <span className="country-dial-code">
+                        {country.dialCode}
+                      </span>
                     </button>
                   ))
                 ) : (
@@ -166,11 +178,12 @@ export default function PhoneInput({ value, onChange, disabled, className, place
           disabled={disabled}
         />
       </div>
-      
+
       {/* Helper text showing full E.164 number */}
       {phoneNumber && (
         <div className="phone-preview">
-          {selectedCountry.dialCode}{phoneNumber}
+          {selectedCountry.dialCode}
+          {phoneNumber}
         </div>
       )}
     </div>

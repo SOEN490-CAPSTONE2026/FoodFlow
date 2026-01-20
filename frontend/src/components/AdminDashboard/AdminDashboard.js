@@ -1,18 +1,18 @@
-import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
-import AdminLayout from "./AdminLayout";
-import AdminHome from "./AdminHome";
-import AdminAnalytics from "./AdminAnalytics";
-import AdminCalendar from "./AdminCalendar";
-import AdminMessages from "./AdminMessages.js";
-import AdminHelp from "./AdminHelp";
-import AdminWelcome from "./AdminWelcome";
-import AdminUsers from "./AdminUsers";
-import AdminDisputes from "./AdminDisputes";
-import AdminDisputeDetail from "./AdminDisputeDetail";
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import AdminLayout from './AdminLayout';
+import AdminHome from './AdminHome';
+import AdminAnalytics from './AdminAnalytics';
+import AdminCalendar from './AdminCalendar';
+import AdminMessages from './AdminMessages.js';
+import AdminHelp from './AdminHelp';
+import AdminWelcome from './AdminWelcome';
+import AdminUsers from './AdminUsers';
+import AdminDisputes from './AdminDisputes';
+import AdminDisputeDetail from './AdminDisputeDetail';
 
-import AdminSettings from "./AdminSettings";
-import AdminDonations from "./AdminDonations";
+import AdminSettings from './AdminSettings';
+import AdminDonations from './AdminDonations';
 
 export default function AdminDashboard() {
   return (

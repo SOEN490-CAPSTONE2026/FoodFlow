@@ -8,15 +8,23 @@ const mockIntersectionObserver = jest.fn();
 mockIntersectionObserver.mockReturnValue({
   observe: () => null,
   unobserve: () => null,
-  disconnect: () => null
+  disconnect: () => null,
 });
 window.IntersectionObserver = mockIntersectionObserver;
 
 // Mock child components
-jest.mock('../components/Footer', () => () => <div data-testid="footer">Footer</div>);
-jest.mock('../components/LandingPage/Home', () => () => <div data-testid="home">Home</div>);
-jest.mock('../components/LandingPage/AboutUs', () => () => <div data-testid="about-us">AboutUs</div>);
-jest.mock('../components/LandingPage/FAQ', () => () => <div data-testid="faq">FAQ</div>);
+jest.mock('../components/Footer', () => () => (
+  <div data-testid="footer">Footer</div>
+));
+jest.mock('../components/LandingPage/Home', () => () => (
+  <div data-testid="home">Home</div>
+));
+jest.mock('../components/LandingPage/AboutUs', () => () => (
+  <div data-testid="about-us">AboutUs</div>
+));
+jest.mock('../components/LandingPage/FAQ', () => () => (
+  <div data-testid="faq">FAQ</div>
+));
 
 jest.mock('../components/LandingPage/HowItWorks', () => () => (
   <section id="how-it-works">
@@ -32,12 +40,8 @@ jest.mock('react-router-dom', () => ({
 }));
 
 describe('LandingPage', () => {
-  const renderWithRouter = (component) => {
-    return render(
-      <BrowserRouter>
-        {component}
-      </BrowserRouter>
-    );
+  const renderWithRouter = component => {
+    return render(<BrowserRouter>{component}</BrowserRouter>);
   };
 
   beforeEach(() => {
@@ -63,32 +67,46 @@ describe('LandingPage', () => {
 
   test('renders sections with correct IDs', () => {
     renderWithRouter(<LandingPage />);
-    expect(screen.getByTestId('home').closest('section')).toHaveAttribute('id', 'home');
-    expect(screen.getByTestId('how-it-works').closest('section')).toHaveAttribute('id', 'how-it-works');
-    expect(screen.getByTestId('about-us').closest('section')).toHaveAttribute('id', 'about');
-    expect(screen.getByTestId('faq').closest('section')).toHaveAttribute('id', 'faqs');
-    expect(screen.getByTestId('footer').closest('section')).toHaveAttribute('id', 'contact');
+    expect(screen.getByTestId('home').closest('section')).toHaveAttribute(
+      'id',
+      'home'
+    );
+    expect(
+      screen.getByTestId('how-it-works').closest('section')
+    ).toHaveAttribute('id', 'how-it-works');
+    expect(screen.getByTestId('about-us').closest('section')).toHaveAttribute(
+      'id',
+      'about'
+    );
+    expect(screen.getByTestId('faq').closest('section')).toHaveAttribute(
+      'id',
+      'faqs'
+    );
+    expect(screen.getByTestId('footer').closest('section')).toHaveAttribute(
+      'id',
+      'contact'
+    );
   });
 
   test('scrolls to section when location.state.scrollTo is provided', async () => {
     // Mock location with scrollTo state
     mockUseLocation.mockReturnValue({
-      state: { scrollTo: 'about' }
+      state: { scrollTo: 'about' },
     });
 
     // Mock getBoundingClientRect
     const mockGetBoundingClientRect = jest.fn().mockReturnValue({
-      top: 500
+      top: 500,
     });
-    
+
     // Store original getElementById
     const originalGetElementById = document.getElementById;
-    
+
     // Mock getElementById to return an element with getBoundingClientRect
-    document.getElementById = jest.fn((id) => {
+    document.getElementById = jest.fn(id => {
       if (id === 'about') {
         return {
-          getBoundingClientRect: mockGetBoundingClientRect
+          getBoundingClientRect: mockGetBoundingClientRect,
         };
       }
       return originalGetElementById.call(document, id);
@@ -97,7 +115,7 @@ describe('LandingPage', () => {
     // Mock pageYOffset
     Object.defineProperty(window, 'pageYOffset', {
       writable: true,
-      value: 100
+      value: 100,
     });
 
     renderWithRouter(<LandingPage />);
@@ -110,7 +128,7 @@ describe('LandingPage', () => {
       expect(mockGetBoundingClientRect).toHaveBeenCalled();
       expect(window.scrollTo).toHaveBeenCalledWith({
         top: 520, // 500 (elementPosition) + 100 (pageYOffset) - 80 (navbarHeight)
-        behavior: 'smooth'
+        behavior: 'smooth',
       });
     });
 
@@ -120,7 +138,7 @@ describe('LandingPage', () => {
 
   test('does not scroll when location.state.scrollTo is not provided', () => {
     mockUseLocation.mockReturnValue({
-      state: null
+      state: null,
     });
 
     renderWithRouter(<LandingPage />);
@@ -133,14 +151,14 @@ describe('LandingPage', () => {
 
   test('handles case when scrollTo element does not exist', async () => {
     mockUseLocation.mockReturnValue({
-      state: { scrollTo: 'non-existent-section' }
+      state: { scrollTo: 'non-existent-section' },
     });
 
     // Store original getElementById
     const originalGetElementById = document.getElementById;
-    
+
     // Mock getElementById to return null for non-existent section
-    document.getElementById = jest.fn((id) => {
+    document.getElementById = jest.fn(id => {
       if (id === 'non-existent-section') {
         return null;
       }
@@ -153,7 +171,9 @@ describe('LandingPage', () => {
     jest.advanceTimersByTime(300);
 
     await waitFor(() => {
-      expect(document.getElementById).toHaveBeenCalledWith('non-existent-section');
+      expect(document.getElementById).toHaveBeenCalledWith(
+        'non-existent-section'
+      );
     });
 
     // scrollTo should not be called if element doesn't exist
@@ -168,20 +188,20 @@ describe('LandingPage', () => {
 
     for (const sectionId of testCases) {
       jest.clearAllMocks();
-      
+
       mockUseLocation.mockReturnValue({
-        state: { scrollTo: sectionId }
+        state: { scrollTo: sectionId },
       });
 
       const mockGetBoundingClientRect = jest.fn().mockReturnValue({
-        top: 300
+        top: 300,
       });
 
       const originalGetElementById = document.getElementById;
-      document.getElementById = jest.fn((id) => {
+      document.getElementById = jest.fn(id => {
         if (id === sectionId) {
           return {
-            getBoundingClientRect: mockGetBoundingClientRect
+            getBoundingClientRect: mockGetBoundingClientRect,
           };
         }
         return originalGetElementById.call(document, id);
@@ -189,7 +209,7 @@ describe('LandingPage', () => {
 
       Object.defineProperty(window, 'pageYOffset', {
         writable: true,
-        value: 50
+        value: 50,
       });
 
       const { unmount } = renderWithRouter(<LandingPage />);
@@ -200,7 +220,7 @@ describe('LandingPage', () => {
         expect(document.getElementById).toHaveBeenCalledWith(sectionId);
         expect(window.scrollTo).toHaveBeenCalledWith({
           top: 270, // 300 + 50 - 80
-          behavior: 'smooth'
+          behavior: 'smooth',
         });
       });
 

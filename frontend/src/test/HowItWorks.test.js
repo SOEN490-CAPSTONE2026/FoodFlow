@@ -20,7 +20,7 @@ describe('HowItWorks Component', () => {
     global.IntersectionObserver = jest.fn((callback, options) => {
       observerCallback = callback;
       observerInstance = {
-        observe: jest.fn((element) => {
+        observe: jest.fn(element => {
           callback([{ isIntersecting: true, target: element }]);
         }),
         unobserve: jest.fn(),
@@ -39,7 +39,9 @@ describe('HowItWorks Component', () => {
 
     // Check header content
     expect(screen.getByText('How FoodFlow Works')).toBeInTheDocument();
-    expect(screen.getByText(/Surplus food reaches charities in minutes/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Surplus food reaches charities in minutes/)
+    ).toBeInTheDocument();
 
     // Check all step titles
     expect(screen.getByText('Post Surplus Instantly')).toBeInTheDocument();
@@ -47,16 +49,24 @@ describe('HowItWorks Component', () => {
     expect(screen.getByText('Tracked Safe Pickup')).toBeInTheDocument();
 
     // Check step descriptions
-    expect(screen.getByText(/Restaurants, events, and stores post surplus food/)).toBeInTheDocument();
-    expect(screen.getByText(/Our algorithm instantly alerts the nearest verified charity/)).toBeInTheDocument();
-    expect(screen.getByText(/Built-in food safety tracking logs temperature/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Restaurants, events, and stores post surplus food/)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Our algorithm instantly alerts the nearest verified charity/
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Built-in food safety tracking logs temperature/)
+    ).toBeInTheDocument();
 
     // Check step numbers
     expect(screen.getByText('01')).toBeInTheDocument();
     expect(screen.getByText('02')).toBeInTheDocument();
     expect(screen.getByText('03')).toBeInTheDocument();
 
-    // Check floating food elements 
+    // Check floating food elements
     expect(screen.getByText('🍎')).toBeInTheDocument();
     expect(screen.getByText('🥖')).toBeInTheDocument();
     expect(screen.getByText('🥦')).toBeInTheDocument();
@@ -116,8 +126,8 @@ describe('HowItWorks Component', () => {
     render(<HowItWorks />);
 
     const stepCards = document.querySelectorAll('.hiw-step-card');
-    
-    stepCards.forEach((card) => {
+
+    stepCards.forEach(card => {
       expect(card.querySelector('.hiw-step-visual')).toBeInTheDocument();
       expect(card.querySelector('.hiw-step-icon')).toBeInTheDocument();
       expect(card.querySelector('.hiw-icon-circle')).toBeInTheDocument();
@@ -133,7 +143,7 @@ describe('HowItWorks Component', () => {
 
     const floatingFoods = document.querySelectorAll('.hiw-floating-food');
     expect(floatingFoods.length).toBe(4);
-    
+
     // Check they have the correct classes
     expect(document.querySelector('.hiw-food-1')).toBeInTheDocument();
     expect(document.querySelector('.hiw-food-2')).toBeInTheDocument();
@@ -148,11 +158,11 @@ describe('HowItWorks Component - Animation Behavior', () => {
 
   beforeEach(() => {
     jest.useFakeTimers();
-    
-    global.IntersectionObserver = jest.fn((callback) => {
+
+    global.IntersectionObserver = jest.fn(callback => {
       observerCallback = callback;
       return {
-        observe: jest.fn((element) => {
+        observe: jest.fn(element => {
           callback([{ isIntersecting: true, target: element }]);
         }),
         unobserve: jest.fn(),
@@ -192,15 +202,15 @@ describe('HowItWorks Component - Animation Behavior', () => {
 
     // Advance through all steps
     act(() => {
-      jest.advanceTimersByTime(3500); 
+      jest.advanceTimersByTime(3500);
     });
-    
+
     act(() => {
-      jest.advanceTimersByTime(3500); 
+      jest.advanceTimersByTime(3500);
     });
-    
+
     act(() => {
-      jest.advanceTimersByTime(3500); 
+      jest.advanceTimersByTime(3500);
     });
 
     // Should be back at first step
@@ -214,14 +224,14 @@ describe('HowItWorks Component - Animation Behavior', () => {
     render(<HowItWorks />);
 
     const progressBars = document.querySelectorAll('.hiw-progress-bar');
-    
+
     // First progress bar should be animating
     expect(progressBars[0]).toHaveClass('hiw-animating');
   });
 
   test('component handles timer cleanup on unmount', () => {
     const { unmount } = render(<HowItWorks />);
-    
+
     // Should not throw error when unmounting
     expect(() => {
       unmount();
@@ -241,12 +251,12 @@ describe('HowItWorks Component - Animation Behavior', () => {
 
   test('animation does not start before component is in view', () => {
     // Create a mock that doesn't trigger intersection
-    global.IntersectionObserver = jest.fn((callback) => ({
+    global.IntersectionObserver = jest.fn(callback => ({
       observe: jest.fn(), // Don't call the callback
       unobserve: jest.fn(),
       disconnect: jest.fn(),
     }));
-    
+
     render(<HowItWorks />);
 
     act(() => {
@@ -262,8 +272,8 @@ describe('HowItWorks Component - Animation Behavior', () => {
 // Tests for specific step content
 describe('HowItWorks Component - Step Content', () => {
   beforeEach(() => {
-    global.IntersectionObserver = jest.fn((callback) => ({
-      observe: jest.fn((element) => {
+    global.IntersectionObserver = jest.fn(callback => ({
+      observe: jest.fn(element => {
         callback([{ isIntersecting: true, target: element }]);
       }),
       unobserve: jest.fn(),
@@ -279,7 +289,9 @@ describe('HowItWorks Component - Step Content', () => {
     render(<HowItWorks />);
 
     expect(screen.getByText('Post Surplus Instantly')).toBeInTheDocument();
-    expect(screen.getByText(/Restaurants, events, and stores post surplus food/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Restaurants, events, and stores post surplus food/)
+    ).toBeInTheDocument();
     expect(screen.getByText('01')).toBeInTheDocument();
   });
 
@@ -287,7 +299,11 @@ describe('HowItWorks Component - Step Content', () => {
     render(<HowItWorks />);
 
     expect(screen.getByText('Smart Instant Matching')).toBeInTheDocument();
-    expect(screen.getByText(/Our algorithm instantly alerts the nearest verified charity/)).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Our algorithm instantly alerts the nearest verified charity/
+      )
+    ).toBeInTheDocument();
     expect(screen.getByText('02')).toBeInTheDocument();
   });
 
@@ -295,7 +311,9 @@ describe('HowItWorks Component - Step Content', () => {
     render(<HowItWorks />);
 
     expect(screen.getByText('Tracked Safe Pickup')).toBeInTheDocument();
-    expect(screen.getByText(/Built-in food safety tracking logs temperature/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Built-in food safety tracking logs temperature/)
+    ).toBeInTheDocument();
     expect(screen.getByText('03')).toBeInTheDocument();
   });
 });

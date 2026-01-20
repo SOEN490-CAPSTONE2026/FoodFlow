@@ -1,622 +1,624 @@
 * {
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 body {
-    margin: 0;
+  margin: 0;
 }
 
 .donor-layout {
-    display: flex;
-    height: 100vh;
-    background: #F7FBFD;
-    overflow: hidden;
+  display: flex;
+  height: 100vh;
+  background: #f7fbfd;
+  overflow: hidden;
 }
 
 /* Mobile Header */
 .mobile-header {
-    display: none;
-    background: #1B4965;
-    color: #fff;
-    padding: 12px 16px;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1001;
-    align-items: center;
-    justify-content: space-between;
-    height: 60px;
+  display: none;
+  background: #1b4965;
+  color: #fff;
+  padding: 12px 16px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1001;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
 }
 
 .mobile-logo {
-    height: 36px;
-    width: auto;
-    object-fit: contain;
+  height: 36px;
+  width: auto;
+  object-fit: contain;
 }
 
 .hamburger-btn {
-    background: none;
-    border: none;
-    color: #fff;
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 4px;
-    transition: background-color 0.2s;
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
 }
 
 .hamburger-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .mobile-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 999;
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
 }
 
 .donor-sidebar {
-    width: 260px;
-    background: #1B4965;
-    color: #fff;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    transition: width 0.3s ease, transform 0.3s ease;
-    position: fixed;
-    height: 100vh;
-    left: 0;
-    top: 0;
-    z-index: 1000;
-    overflow: visible;
+  width: 260px;
+  background: #1b4965;
+  color: #fff;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  transition:
+    width 0.3s ease,
+    transform 0.3s ease;
+  position: fixed;
+  height: 100vh;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+  overflow: visible;
 }
 
 .donor-sidebar.collapsed {
-    width: 70px;
+  width: 70px;
 }
 
 .donor-sidebar.collapsed .donor-logo {
-    display: none;
+  display: none;
 }
 
 .donor-sidebar.collapsed .donor-sidebar-header {
-    padding: 16px 8px;
-    justify-content: center;
-    border-bottom: 1px solid rgba(255, 255, 255, .1);
+  padding: 16px 8px;
+  justify-content: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .donor-sidebar.collapsed .sidebar-toggle-btn {
-    position: relative;
-    top: auto;
-    right: auto;
-    transform: none;
-    margin: 0 auto;
+  position: relative;
+  top: auto;
+  right: auto;
+  transform: none;
+  margin: 0 auto;
 }
 
 .donor-sidebar.collapsed .donor-nav-links {
-    padding: 24px 8px;
+  padding: 24px 8px;
 }
 
 .donor-sidebar.collapsed .donor-nav-link {
-    justify-content: center;
-    padding: 14px 8px;
-    gap: 0;
-    font-size: 0;
+  justify-content: center;
+  padding: 14px 8px;
+  gap: 0;
+  font-size: 0;
 }
 
 .donor-sidebar.collapsed .donor-nav-link .nav-icon {
-    font-size: 16px;
+  font-size: 16px;
 }
 
 .donor-sidebar.collapsed .donor-nav-link::before {
-    display: none;
+  display: none;
 }
 
 .donor-sidebar.collapsed .donor-nav-bottom {
-    padding: 16px 8px;
+  padding: 16px 8px;
 }
 
 .donor-sidebar.collapsed .account-text {
-    display: none;
+  display: none;
 }
 
 .donor-sidebar.collapsed .account-avatar {
-    width: 36px;
-    height: 36px;
-    flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
 }
 
 .donor-sidebar.collapsed .account-dotted-menu {
-    display: flex;
-    margin: 0 auto;
+  display: flex;
+  margin: 0 auto;
 }
 
 .donor-sidebar.collapsed .user-profile-pic {
-    justify-content: center;
-    padding: 6px 0;
-    gap: 0;
+  justify-content: center;
+  padding: 6px 0;
+  gap: 0;
 }
 
 .donor-sidebar.collapsed .account-row {
-    justify-content: center;
-    flex-direction: column;
-    gap: 8px;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .donor-sidebar.collapsed ~ .donor-main {
-    margin-left: 70px;
+  margin-left: 70px;
 }
 
 /* Tooltips for collapsed sidebar */
 .donor-sidebar.collapsed .donor-nav-link {
-    position: relative;
+  position: relative;
 }
 
 .donor-sidebar.collapsed .donor-nav-link::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    left: calc(100% + 12px);
-    top: 50%;
-    transform: translateY(-50%);
-    background: #1B4965;
-    color: #fff;
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-size: 14px;
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease;
-    z-index: 1000;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  content: attr(data-tooltip);
+  position: absolute;
+  left: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: #1b4965;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 1000;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .donor-sidebar.collapsed .donor-nav-link:hover::after {
-    opacity: 1;
+  opacity: 1;
 }
 
 .donor-sidebar-header {
-    padding: 20px 16px;
-    border-bottom: 1px solid rgba(255, 255, 255, .1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    flex-shrink: 0;
+  padding: 20px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
 }
 
 .sidebar-toggle-btn {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    right: 16px;
-    background: rgba(255, 255, 255, 0.1);
-    border: none;
-    color: #fff;
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    z-index: 10;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
 }
 
 .sidebar-toggle-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-50%) scale(1.05);
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-50%) scale(1.05);
 }
 
 .donor-sidebar.collapsed .sidebar-toggle-btn {
-    position: relative;
-    top: auto;
-    right: auto;
-    transform: none;
-    margin: 0 auto;
+  position: relative;
+  top: auto;
+  right: auto;
+  transform: none;
+  margin: 0 auto;
 }
 
 .donor-sidebar.collapsed .sidebar-toggle-btn:hover {
-    transform: scale(1.05);
+  transform: scale(1.05);
 }
 
 .donor-logo {
-    display: block;
-    height: 100px;
-    width: auto;
-    max-width: 180px;
-    object-fit: contain;
-    margin: 0 auto;
-    transition: all 0.3s ease;
+  display: block;
+  height: 100px;
+  width: auto;
+  max-width: 180px;
+  object-fit: contain;
+  margin: 0 auto;
+  transition: all 0.3s ease;
 }
 
 .donor-sidebar.collapsed .donor-logo {
-    display: none;
+  display: none;
 }
 
 .donor-sidebar.collapsed .donor-sidebar-header {
-    padding: 10px 0;
-    margin-bottom: 10px;
+  padding: 10px 0;
+  margin-bottom: 10px;
 }
 
 .donor-nav-links {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 24px 16px;
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px 16px;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .donor-nav-links::-webkit-scrollbar {
-    width: 4px;
+  width: 4px;
 }
 
 .donor-nav-links::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .donor-nav-links::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 2px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
 }
 
 .donor-nav-links::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .donor-sidebar.collapsed .donor-nav-links {
-    padding: 0 8px;
+  padding: 0 8px;
 }
 
 .donor-nav-link {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 16px;
-    color: rgba(255, 255, 255, .92);
-    text-decoration: none;
-    border-radius: 12px;
-    transition: all .2s ease;
-    font-size: 15px;
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    cursor: pointer;
-    position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  color: rgba(255, 255, 255, 0.92);
+  text-decoration: none;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  font-size: 15px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
 }
 
 .donor-nav-link::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 4px;
-    height: 0;
-    background: #fff;
-    border-radius: 0 4px 4px 0;
-    transition: height 0.2s ease;
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 0;
+  background: #fff;
+  border-radius: 0 4px 4px 0;
+  transition: height 0.2s ease;
 }
 
 .donor-nav-link.active::before {
-    height: 60%;
+  height: 60%;
 }
 
 .donor-sidebar.collapsed .donor-nav-link {
-    justify-content: center;
-    padding: 12px 8px;
+  justify-content: center;
+  padding: 12px 8px;
 }
 
 .donor-nav-link:hover {
-    background: rgba(255, 255, 255, .12);
-    color: #fff;
-    transform: translateX(4px);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  transform: translateX(4px);
 }
 
 .donor-nav-link.active {
-    background: linear-gradient(135deg, #62B6CB 0%, #3577a0 100%);
-    color: #fff;
-    font-weight: 600;
-    box-shadow: 0 4px 12px rgba(98, 182, 203, 0.3);
+  background: linear-gradient(135deg, #62b6cb 0%, #3577a0 100%);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(98, 182, 203, 0.3);
 }
 
 .nav-icon {
-    display: inline-flex;
-    width: 22px;
-    height: 22px;
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
+  display: inline-flex;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
 }
 
 .nav-icon .lucide {
-    width: 20px;
-    height: 20px;
-    stroke: currentColor;
-    transition: transform 0.2s ease;
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  transition: transform 0.2s ease;
 }
 
 .donor-nav-link:hover .nav-icon .lucide {
-    transform: scale(1.1);
+  transform: scale(1.1);
 }
 
 .donor-nav-link.disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .donor-nav-link.disabled:hover {
-    background: transparent;
-    transform: none;
+  background: transparent;
+  transform: none;
 }
 
 .donor-nav-link.disabled:hover .nav-icon .lucide {
-    transform: none;
+  transform: none;
 }
 
 .donor-user {
-    position: relative;
-    overflow: visible;
-    z-index: 100;
+  position: relative;
+  overflow: visible;
+  z-index: 100;
 }
 
 .user-profile-pic {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    width: 100%;
-    padding: 8px 0;
-    border-radius: 12px;
-    border: none;
-    background: transparent;
-    color: #fff;
-    font-size: 15px;
-    cursor: default;
-    justify-content: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 0;
+  border-radius: 12px;
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-size: 15px;
+  cursor: default;
+  justify-content: flex-start;
 }
 
 .account-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #62B6CB 0%, #3577a0 100%);
-    flex: 0 0 40px;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 16px;
-    color: #fff;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #62b6cb 0%, #3577a0 100%);
+  flex: 0 0 40px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 16px;
+  color: #fff;
 }
 
 .account-name {
-    font-weight: 600;
-    line-height: 1.3;
-    font-size: 15px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  font-weight: 600;
+  line-height: 1.3;
+  font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .account-role {
-    font-size: 12px;
-    opacity: .7;
-    margin-top: 2px;
-    text-transform: capitalize;
+  font-size: 12px;
+  opacity: 0.7;
+  margin-top: 2px;
+  text-transform: capitalize;
 }
 
 .account-text {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .account-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .account-dotted-menu {
-    background: none;
-    border: none;
-    padding: 6px;
-    border-radius: 8px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: #fff;
-    opacity: .9;
+  background: none;
+  border: none;
+  padding: 6px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #fff;
+  opacity: 0.9;
 }
 
 .account-dotted-menu:hover {
-    background: rgba(255, 255, 255, .08);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .account-menu {
-    position: absolute;
-    left: calc(100% + 12px);
-    bottom: 0;
-    min-width: 200px;
-    background: #1B4965;
-    border: 1px solid rgba(255, 255, 255, .15);
-    border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, .3);
-    overflow: hidden;
-    z-index: 10000;
-    animation: popIn 0.15s ease;
+  position: absolute;
+  left: calc(100% + 12px);
+  bottom: 0;
+  min-width: 200px;
+  background: #1b4965;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  z-index: 10000;
+  animation: popIn 0.15s ease;
 }
 
 @keyframes popIn {
-    from {
-        opacity: 0;
-        transform: scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .donor-sidebar.collapsed .account-menu {
-    left: calc(100% + 12px);
-    bottom: 0;
-    animation: popIn 0.15s ease;
+  left: calc(100% + 12px);
+  bottom: 0;
+  animation: popIn 0.15s ease;
 }
 
 .account-menu-item {
-    width: 100%;
-    text-align: left;
-    padding: 12px 14px;
-    font-size: 14px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    transition: background-color .2s ease;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  font-size: 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .account-menu-item:hover {
-    background: rgba(255, 255, 255, .08);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .account-menu-item.logout {
-    color: #fff;
-    font-weight: 600;
+  color: #fff;
+  font-weight: 600;
 }
 
 .account-menu-item.logout:hover {
-    background: rgba(255, 255, 255, .12);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .account-menu-divider {
-    height: 1px;
-    background: rgba(255, 255, 255, .12);
-    margin: 4px 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.12);
+  margin: 4px 0;
 }
 
 .donor-nav-bottom {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 16px;
-    border-top: 1px solid rgba(255, 255, 255, .1);
-    flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
 }
 
 .donor-sidebar-footer {
-    padding: 16px;
-    border-top: 1px solid rgba(255, 255, 255, .1);
-    position: relative;
-    flex-shrink: 0;
-    overflow: visible;
-    z-index: 100;
+  padding: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  flex-shrink: 0;
+  overflow: visible;
+  z-index: 100;
 }
 
 .donor-main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    margin-left: 260px;
-    height: 100vh;
-    overflow: hidden;
-    transition: margin-left 0.3s ease;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  margin-left: 260px;
+  height: 100vh;
+  overflow: hidden;
+  transition: margin-left 0.3s ease;
 }
 
 .donor-sidebar.collapsed ~ .donor-main {
-    margin-left: 70px;
+  margin-left: 70px;
 }
 
 .donor-topbar {
-    background: #fff;
-    border-bottom: 1px solid #e2e8f0;
-    padding: 20px 32px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-    gap: 12px;
-    flex-shrink: 0;
-    position: relative;
-    z-index: 1;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 20px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .donor-topbar-left {
-    text-align: left;
+  text-align: left;
 }
 
 .donor-topbar-left h1 {
-    margin: 0;
-    font-size: 24px;
-    font-weight: 700;
-    color: #1B4965;
-    letter-spacing: -0.5px;
-    text-align: left;
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1b4965;
+  letter-spacing: -0.5px;
+  text-align: left;
 }
 
 .donor-topbar-left p {
-    margin: 4px 0 0;
-    font-size: 14px;
-    color: #64748b;
-    font-weight: 400;
-    text-align: left;
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 400;
+  text-align: left;
 }
 
 .donor-content {
-    padding: 32px;
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    scroll-behavior: smooth;
+  padding: 32px;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
 }
 
 .donor-content::-webkit-scrollbar {
-    width: 8px;
+  width: 8px;
 }
 
 .donor-content::-webkit-scrollbar-track {
-    background: #f1f5f9;
+  background: #f1f5f9;
 }
 
 .donor-content::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 4px;
+  background: #cbd5e1;
+  border-radius: 4px;
 }
 
 .donor-content::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
+  background: #94a3b8;
 }
 
 /* Remove padding for messaging page to allow full-screen messaging */
 .donor-content.messages-page {
-    padding: 0;
-    overflow: hidden;
-    position: relative;
+  padding: 0;
+  overflow: hidden;
+  position: relative;
 }
 
 .donor-nav-bottom {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 16px;
-    border-top: 1px solid rgba(255, 255, 255, .1);
-    flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
 }
 
 /* Responsive adjustments for mobile */
@@ -624,15 +626,15 @@ body {
   .mobile-header {
     display: flex;
   }
-  
+
   .mobile-overlay {
     display: block;
   }
-  
+
   .sidebar-toggle-btn {
     display: none;
   }
-  
+
   .donor-sidebar {
     transform: translateX(-100%);
     transition: transform 0.3s ease;
@@ -640,65 +642,65 @@ body {
     top: 60px;
     height: calc(100vh - 60px);
   }
-  
+
   .donor-sidebar-header {
     padding: 16px;
     display: none;
   }
-  
+
   .donor-logo {
     display: none;
   }
-  
+
   .donor-sidebar.mobile-open {
     transform: translateX(0);
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
   }
-  
+
   .donor-main {
     margin-left: 0;
     padding-top: 60px;
     height: 100vh;
   }
-  
+
   .donor-content {
     height: calc(100vh - 60px - 80px);
     padding: 16px;
   }
-  
+
   .donor-content.messages-page {
     height: calc(100vh - 60px);
     padding-top: 0;
   }
-  
+
   .donor-nav-links {
     padding: 16px 12px;
   }
-  
+
   .donor-nav-link {
     padding: 12px 14px;
   }
-  
+
   .donor-nav-bottom {
     padding: 12px;
   }
-  
+
   .donor-sidebar-footer {
     padding: 12px;
   }
-  
+
   .account-menu {
     position: absolute;
     left: calc(100% + 12px);
     bottom: 0;
     transform: none;
   }
-  
+
   .donor-topbar {
     padding: 16px 20px;
     position: relative;
   }
-  
+
   .donor-topbar-left h1 {
     font-size: 20px;
   }
@@ -708,16 +710,16 @@ body {
   .donor-sidebar {
     width: 260px;
   }
-  
+
   .donor-nav-link {
     padding: 10px 12px;
     font-size: 14px;
   }
-  
+
   .account-name {
     font-size: 14px;
   }
-  
+
   .mobile-logo {
     height: 32px;
   }
@@ -726,54 +728,51 @@ body {
 /* Remove old absolute positioning - no longer needed */
 
 @media (max-width: 1440px) {
-    .donor-content {
-        padding: 20px;
-    }
+  .donor-content {
+    padding: 20px;
+  }
 
-    .donor-topbar {
-        padding: 16px 24px;
-    }
+  .donor-topbar {
+    padding: 16px 24px;
+  }
 }
 
 @media (max-height: 800px) {
-    .donor-sidebar-header {
-        padding: 16px;
-    }
-    
-    .donor-logo {
-        height: 80px;
-    }
+  .donor-sidebar-header {
+    padding: 16px;
+  }
 
-    .donor-nav-links {
-        gap: 6px;
-        padding: 16px 12px;
-    }
+  .donor-logo {
+    height: 80px;
+  }
 
-    .donor-nav-link {
-        padding: 10px 14px;
-        font-size: 14px;
-        gap: 10px;
-    }
+  .donor-nav-links {
+    gap: 6px;
+    padding: 16px 12px;
+  }
 
-    .nav-icon {
-        width: 20px;
-        height: 20px;
-    }
+  .donor-nav-link {
+    padding: 10px 14px;
+    font-size: 14px;
+    gap: 10px;
+  }
 
-    .nav-icon .lucide {
-        width: 18px;
-        height: 18px;
-    }
+  .nav-icon {
+    width: 20px;
+    height: 20px;
+  }
 
-    .donor-nav-bottom {
-        padding: 12px;
-        gap: 6px;
-    }
-    
-    .donor-sidebar-footer {
-        padding: 12px;
-    }
+  .nav-icon .lucide {
+    width: 18px;
+    height: 18px;
+  }
+
+  .donor-nav-bottom {
+    padding: 12px;
+    gap: 6px;
+  }
+
+  .donor-sidebar-footer {
+    padding: 12px;
+  }
 }
-
-
-
