@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
-import { ChevronRight, ChevronDown, Search, UserCheck, Clock, Mail, Phone, MapPin, Building2, Calendar, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { ChevronRight, ChevronDown, Search, UserCheck, Clock, Mail, Phone, MapPin, Building2, Calendar, CheckCircle, XCircle, AlertCircle, FileText } from 'lucide-react';
 import { adminVerificationAPI } from '../../services/api';
 import './Admin_Styles/AdminVerificationQueue.css';
 import {
@@ -182,8 +182,9 @@ const RejectionModal = ({ user, onClose, onConfirm, loading }) => {
 const AdminVerificationQueue = () => {
   const [pendingUsers, setPendingUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  
   const [stats, setStats] = useState({
     totalPending: 0,
     pendingDonors: 0,
@@ -223,17 +224,25 @@ const AdminVerificationQueue = () => {
     setError(null);
 
     try {
-      const filters = {
-        userType: userTypeFilter || undefined,
-        search: debouncedSearchTerm || undefined,
-        sortBy: sortBy,
-        sortOrder: sortOrder,
+      // Build query parameters
+      const params = {
         page: currentPage,
         size: pageSize,
+        sortBy: sortBy,
+        sortOrder: sortOrder,
       };
 
-      const response = await adminVerificationAPI.getPendingUsers(filters);
+      if (userTypeFilter) {
+        params.role = userTypeFilter;
+      }
+
+      if (debouncedSearchTerm) {
+        params.search = debouncedSearchTerm;
+      }
+
+      const response = await adminVerificationAPI.getPendingUsers(params);
       const content = response.data.content || [];
+      const totalElements = response.data.totalElements || 0;
       const totalPagesCount = response.data.totalPages || 0;
 
       // Calculate stats
@@ -251,7 +260,7 @@ const AdminVerificationQueue = () => {
         : 0;
 
       setStats({
-        totalPending: content.length,
+        totalPending: totalElements,
         pendingDonors,
         pendingReceivers,
         avgWaitTime,
@@ -378,6 +387,20 @@ const AdminVerificationQueue = () => {
       hour: '2-digit',
       minute: '2-digit',
     });
+  };
+
+  // Format organization type
+  const formatOrgType = (type) => {
+    if (!type) return 'N/A';
+    return type.split('_').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    ).join(' ');
+  };
+
+  // Handle document view
+  const handleViewDocument = (documentName) => {
+    // In a real app, this would open the document
+    alert(`Viewing document: ${documentName}\n\nIn production, this would open the uploaded document for review.`);
   };
 
   // User type filter options
@@ -514,126 +537,274 @@ const AdminVerificationQueue = () => {
           </div>
         ) : (
           <>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead style={{ width: '40px' }}></TableHead>
-                  <TableHead>Organization</TableHead>
-                  <TableHead>Contact Name</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Registration Date</TableHead>
-                  <TableHead>Waiting Time</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredUsers.map((user) => (
-                  <React.Fragment key={user.id}>
-                    <TableRow className={expandedRows.has(user.id) ? 'expanded-row' : ''}>
-                      <TableCell>
-                        <button
-                          className="expand-btn"
-                          onClick={() => toggleRowExpansion(user.id)}
-                        >
-                          {expandedRows.has(user.id) ? (
-                            <ChevronDown size={18} />
-                          ) : (
-                            <ChevronRight size={18} />
-                          )}
-                        </button>
-                      </TableCell>
-                      <TableCell>
-                        <strong>{user.organizationName}</strong>
-                      </TableCell>
-                      <TableCell>{user.contactName}</TableCell>
-                      <TableCell>
-                        <span className={`role-badge ${user.role.toLowerCase()}`}>
-                          {user.role}
-                        </span>
-                      </TableCell>
-                      <TableCell>{user.email}</TableCell>
-                      <TableCell>{formatDate(user.createdAt)}</TableCell>
-                      <TableCell>
-                        <span className="waiting-time">
-                          <Clock size={14} />
-                          {getWaitingTime(user.createdAt)}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="action-buttons">
+            <div className="users-table-container">
+              <Table className="users-table verification-table">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead></TableHead>
+                    <TableHead>ID</TableHead>
+                    <TableHead>Organization</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Waiting Time</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredUsers.map((user) => (
+                    <React.Fragment key={user.id}>
+                      <TableRow className={expandedRows.has(user.id) ? 'expanded' : ''}>
+                        <TableCell>
                           <button
-                            className="btn-approve-small"
-                            onClick={() => {
-                              setSelectedUser(user);
-                              setShowApprovalModal(true);
-                            }}
-                            title="Approve"
+                            className="expand-btn"
+                            onClick={() => toggleRowExpansion(user.id)}
                           >
-                            <CheckCircle size={16} />
-                            Approve
+                            {expandedRows.has(user.id) ? (
+                              <ChevronDown size={18} />
+                            ) : (
+                              <ChevronRight size={18} />
+                            )}
                           </button>
-                          <button
-                            className="btn-reject-small"
-                            onClick={() => {
-                              setSelectedUser(user);
-                              setShowRejectionModal(true);
-                            }}
-                            title="Reject"
-                          >
-                            <XCircle size={16} />
-                            Reject
-                          </button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-
-                    {/* Expanded Row Details */}
-                    {expandedRows.has(user.id) && (
-                      <TableRow className="expanded-details">
-                        <TableCell colSpan={8}>
-                          <div className="user-details-grid">
-                            <div className="detail-section">
-                              <h4>Contact Information</h4>
-                              <div className="detail-item">
-                                <Mail size={16} />
-                                <span><strong>Email:</strong> {user.email}</span>
-                              </div>
-                              <div className="detail-item">
-                                <Phone size={16} />
-                                <span><strong>Phone:</strong> {user.phoneNumber || 'Not provided'}</span>
-                              </div>
-                            </div>
-
-                            <div className="detail-section">
-                              <h4>Address</h4>
-                              <div className="detail-item">
-                                <MapPin size={16} />
-                                <span>
-                                  {user.address?.street}, {user.address?.city}, {user.address?.state} {user.address?.zipCode}
-                                </span>
-                              </div>
-                            </div>
-
-                            <div className="detail-section">
-                              <h4>Organization Details</h4>
-                              <div className="detail-item">
-                                <Building2 size={16} />
-                                <span><strong>Organization:</strong> {user.organizationName}</span>
-                              </div>
-                              <div className="detail-item">
-                                <Calendar size={16} />
-                                <span><strong>Registered:</strong> {formatDate(user.createdAt)}</span>
-                              </div>
-                            </div>
+                        </TableCell>
+                        <TableCell className="id-cell">{user.id}</TableCell>
+                        <TableCell>
+                          <div className="user-name-info">
+                            <div className="user-name">{user.organizationName}</div>
+                            <div className="user-org">{user.contactName}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className={`pill pill-${user.role.toLowerCase()}`}>
+                            {user.role === 'DONOR' ? 'Donor' : 'Receiver'}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="pill pill-pending">
+                            Pending Approval
+                          </span>
+                        </TableCell>
+                        <TableCell className="email-cell">{user.email}</TableCell>
+                        <TableCell>{user.phoneNumber || 'N/A'}</TableCell>
+                        <TableCell>
+                          <span className="waiting-time">
+                            <Clock size={14} />
+                            {getWaitingTime(user.createdAt)}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="action-buttons">
+                              <button
+                                className="btn-approve-small"
+                                onClick={() => {
+                                  setSelectedUser(user);
+                                  setShowApprovalModal(true);
+                                }}
+                                title="Approve"
+                              >
+                                <CheckCircle size={16} />
+                              </button>
+                              <button
+                                className="btn-reject-small"
+                                onClick={() => {
+                                  setSelectedUser(user);
+                                  setShowRejectionModal(true);
+                                }}
+                                title="Reject"
+                              >
+                                <XCircle size={16} />
+                              </button>
                           </div>
                         </TableCell>
                       </TableRow>
-                    )}
-                  </React.Fragment>
-                ))}
-              </TableBody>
-            </Table>
+
+                      {/* Expanded Row Details */}
+                      {expandedRows.has(user.id) && (
+                        <TableRow className="details-row">
+                          <TableCell colSpan="9">
+                            <div className="verification-detail-container">
+                              {/* Content Grid */}
+                              <div className="detail-content-grid">
+                                {/* Organization Identity */}
+                                <div className="detail-card">
+                                  <h3 className="card-title">Organization Identity</h3>
+                                  <div className="detail-item">
+                                    <span className="detail-label">Organization Name</span>
+                                    <span className="detail-value">{user.organizationName}</span>
+                                  </div>
+                                  <div className="detail-item">
+                                    <span className="detail-label">Organization Type</span>
+                                    <span className="detail-value">{formatOrgType(user.organizationType)}</span>
+                                  </div>
+                                  <div className="detail-item">
+                                    <span className="detail-label">Contact Person</span>
+                                    <span className="detail-value">{user.contactName}</span>
+                                  </div>
+                                  <div className="detail-item">
+                                    <Mail size={16} className="detail-icon" />
+                                    <span className="detail-label">Email</span>
+                                    <a href={`mailto:${user.email}`} className="detail-value-link">
+                                      {user.email}
+                                    </a>
+                                  </div>
+                                  <div className="detail-item">
+                                    <Phone size={16} className="detail-icon" />
+                                    <span className="detail-label">Phone</span>
+                                    <a href={`tel:${user.phoneNumber}`} className="detail-value-link">
+                                      {user.phoneNumber || 'Not provided'}
+                                    </a>
+                                  </div>
+                                  <div className="detail-item">
+                                    <MapPin size={16} className="detail-icon" />
+                                    <span className="detail-label">Location</span>
+                                    <span className="detail-value">
+                                      {user.address?.street}{user.address?.unit ? `, ${user.address.unit}` : ''}<br />
+                                      {user.address?.city}, {user.address?.state} {user.address?.zipCode}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* Verification & Trust */}
+                                <div className="detail-card">
+                                  <h3 className="card-title">Verification & Trust</h3>
+                                  {user.role === 'RECEIVER' ? (
+                                    <>
+                                      <div className="detail-item-highlight">
+                                        <CheckCircle size={18} className="verify-icon" />
+                                        <div>
+                                          <span className="detail-label">Charity Registration Number</span>
+                                          <span className="detail-value-emphasis">{user.charityRegistrationNumber || 'Not provided'}</span>
+                                        </div>
+                                      </div>
+                                      {user.supportingDocument && (
+                                        <div className="detail-item-document">
+                                          <div className="document-header">
+                                            <CheckCircle size={16} className="verified-badge" />
+                                            <span className="document-label">Supporting Document</span>
+                                          </div>
+                                          <button 
+                                            className="document-preview-btn"
+                                            onClick={() => handleViewDocument(user.supportingDocument)}
+                                          >
+                                            <FileText size={18} />
+                                            <div className="document-info">
+                                              <span className="document-name">{user.supportingDocument}</span>
+                                              <span className="document-action">Click to preview</span>
+                                            </div>
+                                          </button>
+                                        </div>
+                                      )}
+                                    </>
+                                  ) : (
+                                    <>
+                                      <div className="detail-item-highlight">
+                                        <CheckCircle size={18} className="verify-icon" />
+                                        <div>
+                                          <span className="detail-label">Business License Number</span>
+                                          <span className="detail-value-emphasis">{user.businessLicense || 'Not provided'}</span>
+                                        </div>
+                                      </div>
+                                      {user.supportingDocument && (
+                                        <div className="detail-item-document">
+                                          <div className="document-header">
+                                            <CheckCircle size={16} className="verified-badge" />
+                                            <span className="document-label">Supporting Document</span>
+                                          </div>
+                                          <button 
+                                            className="document-preview-btn"
+                                            onClick={() => handleViewDocument(user.supportingDocument)}
+                                          >
+                                            <FileText size={18} />
+                                            <div className="document-info">
+                                              <span className="document-name">{user.supportingDocument}</span>
+                                              <span className="document-action">Click to preview</span>
+                                            </div>
+                                          </button>
+                                        </div>
+                                      )}
+                                    </>
+                                  )}
+                                </div>
+
+                                {/* Capacity & Impact (for Receivers) or Additional Info (for Donors) */}
+                                <div className="detail-card">
+                                  {user.role === 'RECEIVER' ? (
+                                    <>
+                                      <h3 className="card-title">Capacity & Impact</h3>
+                                      <div className="capacity-stat-card">
+                                        <div className="capacity-number">
+                                          {user.capacity ? user.capacity.split(' ')[0] : 'N/A'}
+                                        </div>
+                                        <div className="capacity-label">
+                                          {user.capacity ? user.capacity.split(' ').slice(1).join(' ') : 'Not specified'}
+                                        </div>
+                                      </div>
+                                      <div className="verification-checklist">
+                                        <h4>Verification Checklist</h4>
+                                        <div className="checklist-item">
+                                          <CheckCircle size={16} className="check-icon" />
+                                          <span>Organization type provided</span>
+                                        </div>
+                                        <div className="checklist-item">
+                                          <CheckCircle size={16} className="check-icon" />
+                                          <span>Capacity provided</span>
+                                        </div>
+                                        <div className="checklist-item">
+                                          <CheckCircle size={16} className="check-icon" />
+                                          <span>Supporting documents uploaded</span>
+                                        </div>
+                                        <div className="checklist-item">
+                                          <CheckCircle size={16} className="check-icon" />
+                                          <span>Contact details complete</span>
+                                        </div>
+                                      </div>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <h3 className="card-title">Registration Details</h3>
+                                      <div className="detail-item">
+                                        <Calendar size={16} className="detail-icon" />
+                                        <span className="detail-label">Submitted</span>
+                                        <span className="detail-value">{formatDate(user.createdAt)}</span>
+                                      </div>
+                                      <div className="detail-item">
+                                        <Clock size={16} className="detail-icon" />
+                                        <span className="detail-label">Waiting Time</span>
+                                        <span className="detail-value">{getWaitingTime(user.createdAt)}</span>
+                                      </div>
+                                      <div className="verification-checklist">
+                                        <h4>Verification Checklist</h4>
+                                        <div className="checklist-item">
+                                          <CheckCircle size={16} className="check-icon" />
+                                          <span>Organization type provided</span>
+                                        </div>
+                                        <div className="checklist-item">
+                                          <CheckCircle size={16} className="check-icon" />
+                                          <span>Business license provided</span>
+                                        </div>
+                                        <div className="checklist-item">
+                                          <CheckCircle size={16} className="check-icon" />
+                                          <span>Supporting documents uploaded</span>
+                                        </div>
+                                        <div className="checklist-item">
+                                          <CheckCircle size={16} className="check-icon" />
+                                          <span>Contact details complete</span>
+                                        </div>
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
 
             {/* Pagination */}
             {totalPages > 1 && (
