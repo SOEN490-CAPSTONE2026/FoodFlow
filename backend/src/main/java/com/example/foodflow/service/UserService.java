@@ -110,6 +110,12 @@ public class UserService {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
     }
+
+    public UserDTO getProfile(User currentUser) {
+        User u = userRepository.findById(currentUser.getId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return UserDTO.toDTO(u);
+    }
     
     @SuppressWarnings("unchecked")
     public Map<String, Boolean> getNotificationTypePreferences(Long userId) {
