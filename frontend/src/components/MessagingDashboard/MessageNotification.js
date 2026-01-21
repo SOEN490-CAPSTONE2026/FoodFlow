@@ -18,14 +18,18 @@ const MessageNotification = ({ notification, onClose }) => {
 
   if (!notification) return null;
 
-  // For claim notifications, use senderName as the title directly
+  // For claim notifications and donation notifications, use senderName as the title directly
   const isClaimNotification = 
     notification.senderName === 'New Claim' || 
     notification.senderName === 'Claim Cancelled' ||
     notification.senderName === 'Claim Confirmed' ||
     notification.senderName === 'Claim Status';
   
-  const headerText = isClaimNotification 
+  const isDonationNotification = 
+    notification.senderName === '🔔 New Donation Available' ||
+    notification.senderName?.includes('New Donation');
+  
+  const headerText = (isClaimNotification || isDonationNotification)
     ? notification.senderName 
     : t('notifications.newMessageFrom', { senderName: notification.senderName });
 

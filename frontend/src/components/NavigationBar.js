@@ -5,6 +5,12 @@ import { AuthContext } from '../contexts/AuthContext';
 import { FaBars, FaTimes } from 'react-icons/fa';
 import Logo from "../assets/Logo.png";
 import '../style/NavigationBar.css';
+import ENIcon from '../assets/lang-icons/EN.svg';
+import FRIcon from '../assets/lang-icons/FR.svg';
+import ESIcon from '../assets/lang-icons/ES.svg';
+import ZHIcon from '../assets/lang-icons/ZH.svg';
+import ARIcon from '../assets/lang-icons/AR.svg';
+import PRIcon from '../assets/lang-icons/PR.svg';
 
 const NavigationBar = () => {
   const navigate = useNavigate();
@@ -168,7 +174,11 @@ const NavigationBar = () => {
                 onClick={toggleLangDropdown}
                 aria-label={t('language.select')}
               >
-                {currentLanguage.code.toUpperCase()} ▼
+                {currentLanguage.code.toUpperCase()}
+                <span className="lang-icon">
+                  <img src={selectedLanguage.icon} alt="" />
+                </span>
+                <span className="lang-name">{selectedLanguage.code.toUpperCase()}</span>
               </button>
               
               {isLangDropdownOpen && (
@@ -179,7 +189,7 @@ const NavigationBar = () => {
                       className={`lang-option ${i18n.language.split('-')[0] === lang.code ? 'selected' : ''}`}
                       onClick={() => handleLanguageSelect(lang.code)}
                     >
-                      <span className="lang-flag">{lang.flag}</span>
+                      <span className="lang-icon"><img src={lang.icon} alt={`${lang.name} icon`} /></span>
                       <span className="lang-name">{lang.name}</span>
                       {i18n.language.split('-')[0] === lang.code && <span className="lang-check">✓</span>}
                     </button>
@@ -211,7 +221,11 @@ const NavigationBar = () => {
               onClick={toggleLangDropdown}
               aria-label={t('language.select')}
             >
-              {currentLanguage.code.toUpperCase()} ▼
+              {currentLanguage.code.toUpperCase()}
+              <span className="lang-icon">
+                <img src={selectedLanguage.icon} alt="" />
+              </span>
+              <span className="lang-name">{selectedLanguage.code.toUpperCase()}</span>
             </button>
             
             {isLangDropdownOpen && (
@@ -222,7 +236,7 @@ const NavigationBar = () => {
                     className={`lang-option ${i18n.language.split('-')[0] === lang.code ? 'selected' : ''}`}
                     onClick={() => handleLanguageSelect(lang.code)}
                   >
-                    <span className="lang-flag">{lang.flag}</span>
+                    <span className="lang-icon"><img src={lang.icon} alt={`${lang.name} icon`} /></span>
                     <span className="lang-name">{lang.name}</span>
                     {i18n.language.split('-')[0] === lang.code && <span className="lang-check">✓</span>}
                   </button>

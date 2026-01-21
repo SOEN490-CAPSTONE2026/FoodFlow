@@ -24,7 +24,7 @@ function ReceiverLayoutContent() {
   const location = useLocation();
   const navigate = useNavigate();
   const navType = useNavigationType();
-  const { logout, organizationName } = React.useContext(AuthContext);
+  const { logout, organizationName, organizationVerificationStatus, role } = React.useContext(AuthContext);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
@@ -133,7 +133,17 @@ function ReceiverLayoutContent() {
       showNotification(t('notifications.claimStatus'), message);
     };
 
-    connectToUserQueue(onMessage, onClaimNotification, onClaimCancelled);
+    const onNewPostNotification = (payload) => {
+      console.log('RECEIVER: New post notification received:', payload);
+      const title = payload.title || 'New donation';
+      const quantity = payload.quantity || 0;
+      const matchReason = payload.matchReason || 'Matches your preferences';
+      const message = `${title} (${quantity} items) - ${matchReason}`;
+      console.log('RECEIVER: Showing notification:', message);
+      showNotification('🔔 New Donation Available', message);
+    };
+
+    connectToUserQueue(onMessage, onClaimNotification, onClaimCancelled, onNewPostNotification);
     return () => {
       try { disconnect(); } catch (e) { /* ignore */ }
     };
@@ -283,6 +293,11 @@ function ReceiverLayoutContent() {
         )}
 
         <div className={`receiver-content ${isMessagesPage ? 'messages-page' : ''}`}>
+          {role === 'RECEIVER' && organizationVerificationStatus === 'PENDING' && (
+            <div className="verification-banner" role="status" aria-live="polite">
+              Your account is pending verification. Some features may be limited until your organization is verified.
+            </div>
+          )}
           <Outlet />
           <MessageNotification
             notification={notification}

@@ -1,27 +1,32 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useContext } from "react";
 import { Outlet, useLocation, useNavigate, Link, useNavigationType } from "react-router-dom";
 import {
   Home,
   LayoutGrid,
+  Users,
   Heart,
   Calendar as CalendarIcon,
   FileText,
   Mail,
   ChevronRight,
+  ChevronLeft,
   ChevronDown,
   Settings,
   HelpCircle,
   MoreVertical,
   LogOut,
   Menu,
-  X
+  X,
+  AlertTriangle
 } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import Logo from "../../assets/Logo_White.png";
+import { AuthContext } from "../../contexts/AuthContext";
 import "./Admin_Styles/AdminLayout.css";
 
 export default function AdminLayout() {
   const { t } = useTranslation();
+  const { logout } = useContext(AuthContext);
   const location = useLocation();
   const navigate = useNavigate();
   const navType = useNavigationType();
@@ -29,6 +34,7 @@ export default function AdminLayout() {
   const [messagesOpen, setMessagesOpen] = useState(false);
   const [screenHeight, setScreenHeight] = useState(window.innerHeight);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const menuRef = useRef(null);
 
   const contacts = [
@@ -59,12 +65,16 @@ export default function AdminLayout() {
       case "/admin":
       case "/admin/dashboard":
         return t('admin.dashboard');
+      case "/admin/users":
+        return "User Management";
       case "/admin/analytics":
         return t('admin.analytics');
       case "/admin/calendar":
         return t('admin.calendar');
       case "/admin/messages":
         return t('admin.messages');
+      case "/admin/disputes":
+        return "Disputes & Reports";
       case "/admin/help":
         return t('admin.help');
       default:
@@ -77,12 +87,16 @@ export default function AdminLayout() {
       case "/admin":
       case "/admin/dashboard":
         return t('admin.overview');
+      case "/admin/users":
+        return "Manage and monitor all platform users";
       case "/admin/analytics":
         return t('admin.metrics');
       case "/admin/calendar":
         return t('admin.events');
       case "/admin/messages":
         return t('admin.communications');
+      case "/admin/disputes":
+        return "Track, review, and resolve reported issues";
       case "/admin/help":
         return t('admin.guides');
       default:
@@ -105,13 +119,9 @@ export default function AdminLayout() {
   }, [navType, location.pathname, navigate]);
 
   const handleLogout = () => {
-    try {
-    } finally {
-      localStorage.removeItem("token");
-      sessionStorage.clear();
-      setOpen(false);
-      navigate("/", { replace: true, state: { scrollTo: "home" } });
-    }
+    logout(); // Use AuthContext logout to clear all auth state
+    setOpen(false);
+    navigate("/", { replace: true, state: { scrollTo: "home" } });
   };
 
   const isActive = (path) => {
@@ -138,50 +148,52 @@ export default function AdminLayout() {
 
       {mobileMenuOpen && <div className="mobile-overlay" onClick={() => setMobileMenuOpen(false)}></div>}
 
-      <aside className={`admin-sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}>
+      <aside className={`admin-sidebar ${mobileMenuOpen ? 'mobile-open' : ''} ${sidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="admin-sidebar-header">
           <Link to="/" replace state={{ scrollTo: "home", from: "admin" }} aria-label="FoodFlow Home">
             <img src={Logo} alt="FoodFlow" className="admin-logo" />
           </Link>
+          <button 
+            className="sidebar-toggle-btn"
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            aria-label="Toggle sidebar"
+          >
+            {sidebarCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+          </button>
         </div>
 
-        <nav className="admin-nav-links">
-          <Link to="/admin/welcome" className={`admin-nav-link ${isActive("/admin/welcome") ? "active" : ""}`}>
+        <nav className="admin-nav-links" style={{ flex: '0 1 auto' }}>
+          <Link to="/admin/welcome" className={`admin-nav-link ${isActive("/admin/welcome") ? "active" : ""}`} data-tooltip="Home">
             <span className="nav-icon" aria-hidden>
               <Home size={18} className="lucide" />
             </span>
             Home
           </Link>
 
-          <Link to="/admin" className={`admin-nav-link ${isActive("/admin") ? "active" : ""}`}>
+
+          <Link to="/admin/users" className={`admin-nav-link ${isActive("/admin/users") ? "active" : ""}`} data-tooltip="Users">
             <span className="nav-icon" aria-hidden>
-              <LayoutGrid size={18} className="lucide" />
+              <Users size={18} className="lucide" />
             </span>
-            Dashboard
+            Users
           </Link>
 
-          <Link to="/admin/analytics" className={`admin-nav-link ${isActive("/admin/analytics") ? "active" : ""}`}>
+
+          <Link to="/admin/donations" className={`admin-nav-link ${isActive("/admin/donations") ? "active" : ""}`} data-tooltip="Donations">
             <span className="nav-icon" aria-hidden>
               <Heart size={18} className="lucide" />
             </span>
             Donations
           </Link>
 
-          <Link to="/admin/calendar" className={`admin-nav-link ${isActive("/admin/calendar") ? "active" : ""}`}>
+          <Link to="/admin/disputes" className={`admin-nav-link ${isActive("/admin/disputes") ? "active" : ""}`} data-tooltip="Disputes">
             <span className="nav-icon" aria-hidden>
-              <CalendarIcon size={18} className="lucide" />
+              <AlertTriangle size={18} className="lucide" />
             </span>
-            Compliance Queue
+            Disputes
           </Link>
 
-          <Link to="/admin/help" className={`admin-nav-link ${isActive("/admin/help") ? "active" : ""}`}>
-            <span className="nav-icon" aria-hidden>
-              <FileText size={18} className="lucide" />
-            </span>
-            Activity log
-          </Link>
-
-          <div className={`admin-nav-link messages-link ${isActive("/admin/messages") ? "active" : ""}`}>
+          <div className={`admin-nav-link messages-link ${isActive("/admin/messages") ? "active" : ""}`} data-tooltip="Messages">
             <div onClick={() => navigate("/admin/messages")} className="messages-left">
               <span className="nav-icon" aria-hidden>
                 <Mail size={18} className="lucide" />
@@ -205,22 +217,29 @@ export default function AdminLayout() {
           )}
         </nav>
 
-        <div className="admin-nav-bottom nav-bottom-abs">
-          <div className="admin-nav-link disabled">
+        <div style={{ flex: 1 }} />
+        <div className="admin-nav-bottom">
+          <Link to="/admin/settings" className={`admin-nav-link ${isActive("/admin/settings") ? "active" : ""}`} data-tooltip="Settings">
             <span className="nav-icon" aria-hidden>
               <Settings size={18} className="lucide" />
             </span>
             Settings
-          </div>
-          <div className="admin-nav-link disabled">
+          </Link>
+          <div className="admin-nav-link disabled" data-tooltip="Help">
             <span className="nav-icon" aria-hidden>
               <HelpCircle size={18} className="lucide" />
             </span>
             Help
           </div>
+          <button onClick={handleLogout} className="admin-nav-link logout-btn" data-tooltip="Logout">
+            <span className="nav-icon" aria-hidden>
+              <LogOut size={18} className="lucide" />
+            </span>
+            Logout
+          </button>
         </div>
 
-        <div className="admin-sidebar-footer admin-user footer-abs" ref={menuRef}>
+        <div className="admin-sidebar-footer admin-user" ref={menuRef}>
           <div className="account-row">
             <button className="user-profile-pic" type="button">
               <div className="account-avatar"></div>
@@ -233,14 +252,6 @@ export default function AdminLayout() {
               <MoreVertical size={18} className="lucide" />
             </button>
           </div>
-          {open && (
-            <div className="account-menu">
-              <button className="account-menu-item logout" onClick={handleLogout}>
-                <LogOut size={16} className="lucide" />
-                Logout
-              </button>
-            </div>
-          )}
         </div>
       </aside>
 

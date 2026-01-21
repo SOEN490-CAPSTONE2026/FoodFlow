@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Package, User, ArrowRight, Filter, Clock } from 'lucide-react';
+import { Package, User, ArrowRight, Filter, Clock, Star } from 'lucide-react';
 import Select from 'react-select';
-import { claimsAPI } from '../../services/api';
+import { claimsAPI, feedbackAPI } from '../../services/api';
 import { useNotification } from '../../contexts/NotificationContext';
+import { useTimezone } from '../../contexts/TimezoneContext';
 import { getPrimaryFoodCategory, foodTypeImages, getUnitLabel } from '../../constants/foodConstants';
 import ClaimDetailModal from './ClaimDetailModal.js';
 import "./Receiver_Styles/ReceiverMyClaims.css";
@@ -11,6 +12,7 @@ import "./Receiver_Styles/ReceiverMyClaims.css";
 export default function ReceiverMyClaims() {
   const { t } = useTranslation();
   const { showNotification } = useNotification();
+  const { userTimezone } = useTimezone();
   const [claims, setClaims] = useState([]);
   const [activeFilter, setActiveFilter] = useState('All');
   const [sortBy, setSortBy] = useState({ value: 'date', label: 'Sort by Date' });
@@ -19,6 +21,7 @@ export default function ReceiverMyClaims() {
   const [selectedClaim, setSelectedClaim] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState({ show: false, claimId: null, postTitle: '' });
+  const [rating, setRating] = useState({ averageRating: 0, totalReviews: 0 });
 
   const sortOptions = [
     { value: 'date', label: t('receiverMyClaims.sortByDate') },
@@ -27,6 +30,7 @@ export default function ReceiverMyClaims() {
 
   useEffect(() => {
     fetchMyClaims();
+    fetchMyRating();
 
     // Poll for updates every 10 seconds to catch status changes faster
     const intervalId = setInterval(() => {
@@ -48,6 +52,20 @@ export default function ReceiverMyClaims() {
       setClaims([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchMyRating = async () => {
+    try {
+      const response = await feedbackAPI.getMyRating();
+      if (response && response.data) {
+        setRating({
+          averageRating: Math.round((response.data.averageRating || 0) * 10) / 10,
+          totalReviews: response.data.totalReviews || 0
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching rating:', error);
     }
   };
 
@@ -101,27 +119,43 @@ export default function ReceiverMyClaims() {
   };
 
   // Format pickup time consistently with ReceiverBrowse
-  const formatPickupTime = (pickupDate, pickupFrom, pickupTo) => {
+  const formatPickupTime = (pickupDate, pickupFrom, pickupTo, userTimezone = 'UTC') => {
     if (!pickupDate || !pickupFrom || !pickupTo) return "—";
     try {
-      const fromDate = new Date(`${pickupDate}T${pickupFrom}`);
+      // Backend sends LocalDateTime, treat as UTC by adding 'Z'
+      let fromDateStr = `${pickupDate}T${pickupFrom}`;
+      if (!fromDateStr.endsWith('Z') && !fromDateStr.includes('+')) {
+        fromDateStr = fromDateStr + 'Z';
+      }
+      let toDateStr = `${pickupDate}T${pickupTo}`;
+      if (!toDateStr.endsWith('Z') && !toDateStr.includes('+')) {
+        toDateStr = toDateStr + 'Z';
+      }
+      
+      const fromDate = new Date(fromDateStr);
+      const toDate = new Date(toDateStr);
+      
       const dateStr = fromDate.toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
         year: "numeric",
+        timeZone: userTimezone
       });
       const fromTime = fromDate.toLocaleTimeString("en-US", {
         hour: "numeric",
         minute: "2-digit",
         hour12: true,
+        timeZone: userTimezone
       });
-      const [hours, minutes] = pickupTo.split(":");
-      const hour = parseInt(hours, 10);
-      const isPM = hour >= 12;
-      const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-      const toTime = `${displayHour}:${minutes} ${isPM ? "PM" : "AM"}`;
+      const toTime = toDate.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+        timeZone: userTimezone
+      });
       return `${dateStr} ${fromTime}-${toTime}`;
-    } catch {
+    } catch (error) {
+      console.error('Error formatting pickup time:', error);
       return "—";
     }
   };
@@ -131,6 +165,7 @@ export default function ReceiverMyClaims() {
     const postStatus = claim.surplusPost?.status;
     if (postStatus === 'READY_FOR_PICKUP') return t('receiverMyClaims.readyForPickup');
     if (postStatus === 'COMPLETED') return t('receiverMyClaims.completed');
+    if (postStatus === 'EXPIRED') return 'EXPIRED';
     if (postStatus === 'NOT_COMPLETED') return t('receiverMyClaims.notCompleted');
     return t('receiverMyClaims.claimed');
   };
@@ -146,6 +181,9 @@ export default function ReceiverMyClaims() {
     if (status === t('receiverMyClaims.filters.notCompleted')) {
       return claims.filter(c => c.surplusPost?.status === 'NOT_COMPLETED').length;
     }
+    if (status === 'Expired') {
+      return claims.filter(c => c.surplusPost?.status === 'EXPIRED').length;
+    }
     if (status === t('receiverMyClaims.filters.claimed')) {
       return claims.filter(c => c.surplusPost?.status !== 'READY_FOR_PICKUP' && 
                                 c.surplusPost?.status !== 'COMPLETED' && 
@@ -159,6 +197,7 @@ export default function ReceiverMyClaims() {
     { name: t('receiverMyClaims.filters.ready'), count: getStatusCount(t('receiverMyClaims.filters.ready')) },
     { name: t('receiverMyClaims.filters.completed'), count: getStatusCount(t('receiverMyClaims.filters.completed')) },
     { name: t('receiverMyClaims.filters.notCompleted'), count: getStatusCount(t('receiverMyClaims.filters.notCompleted')) },
+    { name: 'Expired', count: getStatusCount('Expired') },
     { name: t('receiverMyClaims.filters.all'), count: getStatusCount(t('receiverMyClaims.filters.all')) }
   ];
 
@@ -167,6 +206,7 @@ export default function ReceiverMyClaims() {
     if (activeFilter === t('receiverMyClaims.filters.ready')) return claim.surplusPost?.status === 'READY_FOR_PICKUP';
     if (activeFilter === t('receiverMyClaims.filters.completed')) return claim.surplusPost?.status === 'COMPLETED';
     if (activeFilter === t('receiverMyClaims.filters.notCompleted')) return claim.surplusPost?.status === 'NOT_COMPLETED';
+    if (activeFilter === 'Expired') return claim.surplusPost?.status === 'EXPIRED';
     if (activeFilter === t('receiverMyClaims.filters.claimed')) {
       return claim.surplusPost?.status !== 'READY_FOR_PICKUP' && 
              claim.surplusPost?.status !== 'COMPLETED' && 
@@ -222,6 +262,26 @@ export default function ReceiverMyClaims() {
 
   return (
     <div className="claimed-page claimed-donations-container">
+      {/* Rating Stats Box */}
+      <div className="receiver-stats-box">
+        <div className="stat-item">
+          <Star size={16} fill="#F59E0B" color="#F59E0B" />
+          <div className="stat-info">
+            <div className="stat-label">Rating:</div>
+            <div className="stat-value">
+              {rating.totalReviews > 0 ? (
+                <>
+                  {rating.averageRating.toFixed(1)}
+                  <span className="rating-count">★ ({rating.totalReviews})</span>
+                </>
+              ) : (
+                <span className="no-rating">—</span>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
       <h1>{t('receiverMyClaims.title')}</h1>
       <p className="claimed-page claimed-subtitle">{t('receiverMyClaims.subtitle')}</p>
 
@@ -300,14 +360,11 @@ export default function ReceiverMyClaims() {
                   <div className="claimed-page detail-item">
                     <Clock size={16} className="claimed-page date-detail-icon" />
                     <span>
-                      {claim?.confirmedPickupSlot ? (
-                        formatPickupTime(
-                          claim.confirmedPickupSlot.pickupDate || claim.confirmedPickupSlot.date,
-                          claim.confirmedPickupSlot.startTime || claim.confirmedPickupSlot.pickupFrom,
-                          claim.confirmedPickupSlot.endTime || claim.confirmedPickupSlot.pickupTo
-                        )
-                      ) : (
-                        formatPickupTime(post?.pickupDate, post?.pickupFrom, post?.pickupTo)
+                      {formatPickupTime(
+                        claim.confirmedPickupSlot?.pickupDate || claim.confirmedPickupSlot?.date,
+                        claim.confirmedPickupSlot?.startTime || claim.confirmedPickupSlot?.pickupFrom,
+                        claim.confirmedPickupSlot?.endTime || claim.confirmedPickupSlot?.pickupTo,
+                        userTimezone
                       )}
                     </span>
                   </div>

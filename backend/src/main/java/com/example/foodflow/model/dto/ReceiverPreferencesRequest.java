@@ -30,6 +30,10 @@ public class ReceiverPreferencesRequest {
     @NotNull(message = "Accept frozen preference is required")
     private Boolean acceptFrozen;
     
+    private Boolean notificationPreferencesEnabled;
+    
+    private List<String> preferredDonationSizes = new ArrayList<>();
+    
     // Constructors
     public ReceiverPreferencesRequest() {}
     
@@ -88,6 +92,22 @@ public class ReceiverPreferencesRequest {
     
     public void setAcceptFrozen(Boolean acceptFrozen) {
         this.acceptFrozen = acceptFrozen;
+    }
+    
+    public Boolean getNotificationPreferencesEnabled() {
+        return notificationPreferencesEnabled;
+    }
+    
+    public void setNotificationPreferencesEnabled(Boolean notificationPreferencesEnabled) {
+        this.notificationPreferencesEnabled = notificationPreferencesEnabled;
+    }
+    
+    public List<String> getPreferredDonationSizes() {
+        return preferredDonationSizes;
+    }
+    
+    public void setPreferredDonationSizes(List<String> preferredDonationSizes) {
+        this.preferredDonationSizes = preferredDonationSizes != null ? preferredDonationSizes : new ArrayList<>();
     }
     
     // Validation method

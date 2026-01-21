@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from "react-router-dom";
 import ConversationsSidebar from './ConversationsSidebar';
 import ChatPanel from './ChatPanel';
 import NewConversationModal from './NewConversationModal';
@@ -13,10 +14,16 @@ const MessagingDashboard = () => {
   const [showNewConversationModal, setShowNewConversationModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showChatOnMobile, setShowChatOnMobile] = useState(false);
+  const [searchParams] = useSearchParams();
 
   // Load conversations on mount
   useEffect(() => {
     loadConversations();
+  }, []);
+
+  useEffect(() => {
+    handleRecipientEmailQueryParam();
   }, []);
 
   const loadConversations = async () => {
@@ -33,8 +40,45 @@ const MessagingDashboard = () => {
     }
   };
 
+  const handleRecipientEmailQueryParam = async () => {
+    
+    const recipientEmailParam = searchParams.get("recipientEmail");
+
+    if (!recipientEmailParam) {
+      return;  // Exit early if no param exists
+    }
+    
+    const recipientEmail = decodeURIComponent(recipientEmailParam);
+
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await api.post('/conversations', {
+        recipientEmail: recipientEmail.trim()
+      });
+      
+      handleConversationCreated(response.data);
+
+    } catch (err) {
+      console.error('Error starting conversation:', err);
+      if (err.response?.status === 400) {
+        setError('User not found or invalid email');
+      } else {
+        setError('Failed to start conversation. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSelectConversation = (conversation) => {
     setSelectedConversation(conversation);
+    setShowChatOnMobile(true);
+  };
+
+  const handleBackToConversations = () => {
+    setShowChatOnMobile(false);
   };
 
   const handleConversationRead = () => {
@@ -47,7 +91,9 @@ const MessagingDashboard = () => {
   };
 
   const handleConversationCreated = (newConversation) => {
-    setConversations([newConversation, ...conversations]);
+    if (!newConversation.alreadyExists){
+      setConversations([newConversation, ...conversations]);
+    }
     setSelectedConversation(newConversation);
     setShowNewConversationModal(false);
   };
@@ -65,12 +111,15 @@ const MessagingDashboard = () => {
         onSelectConversation={handleSelectConversation}
         onNewConversation={handleNewConversation}
         loading={loading}
+        showOnMobile={!showChatOnMobile}
       />
       
       <ChatPanel
         conversation={selectedConversation}
         onMessageSent={handleMessageSent}
         onConversationRead={handleConversationRead}
+        onBack={handleBackToConversations}
+        showOnMobile={showChatOnMobile}
       />
 
       {showNewConversationModal && (

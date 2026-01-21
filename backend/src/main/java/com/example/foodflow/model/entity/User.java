@@ -30,6 +30,46 @@ public class User {
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "account_status")
+    private AccountStatus accountStatus = AccountStatus.ACTIVE;
+
+    @Column(name = "admin_notes", columnDefinition = "TEXT")
+    private String adminNotes;
+
+    @Column(name = "deactivated_at")
+    private LocalDateTime deactivatedAt;
+
+    @Column(name = "deactivated_by")
+    private Long deactivatedBy;
+
+    @Column(name = "email_notifications_enabled")
+    private Boolean emailNotificationsEnabled = false;
+
+    @Column(name = "sms_notifications_enabled")
+    private Boolean smsNotificationsEnabled = false;
+
+    @Column(name = "notification_type_preferences", columnDefinition = "TEXT")
+    private String notificationTypePreferences;
+    @Column(name = "country", length = 100)
+    private String country;
+
+    @Column(name = "city", length = 100)
+    private String city;
+
+    @Column(name = "timezone", length = 50)
+    private String timezone;
+
+    // New profile fields
+    @Column(name = "full_name")
+    private String fullName;
+
+    @Column(name = "phone", length = 50)
+    private String phone;
+
+    @Column(name = "profile_photo", columnDefinition = "TEXT")
+    private String profilePhoto;
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Organization organization;
 
@@ -75,4 +115,42 @@ public class User {
     
     public String getLanguagePreference() { return languagePreference; }
     public void setLanguagePreference(String languagePreference) { this.languagePreference = languagePreference; }
+
+    public AccountStatus getAccountStatus() { return accountStatus; }
+    public void setAccountStatus(AccountStatus accountStatus) { this.accountStatus = accountStatus; }
+    
+    public String getAdminNotes() { return adminNotes; }
+    public void setAdminNotes(String adminNotes) { this.adminNotes = adminNotes; }
+    
+    public LocalDateTime getDeactivatedAt() { return deactivatedAt; }
+    public void setDeactivatedAt(LocalDateTime deactivatedAt) { this.deactivatedAt = deactivatedAt; }
+    
+    public Long getDeactivatedBy() { return deactivatedBy; }
+    public void setDeactivatedBy(Long deactivatedBy) { this.deactivatedBy = deactivatedBy; }
+    
+    public Boolean getEmailNotificationsEnabled() { return emailNotificationsEnabled; }
+    public void setEmailNotificationsEnabled(Boolean emailNotificationsEnabled) { this.emailNotificationsEnabled = emailNotificationsEnabled; }
+    
+    public Boolean getSmsNotificationsEnabled() { return smsNotificationsEnabled; }
+    public void setSmsNotificationsEnabled(Boolean smsNotificationsEnabled) { this.smsNotificationsEnabled = smsNotificationsEnabled; }
+    
+    public String getNotificationTypePreferences() { return notificationTypePreferences; }
+    public void setNotificationTypePreferences(String notificationTypePreferences) { this.notificationTypePreferences = notificationTypePreferences; }
+    public String getCountry() { return country; }
+    public void setCountry(String country) { this.country = country; }
+    
+    public String getCity() { return city; }
+    public void setCity(String city) { this.city = city; }
+    
+    public String getTimezone() { return timezone; }
+    public void setTimezone(String timezone) { this.timezone = timezone; }
+
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
+
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+
+    public String getProfilePhoto() { return profilePhoto; }
+    public void setProfilePhoto(String profilePhoto) { this.profilePhoto = profilePhoto; }
 }

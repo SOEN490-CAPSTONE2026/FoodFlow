@@ -1,5 +1,6 @@
 package com.example.foodflow.controller;
 
+import com.example.foodflow.model.dto.StartPostConversationRequest;
 import com.example.foodflow.model.dto.ConversationResponse;
 import com.example.foodflow.model.dto.MessageResponse;
 import com.example.foodflow.model.dto.StartConversationRequest;
@@ -90,4 +91,44 @@ public class ConversationController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
     }
+
+     /**
+     * Get conversation for a specific post
+     * Returns the conversation details including the other participant
+     * for the current user and the specified post
+     */
+    @GetMapping("/post/{postId}")
+    public ResponseEntity<ConversationResponse> getConversationByPost(
+            @PathVariable Long postId,
+            @AuthenticationPrincipal User currentUser) {
+        try {
+            ConversationResponse conversation = conversationService.getConversationByPost(postId, currentUser);
+            return ResponseEntity.ok(conversation);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+
+      /**
+     * Create or get conversation for a specific post
+     * Creates a new conversation linked to the post if one doesn't exist
+     * Returns existing conversation if it already exists
+     */
+    @PostMapping("/post/{postId}")
+    public ResponseEntity<ConversationResponse> createOrGetPostConversation(
+            @PathVariable Long postId,
+            @Valid @RequestBody StartPostConversationRequest request,
+            @AuthenticationPrincipal User currentUser) {
+        try {
+            ConversationResponse conversation = conversationService.createOrGetPostConversation(
+                postId, request.getOtherUserId(), currentUser
+            );
+            return ResponseEntity.status(HttpStatus.CREATED).body(conversation);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+
 }

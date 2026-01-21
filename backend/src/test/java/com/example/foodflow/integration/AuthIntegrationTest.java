@@ -36,10 +36,12 @@ class AuthIntegrationTest {
         RegisterDonorRequest request = new RegisterDonorRequest();
         request.setEmail("integration.donor@test.com");
         request.setPassword("password123");
+        request.setConfirmPassword("password123");
         request.setOrganizationName("Integration Test Restaurant");
         request.setContactPerson("John Integration");
         request.setPhone("123-456-7890");
         request.setAddress("123 Integration St");
+        request.setBusinessLicense("INTEGRATION-LICENSE-123");
 
         // When & Then
         mockMvc.perform(post("/api/auth/register/donor")
@@ -56,6 +58,7 @@ class AuthIntegrationTest {
         RegisterReceiverRequest request = new RegisterReceiverRequest();
         request.setEmail("integration.receiver@test.com");
         request.setPassword("password123");
+        request.setConfirmPassword("password123");
         request.setOrganizationName("Integration Test Charity");
         request.setContactPerson("Jane Integration");
         request.setPhone("987-654-3210");
@@ -76,10 +79,12 @@ class AuthIntegrationTest {
         RegisterDonorRequest request1 = new RegisterDonorRequest();
         request1.setEmail("duplicate@test.com");
         request1.setPassword("password123");
+        request1.setConfirmPassword("password123");
         request1.setOrganizationName("First Restaurant");
         request1.setContactPerson("First User");
         request1.setPhone("123-456-7890");
         request1.setAddress("123 First St");
+        request1.setBusinessLicense("FIRST-LICENSE-123");
 
         mockMvc.perform(post("/api/auth/register/donor")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -90,10 +95,12 @@ class AuthIntegrationTest {
         RegisterDonorRequest request2 = new RegisterDonorRequest();
         request2.setEmail("duplicate@test.com");
         request2.setPassword("password456");
+        request2.setConfirmPassword("password456");
         request2.setOrganizationName("Second Restaurant");
         request2.setContactPerson("Second User");
         request2.setPhone("987-654-3210");
         request2.setAddress("456 Second St");
+        request2.setBusinessLicense("SECOND-LICENSE-456");
 
         // When & Then
         mockMvc.perform(post("/api/auth/register/donor")
@@ -110,10 +117,12 @@ class AuthIntegrationTest {
         RegisterDonorRequest registerRequest = new RegisterDonorRequest();
         registerRequest.setEmail("login.donor@test.com");
         registerRequest.setPassword("password123");
+        registerRequest.setConfirmPassword("password123");
         registerRequest.setOrganizationName("Login Test Restaurant");
         registerRequest.setContactPerson("Login Test User");
         registerRequest.setPhone("123-456-7890");
         registerRequest.setAddress("123 Login St");
+        registerRequest.setBusinessLicense("LOGIN-LICENSE-123");
 
         mockMvc.perform(post("/api/auth/register/donor")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -139,6 +148,7 @@ class AuthIntegrationTest {
         RegisterReceiverRequest registerRequest = new RegisterReceiverRequest();
         registerRequest.setEmail("login.receiver@test.com");
         registerRequest.setPassword("password123");
+        registerRequest.setConfirmPassword("password123");
         registerRequest.setOrganizationName("Login Test Charity");
         registerRequest.setContactPerson("Login Test User");
         registerRequest.setPhone("987-654-3210");
@@ -182,10 +192,12 @@ class AuthIntegrationTest {
         RegisterDonorRequest registerRequest = new RegisterDonorRequest();
         registerRequest.setEmail("wrongpass.test@test.com");
         registerRequest.setPassword("correctpassword");
+        registerRequest.setConfirmPassword("correctpassword");
         registerRequest.setOrganizationName("Wrong Pass Restaurant");
         registerRequest.setContactPerson("Wrong Pass User");
         registerRequest.setPhone("123-456-7890");
         registerRequest.setAddress("123 Wrong St");
+        registerRequest.setBusinessLicense("WRONGPASS-LICENSE-123");
 
         mockMvc.perform(post("/api/auth/register/donor")
                 .contentType(MediaType.APPLICATION_JSON)

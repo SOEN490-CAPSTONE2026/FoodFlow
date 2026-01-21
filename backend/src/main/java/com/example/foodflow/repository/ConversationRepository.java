@@ -14,11 +14,11 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
     
     /**
      * Find all conversations where the user is either user1 or user2
-     * Ordered by last message time (most recent first)
+     * Ordered by last message time (most recent first), falling back to creation date for new conversations
      */
     @Query("SELECT c FROM Conversation c " +
            "WHERE c.user1.id = :userId OR c.user2.id = :userId " +
-           "ORDER BY c.lastMessageAt DESC NULLS LAST, c.createdAt DESC")
+           "ORDER BY COALESCE(c.lastMessageAt, c.createdAt) DESC")
     List<Conversation> findByUserId(@Param("userId") Long userId);
     
     /**
@@ -36,4 +36,21 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
            "WHERE (c.user1.id = :userId1 AND c.user2.id = :userId2) " +
            "OR (c.user1.id = :userId2 AND c.user2.id = :userId1)")
     boolean existsBetweenUsers(@Param("userId1") Long userId1, @Param("userId2") Long userId2);
+
+        /**
+     * Find conversation by surplus post ID where user is a participant
+     */
+    @Query("SELECT c FROM Conversation c " +
+           "WHERE c.surplusPost.id = :postId " +
+           "AND (c.user1.id = :userId OR c.user2.id = :userId)")
+    Optional<Conversation> findByPostIdAndUserId(@Param("postId") Long postId, @Param("userId") Long userId);
+    
+    /**
+     * Find all conversations for a specific surplus post
+     * Ordered by last message time (most recent first), falling back to creation date for new conversations
+     */
+    @Query("SELECT c FROM Conversation c " +
+           "WHERE c.surplusPost.id = :postId " +
+           "ORDER BY COALESCE(c.lastMessageAt, c.createdAt) DESC")
+    List<Conversation> findByPostId(@Param("postId") Long postId);
 }

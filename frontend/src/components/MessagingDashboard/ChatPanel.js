@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Send } from 'lucide-react';
+import { Send, ArrowLeft } from 'lucide-react';
 import api from '../../services/api';
+import { useTimezone } from '../../contexts/TimezoneContext';
+import { formatTimeInTimezone, getDateSeparatorInTimezone, areDifferentDaysInTimezone } from '../../utils/timezoneUtils';
 import './ChatPanel.css';
 
-const ChatPanel = ({ conversation, onMessageSent, onConversationRead }) => {
-  const { t, i18n } = useTranslation();
+const ChatPanel = ({ conversation, onMessageSent, onConversationRead, onBack, showOnMobile = true }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -13,6 +15,10 @@ const ChatPanel = ({ conversation, onMessageSent, onConversationRead }) => {
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
   const currentUserId = localStorage.getItem('userId');
+  const { userTimezone } = useTimezone();
+  const { t, i18n } = useTranslation();
+  // Debug: log timezone
+  console.log('ChatPanel using timezone:', userTimezone);
 
   // Load messages when conversation changes
   useEffect(() => {
@@ -137,7 +143,7 @@ const ChatPanel = ({ conversation, onMessageSent, onConversationRead }) => {
 
   if (!conversation) {
     return (
-      <div className="chat-panel empty">
+      <div className={`chat-panel empty ${showOnMobile ? 'show-mobile' : 'hide-mobile'}`}>
         <div className="empty-state">
           <h3>{t('chat.noConversationSelected')}</h3>
           <p>{t('chat.selectConversation')}</p>
@@ -147,8 +153,11 @@ const ChatPanel = ({ conversation, onMessageSent, onConversationRead }) => {
   }
 
   return (
-    <div className="chat-panel">
+    <div className={`chat-panel ${showOnMobile ? 'show-mobile' : 'hide-mobile'}`}>
       <div className="chat-header">
+        <button className="back-button" onClick={onBack}>
+          <ArrowLeft size={20} />
+        </button>
         <div className="chat-header-left">
           <div className="chat-header-info">
             <h3>{conversation.postTitle || conversation.otherUserName}</h3>
@@ -176,9 +185,9 @@ const ChatPanel = ({ conversation, onMessageSent, onConversationRead }) => {
         ) : (
           messages.map((message, index) => (
             <React.Fragment key={message.id}>
-              {shouldShowDateSeparator(message, messages[index - 1]) && (
+              {areDifferentDaysInTimezone(message.createdAt, messages[index - 1]?.createdAt, userTimezone) && (
                 <div className="date-separator">
-                  <span>{getDateSeparator(message.createdAt)}</span>
+                  <span>{getDateSeparatorInTimezone(message.createdAt, userTimezone)}</span>
                 </div>
               )}
               <div
@@ -194,7 +203,7 @@ const ChatPanel = ({ conversation, onMessageSent, onConversationRead }) => {
                 <div className="message-content">
                   <p className="message-text">{message.messageBody}</p>
                   <span className="message-time">
-                    {formatMessageTime(message.createdAt)}
+                    {formatTimeInTimezone(message.createdAt, userTimezone)}
                   </span>
                 </div>
               </div>

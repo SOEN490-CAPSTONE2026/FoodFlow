@@ -46,3 +46,73 @@
     text-align: center;
     margin: 0;
 }
+
+.report-donor-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: transparent;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    color: #6b7280;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.report-donor-btn:hover {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #dc2626;
+}
+
+.report-donor-btn svg {
+    flex-shrink: 0;
+}
+
+/* Timeline Section */
+.completed-timeline-section {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.completed-timeline-toggle-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #0f172a;
+    width: 100%;
+    transition: all 0.2s ease;
+}
+
+.completed-timeline-toggle-button:hover {
+    background: #e0f2fe;
+    border-color: #1B4965;
+}
+
+.completed-timeline-toggle-button .chevron {
+    margin-left: auto;
+    transition: transform 0.2s ease;
+}
+
+.completed-timeline-toggle-button .chevron.open {
+    transform: rotate(180deg);
+}
+
+.completed-timeline-content-wrapper {
+    margin-top: 1rem;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+

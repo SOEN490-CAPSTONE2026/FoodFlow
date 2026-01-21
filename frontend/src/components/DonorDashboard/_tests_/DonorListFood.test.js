@@ -1,5 +1,6 @@
 import React from "react";
 import { render, screen, within, waitFor } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 
@@ -41,6 +42,17 @@ jest.mock("../../../services/api", () => ({
   surplusAPI: {
     getMyPosts: jest.fn(),
     deletePost: jest.fn(),
+    getTimeline: jest.fn(),
+  },
+  claimsAPI: {
+    getClaimForSurplusPost: jest.fn(),
+  },
+  reportAPI: {
+    createReport: jest.fn(),
+  },
+  feedbackAPI: {
+    getFeedbackForClaim: jest.fn(),
+    submitFeedback: jest.fn(),
   },
 }));
 
@@ -81,7 +93,43 @@ jest.mock("lucide-react", () => ({
   Package: () => "PackageIcon",
   ChevronDown: () => "ChevronDownIcon",
   Filter: () => "FilterIcon",
+  Camera: () => "CameraIcon",
+  Image: () => "ImageIcon",
+  ChevronLeft: () => "ChevronLeftIcon",
+  ChevronRight: () => "ChevronRightIcon",
+  Upload: () => "UploadIcon",
+  Star: () => "StarIcon",
 }));
+
+jest.mock("../../shared/DonationTimeline", () => {
+  return function MockDonationTimeline() {
+    return <div data-testid="donation-timeline">Timeline</div>;
+  };
+});
+
+jest.mock("../ConfirmPickupModal", () => {
+  return function MockConfirmPickupModal() {
+    return <div data-testid="confirm-pickup-modal">Pickup Modal</div>;
+  };
+});
+
+jest.mock("../ClaimedSuccessModal", () => {
+  return function MockClaimedSuccessModal() {
+    return <div data-testid="claimed-success-modal">Success Modal</div>;
+  };
+});
+
+jest.mock("../../FeedbackModal/FeedbackModal", () => {
+  return function MockFeedbackModal() {
+    return <div data-testid="feedback-modal">Feedback Modal</div>;
+  };
+});
+
+jest.mock("../../ReportUserModal", () => {
+  return function MockReportUserModal() {
+    return <div data-testid="report-modal">Report Modal</div>;
+  };
+});
 
 import DonorListFood from "../DonorListFood";
 import { surplusAPI } from "../../../services/api";
@@ -132,13 +180,15 @@ const mockItems = [
   },
 ];
 
-// Create a wrapper component to provide the AuthContext
+// Create a wrapper component to provide the AuthContext AND Router
 const TestWrapper = ({ children }) => {
   const mockUser = { id: 1, name: "Test User" };
   return (
-    <AuthContext.Provider value={{ user: mockUser }}>
-      {children}
-    </AuthContext.Provider>
+    <MemoryRouter>
+      <AuthContext.Provider value={{ user: mockUser }}>
+        {children}
+      </AuthContext.Provider>
+    </MemoryRouter>
   );
 };
 
@@ -244,7 +294,7 @@ describe("DonorListFood", () => {
 
     const appleCard = screen.getByLabelText(/fresh apples/i);
     expect(
-      within(appleCard).getByText(/Expires: 2025-10-08/)
+      within(appleCard).getByText(/Expires:\s*Oct 8, 2025/)
     ).toBeInTheDocument();
     expect(within(appleCard).getByText(/Pickup:/)).toBeInTheDocument();
   });
@@ -316,7 +366,7 @@ describe("DonorListFood", () => {
     );
   });
 
-  test("edit button shows alert when clicked", async () => {
+  test("edit button opens modal in edit mode when clicked", async () => {
     surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
     const user = userEvent.setup();
 
@@ -329,9 +379,8 @@ describe("DonorListFood", () => {
     const editButtons = screen.getAllByRole("button", { name: /edit/i });
     await user.click(editButtons[0]);
 
-    expect(window.alert).toHaveBeenCalledWith(
-      expect.stringContaining("Opening edit form for: Fresh Apples")
-    );
+    // Modal should open
+    expect(screen.getByTestId("surplus-form-modal")).toBeInTheDocument();
   });
 
 test("delete button shows confirmation and removes item when confirmed", async () => {
@@ -557,4 +606,192 @@ test("delete button shows confirmation and removes item when confirmed", async (
     // Should not have divider for single slot
     expect(within(card).queryByText(/\|/)).not.toBeInTheDocument();
   });
+
+  // Additional test to verify navigation functionality works
+  test("handles navigation functionality when buttons are clicked", async () => {
+    surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
+    const user = userEvent.setup();
+
+    setup();
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/fresh apples/i)).toBeInTheDocument();
+    });
+
+    // Test that components with navigation hooks render properly
+    // This would fail with the Router error if not wrapped properly
+    expect(screen.getByRole("button", { name: /\+ donate more/i })).toBeInTheDocument();
+    
+    // If your buttons trigger navigation, they should work without throwing Router errors
+    const editButtons = screen.getAllByRole("button", { name: /edit/i });
+    await user.click(editButtons[0]);
+    
+    // Modal should open properly with Router context
+    expect(screen.getByTestId("surplus-form-modal")).toBeInTheDocument();
+  });
+
+  describe('Timeline Feature', () => {
+    const mockTimelineData = [
+      {
+        id: 1,
+        eventType: 'DONATION_POSTED',
+        timestamp: '2026-01-11T10:00:00',
+        actor: 'donor',
+        actorUserId: 1,
+        newStatus: 'AVAILABLE',
+        details: 'Donation created',
+        visibleToUsers: true,
+      },
+      {
+        id: 2,
+        eventType: 'DONATION_CLAIMED',
+        timestamp: '2026-01-11T11:00:00',
+        actor: 'receiver',
+        actorUserId: 2,
+        oldStatus: 'AVAILABLE',
+        newStatus: 'CLAIMED',
+        details: 'Claimed by Food Bank',
+        visibleToUsers: true,
+      },
+    ];
+
+    beforeEach(() => {
+      surplusAPI.getMyPosts.mockResolvedValue({
+        data: mockItems,
+      });
+      surplusAPI.getTimeline = jest.fn().mockResolvedValue({
+        data: mockTimelineData,
+      });
+    });
+
+    it('should fetch and display timeline when clicking view timeline button', async () => {
+      const user = userEvent.setup();
+
+      render(
+        <MemoryRouter>
+          <AuthContext.Provider value={{ user: { id: 1, name: "Test User" } }}>
+            <DonorListFood />
+          </AuthContext.Provider>
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText("Fresh Apples")).toBeInTheDocument();
+      });
+
+      // Find and click the view timeline button - Item 2 (Artisan Bread) has the timeline button
+      const timelineButtons = screen.getAllByRole('button', { name: /view.*donation timeline/i });
+      await user.click(timelineButtons[0]);
+
+      await waitFor(() => {
+        expect(surplusAPI.getTimeline).toHaveBeenCalledWith(2);
+      });
+    });
+
+    it('should toggle timeline visibility on button click', async () => {
+      const user = userEvent.setup();
+
+      render(
+        <MemoryRouter>
+          <AuthContext.Provider value={{ user: { id: 1, name: "Test User" } }}>
+            <DonorListFood />
+          </AuthContext.Provider>
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText("Fresh Apples")).toBeInTheDocument();
+      });
+
+      const timelineButtons = screen.getAllByRole('button', { name: /view.*donation timeline/i });
+
+      // Click to expand
+      await user.click(timelineButtons[0]);
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /hide.*donation timeline/i })).toBeInTheDocument();
+      });
+
+      // Click to collapse
+      const hideButton = screen.getByRole('button', { name: /hide.*donation timeline/i });
+      await user.click(hideButton);
+
+      await waitFor(() => {
+        expect(screen.queryByRole('button', { name: /hide.*donation timeline/i })).not.toBeInTheDocument();
+      });
+    });
+
+    it('should handle timeline fetch error gracefully', async () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      surplusAPI.getTimeline.mockRejectedValue(new Error('Failed to fetch timeline'));
+
+      const user = userEvent.setup();
+
+      render(
+        <MemoryRouter>
+          <AuthContext.Provider value={{ user: { id: 1, name: "Test User" } }}>
+            <DonorListFood />
+          </AuthContext.Provider>
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText("Fresh Apples")).toBeInTheDocument();
+      });
+
+      const timelineButtons = screen.getAllByRole('button', { name: /view.*donation timeline/i });
+      await user.click(timelineButtons[0]);
+
+      await waitFor(() => {
+        expect(consoleErrorSpy).toHaveBeenCalled();
+      });
+
+      // Check the actual call - Item 2 (Artisan Bread) is the first one with timeline button
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Error fetching timeline for donation',
+        2,
+        ':',
+        expect.any(Error)
+      );
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should not fetch timeline again if already loaded', async () => {
+      const user = userEvent.setup();
+
+      render(
+        <MemoryRouter>
+          <AuthContext.Provider value={{ user: { id: 1, name: "Test User" } }}>
+            <DonorListFood />
+          </AuthContext.Provider>
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText("Fresh Apples")).toBeInTheDocument();
+      });
+
+      const timelineButtons = screen.getAllByRole('button', { name: /view.*donation timeline/i });
+
+      // Click to expand first time
+      await user.click(timelineButtons[0]);
+
+      await waitFor(() => {
+        expect(surplusAPI.getTimeline).toHaveBeenCalledTimes(1);
+      });
+
+      // Collapse
+      const hideButton = screen.getByRole('button', { name: /hide.*donation timeline/i });
+      await user.click(hideButton);
+
+      // Expand again
+      const viewButtons = screen.getAllByRole('button', { name: /view.*donation timeline/i });
+      await user.click(viewButtons[0]);
+
+      // Should still only have been called once (cached)
+      expect(surplusAPI.getTimeline).toHaveBeenCalledTimes(1);
+    });
+  });
 });
+

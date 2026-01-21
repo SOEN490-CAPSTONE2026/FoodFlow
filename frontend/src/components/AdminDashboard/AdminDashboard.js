@@ -7,6 +7,12 @@ import AdminCalendar from "./AdminCalendar";
 import AdminMessages from "./AdminMessages.js";
 import AdminHelp from "./AdminHelp";
 import AdminWelcome from "./AdminWelcome";
+import AdminUsers from "./AdminUsers";
+import AdminDisputes from "./AdminDisputes";
+import AdminDisputeDetail from "./AdminDisputeDetail";
+
+import AdminSettings from "./AdminSettings";
+import AdminDonations from "./AdminDonations";
 
 export default function AdminDashboard() {
   return (
@@ -14,12 +20,16 @@ export default function AdminDashboard() {
       <Route element={<AdminLayout />}>
         <Route index element={<AdminHome />} />
         <Route path="welcome" element={<AdminWelcome />} />
-
         <Route path="dashboard" element={<AdminHome />} />
+        <Route path="users" element={<AdminUsers />} />
         <Route path="analytics" element={<AdminAnalytics />} />
+        <Route path="donations" element={<AdminDonations />} />
         <Route path="calendar" element={<AdminCalendar />} />
         <Route path="messages" element={<AdminMessages />} />
+        <Route path="disputes" element={<AdminDisputes />} />
+        <Route path="disputes/:id" element={<AdminDisputeDetail />} />
         <Route path="help" element={<AdminHelp />} />
+        <Route path="settings" element={<AdminSettings />} />
         <Route path="*" element={<Navigate to="." replace />} />
       </Route>
     </Routes>

@@ -2,8 +2,9 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useTranslation } from 'react-i18next';
 import {Calendar, MapPin, Clock, Package2, Bookmark, ChevronDown, ChevronUp, Package, User, Target, ArrowUpDown, Star} from "lucide-react";
 import { useLoadScript } from "@react-google-maps/api";
-import { surplusAPI } from "../../services/api";
-import { getFoodCategoryDisplays, getPrimaryFoodCategory, getFoodImageClass, foodTypeImages, getUnitLabel } from "../../constants/foodConstants";
+import { surplusAPI, recommendationAPI } from "../../services/api";
+import { getFoodCategoryDisplays, getPrimaryFoodCategory, getFoodImageClass, foodTypeImages, getUnitLabel, getTemperatureCategoryLabel, getTemperatureCategoryIcon, getPackagingTypeLabel } from "../../constants/foodConstants";
+import { useTimezone } from "../../contexts/TimezoneContext";
 import FiltersPanel from "./FiltersPanel";
 import "./ReceiverBrowseModal.css";
 import "./ReceiverBrowse.css";
@@ -16,6 +17,8 @@ export default function ReceiverBrowse() {
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY || "",
     libraries: libraries,
   });
+  
+  const { userTimezone } = useTimezone();
 
   const [filters, setFilters] = useState({
     foodType: [],
@@ -45,17 +48,19 @@ export default function ReceiverBrowse() {
   const [claiming, setClaiming] = useState(false);
   const [sortBy, setSortBy] = useState('relevance');
   const [hoveredRecommended, setHoveredRecommended] = useState(null);
+  const [recommendations, setRecommendations] = useState({});
 
-  // Mock recommendation data (will be replaced with actual data from backend later)
+
   const getRecommendationData = (item) => {
     // Mock logic to determine if item is recommended
-    const mockRecommendations = {
-      '-1': { score: 100, reasons: ['Matches Bakery & Pastry preference', 'Fits your quantity range (10-60 kg)', 'Within your capacity (50 kg)'] },
-      '-2': { score: 95, reasons: ['Matches Fruits & Vegetables preference', 'Perfect quantity match', 'Close to your location'] },
-      '-3': { score: 88, reasons: ['Popular in your area', 'Good expiry window', 'Reliable donor'] }
-    };
-    return mockRecommendations[item.id] || null;
+    return recommendations[item.id.toString()] || null;
   };
+
+  const fetchRecommendations = useCallback(async (items) => {
+     const postIds = items.map(item => item.id).filter(id => id > 0);
+     const recommendationData = await recommendationAPI.getBrowseRecommendations(postIds);
+     setRecommendations(recommendationData);
+   }, []);
 
   const fetchDonations = useCallback(async () => {
     setLoading(true);
@@ -64,56 +69,10 @@ export default function ReceiverBrowse() {
       const availableItems = Array.isArray(data) ? data : [];
       
       // Add mock data for testing recommended tags
-      const mockRecommendedItems = [
-        {
-          id: -1,
-          title: "Fresh Bakery Items",
-          foodCategories: ["Bakery & Pastry"],
-          expiryDate: "2025-11-18",
-          pickupLocation: { address: "123 Main St, Westmount" },
-          pickupDate: "2025-11-17",
-          pickupFrom: "16:00",
-          pickupTo: "18:00",
-          quantity: { value: 25, unit: "KILOGRAM" },
-          description: "Assorted fresh bread, pastries, and baked goods from our daily batch. Perfect for community meals!",
-          donorName: "Local Bakery Co.",
-          status: "AVAILABLE",
-          createdAt: "2025-11-16T10:00:00Z"
-        },
-        {
-          id: -2,
-          title: "Fresh Organic Apples & Vegetables",
-          foodCategories: ["Fruits & Vegetables"],
-          expiryDate: "2025-11-20",
-          pickupLocation: { address: "456 Green Ave, Downtown Montreal" },
-          pickupDate: "2025-11-17",
-          pickupFrom: "14:00",
-          pickupTo: "19:00",
-          quantity: { value: 40, unit: "KILOGRAM" },
-          description: "Mix of organic apples, carrots, and leafy greens. Great quality, just past retail prime!",
-          donorName: "Green Organic Market",
-          status: "AVAILABLE",
-          createdAt: "2025-11-16T09:30:00Z"
-        },
-        {
-          id: -3,
-          title: "Prepared Meals",
-          foodCategories: ["Prepared Meals"],
-          expiryDate: "2025-11-17",
-          pickupLocation: { address: "789 Business Blvd, Downtown" },
-          pickupDate: "2025-11-16",
-          pickupFrom: "15:00",
-          pickupTo: "17:00",
-          quantity: { value: 15, unit: "KILOGRAM" },
-          description: "Freshly prepared sandwiches and salads from corporate catering event. Must be picked up today!",
-          donorName: "Corporate Catering Ltd.",
-          status: "AVAILABLE",
-          createdAt: "2025-11-16T12:00:00Z"
-        }
-      ];
+      
       
       // Combine mock data with real data
-      setItems([...mockRecommendedItems, ...availableItems]);
+      setItems([...availableItems]);
       setError(null);
     } catch (e) {
       console.error("Error fetching donations:", e);
@@ -152,7 +111,13 @@ export default function ReceiverBrowse() {
 
   useEffect(() => {
     fetchDonations();
-  }, [fetchDonations]);
+  }, [fetchDonations, userTimezone]);
+
+  useEffect(() => {
+    if (items.length > 0) {
+      fetchRecommendations(items);
+    }
+  }, [items, fetchRecommendations]);
 
   const handleFiltersChange = useCallback((filterType, value) => {
     setFilters((prev) => ({
@@ -242,7 +207,9 @@ export default function ReceiverBrowse() {
   const formatExpiryDate = useCallback((dateString) => {
     if (!dateString) return "—";
     try {
-      const date = new Date(dateString);
+      // Parse as local date to avoid timezone conversion issues
+      const [year, month, day] = dateString.split('-').map(Number);
+      const date = new Date(year, month - 1, day);
       return date.toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
@@ -336,7 +303,7 @@ export default function ReceiverBrowse() {
   return (
     <div className="receiver-browse-container">
       <div className="receiver-browse-header">
-        <h1 className="receiver-section-title">{t('receiverBrowse.title')}</h1>
+        <h1 className="receiver-section-title-browse">{t('receiverBrowse.title')}</h1>
         
         <div className="sort-controls">
           <span className="sort-label">
@@ -570,11 +537,9 @@ export default function ReceiverBrowse() {
                           <div className="receiver-detail-item">
                             <span className="receiver-detail-label">{t('receiverBrowse.quantity')}</span>
                             <div className="receiver-detail-value">
-                              <Package2
-                                size={14}
-                                className="receiver-quantity-icon-detail"
-                                style={{ display: "inline", marginRight: "8px" }}
-                              />
+                              <span className="receiver-quantity-icon-detail">
+                                <Package2 size={14} />
+                              </span>
                               {item.quantity?.value || 0} {getUnitLabel(item.quantity?.unit) || t('receiverBrowse.items')}
                             </div>
                           </div>
@@ -583,11 +548,9 @@ export default function ReceiverBrowse() {
                               {t('receiverBrowse.pickupTime')}{item.pickupSlots && item.pickupSlots.length > 1 ? 's' : ''}
                             </span>
                             <div className="receiver-detail-value">
-                              <Clock
-                                size={14}
-                                className="receiver-time-icon-detail"
-                                style={{ display: "inline", marginRight: "8px" }}
-                              />
+                              <span className="receiver-time-icon-detail">
+                                <Clock size={14} />
+                              </span>
                               {item.pickupSlots && item.pickupSlots.length > 0 ? (
                                 <div className="pickup-slots-list">
                                   {item.pickupSlots.map((slot, idx) => (
@@ -617,27 +580,57 @@ export default function ReceiverBrowse() {
                           <div className="receiver-detail-item">
                             <span className="receiver-detail-label">{t('receiverBrowse.expires')}</span>
                             <div className="receiver-detail-value">
-                              <Calendar
-                                size={14}
-                                className="receiver-expiry-icon-detail"
-                                style={{ display: "inline", marginRight: "8px" }}
-                              />
+                              <span className="receiver-expiry-icon-detail">
+                                <Calendar size={14} />
+                              </span>
                               {formatExpiryDate(item.expiryDate)}
                             </div>
                           </div>
                           <div className="receiver-detail-item">
                             <span className="receiver-detail-label">{t('common.location', 'Location')}</span>
                             <div className="receiver-detail-value">
-                              <MapPin
-                                size={14}
-                                className="receiver-location-icon-detail"
-                                style={{ display: "inline", marginRight: "8px" }}
-                              />
+                              <span className="receiver-location-icon-detail">
+                                <MapPin size={14} />
+                              </span>
                               {item.pickupLocation?.address || t('receiverBrowse.locationNotSpecified')}
                             </div>
                           </div>
                         </div>
                       </div>
+
+                      {/* Food Compliance Section */}
+                      {(item.temperatureCategory || item.packagingType) && (
+                        <>
+                          <div className="receiver-details-grid">
+                            <div className="receiver-details-section">
+                              {item.temperatureCategory && (
+                                <div className="receiver-detail-item">
+                                  <span className="receiver-detail-label">Temperature</span>
+                                  <div className="receiver-detail-value">
+                                    <span className="receiver-compliance-icon-bg">
+                                      {getTemperatureCategoryIcon(item.temperatureCategory)}
+                                    </span>
+                                    {getTemperatureCategoryLabel(item.temperatureCategory)}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                            <div className="receiver-details-section">
+                              {item.packagingType && (
+                                <div className="receiver-detail-item">
+                                  <span className="receiver-detail-label">Packaging</span>
+                                  <div className="receiver-detail-value">
+                                    <span className="receiver-compliance-icon-bg">
+                                      <Package size={14} />
+                                    </span>
+                                    {getPackagingTypeLabel(item.packagingType)}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </>
+                      )}
 
                       {item.description && (
                         <div className="receiver-donor-note">

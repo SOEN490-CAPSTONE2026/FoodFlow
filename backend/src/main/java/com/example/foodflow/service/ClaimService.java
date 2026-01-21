@@ -31,15 +31,21 @@ public class ClaimService {
     private final SurplusPostRepository surplusPostRepository;
     private final BusinessMetricsService businessMetricsService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final NotificationPreferenceService notificationPreferenceService;
+    private final TimelineService timelineService;
     
     public ClaimService(ClaimRepository claimRepository,
                        SurplusPostRepository surplusPostRepository,
                        BusinessMetricsService businessMetricsService,
-                       SimpMessagingTemplate messagingTemplate) {
+                       SimpMessagingTemplate messagingTemplate,
+                       NotificationPreferenceService notificationPreferenceService,
+                       TimelineService timelineService) {
         this.claimRepository = claimRepository;
         this.surplusPostRepository = surplusPostRepository;
         this.businessMetricsService = businessMetricsService;
         this.messagingTemplate = messagingTemplate;
+        this.notificationPreferenceService = notificationPreferenceService;
+        this.timelineService = timelineService;
     }
                        
     @Transactional
@@ -49,6 +55,17 @@ public class ClaimService {
         // Fetch and lock the surplus post to prevent concurrent claims
         SurplusPost surplusPost = surplusPostRepository.findById(request.getSurplusPostId())
             .orElseThrow(() -> new ResourceNotFoundException("error.resource.not_found"));
+
+        // Check if post has expired
+        if (surplusPost.getExpiryDate() != null &&
+            surplusPost.getExpiryDate().isBefore(java.time.LocalDate.now())) {
+            throw new RuntimeException("This donation has expired and cannot be claimed");
+        }
+
+        // Check if post status is EXPIRED
+        if (surplusPost.getStatus() == PostStatus.EXPIRED) {
+            throw new RuntimeException("This donation has expired and cannot be claimed");
+        }
 
         if (surplusPost.getStatus() != PostStatus.AVAILABLE &&
             surplusPost.getStatus() != PostStatus.READY_FOR_PICKUP) {
@@ -97,18 +114,19 @@ public class ClaimService {
         
         claim = claimRepository.save(claim);
 
-        // Check if pickup time has already started
+        // Check if the CONFIRMED pickup time has already started (not the first slot!)
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
         java.time.LocalDate today = now.toLocalDate();
         java.time.LocalTime currentTime = now.toLocalTime();
 
         boolean pickupTimeStarted = false;
         
-        if (surplusPost.getPickupDate() != null) {
-          if (surplusPost.getPickupDate().isBefore(today)) {
+        // Use the CONFIRMED pickup slot that receiver selected, not the first slot
+        if (claim.getConfirmedPickupDate() != null && claim.getConfirmedPickupStartTime() != null) {
+          if (claim.getConfirmedPickupDate().isBefore(today)) {
               pickupTimeStarted = true;
-          } else if (surplusPost.getPickupDate().isEqual(today)) {
-              pickupTimeStarted = !currentTime.isBefore(surplusPost.getPickupFrom());
+          } else if (claim.getConfirmedPickupDate().isEqual(today)) {
+              pickupTimeStarted = !currentTime.isBefore(claim.getConfirmedPickupStartTime());
           }
         }
          
@@ -125,23 +143,43 @@ public class ClaimService {
 
         surplusPostRepository.save(surplusPost);
 
+        // Create timeline event for donation being claimed
+        String receiverName = receiver.getOrganization() != null 
+            ? receiver.getOrganization().getName() 
+            : receiver.getEmail();
+        timelineService.createTimelineEvent(
+            surplusPost,
+            "DONATION_CLAIMED",
+            "receiver",
+            receiver.getId(),
+            PostStatus.AVAILABLE,
+            surplusPost.getStatus(),
+            "Claimed by " + receiverName,
+            true
+        );
+
         businessMetricsService.incrementClaimCreated();
         businessMetricsService.incrementSurplusPostClaimed();
         businessMetricsService.recordTimer(sample, "claim.service.create", "status", claim.getStatus().toString());
 
         ClaimResponse response = new ClaimResponse(claim);
         
-        // Broadcast websocket event to donor
-        try {
-            messagingTemplate.convertAndSendToUser(
-                surplusPost.getDonor().getId().toString(),
-                "/queue/claims",
-                response
-            );
-            logger.info("Sent claim notification to donor userId={} for surplusPostId={}", 
-                surplusPost.getDonor().getId(), surplusPost.getId());
-        } catch (Exception e) {
-            logger.error("Failed to send websocket notification to donor: {}", e.getMessage());
+        // Broadcast websocket event to donor (if they have notifications enabled)
+        User donor = surplusPost.getDonor();
+        if (notificationPreferenceService.shouldSendNotification(donor, "donationClaimed", "websocket")) {
+            try {
+                messagingTemplate.convertAndSendToUser(
+                    donor.getId().toString(),
+                    "/queue/claims",
+                    response
+                );
+                logger.info("Sent claim notification to donor userId={} for surplusPostId={} (type: donationClaimed)", 
+                    donor.getId(), surplusPost.getId());
+            } catch (Exception e) {
+                logger.error("Failed to send websocket notification to donor: {}", e.getMessage());
+            }
+        } else {
+            logger.info("Skipped claim notification to donor userId={} - notification type disabled", donor.getId());
         }
         
         // Broadcast websocket event to receiver
@@ -203,12 +241,47 @@ public class ClaimService {
         
         // Make post available again
         SurplusPost post = claim.getSurplusPost();
+        PostStatus oldStatus = post.getStatus();
         post.setStatus(PostStatus.AVAILABLE);
         surplusPostRepository.save(post);
+
+        // Create timeline event for claim cancellation
+        String receiverName = receiver.getOrganization() != null 
+            ? receiver.getOrganization().getName() 
+            : receiver.getEmail();
+        timelineService.createTimelineEvent(
+            post,
+            "CLAIM_CANCELLED",
+            "receiver",
+            receiver.getId(),
+            oldStatus,
+            PostStatus.AVAILABLE,
+            "Claim cancelled by " + receiverName,
+            true
+        );
 
         // Record metrics
         businessMetricsService.incrementClaimCancelled();
         businessMetricsService.recordTimer(sample, "claim.service.cancel", "status", "cancelled");
+        
+        // Notify donor that the claim was cancelled (if they have notifications enabled)
+        User donor = post.getDonor();
+        if (notificationPreferenceService.shouldSendNotification(donor, "claimCanceled", "websocket")) {
+            try {
+                messagingTemplate.convertAndSendToUser(
+                    donor.getId().toString(),
+                    "/queue/claims/cancelled",
+                    new ClaimResponse(claim)
+                );
+                logger.info("Sent claim cancellation notification to donor userId={} for claimId={} (type: claimCanceled)", 
+                    donor.getId(), claimId);
+            } catch (Exception e) {
+                logger.error("Failed to send claim cancellation notification: {}", e.getMessage());
+            }
+        } else {
+            logger.info("Skipped claim cancellation notification to donor userId={} - claimCanceled disabled", 
+                donor.getId());
+        }
     }
 
     @Transactional
@@ -227,20 +300,5 @@ public class ClaimService {
 
         // Record timer
         businessMetricsService.recordTimer(sample, "claim.service.complete", "status", "completed");
-        
-        // Notify donor that the claim was cancelled
-        SurplusPost post = claim.getSurplusPost();
-      
-        try {
-            messagingTemplate.convertAndSendToUser(
-                post.getDonor().getId().toString(),
-                "/queue/claims/cancelled",
-                new ClaimResponse(claim)
-            );
-            logger.info("Sent claim cancellation notification to donor userId={} for claimId={}", 
-                post.getDonor().getId(), claimId);
-        } catch (Exception e) {
-            logger.error("Failed to send websocket notification for claim cancellation: {}", e.getMessage());
-        }
     }
 }

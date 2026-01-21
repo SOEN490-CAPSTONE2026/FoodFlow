@@ -15,6 +15,11 @@ public class RegisterDonorRequest {
     private String password;
 
     @NotBlank(message = "{validation.organizationName.required}")
+    @NotBlank
+    @Size(min = 8)
+    private String confirmPassword;
+
+    @NotBlank
     private String organizationName;
 
     @NotBlank(message = "{validation.contactPerson.required}")
@@ -27,6 +32,8 @@ public class RegisterDonorRequest {
     private String address;
 
     private OrganizationType organizationType;
+
+    @NotBlank(message = "Business license is required for donor registration")
     private String businessLicense;
 
     // Constructors, getters, setters
@@ -37,6 +44,9 @@ public class RegisterDonorRequest {
     
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+
+    public String getConfirmPassword() { return confirmPassword; }
+    public void setConfirmPassword(String confirmPassword) { this.confirmPassword = confirmPassword; }
     
     public String getOrganizationName() { return organizationName; }
     public void setOrganizationName(String organizationName) { this.organizationName = organizationName; }

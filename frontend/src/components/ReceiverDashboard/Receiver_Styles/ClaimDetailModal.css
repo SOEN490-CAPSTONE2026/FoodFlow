@@ -216,6 +216,10 @@
     padding: 0.625rem;
     color: #1B4965;
     flex-shrink: 0;
+    min-width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 .claimed-modal-detail-icon.package {
     color: #967966;
@@ -236,11 +240,16 @@
     color: #0891B2;
 }
 
+.claimed-modal-detail-icon.temperature {
+    color: #0369a1;
+}
 
 .claimed-modal-detail-content {
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
+    flex: 1;
+    text-align: left;
 }
 
 .claimed-modal-detail-label {
@@ -372,6 +381,54 @@
     background: #164058;
 }
 
+.claimed-modal-btn-feedback {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.875rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    background: #0092B8;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.claimed-modal-btn-feedback:hover {
+    background: #007a9a;
+}
+
+.claimed-modal-btn-report {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.875rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    background: transparent;
+    color: #dc2626;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.claimed-modal-btn-report:hover {
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+/* Temperature badge styling */
+.temperature-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #4b5563;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .claimed-modal-container {
@@ -419,3 +476,48 @@
         font-size: 1.75rem;
     }
 }
+
+/* Timeline Section */
+.claimed-modal-timeline-section {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.claimed-timeline-toggle-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #0f172a;
+    width: 100%;
+    transition: all 0.2s ease;
+}
+
+.claimed-timeline-toggle-button:hover {
+    background: #e0f2fe;
+    border-color: #1B4965;
+}
+
+.claimed-timeline-toggle-button .chevron {
+    margin-left: auto;
+    transition: transform 0.2s ease;
+}
+
+.claimed-timeline-toggle-button .chevron.open {
+    transform: rotate(180deg);
+}
+
+.claimed-timeline-content-wrapper {
+    margin-top: 1rem;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+

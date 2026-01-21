@@ -28,5 +28,18 @@
 @media (max-width: 768px) {
   .messaging-dashboard {
     position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: auto;
+    overflow: hidden;
+  }
+  
+  .error-message {
+    top: 80px;
+    right: 10px;
+    left: 10px;
+    width: auto;
   }
 }

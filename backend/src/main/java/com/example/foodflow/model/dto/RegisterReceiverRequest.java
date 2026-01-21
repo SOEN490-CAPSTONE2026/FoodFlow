@@ -1,6 +1,8 @@
 package com.example.foodflow.model.dto;
 
 import com.example.foodflow.model.entity.OrganizationType;
+import com.example.foodflow.config.jackson.OrganizationTypeDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -15,6 +17,11 @@ public class RegisterReceiverRequest {
     private String password;
 
     @NotBlank(message = "{validation.organizationName.required}")
+    @NotBlank
+    @Size(min = 8)
+    private String confirmPassword;
+
+    @NotBlank
     private String organizationName;
 
     @NotBlank(message = "{validation.contactPerson.required}")
@@ -26,8 +33,10 @@ public class RegisterReceiverRequest {
     @NotBlank(message = "{validation.address.required}")
     private String address;
 
+    @JsonDeserialize(using = OrganizationTypeDeserializer.class)
     private OrganizationType organizationType;
     private Integer capacity;
+    private String charityRegistrationNumber;
 
     // Constructors, getters, setters
     public RegisterReceiverRequest() {}
@@ -37,6 +46,9 @@ public class RegisterReceiverRequest {
     
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+
+    public String getConfirmPassword() { return confirmPassword; }
+    public void setConfirmPassword(String confirmPassword) { this.confirmPassword = confirmPassword; }
     
     public String getOrganizationName() { return organizationName; }
     public void setOrganizationName(String organizationName) { this.organizationName = organizationName; }
@@ -55,4 +67,7 @@ public class RegisterReceiverRequest {
     
     public Integer getCapacity() { return capacity; }
     public void setCapacity(Integer capacity) { this.capacity = capacity; }
+
+    public String getCharityRegistrationNumber() { return charityRegistrationNumber; }
+    public void setCharityRegistrationNumber(String charityRegistrationNumber) { this.charityRegistrationNumber = charityRegistrationNumber; }
 }

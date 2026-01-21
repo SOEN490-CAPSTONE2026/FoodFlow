@@ -3,6 +3,7 @@ package com.example.foodflow.controller;
 import com.example.foodflow.model.dto.CompleteSurplusRequest;
 import com.example.foodflow.model.dto.ConfirmPickupRequest;
 import com.example.foodflow.model.dto.CreateSurplusRequest;
+import com.example.foodflow.model.dto.DonationTimelineDTO;
 import com.example.foodflow.model.dto.SurplusResponse;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.service.SurplusService;
@@ -47,29 +48,57 @@ public class SurplusController {
         return ResponseEntity.ok(myPosts);
     }
 
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('DONOR')")
+    public ResponseEntity<SurplusResponse> getSurplusPostById(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User donor) {
+
+        SurplusResponse post = surplusService.getSurplusPostByIdForDonor(id, donor);
+        return ResponseEntity.ok(post);
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('DONOR')")
+    public ResponseEntity<SurplusResponse> updateSurplusPost(
+            @PathVariable Long id,
+            @Valid @RequestBody CreateSurplusRequest request,
+            @AuthenticationPrincipal User donor) {
+
+        SurplusResponse response = surplusService.updateSurplusPost(id, request, donor);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping
     @PreAuthorize("hasAuthority('RECEIVER')")
-    public ResponseEntity<List<SurplusResponse>> getAllAvailableSurplus() {
-        List<SurplusResponse> availablePosts = surplusService.getAllAvailableSurplusPosts();
+    public ResponseEntity<List<SurplusResponse>> getAllAvailableSurplus(
+            @AuthenticationPrincipal User receiver) {
+        // Use empty filter to get all available posts, but with timezone conversion
+        SurplusFilterRequest filterRequest = new SurplusFilterRequest();
+        filterRequest.setStatus("AVAILABLE");
+        List<SurplusResponse> availablePosts = surplusService.searchSurplusPostsForReceiver(filterRequest, receiver);
         return ResponseEntity.ok(availablePosts);
     }
 
-     /**
+    /**
      * New endpoint for filtered surplus posts based on receiver criteria.
      * If no filters are provided, returns all available posts.
+     * Times are converted to receiver's timezone.
      */
     @PostMapping("/search")
     @PreAuthorize("hasAuthority('RECEIVER')")
     public ResponseEntity<List<SurplusResponse>> searchSurplusPosts(
             @Valid @RequestBody SurplusFilterRequest filterRequest,
             @AuthenticationPrincipal User receiver) {
-        List<SurplusResponse> filteredPosts = surplusService.searchSurplusPosts(filterRequest);
+        List<SurplusResponse> filteredPosts = surplusService.searchSurplusPostsForReceiver(filterRequest, receiver);
         return ResponseEntity.ok(filteredPosts);
 
     }
+
     /**
      * Alternative GET endpoint for basic filtering via query parameters.
      * Useful for simple filters without complex objects like Location.
+     * Times are converted to receiver's timezone.
      */
     @GetMapping("/search")
     @PreAuthorize("hasAuthority('RECEIVER')")
@@ -80,14 +109,13 @@ public class SurplusController {
             @AuthenticationPrincipal User receiver) {
 
 
-
         // Create filter request from query parameters
         SurplusFilterRequest filterRequest = new SurplusFilterRequest();
         filterRequest.setFoodCategories(foodCategories);
         filterRequest.setStatus(status != null ? status : "AVAILABLE");
 
         if (expiryBefore != null && !expiryBefore.trim().isEmpty()) {
-            
+
             try {
 
                 filterRequest.setExpiryBefore(java.time.LocalDate.parse(expiryBefore));
@@ -98,12 +126,12 @@ public class SurplusController {
             }
 
         }
-        List<SurplusResponse> filteredPosts = surplusService.searchSurplusPosts(filterRequest);
+        List<SurplusResponse> filteredPosts = surplusService.searchSurplusPostsForReceiver(filterRequest, receiver);
         return ResponseEntity.ok(filteredPosts);
 
     }
 
-    
+
     @PatchMapping("/{id}/complete")
     @PreAuthorize("hasAuthority('DONOR')")
     public ResponseEntity<SurplusResponse> completeSurplusPost(
@@ -115,28 +143,37 @@ public class SurplusController {
         return ResponseEntity.ok(response);
     }
 
-   @PostMapping("/pickup/confirm")
+    @PostMapping("/pickup/confirm")
     public ResponseEntity<SurplusResponse> confirmPickup(
-        @RequestBody ConfirmPickupRequest request,
-        @AuthenticationPrincipal User donor) {
+            @RequestBody ConfirmPickupRequest request,
+            @AuthenticationPrincipal User donor) {
 
-    SurplusResponse response = surplusService.confirmPickup(
-        request.getPostId(), 
-        request.getOtpCode(), 
-        donor
-    );
-    return ResponseEntity.ok(response);
-}
+        SurplusResponse response = surplusService.confirmPickup(
+                request.getPostId(),
+                request.getOtpCode(),
+                donor
+        );
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/timeline")
+    public ResponseEntity<List<DonationTimelineDTO>> getTimeline(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User user) {
+
+        List<DonationTimelineDTO> timeline = surplusService.getTimelineForPost(id, user);
+        return ResponseEntity.ok(timeline);
+    }
 
     @DeleteMapping("/{id}/delete")
     @PreAuthorize("hasAuthority('DONOR')")
     public ResponseEntity<Void> deleteSurplusPost(
-        @PathVariable Long id,
-        @AuthenticationPrincipal User donor) {
+            @PathVariable Long id,
+            @AuthenticationPrincipal User donor) {
 
-    surplusService.deleteSurplusPost(id, donor);
-    return ResponseEntity.noContent().build(); // 204
-}
+        surplusService.deleteSurplusPost(id, donor);
+        return ResponseEntity.noContent().build(); // 204
+    }
 
 
 }

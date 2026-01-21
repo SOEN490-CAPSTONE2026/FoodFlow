@@ -6,15 +6,63 @@ import './Receiver_Styles/ReceiverPreferences.css';
 
 const PICKUP_WINDOWS = ['MORNING', 'AFTERNOON', 'EVENING'];
 
+const PICKUP_WINDOW_META = {
+  MORNING: { label: 'Morning', time: '8:00 AM – 12:00 PM' },
+  AFTERNOON: { label: 'Afternoon', time: '12:00 PM – 7:00 PM' },
+  EVENING: { label: 'Evening', time: '7:00 PM – 12:00 AM' },
+};
+
+const DONATION_SIZES = ['SMALL', 'MEDIUM', 'LARGE', 'BULK'];
+
+const DONATION_SIZE_META = {
+  SMALL: { label: 'Small donations', tooltip: '1–5 small portions OR <3kg' },
+  MEDIUM: { label: 'Medium donations', tooltip: '5–20 portions OR 3–10kg' },
+  LARGE: { label: 'Large donations', tooltip: '20–50 portions OR 10–25kg' },
+  BULK: { label: 'Bulk donations', tooltip: '50+ portions OR >25kg' },
+};
+
+// Custom Tooltip component
+function Tooltip({ children, text }) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <span
+      style={{ position: 'relative', display: 'inline-block' }}
+      onMouseEnter={() => setVisible(true)}
+      onMouseLeave={() => setVisible(false)}
+    >
+      {children}
+      {visible && (
+        <span
+          style={{
+            position: 'absolute',
+            bottom: '120%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: '#222',
+            color: '#fff',
+            padding: '6px 12px',
+            borderRadius: '6px',
+            fontSize: '13px',
+            whiteSpace: 'nowrap',
+            zIndex: 1000,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+          }}
+        >
+          {text}
+        </span>
+      )}
+    </span>
+  );
+}
+
 const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
   const [preferences, setPreferences] = useState({
     preferredCategories: [],
-    storageCapacity: 50,
-    quantityMin: 0,
-    quantityMax: 100,
+    preferredDonationSizes: [],
     pickupAvailability: ['EVENING'],
     acceptsRefrigerated: true,
     acceptsFrozen: true,
+    notificationPreferencesEnabled: true,
     noStrictPreferences: false
   });
   const [loading, setLoading] = useState(false);
@@ -39,12 +87,11 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
           preferredCategories: (response.data.preferredFoodTypes || []).map(type => 
             foodTypeOptions.find(cat => cat.value === type) || { value: type, label: type }
           ),
-          storageCapacity: response.data.maxCapacity || 50,
-          quantityMin: response.data.minQuantity || 0,
-          quantityMax: response.data.maxQuantity || 100,
+          preferredDonationSizes: response.data.preferredDonationSizes || [],
           pickupAvailability: response.data.preferredPickupWindows || ['EVENING'],
           acceptsRefrigerated: response.data.acceptRefrigerated !== undefined ? response.data.acceptRefrigerated : true,
           acceptsFrozen: response.data.acceptFrozen !== undefined ? response.data.acceptFrozen : true,
+          notificationPreferencesEnabled: response.data.notificationPreferencesEnabled !== undefined ? response.data.notificationPreferencesEnabled : true,
           noStrictPreferences: (response.data.preferredFoodTypes || []).length === 0
         });
       }
@@ -75,10 +122,18 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
 
   const handleCategoryToggle = (category) => {
     setPreferences(prev => {
-      const categories = prev.preferredCategories.find(c => c.value === category.value)
-        ? prev.preferredCategories.filter(c => c.value !== category.value)
-        : [...prev.preferredCategories, category];
-      return { ...prev, preferredCategories: categories };
+      // If "No strict preferences" is checked, uncheck it when user manually selects/deselects
+      let newNoStrict = prev.noStrictPreferences;
+      let categories;
+      if (prev.preferredCategories.find(c => c.value === category.value)) {
+        categories = prev.preferredCategories.filter(c => c.value !== category.value);
+      } else {
+        categories = [...prev.preferredCategories, category];
+      }
+      if (prev.noStrictPreferences) {
+        newNoStrict = false;
+      }
+      return { ...prev, preferredCategories: categories, noStrictPreferences: newNoStrict };
     });
   };
 
@@ -87,7 +142,14 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
   };
 
   const handleNoPreferencesToggle = () => {
-    setPreferences(prev => ({ ...prev, noStrictPreferences: !prev.noStrictPreferences }));
+    setPreferences(prev => {
+      const newValue = !prev.noStrictPreferences;
+      return {
+        ...prev,
+        noStrictPreferences: newValue,
+        preferredCategories: newValue ? [...foodTypeOptions] : [],
+      };
+    });
   };
 
   const handlePickupAvailabilityChange = (time) => {
@@ -96,6 +158,15 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
         ? prev.pickupAvailability.filter(w => w !== time)
         : [...prev.pickupAvailability, time];
       return { ...prev, pickupAvailability: windows };
+    });
+  };
+
+  const handleDonationSizeChange = (size) => {
+    setPreferences(prev => {
+      const sizes = prev.preferredDonationSizes.includes(size)
+        ? prev.preferredDonationSizes.filter(s => s !== size)
+        : [...prev.preferredDonationSizes, size];
+      return { ...prev, preferredDonationSizes: sizes };
     });
   };
 
@@ -108,26 +179,19 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
       setLoading(true);
       setError('');
       setSuccess(false);
-      
-      // Validate quantity range
-      const minQty = parseInt(preferences.quantityMin) || 0;
-      const maxQty = parseInt(preferences.quantityMax) || 0;
-      
-      if (minQty > maxQty) {
-        setError('Minimum quantity cannot be greater than maximum quantity');
-        setLoading(false);
-        return;
-      }
 
       // Prepare data for backend
       const requestData = {
         preferredFoodTypes: preferences.noStrictPreferences ? [] : preferences.preferredCategories.map(c => c.value),
-        maxCapacity: parseInt(preferences.storageCapacity) || 50,
-        minQuantity: minQty,
-        maxQuantity: maxQty,
+        preferredDonationSizes: preferences.preferredDonationSizes,
         preferredPickupWindows: preferences.pickupAvailability,
         acceptRefrigerated: preferences.acceptsRefrigerated,
-        acceptFrozen: preferences.acceptsFrozen
+        acceptFrozen: preferences.acceptsFrozen,
+        notificationPreferencesEnabled: preferences.notificationPreferencesEnabled,
+        // TODO: Remove these once backend makes them optional - they're legacy fields
+        maxCapacity: 100,
+        minQuantity: 0,
+        maxQuantity: 1000
       };
 
       console.log('Saving preferences to backend:', requestData);
@@ -189,21 +253,36 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
           <div className="preference-field" ref={dropdownRef}>
             <label>Preferred Food Categories</label>
             <div className="category-select" onClick={() => {
-              console.log('Toggling dropdown, current state:', showCategoryDropdown);
               setShowCategoryDropdown(!showCategoryDropdown);
             }}>
               <input
                 type="text"
                 readOnly
-                value={preferences.preferredCategories.length > 0 
-                  ? `${preferences.preferredCategories.length} categories selected`
-                  : 'Select food categories...'}
+                value={preferences.noStrictPreferences
+                  ? 'All food categories selected'
+                  : preferences.preferredCategories.length > 0 
+                    ? `${preferences.preferredCategories.length} categories selected`
+                    : 'Select food categories...'}
                 placeholder="Select food categories..."
               />
               <span className="dropdown-arrow">▼</span>
             </div>
-            
-            {showCategoryDropdown && (
+
+            {/* No Strict Preferences Checkbox (moved here) */}
+            <div className="checkbox-field" style={{marginTop: '8px'}}>
+              <div className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={preferences.noStrictPreferences}
+                  onChange={handleNoPreferencesToggle}
+                />
+                <span className="checkbox-text">
+                  No strict preferences (allow all food types)
+                </span>
+              </div>
+            </div>
+
+            {showCategoryDropdown && !preferences.noStrictPreferences && (
               <div className="category-dropdown">
                 {foodTypeOptions.map(category => (
                   <label key={category.value} className="category-option">
@@ -217,8 +296,8 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
                 ))}
               </div>
             )}
-            
-            {preferences.preferredCategories.length > 0 && (
+
+            {preferences.preferredCategories.length > 0 && !preferences.noStrictPreferences && (
               <div className="selected-categories">
                 {preferences.preferredCategories.map(category => (
                   <span key={category.value} className="category-tag">
@@ -230,37 +309,25 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
             )}
           </div>
 
-          {/* Storage Capacity */}
+          {/* Preferred Donation Size */}
           <div className="preference-field">
-            <label>Storage Capacity (items)</label>
-            <input
-              type="number"
-              placeholder="Enter storage capacity"
-              value={preferences.storageCapacity}
-              onChange={(e) => handleInputChange('storageCapacity', e.target.value)}
-              min="0"
-            />
-          </div>
-
-          {/* Quantity Range */}
-          <div className="preference-field">
-            <label>Quantity Range</label>
-            <div className="quantity-range">
-              <input
-                type="number"
-                placeholder="Min"
-                value={preferences.quantityMin}
-                onChange={(e) => handleInputChange('quantityMin', e.target.value)}
-                min="0"
-              />
-              <span className="range-separator">-</span>
-              <input
-                type="number"
-                placeholder="Max"
-                value={preferences.quantityMax}
-                onChange={(e) => handleInputChange('quantityMax', e.target.value)}
-                min="0"
-              />
+            <label>Preferred Donation Size (choose all that apply)</label>
+            <div className="donation-sizes">
+              {DONATION_SIZES.map(size => {
+                const meta = DONATION_SIZE_META[size];
+                const isSelected = preferences.preferredDonationSizes.includes(size);
+                return (
+                  <Tooltip key={size} text={meta.tooltip}>
+                    <button
+                      type="button"
+                      className={`size-btn ${isSelected ? 'active' : ''}`}
+                      onClick={() => handleDonationSizeChange(size)}
+                    >
+                      {meta.label}
+                    </button>
+                  </Tooltip>
+                );
+              })}
             </div>
           </div>
 
@@ -268,16 +335,22 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
           <div className="preference-field">
             <label>Pickup Availability (select multiple)</label>
             <div className="pickup-availability">
-              {PICKUP_WINDOWS.map(window => (
-                <button
-                  key={window}
-                  type="button"
-                  className={`pickup-btn ${preferences.pickupAvailability.includes(window) ? 'active' : ''}`}
-                  onClick={() => handlePickupAvailabilityChange(window)}
-                >
-                  {window.charAt(0) + window.slice(1).toLowerCase()}
-                </button>
-              ))}
+              {PICKUP_WINDOWS.map((window) => {
+                const isActive = preferences.pickupAvailability.includes(window);
+                const meta = PICKUP_WINDOW_META[window];
+
+                return (
+                  <button
+                    key={window}
+                    type="button"
+                    className={`pickup-btn ${isActive ? 'active' : ''}`}
+                    onClick={() => handlePickupAvailabilityChange(window)}
+                    title={meta.time}
+                  >
+                    {isActive ? meta.time : meta.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -304,17 +377,22 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
             </div>
           </div>
 
-          {/* No Strict Preferences */}
+          {/* Smart Notifications */}
           <div className="preference-field checkbox-field">
             <label className="checkbox-label">
               <input
                 type="checkbox"
-                checked={preferences.noStrictPreferences}
-                onChange={handleNoPreferencesToggle}
+                checked={preferences.notificationPreferencesEnabled}
+                onChange={() => handleInputChange('notificationPreferencesEnabled', !preferences.notificationPreferencesEnabled)}
               />
-              <span>No strict preferences (allow all food types)</span>
+              <span>Smart Notifications - Only notify me about matching donations</span>
             </label>
+            <small style={{marginLeft: '24px', color: '#666', display: 'block', marginTop: '4px'}}>
+              When enabled, you'll only receive notifications for donations that match your preferences and fit within your capacity.
+            </small>
           </div>
+
+          {/* ...removed No Strict Preferences from here... */}
         </div>
 
         <div className="preferences-footer">

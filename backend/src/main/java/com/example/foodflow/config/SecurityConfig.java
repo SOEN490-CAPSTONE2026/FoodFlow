@@ -71,14 +71,24 @@ public class SecurityConfig {
                 // ✅ NEW: Receiver Preferences endpoints
                 .requestMatchers("/api/receiver/preferences/**").hasAuthority("RECEIVER")
                 
+                // ✅ NEW: Reports/Disputes endpoints - TEMPORARILY permitAll for debugging
+                .requestMatchers("/api/reports/**").permitAll()
+                
                 // Other endpoints
                 .requestMatchers("/api/feed/**").hasAuthority("RECEIVER")
                 .requestMatchers("/api/requests/**").hasAnyAuthority("DONOR", "RECEIVER")
+                
+                // Admin API endpoints
+                .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
                 
                 // Dashboard endpoints
                 .requestMatchers("/donor/**").hasAuthority("DONOR")
                 .requestMatchers("/receiver/**").hasAuthority("RECEIVER")
                 .requestMatchers("/admin/**").hasAuthority("ADMIN")
+
+                // Profile endpoints
+                .requestMatchers(HttpMethod.PUT, "/api/profile/**").hasAnyAuthority("RECEIVER", "DONOR", "ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/profile/**").hasAnyAuthority("RECEIVER", "DONOR", "ADMIN")
                 
                 // All other requests require authentication
                 .anyRequest().authenticated()

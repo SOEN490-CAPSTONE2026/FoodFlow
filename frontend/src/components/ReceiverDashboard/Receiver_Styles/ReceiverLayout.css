@@ -181,6 +181,16 @@ body {
     background: #F7FBFD;
 }
 
+.verification-banner {
+  background: #fff7e6;
+  border-left: 4px solid #f59e0b;
+  color: #92400e;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
 /* Remove padding for messaging page to allow full-screen messaging */
 .receiver-content.messages-page {
     padding: 0;
