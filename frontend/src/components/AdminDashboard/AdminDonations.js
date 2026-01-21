@@ -475,9 +475,6 @@ const AdminDonations = () => {
                             <div className="rating-cell">
                               <Star size={16} fill="#fbbf24" stroke="#fbbf24" />
                               <span>{avgRating}</span>
-                              {hasLowRating(donation) && (
-                                <Flag size={14} color="#ef4444" />
-                              )}
                             </div>
                           ) : (
                             <span className="table-muted">—</span>
@@ -489,6 +486,10 @@ const AdminDonations = () => {
                           <div className="flagged-cell" title={donation.flagReason || 'Flagged donation'}>
                             <Flag color="#ef4444" size={16} />
                             <span className="flagged-text">Yes</span>
+                          </div>
+                        ) : hasLowRating(donation) ? (
+                          <div className="flagged-cell" title="Low rating (≤2 stars)">
+                            <Flag color="#ef4444" size={16} />
                           </div>
                         ) : (
                           <span className="table-muted">—</span>
