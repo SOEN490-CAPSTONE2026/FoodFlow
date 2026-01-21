@@ -24,10 +24,12 @@ import './App.css';
 import { useLocation } from "react-router-dom";
 
 function AppContent() {
-  useAnalytics(); // This will track page views automatically
+  useAnalytics();
   const location = useLocation();
 
-  // Hide navbar on login and registration pages
+  // Top navbar only shown on public pages (landing, login, registration)
+  // Dashboard routes (/donor, /admin, /receiver) have their own internal layouts
+  // and don't need the top public navigation
   const hideNavbar =
     location.pathname === "/login" ||
     location.pathname === "/forgot-password" ||
