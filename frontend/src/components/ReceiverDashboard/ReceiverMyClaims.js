@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Package, User, ArrowRight, Filter, Clock, Star } from 'lucide-react';
 import Select from 'react-select';
 import { claimsAPI, feedbackAPI } from '../../services/api';
@@ -31,6 +31,7 @@ export default function ReceiverMyClaims() {
     postTitle: '',
   });
   const [rating, setRating] = useState({ averageRating: 0, totalReviews: 0 });
+  const hasSetInitialFilter = useRef(false);
 
   const sortOptions = [
     { value: 'date', label: 'Sort by Date' },
@@ -48,6 +49,49 @@ export default function ReceiverMyClaims() {
 
     return () => clearInterval(intervalId);
   }, []);
+
+  // Set initial filter based on priority: Ready > Claimed > Completed (only once on first load)
+  useEffect(() => {
+    if (claims.length === 0 || hasSetInitialFilter.current) return;
+
+    // Check for Ready for Pickup claims
+    const hasReady = claims.some(
+      c => c.surplusPost?.status === 'READY_FOR_PICKUP'
+    );
+    if (hasReady) {
+      setActiveFilter('Ready');
+      hasSetInitialFilter.current = true;
+      return;
+    }
+
+    // Check for Claimed (not ready, not completed, not expired)
+    const hasClaimed = claims.some(
+      c =>
+        c.surplusPost?.status !== 'READY_FOR_PICKUP' &&
+        c.surplusPost?.status !== 'COMPLETED' &&
+        c.surplusPost?.status !== 'NOT_COMPLETED' &&
+        c.surplusPost?.status !== 'EXPIRED'
+    );
+    if (hasClaimed) {
+      setActiveFilter('Claimed');
+      hasSetInitialFilter.current = true;
+      return;
+    }
+
+    // Check for Completed claims
+    const hasCompleted = claims.some(
+      c => c.surplusPost?.status === 'COMPLETED'
+    );
+    if (hasCompleted) {
+      setActiveFilter('Completed');
+      hasSetInitialFilter.current = true;
+      return;
+    }
+
+    // Otherwise show All
+    setActiveFilter('All');
+    hasSetInitialFilter.current = true;
+  }, [claims]);
 
   const fetchMyClaims = async () => {
     setLoading(true);
@@ -265,8 +309,11 @@ export default function ReceiverMyClaims() {
   // Sort claims
   const sortedClaims = [...filteredClaims].sort((a, b) => {
     if (sortBy.value === 'date') {
-      // Get the pickup date (prioritize confirmed slot, fallback to post pickup date)
-      const getPickupDate = claim => {
+      // For completed claims, use completedAt date; otherwise use pickup date
+      const getRelevantDate = claim => {
+        if (claim.surplusPost?.status === 'COMPLETED' && claim.completedAt) {
+          return claim.completedAt;
+        }
         return (
           claim.confirmedPickupSlot?.pickupDate ||
           claim.confirmedPickupSlot?.date ||
@@ -274,8 +321,8 @@ export default function ReceiverMyClaims() {
         );
       };
 
-      const dateA = getPickupDate(a);
-      const dateB = getPickupDate(b);
+      const dateA = getRelevantDate(a);
+      const dateB = getRelevantDate(b);
 
       // Handle missing dates
       if (!dateA && !dateB) {
@@ -288,8 +335,13 @@ export default function ReceiverMyClaims() {
         return -1;
       }
 
-      // Sort by pickup date - earliest pickup first (ascending)
-      return new Date(dateA).getTime() - new Date(dateB).getTime();
+      // For completed claims, sort by most recent first (descending)
+      // For other claims, sort by earliest pickup first (ascending)
+      const isCompletedFilter = activeFilter === 'Completed';
+      const timeA = new Date(dateA).getTime();
+      const timeB = new Date(dateB).getTime();
+
+      return isCompletedFilter ? timeB - timeA : timeA - timeB;
     }
     if (sortBy.value === 'status') {
       const statusPriority = {
