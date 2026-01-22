@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
-import { surplusAPI } from '../../services/api';
+import { surplusAPI, claimsAPI } from '../../services/api';
 import './Donor_Styles/ConfirmPickupModal.css';
 
 const ConfirmPickupModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
@@ -56,7 +56,18 @@ const ConfirmPickupModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
     setError('');
 
     try {
+      
+      // Step 1: Complete the surplus post (donor side)
       await surplusAPI.completeSurplusPost(donationItem.id, fullCode);
+      
+      // Step 2: Get the claim for this post
+      //const claimsResponse = await claimsAPI.getClaimForSurplusPost(donationItem.id);
+      
+      // Step 3: Complete the claim (receiver side) if it exists
+      //if (claimsResponse.data && claimsResponse.data.length > 0) {
+      //  const claimId = claimsResponse.data[0].id;
+      //  await claimsAPI.complete(claimId);
+      //}
 
       onClose();
       if (onSuccess) {

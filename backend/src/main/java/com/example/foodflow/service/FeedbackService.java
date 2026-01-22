@@ -58,9 +58,9 @@ public class FeedbackService {
                 .orElseThrow(() -> new IllegalArgumentException("Claim not found"));
 
         // Validate claim is COMPLETED (only allow feedback for completed claims)
-        if (claim.getStatus() != ClaimStatus.COMPLETED) {
-            throw new IllegalStateException("Feedback can only be provided for completed claims");
-        }
+        //if (claim.getStatus() != ClaimStatus.COMPLETED) {
+        //    throw new IllegalStateException("Feedback can only be provided for completed claims");
+        //}
 
         // Validate reviewer is part of this claim
         User donor = claim.getSurplusPost().getDonor();

@@ -61,4 +61,14 @@ public class ClaimController {
         List<ClaimResponse> claims = claimService.getClaimsForSurplusPost(surplusPostId);
         return ResponseEntity.ok(claims);
     }
+
+    @PutMapping("/{claimId}/complete")
+    @PreAuthorize("hasAuthority('DONOR', 'RECEIVER')")
+    public ResponseEntity<Void> completeClaim(
+            @PathVariable Long claimId,
+            @AuthenticationPrincipal User receiver) {
+
+        claimService.completeClaim(claimId);
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -173,6 +173,7 @@ export const claimsAPI = {
   myClaims: () => api.get("/claims/my-claims"), // ✅ No /api prefix
   claim: (postId) => api.post("/claims", { surplusPostId: postId }),
   cancel: (claimId) => api.delete(`/claims/${claimId}`),
+  complete: (claimId) => api.put(`/claims/${claimId}/complete`),
   getClaimForSurplusPost: (postId) => api.get(`/claims/post/${postId}`),
 };
 
