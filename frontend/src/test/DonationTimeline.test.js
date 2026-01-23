@@ -7,6 +7,8 @@ import DonationTimeline from '../components/shared/DonationTimeline';
 jest.mock('lucide-react', () => ({
   Clock: ({ size, className }) => <div data-testid="clock-icon" className={className} style={{ width: size, height: size }} />,
   ShieldAlert: ({ size }) => <div data-testid="shield-alert-icon" style={{ width: size, height: size }} />,
+  Camera: ({ size }) => <div data-testid="camera-icon" style={{ width: size, height: size }} />,
+  X: ({ size }) => <div data-testid="x-icon" style={{ width: size, height: size }} />,
 }));
 
 describe('DonationTimeline Component', () => {
@@ -419,5 +421,74 @@ describe('DonationTimeline Component', () => {
       });
     });
   });
-});
 
+  describe('DonationTimeline - Evidence Display', () => {
+    const mockTimelineWithEvidence = [
+      {
+        id: 1,
+        eventType: 'DONATION_POSTED',
+        timestamp: '2026-01-11T10:00:00',
+        actor: 'donor',
+        actorUserId: 1,
+        newStatus: 'AVAILABLE',
+        details: 'Donation created',
+        visibleToUsers: true,
+      },
+      {
+        id: 2,
+        eventType: 'PICKUP_EVIDENCE_UPLOADED',
+        timestamp: '2026-01-11T14:00:00',
+        actor: 'donor',
+        actorUserId: 1,
+        details: 'Pickup evidence photo uploaded',
+        visibleToUsers: true,
+        pickupEvidenceUrl: '/api/files/evidence/donation-1/test-uuid.jpg',
+      },
+    ];
+
+    it('should display evidence image when pickupEvidenceUrl exists', () => {
+      render(<DonationTimeline timeline={mockTimelineWithEvidence} loading={false} />);
+
+      const evidenceImage = screen.getByAltText('Pickup evidence');
+      expect(evidenceImage).toBeInTheDocument();
+    });
+
+    it('should display PICKUP_EVIDENCE_UPLOADED event type', () => {
+      render(<DonationTimeline timeline={mockTimelineWithEvidence} loading={false} />);
+
+      expect(screen.getByText('PICKUP_EVIDENCE_UPLOADED')).toBeInTheDocument();
+    });
+
+    it('should display evidence label', () => {
+      render(<DonationTimeline timeline={mockTimelineWithEvidence} loading={false} />);
+
+      expect(screen.getByText('Pickup Evidence')).toBeInTheDocument();
+    });
+
+    it('should not display evidence section when pickupEvidenceUrl is null', () => {
+      const timelineWithoutEvidence = [
+        {
+          id: 1,
+          eventType: 'DONATION_POSTED',
+          timestamp: '2026-01-11T10:00:00',
+          actor: 'donor',
+          actorUserId: 1,
+          visibleToUsers: true,
+          pickupEvidenceUrl: null,
+        },
+      ];
+
+      render(<DonationTimeline timeline={timelineWithoutEvidence} loading={false} />);
+
+      expect(screen.queryByAltText('Pickup evidence')).not.toBeInTheDocument();
+      expect(screen.queryByText('Pickup Evidence')).not.toBeInTheDocument();
+    });
+
+    it('should have clickable evidence thumbnail', () => {
+      render(<DonationTimeline timeline={mockTimelineWithEvidence} loading={false} />);
+
+      const evidenceImage = screen.getByAltText('Pickup evidence');
+      expect(evidenceImage).toHaveClass('evidence-thumbnail');
+    });
+  });
+});
