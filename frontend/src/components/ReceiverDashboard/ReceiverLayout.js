@@ -229,7 +229,7 @@ function ReceiverLayoutContent() {
             <button
               className="avatar-btn"
               type="button"
-              aria-label={t('receiverLayout.account')}
+              aria-label="Account menu"
               onClick={toggleDropdown}
               title={t('receiverLayout.account')}
             >

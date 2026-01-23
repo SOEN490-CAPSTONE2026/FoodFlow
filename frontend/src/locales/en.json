@@ -493,7 +493,7 @@
     "selectDate": "Select date"
   },
   "notifications": {
-    "newMessageFrom": "New message from",
+    "newMessageFrom": "New message from {{senderName}}",
     "claimConfirmed": "Claim Confirmed",
     "claimStatus": "Claim Status",
     "successfullyClaimed": "Successfully claimed \"{{foodTitle}}\" from {{donorName}}",

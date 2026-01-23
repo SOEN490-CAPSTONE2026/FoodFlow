@@ -13,23 +13,6 @@ import "react-datepicker/dist/react-datepicker.css";
 const SurplusFormModal = ({ isOpen, onClose, editMode = false, postId = null }) => {
   const { t } = useTranslation();
   
-  const foodTypeOptions = [
-    { value: "PREPARED_MEALS", label: t('surplusForm.foodTypes.preparedMeals') },
-    { value: "BAKERY_PASTRY", label: t('surplusForm.foodTypes.bakeryPastry') },
-    { value: "FRUITS_VEGETABLES", label: t('surplusForm.foodTypes.fruitsVegetables') },
-    { value: "PACKAGED_PANTRY", label: t('surplusForm.foodTypes.packagedPantry') },
-    { value: "DAIRY_COLD", label: t('surplusForm.foodTypes.dairyCold') },
-    { value: "FROZEN", label: t('surplusForm.foodTypes.frozen') },
-  ];
-
-  const unitOptions = [
-    { value: "KILOGRAM", label: t('surplusForm.units.kilogram') },
-    { value: "ITEM", label: t('surplusForm.units.item') },
-    { value: "LITER", label: t('surplusForm.units.liter') },
-    { value: "POUND", label: t('surplusForm.units.pound') },
-    { value: "BOX", label: t('surplusForm.units.box') },
-  ];
-
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 4;
   const { userTimezone } = useTimezone();
@@ -62,12 +45,30 @@ const SurplusFormModal = ({ isOpen, onClose, editMode = false, postId = null }) 
   const [error, setError] = useState("");
   const autocompleteRef = useRef(null);
 
-  const formatDate = (date) => (date ? date.toISOString().split("T")[0] : "");
+  const formatDate = (date) => {
+    if (!date) return "";
+    try {
+      // Handle both Date objects and date strings
+      const dateObj = date instanceof Date ? date : new Date(date);
+      return dateObj.toISOString().split("T")[0];
+    } catch (error) {
+      console.error('Error formatting date:', date, error);
+      return "";
+    }
+  };
+  
   const formatTime = (date) => {
     if (!date) return "";
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-    return `${hours}:${minutes}`;
+    try {
+      // Handle both Date objects and date strings
+      const dateObj = date instanceof Date ? date : new Date(date);
+      const hours = String(dateObj.getHours()).padStart(2, "0");
+      const minutes = String(dateObj.getMinutes()).padStart(2, "0");
+      return `${hours}:${minutes}`;
+    } catch (error) {
+      console.error('Error formatting time:', date, error);
+      return "";
+    }
   };
 
   // Calculate expiry date based on food category shelf life rules
@@ -243,36 +244,38 @@ const SurplusFormModal = ({ isOpen, onClose, editMode = false, postId = null }) 
     setMessage("");
     setError("");
 
-    // Format pickup slots for submission
-    const formattedSlots = pickupSlots.map((slot) => ({
-      pickupDate: formatDate(slot.pickupDate),
-      startTime: formatTime(slot.startTime),
-      endTime: formatTime(slot.endTime),
-      notes: slot.notes || null,
-    }));
-
-    const submissionData = {
-      title: formData.title,
-      quantity: {
-        value: parseFloat(formData.quantityValue),
-        unit: formData.quantityUnit,
-      },
-      foodCategories: formData.foodCategories.map((fc) => fc.value),
-      fabricationDate: formatDate(formData.fabricationDate),
-      expiryDate: formatDate(formData.expiryDate),
-      pickupSlots: formattedSlots,
-      // Keep legacy fields for backward compatibility (backend will use first slot)
-      pickupDate: formattedSlots[0].pickupDate,
-      pickupFrom: formattedSlots[0].startTime,
-      pickupTo: formattedSlots[0].endTime,
-      pickupLocation: formData.pickupLocation,
-      description: formData.description,
-      temperatureCategory: formData.temperatureCategory,
-      packagingType: formData.packagingType,
-      donorTimezone: userTimezone || "UTC", // Include donor's timezone
-    };
-
     try {
+      // Format pickup slots for submission
+      const formattedSlots = pickupSlots.map((slot) => ({
+        pickupDate: formatDate(slot.pickupDate),
+        startTime: formatTime(slot.startTime),
+        endTime: formatTime(slot.endTime),
+        notes: slot.notes || null,
+      }));
+
+      const submissionData = {
+        title: formData.title,
+        quantity: {
+          value: parseFloat(formData.quantityValue),
+          unit: formData.quantityUnit,
+        },
+        foodCategories: Array.isArray(formData.foodCategories) 
+          ? formData.foodCategories.map((fc) => fc.value)
+          : [],
+        fabricationDate: formatDate(formData.fabricationDate),
+        expiryDate: formatDate(formData.expiryDate),
+        pickupSlots: formattedSlots,
+        // Keep legacy fields for backward compatibility (backend will use first slot)
+        pickupDate: formattedSlots[0].pickupDate,
+        pickupFrom: formattedSlots[0].startTime,
+        pickupTo: formattedSlots[0].endTime,
+        pickupLocation: formData.pickupLocation,
+        description: formData.description,
+        temperatureCategory: formData.temperatureCategory,
+        packagingType: formData.packagingType,
+        donorTimezone: userTimezone || "UTC", // Include donor's timezone
+      };
+
       let response;
       if (editMode && postId) {
         // Update existing post
@@ -281,12 +284,12 @@ const SurplusFormModal = ({ isOpen, onClose, editMode = false, postId = null }) 
       } else {
         // Create new post
         response = await surplusAPI.create(submissionData);
-        setMessage(`Success! Post created with ID: ${response.data.id}`);
+        const createdPostId = response?.data?.id || 'unknown';
+        setMessage(`Success! Post created with ID: ${createdPostId}`);
       }
 
       // Reset form only in create mode
       if (!editMode) {
-        setMessage(t('surplusForm.success', { id: response.data.id }));
         setFormData({
           title: "",
           quantityValue: "",
@@ -316,7 +319,8 @@ const SurplusFormModal = ({ isOpen, onClose, editMode = false, postId = null }) 
         onClose();
       }, 1500);
     } catch (err) {
-      setError(err.response?.data?.message || t('surplusForm.failed'));
+      console.error('Error in handleSubmit:', err);
+      setError(err.response?.data?.message || "Failed to create surplus post");
     }
   };
 
@@ -420,35 +424,32 @@ const SurplusFormModal = ({ isOpen, onClose, editMode = false, postId = null }) 
     <div className="modal-overlay" onClick={handleCancel}>
       <div className="modal-container" onClick={(e) => e.stopPropagation()}>
         <div className="surplus-modal-header">
-          <h2>{t('surplusForm.title')}</h2>
+          <h2>{editMode ? "Edit Donation" : "Add New Donation"}</h2>
           <button className="close-button" onClick={handleCancel}>
             <X size={24} />
           </button>
-          </div>
+        </div>
           
-          {/* Progress Steps */}
-          <div className="progress-steps">
-            {steps.map((step, index) => (
-              <React.Fragment key={step.number}>
-                <div className="step-item">
-                  <div className={`step-circle ${
-                    currentStep > step.number ? 'completed' :
-                    currentStep === step.number ? 'active' : ''
-                  }`}>
-                    {step.number}
-                  </div>
-                  <span className="step-label">{step.label}</span>
+        {/* Progress Steps */}
+        <div className="progress-steps">
+          {steps.map((step, index) => (
+            <React.Fragment key={step.number}>
+              <div className="step-item">
+                <div className={`step-circle ${
+                  currentStep > step.number ? 'completed' :
+                  currentStep === step.number ? 'active' : ''
+                }`}>
+                  {step.number}
                 </div>
-                {index < steps.length - 1 && (
-                  <div className={`step-line ${
-                    currentStep > step.number ? 'completed' : ''
-                  }`}></div>
-                )}
-              </React.Fragment>
-            ))}
-          </div>
-
-          <h2>{editMode ? "Edit Donation" : "Add New Donation"}</h2>
+                <span className="step-label">{step.label}</span>
+              </div>
+              {index < steps.length - 1 && (
+                <div className={`step-line ${
+                  currentStep > step.number ? 'completed' : ''
+                }`}></div>
+              )}
+            </React.Fragment>
+          ))}
         </div>
 
         <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="modal-form">
@@ -833,6 +834,7 @@ const SurplusFormModal = ({ isOpen, onClose, editMode = false, postId = null }) 
           )}
         </form>
       </div>
+    </div>
   );
 };
 

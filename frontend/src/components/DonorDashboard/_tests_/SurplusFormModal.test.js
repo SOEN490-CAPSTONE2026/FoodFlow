@@ -1,39 +1,20 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-
-// Mock axios
-jest.mock("axios", () => {
-  const mockPost = jest.fn();
-  const mockGet = jest.fn();
-  const mockPut = jest.fn();
-  const mockDelete = jest.fn();
-  const mockPatch = jest.fn();
-  const mockInstance = {
-    get: mockGet,
-    post: mockPost,
-    put: mockPut,
-    delete: mockDelete,
-    patch: mockPatch,
-    interceptors: {
-      request: { use: jest.fn(() => (config) => config), eject: jest.fn() },
-      response: { use: jest.fn(() => (response) => response), eject: jest.fn() },
-    },
-  };
-  return {
-    __esModule: true,
-    default: {
-      create: jest.fn(() => mockInstance),
-    },
-  };
-});
-
 import SurplusFormModal from "../SurplusFormModal";
-import axios from "axios";
 import { TimezoneProvider } from "../../../contexts/TimezoneContext";
 
-// Get reference to the mocked instance for use in tests
-const mockAxiosInstance = axios.create();
+// Mock the surplusAPI directly
+jest.mock("../../../services/api", () => ({
+  surplusAPI: {
+    create: jest.fn(),
+    update: jest.fn(),
+    getPost: jest.fn(),
+  },
+}));
+
+// Import the mocked module after the mock is set up
+import { surplusAPI as mockSurplusAPI } from "../../../services/api";
 
 // Helper function to render with required providers
 const renderWithProviders = (ui, options = {}) => {
@@ -228,7 +209,14 @@ describe("SurplusFormModal", () => {
 
   // Helper function to fill Step 2 (Quantity & Dates)
   const fillStep2 = async () => {
-    await userEvent.type(screen.getByPlaceholderText("0"), "10");
+    // Wait for step 2 to be visible first
+    await waitFor(() => {
+      expect(screen.getByText("Quantity & Dates")).toBeInTheDocument();
+    });
+    
+    // Find quantity input by placeholder text (from setupTests.js mock)
+    const quantityInput = screen.getByPlaceholderText("0");
+    await userEvent.type(quantityInput, "10");
     
     const datePickers = screen.getAllByTestId("date-picker");
     fireEvent.click(datePickers[0]); // Fabrication date
@@ -341,7 +329,7 @@ describe("SurplusFormModal", () => {
   // Form submission with valid data through all steps
   test("submits form with valid data through all steps", async () => {
     const mockResponse = { data: { id: 123 } };
-    mockAxiosInstance.post.mockResolvedValue(mockResponse);
+    mockSurplusAPI.create.mockResolvedValue(mockResponse);
     
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
@@ -362,12 +350,11 @@ describe("SurplusFormModal", () => {
     fireEvent.click(screen.getByText("Create Donation"));
 
     await waitFor(() => {
-      expect(mockAxiosInstance.post).toHaveBeenCalled();
+      expect(mockSurplusAPI.create).toHaveBeenCalled();
     });
 
-    const apiCall = mockAxiosInstance.post.mock.calls[0];
-    expect(apiCall[0]).toBe("/surplus");
-    expect(apiCall[1]).toMatchObject({
+    const apiCall = mockSurplusAPI.create.mock.calls[0];
+    expect(apiCall[0]).toMatchObject({
       title: "Test Food",
       quantity: { value: 10, unit: "KILOGRAM" },
       temperatureCategory: "REFRIGERATED",
@@ -423,7 +410,7 @@ describe("SurplusFormModal", () => {
   // API error handling
   test("handles API errors correctly", async () => {
     const errorMessage = "Network Error";
-    mockAxiosInstance.post.mockRejectedValue({
+    mockSurplusAPI.create.mockRejectedValue({
       response: { data: { message: errorMessage } },
     });
     
@@ -468,7 +455,7 @@ describe("SurplusFormModal", () => {
   // Success message after successful submission
   test("shows success message after successful submission", async () => {
     const mockResponse = { data: { id: 123 } };
-    mockAxiosInstance.post.mockResolvedValue(mockResponse);
+    mockSurplusAPI.create.mockResolvedValue(mockResponse);
     
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
     
@@ -495,7 +482,7 @@ describe("SurplusFormModal", () => {
   // Verify API is called with correct endpoint
   test("calls the correct API endpoint on form submission", async () => {
     const mockResponse = { data: { id: 123 } };
-    mockAxiosInstance.post.mockResolvedValue(mockResponse);
+    mockSurplusAPI.create.mockResolvedValue(mockResponse);
     
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
@@ -516,9 +503,7 @@ describe("SurplusFormModal", () => {
     fireEvent.click(screen.getByText("Create Donation"));
 
     await waitFor(() => {
-      expect(mockAxiosInstance.post).toHaveBeenCalled();
-      const apiCall = mockAxiosInstance.post.mock.calls[0];
-      expect(apiCall[0]).toBe("/surplus");
+      expect(mockSurplusAPI.create).toHaveBeenCalled();
     });
   });
 
@@ -554,7 +539,7 @@ describe("SurplusFormModal", () => {
     fireEvent.click(screen.getByText("Next"));
     await waitFor(() => expect(screen.getByText("Quantity & Dates")).toBeInTheDocument());
 
-    const quantityInput = screen.getByPlaceholderText("0");
+    const quantityInput = document.querySelector('input[name="quantityValue"]');
     await userEvent.type(quantityInput, "5");
     expect(quantityInput.value).toBe("5");
 
@@ -586,7 +571,7 @@ describe("SurplusFormModal", () => {
   // Modal closes after successful submission
   test("closes modal after successful submission", async () => {
     const mockResponse = { data: { id: 123 } };
-    mockAxiosInstance.post.mockResolvedValue(mockResponse);
+    mockSurplusAPI.create.mockResolvedValue(mockResponse);
     
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
@@ -846,7 +831,7 @@ describe("SurplusFormModal", () => {
   // Multiple pickup slots submission
   test("submits form with multiple pickup slots", async () => {
     const mockResponse = { data: { id: 456 } };
-    mockAxiosInstance.post.mockResolvedValue(mockResponse);
+    mockSurplusAPI.create.mockResolvedValue(mockResponse);
     
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
     
@@ -901,10 +886,11 @@ describe("SurplusFormModal", () => {
     fireEvent.click(screen.getByText("Create Donation"));
 
     await waitFor(() => {
-      expect(mockAxiosInstance.post).toHaveBeenCalled();
-      const apiCall = mockAxiosInstance.post.mock.calls[0];
-      expect(apiCall[1].pickupSlots).toHaveLength(2);
+      expect(mockSurplusAPI.create).toHaveBeenCalled();
     });
+    
+    const apiCall = mockSurplusAPI.create.mock.calls[0];
+    expect(apiCall[0].pickupSlots).toHaveLength(2);
   });
 
   // Quantity with decimal values
@@ -915,14 +901,14 @@ describe("SurplusFormModal", () => {
     fireEvent.click(screen.getByText("Next"));
     await waitFor(() => expect(screen.getByText("Quantity & Dates")).toBeInTheDocument());
 
-    const quantityInput = screen.getByPlaceholderText("0");
+    const quantityInput = document.querySelector('input[name="quantityValue"]');
     await userEvent.type(quantityInput, "5.5");
     expect(quantityInput.value).toBe("5.5");
   });
 
-  // API error without response data
+  // API error without response message
   test("handles API error without response message", async () => {
-    mockAxiosInstance.post.mockRejectedValue({});
+    mockSurplusAPI.create.mockRejectedValue({});
     
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
     

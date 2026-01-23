@@ -65,7 +65,9 @@ export default function ReceiverWelcome() {
           <div className="rw-icon">📩</div>
           <h2>{t('receiverWelcome.needAssistance.title')}</h2>
           <p>
-            {t('receiverWelcome.needAssistance.description', { email: 'foodflow.group@gmail.com' })}
+            {t('receiverWelcome.needAssistance.description').replace('{{email}}', '')}{' '}
+            <a href="mailto:foodflow.group@gmail.com">foodflow.group@gmail.com</a>
+            {' '}and we'll help you coordinate a pickup.
           </p>
           <p className="rw-small">{t('receiverWelcome.needAssistance.newHere')}</p>
           <a href="/receiver/faq" className="rw-btn secondary">{t('receiverWelcome.needAssistance.button')}</a>

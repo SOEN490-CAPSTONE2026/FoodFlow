@@ -19,20 +19,6 @@ const renderWithProviders = (ui, options = {}) => {
   );
 };
 
-// Mock the API
-jest.mock("../../../services/api", () => ({
-  surplusAPI: {
-    list: jest.fn(),
-    search: jest.fn(),
-    claim: jest.fn(),
-  },
-  recommendationAPI: {
-    getBrowseRecommendations: jest.fn(),
-    getRecommendationForPost: jest.fn(),
-    getTopRecommendations: jest.fn(),
-  },
-}));
-
 // Mock images
 jest.mock("../../../assets/foodtypes/Pastry&Bakery.jpg", () => "bakery-image.jpg");
 jest.mock("../../../assets/foodtypes/Fruits&Vegetables.jpg", () => "fruits-image.jpg");
@@ -95,14 +81,11 @@ describe("ReceiverBrowse Component", () => {
     jest.clearAllMocks();
     global.alert.mockClear();
     global.confirm.mockClear();
-    surplusAPI.list.mockReset();
-    surplusAPI.search.mockReset();
-    surplusAPI.claim.mockReset();
-    recommendationAPI.getBrowseRecommendations.mockReset();
-    recommendationAPI.getRecommendationForPost.mockReset();
-    recommendationAPI.getTopRecommendations.mockReset();
     
-    // Set default mock implementations
+    // Set default mock implementations - no need for mockReset as clearAllMocks handles it
+    surplusAPI.list.mockResolvedValue({ data: [] });
+    surplusAPI.search.mockResolvedValue({ data: [] });
+    surplusAPI.claim.mockResolvedValue({});
     recommendationAPI.getBrowseRecommendations.mockResolvedValue({});
     recommendationAPI.getRecommendationForPost.mockResolvedValue(null);
     recommendationAPI.getTopRecommendations.mockResolvedValue([]);

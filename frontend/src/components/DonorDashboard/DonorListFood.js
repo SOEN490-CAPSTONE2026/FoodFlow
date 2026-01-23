@@ -613,7 +613,7 @@ export default function DonorListFood() {
               <ul className="donation-meta" aria-label="details">
                 <li>
                   <Calendar size={16} className="calendar-icon" />
-                  <span>{t('donorListFood.expires')}: {item.expiryDate || t('donorListFood.notSpecified')}</span>
+                  <span>{t('donorListFood.expires')}: {formatExpiryDate(item.expiryDate)}</span>
                 </li>
                 <li>
                   <Clock size={16} className="time-icon" />

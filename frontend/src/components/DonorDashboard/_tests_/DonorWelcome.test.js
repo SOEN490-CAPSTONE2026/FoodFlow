@@ -6,12 +6,7 @@ import '@testing-library/jest-dom';
 import DonorWelcome from '../DonorWelcome';
 import { AuthContext } from '../../../contexts/AuthContext';
 
-// Mock API
-jest.mock('../../../services/api', () => ({
-  surplusAPI: {
-    getMyPosts: jest.fn(),
-  },
-}));
+// Mock API - import from the global mock
 import { surplusAPI } from '../../../services/api';
 
 // Mock CSS

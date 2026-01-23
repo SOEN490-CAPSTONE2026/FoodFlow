@@ -1,3 +1,5 @@
+// Unmock the global socket mock from setupTests.js so we can test the real implementation
+jest.unmock('./socket');
 
 jest.mock('sockjs-client', () => {
   const mockCtor = jest.fn(function mockSock(url) {
