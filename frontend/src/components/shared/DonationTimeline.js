@@ -1,6 +1,36 @@
-import React from 'react';
-import { Clock, ShieldAlert } from 'lucide-react';
+import React, { useState } from 'react';
+import { Clock, ShieldAlert, Camera, X } from 'lucide-react';
 import './DonationTimeline.css';
+
+// Get the backend base URL (without /api suffix)
+const BACKEND_BASE_URL = (process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api').replace(/\/api$/, '');
+
+/**
+ * Constructs the full URL for an evidence image
+ * Handles both new format (/api/files/...) and legacy format (/uploads/...)
+ */
+const getEvidenceImageUrl = (url) => {
+  if (!url) return null;
+
+  // If it's already a full URL, return as-is
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+
+  // Handle legacy URLs that start with /uploads/ (convert to /api/files/uploads/)
+  if (url.startsWith('/uploads/')) {
+    const filename = url.substring('/uploads/'.length);
+    return `${BACKEND_BASE_URL}/api/files/uploads/${filename}`;
+  }
+
+  // Handle proper /api/files/ URLs
+  if (url.startsWith('/api/files/')) {
+    return `${BACKEND_BASE_URL}${url}`;
+  }
+
+  // Fallback: prepend backend base + /api/files
+  return `${BACKEND_BASE_URL}/api/files${url.startsWith('/') ? '' : '/'}${url}`;
+};
 
 /**
  * DonationTimeline Component
@@ -11,6 +41,7 @@ import './DonationTimeline.css';
  * @param {boolean} showAdminBadges - Whether to show admin-only badges (default: false)
  */
 export default function DonationTimeline({ timeline = [], loading = false, showAdminBadges = false }) {
+  const [enlargedImage, setEnlargedImage] = useState(null);
 
   const formatDate = (timestamp) => {
     if (!timestamp) return "—";
@@ -57,7 +88,10 @@ export default function DonationTimeline({ timeline = [], loading = false, showA
         >
           <div className="donation-timeline-marker" />
           <div className="donation-timeline-content">
-            <div className="donation-timeline-event-type">{event.eventType}</div>
+            <div className="donation-timeline-event-type">
+              {event.eventType === 'PICKUP_EVIDENCE_UPLOADED' && <Camera size={14} />}
+              {event.eventType}
+            </div>
             <div className="donation-timeline-meta">
               <span>{formatDate(event.timestamp)}</span>
               <span className="donation-timeline-actor">Actor: {event.actor}</span>
@@ -78,9 +112,33 @@ export default function DonationTimeline({ timeline = [], loading = false, showA
             {event.details && (
               <div className="donation-timeline-details">{event.details}</div>
             )}
+            {/* Display pickup evidence image */}
+            {event.pickupEvidenceUrl && (
+              <div className="donation-timeline-evidence">
+                <img
+                  src={getEvidenceImageUrl(event.pickupEvidenceUrl)}
+                  alt="Pickup evidence"
+                  className="evidence-thumbnail"
+                  onClick={() => setEnlargedImage(getEvidenceImageUrl(event.pickupEvidenceUrl))}
+                />
+                <span className="evidence-label">Pickup Evidence</span>
+              </div>
+            )}
           </div>
         </div>
       ))}
+
+      {/* Enlarged image modal */}
+      {enlargedImage && (
+        <div className="evidence-modal-overlay" onClick={() => setEnlargedImage(null)}>
+          <div className="evidence-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="evidence-modal-close" onClick={() => setEnlargedImage(null)}>
+              <X size={24} />
+            </button>
+            <img src={enlargedImage} alt="Pickup evidence enlarged" />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
