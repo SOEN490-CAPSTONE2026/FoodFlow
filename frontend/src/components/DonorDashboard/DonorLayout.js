@@ -271,9 +271,9 @@ export default function DonorLayout() {
             </span>
             Settings
           </Link>
-          <Link 
-            to="/donor/help" 
-            className={`donor-nav-link ${isActive("/donor/help") ? "active" : ""}`}
+          <Link
+            to="/donor/help"
+            className={`donor-nav-link ${isActive('/donor/help') ? 'active' : ''}`}
             data-tooltip="Help"
           >
             <span className="nav-icon" aria-hidden>

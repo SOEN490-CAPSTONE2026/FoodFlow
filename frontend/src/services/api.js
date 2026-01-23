@@ -455,15 +455,15 @@ export const adminVerificationAPI = {
    */
   getPendingUsers: (filters = {}) => {
     const params = new URLSearchParams();
-    
+
     if (filters.userType) params.append('userType', filters.userType);
     if (filters.search) params.append('search', filters.search);
     if (filters.sortBy) params.append('sortBy', filters.sortBy);
     if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
-    
+
     params.append('page', filters.page || 0);
     params.append('size', filters.size || 20);
-    
+
     return api.get(`/admin/pending-users?${params.toString()}`);
   },
 
@@ -472,7 +472,7 @@ export const adminVerificationAPI = {
    * @param {number} userId - User ID to approve
    * @returns {Promise} Updated user data
    */
-  approveUser: (userId) => api.post(`/admin/approve/${userId}`),
+  approveUser: userId => api.post(`/admin/approve/${userId}`),
 
   /**
    * Reject a pending user registration
@@ -481,10 +481,10 @@ export const adminVerificationAPI = {
    * @param {string} message - Optional custom message
    * @returns {Promise} Response data
    */
-  rejectUser: (userId, reason, message) => 
+  rejectUser: (userId, reason, message) =>
     api.post(`/admin/reject/${userId}`, {
       reason,
-      message
+      message,
     }),
 };
 

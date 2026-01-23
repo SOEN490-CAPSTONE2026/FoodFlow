@@ -530,7 +530,9 @@ const AdminDonations = () => {
             <TableBody>
               {filteredDonations.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan="11" className="no-donations">No donations found</TableCell>
+                  <TableCell colSpan="11" className="no-donations">
+                    No donations found
+                  </TableCell>
                 </TableRow>
               ) : (
                 filteredDonations.map(donation => (
@@ -566,17 +568,23 @@ const AdminDonations = () => {
                       <TableCell>
                         {!donation.claimId ? (
                           <span className="table-muted">—</span>
-                        ) : (() => {
-                          const avgRating = getAverageRating(donation);
-                          return avgRating ? (
-                            <div className="rating-cell">
-                              <Star size={16} fill="#fbbf24" stroke="#fbbf24" />
-                              <span>{avgRating}</span>
-                            </div>
-                          ) : (
-                            <span className="table-muted">—</span>
-                          );
-                        })()}
+                        ) : (
+                          (() => {
+                            const avgRating = getAverageRating(donation);
+                            return avgRating ? (
+                              <div className="rating-cell">
+                                <Star
+                                  size={16}
+                                  fill="#fbbf24"
+                                  stroke="#fbbf24"
+                                />
+                                <span>{avgRating}</span>
+                              </div>
+                            ) : (
+                              <span className="table-muted">—</span>
+                            );
+                          })()
+                        )}
                       </TableCell>
                       <TableCell>
                         {donation.flagged ? (
@@ -588,7 +596,10 @@ const AdminDonations = () => {
                             <span className="flagged-text">Yes</span>
                           </div>
                         ) : hasLowRating(donation) ? (
-                          <div className="flagged-cell" title="Low rating (≤2 stars)">
+                          <div
+                            className="flagged-cell"
+                            title="Low rating (≤2 stars)"
+                          >
                             <Flag color="#ef4444" size={16} />
                           </div>
                         ) : (

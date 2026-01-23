@@ -62,7 +62,9 @@
   align-items: center;
   gap: 20px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
   min-height: 110px;
   width: 100%;
   box-sizing: border-box;
@@ -1055,16 +1057,16 @@
   .detail-content-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .decision-header {
     flex-direction: column;
     gap: 20px;
   }
-  
+
   .header-actions {
     width: 100%;
   }
-  
+
   .btn-approve-primary,
   .btn-reject-secondary {
     flex: 1;
@@ -1244,7 +1246,7 @@
 
 /* Capacity Stat Card */
 .capacity-stat-card {
-  background: linear-gradient(135deg, #1B4965 0%, #1B4965 100%);
+  background: linear-gradient(135deg, #1b4965 0%, #1b4965 100%);
   border-radius: 12px;
   padding: 24px;
   text-align: center;
@@ -1305,19 +1307,19 @@
   .verification-detail-container {
     padding: 20px;
   }
-  
+
   .decision-header {
     padding: 24px;
   }
-  
+
   .org-name {
     font-size: 22px;
   }
-  
+
   .detail-card {
     padding: 20px;
   }
-  
+
   .capacity-number {
     font-size: 36px;
   }

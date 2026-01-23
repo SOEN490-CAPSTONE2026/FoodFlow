@@ -3,65 +3,81 @@ import React, { createContext, useState, useEffect } from 'react';
 export const AuthContext = createContext();
 
 const AuthStorage = {
-  getItem: (key) => {
+  getItem: key => {
     return localStorage.getItem(key) || sessionStorage.getItem(key);
   },
 
   setItem: (key, value, useSession = false) => {
     const storage = useSession ? sessionStorage : localStorage;
     const otherStorage = useSession ? localStorage : sessionStorage;
-    
+
     if (value !== null && value !== undefined) {
       storage.setItem(key, value);
       otherStorage.removeItem(key);
     }
   },
 
-  removeItem: (key) => {
+  removeItem: key => {
     localStorage.removeItem(key);
     sessionStorage.removeItem(key);
   },
 
   clearAll: () => {
-    const keys = ["jwtToken", "userRole", "userId", "organizationName", "organizationVerificationStatus"];
+    const keys = [
+      'jwtToken',
+      'userRole',
+      'userId',
+      'organizationName',
+      'organizationVerificationStatus',
+    ];
     keys.forEach(key => AuthStorage.removeItem(key));
   },
 };
 
 export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    return Boolean(AuthStorage.getItem("jwtToken"));
+    return Boolean(AuthStorage.getItem('jwtToken'));
   });
 
   const [role, setRole] = useState(() => {
-    return AuthStorage.getItem("userRole") || null;
+    return AuthStorage.getItem('userRole') || null;
   });
 
   const [userId, setUserId] = useState(() => {
-    return AuthStorage.getItem("userId") || null;
+    return AuthStorage.getItem('userId') || null;
   });
 
   const [organizationName, setOrganizationName] = useState(() => {
-    return AuthStorage.getItem("organizationName") || null;
+    return AuthStorage.getItem('organizationName') || null;
   });
 
-  const [organizationVerificationStatus, setOrganizationVerificationStatus] = useState(() => {
-    return AuthStorage.getItem("organizationVerificationStatus") || null;
-  });
+  const [organizationVerificationStatus, setOrganizationVerificationStatus] =
+    useState(() => {
+      return AuthStorage.getItem('organizationVerificationStatus') || null;
+    });
 
   useEffect(() => {
     const handleStorage = () => {
-      setIsLoggedIn(Boolean(AuthStorage.getItem("jwtToken")));
-      setRole(AuthStorage.getItem("userRole") || null);
-      setUserId(AuthStorage.getItem("userId") || null);
-      setOrganizationName(AuthStorage.getItem("organizationName") || null);
-      setOrganizationVerificationStatus(AuthStorage.getItem("organizationVerificationStatus") || null);
+      setIsLoggedIn(Boolean(AuthStorage.getItem('jwtToken')));
+      setRole(AuthStorage.getItem('userRole') || null);
+      setUserId(AuthStorage.getItem('userId') || null);
+      setOrganizationName(AuthStorage.getItem('organizationName') || null);
+      setOrganizationVerificationStatus(
+        AuthStorage.getItem('organizationVerificationStatus') || null
+      );
     };
     window.addEventListener('storage', handleStorage);
     return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
-  const login = (token, userRole, userId, arg4 = null, arg5 = null, arg6 = false) => {
+  const login = (
+    token,
+    userRole,
+    userId,
+    arg4 = null,
+    arg5 = null,
+    arg6 = false
+  ) => {
     let orgName = null;
     let orgVerificationStatus = null;
     let useSession = false;
@@ -77,20 +93,24 @@ export const AuthProvider = ({ children }) => {
       useSession = arg6;
     }
 
-    AuthStorage.setItem("jwtToken", token, useSession);
-    AuthStorage.setItem("userRole", userRole, useSession);
-    AuthStorage.setItem("userId", userId, useSession);
+    AuthStorage.setItem('jwtToken', token, useSession);
+    AuthStorage.setItem('userRole', userRole, useSession);
+    AuthStorage.setItem('userId', userId, useSession);
 
     if (orgName !== undefined && orgName !== null) {
-      AuthStorage.setItem("organizationName", orgName, useSession);
+      AuthStorage.setItem('organizationName', orgName, useSession);
     } else {
-      AuthStorage.removeItem("organizationName");
+      AuthStorage.removeItem('organizationName');
     }
 
     if (orgVerificationStatus !== undefined && orgVerificationStatus !== null) {
-      AuthStorage.setItem("organizationVerificationStatus", orgVerificationStatus, useSession);
+      AuthStorage.setItem(
+        'organizationVerificationStatus',
+        orgVerificationStatus,
+        useSession
+      );
     } else {
-      AuthStorage.removeItem("organizationVerificationStatus");
+      AuthStorage.removeItem('organizationVerificationStatus');
     }
 
     setIsLoggedIn(true);

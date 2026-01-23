@@ -4,12 +4,8 @@ import { BrowserRouter } from 'react-router-dom';
 import DonorHelp from '../DonorHelp';
 
 // Wrapper component for Router context
-const renderWithRouter = (component) => {
-  return render(
-    <BrowserRouter>
-      {component}
-    </BrowserRouter>
-  );
+const renderWithRouter = component => {
+  return render(<BrowserRouter>{component}</BrowserRouter>);
 };
 
 describe('DonorHelp Component', () => {
@@ -24,7 +20,9 @@ describe('DonorHelp Component', () => {
 
     it('renders all main sections', () => {
       expect(screen.getByText('Getting Started')).toBeInTheDocument();
-      expect(screen.getByText('Frequently Asked Questions')).toBeInTheDocument();
+      expect(
+        screen.getByText('Frequently Asked Questions')
+      ).toBeInTheDocument();
       expect(screen.getByText('Need More Help?')).toBeInTheDocument();
     });
 
@@ -33,7 +31,9 @@ describe('DonorHelp Component', () => {
     });
 
     it('renders all four getting started steps', () => {
-      expect(screen.getByText('Create Your First Donation')).toBeInTheDocument();
+      expect(
+        screen.getByText('Create Your First Donation')
+      ).toBeInTheDocument();
       expect(screen.getByText('Set Pickup Times')).toBeInTheDocument();
       expect(screen.getByText('Wait for Claims')).toBeInTheDocument();
       expect(screen.getByText('Confirm Pickup with OTP')).toBeInTheDocument();
@@ -49,51 +49,75 @@ describe('DonorHelp Component', () => {
 
   describe('FAQ Section', () => {
     it('renders all FAQ questions', () => {
-      expect(screen.getByText('How do I create a donation?')).toBeInTheDocument();
-      expect(screen.getByText('How does pickup confirmation work?')).toBeInTheDocument();
+      expect(
+        screen.getByText('How do I create a donation?')
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText('How does pickup confirmation work?')
+      ).toBeInTheDocument();
       expect(screen.getByText('What is an OTP code?')).toBeInTheDocument();
-      expect(screen.getByText('Can I edit or delete a donation?')).toBeInTheDocument();
-      expect(screen.getByText('How do I message a receiver?')).toBeInTheDocument();
-      expect(screen.getByText('What food types can I donate?')).toBeInTheDocument();
+      expect(
+        screen.getByText('Can I edit or delete a donation?')
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText('How do I message a receiver?')
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText('What food types can I donate?')
+      ).toBeInTheDocument();
     });
 
     it('FAQ answers are hidden by default', () => {
       // The answer text should not be visible initially
-      expect(screen.queryByText(/Navigate to 'Donate Now' from the sidebar/i)).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/Navigate to 'Donate Now' from the sidebar/i)
+      ).not.toBeInTheDocument();
     });
 
     it('expands FAQ when question is clicked', () => {
       const question = screen.getByText('How do I create a donation?');
       fireEvent.click(question);
-      
+
       // After clicking, the answer should be visible
-      expect(screen.getByText(/Navigate to 'Donate Now' from the sidebar/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Navigate to 'Donate Now' from the sidebar/i)
+      ).toBeInTheDocument();
     });
 
     it('collapses FAQ when clicked again', () => {
       const question = screen.getByText('How do I create a donation?');
-      
+
       // First click - expand
       fireEvent.click(question);
-      expect(screen.getByText(/Navigate to 'Donate Now' from the sidebar/i)).toBeInTheDocument();
-      
+      expect(
+        screen.getByText(/Navigate to 'Donate Now' from the sidebar/i)
+      ).toBeInTheDocument();
+
       // Second click - collapse
       fireEvent.click(question);
-      expect(screen.queryByText(/Navigate to 'Donate Now' from the sidebar/i)).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/Navigate to 'Donate Now' from the sidebar/i)
+      ).not.toBeInTheDocument();
     });
 
     it('only one FAQ is open at a time', () => {
       const firstQuestion = screen.getByText('How do I create a donation?');
       const secondQuestion = screen.getByText('What is an OTP code?');
-      
+
       // Open first FAQ
       fireEvent.click(firstQuestion);
-      expect(screen.getByText(/Navigate to 'Donate Now' from the sidebar/i)).toBeInTheDocument();
-      
+      expect(
+        screen.getByText(/Navigate to 'Donate Now' from the sidebar/i)
+      ).toBeInTheDocument();
+
       // Open second FAQ - first should close
       fireEvent.click(secondQuestion);
-      expect(screen.queryByText(/Navigate to 'Donate Now' from the sidebar/i)).not.toBeInTheDocument();
-      expect(screen.getByText(/OTP stands for One-Time Password/i)).toBeInTheDocument();
+      expect(
+        screen.queryByText(/Navigate to 'Donate Now' from the sidebar/i)
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getByText(/OTP stands for One-Time Password/i)
+      ).toBeInTheDocument();
     });
   });
 
@@ -128,9 +152,9 @@ describe('DonorHelp Component', () => {
     it('FAQ buttons have aria-expanded attribute', () => {
       const question = screen.getByText('How do I create a donation?');
       const button = question.closest('button');
-      
+
       expect(button).toHaveAttribute('aria-expanded', 'false');
-      
+
       fireEvent.click(button);
       expect(button).toHaveAttribute('aria-expanded', 'true');
     });
@@ -143,7 +167,7 @@ describe('DonorHelp Component', () => {
     it('FAQ answers have role="region"', () => {
       const question = screen.getByText('How do I create a donation?');
       fireEvent.click(question);
-      
+
       const regions = screen.getAllByRole('region');
       expect(regions.length).toBeGreaterThan(0);
     });
@@ -153,14 +177,14 @@ describe('DonorHelp Component', () => {
     it('OTP explanation is accurate', () => {
       const question = screen.getByText('What is an OTP code?');
       fireEvent.click(question);
-      
+
       expect(screen.getByText(/unique 6-digit code/i)).toBeInTheDocument();
     });
 
     it('mentions food types correctly', () => {
       const question = screen.getByText('What food types can I donate?');
       fireEvent.click(question);
-      
+
       expect(screen.getByText(/Prepared Food/i)).toBeInTheDocument();
       expect(screen.getByText(/Packaged Items/i)).toBeInTheDocument();
       expect(screen.getByText(/Fruits & Vegetables/i)).toBeInTheDocument();
@@ -171,21 +195,21 @@ describe('DonorHelp Component', () => {
 describe('DonorHelp Component - Edge Cases', () => {
   it('handles rapid FAQ clicks without errors', () => {
     renderWithRouter(<DonorHelp />);
-    
+
     const question = screen.getByText('How do I create a donation?');
-    
+
     // Rapid clicks
     for (let i = 0; i < 10; i++) {
       fireEvent.click(question);
     }
-    
+
     // Component should still render correctly
     expect(screen.getByText('Getting Started')).toBeInTheDocument();
   });
 
   it('renders correctly with no initial state', () => {
     const { container } = renderWithRouter(<DonorHelp />);
-    
+
     // No FAQ should be expanded initially
     const openFaqs = container.querySelectorAll('.faq-item.open');
     expect(openFaqs.length).toBe(0);

@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, AlertTriangle, FileText, Clock, CheckCircle, XCircle, Eye } from 'lucide-react';
+import {
+  Search,
+  AlertTriangle,
+  FileText,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Eye,
+} from 'lucide-react';
 import { adminDisputeAPI } from '../../services/api';
 import './Admin_Styles/AdminDisputes.css';
 
@@ -18,7 +26,7 @@ const AdminDisputes = () => {
     underReview: 0,
     resolved: 0,
     closed: 0,
-    avgResolutionDays: 0
+    avgResolutionDays: 0,
   });
 
   useEffect(() => {
@@ -74,7 +82,7 @@ const AdminDisputes = () => {
       underReview: disputeList.filter(d => d.status === 'UNDER_REVIEW').length,
       resolved: disputeList.filter(d => d.status === 'RESOLVED').length,
       closed: disputeList.filter(d => d.status === 'CLOSED').length,
-      avgResolutionDays: 2.4 // This should be calculated from resolved disputes
+      avgResolutionDays: 2.4, // This should be calculated from resolved disputes
     };
     setStats(stats);
   };
@@ -231,19 +239,25 @@ const AdminDisputes = () => {
               Open
             </button>
             <button
-              className={statusFilter === 'UNDER_REVIEW' ? 'tab-btn active' : 'tab-btn'}
+              className={
+                statusFilter === 'UNDER_REVIEW' ? 'tab-btn active' : 'tab-btn'
+              }
               onClick={() => setStatusFilter('UNDER_REVIEW')}
             >
               Under Review
             </button>
             <button
-              className={statusFilter === 'RESOLVED' ? 'tab-btn active' : 'tab-btn'}
+              className={
+                statusFilter === 'RESOLVED' ? 'tab-btn active' : 'tab-btn'
+              }
               onClick={() => setStatusFilter('RESOLVED')}
             >
               Resolved
             </button>
             <button
-              className={statusFilter === 'CLOSED' ? 'tab-btn active' : 'tab-btn'}
+              className={
+                statusFilter === 'CLOSED' ? 'tab-btn active' : 'tab-btn'
+              }
               onClick={() => setStatusFilter('CLOSED')}
             >
               Closed
@@ -256,7 +270,7 @@ const AdminDisputes = () => {
               type="text"
               placeholder="Search cases..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={e => setSearchTerm(e.target.value)}
               className="search-input"
             />
           </div>
@@ -284,29 +298,41 @@ const AdminDisputes = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredDisputes.map((dispute) => (
+                {filteredDisputes.map(dispute => (
                   <tr key={dispute.id}>
                     <td className="case-id">{dispute.caseId}</td>
                     <td>
                       <div className="user-cell">
                         <div className="user-name">{dispute.reporterName}</div>
-                        <div className="user-type">{dispute.reporterType === 'DONOR' ? 'Donor' : 'Receiver'}</div>
+                        <div className="user-type">
+                          {dispute.reporterType === 'DONOR'
+                            ? 'Donor'
+                            : 'Receiver'}
+                        </div>
                       </div>
                     </td>
                     <td>
-                      <div className="reported-user-name">{dispute.reportedUserName}</div>
+                      <div className="reported-user-name">
+                        {dispute.reportedUserName}
+                      </div>
                     </td>
                     <td>
                       {dispute.donationId ? (
-                        <span className="donation-id">DON-2024-{String(dispute.donationId).padStart(4, '0')}</span>
+                        <span className="donation-id">
+                          DON-2024-{String(dispute.donationId).padStart(4, '0')}
+                        </span>
                       ) : (
                         <span className="no-donation">—</span>
                       )}
                     </td>
                     <td>
                       <div className="date-cell">
-                        <div className="date-main">{formatDate(dispute.createdAt)}</div>
-                        <div className="date-time">{formatTime(dispute.createdAt)}</div>
+                        <div className="date-main">
+                          {formatDate(dispute.createdAt)}
+                        </div>
+                        <div className="date-time">
+                          {formatTime(dispute.createdAt)}
+                        </div>
                       </div>
                     </td>
                     <td>
@@ -317,7 +343,9 @@ const AdminDisputes = () => {
                     <td>
                       <button
                         className="view-btn"
-                        onClick={() => navigate(`/admin/disputes/${dispute.id}`)}
+                        onClick={() =>
+                          navigate(`/admin/disputes/${dispute.id}`)
+                        }
                       >
                         <Eye size={16} />
                         View

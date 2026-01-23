@@ -71,23 +71,23 @@ export default function AdminLayout() {
 
   const pageTitle = (() => {
     switch (location.pathname) {
-      case "/admin":
-      case "/admin/dashboard":
-        return "Admin Dashboard";
-      case "/admin/users":
-        return "User Management";
-      case "/admin/verification-queue":
-        return "Verification Queue";
-      case "/admin/analytics":
-        return "Analytics";
-      case "/admin/calendar":
-        return "Calendar";
-      case "/admin/messages":
-        return "Messages";
-      case "/admin/disputes":
-        return "Disputes & Reports";
-      case "/admin/help":
-        return "Help";
+      case '/admin':
+      case '/admin/dashboard':
+        return 'Admin Dashboard';
+      case '/admin/users':
+        return 'User Management';
+      case '/admin/verification-queue':
+        return 'Verification Queue';
+      case '/admin/analytics':
+        return 'Analytics';
+      case '/admin/calendar':
+        return 'Calendar';
+      case '/admin/messages':
+        return 'Messages';
+      case '/admin/disputes':
+        return 'Disputes & Reports';
+      case '/admin/help':
+        return 'Help';
       default:
         if (location.pathname.startsWith('/admin/disputes/')) {
           return 'Dispute Details';
@@ -98,23 +98,23 @@ export default function AdminLayout() {
 
   const pageDesc = (() => {
     switch (location.pathname) {
-      case "/admin":
-      case "/admin/dashboard":
-        return "Overview and quick actions";
-      case "/admin/verification-queue":
-        return "Review and approve pending user registrations";
-      case "/admin/users":
-        return "Manage and monitor all platform users";
-      case "/admin/analytics":
-        return "Metrics and insights";
-      case "/admin/calendar":
-        return "Events and schedules";
-      case "/admin/messages":
-        return "Incoming communications";
-      case "/admin/disputes":
-        return "Track, review, and resolve reported issues";
-      case "/admin/help":
-        return "Guides and support";
+      case '/admin':
+      case '/admin/dashboard':
+        return 'Overview and quick actions';
+      case '/admin/verification-queue':
+        return 'Review and approve pending user registrations';
+      case '/admin/users':
+        return 'Manage and monitor all platform users';
+      case '/admin/analytics':
+        return 'Metrics and insights';
+      case '/admin/calendar':
+        return 'Events and schedules';
+      case '/admin/messages':
+        return 'Incoming communications';
+      case '/admin/disputes':
+        return 'Track, review, and resolve reported issues';
+      case '/admin/help':
+        return 'Guides and support';
       default:
         if (location.pathname.startsWith('/admin/disputes/')) {
           return 'View and manage case details';
@@ -214,14 +214,22 @@ export default function AdminLayout() {
             Home
           </Link>
 
-          <Link to="/admin/verification-queue" className={`admin-nav-link ${isActive("/admin/verification-queue") ? "active" : ""}`} data-tooltip="Verification Queue">
+          <Link
+            to="/admin/verification-queue"
+            className={`admin-nav-link ${isActive('/admin/verification-queue') ? 'active' : ''}`}
+            data-tooltip="Verification Queue"
+          >
             <span className="nav-icon" aria-hidden>
               <UserCheck size={18} className="lucide" />
             </span>
             Verification
           </Link>
 
-          <Link to="/admin/users" className={`admin-nav-link ${isActive("/admin/users") ? "active" : ""}`} data-tooltip="Users">
+          <Link
+            to="/admin/users"
+            className={`admin-nav-link ${isActive('/admin/users') ? 'active' : ''}`}
+            data-tooltip="Users"
+          >
             <span className="nav-icon" aria-hidden>
               <Users size={18} className="lucide" />
             </span>

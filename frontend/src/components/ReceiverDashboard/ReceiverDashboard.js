@@ -1,14 +1,13 @@
 // ReceiverDashboard.jsx
-import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
-import ReceiverLayout from "./ReceiverLayout";
-import ReceiverBrowse from "./ReceiverBrowse";
-import ReceiverWelcome from "./ReceiverWelcome";
-import ReceiverMyClaims from './ReceiverMyClaims'; 
-import ReceiverHelp from "./ReceiverHelp";
-import MessagingDashboard from "../MessagingDashboard/MessagingDashboard";
-import Settings from "../Settings";
-
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import ReceiverLayout from './ReceiverLayout';
+import ReceiverBrowse from './ReceiverBrowse';
+import ReceiverWelcome from './ReceiverWelcome';
+import ReceiverMyClaims from './ReceiverMyClaims';
+import ReceiverHelp from './ReceiverHelp';
+import MessagingDashboard from '../MessagingDashboard/MessagingDashboard';
+import Settings from '../Settings';
 
 export default function ReceiverDashboard() {
   return (
