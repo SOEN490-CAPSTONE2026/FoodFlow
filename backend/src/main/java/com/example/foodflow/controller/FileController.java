@@ -31,14 +31,15 @@ public class FileController {
 
     /**
      * Serves uploaded files from the evidence subfolder.
-     * URL pattern: /api/files/evidence/{folder}/{filename}
+     * URL pattern: /api/files/evidence/donation-{id}/{filename}
+     * The ** pattern matches any number of path segments
      */
-    @GetMapping("/evidence/{folder}/{filename:.+}")
+    @GetMapping("/evidence/donation-{donationId}/{filename:.+}")
     public ResponseEntity<Resource> serveEvidenceFile(
-            @PathVariable String folder,
+            @PathVariable String donationId,
             @PathVariable String filename) {
-        logger.info("Serving evidence file: folder={}, filename={}", folder, filename);
-        return serveFile("evidence/" + folder + "/" + filename);
+        logger.info("Serving evidence file: donationId={}, filename={}", donationId, filename);
+        return serveFile("evidence/donation-" + donationId + "/" + filename);
     }
 
     /**

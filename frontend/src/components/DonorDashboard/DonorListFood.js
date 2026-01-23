@@ -552,20 +552,6 @@ export default function DonorListFood() {
     } finally {
       setUploadingPhotos(prev => ({ ...prev, [donationId]: false }));
     }
-    // Create preview URLs for uploaded files
-    const newPhotoUrls = files.map(file => URL.createObjectURL(file));
-
-    setDonationPhotos(prev => {
-      const existingPhotos = prev[donationId] || [];
-      // Initialize photo index if first upload
-      if (existingPhotos.length === 0) {
-        setCurrentPhotoIndex(prevIndex => ({ ...prevIndex, [donationId]: 0 }));
-      }
-      return {
-        ...prev,
-        [donationId]: [...existingPhotos, ...newPhotoUrls],
-      };
-    });
   };
 
   const toggleViewPhotos = donationId => {
@@ -1095,27 +1081,6 @@ export default function DonorListFood() {
                   <X size={20} />
                 </button>
 
-                <div className="photo-display-wrapper">
-                  <img
-                    src={getEvidenceImageUrl(
-                      donationPhotos[donationId][
-                        currentPhotoIndex[donationId] ?? 0
-                      ]
-                    )}
-                    alt={`Photo ${(currentPhotoIndex[donationId] ?? 0) + 1}`}
-                    className="photo-display-image"
-                    draggable={false}
-                    onError={e => {
-                      console.error('Image load error. URL:', e.target.src);
-                      console.error(
-                        'Original URL:',
-                        donationPhotos[donationId][
-                          currentPhotoIndex[donationId] ?? 0
-                        ]
-                      );
-                    }}
-                  />
-                </div>
                 <div className="photo-modal-main">
                   <button
                     className="photo-nav-btn photo-nav-prev"
@@ -1130,14 +1095,23 @@ export default function DonorListFood() {
 
                   <div className="photo-display-wrapper">
                     <img
-                      src={
+                      src={getEvidenceImageUrl(
                         donationPhotos[donationId][
                           currentPhotoIndex[donationId] ?? 0
                         ]
-                      }
+                      )}
                       alt={`Photo ${(currentPhotoIndex[donationId] ?? 0) + 1}`}
                       className="photo-display-image"
                       draggable={false}
+                      onError={e => {
+                        console.error('Image load error. URL:', e.target.src);
+                        console.error(
+                          'Original URL:',
+                          donationPhotos[donationId][
+                            currentPhotoIndex[donationId] ?? 0
+                          ]
+                        );
+                      }}
                     />
                   </div>
 
