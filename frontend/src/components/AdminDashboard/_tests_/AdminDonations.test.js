@@ -1,5 +1,11 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import AdminDonations from '../AdminDonations';
@@ -20,13 +26,13 @@ jest.mock('react-select', () => ({ options, value, onChange, placeholder }) => {
     <select
       data-testid="react-select"
       value={value?.value || ''}
-      onChange={(e) => {
+      onChange={e => {
         const selected = options.find(opt => opt.value === e.target.value);
         onChange(selected);
       }}
     >
       <option value="">{placeholder}</option>
-      {options.map((option) => (
+      {options.map(option => (
         <option key={option.value} value={option.value}>
           {option.label}
         </option>
@@ -127,16 +133,20 @@ describe('AdminDonations Component', () => {
     test('renders without crashing', async () => {
       render(<AdminDonations />);
       await waitFor(() => {
-        expect(screen.queryByText('Loading donations...')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('Loading donations...')
+        ).not.toBeInTheDocument();
       });
     });
 
     test('displays stats cards correctly', async () => {
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
-        const statsGrid = document.querySelector('.stats-grid');
-        expect(within(statsGrid).getByText('Total Donations')).toBeInTheDocument();
+        const statsGrid = document.querySelector('.donations-stats-grid');
+        expect(
+          within(statsGrid).getByText('Total Donations')
+        ).toBeInTheDocument();
         expect(within(statsGrid).getByText('Active')).toBeInTheDocument();
         expect(within(statsGrid).getByText('Completed')).toBeInTheDocument();
         expect(within(statsGrid).getByText('Flagged')).toBeInTheDocument();
@@ -145,7 +155,7 @@ describe('AdminDonations Component', () => {
 
     test('calculates and displays correct stats', async () => {
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         const statValues = screen.getAllByText(/^[0-9]+$/);
         expect(statValues.some(el => el.textContent === '2')).toBeTruthy(); // totalElements
@@ -159,7 +169,7 @@ describe('AdminDonations Component', () => {
 
     test('fetches donations on mount', async () => {
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         expect(adminDonationAPI.getAllDonations).toHaveBeenCalledWith({
           search: undefined,
@@ -176,7 +186,7 @@ describe('AdminDonations Component', () => {
   describe('Donations Table', () => {
     test('displays donations in table', async () => {
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
         expect(screen.getByText('Fresh Bread')).toBeInTheDocument();
@@ -185,23 +195,41 @@ describe('AdminDonations Component', () => {
 
     test('displays correct table headers', async () => {
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
-        expect(screen.getByRole('columnheader', { name: 'ID' })).toBeInTheDocument();
-        expect(screen.getByRole('columnheader', { name: 'Title' })).toBeInTheDocument();
-        expect(screen.getByRole('columnheader', { name: 'Status' })).toBeInTheDocument();
-        expect(screen.getByRole('columnheader', { name: 'Donor' })).toBeInTheDocument();
-        expect(screen.getByRole('columnheader', { name: 'Receiver' })).toBeInTheDocument();
-        expect(screen.getByRole('columnheader', { name: 'Flagged' })).toBeInTheDocument();
-        expect(screen.getByRole('columnheader', { name: 'Created' })).toBeInTheDocument();
-        expect(screen.getByRole('columnheader', { name: 'Updated' })).toBeInTheDocument();
-        expect(screen.getByRole('columnheader', { name: 'Actions' })).toBeInTheDocument();
+        expect(
+          screen.getByRole('columnheader', { name: 'ID' })
+        ).toBeInTheDocument();
+        expect(
+          screen.getByRole('columnheader', { name: 'Title' })
+        ).toBeInTheDocument();
+        expect(
+          screen.getByRole('columnheader', { name: 'Status' })
+        ).toBeInTheDocument();
+        expect(
+          screen.getByRole('columnheader', { name: 'Donor' })
+        ).toBeInTheDocument();
+        expect(
+          screen.getByRole('columnheader', { name: 'Receiver' })
+        ).toBeInTheDocument();
+        expect(
+          screen.getByRole('columnheader', { name: 'Flagged' })
+        ).toBeInTheDocument();
+        expect(
+          screen.getByRole('columnheader', { name: 'Created' })
+        ).toBeInTheDocument();
+        expect(
+          screen.getByRole('columnheader', { name: 'Updated' })
+        ).toBeInTheDocument();
+        expect(
+          screen.getByRole('columnheader', { name: 'Actions' })
+        ).toBeInTheDocument();
       });
     });
 
     test('displays donor names correctly', async () => {
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('John Donor')).toBeInTheDocument();
         expect(screen.getByText('Jane Donor')).toBeInTheDocument();
@@ -210,7 +238,7 @@ describe('AdminDonations Component', () => {
 
     test('displays receiver name or N/A', async () => {
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Bob Receiver')).toBeInTheDocument();
         const cells = screen.getAllByText('N/A');
@@ -220,11 +248,11 @@ describe('AdminDonations Component', () => {
 
     test('shows no donations message when list is empty', async () => {
       adminDonationAPI.getAllDonations.mockResolvedValue({
-        data: { content: [], totalPages: 0, totalElements: 0 }
+        data: { content: [], totalPages: 0, totalElements: 0 },
       });
-      
+
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('No donations found')).toBeInTheDocument();
       });
@@ -234,16 +262,18 @@ describe('AdminDonations Component', () => {
   describe('Row Expansion', () => {
     test('expands row to show details when expand button is clicked', async () => {
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
       });
 
       const expandButtons = screen.getAllByRole('button');
-      const expandBtn = expandButtons.find(btn => btn.className === 'expand-btn');
-      
+      const expandBtn = expandButtons.find(
+        btn => btn.className === 'expand-btn'
+      );
+
       fireEvent.click(expandBtn);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Food Categories')).toBeInTheDocument();
         expect(screen.getByText('Quantity')).toBeInTheDocument();
@@ -254,20 +284,22 @@ describe('AdminDonations Component', () => {
 
     test('collapses expanded row when expand button is clicked again', async () => {
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
       });
 
       const expandButtons = screen.getAllByRole('button');
-      const expandBtn = expandButtons.find(btn => btn.className === 'expand-btn');
-      
+      const expandBtn = expandButtons.find(
+        btn => btn.className === 'expand-btn'
+      );
+
       // Expand
       fireEvent.click(expandBtn);
       await waitFor(() => {
         expect(screen.getByText('Food Categories')).toBeInTheDocument();
       });
-      
+
       // Collapse
       fireEvent.click(expandBtn);
       await waitFor(() => {
@@ -277,7 +309,7 @@ describe('AdminDonations Component', () => {
 
     test('displays temperature and packaging conditions in expanded view', async () => {
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Fresh Bread')).toBeInTheDocument();
       });
@@ -285,9 +317,9 @@ describe('AdminDonations Component', () => {
       const expandButtons = screen.getAllByRole('button');
       // Find the second expand button (for Fresh Bread)
       const expandBtn = expandButtons[1];
-      
+
       fireEvent.click(expandBtn);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Temperature')).toBeInTheDocument();
         expect(screen.getByText('Packaging Conditions')).toBeInTheDocument();
@@ -298,9 +330,11 @@ describe('AdminDonations Component', () => {
   describe('Search Functionality', () => {
     test('renders search input', async () => {
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
-        const searchInput = screen.getByPlaceholderText('Search by title, donor, receiver, or ID...');
+        const searchInput = screen.getByPlaceholderText(
+          'Search by title, donor, receiver, or ID...'
+        );
         expect(searchInput).toBeInTheDocument();
       });
     });
@@ -308,41 +342,45 @@ describe('AdminDonations Component', () => {
     test('updates search term on input change', async () => {
       const user = userEvent.setup();
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
       });
 
-      const searchInput = screen.getByPlaceholderText('Search by title, donor, receiver, or ID...');
+      const searchInput = screen.getByPlaceholderText(
+        'Search by title, donor, receiver, or ID...'
+      );
       await user.type(searchInput, 'lasagna');
-      
+
       expect(searchInput.value).toBe('lasagna');
     });
 
     test('debounces search and calls API after delay', async () => {
       jest.useFakeTimers();
       const user = userEvent.setup({ delay: null });
-      
+
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
       });
 
-      const searchInput = screen.getByPlaceholderText('Search by title, donor, receiver, or ID...');
+      const searchInput = screen.getByPlaceholderText(
+        'Search by title, donor, receiver, or ID...'
+      );
       await user.type(searchInput, 'test');
-      
+
       // Fast-forward time
       jest.advanceTimersByTime(500);
-      
+
       await waitFor(() => {
         expect(adminDonationAPI.getAllDonations).toHaveBeenCalledWith(
           expect.objectContaining({
-            search: 'test'
+            search: 'test',
           })
         );
       });
-      
+
       jest.useRealTimers();
     });
   });
@@ -350,7 +388,7 @@ describe('AdminDonations Component', () => {
   describe('Filtering', () => {
     test('renders status filter dropdown', async () => {
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         const selects = screen.getAllByTestId('react-select');
         expect(selects.length).toBeGreaterThan(0);
@@ -359,7 +397,7 @@ describe('AdminDonations Component', () => {
 
     test('renders date filter inputs', async () => {
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         const dateInputs = screen.getAllByPlaceholderText(/Date/);
         expect(dateInputs.length).toBe(2);
@@ -368,18 +406,18 @@ describe('AdminDonations Component', () => {
 
     test('filters by status when status is selected', async () => {
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
       });
 
       const statusSelect = screen.getAllByTestId('react-select')[0];
       fireEvent.change(statusSelect, { target: { value: 'AVAILABLE' } });
-      
+
       await waitFor(() => {
         expect(adminDonationAPI.getAllDonations).toHaveBeenCalledWith(
           expect.objectContaining({
-            status: 'AVAILABLE'
+            status: 'AVAILABLE',
           })
         );
       });
@@ -388,7 +426,7 @@ describe('AdminDonations Component', () => {
     test('filters by date range', async () => {
       const user = userEvent.setup();
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
       });
@@ -396,12 +434,12 @@ describe('AdminDonations Component', () => {
       const dateInputs = screen.getAllByPlaceholderText(/Date/);
       await user.type(dateInputs[0], '2026-01-01');
       await user.type(dateInputs[1], '2026-01-31');
-      
+
       await waitFor(() => {
         expect(adminDonationAPI.getAllDonations).toHaveBeenCalledWith(
           expect.objectContaining({
             fromDate: '2026-01-01',
-            toDate: '2026-01-31'
+            toDate: '2026-01-31',
           })
         );
       });
@@ -410,18 +448,20 @@ describe('AdminDonations Component', () => {
     test('resets all filters when reset button is clicked', async () => {
       const user = userEvent.setup();
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
       });
 
       // Set some filters
-      const searchInput = screen.getByPlaceholderText('Search by title, donor, receiver, or ID...');
+      const searchInput = screen.getByPlaceholderText(
+        'Search by title, donor, receiver, or ID...'
+      );
       await user.type(searchInput, 'test');
-      
+
       const resetButton = screen.getByText('Reset');
       fireEvent.click(resetButton);
-      
+
       expect(searchInput.value).toBe('');
     });
   });
@@ -429,7 +469,7 @@ describe('AdminDonations Component', () => {
   describe('Pagination', () => {
     test('displays pagination info correctly', async () => {
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('1 - 2 of 2')).toBeInTheDocument();
       });
@@ -437,7 +477,7 @@ describe('AdminDonations Component', () => {
 
     test('hides pagination when only one page', async () => {
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         const nextButton = screen.queryByText('Next');
         expect(nextButton).not.toBeInTheDocument();
@@ -446,11 +486,11 @@ describe('AdminDonations Component', () => {
 
     test('shows pagination controls when multiple pages exist', async () => {
       adminDonationAPI.getAllDonations.mockResolvedValue({
-        data: { ...mockDonations, totalPages: 3 }
+        data: { ...mockDonations, totalPages: 3 },
       });
-      
+
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Previous')).toBeInTheDocument();
         expect(screen.getByText('Next')).toBeInTheDocument();
@@ -460,22 +500,22 @@ describe('AdminDonations Component', () => {
 
     test('navigates to next page when next button is clicked', async () => {
       adminDonationAPI.getAllDonations.mockResolvedValue({
-        data: { ...mockDonations, totalPages: 3 }
+        data: { ...mockDonations, totalPages: 3 },
       });
-      
+
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Page 1 of 3')).toBeInTheDocument();
       });
 
       const nextButton = screen.getByText('Next');
       fireEvent.click(nextButton);
-      
+
       await waitFor(() => {
         expect(adminDonationAPI.getAllDonations).toHaveBeenCalledWith(
           expect.objectContaining({
-            page: 1
+            page: 1,
           })
         );
       });
@@ -483,11 +523,11 @@ describe('AdminDonations Component', () => {
 
     test('disables previous button on first page', async () => {
       adminDonationAPI.getAllDonations.mockResolvedValue({
-        data: { ...mockDonations, totalPages: 3 }
+        data: { ...mockDonations, totalPages: 3 },
       });
-      
+
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         const prevButton = screen.getByText('Previous');
         expect(prevButton).toBeDisabled();
@@ -497,34 +537,38 @@ describe('AdminDonations Component', () => {
 
   describe('Detail Modal', () => {
     beforeEach(() => {
-      adminDonationAPI.getDonationById.mockResolvedValue({ data: mockDonationDetails });
+      adminDonationAPI.getDonationById.mockResolvedValue({
+        data: mockDonationDetails,
+      });
     });
 
     test('opens modal when eye button is clicked', async () => {
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
       });
 
       const eyeButtons = screen.getAllByTitle('View Details');
       fireEvent.click(eyeButtons[0]);
-      
+
       await waitFor(() => {
-        expect(screen.getByText('Donation Details - Basic Info & Participants')).toBeInTheDocument();
+        expect(
+          screen.getByText('Donation Details - Basic Info & Participants')
+        ).toBeInTheDocument();
       });
     });
 
     test('fetches donation details when modal opens', async () => {
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
       });
 
       const eyeButtons = screen.getAllByTitle('View Details');
       fireEvent.click(eyeButtons[0]);
-      
+
       await waitFor(() => {
         expect(adminDonationAPI.getDonationById).toHaveBeenCalledWith(1);
       });
@@ -532,36 +576,40 @@ describe('AdminDonations Component', () => {
 
     test('closes modal when close button is clicked', async () => {
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
       });
 
       const eyeButtons = screen.getAllByTitle('View Details');
       fireEvent.click(eyeButtons[0]);
-      
+
       await waitFor(() => {
-        expect(screen.getByText('Donation Details - Basic Info & Participants')).toBeInTheDocument();
+        expect(
+          screen.getByText('Donation Details - Basic Info & Participants')
+        ).toBeInTheDocument();
       });
 
       const closeButton = screen.getByText('×');
       fireEvent.click(closeButton);
-      
+
       await waitFor(() => {
-        expect(screen.queryByText('Donation Details - Basic Info & Participants')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('Donation Details - Basic Info & Participants')
+        ).not.toBeInTheDocument();
       });
     });
 
     test('displays basic info on page 1', async () => {
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
       });
 
       const eyeButtons = screen.getAllByTitle('View Details');
       fireEvent.click(eyeButtons[0]);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Basic Information')).toBeInTheDocument();
         expect(screen.getByText('Participants')).toBeInTheDocument();
@@ -569,39 +617,45 @@ describe('AdminDonations Component', () => {
     });
 
     test('navigates to timeline page when next is clicked', async () => {
-      adminDonationAPI.getDonationById.mockResolvedValue({ data: mockDonationDetails });
+      adminDonationAPI.getDonationById.mockResolvedValue({
+        data: mockDonationDetails,
+      });
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
       });
 
       const eyeButtons = screen.getAllByTitle('View Details');
       fireEvent.click(eyeButtons[0]);
-      
+
       await waitFor(() => {
-        expect(screen.getByText('Donation Details - Basic Info & Participants')).toBeInTheDocument();
+        expect(
+          screen.getByText('Donation Details - Basic Info & Participants')
+        ).toBeInTheDocument();
       });
 
       const nextButton = screen.getByText('Next');
       fireEvent.click(nextButton);
-      
+
       await waitFor(() => {
-        expect(screen.getByText('Donation Details - Timeline')).toBeInTheDocument();
+        expect(
+          screen.getByText('Donation Details - Timeline')
+        ).toBeInTheDocument();
         expect(screen.getAllByText('Timeline').length).toBeGreaterThan(0);
       });
     });
 
     test('navigates to override status page', async () => {
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
       });
 
       const eyeButtons = screen.getAllByTitle('View Details');
       fireEvent.click(eyeButtons[0]);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Page 1 of 3')).toBeInTheDocument();
       });
@@ -609,16 +663,18 @@ describe('AdminDonations Component', () => {
       // Navigate to page 3
       const nextButtons = screen.getAllByText('Next');
       fireEvent.click(nextButtons[0]);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Page 2 of 3')).toBeInTheDocument();
       });
-      
+
       const nextButton2 = screen.getAllByText('Next')[0];
       fireEvent.click(nextButton2);
-      
+
       await waitFor(() => {
-        expect(screen.getByText('Donation Details - Override Status')).toBeInTheDocument();
+        expect(
+          screen.getByText('Donation Details - Override Status')
+        ).toBeInTheDocument();
         expect(screen.getByText('Current Status:')).toBeInTheDocument();
         expect(screen.getAllByText('New Status:').length).toBeGreaterThan(0);
       });
@@ -626,14 +682,14 @@ describe('AdminDonations Component', () => {
 
     test('disables back button on first page', async () => {
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
       });
 
       const eyeButtons = screen.getAllByTitle('View Details');
       fireEvent.click(eyeButtons[0]);
-      
+
       await waitFor(() => {
         const backButton = screen.getByRole('button', { name: /back/i });
         expect(backButton).toBeDisabled();
@@ -641,99 +697,115 @@ describe('AdminDonations Component', () => {
     });
 
     test('displays timeline events correctly', async () => {
-      adminDonationAPI.getDonationById.mockResolvedValue({ data: mockDonationDetails });
+      adminDonationAPI.getDonationById.mockResolvedValue({
+        data: mockDonationDetails,
+      });
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
       });
 
       const eyeButtons = screen.getAllByTitle('View Details');
       fireEvent.click(eyeButtons[0]);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Page 1 of 3')).toBeInTheDocument();
       });
 
       const nextButton = screen.getAllByText('Next')[0];
       fireEvent.click(nextButton);
-      
+
       await waitFor(() => {
-        expect(screen.getByText('Donation Details - Timeline')).toBeInTheDocument();
+        expect(
+          screen.getByText('Donation Details - Timeline')
+        ).toBeInTheDocument();
       });
-      
+
       await waitFor(() => {
-        expect(screen.getAllByText('DONATION_CREATED').length).toBeGreaterThan(0);
-        expect(screen.getAllByText('Donation created').length).toBeGreaterThan(0);
+        expect(screen.getAllByText('DONATION_CREATED').length).toBeGreaterThan(
+          0
+        );
+        expect(screen.getAllByText('Donation created').length).toBeGreaterThan(
+          0
+        );
       });
     });
   });
 
   describe('Status Override', () => {
     beforeEach(() => {
-      adminDonationAPI.getDonationById.mockResolvedValue({ data: mockDonationDetails });
-      adminDonationAPI.overrideStatus.mockResolvedValue({ data: { ...mockDonationDetails, status: 'COMPLETED' } });
+      adminDonationAPI.getDonationById.mockResolvedValue({
+        data: mockDonationDetails,
+      });
+      adminDonationAPI.overrideStatus.mockResolvedValue({
+        data: { ...mockDonationDetails, status: 'COMPLETED' },
+      });
     });
 
     test('shows error when status is not selected', async () => {
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
       });
 
       const eyeButtons = screen.getAllByTitle('View Details');
       fireEvent.click(eyeButtons[0]);
-      
+
       // Navigate to override page
       await waitFor(() => {
         expect(screen.getByText('Page 1 of 3')).toBeInTheDocument();
       });
-      
+
       const nextButtons = screen.getAllByText('Next');
       fireEvent.click(nextButtons[0]);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Page 2 of 3')).toBeInTheDocument();
       });
-      
+
       fireEvent.click(screen.getAllByText('Next')[0]);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Current Status:')).toBeInTheDocument();
         expect(screen.getAllByText('New Status:').length).toBeGreaterThan(0);
       });
 
-      const overrideButton = screen.getByRole('button', { name: 'Override Status' });
+      const overrideButton = screen.getByRole('button', {
+        name: 'Override Status',
+      });
       fireEvent.click(overrideButton);
-      
+
       await waitFor(() => {
-        expect(screen.getByText('Please select a new status')).toBeInTheDocument();
+        expect(
+          screen.getByText('Please select a new status')
+        ).toBeInTheDocument();
       });
     });
 
     test('shows error when reason is not provided', async () => {
       const user = userEvent.setup();
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
       });
 
       const eyeButtons = screen.getAllByTitle('View Details');
       fireEvent.click(eyeButtons[0]);
-      
+
       // Navigate to override page
       await waitFor(() => {
         const nextButtons = screen.getAllByText('Next');
         fireEvent.click(nextButtons[0]);
       });
-      
+
       await waitFor(() => {
         const nextButtons = screen.getAllByText('Next');
         fireEvent.click(nextButtons[0]);
       });
-      
+
       await waitFor(() => {
         expect(screen.getByText('Current Status:')).toBeInTheDocument();
         expect(screen.getAllByText('New Status:').length).toBeGreaterThan(0);
@@ -743,37 +815,41 @@ describe('AdminDonations Component', () => {
       const statusSelects = screen.getAllByTestId('react-select');
       const overrideSelect = statusSelects[statusSelects.length - 1];
       fireEvent.change(overrideSelect, { target: { value: 'COMPLETED' } });
-      
-      const overrideButton = screen.getByRole('button', { name: 'Override Status' });
+
+      const overrideButton = screen.getByRole('button', {
+        name: 'Override Status',
+      });
       fireEvent.click(overrideButton);
-      
+
       await waitFor(() => {
-        expect(screen.getByText('Please provide a reason for the override')).toBeInTheDocument();
+        expect(
+          screen.getByText('Please provide a reason for the override')
+        ).toBeInTheDocument();
       });
     });
 
     test('successfully overrides status with valid inputs', async () => {
       const user = userEvent.setup();
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
       });
 
       const eyeButtons = screen.getAllByTitle('View Details');
       fireEvent.click(eyeButtons[0]);
-      
+
       // Navigate to override page
       await waitFor(() => {
         const nextButtons = screen.getAllByText('Next');
         fireEvent.click(nextButtons[0]);
       });
-      
+
       await waitFor(() => {
         const nextButtons = screen.getAllByText('Next');
         fireEvent.click(nextButtons[0]);
       });
-      
+
       await waitFor(() => {
         expect(screen.getByText('Current Status:')).toBeInTheDocument();
         expect(screen.getAllByText('New Status:').length).toBeGreaterThan(0);
@@ -783,15 +859,19 @@ describe('AdminDonations Component', () => {
       const statusSelects = screen.getAllByTestId('react-select');
       const overrideSelect = statusSelects[statusSelects.length - 1];
       fireEvent.change(overrideSelect, { target: { value: 'COMPLETED' } });
-      
+
       // Provide reason
-      const reasonTextareas = screen.getAllByPlaceholderText('Provide a reason for the status override...');
+      const reasonTextareas = screen.getAllByPlaceholderText(
+        'Provide a reason for the status override...'
+      );
       const reasonTextarea = reasonTextareas[reasonTextareas.length - 1];
       await user.type(reasonTextarea, 'Admin override for testing');
-      
-      const overrideButton = screen.getByRole('button', { name: 'Override Status' });
+
+      const overrideButton = screen.getByRole('button', {
+        name: 'Override Status',
+      });
       fireEvent.click(overrideButton);
-      
+
       await waitFor(() => {
         expect(adminDonationAPI.overrideStatus).toHaveBeenCalledWith(
           1,
@@ -799,68 +879,80 @@ describe('AdminDonations Component', () => {
           'Admin override for testing'
         );
       });
-      
+
       await waitFor(() => {
-        expect(screen.getByText('Status updated successfully!')).toBeInTheDocument();
+        expect(
+          screen.getByText('Status updated successfully!')
+        ).toBeInTheDocument();
       });
     });
   });
 
   describe('Error Handling', () => {
     test('displays error message when fetching donations fails', async () => {
-      adminDonationAPI.getAllDonations.mockRejectedValue(new Error('Network error'));
-      
+      adminDonationAPI.getAllDonations.mockRejectedValue(
+        new Error('Network error')
+      );
+
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
-        expect(screen.getByText('Failed to load donations. Please try again.')).toBeInTheDocument();
+        expect(
+          screen.getByText('Failed to load donations. Please try again.')
+        ).toBeInTheDocument();
       });
     });
 
     test('displays error when fetching donation details fails', async () => {
-      adminDonationAPI.getDonationById.mockRejectedValue(new Error('Not found'));
-      
+      adminDonationAPI.getDonationById.mockRejectedValue(
+        new Error('Not found')
+      );
+
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
       });
 
       const eyeButtons = screen.getAllByTitle('View Details');
       fireEvent.click(eyeButtons[0]);
-      
+
       await waitFor(() => {
-        expect(screen.getByText('Failed to load donation details')).toBeInTheDocument();
+        expect(
+          screen.getByText('Failed to load donation details')
+        ).toBeInTheDocument();
       });
     });
 
     test('displays error when status override fails', async () => {
       const user = userEvent.setup();
-      adminDonationAPI.getDonationById.mockResolvedValue({ data: mockDonationDetails });
-      adminDonationAPI.overrideStatus.mockRejectedValue({
-        response: { data: 'Override failed' }
+      adminDonationAPI.getDonationById.mockResolvedValue({
+        data: mockDonationDetails,
       });
-      
+      adminDonationAPI.overrideStatus.mockRejectedValue({
+        response: { data: 'Override failed' },
+      });
+
       render(<AdminDonations />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
       });
 
       const eyeButtons = screen.getAllByTitle('View Details');
       fireEvent.click(eyeButtons[0]);
-      
+
       // Navigate to override page
       await waitFor(() => {
         const nextButtons = screen.getAllByText('Next');
         fireEvent.click(nextButtons[0]);
       });
-      
+
       await waitFor(() => {
         const nextButtons = screen.getAllByText('Next');
         fireEvent.click(nextButtons[0]);
       });
-      
+
       await waitFor(() => {
         expect(screen.getByText('Current Status:')).toBeInTheDocument();
         expect(screen.getAllByText('New Status:').length).toBeGreaterThan(0);
@@ -870,14 +962,18 @@ describe('AdminDonations Component', () => {
       const statusSelects = screen.getAllByTestId('react-select');
       const overrideSelect = statusSelects[statusSelects.length - 1];
       fireEvent.change(overrideSelect, { target: { value: 'COMPLETED' } });
-      
-      const reasonTextareas = screen.getAllByPlaceholderText('Provide a reason for the status override...');
+
+      const reasonTextareas = screen.getAllByPlaceholderText(
+        'Provide a reason for the status override...'
+      );
       const reasonTextarea = reasonTextareas[reasonTextareas.length - 1];
       await user.type(reasonTextarea, 'Test reason');
-      
-      const overrideButton = screen.getByRole('button', { name: 'Override Status' });
+
+      const overrideButton = screen.getByRole('button', {
+        name: 'Override Status',
+      });
       fireEvent.click(overrideButton);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Override failed')).toBeInTheDocument();
       });

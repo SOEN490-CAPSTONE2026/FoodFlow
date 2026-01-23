@@ -1,6 +1,5 @@
-import React, { useEffect, useRef } from "react";
-import "./Receiver_Styles/ReceiverWelcome.css";
-
+import React, { useEffect, useRef } from 'react';
+import './Receiver_Styles/ReceiverWelcome.css';
 
 export default function ReceiverWelcome() {
   const headerRef = useRef(null);
@@ -9,22 +8,28 @@ export default function ReceiverWelcome() {
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) entry.target.classList.add("animate-in");
+      entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('animate-in');
+          }
         });
       },
       { threshold: 0.1 }
     );
 
-    [headerRef.current, noticeRef.current, ...sectionRefs.current].forEach((el) => {
-      if (el) observer.observe(el);
-    });
+    [headerRef.current, noticeRef.current, ...sectionRefs.current].forEach(
+      el => {
+        if (el) {
+          observer.observe(el);
+        }
+      }
+    );
 
     return () => observer.disconnect();
   }, []);
 
-  const addToRefs = (el) => {
+  const addToRefs = el => {
     if (el && !sectionRefs.current.includes(el)) {
       sectionRefs.current.push(el);
     }
@@ -36,8 +41,9 @@ export default function ReceiverWelcome() {
       <div ref={headerRef} className="rw-header animate-on-scroll">
         <h1>Find Food Near You</h1>
         <p>
-          We help organizations connect with available food—quickly and reliably.
-          Start with the map to see nearby donations and request what you need today.
+          We help organizations connect with available food—quickly and
+          reliably. Start with the map to see nearby donations and request what
+          you need today.
         </p>
       </div>
 
@@ -52,10 +58,10 @@ export default function ReceiverWelcome() {
           <div className="rw-icon">🗺️</div>
           <h2>Search the map</h2>
           <p>
-            Browse current listings and filter by category or expiry to quickly find
-            the items your organization needs.
+            Browse current listings and filter by category or expiry to quickly
+            find the items your organization needs.
           </p>
-        
+
           <a href="/receiver/search#org-search" className="rw-btn primary">
             Open map & search
           </a>
@@ -65,12 +71,16 @@ export default function ReceiverWelcome() {
           <div className="rw-icon">📩</div>
           <h2>Need assistance?</h2>
           <p>
-            Email us at{" "}
-            <a href="mailto:foodflow.group@gmail.com">foodflow.group@gmail.com</a>{" "}
+            Email us at{' '}
+            <a href="mailto:foodflow.group@gmail.com">
+              foodflow.group@gmail.com
+            </a>{' '}
             and we’ll help you coordinate a pickup.
           </p>
           <p className="rw-small">New here? Read common questions.</p>
-          <a href="/receiver/faq" className="rw-btn secondary">View FAQs</a>
+          <a href="/receiver/faq" className="rw-btn secondary">
+            View FAQs
+          </a>
         </div>
       </div>
     </div>

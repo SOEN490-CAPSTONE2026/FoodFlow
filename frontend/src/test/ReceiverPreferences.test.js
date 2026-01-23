@@ -2,12 +2,15 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ReceiverPreferences from '../components/ReceiverDashboard/ReceiverPreferences';
 
+// Import mocked api
+import api from '../services/api';
+
 // Mock foodTypeOptions to include 'Prepared Meals'
 jest.mock('../constants/foodConstants', () => ({
   foodTypeOptions: [
     { value: 'PREPARED_MEALS', label: 'Prepared Meals' },
     { value: 'DAIRY', label: 'Dairy' },
-  ]
+  ],
 }));
 
 // Mock the api module to prevent axios import issues
@@ -17,11 +20,8 @@ jest.mock('../services/api', () => ({
     get: jest.fn(),
     put: jest.fn(),
     post: jest.fn(),
-  }
+  },
 }));
-
-// Import mocked api
-import api from '../services/api';
 
 describe('ReceiverPreferences', () => {
   const mockOnClose = jest.fn();
@@ -29,7 +29,7 @@ describe('ReceiverPreferences', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Mock successful API responses
     api.get.mockResolvedValue({
       data: {
@@ -37,33 +37,37 @@ describe('ReceiverPreferences', () => {
         preferredDonationSizes: ['SMALL', 'LARGE'],
         preferredPickupWindows: ['EVENING'],
         acceptRefrigerated: true,
-        acceptFrozen: true
-      }
+        acceptFrozen: true,
+      },
     });
-    
+
     api.put.mockResolvedValue({ data: { success: true } });
     api.post.mockResolvedValue({ data: { success: true } });
   });
 
   test('renders preferences panel when open', () => {
     render(
-      <ReceiverPreferences 
-        isOpen={true} 
-        onClose={mockOnClose} 
-        onSave={mockOnSave} 
+      <ReceiverPreferences
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
       />
     );
 
     expect(screen.getByText('Receiver Preferences')).toBeInTheDocument();
-    expect(screen.getByText("Set your organization's needs to improve food matching.")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Set your organization's needs to improve food matching."
+      )
+    ).toBeInTheDocument();
   });
 
   test('does not render when closed', () => {
     const { container } = render(
-      <ReceiverPreferences 
-        isOpen={false} 
-        onClose={mockOnClose} 
-        onSave={mockOnSave} 
+      <ReceiverPreferences
+        isOpen={false}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
       />
     );
 
@@ -72,10 +76,10 @@ describe('ReceiverPreferences', () => {
 
   test('closes preferences when close button is clicked', () => {
     render(
-      <ReceiverPreferences 
-        isOpen={true} 
-        onClose={mockOnClose} 
-        onSave={mockOnSave} 
+      <ReceiverPreferences
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
       />
     );
 
@@ -85,18 +89,19 @@ describe('ReceiverPreferences', () => {
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
-
   test('can open category dropdown and select a category', async () => {
     render(
-      <ReceiverPreferences 
-        isOpen={true} 
-        onClose={mockOnClose} 
-        onSave={mockOnSave} 
+      <ReceiverPreferences
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
       />
     );
 
     // Uncheck 'No strict preferences'
-    const noStrictCheckbox = screen.getByText('No strict preferences (allow all food types)').previousSibling;
+    const noStrictCheckbox = screen.getByText(
+      'No strict preferences (allow all food types)'
+    ).previousSibling;
     if (noStrictCheckbox.checked) {
       fireEvent.click(noStrictCheckbox);
     }
@@ -135,13 +140,12 @@ describe('ReceiverPreferences', () => {
     expect(checkedFoodTypes.length).toBe(1);
   });
 
-
   test('renders and toggles donation size buttons', async () => {
     render(
-      <ReceiverPreferences 
-        isOpen={true} 
-        onClose={mockOnClose} 
-        onSave={mockOnSave} 
+      <ReceiverPreferences
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
       />
     );
 
@@ -174,12 +178,12 @@ describe('ReceiverPreferences', () => {
 
   test('saves preferences successfully', async () => {
     jest.useFakeTimers();
-    
+
     render(
-      <ReceiverPreferences 
-        isOpen={true} 
-        onClose={mockOnClose} 
-        onSave={mockOnSave} 
+      <ReceiverPreferences
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
       />
     );
 
@@ -193,7 +197,7 @@ describe('ReceiverPreferences', () => {
 
     // Component waits 1.5 seconds before calling onClose
     jest.advanceTimersByTime(1500);
-    
+
     await waitFor(() => {
       expect(mockOnClose).toHaveBeenCalled();
     });
@@ -201,20 +205,21 @@ describe('ReceiverPreferences', () => {
     jest.useRealTimers();
   });
 
-
   // Removed min/max quantity error test (fields no longer exist)
 
   test('toggles no strict preferences checkbox', () => {
     render(
-      <ReceiverPreferences 
-        isOpen={true} 
-        onClose={mockOnClose} 
-        onSave={mockOnSave} 
+      <ReceiverPreferences
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
       />
     );
 
-    const checkbox = screen.getByText('No strict preferences (allow all food types)').previousSibling;
-    
+    const checkbox = screen.getByText(
+      'No strict preferences (allow all food types)'
+    ).previousSibling;
+
     expect(checkbox).not.toBeChecked();
     fireEvent.click(checkbox);
     expect(checkbox).toBeChecked();

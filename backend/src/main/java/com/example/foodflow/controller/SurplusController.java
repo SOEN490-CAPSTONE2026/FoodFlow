@@ -84,7 +84,7 @@ public class SurplusController {
         return ResponseEntity.ok(availablePosts);
     }
 
-     /**
+    /**
      * New endpoint for filtered surplus posts based on receiver criteria.
      * If no filters are provided, returns all available posts.
      * Times are converted to receiver's timezone.
@@ -98,6 +98,7 @@ public class SurplusController {
         return ResponseEntity.ok(filteredPosts);
 
     }
+
     /**
      * Alternative GET endpoint for basic filtering via query parameters.
      * Useful for simple filters without complex objects like Location.
@@ -112,14 +113,13 @@ public class SurplusController {
             @AuthenticationPrincipal User receiver) {
 
 
-
         // Create filter request from query parameters
         SurplusFilterRequest filterRequest = new SurplusFilterRequest();
         filterRequest.setFoodCategories(foodCategories);
         filterRequest.setStatus(status != null ? status : "AVAILABLE");
 
         if (expiryBefore != null && !expiryBefore.trim().isEmpty()) {
-            
+
             try {
 
                 filterRequest.setExpiryBefore(java.time.LocalDate.parse(expiryBefore));
@@ -135,7 +135,7 @@ public class SurplusController {
 
     }
 
-    
+
     @PatchMapping("/{id}/complete")
     @PreAuthorize("hasAuthority('DONOR')")
     public ResponseEntity<SurplusResponse> completeSurplusPost(
@@ -147,18 +147,18 @@ public class SurplusController {
         return ResponseEntity.ok(response);
     }
 
-   @PostMapping("/pickup/confirm")
+    @PostMapping("/pickup/confirm")
     public ResponseEntity<SurplusResponse> confirmPickup(
-        @RequestBody ConfirmPickupRequest request,
-        @AuthenticationPrincipal User donor) {
+            @RequestBody ConfirmPickupRequest request,
+            @AuthenticationPrincipal User donor) {
 
-    SurplusResponse response = surplusService.confirmPickup(
-        request.getPostId(), 
-        request.getOtpCode(), 
-        donor
-    );
-    return ResponseEntity.ok(response);
-}
+        SurplusResponse response = surplusService.confirmPickup(
+                request.getPostId(),
+                request.getOtpCode(),
+                donor
+        );
+        return ResponseEntity.ok(response);
+    }
 
     @GetMapping("/{id}/timeline")
     public ResponseEntity<List<DonationTimelineDTO>> getTimeline(
@@ -172,12 +172,12 @@ public class SurplusController {
     @DeleteMapping("/{id}/delete")
     @PreAuthorize("hasAuthority('DONOR')")
     public ResponseEntity<Void> deleteSurplusPost(
-        @PathVariable Long id,
-        @AuthenticationPrincipal User donor) {
+            @PathVariable Long id,
+            @AuthenticationPrincipal User donor) {
 
-    surplusService.deleteSurplusPost(id, donor);
-    return ResponseEntity.noContent().build(); // 204
-}
+        surplusService.deleteSurplusPost(id, donor);
+        return ResponseEntity.noContent().build(); // 204
+    }
 
     /**
      * Upload pickup evidence photo for a donation.

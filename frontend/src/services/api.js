@@ -1,101 +1,112 @@
-import axios from "axios";
-import { getFoodTypeValue } from "../constants/foodConstants";
+import axios from 'axios';
+import { getFoodTypeValue } from '../constants/foodConstants';
 
 const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "http://localhost:8080/api";
+  process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   },
 });
 
 api.interceptors.request.use(
-  (config) => {
+  config => {
     const token =
-      localStorage.getItem("jwtToken") || sessionStorage.getItem("jwtToken");
+      localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
     if (token) {
-      config.headers["Authorization"] = `Bearer ${token}`;
+      config.headers['Authorization'] = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  error => Promise.reject(error)
 );
 
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
+  response => response,
+  error => {
     if (error.response && error.response.status === 401) {
-      localStorage.removeItem("jwtToken");
-      sessionStorage.removeItem("jwtToken");
-      window.location.href = "/login";
+      localStorage.removeItem('jwtToken');
+      sessionStorage.removeItem('jwtToken');
+      window.location.href = '/login';
     }
     return Promise.reject(error);
   }
 );
 
 export const authAPI = {
-  login: async (data) => {
-    const response = await api.post("/auth/login", data);
+  login: async data => {
+    const response = await api.post('/auth/login', data);
     if (response.data.token) {
-      localStorage.setItem("jwtToken", response.data.token);
+      localStorage.setItem('jwtToken', response.data.token);
     }
     return response;
   },
-  registerDonor: (data) => {
+  registerDonor: data => {
     // If data is FormData, set appropriate headers
-    const config = data instanceof FormData ? {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      }
-    } : {};
-    return api.post("/auth/register/donor", data, config);
+    const config =
+      data instanceof FormData
+        ? {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          }
+        : {};
+    return api.post('/auth/register/donor', data, config);
   },
-  registerReceiver: (data) => {
+  registerReceiver: data => {
     // If data is FormData, set appropriate headers
-    const config = data instanceof FormData ? {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      }
-    } : {};
-    return api.post("/auth/register/receiver", data, config);
+    const config =
+      data instanceof FormData
+        ? {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          }
+        : {};
+    return api.post('/auth/register/receiver', data, config);
   },
   logout: () => {
-    localStorage.removeItem("jwtToken");
-    return api.post("/auth/logout");
+    localStorage.removeItem('jwtToken');
+    return api.post('/auth/logout');
   },
-  forgotPassword: (data) => api.post("/auth/forgot-password", data),
-  verifyResetCode: (data) => api.post("/auth/verify-reset-code", data),
-  resetPassword: (data) => api.post("/auth/reset-password", data),
-  checkEmailExists: (email) => api.get("/auth/check-email", { params: { email } }),
-  checkPhoneExists: (phone) => api.get("/auth/check-phone", { params: { phone } }),
-  changePassword: (data) => api.post("/auth/change-password", data),
+  forgotPassword: data => api.post('/auth/forgot-password', data),
+  verifyResetCode: data => api.post('/auth/verify-reset-code', data),
+  resetPassword: data => api.post('/auth/reset-password', data),
+  checkEmailExists: email =>
+    api.get('/auth/check-email', { params: { email } }),
+  checkPhoneExists: phone =>
+    api.get('/auth/check-phone', { params: { phone } }),
+  changePassword: data => api.post('/auth/change-password', data),
 };
 
 export const surplusAPI = {
-  list: () => api.get("/surplus"), // Just /surplus, not /api/surplus
-  myPosts: () => api.get("/surplus/my-posts"),
-  getMyPosts: () => api.get("/surplus/my-posts"),
-  getPost: (id) => api.get(`/surplus/${id}`),
-  create: (data) => api.post("/surplus", data),
+  list: () => api.get('/surplus'), // Just /surplus, not /api/surplus
+  myPosts: () => api.get('/surplus/my-posts'),
+  getMyPosts: () => api.get('/surplus/my-posts'),
+  getPost: id => api.get(`/surplus/${id}`),
+  create: data => api.post('/surplus', data),
   update: (id, data) => api.put(`/surplus/${id}`, data),
   // claim now accepts an optional `slot` parameter. If `slot` has an `id` we send `pickupSlotId`,
   // otherwise we include the slot object as `pickupSlot` so the backend can interpret it.
-  deletePost: (id) => api.delete(`/surplus/${id}/delete`),
+  deletePost: id => api.delete(`/surplus/${id}/delete`),
   claim: (postId, slot) => {
     const payload = { surplusPostId: postId };
     if (slot) {
-      if (slot.id) payload.pickupSlotId = slot.id;
-      else payload.pickupSlot = slot;
+      if (slot.id) {
+        payload.pickupSlotId = slot.id;
+      } else {
+        payload.pickupSlot = slot;
+      }
     }
-    return api.post("/claims", payload);
+    return api.post('/claims', payload);
   },
   completeSurplusPost: (id, otpCode) =>
     api.patch(`/surplus/${id}/complete`, { otpCode }),
 
   confirmPickup: (postId, otpCode) =>
-    api.post("/surplus/pickup/confirm", { postId, otpCode }),
+    api.post('/surplus/pickup/confirm', { postId, otpCode }),
 
   /**
    * Search surplus posts with filters.
@@ -110,7 +121,7 @@ export const surplusAPI = {
    * @param {string} filters.status - Post status (default: 'AVAILABLE')
    * @returns {Promise} API response with filtered surplus posts
    */
-  search: (filters) => {
+  search: filters => {
     const filterRequest = {};
 
     // Only add fields if they have actual values
@@ -134,29 +145,29 @@ export const surplusAPI = {
     }
 
     // Always include status
-    filterRequest.status = "AVAILABLE";
+    filterRequest.status = 'AVAILABLE';
 
-    return api.post("/surplus/search", filterRequest);
+    return api.post('/surplus/search', filterRequest);
   },
 
   /**
    * Simple search using query parameters (alternative endpoint).
    * Useful for basic filtering without location.
    */
-  searchBasic: (filters) => {
+  searchBasic: filters => {
     const params = new URLSearchParams();
 
     if (filters.foodType && filters.foodType.length > 0) {
-      filters.foodType.forEach((category) => {
-        params.append("foodCategories", mapFrontendCategoryToBackend(category));
+      filters.foodType.forEach(category => {
+        params.append('foodCategories', mapFrontendCategoryToBackend(category));
       });
     }
 
     if (filters.expiryBefore) {
-      params.append("expiryBefore", filters.expiryBefore);
+      params.append('expiryBefore', filters.expiryBefore);
     }
 
-    params.append("status", "AVAILABLE");
+    params.append('status', 'AVAILABLE');
 
     return api.get(`/surplus/search?${params.toString()}`);
   },
@@ -186,10 +197,10 @@ export const surplusAPI = {
 };
 
 export const claimsAPI = {
-  myClaims: () => api.get("/claims/my-claims"), // ✅ No /api prefix
-  claim: (postId) => api.post("/claims", { surplusPostId: postId }),
-  cancel: (claimId) => api.delete(`/claims/${claimId}`),
-  getClaimForSurplusPost: (postId) => api.get(`/claims/post/${postId}`),
+  myClaims: () => api.get('/claims/my-claims'), // ✅ No /api prefix
+  claim: postId => api.post('/claims', { surplusPostId: postId }),
+  cancel: claimId => api.delete(`/claims/${claimId}`),
+  getClaimForSurplusPost: postId => api.get(`/claims/post/${postId}`),
 };
 
 /**
@@ -201,21 +212,21 @@ export const recommendationAPI = {
    * @param {Array<number>} postIds - Array of post IDs to get recommendations for
    * @returns {Promise<Object>} - Object mapping post IDs to recommendation data
    */
-  getBrowseRecommendations: async (postIds) => {
+  getBrowseRecommendations: async postIds => {
     try {
       if (!postIds || postIds.length === 0) {
         return {};
       }
 
-      const response = await api.get("/recommendations/browse", {
+      const response = await api.get('/recommendations/browse', {
         params: {
-          postIds: postIds.join(","),
+          postIds: postIds.join(','),
         },
       });
 
       return response.data;
     } catch (error) {
-      console.error("Error fetching browse recommendations:", error);
+      console.error('Error fetching browse recommendations:', error);
       return {};
     }
   },
@@ -225,12 +236,12 @@ export const recommendationAPI = {
    * @param {number} postId - Post ID
    * @returns {Promise<Object>} - Recommendation data
    */
-  getRecommendationForPost: async (postId) => {
+  getRecommendationForPost: async postId => {
     try {
       const response = await api.get(`/recommendations/post/${postId}`);
       return response.data;
     } catch (error) {
-      console.error("Error fetching post recommendation:", error);
+      console.error('Error fetching post recommendation:', error);
       return null;
     }
   },
@@ -242,12 +253,12 @@ export const recommendationAPI = {
    */
   getTopRecommendations: async (minScore = 50) => {
     try {
-      const response = await api.get("/recommendations/top", {
+      const response = await api.get('/recommendations/top', {
         params: { minScore },
       });
       return response.data;
     } catch (error) {
-      console.error("Error fetching top recommendations:", error);
+      console.error('Error fetching top recommendations:', error);
       return [];
     }
   },
@@ -259,25 +270,27 @@ export const userAPI = {
    * @param {string} userId - User ID
    * @returns {Promise} User data
    */
-  getProfile: (userId) => api.get(`/users/${userId}`),
+  getProfile: userId => api.get(`/users/${userId}`),
 
   /**
    * Update user profile
    * @param {FormData} userData - User data including optional profile image
    * @returns {Promise} Updated user data
    */
-  updateProfile: (userData) => api.put("/users/update", userData, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  }),
+  updateProfile: userData =>
+    api.put('/users/update', userData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }),
 
   /**
    * Update user password
    * @param {Object} passwordData - Current and new password
    * @returns {Promise} Response
    */
-  updatePassword: (passwordData) => api.put("/users/update-password", passwordData),
+  updatePassword: passwordData =>
+    api.put('/users/update-password', passwordData),
 };
 
 /**
@@ -285,7 +298,7 @@ export const userAPI = {
  */
 export const profileAPI = {
   get: () => api.get('/profile'),
-  update: (data) => api.put('/profile', data)
+  update: data => api.put('/profile', data),
 };
 
 /**
@@ -301,13 +314,13 @@ export const reportAPI = {
    * @param {string} reportData.photoEvidenceUrl - Optional evidence image URL
    * @returns {Promise} Created report data
    */
-  createReport: (reportData) => {
+  createReport: reportData => {
     // Transform frontend field names to backend field names
     const backendRequest = {
       reportedId: reportData.reportedUserId,
       donationId: reportData.donationId,
       description: reportData.description,
-      imageUrl: reportData.photoEvidenceUrl
+      imageUrl: reportData.photoEvidenceUrl,
     };
     return api.post('/reports', backendRequest);
   },
@@ -317,11 +330,11 @@ export const reportAPI = {
  * Feedback API functions
  */
 export const feedbackAPI = {
-  submitFeedback: (payload) => api.post('/feedback', payload),
-  getFeedbackForClaim: (claimId) => api.get(`/feedback/claim/${claimId}`),
+  submitFeedback: payload => api.post('/feedback', payload),
+  getFeedbackForClaim: claimId => api.get(`/feedback/claim/${claimId}`),
   getMyRating: () => api.get('/feedback/my-rating'),
-  getUserRating: (userId) => api.get(`/feedback/rating/${userId}`),
-  canProvideFeedback: (claimId) => api.get(`/feedback/can-review/${claimId}`),
+  getUserRating: userId => api.get(`/feedback/rating/${userId}`),
+  canProvideFeedback: claimId => api.get(`/feedback/can-review/${claimId}`),
   getPendingFeedback: () => api.get('/feedback/pending'),
   getMyReviews: () => api.get('/feedback/my-reviews'),
 };
@@ -340,11 +353,13 @@ export const adminDisputeAPI = {
    */
   getAllDisputes: (filters = {}) => {
     const params = new URLSearchParams();
-    
-    if (filters.status) params.append('status', filters.status);
+
+    if (filters.status) {
+      params.append('status', filters.status);
+    }
     params.append('page', filters.page || 0);
     params.append('size', filters.size || 20);
-    
+
     return api.get(`/admin/disputes?${params.toString()}`);
   },
 
@@ -353,7 +368,7 @@ export const adminDisputeAPI = {
    * @param {number} disputeId - Dispute ID
    * @returns {Promise} Dispute details with admin notes
    */
-  getDisputeById: (disputeId) => api.get(`/admin/disputes/${disputeId}`),
+  getDisputeById: disputeId => api.get(`/admin/disputes/${disputeId}`),
 
   /**
    * Update dispute status
@@ -362,10 +377,10 @@ export const adminDisputeAPI = {
    * @param {string} adminNotes - Optional admin notes
    * @returns {Promise} Updated dispute data
    */
-  updateDisputeStatus: (disputeId, status, adminNotes) => 
+  updateDisputeStatus: (disputeId, status, adminNotes) =>
     api.put(`/admin/disputes/${disputeId}/status`, {
       status,
-      adminNotes
+      adminNotes,
     }),
 };
 
@@ -389,18 +404,32 @@ export const adminDonationAPI = {
    */
   getAllDonations: (filters = {}) => {
     const params = new URLSearchParams();
-    
-    if (filters.status) params.append('status', filters.status);
-    if (filters.donorId) params.append('donorId', filters.donorId);
-    if (filters.receiverId) params.append('receiverId', filters.receiverId);
-    if (filters.flagged !== undefined) params.append('flagged', filters.flagged);
-    if (filters.fromDate) params.append('fromDate', filters.fromDate);
-    if (filters.toDate) params.append('toDate', filters.toDate);
-    if (filters.search) params.append('search', filters.search);
-    
+
+    if (filters.status) {
+      params.append('status', filters.status);
+    }
+    if (filters.donorId) {
+      params.append('donorId', filters.donorId);
+    }
+    if (filters.receiverId) {
+      params.append('receiverId', filters.receiverId);
+    }
+    if (filters.flagged !== undefined) {
+      params.append('flagged', filters.flagged);
+    }
+    if (filters.fromDate) {
+      params.append('fromDate', filters.fromDate);
+    }
+    if (filters.toDate) {
+      params.append('toDate', filters.toDate);
+    }
+    if (filters.search) {
+      params.append('search', filters.search);
+    }
+
     params.append('page', filters.page || 0);
     params.append('size', filters.size || 20);
-    
+
     return api.get(`/admin/donations?${params.toString()}`);
   },
 
@@ -409,7 +438,7 @@ export const adminDonationAPI = {
    * @param {number} donationId - Donation ID
    * @returns {Promise} Donation details with full timeline
    */
-  getDonationById: (donationId) => api.get(`/admin/donations/${donationId}`),
+  getDonationById: donationId => api.get(`/admin/donations/${donationId}`),
 
   /**
    * Override donation status manually
@@ -418,10 +447,68 @@ export const adminDonationAPI = {
    * @param {string} reason - Reason for override
    * @returns {Promise} Updated donation data
    */
-  overrideStatus: (donationId, newStatus, reason) => 
+  overrideStatus: (donationId, newStatus, reason) =>
     api.post(`/admin/donations/${donationId}/override-status`, {
       newStatus,
-      reason
+      reason,
+    }),
+};
+
+/**
+ * Admin API functions for user verification queue management
+ */
+export const adminVerificationAPI = {
+  /**
+   * Get all pending users awaiting admin approval
+   * @param {Object} filters - Filter criteria
+   * @param {string} filters.userType - Filter by user type (DONOR, RECEIVER)
+   * @param {string} filters.search - Search by organization name or email
+   * @param {string} filters.sortBy - Sort field (date, userType, waitingTime)
+   * @param {string} filters.sortOrder - Sort order (asc, desc)
+   * @param {number} filters.page - Page number (default: 0)
+   * @param {number} filters.size - Page size (default: 20)
+   * @returns {Promise} Paginated pending users list
+   */
+  getPendingUsers: (filters = {}) => {
+    const params = new URLSearchParams();
+
+    if (filters.userType) {
+      params.append('userType', filters.userType);
+    }
+    if (filters.search) {
+      params.append('search', filters.search);
+    }
+    if (filters.sortBy) {
+      params.append('sortBy', filters.sortBy);
+    }
+    if (filters.sortOrder) {
+      params.append('sortOrder', filters.sortOrder);
+    }
+
+    params.append('page', filters.page || 0);
+    params.append('size', filters.size || 20);
+
+    return api.get(`/admin/pending-users?${params.toString()}`);
+  },
+
+  /**
+   * Approve a pending user registration
+   * @param {number} userId - User ID to approve
+   * @returns {Promise} Updated user data
+   */
+  approveUser: userId => api.post(`/admin/approve/${userId}`),
+
+  /**
+   * Reject a pending user registration
+   * @param {number} userId - User ID to reject
+   * @param {string} reason - Rejection reason
+   * @param {string} message - Optional custom message
+   * @returns {Promise} Response data
+   */
+  rejectUser: (userId, reason, message) =>
+    api.post(`/admin/reject/${userId}`, {
+      reason,
+      message,
     }),
 };
 
@@ -437,7 +524,7 @@ function mapFrontendCategoryToBackend(frontendCategory) {
 // Notification Preferences API
 export const notificationPreferencesAPI = {
   getPreferences: () => api.get('/user/notifications/preferences'),
-  updatePreferences: (data) => api.put('/user/notifications/preferences', data)
+  updatePreferences: data => api.put('/user/notifications/preferences', data),
 };
 
 export default api;

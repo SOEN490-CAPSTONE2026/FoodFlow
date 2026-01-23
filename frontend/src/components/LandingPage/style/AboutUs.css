@@ -5,7 +5,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #1B4965;
+  color: #1b4965;
   overflow: hidden;
   position: relative;
   box-sizing: border-box;
@@ -13,7 +13,7 @@
 
 .about-container::before,
 .about-container::after {
-  content: "";
+  content: '';
   position: absolute;
   width: 300px;
   height: 300px;
@@ -39,9 +39,15 @@
 }
 
 @keyframes float {
-  0% { transform: translateY(0) translateX(0) rotate(0deg); }
-  50% { transform: translateY(-40px) translateX(30px) rotate(5deg); }
-  100% { transform: translateY(20px) translateX(-20px) rotate(-5deg); }
+  0% {
+    transform: translateY(0) translateX(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-40px) translateX(30px) rotate(5deg);
+  }
+  100% {
+    transform: translateY(20px) translateX(-20px) rotate(-5deg);
+  }
 }
 
 /* ==== Hero Section ==== */
@@ -53,11 +59,12 @@
   position: relative;
 }
 
-
-.about-title, .about-subtitle, .carousel-container, .mission-section {
+.about-title,
+.about-subtitle,
+.carousel-container,
+.mission-section {
   opacity: 0;
 }
-
 
 .about-title.animate-in {
   animation: fadeInDown 0.4s ease forwards;
@@ -79,7 +86,7 @@
 .about-title {
   font-size: clamp(2rem, 5vw, 3.5rem);
   margin-bottom: 20px;
-  color: #1B4965;
+  color: #1b4965;
   font-weight: 700;
   line-height: 1.2;
   word-wrap: break-word;
@@ -150,7 +157,7 @@
 }
 
 .carousel-btn {
-  background: #62B6CB;
+  background: #62b6cb;
   color: white;
   border: none;
   width: 60px;
@@ -194,18 +201,18 @@
   height: 14px;
   border-radius: 50%;
   border: none;
-  background: #CAE9FF;
+  background: #cae9ff;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .dot.active {
-  background: #62B6CB;
+  background: #62b6cb;
   transform: scale(1.3);
 }
 
 .dot:hover {
-  background: #5FA8D3;
+  background: #5fa8d3;
   transform: scale(1.2);
 }
 
@@ -238,7 +245,7 @@
 .card-icon {
   font-size: 4rem;
   margin-bottom: 30px;
-  color: #62B6CB;
+  color: #62b6cb;
   width: 100px;
   height: 100px;
   border-radius: 50%;
@@ -253,7 +260,7 @@
 }
 
 .about-card h2 {
-  color: #1B4965;
+  color: #1b4965;
   margin-bottom: 20px;
   font-size: 2rem;
   font-weight: 700;
@@ -261,7 +268,7 @@
 }
 
 .about-card p {
-  color: #1B4965;
+  color: #1b4965;
   line-height: 1.7;
   font-size: 1.2rem;
   font-weight: 400;
@@ -282,34 +289,53 @@
 
 .mission-title {
   font-size: 2rem;
-  color: #1B4965;
+  color: #1b4965;
   margin-bottom: 20px;
 }
 
 .mission-text {
   font-size: 1.1rem;
   line-height: 1.7;
-  color: #1B4965;
+  color: #1b4965;
 }
 
 /* ==== Animations ==== */
 @keyframes fadeInDown {
-  from { opacity: 0; transform: translateY(-40px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(40px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes slideUp {
-  to { transform: translateY(0); opacity: 1; }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* ==== Responsive ==== */
@@ -317,11 +343,11 @@
   .about-container {
     padding: 70px 20px 50px;
   }
-  
+
   .carousel-track {
     height: 400px;
   }
-  
+
   .about-card {
     max-width: 500px;
     height: 350px;
@@ -332,13 +358,13 @@
   .about-container {
     padding: 60px 20px 40px;
   }
-  
+
   .carousel-slide.prev,
   .carousel-slide.next {
     opacity: 0.3;
     transform: scale(0.82) translateX(140px);
   }
-  
+
   .carousel-slide.prev {
     transform: scale(0.82) translateX(-140px);
   }
@@ -348,78 +374,78 @@
   .about-container {
     padding: 50px 15px 35px;
   }
-  
+
   .about-title {
     font-size: 2.5rem;
   }
-  
+
   .about-subtitle {
     font-size: 1.05rem;
   }
-  
+
   .about-hero {
     margin-bottom: 30px;
   }
-  
+
   .carousel-container {
     max-width: 100%;
     margin: 15px auto;
   }
-  
+
   .carousel-track {
     height: 380px;
   }
-  
+
   .about-card {
     height: 340px;
     max-width: 450px;
     padding: 35px 25px;
     margin: 0 20px;
   }
-  
+
   .card-icon {
     font-size: 3.5rem;
     width: 90px;
     height: 90px;
   }
-  
+
   .about-card h2 {
     font-size: 1.8rem;
   }
-  
+
   .about-card p {
     font-size: 1.1rem;
   }
-  
+
   .carousel-slide.prev,
   .carousel-slide.next {
     opacity: 0.2;
     transform: scale(0.8) translateX(120px);
   }
-  
+
   .carousel-slide.prev {
     transform: scale(0.8) translateX(-120px);
   }
-  
+
   .carousel-btn {
     width: 50px;
     height: 50px;
     font-size: 1.8rem;
   }
-  
+
   .carousel-btn.prev {
     left: 15px;
   }
-  
+
   .carousel-btn.next {
     right: 15px;
   }
-  
+
   .mission-section {
     margin: 40px 20px;
     padding: 30px 20px;
   }
-  
+
   .mission-title {
     font-size: 1.7rem;
   }
@@ -429,15 +455,15 @@
   .about-container {
     padding: 45px 15px 30px;
   }
-  
+
   .about-title {
     font-size: 2.2rem;
   }
-  
+
   .carousel-track {
     height: 360px;
   }
-  
+
   .about-card {
     max-width: 380px;
     height: 330px;
@@ -448,70 +474,70 @@
   .about-container {
     padding: 40px 15px 30px;
   }
-  
+
   .about-title {
     font-size: 2rem;
   }
-  
+
   .about-subtitle {
     font-size: 1rem;
   }
-  
+
   .carousel-track {
     height: 350px;
   }
-  
+
   .about-card {
     height: 320px;
     max-width: 320px;
     padding: 30px 20px;
   }
-  
+
   .card-icon {
     font-size: 3rem;
     width: 80px;
     height: 80px;
     margin-bottom: 25px;
   }
-  
+
   .about-card h2 {
     font-size: 1.6rem;
     margin-bottom: 15px;
   }
-  
+
   .about-card p {
     font-size: 1rem;
     line-height: 1.6;
   }
-  
+
   .carousel-btn {
     width: 45px;
     height: 45px;
     font-size: 1.5rem;
   }
-  
+
   .carousel-btn.prev {
     left: 10px;
   }
-  
+
   .carousel-btn.next {
     right: 10px;
   }
-  
+
   .carousel-slide.prev,
   .carousel-slide.next {
     display: none;
   }
-  
+
   .carousel-dots {
     margin-top: 30px;
   }
-  
+
   .dot {
     width: 12px;
     height: 12px;
   }
-  
+
   .mission-section {
     margin: 30px 15px;
     padding: 25px 15px;
@@ -522,27 +548,27 @@
   .about-container {
     padding: 35px 10px 25px;
   }
-  
+
   .about-title {
     font-size: 1.8rem;
   }
-  
+
   .about-card {
     max-width: 300px;
     height: 310px;
     padding: 25px 15px;
   }
-  
+
   .card-icon {
     font-size: 2.8rem;
     width: 75px;
     height: 75px;
   }
-  
+
   .about-card h2 {
     font-size: 1.5rem;
   }
-  
+
   .about-card p {
     font-size: 0.95rem;
   }
