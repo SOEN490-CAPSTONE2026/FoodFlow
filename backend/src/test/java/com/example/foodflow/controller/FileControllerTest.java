@@ -35,8 +35,8 @@ class FileControllerTest {
         Path testFile = evidenceDir.resolve("test-uuid.jpg");
         Files.write(testFile, "image content".getBytes());
 
-        // When
-        ResponseEntity<Resource> response = fileController.serveEvidenceFile("donation-1", "test-uuid.jpg");
+        // When - Call with donation ID and filename
+        ResponseEntity<Resource> response = fileController.serveEvidenceFile("1", "test-uuid.jpg");
 
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -47,7 +47,7 @@ class FileControllerTest {
     @Test
     void serveEvidenceFile_withNonExistentFile_shouldReturnNotFound() {
         // When
-        ResponseEntity<Resource> response = fileController.serveEvidenceFile("donation-1", "non-existent.jpg");
+        ResponseEntity<Resource> response = fileController.serveEvidenceFile("1", "non-existent.jpg");
 
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
@@ -65,8 +65,8 @@ class FileControllerTest {
         Files.write(donation2Dir.resolve("file.jpg"), "donation 2 content".getBytes());
 
         // When
-        ResponseEntity<Resource> response1 = fileController.serveEvidenceFile("donation-1", "file.jpg");
-        ResponseEntity<Resource> response2 = fileController.serveEvidenceFile("donation-2", "file.jpg");
+        ResponseEntity<Resource> response1 = fileController.serveEvidenceFile("1", "file.jpg");
+        ResponseEntity<Resource> response2 = fileController.serveEvidenceFile("2", "file.jpg");
 
         // Then
         assertThat(response1.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -81,9 +81,11 @@ class FileControllerTest {
         Files.write(evidenceDir.resolve("cached.jpg"), "content".getBytes());
 
         // When
-        ResponseEntity<Resource> response = fileController.serveEvidenceFile("donation-1", "cached.jpg");
+        ResponseEntity<Resource> response = fileController.serveEvidenceFile("1", "cached.jpg");
 
         // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getHeaders().getCacheControl()).isNotNull();
         assertThat(response.getHeaders().getCacheControl()).contains("max-age=86400");
     }
 
@@ -95,7 +97,7 @@ class FileControllerTest {
         Files.write(evidenceDir.resolve("image.png"), "png content".getBytes());
 
         // When
-        ResponseEntity<Resource> response = fileController.serveEvidenceFile("donation-1", "image.png");
+        ResponseEntity<Resource> response = fileController.serveEvidenceFile("1", "image.png");
 
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -110,7 +112,7 @@ class FileControllerTest {
         Files.write(evidenceDir.resolve(uuidFilename), "uuid file content".getBytes());
 
         // When
-        ResponseEntity<Resource> response = fileController.serveEvidenceFile("donation-123", uuidFilename);
+        ResponseEntity<Resource> response = fileController.serveEvidenceFile("123", uuidFilename);
 
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
