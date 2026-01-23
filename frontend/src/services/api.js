@@ -177,7 +177,7 @@ export const surplusAPI = {
    * @param {number} postId - Surplus post ID
    * @returns {Promise} API response with timeline events
    */
-  getTimeline: (postId) => api.get(`/surplus/${postId}/timeline`),
+  getTimeline: postId => api.get(`/surplus/${postId}/timeline`),
 
   /**
    * Upload pickup evidence photo for a donation

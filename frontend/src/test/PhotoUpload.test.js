@@ -9,7 +9,9 @@ describe('getEvidenceImageUrl helper function', () => {
   const BACKEND_BASE_URL = 'http://localhost:8080';
 
   const getEvidenceImageUrl = url => {
-    if (!url) return null;
+    if (!url) {
+      return null;
+    }
     if (url.startsWith('http://') || url.startsWith('https://')) {
       return url;
     }
@@ -164,7 +166,9 @@ describe('Photo upload validation', () => {
 
 describe('Evidence photo extraction from timeline', () => {
   const extractEvidencePhotos = timeline => {
-    if (!timeline || !Array.isArray(timeline)) return [];
+    if (!timeline || !Array.isArray(timeline)) {
+      return [];
+    }
     return [
       ...new Set(
         timeline

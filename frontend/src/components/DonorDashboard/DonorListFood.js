@@ -145,7 +145,9 @@ const BACKEND_BASE_URL = API_URL.endsWith('/api')
  * Handles both new format (/api/files/...) and legacy format (/uploads/...)
  */
 const getEvidenceImageUrl = url => {
-  if (!url) return null;
+  if (!url) {
+    return null;
+  }
 
   // If it's already a full URL, return as-is
   if (url.startsWith('http://') || url.startsWith('https://')) {
