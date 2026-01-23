@@ -143,7 +143,7 @@ describe('AdminDonations Component', () => {
       render(<AdminDonations />);
 
       await waitFor(() => {
-        const statsGrid = document.querySelector('.stats-grid');
+        const statsGrid = document.querySelector('.donations-stats-grid');
         expect(
           within(statsGrid).getByText('Total Donations')
         ).toBeInTheDocument();

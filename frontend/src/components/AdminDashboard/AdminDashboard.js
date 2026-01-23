@@ -8,6 +8,7 @@ import AdminMessages from './AdminMessages.js';
 import AdminHelp from './AdminHelp';
 import AdminWelcome from './AdminWelcome';
 import AdminUsers from './AdminUsers';
+import AdminVerificationQueue from './AdminVerificationQueue';
 import AdminDisputes from './AdminDisputes';
 import AdminDisputeDetail from './AdminDisputeDetail';
 

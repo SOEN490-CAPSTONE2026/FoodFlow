@@ -104,7 +104,7 @@ describe('LoginPage', () => {
 
     const pwd = screen.getByLabelText(/^password$/i, { selector: 'input' });
     const toggle = screen.getByRole('button', {
-      name: /toggle password visibility \(show\)/i,
+      name: /show password/i,
     });
 
     expect(pwd).toHaveAttribute('type', 'password');
@@ -115,13 +115,13 @@ describe('LoginPage', () => {
     ).toHaveAttribute('type', 'text');
     expect(
       screen.getByRole('button', {
-        name: /toggle password visibility \(hide\)/i,
+        name: /hide password/i,
       })
     ).toBeInTheDocument();
 
     fireEvent.click(
       screen.getByRole('button', {
-        name: /toggle password visibility \(hide\)/i,
+        name: /hide password/i,
       })
     );
     expect(

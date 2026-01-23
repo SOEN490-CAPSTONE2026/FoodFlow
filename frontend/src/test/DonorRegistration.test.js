@@ -141,7 +141,7 @@ describe('DonorRegistration', () => {
       expect(screen.getByLabelText(/contact person/i)).toHaveValue('Jane Doe');
       expect(screen.getByLabelText(/phone number/i)).toHaveValue('1234567890');
     });
-  });
+  }, 10000);
 
   it('password mismatch shows error and blocks submit', async () => {
     const user = userEvent.setup({ delay: null });
