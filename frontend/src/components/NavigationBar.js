@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AuthContext } from '../contexts/AuthContext';
 import { FaBars, FaTimes } from 'react-icons/fa';
-import Logo from "../assets/Logo.png";
+import Logo from '../assets/Logo.png';
 import '../style/NavigationBar.css';
 import ENIcon from '../assets/lang-icons/EN.svg';
 import FRIcon from '../assets/lang-icons/FR.svg';
@@ -52,14 +52,16 @@ const NavigationBar = () => {
     setIsMenuOpen(false);
   };
 
-  const toggleMenu = () => setIsMenuOpen((o) => !o);
+  const toggleMenu = () => setIsMenuOpen(o => !o);
 
   const scrollToSection = (sectionId, event) => {
     event.preventDefault();
     setIsMenuOpen(false);
 
     if (location.pathname !== '/') {
-      navigate('/', { state: { scrollTo: sectionId, from: from || undefined } });
+      navigate('/', {
+        state: { scrollTo: sectionId, from: from || undefined },
+      });
     } else {
       setTimeout(() => {
         scrollToElement(sectionId);
@@ -67,12 +69,13 @@ const NavigationBar = () => {
     }
   };
 
-  const scrollToElement = (sectionId) => {
+  const scrollToElement = sectionId => {
     const element = document.getElementById(sectionId);
     if (element) {
       const navbarHeight = 80;
       const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - navbarHeight;
+      const offsetPosition =
+        elementPosition + window.pageYOffset - navbarHeight;
       window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
     }
   };
@@ -88,11 +91,14 @@ const NavigationBar = () => {
 
   const handleReturnToDashboard = () => {
     const target =
-      role === 'RECEIVER' ? '/receiver/browse' :
-      role === 'DONOR' ? '/donor' :
-      role === 'ADMIN' ? '/admin/dashboard' :
-      null;
-    
+      role === 'RECEIVER'
+        ? '/receiver/browse'
+        : role === 'DONOR'
+          ? '/donor'
+          : role === 'ADMIN'
+            ? '/admin/dashboard'
+            : null;
+
     if (target) {
       navigate(target);
       setIsMenuOpen(false);
@@ -110,7 +116,7 @@ const NavigationBar = () => {
 
   // Close dropdown when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event) => {
+    const handleClickOutside = event => {
       if (isLangDropdownOpen && !event.target.closest('.lang-selector')) {
         setIsLangDropdownOpen(false);
       }
@@ -121,7 +127,11 @@ const NavigationBar = () => {
 
   return (
     <nav className="navbar">
-      <div className="logo" onClick={handleLogoClick} style={{ cursor: 'pointer' }}>
+      <div
+        className="logo"
+        onClick={handleLogoClick}
+        style={{ cursor: 'pointer' }}
+      >
         <img src={Logo} alt="Logo" width="80" height="70" />
       </div>
 
@@ -132,7 +142,11 @@ const NavigationBar = () => {
         aria-expanded={isMenuOpen}
         aria-controls="primary-menu"
       >
-        {isMenuOpen ? <FaTimes size={28} color="#1B4965" /> : <FaBars size={28} color="#1B4965" />}
+        {isMenuOpen ? (
+          <FaTimes size={28} color="#1B4965" />
+        ) : (
+          <FaBars size={28} color="#1B4965" />
+        )}
       </button>
 
       <div id="primary-menu" className={`menu ${isMenuOpen ? 'active' : ''}`}>
@@ -165,11 +179,11 @@ const NavigationBar = () => {
               <button className="signup-button" onClick={handleSignUp}>{t('nav.register')}</button>
             </>
           )}
-          
+
           {/* Mobile Language Selector - Only show when not logged in */}
           {!isLoggedIn && (
             <div className="lang-selector mobile-lang">
-              <button 
+              <button
                 className="lang-button"
                 onClick={toggleLangDropdown}
                 aria-label={t('language.select')}
@@ -177,10 +191,10 @@ const NavigationBar = () => {
                 <span className="lang-flag">{currentLanguage.flag}</span>
                 <span className="lang-name">{currentLanguage.code.toUpperCase()}</span>
               </button>
-              
+
               {isLangDropdownOpen && (
                 <div className="lang-dropdown">
-                  {languages.map((lang) => (
+                  {languages.map(lang => (
                     <button
                       key={lang.code}
                       className={`lang-option ${i18n.language.split('-')[0] === lang.code ? 'selected' : ''}`}
@@ -209,11 +223,11 @@ const NavigationBar = () => {
             <button className="signup-button" onClick={handleSignUp}>{t('nav.register')}</button>
           </>
         )}
-        
+
         {/* Language Selector - Only show when not logged in */}
         {!isLoggedIn && (
           <div className="lang-selector">
-            <button 
+            <button
               className="lang-button"
               onClick={toggleLangDropdown}
               aria-label={t('language.select')}
@@ -221,10 +235,10 @@ const NavigationBar = () => {
               <span className="lang-flag">{currentLanguage.flag}</span>
               <span className="lang-name">{currentLanguage.code.toUpperCase()}</span>
             </button>
-            
+
             {isLangDropdownOpen && (
               <div className="lang-dropdown">
-                {languages.map((lang) => (
+                {languages.map(lang => (
                   <button
                     key={lang.code}
                     className={`lang-option ${i18n.language.split('-')[0] === lang.code ? 'selected' : ''}`}

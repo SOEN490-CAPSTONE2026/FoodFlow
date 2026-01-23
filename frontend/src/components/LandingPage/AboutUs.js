@@ -31,37 +31,45 @@ export default function AboutUs() {
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
+      entries => {
+        entries.forEach(entry => {
           if (entry.isIntersecting) {
-            entry.target.classList.add("animate-in");
+            entry.target.classList.add('animate-in');
             observer.unobserve(entry.target);
           }
         });
       },
-      { 
+      {
         threshold: 0.3,
-        rootMargin: '0px 0px -50px 0px'
+        rootMargin: '0px 0px -50px 0px',
       }
     );
 
-    if (titleRef.current) observer.observe(titleRef.current);
-    if (subtitleRef.current) observer.observe(subtitleRef.current);
-    if (missionRef.current) observer.observe(missionRef.current);
-    if (carouselRef.current) observer.observe(carouselRef.current);
+    if (titleRef.current) {
+      observer.observe(titleRef.current);
+    }
+    if (subtitleRef.current) {
+      observer.observe(subtitleRef.current);
+    }
+    if (missionRef.current) {
+      observer.observe(missionRef.current);
+    }
+    if (carouselRef.current) {
+      observer.observe(carouselRef.current);
+    }
 
     return () => observer.disconnect();
   }, []);
 
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % cards.length);
+    setCurrentSlide(prev => (prev + 1) % cards.length);
   };
 
   const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + cards.length) % cards.length);
+    setCurrentSlide(prev => (prev - 1 + cards.length) % cards.length);
   };
 
-  const goToSlide = (index) => {
+  const goToSlide = index => {
     setCurrentSlide(index);
   };
 
@@ -84,18 +92,26 @@ export default function AboutUs() {
       {/* Carousel Section */}
       <div ref={carouselRef} className="carousel-container">
         <div className="carousel-wrapper">
-          <button className="carousel-btn prev" onClick={prevSlide} aria-label="Previous slide">
+          <button
+            className="carousel-btn prev"
+            onClick={prevSlide}
+            aria-label="Previous slide"
+          >
             ‹
           </button>
-          
+
           <div className="carousel-track">
             {cards.map((card, index) => (
               <div
                 key={index}
                 className={`carousel-slide ${
-                  index === currentSlide ? "active" : 
-                  index === (currentSlide - 1 + cards.length) % cards.length ? "prev" :
-                  index === (currentSlide + 1) % cards.length ? "next" : ""
+                  index === currentSlide
+                    ? 'active'
+                    : index === (currentSlide - 1 + cards.length) % cards.length
+                      ? 'prev'
+                      : index === (currentSlide + 1) % cards.length
+                        ? 'next'
+                        : ''
                 }`}
               >
                 <div className="about-card">
@@ -106,8 +122,12 @@ export default function AboutUs() {
               </div>
             ))}
           </div>
-          
-          <button className="carousel-btn next" onClick={nextSlide} aria-label="Next slide">
+
+          <button
+            className="carousel-btn next"
+            onClick={nextSlide}
+            aria-label="Next slide"
+          >
             ›
           </button>
         </div>
@@ -116,14 +136,13 @@ export default function AboutUs() {
           {cards.map((_, index) => (
             <button
               key={index}
-              className={`dot ${index === currentSlide ? "active" : ""}`}
+              className={`dot ${index === currentSlide ? 'active' : ''}`}
               onClick={() => goToSlide(index)}
               aria-label={`Go to slide ${index + 1}`}
             />
           ))}
         </div>
       </div>
-
     </div>
   );
 }

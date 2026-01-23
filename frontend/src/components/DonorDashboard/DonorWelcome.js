@@ -15,7 +15,7 @@ export default function DonorWelcome() {
     mealsServed: 0,
     co2Saved: 0,
     averageRating: 0,
-    totalReviews: 0
+    totalReviews: 0,
   });
   const [recentDonations, setRecentDonations] = useState([]);
 
@@ -26,28 +26,27 @@ export default function DonorWelcome() {
 
   const fetchDonorData = async () => {
     try {
-
       // Fetch all donations from the backend
       const response = await surplusAPI.getMyPosts();
-      
+
       if (response && response.data) {
         const donations = response.data;
         console.log('📦 Donor donations response:', donations);
         console.log('📦 First donation detailed:', donations[0]);
-        
+
         // Calculate statistics
         const totalDonations = donations.length;
-        
+
         // Calculate meals served (estimate: each donation serves ~5 meals on average)
         const mealsServed = donations.reduce((total, donation) => {
           // Try to parse quantity, default to 1 if not available
           const quantity = parseFloat(donation.quantity) || 1;
-          return total + (quantity * 5); // Rough estimate
+          return total + quantity * 5; // Rough estimate
         }, 0);
-        
+
         // Calculate CO2 saved (estimate: ~0.5kg CO2 per meal)
-        const co2Saved = Math.round((mealsServed * 0.5) * 10) / 10;
-        
+        const co2Saved = Math.round(mealsServed * 0.5 * 10) / 10;
+
         // Fetch rating data
         let averageRating = 0;
         let totalReviews = 0;
@@ -66,19 +65,23 @@ export default function DonorWelcome() {
           mealsServed: Math.round(mealsServed),
           co2Saved,
           averageRating: Math.round(averageRating * 10) / 10,
-          totalReviews
+          totalReviews,
         });
 
         // Format recent donations (last 4)
         const recentDonations = donations
-          .sort((a, b) => new Date(b.createdAt || b.pickupDate) - new Date(a.createdAt || a.pickupDate))
+          .sort(
+            (a, b) =>
+              new Date(b.createdAt || b.pickupDate) -
+              new Date(a.createdAt || a.pickupDate)
+          )
           .slice(0, 4)
           .map(donation => {
             // Format date
             const date = new Date(donation.createdAt || donation.pickupDate);
-            const dateStr = date.toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
+            const dateStr = date.toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
             });
 
             // Get recipient or show status
@@ -87,7 +90,7 @@ export default function DonorWelcome() {
               receiverName: donation.receiverName,
               receiverEmail: donation.receiverEmail,
               status: donation.status,
-              id: donation.id
+              id: donation.id,
             });
 
             const recipient = donation.claimant?.organizationName || 
@@ -110,36 +113,36 @@ export default function DonorWelcome() {
               date: dateStr,
               recipient,
               items,
-              status
+              status,
             };
           });
 
         setRecentDonations(recentDonations);
       }
     } catch (error) {
-      console.error("Error fetching donor data:", error);
+      console.error('Error fetching donor data:', error);
       // Set default mock data for development if API fails
       setStats({
         totalDonations: 0,
         mealsServed: 0,
         co2Saved: 0,
         averageRating: 0,
-        totalReviews: 0
+        totalReviews: 0,
       });
       setRecentDonations([]);
     }
   };
 
   const handleCreateDonation = () => {
-    navigate("/donor/list");
+    navigate('/donor/list');
   };
 
   const handleViewReports = () => {
-    navigate("/donor/dashboard");
+    navigate('/donor/dashboard');
   };
 
   const handleViewAll = () => {
-    navigate("/donor/list");
+    navigate('/donor/list');
   };
 
   return (
@@ -193,7 +196,9 @@ export default function DonorWelcome() {
             <div className="stat-value">
               {stats.totalReviews > 0 ? (
                 <>
-                  <div className="rating-number">{stats.averageRating.toFixed(1)}</div>
+                  <div className="rating-number">
+                    {stats.averageRating.toFixed(1)}
+                  </div>
                   <span className="rating-count">★ ({stats.totalReviews})</span>
                 </>
               ) : (

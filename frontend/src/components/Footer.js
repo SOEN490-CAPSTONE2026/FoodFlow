@@ -9,7 +9,6 @@ const Footer = () => {
   return (
     <footer className="footer">
       <div className="footer-content">
-        
         <div className="footer-left">
           <div className="logo-section">
             <img src={Logo} alt="FoodFlow Logo" className="footer-logo" />
@@ -30,7 +29,7 @@ const Footer = () => {
                 <li><a href='#faqs'>{t('footer.faqs')}</a></li>
               </ul>
             </div>
-            
+
             <div className="footer-column">
               <h3 className="column-title">{t('footer.contact')}</h3>
               <div className="contact-info">

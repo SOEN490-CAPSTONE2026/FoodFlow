@@ -16,23 +16,25 @@ import {
   LogOut as IconLogOut,
   Inbox as IconInbox,
   CheckCircle,
-  User as IconUser
-} from "lucide-react";
+  User as IconUser,
+} from 'lucide-react';
 
 function ReceiverLayoutContent() {
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const navType = useNavigationType();
-  const { logout, organizationName, organizationVerificationStatus, role } = React.useContext(AuthContext);
+  const { logout, organizationName, organizationVerificationStatus, role } =
+    React.useContext(AuthContext);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const dropdownRef = useRef(null);
-  const isActive = (path) => location.pathname === path;
-  const { notification, showNotification, clearNotification } = useNotification();
+  const isActive = path => location.pathname === path;
+  const { notification, showNotification, clearNotification } =
+    useNotification();
 
-  const isMessagesPage = location.pathname === "/receiver/messages";
+  const isMessagesPage = location.pathname === '/receiver/messages';
 
   const getPageTitle = () => {
     switch (location.pathname) {
@@ -71,13 +73,13 @@ function ReceiverLayoutContent() {
   };
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
+    const handleClickOutside = event => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowDropdown(false);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   // Fetch unread message count
@@ -85,7 +87,10 @@ function ReceiverLayoutContent() {
     const fetchUnreadCount = async () => {
       try {
         const response = await api.get('/conversations');
-        const totalUnread = response.data.reduce((sum, conv) => sum + (conv.unreadCount || 0), 0);
+        const totalUnread = response.data.reduce(
+          (sum, conv) => sum + (conv.unreadCount || 0),
+          0
+        );
         setUnreadMessagesCount(totalUnread);
       } catch (err) {
         console.error('Error fetching unread message count:', err);
@@ -100,9 +105,14 @@ function ReceiverLayoutContent() {
 
   // Connect to websocket for user-specific notifications (receiver)
   useEffect(() => {
-    const onMessage = (payload) => {
-      const senderName = payload.senderName || payload.sender?.email || payload.senderEmail || '';
-      const message = payload.messageBody || payload.message || payload.body || '';
+    const onMessage = payload => {
+      const senderName =
+        payload.senderName ||
+        payload.sender?.email ||
+        payload.senderEmail ||
+        '';
+      const message =
+        payload.messageBody || payload.message || payload.body || '';
       if (message) {
         showNotification(senderName, message);
         // Increment unread count when receiving a new message
@@ -110,7 +120,7 @@ function ReceiverLayoutContent() {
       }
     };
 
-    const onClaimNotification = (payload) => {
+    const onClaimNotification = payload => {
       console.log('RECEIVER: Claim confirmation received:', payload);
       const foodTitle = payload.surplusPostTitle || 'a food item';
       const donorName = payload.surplusPost?.donorEmail || 'a donor';
@@ -125,7 +135,7 @@ function ReceiverLayoutContent() {
       showNotification(t('notifications.claimConfirmed'), message);
     };
 
-    const onClaimCancelled = (payload) => {
+    const onClaimCancelled = payload => {
       console.log('RECEIVER: Claim cancellation received:', payload);
       const foodTitle = payload.surplusPostTitle || 'a food item';
       const message = t('notifications.claimCancelled', { foodTitle });
@@ -133,7 +143,7 @@ function ReceiverLayoutContent() {
       showNotification(t('notifications.claimStatus'), message);
     };
 
-    const onNewPostNotification = (payload) => {
+    const onNewPostNotification = payload => {
       console.log('RECEIVER: New post notification received:', payload);
       const title = payload.title || 'New donation';
       const quantity = payload.quantity || 0;
@@ -143,22 +153,34 @@ function ReceiverLayoutContent() {
       showNotification('🔔 New Donation Available', message);
     };
 
-    connectToUserQueue(onMessage, onClaimNotification, onClaimCancelled, onNewPostNotification);
+    connectToUserQueue(
+      onMessage,
+      onClaimNotification,
+      onClaimCancelled,
+      onNewPostNotification
+    );
     return () => {
-      try { disconnect(); } catch (e) { /* ignore */ }
+      try {
+        disconnect();
+      } catch (e) {
+        /* ignore */
+      }
     };
   }, [showNotification]);
 
   useEffect(() => {
-    if (navType === "POP" && !location.pathname.startsWith("/receiver")) {
-      navigate("/receiver/dashboard", { replace: true });
+    if (navType === 'POP' && !location.pathname.startsWith('/receiver')) {
+      navigate('/receiver/dashboard', { replace: true });
     }
     // Refresh unread count when navigating away from messages page
     if (!isMessagesPage) {
       const fetchUnreadCount = async () => {
         try {
           const response = await api.get('/conversations');
-          const totalUnread = response.data.reduce((sum, conv) => sum + (conv.unreadCount || 0), 0);
+          const totalUnread = response.data.reduce(
+            (sum, conv) => sum + (conv.unreadCount || 0),
+            0
+          );
           setUnreadMessagesCount(totalUnread);
         } catch (err) {
           console.error('Error fetching unread message count:', err);
@@ -168,15 +190,16 @@ function ReceiverLayoutContent() {
     }
   }, [navType, location.pathname, navigate, isMessagesPage]);
 
-  const toggleDropdown = () => setShowDropdown((s) => !s);
+  const toggleDropdown = () => setShowDropdown(s => !s);
 
   const handleLogout = async () => {
     try {
       await logout();
     } catch (e) {
+      // Ignore logout errors
     } finally {
       setShowDropdown(false);
-      navigate("/", { replace: true, state: { scrollTo: "home" } });
+      navigate('/', { replace: true, state: { scrollTo: 'home' } });
     }
   };
 
@@ -184,7 +207,7 @@ function ReceiverLayoutContent() {
     <div className="receiver-layout">
       <div className="receiver-sidebar">
         <div className="receiver-sidebar-header">
-          <Link to="/" state={{ scrollTo: "home", from: "receiver" }}>
+          <Link to="/" state={{ scrollTo: 'home', from: 'receiver' }}>
             <img src={Logo} alt="FoodFlow" className="receiver-logo" />
           </Link>
         </div>
@@ -192,21 +215,21 @@ function ReceiverLayoutContent() {
         <div className="receiver-nav-links">
           <Link
             to="/receiver"
-            className={`receiver-nav-link ${location.pathname === "/receiver" || location.pathname === "/receiver/browse" ? "active" : ""}`}
+            className={`receiver-nav-link ${location.pathname === '/receiver' || location.pathname === '/receiver/browse' ? 'active' : ''}`}
           >
             {t('receiverLayout.donations')}
           </Link>
 
           <Link
             to="/receiver/my-claims"
-            className={`receiver-nav-link ${isActive("/receiver/my-claims") || isActive("/receiver/dashboard") ? "active" : ""}`}
+            className={`receiver-nav-link ${isActive('/receiver/my-claims') || isActive('/receiver/dashboard') ? 'active' : ''}`}
           >
             {t('receiverLayout.myClaims')}
           </Link>
 
           <Link
             to="/receiver/welcome"
-            className={`receiver-nav-link ${location.pathname === "/receiver/welcome" ? "active" : ""}`}
+            className={`receiver-nav-link ${location.pathname === '/receiver/welcome' ? 'active' : ''}`}
           >
             {t('receiverLayout.savedDonations')}
           </Link>
@@ -214,9 +237,9 @@ function ReceiverLayoutContent() {
 
         <div className="receiver-user-info" ref={dropdownRef}>
           <div className="user-actions">
-            <button 
-              className="inbox-btn" 
-              type="button" 
+            <button
+              className="inbox-btn"
+              type="button"
               aria-label="Messages"
               onClick={() => navigate('/receiver/messages')}
             >
@@ -244,18 +267,24 @@ function ReceiverLayoutContent() {
               </div>
               <div className="dropdown-divider"></div>
 
-              <div className="dropdown-item dropdown-item--settings" onClick={() => {
-                setShowDropdown(false);
-                navigate('/receiver/settings');
-              }}>
+              <div
+                className="dropdown-item dropdown-item--settings"
+                onClick={() => {
+                  setShowDropdown(false);
+                  navigate('/receiver/settings');
+                }}
+              >
                 <IconSettings size={18} />
                 <span>{t('receiverLayout.settings')}</span>
               </div>
 
-              <div className="dropdown-item dropdown-item--preferences" onClick={() => {
-                setShowDropdown(false);
-                setShowPreferences(true);
-              }}>
+              <div
+                className="dropdown-item dropdown-item--preferences"
+                onClick={() => {
+                  setShowDropdown(false);
+                  setShowPreferences(true);
+                }}
+              >
                 <IconUser size={18} />
                 <span>{t('receiverLayout.preferences')}</span>
               </div>
@@ -264,7 +293,7 @@ function ReceiverLayoutContent() {
                 className="dropdown-item dropdown-item--help"
                 onClick={() => {
                   setShowDropdown(false);
-                  navigate("/receiver/help");
+                  navigate('/receiver/help');
                 }}
               >
                 <IconHelpCircle size={18} />
@@ -273,7 +302,10 @@ function ReceiverLayoutContent() {
 
               <div className="dropdown-divider"></div>
 
-              <div className="dropdown-item dropdown-item-logout" onClick={handleLogout}>
+              <div
+                className="dropdown-item dropdown-item-logout"
+                onClick={handleLogout}
+              >
                 <IconLogOut size={18} />
                 <span>{t('receiverLayout.logout')}</span>
               </div>
@@ -292,12 +324,20 @@ function ReceiverLayoutContent() {
           </div>
         )}
 
-        <div className={`receiver-content ${isMessagesPage ? 'messages-page' : ''}`}>
-          {role === 'RECEIVER' && organizationVerificationStatus === 'PENDING' && (
-            <div className="verification-banner" role="status" aria-live="polite">
-              Your account is pending verification. Some features may be limited until your organization is verified.
-            </div>
-          )}
+        <div
+          className={`receiver-content ${isMessagesPage ? 'messages-page' : ''}`}
+        >
+          {role === 'RECEIVER' &&
+            organizationVerificationStatus === 'PENDING' && (
+              <div
+                className="verification-banner"
+                role="status"
+                aria-live="polite"
+              >
+                Your account is pending verification. Some features may be
+                limited until your organization is verified.
+              </div>
+            )}
           <Outlet />
           <MessageNotification
             notification={notification}
@@ -309,7 +349,7 @@ function ReceiverLayoutContent() {
       <ReceiverPreferences
         isOpen={showPreferences}
         onClose={() => setShowPreferences(false)}
-        onSave={(savedPreferences) => {
+        onSave={savedPreferences => {
           console.log('Preferences saved:', savedPreferences);
           // You can add additional logic here if needed
         }}

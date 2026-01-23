@@ -6,7 +6,9 @@ const MessageNotification = ({ notification, onClose }) => {
   const { t } = useTranslation();
   
   useEffect(() => {
-    if (!notification) return;
+    if (!notification) {
+      return;
+    }
 
     // Auto-dismiss after 5 seconds
     const timer = setTimeout(() => {
@@ -16,16 +18,18 @@ const MessageNotification = ({ notification, onClose }) => {
     return () => clearTimeout(timer);
   }, [notification]);
 
-  if (!notification) return null;
+  if (!notification) {
+    return null;
+  }
 
   // For claim notifications and donation notifications, use senderName as the title directly
-  const isClaimNotification = 
-    notification.senderName === 'New Claim' || 
+  const isClaimNotification =
+    notification.senderName === 'New Claim' ||
     notification.senderName === 'Claim Cancelled' ||
     notification.senderName === 'Claim Confirmed' ||
     notification.senderName === 'Claim Status';
-  
-  const isDonationNotification = 
+
+  const isDonationNotification =
     notification.senderName === '🔔 New Donation Available' ||
     notification.senderName?.includes('New Donation');
   
@@ -41,9 +45,7 @@ const MessageNotification = ({ notification, onClose }) => {
       <div className="notification-header">
         <strong>{headerText}</strong>
       </div>
-      <div className="notification-body">
-        {notification.message}
-      </div>
+      <div className="notification-body">{notification.message}</div>
     </div>
   );
 };

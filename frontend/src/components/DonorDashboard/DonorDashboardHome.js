@@ -1,13 +1,7 @@
-import React from "react";
+import React from 'react';
 import { useTranslation } from 'react-i18next';
-import "./Donor_Styles/Dashboards.css";
-import {
-  BarChart3,
-  PieChart,
-  TrendingUp,
-  Utensils,
-  Inbox,
-} from "lucide-react";
+import './Donor_Styles/Dashboards.css';
+import { BarChart3, PieChart, TrendingUp, Utensils, Inbox } from 'lucide-react';
 
 // Helper function to calculate doughnut chart values
 const calculateDoughnut = (data = []) => {
@@ -15,7 +9,7 @@ const calculateDoughnut = (data = []) => {
   const circumference = 2 * Math.PI * 45; // radius 45
   let currentOffset = 0;
 
-  const segments = data.map((item) => {
+  const segments = data.map(item => {
     const percentage = (item.value ?? 0) / total;
     const offset = currentOffset;
     currentOffset += percentage;
@@ -52,10 +46,14 @@ export default function DonorDashboardHome({ stats, chartData }) {
   const foodDoughnut = calculateDoughnut(chartData.foodCategories);
 
   // Calculate max value for bar/line scaling (avoid /0)
-  const maxBarValue =
-    Math.max(...chartData.monthlyDonations.map((d) => d.value || 0), 1);
-  const maxTrendValue =
-    Math.max(...chartData.weeklyTrends.map((d) => d.value || 0), 1);
+  const maxBarValue = Math.max(
+    ...chartData.monthlyDonations.map(d => d.value || 0),
+    1
+  );
+  const maxTrendValue = Math.max(
+    ...chartData.weeklyTrends.map(d => d.value || 0),
+    1
+  );
 
   return (
     <div className="donor-dashboard-home">
@@ -196,7 +194,13 @@ export default function DonorDashboardHome({ stats, chartData }) {
               </div>
               <svg viewBox="0 0 400 200" preserveAspectRatio="none">
                 <defs>
-                  <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <linearGradient
+                    id="areaGradient"
+                    x1="0%"
+                    y1="0%"
+                    x2="0%"
+                    y2="100%"
+                  >
                     <stop offset="0%" stopColor="rgba(40, 167, 69, 0.3)" />
                     <stop offset="100%" stopColor="rgba(40, 167, 69, 0.05)" />
                   </linearGradient>
@@ -213,7 +217,7 @@ export default function DonorDashboardHome({ stats, chartData }) {
                             200 - (item.value / maxTrendValue) * 200
                           }`
                       )
-                      .join(" ")}
+                      .join(' ')}
                     L 400,200
                     Z
                   `}
@@ -230,7 +234,7 @@ export default function DonorDashboardHome({ stats, chartData }) {
                             200 - (item.value / maxTrendValue) * 200
                           }`
                       )
-                      .join(" ")}
+                      .join(' ')}
                   `}
                 />
               </svg>

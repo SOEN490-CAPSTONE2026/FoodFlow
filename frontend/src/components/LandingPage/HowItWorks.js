@@ -50,12 +50,14 @@ const HowItWorks = () => {
     return () => observer.disconnect();
   }, []);
 
-  // Logic for the Step animation 
+  // Logic for the Step animation
   useEffect(() => {
-    if (!isInView) return;
-    
+    if (!isInView) {
+      return;
+    }
+
     setIsAnimating(true);
-    
+
     const animationTimer = setTimeout(() => {
       setIsAnimating(false);
     }, duration);
@@ -64,10 +66,10 @@ const HowItWorks = () => {
       if (currentStep < steps.length - 1) {
         setCurrentStep(currentStep + 1);
       } else {
-        setCurrentStep(0); 
+        setCurrentStep(0);
       }
     }, duration + 500);
-    
+
     return () => {
       clearTimeout(animationTimer);
       clearTimeout(stepTimer);
@@ -75,8 +77,8 @@ const HowItWorks = () => {
   }, [currentStep, isInView]);
 
   return (
-    <div 
-      className={`hiw-container ${isInView ? "hiw-animate-in" : ""}`} 
+    <div
+      className={`hiw-container ${isInView ? 'hiw-animate-in' : ''}`}
       ref={sectionRef}
     >
       <div className="hiw-header">
@@ -90,7 +92,9 @@ const HowItWorks = () => {
         <div className="hiw-steps-container">
           {steps.map((step, i) => (
             <div key={i} className="hiw-step-column">
-              <div className={`hiw-step-card ${i === currentStep ? "hiw-active" : ""}`}>
+              <div
+                className={`hiw-step-card ${i === currentStep ? 'hiw-active' : ''}`}
+              >
                 <div className="hiw-step-visual">
                   <div className="hiw-step-icon">
                     <div className="hiw-icon-circle">{step.icon}</div>
@@ -103,12 +107,19 @@ const HowItWorks = () => {
                 </div>
               </div>
               <div className="hiw-progress-container">
-                <div 
+                <div
                   className={`hiw-progress-bar ${
-                    i < currentStep ? "hiw-completed" : 
-                    i === currentStep && isAnimating ? "hiw-animating" : ""
+                    i < currentStep
+                      ? 'hiw-completed'
+                      : i === currentStep && isAnimating
+                        ? 'hiw-animating'
+                        : ''
                   }`}
-                  style={i === currentStep && isAnimating ? {animationDuration: `${duration}ms`} : {}}
+                  style={
+                    i === currentStep && isAnimating
+                      ? { animationDuration: `${duration}ms` }
+                      : {}
+                  }
                 ></div>
               </div>
             </div>

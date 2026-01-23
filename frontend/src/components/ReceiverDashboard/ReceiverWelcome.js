@@ -11,22 +11,28 @@ export default function ReceiverWelcome() {
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) entry.target.classList.add("animate-in");
+      entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('animate-in');
+          }
         });
       },
       { threshold: 0.1 }
     );
 
-    [headerRef.current, noticeRef.current, ...sectionRefs.current].forEach((el) => {
-      if (el) observer.observe(el);
-    });
+    [headerRef.current, noticeRef.current, ...sectionRefs.current].forEach(
+      el => {
+        if (el) {
+          observer.observe(el);
+        }
+      }
+    );
 
     return () => observer.disconnect();
   }, []);
 
-  const addToRefs = (el) => {
+  const addToRefs = el => {
     if (el && !sectionRefs.current.includes(el)) {
       sectionRefs.current.push(el);
     }
@@ -55,7 +61,7 @@ export default function ReceiverWelcome() {
           <p>
             {t('receiverWelcome.searchMap.description')}
           </p>
-        
+
           <a href="/receiver/search#org-search" className="rw-btn primary">
             {t('receiverWelcome.searchMap.button')}
           </a>

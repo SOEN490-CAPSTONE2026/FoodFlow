@@ -18,7 +18,7 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { trackButtonClick, trackLogin } = useAnalytics();
 
-  const handleLogin = async (e) => {
+  const handleLogin = async e => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -58,15 +58,17 @@ const LoginPage = () => {
       trackLogin(false);
 
       let errorMessage = 'Invalid email or password';
-      
+
       if (err.response) {
         const statusCode = err.response.status;
-        const serverMessage = err.response.data?.message || err.response.data?.error;
+        const serverMessage =
+          err.response.data?.message || err.response.data?.error;
 
         if (statusCode === 401) {
           errorMessage = serverMessage || 'Invalid email or password';
         } else if (statusCode === 403) {
-          errorMessage = serverMessage || 'Access denied. Please contact support.';
+          errorMessage =
+            serverMessage || 'Access denied. Please contact support.';
         } else if (statusCode === 500) {
           errorMessage = 'Server error. Please try again later.';
         } else if (statusCode >= 500) {
@@ -75,9 +77,11 @@ const LoginPage = () => {
           errorMessage = serverMessage;
         }
       } else if (err.request) {
-        errorMessage = 'Unable to connect to server. Please check your connection.';
+        errorMessage =
+          'Unable to connect to server. Please check your connection.';
       } else if (err.message === 'Invalid server response') {
-        errorMessage = 'Login successful but received incomplete data. Please try again.';
+        errorMessage =
+          'Login successful but received incomplete data. Please try again.';
       }
 
       setError(errorMessage);
@@ -94,16 +98,16 @@ const LoginPage = () => {
           <span className="background-spot s2" />
           <span className="background-spot s3" />
         </div>
-        <img 
-          src="https://i.ibb.co/HLxDnk57/Untitled-design-6.png" 
-          alt="Donation example" 
-          className="main" 
+        <img
+          src="https://i.ibb.co/HLxDnk57/Untitled-design-6.png"
+          alt="Donation example"
+          className="main"
         />
         <Link to="/">
-          <img 
-            src="https://i.ibb.co/jkF1r5xL/logo-white.png" 
-            alt="FoodFlow logo" 
-            className="login-logo" 
+          <img
+            src="https://i.ibb.co/jkF1r5xL/logo-white.png"
+            alt="FoodFlow logo"
+            className="login-logo"
           />
         </Link>
       </div>
@@ -111,15 +115,18 @@ const LoginPage = () => {
       <div className="login-right">
         <div className="login-container">
           <div className="login-inner">
-            <div className="login-card" role="region" aria-labelledby="login-title">
+            <div
+              className="login-card"
+              role="region"
+              aria-labelledby="login-title"
+            >
               <button
                 className="back-home-button"
-                onClick={() => navigate("/")}
+                onClick={() => navigate('/')}
                 aria-label="Go back to homepage"
               >
                 {t('login.backHome')}
               </button>
-
               <h1 id="login-title" className="login-title">
                 Log in to your account
               </h1>

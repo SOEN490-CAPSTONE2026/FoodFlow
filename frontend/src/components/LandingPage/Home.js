@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import HomeIllustration from "../../assets/illustrations/home-illustration.jpg";
+import HomeIllustration from '../../assets/illustrations/home-illustration.jpg';
 import backgroundVideo from "../../assets/LandingPage_VIDEO.mp4"; 
 import '../LandingPage/style/Home.css';
 
@@ -12,41 +12,35 @@ const Home = () => {
     const [line2Completed, setLine2Completed] = useState(false);
     const [showReceiver, setShowReceiver] = useState(false);
 
-    useEffect(() => {
-        const timer1 = setTimeout(() => {
-            setLine1Completed(true);
-        }, 2500);
+  useEffect(() => {
+    const timer1 = setTimeout(() => {
+      setLine1Completed(true);
+    }, 2500);
 
-        const timer2 = setTimeout(() => {
-            setLine2Completed(true);
-        }, 4500);
+    const timer2 = setTimeout(() => {
+      setLine2Completed(true);
+    }, 4500);
 
-        const interval = setInterval(() => {
-            setShowReceiver(prev => !prev);
-        }, 8000);
+    const interval = setInterval(() => {
+      setShowReceiver(prev => !prev);
+    }, 8000);
 
-        return () => {
-            clearTimeout(timer1);
-            clearTimeout(timer2);
-            clearInterval(interval);
-        };
-    }, []);
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearInterval(interval);
+    };
+  }, []);
 
-    return (
-        <div className="home-container">
-            <video 
-                className="background-video" 
-                autoPlay 
-                loop 
-                muted 
-                playsInline
-            >
-                <source src={backgroundVideo} type="video/mp4" />
-            </video>
+  return (
+    <div className="home-container">
+      <video className="background-video" autoPlay loop muted playsInline>
+        <source src={backgroundVideo} type="video/mp4" />
+      </video>
 
-            <div className="floating-element"></div>
-            <div className="floating-element"></div>
-            <div className="floating-element"></div>
+      <div className="floating-element"></div>
+      <div className="floating-element"></div>
+      <div className="floating-element"></div>
 
             <div className="home-content">
                 {!showReceiver ? (
@@ -87,6 +81,6 @@ const Home = () => {
                 </div>
             </div>
         </div>
-    );
+  );
 };
 export default Home;
