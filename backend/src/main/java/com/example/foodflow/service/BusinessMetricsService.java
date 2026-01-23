@@ -30,6 +30,30 @@ public class BusinessMetricsService {
     private final Counter messagesSentCounter;
     private final Counter messagesReceivedCounter;
 
+    // Recommendation Metrics
+    private final Counter recommendationsCalculatedCounter;
+    private final Counter recommendationsHighScoreCounter;
+
+    // Notification Metrics
+    private final Counter notificationsSentCounter;
+    private final Counter notificationsDeliveredCounter;
+    private final Counter notificationsFailedCounter;
+    private final Counter notificationsFilteredCounter;
+
+    // Timeline Metrics
+    private final Counter timelineEventsCreatedCounter;
+
+    // User Profile Metrics
+    private final Counter profileUpdatesCounter;
+    private final Counter regionSettingsUpdatesCounter;
+
+    // Geolocation Metrics
+    private final Counter distanceCalculationsCounter;
+    private final Counter locationSearchesCounter;
+
+    // Food Category Metrics
+    private final Counter foodCategoryPostsCounter;
+
     public BusinessMetricsService(MeterRegistry meterRegistry,
                                  ClaimRepository claimRepository,
                                  SurplusPostRepository surplusPostRepository) {
@@ -70,8 +94,54 @@ public class BusinessMetricsService {
                 .description("Total messages received")
                 .register(meterRegistry);
 
-        // Register gauges for active claims by status
-        registerActiveClaimsGauges();
+        // Initialize new counters
+        this.recommendationsCalculatedCounter = Counter.builder("recommendations.calculated")
+                .description("Total recommendation calculations performed")
+                .register(meterRegistry);
+
+        this.recommendationsHighScoreCounter = Counter.builder("recommendations.high_score")
+                .description("Total recommendations with high scores (>80)")
+                .register(meterRegistry);
+
+        this.notificationsSentCounter = Counter.builder("notifications.sent")
+                .description("Total notifications sent")
+                .register(meterRegistry);
+
+        this.notificationsDeliveredCounter = Counter.builder("notifications.delivered")
+                .description("Total notifications successfully delivered")
+                .register(meterRegistry);
+
+        this.notificationsFailedCounter = Counter.builder("notifications.failed")
+                .description("Total notifications that failed to deliver")
+                .register(meterRegistry);
+
+        this.notificationsFilteredCounter = Counter.builder("notifications.filtered")
+                .description("Total notifications filtered out by preferences")
+                .register(meterRegistry);
+
+        this.timelineEventsCreatedCounter = Counter.builder("timeline.events.created")
+                .description("Total timeline events created")
+                .register(meterRegistry);
+
+        this.profileUpdatesCounter = Counter.builder("user.profiles.updated")
+                .description("Total user profile updates")
+                .register(meterRegistry);
+
+        this.regionSettingsUpdatesCounter = Counter.builder("user.region.settings.updated")
+                .description("Total region settings updates")
+                .register(meterRegistry);
+
+        this.distanceCalculationsCounter = Counter.builder("geolocation.distance.calculated")
+                .description("Total distance calculations performed")
+                .register(meterRegistry);
+
+        this.locationSearchesCounter = Counter.builder("geolocation.location.searches")
+                .description("Total location-based searches")
+                .register(meterRegistry);
+
+        this.foodCategoryPostsCounter = Counter.builder("food.categories.posts")
+                .description("Total posts created by food category")
+                .register(meterRegistry);
     }
 
     private void registerActiveClaimsGauges() {
@@ -127,6 +197,63 @@ public class BusinessMetricsService {
 
     public void incrementMessagesReceived() {
         messagesReceivedCounter.increment();
+    }
+
+    // Recommendation Methods
+    public void incrementRecommendationsCalculated() {
+        recommendationsCalculatedCounter.increment();
+    }
+
+    public void incrementRecommendationsHighScore() {
+        recommendationsHighScoreCounter.increment();
+    }
+
+    // Notification Methods
+    public void incrementNotificationsSent() {
+        notificationsSentCounter.increment();
+    }
+
+    public void incrementNotificationsDelivered() {
+        notificationsDeliveredCounter.increment();
+    }
+
+    public void incrementNotificationsFailed() {
+        notificationsFailedCounter.increment();
+    }
+
+    public void incrementNotificationsFiltered() {
+        notificationsFilteredCounter.increment();
+    }
+
+    // Timeline Methods
+    public void incrementTimelineEventsCreated() {
+        timelineEventsCreatedCounter.increment();
+    }
+
+    // User Profile Methods
+    public void incrementProfileUpdates() {
+        profileUpdatesCounter.increment();
+    }
+
+    public void incrementRegionSettingsUpdates() {
+        regionSettingsUpdatesCounter.increment();
+    }
+
+    // Geolocation Methods
+    public void incrementDistanceCalculations() {
+        distanceCalculationsCounter.increment();
+    }
+
+    public void incrementLocationSearches() {
+        locationSearchesCounter.increment();
+    }
+
+    // Food Category Methods
+    public void incrementFoodCategoryPosts(String category) {
+        Counter.builder("food.categories.posts")
+                .tag("category", category)
+                .register(meterRegistry)
+                .increment();
     }
 
     // Timer for service method execution

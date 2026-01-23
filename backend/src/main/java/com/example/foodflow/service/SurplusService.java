@@ -15,6 +15,7 @@ import com.example.foodflow.model.entity.DonationTimeline;
 import com.example.foodflow.model.entity.PickupSlot;
 import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.entity.User;
+import com.example.foodflow.model.types.FoodCategory;
 import com.example.foodflow.model.types.ClaimStatus;
 import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.repository.ClaimRepository;
@@ -199,6 +200,13 @@ public class SurplusService {
         post.setStatus(request.getStatus() != null ? request.getStatus() : PostStatus.AVAILABLE);
 
         SurplusPost savedPost = surplusPostRepository.save(post);
+
+        // Track food category metrics
+        if (savedPost.getFoodCategories() != null) {
+            for (FoodCategory category : savedPost.getFoodCategories()) {
+                businessMetricsService.incrementFoodCategoryPosts(category.name());
+            }
+        }
 
         // Create timeline event for donation posting
         timelineService.createTimelineEvent(
