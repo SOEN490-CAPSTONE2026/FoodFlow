@@ -9,16 +9,14 @@ const renderWithRouter = component => {
 };
 
 describe('ReceiverHelp Component', () => {
-  beforeEach(() => {
-    renderWithRouter(<ReceiverHelp />);
-  });
-
   describe('Rendering', () => {
     it('renders the Help page without crashing', () => {
+      renderWithRouter(<ReceiverHelp />);
       expect(screen.getByText('Getting Started')).toBeInTheDocument();
     });
 
     it('renders all main sections', () => {
+      renderWithRouter(<ReceiverHelp />);
       expect(screen.getByText('Getting Started')).toBeInTheDocument();
       expect(
         screen.getByText('Frequently Asked Questions')
@@ -27,12 +25,14 @@ describe('ReceiverHelp Component', () => {
     });
 
     it('renders the welcome introduction text', () => {
+      renderWithRouter(<ReceiverHelp />);
       expect(
         screen.getByText(/Welcome to FoodFlow! As a receiver/i)
       ).toBeInTheDocument();
     });
 
     it('renders all four getting started steps', () => {
+      renderWithRouter(<ReceiverHelp />);
       expect(
         screen.getByText('Browse Available Donations')
       ).toBeInTheDocument();
@@ -42,6 +42,7 @@ describe('ReceiverHelp Component', () => {
     });
 
     it('renders step numbers 1 through 4', () => {
+      renderWithRouter(<ReceiverHelp />);
       expect(screen.getByText('1')).toBeInTheDocument();
       expect(screen.getByText('2')).toBeInTheDocument();
       expect(screen.getByText('3')).toBeInTheDocument();
@@ -51,6 +52,7 @@ describe('ReceiverHelp Component', () => {
 
   describe('FAQ Section', () => {
     it('renders all FAQ questions', () => {
+      renderWithRouter(<ReceiverHelp />);
       expect(
         screen.getByText('How do I claim a donation?')
       ).toBeInTheDocument();
@@ -76,6 +78,7 @@ describe('ReceiverHelp Component', () => {
     });
 
     it('FAQ answers are hidden by default', () => {
+      renderWithRouter(<ReceiverHelp />);
       // The answer text should not be visible initially
       expect(
         screen.queryByText(/Browse available donations on the main page/i)
@@ -83,6 +86,7 @@ describe('ReceiverHelp Component', () => {
     });
 
     it('expands FAQ when question is clicked', () => {
+      renderWithRouter(<ReceiverHelp />);
       const firstQuestion = screen.getByText('How do I claim a donation?');
       fireEvent.click(firstQuestion);
 
@@ -93,6 +97,7 @@ describe('ReceiverHelp Component', () => {
     });
 
     it('collapses FAQ when clicked again', () => {
+      renderWithRouter(<ReceiverHelp />);
       const firstQuestion = screen.getByText('How do I claim a donation?');
 
       // Open
@@ -109,6 +114,7 @@ describe('ReceiverHelp Component', () => {
     });
 
     it('only one FAQ is open at a time', () => {
+      renderWithRouter(<ReceiverHelp />);
       const firstQuestion = screen.getByText('How do I claim a donation?');
       const secondQuestion = screen.getByText('How do I confirm pickup?');
 
@@ -131,26 +137,31 @@ describe('ReceiverHelp Component', () => {
 
   describe('Contact Section', () => {
     it('renders email support contact', () => {
+      renderWithRouter(<ReceiverHelp />);
       expect(screen.getByText('Email Support')).toBeInTheDocument();
       expect(screen.getByText('support@foodflow.com')).toBeInTheDocument();
     });
 
     it('renders phone support contact', () => {
+      renderWithRouter(<ReceiverHelp />);
       expect(screen.getByText('Phone Support')).toBeInTheDocument();
       expect(screen.getByText('1-800-FOODFLOW')).toBeInTheDocument();
     });
 
     it('renders response time information', () => {
+      renderWithRouter(<ReceiverHelp />);
       expect(screen.getByText('Response within 24 hours')).toBeInTheDocument();
       expect(screen.getByText('Mon-Fri, 9AM-6PM EST')).toBeInTheDocument();
     });
 
     it('email link has correct href', () => {
+      renderWithRouter(<ReceiverHelp />);
       const emailLink = screen.getByRole('link', { name: /Email Support/i });
       expect(emailLink).toHaveAttribute('href', 'mailto:support@foodflow.com');
     });
 
     it('phone link has correct href', () => {
+      renderWithRouter(<ReceiverHelp />);
       const phoneLink = screen.getByRole('link', { name: /Phone Support/i });
       expect(phoneLink).toHaveAttribute('href', 'tel:1-800-FOODFLOW');
     });
@@ -158,6 +169,7 @@ describe('ReceiverHelp Component', () => {
 
   describe('Accessibility', () => {
     it('FAQ buttons have aria-expanded attribute', () => {
+      renderWithRouter(<ReceiverHelp />);
       const faqButtons = screen.getAllByRole('button');
       faqButtons.forEach(button => {
         expect(button).toHaveAttribute('aria-expanded');
@@ -165,11 +177,13 @@ describe('ReceiverHelp Component', () => {
     });
 
     it('FAQ list has role="list"', () => {
+      renderWithRouter(<ReceiverHelp />);
       const faqList = screen.getByRole('list');
       expect(faqList).toBeInTheDocument();
     });
 
     it('FAQ answers have role="region"', () => {
+      renderWithRouter(<ReceiverHelp />);
       const firstQuestion = screen.getByText('How do I claim a donation?');
       fireEvent.click(firstQuestion);
 
@@ -180,6 +194,7 @@ describe('ReceiverHelp Component', () => {
 
   describe('Content Accuracy', () => {
     it('OTP explanation is accurate', () => {
+      renderWithRouter(<ReceiverHelp />);
       const otpQuestion = screen.getByText('What is the OTP code?');
       fireEvent.click(otpQuestion);
 
@@ -190,6 +205,7 @@ describe('ReceiverHelp Component', () => {
     });
 
     it('food preferences explanation is accurate', () => {
+      renderWithRouter(<ReceiverHelp />);
       const preferencesQuestion = screen.getByText(
         'What are food preferences?'
       );

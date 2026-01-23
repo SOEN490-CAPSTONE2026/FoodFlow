@@ -52,7 +52,9 @@ export default function ReceiverMyClaims() {
 
   // Set initial filter based on priority: Ready > Claimed > Completed (only once on first load)
   useEffect(() => {
-    if (claims.length === 0 || hasSetInitialFilter.current) return;
+    if (claims.length === 0 || hasSetInitialFilter.current) {
+      return;
+    }
 
     // Check for Ready for Pickup claims
     const hasReady = claims.some(

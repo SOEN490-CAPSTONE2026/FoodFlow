@@ -9,16 +9,14 @@ const renderWithRouter = component => {
 };
 
 describe('DonorHelp Component', () => {
-  beforeEach(() => {
-    renderWithRouter(<DonorHelp />);
-  });
-
   describe('Rendering', () => {
     it('renders the Help page without crashing', () => {
+      renderWithRouter(<DonorHelp />);
       expect(screen.getByText('Getting Started')).toBeInTheDocument();
     });
 
     it('renders all main sections', () => {
+      renderWithRouter(<DonorHelp />);
       expect(screen.getByText('Getting Started')).toBeInTheDocument();
       expect(
         screen.getByText('Frequently Asked Questions')
@@ -27,10 +25,12 @@ describe('DonorHelp Component', () => {
     });
 
     it('renders the welcome introduction text', () => {
+      renderWithRouter(<DonorHelp />);
       expect(screen.getByText(/Welcome to FoodFlow!/i)).toBeInTheDocument();
     });
 
     it('renders all four getting started steps', () => {
+      renderWithRouter(<DonorHelp />);
       expect(
         screen.getByText('Create Your First Donation')
       ).toBeInTheDocument();
@@ -40,6 +40,7 @@ describe('DonorHelp Component', () => {
     });
 
     it('renders step numbers 1 through 4', () => {
+      renderWithRouter(<DonorHelp />);
       expect(screen.getByText('1')).toBeInTheDocument();
       expect(screen.getByText('2')).toBeInTheDocument();
       expect(screen.getByText('3')).toBeInTheDocument();
@@ -49,6 +50,7 @@ describe('DonorHelp Component', () => {
 
   describe('FAQ Section', () => {
     it('renders all FAQ questions', () => {
+      renderWithRouter(<DonorHelp />);
       expect(
         screen.getByText('How do I create a donation?')
       ).toBeInTheDocument();
@@ -68,6 +70,7 @@ describe('DonorHelp Component', () => {
     });
 
     it('FAQ answers are hidden by default', () => {
+      renderWithRouter(<DonorHelp />);
       // The answer text should not be visible initially
       expect(
         screen.queryByText(/Navigate to 'Donate Now' from the sidebar/i)
@@ -75,6 +78,7 @@ describe('DonorHelp Component', () => {
     });
 
     it('expands FAQ when question is clicked', () => {
+      renderWithRouter(<DonorHelp />);
       const question = screen.getByText('How do I create a donation?');
       fireEvent.click(question);
 
@@ -85,6 +89,7 @@ describe('DonorHelp Component', () => {
     });
 
     it('collapses FAQ when clicked again', () => {
+      renderWithRouter(<DonorHelp />);
       const question = screen.getByText('How do I create a donation?');
 
       // First click - expand
@@ -101,6 +106,7 @@ describe('DonorHelp Component', () => {
     });
 
     it('only one FAQ is open at a time', () => {
+      renderWithRouter(<DonorHelp />);
       const firstQuestion = screen.getByText('How do I create a donation?');
       const secondQuestion = screen.getByText('What is an OTP code?');
 
@@ -123,26 +129,31 @@ describe('DonorHelp Component', () => {
 
   describe('Contact Section', () => {
     it('renders email support contact', () => {
+      renderWithRouter(<DonorHelp />);
       expect(screen.getByText('Email Support')).toBeInTheDocument();
       expect(screen.getByText('support@foodflow.com')).toBeInTheDocument();
     });
 
     it('renders phone support contact', () => {
+      renderWithRouter(<DonorHelp />);
       expect(screen.getByText('Phone Support')).toBeInTheDocument();
       expect(screen.getByText('1-800-FOODFLOW')).toBeInTheDocument();
     });
 
     it('renders response time information', () => {
+      renderWithRouter(<DonorHelp />);
       expect(screen.getByText('Response within 24 hours')).toBeInTheDocument();
       expect(screen.getByText('Mon-Fri, 9AM-6PM EST')).toBeInTheDocument();
     });
 
     it('email link has correct href', () => {
+      renderWithRouter(<DonorHelp />);
       const emailLink = screen.getByRole('link', { name: /email support/i });
       expect(emailLink).toHaveAttribute('href', 'mailto:support@foodflow.com');
     });
 
     it('phone link has correct href', () => {
+      renderWithRouter(<DonorHelp />);
       const phoneLink = screen.getByRole('link', { name: /phone support/i });
       expect(phoneLink).toHaveAttribute('href', 'tel:1-800-FOODFLOW');
     });
@@ -150,6 +161,7 @@ describe('DonorHelp Component', () => {
 
   describe('Accessibility', () => {
     it('FAQ buttons have aria-expanded attribute', () => {
+      renderWithRouter(<DonorHelp />);
       const question = screen.getByText('How do I create a donation?');
       const button = question.closest('button');
 
@@ -160,11 +172,13 @@ describe('DonorHelp Component', () => {
     });
 
     it('FAQ list has role="list"', () => {
+      renderWithRouter(<DonorHelp />);
       const faqList = screen.getByRole('list');
       expect(faqList).toBeInTheDocument();
     });
 
     it('FAQ answers have role="region"', () => {
+      renderWithRouter(<DonorHelp />);
       const question = screen.getByText('How do I create a donation?');
       fireEvent.click(question);
 
@@ -175,6 +189,7 @@ describe('DonorHelp Component', () => {
 
   describe('Content Accuracy', () => {
     it('OTP explanation is accurate', () => {
+      renderWithRouter(<DonorHelp />);
       const question = screen.getByText('What is an OTP code?');
       fireEvent.click(question);
 
@@ -182,6 +197,7 @@ describe('DonorHelp Component', () => {
     });
 
     it('mentions food types correctly', () => {
+      renderWithRouter(<DonorHelp />);
       const question = screen.getByText('What food types can I donate?');
       fireEvent.click(question);
 

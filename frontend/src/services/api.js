@@ -456,10 +456,18 @@ export const adminVerificationAPI = {
   getPendingUsers: (filters = {}) => {
     const params = new URLSearchParams();
 
-    if (filters.userType) params.append('userType', filters.userType);
-    if (filters.search) params.append('search', filters.search);
-    if (filters.sortBy) params.append('sortBy', filters.sortBy);
-    if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
+    if (filters.userType) {
+      params.append('userType', filters.userType);
+    }
+    if (filters.search) {
+      params.append('search', filters.search);
+    }
+    if (filters.sortBy) {
+      params.append('sortBy', filters.sortBy);
+    }
+    if (filters.sortOrder) {
+      params.append('sortOrder', filters.sortOrder);
+    }
 
     params.append('page', filters.page || 0);
     params.append('size', filters.size || 20);
