@@ -329,7 +329,7 @@
 }
 
 .evidence-thumbnail:hover {
-  border-color: #1B4965;
+  border-color: #1b4965;
   transform: scale(1.02);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
@@ -360,8 +360,12 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .evidence-modal-content {
@@ -406,6 +410,5 @@
 }
 
 .donation-timeline-event-type svg {
-  color: #1B4965;
+  color: #1b4965;
 }
-
