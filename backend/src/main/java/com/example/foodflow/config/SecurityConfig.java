@@ -49,6 +49,8 @@ public class SecurityConfig {
                 // Public endpoints
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
+                .requestMatchers("/api/files/**").permitAll()  // Allow access to uploaded files
+                .requestMatchers("/uploads/**").permitAll()  // Allow access to legacy upload URLs
                 .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers("/api/analytics/**").permitAll()
                 .requestMatchers("/ws/**").permitAll()  // Allow WebSocket connections
@@ -59,6 +61,7 @@ public class SecurityConfig {
                 
                 // ✅ FIXED: Surplus endpoints with proper role restrictions
                 .requestMatchers(HttpMethod.POST, "/api/surplus").hasAuthority("DONOR")
+                .requestMatchers(HttpMethod.POST, "/api/surplus/*/evidence").hasAuthority("DONOR")
                 .requestMatchers(HttpMethod.GET, "/api/surplus").hasAuthority("RECEIVER")
                 .requestMatchers(HttpMethod.GET, "/api/surplus/my-posts").hasAuthority("DONOR")
                 .requestMatchers(HttpMethod.DELETE, "/api/surplus/**").hasAuthority("DONOR")
