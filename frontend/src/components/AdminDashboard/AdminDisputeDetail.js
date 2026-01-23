@@ -20,10 +20,10 @@ const AdminDisputeDetail = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await adminDisputeAPI.getDisputeById(id);
       const data = response.data;
-      
+
       if (data) {
         // Map backend field names to frontend expected names
         const mappedData = {
@@ -37,10 +37,18 @@ const AdminDisputeDetail = () => {
           description: data.description,
           status: data.status,
           // Format date and time from createdAt
-          createdDate: data.createdAt ? new Date(data.createdAt).toLocaleDateString('en-CA') : 'N/A',
-          createdTime: data.createdAt ? new Date(data.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }) : 'N/A'
+          createdDate: data.createdAt
+            ? new Date(data.createdAt).toLocaleDateString('en-CA')
+            : 'N/A',
+          createdTime: data.createdAt
+            ? new Date(data.createdAt).toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false,
+              })
+            : 'N/A',
         };
-        
+
         setDispute(mappedData);
         setSelectedStatus(data.status);
       }
@@ -62,20 +70,29 @@ const AdminDisputeDetail = () => {
       return;
     }
 
-    if (window.confirm(`Are you sure you want to change the status to "${selectedStatus}"?`)) {
+    if (
+      window.confirm(
+        `Are you sure you want to change the status to "${selectedStatus}"?`
+      )
+    ) {
       try {
         await adminDisputeAPI.updateDisputeStatus(id, selectedStatus, '');
         alert('Status updated successfully');
         fetchDisputeDetails(); // Refresh the data
       } catch (err) {
         console.error('Error updating status:', err);
-        alert('Failed to update status: ' + (err.response?.data?.message || err.message));
+        alert(
+          'Failed to update status: ' +
+            (err.response?.data?.message || err.message)
+        );
       }
     }
   };
 
   const handleDeactivateUser = () => {
-    if (window.confirm('Are you sure you want to deactivate this user account?')) {
+    if (
+      window.confirm('Are you sure you want to deactivate this user account?')
+    ) {
       alert('User account deactivation requested');
     }
   };
@@ -93,7 +110,7 @@ const AdminDisputeDetail = () => {
       alert('Case must be marked as Resolved before closing');
       return;
     }
-    
+
     if (window.confirm('Are you sure you want to close this case?')) {
       handleStatusChange();
     }
@@ -107,7 +124,9 @@ const AdminDisputeDetail = () => {
     return (
       <div className="detail-error">
         <p>{error}</p>
-        <button onClick={handleClose} className="back-btn">Back to Disputes</button>
+        <button onClick={handleClose} className="back-btn">
+          Back to Disputes
+        </button>
       </div>
     );
   }
@@ -116,7 +135,9 @@ const AdminDisputeDetail = () => {
     return (
       <div className="detail-error">
         <p>Case not found</p>
-        <button onClick={handleClose} className="back-btn">Back to Disputes</button>
+        <button onClick={handleClose} className="back-btn">
+          Back to Disputes
+        </button>
       </div>
     );
   }
@@ -131,12 +152,16 @@ const AdminDisputeDetail = () => {
         <div className="modal-header">
           <div className="case-title-row">
             <h1>Case {dispute.caseId}</h1>
-            <span className={`status-pill status-${dispute.status.toLowerCase()}`}>
+            <span
+              className={`status-pill status-${dispute.status.toLowerCase()}`}
+            >
               {dispute.status}
             </span>
           </div>
           <div className="header-title-row">
-            <span className="created-text">Created on {dispute.createdDate} at {dispute.createdTime}</span>
+            <span className="created-text">
+              Created on {dispute.createdDate} at {dispute.createdTime}
+            </span>
           </div>
         </div>
 
@@ -195,16 +220,16 @@ const AdminDisputeDetail = () => {
                 <h3 className="section-title">RELATED DONATION</h3>
                 <div className="info-row">
                   <span className="info-label">Donation ID</span>
-                  <a href="#" className="donation-link">DON-2024-{dispute.donationId}</a>
+                  <a href="#" className="donation-link">
+                    DON-2024-{dispute.donationId}
+                  </a>
                 </div>
               </div>
 
               {/* Report Description */}
               <div className="info-section">
                 <h3 className="section-title">REPORT DESCRIPTION</h3>
-                <div className="description-text">
-                  {dispute.description}
-                </div>
+                <div className="description-text">{dispute.description}</div>
               </div>
             </div>
 
@@ -215,7 +240,9 @@ const AdminDisputeDetail = () => {
                 <h3 className="section-title">CASE STATUS</h3>
                 <div className="info-row">
                   <span className="info-label">Current Status</span>
-                  <span className={`status-pill status-${dispute.status.toLowerCase()}`}>
+                  <span
+                    className={`status-pill status-${dispute.status.toLowerCase()}`}
+                  >
                     {dispute.status}
                   </span>
                 </div>
@@ -223,7 +250,7 @@ const AdminDisputeDetail = () => {
                   <span className="info-label">Update Status</span>
                   <select
                     value={selectedStatus}
-                    onChange={(e) => setSelectedStatus(e.target.value)}
+                    onChange={e => setSelectedStatus(e.target.value)}
                     className="status-select"
                   >
                     <option value="OPEN">Open</option>
@@ -232,15 +259,17 @@ const AdminDisputeDetail = () => {
                     <option value="CLOSED">Closed</option>
                   </select>
                 </div>
-                <button 
-                  className="action-btn" 
+                <button
+                  className="action-btn"
                   onClick={handleStatusChange}
                   disabled={selectedStatus === dispute.status}
                   style={{ marginTop: '10px', width: '100%' }}
                 >
                   Save Status Change
                 </button>
-                <p className="status-hint">Status changes require confirmation</p>
+                <p className="status-hint">
+                  Status changes require confirmation
+                </p>
               </div>
 
               {/* Administrative Actions */}
@@ -255,7 +284,9 @@ const AdminDisputeDetail = () => {
                 <button className="action-btn" onClick={handleFlagUser}>
                   Flag User for Review
                 </button>
-                <p className="actions-hint">All actions are admin-only and not visible to platform users.</p>
+                <p className="actions-hint">
+                  All actions are admin-only and not visible to platform users.
+                </p>
               </div>
 
               {/* Case Resolution */}
@@ -264,7 +295,9 @@ const AdminDisputeDetail = () => {
                 <button className="close-case-btn" onClick={handleCloseCase}>
                   Close Case
                 </button>
-                <p className="resolution-hint">Case must be marked as Resolved before closing</p>
+                <p className="resolution-hint">
+                  Case must be marked as Resolved before closing
+                </p>
               </div>
             </div>
           </div>

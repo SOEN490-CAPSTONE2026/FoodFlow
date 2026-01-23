@@ -5,8 +5,19 @@ import DonationTimeline from '../components/shared/DonationTimeline';
 
 // Mock Lucide icons
 jest.mock('lucide-react', () => ({
-  Clock: ({ size, className }) => <div data-testid="clock-icon" className={className} style={{ width: size, height: size }} />,
-  ShieldAlert: ({ size }) => <div data-testid="shield-alert-icon" style={{ width: size, height: size }} />,
+  Clock: ({ size, className }) => (
+    <div
+      data-testid="clock-icon"
+      className={className}
+      style={{ width: size, height: size }}
+    />
+  ),
+  ShieldAlert: ({ size }) => (
+    <div
+      data-testid="shield-alert-icon"
+      style={{ width: size, height: size }}
+    />
+  ),
 }));
 
 describe('DonationTimeline Component', () => {
@@ -86,20 +97,26 @@ describe('DonationTimeline Component', () => {
     it('should display empty message when timeline is empty', () => {
       render(<DonationTimeline timeline={[]} loading={false} />);
 
-      expect(screen.getByText('No timeline events available yet.')).toBeInTheDocument();
+      expect(
+        screen.getByText('No timeline events available yet.')
+      ).toBeInTheDocument();
       expect(screen.getByTestId('clock-icon')).toBeInTheDocument();
     });
 
     it('should display empty message when timeline is null', () => {
       render(<DonationTimeline timeline={null} loading={false} />);
 
-      expect(screen.getByText('No timeline events available yet.')).toBeInTheDocument();
+      expect(
+        screen.getByText('No timeline events available yet.')
+      ).toBeInTheDocument();
     });
 
     it('should display empty message when timeline is undefined', () => {
       render(<DonationTimeline loading={false} />);
 
-      expect(screen.getByText('No timeline events available yet.')).toBeInTheDocument();
+      expect(
+        screen.getByText('No timeline events available yet.')
+      ).toBeInTheDocument();
     });
   });
 
@@ -132,21 +149,33 @@ describe('DonationTimeline Component', () => {
       render(<DonationTimeline timeline={mockTimeline} loading={false} />);
 
       expect(screen.getByText('Donation created')).toBeInTheDocument();
-      expect(screen.getByText('Claimed by Food Bank Central')).toBeInTheDocument();
+      expect(
+        screen.getByText('Claimed by Food Bank Central')
+      ).toBeInTheDocument();
       expect(screen.getByText('Food is ready for pickup')).toBeInTheDocument();
-      expect(screen.getByText('Pickup confirmed successfully')).toBeInTheDocument();
+      expect(
+        screen.getByText('Pickup confirmed successfully')
+      ).toBeInTheDocument();
     });
 
     it('should not display details section if details are missing', () => {
-      const eventWithoutDetails = [{
-        ...mockTimeline[0],
-        details: null,
-      }];
+      const eventWithoutDetails = [
+        {
+          ...mockTimeline[0],
+          details: null,
+        },
+      ];
 
-      render(<DonationTimeline timeline={eventWithoutDetails} loading={false} />);
+      render(
+        <DonationTimeline timeline={eventWithoutDetails} loading={false} />
+      );
 
-      const container = screen.getByText('DONATION_POSTED').closest('.donation-timeline-content');
-      expect(container.querySelector('.donation-timeline-details')).not.toBeInTheDocument();
+      const container = screen
+        .getByText('DONATION_POSTED')
+        .closest('.donation-timeline-content');
+      expect(
+        container.querySelector('.donation-timeline-details')
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -169,44 +198,74 @@ describe('DonationTimeline Component', () => {
     });
 
     it('should not display status change if oldStatus is missing', () => {
-      const eventWithoutOldStatus = [{
-        ...mockTimeline[0],
-        newStatus: 'AVAILABLE',
-        oldStatus: null,
-      }];
+      const eventWithoutOldStatus = [
+        {
+          ...mockTimeline[0],
+          newStatus: 'AVAILABLE',
+          oldStatus: null,
+        },
+      ];
 
-      render(<DonationTimeline timeline={eventWithoutOldStatus} loading={false} />);
+      render(
+        <DonationTimeline timeline={eventWithoutOldStatus} loading={false} />
+      );
 
-      const container = screen.getByText('DONATION_POSTED').closest('.donation-timeline-content');
-      expect(container.querySelector('.donation-timeline-status-change')).not.toBeInTheDocument();
+      const container = screen
+        .getByText('DONATION_POSTED')
+        .closest('.donation-timeline-content');
+      expect(
+        container.querySelector('.donation-timeline-status-change')
+      ).not.toBeInTheDocument();
     });
 
     it('should not display status change if newStatus is missing', () => {
-      const eventWithoutNewStatus = [{
-        ...mockTimeline[1],
-        oldStatus: 'AVAILABLE',
-        newStatus: null,
-      }];
+      const eventWithoutNewStatus = [
+        {
+          ...mockTimeline[1],
+          oldStatus: 'AVAILABLE',
+          newStatus: null,
+        },
+      ];
 
-      render(<DonationTimeline timeline={eventWithoutNewStatus} loading={false} />);
+      render(
+        <DonationTimeline timeline={eventWithoutNewStatus} loading={false} />
+      );
 
-      const container = screen.getByText('DONATION_CLAIMED').closest('.donation-timeline-content');
-      expect(container.querySelector('.donation-timeline-status-change')).not.toBeInTheDocument();
+      const container = screen
+        .getByText('DONATION_CLAIMED')
+        .closest('.donation-timeline-content');
+      expect(
+        container.querySelector('.donation-timeline-status-change')
+      ).not.toBeInTheDocument();
     });
   });
 
   describe('Admin-Only Events', () => {
     it('should apply admin-only class to non-user-visible events', () => {
       const timelineWithAdmin = [...mockTimeline, adminOnlyEvent];
-      render(<DonationTimeline timeline={timelineWithAdmin} loading={false} showAdminBadges={false} />);
+      render(
+        <DonationTimeline
+          timeline={timelineWithAdmin}
+          loading={false}
+          showAdminBadges={false}
+        />
+      );
 
-      const adminEventElement = screen.getByText('ADMIN_AUDIT').closest('.donation-timeline-item');
+      const adminEventElement = screen
+        .getByText('ADMIN_AUDIT')
+        .closest('.donation-timeline-item');
       expect(adminEventElement).toHaveClass('admin-only');
     });
 
     it('should display admin badge when showAdminBadges is true', () => {
       const timelineWithAdmin = [...mockTimeline, adminOnlyEvent];
-      render(<DonationTimeline timeline={timelineWithAdmin} loading={false} showAdminBadges={true} />);
+      render(
+        <DonationTimeline
+          timeline={timelineWithAdmin}
+          loading={false}
+          showAdminBadges={true}
+        />
+      );
 
       expect(screen.getByText('ADMIN ONLY')).toBeInTheDocument();
       expect(screen.getByTestId('shield-alert-icon')).toBeInTheDocument();
@@ -214,13 +273,25 @@ describe('DonationTimeline Component', () => {
 
     it('should not display admin badge when showAdminBadges is false', () => {
       const timelineWithAdmin = [...mockTimeline, adminOnlyEvent];
-      render(<DonationTimeline timeline={timelineWithAdmin} loading={false} showAdminBadges={false} />);
+      render(
+        <DonationTimeline
+          timeline={timelineWithAdmin}
+          loading={false}
+          showAdminBadges={false}
+        />
+      );
 
       expect(screen.queryByText('ADMIN ONLY')).not.toBeInTheDocument();
     });
 
     it('should not display admin badge for user-visible events', () => {
-      render(<DonationTimeline timeline={mockTimeline} loading={false} showAdminBadges={true} />);
+      render(
+        <DonationTimeline
+          timeline={mockTimeline}
+          loading={false}
+          showAdminBadges={true}
+        />
+      );
 
       expect(screen.queryByText('ADMIN ONLY')).not.toBeInTheDocument();
     });
@@ -228,12 +299,14 @@ describe('DonationTimeline Component', () => {
 
   describe('Date Formatting', () => {
     it('should format valid timestamps correctly', () => {
-      const timeline = [{
-        eventType: 'TEST_EVENT',
-        timestamp: '2026-01-11T10:30:00',
-        actor: 'test',
-        visibleToUsers: true,
-      }];
+      const timeline = [
+        {
+          eventType: 'TEST_EVENT',
+          timestamp: '2026-01-11T10:30:00',
+          actor: 'test',
+          visibleToUsers: true,
+        },
+      ];
 
       render(<DonationTimeline timeline={timeline} loading={false} />);
 
@@ -242,12 +315,14 @@ describe('DonationTimeline Component', () => {
     });
 
     it('should handle null timestamp gracefully', () => {
-      const timeline = [{
-        eventType: 'TEST_EVENT',
-        timestamp: null,
-        actor: 'test',
-        visibleToUsers: true,
-      }];
+      const timeline = [
+        {
+          eventType: 'TEST_EVENT',
+          timestamp: null,
+          actor: 'test',
+          visibleToUsers: true,
+        },
+      ];
 
       render(<DonationTimeline timeline={timeline} loading={false} />);
 
@@ -255,11 +330,13 @@ describe('DonationTimeline Component', () => {
     });
 
     it('should handle undefined timestamp gracefully', () => {
-      const timeline = [{
-        eventType: 'TEST_EVENT',
-        actor: 'test',
-        visibleToUsers: true,
-      }];
+      const timeline = [
+        {
+          eventType: 'TEST_EVENT',
+          actor: 'test',
+          visibleToUsers: true,
+        },
+      ];
 
       render(<DonationTimeline timeline={timeline} loading={false} />);
 
@@ -267,14 +344,18 @@ describe('DonationTimeline Component', () => {
     });
 
     it('should handle invalid timestamp gracefully', () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
 
-      const timeline = [{
-        eventType: 'TEST_EVENT',
-        timestamp: 'invalid-date',
-        actor: 'test',
-        visibleToUsers: true,
-      }];
+      const timeline = [
+        {
+          eventType: 'TEST_EVENT',
+          timestamp: 'invalid-date',
+          actor: 'test',
+          visibleToUsers: true,
+        },
+      ];
 
       render(<DonationTimeline timeline={timeline} loading={false} />);
 
@@ -287,20 +368,28 @@ describe('DonationTimeline Component', () => {
 
   describe('Component Structure', () => {
     it('should render with correct container class', () => {
-      const { container } = render(<DonationTimeline timeline={mockTimeline} loading={false} />);
+      const { container } = render(
+        <DonationTimeline timeline={mockTimeline} loading={false} />
+      );
 
-      expect(container.querySelector('.donation-timeline-container')).toBeInTheDocument();
+      expect(
+        container.querySelector('.donation-timeline-container')
+      ).toBeInTheDocument();
     });
 
     it('should render timeline markers for each event', () => {
-      const { container } = render(<DonationTimeline timeline={mockTimeline} loading={false} />);
+      const { container } = render(
+        <DonationTimeline timeline={mockTimeline} loading={false} />
+      );
 
       const markers = container.querySelectorAll('.donation-timeline-marker');
       expect(markers.length).toBe(mockTimeline.length);
     });
 
     it('should render timeline items in order', () => {
-      const { container } = render(<DonationTimeline timeline={mockTimeline} loading={false} />);
+      const { container } = render(
+        <DonationTimeline timeline={mockTimeline} loading={false} />
+      );
 
       const items = container.querySelectorAll('.donation-timeline-item');
       expect(items.length).toBe(mockTimeline.length);
@@ -340,18 +429,24 @@ describe('DonationTimeline Component', () => {
         { ...mockTimeline[3], visibleToUsers: false },
       ];
 
-      const { container } = render(<DonationTimeline timeline={mixedTimeline} loading={false} />);
+      const { container } = render(
+        <DonationTimeline timeline={mixedTimeline} loading={false} />
+      );
 
-      const adminOnlyItems = container.querySelectorAll('.donation-timeline-item.admin-only');
+      const adminOnlyItems = container.querySelectorAll(
+        '.donation-timeline-item.admin-only'
+      );
       expect(adminOnlyItems.length).toBe(2);
     });
 
     it('should handle events with missing optional fields', () => {
-      const minimalEvent = [{
-        eventType: 'MINIMAL_EVENT',
-        actor: 'test',
-        visibleToUsers: true,
-      }];
+      const minimalEvent = [
+        {
+          eventType: 'MINIMAL_EVENT',
+          actor: 'test',
+          visibleToUsers: true,
+        },
+      ];
 
       render(<DonationTimeline timeline={minimalEvent} loading={false} />);
 
@@ -364,24 +459,38 @@ describe('DonationTimeline Component', () => {
     it('should use default props when not provided', () => {
       render(<DonationTimeline />);
 
-      expect(screen.getByText('No timeline events available yet.')).toBeInTheDocument();
+      expect(
+        screen.getByText('No timeline events available yet.')
+      ).toBeInTheDocument();
     });
 
     it('should accept showAdminBadges prop', () => {
       const timelineWithAdmin = [...mockTimeline, adminOnlyEvent];
       const { rerender } = render(
-        <DonationTimeline timeline={timelineWithAdmin} loading={false} showAdminBadges={false} />
+        <DonationTimeline
+          timeline={timelineWithAdmin}
+          loading={false}
+          showAdminBadges={false}
+        />
       );
 
       expect(screen.queryByText('ADMIN ONLY')).not.toBeInTheDocument();
 
-      rerender(<DonationTimeline timeline={timelineWithAdmin} loading={false} showAdminBadges={true} />);
+      rerender(
+        <DonationTimeline
+          timeline={timelineWithAdmin}
+          loading={false}
+          showAdminBadges={true}
+        />
+      );
 
       expect(screen.getByText('ADMIN ONLY')).toBeInTheDocument();
     });
 
     it('should accept loading prop', () => {
-      const { rerender } = render(<DonationTimeline timeline={mockTimeline} loading={true} />);
+      const { rerender } = render(
+        <DonationTimeline timeline={mockTimeline} loading={true} />
+      );
 
       expect(screen.getByText('Loading timeline...')).toBeInTheDocument();
 
@@ -394,12 +503,18 @@ describe('DonationTimeline Component', () => {
 
   describe('Accessibility', () => {
     it('should render semantic HTML structure', () => {
-      const { container } = render(<DonationTimeline timeline={mockTimeline} loading={false} />);
+      const { container } = render(
+        <DonationTimeline timeline={mockTimeline} loading={false} />
+      );
 
-      const timelineContainer = container.querySelector('.donation-timeline-container');
+      const timelineContainer = container.querySelector(
+        '.donation-timeline-container'
+      );
       expect(timelineContainer).toBeInTheDocument();
 
-      const items = timelineContainer.querySelectorAll('.donation-timeline-item');
+      const items = timelineContainer.querySelectorAll(
+        '.donation-timeline-item'
+      );
       expect(items.length).toBeGreaterThan(0);
     });
 
@@ -420,4 +535,3 @@ describe('DonationTimeline Component', () => {
     });
   });
 });
-

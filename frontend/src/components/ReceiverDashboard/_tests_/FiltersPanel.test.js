@@ -13,7 +13,7 @@ jest.mock('react-datepicker', () => {
         placeholder={placeholderText}
         className={className}
         value={selected ? selected.toISOString().split('T')[0] : ''}
-        onChange={(e) => {
+        onChange={e => {
           if (e.target.value) {
             onChange(new Date(e.target.value));
           } else {
@@ -33,7 +33,7 @@ const mockAutocomplete = {
 
 jest.mock('@react-google-maps/api', () => {
   const MockReact = require('react');
-  
+
   return {
     Autocomplete: ({ children, onLoad, onPlaceChanged }) => {
       MockReact.useEffect(() => {
@@ -90,7 +90,9 @@ describe('FiltersPanel', () => {
     });
 
     test('returns null when not visible', () => {
-      const { container } = render(<FiltersPanel {...defaultProps} isVisible={false} />);
+      const { container } = render(
+        <FiltersPanel {...defaultProps} isVisible={false} />
+      );
       expect(container.firstChild).toBeNull();
     });
 
@@ -149,11 +151,13 @@ describe('FiltersPanel', () => {
       render(<FiltersPanel {...defaultProps} />);
       const button = screen.getByText('Select food types...').closest('button');
       fireEvent.click(button);
-      
+
       const checkbox = screen.getByLabelText('Fruits & Vegetables');
       fireEvent.click(checkbox);
-      
-      expect(defaultProps.onFiltersChange).toHaveBeenCalledWith('foodType', ['Fruits & Vegetables']);
+
+      expect(defaultProps.onFiltersChange).toHaveBeenCalledWith('foodType', [
+        'Fruits & Vegetables',
+      ]);
     });
 
     test('deselects an option when clicked again', () => {
@@ -164,14 +168,14 @@ describe('FiltersPanel', () => {
           foodType: ['Fruits & Vegetables'],
         },
       };
-      
+
       render(<FiltersPanel {...propsWithSelection} />);
       const button = screen.getByText('Fruits & Vegetables').closest('button');
       fireEvent.click(button);
-      
+
       const checkbox = screen.getByLabelText('Fruits & Vegetables');
       fireEvent.click(checkbox);
-      
+
       expect(defaultProps.onFiltersChange).toHaveBeenCalledWith('foodType', []);
     });
 
@@ -183,7 +187,7 @@ describe('FiltersPanel', () => {
           foodType: ['Bakery & Pastry'],
         },
       };
-      
+
       render(<FiltersPanel {...propsWithSelection} />);
       expect(screen.getByText('Bakery & Pastry')).toBeInTheDocument();
     });
@@ -196,7 +200,7 @@ describe('FiltersPanel', () => {
           foodType: ['Bakery & Pastry', 'Frozen Food'],
         },
       };
-      
+
       render(<FiltersPanel {...propsWithSelection} />);
       expect(screen.getByText('2 selected')).toBeInTheDocument();
     });
@@ -209,7 +213,7 @@ describe('FiltersPanel', () => {
           foodType: ['Unknown Category'],
         },
       };
-      
+
       render(<FiltersPanel {...propsWithSelection} />);
       expect(screen.getByText('Unknown Category')).toBeInTheDocument();
     });
@@ -222,11 +226,11 @@ describe('FiltersPanel', () => {
           foodType: ['Fruits & Vegetables'],
         },
       };
-      
+
       render(<FiltersPanel {...propsWithSelection} />);
       const button = screen.getByText('Fruits & Vegetables').closest('button');
       fireEvent.click(button);
-      
+
       const checkbox = screen.getByLabelText('Fruits & Vegetables');
       expect(checkbox).toBeChecked();
     });
@@ -242,9 +246,9 @@ describe('FiltersPanel', () => {
     test('handles date selection', () => {
       render(<FiltersPanel {...defaultProps} />);
       const datePicker = screen.getByTestId('date-picker');
-      
+
       fireEvent.change(datePicker, { target: { value: '2025-12-31' } });
-      
+
       expect(defaultProps.onFiltersChange).toHaveBeenCalledWith(
         'expiryBefore',
         '2025-12-31'
@@ -259,13 +263,16 @@ describe('FiltersPanel', () => {
           expiryBefore: '2025-12-31',
         },
       };
-      
+
       render(<FiltersPanel {...propsWithDate} />);
       const datePicker = screen.getByTestId('date-picker');
-      
+
       fireEvent.change(datePicker, { target: { value: '' } });
-      
-      expect(defaultProps.onFiltersChange).toHaveBeenCalledWith('expiryBefore', '');
+
+      expect(defaultProps.onFiltersChange).toHaveBeenCalledWith(
+        'expiryBefore',
+        ''
+      );
     });
 
     test('displays selected date value', () => {
@@ -276,7 +283,7 @@ describe('FiltersPanel', () => {
           expiryBefore: '2025-12-31',
         },
       };
-      
+
       render(<FiltersPanel {...propsWithDate} />);
       const datePicker = screen.getByTestId('date-picker');
       expect(datePicker.value).toBe('2025-12-31');
@@ -292,9 +299,9 @@ describe('FiltersPanel', () => {
     test('updates distance when slider is changed', () => {
       render(<FiltersPanel {...defaultProps} />);
       const slider = screen.getByRole('slider');
-      
+
       fireEvent.change(slider, { target: { value: '25' } });
-      
+
       expect(defaultProps.onFiltersChange).toHaveBeenCalledWith('distance', 25);
     });
 
@@ -306,7 +313,7 @@ describe('FiltersPanel', () => {
           distance: 30,
         },
       };
-      
+
       render(<FiltersPanel {...propsWithDistance} />);
       expect(screen.getByText('30 km')).toBeInTheDocument();
     });
@@ -314,7 +321,7 @@ describe('FiltersPanel', () => {
     test('slider has correct range attributes', () => {
       render(<FiltersPanel {...defaultProps} />);
       const slider = screen.getByRole('slider');
-      
+
       expect(slider).toHaveAttribute('min', '1');
       expect(slider).toHaveAttribute('max', '50');
     });
@@ -330,29 +337,32 @@ describe('FiltersPanel', () => {
     test('handles manual location input change', () => {
       render(<FiltersPanel {...defaultProps} />);
       const locationInput = screen.getByPlaceholderText('Enter location...');
-      
+
       fireEvent.change(locationInput, { target: { value: 'New York' } });
-      
-      expect(defaultProps.onFiltersChange).toHaveBeenCalledWith('location', 'New York');
+
+      expect(defaultProps.onFiltersChange).toHaveBeenCalledWith(
+        'location',
+        'New York'
+      );
     });
 
     test('handles place selection with full geometry', () => {
       render(<FiltersPanel {...defaultProps} />);
-      
+
       mockGetPlace.mockReturnValue({
         formatted_address: '123 Main St, New York, NY',
         name: 'Test Place',
         geometry: {
           location: {
             lat: () => 40.7128,
-            lng: () => -74.0060,
+            lng: () => -74.006,
           },
         },
       });
-      
+
       const locationInput = screen.getByPlaceholderText('Enter location...');
       fireEvent.focus(locationInput);
-      
+
       expect(defaultProps.onFiltersChange).toHaveBeenCalledWith(
         'location',
         '123 Main St, New York, NY'
@@ -361,7 +371,7 @@ describe('FiltersPanel', () => {
         'locationCoords',
         {
           lat: 40.7128,
-          lng: -74.0060,
+          lng: -74.006,
           address: '123 Main St, New York, NY',
         }
       );
@@ -369,14 +379,14 @@ describe('FiltersPanel', () => {
 
     test('handles place selection with only formatted_address', () => {
       render(<FiltersPanel {...defaultProps} />);
-      
+
       mockGetPlace.mockReturnValue({
         formatted_address: '456 Broadway, NY',
       });
-      
+
       const locationInput = screen.getByPlaceholderText('Enter location...');
       fireEvent.focus(locationInput);
-      
+
       expect(defaultProps.onFiltersChange).toHaveBeenCalledWith(
         'location',
         '456 Broadway, NY'
@@ -385,14 +395,14 @@ describe('FiltersPanel', () => {
 
     test('handles place selection with only name', () => {
       render(<FiltersPanel {...defaultProps} />);
-      
+
       mockGetPlace.mockReturnValue({
         name: 'Central Park',
       });
-      
+
       const locationInput = screen.getByPlaceholderText('Enter location...');
       fireEvent.focus(locationInput);
-      
+
       expect(defaultProps.onFiltersChange).toHaveBeenCalledWith(
         'location',
         'Central Park'
@@ -401,12 +411,12 @@ describe('FiltersPanel', () => {
 
     test('handles place selection when autocomplete returns null', () => {
       render(<FiltersPanel {...defaultProps} />);
-      
+
       mockGetPlace.mockReturnValue(null);
-      
+
       const locationInput = screen.getByPlaceholderText('Enter location...');
       fireEvent.focus(locationInput);
-      
+
       // Should not call onFiltersChange when place is null
       expect(defaultProps.onFiltersChange).not.toHaveBeenCalled();
     });
@@ -419,7 +429,7 @@ describe('FiltersPanel', () => {
           location: 'Boston, MA',
         },
       };
-      
+
       render(<FiltersPanel {...propsWithLocation} />);
       const locationInput = screen.getByPlaceholderText('Enter location...');
       expect(locationInput.value).toBe('Boston, MA');
@@ -434,7 +444,7 @@ describe('FiltersPanel', () => {
           foodType: ['Fruits & Vegetables', 'Bakery & Pastry'],
         },
       };
-      
+
       render(<FiltersPanel {...propsWithApplied} />);
       expect(screen.getByText('Fruits & Vegetables')).toBeInTheDocument();
       expect(screen.getByText('Bakery & Pastry')).toBeInTheDocument();
@@ -447,7 +457,7 @@ describe('FiltersPanel', () => {
           expiryBefore: '2025-12-31',
         },
       };
-      
+
       render(<FiltersPanel {...propsWithApplied} />);
       expect(screen.getByText('Before: 2025-12-31')).toBeInTheDocument();
     });
@@ -459,7 +469,7 @@ describe('FiltersPanel', () => {
           distance: 25,
         },
       };
-      
+
       render(<FiltersPanel {...propsWithApplied} />);
       expect(screen.getByText('Within: 25km')).toBeInTheDocument();
     });
@@ -471,7 +481,7 @@ describe('FiltersPanel', () => {
           distance: 10,
         },
       };
-      
+
       render(<FiltersPanel {...propsWithApplied} />);
       expect(screen.queryByText('Within: 10km')).not.toBeInTheDocument();
     });
@@ -483,7 +493,7 @@ describe('FiltersPanel', () => {
           location: 'San Francisco, CA',
         },
       };
-      
+
       render(<FiltersPanel {...propsWithApplied} />);
       expect(screen.getByText('Near: San Francisco, CA')).toBeInTheDocument();
     });
@@ -497,20 +507,19 @@ describe('FiltersPanel', () => {
           foodType: ['Fruits & Vegetables', 'Bakery & Pastry'],
         },
       };
-      
+
       render(<FiltersPanel {...propsWithApplied} />);
       const removeButtons = screen.getAllByRole('button', { name: '' });
-      const fruitButton = removeButtons.find(btn => 
+      const fruitButton = removeButtons.find(btn =>
         btn.closest('.filter-tag')?.textContent.includes('Fruits & Vegetables')
       );
-      
+
       fireEvent.click(fruitButton);
-      
-      expect(defaultProps.onFiltersChange).toHaveBeenCalledWith(
-        'foodType',
-        ['Bakery & Pastry']
-      );
-      
+
+      expect(defaultProps.onFiltersChange).toHaveBeenCalledWith('foodType', [
+        'Bakery & Pastry',
+      ]);
+
       jest.advanceTimersByTime(100);
       await waitFor(() => {
         expect(defaultProps.onApplyFilters).toHaveBeenCalled();
@@ -524,15 +533,18 @@ describe('FiltersPanel', () => {
           expiryBefore: '2025-12-31',
         },
       };
-      
+
       render(<FiltersPanel {...propsWithApplied} />);
       const tag = screen.getByText('Before: 2025-12-31').closest('.filter-tag');
       const removeButton = tag.querySelector('.tag-remove');
-      
+
       fireEvent.click(removeButton);
-      
-      expect(defaultProps.onFiltersChange).toHaveBeenCalledWith('expiryBefore', '');
-      
+
+      expect(defaultProps.onFiltersChange).toHaveBeenCalledWith(
+        'expiryBefore',
+        ''
+      );
+
       jest.advanceTimersByTime(100);
       await waitFor(() => {
         expect(defaultProps.onApplyFilters).toHaveBeenCalled();
@@ -546,15 +558,15 @@ describe('FiltersPanel', () => {
           distance: 30,
         },
       };
-      
+
       render(<FiltersPanel {...propsWithApplied} />);
       const tag = screen.getByText('Within: 30km').closest('.filter-tag');
       const removeButton = tag.querySelector('.tag-remove');
-      
+
       fireEvent.click(removeButton);
-      
+
       expect(defaultProps.onFiltersChange).toHaveBeenCalledWith('distance', 10);
-      
+
       jest.advanceTimersByTime(100);
       await waitFor(() => {
         expect(defaultProps.onApplyFilters).toHaveBeenCalled();
@@ -568,16 +580,19 @@ describe('FiltersPanel', () => {
           location: 'Chicago, IL',
         },
       };
-      
+
       render(<FiltersPanel {...propsWithApplied} />);
       const tag = screen.getByText('Near: Chicago, IL').closest('.filter-tag');
       const removeButton = tag.querySelector('.tag-remove');
-      
+
       fireEvent.click(removeButton);
-      
+
       expect(defaultProps.onFiltersChange).toHaveBeenCalledWith('location', '');
-      expect(defaultProps.onFiltersChange).toHaveBeenCalledWith('locationCoords', null);
-      
+      expect(defaultProps.onFiltersChange).toHaveBeenCalledWith(
+        'locationCoords',
+        null
+      );
+
       jest.advanceTimersByTime(100);
       await waitFor(() => {
         expect(defaultProps.onApplyFilters).toHaveBeenCalled();
@@ -589,14 +604,14 @@ describe('FiltersPanel', () => {
         ...defaultProps,
         appliedFilters: {},
       };
-      
+
       render(<FiltersPanel {...propsWithApplied} />);
-      
+
       // Manually trigger handleRemoveFilter through the function
       // Since there are no tags rendered, we need to test the logic differently
       // This tests the branch where appliedFilters?.foodType is falsy
       const { container } = render(<FiltersPanel {...propsWithApplied} />);
-      
+
       // The function should handle undefined gracefully
       expect(container).toBeInTheDocument();
     });
@@ -606,27 +621,27 @@ describe('FiltersPanel', () => {
     test('calls onApplyFilters when Apply Filters button is clicked', () => {
       render(<FiltersPanel {...defaultProps} />);
       const applyButton = screen.getByText('Apply Filters');
-      
+
       fireEvent.click(applyButton);
-      
+
       expect(defaultProps.onApplyFilters).toHaveBeenCalled();
     });
 
     test('calls onClearFilters when Clear All button is clicked', () => {
       render(<FiltersPanel {...defaultProps} />);
       const clearButton = screen.getByText('Clear All');
-      
+
       fireEvent.click(clearButton);
-      
+
       expect(defaultProps.onClearFilters).toHaveBeenCalled();
     });
 
     test('calls onClose when close button is clicked', () => {
       const { container } = render(<FiltersPanel {...defaultProps} />);
       const closeButton = container.querySelector('.close-filters-btn');
-      
+
       fireEvent.click(closeButton);
-      
+
       expect(defaultProps.onClose).toHaveBeenCalled();
     });
   });
@@ -635,7 +650,7 @@ describe('FiltersPanel', () => {
     test('handles undefined appliedFilters prop', () => {
       const { appliedFilters, ...propsWithoutApplied } = defaultProps;
       render(<FiltersPanel {...propsWithoutApplied} />);
-      
+
       expect(screen.getByText('Filter Donations')).toBeInTheDocument();
     });
 
@@ -646,7 +661,7 @@ describe('FiltersPanel', () => {
           foodType: [],
         },
       };
-      
+
       render(<FiltersPanel {...propsWithEmpty} />);
       expect(screen.getByText('Select food types...')).toBeInTheDocument();
     });
@@ -662,7 +677,7 @@ describe('FiltersPanel', () => {
           locationCoords: null,
         },
       };
-      
+
       render(<FiltersPanel {...propsWithNulls} />);
       expect(screen.getByText('10 km')).toBeInTheDocument(); // Falls back to default
     });
@@ -671,7 +686,7 @@ describe('FiltersPanel', () => {
       render(<FiltersPanel {...defaultProps} />);
       const button = screen.getByText('Select food types...').closest('button');
       fireEvent.click(button);
-      
+
       // Should only show non-empty categories
       expect(screen.getByText('Fruits & Vegetables')).toBeInTheDocument();
       expect(screen.getByText('Bakery & Pastry')).toBeInTheDocument();
@@ -681,29 +696,31 @@ describe('FiltersPanel', () => {
   describe('Integration Tests', () => {
     test('complete filter workflow', async () => {
       render(<FiltersPanel {...defaultProps} />);
-      
+
       // Select food type
-      const foodTypeButton = screen.getByText('Select food types...').closest('button');
+      const foodTypeButton = screen
+        .getByText('Select food types...')
+        .closest('button');
       fireEvent.click(foodTypeButton);
       const fruitCheckbox = screen.getByLabelText('Fruits & Vegetables');
       fireEvent.click(fruitCheckbox);
-      
+
       // Set date
       const datePicker = screen.getByTestId('date-picker');
       fireEvent.change(datePicker, { target: { value: '2025-12-31' } });
-      
+
       // Adjust distance
       const slider = screen.getByRole('slider');
       fireEvent.change(slider, { target: { value: '20' } });
-      
+
       // Enter location
       const locationInput = screen.getByPlaceholderText('Enter location...');
       fireEvent.change(locationInput, { target: { value: 'Miami' } });
-      
+
       // Apply filters
       const applyButton = screen.getByText('Apply Filters');
       fireEvent.click(applyButton);
-      
+
       expect(defaultProps.onFiltersChange).toHaveBeenCalledTimes(4);
       expect(defaultProps.onApplyFilters).toHaveBeenCalled();
     });
@@ -711,11 +728,11 @@ describe('FiltersPanel', () => {
     test('keyboard navigation in multi-select', () => {
       render(<FiltersPanel {...defaultProps} />);
       const button = screen.getByText('Select food types...').closest('button');
-      
+
       // Open dropdown with keyboard
       fireEvent.keyDown(button, { key: 'Enter' });
       fireEvent.click(button);
-      
+
       expect(screen.getByText('Fruits & Vegetables')).toBeInTheDocument();
     });
   });

@@ -10,23 +10,28 @@ import './DonationTimeline.css';
  * @param {boolean} loading - Loading state
  * @param {boolean} showAdminBadges - Whether to show admin-only badges (default: false)
  */
-export default function DonationTimeline({ timeline = [], loading = false, showAdminBadges = false }) {
-
-  const formatDate = (timestamp) => {
-    if (!timestamp) return "—";
+export default function DonationTimeline({
+  timeline = [],
+  loading = false,
+  showAdminBadges = false,
+}) {
+  const formatDate = timestamp => {
+    if (!timestamp) {
+      return '—';
+    }
     try {
       const date = new Date(timestamp);
-      return date.toLocaleString("en-US", {
-        month: "numeric",
-        day: "numeric",
-        year: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
+      return date.toLocaleString('en-US', {
+        month: 'numeric',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
         hour12: true,
       });
     } catch (error) {
       console.error('Error formatting date:', error);
-      return "—";
+      return '—';
     }
   };
 
@@ -57,10 +62,14 @@ export default function DonationTimeline({ timeline = [], loading = false, showA
         >
           <div className="donation-timeline-marker" />
           <div className="donation-timeline-content">
-            <div className="donation-timeline-event-type">{event.eventType}</div>
+            <div className="donation-timeline-event-type">
+              {event.eventType}
+            </div>
             <div className="donation-timeline-meta">
               <span>{formatDate(event.timestamp)}</span>
-              <span className="donation-timeline-actor">Actor: {event.actor}</span>
+              <span className="donation-timeline-actor">
+                Actor: {event.actor}
+              </span>
               {showAdminBadges && event.visibleToUsers === false && (
                 <span className="admin-only-badge">
                   <ShieldAlert size={14} />
@@ -84,4 +93,3 @@ export default function DonationTimeline({ timeline = [], loading = false, showA
     </div>
   );
 }
-

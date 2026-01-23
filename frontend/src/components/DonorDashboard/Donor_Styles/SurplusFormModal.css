@@ -164,7 +164,7 @@
   padding: 8px 0;
 }
 
-.checkbox-option input[type="checkbox"] {
+.checkbox-option input[type='checkbox'] {
   width: 18px;
   height: 18px;
   accent-color: #4299e1;
@@ -427,7 +427,7 @@
 }
 
 .location-input-wrapper::before {
-  content: "📍";
+  content: '📍';
   position: absolute;
   left: 12px;
   top: 50%;
@@ -866,7 +866,7 @@
 }
 
 .step-item:has(.step-circle.completed)::after {
-  background: #1B4965;
+  background: #1b4965;
 }
 
 .step-circle {
@@ -885,13 +885,13 @@
 
 .step-circle.active {
   background-color: white;
-  color: #1B4965;
-  border: 2.5px solid #1B4965;
+  color: #1b4965;
+  border: 2.5px solid #1b4965;
   box-shadow: 0 2px 8px rgba(27, 73, 101, 0.15);
 }
 
 .step-circle.completed {
-  background-color: #1B4965;
+  background-color: #1b4965;
   color: white;
 }
 
@@ -905,12 +905,12 @@
 }
 
 .step-item:has(.step-circle.active) .step-label {
-  color: #1B4965;
+  color: #1b4965;
   font-weight: 600;
 }
 
 .step-item:has(.step-circle.completed) .step-label {
-  color: #1B4965;
+  color: #1b4965;
 }
 
 .step-line {
