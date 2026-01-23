@@ -383,8 +383,8 @@ const AdminDonations = () => {
   };
 
   return (
-    <div className="admin-users-container">
-      <div className="stats-grid">
+    <div className="admin-donations-container">
+      <div className="donations-stats-grid">
         <div className="stat-card">
           <div className="stat-icon" style={{ background: '#e3f2fd' }}>
             <Gift style={{ color: '#2196f3' }} size={24} />
@@ -423,8 +423,8 @@ const AdminDonations = () => {
         </div>
       </div>
 
-      <div className="users-section">
-        <div className="users-section-header">
+      <div className="donations-section">
+        <div className="donations-section-header">
           <h2>All Donations</h2>
           <div className="pagination-info">
             {totalElements > 0 && (
@@ -510,8 +510,8 @@ const AdminDonations = () => {
           Loading donations...
         </div>
       ) : (
-        <div className="users-table-container">
-          <Table className="users-table">
+        <div className="donations-table-container">
+          <Table className="donations-table">
             <TableHeader>
               <TableRow>
                 <TableHead></TableHead>
@@ -530,9 +530,7 @@ const AdminDonations = () => {
             <TableBody>
               {filteredDonations.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan="10" className="no-users">
-                    No donations found
-                  </TableCell>
+                  <TableCell colSpan="11" className="no-donations">No donations found</TableCell>
                 </TableRow>
               ) : (
                 filteredDonations.map(donation => (
@@ -568,26 +566,17 @@ const AdminDonations = () => {
                       <TableCell>
                         {!donation.claimId ? (
                           <span className="table-muted">—</span>
-                        ) : (
-                          (() => {
-                            const avgRating = getAverageRating(donation);
-                            return avgRating ? (
-                              <div className="rating-cell">
-                                <Star
-                                  size={16}
-                                  fill="#fbbf24"
-                                  stroke="#fbbf24"
-                                />
-                                <span>{avgRating}</span>
-                                {hasLowRating(donation) && (
-                                  <Flag size={14} color="#ef4444" />
-                                )}
-                              </div>
-                            ) : (
-                              <span className="table-muted">—</span>
-                            );
-                          })()
-                        )}
+                        ) : (() => {
+                          const avgRating = getAverageRating(donation);
+                          return avgRating ? (
+                            <div className="rating-cell">
+                              <Star size={16} fill="#fbbf24" stroke="#fbbf24" />
+                              <span>{avgRating}</span>
+                            </div>
+                          ) : (
+                            <span className="table-muted">—</span>
+                          );
+                        })()}
                       </TableCell>
                       <TableCell>
                         {donation.flagged ? (
@@ -597,6 +586,10 @@ const AdminDonations = () => {
                           >
                             <Flag color="#ef4444" size={16} />
                             <span className="flagged-text">Yes</span>
+                          </div>
+                        ) : hasLowRating(donation) ? (
+                          <div className="flagged-cell" title="Low rating (≤2 stars)">
+                            <Flag color="#ef4444" size={16} />
                           </div>
                         ) : (
                           <span className="table-muted">—</span>
@@ -616,7 +609,7 @@ const AdminDonations = () => {
                     </TableRow>
                     {expandedRows.has(donation.id) && (
                       <TableRow className="details-row">
-                        <TableCell colSpan="10">
+                        <TableCell colSpan="11">
                           <div className="user-details-expanded">
                             <div className="details-grid">
                               <div className="details-section">

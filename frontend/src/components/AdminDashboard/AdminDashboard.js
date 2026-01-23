@@ -22,6 +22,7 @@ export default function AdminDashboard() {
         <Route path="welcome" element={<AdminWelcome />} />
         <Route path="dashboard" element={<AdminHome />} />
         <Route path="users" element={<AdminUsers />} />
+        <Route path="verification-queue" element={<AdminVerificationQueue />} />
         <Route path="analytics" element={<AdminAnalytics />} />
         <Route path="donations" element={<AdminDonations />} />
         <Route path="calendar" element={<AdminCalendar />} />

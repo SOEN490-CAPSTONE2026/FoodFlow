@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search } from 'lucide-react';
+import { Search, AlertTriangle, FileText, Clock, CheckCircle, XCircle, Eye } from 'lucide-react';
 import { adminDisputeAPI } from '../../services/api';
 import './Admin_Styles/AdminDisputes.css';
 
@@ -18,6 +18,7 @@ const AdminDisputes = () => {
     underReview: 0,
     resolved: 0,
     closed: 0,
+    avgResolutionDays: 0
   });
 
   useEffect(() => {
@@ -73,6 +74,7 @@ const AdminDisputes = () => {
       underReview: disputeList.filter(d => d.status === 'UNDER_REVIEW').length,
       resolved: disputeList.filter(d => d.status === 'RESOLVED').length,
       closed: disputeList.filter(d => d.status === 'CLOSED').length,
+      avgResolutionDays: 2.4 // This should be calculated from resolved disputes
     };
     setStats(stats);
   };
@@ -164,151 +166,169 @@ const AdminDisputes = () => {
 
   return (
     <div className="admin-disputes-container">
-      {/* Header with Stats inline */}
-      <div className="disputes-header-section">
-        <div className="disputes-header-stats">
-          <span className="stat-item">
-            Total cases: <strong>{stats.total}</strong>
-          </span>
-          <span className="stat-item">
-            Open: <strong>{stats.open}</strong>
-          </span>
-          <span className="stat-item">
-            Resolved today: <strong>0</strong>
-          </span>
-          <span className="stat-item">
-            Avg resolution: <strong>2.4 days</strong>
-          </span>
-        </div>
-      </div>
-
-      {/* Tabs and Search */}
-      <div className="disputes-controls">
-        <div className="disputes-tabs">
-          <button
-            className={statusFilter === 'ALL' ? 'tab-btn active' : 'tab-btn'}
-            onClick={() => setStatusFilter('ALL')}
-          >
-            All Cases
-          </button>
-          <button
-            className={statusFilter === 'OPEN' ? 'tab-btn active' : 'tab-btn'}
-            onClick={() => setStatusFilter('OPEN')}
-          >
-            Open
-          </button>
-          <button
-            className={
-              statusFilter === 'UNDER_REVIEW' ? 'tab-btn active' : 'tab-btn'
-            }
-            onClick={() => setStatusFilter('UNDER_REVIEW')}
-          >
-            Under Review
-          </button>
-          <button
-            className={
-              statusFilter === 'RESOLVED' ? 'tab-btn active' : 'tab-btn'
-            }
-            onClick={() => setStatusFilter('RESOLVED')}
-          >
-            Resolved
-          </button>
-          <button
-            className={statusFilter === 'CLOSED' ? 'tab-btn active' : 'tab-btn'}
-            onClick={() => setStatusFilter('CLOSED')}
-          >
-            Closed
-          </button>
-        </div>
-
-        <div className="search-wrapper">
-          <Search size={18} className="search-icon" />
-          <input
-            type="text"
-            placeholder="Search cases..."
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            className="search-input"
-          />
-        </div>
-      </div>
-
-      {/* Disputes Table */}
-      <div className="disputes-table-container">
-        {filteredDisputes.length === 0 ? (
-          <div className="empty-state">
-            <h3>No disputes found</h3>
-            <p>There are no disputes matching your current filters.</p>
+      {/* Stats Grid */}
+      <div className="disputes-stats-grid">
+        <div className="stat-card">
+          <div className="stat-icon" style={{ background: '#fef2f2' }}>
+            <FileText size={24} color="#ef4444" />
           </div>
-        ) : (
-          <table className="disputes-table">
-            <thead>
-              <tr>
-                <th>CASE ID</th>
-                <th>REPORTER</th>
-                <th>REPORTED USER</th>
-                <th>DONATION ID</th>
-                <th>CREATED</th>
-                <th>STATUS</th>
-                <th>ACTION</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredDisputes.map(dispute => (
-                <tr key={dispute.id}>
-                  <td className="case-id">{dispute.caseId}</td>
-                  <td>
-                    <div className="user-cell">
-                      <div className="user-name">{dispute.reporterName}</div>
-                      <div className="user-type">
-                        {dispute.reporterType === 'DONOR'
-                          ? 'Donor'
-                          : 'Receiver'}
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="reported-user-name">
-                      {dispute.reportedUserName}
-                    </div>
-                  </td>
-                  <td>
-                    {dispute.donationId ? (
-                      <span className="donation-id">
-                        DON-2024-{String(dispute.donationId).padStart(4, '0')}
-                      </span>
-                    ) : (
-                      <span className="no-donation">—</span>
-                    )}
-                  </td>
-                  <td>
-                    <div className="date-cell">
-                      <div className="date-main">
-                        {formatDate(dispute.createdAt)}
-                      </div>
-                      <div className="date-time">
-                        {formatTime(dispute.createdAt)}
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <span className={getStatusBadgeClass(dispute.status)}>
-                      {formatStatus(dispute.status)}
-                    </span>
-                  </td>
-                  <td>
-                    <button
-                      className="view-btn"
-                      onClick={() => navigate(`/admin/disputes/${dispute.id}`)}
-                    >
-                      View →
-                    </button>
-                  </td>
+          <div className="stat-content">
+            <div className="stat-label">Total Cases</div>
+            <div className="stat-value">{stats.total}</div>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon" style={{ background: '#fef3c7' }}>
+            <AlertTriangle size={24} color="#f59e0b" />
+          </div>
+          <div className="stat-content">
+            <div className="stat-label">Open</div>
+            <div className="stat-value">{stats.open}</div>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon" style={{ background: '#d1fae5' }}>
+            <CheckCircle size={24} color="#10b981" />
+          </div>
+          <div className="stat-content">
+            <div className="stat-label">Resolved Today</div>
+            <div className="stat-value">0</div>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon" style={{ background: '#e0e7ff' }}>
+            <Clock size={24} color="#6366f1" />
+          </div>
+          <div className="stat-content">
+            <div className="stat-label">Avg Resolution</div>
+            <div className="stat-value">{stats.avgResolutionDays} days</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Cases Section */}
+      <div className="disputes-section">
+        <div className="disputes-section-header">
+          <h2>All Cases</h2>
+        </div>
+
+        {/* Tabs and Search */}
+        <div className="disputes-controls">
+          <div className="disputes-tabs">
+            <button
+              className={statusFilter === 'ALL' ? 'tab-btn active' : 'tab-btn'}
+              onClick={() => setStatusFilter('ALL')}
+            >
+              All Cases
+            </button>
+            <button
+              className={statusFilter === 'OPEN' ? 'tab-btn active' : 'tab-btn'}
+              onClick={() => setStatusFilter('OPEN')}
+            >
+              Open
+            </button>
+            <button
+              className={statusFilter === 'UNDER_REVIEW' ? 'tab-btn active' : 'tab-btn'}
+              onClick={() => setStatusFilter('UNDER_REVIEW')}
+            >
+              Under Review
+            </button>
+            <button
+              className={statusFilter === 'RESOLVED' ? 'tab-btn active' : 'tab-btn'}
+              onClick={() => setStatusFilter('RESOLVED')}
+            >
+              Resolved
+            </button>
+            <button
+              className={statusFilter === 'CLOSED' ? 'tab-btn active' : 'tab-btn'}
+              onClick={() => setStatusFilter('CLOSED')}
+            >
+              Closed
+            </button>
+          </div>
+
+          <div className="search-wrapper">
+            <Search size={18} className="search-icon" />
+            <input
+              type="text"
+              placeholder="Search cases..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input"
+            />
+          </div>
+        </div>
+
+        {/* Disputes Table */}
+        <div className="disputes-table-container">
+          {filteredDisputes.length === 0 ? (
+            <div className="empty-state">
+              <FileText size={48} color="#9ca3af" />
+              <h3>No Cases Found</h3>
+              <p>There are no disputes matching your current filters.</p>
+            </div>
+          ) : (
+            <table className="disputes-table">
+              <thead>
+                <tr>
+                  <th>CASE ID</th>
+                  <th>REPORTER</th>
+                  <th>REPORTED USER</th>
+                  <th>DONATION ID</th>
+                  <th>CREATED</th>
+                  <th>STATUS</th>
+                  <th>ACTION</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+              </thead>
+              <tbody>
+                {filteredDisputes.map((dispute) => (
+                  <tr key={dispute.id}>
+                    <td className="case-id">{dispute.caseId}</td>
+                    <td>
+                      <div className="user-cell">
+                        <div className="user-name">{dispute.reporterName}</div>
+                        <div className="user-type">{dispute.reporterType === 'DONOR' ? 'Donor' : 'Receiver'}</div>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="reported-user-name">{dispute.reportedUserName}</div>
+                    </td>
+                    <td>
+                      {dispute.donationId ? (
+                        <span className="donation-id">DON-2024-{String(dispute.donationId).padStart(4, '0')}</span>
+                      ) : (
+                        <span className="no-donation">—</span>
+                      )}
+                    </td>
+                    <td>
+                      <div className="date-cell">
+                        <div className="date-main">{formatDate(dispute.createdAt)}</div>
+                        <div className="date-time">{formatTime(dispute.createdAt)}</div>
+                      </div>
+                    </td>
+                    <td>
+                      <span className={getStatusBadgeClass(dispute.status)}>
+                        {formatStatus(dispute.status)}
+                      </span>
+                    </td>
+                    <td>
+                      <button
+                        className="view-btn"
+                        onClick={() => navigate(`/admin/disputes/${dispute.id}`)}
+                      >
+                        <Eye size={16} />
+                        View
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
       </div>
     </div>
   );

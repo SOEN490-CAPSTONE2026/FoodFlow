@@ -271,12 +271,16 @@ export default function DonorLayout() {
             </span>
             Settings
           </Link>
-          <div className="donor-nav-link disabled" data-tooltip="Help">
+          <Link 
+            to="/donor/help" 
+            className={`donor-nav-link ${isActive("/donor/help") ? "active" : ""}`}
+            data-tooltip="Help"
+          >
             <span className="nav-icon" aria-hidden>
               <HelpCircle size={18} className="lucide" />
             </span>
             Help
-          </div>
+          </Link>
         </div>
 
         <div className="donor-sidebar-footer donor-user" ref={menuRef}>
