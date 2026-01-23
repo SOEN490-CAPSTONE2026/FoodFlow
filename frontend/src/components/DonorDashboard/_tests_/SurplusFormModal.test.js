@@ -910,7 +910,12 @@ describe('SurplusFormModal', () => {
   test('handles decimal quantity values', async () => {
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
-    const quantityInput = document.querySelector('input[name="quantityValue"]');
+    // First fill step 1 and navigate to step 2 where quantity input is
+    await fillStep1();
+    fireEvent.click(screen.getByText('Next'));
+    await screen.findByText('Quantity & Dates');
+
+    const quantityInput = screen.getByPlaceholderText("0");
     await userEvent.type(quantityInput, "5.5");
     expect(quantityInput.value).toBe("5.5");
   });

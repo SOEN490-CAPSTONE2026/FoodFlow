@@ -7,9 +7,6 @@ import DonorWelcome from '../DonorWelcome';
 import { AuthContext } from '../../../contexts/AuthContext';
 import { surplusAPI } from '../../../services/api';
 
-// Mock API - import from the global mock
-import { surplusAPI } from '../../../services/api';
-
 // Mock CSS
 jest.mock('../Donor_Styles/DonorWelcome.css', () => ({}), { virtual: true });
 
