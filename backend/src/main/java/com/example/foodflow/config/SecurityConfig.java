@@ -59,7 +59,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/conversations/**").hasAnyAuthority("DONOR", "RECEIVER")
                 .requestMatchers("/api/messages/**").hasAnyAuthority("DONOR", "RECEIVER")
                 
-                // ✅ FIXED: Surplus endpoints with proper role restrictions
+                // Surplus endpoints with proper role restrictions
                 .requestMatchers(HttpMethod.POST, "/api/surplus").hasAuthority("DONOR")
                 .requestMatchers(HttpMethod.POST, "/api/surplus/*/evidence").hasAuthority("DONOR")
                 .requestMatchers(HttpMethod.GET, "/api/surplus").hasAuthority("RECEIVER")
@@ -67,14 +67,14 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.DELETE, "/api/surplus/**").hasAuthority("DONOR")
 
                 
-                // ✅ NEW: Claims endpoints  
+                // Claims endpoints
                 .requestMatchers(HttpMethod.GET, "/api/claims/post/**").hasAnyAuthority("DONOR", "RECEIVER")
                 .requestMatchers("/api/claims/**").hasAuthority("RECEIVER")
                 
-                // ✅ NEW: Receiver Preferences endpoints
+                // Receiver Preferences endpoints
                 .requestMatchers("/api/receiver/preferences/**").hasAuthority("RECEIVER")
                 
-                // ✅ NEW: Reports/Disputes endpoints - TEMPORARILY permitAll for debugging
+                // Reports/Disputes endpoints - TEMPORARILY permitAll for debugging
                 .requestMatchers("/api/reports/**").permitAll()
                 
                 // Other endpoints
