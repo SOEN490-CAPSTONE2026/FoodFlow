@@ -131,7 +131,7 @@
 /* Search Bar */
 .search-bar-container {
   margin-bottom: 0;
-  padding-bottom: 16px;
+  padding-bottom: 8px;
   display: flex;
   gap: 12px;
   align-items: center;

@@ -4,6 +4,7 @@ import {
   Home,
   LayoutGrid,
   Users,
+  UserCheck,
   Heart,
   Calendar as CalendarIcon,
   FileText,
@@ -67,6 +68,8 @@ export default function AdminLayout() {
         return t('admin.dashboard');
       case "/admin/users":
         return "User Management";
+      case "/admin/verification-queue":
+        return "Verification Queue";
       case "/admin/analytics":
         return t('admin.analytics');
       case "/admin/calendar":
@@ -87,6 +90,8 @@ export default function AdminLayout() {
       case "/admin":
       case "/admin/dashboard":
         return t('admin.overview');
+      case "/admin/verification-queue":
+        return "Review and approve pending user registrations";
       case "/admin/users":
         return "Manage and monitor all platform users";
       case "/admin/analytics":
@@ -170,6 +175,12 @@ export default function AdminLayout() {
             Home
           </Link>
 
+          <Link to="/admin/verification-queue" className={`admin-nav-link ${isActive("/admin/verification-queue") ? "active" : ""}`} data-tooltip="Verification Queue">
+            <span className="nav-icon" aria-hidden>
+              <UserCheck size={18} className="lucide" />
+            </span>
+            Verification
+          </Link>
 
           <Link to="/admin/users" className={`admin-nav-link ${isActive("/admin/users") ? "active" : ""}`} data-tooltip="Users">
             <span className="nav-icon" aria-hidden>
