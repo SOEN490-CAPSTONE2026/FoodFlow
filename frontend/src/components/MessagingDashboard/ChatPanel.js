@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Send } from 'lucide-react';
 import { Send, ArrowLeft } from 'lucide-react';
 import api from '../../services/api';
 import { useTimezone } from '../../contexts/TimezoneContext';

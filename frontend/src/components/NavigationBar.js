@@ -174,11 +174,8 @@ const NavigationBar = () => {
                 onClick={toggleLangDropdown}
                 aria-label={t('language.select')}
               >
-                {currentLanguage.code.toUpperCase()}
-                <span className="lang-icon">
-                  <img src={selectedLanguage.icon} alt="" />
-                </span>
-                <span className="lang-name">{selectedLanguage.code.toUpperCase()}</span>
+                <span className="lang-flag">{currentLanguage.flag}</span>
+                <span className="lang-name">{currentLanguage.code.toUpperCase()}</span>
               </button>
               
               {isLangDropdownOpen && (
@@ -189,7 +186,7 @@ const NavigationBar = () => {
                       className={`lang-option ${i18n.language.split('-')[0] === lang.code ? 'selected' : ''}`}
                       onClick={() => handleLanguageSelect(lang.code)}
                     >
-                      <span className="lang-icon"><img src={lang.icon} alt={`${lang.name} icon`} /></span>
+                      <span className="lang-flag">{lang.flag}</span>
                       <span className="lang-name">{lang.name}</span>
                       {i18n.language.split('-')[0] === lang.code && <span className="lang-check">✓</span>}
                     </button>
@@ -221,11 +218,8 @@ const NavigationBar = () => {
               onClick={toggleLangDropdown}
               aria-label={t('language.select')}
             >
-              {currentLanguage.code.toUpperCase()}
-              <span className="lang-icon">
-                <img src={selectedLanguage.icon} alt="" />
-              </span>
-              <span className="lang-name">{selectedLanguage.code.toUpperCase()}</span>
+              <span className="lang-flag">{currentLanguage.flag}</span>
+              <span className="lang-name">{currentLanguage.code.toUpperCase()}</span>
             </button>
             
             {isLangDropdownOpen && (
@@ -236,7 +230,7 @@ const NavigationBar = () => {
                     className={`lang-option ${i18n.language.split('-')[0] === lang.code ? 'selected' : ''}`}
                     onClick={() => handleLanguageSelect(lang.code)}
                   >
-                    <span className="lang-icon"><img src={lang.icon} alt={`${lang.name} icon`} /></span>
+                    <span className="lang-flag">{lang.flag}</span>
                     <span className="lang-name">{lang.name}</span>
                     {i18n.language.split('-')[0] === lang.code && <span className="lang-check">✓</span>}
                   </button>

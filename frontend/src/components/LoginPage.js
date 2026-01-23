@@ -84,32 +84,6 @@ const LoginPage = () => {
     } finally {
       setLoading(false);
     }
-
-    login(token, userRole, userId, organizationName, verificationStatus); // this automatically updates localStorage and context
-    trackLogin(true);
-
-    // redirect based on role
-    switch (userRole.toUpperCase()) {
-      case 'ADMIN':
-        navigate('/admin');
-        break;
-      case 'DONOR':
-        navigate('/donor');
-        break;
-      case 'RECEIVER':
-        navigate('/receiver');
-        break;
-      default:
-        navigate('/dashboard');
-        break;
-    }
-    } catch (err) {
-      console.error(err);
-      trackLogin(false);
-      setError(t('auth.invalidEmailPassword'));
-    } finally {
-      setLoading(false);
-    }
   };
 
   return (
