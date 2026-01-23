@@ -609,8 +609,7 @@ export default function DonorListFood() {
 
       setTimelines(prev => ({
         ...prev,
-        [donationId]: timelineData
-        [donationId]: response.data,
+        [donationId]: timelineData,
       }));
 
       // Extract evidence photos from timeline events

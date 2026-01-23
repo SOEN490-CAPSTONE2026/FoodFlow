@@ -18,6 +18,18 @@ jest.mock('lucide-react', () => ({
       style={{ width: size, height: size }}
     />
   ),
+  Camera: ({ size }) => (
+    <div
+      data-testid="camera-icon"
+      style={{ width: size, height: size }}
+    />
+  ),
+  X: ({ size }) => (
+    <div
+      data-testid="x-icon"
+      style={{ width: size, height: size }}
+    />
+  ),
 }));
 
 describe('DonationTimeline Component', () => {
