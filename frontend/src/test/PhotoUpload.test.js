@@ -8,7 +8,7 @@ describe('getEvidenceImageUrl helper function', () => {
   // Test the URL transformation logic
   const BACKEND_BASE_URL = 'http://localhost:8080';
 
-  const getEvidenceImageUrl = (url) => {
+  const getEvidenceImageUrl = url => {
     if (!url) return null;
     if (url.startsWith('http://') || url.startsWith('https://')) {
       return url;
@@ -50,31 +50,36 @@ describe('getEvidenceImageUrl helper function', () => {
 
     it('should handle legacy URL with UUID filename', () => {
       const legacyUrl = '/uploads/550e8400-e29b-41d4-a716-446655440000.png';
-      const expected = 'http://localhost:8080/api/files/uploads/550e8400-e29b-41d4-a716-446655440000.png';
+      const expected =
+        'http://localhost:8080/api/files/uploads/550e8400-e29b-41d4-a716-446655440000.png';
       expect(getEvidenceImageUrl(legacyUrl)).toBe(expected);
     });
 
     it('should prepend backend base to /api/files/ URLs', () => {
       const apiUrl = '/api/files/evidence/donation-1/uuid.jpg';
-      const expected = 'http://localhost:8080/api/files/evidence/donation-1/uuid.jpg';
+      const expected =
+        'http://localhost:8080/api/files/evidence/donation-1/uuid.jpg';
       expect(getEvidenceImageUrl(apiUrl)).toBe(expected);
     });
 
     it('should handle /api/files/ URL with nested path', () => {
       const apiUrl = '/api/files/evidence/donation-123/subfolder/image.png';
-      const expected = 'http://localhost:8080/api/files/evidence/donation-123/subfolder/image.png';
+      const expected =
+        'http://localhost:8080/api/files/evidence/donation-123/subfolder/image.png';
       expect(getEvidenceImageUrl(apiUrl)).toBe(expected);
     });
 
     it('should handle relative paths with fallback', () => {
       const relativePath = 'evidence/donation-1/file.jpg';
-      const expected = 'http://localhost:8080/api/files/evidence/donation-1/file.jpg';
+      const expected =
+        'http://localhost:8080/api/files/evidence/donation-1/file.jpg';
       expect(getEvidenceImageUrl(relativePath)).toBe(expected);
     });
 
     it('should handle relative path starting with slash', () => {
       const relativePath = '/some/other/path/file.jpg';
-      const expected = 'http://localhost:8080/api/files/some/other/path/file.jpg';
+      const expected =
+        'http://localhost:8080/api/files/some/other/path/file.jpg';
       expect(getEvidenceImageUrl(relativePath)).toBe(expected);
     });
   });
@@ -106,7 +111,7 @@ describe('Photo upload validation', () => {
   const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png'];
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
-  const validateFile = (file) => {
+  const validateFile = file => {
     if (!ALLOWED_TYPES.includes(file.type)) {
       return { valid: false, error: 'Only JPEG and PNG images are allowed' };
     }
@@ -158,19 +163,24 @@ describe('Photo upload validation', () => {
 });
 
 describe('Evidence photo extraction from timeline', () => {
-  const extractEvidencePhotos = (timeline) => {
+  const extractEvidencePhotos = timeline => {
     if (!timeline || !Array.isArray(timeline)) return [];
-    return [...new Set(
-      timeline
-        .filter(event => event.pickupEvidenceUrl)
-        .map(event => event.pickupEvidenceUrl)
-    )];
+    return [
+      ...new Set(
+        timeline
+          .filter(event => event.pickupEvidenceUrl)
+          .map(event => event.pickupEvidenceUrl)
+      ),
+    ];
   };
 
   it('should extract photos from timeline with evidence', () => {
     const timeline = [
       { eventType: 'DONATION_POSTED' },
-      { eventType: 'PICKUP_EVIDENCE_UPLOADED', pickupEvidenceUrl: '/api/files/evidence/1.jpg' },
+      {
+        eventType: 'PICKUP_EVIDENCE_UPLOADED',
+        pickupEvidenceUrl: '/api/files/evidence/1.jpg',
+      },
     ];
     const photos = extractEvidencePhotos(timeline);
     expect(photos).toEqual(['/api/files/evidence/1.jpg']);
@@ -178,8 +188,14 @@ describe('Evidence photo extraction from timeline', () => {
 
   it('should extract multiple photos', () => {
     const timeline = [
-      { eventType: 'PICKUP_EVIDENCE_UPLOADED', pickupEvidenceUrl: '/api/files/evidence/1.jpg' },
-      { eventType: 'PICKUP_EVIDENCE_UPLOADED', pickupEvidenceUrl: '/api/files/evidence/2.jpg' },
+      {
+        eventType: 'PICKUP_EVIDENCE_UPLOADED',
+        pickupEvidenceUrl: '/api/files/evidence/1.jpg',
+      },
+      {
+        eventType: 'PICKUP_EVIDENCE_UPLOADED',
+        pickupEvidenceUrl: '/api/files/evidence/2.jpg',
+      },
     ];
     const photos = extractEvidencePhotos(timeline);
     expect(photos).toHaveLength(2);
@@ -187,8 +203,14 @@ describe('Evidence photo extraction from timeline', () => {
 
   it('should deduplicate photos', () => {
     const timeline = [
-      { eventType: 'PICKUP_EVIDENCE_UPLOADED', pickupEvidenceUrl: '/api/files/evidence/1.jpg' },
-      { eventType: 'PICKUP_EVIDENCE_UPLOADED', pickupEvidenceUrl: '/api/files/evidence/1.jpg' },
+      {
+        eventType: 'PICKUP_EVIDENCE_UPLOADED',
+        pickupEvidenceUrl: '/api/files/evidence/1.jpg',
+      },
+      {
+        eventType: 'PICKUP_EVIDENCE_UPLOADED',
+        pickupEvidenceUrl: '/api/files/evidence/1.jpg',
+      },
     ];
     const photos = extractEvidencePhotos(timeline);
     expect(photos).toHaveLength(1);
@@ -214,7 +236,10 @@ describe('Evidence photo extraction from timeline', () => {
   it('should ignore events with null pickupEvidenceUrl', () => {
     const timeline = [
       { eventType: 'DONATION_POSTED', pickupEvidenceUrl: null },
-      { eventType: 'PICKUP_EVIDENCE_UPLOADED', pickupEvidenceUrl: '/api/files/evidence/1.jpg' },
+      {
+        eventType: 'PICKUP_EVIDENCE_UPLOADED',
+        pickupEvidenceUrl: '/api/files/evidence/1.jpg',
+      },
     ];
     const photos = extractEvidencePhotos(timeline);
     expect(photos).toHaveLength(1);

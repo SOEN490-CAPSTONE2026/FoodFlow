@@ -134,14 +134,17 @@ function formatPickupTime(pickupDate, pickupFrom, pickupTo) {
 }
 
 // Get the backend base URL (without /api suffix) for file serving
-const API_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
-const BACKEND_BASE_URL = API_URL.endsWith('/api') ? API_URL.slice(0, -4) : API_URL.replace(/\/api$/, '');
+const API_URL =
+  process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+const BACKEND_BASE_URL = API_URL.endsWith('/api')
+  ? API_URL.slice(0, -4)
+  : API_URL.replace(/\/api$/, '');
 
 /**
  * Constructs the full URL for an evidence image
  * Handles both new format (/api/files/...) and legacy format (/uploads/...)
  */
-const getEvidenceImageUrl = (url) => {
+const getEvidenceImageUrl = url => {
   if (!url) return null;
 
   // If it's already a full URL, return as-is
@@ -169,7 +172,6 @@ const getEvidenceImageUrl = (url) => {
   console.log('Evidence URL fallback:', { original: url, full: fullUrl });
   return fullUrl;
 };
-
 
 export default function DonorListFood() {
   const { isLoaded } = useLoadScript({
@@ -248,7 +250,6 @@ export default function DonorListFood() {
       Promise.all(
         donationsWithPossiblePhotos.map(item => loadEvidencePhotos(item.id))
       ).catch(err => console.error('Error loading evidence photos:', err));
-
     } catch (err) {
       const errorMessage =
         err.response?.data?.message || err.message || 'Failed to fetch posts';
@@ -258,7 +259,7 @@ export default function DonorListFood() {
   };
 
   // Load evidence photos for a donation from its timeline
-  const loadEvidencePhotos = async (donationId) => {
+  const loadEvidencePhotos = async donationId => {
     try {
       const response = await surplusAPI.getTimeline(donationId);
       const timelineData = response.data;
@@ -266,34 +267,44 @@ export default function DonorListFood() {
       // Store timeline data
       setTimelines(prev => ({
         ...prev,
-        [donationId]: timelineData
+        [donationId]: timelineData,
       }));
 
       // Extract evidence photos from timeline events (deduplicated)
-      const evidencePhotos = [...new Set(
-        timelineData
-          .filter(event => event.pickupEvidenceUrl)
-          .map(event => event.pickupEvidenceUrl)
-      )];
+      const evidencePhotos = [
+        ...new Set(
+          timelineData
+            .filter(event => event.pickupEvidenceUrl)
+            .map(event => event.pickupEvidenceUrl)
+        ),
+      ];
 
-      console.log(`Loaded ${evidencePhotos.length} evidence photos for donation ${donationId}:`, evidencePhotos);
+      console.log(
+        `Loaded ${evidencePhotos.length} evidence photos for donation ${donationId}:`,
+        evidencePhotos
+      );
 
       if (evidencePhotos.length > 0) {
         setDonationPhotos(prev => ({
           ...prev,
-          [donationId]: evidencePhotos
+          [donationId]: evidencePhotos,
         }));
         setCurrentPhotoIndex(prev => ({
           ...prev,
-          [donationId]: 0
+          [donationId]: 0,
         }));
       }
     } catch (error) {
-      console.error('Error loading evidence photos for donation', donationId, ':', error);
+      console.error(
+        'Error loading evidence photos for donation',
+        donationId,
+        ':',
+        error
+      );
     }
   };
 
-  const getRecipientEmailForClaimedPost = async (item) => {
+  const getRecipientEmailForClaimedPost = async item => {
     try {
       setError(null);
       const { data: claims } = await claimsAPI.getClaimForSurplusPost(item.id);
@@ -514,11 +525,14 @@ export default function DonorListFood() {
         const existingPhotos = prev[donationId] || [];
         // Initialize photo index if first upload
         if (existingPhotos.length === 0) {
-          setCurrentPhotoIndex(prevIndex => ({ ...prevIndex, [donationId]: 0 }));
+          setCurrentPhotoIndex(prevIndex => ({
+            ...prevIndex,
+            [donationId]: 0,
+          }));
         }
         return {
           ...prev,
-          [donationId]: [...existingPhotos, ...uploadedUrls]
+          [donationId]: [...existingPhotos, ...uploadedUrls],
         };
       });
 
@@ -526,10 +540,12 @@ export default function DonorListFood() {
       if (expandedTimeline[donationId]) {
         await fetchTimeline(donationId);
       }
-
     } catch (err) {
       console.error('Failed to upload photo:', err);
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to upload photo. Please try again.';
+      const errorMessage =
+        err.response?.data?.message ||
+        err.message ||
+        'Failed to upload photo. Please try again.';
       setUploadError(prev => ({ ...prev, [donationId]: errorMessage }));
     } finally {
       setUploadingPhotos(prev => ({ ...prev, [donationId]: false }));
@@ -620,11 +636,11 @@ export default function DonorListFood() {
       if (evidencePhotos.length > 0) {
         setDonationPhotos(prev => ({
           ...prev,
-          [donationId]: evidencePhotos
+          [donationId]: evidencePhotos,
         }));
         setCurrentPhotoIndex(prev => ({
           ...prev,
-          [donationId]: 0
+          [donationId]: 0,
         }));
       }
     } catch (error) {
@@ -876,50 +892,55 @@ export default function DonorListFood() {
               )}
 
               {/* Photo Upload/View Section - Only visible for CLAIMED or READY_FOR_PICKUP */}
-              {(item.status === "CLAIMED" || item.status === "READY_FOR_PICKUP") && (
-              <div className="donation-photos-section">
-                {/* Upload error message */}
-                {uploadError[item.id] && (
-                  <div className="photo-upload-error">
-                    <AlertTriangle size={14} />
-                    <span>{uploadError[item.id]}</span>
-                    <button
-                      className="dismiss-error"
-                      onClick={() => setUploadError(prev => ({ ...prev, [item.id]: null }))}
-                    >
-                      <X size={12} />
-                    </button>
-                  </div>
-                )}
+              {(item.status === 'CLAIMED' ||
+                item.status === 'READY_FOR_PICKUP') && (
+                <div className="donation-photos-section">
+                  {/* Upload error message */}
+                  {uploadError[item.id] && (
+                    <div className="photo-upload-error">
+                      <AlertTriangle size={14} />
+                      <span>{uploadError[item.id]}</span>
+                      <button
+                        className="dismiss-error"
+                        onClick={() =>
+                          setUploadError(prev => ({ ...prev, [item.id]: null }))
+                        }
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  )}
 
-                {!viewingPhotos[item.id] ? (
-                  // Upload mode
-                  <label className={`photo-upload-button ${uploadingPhotos[item.id] ? 'uploading' : ''}`}>
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/jpeg,image/png"
-                      onChange={(e) => handlePhotoUpload(item.id, e)}
-                      style={{ display: 'none' }}
-                      disabled={uploadingPhotos[item.id]}
-                    />
-                    {uploadingPhotos[item.id] ? (
-                      <>
-                        <span className="upload-spinner"></span>
-                        <span>Uploading...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Camera size={14} />
-                        <span>
-                          {donationPhotos[item.id]?.length > 0
-                            ? `${donationPhotos[item.id].length} photo${donationPhotos[item.id].length > 1 ? 's' : ''} uploaded`
-                            : 'Upload photo of donation'}
-                        </span>
-                      </>
-                    )}
-                  </label>
-                ) : null}
+                  {!viewingPhotos[item.id] ? (
+                    // Upload mode
+                    <label
+                      className={`photo-upload-button ${uploadingPhotos[item.id] ? 'uploading' : ''}`}
+                    >
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/jpeg,image/png"
+                        onChange={e => handlePhotoUpload(item.id, e)}
+                        style={{ display: 'none' }}
+                        disabled={uploadingPhotos[item.id]}
+                      />
+                      {uploadingPhotos[item.id] ? (
+                        <>
+                          <span className="upload-spinner"></span>
+                          <span>Uploading...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Camera size={14} />
+                          <span>
+                            {donationPhotos[item.id]?.length > 0
+                              ? `${donationPhotos[item.id].length} photo${donationPhotos[item.id].length > 1 ? 's' : ''} uploaded`
+                              : 'Upload photo of donation'}
+                          </span>
+                        </>
+                      )}
+                    </label>
+                  ) : null}
 
                   {donationPhotos[item.id]?.length > 0 && (
                     <button
@@ -1074,13 +1095,22 @@ export default function DonorListFood() {
 
                 <div className="photo-display-wrapper">
                   <img
-                    src={getEvidenceImageUrl(donationPhotos[donationId][currentPhotoIndex[donationId] ?? 0])}
+                    src={getEvidenceImageUrl(
+                      donationPhotos[donationId][
+                        currentPhotoIndex[donationId] ?? 0
+                      ]
+                    )}
                     alt={`Photo ${(currentPhotoIndex[donationId] ?? 0) + 1}`}
                     className="photo-display-image"
                     draggable={false}
-                    onError={(e) => {
+                    onError={e => {
                       console.error('Image load error. URL:', e.target.src);
-                      console.error('Original URL:', donationPhotos[donationId][currentPhotoIndex[donationId] ?? 0]);
+                      console.error(
+                        'Original URL:',
+                        donationPhotos[donationId][
+                          currentPhotoIndex[donationId] ?? 0
+                        ]
+                      );
                     }}
                   />
                 </div>

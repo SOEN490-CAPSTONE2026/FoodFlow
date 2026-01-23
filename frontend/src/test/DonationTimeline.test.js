@@ -19,16 +19,10 @@ jest.mock('lucide-react', () => ({
     />
   ),
   Camera: ({ size }) => (
-    <div
-      data-testid="camera-icon"
-      style={{ width: size, height: size }}
-    />
+    <div data-testid="camera-icon" style={{ width: size, height: size }} />
   ),
   X: ({ size }) => (
-    <div
-      data-testid="x-icon"
-      style={{ width: size, height: size }}
-    />
+    <div data-testid="x-icon" style={{ width: size, height: size }} />
   ),
 }));
 
@@ -572,20 +566,26 @@ describe('DonationTimeline Component', () => {
     ];
 
     it('should display evidence image when pickupEvidenceUrl exists', () => {
-      render(<DonationTimeline timeline={mockTimelineWithEvidence} loading={false} />);
+      render(
+        <DonationTimeline timeline={mockTimelineWithEvidence} loading={false} />
+      );
 
       const evidenceImage = screen.getByAltText('Pickup evidence');
       expect(evidenceImage).toBeInTheDocument();
     });
 
     it('should display PICKUP_EVIDENCE_UPLOADED event type', () => {
-      render(<DonationTimeline timeline={mockTimelineWithEvidence} loading={false} />);
+      render(
+        <DonationTimeline timeline={mockTimelineWithEvidence} loading={false} />
+      );
 
       expect(screen.getByText('PICKUP_EVIDENCE_UPLOADED')).toBeInTheDocument();
     });
 
     it('should display evidence label', () => {
-      render(<DonationTimeline timeline={mockTimelineWithEvidence} loading={false} />);
+      render(
+        <DonationTimeline timeline={mockTimelineWithEvidence} loading={false} />
+      );
 
       expect(screen.getByText('Pickup Evidence')).toBeInTheDocument();
     });
@@ -603,14 +603,18 @@ describe('DonationTimeline Component', () => {
         },
       ];
 
-      render(<DonationTimeline timeline={timelineWithoutEvidence} loading={false} />);
+      render(
+        <DonationTimeline timeline={timelineWithoutEvidence} loading={false} />
+      );
 
       expect(screen.queryByAltText('Pickup evidence')).not.toBeInTheDocument();
       expect(screen.queryByText('Pickup Evidence')).not.toBeInTheDocument();
     });
 
     it('should have clickable evidence thumbnail', () => {
-      render(<DonationTimeline timeline={mockTimelineWithEvidence} loading={false} />);
+      render(
+        <DonationTimeline timeline={mockTimelineWithEvidence} loading={false} />
+      );
 
       const evidenceImage = screen.getByAltText('Pickup evidence');
       expect(evidenceImage).toHaveClass('evidence-thumbnail');
