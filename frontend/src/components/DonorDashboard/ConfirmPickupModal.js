@@ -1,12 +1,110 @@
-import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, AlertCircle, Clock } from 'lucide-react';
 import { surplusAPI } from '../../services/api';
 import './Donor_Styles/ConfirmPickupModal.css';
 
 const ConfirmPickupModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState('');
+  const [warning, setWarning] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [toleranceConfig, setToleranceConfig] = useState(null);
+  const [pickupTimingInfo, setPickupTimingInfo] = useState(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      // Fetch tolerance configuration on modal open
+      fetchToleranceConfig();
+      calculatePickupTimingInfo();
+    }
+  }, [isOpen, donationItem]);
+
+  const fetchToleranceConfig = async () => {
+    try {
+      const response = await surplusAPI.getPickupTolerance();
+      setToleranceConfig(response.data);
+    } catch (err) {
+      console.error('Failed to fetch tolerance config:', err);
+    }
+  };
+
+  const calculatePickupTimingInfo = () => {
+    if (!donationItem?.confirmedPickupSlot) {
+      setPickupTimingInfo(null);
+      return;
+    }
+
+    const slot = donationItem.confirmedPickupSlot;
+    const date = slot.pickupDate;
+    const startTime = slot.startTime;
+    const endTime = slot.endTime;
+
+    if (date && startTime && endTime) {
+      setPickupTimingInfo({
+        date,
+        startTime,
+        endTime,
+      });
+    }
+  };
+
+  const getPickupWindowStatus = () => {
+    if (!pickupTimingInfo || !toleranceConfig) return null;
+
+    const now = new Date();
+    const pickupDate = new Date(pickupTimingInfo.date);
+    const [startHour, startMin] = pickupTimingInfo.startTime.split(':').map(Number);
+    const [endHour, endMin] = pickupTimingInfo.endTime.split(':').map(Number);
+
+    const windowStart = new Date(pickupDate);
+    windowStart.setHours(startHour, startMin, 0, 0);
+
+    const windowEnd = new Date(pickupDate);
+    windowEnd.setHours(endHour, endMin, 0, 0);
+
+    const earlyBuffer = toleranceConfig.earlyToleranceMinutes * 60 * 1000;
+    const lateBuffer = toleranceConfig.lateToleranceMinutes * 60 * 1000;
+
+    const allowedStart = new Date(windowStart.getTime() - earlyBuffer);
+    const allowedEnd = new Date(windowEnd.getTime() + lateBuffer);
+
+    if (now < allowedStart) {
+      const minutesUntilAllowed = Math.ceil(
+        (allowedStart - now) / (60 * 1000)
+      );
+      return {
+        status: 'TOO_EARLY',
+        message: `Pickup confirmation not yet available. Please wait ${minutesUntilAllowed} minute(s).`,
+        type: 'error',
+      };
+    } else if (now > allowedEnd) {
+      return {
+        status: 'TOO_LATE',
+        message: 'Pickup confirmation window has expired.',
+        type: 'error',
+      };
+    } else if (now < windowStart) {
+      const minutesEarly = Math.floor((windowStart - now) / (60 * 1000));
+      return {
+        status: 'EARLY',
+        message: `You can confirm pickup. (${minutesEarly} minute(s) before scheduled time)`,
+        type: 'warning',
+      };
+    } else if (now > windowEnd) {
+      const minutesLate = Math.floor((now - windowEnd) / (60 * 1000));
+      return {
+        status: 'LATE',
+        message: `You can confirm pickup. (${minutesLate} minute(s) after scheduled end)`,
+        type: 'warning',
+      };
+    } else {
+      return {
+        status: 'ON_TIME',
+        message: 'Pickup window is open. Confirm now.',
+        type: 'info',
+      };
+    }
+  };
 
   if (!isOpen) {
     return null;
@@ -63,6 +161,13 @@ const ConfirmPickupModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
       return;
     }
 
+    // Check pickup timing before attempting confirmation
+    const timingStatus = getPickupWindowStatus();
+    if (timingStatus && (timingStatus.status === 'TOO_EARLY' || timingStatus.status === 'TOO_LATE')) {
+      setError(timingStatus.message);
+      return;
+    }
+
     setIsSubmitting(true);
     setError('');
 
@@ -95,6 +200,43 @@ const ConfirmPickupModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
         </button>
 
         <h2 className="confirm-pickup-title">Confirm Pickup</h2>
+
+        {/* Pickup Window Information Section */}
+        {pickupTimingInfo && (
+          <div className="confirm-pickup-window-info">
+            <div className="confirm-pickup-window-header">
+              <Clock size={18} />
+              <span>Pickup Window</span>
+            </div>
+            <div className="confirm-pickup-window-details">
+              <p className="pickup-window-date">{pickupTimingInfo.date}</p>
+              <p className="pickup-window-time">
+                {pickupTimingInfo.startTime} — {pickupTimingInfo.endTime}
+              </p>
+              {toleranceConfig && (
+                <p className="pickup-window-tolerance">
+                  Confirmation allowed: up to {toleranceConfig.earlyToleranceMinutes}
+                  {' '}min early, {toleranceConfig.lateToleranceMinutes} min late
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Timing Status Alert */}
+        {(() => {
+          const timingStatus = getPickupWindowStatus();
+          if (!timingStatus) return null;
+          const alertClass = `confirm-pickup-${timingStatus.type}`;
+          const IconComponent = timingStatus.type === 'error' || timingStatus.type === 'warning' ? AlertCircle : Clock;
+          return (
+            <div className={`confirm-pickup-status-alert ${alertClass}`}>
+              <IconComponent size={16} />
+              <span>{timingStatus.message}</span>
+            </div>
+          );
+        })()}
+
         <p className="confirm-pickup-subtitle">
           Enter the 6-digit code shown by the receiver:
         </p>

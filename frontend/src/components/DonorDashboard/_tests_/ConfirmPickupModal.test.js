@@ -10,6 +10,7 @@ import { surplusAPI } from '../../../services/api';
 jest.mock('../../../services/api', () => ({
   surplusAPI: {
     completeSurplusPost: jest.fn(),
+    getPickupTolerance: jest.fn(),
   },
 }));
 
@@ -28,6 +29,10 @@ describe('ConfirmPickupModal', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Set default mock for getPickupTolerance
+    surplusAPI.getPickupTolerance.mockResolvedValue({
+      data: { earlyToleranceMinutes: 15, lateToleranceMinutes: 30 },
+    });
   });
 
   test('does not render when isOpen is false', () => {
@@ -522,6 +527,169 @@ describe('ConfirmPickupModal', () => {
         '123456'
       );
       expect(mockOnClose).toHaveBeenCalled();
+    });
+  });
+
+  // ==================== Tests for Pickup Timing Window ====================
+
+  test('displays pickup window information when confirmed pickup slot exists', async () => {
+    const now = new Date();
+    const pickupDate = now.toISOString().split('T')[0];
+    const startTime = '14:00';
+    const endTime = '16:00';
+
+    const donationWithSlot = {
+      ...mockDonationItem,
+      confirmedPickupSlot: {
+        pickupDate,
+        startTime,
+        endTime,
+      },
+    };
+
+    surplusAPI.getPickupTolerance.mockResolvedValueOnce({
+      data: { earlyToleranceMinutes: 15, lateToleranceMinutes: 30 },
+    });
+
+    render(
+      <ConfirmPickupModal
+        isOpen={true}
+        onClose={mockOnClose}
+        donationItem={donationWithSlot}
+        onSuccess={mockOnSuccess}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Pickup Window/i)).toBeInTheDocument();
+      expect(screen.getByText(pickupDate)).toBeInTheDocument();
+      expect(screen.getByText(new RegExp(startTime))).toBeInTheDocument();
+    });
+  });
+
+  test('displays tolerance information', async () => {
+    const now = new Date();
+    const pickupDate = now.toISOString().split('T')[0];
+
+    const donationWithSlot = {
+      ...mockDonationItem,
+      confirmedPickupSlot: {
+        pickupDate,
+        startTime: '14:00',
+        endTime: '16:00',
+      },
+    };
+
+    surplusAPI.getPickupTolerance.mockResolvedValueOnce({
+      data: { earlyToleranceMinutes: 15, lateToleranceMinutes: 30 },
+    });
+
+    render(
+      <ConfirmPickupModal
+        isOpen={true}
+        onClose={mockOnClose}
+        donationItem={donationWithSlot}
+        onSuccess={mockOnSuccess}
+      />
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Confirmation allowed: up to 15 min early, 30 min late/i)
+      ).toBeInTheDocument();
+    });
+  });
+
+  test('prevents confirmation when too early', async () => {
+    const user = userEvent.setup();
+    // Use fixed times for testing - set pickup far in future
+    const pickupDate = '2099-12-31';
+    const startTime = '23:00';
+    const endTime = '23:30';
+
+    const donationWithSlot = {
+      ...mockDonationItem,
+      confirmedPickupSlot: {
+        pickupDate,
+        startTime,
+        endTime,
+      },
+    };
+
+    render(
+      <ConfirmPickupModal
+        isOpen={true}
+        onClose={mockOnClose}
+        donationItem={donationWithSlot}
+        onSuccess={mockOnSuccess}
+      />
+    );
+
+    await waitFor(() => {
+      const inputs = screen.getAllByRole('textbox');
+      expect(inputs.length).toBeGreaterThan(0);
+    });
+
+    const inputs = screen.getAllByRole('textbox');
+    await user.type(inputs[0], '1');
+    await user.type(inputs[1], '2');
+    await user.type(inputs[2], '3');
+    await user.type(inputs[3], '4');
+    await user.type(inputs[4], '5');
+    await user.type(inputs[5], '6');
+
+    await user.click(screen.getByRole('button', { name: /confirm pickup/i }));
+
+    await waitFor(() => {
+      // Should not call API if too early
+      expect(surplusAPI.completeSurplusPost).not.toHaveBeenCalled();
+    });
+  });
+
+  test('prevents confirmation when too late', async () => {
+    const user = userEvent.setup();
+    // Use past date and time for testing
+    const pastDate = new Date('2020-01-01');
+    const pickupDate = pastDate.toISOString().split('T')[0];
+    const startTime = '10:00';
+    const endTime = '10:30';
+
+    const donationWithSlot = {
+      ...mockDonationItem,
+      confirmedPickupSlot: {
+        pickupDate,
+        startTime,
+        endTime,
+      },
+    };
+
+    render(
+      <ConfirmPickupModal
+        isOpen={true}
+        onClose={mockOnClose}
+        donationItem={donationWithSlot}
+        onSuccess={mockOnSuccess}
+      />
+    );
+
+    await waitFor(() => {
+      const inputs = screen.getAllByRole('textbox');
+      expect(inputs.length).toBeGreaterThan(0);
+    });
+
+    const inputs = screen.getAllByRole('textbox');
+    await user.type(inputs[0], '1');
+    await user.type(inputs[1], '2');
+    await user.type(inputs[2], '3');
+    await user.type(inputs[3], '4');
+    await user.type(inputs[4], '5');
+    await user.type(inputs[5], '6');
+
+    await user.click(screen.getByRole('button', { name: /confirm pickup/i }));
+
+    await waitFor(() => {
+      // Should not call API if too late
+      expect(surplusAPI.completeSurplusPost).not.toHaveBeenCalled();
     });
   });
 });

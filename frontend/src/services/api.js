@@ -109,6 +109,12 @@ export const surplusAPI = {
     api.post('/surplus/pickup/confirm', { postId, otpCode }),
 
   /**
+   * Get pickup tolerance configuration from backend
+   * @returns {Promise} API response with earlyToleranceMinutes and lateToleranceMinutes
+   */
+  getPickupTolerance: () => api.get('/surplus/pickup/tolerance'),
+
+  /**
    * Search surplus posts with filters.
    * @param {Object} filters - Filter criteria
    * @param {string[]} filters.foodCategories - Array of food category enums (e.g., ['FRUITS_VEGETABLES', 'DAIRY_COLD'])

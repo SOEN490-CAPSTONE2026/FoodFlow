@@ -1,15 +1,17 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { X, CircleCheck } from 'lucide-react';
+import { X, CircleCheck, Clock, Info } from 'lucide-react';
 import {
   foodTypeImages,
   getPrimaryFoodCategory,
 } from '../../constants/foodConstants';
+import { surplusAPI } from '../../services/api';
 import './Receiver_Styles/ReadyForPickUpView.css';
 
 const ReadyForPickUpView = ({ claim, isOpen, onClose, onBack }) => {
   const post = claim?.surplusPost;
   const containerRef = useRef(null);
   const [dimensions, setDimensions] = useState({ width: 750, height: 800 });
+  const [toleranceConfig, setToleranceConfig] = useState(null);
 
   useEffect(() => {
     if (containerRef.current && isOpen) {
@@ -17,8 +19,18 @@ const ReadyForPickUpView = ({ claim, isOpen, onClose, onBack }) => {
         width: containerRef.current.offsetWidth,
         height: containerRef.current.offsetHeight,
       });
+      fetchToleranceConfig();
     }
   }, [isOpen]);
+
+  const fetchToleranceConfig = async () => {
+    try {
+      const response = await surplusAPI.getPickupTolerance();
+      setToleranceConfig(response.data);
+    } catch (err) {
+      console.error('Failed to fetch tolerance config:', err);
+    }
+  };
 
   if (!isOpen || !claim) {
     return null;
@@ -64,6 +76,33 @@ const ReadyForPickUpView = ({ claim, isOpen, onClose, onBack }) => {
         {/* Body */}
         <div className="claimed-modal-body">
           <h3 className="claimed-modal-section-title">Pickup Steps</h3>
+
+          {/* Pickup Window Information */}
+          {claim?.confirmedPickupSlot && (
+            <div className="ready-pickup-window-info">
+              <div className="ready-pickup-window-header">
+                <Clock size={18} />
+                <span>Pickup Window</span>
+              </div>
+              <div className="ready-pickup-window-details">
+                <p className="ready-pickup-window-date">
+                  {claim.confirmedPickupSlot.pickupDate}
+                </p>
+                <p className="ready-pickup-window-time">
+                  {claim.confirmedPickupSlot.startTime} — {claim.confirmedPickupSlot.endTime}
+                </p>
+                {toleranceConfig && (
+                  <div className="ready-pickup-window-help">
+                    <Info size={14} />
+                    <span>
+                      The donor can confirm pickup up to {toleranceConfig.earlyToleranceMinutes} min early
+                      and {toleranceConfig.lateToleranceMinutes} min after the scheduled window.
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Step 1: Pickup Code */}
           <div className="PickupView-ready-pickup-step">
