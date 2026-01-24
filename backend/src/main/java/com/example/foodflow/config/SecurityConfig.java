@@ -74,6 +74,9 @@ public class SecurityConfig {
                 // Receiver Preferences endpoints
                 .requestMatchers("/api/receiver/preferences/**").hasAuthority("RECEIVER")
                 
+                // Gamification endpoints - available to all authenticated users
+                .requestMatchers("/api/gamification/**").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
+                
                 // Reports/Disputes endpoints - TEMPORARILY permitAll for debugging
                 .requestMatchers("/api/reports/**").permitAll()
                 

@@ -1,0 +1,398 @@
+/* Badge Display Container */
+.badge-display-container {
+  padding: 1rem 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.badge-display-error {
+  padding: 1rem;
+  text-align: center;
+  color: #ff6b6b;
+  font-size: 0.875rem;
+}
+
+/* Points Display */
+.points-display {
+  background: linear-gradient(135deg, #16a34a 0%, #059669 100%);
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.points-display:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+}
+
+.points-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  color: #fff;
+}
+
+.points-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.points-label {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.points-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+}
+
+/* Points Loading State */
+.points-display.loading {
+  background: rgba(255, 255, 255, 0.05);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.points-icon-skeleton {
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.points-content-skeleton {
+  flex: 1;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
+/* Badges Section */
+.badges-section {
+  margin-top: 0.5rem;
+}
+
+.badges-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.badges-header h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badges-count {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+}
+
+/* Badges Grid */
+.badges-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.badges-grid.loading {
+  opacity: 0.6;
+}
+
+/* Badge Icon */
+.badge-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.badge-icon:hover {
+  transform: scale(1.05);
+}
+
+.badge-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
+}
+
+.badge-icon.unlocked .badge-icon-wrapper {
+  background: linear-gradient(135deg, #16a34a 0%, #059669 100%);
+  border-color: #16a34a;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
+}
+
+.badge-icon.locked .badge-icon-wrapper {
+  color: rgba(255, 255, 255, 0.3);
+  opacity: 0.6;
+}
+
+.badge-icon.unlocked:hover .badge-icon-wrapper {
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4);
+}
+
+/* Badge Tooltip */
+.badge-tooltip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 10px);
+  transform: translateX(-50%);
+  background: #1f2937;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.75rem;
+  min-width: 220px;
+  max-width: 280px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  pointer-events: none;
+  animation: fadeIn 0.2s ease;
+}
+
+.badge-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #1f2937;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.badge-tooltip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.badge-tooltip-header strong {
+  font-size: 0.875rem;
+  color: #fff;
+  flex: 1;
+}
+
+.badge-unlocked-indicator {
+  font-size: 0.75rem;
+  color: #10b981;
+  font-weight: 600;
+}
+
+.badge-tooltip-description {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.4;
+  margin: 0 0 0.75rem 0;
+}
+
+.badge-tooltip-criteria {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.criteria-label {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.criteria-value {
+  font-size: 0.75rem;
+  color: #fff;
+  font-weight: 600;
+}
+
+.badge-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.badge-progress-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.badge-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.badge-progress-text {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.6);
+  text-align: right;
+}
+
+.badge-tooltip-reward {
+  font-size: 0.75rem;
+  color: #fbbf24;
+  font-weight: 600;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Badge Skeleton Loading */
+.badge-skeleton {
+  aspect-ratio: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Empty State */
+.badges-empty {
+  text-align: center;
+  padding: 1.5rem 0.5rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.875rem;
+}
+
+/* View All Button */
+.view-all-btn {
+  width: 100%;
+  padding: 0.625rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.view-all-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+/* Collapsed Sidebar Adjustments */
+.donor-sidebar.collapsed .badge-display-container {
+  padding: 0.75rem 0.5rem;
+}
+
+.donor-sidebar.collapsed .points-display {
+  flex-direction: column;
+  padding: 0.75rem 0.5rem;
+  gap: 0.5rem;
+}
+
+.donor-sidebar.collapsed .points-icon {
+  width: 40px;
+  height: 40px;
+}
+
+.donor-sidebar.collapsed .points-content {
+  align-items: center;
+  text-align: center;
+}
+
+.donor-sidebar.collapsed .points-label {
+  font-size: 0.65rem;
+}
+
+.donor-sidebar.collapsed .points-value {
+  font-size: 1.25rem;
+}
+
+.donor-sidebar.collapsed .badges-section {
+  display: none;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .badge-display-container {
+    padding: 1rem;
+  }
+
+  .points-display {
+    padding: 0.875rem;
+  }
+
+  .badges-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.625rem;
+  }
+
+  .badge-tooltip {
+    min-width: 200px;
+    max-width: 250px;
+    font-size: 0.8125rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .badges-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

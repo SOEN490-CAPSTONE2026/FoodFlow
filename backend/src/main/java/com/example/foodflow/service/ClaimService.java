@@ -32,6 +32,7 @@ public class ClaimService {
     private final NotificationPreferenceService notificationPreferenceService;
     private final TimelineService timelineService;
     private final EmailService emailService;
+    private final GamificationService gamificationService;
     
     public ClaimService(ClaimRepository claimRepository,
                        SurplusPostRepository surplusPostRepository,
@@ -39,7 +40,8 @@ public class ClaimService {
                        SimpMessagingTemplate messagingTemplate,
                        NotificationPreferenceService notificationPreferenceService,
                        TimelineService timelineService,
-                       EmailService emailService) {
+                       EmailService emailService,
+                       GamificationService gamificationService) {
         this.claimRepository = claimRepository;
         this.surplusPostRepository = surplusPostRepository;
         this.businessMetricsService = businessMetricsService;
@@ -47,6 +49,7 @@ public class ClaimService {
         this.notificationPreferenceService = notificationPreferenceService;
         this.timelineService = timelineService;
         this.emailService = emailService;
+        this.gamificationService = gamificationService;
     }
                        
     @Transactional
@@ -162,6 +165,14 @@ public class ClaimService {
         businessMetricsService.incrementClaimCreated();
         businessMetricsService.incrementSurplusPostClaimed();
         businessMetricsService.recordTimer(sample, "claim.service.create", "status", claim.getStatus().toString());
+
+        // Award gamification points for claiming donation
+        try {
+            gamificationService.awardPoints(receiver.getId(), 5, "Claimed donation: " + surplusPost.getTitle());
+            gamificationService.checkAndUnlockAchievements(receiver.getId());
+        } catch (Exception e) {
+            logger.error("Failed to award gamification points for claimId={}: {}", claim.getId(), e.getMessage());
+        }
 
         ClaimResponse response = new ClaimResponse(claim);
         
@@ -327,6 +338,18 @@ public class ClaimService {
 
         claim.setStatus(ClaimStatus.COMPLETED);
         claimRepository.save(claim);
+
+        // Award gamification points for completing pickup
+        try {
+            gamificationService.awardPoints(
+                claim.getReceiver().getId(), 
+                15, 
+                "Completed pickup for: " + claim.getSurplusPost().getTitle()
+            );
+            gamificationService.checkAndUnlockAchievements(claim.getReceiver().getId());
+        } catch (Exception e) {
+            logger.error("Failed to award pickup completion points for claimId={}: {}", claimId, e.getMessage());
+        }
 
         // Increment completed claim counter
         businessMetricsService.incrementClaimCompleted();

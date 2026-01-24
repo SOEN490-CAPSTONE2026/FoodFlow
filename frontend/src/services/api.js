@@ -527,4 +527,20 @@ export const notificationPreferencesAPI = {
   updatePreferences: data => api.put('/user/notifications/preferences', data),
 };
 
+// Gamification API
+export const gamificationAPI = {
+  /**
+   * Get gamification stats for a user (points, achievements, progress)
+   * @param {number} userId - User ID
+   * @returns {Promise} Gamification stats including points and achievements
+   */
+  getUserStats: userId => api.get(`/gamification/users/${userId}/stats`),
+
+  /**
+   * Get all available achievements
+   * @returns {Promise} List of all achievements
+   */
+  getAllAchievements: () => api.get('/gamification/achievements'),
+};
+
 export default api;
