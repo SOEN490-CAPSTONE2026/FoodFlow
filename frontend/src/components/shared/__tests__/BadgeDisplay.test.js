@@ -202,13 +202,13 @@ describe('BadgeDisplay', () => {
       error: null,
     });
 
-    const { getByText } = render(
+    render(
       <BrowserRouter>
         <BadgeDisplay />
       </BrowserRouter>
     );
 
-    const viewAllButton = getByText('View All Achievements');
+    const viewAllButton = screen.getByText('View All Achievements');
     viewAllButton.click();
 
     expect(mockNavigate).toHaveBeenCalledWith('/donor/achievements');
