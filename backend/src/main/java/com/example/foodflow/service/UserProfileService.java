@@ -3,6 +3,7 @@ package com.example.foodflow.service;
 import com.example.foodflow.model.dto.RegionResponse;
 import com.example.foodflow.model.dto.UpdateProfileRequest;
 import com.example.foodflow.model.dto.UpdateRegionRequest;
+import com.example.foodflow.model.dto.UpdateProfileRequest;
 import com.example.foodflow.model.dto.UserProfileResponse;
 import com.example.foodflow.model.entity.Organization;
 import com.example.foodflow.model.entity.User;
@@ -11,6 +12,8 @@ import com.example.foodflow.repository.UserRepository;
 import com.example.foodflow.util.TimezoneResolver;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.regex.Pattern;
 
 /**
  * Service for managing user profile settings including region and timezone.

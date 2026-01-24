@@ -2,6 +2,8 @@ package com.example.foodflow.service;
 
 import com.example.foodflow.model.dto.RegionResponse;
 import com.example.foodflow.model.dto.UpdateRegionRequest;
+import com.example.foodflow.model.dto.UpdateProfileRequest;
+import com.example.foodflow.model.dto.UserProfileResponse;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.UserRole;
 import com.example.foodflow.repository.UserRepository;
@@ -189,5 +191,61 @@ class UserProfileServiceTest {
         assertEquals("Canada", testUser.getCountry());
         assertEquals("Vancouver", testUser.getCity());
         assertEquals("America/Vancouver", testUser.getTimezone());
+    }
+
+    // --- tests for updateProfile ---
+    @Mock
+    private com.example.foodflow.repository.OrganizationRepository organizationRepository;
+
+    @Test
+    void updateProfile_SuccessfulUpdate_ShouldPersistFields() {
+        UpdateProfileRequest req = new UpdateProfileRequest();
+        req.setFullName("New Name");
+        req.setEmail("new@example.com");
+        req.setPhone("+1 555-1234");
+        req.setProfilePhoto("http://example.com/photo.png");
+        req.setOrganizationName("Org Name");
+        req.setOrganizationAddress("123 Main St");
+
+        when(userRepository.existsByEmail("new@example.com")).thenReturn(false);
+        when(userRepository.save(any(User.class))).thenReturn(testUser);
+        when(organizationRepository.findByUserId(testUser.getId())).thenReturn(java.util.Optional.empty());
+        when(organizationRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        UserProfileResponse res = userProfileService.updateProfile(testUser, req);
+
+        assertEquals("new@example.com", res.getEmail());
+        assertEquals("New Name", res.getFullName());
+        assertEquals("+1 555-1234", res.getPhone());
+        assertEquals("http://example.com/photo.png", res.getProfilePhoto());
+        assertEquals("Org Name", res.getOrganizationName());
+        assertEquals("123 Main St", res.getOrganizationAddress());
+
+        verify(userRepository, times(1)).save(testUser);
+        verify(organizationRepository, times(1)).save(any());
+    }
+
+    @Test
+    void updateProfile_EmailAlreadyUsed_ShouldThrow() {
+        UpdateProfileRequest req = new UpdateProfileRequest();
+        req.setFullName("Name");
+        req.setEmail("exists@example.com");
+        req.setPhone("+1 555-1234");
+
+        when(userRepository.existsByEmail("exists@example.com")).thenReturn(true);
+
+        assertThrows(IllegalArgumentException.class, () -> userProfileService.updateProfile(testUser, req));
+    }
+
+    @Test
+    void updateProfile_InvalidPhone_ShouldThrow() {
+        UpdateProfileRequest req = new UpdateProfileRequest();
+        req.setFullName("Name");
+        req.setEmail("ok@example.com");
+        req.setPhone("badphone");
+
+        when(userRepository.existsByEmail("ok@example.com")).thenReturn(false);
+
+        assertThrows(IllegalArgumentException.class, () -> userProfileService.updateProfile(testUser, req));
     }
 }

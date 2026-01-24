@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = "*")
 public class UserProfileController {
     
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserProfileController.class);
+
     private final UserProfileService userProfileService;
     
     public UserProfileController(UserProfileService userProfileService) {
@@ -87,6 +89,39 @@ public class UserProfileController {
             @Valid @RequestBody UpdateRegionRequest request) {
         
         RegionResponse response = userProfileService.updateRegionSettings(currentUser, request);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * GET /api/profile
+     * Returns basic profile information for the authenticated user
+     */
+    @GetMapping
+    public ResponseEntity<com.example.foodflow.model.dto.UserProfileResponse> getProfile(
+            @AuthenticationPrincipal User currentUser) {
+        return ResponseEntity.ok(userProfileService.getProfile(currentUser));
+    }
+
+    /**
+     * PUT /api/profile
+     * Updates user's profile (name, email, phone, profile photo, organization name/address)
+     */
+    @PutMapping
+    public ResponseEntity<com.example.foodflow.model.dto.UserProfileResponse> updateProfile(
+            @AuthenticationPrincipal User currentUser,
+            @Valid @RequestBody com.example.foodflow.model.dto.UpdateProfileRequest request,
+            jakarta.servlet.http.HttpServletRequest httpRequest) {
+
+        // Debugging: log authentication and headers to diagnose 403s
+        try {
+            var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            log.debug("updateProfile called. currentUser={}, authentication={}, AuthorizationHeader={}",
+                    currentUser, auth, httpRequest.getHeader("Authorization"));
+        } catch (Exception e) {
+            log.warn("Failed to log authentication info: {}", e.getMessage());
+        }
+
+        com.example.foodflow.model.dto.UserProfileResponse response = userProfileService.updateProfile(currentUser, request);
         return ResponseEntity.ok(response);
     }
 }

@@ -44,7 +44,7 @@
   gap: 1rem;
   margin-bottom: 1.25rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #E5E7EB;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .icon-circle {
@@ -52,11 +52,11 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: #F0F4F7;
+  background: #f0f4f7;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #1B4965;
+  color: #1b4965;
 }
 
 .section-title-group {
@@ -72,7 +72,7 @@
 
 .section-description {
   font-size: 0.9375rem;
-  color: #6B7280;
+  color: #6b7280;
   margin: 0;
 }
 
@@ -86,7 +86,7 @@
 /* Profile Image Section */
 .profile-image-section {
   padding-bottom: 1rem;
-  border-bottom: 1px solid #F3F4F6;
+  border-bottom: 1px solid #f3f4f6;
 }
 
 .profile-image-container {
@@ -111,12 +111,12 @@
 }
 
 .profile-image-placeholder {
-  background: #F0F4F7;
+  background: #f0f4f7;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #62A8C3;
-  border: 2px dashed #BEE9E8;
+  color: #62a8c3;
+  border: 2px dashed #bee9e8;
 }
 
 .profile-image-upload-btn {
@@ -126,7 +126,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #1B4965;
+  background: #1b4965;
   color: white;
   border: 2px solid white;
   display: flex;
@@ -151,7 +151,7 @@
 
 .profile-image-info p {
   font-size: 0.875rem;
-  color: #6B7280;
+  color: #6b7280;
   margin: 0;
 }
 
@@ -179,11 +179,11 @@
 .field-select {
   width: 100%;
   padding: 0.625rem 0.875rem;
-  border: 1px solid #D1D5DB;
+  border: 1px solid #d1d5db;
   border-radius: 8px;
   font-size: 0.9375rem;
   color: #111827;
-  background: #F9FAFB;
+  background: #f9fafb;
   transition: all 0.2s ease;
   outline: none;
 }
@@ -191,12 +191,12 @@
 .field-input:focus,
 .field-select:focus {
   background: white;
-  border-color: #1B4965;
+  border-color: #1b4965;
   box-shadow: 0 0 0 3px rgba(27, 73, 101, 0.1);
 }
 
 .field-input::placeholder {
-  color: #9CA3AF;
+  color: #9ca3af;
 }
 
 .field-select {
@@ -212,7 +212,7 @@
 .save-changes-btn {
   align-self: flex-start;
   padding: 0.625rem 1.5rem;
-  background: #1B4965;
+  background: #1b4965;
   color: white;
   border: none;
   border-radius: 8px;
@@ -236,7 +236,7 @@
 /* Password Section */
 .password-section {
   padding-top: 1rem;
-  border-top: 1px solid #F3F4F6;
+  border-top: 1px solid #f3f4f6;
 }
 
 .password-toggle-btn {
@@ -245,8 +245,8 @@
   gap: 0.625rem;
   padding: 0.625rem 1.25rem;
   background: transparent;
-  color: #1B4965;
-  border: 1px solid #BEE9E8;
+  color: #1b4965;
+  border: 1px solid #bee9e8;
   border-radius: 8px;
   font-size: 0.9375rem;
   font-weight: 500;
@@ -255,8 +255,8 @@
 }
 
 .password-toggle-btn:hover {
-  background: #F0F4F7;
-  border-color: #62A8C3;
+  background: #f0f4f7;
+  border-color: #62a8c3;
 }
 
 .password-fields {
@@ -265,9 +265,9 @@
   gap: 1rem;
   margin-top: 1rem;
   padding: 1rem;
-  background: #F9FAFB;
+  background: #f9fafb;
   border-radius: 8px;
-  border: 1px solid #E5E7EB;
+  border: 1px solid #e5e7eb;
 }
 
 /* Language & Region Grid */
@@ -299,13 +299,13 @@
 .subsection-title {
   font-size: 16px;
   font-weight: 600;
-  color: #1F2937;
+  color: #1f2937;
   margin: 0 0 4px 0;
 }
 
 .subsection-description {
   font-size: 14px;
-  color: #6B7280;
+  color: #6b7280;
   margin: 0;
   line-height: 1.5;
 }
@@ -313,7 +313,13 @@
 /* Region Settings Divider */
 .region-settings-divider {
   height: 1px;
-  background: linear-gradient(to right, transparent, #E5E7EB 20%, #E5E7EB 80%, transparent);
+  background: linear-gradient(
+    to right,
+    transparent,
+    #e5e7eb 20%,
+    #e5e7eb 80%,
+    transparent
+  );
   margin: 2rem 0;
 }
 
@@ -330,7 +336,6 @@
   max-width: 100%;
 }
 
-
 .notification-list {
   display: flex;
   flex-direction: column;
@@ -342,7 +347,7 @@
   align-items: flex-start;
   justify-content: space-between;
   padding: 1.25rem 0;
-  border-bottom: 1px solid #F3F4F6;
+  border-bottom: 1px solid #f3f4f6;
 }
 
 .notification-item:last-child {
@@ -365,7 +370,7 @@
 
 .notification-desc {
   font-size: 0.875rem;
-  color: #6B7280;
+  color: #6b7280;
   margin: 0;
   line-height: 1.5;
   text-align: left;
@@ -383,10 +388,10 @@
 .notification-category-title {
   font-size: 1rem;
   font-weight: 600;
-  color: #1B4965;
+  color: #1b4965;
   margin: 0 0 1rem 0;
   padding-bottom: 0.5rem;
-  border-bottom: 2px solid #BEE9E8;
+  border-bottom: 2px solid #bee9e8;
 }
 
 .notification-list {
@@ -397,7 +402,7 @@
 /* Form Validation Styles */
 .field-error {
   display: block;
-  color: #DC2626;
+  color: #dc2626;
   font-size: 0.8125rem;
   margin-top: 0.25rem;
   font-weight: 500;
@@ -405,21 +410,21 @@
 
 .field-input.error,
 .field-select.error {
-  border-color: #DC2626;
-  background: #FEF2F2;
+  border-color: #dc2626;
+  background: #fef2f2;
 }
 
 .field-input.error:focus,
 .field-select.error:focus {
-  border-color: #DC2626;
+  border-color: #dc2626;
   box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
 }
 
 /* Success and Error Messages */
 .success-message {
-  background: #D1FAE5;
-  border: 1px solid #34D399;
-  color: #065F46;
+  background: #d1fae5;
+  border: 1px solid #34d399;
+  color: #065f46;
   padding: 1rem 1.25rem;
   border-radius: 8px;
   margin-bottom: 1.25rem;
@@ -428,9 +433,9 @@
 }
 
 .error-message {
-  background: #FEE2E2;
-  border: 1px solid #DC2626;
-  color: #991B1B;
+  background: #fee2e2;
+  border: 1px solid #dc2626;
+  color: #991b1b;
   padding: 1rem 1.25rem;
   border-radius: 8px;
   margin-bottom: 1.25rem;
@@ -442,7 +447,7 @@
 .loading-spinner {
   text-align: center;
   padding: 2rem;
-  color: #6B7280;
+  color: #6b7280;
   font-size: 1rem;
 }
 
@@ -459,7 +464,7 @@
 }
 
 .save-changes-btn:disabled:hover {
-  background: #1B4965;
+  background: #1b4965;
   box-shadow: none;
 }
 
@@ -485,14 +490,14 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #D1D5DB;
+  background-color: #d1d5db;
   border-radius: 28px;
   transition: all 0.3s ease;
 }
 
 .toggle-slider:before {
   position: absolute;
-  content: "";
+  content: '';
   height: 22px;
   width: 22px;
   left: 3px;
@@ -504,7 +509,7 @@
 }
 
 .toggle-switch input:checked + .toggle-slider {
-  background-color: #1B4965;
+  background-color: #1b4965;
 }
 
 .toggle-switch input:checked + .toggle-slider:before {

@@ -11,7 +11,10 @@ jest.mock('react-router-dom', () => ({
 }));
 
 // Mock the assets
-jest.mock('../assets/illustrations/home-illustration.jpg', () => 'mock-image.jpg');
+jest.mock(
+  '../assets/illustrations/home-illustration.jpg',
+  () => 'mock-image.jpg'
+);
 
 describe('Home Component - Core Functionality', () => {
   beforeEach(() => {
@@ -26,7 +29,7 @@ describe('Home Component - Core Functionality', () => {
     jest.useRealTimers();
   });
 
-  // Helper function to render component 
+  // Helper function to render component
   const renderHome = () => {
     return render(
       <BrowserRouter>
@@ -41,10 +44,14 @@ describe('Home Component - Core Functionality', () => {
     // Main heading and subheading
     expect(screen.getByText('Connect surplus with')).toBeInTheDocument();
     expect(screen.getByText('those in need')).toBeInTheDocument();
-    
+
     // Description paragraph - updated to match actual content
-    expect(screen.getByText(/Connecting food businesses with community organizations/i)).toBeInTheDocument();
-    
+    expect(
+      screen.getByText(
+        /Connecting food businesses with community organizations/i
+      )
+    ).toBeInTheDocument();
+
     // CTA button - updated to match actual button text
     const button = screen.getByRole('button', { name: /Join Us Now/i });
     expect(button).toBeInTheDocument();
@@ -99,7 +106,7 @@ describe('Home Component - Core Functionality', () => {
 
   test('cleans up properly on component unmount', () => {
     const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
-    
+
     const { unmount } = renderHome();
     unmount();
 

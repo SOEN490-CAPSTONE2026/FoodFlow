@@ -107,8 +107,15 @@ describe('DonorDashboard', () => {
   });
 
   test('all routes render within DonorLayout', () => {
-    const routes = ['/', '/dashboard', '/list', '/requests', '/search', '/messages'];
-    
+    const routes = [
+      '/',
+      '/dashboard',
+      '/list',
+      '/requests',
+      '/search',
+      '/messages',
+    ];
+
     routes.forEach(route => {
       const { unmount } = renderWithRouter(route);
       expect(screen.getByTestId('donor-layout')).toBeInTheDocument();

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { X } from 'lucide-react';
+import { adminDisputeAPI } from '../../services/api';
 import './Admin_Styles/AdminDisputeDetail.css';
 
 const AdminDisputeDetail = () => {
@@ -8,6 +9,7 @@ const AdminDisputeDetail = () => {
   const navigate = useNavigate();
   const [dispute, setDispute] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState('');
 
   useEffect(() => {
@@ -17,32 +19,42 @@ const AdminDisputeDetail = () => {
   const fetchDisputeDetails = async () => {
     try {
       setLoading(true);
-      // Mock data
-      const mockDisputes = {
-        '1': {
-          id: 1,
-          caseId: 'DR-2024-001',
-          reporterId: 'USR-SDY3S9M9P',
-          reporterName: 'Green Grocers LLC',
-          reporterType: 'Donor',
-          reportedUserId: 'USR-3M1AZ7DZ3',
-          reportedUserName: 'Hope Center',
-          reportedUserType: 'Receiver',
-          donationId: '0891',
-          description: 'The donor failed to deliver the promised food items on the scheduled date. We had volunteers waiting for 2 hours past the agreed pickup time. Multiple attempts to contact them went unanswered. This has caused significant disruption to our meal service schedule.',
-          status: 'Open',
-          createdDate: '2024-12-22',
-          createdTime: '14:32'
-        }
-      };
-      
-      const data = mockDisputes[id];
+      setError(null);
+
+      const response = await adminDisputeAPI.getDisputeById(id);
+      const data = response.data;
+
       if (data) {
-        setDispute(data);
+        // Map backend field names to frontend expected names
+        const mappedData = {
+          ...data,
+          caseId: `DR-${data.id}`,
+          reportedUserId: data.reportedId,
+          reportedUserName: data.reportedName,
+          reporterId: data.reporterId,
+          reporterName: data.reporterName,
+          donationId: data.donationId,
+          description: data.description,
+          status: data.status,
+          // Format date and time from createdAt
+          createdDate: data.createdAt
+            ? new Date(data.createdAt).toLocaleDateString('en-CA')
+            : 'N/A',
+          createdTime: data.createdAt
+            ? new Date(data.createdAt).toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false,
+              })
+            : 'N/A',
+        };
+
+        setDispute(mappedData);
         setSelectedStatus(data.status);
       }
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching dispute details:', err);
+      setError(err.response?.data?.message || 'Failed to load case details');
     } finally {
       setLoading(false);
     }
@@ -52,8 +64,35 @@ const AdminDisputeDetail = () => {
     navigate('/admin/disputes');
   };
 
+  const handleStatusChange = async () => {
+    if (selectedStatus === dispute.status) {
+      alert('Status is already set to ' + selectedStatus);
+      return;
+    }
+
+    if (
+      window.confirm(
+        `Are you sure you want to change the status to "${selectedStatus}"?`
+      )
+    ) {
+      try {
+        await adminDisputeAPI.updateDisputeStatus(id, selectedStatus, '');
+        alert('Status updated successfully');
+        fetchDisputeDetails(); // Refresh the data
+      } catch (err) {
+        console.error('Error updating status:', err);
+        alert(
+          'Failed to update status: ' +
+            (err.response?.data?.message || err.message)
+        );
+      }
+    }
+  };
+
   const handleDeactivateUser = () => {
-    if (window.confirm('Are you sure you want to deactivate this user account?')) {
+    if (
+      window.confirm('Are you sure you want to deactivate this user account?')
+    ) {
       alert('User account deactivation requested');
     }
   };
@@ -67,8 +106,13 @@ const AdminDisputeDetail = () => {
   };
 
   const handleCloseCase = () => {
-    if (window.confirm('Case must be marked as Resolved before closing. Continue?')) {
-      alert('Case closure requested');
+    if (selectedStatus !== 'Resolved' && selectedStatus !== 'RESOLVED') {
+      alert('Case must be marked as Resolved before closing');
+      return;
+    }
+
+    if (window.confirm('Are you sure you want to close this case?')) {
+      handleStatusChange();
     }
   };
 
@@ -76,8 +120,26 @@ const AdminDisputeDetail = () => {
     return <div className="detail-loading">Loading...</div>;
   }
 
+  if (error) {
+    return (
+      <div className="detail-error">
+        <p>{error}</p>
+        <button onClick={handleClose} className="back-btn">
+          Back to Disputes
+        </button>
+      </div>
+    );
+  }
+
   if (!dispute) {
-    return <div className="detail-error">Case not found</div>;
+    return (
+      <div className="detail-error">
+        <p>Case not found</p>
+        <button onClick={handleClose} className="back-btn">
+          Back to Disputes
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -90,12 +152,16 @@ const AdminDisputeDetail = () => {
         <div className="modal-header">
           <div className="case-title-row">
             <h1>Case {dispute.caseId}</h1>
-            <span className={`status-pill status-${dispute.status.toLowerCase()}`}>
+            <span
+              className={`status-pill status-${dispute.status.toLowerCase()}`}
+            >
               {dispute.status}
             </span>
           </div>
           <div className="header-title-row">
-            <span className="created-text">Created on {dispute.createdDate} at {dispute.createdTime}</span>
+            <span className="created-text">
+              Created on {dispute.createdDate} at {dispute.createdTime}
+            </span>
           </div>
         </div>
 
@@ -154,16 +220,16 @@ const AdminDisputeDetail = () => {
                 <h3 className="section-title">RELATED DONATION</h3>
                 <div className="info-row">
                   <span className="info-label">Donation ID</span>
-                  <a href="#" className="donation-link">DON-2024-{dispute.donationId}</a>
+                  <a href="#" className="donation-link">
+                    DON-2024-{dispute.donationId}
+                  </a>
                 </div>
               </div>
 
               {/* Report Description */}
               <div className="info-section">
                 <h3 className="section-title">REPORT DESCRIPTION</h3>
-                <div className="description-text">
-                  {dispute.description}
-                </div>
+                <div className="description-text">{dispute.description}</div>
               </div>
             </div>
 
@@ -174,7 +240,9 @@ const AdminDisputeDetail = () => {
                 <h3 className="section-title">CASE STATUS</h3>
                 <div className="info-row">
                   <span className="info-label">Current Status</span>
-                  <span className={`status-pill status-${dispute.status.toLowerCase()}`}>
+                  <span
+                    className={`status-pill status-${dispute.status.toLowerCase()}`}
+                  >
                     {dispute.status}
                   </span>
                 </div>
@@ -182,16 +250,26 @@ const AdminDisputeDetail = () => {
                   <span className="info-label">Update Status</span>
                   <select
                     value={selectedStatus}
-                    onChange={(e) => setSelectedStatus(e.target.value)}
+                    onChange={e => setSelectedStatus(e.target.value)}
                     className="status-select"
                   >
-                    <option value="Open">Open</option>
-                    <option value="Under Review">Under Review</option>
-                    <option value="Resolved">Resolved</option>
-                    <option value="Closed">Closed</option>
+                    <option value="OPEN">Open</option>
+                    <option value="UNDER_REVIEW">Under Review</option>
+                    <option value="RESOLVED">Resolved</option>
+                    <option value="CLOSED">Closed</option>
                   </select>
                 </div>
-                <p className="status-hint">Status changes require confirmation</p>
+                <button
+                  className="action-btn"
+                  onClick={handleStatusChange}
+                  disabled={selectedStatus === dispute.status}
+                  style={{ marginTop: '10px', width: '100%' }}
+                >
+                  Save Status Change
+                </button>
+                <p className="status-hint">
+                  Status changes require confirmation
+                </p>
               </div>
 
               {/* Administrative Actions */}
@@ -206,7 +284,9 @@ const AdminDisputeDetail = () => {
                 <button className="action-btn" onClick={handleFlagUser}>
                   Flag User for Review
                 </button>
-                <p className="actions-hint">All actions are admin-only and not visible to platform users.</p>
+                <p className="actions-hint">
+                  All actions are admin-only and not visible to platform users.
+                </p>
               </div>
 
               {/* Case Resolution */}
@@ -215,7 +295,9 @@ const AdminDisputeDetail = () => {
                 <button className="close-case-btn" onClick={handleCloseCase}>
                   Close Case
                 </button>
-                <p className="resolution-hint">Case must be marked as Resolved before closing</p>
+                <p className="resolution-hint">
+                  Case must be marked as Resolved before closing
+                </p>
               </div>
             </div>
           </div>
@@ -226,7 +308,3 @@ const AdminDisputeDetail = () => {
 };
 
 export default AdminDisputeDetail;
-
-
-
-

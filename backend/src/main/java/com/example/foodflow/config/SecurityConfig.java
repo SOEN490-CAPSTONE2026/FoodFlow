@@ -49,6 +49,8 @@ public class SecurityConfig {
                 // Public endpoints
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
+                .requestMatchers("/api/files/**").permitAll()  // Allow access to uploaded files
+                .requestMatchers("/uploads/**").permitAll()  // Allow access to legacy upload URLs
                 .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers("/api/analytics/**").permitAll()
                 .requestMatchers("/ws/**").permitAll()  // Allow WebSocket connections
@@ -57,21 +59,22 @@ public class SecurityConfig {
                 .requestMatchers("/api/conversations/**").hasAnyAuthority("DONOR", "RECEIVER")
                 .requestMatchers("/api/messages/**").hasAnyAuthority("DONOR", "RECEIVER")
                 
-                // ✅ FIXED: Surplus endpoints with proper role restrictions
+                // Surplus endpoints with proper role restrictions
                 .requestMatchers(HttpMethod.POST, "/api/surplus").hasAuthority("DONOR")
+                .requestMatchers(HttpMethod.POST, "/api/surplus/*/evidence").hasAuthority("DONOR")
                 .requestMatchers(HttpMethod.GET, "/api/surplus").hasAuthority("RECEIVER")
                 .requestMatchers(HttpMethod.GET, "/api/surplus/my-posts").hasAuthority("DONOR")
                 .requestMatchers(HttpMethod.DELETE, "/api/surplus/**").hasAuthority("DONOR")
 
                 
-                // ✅ NEW: Claims endpoints  
+                // Claims endpoints
                 .requestMatchers(HttpMethod.GET, "/api/claims/post/**").hasAnyAuthority("DONOR", "RECEIVER")
                 .requestMatchers("/api/claims/**").hasAuthority("RECEIVER")
                 
-                // ✅ NEW: Receiver Preferences endpoints
+                // Receiver Preferences endpoints
                 .requestMatchers("/api/receiver/preferences/**").hasAuthority("RECEIVER")
                 
-                // ✅ NEW: Reports/Disputes endpoints - TEMPORARILY permitAll for debugging
+                // Reports/Disputes endpoints - TEMPORARILY permitAll for debugging
                 .requestMatchers("/api/reports/**").permitAll()
                 
                 // Other endpoints
@@ -85,6 +88,10 @@ public class SecurityConfig {
                 .requestMatchers("/donor/**").hasAuthority("DONOR")
                 .requestMatchers("/receiver/**").hasAuthority("RECEIVER")
                 .requestMatchers("/admin/**").hasAuthority("ADMIN")
+
+                // Profile endpoints
+                .requestMatchers(HttpMethod.PUT, "/api/profile/**").hasAnyAuthority("RECEIVER", "DONOR", "ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/profile/**").hasAnyAuthority("RECEIVER", "DONOR", "ADMIN")
                 
                 // All other requests require authentication
                 .anyRequest().authenticated()

@@ -14,15 +14,19 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Collections;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -45,6 +49,7 @@ class UserProfileControllerTest {
     private UserRepository userRepository;
     
     private User testUser;
+    private UsernamePasswordAuthenticationToken authentication;
     
     @BeforeEach
     void setUp() {
@@ -53,12 +58,21 @@ class UserProfileControllerTest {
         testUser.setEmail("test@example.com");
         testUser.setRole(UserRole.RECEIVER);
         
+        // Create authentication token with the User entity as principal
+        authentication = new UsernamePasswordAuthenticationToken(
+            testUser,
+            null,
+            Collections.singletonList(new SimpleGrantedAuthority(UserRole.RECEIVER.name()))
+        );
+        
         // Mock UserRepository to return testUser when findByEmail is called
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(testUser));
+        
+        // Clear SecurityContext before each test to ensure clean state
+        SecurityContextHolder.clearContext();
     }
     
     @Test
-    @WithMockUser(username = "test@example.com")
     void getRegionSettings_AuthenticatedUser_ShouldReturn200() throws Exception {
         // Given
         RegionResponse response = new RegionResponse();
@@ -71,7 +85,8 @@ class UserProfileControllerTest {
             .thenReturn(response);
         
         // When & Then
-        mockMvc.perform(get("/api/profile/region"))
+        mockMvc.perform(get("/api/profile/region")
+                .with(authentication(authentication)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.country").value("Canada"))
                 .andExpect(jsonPath("$.city").value("Toronto"))
@@ -80,7 +95,6 @@ class UserProfileControllerTest {
     }
     
     @Test
-    @WithMockUser(username = "test@example.com")
     void updateRegionSettings_ValidRequest_ShouldReturn200() throws Exception {
         // Given
         UpdateRegionRequest request = new UpdateRegionRequest();
@@ -98,6 +112,7 @@ class UserProfileControllerTest {
         
         // When & Then
         mockMvc.perform(put("/api/profile/region")
+                .with(authentication(authentication))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -108,7 +123,6 @@ class UserProfileControllerTest {
     }
     
     @Test
-    @WithMockUser(username = "test@example.com")
     void updateRegionSettings_MissingCountry_ShouldReturn400() throws Exception {
         // Given
         UpdateRegionRequest request = new UpdateRegionRequest();
@@ -117,13 +131,13 @@ class UserProfileControllerTest {
         
         // When & Then
         mockMvc.perform(put("/api/profile/region")
+                .with(authentication(authentication))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
     }
     
     @Test
-    @WithMockUser(username = "test@example.com")
     void updateRegionSettings_MissingCity_ShouldReturn400() throws Exception {
         // Given
         UpdateRegionRequest request = new UpdateRegionRequest();
@@ -132,13 +146,13 @@ class UserProfileControllerTest {
         
         // When & Then
         mockMvc.perform(put("/api/profile/region")
+                .with(authentication(authentication))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
     }
     
     @Test
-    @WithMockUser(username = "test@example.com")
     void updateRegionSettings_EmptyCountry_ShouldReturn400() throws Exception {
         // Given
         UpdateRegionRequest request = new UpdateRegionRequest();
@@ -147,13 +161,13 @@ class UserProfileControllerTest {
         
         // When & Then
         mockMvc.perform(put("/api/profile/region")
+                .with(authentication(authentication))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
     }
     
     @Test
-    @WithMockUser(username = "test@example.com")
     void updateRegionSettings_EmptyCity_ShouldReturn400() throws Exception {
         // Given
         UpdateRegionRequest request = new UpdateRegionRequest();
@@ -162,13 +176,13 @@ class UserProfileControllerTest {
         
         // When & Then
         mockMvc.perform(put("/api/profile/region")
+                .with(authentication(authentication))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
     }
     
     @Test
-    @WithMockUser(username = "test@example.com")
     void updateRegionSettings_DifferentCountries_ShouldWorkCorrectly() throws Exception {
         // Test with different country/city combinations
         
@@ -187,6 +201,7 @@ class UserProfileControllerTest {
             .thenReturn(usResponse);
         
         mockMvc.perform(put("/api/profile/region")
+                .with(authentication(authentication))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(usRequest)))
                 .andExpect(status().isOk())
@@ -197,7 +212,7 @@ class UserProfileControllerTest {
     
     @Test
     void getRegionSettings_Unauthenticated_ShouldReturn403() throws Exception {
-        // When & Then - Spring Security returns 403 for unauthenticated requests
+        // When & Then - No authentication provided, Spring Security should return 403
         mockMvc.perform(get("/api/profile/region"))
                 .andExpect(status().isForbidden());
     }
@@ -209,10 +224,92 @@ class UserProfileControllerTest {
         request.setCountry("Canada");
         request.setCity("Toronto");
         
-        // When & Then - Spring Security returns 403 for unauthenticated requests
+        // When & Then - No authentication provided, Spring Security should return 403
         mockMvc.perform(put("/api/profile/region")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void getProfile_AuthenticatedUser_ShouldReturn200() throws Exception {
+        // Given
+        com.example.foodflow.model.dto.UserProfileResponse response = 
+            new com.example.foodflow.model.dto.UserProfileResponse();
+        response.setId(1L);
+        response.setEmail("test@example.com");
+        response.setFullName("John Doe");
+        response.setPhone("+1234567890");
+        response.setProfilePhoto("https://example.com/photo.jpg");
+        response.setOrganizationName("Test Organization");
+        response.setOrganizationAddress("123 Test St, Test City");
+        
+        when(userProfileService.getProfile(any()))
+            .thenReturn(response);
+        
+        // When & Then
+        mockMvc.perform(get("/api/profile")
+                .with(authentication(authentication)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.email").value("test@example.com"))
+                .andExpect(jsonPath("$.fullName").value("John Doe"))
+                .andExpect(jsonPath("$.phone").value("+1234567890"))
+                .andExpect(jsonPath("$.profilePhoto").value("https://example.com/photo.jpg"))
+                .andExpect(jsonPath("$.organizationName").value("Test Organization"))
+                .andExpect(jsonPath("$.organizationAddress").value("123 Test St, Test City"));
+    }
+    
+    @Test
+    void getProfile_Unauthenticated_ShouldReturn403() throws Exception {
+        // When & Then - No authentication provided, Spring Security should return 403
+        mockMvc.perform(get("/api/profile"))
+                .andExpect(status().isForbidden());
+    }
+    
+    @Test
+    void updateProfile_Unauthenticated_ShouldReturn403() throws Exception {
+        // Given
+        com.example.foodflow.model.dto.UpdateProfileRequest request = 
+            new com.example.foodflow.model.dto.UpdateProfileRequest();
+        request.setFullName("Jane Smith");
+        
+        // When & Then - No authentication provided, Spring Security should return 403
+        mockMvc.perform(put("/api/profile")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
+    
+    @Test
+    void updateProfile_InvalidEmail_ShouldReturn400() throws Exception {
+        // Given - Assuming UpdateProfileRequest has email validation
+        com.example.foodflow.model.dto.UpdateProfileRequest request = 
+            new com.example.foodflow.model.dto.UpdateProfileRequest();
+        request.setFullName("Jane Smith");
+        request.setEmail("invalid-email"); // Invalid email format
+        
+        // When & Then - Should return 400 due to validation error
+        mockMvc.perform(put("/api/profile")
+                .with(authentication(authentication))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+    
+    @Test
+    void updateProfile_EmptyFullName_ShouldReturn400() throws Exception {
+        // Given - Assuming fullName has @NotBlank validation
+        com.example.foodflow.model.dto.UpdateProfileRequest request = 
+            new com.example.foodflow.model.dto.UpdateProfileRequest();
+        request.setFullName(""); // Empty string
+        request.setPhone("+1234567890");
+        
+        // When & Then - Should return 400 due to validation error
+        mockMvc.perform(put("/api/profile")
+                .with(authentication(authentication))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
     }
 }
