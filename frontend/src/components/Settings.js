@@ -201,7 +201,7 @@ const Settings = () => {
         });
       }
 
-      // Fetch full profile (name, email, phone, org, photo)
+      // Fetch user profile data
       const profileResp = await profileAPI.get();
       if (profileResp.data) {
         const p = profileResp.data;
@@ -209,18 +209,30 @@ const Settings = () => {
           ...prev,
           fullName: p.fullName || prev.fullName || '',
           email: p.email || prev.email || '',
-          phoneNumber: p.phone || prev.phoneNumber || '',
+          phoneNumber: p.phone || p.phoneNumber || prev.phoneNumber || '',
           organization: p.organizationName || prev.organization || '',
-          address: p.organizationAddress || prev.address || ''
+          address: p.organizationAddress || p.address || prev.address || '',
         }));
 
         if (p.profilePhoto) {
-          // If backend returned a URL or base64, use it directly
           setProfileImage(p.profilePhoto);
         }
 
         // Update notification phone if missing
-        setNotificationPreferences(prev => ({ ...prev, smsPhoneNumber: p.phone || prev.smsPhoneNumber }));
+        setNotificationPreferences(prev => ({
+          ...prev,
+          smsPhoneNumber: p.phone || p.phoneNumber || prev.smsPhoneNumber,
+        }));
+      }
+
+      // Fetch region settings
+      const regionResp = await api.get('/profile/region');
+      if (regionResp.data) {
+        setRegionSettings({
+          country: regionResp.data.country,
+          city: regionResp.data.city,
+          timezone: regionResp.data.timezone,
+        });
       }
     } catch (error) {
       console.error('Error fetching profile from backend:', error);
