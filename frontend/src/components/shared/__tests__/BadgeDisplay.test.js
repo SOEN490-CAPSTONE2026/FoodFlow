@@ -31,9 +31,12 @@ describe('BadgeDisplay', () => {
       </BrowserRouter>
     );
 
-    expect(screen.getByText('Total Points')).toBeInTheDocument();
-    const skeletons = document.querySelectorAll('.badge-skeleton');
-    expect(skeletons.length).toBe(4);
+    // Check for skeleton loaders in loading state
+    const pointsSkeleton = document.querySelector('.points-content-skeleton');
+    expect(pointsSkeleton).toBeInTheDocument();
+    
+    const badgeSkeletons = document.querySelectorAll('.badge-skeleton');
+    expect(badgeSkeletons.length).toBe(4);
   });
 
   it('renders error state correctly', () => {
