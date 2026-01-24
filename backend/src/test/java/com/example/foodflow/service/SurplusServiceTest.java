@@ -707,11 +707,6 @@ class SurplusServiceTest {
         assertThat(postCaptor.getValue().getStatus()).isEqualTo(PostStatus.COMPLETED);
         assertThat(postCaptor.getValue().getOtpCode()).isNull();
 
-        // Verify claim was updated
-        ArgumentCaptor<com.example.foodflow.model.entity.Claim> claimCaptor = ArgumentCaptor
-                .forClass(com.example.foodflow.model.entity.Claim.class);
-        verify(claimRepository).save(claimCaptor.capture());
-        assertThat(claimCaptor.getValue().getStatus()).isEqualTo(ClaimStatus.COMPLETED);
         // Verify ClaimService.completeClaim was called
         verify(claimService).completeClaim(claim.getId());
     }
@@ -888,7 +883,7 @@ class SurplusServiceTest {
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
         when(claimRepository.findBySurplusPost(post)).thenReturn(Optional.of(claim));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(post);
-        when(claimRepository.save(any(com.example.foodflow.model.entity.Claim.class))).thenReturn(claim);
+        doNothing().when(claimService).completeClaim(anyLong());
         when(pickupTimeToleranceConfig.getEarlyToleranceMinutes()).thenReturn(15);
         when(pickupTimeToleranceConfig.getLateToleranceMinutes()).thenReturn(30);
 
@@ -940,7 +935,7 @@ class SurplusServiceTest {
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
         when(claimRepository.findBySurplusPost(post)).thenReturn(Optional.of(claim));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(post);
-        when(claimRepository.save(any(com.example.foodflow.model.entity.Claim.class))).thenReturn(claim);
+        doNothing().when(claimService).completeClaim(anyLong());
         when(pickupTimeToleranceConfig.getEarlyToleranceMinutes()).thenReturn(15);
         when(pickupTimeToleranceConfig.getLateToleranceMinutes()).thenReturn(30);
 
@@ -985,14 +980,10 @@ class SurplusServiceTest {
         post.setExpiryDate(LocalDate.now().plusDays(2));
         post.setPickupDate(LocalDate.now());
         post.setPickupFrom(LocalTime.of(9, 0));
-        post.setPickupTo(LocalTime.of(17, 0));
-
-        claim.setSurplusPost(post);
-
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
         when(claimRepository.findBySurplusPost(post)).thenReturn(Optional.of(claim));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(post);
-        when(claimRepository.save(any(com.example.foodflow.model.entity.Claim.class))).thenReturn(claim);
+        doNothing().when(claimService).completeClaim(anyLong());
         when(pickupTimeToleranceConfig.getEarlyToleranceMinutes()).thenReturn(15);
         when(pickupTimeToleranceConfig.getLateToleranceMinutes()).thenReturn(30);
 
@@ -1106,11 +1097,10 @@ class SurplusServiceTest {
         post.setPickupTo(LocalTime.of(17, 0));
 
         claim.setSurplusPost(post);
-
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
         when(claimRepository.findBySurplusPost(post)).thenReturn(Optional.of(claim));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(post);
-        when(claimRepository.save(any(com.example.foodflow.model.entity.Claim.class))).thenReturn(claim);
+        doNothing().when(claimService).completeClaim(anyLong());
 
         // When - Should succeed without time validation
         SurplusResponse response = surplusService.confirmPickup(1L, "123456", donor);

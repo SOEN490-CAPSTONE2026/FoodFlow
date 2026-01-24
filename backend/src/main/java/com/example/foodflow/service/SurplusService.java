@@ -66,7 +66,7 @@ public class SurplusService {
             TimelineService timelineService,
             DonationTimelineRepository timelineRepository,
             FileStorageService fileStorageService,
-            PickupTimeToleranceConfig pickupTimeToleranceConfig) {
+            PickupTimeToleranceConfig pickupTimeToleranceConfig,
             GamificationService gamificationService,
             ClaimService claimService) {
         this.surplusPostRepository = surplusPostRepository;

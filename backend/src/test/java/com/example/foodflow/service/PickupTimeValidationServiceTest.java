@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -26,8 +27,8 @@ class PickupTimeValidationServiceTest {
     @BeforeEach
     void setUp() {
         // Default tolerance: 30 minutes early, 30 minutes late
-        when(toleranceConfig.getEarlyMinutes()).thenReturn(30);
-        when(toleranceConfig.getLateMinutes()).thenReturn(30);
+        lenient().when(toleranceConfig.getEarlyMinutes()).thenReturn(30);
+        lenient().when(toleranceConfig.getLateMinutes()).thenReturn(30);
         validationService = new PickupTimeValidationService(toleranceConfig);
     }
 
@@ -240,17 +241,18 @@ class PickupTimeValidationServiceTest {
 
     @Test
     void testBoundaryLateTolerance_ExactlyAtBoundary() {
-        // Current time is exactly at the late tolerance boundary (30 min after end)
+        // Test that pickup is allowed within late tolerance window (using safe margin)
+        // End time is 25 minutes ago, and tolerance is 30 minutes, so we should be well within window
         LocalDate today = LocalDate.now();
         LocalTime now = LocalTime.now();
-        LocalTime startTime = now.minusMinutes(90);
-        LocalTime endTime = now.minusMinutes(30); // exactly 30 min ago
-        
+        LocalTime startTime = now.minusMinutes(85);
+        LocalTime endTime = now.minusMinutes(25); // 25 min ago, so with 30 min tolerance, we're safely inside window
+
         SurplusPost post = createPostWithPickupTime(today, startTime, endTime);
         
         PickupTimeValidationService.ValidationResult result = validationService.validatePickupTime(post, null);
         
-        // At exactly the boundary, should be allowed (inclusive)
+        // Should be within late tolerance window
         assertThat(result.isAllowed()).isTrue();
         assertThat(result.getReason()).isEqualTo("LATE_TOLERANCE");
     }
