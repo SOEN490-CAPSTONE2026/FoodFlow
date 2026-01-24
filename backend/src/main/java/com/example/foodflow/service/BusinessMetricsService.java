@@ -54,6 +54,29 @@ public class BusinessMetricsService {
     // Food Category Metrics
     private final Counter foodCategoryPostsCounter;
 
+    // Dispute/Report Metrics
+    private final Counter disputesCreatedCounter;
+    private final Counter disputesResolvedCounter;
+    private final Counter disputesRejectedCounter;
+
+    // Feedback Metrics
+    private final Counter feedbackSubmittedCounter;
+    private final Counter ratingsGivenCounter;
+
+    // Admin Action Metrics
+    private final Counter adminUserActionsCounter;
+    private final Counter adminDisputeActionsCounter;
+    private final Counter adminAlertsSentCounter;
+
+    // WebSocket Metrics
+    private final Counter websocketConnectionsCounter;
+    private final Counter websocketDisconnectionsCounter;
+    private final Counter websocketMessagesCounter;
+
+    // Email Metrics
+    private final Counter emailsSentCounter;
+    private final Counter emailsFailedCounter;
+
     public BusinessMetricsService(MeterRegistry meterRegistry,
                                  ClaimRepository claimRepository,
                                  SurplusPostRepository surplusPostRepository) {
@@ -141,6 +164,63 @@ public class BusinessMetricsService {
 
         this.foodCategoryPostsCounter = Counter.builder("food.categories.posts")
                 .description("Total posts created by food category")
+                .register(meterRegistry);
+
+        // Initialize dispute counters
+        this.disputesCreatedCounter = Counter.builder("disputes.created")
+                .description("Total disputes/reports created")
+                .register(meterRegistry);
+
+        this.disputesResolvedCounter = Counter.builder("disputes.resolved")
+                .description("Total disputes resolved")
+                .register(meterRegistry);
+
+        this.disputesRejectedCounter = Counter.builder("disputes.rejected")
+                .description("Total disputes rejected")
+                .register(meterRegistry);
+
+        // Initialize feedback counters
+        this.feedbackSubmittedCounter = Counter.builder("feedback.submitted")
+                .description("Total feedback submissions")
+                .register(meterRegistry);
+
+        this.ratingsGivenCounter = Counter.builder("ratings.given")
+                .description("Total ratings given")
+                .register(meterRegistry);
+
+        // Initialize admin action counters
+        this.adminUserActionsCounter = Counter.builder("admin.user.actions")
+                .description("Total admin actions on users")
+                .register(meterRegistry);
+
+        this.adminDisputeActionsCounter = Counter.builder("admin.dispute.actions")
+                .description("Total admin actions on disputes")
+                .register(meterRegistry);
+
+        this.adminAlertsSentCounter = Counter.builder("admin.alerts.sent")
+                .description("Total admin alerts sent")
+                .register(meterRegistry);
+
+        // Initialize websocket counters
+        this.websocketConnectionsCounter = Counter.builder("websocket.connections")
+                .description("Total websocket connections established")
+                .register(meterRegistry);
+
+        this.websocketDisconnectionsCounter = Counter.builder("websocket.disconnections")
+                .description("Total websocket disconnections")
+                .register(meterRegistry);
+
+        this.websocketMessagesCounter = Counter.builder("websocket.messages")
+                .description("Total websocket messages sent")
+                .register(meterRegistry);
+
+        // Initialize email counters
+        this.emailsSentCounter = Counter.builder("emails.sent")
+                .description("Total emails sent")
+                .register(meterRegistry);
+
+        this.emailsFailedCounter = Counter.builder("emails.failed")
+                .description("Total email delivery failures")
                 .register(meterRegistry);
     }
 
@@ -252,6 +332,90 @@ public class BusinessMetricsService {
     public void incrementFoodCategoryPosts(String category) {
         Counter.builder("food.categories.posts")
                 .tag("category", category)
+                .register(meterRegistry)
+                .increment();
+    }
+
+    // Dispute Methods
+    public void incrementDisputesCreated() {
+        disputesCreatedCounter.increment();
+    }
+
+    public void incrementDisputesResolved() {
+        disputesResolvedCounter.increment();
+    }
+
+    public void incrementDisputesRejected() {
+        disputesRejectedCounter.increment();
+    }
+
+    public void incrementDisputeStatusChange(String fromStatus, String toStatus) {
+        Counter.builder("disputes.status.changed")
+                .tag("from", fromStatus)
+                .tag("to", toStatus)
+                .register(meterRegistry)
+                .increment();
+    }
+
+    // Feedback Methods
+    public void incrementFeedbackSubmitted() {
+        feedbackSubmittedCounter.increment();
+    }
+
+    public void incrementRatingsGiven(int rating) {
+        ratingsGivenCounter.increment();
+        Counter.builder("ratings.by.score")
+                .tag("score", String.valueOf(rating))
+                .register(meterRegistry)
+                .increment();
+    }
+
+    // Admin Action Methods
+    public void incrementAdminUserAction(String action) {
+        adminUserActionsCounter.increment();
+        Counter.builder("admin.user.actions")
+                .tag("action", action)
+                .register(meterRegistry)
+                .increment();
+    }
+
+    public void incrementAdminDisputeAction(String action) {
+        adminDisputeActionsCounter.increment();
+        Counter.builder("admin.dispute.actions")
+                .tag("action", action)
+                .register(meterRegistry)
+                .increment();
+    }
+
+    public void incrementAdminAlertsSent() {
+        adminAlertsSentCounter.increment();
+    }
+
+    // WebSocket Methods
+    public void incrementWebsocketConnections() {
+        websocketConnectionsCounter.increment();
+    }
+
+    public void incrementWebsocketDisconnections() {
+        websocketDisconnectionsCounter.increment();
+    }
+
+    public void incrementWebsocketMessages() {
+        websocketMessagesCounter.increment();
+    }
+
+    // Email Methods
+    public void incrementEmailsSent() {
+        emailsSentCounter.increment();
+    }
+
+    public void incrementEmailsFailed() {
+        emailsFailedCounter.increment();
+    }
+
+    public void incrementEmailByType(String emailType) {
+        Counter.builder("emails.by.type")
+                .tag("type", emailType)
                 .register(meterRegistry)
                 .increment();
     }
