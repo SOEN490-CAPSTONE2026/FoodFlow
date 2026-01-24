@@ -70,6 +70,9 @@ public class User {
     @Column(name = "profile_photo", columnDefinition = "TEXT")
     private String profilePhoto;
 
+    @Column(name = "total_points")
+    private Integer totalPoints = 0;
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Organization organization;
 
@@ -147,4 +150,7 @@ public class User {
 
     public String getProfilePhoto() { return profilePhoto; }
     public void setProfilePhoto(String profilePhoto) { this.profilePhoto = profilePhoto; }
+
+    public Integer getTotalPoints() { return totalPoints; }
+    public void setTotalPoints(Integer totalPoints) { this.totalPoints = totalPoints; }
 }
