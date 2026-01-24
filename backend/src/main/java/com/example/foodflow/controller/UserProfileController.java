@@ -1,7 +1,9 @@
 package com.example.foodflow.controller;
 
 import com.example.foodflow.model.dto.RegionResponse;
+import com.example.foodflow.model.dto.UpdateProfileRequest;
 import com.example.foodflow.model.dto.UpdateRegionRequest;
+import com.example.foodflow.model.dto.UserProfileResponse;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.service.UserProfileService;
 import jakarta.validation.Valid;
@@ -21,6 +23,38 @@ public class UserProfileController {
     
     public UserProfileController(UserProfileService userProfileService) {
         this.userProfileService = userProfileService;
+    }
+    
+    /**
+     * GET /api/profile
+     * Retrieves the user profile data including organization information.
+     * 
+     * @param currentUser The authenticated user (injected by Spring Security)
+     * @return UserProfileResponse containing email, fullName, phone, organization name, and address
+     */
+    @GetMapping("")
+    public ResponseEntity<UserProfileResponse> getProfile(
+            @AuthenticationPrincipal User currentUser) {
+        
+        UserProfileResponse response = userProfileService.getProfile(currentUser);
+        return ResponseEntity.ok(response);
+    }
+    
+    /**
+     * PUT /api/profile
+     * Updates the user profile data including organization information.
+     * 
+     * @param currentUser The authenticated user (injected by Spring Security)
+     * @param request The update request containing fullName, phoneNumber, organizationName, address
+     * @return UserProfileResponse with the updated profile data
+     */
+    @PutMapping("")
+    public ResponseEntity<UserProfileResponse> updateProfile(
+            @AuthenticationPrincipal User currentUser,
+            @Valid @RequestBody UpdateProfileRequest request) {
+        
+        UserProfileResponse response = userProfileService.updateProfile(currentUser, request);
+        return ResponseEntity.ok(response);
     }
     
     /**

@@ -191,16 +191,30 @@ const Settings = () => {
 
   const fetchUserProfile = async () => {
     try {
-      const response = await api.get('/profile/region');
-      if (response.data) {
+      // Fetch user profile data (from Organization table)
+      const profileResponse = await api.get('/profile');
+      if (profileResponse.data) {
+        setFormData(prev => ({
+          ...prev,
+          fullName: profileResponse.data.fullName || '',
+          email: profileResponse.data.email || '',
+          phoneNumber: profileResponse.data.phoneNumber || '',
+          organization: profileResponse.data.organizationName || prev.organization || '',
+          address: profileResponse.data.address || ''
+        }));
+      }
+      
+      // Fetch region settings
+      const regionResponse = await api.get('/profile/region');
+      if (regionResponse.data) {
         setRegionSettings({
-          country: response.data.country,
-          city: response.data.city,
-          timezone: response.data.timezone
+          country: regionResponse.data.country,
+          city: regionResponse.data.city,
+          timezone: regionResponse.data.timezone
         });
       }
     } catch (error) {
-      console.error('Error fetching region from backend:', error);
+      console.error('Error fetching profile from backend:', error);
     } finally {
       setLoadingProfile(false);
     }
@@ -360,19 +374,20 @@ const Settings = () => {
     setSuccessMessage('');
     setErrors({});
 
-    // TODO: Backend will implement this endpoint
     try {
-      // Simulate save for now
-      setTimeout(() => {
-        setSuccessMessage('Profile updated successfully!');
-        
-        setLoading(false);
-      }, 500);
-    
+      // Call the API to save profile changes to the database
+      await api.put('/profile', {
+        fullName: formData.fullName,
+        phoneNumber: formData.phoneNumber,
+        organizationName: formData.organization,
+        address: formData.address
+      });
       
+      setSuccessMessage('Profile updated successfully!');
     } catch (error) {
       console.error('Error updating profile:', error);
       setErrors({ submit: 'Failed to update profile. Please try again.' });
+    } finally {
       setLoading(false);
     }
   };

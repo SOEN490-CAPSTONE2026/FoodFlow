@@ -1,8 +1,12 @@
 package com.example.foodflow.service;
 
 import com.example.foodflow.model.dto.RegionResponse;
+import com.example.foodflow.model.dto.UpdateProfileRequest;
 import com.example.foodflow.model.dto.UpdateRegionRequest;
+import com.example.foodflow.model.dto.UserProfileResponse;
+import com.example.foodflow.model.entity.Organization;
 import com.example.foodflow.model.entity.User;
+import com.example.foodflow.repository.OrganizationRepository;
 import com.example.foodflow.repository.UserRepository;
 import com.example.foodflow.util.TimezoneResolver;
 import org.springframework.stereotype.Service;
@@ -15,9 +19,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserProfileService {
     
     private final UserRepository userRepository;
+    private final OrganizationRepository organizationRepository;
     
-    public UserProfileService(UserRepository userRepository) {
+    public UserProfileService(UserRepository userRepository, OrganizationRepository organizationRepository) {
         this.userRepository = userRepository;
+        this.organizationRepository = organizationRepository;
     }
     
     /**
@@ -73,6 +79,61 @@ public class UserProfileService {
     @Transactional(readOnly = true)
     public RegionResponse getRegionSettings(User user) {
         return buildRegionResponse(user);
+    }
+    
+    /**
+     * Gets user profile data including organization information.
+     * 
+     * @param user The authenticated user
+     * @return UserProfileResponse with email, fullName, phone, organization name, and address from Organization table
+     */
+    @Transactional(readOnly = true)
+    public UserProfileResponse getProfile(User user) {
+        Organization org = user.getOrganization();
+        
+        return new UserProfileResponse(
+            user.getEmail(),
+            org != null ? org.getContactPerson() : null,
+            org != null ? org.getPhone() : null,
+            org != null ? org.getName() : null,
+            org != null ? org.getAddress() : null
+        );
+    }
+    
+    /**
+     * Updates user profile data in the Organization table.
+     * 
+     * @param user The authenticated user
+     * @param request The profile update request
+     * @return UserProfileResponse with the updated profile data
+     */
+    @Transactional
+    public UserProfileResponse updateProfile(User user, UpdateProfileRequest request) {
+        Organization org = user.getOrganization();
+        
+        if (org == null) {
+            throw new IllegalStateException("User does not have an associated organization");
+        }
+        
+        // Update organization fields
+        if (request.getFullName() != null) {
+            org.setContactPerson(request.getFullName());
+        }
+        if (request.getPhoneNumber() != null) {
+            org.setPhone(request.getPhoneNumber());
+        }
+        if (request.getOrganizationName() != null) {
+            org.setName(request.getOrganizationName());
+        }
+        if (request.getAddress() != null) {
+            org.setAddress(request.getAddress());
+        }
+        
+        // Save the updated organization
+        organizationRepository.save(org);
+        
+        // Return the updated profile
+        return getProfile(user);
     }
     
     /**
