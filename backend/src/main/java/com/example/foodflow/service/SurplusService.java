@@ -52,6 +52,7 @@ public class SurplusService {
     private final TimelineService timelineService;
     private final DonationTimelineRepository timelineRepository;
     private final FileStorageService fileStorageService;
+    private final GamificationService gamificationService;
 
     public SurplusService(SurplusPostRepository surplusPostRepository,
             ClaimRepository claimRepository,
@@ -61,7 +62,8 @@ public class SurplusService {
             ExpiryCalculationService expiryCalculationService,
             TimelineService timelineService,
             DonationTimelineRepository timelineRepository,
-            FileStorageService fileStorageService) {
+            FileStorageService fileStorageService,
+            GamificationService gamificationService) {
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;
         this.pickupSlotValidationService = pickupSlotValidationService;
@@ -71,6 +73,7 @@ public class SurplusService {
         this.timelineService = timelineService;
         this.timelineRepository = timelineRepository;
         this.fileStorageService = fileStorageService;
+        this.gamificationService = gamificationService;
     }
 
     /**
@@ -214,6 +217,16 @@ public class SurplusService {
         businessMetricsService.incrementSurplusPostCreated();
         businessMetricsService.recordTimer(sample, "surplus.service.create", "status",
                 savedPost.getStatus().toString());
+
+        // Award gamification points for donation creation
+        try {
+            gamificationService.awardPoints(donor.getId(), 10, "Created donation: " + savedPost.getTitle());
+            gamificationService.checkAndUnlockAchievements(donor.getId());
+        } catch (Exception e) {
+            // Log error but don't fail the post creation
+            org.slf4j.LoggerFactory.getLogger(SurplusService.class)
+                    .error("Failed to award gamification points for postId={}: {}", savedPost.getId(), e.getMessage());
+        }
 
         // Send notifications to eligible receivers
         try {
