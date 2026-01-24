@@ -6,6 +6,7 @@ import com.example.foodflow.model.dto.GamificationStatsResponse;
 import com.example.foodflow.model.entity.Achievement;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.UserAchievement;
+import com.example.foodflow.model.entity.UserRole;
 import com.example.foodflow.model.types.ClaimStatus;
 import com.example.foodflow.model.types.CriteriaType;
 import com.example.foodflow.repository.AchievementRepository;
@@ -157,7 +158,7 @@ public class GamificationService {
             .collect(Collectors.toList());
         response.setUnlockedAchievements(unlockedList);
 
-        // Calculate progress towards next achievements
+        // Calculate progress towards next achievements - filtered by user role
         List<Achievement> allActive = achievementRepository.findByIsActiveTrue();
         List<Long> earnedIds = userAchievements.stream()
             .map(ua -> ua.getAchievement().getId())
@@ -165,11 +166,14 @@ public class GamificationService {
 
         List<AchievementProgress> progressList = new ArrayList<>();
         for (Achievement achievement : allActive) {
-            if (!earnedIds.contains(achievement.getId())) {
+            // Only include achievements relevant to this user's role
+            if (!earnedIds.contains(achievement.getId()) && isAchievementRelevantForUser(user, achievement)) {
                 int currentValue = getCurrentValueForCriteria(user, achievement.getCriteriaType());
                 AchievementProgress progress = new AchievementProgress(
                     achievement.getId(),
                     achievement.getName(),
+                    achievement.getDescription(),
+                    achievement.getCategory(),
                     achievement.getCriteriaType(),
                     currentValue,
                     achievement.getCriteriaValue()
@@ -196,6 +200,42 @@ public class GamificationService {
     }
 
     /**
+     * Check if an achievement is relevant for a user based on their role.
+     * Donors can earn DONATION-based and SOCIAL achievements.
+     * Receivers can earn CLAIM/PICKUP-based and SOCIAL achievements.
+     * 
+     * @param user User to check
+     * @param achievement Achievement to check
+     * @return true if achievement is relevant for this user's role
+     */
+    private boolean isAchievementRelevantForUser(User user, Achievement achievement) {
+        CriteriaType criteriaType = achievement.getCriteriaType();
+        UserRole userRole = user.getRole();
+
+        // SOCIAL achievements are available to everyone
+        if (criteriaType == CriteriaType.MESSAGE_COUNT || 
+            criteriaType == CriteriaType.UNIQUE_PARTNER_COUNT) {
+            return true;
+        }
+
+        // Donor-specific achievements
+        if (userRole == UserRole.DONOR) {
+            return criteriaType == CriteriaType.DONATION_COUNT || 
+                   criteriaType == CriteriaType.WEEKLY_STREAK;
+        }
+
+        // Receiver-specific achievements
+        if (userRole == UserRole.RECEIVER) {
+            return criteriaType == CriteriaType.CLAIM_COUNT || 
+                   criteriaType == CriteriaType.PICKUP_COUNT || 
+                   criteriaType == CriteriaType.QUICK_CLAIM_COUNT;
+        }
+
+        // Default: show achievement (for future role types)
+        return true;
+    }
+
+    /**
      * Check if user meets the criteria for a specific achievement.
      * 
      * @param user User to check
@@ -203,6 +243,11 @@ public class GamificationService {
      * @return true if user meets criteria
      */
     private boolean meetsAchievementCriteria(User user, Achievement achievement) {
+        // Only check achievements relevant to this user's role
+        if (!isAchievementRelevantForUser(user, achievement)) {
+            return false;
+        }
+        
         int currentValue = getCurrentValueForCriteria(user, achievement.getCriteriaType());
         return currentValue >= achievement.getCriteriaValue();
     }

@@ -1,5 +1,6 @@
 package com.example.foodflow.model.dto;
 
+import com.example.foodflow.model.types.AchievementCategory;
 import com.example.foodflow.model.types.CriteriaType;
 
 /**
@@ -9,6 +10,8 @@ import com.example.foodflow.model.types.CriteriaType;
 public class AchievementProgress {
     private Long achievementId;
     private String achievementName;
+    private String achievementDescription;
+    private AchievementCategory achievementCategory;
     private CriteriaType criteriaType;
     private Integer currentValue;
     private Integer targetValue;
@@ -17,10 +20,13 @@ public class AchievementProgress {
     public AchievementProgress() {
     }
 
-    public AchievementProgress(Long achievementId, String achievementName, CriteriaType criteriaType,
+    public AchievementProgress(Long achievementId, String achievementName, String achievementDescription,
+                              AchievementCategory achievementCategory, CriteriaType criteriaType,
                               Integer currentValue, Integer targetValue) {
         this.achievementId = achievementId;
         this.achievementName = achievementName;
+        this.achievementDescription = achievementDescription;
+        this.achievementCategory = achievementCategory;
         this.criteriaType = criteriaType;
         this.currentValue = currentValue;
         this.targetValue = targetValue;
@@ -52,6 +58,22 @@ public class AchievementProgress {
 
     public void setAchievementName(String achievementName) {
         this.achievementName = achievementName;
+    }
+
+    public String getAchievementDescription() {
+        return achievementDescription;
+    }
+
+    public void setAchievementDescription(String achievementDescription) {
+        this.achievementDescription = achievementDescription;
+    }
+
+    public AchievementCategory getAchievementCategory() {
+        return achievementCategory;
+    }
+
+    public void setAchievementCategory(AchievementCategory achievementCategory) {
+        this.achievementCategory = achievementCategory;
     }
 
     public CriteriaType getCriteriaType() {

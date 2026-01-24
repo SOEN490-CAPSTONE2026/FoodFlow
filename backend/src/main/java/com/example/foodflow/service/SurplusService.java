@@ -53,6 +53,7 @@ public class SurplusService {
     private final DonationTimelineRepository timelineRepository;
     private final FileStorageService fileStorageService;
     private final GamificationService gamificationService;
+    private final ClaimService claimService;
 
     public SurplusService(SurplusPostRepository surplusPostRepository,
             ClaimRepository claimRepository,
@@ -63,7 +64,8 @@ public class SurplusService {
             TimelineService timelineService,
             DonationTimelineRepository timelineRepository,
             FileStorageService fileStorageService,
-            GamificationService gamificationService) {
+            GamificationService gamificationService,
+            ClaimService claimService) {
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;
         this.pickupSlotValidationService = pickupSlotValidationService;
@@ -74,6 +76,7 @@ public class SurplusService {
         this.timelineRepository = timelineRepository;
         this.fileStorageService = fileStorageService;
         this.gamificationService = gamificationService;
+        this.claimService = claimService;
     }
 
     /**
@@ -829,10 +832,11 @@ public class SurplusService {
 
         post.setStatus(PostStatus.COMPLETED);
         post.setOtpCode(null);
-        claim.setStatus(ClaimStatus.COMPLETED);
 
         surplusPostRepository.save(post);
-        claimRepository.save(claim);
+        
+        // Complete the claim - this awards points and checks achievements for the receiver
+        claimService.completeClaim(claim.getId());
 
         // Create timeline event for pickup confirmation
         timelineService.createTimelineEvent(
