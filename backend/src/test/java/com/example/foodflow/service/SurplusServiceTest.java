@@ -75,6 +75,10 @@ class SurplusServiceTest {
 
     @Mock
     private PickupTimeToleranceConfig pickupTimeToleranceConfig;
+    private GamificationService gamificationService;
+
+    @Mock
+    private ClaimService claimService;
 
     @InjectMocks
     private SurplusService surplusService;
@@ -687,7 +691,7 @@ class SurplusServiceTest {
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
         when(claimRepository.findBySurplusPost(post)).thenReturn(Optional.of(claim));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(post);
-        when(claimRepository.save(any(com.example.foodflow.model.entity.Claim.class))).thenReturn(claim);
+        doNothing().when(claimService).completeClaim(anyLong());
 
         // When
         SurplusResponse response = surplusService.confirmPickup(1L, "123456", donor);
@@ -708,6 +712,8 @@ class SurplusServiceTest {
                 .forClass(com.example.foodflow.model.entity.Claim.class);
         verify(claimRepository).save(claimCaptor.capture());
         assertThat(claimCaptor.getValue().getStatus()).isEqualTo(ClaimStatus.COMPLETED);
+        // Verify ClaimService.completeClaim was called
+        verify(claimService).completeClaim(claim.getId());
     }
 
     @Test
@@ -1261,7 +1267,7 @@ class SurplusServiceTest {
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
         when(claimRepository.findBySurplusPost(post)).thenReturn(Optional.of(claim));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(post);
-        when(claimRepository.save(any(com.example.foodflow.model.entity.Claim.class))).thenReturn(claim);
+        doNothing().when(claimService).completeClaim(anyLong());
 
         // When
         surplusService.confirmPickup(1L, "123456", donor);

@@ -27,6 +27,7 @@ import Logo from '../../assets/Logo_White.png';
 import './Donor_Styles/DonorLayout.css';
 import MessageNotification from '../MessagingDashboard/MessageNotification';
 import { connectToUserQueue, disconnect } from '../../services/socket';
+import BadgeDisplay from '../shared/BadgeDisplay';
 
 export default function DonorLayout() {
   const location = useLocation();
@@ -213,6 +214,8 @@ export default function DonorLayout() {
             )}
           </button>
         </div>
+
+        <BadgeDisplay />
 
         <nav className="donor-nav-links">
           <Link

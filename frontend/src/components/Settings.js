@@ -315,6 +315,30 @@ const Settings = () => {
 
   const fetchUserProfile = async () => {
     try {
+      // Fetch user profile data
+      const profileResp = await profileAPI.get();
+      if (profileResp.data) {
+        const p = profileResp.data;
+        setFormData(prev => ({
+          ...prev,
+          fullName: p.fullName || prev.fullName || '',
+          email: p.email || prev.email || '',
+          phoneNumber: p.phone || p.phoneNumber || prev.phoneNumber || '',
+          organization: p.organizationName || prev.organization || '',
+          address: p.organizationAddress || p.address || prev.address || '',
+        }));
+
+        if (p.profilePhoto) {
+          setProfileImage(p.profilePhoto);
+        }
+
+        // Update notification phone if missing
+        setNotificationPreferences(prev => ({
+          ...prev,
+          smsPhoneNumber: p.phone || p.phoneNumber || prev.smsPhoneNumber,
+        }));
+      }
+
       // Fetch region settings
       const regionResp = await api.get('/profile/region');
       if (regionResp.data) {
@@ -323,31 +347,6 @@ const Settings = () => {
           city: regionResp.data.city,
           timezone: regionResp.data.timezone,
         });
-      }
-
-      // Fetch full profile (name, email, phone, org, photo)
-      const profileResp = await profileAPI.get();
-      if (profileResp.data) {
-        const p = profileResp.data;
-        setFormData(prev => ({
-          ...prev,
-          fullName: p.fullName || prev.fullName || '',
-          email: p.email || prev.email || '',
-          phoneNumber: p.phone || prev.phoneNumber || '',
-          organization: p.organizationName || prev.organization || '',
-          address: p.organizationAddress || prev.address || '',
-        }));
-
-        if (p.profilePhoto) {
-          // If backend returned a URL or base64, use it directly
-          setProfileImage(p.profilePhoto);
-        }
-
-        // Update notification phone if missing
-        setNotificationPreferences(prev => ({
-          ...prev,
-          smsPhoneNumber: p.phone || prev.smsPhoneNumber,
-        }));
       }
     } catch (error) {
       console.error('Error fetching profile from backend:', error);

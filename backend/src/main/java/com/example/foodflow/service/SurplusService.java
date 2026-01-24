@@ -54,6 +54,8 @@ public class SurplusService {
     private final DonationTimelineRepository timelineRepository;
     private final FileStorageService fileStorageService;
     private final PickupTimeToleranceConfig pickupTimeToleranceConfig;
+    private final GamificationService gamificationService;
+    private final ClaimService claimService;
 
     public SurplusService(SurplusPostRepository surplusPostRepository,
             ClaimRepository claimRepository,
@@ -65,6 +67,8 @@ public class SurplusService {
             DonationTimelineRepository timelineRepository,
             FileStorageService fileStorageService,
             PickupTimeToleranceConfig pickupTimeToleranceConfig) {
+            GamificationService gamificationService,
+            ClaimService claimService) {
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;
         this.pickupSlotValidationService = pickupSlotValidationService;
@@ -75,6 +79,8 @@ public class SurplusService {
         this.timelineRepository = timelineRepository;
         this.fileStorageService = fileStorageService;
         this.pickupTimeToleranceConfig = pickupTimeToleranceConfig;
+        this.gamificationService = gamificationService;
+        this.claimService = claimService;
     }
 
     /**
@@ -218,6 +224,16 @@ public class SurplusService {
         businessMetricsService.incrementSurplusPostCreated();
         businessMetricsService.recordTimer(sample, "surplus.service.create", "status",
                 savedPost.getStatus().toString());
+
+        // Award gamification points for donation creation
+        try {
+            gamificationService.awardPoints(donor.getId(), 10, "Created donation: " + savedPost.getTitle());
+            gamificationService.checkAndUnlockAchievements(donor.getId());
+        } catch (Exception e) {
+            // Log error but don't fail the post creation
+            org.slf4j.LoggerFactory.getLogger(SurplusService.class)
+                    .error("Failed to award gamification points for postId={}: {}", savedPost.getId(), e.getMessage());
+        }
 
         // Send notifications to eligible receivers
         try {
@@ -823,10 +839,11 @@ public class SurplusService {
 
         post.setStatus(PostStatus.COMPLETED);
         post.setOtpCode(null);
-        claim.setStatus(ClaimStatus.COMPLETED);
 
         surplusPostRepository.save(post);
-        claimRepository.save(claim);
+        
+        // Complete the claim - this awards points and checks achievements for the receiver
+        claimService.completeClaim(claim.getId());
 
         // Create timeline event for pickup confirmation with timing status
         String details = String.format("Pickup confirmed with OTP code (%s)", pickupTimingStatus);
