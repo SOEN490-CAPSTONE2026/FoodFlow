@@ -34,7 +34,7 @@ describe('BadgeDisplay', () => {
     // Check for skeleton loaders in loading state
     const pointsSkeleton = document.querySelector('.points-content-skeleton');
     expect(pointsSkeleton).toBeInTheDocument();
-    
+
     const badgeSkeletons = document.querySelectorAll('.badge-skeleton');
     expect(badgeSkeletons.length).toBe(4);
   });
@@ -68,7 +68,9 @@ describe('BadgeDisplay', () => {
       </BrowserRouter>
     );
 
-    expect(screen.getByText('Start donating to earn badges!')).toBeInTheDocument();
+    expect(
+      screen.getByText('Start donating to earn badges!')
+    ).toBeInTheDocument();
     expect(screen.getByText('0')).toBeInTheDocument(); // Points should show 0
   });
 

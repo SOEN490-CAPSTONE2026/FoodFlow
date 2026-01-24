@@ -49,10 +49,10 @@ const BadgeDisplay = () => {
 
   // Get unlocked achievements
   const unlockedAchievements = stats.unlockedAchievements || [];
-  
+
   // Get progress for locked achievements
   const progressData = stats.progressToNext || [];
-  
+
   // Create a map of achievement progress by achievement ID
   const progressMap = {};
   progressData.forEach(prog => {
@@ -63,7 +63,9 @@ const BadgeDisplay = () => {
   const allAchievements = [
     ...unlockedAchievements.map(ach => ({ ...ach, unlocked: true })),
     ...progressData
-      .filter(prog => !unlockedAchievements.find(ach => ach.id === prog.achievementId))
+      .filter(
+        prog => !unlockedAchievements.find(ach => ach.id === prog.achievementId)
+      )
       .map(prog => ({
         id: prog.achievementId,
         name: prog.achievementName,
@@ -73,8 +75,8 @@ const BadgeDisplay = () => {
         criteriaValue: prog.targetValue,
         pointsReward: 0, // We don't have this in progress data
         unlocked: false,
-        progress: prog
-      }))
+        progress: prog,
+      })),
   ];
 
   // Limit to 6 badges for sidebar display
@@ -88,7 +90,7 @@ const BadgeDisplay = () => {
   return (
     <div className="badge-display-container">
       <PointsDisplay points={stats.totalPoints || 0} />
-      
+
       <div className="badges-section">
         <div className="badges-header">
           <h4>Achievements</h4>
@@ -96,7 +98,7 @@ const BadgeDisplay = () => {
             {unlockedAchievements.length} / {allAchievements.length}
           </span>
         </div>
-        
+
         {displayedBadges.length === 0 ? (
           <div className="badges-empty">
             <p>Start donating to earn badges!</p>
@@ -113,7 +115,7 @@ const BadgeDisplay = () => {
             ))}
           </div>
         )}
-        
+
         {hasMore && (
           <button className="view-all-btn" onClick={handleViewAll}>
             View All Achievements
