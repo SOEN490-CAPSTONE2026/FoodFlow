@@ -33,4 +33,11 @@ public class UserProfileResponse {
 
     public String getOrganizationAddress() { return organizationAddress; }
     public void setOrganizationAddress(String organizationAddress) { this.organizationAddress = organizationAddress; }
+
+    // Alias methods for frontend compatibility
+    public String getPhoneNumber() { return phone; }
+    public void setPhoneNumber(String phoneNumber) { this.phone = phoneNumber; }
+
+    public String getAddress() { return organizationAddress; }
+    public void setAddress(String address) { this.organizationAddress = address; }
 }

@@ -315,33 +315,7 @@ const Settings = () => {
 
   const fetchUserProfile = async () => {
     try {
-      // Fetch region settings
-      const regionResp = await api.get('/profile/region');
-      if (regionResp.data) {
-      // Fetch user profile data (from Organization table)
-      const profileResponse = await api.get('/profile');
-      if (profileResponse.data) {
-        setFormData(prev => ({
-          ...prev,
-          fullName: profileResponse.data.fullName || '',
-          email: profileResponse.data.email || '',
-          phoneNumber: profileResponse.data.phoneNumber || '',
-          organization: profileResponse.data.organizationName || prev.organization || '',
-          address: profileResponse.data.address || ''
-        }));
-      }
-      
-      // Fetch region settings
-      const regionResponse = await api.get('/profile/region');
-      if (regionResponse.data) {
-        setRegionSettings({
-          country: regionResp.data.country,
-          city: regionResp.data.city,
-          timezone: regionResp.data.timezone,
-        });
-      }
-
-      // Fetch full profile (name, email, phone, org, photo)
+      // Fetch user profile data
       const profileResp = await profileAPI.get();
       if (profileResp.data) {
         const p = profileResp.data;
@@ -349,21 +323,30 @@ const Settings = () => {
           ...prev,
           fullName: p.fullName || prev.fullName || '',
           email: p.email || prev.email || '',
-          phoneNumber: p.phone || prev.phoneNumber || '',
+          phoneNumber: p.phone || p.phoneNumber || prev.phoneNumber || '',
           organization: p.organizationName || prev.organization || '',
-          address: p.organizationAddress || prev.address || '',
+          address: p.organizationAddress || p.address || prev.address || '',
         }));
 
         if (p.profilePhoto) {
-          // If backend returned a URL or base64, use it directly
           setProfileImage(p.profilePhoto);
         }
 
         // Update notification phone if missing
         setNotificationPreferences(prev => ({
           ...prev,
-          smsPhoneNumber: p.phone || prev.smsPhoneNumber,
+          smsPhoneNumber: p.phone || p.phoneNumber || prev.smsPhoneNumber,
         }));
+      }
+
+      // Fetch region settings
+      const regionResp = await api.get('/profile/region');
+      if (regionResp.data) {
+        setRegionSettings({
+          country: regionResp.data.country,
+          city: regionResp.data.city,
+          timezone: regionResp.data.timezone,
+        });
       }
     } catch (error) {
       console.error('Error fetching profile from backend:', error);
@@ -574,16 +557,6 @@ const Settings = () => {
 
         setSuccessMessage('Profile updated successfully!');
       }
-    try {
-      // Call the API to save profile changes to the database
-      await api.put('/profile', {
-        fullName: formData.fullName,
-        phoneNumber: formData.phoneNumber,
-        organizationName: formData.organization,
-        address: formData.address
-      });
-      
-      setSuccessMessage('Profile updated successfully!');
     } catch (error) {
       console.error('Error updating profile:', error);
       if (
