@@ -111,6 +111,8 @@ public class AuthService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(UserRole.DONOR);
+        user.setFullName(request.getContactPerson());
+        user.setPhone(request.getPhone());
 
         // Initialize default notification preferences
         initializeDefaultNotificationPreferences(user);
@@ -163,6 +165,8 @@ public class AuthService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(UserRole.RECEIVER);
+        user.setFullName(request.getContactPerson());
+        user.setPhone(request.getPhone());
 
         // Initialize default notification preferences
         initializeDefaultNotificationPreferences(user);

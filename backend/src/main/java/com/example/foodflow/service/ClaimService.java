@@ -31,19 +31,22 @@ public class ClaimService {
     private final SimpMessagingTemplate messagingTemplate;
     private final NotificationPreferenceService notificationPreferenceService;
     private final TimelineService timelineService;
+    private final EmailService emailService;
     
     public ClaimService(ClaimRepository claimRepository,
                        SurplusPostRepository surplusPostRepository,
                        BusinessMetricsService businessMetricsService,
                        SimpMessagingTemplate messagingTemplate,
                        NotificationPreferenceService notificationPreferenceService,
-                       TimelineService timelineService) {
+                       TimelineService timelineService,
+                       EmailService emailService) {
         this.claimRepository = claimRepository;
         this.surplusPostRepository = surplusPostRepository;
         this.businessMetricsService = businessMetricsService;
         this.messagingTemplate = messagingTemplate;
         this.notificationPreferenceService = notificationPreferenceService;
         this.timelineService = timelineService;
+        this.emailService = emailService;
     }
                        
     @Transactional
@@ -180,6 +183,23 @@ public class ClaimService {
             logger.info("Skipped claim notification to donor userId={} - notification type disabled", donor.getId());
         }
         
+        // Send email notification to donor if enabled
+        if (notificationPreferenceService.shouldSendNotification(donor, "donationClaimed", "email")) {
+            try {
+                String donorName = getDonorName(donor);
+                java.util.Map<String, Object> claimData = new java.util.HashMap<>();
+                claimData.put("title", surplusPost.getTitle());
+                claimData.put("receiverName", receiverName);
+                claimData.put("quantity", surplusPost.getQuantity() != null ? 
+                    surplusPost.getQuantity().getValue().intValue() : "N/A");
+                
+                emailService.sendDonationClaimedNotification(donor.getEmail(), donorName, claimData);
+                logger.info("Sent donation claimed email to donor userId={}", donor.getId());
+            } catch (Exception e) {
+                logger.error("Failed to send email notification to donor userId={}: {}", donor.getId(), e.getMessage());
+            }
+        }
+        
         // Broadcast websocket event to receiver
         try {
             messagingTemplate.convertAndSendToUser(
@@ -280,6 +300,21 @@ public class ClaimService {
             logger.info("Skipped claim cancellation notification to donor userId={} - claimCanceled disabled", 
                 donor.getId());
         }
+        
+        // Send email notification to donor if enabled
+        if (notificationPreferenceService.shouldSendNotification(donor, "claimCanceled", "email")) {
+            try {
+                String donorName = getDonorName(donor);
+                java.util.Map<String, Object> claimData = new java.util.HashMap<>();
+                claimData.put("title", post.getTitle());
+                claimData.put("reason", "The receiver canceled their claim");
+                
+                emailService.sendClaimCanceledNotification(donor.getEmail(), donorName, claimData);
+                logger.info("Sent claim canceled email to donor userId={}", donor.getId());
+            } catch (Exception e) {
+                logger.error("Failed to send email notification to donor userId={}: {}", donor.getId(), e.getMessage());
+            }
+        }
     }
 
     @Transactional
@@ -298,5 +333,25 @@ public class ClaimService {
 
         // Record timer
         businessMetricsService.recordTimer(sample, "claim.service.complete", "status", "completed");
+    }
+    
+    /**
+     * Get donor name from organization
+     */
+    private String getDonorName(User donor) {
+        if (donor.getOrganization() != null && donor.getOrganization().getName() != null) {
+            return donor.getOrganization().getName();
+        }
+        return "Donor";
+    }
+    
+    /**
+     * Get receiver name from organization
+     */
+    private String getReceiverName(User receiver) {
+        if (receiver.getOrganization() != null && receiver.getOrganization().getName() != null) {
+            return receiver.getOrganization().getName();
+        }
+        return "Receiver";
     }
 }

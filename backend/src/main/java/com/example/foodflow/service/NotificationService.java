@@ -30,18 +30,21 @@ public class NotificationService {
     private final ClaimRepository claimRepository;
     private final UserRepository userRepository;
     private final NotificationPreferenceService notificationPreferenceService;
+    private final EmailService emailService;
     
     public NotificationService(
             SimpMessagingTemplate messagingTemplate,
             ReceiverPreferencesRepository receiverPreferencesRepository,
             ClaimRepository claimRepository,
             UserRepository userRepository,
-            NotificationPreferenceService notificationPreferenceService) {
+            NotificationPreferenceService notificationPreferenceService,
+            EmailService emailService) {
         this.messagingTemplate = messagingTemplate;
         this.receiverPreferencesRepository = receiverPreferencesRepository;
         this.claimRepository = claimRepository;
         this.userRepository = userRepository;
         this.notificationPreferenceService = notificationPreferenceService;
+        this.emailService = emailService;
     }
     
     /**
@@ -277,5 +280,27 @@ public class NotificationService {
                 receiver.getId(), e.getMessage());
             throw e;
         }
+        
+        // Send email notification if user has email notifications enabled
+        if (notificationPreferenceService.shouldSendNotification(receiver, "newDonationAvailable", "email")) {
+            try {
+                String userName = getReceiverName(receiver);
+                emailService.sendNewDonationNotification(receiver.getEmail(), userName, notification);
+                logger.info("Sent email notification to receiverId={} for postId={}", receiver.getId(), surplusPost.getId());
+            } catch (Exception e) {
+                logger.error("Failed to send email notification to receiverId={}: {}", receiver.getId(), e.getMessage());
+                // Don't fail the whole operation if email fails
+            }
+        }
+    }
+    
+    /**
+     * Get receiver name from organization
+     */
+    private String getReceiverName(User receiver) {
+        if (receiver.getOrganization() != null && receiver.getOrganization().getName() != null) {
+            return receiver.getOrganization().getName();
+        }
+        return "Receiver";
     }
 }
