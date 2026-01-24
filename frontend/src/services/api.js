@@ -178,6 +178,22 @@ export const surplusAPI = {
    * @returns {Promise} API response with timeline events
    */
   getTimeline: postId => api.get(`/surplus/${postId}/timeline`),
+
+  /**
+   * Upload pickup evidence photo for a donation
+   * @param {number} postId - Surplus post ID
+   * @param {File} file - The image file to upload
+   * @returns {Promise} API response with uploaded file URL
+   */
+  uploadEvidence: (postId, file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post(`/surplus/${postId}/evidence`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
 };
 
 export const claimsAPI = {

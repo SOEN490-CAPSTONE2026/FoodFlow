@@ -133,6 +133,48 @@ function formatPickupTime(pickupDate, pickupFrom, pickupTo) {
   }
 }
 
+// Get the backend base URL (without /api suffix) for file serving
+const API_URL =
+  process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+const BACKEND_BASE_URL = API_URL.endsWith('/api')
+  ? API_URL.slice(0, -4)
+  : API_URL.replace(/\/api$/, '');
+
+/**
+ * Constructs the full URL for an evidence image
+ * Handles both new format (/api/files/...) and legacy format (/uploads/...)
+ */
+const getEvidenceImageUrl = url => {
+  if (!url) {
+    return null;
+  }
+
+  // If it's already a full URL, return as-is
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+
+  // Handle legacy URLs that start with /uploads/ (convert to /api/files/uploads/)
+  if (url.startsWith('/uploads/')) {
+    const filename = url.substring('/uploads/'.length);
+    const fullUrl = `${BACKEND_BASE_URL}/api/files/uploads/${filename}`;
+    console.log('Legacy URL converted:', { original: url, full: fullUrl });
+    return fullUrl;
+  }
+
+  // Handle proper /api/files/ URLs
+  if (url.startsWith('/api/files/')) {
+    const fullUrl = `${BACKEND_BASE_URL}${url}`;
+    console.log('Evidence URL constructed:', { original: url, full: fullUrl });
+    return fullUrl;
+  }
+
+  // Fallback: assume it's a relative path and prepend backend base + /api/files
+  const fullUrl = `${BACKEND_BASE_URL}/api/files${url.startsWith('/') ? '' : '/'}${url}`;
+  console.log('Evidence URL fallback:', { original: url, full: fullUrl });
+  return fullUrl;
+};
+
 export default function DonorListFood() {
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
@@ -163,6 +205,8 @@ export default function DonorListFood() {
   const [donationPhotos, setDonationPhotos] = useState({}); // { donationId: [photo urls] }
   const [viewingPhotos, setViewingPhotos] = useState({}); // { donationId: true/false }
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState({}); // { donationId: index }
+  const [uploadingPhotos, setUploadingPhotos] = useState({}); // { donationId: true/false }
+  const [uploadError, setUploadError] = useState({}); // { donationId: error message }
 
   // Timeline states
   const [expandedTimeline, setExpandedTimeline] = useState({}); // { donationId: true/false }
@@ -196,12 +240,69 @@ export default function DonorListFood() {
       const sortedData = sortPosts(response.data, sortBy);
       setItems(sortedData);
       setError(null);
+      setLoading(false); // Show donations immediately
+
+      // Pre-fetch timelines to load evidence photos for donations that might have them
+      // This runs in the background after donations are displayed
+      const donationsWithPossiblePhotos = sortedData.filter(item =>
+        ['CLAIMED', 'READY_FOR_PICKUP', 'COMPLETED'].includes(item.status)
+      );
+
+      // Load evidence photos for each donation (in parallel, in background)
+      Promise.all(
+        donationsWithPossiblePhotos.map(item => loadEvidencePhotos(item.id))
+      ).catch(err => console.error('Error loading evidence photos:', err));
     } catch (err) {
       const errorMessage =
         err.response?.data?.message || err.message || 'Failed to fetch posts';
       setError(`Error: ${errorMessage}`);
-    } finally {
       setLoading(false);
+    }
+  };
+
+  // Load evidence photos for a donation from its timeline
+  const loadEvidencePhotos = async donationId => {
+    try {
+      const response = await surplusAPI.getTimeline(donationId);
+      const timelineData = response.data;
+
+      // Store timeline data
+      setTimelines(prev => ({
+        ...prev,
+        [donationId]: timelineData,
+      }));
+
+      // Extract evidence photos from timeline events (deduplicated)
+      const evidencePhotos = [
+        ...new Set(
+          timelineData
+            .filter(event => event.pickupEvidenceUrl)
+            .map(event => event.pickupEvidenceUrl)
+        ),
+      ];
+
+      console.log(
+        `Loaded ${evidencePhotos.length} evidence photos for donation ${donationId}:`,
+        evidencePhotos
+      );
+
+      if (evidencePhotos.length > 0) {
+        setDonationPhotos(prev => ({
+          ...prev,
+          [donationId]: evidencePhotos,
+        }));
+        setCurrentPhotoIndex(prev => ({
+          ...prev,
+          [donationId]: 0,
+        }));
+      }
+    } catch (error) {
+      console.error(
+        'Error loading evidence photos for donation',
+        donationId,
+        ':',
+        error
+      );
     }
   };
 
@@ -390,26 +491,67 @@ export default function DonorListFood() {
   };
 
   // Photo upload handlers
-  const handlePhotoUpload = (donationId, event) => {
+  const handlePhotoUpload = async (donationId, event) => {
     const files = Array.from(event.target.files);
     if (files.length === 0) {
       return;
     }
 
-    // Create preview URLs for uploaded files
-    const newPhotoUrls = files.map(file => URL.createObjectURL(file));
+    // Clear any previous error
+    setUploadError(prev => ({ ...prev, [donationId]: null }));
+    setUploadingPhotos(prev => ({ ...prev, [donationId]: true }));
 
-    setDonationPhotos(prev => {
-      const existingPhotos = prev[donationId] || [];
-      // Initialize photo index if first upload
-      if (existingPhotos.length === 0) {
-        setCurrentPhotoIndex(prevIndex => ({ ...prevIndex, [donationId]: 0 }));
+    try {
+      // Upload each file to the backend
+      const uploadedUrls = [];
+      for (const file of files) {
+        // Validate file type
+        if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
+          throw new Error('Only JPEG and PNG images are allowed');
+        }
+        // Validate file size (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          throw new Error('File size must be less than 5MB');
+        }
+
+        const response = await surplusAPI.uploadEvidence(donationId, file);
+        if (response.data.success) {
+          uploadedUrls.push(response.data.url);
+        } else {
+          throw new Error(response.data.message || 'Upload failed');
+        }
       }
-      return {
-        ...prev,
-        [donationId]: [...existingPhotos, ...newPhotoUrls],
-      };
-    });
+
+      // Update state with uploaded URLs
+      setDonationPhotos(prev => {
+        const existingPhotos = prev[donationId] || [];
+        // Initialize photo index if first upload
+        if (existingPhotos.length === 0) {
+          setCurrentPhotoIndex(prevIndex => ({
+            ...prevIndex,
+            [donationId]: 0,
+          }));
+        }
+        return {
+          ...prev,
+          [donationId]: [...existingPhotos, ...uploadedUrls],
+        };
+      });
+
+      // Refresh timeline to show the new evidence event
+      if (expandedTimeline[donationId]) {
+        await fetchTimeline(donationId);
+      }
+    } catch (err) {
+      console.error('Failed to upload photo:', err);
+      const errorMessage =
+        err.response?.data?.message ||
+        err.message ||
+        'Failed to upload photo. Please try again.';
+      setUploadError(prev => ({ ...prev, [donationId]: errorMessage }));
+    } finally {
+      setUploadingPhotos(prev => ({ ...prev, [donationId]: false }));
+    }
   };
 
   const toggleViewPhotos = donationId => {
@@ -467,10 +609,28 @@ export default function DonorListFood() {
 
     try {
       const response = await surplusAPI.getTimeline(donationId);
+      const timelineData = response.data;
+
       setTimelines(prev => ({
         ...prev,
-        [donationId]: response.data,
+        [donationId]: timelineData,
       }));
+
+      // Extract evidence photos from timeline events
+      const evidencePhotos = timelineData
+        .filter(event => event.pickupEvidenceUrl)
+        .map(event => event.pickupEvidenceUrl);
+
+      if (evidencePhotos.length > 0) {
+        setDonationPhotos(prev => ({
+          ...prev,
+          [donationId]: evidencePhotos,
+        }));
+        setCurrentPhotoIndex(prev => ({
+          ...prev,
+          [donationId]: 0,
+        }));
+      }
     } catch (error) {
       console.error(
         'Error fetching timeline for donation',
@@ -723,22 +883,50 @@ export default function DonorListFood() {
               {(item.status === 'CLAIMED' ||
                 item.status === 'READY_FOR_PICKUP') && (
                 <div className="donation-photos-section">
+                  {/* Upload error message */}
+                  {uploadError[item.id] && (
+                    <div className="photo-upload-error">
+                      <AlertTriangle size={14} />
+                      <span>{uploadError[item.id]}</span>
+                      <button
+                        className="dismiss-error"
+                        onClick={() =>
+                          setUploadError(prev => ({ ...prev, [item.id]: null }))
+                        }
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  )}
+
                   {!viewingPhotos[item.id] ? (
                     // Upload mode
-                    <label className="photo-upload-button">
+                    <label
+                      className={`photo-upload-button ${uploadingPhotos[item.id] ? 'uploading' : ''}`}
+                    >
                       <input
                         type="file"
                         multiple
-                        accept="image/*"
+                        accept="image/jpeg,image/png"
                         onChange={e => handlePhotoUpload(item.id, e)}
                         style={{ display: 'none' }}
+                        disabled={uploadingPhotos[item.id]}
                       />
-                      <Camera size={14} />
-                      <span>
-                        {donationPhotos[item.id]?.length > 0
-                          ? `${donationPhotos[item.id].length} photo${donationPhotos[item.id].length > 1 ? 's' : ''} uploaded`
-                          : 'Upload photo of donation'}
-                      </span>
+                      {uploadingPhotos[item.id] ? (
+                        <>
+                          <span className="upload-spinner"></span>
+                          <span>Uploading...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Camera size={14} />
+                          <span>
+                            {donationPhotos[item.id]?.length > 0
+                              ? `${donationPhotos[item.id].length} photo${donationPhotos[item.id].length > 1 ? 's' : ''} uploaded`
+                              : 'Upload photo of donation'}
+                          </span>
+                        </>
+                      )}
                     </label>
                   ) : null}
 
@@ -907,14 +1095,23 @@ export default function DonorListFood() {
 
                   <div className="photo-display-wrapper">
                     <img
-                      src={
+                      src={getEvidenceImageUrl(
                         donationPhotos[donationId][
                           currentPhotoIndex[donationId] ?? 0
                         ]
-                      }
+                      )}
                       alt={`Photo ${(currentPhotoIndex[donationId] ?? 0) + 1}`}
                       className="photo-display-image"
                       draggable={false}
+                      onError={e => {
+                        console.error('Image load error. URL:', e.target.src);
+                        console.error(
+                          'Original URL:',
+                          donationPhotos[donationId][
+                            currentPhotoIndex[donationId] ?? 0
+                          ]
+                        );
+                      }}
                     />
                   </div>
 

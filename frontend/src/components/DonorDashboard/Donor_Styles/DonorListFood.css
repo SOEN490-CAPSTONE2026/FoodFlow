@@ -620,6 +620,67 @@
   color: #475569;
 }
 
+/* Upload loading state */
+.photo-upload-button.uploading {
+  background: linear-gradient(to bottom, #e0f2fe, #bae6fd);
+  border-color: #38bdf8;
+  cursor: wait;
+  pointer-events: none;
+}
+
+.upload-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #0ea5e9;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Upload error message */
+.photo-upload-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #dc2626;
+  font-size: 13px;
+  margin-bottom: 8px;
+  width: 100%;
+}
+
+.photo-upload-error svg {
+  flex-shrink: 0;
+  color: #dc2626;
+}
+
+.dismiss-error {
+  margin-left: auto;
+  padding: 2px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #dc2626;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.dismiss-error:hover {
+  background: #fee2e2;
+}
+
 /* Photo Modal - Separate from card */
 .photo-modal-overlay {
   position: fixed;

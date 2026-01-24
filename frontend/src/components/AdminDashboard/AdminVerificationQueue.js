@@ -354,7 +354,9 @@ const AdminVerificationQueue = () => {
 
   // Handle approve user
   const handleApproveUser = async () => {
-    if (!selectedUser) return;
+    if (!selectedUser) {
+      return;
+    }
 
     setActionLoading(true);
     try {
@@ -383,7 +385,9 @@ const AdminVerificationQueue = () => {
 
   // Handle reject user
   const handleRejectUser = async (reason, message) => {
-    if (!selectedUser) return;
+    if (!selectedUser) {
+      return;
+    }
 
     setActionLoading(true);
     try {
@@ -439,7 +443,9 @@ const AdminVerificationQueue = () => {
 
   // Format organization type
   const formatOrgType = type => {
-    if (!type) return 'N/A';
+    if (!type) {
+      return 'N/A';
+    }
     return type
       .split('_')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())

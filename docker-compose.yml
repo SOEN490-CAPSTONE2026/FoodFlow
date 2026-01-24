@@ -40,6 +40,7 @@ services:
     volumes:
       - ./backend/logs:/app/logs
       - ./backend/src/main/resources/application.properties:/app/config/application.properties
+      - ./backend/uploads:/app/uploads
     command: ["java", "-jar", "app.jar", "--spring.config.location=file:/app/config/application.properties"]
     depends_on:
       postgres:
