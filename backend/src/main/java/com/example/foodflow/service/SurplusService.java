@@ -11,6 +11,7 @@ import com.example.foodflow.model.dto.SurplusFilterRequest;
 import com.example.foodflow.model.dto.PickupSlotRequest;
 import com.example.foodflow.model.dto.PickupSlotResponse;
 import com.example.foodflow.model.dto.SurplusResponse;
+import com.example.foodflow.model.dto.UploadEvidenceResponse;
 import com.example.foodflow.model.entity.Claim;
 import com.example.foodflow.model.entity.DonationTimeline;
 import com.example.foodflow.model.entity.PickupSlot;
@@ -28,7 +29,9 @@ import io.micrometer.core.instrument.Timer;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -49,6 +52,7 @@ public class SurplusService {
     private final ExpiryCalculationService expiryCalculationService;
     private final TimelineService timelineService;
     private final DonationTimelineRepository timelineRepository;
+    private final FileStorageService fileStorageService;
 
     public SurplusService(SurplusPostRepository surplusPostRepository,
             ClaimRepository claimRepository,
@@ -57,7 +61,8 @@ public class SurplusService {
             NotificationService notificationService,
             ExpiryCalculationService expiryCalculationService,
             TimelineService timelineService,
-            DonationTimelineRepository timelineRepository) {
+            DonationTimelineRepository timelineRepository,
+            FileStorageService fileStorageService) {
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;
         this.pickupSlotValidationService = pickupSlotValidationService;
@@ -66,6 +71,7 @@ public class SurplusService {
         this.expiryCalculationService = expiryCalculationService;
         this.timelineService = timelineService;
         this.timelineRepository = timelineRepository;
+        this.fileStorageService = fileStorageService;
     }
 
     /**
@@ -921,4 +927,47 @@ public class SurplusService {
         return dto;
     }
 
+    /**
+     * Upload pickup evidence photo for a donation.
+     * Only the donor who owns this donation can upload evidence.
+     * Creates a timeline event to track the evidence upload.
+     */
+    @Transactional
+    public UploadEvidenceResponse uploadPickupEvidence(Long postId, MultipartFile file, User donor) throws IOException {
+        // Find the surplus post
+        SurplusPost post = surplusPostRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("Donation not found"));
+
+        // Verify the donor owns this post
+        if (!post.getDonor().getId().equals(donor.getId())) {
+            throw new IllegalArgumentException("You are not authorized to upload evidence for this donation");
+        }
+
+        // Check that the donation is in a valid status for evidence upload (CLAIMED or READY_FOR_PICKUP)
+        PostStatus status = post.getStatus();
+        if (status != PostStatus.CLAIMED && status != PostStatus.READY_FOR_PICKUP && status != PostStatus.COMPLETED) {
+            throw new IllegalArgumentException("Evidence can only be uploaded for claimed, ready for pickup, or completed donations");
+        }
+
+        // Store the file
+        String fileUrl = fileStorageService.storePickupEvidence(file, postId);
+
+        // Create a timeline event for the evidence upload
+        DonationTimeline evidenceEvent = new DonationTimeline();
+        evidenceEvent.setSurplusPost(post);
+        evidenceEvent.setEventType("PICKUP_EVIDENCE_UPLOADED");
+        evidenceEvent.setActor("donor");
+        evidenceEvent.setActorUserId(donor.getId());
+        evidenceEvent.setPickupEvidenceUrl(fileUrl);
+        evidenceEvent.setDetails("Pickup evidence photo uploaded");
+        evidenceEvent.setVisibleToUsers(true); // Visible to donor and admin
+        evidenceEvent.setTimestamp(LocalDateTime.now());
+
+        timelineRepository.save(evidenceEvent);
+
+        return new UploadEvidenceResponse(fileUrl, "Evidence uploaded successfully", true);
+    }
+
 }
+
+

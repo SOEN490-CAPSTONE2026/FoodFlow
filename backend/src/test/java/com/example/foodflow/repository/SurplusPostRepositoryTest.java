@@ -48,7 +48,7 @@ class SurplusPostRepositoryTest {
         // Create organization
         organization = new Organization();
         organization.setName("Test Restaurant");
-        organization.setOrganizationType(OrganizationType.RESTAURANT);  // ✅ Correct setter
+        organization.setOrganizationType(OrganizationType.RESTAURANT);
         organization.setContactPerson("John Doe");
         organization.setPhone("123-456-7890");
         organization.setAddress("123 Main St");
