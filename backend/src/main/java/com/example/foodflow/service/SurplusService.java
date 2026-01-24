@@ -4,6 +4,7 @@ import com.example.foodflow.helpers.ArrayFilter;
 import com.example.foodflow.helpers.BasicFilter;
 import com.example.foodflow.helpers.LocationFilter;
 import com.example.foodflow.helpers.SpecificationHandler;
+import com.example.foodflow.config.PickupTimeToleranceConfig;
 import com.example.foodflow.model.dto.CreateSurplusRequest;
 import com.example.foodflow.model.dto.DonationTimelineDTO;
 import com.example.foodflow.model.dto.SurplusFilterRequest;
@@ -52,6 +53,7 @@ public class SurplusService {
     private final TimelineService timelineService;
     private final DonationTimelineRepository timelineRepository;
     private final FileStorageService fileStorageService;
+    private final PickupTimeToleranceConfig pickupTimeToleranceConfig;
 
     public SurplusService(SurplusPostRepository surplusPostRepository,
             ClaimRepository claimRepository,
@@ -61,7 +63,8 @@ public class SurplusService {
             ExpiryCalculationService expiryCalculationService,
             TimelineService timelineService,
             DonationTimelineRepository timelineRepository,
-            FileStorageService fileStorageService) {
+            FileStorageService fileStorageService,
+            PickupTimeToleranceConfig pickupTimeToleranceConfig) {
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;
         this.pickupSlotValidationService = pickupSlotValidationService;
@@ -71,6 +74,7 @@ public class SurplusService {
         this.timelineService = timelineService;
         this.timelineRepository = timelineRepository;
         this.fileStorageService = fileStorageService;
+        this.pickupTimeToleranceConfig = pickupTimeToleranceConfig;
     }
 
     /**
@@ -814,6 +818,9 @@ public class SurplusService {
         Claim claim = claimRepository.findBySurplusPost(post)
                 .orElseThrow(() -> new RuntimeException("No active claim found for this post"));
 
+        // Validate pickup time is within tolerance window
+        String pickupTimingStatus = validateAndGetPickupTiming(claim);
+
         post.setStatus(PostStatus.COMPLETED);
         post.setOtpCode(null);
         claim.setStatus(ClaimStatus.COMPLETED);
@@ -821,7 +828,8 @@ public class SurplusService {
         surplusPostRepository.save(post);
         claimRepository.save(claim);
 
-        // Create timeline event for pickup confirmation
+        // Create timeline event for pickup confirmation with timing status
+        String details = String.format("Pickup confirmed with OTP code (%s)", pickupTimingStatus);
         timelineService.createTimelineEvent(
                 post,
                 "PICKUP_CONFIRMED",
@@ -829,10 +837,69 @@ public class SurplusService {
                 donor.getId(),
                 PostStatus.READY_FOR_PICKUP,
                 PostStatus.COMPLETED,
-                "Pickup confirmed with OTP code",
+                details,
                 true);
 
         return convertToResponse(post);
+    }
+
+    /**
+     * Validates if the current time is within the allowed pickup window and returns
+     * the timing status.
+     * The allowed window is: (confirmedStartTime - earlyTolerance) to
+     * (confirmedEndTime + lateTolerance)
+     * 
+     * @param claim The claim with confirmed pickup slot
+     * @return Timing status: "EARLY", "ON_TIME", or "LATE"
+     * @throws RuntimeException if pickup is attempted outside the tolerance window
+     */
+    private String validateAndGetPickupTiming(Claim claim) {
+        LocalDate confirmedDate = claim.getConfirmedPickupDate();
+        java.time.LocalTime confirmedStartTime = claim.getConfirmedPickupStartTime();
+        java.time.LocalTime confirmedEndTime = claim.getConfirmedPickupEndTime();
+
+        // If no confirmed pickup slot, allow confirmation (backward compatibility)
+        if (confirmedDate == null || confirmedStartTime == null || confirmedEndTime == null) {
+            return "ON_TIME";
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime windowStart = LocalDateTime.of(confirmedDate, confirmedStartTime);
+        LocalDateTime windowEnd = LocalDateTime.of(confirmedDate, confirmedEndTime);
+
+        // Apply tolerance
+        int earlyToleranceMinutes = pickupTimeToleranceConfig.getEarlyToleranceMinutes();
+        int lateToleranceMinutes = pickupTimeToleranceConfig.getLateToleranceMinutes();
+
+        LocalDateTime allowedStart = windowStart.minusMinutes(earlyToleranceMinutes);
+        LocalDateTime allowedEnd = windowEnd.plusMinutes(lateToleranceMinutes);
+
+        // Check if too early
+        if (now.isBefore(allowedStart)) {
+            long minutesUntilAllowed = java.time.Duration.between(now, allowedStart).toMinutes();
+            throw new RuntimeException(String.format(
+                    "Pickup cannot be confirmed yet. Please wait %d more minute(s). " +
+                            "Confirmation is allowed starting %d minutes before the scheduled pickup time.",
+                    minutesUntilAllowed, earlyToleranceMinutes));
+        }
+
+        // Check if too late
+        if (now.isAfter(allowedEnd)) {
+            long minutesPastWindow = java.time.Duration.between(allowedEnd, now).toMinutes();
+            throw new RuntimeException(String.format(
+                    "Pickup window has expired. The window ended %d minute(s) ago. " +
+                            "Confirmation was allowed up to %d minutes after the scheduled end time.",
+                    minutesPastWindow, lateToleranceMinutes));
+        }
+
+        // Determine timing status
+        if (now.isBefore(windowStart)) {
+            return "EARLY";
+        } else if (now.isAfter(windowEnd)) {
+            return "LATE";
+        } else {
+            return "ON_TIME";
+        }
     }
 
     @Transactional
@@ -942,10 +1009,12 @@ public class SurplusService {
             throw new IllegalArgumentException("You are not authorized to upload evidence for this donation");
         }
 
-        // Check that the donation is in a valid status for evidence upload (CLAIMED or READY_FOR_PICKUP)
+        // Check that the donation is in a valid status for evidence upload (CLAIMED or
+        // READY_FOR_PICKUP)
         PostStatus status = post.getStatus();
         if (status != PostStatus.CLAIMED && status != PostStatus.READY_FOR_PICKUP && status != PostStatus.COMPLETED) {
-            throw new IllegalArgumentException("Evidence can only be uploaded for claimed, ready for pickup, or completed donations");
+            throw new IllegalArgumentException(
+                    "Evidence can only be uploaded for claimed, ready for pickup, or completed donations");
         }
 
         // Store the file
@@ -968,5 +1037,3 @@ public class SurplusService {
     }
 
 }
-
-

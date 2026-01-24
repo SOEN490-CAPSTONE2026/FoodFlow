@@ -1,9 +1,11 @@
 package com.example.foodflow.controller;
 
+import com.example.foodflow.config.PickupTimeToleranceConfig;
 import com.example.foodflow.model.dto.CompleteSurplusRequest;
 import com.example.foodflow.model.dto.ConfirmPickupRequest;
 import com.example.foodflow.model.dto.CreateSurplusRequest;
 import com.example.foodflow.model.dto.DonationTimelineDTO;
+import com.example.foodflow.model.dto.PickupToleranceResponse;
 import com.example.foodflow.model.dto.SurplusResponse;
 import com.example.foodflow.model.dto.SurplusFilterRequest;
 import com.example.foodflow.model.dto.UploadEvidenceResponse;
@@ -28,9 +30,11 @@ import java.util.List;
 public class SurplusController {
 
     private final SurplusService surplusService;
+    private final PickupTimeToleranceConfig pickupTimeToleranceConfig;
 
-    public SurplusController(SurplusService surplusService) {
+    public SurplusController(SurplusService surplusService, PickupTimeToleranceConfig pickupTimeToleranceConfig) {
         this.surplusService = surplusService;
+        this.pickupTimeToleranceConfig = pickupTimeToleranceConfig;
     }
 
     @PostMapping
@@ -158,6 +162,15 @@ public class SurplusController {
                 donor
         );
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/pickup/tolerance")
+    public ResponseEntity<PickupToleranceResponse> getPickupTolerance() {
+        PickupToleranceResponse toleranceConfig = new PickupToleranceResponse(
+                pickupTimeToleranceConfig.getEarlyToleranceMinutes(),
+                pickupTimeToleranceConfig.getLateToleranceMinutes()
+        );
+        return ResponseEntity.ok(toleranceConfig);
     }
 
     @GetMapping("/{id}/timeline")
