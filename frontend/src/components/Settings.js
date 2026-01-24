@@ -191,16 +191,6 @@ const Settings = () => {
 
   const fetchUserProfile = async () => {
     try {
-      // Fetch region settings
-      const regionResp = await api.get('/profile/region');
-      if (regionResp.data) {
-        setRegionSettings({
-          country: regionResp.data.country,
-          city: regionResp.data.city,
-          timezone: regionResp.data.timezone
-        });
-      }
-
       // Fetch user profile data
       const profileResp = await profileAPI.get();
       if (profileResp.data) {
