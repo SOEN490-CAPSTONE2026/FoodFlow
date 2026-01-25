@@ -63,7 +63,7 @@ class DonationStatusIntegrationTest {
         otherDonor.setPassword("password123");
         otherDonor.setRole(UserRole.DONOR);
         otherDonor = userRepository.save(otherDonor);
-        
+
         // Create test receiver for claims
         receiver = new User();
         receiver.setEmail("receiver@test.com");
@@ -96,13 +96,13 @@ class DonationStatusIntegrationTest {
         LocalDate pastDate = LocalDate.now().minusDays(1);
         LocalTime startTime = LocalTime.of(9, 0);
         LocalTime endTime = LocalTime.of(12, 0);
-        
+
         SurplusPost post = createTestPost(PostStatus.CLAIMED);
         post.setPickupDate(pastDate);
         post.setPickupFrom(startTime);
         post.setPickupTo(endTime);
         post = surplusPostRepository.save(post);
-        
+
         // Create a claim with confirmed pickup date in the past (scheduler needs this!)
         Claim claim = new Claim(post, receiver);
         claim.setStatus(ClaimStatus.ACTIVE);
@@ -110,7 +110,7 @@ class DonationStatusIntegrationTest {
         claim.setConfirmedPickupStartTime(startTime);
         claim.setConfirmedPickupEndTime(endTime);
         claimRepository.save(claim);
-        
+
         // Set createdAt to bypass grace period using reflection
         setCreatedAt(post, LocalDateTime.now().minusMinutes(3));
         post = surplusPostRepository.save(post);
@@ -134,14 +134,14 @@ class DonationStatusIntegrationTest {
         LocalDate pastDate = LocalDate.now().minusDays(1);
         LocalTime startTime = LocalTime.of(9, 0);
         LocalTime endTime = LocalTime.of(12, 0);
-        
+
         SurplusPost post = createTestPost(PostStatus.READY_FOR_PICKUP);
         post.setOtpCode("123456");
         post.setPickupDate(pastDate);
         post.setPickupFrom(startTime);
         post.setPickupTo(endTime);
         post = surplusPostRepository.save(post);
-        
+
         // Create a claim with confirmed pickup date that ended (scheduler needs this!)
         Claim claim = new Claim(post, receiver);
         claim.setStatus(ClaimStatus.ACTIVE);
@@ -149,7 +149,7 @@ class DonationStatusIntegrationTest {
         claim.setConfirmedPickupStartTime(startTime);
         claim.setConfirmedPickupEndTime(endTime);
         claimRepository.save(claim);
-        
+
         // Set createdAt to bypass grace period using reflection
         setCreatedAt(post, LocalDateTime.now().minusMinutes(3));
         post = surplusPostRepository.save(post);
@@ -194,7 +194,7 @@ class DonationStatusIntegrationTest {
             surplusService.completeSurplusPost(postId, "999999", donor);
         });
 
-        assertEquals("Invalid OTP code", exception.getMessage());
+        assertEquals("error.auth.invalid_credentials", exception.getMessage());
 
         // Verify status unchanged
         SurplusPost unchangedPost = surplusPostRepository.findById(postId).orElseThrow();

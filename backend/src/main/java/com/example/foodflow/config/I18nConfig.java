@@ -36,10 +36,9 @@ public class I18nConfig {
                 Locale.ENGLISH,
                 Locale.FRENCH,
                 new Locale("es"),
-                Locale.SIMPLIFIED_CHINESE,
+                new Locale("zh"),
                 new Locale("ar"),
-                new Locale("pt")
-        );
+                new Locale("pt"));
         resolver.setSupportedLocales(supported);
         resolver.setDefaultLocale(Locale.ENGLISH);
         return resolver;

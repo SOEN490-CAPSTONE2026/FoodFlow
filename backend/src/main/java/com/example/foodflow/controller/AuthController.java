@@ -41,13 +41,8 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        try {
-            AuthResponse response = authService.login(request);
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest()
-                .body(new AuthResponse(null, null, null, e.getMessage()));
-        }
+        AuthResponse response = authService.login(request);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/logout")
@@ -55,7 +50,7 @@ public class AuthController {
         AuthResponse response = authService.logout(request);
         return ResponseEntity.ok(response);
     }
-    
+
     @PostMapping("/forgot-password")
     public ResponseEntity<Map<String, String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
         try {
@@ -73,9 +68,8 @@ public class AuthController {
             boolean isValid = authService.verifyResetCode(request.getEmail(), request.getCode());
             if (isValid) {
                 return ResponseEntity.ok(Map.of(
-                    "message", "Code verified successfully",
-                    "email", request.getEmail()
-                ));
+                        "message", "Code verified successfully",
+                        "email", request.getEmail()));
             } else {
                 return ResponseEntity.badRequest()
                         .body(Map.of("message", "Invalid code"));
@@ -90,29 +84,27 @@ public class AuthController {
     public ResponseEntity<Map<String, String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         try {
             Map<String, String> response = authService.resetPassword(
-                request.getEmail(),
-                request.getPhone(),
-                request.getCode(), 
-                request.getNewPassword()
-            );
+                    request.getEmail(),
+                    request.getPhone(),
+                    request.getCode(),
+                    request.getNewPassword());
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest()
                     .body(Map.of("message", e.getMessage()));
         }
     }
-    
+
     @PostMapping("/change-password")
     public ResponseEntity<Map<String, String>> changePassword(
             @AuthenticationPrincipal User user,
             @Valid @RequestBody ChangePasswordRequest request) {
         try {
             Map<String, String> response = authService.changePassword(
-                user,
-                request.getCurrentPassword(),
-                request.getNewPassword(),
-                request.getConfirmPassword()
-            );
+                    user,
+                    request.getCurrentPassword(),
+                    request.getNewPassword(),
+                    request.getConfirmPassword());
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest()
