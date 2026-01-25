@@ -24,6 +24,7 @@ import com.example.foodflow.repository.SurplusPostRepository;
 import com.example.foodflow.util.TimezoneResolver;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.Timer;
+import org.springframework.beans.factory.annotation.Value;
 
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -54,6 +55,12 @@ public class SurplusService {
     private final FileStorageService fileStorageService;
     private final GamificationService gamificationService;
     private final ClaimService claimService;
+
+    @Value("${foodflow.pickup.tolerance.early-minutes:15}")
+    private int earlyToleranceMinutes;
+
+    @Value("${foodflow.pickup.tolerance.late-minutes:30}")
+    private int lateToleranceMinutes;
 
     public SurplusService(SurplusPostRepository surplusPostRepository,
             ClaimRepository claimRepository,
@@ -830,6 +837,49 @@ public class SurplusService {
         Claim claim = claimRepository.findBySurplusPost(post)
                 .orElseThrow(() -> new RuntimeException("No active claim found for this post"));
 
+        // Validate pickup time with tolerance window
+        java.time.LocalDateTime now = java.time.LocalDateTime.now(java.time.ZoneId.of("UTC"));
+        java.time.LocalDate confirmedDate = claim.getConfirmedPickupDate();
+        java.time.LocalTime confirmedStartTime = claim.getConfirmedPickupStartTime();
+        java.time.LocalTime confirmedEndTime = claim.getConfirmedPickupEndTime();
+
+        String timingStatus = "on-time";
+        long minutesDifference = 0;
+
+        if (confirmedDate != null && confirmedStartTime != null && confirmedEndTime != null) {
+            java.time.LocalDateTime windowStart = java.time.LocalDateTime.of(confirmedDate, confirmedStartTime)
+                    .minusMinutes(earlyToleranceMinutes);
+            java.time.LocalDateTime windowEnd = java.time.LocalDateTime.of(confirmedDate, confirmedEndTime)
+                    .plusMinutes(lateToleranceMinutes);
+            java.time.LocalDateTime scheduledStart = java.time.LocalDateTime.of(confirmedDate, confirmedStartTime);
+            java.time.LocalDateTime scheduledEnd = java.time.LocalDateTime.of(confirmedDate, confirmedEndTime);
+
+            if (now.isBefore(windowStart)) {
+                long minutesTooEarly = java.time.Duration.between(now, scheduledStart).toMinutes();
+                throw new RuntimeException(String.format(
+                        "Pickup confirmation is too early. The pickup window starts in %d minutes. " +
+                        "You can confirm up to %d minutes before the scheduled start time.",
+                        minutesTooEarly, earlyToleranceMinutes));
+            }
+
+            if (now.isAfter(windowEnd)) {
+                long minutesTooLate = java.time.Duration.between(scheduledEnd, now).toMinutes();
+                throw new RuntimeException(String.format(
+                        "Pickup confirmation is too late. The pickup window ended %d minutes ago. " +
+                        "Pickup could only be confirmed up to %d minutes after the scheduled end time.",
+                        minutesTooLate, lateToleranceMinutes));
+            }
+
+            // Determine if early, on-time, or late for audit logging
+            if (now.isBefore(scheduledStart)) {
+                timingStatus = "early";
+                minutesDifference = java.time.Duration.between(now, scheduledStart).toMinutes();
+            } else if (now.isAfter(scheduledEnd)) {
+                timingStatus = "late";
+                minutesDifference = java.time.Duration.between(scheduledEnd, now).toMinutes();
+            }
+        }
+
         post.setStatus(PostStatus.COMPLETED);
         post.setOtpCode(null);
 
@@ -838,7 +888,16 @@ public class SurplusService {
         // Complete the claim - this awards points and checks achievements for the receiver
         claimService.completeClaim(claim.getId());
 
-        // Create timeline event for pickup confirmation
+        // Create timeline event for pickup confirmation with timing details
+        String timelineDetails;
+        if ("early".equals(timingStatus)) {
+            timelineDetails = String.format("Pickup confirmed %d minutes before scheduled start time", minutesDifference);
+        } else if ("late".equals(timingStatus)) {
+            timelineDetails = String.format("Pickup confirmed %d minutes after scheduled end time", minutesDifference);
+        } else {
+            timelineDetails = "Pickup confirmed within scheduled window";
+        }
+
         timelineService.createTimelineEvent(
                 post,
                 "PICKUP_CONFIRMED",
@@ -846,7 +905,7 @@ public class SurplusService {
                 donor.getId(),
                 PostStatus.READY_FOR_PICKUP,
                 PostStatus.COMPLETED,
-                "Pickup confirmed with OTP code",
+                timelineDetails,
                 true);
 
         return convertToResponse(post);

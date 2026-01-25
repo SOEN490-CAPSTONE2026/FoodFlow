@@ -32,6 +32,7 @@ import java.time.LocalTime;
 import java.util.*;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.lang.reflect.Field;
 import static org.assertj.core.api.Assertions.within;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -83,7 +84,16 @@ class SurplusServiceTest {
     private CreateSurplusRequest request;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
+        // Set tolerance values using reflection (since @Value isn't processed in unit tests)
+        Field earlyToleranceField = SurplusService.class.getDeclaredField("earlyToleranceMinutes");
+        earlyToleranceField.setAccessible(true);
+        earlyToleranceField.setInt(surplusService, 15);
+
+        Field lateToleranceField = SurplusService.class.getDeclaredField("lateToleranceMinutes");
+        lateToleranceField.setAccessible(true);
+        lateToleranceField.setInt(surplusService, 30);
+
         // Create test organization
         Organization organization = new Organization();
         organization.setId(1L);
@@ -667,6 +677,12 @@ class SurplusServiceTest {
         com.example.foodflow.model.entity.Claim claim = new com.example.foodflow.model.entity.Claim();
         claim.setId(1L);
         claim.setStatus(ClaimStatus.ACTIVE);
+        // Use a fixed time in the middle of the day to avoid midnight crossing issues
+        // Set confirmed pickup slot where current time is within window
+        java.time.LocalDate today = java.time.LocalDate.now(java.time.ZoneId.of("UTC"));
+        claim.setConfirmedPickupDate(today);
+        claim.setConfirmedPickupStartTime(java.time.LocalTime.of(0, 0)); // Starts at midnight
+        claim.setConfirmedPickupEndTime(java.time.LocalTime.of(23, 59)); // Ends at end of day
 
         SurplusPost post = new SurplusPost();
         post.setId(1L);
@@ -705,6 +721,184 @@ class SurplusServiceTest {
 
         // Verify ClaimService.completeClaim was called
         verify(claimService).completeClaim(claim.getId());
+    }
+
+    @Test
+    void testConfirmPickup_WithinEarlyTolerance_Success() {
+        // Given - current time is 10 minutes before scheduled start (within 15 min early tolerance)
+        com.example.foodflow.model.entity.Claim claim = new com.example.foodflow.model.entity.Claim();
+        claim.setId(1L);
+        claim.setStatus(ClaimStatus.ACTIVE);
+        // Set pickup window starting 10 minutes from now - use a simple approach
+        java.time.LocalDateTime nowUtc = java.time.LocalDateTime.now(java.time.ZoneId.of("UTC"));
+        java.time.LocalDateTime windowStart = nowUtc.plusMinutes(10); // Start is 10 min in future
+        java.time.LocalDateTime windowEnd = nowUtc.plusMinutes(130); // End is 2h10min from now
+        claim.setConfirmedPickupDate(windowStart.toLocalDate());
+        claim.setConfirmedPickupStartTime(windowStart.toLocalTime());
+        claim.setConfirmedPickupEndTime(windowEnd.toLocalTime());
+
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setStatus(PostStatus.READY_FOR_PICKUP);
+        post.setOtpCode("123456");
+        post.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        post.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        post.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC"));
+        post.setExpiryDate(LocalDate.now().plusDays(2));
+
+        claim.setSurplusPost(post);
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+        when(claimRepository.findBySurplusPost(post)).thenReturn(Optional.of(claim));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(post);
+        doNothing().when(claimService).completeClaim(anyLong());
+
+        // When
+        SurplusResponse response = surplusService.confirmPickup(1L, "123456", donor);
+
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(PostStatus.COMPLETED);
+        verify(surplusPostRepository).save(any(SurplusPost.class));
+    }
+
+    @Test
+    void testConfirmPickup_WithinLateTolerance_Success() {
+        // Given - current time is 20 minutes after scheduled end (within 30 min late tolerance)
+        com.example.foodflow.model.entity.Claim claim = new com.example.foodflow.model.entity.Claim();
+        claim.setId(1L);
+        claim.setStatus(ClaimStatus.ACTIVE);
+        java.time.LocalDateTime nowUtc = java.time.LocalDateTime.now(java.time.ZoneId.of("UTC"));
+        java.time.LocalDateTime windowEnd = nowUtc.minusMinutes(20); // End was 20 min ago
+        java.time.LocalDateTime windowStart = windowEnd.minusHours(2); // Start was 2h20min ago
+        claim.setConfirmedPickupDate(windowEnd.toLocalDate());
+        claim.setConfirmedPickupStartTime(windowStart.toLocalTime());
+        claim.setConfirmedPickupEndTime(windowEnd.toLocalTime());
+
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setStatus(PostStatus.READY_FOR_PICKUP);
+        post.setOtpCode("123456");
+        post.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        post.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        post.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC"));
+        post.setExpiryDate(LocalDate.now().plusDays(2));
+
+        claim.setSurplusPost(post);
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+        when(claimRepository.findBySurplusPost(post)).thenReturn(Optional.of(claim));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(post);
+        doNothing().when(claimService).completeClaim(anyLong());
+
+        // When
+        SurplusResponse response = surplusService.confirmPickup(1L, "123456", donor);
+
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(PostStatus.COMPLETED);
+        verify(surplusPostRepository).save(any(SurplusPost.class));
+    }
+
+    @Test
+    void testConfirmPickup_TooEarly_ThrowsException() {
+        // Given - current time is 30 minutes before scheduled start (exceeds 15 min early tolerance)
+        com.example.foodflow.model.entity.Claim claim = new com.example.foodflow.model.entity.Claim();
+        claim.setId(1L);
+        claim.setStatus(ClaimStatus.ACTIVE);
+        java.time.LocalDateTime nowUtc = java.time.LocalDateTime.now(java.time.ZoneId.of("UTC"));
+        java.time.LocalDateTime windowStart = nowUtc.plusMinutes(30); // Start is 30 min in future
+        java.time.LocalDateTime windowEnd = nowUtc.plusMinutes(150); // End is 2h30min from now
+        claim.setConfirmedPickupDate(windowStart.toLocalDate());
+        claim.setConfirmedPickupStartTime(windowStart.toLocalTime());
+        claim.setConfirmedPickupEndTime(windowEnd.toLocalTime());
+
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setStatus(PostStatus.READY_FOR_PICKUP);
+        post.setOtpCode("123456");
+
+        claim.setSurplusPost(post);
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+        when(claimRepository.findBySurplusPost(post)).thenReturn(Optional.of(claim));
+
+        // When & Then
+        assertThatThrownBy(() -> surplusService.confirmPickup(1L, "123456", donor))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("too early")
+            .hasMessageContaining("15 minutes");
+
+        verify(surplusPostRepository, never()).save(any(SurplusPost.class));
+    }
+
+    @Test
+    void testConfirmPickup_TooLate_ThrowsException() {
+        // Given - current time is 45 minutes after scheduled end (exceeds 30 min late tolerance)
+        com.example.foodflow.model.entity.Claim claim = new com.example.foodflow.model.entity.Claim();
+        claim.setId(1L);
+        claim.setStatus(ClaimStatus.ACTIVE);
+        java.time.LocalDateTime nowUtc = java.time.LocalDateTime.now(java.time.ZoneId.of("UTC"));
+        java.time.LocalDateTime windowEnd = nowUtc.minusMinutes(45); // End was 45 min ago
+        java.time.LocalDateTime windowStart = windowEnd.minusHours(2); // Start was 2h45min ago
+        claim.setConfirmedPickupDate(windowEnd.toLocalDate());
+        claim.setConfirmedPickupStartTime(windowStart.toLocalTime());
+        claim.setConfirmedPickupEndTime(windowEnd.toLocalTime());
+
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setStatus(PostStatus.READY_FOR_PICKUP);
+        post.setOtpCode("123456");
+
+        claim.setSurplusPost(post);
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+        when(claimRepository.findBySurplusPost(post)).thenReturn(Optional.of(claim));
+
+        // When & Then
+        assertThatThrownBy(() -> surplusService.confirmPickup(1L, "123456", donor))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("too late")
+            .hasMessageContaining("30 minutes");
+
+        verify(surplusPostRepository, never()).save(any(SurplusPost.class));
+    }
+
+    @Test
+    void testConfirmPickup_NoConfirmedSlot_Success() {
+        // Given - no confirmed pickup slot set (legacy behavior, should still work)
+        com.example.foodflow.model.entity.Claim claim = new com.example.foodflow.model.entity.Claim();
+        claim.setId(1L);
+        claim.setStatus(ClaimStatus.ACTIVE);
+        // No confirmed pickup slot set
+
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setStatus(PostStatus.READY_FOR_PICKUP);
+        post.setOtpCode("123456");
+        post.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        post.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        post.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC"));
+        post.setExpiryDate(LocalDate.now().plusDays(2));
+
+        claim.setSurplusPost(post);
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+        when(claimRepository.findBySurplusPost(post)).thenReturn(Optional.of(claim));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(post);
+        doNothing().when(claimService).completeClaim(anyLong());
+
+        // When
+        SurplusResponse response = surplusService.confirmPickup(1L, "123456", donor);
+
+        // Then - should succeed without time validation
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(PostStatus.COMPLETED);
     }
 
     @Test

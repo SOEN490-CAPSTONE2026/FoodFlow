@@ -35,7 +35,10 @@ public class SurplusPostSchedulerService {
     @Value("${foodflow.expiry.enable-auto-flagging:true}")
     private boolean enableAutoFlagging;
 
-    public SurplusPostSchedulerService(SurplusPostRepository surplusPostRepository, 
+    @Value("${foodflow.pickup.tolerance.late-minutes:30}")
+    private int lateToleranceMinutes;
+
+    public SurplusPostSchedulerService(SurplusPostRepository surplusPostRepository,
                                       ClaimRepository claimRepository,
                                       TimelineService timelineService) {
         this.surplusPostRepository = surplusPostRepository;
@@ -185,14 +188,18 @@ public class SurplusPostSchedulerService {
                     return false;
                 }
 
-                // Confirmed pickup date before today → definitely missed
+                // Calculate the window end with late tolerance
+                LocalTime windowEndWithTolerance = confirmedPickupEndTime.plusMinutes(lateToleranceMinutes);
+
+                // Confirmed pickup date before today → check if tolerance window has passed
                 if (confirmedPickupDate.isBefore(today)) {
+                    // If pickup date was before today, the tolerance window has definitely passed
                     return true;
                 }
 
-                // Confirmed pickup date is today and window ended
+                // Confirmed pickup date is today and window ended + late tolerance
                 if (confirmedPickupDate.isEqual(today)) {
-                    return currentTime.isAfter(confirmedPickupEndTime);
+                    return currentTime.isAfter(windowEndWithTolerance);
                 }
 
                 return false;
