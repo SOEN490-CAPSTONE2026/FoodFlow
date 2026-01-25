@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import RegistrationIllustration from "../assets/illustrations/registration-illustration2.png";
 import DonorIcon from "../assets/icons/donor-icon.png";
 import ReceiverIcon from "../assets/icons/receiver-icon.png";
@@ -8,6 +9,7 @@ import "../style/RegisterType.css";
 
 const RegisterType = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <div className="register-type-page">
@@ -16,29 +18,29 @@ const RegisterType = () => {
       </div>
       
       <div className="intro">
-        <h1>Join FoodFlow</h1>
+        <h1>{t('registerType.title')}</h1>
         <p className="subtitle">
-          Choose your role to start making an impact.
+          {t('registerType.subtitle')}
         </p>
       </div>
 
       <div className="content">
         <div className="option-card donor">
           <img src={DonorIcon} alt="Donor Icon" height={129} width={129} />
-          <h3>I'm Donating</h3>
+          <h3>{t('registerType.donor.heading')}</h3>
           <p>
-            For restaurants, grocery stores, and event organizers with surplus food to share.
+            {t('registerType.donor.description')}
           </p>
           <ul>
-            <li>Post what's available</li>
-            <li>Connect with nearby charities</li>
-            <li>Watch your impact grow</li>
+            <li>{t('registerType.donor.benefit1')}</li>
+            <li>{t('registerType.donor.benefit2')}</li>
+            <li>{t('registerType.donor.benefit3')}</li>
           </ul>
           <button
             className="register-button donor-button"
             onClick={() => navigate("/register/donor")}
           >
-            Register as a Donor
+            {t('registerType.donor.button')}
           </button>
         </div>
 
@@ -53,20 +55,20 @@ const RegisterType = () => {
 
         <div className="option-card receiver">
           <img src={ReceiverIcon} alt="Receiver Icon" height={129} width={129} />
-          <h3>I'm Receiving</h3>
+          <h3>{t('registerType.receiver.heading')}</h3>
           <p>
-            For charities, shelters, and community kitchens that serve people in need.
+            {t('registerType.receiver.description')}
           </p>
           <ul>
-            <li>Accept fresh donations nearby</li>
-            <li>Connect directly with food donors</li>
-            <li>Feed your community efficiently</li>
+            <li>{t('registerType.receiver.benefit1')}</li>
+            <li>{t('registerType.receiver.benefit2')}</li>
+            <li>{t('registerType.receiver.benefit3')}</li>
           </ul>
           <button
             className="register-button receiver-button"
             onClick={() => navigate("/register/receiver")}
           >
-            Register as a Receiver
+            {t('registerType.receiver.button')}
           </button>
         </div>
       </div>
