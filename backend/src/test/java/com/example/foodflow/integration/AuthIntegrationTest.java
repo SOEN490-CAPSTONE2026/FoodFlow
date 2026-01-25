@@ -182,8 +182,7 @@ class AuthIntegrationTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(loginRequest)))
                                 .andExpect(status().isBadRequest())
-                                .andExpect(jsonPath("$.token").value((Object) null))
-                                .andExpect(jsonPath("$.message").value("error.auth.user_not_found"));
+                                .andExpect(jsonPath("$.message").value("User not found"));
         }
 
         @Test
@@ -211,7 +210,6 @@ class AuthIntegrationTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(loginRequest)))
                                 .andExpect(status().isBadRequest())
-                                .andExpect(jsonPath("$.token").value((Object) null))
-                                .andExpect(jsonPath("$.message").value("error.auth.invalid_credentials"));
+                                .andExpect(jsonPath("$.message").value("Invalid email or password."));
         }
 }

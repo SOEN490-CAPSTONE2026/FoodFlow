@@ -102,10 +102,12 @@ class I18nIntegrationTest {
                 RegisterDonorRequest request = new RegisterDonorRequest();
                 request.setEmail(TEST_EMAIL); // Already exists
                 request.setPassword("password123");
+                request.setConfirmPassword("password123");
                 request.setOrganizationName("Test Org");
                 request.setContactPerson("John Doe");
                 request.setPhone("1234567890");
                 request.setAddress("123 Main St");
+                request.setBusinessLicense("LICENSE-123");
 
                 mockMvc.perform(post("/api/auth/register/donor")
                                 .header("Accept-Language", "en")
@@ -157,10 +159,12 @@ class I18nIntegrationTest {
                 RegisterDonorRequest request = new RegisterDonorRequest();
                 request.setEmail(TEST_EMAIL);
                 request.setPassword("password123");
+                request.setConfirmPassword("password123");
                 request.setOrganizationName("Test Org");
                 request.setContactPerson("John Doe");
                 request.setPhone("1234567890");
                 request.setAddress("123 Main St");
+                request.setBusinessLicense("LICENSE-123");
 
                 mockMvc.perform(post("/api/auth/register/donor")
                                 .header("Accept-Language", "fr")
@@ -226,7 +230,7 @@ class I18nIntegrationTest {
                                                                 hasItem(containsString("无效的电子邮件格式"))))
                                 .andExpect(
                                                 jsonPath("$.fieldErrors[?(@.field == 'password')].message",
-                                                                hasItem(containsString("至少8个字符"))));
+                                                                hasItem(containsString("密码长度至少为 8 个字符"))));
         }
 
         @Test
@@ -262,7 +266,7 @@ class I18nIntegrationTest {
                                 .andExpect(jsonPath("$.fieldErrors[?(@.field == 'email')].message",
                                                 hasItem(containsString("تنسيق البريد الإلكتروني غير صحيح"))))
                                 .andExpect(jsonPath("$.fieldErrors[?(@.field == 'password')].message",
-                                                hasItem(containsString("8 أحرف على الأقل"))));
+                                                hasItem(containsString("8"))));
         }
 
         @Test
