@@ -14,7 +14,9 @@ const ConfirmPickupModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
   const [timingWarning, setTimingWarning] = useState(null);
 
   useEffect(() => {
-    if (!isOpen || !donationItem) return;
+    if (!isOpen || !donationItem) {
+      return;
+    }
 
     // Get confirmed pickup slot - check both confirmedPickupSlot and direct properties
     const confirmedSlot = donationItem.confirmedPickupSlot;

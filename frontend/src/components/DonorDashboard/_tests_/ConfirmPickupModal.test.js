@@ -527,7 +527,7 @@ describe('ConfirmPickupModal', () => {
 
   // ==================== Tests for Pickup Timing Tolerance Window ====================
 
-describe('Pickup Timing Tolerance', () => {
+  describe('Pickup Timing Tolerance', () => {
     const createDonationItemWithPickupSlot = (
       pickupDate,
       startTime,
@@ -563,7 +563,9 @@ describe('Pickup Timing Tolerance', () => {
     // Uses the endTime's date to ensure all times are on the same calendar day
     const createPickupTimes = (startOffsetMinutes, endOffsetMinutes) => {
       const now = new Date();
-      const startTime = new Date(now.getTime() + startOffsetMinutes * 60 * 1000);
+      const startTime = new Date(
+        now.getTime() + startOffsetMinutes * 60 * 1000
+      );
       const endTime = new Date(now.getTime() + endOffsetMinutes * 60 * 1000);
 
       // Use the end time's date - this ensures consistency when end time is the reference point
@@ -671,69 +673,72 @@ describe('Pickup Timing Tolerance', () => {
     // Skip them if we're within 3 hours of midnight UTC
     const describeOrSkip = isInSafeTimeZone() ? describe : describe.skip;
 
-    describeOrSkip('late pickup scenarios (requires safe UTC time zone)', () => {
-      test('shows warning when confirming late but within tolerance', () => {
-        // Create a pickup window that ended 20 minutes ago (within 30 min late tolerance)
-        const now = new Date();
-        const startTime = new Date(now.getTime() - 80 * 60 * 1000); // 80 min ago
-        const endTime = new Date(now.getTime() - 20 * 60 * 1000); // 20 min ago
+    describeOrSkip(
+      'late pickup scenarios (requires safe UTC time zone)',
+      () => {
+        test('shows warning when confirming late but within tolerance', () => {
+          // Create a pickup window that ended 20 minutes ago (within 30 min late tolerance)
+          const now = new Date();
+          const startTime = new Date(now.getTime() - 80 * 60 * 1000); // 80 min ago
+          const endTime = new Date(now.getTime() - 20 * 60 * 1000); // 20 min ago
 
-        const donationItem = createDonationItemWithPickupSlot(
-          formatDateForTest(endTime),
-          formatTimeForTest(startTime),
-          formatTimeForTest(endTime)
-        );
+          const donationItem = createDonationItemWithPickupSlot(
+            formatDateForTest(endTime),
+            formatTimeForTest(startTime),
+            formatTimeForTest(endTime)
+          );
 
-        render(
-          <ConfirmPickupModal
-            isOpen={true}
-            onClose={mockOnClose}
-            donationItem={donationItem}
-            onSuccess={mockOnSuccess}
-          />
-        );
+          render(
+            <ConfirmPickupModal
+              isOpen={true}
+              onClose={mockOnClose}
+              donationItem={donationItem}
+              onSuccess={mockOnSuccess}
+            />
+          );
 
-        // Should show warning about being late
-        expect(
-          screen.getByText(/minutes after the scheduled pickup window/i)
-        ).toBeInTheDocument();
-        // Button should still be enabled (within tolerance)
-        expect(
-          screen.getByRole('button', { name: /confirm pickup/i })
-        ).not.toBeDisabled();
-      });
+          // Should show warning about being late
+          expect(
+            screen.getByText(/minutes after the scheduled pickup window/i)
+          ).toBeInTheDocument();
+          // Button should still be enabled (within tolerance)
+          expect(
+            screen.getByRole('button', { name: /confirm pickup/i })
+          ).not.toBeDisabled();
+        });
 
-      test('shows error and disables button when too late (outside tolerance)', () => {
-        // Create a pickup window that ended 45 minutes ago (outside 30 min tolerance)
-        const now = new Date();
-        const startTime = new Date(now.getTime() - 105 * 60 * 1000); // 105 min ago
-        const endTime = new Date(now.getTime() - 45 * 60 * 1000); // 45 min ago
+        test('shows error and disables button when too late (outside tolerance)', () => {
+          // Create a pickup window that ended 45 minutes ago (outside 30 min tolerance)
+          const now = new Date();
+          const startTime = new Date(now.getTime() - 105 * 60 * 1000); // 105 min ago
+          const endTime = new Date(now.getTime() - 45 * 60 * 1000); // 45 min ago
 
-        const donationItem = createDonationItemWithPickupSlot(
-          formatDateForTest(endTime),
-          formatTimeForTest(startTime),
-          formatTimeForTest(endTime)
-        );
+          const donationItem = createDonationItemWithPickupSlot(
+            formatDateForTest(endTime),
+            formatTimeForTest(startTime),
+            formatTimeForTest(endTime)
+          );
 
-        render(
-          <ConfirmPickupModal
-            isOpen={true}
-            onClose={mockOnClose}
-            donationItem={donationItem}
-            onSuccess={mockOnSuccess}
-          />
-        );
+          render(
+            <ConfirmPickupModal
+              isOpen={true}
+              onClose={mockOnClose}
+              donationItem={donationItem}
+              onSuccess={mockOnSuccess}
+            />
+          );
 
-        // Should show error about being too late
-        expect(
-          screen.getByText(/maximum allowed is 30 minutes late/i)
-        ).toBeInTheDocument();
-        // Button should be disabled
-        expect(
-          screen.getByRole('button', { name: /confirm pickup/i })
-        ).toBeDisabled();
-      });
-    });
+          // Should show error about being too late
+          expect(
+            screen.getByText(/maximum allowed is 30 minutes late/i)
+          ).toBeInTheDocument();
+          // Button should be disabled
+          expect(
+            screen.getByRole('button', { name: /confirm pickup/i })
+          ).toBeDisabled();
+        });
+      }
+    );
 
     test('shows no warning when no pickup slot is provided', () => {
       const donationItem = {
