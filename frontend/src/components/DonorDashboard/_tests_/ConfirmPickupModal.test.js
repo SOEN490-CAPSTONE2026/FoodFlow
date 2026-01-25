@@ -528,7 +528,11 @@ describe('ConfirmPickupModal', () => {
   // ==================== Tests for Pickup Timing Tolerance Window ====================
 
   describe('Pickup Timing Tolerance', () => {
-    const createDonationItemWithPickupSlot = (pickupDate, startTime, endTime) => ({
+    const createDonationItemWithPickupSlot = (
+      pickupDate,
+      startTime,
+      endTime
+    ) => ({
       id: 123,
       name: 'Test Donation',
       confirmedPickupSlot: {
@@ -539,12 +543,12 @@ describe('ConfirmPickupModal', () => {
     });
 
     // Helper to format date as YYYY-MM-DD
-    const formatDateForTest = (date) => {
+    const formatDateForTest = date => {
       return date.toISOString().split('T')[0];
     };
 
     // Helper to format time as HH:MM:SS
-    const formatTimeForTest = (date) => {
+    const formatTimeForTest = date => {
       return date.toISOString().split('T')[1].split('.')[0];
     };
 
@@ -598,9 +602,13 @@ describe('ConfirmPickupModal', () => {
       );
 
       // Should show warning about being early
-      expect(screen.getByText(/minutes before the scheduled pickup time/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/minutes before the scheduled pickup time/i)
+      ).toBeInTheDocument();
       // Button should still be enabled (within tolerance)
-      expect(screen.getByRole('button', { name: /confirm pickup/i })).not.toBeDisabled();
+      expect(
+        screen.getByRole('button', { name: /confirm pickup/i })
+      ).not.toBeDisabled();
     });
 
     test('shows error and disables button when too early (outside tolerance)', () => {
@@ -625,9 +633,13 @@ describe('ConfirmPickupModal', () => {
       );
 
       // Should show error about being too early
-      expect(screen.getByText(/you can confirm up to 15 minutes early/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/you can confirm up to 15 minutes early/i)
+      ).toBeInTheDocument();
       // Button should be disabled
-      expect(screen.getByRole('button', { name: /confirm pickup/i })).toBeDisabled();
+      expect(
+        screen.getByRole('button', { name: /confirm pickup/i })
+      ).toBeDisabled();
     });
 
     test('shows warning when confirming late but within tolerance', () => {
@@ -652,9 +664,13 @@ describe('ConfirmPickupModal', () => {
       );
 
       // Should show warning about being late
-      expect(screen.getByText(/minutes after the scheduled pickup window/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/minutes after the scheduled pickup window/i)
+      ).toBeInTheDocument();
       // Button should still be enabled (within tolerance)
-      expect(screen.getByRole('button', { name: /confirm pickup/i })).not.toBeDisabled();
+      expect(
+        screen.getByRole('button', { name: /confirm pickup/i })
+      ).not.toBeDisabled();
     });
 
     test('shows error and disables button when too late (outside tolerance)', () => {
@@ -679,9 +695,13 @@ describe('ConfirmPickupModal', () => {
       );
 
       // Should show error about being too late (matches "Maximum allowed is 30 minutes late")
-      expect(screen.getByText(/maximum allowed is 30 minutes late/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/maximum allowed is 30 minutes late/i)
+      ).toBeInTheDocument();
       // Button should be disabled
-      expect(screen.getByRole('button', { name: /confirm pickup/i })).toBeDisabled();
+      expect(
+        screen.getByRole('button', { name: /confirm pickup/i })
+      ).toBeDisabled();
     });
 
     test('shows no warning when no pickup slot is provided', () => {
@@ -704,7 +724,9 @@ describe('ConfirmPickupModal', () => {
       expect(screen.queryByText(/minutes before/i)).not.toBeInTheDocument();
       expect(screen.queryByText(/minutes after/i)).not.toBeInTheDocument();
       // Button should be enabled
-      expect(screen.getByRole('button', { name: /confirm pickup/i })).not.toBeDisabled();
+      expect(
+        screen.getByRole('button', { name: /confirm pickup/i })
+      ).not.toBeDisabled();
     });
 
     test('uses fallback pickup times when confirmedPickupSlot is not available', () => {

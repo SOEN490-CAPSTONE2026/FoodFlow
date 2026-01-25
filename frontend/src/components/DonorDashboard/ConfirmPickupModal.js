@@ -51,28 +51,28 @@ const ConfirmPickupModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
         setTimingWarning({
           type: 'error',
           message: `Pickup window starts in ${minutesUntilStart} minutes. You can confirm up to ${EARLY_TOLERANCE_MINUTES} minutes early.`,
-          canConfirm: false
+          canConfirm: false,
         });
       } else if (now < startDateTime) {
         const minutesEarly = Math.ceil((startDateTime - now) / 60000);
         setTimingWarning({
           type: 'warning',
           message: `You are confirming ${minutesEarly} minutes before the scheduled pickup time.`,
-          canConfirm: true
+          canConfirm: true,
         });
       } else if (now > windowEnd) {
         const minutesLate = Math.ceil((now - endDateTime) / 60000);
         setTimingWarning({
           type: 'error',
           message: `Pickup window ended ${minutesLate} minutes ago. Maximum allowed is ${LATE_TOLERANCE_MINUTES} minutes late.`,
-          canConfirm: false
+          canConfirm: false,
         });
       } else if (now > endDateTime) {
         const minutesLate = Math.ceil((now - endDateTime) / 60000);
         setTimingWarning({
           type: 'warning',
           message: `You are confirming ${minutesLate} minutes after the scheduled pickup window ended.`,
-          canConfirm: true
+          canConfirm: true,
         });
       } else {
         setTimingWarning(null);
@@ -196,7 +196,9 @@ const ConfirmPickupModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
         {error && <p className="confirm-pickup-error">{error}</p>}
 
         {timingWarning && (
-          <div className={`confirm-pickup-timing-warning ${timingWarning.type}`}>
+          <div
+            className={`confirm-pickup-timing-warning ${timingWarning.type}`}
+          >
             {timingWarning.message}
           </div>
         )}
@@ -219,7 +221,9 @@ const ConfirmPickupModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
           <button
             className="confirm-pickup-button primary"
             onClick={handleConfirm}
-            disabled={isSubmitting || (timingWarning && !timingWarning.canConfirm)}
+            disabled={
+              isSubmitting || (timingWarning && !timingWarning.canConfirm)
+            }
           >
             {isSubmitting ? 'Verifying...' : 'Confirm Pickup'}
           </button>
