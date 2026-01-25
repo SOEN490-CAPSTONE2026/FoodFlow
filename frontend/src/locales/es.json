@@ -687,15 +687,29 @@
     }
   },
   "filtersPanel": {
+    "title": "Filtrar donaciones",
+    "foodTypeLabel": "Tipo de alimento",
+    "selectFoodTypes": "Seleccionar tipos de alimentos...",
+    "bestBeforeLabel": "Consumir antes del",
+    "selectDate": "Seleccionar fecha",
+    "distanceLabel": "Distancia:",
+    "km": "km",
+    "locationLabel": "Ubicación",
+    "enterLocation": "Ingresar ubicación...",
+    "clearAll": "Borrar todo",
+    "applyFilters": "Aplicar filtros",
+    "selectedCount": "{{count}} seleccionado(s)",
+    "tagBefore": "Antes del:",
+    "tagWithin": "Dentro de:",
+    "tagNear": "Cerca de:",
     "foodCategories": {
-      "fruitsVegetables": "Frutas y vegetales",
+      "fruitsVegetables": "Frutas y verduras",
       "bakeryPastry": "Panadería y pastelería",
       "packagedPantry": "Artículos empaquetados / despensa",
-      "dairyCold": "Lácteos y productos fríos",
+      "dairyCold": "Productos lácteos y fríos",
       "frozen": "Alimentos congelados",
       "preparedMeals": "Comidas preparadas"
-    },
-    "selectDate": "Seleccionar fecha"
+    }
   },
   "notifications": {
     "newMessageFrom": "Nuevo mensaje de",

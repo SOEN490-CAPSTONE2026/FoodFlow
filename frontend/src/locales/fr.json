@@ -707,15 +707,29 @@
     }
   },
   "filtersPanel": {
+    "title": "Filtrer les dons",
+    "foodTypeLabel": "Type d'aliment",
+    "selectFoodTypes": "Sélectionner les types d'aliments...",
+    "bestBeforeLabel": "À consommer avant le",
+    "selectDate": "Sélectionner la date",
+    "distanceLabel": "Distance :",
+    "km": "km",
+    "locationLabel": "Emplacement",
+    "enterLocation": "Entrer l'emplacement...",
+    "clearAll": "Tout effacer",
+    "applyFilters": "Appliquer les filtres",
+    "selectedCount": "{{count}} sélectionné(s)",
+    "tagBefore": "Avant :",
+    "tagWithin": "Dans un rayon de :",
+    "tagNear": "Près de :",
     "foodCategories": {
       "fruitsVegetables": "Fruits et légumes",
       "bakeryPastry": "Boulangerie et pâtisserie",
       "packagedPantry": "Articles emballés / garde-manger",
       "dairyCold": "Produits laitiers et réfrigérés",
-      "frozen": "Aliments congelés",
+      "frozen": "Aliments surgelés",
       "preparedMeals": "Repas préparés"
-    },
-    "selectDate": "Sélectionner la date"
+    }
   },
   "notifications": {
     "newMessageFrom": "Nouveau message de",

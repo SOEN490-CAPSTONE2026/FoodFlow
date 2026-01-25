@@ -2,16 +2,17 @@ import React, { useState, useRef } from "react";
 import { Autocomplete } from "@react-google-maps/api";
 import DatePicker from "react-datepicker";
 import { Filter, X, ChevronDown, MapPin, Check } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import "./Receiver_Styles/FiltersPanel.css";
 
 // Updated food categories to match backend enums exactly
 const FOOD_CATEGORIES = [
-  { value: "Fruits & Vegetables", label: "Fruits & Vegetables" },
-  { value: "Bakery & Pastry", label: "Bakery & Pastry" },
-  { value: "Packaged / Pantry Items", label: "Packaged / Pantry Items" },
-  { value: "Dairy & Cold Items", label: "Dairy & Cold Items" },
-  { value: "Frozen Food", label: "Frozen Food" },
-  { value: "Prepared Meals", label: "Prepared Meals" },
+  { value: "Fruits & Vegetables", labelKey: "filtersPanel.foodCategories.fruitsVegetables" },
+  { value: "Bakery & Pastry", labelKey: "filtersPanel.foodCategories.bakeryPastry" },
+  { value: "Packaged / Pantry Items", labelKey: "filtersPanel.foodCategories.packagedPantry" },
+  { value: "Dairy & Cold Items", labelKey: "filtersPanel.foodCategories.dairyCold" },
+  { value: "Frozen Food", labelKey: "filtersPanel.foodCategories.frozen" },
+  { value: "Prepared Meals", labelKey: "filtersPanel.foodCategories.preparedMeals" },
 ];
 
 // Custom Date Picker Component using react-datepicker
@@ -48,6 +49,7 @@ const CustomMultiSelect = ({
   onChange,
   placeholder,
 }) => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
 
   const handleOptionToggle = (optionValue) => {
@@ -63,7 +65,7 @@ const CustomMultiSelect = ({
       const option = options.find((opt) => opt.value === selectedValues[0]);
       return option ? option.label : selectedValues[0];
     }
-    return `${selectedValues.length} selected`;
+    return t('filtersPanel.selectedCount', { count: selectedValues.length });
   };
 
   return (
@@ -112,7 +114,14 @@ const FiltersPanel = ({
   isVisible = true,
   onClose,
 }) => {
+  const { t } = useTranslation();
   const autocompleteRef = useRef(null);
+
+  // Translate food categories
+  const translatedCategories = FOOD_CATEGORIES.map(cat => ({
+    value: cat.value,
+    label: t(cat.labelKey)
+  }));
 
   const handleFilterChange = (filterType, value) => {
     onFiltersChange(filterType, value);
@@ -179,7 +188,7 @@ const FiltersPanel = ({
       <div className="filters-header">
         <div className="header-left">
           <Filter className="filter-icon" size={16} />
-          <span className="filters-title">Filter Donations</span>
+          <span className="filters-title">{t('filtersPanel.title')}</span>
         </div>
         {onClose && (
           <button className="close-filters-btn" onClick={onClose}>
@@ -192,33 +201,33 @@ const FiltersPanel = ({
         <div className="filters-row">
           {/* Food Type Filter */}
           <div className="filter-group">
-            <label className="filter-label">Food Type</label>
+            <label className="filter-label">{t('filtersPanel.foodTypeLabel')}</label>
             <CustomMultiSelect
-              options={FOOD_CATEGORIES.filter(
+              options={translatedCategories.filter(
                 (category) => category.value !== ""
               )}
               selectedValues={filters.foodType || []}
               onChange={(selected) => handleFilterChange("foodType", selected)}
-              placeholder="Select food types..."
+              placeholder={t('filtersPanel.selectFoodTypes')}
             />
           </div>
 
           {/* Expiry Date Filter */}
           <div className="filter-group">
-            <label className="filter-label">Best before</label>
+            <label className="filter-label">{t('filtersPanel.bestBeforeLabel')}</label>
             <CustomDatePicker
               value={filters.expiryBefore}
               onChange={(date) => handleFilterChange("expiryBefore", date)}
-              placeholder="Select date"
+              placeholder={t('filtersPanel.selectDate')}
             />
           </div>
 
           {/* Distance Filter */}
           <div className="filter-group">
             <div className="distance-label-row">
-              <label className="filter-label">Distance:</label>
+              <label className="filter-label">{t('filtersPanel.distanceLabel')}</label>
               <span className="distance-display">
-                {filters.distance || 10} km
+                {filters.distance || 10} {t('filtersPanel.km')}
               </span>
             </div>
             <div className="distance-filter">
@@ -241,9 +250,8 @@ const FiltersPanel = ({
           </div>
 
           {/* Location Filter */}
-          {/* Location Filter */}
           <div className="filter-group">
-            <label className="filter-label">Location</label>
+            <label className="filter-label">{t('filtersPanel.locationLabel')}</label>
             <div className="location-input-container">
               <MapPin className="location-icon" size={16} color="#717182" />
               <Autocomplete
@@ -257,7 +265,7 @@ const FiltersPanel = ({
                 <input
                   type="text"
                   className="location-input"
-                  placeholder="Enter location..."
+                  placeholder={t('filtersPanel.enterLocation')}
                   value={filters.location || ""}
                   onChange={(e) =>
                     handleFilterChange("location", e.target.value)
@@ -272,14 +280,14 @@ const FiltersPanel = ({
         <div className="filter-actions">
           <div className="left-section">
             <button className="clear-filters-btn" onClick={handleClearFilters}>
-              Clear All
+              {t('filtersPanel.clearAll')}
             </button>
 
             {/* Applied Filters Tags */}
             <div className="applied-tags">
               {/* Food Type Tags */}
               {(appliedFilters.foodType || []).map((foodType) => {
-                const category = FOOD_CATEGORIES.find(
+                const category = translatedCategories.find(
                   (cat) => cat.value === foodType
                 );
                 return (
@@ -300,7 +308,7 @@ const FiltersPanel = ({
               {appliedFilters.expiryBefore && (
                 <div className="filter-tag">
                   <span className="tag-text">
-                    Before: {appliedFilters.expiryBefore}
+                    {t('filtersPanel.tagBefore')} {appliedFilters.expiryBefore}
                   </span>
                   <button
                     className="tag-remove"
@@ -314,7 +322,7 @@ const FiltersPanel = ({
               {appliedFilters.distance && appliedFilters.distance !== 10 && (
                 <div className="filter-tag">
                   <span className="tag-text">
-                    Within: {appliedFilters.distance}km
+                    {t('filtersPanel.tagWithin')} {appliedFilters.distance}{t('filtersPanel.km')}
                   </span>
                   <button
                     className="tag-remove"
@@ -328,7 +336,7 @@ const FiltersPanel = ({
               {appliedFilters.location && (
                 <div className="filter-tag">
                   <span className="tag-text">
-                    Near: {appliedFilters.location}
+                    {t('filtersPanel.tagNear')} {appliedFilters.location}
                   </span>
                   <button
                     className="tag-remove"
@@ -343,7 +351,7 @@ const FiltersPanel = ({
 
           <div className="right-section">
             <button className="apply-filters-btn" onClick={handleApplyFilters}>
-              Apply Filters
+              {t('filtersPanel.applyFilters')}
             </button>
           </div>
         </div>

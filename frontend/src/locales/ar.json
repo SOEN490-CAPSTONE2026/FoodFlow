@@ -687,15 +687,29 @@
     }
   },
   "filtersPanel": {
+    "title": "تصفية التبرعات",
+    "foodTypeLabel": "نوع الطعام",
+    "selectFoodTypes": "اختر أنواع الطعام...",
+    "bestBeforeLabel": "الأفضل قبل",
+    "selectDate": "اختر التاريخ",
+    "distanceLabel": "المسافة:",
+    "km": "كم",
+    "locationLabel": "الموقع",
+    "enterLocation": "أدخل الموقع...",
+    "clearAll": "مسح الكل",
+    "applyFilters": "تطبيق التصفية",
+    "selectedCount": "{{count}} محدد",
+    "tagBefore": "قبل:",
+    "tagWithin": "ضمن:",
+    "tagNear": "بالقرب من:",
     "foodCategories": {
-      "fruitsVegetables": "فواكه وخضروات",
-      "bakeryPastry": "مخبوزات وحلويات",
-      "packagedPantry": "عناصر معبأة / مخزن",
-      "dairyCold": "ألبان ومنتجات باردة",
-      "frozen": "طعام مجمد",
-      "preparedMeals": "وجبات جاهزة"
-    },
-    "selectDate": "اختر التاريخ"
+      "fruitsVegetables": "الفواكه والخضروات",
+      "bakeryPastry": "المخبوزات والحلويات",
+      "packagedPantry": "العناصر المعبأة / المؤن",
+      "dairyCold": "منتجات الألبان والمبردة",
+      "frozen": "الأطعمة المجمدة",
+      "preparedMeals": "الوجبات الجاهزة"
+    }
   },
   "notifications": {
     "newMessageFrom": "رسالة جديدة من",

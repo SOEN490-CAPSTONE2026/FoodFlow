@@ -687,15 +687,29 @@
     }
   },
   "filtersPanel": {
+    "title": "筛选捐赠",
+    "foodTypeLabel": "食物类型",
+    "selectFoodTypes": "选择食物类型...",
+    "bestBeforeLabel": "最佳食用期",
+    "selectDate": "选择日期",
+    "distanceLabel": "距离：",
+    "km": "公里",
+    "locationLabel": "位置",
+    "enterLocation": "输入位置...",
+    "clearAll": "清除全部",
+    "applyFilters": "应用筛选",
+    "selectedCount": "已选择 {{count}} 项",
+    "tagBefore": "之前：",
+    "tagWithin": "范围内：",
+    "tagNear": "附近：",
     "foodCategories": {
       "fruitsVegetables": "水果和蔬菜",
       "bakeryPastry": "烘焙和糕点",
       "packagedPantry": "包装/储藏室物品",
       "dairyCold": "乳制品和冷藏品",
       "frozen": "冷冻食品",
-      "preparedMeals": "预制餐"
-    },
-    "selectDate": "选择日期"
+      "preparedMeals": "即食餐"
+    }
   },
   "notifications": {
     "newMessageFrom": "来自的新消息",

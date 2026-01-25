@@ -707,6 +707,21 @@
     }
   },
   "filtersPanel": {
+    "title": "Filter Donations",
+    "foodTypeLabel": "Food Type",
+    "selectFoodTypes": "Select food types...",
+    "bestBeforeLabel": "Best before",
+    "selectDate": "Select date",
+    "distanceLabel": "Distance:",
+    "km": "km",
+    "locationLabel": "Location",
+    "enterLocation": "Enter location...",
+    "clearAll": "Clear All",
+    "applyFilters": "Apply Filters",
+    "selectedCount": "{{count}} selected",
+    "tagBefore": "Before:",
+    "tagWithin": "Within:",
+    "tagNear": "Near:",
     "foodCategories": {
       "fruitsVegetables": "Fruits & Vegetables",
       "bakeryPastry": "Bakery & Pastry",
@@ -714,8 +729,7 @@
       "dairyCold": "Dairy & Cold Items",
       "frozen": "Frozen Food",
       "preparedMeals": "Prepared Meals"
-    },
-    "selectDate": "Select date"
+    }
   },
   "notifications": {
     "newMessageFrom": "New message from {{senderName}}",
