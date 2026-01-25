@@ -702,11 +702,8 @@ class SurplusServiceTest {
         assertThat(postCaptor.getValue().getStatus()).isEqualTo(PostStatus.COMPLETED);
         assertThat(postCaptor.getValue().getOtpCode()).isNull();
 
-        // Verify claim was updated
-        ArgumentCaptor<com.example.foodflow.model.entity.Claim> claimCaptor = ArgumentCaptor
-                .forClass(com.example.foodflow.model.entity.Claim.class);
-        verify(claimRepository).save(claimCaptor.capture());
-        assertThat(claimCaptor.getValue().getStatus()).isEqualTo(ClaimStatus.COMPLETED);
+        // Verify claim was completed via service
+        verify(claimService).completeClaim(1L);
     }
 
     @Test
@@ -994,6 +991,9 @@ class SurplusServiceTest {
         ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
         verify(surplusPostRepository).save(postCaptor.capture());
         assertThat(postCaptor.getValue().getOtpCode()).isNull();
+
+        // Verify claim was completed via service
+        verify(claimService).completeClaim(1L);
     }
 
     // ==================== Tests for Fabrication Date Feature ====================
