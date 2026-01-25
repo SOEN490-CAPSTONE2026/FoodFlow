@@ -67,6 +67,7 @@ const ReceiverRegistration = () => {
   const [submitted, setSubmitted] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [confirmAccuracy, setConfirmAccuracy] = useState(false);
+  const [dataStorageConsent, setDataStorageConsent] = useState(false);
 
   const handleChange = e => {
     const { name, value } = e.target;
@@ -426,6 +427,7 @@ const ReceiverRegistration = () => {
         payload.append('contactPerson', formData.contactPerson);
         payload.append('phone', formatPhoneNumber(formData.phone));
         payload.append('capacity', parseInt(formData.capacity));
+        payload.append('dataStorageConsent', dataStorageConsent);
       } else {
         // Use JSON payload if no file
         payload = {
@@ -439,6 +441,7 @@ const ReceiverRegistration = () => {
           contactPerson: formData.contactPerson,
           phone: formatPhoneNumber(formData.phone),
           capacity: parseInt(formData.capacity),
+          dataStorageConsent: dataStorageConsent,
         };
       }
 
@@ -1032,6 +1035,27 @@ const ReceiverRegistration = () => {
               )}
             </div>
 
+            <div className="form-group confirmation-checkbox">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={dataStorageConsent}
+                  onChange={e => setDataStorageConsent(e.target.checked)}
+                />
+                <span>
+                  I consent to data storage as outlined in the{' '}
+                  <a
+                    href="/privacy-policy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: '#609B7E', textDecoration: 'underline' }}
+                  >
+                    Privacy Policy
+                  </a>
+                </span>
+              </label>
+            </div>
+
             <div className="info-box">
               <p>
                 <strong>What happens next?</strong>
@@ -1121,7 +1145,12 @@ const ReceiverRegistration = () => {
                   type="button"
                   className="submit-button"
                   onClick={handleSubmit}
-                  disabled={loading || !isStepValid(currentStep)}
+                  disabled={
+                    loading ||
+                    !confirmAccuracy ||
+                    !dataStorageConsent ||
+                    !isStepValid(currentStep)
+                  }
                 >
                   {loading ? 'Submitting...' : 'Submit Registration'}
                 </button>

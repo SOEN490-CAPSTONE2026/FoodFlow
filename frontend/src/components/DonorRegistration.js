@@ -64,6 +64,7 @@ const DonorRegistration = () => {
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [confirmAccuracy, setConfirmAccuracy] = useState(false);
+  const [dataStorageConsent, setDataStorageConsent] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
   const handleChange = e => {
@@ -393,6 +394,7 @@ const DonorRegistration = () => {
         payload.append('address', fullAddress);
         payload.append('contactPerson', formData.contactPerson);
         payload.append('phone', formatPhoneNumber(formData.phone));
+        payload.append('dataStorageConsent', dataStorageConsent);
       } else {
         // Use JSON payload if no file
         payload = {
@@ -405,6 +407,7 @@ const DonorRegistration = () => {
           address: fullAddress,
           contactPerson: formData.contactPerson,
           phone: formatPhoneNumber(formData.phone),
+          dataStorageConsent: dataStorageConsent,
         };
       }
 
@@ -939,6 +942,27 @@ const DonorRegistration = () => {
                 <span>I confirm that the information provided is accurate</span>
               </label>
             </div>
+
+            <div className="form-group confirmation-checkbox">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={dataStorageConsent}
+                  onChange={e => setDataStorageConsent(e.target.checked)}
+                />
+                <span>
+                  I consent to data storage as outlined in the{' '}
+                  <a
+                    href="/privacy-policy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: '#609B7E', textDecoration: 'underline' }}
+                  >
+                    Privacy Policy
+                  </a>
+                </span>
+              </label>
+            </div>
           </div>
         );
 
@@ -1019,7 +1043,10 @@ const DonorRegistration = () => {
                   className="submit-button"
                   onClick={handleSubmit}
                   disabled={
-                    loading || !confirmAccuracy || !isStepValid(currentStep)
+                    loading ||
+                    !confirmAccuracy ||
+                    !dataStorageConsent ||
+                    !isStepValid(currentStep)
                   }
                 >
                   {loading ? 'Submitting...' : 'Register as Donor'}

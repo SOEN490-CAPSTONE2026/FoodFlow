@@ -901,6 +901,47 @@ const Settings = () => {
           </div>
         </div>
 
+        {/* Privacy & Data Consent Section */}
+        <div className="settings-section">
+          <div className="section-header-with-icon">
+            <div className="icon-circle">
+              <User size={24} />
+            </div>
+            <div className="section-title-group">
+              <h2>Privacy & Data Consent</h2>
+              <p className="section-description">
+                Your data storage consent and privacy information
+              </p>
+            </div>
+          </div>
+          <div className="section-content">
+            <div className="privacy-consent-info">
+              <p style={{ marginBottom: '1rem', lineHeight: '1.6' }}>
+                You have consented to data storage upon registering with
+                FoodFlow. We collect and store your information to provide our
+                services and connect donors with receivers efficiently.
+              </p>
+              <p style={{ lineHeight: '1.6' }}>
+                For more details about how we handle your data, please review
+                our{' '}
+                <a
+                  href="/privacy-policy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    color: '#609B7E',
+                    textDecoration: 'underline',
+                    fontWeight: '500',
+                  }}
+                >
+                  Privacy Policy
+                </a>
+                .
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Notifications Section */}
         <div className="settings-section">
           <div className="section-header-with-icon">
