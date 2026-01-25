@@ -134,17 +134,17 @@ const LoginPage = () => {
               <form onSubmit={handleLogin} noValidate>
                 <div className="form-field">
                   <label htmlFor="email" className="form-label">{t('login.emailLabel')}</label>
-                  <input id="email" type="email" assName="form-input" placeholder={t('login.emailPlaceholder')} value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required />
+                  <input id="email" type="email" className="form-input" placeholder={t('login.emailPlaceholder')} value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required />
                 </div>
 
                 <div className="form-field">
                   <label htmlFor="password" className="form-label">{t('login.passwordLabel')}</label>
                   <div className="password-wrapper">
                     <input id="password" type={showPassword ? 'text' : 'password'} className="form-input" placeholder={t('login.passwordPlaceholder')} value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" required />
-                    <button 
-                      type="button" 
-                      className="password-toggle" 
-                      aria-label={showPassword ? 'Hide password' : 'Show password'} 
+                    <button
+                      type="button"
+                      className="password-toggle"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
                       onClick={() => setShowPassword(prev => !prev)}
                     >
                       {showPassword ? (
