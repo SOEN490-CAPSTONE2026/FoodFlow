@@ -510,4 +510,82 @@ class AuthServiceTest {
         assertFalse(exists);
         verify(userRepository, never()).findByOrganizationPhone(any());
     }
+
+    @Test
+    void registerDonor_WithDataStorageConsent_SavesConsentFlag() {
+        // Given
+        donorRequest.setDataStorageConsent(true);
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
+        when(jwtTokenProvider.generateToken(anyString(), anyString())).thenReturn("jwt-token");
+        
+        User savedUser = new User();
+        savedUser.setId(1L);
+        savedUser.setEmail("donor@test.com");
+        savedUser.setRole(UserRole.DONOR);
+        
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+        when(organizationRepository.save(any(Organization.class))).thenReturn(new Organization());
+
+        // When
+        authService.registerDonor(donorRequest);
+
+        // Then
+        verify(userRepository).save(argThat(user -> 
+            user.getDataStorageConsent() != null && user.getDataStorageConsent() == true
+        ));
+    }
+
+    @Test
+    void registerReceiver_WithDataStorageConsent_SavesConsentFlag() {
+        // Given
+        receiverRequest.setDataStorageConsent(true);
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
+        when(jwtTokenProvider.generateToken(anyString(), anyString())).thenReturn("jwt-token");
+        
+        User savedUser = new User();
+        savedUser.setId(1L);
+        savedUser.setEmail("receiver@test.com");
+        savedUser.setRole(UserRole.RECEIVER);
+        
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+        when(organizationRepository.save(any(Organization.class))).thenReturn(new Organization());
+
+        // When
+        authService.registerReceiver(receiverRequest);
+
+        // Then
+        verify(userRepository).save(argThat(user -> 
+            user.getDataStorageConsent() != null && user.getDataStorageConsent() == true
+        ));
+    }
+
+    @Test
+    void registerDonor_WithoutDataStorageConsent_SavesFalseFlag() {
+        // Given
+        donorRequest.setDataStorageConsent(false);
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
+        when(jwtTokenProvider.generateToken(anyString(), anyString())).thenReturn("jwt-token");
+        
+        User savedUser = new User();
+        savedUser.setId(1L);
+        savedUser.setEmail("donor@test.com");
+        savedUser.setRole(UserRole.DONOR);
+        
+        Organization savedOrg = new Organization();
+        savedOrg.setId(1L);
+        
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+        when(organizationRepository.save(any(Organization.class))).thenReturn(savedOrg);
+
+        // When
+        authService.registerDonor(donorRequest);
+
+        // Then
+        verify(userRepository).save(argThat(user -> 
+            user.getDataStorageConsent() != null && user.getDataStorageConsent() == false
+        ));
+    }
 }

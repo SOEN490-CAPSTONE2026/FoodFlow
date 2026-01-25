@@ -113,6 +113,7 @@ public class AuthService {
         user.setRole(UserRole.DONOR);
         user.setFullName(request.getContactPerson());
         user.setPhone(request.getPhone());
+        user.setDataStorageConsent(request.getDataStorageConsent() != null ? request.getDataStorageConsent() : false);
 
         // Initialize default notification preferences
         initializeDefaultNotificationPreferences(user);
@@ -167,6 +168,7 @@ public class AuthService {
         user.setRole(UserRole.RECEIVER);
         user.setFullName(request.getContactPerson());
         user.setPhone(request.getPhone());
+        user.setDataStorageConsent(request.getDataStorageConsent() != null ? request.getDataStorageConsent() : false);
 
         // Initialize default notification preferences
         initializeDefaultNotificationPreferences(user);
