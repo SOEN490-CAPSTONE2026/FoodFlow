@@ -100,8 +100,8 @@ describe('ReceiverRegistration', () => {
     // Step 5: Review - check confirm accuracy checkbox
     const checkboxes = screen.getAllByRole('checkbox');
     for (const checkbox of checkboxes) {
-    await user.click(checkbox);
-  }
+      await user.click(checkbox);
+    }
   };
 
   test('shows error when passwords do not match and prevents submission', async () => {

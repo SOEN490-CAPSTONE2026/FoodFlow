@@ -77,7 +77,7 @@ const fillAllFields = async user => {
   await screen.findByLabelText(/contact person/i);
   await user.type(screen.getByLabelText(/contact person/i), 'Jane Doe');
   await user.type(screen.getByLabelText(/phone number/i), '1234567890');
-  
+
   // Click both checkboxes
   const checkboxes = screen.getAllByRole('checkbox');
   for (const checkbox of checkboxes) {
@@ -411,7 +411,7 @@ describe('DonorRegistration', () => {
     await screen.findByLabelText(/contact person/i);
     await user.type(screen.getByLabelText(/contact person/i), 'Jane Doe');
     await user.type(screen.getByLabelText(/phone number/i), '1234567890');
-      // Click both checkboxes
+    // Click both checkboxes
     const checkboxes = screen.getAllByRole('checkbox');
     for (const checkbox of checkboxes) {
       await user.click(checkbox);
@@ -496,7 +496,10 @@ describe('DonorRegistration', () => {
 
       await screen.findByLabelText(/organization name/i);
       await user.type(screen.getByLabelText(/organization name/i), 'Donor Org');
-      await user.selectOptions(screen.getByLabelText(/organization type/i), 'RESTAURANT');
+      await user.selectOptions(
+        screen.getByLabelText(/organization type/i),
+        'RESTAURANT'
+      );
       await user.type(screen.getByLabelText(/business license/i), 'BL-123456');
       await user.click(screen.getByRole('button', { name: /next/i }));
 
