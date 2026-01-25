@@ -60,7 +60,12 @@ class SurplusPostSchedulerServiceTest {
     private SurplusPost readyPost;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
+        // Set late tolerance using reflection (since @Value isn't processed in unit tests)
+        Field lateToleranceField = SurplusPostSchedulerService.class.getDeclaredField("lateToleranceMinutes");
+        lateToleranceField.setAccessible(true);
+        lateToleranceField.setInt(schedulerService, 30);
+
         // Create test organization
         Organization organization = new Organization();
         organization.setId(1L);
@@ -380,6 +385,164 @@ class SurplusPostSchedulerServiceTest {
 
         // Then
         verify(surplusPostRepository, never()).save(any(SurplusPost.class));
+    }
+
+// ==================== Tests for Late Tolerance Window ====================
+
+    @Test
+    void testUpdatePostsToNotCompleted_WithinLateTolerance_DoesNotUpdate() {
+        // Given - Pickup window ended 20 minutes ago (within 30 min tolerance)
+        // Use UTC today's date with a fixed time that won't cause date boundary issues
+        java.time.ZonedDateTime nowUtc = java.time.ZonedDateTime.now(java.time.ZoneId.of("UTC"));
+        java.time.LocalDate today = nowUtc.toLocalDate();
+        java.time.LocalTime currentTime = nowUtc.toLocalTime();
+
+        // Set end time to 20 minutes before current time (within 30 min tolerance)
+        java.time.LocalTime endTime = currentTime.minusMinutes(20);
+        java.time.LocalTime startTime = endTime.minusHours(2);
+
+        // Only set up this test if we have enough time margin from midnight
+        // to avoid date wraparound issues (need at least 2h20m from start of day)
+        if (currentTime.isBefore(java.time.LocalTime.of(2, 30))) {
+            // Skip test logic if too close to midnight - just verify no save
+            when(surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP))
+                .thenReturn(Collections.emptyList());
+            schedulerService.updatePostsToNotCompleted();
+            verify(surplusPostRepository, never()).save(any(SurplusPost.class));
+            return;
+        }
+
+        readyPost.setPickupDate(today);
+        readyPost.setPickupFrom(startTime);
+        readyPost.setPickupTo(endTime);
+        readyPost.setOtpCode("123456");
+
+        when(surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP))
+            .thenReturn(Collections.singletonList(readyPost));
+        mockClaimForPost(readyPost, today, startTime, endTime);
+
+        // When
+        schedulerService.updatePostsToNotCompleted();
+
+        // Then - Should NOT update since we're still within 30 min late tolerance
+        verify(surplusPostRepository, never()).save(any(SurplusPost.class));
+    }
+
+    @Test
+    void testUpdatePostsToNotCompleted_ExceedsLateTolerance_UpdatesStatus() {
+        // Given - Pickup window ended 45 minutes ago (exceeds 30 min tolerance)
+        java.time.ZonedDateTime nowUtc = java.time.ZonedDateTime.now(java.time.ZoneId.of("UTC"));
+        java.time.LocalDate today = nowUtc.toLocalDate();
+        java.time.LocalTime currentTime = nowUtc.toLocalTime();
+
+        // Set end time to 45 minutes before current time (exceeds 30 min tolerance)
+        java.time.LocalTime endTime = currentTime.minusMinutes(45);
+        java.time.LocalTime startTime = endTime.minusHours(2);
+
+        // Only set up this test if we have enough time margin from midnight
+        if (currentTime.isBefore(java.time.LocalTime.of(3, 0))) {
+            // If near midnight, use yesterday's date which will always exceed tolerance
+            today = today.minusDays(1);
+            endTime = java.time.LocalTime.of(17, 0);
+            startTime = java.time.LocalTime.of(15, 0);
+        }
+
+        readyPost.setPickupDate(today);
+        readyPost.setPickupFrom(startTime);
+        readyPost.setPickupTo(endTime);
+        readyPost.setOtpCode("123456");
+
+        when(surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP))
+            .thenReturn(Collections.singletonList(readyPost));
+        mockClaimForPost(readyPost, today, startTime, endTime);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(readyPost);
+
+        // When
+        schedulerService.updatePostsToNotCompleted();
+
+        // Then - Should update since we exceeded the 30 min late tolerance
+        ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
+        verify(surplusPostRepository).save(postCaptor.capture());
+
+        SurplusPost savedPost = postCaptor.getValue();
+        assertThat(savedPost.getStatus()).isEqualTo(PostStatus.NOT_COMPLETED);
+    }
+
+    @Test
+    void testUpdatePostsToNotCompleted_ExactlyAtToleranceEnd_DoesNotUpdate() {
+        // Given - Pickup window ended exactly 30 minutes ago (at the edge of tolerance)
+        java.time.ZonedDateTime nowUtc = java.time.ZonedDateTime.now(java.time.ZoneId.of("UTC"));
+        java.time.LocalDate today = nowUtc.toLocalDate();
+        java.time.LocalTime currentTime = nowUtc.toLocalTime();
+
+        // Set end time to exactly 30 minutes before current time
+        java.time.LocalTime endTime = currentTime.minusMinutes(30);
+        java.time.LocalTime startTime = endTime.minusHours(2);
+
+        // Only set up this test if we have enough time margin from midnight
+        if (currentTime.isBefore(java.time.LocalTime.of(2, 40))) {
+            // Skip test if too close to midnight
+            when(surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP))
+                .thenReturn(Collections.emptyList());
+            schedulerService.updatePostsToNotCompleted();
+            verify(surplusPostRepository, never()).save(any(SurplusPost.class));
+            return;
+        }
+
+        readyPost.setPickupDate(today);
+        readyPost.setPickupFrom(startTime);
+        readyPost.setPickupTo(endTime);
+        readyPost.setOtpCode("123456");
+
+        when(surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP))
+            .thenReturn(Collections.singletonList(readyPost));
+        mockClaimForPost(readyPost, today, startTime, endTime);
+
+        // When
+        schedulerService.updatePostsToNotCompleted();
+
+        // Then - Should NOT update since we're exactly at the tolerance boundary
+        verify(surplusPostRepository, never()).save(any(SurplusPost.class));
+    }
+
+    @Test
+    void testUpdatePostsToNotCompleted_JustPastToleranceEnd_UpdatesStatus() {
+        // Given - Pickup window ended 31 minutes ago (just past tolerance)
+        java.time.ZonedDateTime nowUtc = java.time.ZonedDateTime.now(java.time.ZoneId.of("UTC"));
+        java.time.LocalDate today = nowUtc.toLocalDate();
+        java.time.LocalTime currentTime = nowUtc.toLocalTime();
+
+        // Set end time to 31 minutes before current time
+        java.time.LocalTime endTime = currentTime.minusMinutes(31);
+        java.time.LocalTime startTime = endTime.minusHours(2);
+
+        // Only set up this test if we have enough time margin from midnight
+        if (currentTime.isBefore(java.time.LocalTime.of(2, 45))) {
+            // If near midnight, use yesterday's date which will always exceed tolerance
+            today = today.minusDays(1);
+            endTime = java.time.LocalTime.of(17, 0);
+            startTime = java.time.LocalTime.of(15, 0);
+        }
+
+        readyPost.setPickupDate(today);
+        readyPost.setPickupFrom(startTime);
+        readyPost.setPickupTo(endTime);
+        readyPost.setOtpCode("123456");
+
+        when(surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP))
+            .thenReturn(Collections.singletonList(readyPost));
+        mockClaimForPost(readyPost, today, startTime, endTime);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(readyPost);
+
+        // When
+        schedulerService.updatePostsToNotCompleted();
+
+        // Then - Should update since we just exceeded tolerance
+        ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
+        verify(surplusPostRepository).save(postCaptor.capture());
+
+        SurplusPost savedPost = postCaptor.getValue();
+        assertThat(savedPost.getStatus()).isEqualTo(PostStatus.NOT_COMPLETED);
     }
 
     // ==================== Helper Methods ====================
