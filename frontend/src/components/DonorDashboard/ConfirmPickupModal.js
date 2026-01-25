@@ -1,12 +1,88 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { surplusAPI } from '../../services/api';
 import './Donor_Styles/ConfirmPickupModal.css';
+
+// Tolerance configuration (in minutes) - should match backend
+const EARLY_TOLERANCE_MINUTES = 15;
+const LATE_TOLERANCE_MINUTES = 30;
 
 const ConfirmPickupModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [timingWarning, setTimingWarning] = useState(null);
+
+  useEffect(() => {
+    if (!isOpen || !donationItem) return;
+
+    // Get confirmed pickup slot - check both confirmedPickupSlot and direct properties
+    const confirmedSlot = donationItem.confirmedPickupSlot;
+    const pickupDate = confirmedSlot?.pickupDate || donationItem.pickupDate;
+    const startTime = confirmedSlot?.startTime || donationItem.pickupFrom;
+    const endTime = confirmedSlot?.endTime || donationItem.pickupTo;
+
+    if (!pickupDate || !startTime || !endTime) {
+      setTimingWarning(null);
+      return;
+    }
+
+    const checkTiming = () => {
+      const now = new Date();
+      // Parse times - add 'Z' to treat as UTC (same timezone as backend)
+      let startTimeStr = `${pickupDate}T${startTime}`;
+      let endTimeStr = `${pickupDate}T${endTime}`;
+      if (!startTimeStr.endsWith('Z') && !startTimeStr.includes('+')) {
+        startTimeStr += 'Z';
+        endTimeStr += 'Z';
+      }
+      const startDateTime = new Date(startTimeStr);
+      const endDateTime = new Date(endTimeStr);
+
+      const earlyToleranceMs = EARLY_TOLERANCE_MINUTES * 60 * 1000;
+      const lateToleranceMs = LATE_TOLERANCE_MINUTES * 60 * 1000;
+
+      const windowStart = new Date(startDateTime.getTime() - earlyToleranceMs);
+      const windowEnd = new Date(endDateTime.getTime() + lateToleranceMs);
+
+      if (now < windowStart) {
+        const minutesUntilWindow = Math.ceil((windowStart - now) / 60000);
+        const minutesUntilStart = Math.ceil((startDateTime - now) / 60000);
+        setTimingWarning({
+          type: 'error',
+          message: `Pickup window starts in ${minutesUntilStart} minutes. You can confirm up to ${EARLY_TOLERANCE_MINUTES} minutes early.`,
+          canConfirm: false
+        });
+      } else if (now < startDateTime) {
+        const minutesEarly = Math.ceil((startDateTime - now) / 60000);
+        setTimingWarning({
+          type: 'warning',
+          message: `You are confirming ${minutesEarly} minutes before the scheduled pickup time.`,
+          canConfirm: true
+        });
+      } else if (now > windowEnd) {
+        const minutesLate = Math.ceil((now - endDateTime) / 60000);
+        setTimingWarning({
+          type: 'error',
+          message: `Pickup window ended ${minutesLate} minutes ago. Maximum allowed is ${LATE_TOLERANCE_MINUTES} minutes late.`,
+          canConfirm: false
+        });
+      } else if (now > endDateTime) {
+        const minutesLate = Math.ceil((now - endDateTime) / 60000);
+        setTimingWarning({
+          type: 'warning',
+          message: `You are confirming ${minutesLate} minutes after the scheduled pickup window ended.`,
+          canConfirm: true
+        });
+      } else {
+        setTimingWarning(null);
+      }
+    };
+
+    checkTiming();
+    const interval = setInterval(checkTiming, 30000); // Check every 30 seconds
+    return () => clearInterval(interval);
+  }, [isOpen, donationItem]);
 
   if (!isOpen) {
     return null;
@@ -119,6 +195,12 @@ const ConfirmPickupModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
 
         {error && <p className="confirm-pickup-error">{error}</p>}
 
+        {timingWarning && (
+          <div className={`confirm-pickup-timing-warning ${timingWarning.type}`}>
+            {timingWarning.message}
+          </div>
+        )}
+
         <p className="confirm-pickup-info">
           The receiver can find this code in their account:{' '}
           <button className="confirm-pickup-link" onClick={handleMyClaimsClick}>
@@ -137,7 +219,7 @@ const ConfirmPickupModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
           <button
             className="confirm-pickup-button primary"
             onClick={handleConfirm}
-            disabled={isSubmitting}
+            disabled={isSubmitting || (timingWarning && !timingWarning.canConfirm)}
           >
             {isSubmitting ? 'Verifying...' : 'Confirm Pickup'}
           </button>

@@ -189,3 +189,26 @@
     width: 100%;
   }
 }
+
+/* Timing Warning Styles */
+.confirm-pickup-timing-warning {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.confirm-pickup-timing-warning.warning {
+  background-color: #fef3cd;
+  border: 1px solid #ffc107;
+  color: #856404;
+}
+
+.confirm-pickup-timing-warning.error {
+  background-color: #f8d7da;
+  border: 1px solid #dc3545;
+  color: #721c24;
+}
+
