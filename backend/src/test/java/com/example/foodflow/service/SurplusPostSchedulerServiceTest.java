@@ -309,15 +309,16 @@ class SurplusPostSchedulerServiceTest {
 
     @Test
     void testUpdatePostsToNotCompleted_PickupWindowNotEnded_DoesNotUpdate() {
-        // Given - Pickup window is still active (use tomorrow's date to ensure it's in the future in UTC)
-        readyPost.setPickupDate(LocalDate.now().plusDays(1));
+        // Given - Pickup window is still active (use tomorrow's date in UTC to ensure it's in the future)
+        java.time.LocalDate tomorrowUtc = java.time.LocalDate.now(java.time.ZoneId.of("UTC")).plusDays(1);
+        readyPost.setPickupDate(tomorrowUtc);
         readyPost.setPickupFrom(LocalTime.of(9, 0));
         readyPost.setPickupTo(LocalTime.of(23, 59));
         readyPost.setOtpCode("123456");
 
         when(surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP))
             .thenReturn(Collections.singletonList(readyPost));
-        mockClaimForPost(readyPost, LocalDate.now().plusDays(1), LocalTime.of(9, 0), LocalTime.of(23, 59));
+        mockClaimForPost(readyPost, tomorrowUtc, LocalTime.of(9, 0), LocalTime.of(23, 59));
 
         // When
         schedulerService.updatePostsToNotCompleted();
@@ -328,15 +329,16 @@ class SurplusPostSchedulerServiceTest {
 
     @Test
     void testUpdatePostsToNotCompleted_PickupDateInFuture_DoesNotUpdate() {
-        // Given - Pickup date is tomorrow
-        readyPost.setPickupDate(LocalDate.now().plusDays(1));
+        // Given - Pickup date is tomorrow in UTC
+        java.time.LocalDate tomorrowUtc = java.time.LocalDate.now(java.time.ZoneId.of("UTC")).plusDays(1);
+        readyPost.setPickupDate(tomorrowUtc);
         readyPost.setPickupFrom(LocalTime.of(9, 0));
         readyPost.setPickupTo(LocalTime.of(17, 0));
         readyPost.setOtpCode("123456");
 
         when(surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP))
             .thenReturn(Collections.singletonList(readyPost));
-        mockClaimForPost(readyPost, LocalDate.now().plusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
+        mockClaimForPost(readyPost, tomorrowUtc, LocalTime.of(9, 0), LocalTime.of(17, 0));
 
         // When
         schedulerService.updatePostsToNotCompleted();
