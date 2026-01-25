@@ -98,8 +98,10 @@ describe('ReceiverRegistration', () => {
     await user.click(screen.getByRole('button', { name: /next/i }));
 
     // Step 5: Review - check confirm accuracy checkbox
-    await screen.findByRole('checkbox');
-    await user.click(screen.getByRole('checkbox'));
+    const checkboxes = screen.getAllByRole('checkbox');
+    for (const checkbox of checkboxes) {
+    await user.click(checkbox);
+  }
   };
 
   test('shows error when passwords do not match and prevents submission', async () => {
@@ -308,5 +310,270 @@ describe('ReceiverRegistration', () => {
 
     // Should still be on step 4
     expect(screen.getByLabelText(/contact person/i)).toBeInTheDocument();
+  });
+
+  describe('Data Storage Consent', () => {
+    it('renders data storage consent checkbox on step 5', async () => {
+      const user = userEvent.setup({ delay: null });
+      authAPI.checkEmailExists.mockResolvedValue({ data: { exists: false } });
+      authAPI.checkPhoneExists.mockResolvedValue({ data: { exists: false } });
+
+      renderWithAuth(<ReceiverRegistration />);
+
+      // Navigate to step 5
+      await user.type(
+        screen.getByLabelText(/^email address$/i),
+        'receiver@example.com'
+      );
+      await user.type(screen.getByLabelText(/^password$/i), 'password123');
+      await user.type(
+        screen.getByLabelText(/^confirm password$/i),
+        'password123'
+      );
+      await user.click(screen.getByRole('button', { name: /next/i }));
+
+      await screen.findByLabelText(/organization name/i);
+      await user.type(
+        screen.getByLabelText(/organization name/i),
+        'Receiver Org'
+      );
+      await user.selectOptions(
+        screen.getByLabelText(/organization type/i),
+        'SHELTER'
+      );
+      await user.type(
+        screen.getByLabelText(/charity.*registration number/i),
+        'CRN-12345'
+      );
+      await user.click(screen.getByRole('button', { name: /next/i }));
+
+      await screen.findByLabelText(/street address/i);
+      await user.type(screen.getByLabelText(/street address/i), '123 Main St');
+      await user.type(screen.getByLabelText(/city/i), 'Montreal');
+      await user.type(screen.getByLabelText(/postal code/i), 'H1A1A1');
+      await user.type(screen.getByLabelText(/province/i), 'Quebec');
+      await user.type(screen.getByLabelText(/country/i), 'Canada');
+      await user.click(screen.getByRole('button', { name: /next/i }));
+
+      await screen.findByLabelText(/contact person/i);
+      await user.type(screen.getByLabelText(/contact person/i), 'Alex Doe');
+      await user.type(screen.getByLabelText(/phone/i), '5145551234');
+      await user.type(screen.getByLabelText(/daily capacity/i), '150');
+      await user.click(screen.getByRole('button', { name: /next/i }));
+
+      // Check for data storage consent checkbox on step 5
+      await screen.findByText(/Account Information/i);
+      expect(
+        screen.getByText(/I consent to data storage as outlined in the/i)
+      ).toBeInTheDocument();
+    });
+
+    it('privacy policy link is present and has correct attributes', async () => {
+      const user = userEvent.setup({ delay: null });
+      authAPI.checkEmailExists.mockResolvedValue({ data: { exists: false } });
+      authAPI.checkPhoneExists.mockResolvedValue({ data: { exists: false } });
+
+      renderWithAuth(<ReceiverRegistration />);
+
+      // Navigate to step 5
+      await user.type(
+        screen.getByLabelText(/^email address$/i),
+        'receiver@example.com'
+      );
+      await user.type(screen.getByLabelText(/^password$/i), 'password123');
+      await user.type(
+        screen.getByLabelText(/^confirm password$/i),
+        'password123'
+      );
+      await user.click(screen.getByRole('button', { name: /next/i }));
+
+      await screen.findByLabelText(/organization name/i);
+      await user.type(
+        screen.getByLabelText(/organization name/i),
+        'Receiver Org'
+      );
+      await user.selectOptions(
+        screen.getByLabelText(/organization type/i),
+        'Charity'
+      );
+      await user.type(
+        screen.getByLabelText(/charity.*registration number/i),
+        'CRN-12345'
+      );
+      await user.click(screen.getByRole('button', { name: /next/i }));
+
+      await screen.findByLabelText(/street address/i);
+      await user.type(screen.getByLabelText(/street address/i), '123 Main St');
+      await user.type(screen.getByLabelText(/city/i), 'Montreal');
+      await user.type(screen.getByLabelText(/postal code/i), 'H1A1A1');
+      await user.type(screen.getByLabelText(/province/i), 'Quebec');
+      await user.type(screen.getByLabelText(/country/i), 'Canada');
+      await user.click(screen.getByRole('button', { name: /next/i }));
+
+      await screen.findByLabelText(/contact person/i);
+      await user.type(screen.getByLabelText(/contact person/i), 'Alex Doe');
+      await user.type(screen.getByLabelText(/phone/i), '5145551234');
+      await user.type(screen.getByLabelText(/daily capacity/i), '150');
+      await user.click(screen.getByRole('button', { name: /next/i }));
+
+      await screen.findByText(/Account Information/i);
+
+      const privacyLink = screen.getByRole('link', { name: /privacy policy/i });
+      expect(privacyLink).toBeInTheDocument();
+      expect(privacyLink).toHaveAttribute('href', '/privacy-policy');
+      expect(privacyLink).toHaveAttribute('target', '_blank');
+      expect(privacyLink).toHaveAttribute('rel', 'noopener noreferrer');
+    });
+
+    it('blocks registration when data storage consent is not checked', async () => {
+      const user = userEvent.setup({ delay: null });
+      authAPI.checkEmailExists.mockResolvedValue({ data: { exists: false } });
+      authAPI.checkPhoneExists.mockResolvedValue({ data: { exists: false } });
+
+      renderWithAuth(<ReceiverRegistration />);
+
+      // Navigate to step 5 and fill fields
+      await user.type(
+        screen.getByLabelText(/^email address$/i),
+        'receiver@example.com'
+      );
+      await user.type(screen.getByLabelText(/^password$/i), 'password123');
+      await user.type(
+        screen.getByLabelText(/^confirm password$/i),
+        'password123'
+      );
+      await user.click(screen.getByRole('button', { name: /next/i }));
+
+      await screen.findByLabelText(/organization name/i);
+      await user.type(
+        screen.getByLabelText(/organization name/i),
+        'Receiver Org'
+      );
+      await user.selectOptions(
+        screen.getByLabelText(/organization type/i),
+        'SHELTER'
+      );
+      await user.type(
+        screen.getByLabelText(/charity.*registration number/i),
+        'CRN-12345'
+      );
+      await user.click(screen.getByRole('button', { name: /next/i }));
+
+      await screen.findByLabelText(/street address/i);
+      await user.type(screen.getByLabelText(/street address/i), '123 Main St');
+      await user.type(screen.getByLabelText(/city/i), 'Montreal');
+      await user.type(screen.getByLabelText(/postal code/i), 'H1A1A1');
+      await user.type(screen.getByLabelText(/province/i), 'Quebec');
+      await user.type(screen.getByLabelText(/country/i), 'Canada');
+      await user.click(screen.getByRole('button', { name: /next/i }));
+
+      await screen.findByLabelText(/contact person/i);
+      await user.type(screen.getByLabelText(/contact person/i), 'Alex Doe');
+      await user.type(screen.getByLabelText(/phone/i), '5145551234');
+      await user.type(screen.getByLabelText(/daily capacity/i), '150');
+      await user.click(screen.getByRole('button', { name: /next/i }));
+
+      await screen.findByText(/Account Information/i);
+
+      // Check only accuracy confirmation, not data storage consent
+      const accuracyCheckbox = screen.getByLabelText(
+        /I confirm that the information provided is accurate/i
+      );
+      await user.click(accuracyCheckbox);
+
+      // Submit button should be disabled
+      const submitButton = screen.getByRole('button', {
+        name: /submit registration/i,
+      });
+      expect(submitButton).toBeDisabled();
+    });
+
+    it('allows registration when both checkboxes are checked', async () => {
+      const user = userEvent.setup({ delay: null });
+      authAPI.checkEmailExists.mockResolvedValue({ data: { exists: false } });
+      authAPI.checkPhoneExists.mockResolvedValue({ data: { exists: false } });
+      authAPI.registerReceiver.mockResolvedValue({
+        data: {
+          token: 'test-token',
+          role: 'RECEIVER',
+          userId: 1,
+          organizationName: 'Receiver Org',
+        },
+      });
+
+      renderWithAuth(<ReceiverRegistration />);
+
+      // Navigate to step 5 and fill fields
+      await user.type(
+        screen.getByLabelText(/^email address$/i),
+        'receiver@example.com'
+      );
+      await user.type(screen.getByLabelText(/^password$/i), 'password123');
+      await user.type(
+        screen.getByLabelText(/^confirm password$/i),
+        'password123'
+      );
+      await user.click(screen.getByRole('button', { name: /next/i }));
+
+      await screen.findByLabelText(/organization name/i);
+      await user.type(
+        screen.getByLabelText(/organization name/i),
+        'Receiver Org'
+      );
+      await user.selectOptions(
+        screen.getByLabelText(/organization type/i),
+        'SHELTER'
+      );
+      await user.type(
+        screen.getByLabelText(/charity.*registration number/i),
+        'CRN-12345'
+      );
+      await user.click(screen.getByRole('button', { name: /next/i }));
+
+      await screen.findByLabelText(/street address/i);
+      await user.type(screen.getByLabelText(/street address/i), '123 Main St');
+      await user.type(screen.getByLabelText(/city/i), 'Montreal');
+      await user.type(screen.getByLabelText(/postal code/i), 'H1A1A1');
+      await user.type(screen.getByLabelText(/province/i), 'Quebec');
+      await user.type(screen.getByLabelText(/country/i), 'Canada');
+      await user.click(screen.getByRole('button', { name: /next/i }));
+
+      await screen.findByLabelText(/contact person/i);
+      await user.type(screen.getByLabelText(/contact person/i), 'Alex Doe');
+      await user.type(screen.getByLabelText(/phone/i), '5145551234');
+      await user.type(screen.getByLabelText(/daily capacity/i), '150');
+      await user.click(screen.getByRole('button', { name: /next/i }));
+
+      await screen.findByText(/Account Information/i);
+
+      // Check both checkboxes
+      const accuracyCheckbox = screen.getByLabelText(
+        /I confirm that the information provided is accurate/i
+      );
+      const consentCheckbox = screen.getByLabelText(
+        /I consent to data storage as outlined in the/i
+      );
+
+      await user.click(accuracyCheckbox);
+      await user.click(consentCheckbox);
+
+      // Submit button should be enabled
+      const submitButton = screen.getByRole('button', {
+        name: /submit registration/i,
+      });
+      expect(submitButton).not.toBeDisabled();
+
+      // Submit the form
+      await user.click(submitButton);
+
+      // Verify API was called with consent flag
+      await waitFor(() => {
+        expect(authAPI.registerReceiver).toHaveBeenCalledWith(
+          expect.objectContaining({
+            dataStorageConsent: true,
+          })
+        );
+      });
+    });
   });
 });
