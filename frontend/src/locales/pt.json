@@ -416,7 +416,28 @@
     "failedToSend": "Falha ao enviar mensagem"
   },
   "messaging": {
-    "failedToLoad": "Falha ao carregar conversas"
+    "failedToLoad": "Falha ao carregar conversas",
+    "messages": "Mensagens",
+    "connectAndCoordinate": "Conecte-se e coordene aqui!",
+    "startNewConversation": "Iniciar nova conversa",
+    "all": "Todas",
+    "unread": "Não lidas",
+    "noConversationsYet": "Ainda não há conversas",
+    "clickToStart": "Clique em + para iniciar uma nova conversa",
+    "justNow": "Agora mesmo",
+    "minutesAgo": "{{count}}m atrás",
+    "hoursAgo": "{{count}}h atrás",
+    "daysAgo": "{{count}}d atrás",
+    "newConversationTitle": "Iniciar nova conversa",
+    "recipientEmailLabel": "Endereço de e-mail do destinatário",
+    "recipientEmailPlaceholder": "Digite o endereço de e-mail",
+    "recipientEmailHint": "Digite o endereço de e-mail do usuário que deseja contatar",
+    "cancel": "Cancelar",
+    "starting": "Iniciando...",
+    "startConversation": "Iniciar conversa",
+    "emailRequired": "Por favor, digite um endereço de e-mail",
+    "userNotFound": "Usuário não encontrado ou e-mail inválido",
+    "conversationFailed": "Falha ao iniciar conversa. Por favor, tente novamente."
   },
   "footer": {
     "description": "Descubra uma plataforma de loja de caridade projetada para revolucionar a distribuição de alimentos. Conecte instituições de caridade com fontes de alimentos através de distâncias, melhore as comunicações e garanta que alimentos frescos cheguem a quem precisa. O FoodFlow possui uma interface intuitiva e fácil de usar.",

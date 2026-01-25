@@ -436,7 +436,28 @@
     "failedToSend": "Failed to send message"
   },
   "messaging": {
-    "failedToLoad": "Failed to load conversations"
+    "failedToLoad": "Failed to load conversations",
+    "messages": "Messages",
+    "connectAndCoordinate": "Connect and coordinate here!",
+    "startNewConversation": "Start new conversation",
+    "all": "All",
+    "unread": "Unread",
+    "noConversationsYet": "No conversations yet",
+    "clickToStart": "Click + to start a new conversation",
+    "justNow": "Just now",
+    "minutesAgo": "{{count}}m ago",
+    "hoursAgo": "{{count}}h ago",
+    "daysAgo": "{{count}}d ago",
+    "newConversationTitle": "Start New Conversation",
+    "recipientEmailLabel": "Recipient Email Address",
+    "recipientEmailPlaceholder": "Enter email address",
+    "recipientEmailHint": "Enter the email address of the user you want to message",
+    "cancel": "Cancel",
+    "starting": "Starting...",
+    "startConversation": "Start Conversation",
+    "emailRequired": "Please enter an email address",
+    "userNotFound": "User not found or invalid email",
+    "conversationFailed": "Failed to start conversation. Please try again."
   },
   "footer": {
     "description": "Discover a charity shop platform designed to revolutionize food distribution. Connect charities with food sources across distances, enhance communications and ensure fresh food reaches those in need. FoodFlow boosts an intuitive and user-friendly interface.",

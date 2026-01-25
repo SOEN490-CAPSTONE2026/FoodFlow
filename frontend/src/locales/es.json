@@ -416,7 +416,28 @@
     "failedToSend": "Error al enviar el mensaje"
   },
   "messaging": {
-    "failedToLoad": "Error al cargar las conversaciones"
+    "failedToLoad": "Error al cargar las conversaciones",
+    "messages": "Mensajes",
+    "connectAndCoordinate": "¡Conéctate y coordina aquí!",
+    "startNewConversation": "Iniciar nueva conversación",
+    "all": "Todas",
+    "unread": "No leídas",
+    "noConversationsYet": "Aún no hay conversaciones",
+    "clickToStart": "Haz clic en + para iniciar una nueva conversación",
+    "justNow": "Justo ahora",
+    "minutesAgo": "Hace {{count}}m",
+    "hoursAgo": "Hace {{count}}h",
+    "daysAgo": "Hace {{count}}d",
+    "newConversationTitle": "Iniciar nueva conversación",
+    "recipientEmailLabel": "Dirección de correo del destinatario",
+    "recipientEmailPlaceholder": "Ingresa dirección de correo",
+    "recipientEmailHint": "Ingresa la dirección de correo del usuario que deseas contactar",
+    "cancel": "Cancelar",
+    "starting": "Iniciando...",
+    "startConversation": "Iniciar conversación",
+    "emailRequired": "Por favor ingresa una dirección de correo",
+    "userNotFound": "Usuario no encontrado o correo inválido",
+    "conversationFailed": "Error al iniciar conversación. Por favor intenta de nuevo."
   },
   "footer": {
     "description": "Descubre una plataforma de tienda benéfica diseñada para revolucionar la distribución de alimentos. Conecta organizaciones benéficas con fuentes de alimentos a través de distancias, mejora las comunicaciones y asegura que los alimentos frescos lleguen a quienes los necesitan. FoodFlow cuenta con una interfaz intuitiva y fácil de usar.",

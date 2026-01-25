@@ -436,7 +436,28 @@
     "failedToSend": "Échec de l'envoi du message"
   },
   "messaging": {
-    "failedToLoad": "Échec du chargement des conversations"
+    "failedToLoad": "Échec du chargement des conversations",
+    "messages": "Messages",
+    "connectAndCoordinate": "Connectez-vous et coordonnez ici!",
+    "startNewConversation": "Démarrer une nouvelle conversation",
+    "all": "Tous",
+    "unread": "Non lus",
+    "noConversationsYet": "Aucune conversation pour le moment",
+    "clickToStart": "Cliquez sur + pour démarrer une nouvelle conversation",
+    "justNow": "À l'instant",
+    "minutesAgo": "Il y a {{count}}m",
+    "hoursAgo": "Il y a {{count}}h",
+    "daysAgo": "Il y a {{count}}j",
+    "newConversationTitle": "Démarrer une nouvelle conversation",
+    "recipientEmailLabel": "Adresse courriel du destinataire",
+    "recipientEmailPlaceholder": "Entrez l'adresse courriel",
+    "recipientEmailHint": "Entrez l'adresse courriel de l'utilisateur que vous souhaitez contacter",
+    "cancel": "Annuler",
+    "starting": "Démarrage en cours...",
+    "startConversation": "Démarrer la conversation",
+    "emailRequired": "Veuillez entrer une adresse courriel",
+    "userNotFound": "Utilisateur introuvable ou courriel invalide",
+    "conversationFailed": "Échec du démarrage de la conversation. Veuillez réessayer."
   },
   "footer": {
     "description": "Découvrez une plateforme de boutique caritative conçue pour révolutionner la distribution alimentaire. Connectez les organismes de bienfaisance avec des sources de nourriture sur de grandes distances, améliorez les communications et assurez-vous que les aliments frais atteignent ceux qui en ont besoin. FoodFlow propose une interface intuitive et conviviale.",

@@ -416,7 +416,28 @@
     "failedToSend": "فشل إرسال الرسالة"
   },
   "messaging": {
-    "failedToLoad": "فشل تحميل المحادثات"
+    "failedToLoad": "فشل تحميل المحادثات",
+    "messages": "الرسائل",
+    "connectAndCoordinate": "اتصل ونسّق هنا!",
+    "startNewConversation": "بدء محادثة جديدة",
+    "all": "الكل",
+    "unread": "غير مقروءة",
+    "noConversationsYet": "لا توجد محادثات بعد",
+    "clickToStart": "انقر على + لبدء محادثة جديدة",
+    "justNow": "الآن",
+    "minutesAgo": "منذ {{count}} دقيقة",
+    "hoursAgo": "منذ {{count}} ساعة",
+    "daysAgo": "منذ {{count}} يوم",
+    "newConversationTitle": "بدء محادثة جديدة",
+    "recipientEmailLabel": "عنوان البريد الإلكتروني للمستلم",
+    "recipientEmailPlaceholder": "أدخل عنوان البريد الإلكتروني",
+    "recipientEmailHint": "أدخل عنوان البريد الإلكتروني للمستخدم الذي تريد الاتصال به",
+    "cancel": "إلغاء",
+    "starting": "جاري البدء...",
+    "startConversation": "بدء المحادثة",
+    "emailRequired": "يرجى إدخال عنوان بريد إلكتروني",
+    "userNotFound": "المستخدم غير موجود أو البريد الإلكتروني غير صالح",
+    "conversationFailed": "فشل بدء المحادثة. يرجى المحاولة مرة أخرى."
   },
   "footer": {
     "description": "اكتشف منصة متجر خيري مصممة لإحداث ثورة في توزيع الطعام. ربط الجمعيات الخيرية بمصادر الطعام عبر المسافات، وتعزيز الاتصالات وضمان وصول الطعام الطازج إلى المحتاجين. يتميز FoodFlow بواجهة بديهية وسهلة الاستخدام.",

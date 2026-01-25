@@ -416,7 +416,28 @@
     "failedToSend": "发送消息失败"
   },
   "messaging": {
-    "failedToLoad": "加载对话失败"
+    "failedToLoad": "加载对话失败",
+    "messages": "消息",
+    "connectAndCoordinate": "在这里连接和协调！",
+    "startNewConversation": "开始新对话",
+    "all": "全部",
+    "unread": "未读",
+    "noConversationsYet": "还没有对话",
+    "clickToStart": "点击 + 开始新对话",
+    "justNow": "刚刚",
+    "minutesAgo": "{{count}}分钟前",
+    "hoursAgo": "{{count}}小时前",
+    "daysAgo": "{{count}}天前",
+    "newConversationTitle": "开始新对话",
+    "recipientEmailLabel": "收件人电子邮箱地址",
+    "recipientEmailPlaceholder": "输入电子邮箱地址",
+    "recipientEmailHint": "输入您想要联系的用户的电子邮箱地址",
+    "cancel": "取消",
+    "starting": "正在开始...",
+    "startConversation": "开始对话",
+    "emailRequired": "请输入电子邮箱地址",
+    "userNotFound": "未找到用户或电子邮箱无效",
+    "conversationFailed": "开始对话失败。请重试。"
   },
   "footer": {
     "description": "发现一个旨在革新食物分配的慈善商店平台。跨越距离连接慈善机构与食物来源，增强沟通并确保新鲜食物到达有需要的人手中。FoodFlow拥有直观且用户友好的界面。",

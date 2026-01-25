@@ -62,9 +62,9 @@ const MessagingDashboard = () => {
     } catch (err) {
       console.error('Error starting conversation:', err);
       if (err.response?.status === 400) {
-        setError('User not found or invalid email');
+        setError(t('messaging.userNotFound'));
       } else {
-        setError('Failed to start conversation. Please try again.');
+        setError(t('messaging.conversationFailed'));
       }
     } finally {
       setLoading(false);
