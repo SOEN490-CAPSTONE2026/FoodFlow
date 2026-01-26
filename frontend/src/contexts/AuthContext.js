@@ -57,23 +57,59 @@ export const AuthProvider = ({ children }) => {
     });
 
   const [accountStatus, setAccountStatus] = useState(() => {
-    return localStorage.getItem("accountStatus") || sessionStorage.getItem("accountStatus") || null;
+    return (
+      localStorage.getItem('accountStatus') ||
+      sessionStorage.getItem('accountStatus') ||
+      null
+    );
   });
 
   useEffect(() => {
     const handleStorage = () => {
-      setIsLoggedIn(Boolean(localStorage.getItem("jwtToken") || sessionStorage.getItem("jwtToken")));
-      setRole(localStorage.getItem("userRole") || sessionStorage.getItem("userRole") || null);
-      setUserId(localStorage.getItem("userId") || sessionStorage.getItem("userId") || null);
-      setOrganizationName(localStorage.getItem("organizationName") || sessionStorage.getItem("organizationName") || null);
-      setOrganizationVerificationStatus(localStorage.getItem("organizationVerificationStatus") || sessionStorage.getItem("organizationVerificationStatus") || null);
-      setAccountStatus(localStorage.getItem("accountStatus") || sessionStorage.getItem("accountStatus") || null);
+      setIsLoggedIn(
+        Boolean(
+          localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken')
+        )
+      );
+      setRole(
+        localStorage.getItem('userRole') ||
+          sessionStorage.getItem('userRole') ||
+          null
+      );
+      setUserId(
+        localStorage.getItem('userId') ||
+          sessionStorage.getItem('userId') ||
+          null
+      );
+      setOrganizationName(
+        localStorage.getItem('organizationName') ||
+          sessionStorage.getItem('organizationName') ||
+          null
+      );
+      setOrganizationVerificationStatus(
+        localStorage.getItem('organizationVerificationStatus') ||
+          sessionStorage.getItem('organizationVerificationStatus') ||
+          null
+      );
+      setAccountStatus(
+        localStorage.getItem('accountStatus') ||
+          sessionStorage.getItem('accountStatus') ||
+          null
+      );
     };
     window.addEventListener('storage', handleStorage);
     return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
-  const login = (token, userRole, userId, arg4 = null, arg5 = null, arg6 = null, arg7 = false) => {
+  const login = (
+    token,
+    userRole,
+    userId,
+    arg4 = null,
+    arg5 = null,
+    arg6 = null,
+    arg7 = false
+  ) => {
     // Backwards-compatible handling of older call signatures:
     // - login(token, role, userId)
     // - login(token, role, userId, orgName)
@@ -102,9 +138,9 @@ export const AuthProvider = ({ children }) => {
     const storage = useSession ? sessionStorage : localStorage;
     const otherStorage = useSession ? localStorage : sessionStorage;
 
-    storage.setItem("jwtToken", token);
-    storage.setItem("userRole", userRole);
-    storage.setItem("userId", userId);
+    storage.setItem('jwtToken', token);
+    storage.setItem('userRole', userRole);
+    storage.setItem('userId', userId);
 
     if (orgName !== undefined && orgName !== null) {
       AuthStorage.setItem('organizationName', orgName, useSession);
@@ -113,19 +149,19 @@ export const AuthProvider = ({ children }) => {
     }
 
     if (orgVerificationStatus !== undefined && orgVerificationStatus !== null) {
-      storage.setItem("organizationVerificationStatus", orgVerificationStatus);
-      otherStorage.removeItem("organizationVerificationStatus");
+      storage.setItem('organizationVerificationStatus', orgVerificationStatus);
+      otherStorage.removeItem('organizationVerificationStatus');
     } else {
-      localStorage.removeItem("organizationVerificationStatus");
-      sessionStorage.removeItem("organizationVerificationStatus");
+      localStorage.removeItem('organizationVerificationStatus');
+      sessionStorage.removeItem('organizationVerificationStatus');
     }
 
     if (accStatus !== undefined && accStatus !== null) {
-      storage.setItem("accountStatus", accStatus);
-      otherStorage.removeItem("accountStatus");
+      storage.setItem('accountStatus', accStatus);
+      otherStorage.removeItem('accountStatus');
     } else {
-      localStorage.removeItem("accountStatus");
-      sessionStorage.removeItem("accountStatus");
+      localStorage.removeItem('accountStatus');
+      sessionStorage.removeItem('accountStatus');
     }
 
     setIsLoggedIn(true);
@@ -158,7 +194,18 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, role, userId, organizationName, organizationVerificationStatus, accountStatus, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        isLoggedIn,
+        role,
+        userId,
+        organizationName,
+        organizationVerificationStatus,
+        accountStatus,
+        login,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

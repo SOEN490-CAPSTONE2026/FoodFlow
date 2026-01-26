@@ -1,12 +1,21 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Outlet, useLocation, useNavigate, Link, useNavigationType } from "react-router-dom";
-import "./Receiver_Styles/ReceiverLayout.css";
-import Logo from "../../assets/Logo.png";
-import ProfilePhoto from "./pfp.png";
-import { AuthContext } from "../../contexts/AuthContext";
-import { NotificationProvider, useNotification } from "../../contexts/NotificationContext";
-import MessageNotification from "../MessagingDashboard/MessageNotification";
-import ReceiverPreferences from "./ReceiverPreferences";
+import React, { useState, useRef, useEffect } from 'react';
+import {
+  Outlet,
+  useLocation,
+  useNavigate,
+  Link,
+  useNavigationType,
+} from 'react-router-dom';
+import './Receiver_Styles/ReceiverLayout.css';
+import Logo from '../../assets/Logo.png';
+import ProfilePhoto from './pfp.png';
+import { AuthContext } from '../../contexts/AuthContext';
+import {
+  NotificationProvider,
+  useNotification,
+} from '../../contexts/NotificationContext';
+import MessageNotification from '../MessagingDashboard/MessageNotification';
+import ReceiverPreferences from './ReceiverPreferences';
 import EmailVerificationRequired from '../EmailVerificationRequired';
 import AdminApprovalBanner from '../AdminApprovalBanner';
 import { connectToUserQueue, disconnect } from '../../services/socket';
@@ -24,7 +33,13 @@ function ReceiverLayoutContent() {
   const location = useLocation();
   const navigate = useNavigate();
   const navType = useNavigationType();
-  const { logout, organizationName, organizationVerificationStatus, accountStatus, role } = React.useContext(AuthContext);
+  const {
+    logout,
+    organizationName,
+    organizationVerificationStatus,
+    accountStatus,
+    role,
+  } = React.useContext(AuthContext);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
@@ -320,8 +335,10 @@ function ReceiverLayoutContent() {
         ) : (
           <>
             {/* Show admin approval banner if waiting for approval */}
-            {accountStatus === 'PENDING_ADMIN_APPROVAL' && <AdminApprovalBanner />}
-            
+            {accountStatus === 'PENDING_ADMIN_APPROVAL' && (
+              <AdminApprovalBanner />
+            )}
+
             {!isMessagesPage && (
               <div className="receiver-topbar">
                 <div className="receiver-topbar-left">
@@ -331,7 +348,9 @@ function ReceiverLayoutContent() {
               </div>
             )}
 
-            <div className={`receiver-content ${isMessagesPage ? 'messages-page' : ''}`}>
+            <div
+              className={`receiver-content ${isMessagesPage ? 'messages-page' : ''}`}
+            >
               <Outlet />
               <MessageNotification
                 notification={notification}

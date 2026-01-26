@@ -52,7 +52,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
   }
   50% {
@@ -131,7 +132,7 @@
 }
 
 .verification-note li:before {
-  content: "•";
+  content: '•';
   position: absolute;
   left: 8px;
   font-weight: bold;

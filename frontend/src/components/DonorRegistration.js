@@ -417,10 +417,18 @@ const DonorRegistration = () => {
       const organizationName = response?.data?.organizationName;
       const verificationStatus =
         response?.data?.verificationStatus || 'verified';
-      const accountStatus = response?.data?.accountStatus || 'PENDING_VERIFICATION';
+      const accountStatus =
+        response?.data?.accountStatus || 'PENDING_VERIFICATION';
 
       if (token && userRole && userId) {
-        login(token, userRole, userId, organizationName, verificationStatus, accountStatus);
+        login(
+          token,
+          userRole,
+          userId,
+          organizationName,
+          verificationStatus,
+          accountStatus
+        );
       }
 
       setSubmitted(true);

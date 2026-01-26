@@ -28,7 +28,9 @@ describe('ReceiverLayout admin approval banner', () => {
   it('shows admin approval banner when accountStatus is PENDING_ADMIN_APPROVAL', () => {
     render(
       <MemoryRouter>
-        <AuthContext.Provider value={{ role: 'RECEIVER', accountStatus: 'PENDING_ADMIN_APPROVAL' }}>
+        <AuthContext.Provider
+          value={{ role: 'RECEIVER', accountStatus: 'PENDING_ADMIN_APPROVAL' }}
+        >
           <ReceiverLayoutContent />
         </AuthContext.Provider>
       </MemoryRouter>
@@ -41,7 +43,9 @@ describe('ReceiverLayout admin approval banner', () => {
   it('does not show banner when accountStatus is PENDING_VERIFICATION', () => {
     render(
       <MemoryRouter>
-        <AuthContext.Provider value={{ role: 'RECEIVER', accountStatus: 'PENDING_VERIFICATION' }}>
+        <AuthContext.Provider
+          value={{ role: 'RECEIVER', accountStatus: 'PENDING_VERIFICATION' }}
+        >
           <ReceiverLayoutContent />
         </AuthContext.Provider>
       </MemoryRouter>
@@ -54,7 +58,9 @@ describe('ReceiverLayout admin approval banner', () => {
   it('does not show banner when accountStatus is ACTIVE', () => {
     render(
       <MemoryRouter>
-        <AuthContext.Provider value={{ role: 'RECEIVER', accountStatus: 'ACTIVE' }}>
+        <AuthContext.Provider
+          value={{ role: 'RECEIVER', accountStatus: 'ACTIVE' }}
+        >
           <ReceiverLayoutContent />
         </AuthContext.Provider>
       </MemoryRouter>

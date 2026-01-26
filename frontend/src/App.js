@@ -37,13 +37,13 @@ function AppContent() {
   // Dashboard routes (/donor, /admin, /receiver) have their own internal layouts
   // and don't need the top public navigation
   const hideNavbar =
-    location.pathname === "/login" ||
-    location.pathname === "/forgot-password" ||
-    location.pathname === "/verify-email" ||
-    location.pathname.startsWith("/register") ||
-    location.pathname.startsWith("/donor") ||
-    location.pathname.startsWith("/admin") ||
-    location.pathname.startsWith("/receiver");
+    location.pathname === '/login' ||
+    location.pathname === '/forgot-password' ||
+    location.pathname === '/verify-email' ||
+    location.pathname.startsWith('/register') ||
+    location.pathname.startsWith('/donor') ||
+    location.pathname.startsWith('/admin') ||
+    location.pathname.startsWith('/receiver');
 
   return (
     <div className="App">

@@ -44,7 +44,9 @@ describe('EmailVerification', () => {
   it('shows loading spinner initially', () => {
     renderWithRouter();
     expect(screen.getByText(/verifying your email/i)).toBeInTheDocument();
-    expect(screen.getByText(/please wait while we confirm your email address/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/please wait while we confirm your email address/i)
+    ).toBeInTheDocument();
   });
 
   it('shows error when no token is provided', async () => {
@@ -52,7 +54,9 @@ describe('EmailVerification', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/verification failed/i)).toBeInTheDocument();
-      expect(screen.getByText(/no verification token found/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/no verification token found/i)
+      ).toBeInTheDocument();
     });
 
     expect(authAPI.verifyEmail).not.toHaveBeenCalled();
@@ -74,7 +78,9 @@ describe('EmailVerification', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/email verified!/i)).toBeInTheDocument();
-      expect(screen.getByText(/email verified successfully!/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/email verified successfully!/i)
+      ).toBeInTheDocument();
     });
 
     expect(mockLogout).toHaveBeenCalled();
@@ -91,7 +97,9 @@ describe('EmailVerification', () => {
     renderWithRouter('/verify-email?token=test-token-456');
 
     await waitFor(() => {
-      expect(screen.getByText(/your account is now awaiting admin approval/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/your account is now awaiting admin approval/i)
+      ).toBeInTheDocument();
     });
   });
 
@@ -108,7 +116,9 @@ describe('EmailVerification', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/verification failed/i)).toBeInTheDocument();
-      expect(screen.getByText(/this verification link has already been used/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/this verification link has already been used/i)
+      ).toBeInTheDocument();
     });
 
     expect(mockLogout).not.toHaveBeenCalled();
@@ -120,10 +130,14 @@ describe('EmailVerification', () => {
     renderWithRouter('/verify-email?token=network-error-token');
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /verification failed/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', { name: /verification failed/i })
+      ).toBeInTheDocument();
     });
-    
-    expect(screen.getByText(/the link may be invalid or expired/i)).toBeInTheDocument();
+
+    expect(
+      screen.getByText(/the link may be invalid or expired/i)
+    ).toBeInTheDocument();
   });
 
   it('renders Go to Login button on success', async () => {
@@ -139,11 +153,13 @@ describe('EmailVerification', () => {
 
     const loginButton = screen.getByRole('button', { name: /go to login/i });
     expect(loginButton).toBeInTheDocument();
-    
+
     loginButton.click();
-    
+
     expect(mockNavigate).toHaveBeenCalledWith('/login', {
-      state: { message: 'Email verified successfully! Please log in to continue.' },
+      state: {
+        message: 'Email verified successfully! Please log in to continue.',
+      },
     });
   });
 
@@ -158,8 +174,12 @@ describe('EmailVerification', () => {
       expect(screen.getByText(/verification failed/i)).toBeInTheDocument();
     });
 
-    expect(screen.getByRole('button', { name: /go to login/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /register new account/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /go to login/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /register new account/i })
+    ).toBeInTheDocument();
   });
 
   it('prevents multiple API calls with hasVerifiedRef flag', async () => {
