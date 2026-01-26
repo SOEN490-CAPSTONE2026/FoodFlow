@@ -130,8 +130,7 @@ export const AuthProvider = ({ children }) => {
       orgName = arg4;
       orgVerificationStatus = arg5;
       useSession = arg6;
-    }
-    else {
+    } else {
       // Full signature: login(token, role, userId, orgName, orgVerificationStatus, accountStatus)
       orgName = arg4;
       orgVerificationStatus = arg5;
