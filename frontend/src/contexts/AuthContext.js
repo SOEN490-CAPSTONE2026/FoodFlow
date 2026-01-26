@@ -117,7 +117,7 @@ export const AuthProvider = ({ children }) => {
     // New signature supports login(token, role, userId, orgName, orgVerificationStatus, accountStatus, useSession)
     let orgName = null;
     let orgVerificationStatus = null;
-    const accStatus = null;
+    let accStatus = null;
     let useSession = false;
 
     if (typeof arg4 === 'boolean') {
@@ -130,6 +130,12 @@ export const AuthProvider = ({ children }) => {
       orgName = arg4;
       orgVerificationStatus = arg5;
       useSession = arg6;
+    }
+    else {
+      // Full signature: login(token, role, userId, orgName, orgVerificationStatus, accountStatus)
+      orgName = arg4;
+      orgVerificationStatus = arg5;
+      accStatus = arg6;
     }
 
     // Save auth values to the chosen storage (session or local).
