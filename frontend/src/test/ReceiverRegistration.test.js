@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import { authAPI } from '../services/api';
+import { MemoryRouter } from 'react-router-dom';
 
 import ReceiverRegistration from '../components/ReceiverRegistration';
 
@@ -25,8 +26,6 @@ jest.mock('react-router-dom', () => {
     MemoryRouter: actual.MemoryRouter,
   };
 });
-
-import { MemoryRouter } from 'react-router-dom';
 
 // Mock API
 jest.mock('../services/api', () => ({
