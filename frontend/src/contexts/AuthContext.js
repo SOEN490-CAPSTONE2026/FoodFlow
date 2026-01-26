@@ -131,7 +131,6 @@ export const AuthProvider = ({ children }) => {
       orgVerificationStatus = arg5;
       useSession = arg6;
     }
-
     // Save auth values to the chosen storage (session or local).
     // Explicitly set or remove organizationName to avoid leaving a stale value
     // from a previous session (which required clearing caches).
