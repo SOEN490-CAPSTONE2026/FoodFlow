@@ -15,8 +15,14 @@ jest.mock('../style/Registration.css', () => ({}), { virtual: true });
 const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => {
   const actual = jest.requireActual('react-router-dom');
-  return { ...actual, useNavigate: () => mockNavigate };
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+    MemoryRouter: actual.MemoryRouter,
+  };
 });
+
+import { MemoryRouter } from 'react-router-dom';
 
 // Mock API
 jest.mock('../services/api', () => ({
@@ -38,9 +44,11 @@ const mockAuthContextValue = {
 
 const renderWithAuth = component =>
   render(
-    <AuthContext.Provider value={mockAuthContextValue}>
-      {component}
-    </AuthContext.Provider>
+    <MemoryRouter>
+      <AuthContext.Provider value={mockAuthContextValue}>
+        {component}
+      </AuthContext.Provider>
+    </MemoryRouter>
   );
 
 // Helper to fill fields across all steps

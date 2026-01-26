@@ -19,8 +19,14 @@ jest.mock('../components/Registration.css', () => ({}), { virtual: true });
 const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => {
   const actual = jest.requireActual('react-router-dom');
-  return { ...actual, useNavigate: () => mockNavigate };
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+    MemoryRouter: actual.MemoryRouter,
+  };
 });
+
+import { MemoryRouter } from 'react-router-dom';
 
 // Mock API
 jest.mock('../services/api', () => ({
@@ -49,9 +55,11 @@ describe('ReceiverRegistration', () => {
 
   const renderWithAuth = component => {
     return render(
-      <AuthContext.Provider value={mockAuthContextValue}>
-        {component}
-      </AuthContext.Provider>
+      <MemoryRouter>
+        <AuthContext.Provider value={mockAuthContextValue}>
+          {component}
+        </AuthContext.Provider>
+      </MemoryRouter>
     );
   };
 
