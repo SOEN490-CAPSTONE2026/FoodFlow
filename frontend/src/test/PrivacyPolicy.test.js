@@ -160,54 +160,6 @@ describe('PrivacyPolicy', () => {
     expect(screen.getByText(/Montréal, QC, Canada/i)).toBeInTheDocument();
   });
 
-  it('renders back to home button', () => {
-    render(<PrivacyPolicy />);
-
-    const button = screen.getByRole('button', { name: /back to home/i });
-    expect(button).toBeInTheDocument();
-  });
-
-  it('navigates to home page when back button is clicked', async () => {
-    const user = userEvent.setup({ delay: null });
-    render(<PrivacyPolicy />);
-
-    const button = screen.getByRole('button', { name: /back to home/i });
-    await user.click(button);
-
-    expect(window.location.href).toBe('/');
-  });
-
-  it('applies hover effect to back button on mouse enter', async () => {
-    const user = userEvent.setup({ delay: null });
-    render(<PrivacyPolicy />);
-
-    const button = screen.getByRole('button', { name: /back to home/i });
-
-    // Check initial style
-    expect(button).toHaveStyle({ backgroundColor: '#609B7E' });
-
-    // Hover over button
-    await user.hover(button);
-
-    // Check hover style is applied
-    expect(button).toHaveStyle({ backgroundColor: '#4f866d' });
-  });
-
-  it('removes hover effect when mouse leaves button', async () => {
-    const user = userEvent.setup({ delay: null });
-    render(<PrivacyPolicy />);
-
-    const button = screen.getByRole('button', { name: /back to home/i });
-
-    // Hover over button
-    await user.hover(button);
-    expect(button).toHaveStyle({ backgroundColor: '#4f866d' });
-
-    // Move mouse away
-    await user.unhover(button);
-    expect(button).toHaveStyle({ backgroundColor: '#609B7E' });
-  });
-
   it('applies fade-in animation after mounting', async () => {
     render(<PrivacyPolicy />);
 

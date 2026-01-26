@@ -114,6 +114,7 @@ public class AuthService {
         user.setAccountStatus(AccountStatus.PENDING_VERIFICATION);
         user.setFullName(request.getContactPerson());
         user.setPhone(request.getPhone());
+        user.setDataStorageConsent(request.getDataStorageConsent() != null ? request.getDataStorageConsent() : false);
 
         // Initialize default notification preferences
         initializeDefaultNotificationPreferences(user);
@@ -187,6 +188,7 @@ public class AuthService {
         user.setAccountStatus(AccountStatus.PENDING_VERIFICATION);
         user.setFullName(request.getContactPerson());
         user.setPhone(request.getPhone());
+        user.setDataStorageConsent(request.getDataStorageConsent() != null ? request.getDataStorageConsent() : false);
 
         // Initialize default notification preferences
         initializeDefaultNotificationPreferences(user);

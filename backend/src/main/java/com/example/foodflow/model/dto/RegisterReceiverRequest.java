@@ -37,6 +37,8 @@ public class RegisterReceiverRequest {
     private Integer capacity;
     private String charityRegistrationNumber;
 
+    private Boolean dataStorageConsent = false;
+
     // Constructors, getters, setters
     public RegisterReceiverRequest() {}
 
@@ -69,4 +71,7 @@ public class RegisterReceiverRequest {
 
     public String getCharityRegistrationNumber() { return charityRegistrationNumber; }
     public void setCharityRegistrationNumber(String charityRegistrationNumber) { this.charityRegistrationNumber = charityRegistrationNumber; }
+
+    public Boolean getDataStorageConsent() { return dataStorageConsent; }
+    public void setDataStorageConsent(Boolean dataStorageConsent) { this.dataStorageConsent = dataStorageConsent; }
 }
