@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 
 export const AuthContext = createContext();
 
@@ -107,8 +108,7 @@ export const AuthProvider = ({ children }) => {
     userId,
     arg4 = null,
     arg5 = null,
-    arg6 = null,
-    arg7 = false
+    arg6 = null
   ) => {
     // Backwards-compatible handling of older call signatures:
     // - login(token, role, userId)
@@ -117,7 +117,7 @@ export const AuthProvider = ({ children }) => {
     // New signature supports login(token, role, userId, orgName, orgVerificationStatus, accountStatus, useSession)
     let orgName = null;
     let orgVerificationStatus = null;
-    let accStatus = null;
+    const accStatus = null;
     let useSession = false;
 
     if (typeof arg4 === 'boolean') {
@@ -209,4 +209,8 @@ export const AuthProvider = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
+};
+
+AuthProvider.propTypes = {
+  children: PropTypes.node.isRequired,
 };
