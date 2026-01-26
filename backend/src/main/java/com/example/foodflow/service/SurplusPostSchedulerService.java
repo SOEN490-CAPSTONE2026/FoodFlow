@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -31,6 +32,7 @@ public class SurplusPostSchedulerService {
     private final SurplusPostRepository surplusPostRepository;
     private final ClaimRepository claimRepository;
     private final TimelineService timelineService;
+    private final Clock clock;
 
     @Value("${foodflow.expiry.enable-auto-flagging:true}")
     private boolean enableAutoFlagging;
@@ -41,9 +43,18 @@ public class SurplusPostSchedulerService {
     public SurplusPostSchedulerService(SurplusPostRepository surplusPostRepository,
                                       ClaimRepository claimRepository,
                                       TimelineService timelineService) {
+        this(surplusPostRepository, claimRepository, timelineService, Clock.systemUTC());
+    }
+
+    // For testing: allow injecting a custom clock
+    public SurplusPostSchedulerService(SurplusPostRepository surplusPostRepository,
+                                      ClaimRepository claimRepository,
+                                      TimelineService timelineService,
+                                      Clock clock) {
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;
         this.timelineService = timelineService;
+        this.clock = clock;
     }
 
     private String generateOtpCode() {
@@ -59,7 +70,7 @@ public class SurplusPostSchedulerService {
     @Transactional
     public void updatePostsToReadyForPickup() {
         // Use UTC for all time comparisons
-        ZonedDateTime nowUtc = ZonedDateTime.now(ZoneId.of("UTC"));
+        ZonedDateTime nowUtc = ZonedDateTime.now(clock);
         LocalDate today = nowUtc.toLocalDate();
         LocalTime currentTime = nowUtc.toLocalTime();
 
@@ -152,7 +163,7 @@ public class SurplusPostSchedulerService {
     @Transactional
     public void updatePostsToNotCompleted() {
         // Use UTC for all time comparisons
-        ZonedDateTime nowUtc = ZonedDateTime.now(ZoneId.of("UTC"));
+        ZonedDateTime nowUtc = ZonedDateTime.now(clock);
         LocalDate today = nowUtc.toLocalDate();
         LocalTime currentTime = nowUtc.toLocalTime();
 
@@ -243,8 +254,8 @@ public class SurplusPostSchedulerService {
             return;
         }
 
-        LocalDate today = LocalDate.now();
-        logger.info("===== markExpiredPosts running at {} =====", LocalDateTime.now());
+        LocalDate today = LocalDate.now(clock);
+        logger.info("===== markExpiredPosts running at {} =====", LocalDateTime.now(clock));
 
         // Find posts that are AVAILABLE or CLAIMED but have expired
         List<PostStatus> activeStatuses = List.of(PostStatus.AVAILABLE, PostStatus.CLAIMED);
