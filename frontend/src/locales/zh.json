@@ -691,14 +691,6 @@
     "guides": "指南和支持",
     "administration": "管理"
   },
-  "claimDetail": {
-    "readyForPickup": "准备取货",
-    "completed": "已完成",
-    "notCompleted": "未完成",
-    "claimed": "已认领",
-    "donationDetails": "捐赠详情",
-    "untitledDonation": "未命名捐赠"
-  },
   "claimedView": {
     "claimed": "已认领",
     "untitledDonation": "未命名捐赠",
@@ -1194,6 +1186,33 @@
     "pickupSteps": "取货步骤",
     "donationClaimed": "捐赠已认领！",
     "successMessage": "您的捐赠已成功认领！感谢您为社区做出的贡献。",
+    "backToDetails": "返回详情",
+    "viewPickupSteps": "查看取货步骤"
+  },
+  "claimDetail": {
+    "status": {
+      "claimed": "已领取",
+      "readyForPickup": "可取货",
+      "completed": "已完成",
+      "notCompleted": "未完成"
+    },
+    "defaultTitle": "未命名的捐赠",
+    "donationDetails": "捐赠详情",
+    "chatWithDonor": "与 {{name}} 聊天",
+    "chatWithDonorLabel": "与捐赠者聊天",
+    "donor": "捐赠者",
+    "quantity": "数量",
+    "items": "物品",
+    "expiryDate": "到期日期",
+    "temperature": "温度",
+    "packaging": "包装",
+    "pickupDateTime": "取货日期和时间",
+    "pickupLocation": "取货地点",
+    "notSpecified": "未指定",
+    "mapComingSoon": "地图视图即将上线",
+    "addressNotSpecified": "地址未指定",
+    "viewTimeline": "查看捐赠时间线",
+    "hideTimeline": "隐藏捐赠时间线",
     "backToDetails": "返回详情",
     "viewPickupSteps": "查看取货步骤"
   }

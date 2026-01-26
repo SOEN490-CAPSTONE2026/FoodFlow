@@ -711,14 +711,6 @@
     "guides": "Guides and support",
     "administration": "Administration"
   },
-  "claimDetail": {
-    "readyForPickup": "Ready for Pickup",
-    "completed": "Completed",
-    "notCompleted": "Not Completed",
-    "claimed": "Claimed",
-    "donationDetails": "Donation Details",
-    "untitledDonation": "Untitled Donation"
-  },
   "claimedView": {
     "claimed": "Claimed",
     "untitledDonation": "Untitled Donation",
@@ -1194,6 +1186,33 @@
     "pickupSteps": "Pickup Steps",
     "donationClaimed": "Donation Claimed!",
     "successMessage": "Your donation has been successfully claimed! Thank you for making a difference in your community.",
+    "backToDetails": "Back to Details",
+    "viewPickupSteps": "View Pickup Steps"
+  },
+  "claimDetail": {
+    "status": {
+      "claimed": "Claimed",
+      "readyForPickup": "Ready for Pickup",
+      "completed": "Completed",
+      "notCompleted": "Not Completed"
+    },
+    "defaultTitle": "Untitled Donation",
+    "donationDetails": "Donation Details",
+    "chatWithDonor": "Chat with {{name}}",
+    "chatWithDonorLabel": "Chat with Donor",
+    "donor": "Donor",
+    "quantity": "Quantity",
+    "items": "items",
+    "expiryDate": "Expiry Date",
+    "temperature": "Temperature",
+    "packaging": "Packaging",
+    "pickupDateTime": "Pickup Date & Time",
+    "pickupLocation": "Pickup Location",
+    "notSpecified": "Not specified",
+    "mapComingSoon": "Map view coming soon",
+    "addressNotSpecified": "Address not specified",
+    "viewTimeline": "View Donation Timeline",
+    "hideTimeline": "Hide Donation Timeline",
     "backToDetails": "Back to Details",
     "viewPickupSteps": "View Pickup Steps"
   }

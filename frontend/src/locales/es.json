@@ -691,14 +691,6 @@
     "guides": "Guías y soporte",
     "administration": "Administración"
   },
-  "claimDetail": {
-    "readyForPickup": "Listo para recoger",
-    "completed": "Completado",
-    "notCompleted": "No completado",
-    "claimed": "Reclamado",
-    "donationDetails": "Detalles de la donación",
-    "untitledDonation": "Donación sin título"
-  },
   "claimedView": {
     "claimed": "Reclamado",
     "untitledDonation": "Donación sin título",
@@ -1194,6 +1186,33 @@
     "pickupSteps": "Pasos de recogida",
     "donationClaimed": "¡Donación reclamada!",
     "successMessage": "¡Tu donación ha sido reclamada exitosamente! Gracias por hacer una diferencia en tu comunidad.",
+    "backToDetails": "Volver a los detalles",
+    "viewPickupSteps": "Ver pasos de recogida"
+  },
+  "claimDetail": {
+    "status": {
+      "claimed": "Reclamado",
+      "readyForPickup": "Listo para recoger",
+      "completed": "Completado",
+      "notCompleted": "No completado"
+    },
+    "defaultTitle": "Donación sin título",
+    "donationDetails": "Detalles de la donación",
+    "chatWithDonor": "Chat con {{name}}",
+    "chatWithDonorLabel": "Chat con Donante",
+    "donor": "Donante",
+    "quantity": "Cantidad",
+    "items": "elementos",
+    "expiryDate": "Fecha de vencimiento",
+    "temperature": "Temperatura",
+    "packaging": "Empaquetado",
+    "pickupDateTime": "Fecha y hora de recogida",
+    "pickupLocation": "Ubicación de recogida",
+    "notSpecified": "No especificado",
+    "mapComingSoon": "Vista del mapa próximamente",
+    "addressNotSpecified": "Dirección no especificada",
+    "viewTimeline": "Ver línea de tiempo de donación",
+    "hideTimeline": "Ocultar línea de tiempo de donación",
     "backToDetails": "Volver a los detalles",
     "viewPickupSteps": "Ver pasos de recogida"
   }

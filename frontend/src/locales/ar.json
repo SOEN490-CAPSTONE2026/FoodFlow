@@ -691,14 +691,6 @@
     "guides": "الأدلة والدعم",
     "administration": "الإدارة"
   },
-  "claimDetail": {
-    "readyForPickup": "جاهز للاستلام",
-    "completed": "مكتمل",
-    "notCompleted": "غير مكتمل",
-    "claimed": "تم المطالبة به",
-    "donationDetails": "تفاصيل التبرع",
-    "untitledDonation": "تبرع بدون عنوان"
-  },
   "claimedView": {
     "claimed": "تم المطالبة به",
     "untitledDonation": "تبرع بدون عنوان",
@@ -1194,6 +1186,33 @@
     "pickupSteps": "خطوات الاستلام",
     "donationClaimed": "تمت المطالبة بالتبرع!",
     "successMessage": "تمت المطالبة بتبرعك بنجاح! شكراً لإحداث فرق في مجتمعك.",
+    "backToDetails": "العودة إلى التفاصيل",
+    "viewPickupSteps": "عرض خطوات الاستلام"
+  },
+  "claimDetail": {
+    "status": {
+      "claimed": "تمّت المطالبة به",
+      "readyForPickup": "جاهز للاستلام",
+      "completed": "مكتمل",
+      "notCompleted": "غير مكتمل"
+    },
+    "defaultTitle": "تبرع بدون عنوان",
+    "donationDetails": "تفاصيل التبرع",
+    "chatWithDonor": "الدردشة مع {{name}}",
+    "chatWithDonorLabel": "الدردشة مع المتبرع",
+    "donor": "المتبرع",
+    "quantity": "الكمية",
+    "items": "العناصر",
+    "expiryDate": "تاريخ انتهاء الصلاحية",
+    "temperature": "درجة الحرارة",
+    "packaging": "التغليف",
+    "pickupDateTime": "تاريخ ووقت الاستلام",
+    "pickupLocation": "مكان الاستلام",
+    "notSpecified": "غير محدد",
+    "mapComingSoon": "عرض الخريطة قريباً",
+    "addressNotSpecified": "العنوان غير محدد",
+    "viewTimeline": "عرض جدول التبرعات",
+    "hideTimeline": "إخفاء الجدول الزمني للتبرع",
     "backToDetails": "العودة إلى التفاصيل",
     "viewPickupSteps": "عرض خطوات الاستلام"
   }
