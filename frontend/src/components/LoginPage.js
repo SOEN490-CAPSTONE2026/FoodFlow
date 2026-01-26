@@ -35,20 +35,27 @@ const LoginPage = () => {
     try {
       const response = await authAPI.login({ email, password });
 
-    // get token, role, userId, and organizationName from backend response
-    const token = response?.data?.token;
-    const userRole = response?.data?.role;
-    const userId = response?.data?.userId;
-    const organizationName = response?.data?.organizationName;
-    const verificationStatus = response?.data?.verificationStatus;
-    const accountStatus = response?.data?.accountStatus;
+      // get token, role, userId, and organizationName from backend response
+      const token = response?.data?.token;
+      const userRole = response?.data?.role;
+      const userId = response?.data?.userId;
+      const organizationName = response?.data?.organizationName;
+      const verificationStatus = response?.data?.verificationStatus;
+      const accountStatus = response?.data?.accountStatus;
 
       if (!token || !userRole || !userId) {
         throw new Error('Invalid server response');
       }
 
-    login(token, userRole, userId, organizationName, verificationStatus, accountStatus); // this automatically updates localStorage and context
-    trackLogin(true);
+      login(
+        token,
+        userRole,
+        userId,
+        organizationName,
+        verificationStatus,
+        accountStatus
+      ); // this automatically updates localStorage and context
+      trackLogin(true);
 
       switch (userRole.toUpperCase()) {
         case 'ADMIN':
@@ -194,7 +201,9 @@ const LoginPage = () => {
                   </div>
                 </div>
 
-                {successMessage && <p className="form-success">{successMessage}</p>}
+                {successMessage && (
+                  <p className="form-success">{successMessage}</p>
+                )}
                 {error && <p className="form-error">{error}</p>}
 
                 <button

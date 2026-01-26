@@ -22,7 +22,9 @@ const EmailVerification = () => {
 
       if (!token) {
         setStatus('error');
-        setMessage('No verification token found. Please check your email link.');
+        setMessage(
+          'No verification token found. Please check your email link.'
+        );
         return;
       }
 
@@ -30,16 +32,16 @@ const EmailVerification = () => {
         const response = await authAPI.verifyEmail(token);
         setStatus('success');
         setMessage(response.data.message || 'Email verified successfully!');
-        
+
         // If user is logged in, log them out so they can log in fresh with verified status
         logout();
-        
+
         // Don't auto-redirect - let user click the button
       } catch (error) {
         setStatus('error');
         setMessage(
-          error.response?.data?.message || 
-          'Verification failed. The link may be invalid or expired.'
+          error.response?.data?.message ||
+            'Verification failed. The link may be invalid or expired.'
         );
       }
     };
@@ -65,11 +67,16 @@ const EmailVerification = () => {
             <h2>Email Verified!</h2>
             <p>{message}</p>
             <div className="verification-actions">
-              <button 
+              <button
                 className="btn-primary"
-                onClick={() => navigate('/login', { 
-                  state: { message: 'Email verified successfully! Please log in to continue.' } 
-                })}
+                onClick={() =>
+                  navigate('/login', {
+                    state: {
+                      message:
+                        'Email verified successfully! Please log in to continue.',
+                    },
+                  })
+                }
               >
                 Go to Login
               </button>
@@ -83,13 +90,13 @@ const EmailVerification = () => {
             <h2>Verification Failed</h2>
             <p>{message}</p>
             <div className="verification-actions">
-              <button 
+              <button
                 className="btn-primary"
                 onClick={() => navigate('/login')}
               >
                 Go to Login
               </button>
-              <button 
+              <button
                 className="btn-secondary"
                 onClick={() => navigate('/register')}
               >

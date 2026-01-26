@@ -13,7 +13,9 @@ jest.mock('../../services/api', () => ({
 }));
 
 // Mock the CSS
-jest.mock('../../style/EmailVerificationRequired.css', () => ({}), { virtual: true });
+jest.mock('../../style/EmailVerificationRequired.css', () => ({}), {
+  virtual: true,
+});
 
 const mockNavigate = jest.fn();
 const mockLogout = jest.fn();
@@ -47,13 +49,19 @@ describe('EmailVerificationRequired', () => {
 
   it('renders the main heading', () => {
     renderWithAuth();
-    expect(screen.getByText(/email verification required/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/email verification required/i)
+    ).toBeInTheDocument();
   });
 
   it('displays verification instructions', () => {
     renderWithAuth();
     expect(screen.getByText(/check your email/i)).toBeInTheDocument();
-    expect(screen.getByText(/we've sent a verification link to your registered email address/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /we've sent a verification link to your registered email address/i
+      )
+    ).toBeInTheDocument();
   });
 
   it('renders email icon', () => {
@@ -64,12 +72,16 @@ describe('EmailVerificationRequired', () => {
 
   it('renders resend verification email button', () => {
     renderWithAuth();
-    expect(screen.getByRole('button', { name: /resend verification email/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /resend verification email/i })
+    ).toBeInTheDocument();
   });
 
   it('renders logout button', () => {
     renderWithAuth();
-    expect(screen.getByRole('button', { name: /log out/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /log out/i })
+    ).toBeInTheDocument();
   });
 
   it('calls logout and navigates to login when logout button is clicked', () => {
@@ -86,8 +98,10 @@ describe('EmailVerificationRequired', () => {
     });
 
     renderWithAuth();
-    const resendButton = screen.getByRole('button', { name: /resend verification email/i });
-    
+    const resendButton = screen.getByRole('button', {
+      name: /resend verification email/i,
+    });
+
     fireEvent.click(resendButton);
 
     await waitFor(() => {
@@ -97,27 +111,35 @@ describe('EmailVerificationRequired', () => {
 
   it('shows loading state when resending email', async () => {
     authAPI.resendVerificationEmail.mockImplementationOnce(
-      () => new Promise((resolve) => setTimeout(() => resolve({ data: {} }), 1000))
+      () =>
+        new Promise(resolve => setTimeout(() => resolve({ data: {} }), 1000))
     );
 
     renderWithAuth();
-    const resendButton = screen.getByRole('button', { name: /resend verification email/i });
-    
+    const resendButton = screen.getByRole('button', {
+      name: /resend verification email/i,
+    });
+
     fireEvent.click(resendButton);
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /sending/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /sending/i })
+      ).toBeInTheDocument();
     });
   });
 
   it('disables button while sending email', async () => {
     authAPI.resendVerificationEmail.mockImplementationOnce(
-      () => new Promise((resolve) => setTimeout(() => resolve({ data: {} }), 1000))
+      () =>
+        new Promise(resolve => setTimeout(() => resolve({ data: {} }), 1000))
     );
 
     renderWithAuth();
-    const resendButton = screen.getByRole('button', { name: /resend verification email/i });
-    
+    const resendButton = screen.getByRole('button', {
+      name: /resend verification email/i,
+    });
+
     fireEvent.click(resendButton);
 
     await waitFor(() => {
@@ -132,12 +154,16 @@ describe('EmailVerificationRequired', () => {
     });
 
     renderWithAuth();
-    const resendButton = screen.getByRole('button', { name: /resend verification email/i });
-    
+    const resendButton = screen.getByRole('button', {
+      name: /resend verification email/i,
+    });
+
     fireEvent.click(resendButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/verification email sent successfully/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/verification email sent successfully/i)
+      ).toBeInTheDocument();
     });
   });
 
@@ -147,12 +173,16 @@ describe('EmailVerificationRequired', () => {
     });
 
     renderWithAuth();
-    const resendButton = screen.getByRole('button', { name: /resend verification email/i });
-    
+    const resendButton = screen.getByRole('button', {
+      name: /resend verification email/i,
+    });
+
     fireEvent.click(resendButton);
 
     await waitFor(() => {
-      const modal = screen.getByText(/verification email sent successfully/i).closest('.success-modal');
+      const modal = screen
+        .getByText(/verification email sent successfully/i)
+        .closest('.success-modal');
       expect(modal).toBeInTheDocument();
     });
   });
@@ -163,19 +193,25 @@ describe('EmailVerificationRequired', () => {
     });
 
     renderWithAuth();
-    const resendButton = screen.getByRole('button', { name: /resend verification email/i });
-    
+    const resendButton = screen.getByRole('button', {
+      name: /resend verification email/i,
+    });
+
     fireEvent.click(resendButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/verification email sent successfully/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/verification email sent successfully/i)
+      ).toBeInTheDocument();
     });
 
     // Fast-forward time by 3 seconds
     jest.advanceTimersByTime(3000);
 
     await waitFor(() => {
-      expect(screen.queryByText(/verification email sent successfully/i)).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/verification email sent successfully/i)
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -185,19 +221,25 @@ describe('EmailVerificationRequired', () => {
     });
 
     renderWithAuth();
-    const resendButton = screen.getByRole('button', { name: /resend verification email/i });
-    
+    const resendButton = screen.getByRole('button', {
+      name: /resend verification email/i,
+    });
+
     fireEvent.click(resendButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/verification email sent successfully/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/verification email sent successfully/i)
+      ).toBeInTheDocument();
     });
 
     const overlay = document.querySelector('.success-modal-overlay');
     fireEvent.click(overlay);
 
     await waitFor(() => {
-      expect(screen.queryByText(/verification email sent successfully/i)).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/verification email sent successfully/i)
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -209,8 +251,10 @@ describe('EmailVerificationRequired', () => {
     });
 
     renderWithAuth();
-    const resendButton = screen.getByRole('button', { name: /resend verification email/i });
-    
+    const resendButton = screen.getByRole('button', {
+      name: /resend verification email/i,
+    });
+
     fireEvent.click(resendButton);
 
     await waitFor(() => {
@@ -219,15 +263,21 @@ describe('EmailVerificationRequired', () => {
   });
 
   it('shows generic error message when API returns no message', async () => {
-    authAPI.resendVerificationEmail.mockRejectedValueOnce(new Error('Network error'));
+    authAPI.resendVerificationEmail.mockRejectedValueOnce(
+      new Error('Network error')
+    );
 
     renderWithAuth();
-    const resendButton = screen.getByRole('button', { name: /resend verification email/i });
-    
+    const resendButton = screen.getByRole('button', {
+      name: /resend verification email/i,
+    });
+
     fireEvent.click(resendButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/failed to resend verification email/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/failed to resend verification email/i)
+      ).toBeInTheDocument();
     });
   });
 
@@ -237,21 +287,29 @@ describe('EmailVerificationRequired', () => {
       .mockResolvedValueOnce({ data: { message: 'Success' } });
 
     renderWithAuth();
-    const resendButton = screen.getByRole('button', { name: /resend verification email/i });
-    
+    const resendButton = screen.getByRole('button', {
+      name: /resend verification email/i,
+    });
+
     // First attempt - fails
     fireEvent.click(resendButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/failed to resend verification email/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/failed to resend verification email/i)
+      ).toBeInTheDocument();
     });
 
     // Second attempt - succeeds
     fireEvent.click(resendButton);
 
     await waitFor(() => {
-      expect(screen.queryByText(/failed to resend verification email/i)).not.toBeInTheDocument();
-      expect(screen.getByText(/verification email sent successfully/i)).toBeInTheDocument();
+      expect(
+        screen.queryByText(/failed to resend verification email/i)
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getByText(/verification email sent successfully/i)
+      ).toBeInTheDocument();
     });
   });
 
@@ -261,8 +319,10 @@ describe('EmailVerificationRequired', () => {
     });
 
     renderWithAuth();
-    const resendButton = screen.getByRole('button', { name: /resend verification email/i });
-    
+    const resendButton = screen.getByRole('button', {
+      name: /resend verification email/i,
+    });
+
     fireEvent.click(resendButton);
 
     await waitFor(() => {

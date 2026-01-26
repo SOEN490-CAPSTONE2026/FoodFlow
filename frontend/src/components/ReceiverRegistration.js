@@ -449,11 +449,20 @@ const ReceiverRegistration = () => {
       const userRole = response?.data?.role;
       const userId = response?.data?.userId;
       const organizationName = response?.data?.organizationName;
-      const verificationStatus = response?.data?.verificationStatus || 'pending_verification';
-      const accountStatus = response?.data?.accountStatus || 'PENDING_VERIFICATION';
+      const verificationStatus =
+        response?.data?.verificationStatus || 'pending_verification';
+      const accountStatus =
+        response?.data?.accountStatus || 'PENDING_VERIFICATION';
 
       if (token && userRole && userId) {
-        login(token, userRole, userId, organizationName, verificationStatus, accountStatus);
+        login(
+          token,
+          userRole,
+          userId,
+          organizationName,
+          verificationStatus,
+          accountStatus
+        );
       }
 
       setSubmitted(true);
