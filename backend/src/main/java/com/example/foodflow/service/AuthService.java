@@ -112,6 +112,8 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(UserRole.DONOR);
         user.setAccountStatus(AccountStatus.PENDING_VERIFICATION);
+        user.setFullName(request.getContactPerson());
+        user.setPhone(request.getPhone());
 
         // Initialize default notification preferences
         initializeDefaultNotificationPreferences(user);
@@ -183,6 +185,8 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(UserRole.RECEIVER);
         user.setAccountStatus(AccountStatus.PENDING_VERIFICATION);
+        user.setFullName(request.getContactPerson());
+        user.setPhone(request.getPhone());
 
         // Initialize default notification preferences
         initializeDefaultNotificationPreferences(user);

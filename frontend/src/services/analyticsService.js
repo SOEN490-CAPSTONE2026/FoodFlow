@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
 
 class AnalyticsService {
   constructor() {
@@ -9,7 +10,9 @@ class AnalyticsService {
   }
 
   generateSessionId() {
-    return 'session_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+    return (
+      'session_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now()
+    );
   }
 
   async trackEvent(action, component, additionalData = {}) {
@@ -20,12 +23,12 @@ class AnalyticsService {
         sessionId: this.sessionId,
         timestamp: Date.now(),
         url: window.location.pathname,
-        ...additionalData
+        ...additionalData,
       };
 
       // Send to backend
       await axios.post(`${API_BASE_URL}/analytics/track`, eventData);
-      
+
       // Also log to console for debugging
       console.log('Analytics Event:', eventData);
     } catch (error) {

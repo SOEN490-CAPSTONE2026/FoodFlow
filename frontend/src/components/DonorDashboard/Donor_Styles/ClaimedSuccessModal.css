@@ -31,7 +31,9 @@
   max-width: 500px;
   width: 100%;
   position: relative;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
   animation: slideUp 0.3s ease;
 }
 
@@ -78,7 +80,7 @@
   margin: 0 0 12px 0;
   font-size: 32px;
   font-weight: 700;
-  color: #1B4965;
+  color: #1b4965;
   line-height: 1.2;
 }
 
@@ -104,6 +106,10 @@
   margin-top: 24px;
   padding-top: 24px;
   border-top: 1px solid #e5e7eb;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .report-issue-btn {
@@ -129,6 +135,26 @@
 
 .report-issue-btn svg {
   flex-shrink: 0;
+}
+
+.leave-feedback-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #0092b8;
+  border: 1px solid #0092b8;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.leave-feedback-btn:hover {
+  background: #007a9a;
+  border-color: #007a9a;
 }
 
 @keyframes scaleIn {

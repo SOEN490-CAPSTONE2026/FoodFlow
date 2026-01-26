@@ -43,7 +43,7 @@
   height: 36px;
   border-radius: 50%;
   border: none;
-  background-color: #62B6CB;
+  background-color: #62b6cb;
   color: white;
   font-size: 20px;
   cursor: pointer;
@@ -101,7 +101,7 @@
 }
 
 .filter-badge {
-  background-color: #62B6CB;
+  background-color: #62b6cb;
   color: white;
   border-radius: 6px;
   padding: 2px 10px;
@@ -112,7 +112,7 @@
 }
 
 .filter-tab.active .filter-badge {
-  background-color: #62B6CB;
+  background-color: #62b6cb;
   color: white;
 }
 
@@ -168,14 +168,14 @@
 
 .conversation-item.active {
   background-color: #f0f8ff;
-  border-left: 3px solid #5BC0DE;
+  border-left: 3px solid #5bc0de;
 }
 
 .conversation-avatar {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background-color: #5BC0DE;
+  background-color: #5bc0de;
   color: white;
   display: flex;
   align-items: center;
@@ -238,7 +238,7 @@
 }
 
 .unread-badge {
-  background-color: #62B6CB;
+  background-color: #62b6cb;
   color: white;
   border-radius: 6px;
   padding: 3px 9px;
@@ -261,33 +261,33 @@
     flex-shrink: 0;
     overflow: hidden;
   }
-  
+
   .conversations-sidebar.hide-mobile {
     display: none;
   }
-  
+
   .conversations-sidebar.show-mobile {
     display: flex;
   }
-  
+
   .sidebar-header {
     padding: 16px;
   }
-  
+
   .sidebar-header h2 {
     font-size: 20px;
   }
-  
+
   .filter-tabs {
     padding: 10px 16px;
   }
-  
+
   .conversations-list {
     flex: 1;
     overflow-y: auto;
     min-height: 0;
   }
-  
+
   .conversation-item {
     padding: 14px 16px;
   }

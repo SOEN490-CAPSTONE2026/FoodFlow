@@ -27,13 +27,13 @@ const LoginPage = () => {
     }
   }, [location]);
 
-  const handleLogin = async (e) => {
-  e.preventDefault();
-  setError('');
-  setLoading(true);
+  const handleLogin = async e => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
 
-  try {
-    const response = await authAPI.login({ email, password });
+    try {
+      const response = await authAPI.login({ email, password });
 
     // get token, role, userId, and organizationName from backend response
     const token = response?.data?.token;
@@ -43,76 +43,145 @@ const LoginPage = () => {
     const verificationStatus = response?.data?.verificationStatus;
     const accountStatus = response?.data?.accountStatus;
 
-    if (!token || !userRole || !userId) {
-      throw new Error('Invalid server response');
-    }
+      if (!token || !userRole || !userId) {
+        throw new Error('Invalid server response');
+      }
 
     login(token, userRole, userId, organizationName, verificationStatus, accountStatus); // this automatically updates localStorage and context
     trackLogin(true);
 
-    // redirect based on role
-    switch (userRole.toUpperCase()) {
-      case 'ADMIN':
-        navigate('/admin');
-        break;
-      case 'DONOR':
-        navigate('/donor');
-        break;
-      case 'RECEIVER':
-        navigate('/receiver');
-        break;
-      default:
-        navigate('/dashboard');
-        break;
+      switch (userRole.toUpperCase()) {
+        case 'ADMIN':
+          navigate('/admin');
+          break;
+        case 'DONOR':
+          navigate('/donor');
+          break;
+        case 'RECEIVER':
+          navigate('/receiver');
+          break;
+        default:
+          navigate('/dashboard');
+          break;
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      trackLogin(false);
+
+      let errorMessage = 'Invalid email or password';
+
+      if (err.response) {
+        const statusCode = err.response.status;
+        const serverMessage =
+          err.response.data?.message || err.response.data?.error;
+
+        if (statusCode === 401) {
+          errorMessage = serverMessage || 'Invalid email or password';
+        } else if (statusCode === 403) {
+          errorMessage =
+            serverMessage || 'Access denied. Please contact support.';
+        } else if (statusCode === 500) {
+          errorMessage = 'Server error. Please try again later.';
+        } else if (statusCode >= 500) {
+          errorMessage = 'Service temporarily unavailable. Please try again.';
+        } else if (serverMessage) {
+          errorMessage = serverMessage;
+        }
+      } else if (err.request) {
+        errorMessage =
+          'Unable to connect to server. Please check your connection.';
+      } else if (err.message === 'Invalid server response') {
+        errorMessage =
+          'Login successful but received incomplete data. Please try again.';
+      }
+
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error(err);
-    trackLogin(false);
-    setError('Invalid email or password');
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <div className="login-page">
-
       <div className="login-left" aria-hidden="true">
         <div className="background-spots">
           <span className="background-spot s1" />
           <span className="background-spot s2" />
           <span className="background-spot s3" />
         </div>
-        <img src="https://i.ibb.co/HLxDnk57/Untitled-design-6.png" alt="Donation example" className="main" />
+        <img
+          src="https://i.ibb.co/HLxDnk57/Untitled-design-6.png"
+          alt="Donation example"
+          className="main"
+        />
         <Link to="/">
-          <img src="https://i.ibb.co/jkF1r5xL/logo-white.png" alt="FoodFlow logo" className="login-logo" />
+          <img
+            src="https://i.ibb.co/jkF1r5xL/logo-white.png"
+            alt="FoodFlow logo"
+            className="login-logo"
+          />
         </Link>
       </div>
 
       <div className="login-right">
         <div className="login-container">
           <div className="login-inner">
-            <div className="login-card" role="region" aria-labelledby="login-title">
+            <div
+              className="login-card"
+              role="region"
+              aria-labelledby="login-title"
+            >
               <button
                 className="back-home-button"
-                onClick={() => navigate("/")}
+                onClick={() => navigate('/')}
                 aria-label="Go back to homepage"
               >
                 ← Back Home
               </button>
-              <h1 id="login-title" className="login-title">Log in to your account</h1>
+              <h1 id="login-title" className="login-title">
+                Log in to your account
+              </h1>
 
               <form onSubmit={handleLogin} noValidate>
                 <div className="form-field">
-                  <label htmlFor="email" className="form-label">Email address</label>
-                  <input id="email" type="email" className="form-input" placeholder="Enter your email" value={email} onChange={(e)=>setEmail(e.target.value)} autoComplete="email" required />
+                  <label htmlFor="email" className="form-label">
+                    Email address
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    className="form-input"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    autoComplete="email"
+                    required
+                  />
                 </div>
 
                 <div className="form-field">
-                  <label htmlFor="password" className="form-label">Password</label>
+                  <label htmlFor="password" className="form-label">
+                    Password
+                  </label>
                   <div className="password-wrapper">
-                    <input id="password" type={showPassword? 'text':'password'} className="form-input" placeholder="Enter your password" value={password} onChange={(e)=>setPassword(e.target.value)} autoComplete="current-password" required />
-                    <button type="button" className="password-toggle" aria-label={showPassword ? 'Toggle password visibility (hide)' : 'Toggle password visibility (show)'} onClick={()=>setShowPassword(s=>!s)}>
+                    <input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      className="form-input"
+                      placeholder="Enter your password"
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      autoComplete="current-password"
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle"
+                      aria-label={
+                        showPassword ? 'Hide password' : 'Show password'
+                      }
+                      onClick={() => setShowPassword(prev => !prev)}
+                    >
                       {showPassword ? (
                         <EyeOff size={20} color="#64748b" />
                       ) : (
@@ -137,7 +206,12 @@ const LoginPage = () => {
                   {loading ? 'Logging in…' : 'LOG IN'}
                 </button>
 
-                <p className="form-footer">Don't have an account? <Link to="/register" className="link-button">Sign up</Link></p>
+                <p className="form-footer">
+                  Don't have an account?{' '}
+                  <Link to="/register" className="link-button">
+                    Sign up
+                  </Link>
+                </p>
               </form>
             </div>
           </div>

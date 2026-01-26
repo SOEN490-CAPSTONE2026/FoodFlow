@@ -9,10 +9,12 @@ jest.mock('axios', () => ({
   __esModule: true,
   default: {
     create: jest.fn(() => ({
-      get: jest.fn((url) => {
+      get: jest.fn(url => {
         // Mock the user profile/region endpoint to prevent TimezoneContext from making API calls
         if (url === '/user/profile/region') {
-          return Promise.resolve({ data: { timezone: 'America/Toronto', region: 'CA' } });
+          return Promise.resolve({
+            data: { timezone: 'America/Toronto', region: 'CA' },
+          });
         }
         return Promise.resolve({ data: {} });
       }),
@@ -25,9 +27,11 @@ jest.mock('axios', () => ({
         response: { use: jest.fn(), eject: jest.fn() },
       },
     })),
-    get: jest.fn((url) => {
+    get: jest.fn(url => {
       if (url === '/user/profile/region') {
-        return Promise.resolve({ data: { timezone: 'America/Toronto', region: 'CA' } });
+        return Promise.resolve({
+          data: { timezone: 'America/Toronto', region: 'CA' },
+        });
       }
       return Promise.resolve({ data: {} });
     }),

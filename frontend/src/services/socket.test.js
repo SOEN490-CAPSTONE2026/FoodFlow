@@ -1,3 +1,7 @@
+// Import AFTER mocks so the module under test sees them
+import * as stompModule from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
+import * as socketService from './socket';
 
 jest.mock('sockjs-client', () => {
   const mockCtor = jest.fn(function mockSock(url) {
@@ -39,11 +43,6 @@ jest.mock('@stomp/stompjs', () => {
   };
 });
 
-// Import AFTER mocks so the module under test sees them
-import * as stompModule from '@stomp/stompjs';
-import SockJS from 'sockjs-client';
-import * as socketService from './socket';
-
 describe('socket service', () => {
   const OLD_ENV = process.env;
 
@@ -54,7 +53,11 @@ describe('socket service', () => {
     process.env = { ...OLD_ENV };
     delete process.env.REACT_APP_WS_URL;
     // ensure module-level client is cleared between tests
-    try { socketService.disconnect(); } catch (_) {}
+    try {
+      socketService.disconnect();
+    } catch (_) {
+      // Ignore disconnect errors in tests
+    }
   });
 
   afterAll(() => {
@@ -87,17 +90,26 @@ describe('socket service', () => {
     const subs = client.__getSubscriptions();
     const topics = subs.map(s => s.destination).sort();
     expect(topics).toEqual(
-      ['/user/queue/messages', '/user/queue/claims', '/user/queue/claims/cancelled', '/user/queue/notifications'].sort()
+      [
+        '/user/queue/messages',
+        '/user/queue/claims',
+        '/user/queue/claims/cancelled',
+        '/user/queue/notifications',
+      ].sort()
     );
 
-    subs.find(s => s.destination === '/user/queue/messages')
-        .cb({ body: JSON.stringify({ a: 1 }) });
-    subs.find(s => s.destination === '/user/queue/claims')
-        .cb({ body: JSON.stringify({ claim: true }) });
-    subs.find(s => s.destination === '/user/queue/claims/cancelled')
-        .cb({ body: JSON.stringify({ cancelled: 1 }) });
-    subs.find(s => s.destination === '/user/queue/notifications')
-        .cb({ body: JSON.stringify({ type: 'NEW_POST', postId: 123 }) });
+    subs
+      .find(s => s.destination === '/user/queue/messages')
+      .cb({ body: JSON.stringify({ a: 1 }) });
+    subs
+      .find(s => s.destination === '/user/queue/claims')
+      .cb({ body: JSON.stringify({ claim: true }) });
+    subs
+      .find(s => s.destination === '/user/queue/claims/cancelled')
+      .cb({ body: JSON.stringify({ cancelled: 1 }) });
+    subs
+      .find(s => s.destination === '/user/queue/notifications')
+      .cb({ body: JSON.stringify({ type: 'NEW_POST', postId: 123 }) });
 
     expect(onMessage).toHaveBeenCalledWith({ a: 1 });
     expect(onClaim).toHaveBeenCalledWith({ claim: true });
@@ -130,15 +142,23 @@ describe('socket service', () => {
     const client = stompModule.__getLastClient();
 
     client.options.webSocketFactory();
-    expect(SockJS).toHaveBeenCalledWith('https://api.example.com/ws?token=abc.def.ghi');
+    expect(SockJS).toHaveBeenCalledWith(
+      'https://api.example.com/ws?token=abc.def.ghi'
+    );
 
-    expect(client.options.connectHeaders).toEqual({ Authorization: 'Bearer abc.def.ghi' });
+    expect(client.options.connectHeaders).toEqual({
+      Authorization: 'Bearer abc.def.ghi',
+    });
   });
 
   test('reuses existing active client instead of constructing a new one', () => {
     const baseLen = stompModule.__getAllClients().length;
 
-    const first = socketService.connectToUserQueue(jest.fn(), jest.fn(), jest.fn());
+    const first = socketService.connectToUserQueue(
+      jest.fn(),
+      jest.fn(),
+      jest.fn()
+    );
     const lenAfterFirst = stompModule.__getAllClients().length;
     expect(lenAfterFirst).toBe(baseLen + 1);
 
@@ -146,7 +166,11 @@ describe('socket service', () => {
     const lastClient = stompModule.__getLastClient();
     lastClient.active = true;
 
-    const second = socketService.connectToUserQueue(jest.fn(), jest.fn(), jest.fn());
+    const second = socketService.connectToUserQueue(
+      jest.fn(),
+      jest.fn(),
+      jest.fn()
+    );
     const lenAfterSecond = stompModule.__getAllClients().length;
 
     // Should reuse existing => length unchanged, same instance returned

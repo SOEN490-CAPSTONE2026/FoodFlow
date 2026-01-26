@@ -60,6 +60,19 @@ public class User {
     @Column(name = "timezone", length = 50)
     private String timezone;
 
+    // New profile fields
+    @Column(name = "full_name")
+    private String fullName;
+
+    @Column(name = "phone", length = 50)
+    private String phone;
+
+    @Column(name = "profile_photo", columnDefinition = "TEXT")
+    private String profilePhoto;
+
+    @Column(name = "total_points")
+    private Integer totalPoints = 0;
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Organization organization;
 
@@ -128,4 +141,16 @@ public class User {
     
     public String getTimezone() { return timezone; }
     public void setTimezone(String timezone) { this.timezone = timezone; }
+
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
+
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+
+    public String getProfilePhoto() { return profilePhoto; }
+    public void setProfilePhoto(String profilePhoto) { this.profilePhoto = profilePhoto; }
+
+    public Integer getTotalPoints() { return totalPoints; }
+    public void setTotalPoints(Integer totalPoints) { this.totalPoints = totalPoints; }
 }

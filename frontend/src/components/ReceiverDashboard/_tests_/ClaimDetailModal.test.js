@@ -1,21 +1,29 @@
-import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import "@testing-library/jest-dom";
-import { TimezoneProvider } from "../../../contexts/TimezoneContext";
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import { TimezoneProvider } from '../../../contexts/TimezoneContext';
 import { MemoryRouter } from 'react-router-dom';
-import ClaimDetailModal from "../ClaimDetailModal";
+import ClaimDetailModal from '../ClaimDetailModal';
 
-jest.mock("../../../services/api", () => ({
+import { surplusAPI } from '../../../services/api';
+
+jest.mock('../../../services/api', () => ({
   surplusAPI: {
     getTimeline: jest.fn(),
   },
+  claimsAPI: {
+    getClaimForSurplusPost: jest.fn(),
+  },
+  reportAPI: {
+    reportUser: jest.fn(),
+  },
+  feedbackAPI: {
+    submitFeedback: jest.fn(),
+  },
 }));
 
-import { surplusAPI } from "../../../services/api";
-
-
 // Mock the custom hook
-jest.mock("../../../hooks/useGoogleMaps", () => ({
+jest.mock('../../../hooks/useGoogleMaps', () => ({
   __esModule: true,
   default: jest.fn(() => ({ current: null })),
 }));
@@ -28,9 +36,11 @@ const Wrapper = ({ children }) => (
 );
 
 // Mock the child components
-jest.mock("../ClaimedView", () => {
+jest.mock('../ClaimedView', () => {
   return function MockClaimedView({ isOpen, onClose, onBack }) {
-    if (!isOpen) return null;
+    if (!isOpen) {
+      return null;
+    }
     return (
       <div data-testid="claimed-view">
         <button onClick={onBack}>Back Mock</button>
@@ -40,9 +50,11 @@ jest.mock("../ClaimedView", () => {
   };
 });
 
-jest.mock("../CompletedView", () => {
+jest.mock('../CompletedView', () => {
   return function MockCompletedView({ isOpen, onClose, onBack }) {
-    if (!isOpen) return null;
+    if (!isOpen) {
+      return null;
+    }
     return (
       <div data-testid="completed-view">
         <button onClick={onBack}>Back Mock</button>
@@ -52,9 +64,11 @@ jest.mock("../CompletedView", () => {
   };
 });
 
-jest.mock("../ReadyForPickUpView", () => {
+jest.mock('../ReadyForPickUpView', () => {
   return function MockReadyForPickUpView({ isOpen, onClose, onBack }) {
-    if (!isOpen) return null;
+    if (!isOpen) {
+      return null;
+    }
     return (
       <div data-testid="ready-pickup-view">
         <button onClick={onBack}>Back Mock</button>
@@ -64,38 +78,54 @@ jest.mock("../ReadyForPickUpView", () => {
   };
 });
 
+jest.mock('../../shared/DonationTimeline', () => {
+  return function MockDonationTimeline() {
+    return <div data-testid="donation-timeline">Timeline</div>;
+  };
+});
+
+jest.mock('../../FeedbackModal/FeedbackModal', () => {
+  return function MockFeedbackModal() {
+    return <div data-testid="feedback-modal">Feedback Modal</div>;
+  };
+});
+
 const mockClaim = {
   surplusPost: {
-    title: "Fresh Dairy Products",
-    foodType: "Dairy & Cold Items",
-    quantity: { value: 15, unit: "bottles" },
-    expiryDate: "2025-10-29",
-    pickupDate: "2025-10-29",
-    pickupFrom: "08:00",
-    pickupTo: "10:00",
-    donorEmail: "dairy@example.com",
-    donorName: "dairy@example.com",
-    status: "CLAIMED",
+    title: 'Fresh Dairy Products',
+    foodType: 'Dairy & Cold Items',
+    quantity: { value: 15, unit: 'bottles' },
+    expiryDate: '2025-10-29',
+    pickupDate: '2025-10-29',
+    pickupFrom: '08:00',
+    pickupTo: '10:00',
+    donorEmail: 'dairy@example.com',
+    donorName: 'dairy@example.com',
+    status: 'CLAIMED',
     pickupLocation: {
-      address: "321 Dairy Drive",
+      address: '321 Dairy Drive',
       latitude: 40.7489,
-      longitude: -73.9680,
+      longitude: -73.968,
     },
   },
 };
 
-describe("ClaimDetailModal", () => {
-  test("renders nothing when not open", () => {
+describe('ClaimDetailModal', () => {
+  test('renders nothing when not open', () => {
     const { container } = render(
       <Wrapper>
-        <ClaimDetailModal claim={mockClaim} isOpen={false} onClose={jest.fn()} />
+        <ClaimDetailModal
+          claim={mockClaim}
+          isOpen={false}
+          onClose={jest.fn()}
+        />
       </Wrapper>
     );
     expect(container.firstChild).toBeNull();
   });
 
-  test("renders nothing when claim is null", () => {
-    const { container} = render(
+  test('renders nothing when claim is null', () => {
+    const { container } = render(
       <Wrapper>
         <ClaimDetailModal claim={null} isOpen={true} onClose={jest.fn()} />
       </Wrapper>
@@ -103,46 +133,50 @@ describe("ClaimDetailModal", () => {
     expect(container.firstChild).toBeNull();
   });
 
-  test("renders modal with donation title", () => {
+  test('renders modal with donation title', () => {
     render(
       <Wrapper>
         <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
       </Wrapper>
     );
-    expect(screen.getByText("Fresh Dairy Products")).toBeInTheDocument();
+    expect(screen.getByText('Fresh Dairy Products')).toBeInTheDocument();
   });
 
-  test("displays Claimed status badge for CLAIMED status", () => {
+  test('displays Claimed status badge for CLAIMED status', () => {
     render(
       <Wrapper>
         <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
       </Wrapper>
     );
-    expect(screen.getByText("Claimed")).toBeInTheDocument();
+    expect(screen.getByText('Claimed')).toBeInTheDocument();
   });
 
-  test("displays Ready for Pickup status for READY_FOR_PICKUP status", () => {
+  test('displays Ready for Pickup status for READY_FOR_PICKUP status', () => {
     const readyClaim = {
       ...mockClaim,
       surplusPost: {
         ...mockClaim.surplusPost,
-        status: "READY_FOR_PICKUP",
+        status: 'READY_FOR_PICKUP',
       },
     };
     render(
       <Wrapper>
-        <ClaimDetailModal claim={readyClaim} isOpen={true} onClose={jest.fn()} />
+        <ClaimDetailModal
+          claim={readyClaim}
+          isOpen={true}
+          onClose={jest.fn()}
+        />
       </Wrapper>
     );
-    expect(screen.getByText("Ready for Pickup")).toBeInTheDocument();
+    expect(screen.getByText('Ready for Pickup')).toBeInTheDocument();
   });
 
-  test("displays Completed status for COMPLETED status", () => {
+  test('displays Completed status for COMPLETED status', () => {
     const completedClaim = {
       ...mockClaim,
       surplusPost: {
         ...mockClaim.surplusPost,
-        status: "COMPLETED",
+        status: 'COMPLETED',
       },
     };
     render(
@@ -154,78 +188,80 @@ describe("ClaimDetailModal", () => {
         />
       </Wrapper>
     );
-    expect(screen.getByText("Completed")).toBeInTheDocument();
+    expect(screen.getByText('Completed')).toBeInTheDocument();
   });
 
-  test("displays donation details section", () => {
+  test('displays donation details section', () => {
     render(
       <Wrapper>
         <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
       </Wrapper>
     );
-    expect(screen.getByText("Donation Details")).toBeInTheDocument();
+    expect(screen.getByText('Donation Details')).toBeInTheDocument();
   });
 
-  test("displays quantity information", () => {
+  test('displays quantity information', () => {
     render(
       <Wrapper>
         <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
       </Wrapper>
     );
-    expect(screen.getByText("Quantity")).toBeInTheDocument();
-    expect(screen.getByText("15 bottles")).toBeInTheDocument();
+    expect(screen.getByText('Quantity')).toBeInTheDocument();
+    expect(screen.getByText('15 bottles')).toBeInTheDocument();
   });
 
-  test("displays expiry date", () => {
+  test('displays expiry date', () => {
     render(
       <Wrapper>
         <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
       </Wrapper>
     );
-    expect(screen.getByText("Expiry Date")).toBeInTheDocument();
-    expect(screen.getByText("2025-10-29")).toBeInTheDocument();
+    expect(screen.getByText('Expiry Date')).toBeInTheDocument();
+    expect(screen.getByText('2025-10-29')).toBeInTheDocument();
   });
 
-  test("displays donor email", () => {
+  test('displays donor email', () => {
     render(
       <Wrapper>
         <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
       </Wrapper>
     );
-    expect(screen.getByText("Donor")).toBeInTheDocument();
-    expect(screen.getByText("dairy@example.com")).toBeInTheDocument();
+    expect(screen.getByText('Donor')).toBeInTheDocument();
+    expect(screen.getByText('dairy@example.com')).toBeInTheDocument();
   });
 
-  test("displays pickup date and time", () => {
+  test('displays pickup date and time', () => {
     render(
       <Wrapper>
         <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
       </Wrapper>
     );
-    expect(screen.getByText("Pickup Date & Time")).toBeInTheDocument();
+    expect(screen.getByText('Pickup Date & Time')).toBeInTheDocument();
     // Check for the formatted date and time pattern (timezone-aware)
-    expect(screen.getByText(/Oct 29, 2025 \d{1,2}:\d{2} [AP]M-\d{1,2}:\d{2} [AP]M/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Oct 29, 2025 \d{1,2}:\d{2} [AP]M-\d{1,2}:\d{2} [AP]M/)
+    ).toBeInTheDocument();
   });
 
-  test("displays pickup location with link", () => {
+  test('displays pickup location with link', () => {
     render(
       <Wrapper>
         <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
       </Wrapper>
     );
-    expect(screen.getByText("Pickup Location")).toBeInTheDocument();
-    const link = screen.getByText("321 Dairy Drive");
-    expect(link).toHaveAttribute("href");
-    expect(link.getAttribute("href")).toContain("google.com/maps");
+    expect(screen.getByText('Pickup Location')).toBeInTheDocument();
+    const link = screen.getByText('321 Dairy Drive');
+    expect(link).toHaveAttribute('href');
+    expect(link.getAttribute('href')).toContain('google.com/maps');
   });
 
-  test("displays map placeholder when no coordinates", () => {
+  test('displays map placeholder when no coordinates', () => {
     const claimNoCoords = {
       ...mockClaim,
       surplusPost: {
         ...mockClaim.surplusPost,
         pickupLocation: {
-          address: "Test Address",
+          address: 'Test Address',
         },
       },
     };
@@ -238,77 +274,89 @@ describe("ClaimDetailModal", () => {
         />
       </Wrapper>
     );
-    expect(screen.getByText("Map view coming soon")).toBeInTheDocument();
+    expect(screen.getByText('Map view coming soon')).toBeInTheDocument();
   });
 
-  test("calls onClose when close button is clicked", () => {
+  test('calls onClose when close button is clicked', () => {
     const mockOnClose = jest.fn();
     render(
       <Wrapper>
-        <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={mockOnClose} />
+        <ClaimDetailModal
+          claim={mockClaim}
+          isOpen={true}
+          onClose={mockOnClose}
+        />
       </Wrapper>
     );
-    const closeButton = screen.getAllByRole("button")[0];
+    const closeButton = screen.getAllByRole('button')[0];
     fireEvent.click(closeButton);
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
-  test("calls onClose when overlay is clicked", () => {
+  test('calls onClose when overlay is clicked', () => {
     const mockOnClose = jest.fn();
     const { container } = render(
       <Wrapper>
-        <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={mockOnClose} />
+        <ClaimDetailModal
+          claim={mockClaim}
+          isOpen={true}
+          onClose={mockOnClose}
+        />
       </Wrapper>
     );
-    const overlay = container.querySelector(".claimed-modal-overlay");
+    const overlay = container.querySelector('.claimed-modal-overlay');
     fireEvent.click(overlay);
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
-  test("shows View Pickup Steps button for claimed status", () => {
+  test('shows View Pickup Steps button for claimed status', () => {
     render(
       <Wrapper>
         <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
       </Wrapper>
     );
-    expect(screen.getByText("View Pickup Steps")).toBeInTheDocument();
+    expect(screen.getByText('View Pickup Steps')).toBeInTheDocument();
   });
 
-  test("opens ClaimedView when View Pickup Steps is clicked for CLAIMED status", () => {
+  test('opens ClaimedView when View Pickup Steps is clicked for CLAIMED status', () => {
     render(
       <Wrapper>
         <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
       </Wrapper>
     );
-    const viewStepsButton = screen.getByText("View Pickup Steps");
+    const viewStepsButton = screen.getByText('View Pickup Steps');
     fireEvent.click(viewStepsButton);
-    expect(screen.getByTestId("claimed-view")).toBeInTheDocument();
+    expect(screen.getByTestId('claimed-view')).toBeInTheDocument();
   });
 
-  test("opens ReadyForPickUpView when View Pickup Steps is clicked for READY_FOR_PICKUP status", () => {
+  test('opens ReadyForPickUpView when View Pickup Steps is clicked for READY_FOR_PICKUP status', () => {
     const readyClaim = {
       ...mockClaim,
       surplusPost: {
         ...mockClaim.surplusPost,
-        status: "READY_FOR_PICKUP",
+        status: 'READY_FOR_PICKUP',
       },
     };
     render(
       <Wrapper>
-        <ClaimDetailModal claim={readyClaim} isOpen={true} onClose={jest.fn()} />
+        <ClaimDetailModal
+          claim={readyClaim}
+          isOpen={true}
+          onClose={jest.fn()}
+        />
       </Wrapper>
     );
-    const viewStepsButton = screen.getByText("View Pickup Steps");
+    const viewStepsButton = screen.getByText('View Pickup Steps');
     fireEvent.click(viewStepsButton);
-    expect(screen.getByTestId("ready-pickup-view")).toBeInTheDocument();
+    expect(screen.getByTestId('ready-pickup-view')).toBeInTheDocument();
   });
 
-  test("opens CompletedView when View Pickup Steps is clicked for COMPLETED status", () => {
+  test('opens CompletedView when View Pickup Steps is clicked for COMPLETED status', () => {
     const completedClaim = {
       ...mockClaim,
       surplusPost: {
         ...mockClaim.surplusPost,
-        status: "COMPLETED",
+        status: 'COMPLETED',
       },
     };
     render(
@@ -320,27 +368,27 @@ describe("ClaimDetailModal", () => {
         />
       </Wrapper>
     );
-    const viewStepsButton = screen.getByText("View Pickup Steps");
+    const viewStepsButton = screen.getByText('View Pickup Steps');
     fireEvent.click(viewStepsButton);
-    expect(screen.getByTestId("completed-view")).toBeInTheDocument();
+    expect(screen.getByTestId('completed-view')).toBeInTheDocument();
   });
 
-  test("handles back navigation from pickup steps view", () => {
+  test('handles back navigation from pickup steps view', () => {
     render(
       <Wrapper>
         <ClaimDetailModal claim={mockClaim} isOpen={true} onClose={jest.fn()} />
       </Wrapper>
     );
-    const viewStepsButton = screen.getByText("View Pickup Steps");
+    const viewStepsButton = screen.getByText('View Pickup Steps');
     fireEvent.click(viewStepsButton);
-    expect(screen.getByTestId("claimed-view")).toBeInTheDocument();
+    expect(screen.getByTestId('claimed-view')).toBeInTheDocument();
 
-    const backButton = screen.getByText("Back Mock");
+    const backButton = screen.getByText('Back Mock');
     fireEvent.click(backButton);
-    expect(screen.queryByTestId("claimed-view")).not.toBeInTheDocument();
+    expect(screen.queryByTestId('claimed-view')).not.toBeInTheDocument();
   });
 
-  test("handles missing quantity values gracefully", () => {
+  test('handles missing quantity values gracefully', () => {
     const claimNoQuantity = {
       ...mockClaim,
       surplusPost: {
@@ -357,10 +405,10 @@ describe("ClaimDetailModal", () => {
         />
       </Wrapper>
     );
-    expect(screen.getByText("0 items")).toBeInTheDocument();
+    expect(screen.getByText('0 items')).toBeInTheDocument();
   });
 
-  test("handles missing pickup date gracefully", () => {
+  test('handles missing pickup date gracefully', () => {
     const claimNoDate = {
       ...mockClaim,
       surplusPost: {
@@ -378,11 +426,11 @@ describe("ClaimDetailModal", () => {
       </Wrapper>
     );
     // The component should still render even with null pickup date
-    expect(screen.getByText("Expiry Date")).toBeInTheDocument();
-    expect(screen.getByText("Pickup Date & Time")).toBeInTheDocument();
+    expect(screen.getByText('Expiry Date')).toBeInTheDocument();
+    expect(screen.getByText('Pickup Date & Time')).toBeInTheDocument();
   });
 
-  test("handles missing donor email gracefully", () => {
+  test('handles missing donor email gracefully', () => {
     const claimNoDonor = {
       ...mockClaim,
       surplusPost: {
@@ -400,10 +448,10 @@ describe("ClaimDetailModal", () => {
         />
       </Wrapper>
     );
-    expect(screen.getByText("Not specified")).toBeInTheDocument();
+    expect(screen.getByText('Not specified')).toBeInTheDocument();
   });
 
-  test("uses default food type image when foodType is null", () => {
+  test('uses default food type image when foodType is null', () => {
     const claimNoFoodType = {
       ...mockClaim,
       surplusPost: {
@@ -420,11 +468,11 @@ describe("ClaimDetailModal", () => {
         />
       </Wrapper>
     );
-    const img = container.querySelector(".claimed-modal-header-image");
+    const img = container.querySelector('.claimed-modal-header-image');
     expect(img).toBeInTheDocument();
   });
 
-  describe("Timeline Feature", () => {
+  describe('Timeline Feature', () => {
     const mockTimelineData = [
       {
         id: 1,
@@ -475,7 +523,7 @@ describe("ClaimDetailModal", () => {
       });
     });
 
-    test("should render timeline toggle button", () => {
+    test('should render timeline toggle button', () => {
       const { container } = render(
         <Wrapper>
           <ClaimDetailModal
@@ -490,7 +538,7 @@ describe("ClaimDetailModal", () => {
       expect(button.textContent).toMatch(/View.*Donation Timeline/);
     });
 
-    test("should fetch and display timeline when toggle button is clicked", async () => {
+    test('should fetch and display timeline when toggle button is clicked', async () => {
       const { container } = render(
         <Wrapper>
           <ClaimDetailModal
@@ -501,7 +549,9 @@ describe("ClaimDetailModal", () => {
         </Wrapper>
       );
 
-      const toggleButton = container.querySelector('.claimed-timeline-toggle-button');
+      const toggleButton = container.querySelector(
+        '.claimed-timeline-toggle-button'
+      );
       fireEvent.click(toggleButton);
 
       await waitFor(() => {
@@ -509,7 +559,7 @@ describe("ClaimDetailModal", () => {
       });
     });
 
-    test("should toggle timeline visibility", async () => {
+    test('should toggle timeline visibility', async () => {
       const { container } = render(
         <Wrapper>
           <ClaimDetailModal
@@ -521,7 +571,9 @@ describe("ClaimDetailModal", () => {
       );
 
       // Click to expand
-      const viewButton = container.querySelector('.claimed-timeline-toggle-button');
+      const viewButton = container.querySelector(
+        '.claimed-timeline-toggle-button'
+      );
       fireEvent.click(viewButton);
 
       await waitFor(() => {
@@ -536,9 +588,13 @@ describe("ClaimDetailModal", () => {
       });
     });
 
-    test("should handle timeline fetch error gracefully", async () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-      surplusAPI.getTimeline.mockRejectedValue(new Error('Failed to fetch timeline'));
+    test('should handle timeline fetch error gracefully', async () => {
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      surplusAPI.getTimeline.mockRejectedValue(
+        new Error('Failed to fetch timeline')
+      );
 
       const { container } = render(
         <Wrapper>
@@ -550,7 +606,9 @@ describe("ClaimDetailModal", () => {
         </Wrapper>
       );
 
-      const toggleButton = container.querySelector('.claimed-timeline-toggle-button');
+      const toggleButton = container.querySelector(
+        '.claimed-timeline-toggle-button'
+      );
       fireEvent.click(toggleButton);
 
       await waitFor(() => {
@@ -563,7 +621,7 @@ describe("ClaimDetailModal", () => {
       consoleErrorSpy.mockRestore();
     });
 
-    test("should cache timeline data and not refetch", async () => {
+    test('should cache timeline data and not refetch', async () => {
       const { container } = render(
         <Wrapper>
           <ClaimDetailModal
@@ -575,7 +633,9 @@ describe("ClaimDetailModal", () => {
       );
 
       // Click to expand
-      const viewButton = container.querySelector('.claimed-timeline-toggle-button');
+      const viewButton = container.querySelector(
+        '.claimed-timeline-toggle-button'
+      );
       fireEvent.click(viewButton);
 
       await waitFor(() => {
@@ -592,7 +652,7 @@ describe("ClaimDetailModal", () => {
       expect(surplusAPI.getTimeline).toHaveBeenCalledTimes(1);
     });
 
-    test("should not fetch timeline if post ID is missing", async () => {
+    test('should not fetch timeline if post ID is missing', async () => {
       const { container } = render(
         <Wrapper>
           <ClaimDetailModal
@@ -603,14 +663,16 @@ describe("ClaimDetailModal", () => {
         </Wrapper>
       );
 
-      const toggleButton = container.querySelector('.claimed-timeline-toggle-button');
+      const toggleButton = container.querySelector(
+        '.claimed-timeline-toggle-button'
+      );
       fireEvent.click(toggleButton);
 
       // Should not call API without post ID
       expect(surplusAPI.getTimeline).not.toHaveBeenCalled();
     });
 
-    test("should reset timeline when modal reopens", async () => {
+    test('should reset timeline when modal reopens', async () => {
       const { container, rerender } = render(
         <Wrapper>
           <ClaimDetailModal
@@ -622,7 +684,9 @@ describe("ClaimDetailModal", () => {
       );
 
       // Expand timeline
-      const viewButton = container.querySelector('.claimed-timeline-toggle-button');
+      const viewButton = container.querySelector(
+        '.claimed-timeline-toggle-button'
+      );
       fireEvent.click(viewButton);
 
       await waitFor(() => {
