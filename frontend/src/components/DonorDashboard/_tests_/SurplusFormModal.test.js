@@ -4,6 +4,78 @@ import userEvent from "@testing-library/user-event";
 import SurplusFormModal from "../SurplusFormModal";
 import { TimezoneProvider } from "../../../contexts/TimezoneContext";
 
+// Mock react-i18next
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key, params) => {
+      const translations = {
+        'surplusForm.title': 'Add New Donation',
+        'surplusForm.editTitle': 'Edit Donation',
+        'surplusForm.titleLabel': 'Title',
+        'surplusForm.titlePlaceholder': 'e.g., Vegetable Lasagna',
+        'surplusForm.foodCategoriesLabel': 'Food Categories',
+        'surplusForm.foodCategoriesPlaceholder': 'Select categories',
+        'surplusForm.temperatureCategoryLabel': 'Temperature Category',
+        'surplusForm.temperatureCategoryPlaceholder': 'Select temperature category',
+        'surplusForm.temperatureCategoryHelp': 'Select the storage temperature for food safety verification',
+        'surplusForm.packagingTypeLabel': 'Packaging Type',
+        'surplusForm.packagingTypePlaceholder': 'Select packaging type',
+        'surplusForm.packagingTypeHelp': 'Specify how the food is packaged for safety compliance',
+        'surplusForm.quantityLabel': 'Quantity',
+        'surplusForm.quantityPlaceholder': '0',
+        'surplusForm.unitLabel': 'Unit',
+        'surplusForm.unitPlaceholder': 'Select unit',
+        'surplusForm.fabricationDateLabel': 'Fabrication/Production Date',
+        'surplusForm.fabricationDatePlaceholder': 'When was it made?',
+        'surplusForm.fabricationDateHelp': 'System will auto-calculate expiry date based on food type',
+        'surplusForm.expiryDateLabel': 'Expiry Date',
+        'surplusForm.expiryDatePlaceholder': 'Select expiry date',
+        'surplusForm.expiryDateAutoCalculated': '(Auto-calculated, you can edit)',
+        'surplusForm.expiryDateSuggestion': 'Suggested expiry: {{date}} (based on food category)',
+        'surplusForm.pickupTimeSlotsLabel': 'Pickup Time Slots',
+        'surplusForm.addAnotherSlot': 'Add Another Slot',
+        'surplusForm.slot': 'Slot',
+        'surplusForm.dateLabel': 'Date',
+        'surplusForm.datePlaceholder': 'Select date',
+        'surplusForm.startTimeLabel': 'Start Time',
+        'surplusForm.startTimePlaceholder': 'Start',
+        'surplusForm.endTimeLabel': 'End Time',
+        'surplusForm.endTimePlaceholder': 'End',
+        'surplusForm.notesLabel': 'Notes',
+        'surplusForm.notesPlaceholder': 'e.g., Use back entrance, Ask for manager',
+        'surplusForm.pickupLocationLabel': 'Pickup Location',
+        'surplusForm.pickupLocationPlaceholder': 'Start typing address...',
+        'surplusForm.descriptionLabel': 'Description',
+        'surplusForm.descriptionPlaceholder': 'Describe the food (ingredients, freshness, etc.)',
+        'surplusForm.previous': 'Previous',
+        'surplusForm.next': 'Next',
+        'surplusForm.createDonation': 'Create Donation',
+        'surplusForm.updateDonation': 'Update Donation',
+        'surplusForm.cancelConfirm': 'Cancel donation creation?',
+        'surplusForm.cancelEditConfirm': 'Cancel editing? Your changes will be lost.',
+        'surplusForm.validationError': 'Please complete all required fields before continuing.',
+        'surplusForm.loadingDetails': 'Loading donation details...',
+        'surplusForm.successCreated': 'Success! Post created with ID: {{id}}',
+        'surplusForm.successUpdated': 'Success! Donation updated successfully.',
+        'surplusForm.failed': 'Failed to create surplus post',
+        'surplusForm.failedToLoad': 'Failed to load post data',
+        'surplusForm.steps.foodDetails': 'Food Details',
+        'surplusForm.steps.quantityDates': 'Quantity & Dates',
+        'surplusForm.steps.pickupInfo': 'Pickup Info',
+        'surplusForm.steps.description': 'Description',
+      };
+      // Handle interpolation
+      let result = translations[key] || key;
+      if (params) {
+        result = result.replace(/\{\{(\w+)\}\}/g, (match, p1) => {
+          return params[p1] !== undefined ? params[p1] : match;
+        });
+      }
+      return result;
+    },
+  }),
+}));
+
 // Mock the surplusAPI directly
 jest.mock("../../../services/api", () => ({
   surplusAPI: {
@@ -14,6 +86,7 @@ jest.mock("../../../services/api", () => ({
 }));
 
 // Import the mocked module after the mock is set up
+// eslint-disable-next-line import/first
 import { surplusAPI as mockSurplusAPI } from "../../../services/api";
 
 // Helper function to render with required providers

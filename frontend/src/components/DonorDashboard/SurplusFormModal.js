@@ -147,7 +147,7 @@ const SurplusFormModal = ({ isOpen, onClose, editMode = false, postId = null }) 
           setIsLoading(false);
         })
         .catch((err) => {
-          setError(err.response?.data?.message || "Failed to load post data");
+          setError(err.response?.data?.message || t('surplusForm.failedToLoad'));
           setIsLoading(false);
         });
     }
@@ -280,12 +280,12 @@ const SurplusFormModal = ({ isOpen, onClose, editMode = false, postId = null }) 
       if (editMode && postId) {
         // Update existing post
         response = await surplusAPI.update(postId, submissionData);
-        setMessage(`Success! Donation updated successfully.`);
+        setMessage(t('surplusForm.successUpdated'));
       } else {
         // Create new post
         response = await surplusAPI.create(submissionData);
         const createdPostId = response?.data?.id || 'unknown';
-        setMessage(`Success! Post created with ID: ${createdPostId}`);
+        setMessage(t('surplusForm.successCreated', { id: createdPostId }));
       }
 
       // Reset form only in create mode
@@ -320,13 +320,13 @@ const SurplusFormModal = ({ isOpen, onClose, editMode = false, postId = null }) 
       }, 1500);
     } catch (err) {
       console.error('Error in handleSubmit:', err);
-      setError(err.response?.data?.message || "Failed to create surplus post");
+      setError(err.response?.data?.message || t('surplusForm.failed'));
     }
   };
 
   const handleCancel = () => {
-    const confirmMessage = editMode ? "Cancel editing? Your changes will be lost." : "Cancel donation creation?";
-    if (window.confirm(t('surplusForm.cancelConfirm'))) {
+    const confirmMessage = editMode ? t('surplusForm.cancelEditConfirm') : t('surplusForm.cancelConfirm');
+    if (window.confirm(confirmMessage)) {
       setCurrentStep(1);
       setFormData({
         title: "",
@@ -393,7 +393,7 @@ const SurplusFormModal = ({ isOpen, onClose, editMode = false, postId = null }) 
       setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
       setError("");
     } else {
-      setError("Please complete all required fields before continuing.");
+      setError(t('surplusForm.validationError'));
     }
   };
 
@@ -414,17 +414,17 @@ const SurplusFormModal = ({ isOpen, onClose, editMode = false, postId = null }) 
   if (!isOpen) return null;
 
   const steps = [
-    { number: 1, label: "Food Details" },
-    { number: 2, label: "Quantity & Dates" },
-    { number: 3, label: "Pickup Info" },
-    { number: 4, label: "Description" },
+    { number: 1, label: t('surplusForm.steps.foodDetails') },
+    { number: 2, label: t('surplusForm.steps.quantityDates') },
+    { number: 3, label: t('surplusForm.steps.pickupInfo') },
+    { number: 4, label: t('surplusForm.steps.description') },
   ];
 
   return (
     <div className="modal-overlay" onClick={handleCancel}>
       <div className="modal-container" onClick={(e) => e.stopPropagation()}>
         <div className="surplus-modal-header">
-          <h2>{editMode ? "Edit Donation" : "Add New Donation"}</h2>
+          <h2>{editMode ? t('surplusForm.editTitle') : t('surplusForm.title')}</h2>
           <button className="close-button" onClick={handleCancel}>
             <X size={24} />
           </button>
@@ -457,7 +457,7 @@ const SurplusFormModal = ({ isOpen, onClose, editMode = false, postId = null }) 
           {isLoading && (
             <div className="form-step-content">
               <div className="loading-state" style={{ textAlign: 'center', padding: '2rem' }}>
-                <p>Loading donation details...</p>
+                <p>{t('surplusForm.loadingDetails')}</p>
               </div>
             </div>
           )}
@@ -502,7 +502,7 @@ const SurplusFormModal = ({ isOpen, onClose, editMode = false, postId = null }) 
               <div className="form-section row-group">
                 <div className="input-group half-width">
                   <label className="input-label">
-                    Temperature Category *
+                    {t('surplusForm.temperatureCategoryLabel')} *
                   </label>
                   <Select
                     name="temperatureCategory"
@@ -517,17 +517,17 @@ const SurplusFormModal = ({ isOpen, onClose, editMode = false, postId = null }) 
                       }))
                     }
                     classNamePrefix="react-select"
-                    placeholder="Select temperature category"
+                    placeholder={t('surplusForm.temperatureCategoryPlaceholder')}
                     required
                   />
                   <span className="input-help-text">
-                    Select the storage temperature for food safety verification
+                    {t('surplusForm.temperatureCategoryHelp')}
                   </span>
                 </div>
 
                 <div className="input-group half-width">
                   <label className="input-label">
-                    Packaging Type *
+                    {t('surplusForm.packagingTypeLabel')} *
                   </label>
                   <Select
                     name="packagingType"
@@ -542,11 +542,11 @@ const SurplusFormModal = ({ isOpen, onClose, editMode = false, postId = null }) 
                       }))
                     }
                     classNamePrefix="react-select"
-                    placeholder="Select packaging type"
+                    placeholder={t('surplusForm.packagingTypePlaceholder')}
                     required
                   />
                   <span className="input-help-text">
-                    Specify how the food is packaged for safety compliance
+                    {t('surplusForm.packagingTypeHelp')}
                   </span>
                 </div>
               </div>
@@ -598,7 +598,7 @@ const SurplusFormModal = ({ isOpen, onClose, editMode = false, postId = null }) 
               <div className="form-section">
                 <div className="input-group">
                   <label className="input-label">
-                    Fabrication/Production Date *
+                    {t('surplusForm.fabricationDateLabel')} *
                   </label>
                   <DatePicker
                     selected={formData.fabricationDate}
@@ -608,11 +608,11 @@ const SurplusFormModal = ({ isOpen, onClose, editMode = false, postId = null }) 
                     maxDate={new Date()}
                     dateFormat="yyyy-MM-dd"
                     className="input-field"
-                    placeholderText="When was it made?"
+                    placeholderText={t('surplusForm.fabricationDatePlaceholder')}
                     required
                   />
                   <span className="input-help-text">
-                    System will auto-calculate expiry date based on food type
+                    {t('surplusForm.fabricationDateHelp')}
                   </span>
                 </div>
               </div>
@@ -623,7 +623,7 @@ const SurplusFormModal = ({ isOpen, onClose, editMode = false, postId = null }) 
                   <label className="input-label">
                     {t('surplusForm.expiryDateLabel')} *
                     {formData.calculatedExpiryDate && (
-                      <span className="input-help-text-inline"> (Auto-calculated, you can edit)</span>
+                      <span className="input-help-text-inline"> {t('surplusForm.expiryDateAutoCalculated')}</span>
                     )}
                   </label>
                   <DatePicker
@@ -639,7 +639,7 @@ const SurplusFormModal = ({ isOpen, onClose, editMode = false, postId = null }) 
                   />
                   {formData.calculatedExpiryDate && formData.fabricationDate && (
                     <span className="input-help-text">
-                      Suggested expiry: {formatDate(formData.calculatedExpiryDate)} (based on food category)
+                      {t('surplusForm.expiryDateSuggestion', { date: formatDate(formData.calculatedExpiryDate) })}
                     </span>
                   )}
                 </div>
@@ -813,7 +813,7 @@ const SurplusFormModal = ({ isOpen, onClose, editMode = false, postId = null }) 
                 className="btn btn-cancel"
                 onClick={handlePrevious}
               >
-                Previous
+                {t('surplusForm.previous')}
               </button>
             )}
             {currentStep < totalSteps ? (
@@ -822,11 +822,11 @@ const SurplusFormModal = ({ isOpen, onClose, editMode = false, postId = null }) 
                 className="btn btn-create"
                 onClick={handleNext}
               >
-                Next
+                {t('surplusForm.next')}
               </button>
             ) : (
               <button type="submit" className="btn btn-create">
-                {editMode ? "Update Donation" : "Create Donation"}
+                {editMode ? t('surplusForm.updateDonation') : t('surplusForm.createDonation')}
               </button>
             )}
           </div>
