@@ -78,6 +78,26 @@ i18n
             "registrationSuccess": "Registration successful",
             "registrationError": "Registration error"
           },
+          "registerType": {
+            "title": "Join FoodFlow",
+            "subtitle": "Choose your role to start making an impact.",
+            "donor": {
+              "heading": "I'm Donating",
+              "description": "For restaurants, grocery stores, and event organizers with surplus food to share.",
+              "benefit1": "Post what's available",
+              "benefit2": "Connect with nearby charities",
+              "benefit3": "Watch your impact grow",
+              "button": "Register as a Donor"
+            },
+            "receiver": {
+              "heading": "I'm Receiving",
+              "description": "For charities, shelters, and community kitchens that serve people in need.",
+              "benefit1": "Accept fresh donations nearby",
+              "benefit2": "Connect directly with food donors",
+              "benefit3": "Feed your community efficiently",
+              "button": "Register as a Receiver"
+            }
+          },
           "common": {
             "save": "Save",
             "cancel": "Cancel",
@@ -457,7 +477,28 @@ i18n
             }
           },
           "messaging": {
-            "failedToLoad": "Failed to load conversations"
+            "failedToLoad": "Failed to load conversations",
+            "messages": "Messages",
+            "connectAndCoordinate": "Connect and coordinate here!",
+            "startNewConversation": "Start new conversation",
+            "all": "All",
+            "unread": "Unread",
+            "noConversationsYet": "No conversations yet",
+            "clickToStart": "Click + to start a new conversation",
+            "justNow": "Just now",
+            "minutesAgo": "{{count}}m ago",
+            "hoursAgo": "{{count}}h ago",
+            "daysAgo": "{{count}}d ago",
+            "newConversationTitle": "Start New Conversation",
+            "recipientEmailLabel": "Recipient Email Address",
+            "recipientEmailPlaceholder": "Enter email address",
+            "recipientEmailHint": "Enter the email address of the user you want to message",
+            "cancel": "Cancel",
+            "starting": "Starting...",
+            "startConversation": "Start Conversation",
+            "emailRequired": "Please enter an email address",
+            "userNotFound": "User not found or invalid email",
+            "conversationFailed": "Failed to start conversation. Please try again."
           },
           "confirmPickup": {
             "title": "Confirm Pickup",
@@ -582,6 +623,37 @@ i18n
             "typeMessage": "Type your message here...",
             "sendMessage": "Send message",
             "failedToSend": "Failed to send message"
+          },
+          "filtersPanel": {
+            "title": "Filter Donations",
+            "foodTypeLabel": "Food Type",
+            "selectFoodTypes": "Select food types...",
+            "bestBeforeLabel": "Best before",
+            "selectDate": "Select date",
+            "distanceLabel": "Distance:",
+            "km": "km",
+            "locationLabel": "Location",
+            "enterLocation": "Enter location...",
+            "clearAll": "Clear All",
+            "applyFilters": "Apply Filters",
+            "selectedCount": "{{count}} selected",
+            "tagBefore": "Before:",
+            "tagWithin": "Within:",
+            "tagNear": "Near:",
+            "foodCategories": {
+              "fruitsVegetables": "Fruits & Vegetables",
+              "bakeryPastry": "Bakery & Pastry",
+              "packagedPantry": "Packaged / Pantry Items",
+              "dairyCold": "Dairy & Cold Items",
+              "frozen": "Frozen Food",
+              "preparedMeals": "Prepared Meals"
+            }
+          },
+          "donorRegistration": {
+            "emailExistsError": "An account with this email already exists"
+          },
+          "receiverRegistration": {
+            "emailExistsError": "An account with this email already exists"
           }
         }
       }
