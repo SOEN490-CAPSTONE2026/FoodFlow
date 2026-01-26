@@ -22,7 +22,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.lang.reflect.Field;
-import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -51,9 +50,6 @@ class SurplusPostSchedulerServiceTest {
     @Mock
     private TimelineService timelineService;
 
-    @Mock
-    private Clock clock;
-
     @InjectMocks
     private SurplusPostSchedulerService schedulerService;
 
@@ -69,11 +65,6 @@ class SurplusPostSchedulerServiceTest {
         Field lateToleranceField = SurplusPostSchedulerService.class.getDeclaredField("lateToleranceMinutes");
         lateToleranceField.setAccessible(true);
         lateToleranceField.setInt(schedulerService, 30);
-
-        // Set up a fixed clock for deterministic time in tests
-        java.time.ZonedDateTime fixedNow = java.time.ZonedDateTime.of(2026, 1, 26, 12, 0, 0, 0, java.time.ZoneId.of("UTC"));
-        when(clock.getZone()).thenReturn(java.time.ZoneId.of("UTC"));
-        when(clock.instant()).thenReturn(fixedNow.toInstant());
 
         // Create test organization
         Organization organization = new Organization();
