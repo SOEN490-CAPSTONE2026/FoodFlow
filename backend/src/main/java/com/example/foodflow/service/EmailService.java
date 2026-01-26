@@ -519,5 +519,245 @@ public class EmailService {
             </html>
             """.formatted(userName, title, reason);
     }
+    
+    /**
+     * Send account approval email to user
+     * @param toEmail recipient email address
+     * @param userName user's name or organization name
+     * @throws ApiException if email sending fails
+     */
+    public void sendAccountApprovalEmail(String toEmail, String userName) throws ApiException {
+        log.info("Sending account approval email to: {}", toEmail);
+        
+        // Configure API client
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
+        apiKey.setApiKey(brevoApiKey);
+        
+        TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+        
+        // Build email
+        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+        
+        // Set sender
+        SendSmtpEmailSender sender = new SendSmtpEmailSender();
+        sender.setEmail(fromEmail);
+        sender.setName(fromName);
+        sendSmtpEmail.setSender(sender);
+        
+        // Set recipient
+        SendSmtpEmailTo recipient = new SendSmtpEmailTo();
+        recipient.setEmail(toEmail);
+        sendSmtpEmail.setTo(Collections.singletonList(recipient));
+        
+        // Set subject and content
+        sendSmtpEmail.setSubject("FoodFlow - Account Approved! Welcome to FoodFlow");
+        sendSmtpEmail.setTextContent("Your FoodFlow account has been approved by our admin team. You now have full access to all features.");
+        sendSmtpEmail.setHtmlContent(buildAccountApprovalEmailBody(userName));
+        
+        try {
+            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            log.info("Account approval email sent successfully to: {}. MessageId: {}", toEmail, result.getMessageId());
+        } catch (ApiException ex) {
+            log.error("Error sending account approval email to: {}. Status: {}, Response: {}", 
+                      toEmail, ex.getCode(), ex.getResponseBody(), ex);
+            throw ex;
+        }
+    }
+    
+    /**
+     * Send account rejection email to user
+     * @param toEmail recipient email address
+     * @param userName user's name or organization name
+     * @param reason rejection reason code
+     * @param customMessage optional custom message from admin
+     * @throws ApiException if email sending fails
+     */
+    public void sendAccountRejectionEmail(String toEmail, String userName, String reason, String customMessage) throws ApiException {
+        log.info("Sending account rejection email to: {}", toEmail);
+        
+        // Configure API client
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
+        apiKey.setApiKey(brevoApiKey);
+        
+        TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+        
+        // Build email
+        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+        
+        // Set sender
+        SendSmtpEmailSender sender = new SendSmtpEmailSender();
+        sender.setEmail(fromEmail);
+        sender.setName(fromName);
+        sendSmtpEmail.setSender(sender);
+        
+        // Set recipient
+        SendSmtpEmailTo recipient = new SendSmtpEmailTo();
+        recipient.setEmail(toEmail);
+        sendSmtpEmail.setTo(Collections.singletonList(recipient));
+        
+        // Set subject and content
+        sendSmtpEmail.setSubject("FoodFlow - Account Registration Update");
+        sendSmtpEmail.setTextContent("Your FoodFlow account registration could not be approved. Reason: " + getRejectionReasonText(reason));
+        sendSmtpEmail.setHtmlContent(buildAccountRejectionEmailBody(userName, reason, customMessage));
+        
+        try {
+            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            log.info("Account rejection email sent successfully to: {}. MessageId: {}", toEmail, result.getMessageId());
+        } catch (ApiException ex) {
+            log.error("Error sending account rejection email to: {}. Status: {}, Response: {}", 
+                      toEmail, ex.getCode(), ex.getResponseBody(), ex);
+            throw ex;
+        }
+    }
+    
+    /**
+     * Convert rejection reason code to human-readable text
+     */
+    private String getRejectionReasonText(String reason) {
+        return switch (reason) {
+            case "incomplete_info" -> "Incomplete Information";
+            case "invalid_organization" -> "Invalid Organization";
+            case "duplicate_account" -> "Duplicate Account";
+            case "suspicious_activity" -> "Suspicious Activity";
+            case "does_not_meet_criteria" -> "Does Not Meet Criteria";
+            case "other" -> "Other";
+            default -> "Unspecified Reason";
+        };
+    }
+    
+    /**
+     * Build HTML email body for account approval
+     */
+    private String buildAccountApprovalEmailBody(String userName) {
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                    .header { background-color: #10b981; color: white; padding: 30px; text-align: center; border-radius: 5px 5px 0 0; }
+                    .content { background-color: #f9f9f9; padding: 30px; border-radius: 0 0 5px 5px; }
+                    .success-box { background-color: white; border-left: 4px solid #10b981; padding: 20px; margin: 20px 0; border-radius: 5px; }
+                    .feature-list { background-color: white; padding: 20px; margin: 20px 0; border-radius: 5px; }
+                    .feature-list li { margin: 10px 0; }
+                    .button { display: inline-block; background-color: #10b981; color: white !important; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 20px; }
+                    a.button:visited { color: white !important; }
+                    a.button:hover { background-color: #059669; color: white !important; }
+                    a.button:active { color: white !important; }
+                    .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>🎉 Welcome to FoodFlow!</h1>
+                    </div>
+                    <div class="content">
+                        <p>Hi %s,</p>
+                        <div class="success-box">
+                            <h2 style="color: #10b981; margin-top: 0;">Your Account Has Been Approved!</h2>
+                            <p>Great news! Our admin team has reviewed and approved your FoodFlow account. You now have full access to all platform features.</p>
+                        </div>
+                        <div class="feature-list">
+                            <h3>What You Can Do Now:</h3>
+                            <ul>
+                                <li>✅ Create and manage food donations</li>
+                                <li>✅ Connect with receivers in your area</li>
+                                <li>✅ Track your impact and contributions</li>
+                                <li>✅ Communicate through our messaging system</li>
+                                <li>✅ Earn achievements and points</li>
+                            </ul>
+                        </div>
+                        <p>We're excited to have you join our mission to reduce food waste and help those in need!</p>
+                        <p style="text-align: center;">
+                            <a href="%s/login" class="button" style="color: white !important; text-decoration: none;">Get Started</a>
+                        </p>
+                    </div>
+                    <div class="footer">
+                        <p>© 2026 FoodFlow. All rights reserved.</p>
+                        <p>Need help? Contact us at support@foodflow.com</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(userName, frontendUrl);
+    }
+    
+    /**
+     * Build HTML email body for account rejection
+     */
+    private String buildAccountRejectionEmailBody(String userName, String reason, String customMessage) {
+        String reasonText = getRejectionReasonText(reason);
+        String messageSection = "";
+        
+        if (customMessage != null && !customMessage.trim().isEmpty()) {
+            messageSection = """
+                <div class="message-box">
+                    <h3>Additional Information:</h3>
+                    <p>%s</p>
+                </div>
+                """.formatted(customMessage);
+        }
+        
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                    .header { background-color: #ef4444; color: white; padding: 30px; text-align: center; border-radius: 5px 5px 0 0; }
+                    .content { background-color: #f9f9f9; padding: 30px; border-radius: 0 0 5px 5px; }
+                    .info-box { background-color: white; border-left: 4px solid #ef4444; padding: 20px; margin: 20px 0; border-radius: 5px; }
+                    .message-box { background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; margin: 20px 0; border-radius: 5px; }
+                    .support-box { background-color: white; padding: 20px; margin: 20px 0; border-radius: 5px; border: 1px solid #e5e7eb; }
+                    .detail { margin: 10px 0; }
+                    .label { font-weight: bold; color: #224d68; }
+                    .button { display: inline-block; background-color: #224d68; color: white !important; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 20px; }
+                    a.button:visited { color: white !important; }
+                    a.button:hover { background-color: #1a3a4f; color: white !important; }
+                    a.button:active { color: white !important; }
+                    .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>FoodFlow Registration Update</h1>
+                    </div>
+                    <div class="content">
+                        <p>Hi %s,</p>
+                        <div class="info-box">
+                            <h2 style="margin-top: 0;">Account Registration Status</h2>
+                            <p>After reviewing your application, we are unable to approve your FoodFlow account at this time.</p>
+                            <div class="detail"><span class="label">Reason:</span> %s</div>
+                        </div>
+                        %s
+                        <div class="support-box">
+                            <h3>Need Assistance?</h3>
+                            <p>If you believe this decision was made in error or would like to provide additional information, please contact our support team:</p>
+                            <ul>
+                                <li><strong>Email:</strong> support@foodflow.com</li>
+                                <li><strong>Hours:</strong> Monday - Friday, 9 AM - 5 PM EST</li>
+                                <li><strong>Response Time:</strong> Within 24-48 hours</li>
+                            </ul>
+                            <p>You may also re-register with updated information if the issues have been resolved.</p>
+                        </div>
+                        <p style="text-align: center;">
+                            <a href="%s/register" class="button" style="color: white !important; text-decoration: none;">Re-Register</a>
+                        </p>
+                    </div>
+                    <div class="footer">
+                        <p>© 2026 FoodFlow. All rights reserved.</p>
+                        <p>This is an automated message. Please do not reply to this email.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(userName, reasonText, messageSection, frontendUrl);
+    }
 }
 
