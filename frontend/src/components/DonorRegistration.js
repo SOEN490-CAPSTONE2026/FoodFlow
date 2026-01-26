@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { authAPI } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
 import DonorIllustration from '../assets/illustrations/donor-illustration.jpg';
@@ -961,14 +961,14 @@ const DonorRegistration = () => {
                 />
                 <span>
                   I consent to data storage as outlined in the{' '}
-                  <a
-                    href="/privacy-policy"
+                  <Link
+                    to="/privacy-policy"
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{ color: '#609B7E', textDecoration: 'underline' }}
                   >
                     Privacy Policy
-                  </a>
+                  </Link>
                 </span>
               </label>
             </div>
