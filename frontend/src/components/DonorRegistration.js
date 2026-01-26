@@ -413,16 +413,25 @@ const DonorRegistration = () => {
 
       const response = await authAPI.registerDonor(payload);
 
-      // Extract token, role, userId, organizationName and verificationStatus from response
+      // Extract token, role, userId, organizationName, verificationStatus, and accountStatus from response
       const token = response?.data?.token;
       const userRole = response?.data?.role;
       const userId = response?.data?.userId;
       const organizationName = response?.data?.organizationName;
       const verificationStatus =
         response?.data?.verificationStatus || 'verified';
+      const accountStatus =
+        response?.data?.accountStatus || 'PENDING_VERIFICATION';
 
       if (token && userRole && userId) {
-        login(token, userRole, userId, organizationName, verificationStatus);
+        login(
+          token,
+          userRole,
+          userId,
+          organizationName,
+          verificationStatus,
+          accountStatus
+        );
       }
 
       setSubmitted(true);

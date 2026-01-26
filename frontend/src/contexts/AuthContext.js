@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 
 export const AuthContext = createContext();
 
@@ -56,14 +57,45 @@ export const AuthProvider = ({ children }) => {
       return AuthStorage.getItem('organizationVerificationStatus') || null;
     });
 
+  const [accountStatus, setAccountStatus] = useState(() => {
+    return (
+      localStorage.getItem('accountStatus') ||
+      sessionStorage.getItem('accountStatus') ||
+      null
+    );
+  });
+
   useEffect(() => {
     const handleStorage = () => {
-      setIsLoggedIn(Boolean(AuthStorage.getItem('jwtToken')));
-      setRole(AuthStorage.getItem('userRole') || null);
-      setUserId(AuthStorage.getItem('userId') || null);
-      setOrganizationName(AuthStorage.getItem('organizationName') || null);
+      setIsLoggedIn(
+        Boolean(
+          localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken')
+        )
+      );
+      setRole(
+        localStorage.getItem('userRole') ||
+          sessionStorage.getItem('userRole') ||
+          null
+      );
+      setUserId(
+        localStorage.getItem('userId') ||
+          sessionStorage.getItem('userId') ||
+          null
+      );
+      setOrganizationName(
+        localStorage.getItem('organizationName') ||
+          sessionStorage.getItem('organizationName') ||
+          null
+      );
       setOrganizationVerificationStatus(
-        AuthStorage.getItem('organizationVerificationStatus') || null
+        localStorage.getItem('organizationVerificationStatus') ||
+          sessionStorage.getItem('organizationVerificationStatus') ||
+          null
+      );
+      setAccountStatus(
+        localStorage.getItem('accountStatus') ||
+          sessionStorage.getItem('accountStatus') ||
+          null
       );
     };
     window.addEventListener('storage', handleStorage);
@@ -76,10 +108,16 @@ export const AuthProvider = ({ children }) => {
     userId,
     arg4 = null,
     arg5 = null,
-    arg6 = false
+    arg6 = null
   ) => {
+    // Backwards-compatible handling of older call signatures:
+    // - login(token, role, userId)
+    // - login(token, role, userId, orgName)
+    // - login(token, role, userId, orgName, useSession)
+    // New signature supports login(token, role, userId, orgName, orgVerificationStatus, accountStatus, useSession)
     let orgName = null;
     let orgVerificationStatus = null;
+    const accStatus = null;
     let useSession = false;
 
     if (typeof arg4 === 'boolean') {
@@ -87,15 +125,22 @@ export const AuthProvider = ({ children }) => {
     } else if (typeof arg5 === 'boolean') {
       orgName = arg4;
       useSession = arg5;
-    } else {
+    } else if (typeof arg6 === 'boolean') {
+      // login(token, role, userId, orgName, orgVerificationStatus, useSession)
       orgName = arg4;
       orgVerificationStatus = arg5;
       useSession = arg6;
     }
 
-    AuthStorage.setItem('jwtToken', token, useSession);
-    AuthStorage.setItem('userRole', userRole, useSession);
-    AuthStorage.setItem('userId', userId, useSession);
+    // Save auth values to the chosen storage (session or local).
+    // Explicitly set or remove organizationName to avoid leaving a stale value
+    // from a previous session (which required clearing caches).
+    const storage = useSession ? sessionStorage : localStorage;
+    const otherStorage = useSession ? localStorage : sessionStorage;
+
+    storage.setItem('jwtToken', token);
+    storage.setItem('userRole', userRole);
+    storage.setItem('userId', userId);
 
     if (orgName !== undefined && orgName !== null) {
       AuthStorage.setItem('organizationName', orgName, useSession);
@@ -104,13 +149,19 @@ export const AuthProvider = ({ children }) => {
     }
 
     if (orgVerificationStatus !== undefined && orgVerificationStatus !== null) {
-      AuthStorage.setItem(
-        'organizationVerificationStatus',
-        orgVerificationStatus,
-        useSession
-      );
+      storage.setItem('organizationVerificationStatus', orgVerificationStatus);
+      otherStorage.removeItem('organizationVerificationStatus');
     } else {
-      AuthStorage.removeItem('organizationVerificationStatus');
+      localStorage.removeItem('organizationVerificationStatus');
+      sessionStorage.removeItem('organizationVerificationStatus');
+    }
+
+    if (accStatus !== undefined && accStatus !== null) {
+      storage.setItem('accountStatus', accStatus);
+      otherStorage.removeItem('accountStatus');
+    } else {
+      localStorage.removeItem('accountStatus');
+      sessionStorage.removeItem('accountStatus');
     }
 
     setIsLoggedIn(true);
@@ -118,15 +169,28 @@ export const AuthProvider = ({ children }) => {
     setUserId(userId);
     setOrganizationName(orgName);
     setOrganizationVerificationStatus(orgVerificationStatus);
+    setAccountStatus(accStatus);
   };
 
   const logout = () => {
-    AuthStorage.clearAll();
+    localStorage.removeItem('jwtToken');
+    sessionStorage.removeItem('jwtToken');
+    localStorage.removeItem('userRole');
+    sessionStorage.removeItem('userRole');
+    localStorage.removeItem('userId');
+    sessionStorage.removeItem('userId');
+    localStorage.removeItem('organizationName');
+    sessionStorage.removeItem('organizationName');
+    localStorage.removeItem('organizationVerificationStatus');
+    sessionStorage.removeItem('organizationVerificationStatus');
+    localStorage.removeItem('accountStatus');
+    sessionStorage.removeItem('accountStatus');
     setIsLoggedIn(false);
     setRole(null);
     setUserId(null);
     setOrganizationName(null);
     setOrganizationVerificationStatus(null);
+    setAccountStatus(null);
   };
 
   return (
@@ -137,6 +201,7 @@ export const AuthProvider = ({ children }) => {
         userId,
         organizationName,
         organizationVerificationStatus,
+        accountStatus,
         login,
         logout,
       }}
@@ -144,4 +209,8 @@ export const AuthProvider = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
+};
+
+AuthProvider.propTypes = {
+  children: PropTypes.node.isRequired,
 };

@@ -32,7 +32,7 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "account_status")
-    private AccountStatus accountStatus = AccountStatus.ACTIVE;
+    private AccountStatus accountStatus = AccountStatus.PENDING_VERIFICATION;
 
     @Column(name = "admin_notes", columnDefinition = "TEXT")
     private String adminNotes;

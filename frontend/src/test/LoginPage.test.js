@@ -145,6 +145,8 @@ describe('LoginPage', () => {
         role: 'donor',
         userId: '42',
         organizationName: 'Test Organization',
+        verificationStatus: null,
+        accountStatus: 'ACTIVE',
       },
     });
 
@@ -176,7 +178,8 @@ describe('LoginPage', () => {
         'donor',
         '42',
         'Test Organization',
-        undefined
+        null,
+        'ACTIVE'
       );
     });
 

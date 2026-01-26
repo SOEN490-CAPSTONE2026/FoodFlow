@@ -11,6 +11,7 @@ import DonorRegistration from './components/DonorRegistration';
 import ReceiverRegistration from './components/ReceiverRegistration';
 import LoginPage from './components/LoginPage';
 import ForgotPassword from './components/ForgotPassword';
+import EmailVerification from './components/EmailVerification';
 import NavigationBar from './components/NavigationBar';
 import { AuthProvider } from './contexts/AuthContext';
 import { TimezoneProvider } from './contexts/TimezoneContext';
@@ -38,6 +39,7 @@ function AppContent() {
   const hideNavbar =
     location.pathname === '/login' ||
     location.pathname === '/forgot-password' ||
+    location.pathname === '/verify-email' ||
     location.pathname.startsWith('/register') ||
     location.pathname.startsWith('/donor') ||
     location.pathname.startsWith('/admin') ||
@@ -54,6 +56,7 @@ function AppContent() {
         <Route path="/register/receiver" element={<ReceiverRegistration />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/verify-email" element={<EmailVerification />} />
 
         {/* ===== Admin Dashboard (UNPROTECTED for dev preview) ===== */}
         <Route
