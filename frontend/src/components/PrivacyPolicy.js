@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 
 const PrivacyPolicy = () => {
   const [fadeIn, setFadeIn] = useState(false);
+  const [hover, setHover] = useState(false);
 
   useEffect(() => {
     setTimeout(() => setFadeIn(true), 50);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Package, User, ArrowRight, Filter, Clock, Star } from 'lucide-react';
 import Select from 'react-select';
@@ -13,6 +13,7 @@ export default function ReceiverMyClaims() {
   const { t } = useTranslation();
   const { showNotification } = useNotification();
   const { userTimezone } = useTimezone();
+  const hasSetInitialFilter = useRef(false);
   const [claims, setClaims] = useState([]);
   const [activeFilter, setActiveFilter] = useState('All');
   const [sortBy, setSortBy] = useState({ value: 'date', label: 'Sort by Date' });
