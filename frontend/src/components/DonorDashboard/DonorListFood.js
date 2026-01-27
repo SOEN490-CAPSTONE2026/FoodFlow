@@ -23,6 +23,7 @@ import { surplusAPI, claimsAPI, reportAPI } from '../../services/api';
 import SurplusFormModal from '../DonorDashboard/SurplusFormModal';
 import ConfirmPickupModal from '../DonorDashboard/ConfirmPickupModal';
 import ClaimedSuccessModal from '../DonorDashboard/ClaimedSuccessModal';
+import RescheduleModal from '../DonorDashboard/RescheduleModal';
 import ReportUserModal from '../ReportUserModal';
 import FeedbackModal from '../FeedbackModal/FeedbackModal';
 import DonationTimeline from '../shared/DonationTimeline';
@@ -184,7 +185,9 @@ export default function DonorListFood() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPickupModalOpen, setIsPickupModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [rescheduleItem, setRescheduleItem] = useState(null);
   const [editPostId, setEditPostId] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -466,6 +469,21 @@ export default function DonorListFood() {
 
   const handleCloseSuccessModal = () => {
     setIsSuccessModalOpen(false);
+  };
+
+  const handleOpenRescheduleModal = item => {
+    setRescheduleItem(item);
+    setIsRescheduleModalOpen(true);
+  };
+
+  const handleCloseRescheduleModal = () => {
+    setIsRescheduleModalOpen(false);
+    setRescheduleItem(null);
+  };
+
+  const handleRescheduleSuccess = async () => {
+    await fetchMyPosts();
+    handleCloseRescheduleModal();
   };
 
   const handleOpenReport = item => {
@@ -994,9 +1012,7 @@ export default function DonorListFood() {
                 <div className="donation-actions">
                   <button
                     className="donation-action-button primary"
-                    onClick={() =>
-                      alert('Reschedule functionality coming soon!')
-                    }
+                    onClick={() => handleOpenRescheduleModal(item)}
                   >
                     RESCHEDULE
                   </button>
@@ -1058,6 +1074,13 @@ export default function DonorListFood() {
       <ClaimedSuccessModal
         isOpen={isSuccessModalOpen}
         onClose={handleCloseSuccessModal}
+      />
+
+      <RescheduleModal
+        isOpen={isRescheduleModalOpen}
+        onClose={handleCloseRescheduleModal}
+        donationItem={rescheduleItem}
+        onSuccess={handleRescheduleSuccess}
       />
 
       {/* Photo Viewer Modal - Outside of cards */}
