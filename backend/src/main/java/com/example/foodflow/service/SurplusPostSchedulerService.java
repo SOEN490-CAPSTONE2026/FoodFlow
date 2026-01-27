@@ -35,9 +35,9 @@ public class SurplusPostSchedulerService {
     @Value("${foodflow.expiry.enable-auto-flagging:true}")
     private boolean enableAutoFlagging;
 
-    public SurplusPostSchedulerService(SurplusPostRepository surplusPostRepository, 
-                                      ClaimRepository claimRepository,
-                                      TimelineService timelineService) {
+    public SurplusPostSchedulerService(SurplusPostRepository surplusPostRepository,
+            ClaimRepository claimRepository,
+            TimelineService timelineService) {
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;
         this.timelineService = timelineService;
@@ -67,47 +67,47 @@ public class SurplusPostSchedulerService {
         logger.info("Found {} CLAIMED posts to evaluate", claimedPosts.size());
 
         List<SurplusPost> postsToUpdate = claimedPosts.stream()
-            .filter(post -> {
-                // Grace period: skip brand-new posts
-                if (post.getCreatedAt() != null &&
-                    post.getCreatedAt().isAfter(nowUtc.toLocalDateTime().minusMinutes(GRACE_PERIOD_MINUTES))) {
-                    logger.debug("Skipping post ID {} — created recently (grace period active)", post.getId());
-                    return false;
-                }
+                .filter(post -> {
+                    // Grace period: skip brand-new posts
+                    if (post.getCreatedAt() != null &&
+                            post.getCreatedAt().isAfter(nowUtc.toLocalDateTime().minusMinutes(GRACE_PERIOD_MINUTES))) {
+                        logger.debug("Skipping post ID {} — created recently (grace period active)", post.getId());
+                        return false;
+                    }
 
-                // Find the claim for this post to get the confirmed pickup slot
-                Optional<Claim> claimOpt = claimRepository.findBySurplusPost(post);
-                if (claimOpt.isEmpty()) {
-                    logger.warn("No claim found for CLAIMED post ID {}", post.getId());
-                    return false;
-                }
+                    // Find the claim for this post to get the confirmed pickup slot
+                    Optional<Claim> claimOpt = claimRepository.findBySurplusPost(post);
+                    if (claimOpt.isEmpty()) {
+                        logger.warn("No claim found for CLAIMED post ID {}", post.getId());
+                        return false;
+                    }
 
-                Claim claim = claimOpt.get();
-                
-                // Use the CONFIRMED pickup slot from the claim, not the first slot
-                LocalDate confirmedPickupDate = claim.getConfirmedPickupDate();
-                LocalTime confirmedPickupStartTime = claim.getConfirmedPickupStartTime();
-                
-                if (confirmedPickupDate == null || confirmedPickupStartTime == null) {
-                    logger.warn("Post ID {} has no confirmed pickup slot", post.getId());
-                    return false;
-                }
+                    Claim claim = claimOpt.get();
 
-                // Skip if confirmed pickup date is in the future
-                if (confirmedPickupDate.isAfter(today)) {
-                    return false;
-                }
+                    // Use the CONFIRMED pickup slot from the claim, not the first slot
+                    LocalDate confirmedPickupDate = claim.getConfirmedPickupDate();
+                    LocalTime confirmedPickupStartTime = claim.getConfirmedPickupStartTime();
 
-                // If confirmed pickup date is today, check if start time has arrived
-                if (confirmedPickupDate.isEqual(today)) {
-                    boolean started = !currentTime.isBefore(confirmedPickupStartTime);
-                    return started;
-                }
+                    if (confirmedPickupDate == null || confirmedPickupStartTime == null) {
+                        logger.warn("Post ID {} has no confirmed pickup slot", post.getId());
+                        return false;
+                    }
 
-                // Confirmed pickup date in the past → should be ready
-                return true;
-            })
-            .toList();
+                    // Skip if confirmed pickup date is in the future
+                    if (confirmedPickupDate.isAfter(today)) {
+                        return false;
+                    }
+
+                    // If confirmed pickup date is today, check if start time has arrived
+                    if (confirmedPickupDate.isEqual(today)) {
+                        boolean started = !currentTime.isBefore(confirmedPickupStartTime);
+                        return started;
+                    }
+
+                    // Confirmed pickup date in the past → should be ready
+                    return true;
+                })
+                .toList();
 
         if (postsToUpdate.isEmpty()) {
             logger.info("No CLAIMED posts eligible for READY_FOR_PICKUP.");
@@ -124,19 +124,18 @@ public class SurplusPostSchedulerService {
             }
 
             surplusPostRepository.save(post);
-            
+
             // Create timeline event for automatic status transition
             timelineService.createTimelineEvent(
-                post,
-                "READY_FOR_PICKUP",
-                "system",
-                null,
-                PostStatus.CLAIMED,
-                PostStatus.READY_FOR_PICKUP,
-                "Pickup time arrived - OTP generated automatically",
-                true
-            );
-            
+                    post,
+                    "READY_FOR_PICKUP",
+                    "system",
+                    null,
+                    PostStatus.CLAIMED,
+                    PostStatus.READY_FOR_PICKUP,
+                    "Pickup time arrived - OTP generated automatically",
+                    true);
+
             logger.info("Post ID {} updated to READY_FOR_PICKUP", post.getId());
         }
     }
@@ -159,45 +158,45 @@ public class SurplusPostSchedulerService {
         logger.info("Found {} READY_FOR_PICKUP posts to evaluate", readyPosts.size());
 
         List<SurplusPost> postsToUpdate = readyPosts.stream()
-            .filter(post -> {
-                // Grace period: skip brand-new posts
-                if (post.getCreatedAt() != null &&
-                    post.getCreatedAt().isAfter(nowUtc.toLocalDateTime().minusMinutes(GRACE_PERIOD_MINUTES))) {
-                    logger.debug("Skipping post ID {} — created recently (grace period active)", post.getId());
+                .filter(post -> {
+                    // Grace period: skip brand-new posts
+                    if (post.getCreatedAt() != null &&
+                            post.getCreatedAt().isAfter(nowUtc.toLocalDateTime().minusMinutes(GRACE_PERIOD_MINUTES))) {
+                        logger.debug("Skipping post ID {} — created recently (grace period active)", post.getId());
+                        return false;
+                    }
+
+                    // Find the claim for this post to get the confirmed pickup slot
+                    Optional<Claim> claimOpt = claimRepository.findBySurplusPost(post);
+                    if (claimOpt.isEmpty()) {
+                        logger.warn("No claim found for READY_FOR_PICKUP post ID {}", post.getId());
+                        return false;
+                    }
+
+                    Claim claim = claimOpt.get();
+
+                    // Use the CONFIRMED pickup slot from the claim
+                    LocalDate confirmedPickupDate = claim.getConfirmedPickupDate();
+                    LocalTime confirmedPickupEndTime = claim.getConfirmedPickupEndTime();
+
+                    if (confirmedPickupDate == null || confirmedPickupEndTime == null) {
+                        logger.warn("Post ID {} has no confirmed pickup slot", post.getId());
+                        return false;
+                    }
+
+                    // Confirmed pickup date before today → definitely missed
+                    if (confirmedPickupDate.isBefore(today)) {
+                        return true;
+                    }
+
+                    // Confirmed pickup date is today and window ended
+                    if (confirmedPickupDate.isEqual(today)) {
+                        return currentTime.isAfter(confirmedPickupEndTime);
+                    }
+
                     return false;
-                }
-
-                // Find the claim for this post to get the confirmed pickup slot
-                Optional<Claim> claimOpt = claimRepository.findBySurplusPost(post);
-                if (claimOpt.isEmpty()) {
-                    logger.warn("No claim found for READY_FOR_PICKUP post ID {}", post.getId());
-                    return false;
-                }
-
-                Claim claim = claimOpt.get();
-                
-                // Use the CONFIRMED pickup slot from the claim
-                LocalDate confirmedPickupDate = claim.getConfirmedPickupDate();
-                LocalTime confirmedPickupEndTime = claim.getConfirmedPickupEndTime();
-                
-                if (confirmedPickupDate == null || confirmedPickupEndTime == null) {
-                    logger.warn("Post ID {} has no confirmed pickup slot", post.getId());
-                    return false;
-                }
-
-                // Confirmed pickup date before today → definitely missed
-                if (confirmedPickupDate.isBefore(today)) {
-                    return true;
-                }
-
-                // Confirmed pickup date is today and window ended
-                if (confirmedPickupDate.isEqual(today)) {
-                    return currentTime.isAfter(confirmedPickupEndTime);
-                }
-
-                return false;
-            })
-            .toList();
+                })
+                .toList();
 
         if (postsToUpdate.isEmpty()) {
             logger.info("No posts eligible for NOT_COMPLETED update.");
@@ -207,19 +206,25 @@ public class SurplusPostSchedulerService {
         for (SurplusPost post : postsToUpdate) {
             post.setStatus(PostStatus.NOT_COMPLETED);
             surplusPostRepository.save(post);
-            
+
+            // Also update the claim status to NOT_COMPLETED
+            Optional<Claim> claimOpt = claimRepository.findBySurplusPost(post);
+            if (claimOpt.isPresent()) {
+                Claim claim = claimOpt.get();
+                claim.setStatus(com.example.foodflow.model.types.ClaimStatus.NOT_COMPLETED);
+                claimRepository.save(claim);
+            }
             // Create timeline event for missed pickup
             timelineService.createTimelineEvent(
-                post,
-                "PICKUP_MISSED",
-                "system",
-                null,
-                PostStatus.READY_FOR_PICKUP,
-                PostStatus.NOT_COMPLETED,
-                "Pickup window expired - marked as not completed automatically",
-                true
-            );
-            
+                    post,
+                    "PICKUP_MISSED",
+                    "system",
+                    null,
+                    PostStatus.READY_FOR_PICKUP,
+                    PostStatus.NOT_COMPLETED,
+                    "Pickup window expired - marked as not completed automatically",
+                    true);
+
             logger.info("Post ID {} marked as NOT_COMPLETED", post.getId());
         }
     }
@@ -245,8 +250,8 @@ public class SurplusPostSchedulerService {
         logger.info("Found {} active posts to check for expiry", activePosts.size());
 
         List<SurplusPost> expiredPosts = activePosts.stream()
-            .filter(post -> post.getExpiryDate() != null && post.getExpiryDate().isBefore(today))
-            .toList();
+                .filter(post -> post.getExpiryDate() != null && post.getExpiryDate().isBefore(today))
+                .toList();
 
         if (expiredPosts.isEmpty()) {
             logger.info("No expired posts found.");
@@ -257,19 +262,18 @@ public class SurplusPostSchedulerService {
             PostStatus oldStatus = post.getStatus();
             post.setStatus(PostStatus.EXPIRED);
             surplusPostRepository.save(post);
-            
+
             // Create timeline event for expiration
             timelineService.createTimelineEvent(
-                post,
-                "DONATION_EXPIRED",
-                "system",
-                null,
-                oldStatus,
-                PostStatus.EXPIRED,
-                "Expired automatically (expiry date: " + post.getExpiryDate() + ")",
-                true
-            );
-            
+                    post,
+                    "DONATION_EXPIRED",
+                    "system",
+                    null,
+                    oldStatus,
+                    PostStatus.EXPIRED,
+                    "Expired automatically (expiry date: " + post.getExpiryDate() + ")",
+                    true);
+
             logger.info("Post ID {} marked as EXPIRED (expiry date: {})", post.getId(), post.getExpiryDate());
         }
 
