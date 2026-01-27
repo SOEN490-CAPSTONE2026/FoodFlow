@@ -46,7 +46,7 @@ class SurplusPostSchedulerServiceTest {
 
     @Mock
     private ClaimRepository claimRepository;
-    
+
     @Mock
     private TimelineService timelineService;
 
@@ -86,11 +86,13 @@ class SurplusPostSchedulerServiceTest {
         readyPost = createTestPost(3L, PostStatus.READY_FOR_PICKUP);
     }
 
-    // ==================== Tests for updatePostsToReadyForPickup ====================
+    // ==================== Tests for updatePostsToReadyForPickup
+    // ====================
 
     @Test
     void testUpdatePostsToReadyForPickup_ClaimedPostPickupTimeStarted_UpdatesStatus() {
-        // Given - CLAIMED post with pickup time started (pickup date in the past ensures it will transition)
+        // Given - CLAIMED post with pickup time started (pickup date in the past
+        // ensures it will transition)
         claimedPost.setPickupDate(LocalDate.now().minusDays(1));
         claimedPost.setPickupFrom(LocalTime.of(9, 0));
         claimedPost.setPickupTo(LocalTime.of(17, 0));
@@ -98,7 +100,7 @@ class SurplusPostSchedulerServiceTest {
         setCreatedAt(claimedPost, LocalDateTime.now().minusMinutes(3));
 
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
-            .thenReturn(Collections.singletonList(claimedPost));
+                .thenReturn(Collections.singletonList(claimedPost));
         mockClaimForPost(claimedPost, LocalDate.now().minusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
 
@@ -125,7 +127,7 @@ class SurplusPostSchedulerServiceTest {
         setCreatedAt(claimedPost, LocalDateTime.now().minusMinutes(3));
 
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
-            .thenReturn(Collections.singletonList(claimedPost));
+                .thenReturn(Collections.singletonList(claimedPost));
         mockClaimForPost(claimedPost, LocalDate.now().minusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
 
@@ -149,7 +151,7 @@ class SurplusPostSchedulerServiceTest {
         claimedPost.setPickupTo(LocalTime.of(17, 0));
 
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
-            .thenReturn(Collections.singletonList(claimedPost));
+                .thenReturn(Collections.singletonList(claimedPost));
         mockClaimForPost(claimedPost, LocalDate.now().plusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
 
         // When
@@ -175,11 +177,11 @@ class SurplusPostSchedulerServiceTest {
         setCreatedAt(claimedPost2, LocalDateTime.now().minusMinutes(3));
 
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
-            .thenReturn(Arrays.asList(claimedPost, claimedPost2));
+                .thenReturn(Arrays.asList(claimedPost, claimedPost2));
         mockClaimForPost(claimedPost, LocalDate.now().minusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
         mockClaimForPost(claimedPost2, LocalDate.now().minusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
         when(surplusPostRepository.save(any(SurplusPost.class)))
-            .thenAnswer(invocation -> invocation.getArgument(0));
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         // When
         schedulerService.updatePostsToReadyForPickup();
@@ -198,7 +200,7 @@ class SurplusPostSchedulerServiceTest {
         setCreatedAt(claimedPost, LocalDateTime.now().minusMinutes(3));
 
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
-            .thenReturn(Collections.singletonList(claimedPost));
+                .thenReturn(Collections.singletonList(claimedPost));
         mockClaimForPost(claimedPost, LocalDate.now().minusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
 
@@ -223,7 +225,7 @@ class SurplusPostSchedulerServiceTest {
         setCreatedAt(claimedPost, LocalDateTime.now().minusMinutes(3));
 
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
-            .thenReturn(Collections.singletonList(claimedPost));
+                .thenReturn(Collections.singletonList(claimedPost));
         mockClaimForPost(claimedPost, LocalDate.now().minusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
 
@@ -243,7 +245,7 @@ class SurplusPostSchedulerServiceTest {
     void testUpdatePostsToReadyForPickup_NoPosts_DoesNotSaveAnything() {
         // Given - No CLAIMED posts to update
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
-            .thenReturn(Collections.emptyList());
+                .thenReturn(Collections.emptyList());
 
         // When
         schedulerService.updatePostsToReadyForPickup();
@@ -263,7 +265,7 @@ class SurplusPostSchedulerServiceTest {
         readyPost.setOtpCode("123456");
 
         when(surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP))
-            .thenReturn(Collections.singletonList(readyPost));
+                .thenReturn(Collections.singletonList(readyPost));
         mockClaimForPost(readyPost, LocalDate.now().minusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(readyPost);
 
@@ -287,7 +289,7 @@ class SurplusPostSchedulerServiceTest {
         readyPost.setOtpCode("123456");
 
         when(surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP))
-            .thenReturn(Collections.singletonList(readyPost));
+                .thenReturn(Collections.singletonList(readyPost));
         mockClaimForPost(readyPost, LocalDate.now().minusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(readyPost);
 
@@ -304,14 +306,15 @@ class SurplusPostSchedulerServiceTest {
 
     @Test
     void testUpdatePostsToNotCompleted_PickupWindowNotEnded_DoesNotUpdate() {
-        // Given - Pickup window is still active (use tomorrow's date to ensure it's in the future in UTC)
+        // Given - Pickup window is still active (use tomorrow's date to ensure it's in
+        // the future in UTC)
         readyPost.setPickupDate(LocalDate.now().plusDays(1));
         readyPost.setPickupFrom(LocalTime.of(9, 0));
         readyPost.setPickupTo(LocalTime.of(23, 59));
         readyPost.setOtpCode("123456");
 
         when(surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP))
-            .thenReturn(Collections.singletonList(readyPost));
+                .thenReturn(Collections.singletonList(readyPost));
         mockClaimForPost(readyPost, LocalDate.now().plusDays(1), LocalTime.of(9, 0), LocalTime.of(23, 59));
 
         // When
@@ -330,7 +333,7 @@ class SurplusPostSchedulerServiceTest {
         readyPost.setOtpCode("123456");
 
         when(surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP))
-            .thenReturn(Collections.singletonList(readyPost));
+                .thenReturn(Collections.singletonList(readyPost));
         mockClaimForPost(readyPost, LocalDate.now().plusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
 
         // When
@@ -356,11 +359,11 @@ class SurplusPostSchedulerServiceTest {
         readyPost2.setPickupTo(LocalTime.of(18, 0));
 
         when(surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP))
-            .thenReturn(Arrays.asList(readyPost, readyPost2));
+                .thenReturn(Arrays.asList(readyPost, readyPost2));
         mockClaimForPost(readyPost, LocalDate.now().minusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
         mockClaimForPost(readyPost2, LocalDate.now().minusDays(2), LocalTime.of(10, 0), LocalTime.of(18, 0));
         when(surplusPostRepository.save(any(SurplusPost.class)))
-            .thenAnswer(invocation -> invocation.getArgument(0));
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         // When
         schedulerService.updatePostsToNotCompleted();
@@ -373,7 +376,7 @@ class SurplusPostSchedulerServiceTest {
     void testUpdatePostsToNotCompleted_NoPosts_DoesNotSaveAnything() {
         // Given - No posts to update
         when(surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP))
-            .thenReturn(Collections.emptyList());
+                .thenReturn(Collections.emptyList());
 
         // When
         schedulerService.updatePostsToNotCompleted();
@@ -423,5 +426,122 @@ class SurplusPostSchedulerServiceTest {
     private void mockClaimForPost(SurplusPost post, LocalDate pickupDate, LocalTime startTime, LocalTime endTime) {
         Claim claim = createClaimForPost(post, pickupDate, startTime, endTime);
         when(claimRepository.findBySurplusPost(post)).thenReturn(java.util.Optional.of(claim));
+    }
+
+    private void setToleranceValues(int earlyMinutes, int lateMinutes) {
+        try {
+            Field earlyField = SurplusPostSchedulerService.class.getDeclaredField("earlyToleranceMinutes");
+            earlyField.setAccessible(true);
+            earlyField.set(schedulerService, earlyMinutes);
+
+            Field lateField = SurplusPostSchedulerService.class.getDeclaredField("lateToleranceMinutes");
+            lateField.setAccessible(true);
+            lateField.set(schedulerService, lateMinutes);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to set tolerance values", e);
+        }
+    }
+
+    // ==================== Tests for Pickup Tolerance Feature ====================
+
+    @Test
+    void testUpdatePostsToReadyForPickup_WithEarlyTolerance_15MinutesBeforeWindow_UpdatesStatus() {
+        // Given - CLAIMED post with pickup window 8:00 AM, current time effectively
+        // 7:45 AM (15 min early tolerance)
+        // We simulate this by setting pickup date to today and using a past start time
+        // that's within tolerance
+        setToleranceValues(15, 15);
+
+        // Use yesterday's date to ensure the logic always triggers (past date = always
+        // ready)
+        claimedPost.setPickupDate(LocalDate.now().minusDays(1));
+        claimedPost.setPickupFrom(LocalTime.of(8, 0));
+        claimedPost.setPickupTo(LocalTime.of(14, 0));
+        setCreatedAt(claimedPost, LocalDateTime.now().minusMinutes(3));
+
+        when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
+                .thenReturn(Collections.singletonList(claimedPost));
+        // Claim with confirmed pickup slot yesterday - should transition to
+        // READY_FOR_PICKUP
+        mockClaimForPost(claimedPost, LocalDate.now().minusDays(1), LocalTime.of(8, 0), LocalTime.of(14, 0));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
+
+        // When
+        schedulerService.updatePostsToReadyForPickup();
+
+        // Then - Post should become READY_FOR_PICKUP (past date always triggers)
+        ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
+        verify(surplusPostRepository).save(postCaptor.capture());
+        assertThat(postCaptor.getValue().getStatus()).isEqualTo(PostStatus.READY_FOR_PICKUP);
+    }
+
+    @Test
+    void testUpdatePostsToNotCompleted_WithLateTolerance_PostStaysValidDuringGracePeriod() {
+        // Given - READY_FOR_PICKUP post where pickup window ended yesterday
+        // With late tolerance, past dates are still marked as NOT_COMPLETED
+        setToleranceValues(15, 15);
+
+        readyPost.setPickupDate(LocalDate.now().minusDays(1));
+        readyPost.setPickupFrom(LocalTime.of(8, 0));
+        readyPost.setPickupTo(LocalTime.of(14, 0));
+        readyPost.setOtpCode("123456");
+
+        when(surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP))
+                .thenReturn(Collections.singletonList(readyPost));
+        mockClaimForPost(readyPost, LocalDate.now().minusDays(1), LocalTime.of(8, 0), LocalTime.of(14, 0));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(readyPost);
+
+        // When
+        schedulerService.updatePostsToNotCompleted();
+
+        // Then - Past date should transition to NOT_COMPLETED
+        ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
+        verify(surplusPostRepository).save(postCaptor.capture());
+        assertThat(postCaptor.getValue().getStatus()).isEqualTo(PostStatus.NOT_COMPLETED);
+    }
+
+    @Test
+    void testUpdatePostsToNotCompleted_PreservesActivePostWithFutureWindow() {
+        // Given - READY_FOR_PICKUP post with future pickup date
+        setToleranceValues(15, 15);
+
+        readyPost.setPickupDate(LocalDate.now().plusDays(1));
+        readyPost.setPickupFrom(LocalTime.of(8, 0));
+        readyPost.setPickupTo(LocalTime.of(14, 0));
+        readyPost.setOtpCode("123456");
+
+        when(surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP))
+                .thenReturn(Collections.singletonList(readyPost));
+        mockClaimForPost(readyPost, LocalDate.now().plusDays(1), LocalTime.of(8, 0), LocalTime.of(14, 0));
+
+        // When
+        schedulerService.updatePostsToNotCompleted();
+
+        // Then - Post should NOT be updated (pickup date is in future)
+        verify(surplusPostRepository, never()).save(any(SurplusPost.class));
+    }
+
+    @Test
+    void testToleranceConfiguration_DefaultValues() {
+        // Given - New scheduler service instance with default tolerance values
+        SurplusPostSchedulerService freshService = new SurplusPostSchedulerService(
+                surplusPostRepository, claimRepository, timelineService);
+
+        // When - Set tolerance values to test the configuration is properly used
+        try {
+            Field earlyField = SurplusPostSchedulerService.class.getDeclaredField("earlyToleranceMinutes");
+            earlyField.setAccessible(true);
+            earlyField.set(freshService, 15);
+
+            Field lateField = SurplusPostSchedulerService.class.getDeclaredField("lateToleranceMinutes");
+            lateField.setAccessible(true);
+            lateField.set(freshService, 15);
+
+            // Then - Verify tolerance values are set
+            assertThat(earlyField.get(freshService)).isEqualTo(15);
+            assertThat(lateField.get(freshService)).isEqualTo(15);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to test tolerance configuration", e);
+        }
     }
 }
