@@ -1628,4 +1628,482 @@ class SurplusServiceTest {
         assertThat(dto.getPickupEvidenceUrl()).isEqualTo("https://example.com/evidence.jpg");
     }
 
+    // ==================== Tests for getUserSurplusPosts ====================
+
+    @Test
+    void testGetUserSurplusPosts_Success() {
+        // Given
+        donor.setTimezone("America/New_York");
+        
+        SurplusPost post1 = new SurplusPost();
+        post1.setId(1L);
+        post1.setDonor(donor);
+        post1.setTitle("Food 1");
+        post1.setStatus(PostStatus.AVAILABLE);
+        post1.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        post1.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        post1.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC"));
+        post1.setExpiryDate(LocalDate.now().plusDays(2));
+        post1.setPickupDate(LocalDate.now());
+        post1.setPickupFrom(LocalTime.of(9, 0));
+        post1.setPickupTo(LocalTime.of(17, 0));
+
+        SurplusPost post2 = new SurplusPost();
+        post2.setId(2L);
+        post2.setDonor(donor);
+        post2.setTitle("Food 2");
+        post2.setStatus(PostStatus.CLAIMED);
+        post2.setFoodCategories(Set.of(FoodCategory.BAKERY_PASTRY));
+        post2.setQuantity(new Quantity(3.0, Quantity.Unit.KILOGRAM));
+        post2.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC"));
+        post2.setExpiryDate(LocalDate.now().plusDays(1));
+        post2.setPickupDate(LocalDate.now());
+        post2.setPickupFrom(LocalTime.of(10, 0));
+        post2.setPickupTo(LocalTime.of(18, 0));
+
+        when(surplusPostRepository.findByDonorId(donor.getId()))
+                .thenReturn(Arrays.asList(post1, post2));
+
+        // When
+        List<SurplusResponse> responses = surplusService.getUserSurplusPosts(donor);
+
+        // Then
+        assertThat(responses).hasSize(2);
+        assertThat(responses).extracting(SurplusResponse::getTitle)
+                .containsExactlyInAnyOrder("Food 1", "Food 2");
+        verify(surplusPostRepository).findByDonorId(donor.getId());
+    }
+
+    @Test
+    void testGetUserSurplusPosts_EmptyList() {
+        // Given
+        when(surplusPostRepository.findByDonorId(donor.getId()))
+                .thenReturn(Collections.emptyList());
+
+        // When
+        List<SurplusResponse> responses = surplusService.getUserSurplusPosts(donor);
+
+        // Then
+        assertThat(responses).isEmpty();
+        verify(surplusPostRepository).findByDonorId(donor.getId());
+    }
+
+    // ==================== Tests for getSurplusPostByIdForDonor ====================
+
+    @Test
+    void testGetSurplusPostByIdForDonor_Success() {
+        // Given
+        donor.setTimezone("America/Toronto");
+        
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setTitle("Test Food");
+        post.setStatus(PostStatus.AVAILABLE);
+        post.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        post.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        post.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC"));
+        post.setExpiryDate(LocalDate.now().plusDays(2));
+        post.setPickupDate(LocalDate.now());
+        post.setPickupFrom(LocalTime.of(9, 0));
+        post.setPickupTo(LocalTime.of(17, 0));
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+
+        // When
+        SurplusResponse response = surplusService.getSurplusPostByIdForDonor(1L, donor);
+
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.getId()).isEqualTo(1L);
+        assertThat(response.getTitle()).isEqualTo("Test Food");
+        verify(surplusPostRepository).findById(1L);
+    }
+
+    @Test
+    void testGetSurplusPostByIdForDonor_PostNotFound() {
+        // Given
+        when(surplusPostRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> surplusService.getSurplusPostByIdForDonor(999L, donor))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Surplus post not found");
+    }
+
+    @Test
+    void testGetSurplusPostByIdForDonor_UnauthorizedUser() {
+        // Given
+        User otherDonor = new User();
+        otherDonor.setId(99L);
+        otherDonor.setEmail("other@test.com");
+
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setTitle("Test Food");
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+
+        // When & Then
+        assertThatThrownBy(() -> surplusService.getSurplusPostByIdForDonor(1L, otherDonor))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("not authorized");
+    }
+
+    // ==================== Tests for updateSurplusPost ====================
+
+    @Test
+    void testUpdateSurplusPost_Success() {
+        // Given
+        SurplusPost existingPost = new SurplusPost();
+        existingPost.setId(1L);
+        existingPost.setDonor(donor);
+        existingPost.setTitle("Old Title");
+        existingPost.setStatus(PostStatus.AVAILABLE);
+        existingPost.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        existingPost.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        existingPost.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC"));
+        existingPost.setExpiryDate(LocalDate.now().plusDays(2));
+        existingPost.setPickupDate(LocalDate.now());
+        existingPost.setPickupFrom(LocalTime.of(9, 0));
+        existingPost.setPickupTo(LocalTime.of(17, 0));
+        existingPost.setPickupSlots(new ArrayList<>());
+
+        CreateSurplusRequest updateRequest = new CreateSurplusRequest();
+        updateRequest.setTitle("Updated Title");
+        updateRequest.getFoodCategories().add(FoodCategory.BAKERY_PASTRY);
+        updateRequest.setQuantity(new Quantity(8.0, Quantity.Unit.KILOGRAM));
+        updateRequest.setExpiryDate(LocalDate.now().plusDays(3));
+        updateRequest.setPickupDate(LocalDate.now().plusDays(1));
+        updateRequest.setPickupFrom(LocalTime.of(10, 0));
+        updateRequest.setPickupTo(LocalTime.of(16, 0));
+        updateRequest.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC"));
+        updateRequest.setDescription("Updated description");
+
+        List<PickupSlotRequest> slots = new ArrayList<>();
+        PickupSlotRequest slot = new PickupSlotRequest();
+        slot.setPickupDate(LocalDate.now().plusDays(1));
+        slot.setStartTime(LocalTime.of(10, 0));
+        slot.setEndTime(LocalTime.of(16, 0));
+        slots.add(slot);
+        updateRequest.setPickupSlots(slots);
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(existingPost));
+        when(surplusPostRepository.saveAndFlush(any(SurplusPost.class))).thenReturn(existingPost);
+        doNothing().when(pickupSlotValidationService).validateSlots(any());
+
+        // When
+        SurplusResponse response = surplusService.updateSurplusPost(1L, updateRequest, donor);
+
+        // Then
+        assertThat(response).isNotNull();
+        verify(surplusPostRepository).findById(1L);
+        verify(surplusPostRepository, times(2)).saveAndFlush(any(SurplusPost.class));
+        verify(pickupSlotValidationService).validateSlots(any());
+    }
+
+    @Test
+    void testUpdateSurplusPost_PostNotFound() {
+        // Given
+        when(surplusPostRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> surplusService.updateSurplusPost(999L, request, donor))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Surplus post not found");
+    }
+
+    @Test
+    void testUpdateSurplusPost_UnauthorizedUser() {
+        // Given
+        User otherDonor = new User();
+        otherDonor.setId(99L);
+        otherDonor.setEmail("other@test.com");
+
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setStatus(PostStatus.AVAILABLE);
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+
+        // When & Then
+        assertThatThrownBy(() -> surplusService.updateSurplusPost(1L, request, otherDonor))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("not authorized");
+    }
+
+    @Test
+    void testUpdateSurplusPost_ClaimedPost_ThrowsException() {
+        // Given
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setStatus(PostStatus.CLAIMED);
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+
+        // When & Then
+        assertThatThrownBy(() -> surplusService.updateSurplusPost(1L, request, donor))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Cannot edit a post that has been claimed");
+    }
+
+    @Test
+    void testUpdateSurplusPost_CompletedPost_ThrowsException() {
+        // Given
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setStatus(PostStatus.COMPLETED);
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+
+        // When & Then
+        assertThatThrownBy(() -> surplusService.updateSurplusPost(1L, request, donor))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Cannot edit a post that has been claimed or completed");
+    }
+
+    // ==================== Tests for deleteSurplusPost ====================
+
+    @Test
+    void testDeleteSurplusPost_Success() {
+        // Given
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setStatus(PostStatus.AVAILABLE);
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+        when(claimRepository.findBySurplusPostId(1L)).thenReturn(Collections.emptyList());
+        doNothing().when(surplusPostRepository).delete(post);
+
+        // When
+        surplusService.deleteSurplusPost(1L, donor);
+
+        // Then
+        verify(surplusPostRepository).findById(1L);
+        verify(surplusPostRepository).delete(post);
+    }
+
+    @Test
+    void testDeleteSurplusPost_PostNotFound() {
+        // Given
+        when(surplusPostRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> surplusService.deleteSurplusPost(999L, donor))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Surplus post not found");
+
+        verify(surplusPostRepository, never()).delete(any(SurplusPost.class));
+    }
+
+    @Test
+    void testDeleteSurplusPost_UnauthorizedUser() {
+        // Given
+        User otherDonor = new User();
+        otherDonor.setId(99L);
+        otherDonor.setEmail("other@test.com");
+
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+
+        // When & Then
+        assertThatThrownBy(() -> surplusService.deleteSurplusPost(1L, otherDonor))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("not authorized");
+
+        verify(surplusPostRepository, never()).delete(any(SurplusPost.class));
+    }
+
+    @Test
+    void testDeleteSurplusPost_ClaimedPost_ThrowsException() {
+        // Given
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setStatus(PostStatus.CLAIMED);
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+
+        // When & Then
+        assertThatThrownBy(() -> surplusService.deleteSurplusPost(1L, donor))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("cannot delete a post that has already been claimed");
+
+        verify(surplusPostRepository, never()).delete(any(SurplusPost.class));
+    }
+
+    @Test
+    void testDeleteSurplusPost_CompletedPost_ThrowsException() {
+        // Given
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setStatus(PostStatus.COMPLETED);
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+
+        // When & Then
+        assertThatThrownBy(() -> surplusService.deleteSurplusPost(1L, donor))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("cannot delete a post that has already been claimed or completed");
+
+        verify(surplusPostRepository, never()).delete(any(SurplusPost.class));
+    }
+
+    // ==================== Tests for searchSurplusPosts ====================
+
+    @Test
+    void testSearchSurplusPosts_WithFilters() {
+        // Given
+        com.example.foodflow.model.dto.SurplusFilterRequest filterRequest = 
+                new com.example.foodflow.model.dto.SurplusFilterRequest();
+        filterRequest.setStatus(PostStatus.AVAILABLE.name());
+
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setTitle("Filtered Food");
+        post.setStatus(PostStatus.AVAILABLE);
+        post.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        post.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        post.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC"));
+        post.setExpiryDate(LocalDate.now().plusDays(2));
+        post.setPickupDate(LocalDate.now());
+        post.setPickupFrom(LocalTime.of(9, 0));
+        post.setPickupTo(LocalTime.of(17, 0));
+
+        when(surplusPostRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class)))
+                .thenReturn(Collections.singletonList(post));
+
+        // When
+        List<SurplusResponse> responses = surplusService.searchSurplusPosts(filterRequest);
+
+        // Then
+        assertThat(responses).hasSize(1);
+        assertThat(responses.get(0).getTitle()).isEqualTo("Filtered Food");
+        verify(surplusPostRepository).findAll(any(org.springframework.data.jpa.domain.Specification.class));
+    }
+
+    // ==================== Tests for searchSurplusPostsForReceiver ====================
+
+    @Test
+    void testSearchSurplusPostsForReceiver_WithFilters() {
+        // Given
+        receiver.setTimezone("America/New_York");
+        
+        com.example.foodflow.model.dto.SurplusFilterRequest filterRequest = 
+                new com.example.foodflow.model.dto.SurplusFilterRequest();
+        filterRequest.setStatus(PostStatus.AVAILABLE.name());
+
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setTitle("Filtered Food");
+        post.setStatus(PostStatus.AVAILABLE);
+        post.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        post.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        post.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC"));
+        post.setExpiryDate(LocalDate.now().plusDays(2));
+        post.setPickupDate(LocalDate.now());
+        post.setPickupFrom(LocalTime.of(9, 0));
+        post.setPickupTo(LocalTime.of(17, 0));
+
+        when(surplusPostRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class)))
+                .thenReturn(Collections.singletonList(post));
+
+        // When
+        List<SurplusResponse> responses = surplusService.searchSurplusPostsForReceiver(filterRequest, receiver);
+
+        // Then
+        assertThat(responses).hasSize(1);
+        assertThat(responses.get(0).getTitle()).isEqualTo("Filtered Food");
+        verify(surplusPostRepository).findAll(any(org.springframework.data.jpa.domain.Specification.class));
+    }
+
+    // ==================== Tests for uploadPickupEvidence ====================
+
+    @Test
+    void testUploadPickupEvidence_Success() throws Exception {
+        // Given
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setStatus(PostStatus.CLAIMED);
+
+        org.springframework.web.multipart.MultipartFile mockFile = mock(org.springframework.web.multipart.MultipartFile.class);
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+        when(fileStorageService.storePickupEvidence(mockFile, 1L)).thenReturn("http://example.com/evidence.jpg");
+        when(timelineRepository.save(any(DonationTimeline.class))).thenReturn(new DonationTimeline());
+
+        // When
+        com.example.foodflow.model.dto.UploadEvidenceResponse response = 
+                surplusService.uploadPickupEvidence(1L, mockFile, donor);
+
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.isSuccess()).isTrue();
+        assertThat(response.getUrl()).isEqualTo("http://example.com/evidence.jpg");
+        verify(fileStorageService).storePickupEvidence(mockFile, 1L);
+        verify(timelineRepository).save(any(DonationTimeline.class));
+    }
+
+    @Test
+    void testUploadPickupEvidence_PostNotFound() {
+        // Given
+        org.springframework.web.multipart.MultipartFile mockFile = mock(org.springframework.web.multipart.MultipartFile.class);
+        when(surplusPostRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> surplusService.uploadPickupEvidence(999L, mockFile, donor))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Donation not found");
+    }
+
+    @Test
+    void testUploadPickupEvidence_UnauthorizedDonor() {
+        // Given
+        User otherDonor = new User();
+        otherDonor.setId(99L);
+        otherDonor.setEmail("other@test.com");
+
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setStatus(PostStatus.CLAIMED);
+
+        org.springframework.web.multipart.MultipartFile mockFile = mock(org.springframework.web.multipart.MultipartFile.class);
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+
+        // When & Then
+        assertThatThrownBy(() -> surplusService.uploadPickupEvidence(1L, mockFile, otherDonor))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("not authorized");
+    }
+
+    @Test
+    void testUploadPickupEvidence_InvalidStatus() {
+        // Given
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setStatus(PostStatus.AVAILABLE); // Invalid status
+
+        org.springframework.web.multipart.MultipartFile mockFile = mock(org.springframework.web.multipart.MultipartFile.class);
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
+
+        // When & Then
+        assertThatThrownBy(() -> surplusService.uploadPickupEvidence(1L, mockFile, donor))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Evidence can only be uploaded for claimed");
+    }
+
 }
