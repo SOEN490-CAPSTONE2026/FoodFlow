@@ -322,6 +322,9 @@ const AdminUsers = () => {
       );
 
       console.log('Backend user data:', response.data);
+      console.log('Address:', response.data.address);
+      console.log('BusinessLicense:', response.data.businessLicense);
+      console.log('CharityRegistrationNumber:', response.data.charityRegistrationNumber);
       
       // Set the detailed user data
       setSelectedUserForView(response.data);
@@ -548,7 +551,6 @@ const AdminUsers = () => {
               <TableHead>ID</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Role</TableHead>
-              <TableHead>Verification</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Activity</TableHead>
@@ -558,7 +560,7 @@ const AdminUsers = () => {
           <TableBody>
             {filteredUsers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan="9" className="no-users">
+                <TableCell colSpan="8" className="no-users">
                   No users found
                 </TableCell>
               </TableRow>
@@ -609,17 +611,6 @@ const AdminUsers = () => {
                             ? 'Receiver'
                             : 'Admin'}
                       </span>
-                    </TableCell>
-                    <TableCell>
-                      {user.verificationStatus && (
-                        <span
-                          className={`pill pill-${user.verificationStatus.toLowerCase()}`}
-                        >
-                          {user.verificationStatus === 'VERIFIED'
-                            ? 'Verified'
-                            : 'Pending'}
-                        </span>
-                      )}
                     </TableCell>
                     <TableCell>
                       <span
