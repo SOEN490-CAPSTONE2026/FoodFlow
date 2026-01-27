@@ -502,6 +502,13 @@ export const adminVerificationAPI = {
   approveUser: userId => api.post(`/admin/approve/${userId}`),
 
   /**
+   * Manually verify a user's email
+   * @param {number} userId - User ID to mark email verified
+   * @returns {Promise} Response data
+   */
+  verifyEmail: userId => api.post(`/admin/verify-email/${userId}`),
+
+  /**
    * Reject a pending user registration
    * @param {number} userId - User ID to reject
    * @param {string} reason - Rejection reason
