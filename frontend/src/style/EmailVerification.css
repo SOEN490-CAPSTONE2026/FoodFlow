@@ -1,0 +1,145 @@
+.email-verification-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.email-verification-card {
+  background: white;
+  border-radius: 16px;
+  padding: 48px 64px;
+  max-width: 500px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.verification-spinner {
+  width: 64px;
+  height: 64px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #224d68;
+  border-radius: 50%;
+  margin: 0 auto 24px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.verification-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+  font-size: 48px;
+  font-weight: bold;
+  animation: iconPop 0.5s ease-out;
+}
+
+@keyframes iconPop {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.success-icon {
+  background: #28a745;
+  color: white;
+}
+
+.error-icon {
+  background: #dc3545;
+  color: white;
+}
+
+.email-verification-card h2 {
+  color: #224d68;
+  font-size: 28px;
+  margin: 0 0 16px 0;
+  font-weight: 600;
+}
+
+.email-verification-card p {
+  color: #666;
+  font-size: 16px;
+  line-height: 1.6;
+  margin: 0 0 12px 0;
+}
+
+.redirect-message {
+  color: #999;
+  font-size: 14px;
+  font-style: italic;
+  margin-top: 24px;
+}
+
+.verification-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 32px;
+  justify-content: center;
+}
+
+.verification-actions button {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: #224d68;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #1a3d52;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(34, 77, 104, 0.3);
+}
+
+.btn-secondary {
+  background: white;
+  color: #224d68;
+  border: 2px solid #224d68;
+}
+
+.btn-secondary:hover {
+  background: #f5f5f5;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}

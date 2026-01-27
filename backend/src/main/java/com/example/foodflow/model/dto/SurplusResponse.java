@@ -45,14 +45,21 @@ public class SurplusResponse {
     private TemperatureCategory temperatureCategory;
     private PackagingType packagingType;
 
+    // Receiver/Claimant information (if claimed)
+    private String receiverName;
+    private String receiverEmail;
+    private String receiverOrganization;
+
     // Constructors
-    public SurplusResponse() {}
+    public SurplusResponse() {
+    }
 
     public SurplusResponse(Long id, String title, String description, Set<FoodCategory> foodCategories,
-                           Quantity quantity, Location pickupLocation,
-                           LocalDate fabricationDate, LocalDate expiryDate, LocalDate pickupDate, LocalTime pickupFrom, LocalTime pickupTo,
-                           PostStatus status, String otpCode, Long donorId, String donorEmail, String donorName,
-                           LocalDateTime createdAt, LocalDateTime updatedAt) {
+            Quantity quantity, Location pickupLocation,
+            LocalDate fabricationDate, LocalDate expiryDate, LocalDate pickupDate, LocalTime pickupFrom,
+            LocalTime pickupTo,
+            PostStatus status, String otpCode, String donorEmail, String donorName,
+            LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -66,7 +73,6 @@ public class SurplusResponse {
         this.pickupTo = pickupTo;
         this.status = status;
         this.otpCode = otpCode;
-        this.donorId = donorId;
         this.donorEmail = donorEmail;
         this.donorName = donorName;
         this.createdAt = createdAt;
@@ -87,11 +93,10 @@ public class SurplusResponse {
         this.pickupTo = surplusPost.getPickupTo();
         this.status = surplusPost.getStatus();
         this.otpCode = surplusPost.getOtpCode();
-        this.donorId = surplusPost.getDonor().getId();
         this.donorEmail = surplusPost.getDonor().getEmail();
         this.donorName = surplusPost.getDonor().getOrganization() != null
-            ? surplusPost.getDonor().getOrganization().getName()
-            : null;
+                ? surplusPost.getDonor().getOrganization().getName()
+                : null;
         this.createdAt = surplusPost.getCreatedAt();
         this.updatedAt = surplusPost.getUpdatedAt();
         this.temperatureCategory = surplusPost.getTemperatureCategory();
@@ -100,75 +105,209 @@ public class SurplusResponse {
         // Convert pickup slots
         if (surplusPost.getPickupSlots() != null) {
             this.pickupSlots = surplusPost.getPickupSlots().stream()
-                .map(PickupSlotResponse::fromEntity)
-                .collect(Collectors.toList());
+                    .map(PickupSlotResponse::fromEntity)
+                    .collect(Collectors.toList());
         }
     }
 
     // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public String getTitle() {
+        return title;
+    }
 
-    public Set<FoodCategory> getFoodCategories() { return foodCategories; }
-    public void setFoodCategories(Set<FoodCategory> foodCategories) { this.foodCategories = foodCategories; }
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
-    public Quantity getQuantity() { return quantity; }
-    public void setQuantity(Quantity quantity) { this.quantity = quantity; }
+    public String getDescription() {
+        return description;
+    }
 
-    public Location getPickupLocation() { return pickupLocation; }
-    public void setPickupLocation(Location pickupLocation) { this.pickupLocation = pickupLocation; }
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-    public LocalDate getFabricationDate() { return fabricationDate; }
-    public void setFabricationDate(LocalDate fabricationDate) { this.fabricationDate = fabricationDate; }
+    public Set<FoodCategory> getFoodCategories() {
+        return foodCategories;
+    }
 
-    public LocalDate getExpiryDate() { return expiryDate; }
-    public void setExpiryDate(LocalDate expiryDate) { this.expiryDate = expiryDate; }
+    public void setFoodCategories(Set<FoodCategory> foodCategories) {
+        this.foodCategories = foodCategories;
+    }
 
-    public LocalDate getPickupDate() { return pickupDate; }
-    public void setPickupDate(LocalDate pickupDate) { this.pickupDate = pickupDate; }
+    public Quantity getQuantity() {
+        return quantity;
+    }
 
-    public LocalTime getPickupFrom() { return pickupFrom; }
-    public void setPickupFrom(LocalTime pickupFrom) { this.pickupFrom = pickupFrom; }
+    public void setQuantity(Quantity quantity) {
+        this.quantity = quantity;
+    }
 
-    public LocalTime getPickupTo() { return pickupTo; }
-    public void setPickupTo(LocalTime pickupTo) { this.pickupTo = pickupTo; }
+    public Location getPickupLocation() {
+        return pickupLocation;
+    }
 
-    public PostStatus getStatus() { return status; }
-    public void setStatus(PostStatus status) { this.status = status; }
+    public void setPickupLocation(Location pickupLocation) {
+        this.pickupLocation = pickupLocation;
+    }
 
-    public String getOtpCode() { return otpCode; }
-    public void setOtpCode(String otpCode) { this.otpCode = otpCode; }
+    public LocalDate getFabricationDate() {
+        return fabricationDate;
+    }
 
-    public Long getDonorId() { return donorId; }
-    public void setDonorId(Long donorId) { this.donorId = donorId; }
+    public void setFabricationDate(LocalDate fabricationDate) {
+        this.fabricationDate = fabricationDate;
+    }
 
-    public String getDonorEmail() { return donorEmail; }
-    public void setDonorEmail(String donorEmail) { this.donorEmail = donorEmail; }
+    public LocalDate getExpiryDate() {
+        return expiryDate;
+    }
 
-    public String getDonorName() { return donorName; }
-    public void setDonorName(String donorName) { this.donorName = donorName; }
+    public void setExpiryDate(LocalDate expiryDate) {
+        this.expiryDate = expiryDate;
+    }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public LocalDate getPickupDate() {
+        return pickupDate;
+    }
 
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public void setPickupDate(LocalDate pickupDate) {
+        this.pickupDate = pickupDate;
+    }
 
-    public List<PickupSlotResponse> getPickupSlots() { return pickupSlots; }
-    public void setPickupSlots(List<PickupSlotResponse> pickupSlots) { this.pickupSlots = pickupSlots; }
+    public LocalTime getPickupFrom() {
+        return pickupFrom;
+    }
 
-    public PickupSlotResponse getConfirmedPickupSlot() { return confirmedPickupSlot; }
-    public void setConfirmedPickupSlot(PickupSlotResponse confirmedPickupSlot) { this.confirmedPickupSlot = confirmedPickupSlot; }
+    public void setPickupFrom(LocalTime pickupFrom) {
+        this.pickupFrom = pickupFrom;
+    }
 
-    public TemperatureCategory getTemperatureCategory() { return temperatureCategory; }
-    public void setTemperatureCategory(TemperatureCategory temperatureCategory) { this.temperatureCategory = temperatureCategory; }
+    public LocalTime getPickupTo() {
+        return pickupTo;
+    }
 
-    public PackagingType getPackagingType() { return packagingType; }
-    public void setPackagingType(PackagingType packagingType) { this.packagingType = packagingType; }
+    public void setPickupTo(LocalTime pickupTo) {
+        this.pickupTo = pickupTo;
+    }
+
+    public PostStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(PostStatus status) {
+        this.status = status;
+    }
+
+    public String getOtpCode() {
+        return otpCode;
+    }
+
+    public void setOtpCode(String otpCode) {
+        this.otpCode = otpCode;
+    }
+
+    public Long getDonorId() {
+        return donorId;
+    }
+
+    public void setDonorId(Long donorId) {
+        this.donorId = donorId;
+    }
+
+    public String getDonorEmail() {
+        return donorEmail;
+    }
+
+    public void setDonorEmail(String donorEmail) {
+        this.donorEmail = donorEmail;
+    }
+
+    public String getDonorName() {
+        return donorName;
+    }
+
+    public void setDonorName(String donorName) {
+        this.donorName = donorName;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public List<PickupSlotResponse> getPickupSlots() {
+        return pickupSlots;
+    }
+
+    public void setPickupSlots(List<PickupSlotResponse> pickupSlots) {
+        this.pickupSlots = pickupSlots;
+    }
+
+    public PickupSlotResponse getConfirmedPickupSlot() {
+        return confirmedPickupSlot;
+    }
+
+    public void setConfirmedPickupSlot(PickupSlotResponse confirmedPickupSlot) {
+        this.confirmedPickupSlot = confirmedPickupSlot;
+    }
+
+    public TemperatureCategory getTemperatureCategory() {
+        return temperatureCategory;
+    }
+
+    public void setTemperatureCategory(TemperatureCategory temperatureCategory) {
+        this.temperatureCategory = temperatureCategory;
+    }
+
+    public PackagingType getPackagingType() {
+        return packagingType;
+    }
+
+    public void setPackagingType(PackagingType packagingType) {
+        this.packagingType = packagingType;
+    }
+
+    public String getReceiverName() {
+        return receiverName;
+    }
+
+    public void setReceiverName(String receiverName) {
+        this.receiverName = receiverName;
+    }
+
+    public String getReceiverEmail() {
+        return receiverEmail;
+    }
+
+    public void setReceiverEmail(String receiverEmail) {
+        this.receiverEmail = receiverEmail;
+    }
+
+    public String getReceiverOrganization() {
+        return receiverOrganization;
+    }
+
+    public void setReceiverOrganization(String receiverOrganization) {
+        this.receiverOrganization = receiverOrganization;
+    }
 }

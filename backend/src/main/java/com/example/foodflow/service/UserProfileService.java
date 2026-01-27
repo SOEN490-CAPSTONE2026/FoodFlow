@@ -1,8 +1,8 @@
 package com.example.foodflow.service;
 
 import com.example.foodflow.model.dto.RegionResponse;
-import com.example.foodflow.model.dto.UpdateRegionRequest;
 import com.example.foodflow.model.dto.UpdateProfileRequest;
+import com.example.foodflow.model.dto.UpdateRegionRequest;
 import com.example.foodflow.model.dto.UserProfileResponse;
 import com.example.foodflow.model.entity.Organization;
 import com.example.foodflow.model.entity.User;
@@ -34,63 +34,47 @@ public class UserProfileService {
     
     /**
      * Updates user's region settings (country, city) and automatically resolves timezone.
-     * 
-     * @param user The authenticated user
-     * @param request The region update request containing country and city
-     * @return RegionResponse with updated region and timezone information
      */
     @Transactional
     @Timed(value = "userprofile.service.updateRegionSettings", description = "Time taken to update region settings")
     public RegionResponse updateRegionSettings(User user, UpdateRegionRequest request) {
-        // Use manual timezone if provided, otherwise resolve from city and country
         String timezone;
         if (request.getTimezone() != null && !request.getTimezone().trim().isEmpty()) {
             String providedTimezone = request.getTimezone().trim();
             
-            // Check if it's a UTC offset string (e.g., "UTC-03:30", "UTC+05:00")
             if (providedTimezone.startsWith("UTC") || providedTimezone.startsWith("GMT")) {
-                // It's an offset string - convert it to IANA timezone
                 timezone = TimezoneResolver.convertOffsetToTimezone(providedTimezone);
             } else {
-                // It's (hopefully) a valid IANA timezone ID - validate and use it
                 if (TimezoneResolver.isValidTimezone(providedTimezone)) {
                     timezone = providedTimezone;
                 } else {
-                    // Invalid timezone, fall back to resolution
                     timezone = TimezoneResolver.resolveTimezone(request.getCity(), request.getCountry());
                 }
             }
         } else {
-            // Auto-resolve timezone from city and country
             timezone = TimezoneResolver.resolveTimezone(request.getCity(), request.getCountry());
         }
         
-        // Update user entity
         user.setCountry(request.getCountry());
         user.setCity(request.getCity());
         user.setTimezone(timezone);
         
-        // Save to database
         userRepository.save(user);
         businessMetricsService.incrementRegionSettingsUpdates();
         
-        // Build and return response
         return buildRegionResponse(user);
     }
     
     /**
      * Gets current region settings for a user.
-     * 
-     * @param user The authenticated user
-     * @return RegionResponse with current region and timezone information, or defaults if not set
      */
     @Transactional(readOnly = true)
     public RegionResponse getRegionSettings(User user) {
         return buildRegionResponse(user);
     }
-
+    
     /**
-     * Returns basic profile information for the user
+     * Gets user profile data including organization information.
      */
     @Transactional(readOnly = true)
     public UserProfileResponse getProfile(User user) {
@@ -99,24 +83,42 @@ public class UserProfileService {
         response.setEmail(user.getEmail());
         response.setFullName(user.getFullName());
         response.setPhone(user.getPhone());
+        response.setPhoneNumber(user.getPhone());
         response.setProfilePhoto(user.getProfilePhoto());
-
-        if (user.getOrganization() != null) {
-            Organization org = user.getOrganization();
+        
+        Organization org = user.getOrganization();
+        if (org != null) {
             response.setOrganizationName(org.getName());
             response.setOrganizationAddress(org.getAddress());
+            response.setAddress(org.getAddress());
+            // Fallback: use org contact info if user fields are empty
+            if (response.getFullName() == null && org.getContactPerson() != null) {
+                response.setFullName(org.getContactPerson());
+            }
+            if (response.getPhone() == null && org.getPhone() != null) {
+                response.setPhone(org.getPhone());
+                response.setPhoneNumber(org.getPhone());
+            }
         } else {
-            organizationRepository.findByUserId(user.getId()).ifPresent(org -> {
-                response.setOrganizationName(org.getName());
-                response.setOrganizationAddress(org.getAddress());
+            organizationRepository.findByUserId(user.getId()).ifPresent(o -> {
+                response.setOrganizationName(o.getName());
+                response.setOrganizationAddress(o.getAddress());
+                response.setAddress(o.getAddress());
+                if (response.getFullName() == null && o.getContactPerson() != null) {
+                    response.setFullName(o.getContactPerson());
+                }
+                if (response.getPhone() == null && o.getPhone() != null) {
+                    response.setPhone(o.getPhone());
+                    response.setPhoneNumber(o.getPhone());
+                }
             });
         }
-
+        
         return response;
     }
-
+    
     /**
-     * Updates user's profile fields and organization info when provided
+     * Updates user profile data.
      */
     @Transactional
     @Timed(value = "userprofile.service.updateProfile", description = "Time taken to update user profile")
@@ -129,21 +131,22 @@ public class UserProfileService {
             user.setEmail(request.getEmail());
         }
 
-        // Validate and set phone ONLY if provided
-        if (request.getPhone() != null && !request.getPhone().trim().isEmpty()) {
+        // Validate and set phone (supports both phone and phoneNumber fields)
+        String phoneValue = request.getPhone();
+        if (phoneValue != null && !phoneValue.trim().isEmpty()) {
             final Pattern phonePattern = Pattern.compile("^[+0-9 ()-]{7,20}$");
-            if (!phonePattern.matcher(request.getPhone()).matches()) {
+            if (!phonePattern.matcher(phoneValue).matches()) {
                 throw new IllegalArgumentException("Invalid phone format");
             }
-            user.setPhone(request.getPhone());
+            user.setPhone(phoneValue);
         }
 
-        // Full name required
+        // Full name
         if (request.getFullName() != null && !request.getFullName().trim().isEmpty()) {
             user.setFullName(request.getFullName());
         }
 
-        // Profile photo optional (store provided string base64)
+        // Profile photo optional
         if (request.getProfilePhoto() != null) {
             user.setProfilePhoto(request.getProfilePhoto());
         }
@@ -152,40 +155,47 @@ public class UserProfileService {
         businessMetricsService.incrementProfileUpdates();
 
         // Organization fields
+        String addressValue = request.getOrganizationAddress();
+        
         if ((request.getOrganizationName() != null && !request.getOrganizationName().trim().isEmpty()) ||
-            (request.getOrganizationAddress() != null && !request.getOrganizationAddress().trim().isEmpty())) {
+            (addressValue != null && !addressValue.trim().isEmpty())) {
 
             Organization org = organizationRepository.findByUserId(user.getId()).orElseGet(() -> {
                 Organization o = new Organization();
                 o.setUser(user);
                 return o;
             });
-            if (request.getOrganizationName() != null) org.setName(request.getOrganizationName());
-            if (request.getOrganizationAddress() != null) org.setAddress(request.getOrganizationAddress());
+            
+            if (request.getOrganizationName() != null) {
+                org.setName(request.getOrganizationName());
+            }
+            if (addressValue != null) {
+                org.setAddress(addressValue);
+            }
+            if (request.getFullName() != null) {
+                org.setContactPerson(request.getFullName());
+            }
+            if (phoneValue != null) {
+                org.setPhone(phoneValue);
+            }
 
             organizationRepository.save(org);
             user.setOrganization(org);
         }
+        
         return getProfile(user);
-    }    
+    }
+    
     /**
      * Builds a RegionResponse DTO from a User entity.
-     * 
-     * @param user The user entity
-     * @return RegionResponse with region and timezone data
      */
     private RegionResponse buildRegionResponse(User user) {
         RegionResponse response = new RegionResponse();
-        
-        // Set country and city (may be null if not yet configured)
         response.setCountry(user.getCountry());
         response.setCity(user.getCity());
         
-        // Set timezone (default to UTC if not set)
         String timezone = user.getTimezone() != null ? user.getTimezone() : "UTC";
         response.setTimezone(timezone);
-        
-        // Calculate current offset for the timezone
         response.setTimezoneOffset(TimezoneResolver.getTimezoneOffset(timezone));
         
         return response;
