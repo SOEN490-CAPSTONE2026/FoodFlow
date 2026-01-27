@@ -1,7 +1,7 @@
 import AnalyticsService from '../analyticsService';
 
 jest.mock('axios', () => ({
-  post: jest.fn(() => Promise.resolve({ data: { success: true } })),
+  post: jest.fn(() => Promise.resolve({ data: { success: true } }))
 }));
 
 const axios = require('axios');
@@ -12,7 +12,7 @@ describe('AnalyticsService', () => {
   let consoleErrorSpy;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.clearAllMocks();    
     originalLocation = window.location;
     delete window.location;
     window.location = { pathname: '/test-page' };
@@ -66,25 +66,21 @@ describe('AnalyticsService', () => {
           component: 'test_component',
           sessionId: AnalyticsService.sessionId,
           timestamp: 1234567890,
-          url: '/test-page',
+          url: '/test-page'
         })
       );
     });
 
     it('include additional data in the event', async () => {
       const additionalData = { customField: 'customValue', count: 5 };
-      await AnalyticsService.trackEvent(
-        'test_action',
-        'test_component',
-        additionalData
-      );
+      await AnalyticsService.trackEvent('test_action', 'test_component', additionalData);
       expect(axios.post).toHaveBeenCalledWith(
         'http://localhost:8080/api/analytics/track',
         expect.objectContaining({
           action: 'test_action',
           component: 'test_component',
           customField: 'customValue',
-          count: 5,
+          count: 5
         })
       );
     });
@@ -96,7 +92,7 @@ describe('AnalyticsService', () => {
         'Analytics Event:',
         expect.objectContaining({
           action: 'test_action',
-          component: 'test_component',
+          component: 'test_component'
         })
       );
     });
@@ -116,9 +112,9 @@ describe('AnalyticsService', () => {
       process.env.REACT_APP_API_BASE_URL = 'https://api.example.com/api';
       jest.resetModules();
       jest.doMock('axios', () => ({
-        post: jest.fn(() => Promise.resolve({ data: { success: true } })),
+        post: jest.fn(() => Promise.resolve({ data: { success: true } }))
       }));
-      const freshAxios = require('axios');
+      const freshAxios = require('axios');      
       const { default: NewAnalyticsService } = require('../analyticsService');
       await NewAnalyticsService.trackEvent('test_action', 'test_component');
       expect(freshAxios.post).toHaveBeenCalledWith(
@@ -138,7 +134,7 @@ describe('AnalyticsService', () => {
         expect.objectContaining({
           action: 'page_view',
           component: 'navigation',
-          pageName: 'Home Page',
+          pageName: 'Home Page'
         })
       );
     });
@@ -152,7 +148,7 @@ describe('AnalyticsService', () => {
         expect.objectContaining({
           action: 'button_click',
           component: 'Submit Button',
-          location: 'header',
+          location: 'header'
         })
       );
     });
@@ -166,7 +162,7 @@ describe('AnalyticsService', () => {
         expect.objectContaining({
           action: 'form_submission',
           component: 'Contact Form',
-          success: true,
+          success: true
         })
       );
     });
@@ -178,7 +174,7 @@ describe('AnalyticsService', () => {
         expect.objectContaining({
           action: 'form_submission',
           component: 'Contact Form',
-          success: false,
+          success: false
         })
       );
     });
@@ -188,7 +184,7 @@ describe('AnalyticsService', () => {
       expect(axios.post).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
-          success: true,
+          success: true
         })
       );
     });
@@ -202,7 +198,7 @@ describe('AnalyticsService', () => {
         expect.objectContaining({
           action: 'user_registration',
           component: 'registration_form',
-          userType: 'premium',
+          userType: 'premium'
         })
       );
     });
@@ -216,7 +212,7 @@ describe('AnalyticsService', () => {
         expect.objectContaining({
           action: 'login',
           component: 'login_form',
-          success: true,
+          success: true
         })
       );
     });
@@ -228,7 +224,7 @@ describe('AnalyticsService', () => {
         expect.objectContaining({
           action: 'login',
           component: 'login_form',
-          success: false,
+          success: false
         })
       );
     });
@@ -238,7 +234,7 @@ describe('AnalyticsService', () => {
       expect(axios.post).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
-          success: true,
+          success: true
         })
       );
     });
@@ -253,7 +249,7 @@ describe('AnalyticsService', () => {
           action: 'navigation',
           component: 'router',
           from: '/home',
-          to: '/about',
+          to: '/about'
         })
       );
     });

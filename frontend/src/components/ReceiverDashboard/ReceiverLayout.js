@@ -6,6 +6,7 @@ import {
   Link,
   useNavigationType,
 } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import './Receiver_Styles/ReceiverLayout.css';
 import Logo from '../../assets/Logo.png';
 import ProfilePhoto from './pfp.png';
@@ -30,6 +31,7 @@ import {
 } from 'lucide-react';
 
 function ReceiverLayoutContent() {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const navType = useNavigationType();
@@ -98,37 +100,37 @@ function ReceiverLayoutContent() {
 
   const getPageTitle = () => {
     switch (location.pathname) {
-      case '/receiver':
-      case '/receiver/dashboard':
-        return 'Receiver Dashboard';
-      case '/receiver/welcome':
-        return 'Welcome';
-      case '/receiver/browse':
-        return 'Browse Available Food';
-      case '/receiver/messages':
-        return 'Messages';
-      case '/receiver/settings':
-        return 'Settings';
+      case "/receiver":
+      case "/receiver/dashboard":
+        return t('receiverLayout.pageTitles.receiverDashboard');
+      case "/receiver/welcome":
+        return t('receiverLayout.pageTitles.welcome');
+      case "/receiver/browse":
+        return t('receiverLayout.pageTitles.browse');
+      case "/receiver/messages":
+        return t('receiverLayout.pageTitles.messages');
+      case "/receiver/settings":
+        return t('receiverLayout.pageTitles.settings');
       default:
-        return 'Receiver Dashboard';
+        return t('receiverLayout.pageTitles.default');
     }
   };
 
   const getPageDescription = () => {
     switch (location.pathname) {
-      case '/receiver':
-      case '/receiver/dashboard':
-        return 'Overview of nearby food and your activity';
-      case '/receiver/welcome':
-        return 'Start here: search the map or browse nearby food';
-      case '/receiver/browse':
-        return 'Browse available food listings';
-      case '/receiver/messages':
-        return 'Communicate with donors and other users';
-      case '/receiver/settings':
-        return 'Manage your preferences and account settings';
+      case "/receiver":
+      case "/receiver/dashboard":
+        return t('receiverLayout.pageDescriptions.receiverDashboard');
+      case "/receiver/welcome":
+        return t('receiverLayout.pageDescriptions.welcome');
+      case "/receiver/browse":
+        return t('receiverLayout.pageDescriptions.browse');
+      case "/receiver/messages":
+        return t('receiverLayout.pageDescriptions.messages');
+      case "/receiver/settings":
+        return t('receiverLayout.pageDescriptions.settings');
       default:
-        return 'FoodFlow Receiver Portal';
+        return t('receiverLayout.pageDescriptions.default');
     }
   };
 
@@ -185,22 +187,22 @@ function ReceiverLayoutContent() {
       const foodTitle = payload.surplusPostTitle || 'a food item';
       const donorName = payload.surplusPost?.donorEmail || 'a donor';
       const status = payload.status || '';
-      let message = `Successfully claimed "${foodTitle}" from ${donorName}`;
+      let message = t('notifications.successfullyClaimed', { foodTitle, donorName });
 
       if (status === 'READY_FOR_PICKUP' || status === 'Ready for Pickup') {
-        message = `"${foodTitle}" is ready for pickup! Check your claims for details.`;
+        message = t('notifications.readyForPickup', { foodTitle });
       }
 
       console.log('RECEIVER: Setting notification with message:', message);
-      showNotification('Claim Confirmed', message);
+      showNotification(t('notifications.claimConfirmed'), message);
     };
 
     const onClaimCancelled = payload => {
       console.log('RECEIVER: Claim cancellation received:', payload);
       const foodTitle = payload.surplusPostTitle || 'a food item';
-      const message = `Your claim on "${foodTitle}" has been cancelled`;
+      const message = t('notifications.claimCancelled', { foodTitle });
       console.log('RECEIVER: Setting notification with message:', message);
-      showNotification('Claim Status', message);
+      showNotification(t('notifications.claimStatus'), message);
     };
 
     const onNewPostNotification = payload => {
@@ -277,21 +279,21 @@ function ReceiverLayoutContent() {
             to="/receiver"
             className={`receiver-nav-link ${location.pathname === '/receiver' || location.pathname === '/receiver/browse' ? 'active' : ''}`}
           >
-            Donations
+            {t('receiverLayout.donations')}
           </Link>
 
           <Link
             to="/receiver/my-claims"
             className={`receiver-nav-link ${isActive('/receiver/my-claims') || isActive('/receiver/dashboard') ? 'active' : ''}`}
           >
-            My Claims
+            {t('receiverLayout.myClaims')}
           </Link>
 
           <Link
             to="/receiver/welcome"
             className={`receiver-nav-link ${location.pathname === '/receiver/welcome' ? 'active' : ''}`}
           >
-            Saved Donations
+            {t('receiverLayout.savedDonations')}
           </Link>
         </div>
 
@@ -314,7 +316,7 @@ function ReceiverLayoutContent() {
               type="button"
               aria-label="Account menu"
               onClick={toggleDropdown}
-              title="Account"
+              title={t('receiverLayout.account')}
             >
               <img src={profilePhotoUrl || ProfilePhoto} alt="Profile" />
             </button>
@@ -323,7 +325,7 @@ function ReceiverLayoutContent() {
           {showDropdown && (
             <div className="dropdown-menu dropdown-menu--card">
               <div className="dropdown-header">
-                Hello {organizationName || 'User'}!
+                {t('receiverLayout.hello', { name: organizationName || t('receiverLayout.user') })}
               </div>
               <div className="dropdown-divider"></div>
 
@@ -335,7 +337,7 @@ function ReceiverLayoutContent() {
                 }}
               >
                 <IconSettings size={18} />
-                <span>Settings</span>
+                <span>{t('receiverLayout.settings')}</span>
               </div>
 
               <div
@@ -346,7 +348,7 @@ function ReceiverLayoutContent() {
                 }}
               >
                 <IconUser size={18} />
-                <span>Preferences</span>
+                <span>{t('receiverLayout.preferences')}</span>
               </div>
 
               <div
@@ -357,7 +359,7 @@ function ReceiverLayoutContent() {
                 }}
               >
                 <IconHelpCircle size={18} />
-                <span>Help</span>
+                <span>{t('receiverLayout.help')}</span>
               </div>
 
               <div className="dropdown-divider"></div>
@@ -367,7 +369,7 @@ function ReceiverLayoutContent() {
                 onClick={handleLogout}
               >
                 <IconLogOut size={18} />
-                <span>Logout</span>
+                <span>{t('receiverLayout.logout')}</span>
               </div>
             </div>
           )}

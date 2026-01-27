@@ -113,16 +113,16 @@ class AuthServiceTest {
         when(userRepository.existsByEmail(anyString())).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
         when(jwtTokenProvider.generateToken(anyString(), anyString())).thenReturn("jwt-token");
-        
+
         User savedUser = new User();
         savedUser.setId(1L);
         savedUser.setEmail("donor@test.com");
         savedUser.setRole(UserRole.DONOR);
-        
+
         Organization savedOrg = new Organization();
         savedOrg.setId(1L);
         savedOrg.setName("Test Restaurant");
-        
+
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
         when(organizationRepository.save(any(Organization.class))).thenReturn(savedOrg);
         when(verificationTokenRepository.save(any(EmailVerificationToken.class))).thenReturn(new EmailVerificationToken());
@@ -135,7 +135,7 @@ class AuthServiceTest {
         assertNotNull(response);
         assertEquals("jwt-token", response.getToken());
         assertEquals("donor@test.com", response.getEmail());
-        
+
         verify(userRepository).existsByEmail("donor@test.com");
         verify(userRepository).save(any(User.class));
         verify(organizationRepository).save(any(Organization.class));
@@ -150,16 +150,16 @@ class AuthServiceTest {
         when(userRepository.existsByEmail(anyString())).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
         when(jwtTokenProvider.generateToken(anyString(), anyString())).thenReturn("jwt-token");
-        
+
         User savedUser = new User();
         savedUser.setId(1L);
         savedUser.setEmail("receiver@test.com");
         savedUser.setRole(UserRole.RECEIVER);
-        
+
         Organization savedOrg = new Organization();
         savedOrg.setId(1L);
         savedOrg.setName("Test Charity");
-        
+
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
         when(organizationRepository.save(any(Organization.class))).thenAnswer(invocation -> {
             Organization orgArg = invocation.getArgument(0);
@@ -198,7 +198,7 @@ class AuthServiceTest {
         assertThrows(RuntimeException.class, () -> {
             authService.registerDonor(donorRequest);
         });
-        
+
         verify(userRepository).existsByEmail("donor@test.com");
         verify(userRepository, never()).save(any(User.class));
     }
@@ -212,7 +212,7 @@ class AuthServiceTest {
         assertThrows(RuntimeException.class, () -> {
             authService.registerReceiver(receiverRequest);
         });
-        
+
         verify(userRepository).existsByEmail("receiver@test.com");
         verify(userRepository, never()).save(any(User.class));
     }
@@ -223,13 +223,13 @@ class AuthServiceTest {
     void login_ValidCredentials_Success() {
         // Given
         LoginRequest loginRequest = new LoginRequest("user@test.com", "password123");
-        
+
         User user = new User();
         user.setId(1L);
         user.setEmail("user@test.com");
         user.setPassword("encoded-password");
         user.setRole(UserRole.DONOR);
-        
+
         when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("password123", "encoded-password")).thenReturn(true);
         when(jwtTokenProvider.generateToken("user@test.com", "DONOR")).thenReturn("jwt-token");
@@ -243,7 +243,7 @@ class AuthServiceTest {
         assertEquals("user@test.com", response.getEmail());
         assertEquals("DONOR", response.getRole());
         assertEquals("Account logged in successfully.", response.getMessage());
-        
+
         verify(userRepository).findByEmail("user@test.com");
         verify(passwordEncoder).matches("password123", "encoded-password");
         verify(jwtTokenProvider).generateToken("user@test.com", "DONOR");
@@ -260,8 +260,8 @@ class AuthServiceTest {
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
             authService.login(loginRequest);
         });
-        
-        assertEquals("User not found", exception.getMessage());
+
+        assertEquals("error.auth.user_not_found", exception.getMessage());
         verify(userRepository).findByEmail("nonexistent@test.com");
         verify(passwordEncoder, never()).matches(anyString(), anyString());
         verify(jwtTokenProvider, never()).generateToken(anyString(), anyString());
@@ -272,13 +272,13 @@ class AuthServiceTest {
     void login_InvalidPassword_ThrowsException() {
         // Given
         LoginRequest loginRequest = new LoginRequest("user@test.com", "wrongpassword");
-        
+
         User user = new User();
         user.setId(1L);
         user.setEmail("user@test.com");
         user.setPassword("encoded-password");
         user.setRole(UserRole.DONOR);
-        
+
         when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("wrongpassword", "encoded-password")).thenReturn(false);
 
@@ -286,8 +286,8 @@ class AuthServiceTest {
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
             authService.login(loginRequest);
         });
-        
-        assertEquals("Invalid credentials", exception.getMessage());
+
+        assertEquals("error.auth.invalid_credentials", exception.getMessage());
         verify(userRepository).findByEmail("user@test.com");
         verify(passwordEncoder).matches("wrongpassword", "encoded-password");
         verify(jwtTokenProvider, never()).generateToken(anyString(), anyString());
@@ -298,13 +298,13 @@ class AuthServiceTest {
     void login_DonorRole_GeneratesCorrectToken() {
         // Given
         LoginRequest loginRequest = new LoginRequest("donor@test.com", "password123");
-        
+
         User donor = new User();
         donor.setId(1L);
         donor.setEmail("donor@test.com");
         donor.setPassword("encoded-password");
         donor.setRole(UserRole.DONOR);
-        
+
         when(userRepository.findByEmail("donor@test.com")).thenReturn(Optional.of(donor));
         when(passwordEncoder.matches("password123", "encoded-password")).thenReturn(true);
         when(jwtTokenProvider.generateToken("donor@test.com", "DONOR")).thenReturn("donor-jwt-token");
@@ -317,7 +317,7 @@ class AuthServiceTest {
         assertEquals("donor-jwt-token", response.getToken());
         assertEquals("donor@test.com", response.getEmail());
         assertEquals("DONOR", response.getRole());
-        
+
         verify(jwtTokenProvider).generateToken("donor@test.com", "DONOR");
         verify(metricsService).incrementLoginSuccess();
     }
@@ -326,13 +326,13 @@ class AuthServiceTest {
     void login_ReceiverRole_GeneratesCorrectToken() {
         // Given
         LoginRequest loginRequest = new LoginRequest("receiver@test.com", "password123");
-        
+
         User receiver = new User();
         receiver.setId(1L);
         receiver.setEmail("receiver@test.com");
         receiver.setPassword("encoded-password");
         receiver.setRole(UserRole.RECEIVER);
-        
+
         when(userRepository.findByEmail("receiver@test.com")).thenReturn(Optional.of(receiver));
         when(passwordEncoder.matches("password123", "encoded-password")).thenReturn(true);
         when(jwtTokenProvider.generateToken("receiver@test.com", "RECEIVER")).thenReturn("receiver-jwt-token");
@@ -345,7 +345,7 @@ class AuthServiceTest {
         assertEquals("receiver-jwt-token", response.getToken());
         assertEquals("receiver@test.com", response.getEmail());
         assertEquals("RECEIVER", response.getRole());
-        
+
         verify(jwtTokenProvider).generateToken("receiver@test.com", "RECEIVER");
         verify(metricsService).incrementLoginSuccess();
     }
@@ -357,7 +357,7 @@ class AuthServiceTest {
         user.setId(1L);
         user.setEmail("user@test.com");
         user.setPassword("encoded-old-password");
-        
+
         when(passwordEncoder.matches("oldPassword123", "encoded-old-password")).thenReturn(true);
         when(passwordEncoder.matches("newPassword123", "encoded-old-password")).thenReturn(false);
         when(passwordEncoder.encode("newPassword123")).thenReturn("encoded-new-password");
@@ -381,13 +381,13 @@ class AuthServiceTest {
         user.setId(1L);
         user.setEmail("user@test.com");
         user.setPassword("encoded-old-password");
-        
+
         when(passwordEncoder.matches("wrongPassword", "encoded-old-password")).thenReturn(false);
 
         // When & Then
-        RuntimeException ex = assertThrows(RuntimeException.class, 
-            () -> authService.changePassword(user, "wrongPassword", "newPassword123", "newPassword123"));
-        
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> authService.changePassword(user, "wrongPassword", "newPassword123", "newPassword123"));
+
         assertEquals("Incorrect current password", ex.getMessage());
         verify(userRepository, never()).save(any(User.class));
     }
@@ -399,13 +399,13 @@ class AuthServiceTest {
         user.setId(1L);
         user.setEmail("user@test.com");
         user.setPassword("encoded-password");
-        
+
         when(passwordEncoder.matches("samePassword123", "encoded-password")).thenReturn(true);
 
         // When & Then
-        RuntimeException ex = assertThrows(RuntimeException.class, 
-            () -> authService.changePassword(user, "samePassword123", "samePassword123", "samePassword123"));
-        
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> authService.changePassword(user, "samePassword123", "samePassword123", "samePassword123"));
+
         assertEquals("New password must be different from current password", ex.getMessage());
         verify(userRepository, never()).save(any(User.class));
     }
@@ -417,13 +417,13 @@ class AuthServiceTest {
         user.setId(1L);
         user.setEmail("user@test.com");
         user.setPassword("encoded-old-password");
-        
+
         when(passwordEncoder.matches("oldPassword123", "encoded-old-password")).thenReturn(true);
 
         // When & Then
-        RuntimeException ex = assertThrows(RuntimeException.class, 
-            () -> authService.changePassword(user, "oldPassword123", "newPassword123", "differentPassword123"));
-        
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> authService.changePassword(user, "oldPassword123", "newPassword123", "differentPassword123"));
+
         assertEquals("New password and confirmation do not match", ex.getMessage());
         verify(userRepository, never()).save(any(User.class));
     }

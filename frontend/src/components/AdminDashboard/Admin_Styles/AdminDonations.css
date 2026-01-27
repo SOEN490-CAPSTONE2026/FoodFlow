@@ -290,7 +290,7 @@
 
 .details-section h4 {
   font-weight: 600;
-  color: #1b4965;
+  color: #1B4965;
   font-size: 14px;
   margin: 0;
   text-align: left;
@@ -329,12 +329,7 @@
   position: relative;
   overflow-y: auto;
   overflow-x: hidden;
-  font-family:
-    'Poppins',
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    sans-serif;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 .donation-admin-modal-content::-webkit-scrollbar {
@@ -354,7 +349,7 @@
   background: white;
   border: none;
   font-size: 28px;
-  color: #1b4965;
+  color: #1B4965;
   cursor: pointer;
   width: 32px;
   height: 32px;
@@ -363,12 +358,7 @@
   justify-content: center;
   line-height: 1;
   transition: color 0.2s;
-  font-family:
-    'Poppins',
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    sans-serif;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   z-index: 11;
 }
 
@@ -397,7 +387,7 @@
 .donation-admin-modal-title {
   display: flex;
   align-items: center;
-  color: #1b4965;
+  color: #1B4965;
   font-size: 26px;
   font-weight: 600;
   margin: 0;
@@ -438,7 +428,7 @@
 }
 
 .donation-admin-info-card-header svg {
-  color: #62b6cb;
+  color: #62B6CB;
   flex-shrink: 0;
 }
 
@@ -446,7 +436,7 @@
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-  color: #1b4965;
+  color: #1B4965;
   flex: 1;
 }
 
@@ -519,7 +509,7 @@
 }
 
 .donation-admin-participant-header svg {
-  color: #62b6cb;
+  color: #62B6CB;
 }
 
 .donation-admin-participant-role {
@@ -540,7 +530,7 @@
 .donation-admin-participant-name {
   font-size: 16px;
   font-weight: 600;
-  color: #1b4965;
+  color: #1B4965;
   text-align: center;
 }
 
@@ -625,13 +615,12 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #62b6cb;
+  background: #62B6CB;
   border: 3px solid #ffffff;
   box-shadow: 0 0 0 2px #e5e7eb;
 }
 
-.donation-admin-timeline-item.donation-admin-only
-  .donation-admin-timeline-marker {
+.donation-admin-timeline-item.donation-admin-only .donation-admin-timeline-marker {
   background: #a855f7;
   box-shadow: 0 0 0 2px #f3e8ff;
 }
@@ -643,8 +632,7 @@
   border: 1px solid #e5e7eb;
 }
 
-.donation-admin-timeline-item.donation-admin-only
-  .donation-admin-timeline-content {
+.donation-admin-timeline-item.donation-admin-only .donation-admin-timeline-content {
   background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
   border-color: #e9d5ff;
 }
@@ -696,7 +684,7 @@
 }
 
 .donation-admin-old-status {
-  color: #62b6cb;
+  color: #62B6CB;
   font-weight: 600;
 }
 
@@ -706,7 +694,7 @@
 }
 
 .donation-admin-new-status {
-  color: #1b4965;
+  color: #1B4965;
   font-weight: 600;
 }
 
@@ -986,12 +974,7 @@
   text-align: center;
   color: #888;
   padding: 32px 0;
-  font-family:
-    'Poppins',
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    sans-serif;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 /* Modal Footer Navigation */
@@ -1009,7 +992,7 @@
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background: #62b6cb;
+  background: #62B6CB;
   color: white;
   border: none;
   border-radius: 6px;
@@ -1020,7 +1003,7 @@
 }
 
 .donation-admin-modal-nav-btn:hover {
-  background: #1b4965;
+  background: #1B4965;
 }
 
 /* Feedback Section Styles */
@@ -1032,7 +1015,7 @@
 .feedback-section h4 {
   font-size: 15px;
   font-weight: 600;
-  color: #1b4965;
+  color: #1B4965;
   margin-bottom: 12px;
 }
 

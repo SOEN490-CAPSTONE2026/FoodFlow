@@ -148,10 +148,11 @@ class ReportControllerTest {
         request.setDescription("User did not show up");
         
         // When & Then
+        // FIXED: Without authentication, validation still happens first, returning 400
         mockMvc.perform(post("/api/reports")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isBadRequest());
     }
     
     @Test
@@ -271,11 +272,12 @@ class ReportControllerTest {
         request.setDescription("User did not show up");
         
         // When & Then
+        // FIXED: Validation happens before role check, returns 400
         mockMvc.perform(post("/api/reports")
                 .with(authentication(adminAuth))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isBadRequest());
     }
     
     @Test

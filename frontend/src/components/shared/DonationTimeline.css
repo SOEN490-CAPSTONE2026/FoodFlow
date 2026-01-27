@@ -88,7 +88,7 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #62b6cb;
+  background: #62B6CB;
   border: 3px solid #ffffff;
   box-shadow: 0 0 0 2px #e5e7eb;
 }
@@ -162,7 +162,7 @@
 }
 
 .old-status {
-  color: #62b6cb;
+  color: #62B6CB;
   font-weight: 600;
 }
 
@@ -172,7 +172,7 @@
 }
 
 .new-status {
-  color: #1b4965;
+  color: #1B4965;
   font-weight: 600;
 }
 
@@ -222,6 +222,7 @@
     font-size: 12px;
   }
 }
+
 
 .status-arrow {
   color: #9ca3af;

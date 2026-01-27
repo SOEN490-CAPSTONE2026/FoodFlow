@@ -40,7 +40,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class SurplusServiceTest { 
+class SurplusServiceTest {
 
     @Mock
     private SurplusPostRepository surplusPostRepository;
@@ -50,7 +50,7 @@ class SurplusServiceTest {
 
     @Mock
     private PickupSlotValidationService pickupSlotValidationService;
-    
+
     @Mock
     private BusinessMetricsService businessMetricsService;
 
@@ -59,7 +59,7 @@ class SurplusServiceTest {
 
     @Mock
     private ExpiryCalculationService expiryCalculationService;
-    
+
     @Mock
     private TimelineService timelineService;
 
@@ -114,7 +114,7 @@ class SurplusServiceTest {
         request.setPickupTo(LocalTime.now().plusHours(5));
         request.setPickupLocation(new Location(45.2903, -34.0987, "123 Main St"));
         request.setDescription("Vegetarian lasagna");
-        
+
         // Add pickup slots for backward compatibility tests
         List<PickupSlotRequest> slots = new ArrayList<>();
         PickupSlotRequest slot = new PickupSlotRequest();
@@ -162,7 +162,6 @@ class SurplusServiceTest {
         verify(surplusPostRepository, times(1)).save(any(SurplusPost.class));
     }
 
-    
     @Test
     void testCreateSurplusPost_SetsCorrectDonor() {
         // Given
@@ -197,7 +196,6 @@ class SurplusServiceTest {
         assertThat(capturedPost.getPickupLocation()).isEqualTo(new Location(45.2903, -34.0987, "123 Main St"));
         assertThat(capturedPost.getDescription()).isEqualTo("Vegetarian lasagna");
     }
-
 
     @Test
     void testCreateSurplusPost_MapsAllFields() {
@@ -239,7 +237,8 @@ class SurplusServiceTest {
         assertThat(capturedPost.getDonor()).isEqualTo(donor);
     }
 
-    // ==================== Tests for completeSurplusPost - Story 8.1 ====================
+    // ==================== Tests for completeSurplusPost - Story 8.1
+    // ====================
 
     @Test
     void testCompleteSurplusPost_Success() {
@@ -281,8 +280,8 @@ class SurplusServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> surplusService.completeSurplusPost(999L, "123456", donor))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("Surplus post not found");
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Surplus post not found");
 
         verify(surplusPostRepository, never()).save(any(SurplusPost.class));
     }
@@ -305,8 +304,8 @@ class SurplusServiceTest {
 
         // When & Then - Try to complete with different donor
         assertThatThrownBy(() -> surplusService.completeSurplusPost(1L, "123456", otherDonor))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("not authorized");
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("not authorized");
 
         verify(surplusPostRepository, never()).save(any(SurplusPost.class));
     }
@@ -324,8 +323,8 @@ class SurplusServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> surplusService.completeSurplusPost(1L, "123456", donor))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("READY_FOR_PICKUP");
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("READY_FOR_PICKUP");
 
         verify(surplusPostRepository, never()).save(any(SurplusPost.class));
     }
@@ -343,8 +342,8 @@ class SurplusServiceTest {
 
         // When & Then - Try with wrong OTP
         assertThatThrownBy(() -> surplusService.completeSurplusPost(1L, "999999", donor))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("Invalid OTP code");
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("error.auth.invalid_credentials");
 
         verify(surplusPostRepository, never()).save(any(SurplusPost.class));
     }
@@ -362,8 +361,8 @@ class SurplusServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> surplusService.completeSurplusPost(1L, "123456", donor))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("Invalid OTP code");
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("error.auth.invalid_credentials");
 
         verify(surplusPostRepository, never()).save(any(SurplusPost.class));
     }
@@ -381,9 +380,9 @@ class SurplusServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> surplusService.completeSurplusPost(1L, "123456", donor))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("READY_FOR_PICKUP")
-            .hasMessageContaining("CLAIMED");
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("READY_FOR_PICKUP")
+                .hasMessageContaining("CLAIMED");
 
         verify(surplusPostRepository, never()).save(any(SurplusPost.class));
     }
@@ -401,14 +400,15 @@ class SurplusServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> surplusService.completeSurplusPost(1L, "123456", donor))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("READY_FOR_PICKUP")
-            .hasMessageContaining("COMPLETED");
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("READY_FOR_PICKUP")
+                .hasMessageContaining("COMPLETED");
 
         verify(surplusPostRepository, never()).save(any(SurplusPost.class));
     }
 
-    // ==================== Tests for getAllAvailableSurplusPosts ====================
+    // ==================== Tests for getAllAvailableSurplusPosts
+    // ====================
 
     @Test
     void testGetAllAvailableSurplusPosts_IncludesAvailableAndReadyForPickup() {
@@ -441,9 +441,9 @@ class SurplusServiceTest {
         readyPost.setPickupTo(LocalTime.of(18, 0));
 
         when(surplusPostRepository.findByStatusIn(any()))
-            .thenReturn(Arrays.asList(availablePost, readyPost));
+                .thenReturn(Arrays.asList(availablePost, readyPost));
         when(claimRepository.existsBySurplusPostIdAndStatus(anyLong(), any(ClaimStatus.class)))
-            .thenReturn(false);
+                .thenReturn(false);
 
         // When
         List<SurplusResponse> responses = surplusService.getAllAvailableSurplusPosts();
@@ -451,41 +451,41 @@ class SurplusServiceTest {
         // Then
         assertThat(responses).hasSize(2);
         assertThat(responses).extracting(SurplusResponse::getTitle)
-            .containsExactlyInAnyOrder("Available Food", "Ready Food");
+                .containsExactlyInAnyOrder("Available Food", "Ready Food");
         assertThat(responses).extracting(SurplusResponse::getStatus)
-            .containsExactlyInAnyOrder(PostStatus.AVAILABLE, PostStatus.READY_FOR_PICKUP);
+                .containsExactlyInAnyOrder(PostStatus.AVAILABLE, PostStatus.READY_FOR_PICKUP);
 
         // Verify the repository was called with correct statuses
         ArgumentCaptor<List<PostStatus>> statusCaptor = ArgumentCaptor.forClass(List.class);
         verify(surplusPostRepository).findByStatusIn(statusCaptor.capture());
         List<PostStatus> capturedStatuses = statusCaptor.getValue();
         assertThat(capturedStatuses).containsExactlyInAnyOrder(
-            PostStatus.AVAILABLE,
-            PostStatus.READY_FOR_PICKUP
-        );
+                PostStatus.AVAILABLE,
+                PostStatus.READY_FOR_PICKUP);
     }
 
-    // ==================== Tests for Multiple Pickup Slots Feature ====================
+    // ==================== Tests for Multiple Pickup Slots Feature
+    // ====================
 
     @Test
     void testCreateSurplusPost_WithMultiplePickupSlots_Success() {
         // Given - Request with multiple pickup slots
         List<PickupSlotRequest> slots = new ArrayList<>();
-        
+
         PickupSlotRequest slot1 = new PickupSlotRequest();
         slot1.setPickupDate(LocalDate.now().plusDays(1));
         slot1.setStartTime(LocalTime.of(9, 0));
         slot1.setEndTime(LocalTime.of(12, 0));
         slot1.setNotes("Morning slot");
         slots.add(slot1);
-        
+
         PickupSlotRequest slot2 = new PickupSlotRequest();
         slot2.setPickupDate(LocalDate.now().plusDays(1));
         slot2.setStartTime(LocalTime.of(14, 0));
         slot2.setEndTime(LocalTime.of(17, 0));
         slot2.setNotes("Afternoon slot");
         slots.add(slot2);
-        
+
         request.setPickupSlots(slots);
 
         SurplusPost savedPost = new SurplusPost();
@@ -495,7 +495,7 @@ class SurplusServiceTest {
         savedPost.setPickupDate(slot1.getPickupDate());
         savedPost.setPickupFrom(slot1.getStartTime());
         savedPost.setPickupTo(slot1.getEndTime());
-        
+
         doNothing().when(pickupSlotValidationService).validateSlots(slots);
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
 
@@ -512,7 +512,7 @@ class SurplusServiceTest {
     void testCreateSurplusPost_WithoutPickupSlots_UsesLegacyFields() {
         // Given - Request without pickup slots (backward compatibility)
         request.setPickupSlots(null);
-        
+
         SurplusPost savedPost = new SurplusPost();
         savedPost.setId(1L);
         savedPost.setDonor(donor);
@@ -531,7 +531,7 @@ class SurplusServiceTest {
         assertThat(response.getPickupDate()).isEqualTo(request.getPickupDate());
         assertThat(response.getPickupFrom()).isEqualTo(request.getPickupFrom());
         assertThat(response.getPickupTo()).isEqualTo(request.getPickupTo());
-        
+
         // Validation service should NOT be called since no slots provided
         verify(pickupSlotValidationService, never()).validateSlots(any());
         verify(surplusPostRepository, times(1)).save(any(SurplusPost.class));
@@ -541,26 +541,26 @@ class SurplusServiceTest {
     void testCreateSurplusPost_LegacyFieldsPopulatedFromFirstSlot() {
         // Given - Multiple slots, verify first slot populates legacy fields
         List<PickupSlotRequest> slots = new ArrayList<>();
-        
+
         PickupSlotRequest slot1 = new PickupSlotRequest();
         slot1.setPickupDate(LocalDate.now().plusDays(1));
         slot1.setStartTime(LocalTime.of(9, 0));
         slot1.setEndTime(LocalTime.of(12, 0));
         slots.add(slot1);
-        
+
         PickupSlotRequest slot2 = new PickupSlotRequest();
         slot2.setPickupDate(LocalDate.now().plusDays(2));
         slot2.setStartTime(LocalTime.of(14, 0));
         slot2.setEndTime(LocalTime.of(17, 0));
         slots.add(slot2);
-        
+
         request.setPickupSlots(slots);
 
         ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
         SurplusPost savedPost = new SurplusPost();
         savedPost.setId(1L);
         savedPost.setDonor(donor);
-        
+
         doNothing().when(pickupSlotValidationService).validateSlots(slots);
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
 
@@ -570,7 +570,7 @@ class SurplusServiceTest {
         // Then
         verify(surplusPostRepository).save(postCaptor.capture());
         SurplusPost capturedPost = postCaptor.getValue();
-        
+
         // Legacy fields should match first slot
         assertThat(capturedPost.getPickupDate()).isEqualTo(slot1.getPickupDate());
         assertThat(capturedPost.getPickupFrom()).isEqualTo(slot1.getStartTime());
@@ -581,7 +581,7 @@ class SurplusServiceTest {
     void testCreateSurplusPost_PickupSlotsCreatedWithCorrectOrder() {
         // Given
         List<PickupSlotRequest> slots = new ArrayList<>();
-        
+
         for (int i = 0; i < 3; i++) {
             PickupSlotRequest slot = new PickupSlotRequest();
             slot.setPickupDate(LocalDate.now().plusDays(1));
@@ -590,14 +590,14 @@ class SurplusServiceTest {
             slot.setNotes("Slot " + (i + 1));
             slots.add(slot);
         }
-        
+
         request.setPickupSlots(slots);
 
         ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
         SurplusPost savedPost = new SurplusPost();
         savedPost.setId(1L);
         savedPost.setDonor(donor); // FIXED: Add donor to avoid NullPointerException
-        
+
         doNothing().when(pickupSlotValidationService).validateSlots(slots);
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
 
@@ -607,9 +607,9 @@ class SurplusServiceTest {
         // Then
         verify(surplusPostRepository).save(postCaptor.capture());
         SurplusPost capturedPost = postCaptor.getValue();
-        
+
         assertThat(capturedPost.getPickupSlots()).hasSize(3);
-        
+
         // Verify slot order
         for (int i = 0; i < 3; i++) {
             PickupSlot slot = capturedPost.getPickupSlots().get(i);
@@ -636,9 +636,9 @@ class SurplusServiceTest {
 
         // Repository returns only posts with AVAILABLE or READY_FOR_PICKUP status
         when(surplusPostRepository.findByStatusIn(any()))
-            .thenReturn(Collections.singletonList(availablePost));
+                .thenReturn(Collections.singletonList(availablePost));
         when(claimRepository.existsBySurplusPostIdAndStatus(anyLong(), any(ClaimStatus.class)))
-            .thenReturn(false);
+                .thenReturn(false);
 
         // When
         List<SurplusResponse> responses = surplusService.getAllAvailableSurplusPosts();
@@ -652,11 +652,10 @@ class SurplusServiceTest {
         verify(surplusPostRepository).findByStatusIn(statusCaptor.capture());
         List<PostStatus> capturedStatuses = statusCaptor.getValue();
         assertThat(capturedStatuses).doesNotContain(
-            PostStatus.CLAIMED,
-            PostStatus.COMPLETED,
-            PostStatus.NOT_COMPLETED,
-            PostStatus.EXPIRED
-        );
+                PostStatus.CLAIMED,
+                PostStatus.COMPLETED,
+                PostStatus.NOT_COMPLETED,
+                PostStatus.EXPIRED);
     }
 
     // ==================== Tests for confirmPickup ====================
@@ -703,8 +702,8 @@ class SurplusServiceTest {
         assertThat(postCaptor.getValue().getStatus()).isEqualTo(PostStatus.COMPLETED);
         assertThat(postCaptor.getValue().getOtpCode()).isNull();
 
-        // Verify ClaimService.completeClaim was called
-        verify(claimService).completeClaim(claim.getId());
+        // Verify claim was completed via service
+        verify(claimService).completeClaim(1L);
     }
 
     @Test
@@ -714,8 +713,8 @@ class SurplusServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> surplusService.confirmPickup(999L, "123456", donor))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("Surplus post not found");
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Surplus post not found");
 
         verify(surplusPostRepository, never()).save(any(SurplusPost.class));
         verify(claimRepository, never()).save(any(com.example.foodflow.model.entity.Claim.class));
@@ -739,8 +738,8 @@ class SurplusServiceTest {
 
         // When & Then - Try to confirm with different donor
         assertThatThrownBy(() -> surplusService.confirmPickup(1L, "123456", otherDonor))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("not authorized");
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("not authorized");
 
         verify(surplusPostRepository, never()).save(any(SurplusPost.class));
         verify(claimRepository, never()).save(any(com.example.foodflow.model.entity.Claim.class));
@@ -759,8 +758,8 @@ class SurplusServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> surplusService.confirmPickup(1L, "123456", donor))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("No OTP is set");
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("No OTP is set");
 
         verify(surplusPostRepository, never()).save(any(SurplusPost.class));
         verify(claimRepository, never()).save(any(com.example.foodflow.model.entity.Claim.class));
@@ -779,8 +778,8 @@ class SurplusServiceTest {
 
         // When & Then - Try with wrong OTP
         assertThatThrownBy(() -> surplusService.confirmPickup(1L, "999999", donor))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("Invalid or expired OTP code");
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Invalid or expired OTP code");
 
         verify(surplusPostRepository, never()).save(any(SurplusPost.class));
         verify(claimRepository, never()).save(any(com.example.foodflow.model.entity.Claim.class));
@@ -799,8 +798,8 @@ class SurplusServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> surplusService.confirmPickup(1L, "123456", donor))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("not ready for pickup");
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("not ready for pickup");
 
         verify(surplusPostRepository, never()).save(any(SurplusPost.class));
         verify(claimRepository, never()).save(any(com.example.foodflow.model.entity.Claim.class));
@@ -820,8 +819,8 @@ class SurplusServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> surplusService.confirmPickup(1L, "123456", donor))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("No active claim found");
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("No active claim found");
 
         verify(surplusPostRepository, never()).save(any(SurplusPost.class));
         verify(claimRepository, never()).save(any(com.example.foodflow.model.entity.Claim.class));
@@ -840,14 +839,15 @@ class SurplusServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> surplusService.confirmPickup(1L, "123456", donor))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("not ready for pickup")
-            .hasMessageContaining("CLAIMED");
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("not ready for pickup")
+                .hasMessageContaining("CLAIMED");
 
         verify(surplusPostRepository, never()).save(any(SurplusPost.class));
     }
 
-    // ==================== Tests for NotificationService Integration ====================
+    // ==================== Tests for NotificationService Integration
+    // ====================
 
     @Test
     void testCreateSurplusPost_CallsNotificationService() {
@@ -894,7 +894,8 @@ class SurplusServiceTest {
 
         doNothing().when(pickupSlotValidationService).validateSlots(any());
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
-        doThrow(new RuntimeException("Notification failed")).when(notificationService).sendNewPostNotification(any(SurplusPost.class));
+        doThrow(new RuntimeException("Notification failed")).when(notificationService)
+                .sendNewPostNotification(any(SurplusPost.class));
 
         // When
         SurplusResponse response = surplusService.createSurplusPost(request, donor);
@@ -990,6 +991,9 @@ class SurplusServiceTest {
         ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
         verify(surplusPostRepository).save(postCaptor.capture());
         assertThat(postCaptor.getValue().getOtpCode()).isNull();
+
+        // Verify claim was completed via service
+        verify(claimService).completeClaim(1L);
     }
 
     // ==================== Tests for Fabrication Date Feature ====================
@@ -1125,8 +1129,8 @@ class SurplusServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> surplusService.createSurplusPost(requestWithFutureFabrication, donor))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Fabrication date cannot be in the future");
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Fabrication date cannot be in the future");
 
         verify(expiryCalculationService).isValidFabricationDate(LocalDate.now().plusDays(1));
     }
@@ -1158,8 +1162,8 @@ class SurplusServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> surplusService.createSurplusPost(requestWithInvalidExpiry, donor))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Expiry date must be after fabrication date");
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Expiry date must be after fabrication date");
 
         verify(expiryCalculationService).isValidFabricationDate(LocalDate.now());
         verify(expiryCalculationService).isValidExpiryDate(LocalDate.now(), LocalDate.now().minusDays(1));
@@ -1230,8 +1234,8 @@ class SurplusServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> surplusService.createSurplusPost(requestWithoutDates, donor))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Expiry date is required");
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Expiry date is required");
     }
 
     @Test
@@ -1374,8 +1378,7 @@ class SurplusServiceTest {
                 .thenReturn(Arrays.asList(timeline2, timeline1));
 
         // When
-        List<com.example.foodflow.model.dto.DonationTimelineDTO> result =
-                surplusService.getTimelineForPost(1L, donor);
+        List<com.example.foodflow.model.dto.DonationTimelineDTO> result = surplusService.getTimelineForPost(1L, donor);
 
         // Then
         assertThat(result).isNotNull();
@@ -1418,8 +1421,8 @@ class SurplusServiceTest {
                 .thenReturn(Collections.singletonList(timeline));
 
         // When
-        List<com.example.foodflow.model.dto.DonationTimelineDTO> result =
-                surplusService.getTimelineForPost(1L, receiver);
+        List<com.example.foodflow.model.dto.DonationTimelineDTO> result = surplusService.getTimelineForPost(1L,
+                receiver);
 
         // Then
         assertThat(result).isNotNull();
@@ -1463,8 +1466,8 @@ class SurplusServiceTest {
                 .thenReturn(Collections.singletonList(timeline));
 
         // When
-        List<com.example.foodflow.model.dto.DonationTimelineDTO> result =
-                surplusService.getTimelineForPost(1L, receiver);
+        List<com.example.foodflow.model.dto.DonationTimelineDTO> result = surplusService.getTimelineForPost(1L,
+                receiver);
 
         // Then
         assertThat(result).isNotNull();
@@ -1500,7 +1503,8 @@ class SurplusServiceTest {
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("not authorized to view this timeline");
 
-        verify(timelineRepository, never()).findBySurplusPostIdAndVisibleToUsersOrderByTimestampDesc(anyLong(), anyBoolean());
+        verify(timelineRepository, never()).findBySurplusPostIdAndVisibleToUsersOrderByTimestampDesc(anyLong(),
+                anyBoolean());
     }
 
     @Test
@@ -1513,7 +1517,8 @@ class SurplusServiceTest {
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("Surplus post not found");
 
-        verify(timelineRepository, never()).findBySurplusPostIdAndVisibleToUsersOrderByTimestampDesc(anyLong(), anyBoolean());
+        verify(timelineRepository, never()).findBySurplusPostIdAndVisibleToUsersOrderByTimestampDesc(anyLong(),
+                anyBoolean());
     }
 
     @Test
@@ -1530,8 +1535,7 @@ class SurplusServiceTest {
                 .thenReturn(Collections.emptyList());
 
         // When
-        List<com.example.foodflow.model.dto.DonationTimelineDTO> result =
-                surplusService.getTimelineForPost(1L, donor);
+        List<com.example.foodflow.model.dto.DonationTimelineDTO> result = surplusService.getTimelineForPost(1L, donor);
 
         // Then
         assertThat(result).isNotNull();
@@ -1563,8 +1567,7 @@ class SurplusServiceTest {
                 .thenReturn(Collections.singletonList(visibleEvent));
 
         // When
-        List<com.example.foodflow.model.dto.DonationTimelineDTO> result =
-                surplusService.getTimelineForPost(1L, donor);
+        List<com.example.foodflow.model.dto.DonationTimelineDTO> result = surplusService.getTimelineForPost(1L, donor);
 
         // Then
         assertThat(result).isNotNull();
@@ -1606,8 +1609,7 @@ class SurplusServiceTest {
                 .thenReturn(Collections.singletonList(timeline));
 
         // When
-        List<com.example.foodflow.model.dto.DonationTimelineDTO> result =
-                surplusService.getTimelineForPost(1L, donor);
+        List<com.example.foodflow.model.dto.DonationTimelineDTO> result = surplusService.getTimelineForPost(1L, donor);
 
         // Then
         assertThat(result).hasSize(1);
@@ -2105,4 +2107,3 @@ class SurplusServiceTest {
     }
 
 }
-

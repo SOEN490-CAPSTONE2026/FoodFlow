@@ -39,15 +39,13 @@
   justify-content: center;
   align-items: center;
   text-align: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .tile:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
 }
 
 .tile h3 {
@@ -70,32 +68,17 @@
   opacity: 0.9;
 }
 
-.tile.sky {
-  background: var(--sky);
-  color: #072b3a;
-}
-.tile.green {
-  background: var(--green);
-  color: white;
-}
-.tile.navy {
-  background: var(--navy);
-  color: white;
-}
-.tile.ice {
-  background: var(--ice);
-  color: #083041;
-}
-.tile.mint {
-  background: var(--mint);
-  color: #083041;
-}
+.tile.sky { background: var(--sky); color: #072b3a; }
+.tile.green { background: var(--green); color: white; }
+.tile.navy { background: var(--navy); color: white; }
+.tile.ice { background: var(--ice); color: #083041; }
+.tile.mint { background: var(--mint); color: #083041; }
 
 .card {
   background: white;
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   border: 1px solid #e2e8f0;
 }
 
@@ -244,126 +227,102 @@
     grid-template-rows: repeat(6, auto);
     height: auto;
   }
-
+  
   .tile {
     padding: 20px;
   }
-
+  
   .tile .big {
     font-size: 32px;
   }
-
+  
   .searchbar {
     flex-direction: column;
     align-items: stretch;
   }
-
+  
   .table {
     font-size: 12px;
   }
-
+  
   .table th,
   .table td {
     padding: 8px 12px;
   }
 }
 
-:root {
-  --navy: #1b4965;
-  --sky: #62b6cb;
-  --ice: #f1fafe;
-  --mint: #a7e7de;
-  --green: #3aa78a;
+:root{
+  --navy: #1B4965;   
+  --sky:  #62B6CB;  
+  --ice:  #F1FAFE;  
+  --mint: #A7E7DE;   
+  --green:#3AA78A;   
 }
 
-.tile {
-  box-shadow: 0 6px 20px rgba(27, 73, 101, 0.08);
+.tile{
+  box-shadow: 0 6px 20px rgba(27,73,101,0.08);
 }
 
-.tile.sky {
-  background: var(--sky);
-  color: #072b3a;
-}
-.tile.green {
-  background: var(--green);
-  color: #fff;
-}
-.tile.navy {
-  background: var(--navy);
-  color: #fff;
-}
-.tile.ice {
-  background: var(--ice);
-  color: #083041;
-}
-.tile.mint {
-  background: var(--mint);
-  color: #083041;
-}
+.tile.sky  { background: var(--sky);  color:#072b3a; }
+.tile.green{ background: var(--green); color:#fff; }
+.tile.navy { background: var(--navy);  color:#fff; }
+.tile.ice  { background: var(--ice);   color:#083041; }
+.tile.mint { background: var(--mint);  color:#083041; }
 
-.button {
+.button{
   background: linear-gradient(135deg, var(--green), #2d8f77);
-  color: #fff;
-  border: none;
+  color:#fff;
+  border:none;
 }
-.button:hover {
+.button:hover{
   background: linear-gradient(135deg, #2d8f77, var(--green));
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
 }
-.button:disabled {
-  background: #c6d3da;
-  box-shadow: none;
-  transform: none;
+.button:disabled{
+  background:#c6d3da;
+  box-shadow:none;
+  transform:none;
 }
 
-.button.secondary {
+.button.secondary{
   background: linear-gradient(135deg, var(--sky), #3a8fb9);
-  color: #fff;
+  color:#fff;
 }
-.button.secondary:hover {
+.button.secondary:hover{
   background: linear-gradient(135deg, #3a8fb9, var(--sky));
 }
-.button.ghost {
+.button.ghost{
   background: transparent;
   color: var(--navy);
-  border: 1px solid var(--navy);
+  border:1px solid var(--navy);
 }
-.button.ghost:hover {
+.button.ghost:hover{
   background: var(--navy);
-  color: #fff;
+  color:#fff;
 }
 
-.input:focus {
-  outline: none;
+.input:focus{
+  outline:none;
   border-color: var(--sky);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--sky) 25%, transparent);
 }
 
-.card {
-  box-shadow: 0 4px 12px rgba(27, 73, 101, 0.08);
-}
-.table th {
-  background: #f3f9fc;
-  color: var(--navy);
-}
+.card{ box-shadow: 0 4px 12px rgba(27,73,101,0.08); }
+.table th{ background: #F3F9FC; color: var(--navy); }
 
-.st-active {
+.st-active{
   background: color-mix(in srgb, var(--sky) 28%, white);
   color: #0f3547;
 }
-.st-claimed {
+.st-claimed{
   background: color-mix(in srgb, var(--green) 22%, white);
   color: #0f5132;
 }
-.st-closed {
-  background: #f8d7da;
+.st-closed{
+  background: #F8D7DA;
   color: #842029;
 }
 
-.help {
-  color: #5b7a91;
-}
-.row:hover {
-  background: #f3f9fc;
-}
+.help{ color:#5b7a91; }
+.row:hover{ background:#f3f9fc; }

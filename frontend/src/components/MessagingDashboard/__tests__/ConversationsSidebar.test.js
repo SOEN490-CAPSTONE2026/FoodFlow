@@ -49,9 +49,7 @@ describe('ConversationsSidebar', () => {
     );
 
     expect(screen.getByText('Messages')).toBeInTheDocument();
-    expect(
-      screen.getByText('Connect and coordinate here!')
-    ).toBeInTheDocument();
+    expect(screen.getByText('Connect and coordinate here!')).toBeInTheDocument();
   });
 
   test('renders empty state when no conversations', () => {
@@ -65,9 +63,7 @@ describe('ConversationsSidebar', () => {
     );
 
     expect(screen.getByText('No conversations yet')).toBeInTheDocument();
-    expect(
-      screen.getByText(/click \+ to start a new conversation/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/click \+ to start a new conversation/i)).toBeInTheDocument();
   });
 
   test('renders list of conversations', () => {
@@ -95,9 +91,7 @@ describe('ConversationsSidebar', () => {
       />
     );
 
-    const conversation = screen
-      .getByText('John Doe')
-      .closest('.conversation-item');
+    const conversation = screen.getByText('John Doe').closest('.conversation-item');
     fireEvent.click(conversation);
 
     expect(mockOnSelectConversation).toHaveBeenCalledWith(mockConversations[0]);
@@ -113,9 +107,7 @@ describe('ConversationsSidebar', () => {
       />
     );
 
-    const selectedConversation = screen
-      .getByText('John Doe')
-      .closest('.conversation-item');
+    const selectedConversation = screen.getByText('John Doe').closest('.conversation-item');
     expect(selectedConversation).toHaveClass('active');
   });
 
@@ -145,9 +137,7 @@ describe('ConversationsSidebar', () => {
       />
     );
 
-    const janeConversation = screen
-      .getByText('Jane Smith')
-      .closest('.conversation-item');
+    const janeConversation = screen.getByText('Jane Smith').closest('.conversation-item');
     const badge = janeConversation.querySelector('.unread-badge');
     expect(badge).not.toBeInTheDocument();
   });
@@ -268,7 +258,7 @@ describe('ConversationsSidebar', () => {
 
     const unreadTab = screen.getByText('Unread').closest('.filter-tab');
     const filterBadge = unreadTab.querySelector('.filter-badge');
-
+    
     // 2 conversations have unread messages (John and Bob)
     expect(filterBadge).toHaveTextContent('2');
   });
@@ -290,7 +280,7 @@ describe('ConversationsSidebar', () => {
 
     const unreadTab = screen.getByText('Unread').closest('.filter-tab');
     const filterBadge = unreadTab.querySelector('.filter-badge');
-
+    
     expect(filterBadge).not.toBeInTheDocument();
   });
 

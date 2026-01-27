@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
@@ -73,11 +74,7 @@ jest.mock('../components/DonorDashboard/SurplusFormModal', () => {
 
 jest.mock('../components/PrivateRoutes', () => {
   return function MockPrivateRoutes({ children, allowedRoles }) {
-    return (
-      <div data-testid={`private-route-${allowedRoles.join('-')}`}>
-        {children}
-      </div>
-    );
+    return <div data-testid={`private-route-${allowedRoles.join('-')}`}>{children}</div>;
   };
 });
 
@@ -159,7 +156,7 @@ describe('App', () => {
 
     test('redirects old admin dashboard path to new path', async () => {
       renderApp('/dashboard/admin');
-
+      
       await waitFor(() => {
         expect(window.location.pathname).toBe('/admin');
       });

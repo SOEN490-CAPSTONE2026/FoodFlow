@@ -45,6 +45,9 @@ class DisputeServiceTest {
     @Mock
     private SurplusPostRepository surplusPostRepository;
 
+    @Mock  
+    private BusinessMetricsService businessMetricsService;
+
     @InjectMocks
     private DisputeService disputeService;
 

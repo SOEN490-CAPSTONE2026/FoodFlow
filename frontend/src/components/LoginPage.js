@@ -1,6 +1,7 @@
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import '../style/LoginPage.css';
 import React, { useState, useContext, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { authAPI } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
 import { useAnalytics } from '../hooks/useAnalytics';
@@ -8,6 +9,7 @@ import { Eye, EyeOff } from 'lucide-react';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const location = useLocation();
   const { login } = useContext(AuthContext);
   const [email, setEmail] = useState('');
@@ -143,7 +145,7 @@ const LoginPage = () => {
                 onClick={() => navigate('/')}
                 aria-label="Go back to homepage"
               >
-                ← Back Home
+                {t('login.backHome')}
               </button>
               <h1 id="login-title" className="login-title">
                 Log in to your account
@@ -151,42 +153,18 @@ const LoginPage = () => {
 
               <form onSubmit={handleLogin} noValidate>
                 <div className="form-field">
-                  <label htmlFor="email" className="form-label">
-                    Email address
-                  </label>
-                  <input
-                    id="email"
-                    type="email"
-                    className="form-input"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    autoComplete="email"
-                    required
-                  />
+                  <label htmlFor="email" className="form-label">{t('login.emailLabel')}</label>
+                  <input id="email" type="email" className="form-input" placeholder={t('login.emailPlaceholder')} value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required />
                 </div>
 
                 <div className="form-field">
-                  <label htmlFor="password" className="form-label">
-                    Password
-                  </label>
+                  <label htmlFor="password" className="form-label">{t('login.passwordLabel')}</label>
                   <div className="password-wrapper">
-                    <input
-                      id="password"
-                      type={showPassword ? 'text' : 'password'}
-                      className="form-input"
-                      placeholder="Enter your password"
-                      value={password}
-                      onChange={e => setPassword(e.target.value)}
-                      autoComplete="current-password"
-                      required
-                    />
+                    <input id="password" type={showPassword ? 'text' : 'password'} className="form-input" placeholder={t('login.passwordPlaceholder')} value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" required />
                     <button
                       type="button"
                       className="password-toggle"
-                      aria-label={
-                        showPassword ? 'Hide password' : 'Show password'
-                      }
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
                       onClick={() => setShowPassword(prev => !prev)}
                     >
                       {showPassword ? (
@@ -197,7 +175,7 @@ const LoginPage = () => {
                     </button>
                   </div>
                   <div className="forgot-link">
-                    <Link to="/forgot-password">Forgot password?</Link>
+                    <Link to="/forgot-password">{t('login.forgotPassword')}</Link>
                   </div>
                 </div>
 
@@ -212,15 +190,10 @@ const LoginPage = () => {
                   disabled={loading}
                   onClick={() => trackButtonClick('login_submit', 'login_page')}
                 >
-                  {loading ? 'Logging in…' : 'LOG IN'}
+                  {loading ? t('login.loggingIn') : t('login.logIn')}
                 </button>
 
-                <p className="form-footer">
-                  Don't have an account?{' '}
-                  <Link to="/register" className="link-button">
-                    Sign up
-                  </Link>
-                </p>
+                <p className="form-footer">{t('login.dontHaveAccount')} <Link to="/register" className="link-button">{t('login.signUp')}</Link></p>
               </form>
             </div>
           </div>

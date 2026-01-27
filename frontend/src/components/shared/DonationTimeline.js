@@ -58,18 +58,18 @@ export default function DonationTimeline({
     }
     try {
       const date = new Date(timestamp);
-      return date.toLocaleString('en-US', {
-        month: 'numeric',
-        day: 'numeric',
-        year: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
+      return date.toLocaleString("en-US", {
+        month: "numeric",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
         hour12: true,
       });
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error formatting date:', error);
-      return '—';
+      return "—";
     }
   };
 
@@ -108,9 +108,7 @@ export default function DonationTimeline({
             </div>
             <div className="donation-timeline-meta">
               <span>{formatDate(event.timestamp)}</span>
-              <span className="donation-timeline-actor">
-                Actor: {event.actor}
-              </span>
+              <span className="donation-timeline-actor">Actor: {event.actor}</span>
               {showAdminBadges && event.visibleToUsers === false && (
                 <span className="admin-only-badge">
                   <ShieldAlert size={14} />

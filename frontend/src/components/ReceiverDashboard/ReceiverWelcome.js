@@ -1,7 +1,10 @@
-import React, { useEffect, useRef } from 'react';
-import './Receiver_Styles/ReceiverWelcome.css';
+import React, { useEffect, useRef } from "react";
+import { useTranslation } from 'react-i18next';
+import "./Receiver_Styles/ReceiverWelcome.css";
+
 
 export default function ReceiverWelcome() {
+  const { t } = useTranslation();
   const headerRef = useRef(null);
   const noticeRef = useRef(null);
   const sectionRefs = useRef([]);
@@ -39,48 +42,41 @@ export default function ReceiverWelcome() {
     <div className="receiver-welcome">
       {/* Header */}
       <div ref={headerRef} className="rw-header animate-on-scroll">
-        <h1>Find Food Near You</h1>
+        <h1>{t('receiverWelcome.title')}</h1>
         <p>
-          We help organizations connect with available food—quickly and
-          reliably. Start with the map to see nearby donations and request what
-          you need today.
+          {t('receiverWelcome.subtitle')}
         </p>
       </div>
 
       {/* Notice */}
       <div ref={noticeRef} className="rw-notice animate-on-scroll">
-        <p>Tip: Set your pickup hours and capacity to get matched faster.</p>
+        <p>{t('receiverWelcome.tip')}</p>
       </div>
 
       {/* Content */}
       <div className="rw-content">
         <div ref={addToRefs} className="rw-section animate-on-scroll">
           <div className="rw-icon">🗺️</div>
-          <h2>Search the map</h2>
+          <h2>{t('receiverWelcome.searchMap.title')}</h2>
           <p>
-            Browse current listings and filter by category or expiry to quickly
-            find the items your organization needs.
+            {t('receiverWelcome.searchMap.description')}
           </p>
 
           <a href="/receiver/search#org-search" className="rw-btn primary">
-            Open map & search
+            {t('receiverWelcome.searchMap.button')}
           </a>
         </div>
 
         <div ref={addToRefs} className="rw-section animate-on-scroll">
           <div className="rw-icon">📩</div>
-          <h2>Need assistance?</h2>
+          <h2>{t('receiverWelcome.needAssistance.title')}</h2>
           <p>
-            Email us at{' '}
-            <a href="mailto:foodflow.group@gmail.com">
-              foodflow.group@gmail.com
-            </a>{' '}
-            and we’ll help you coordinate a pickup.
+            {t('receiverWelcome.needAssistance.description').replace('{{email}}', '')}{' '}
+            <a href="mailto:foodflow.group@gmail.com">foodflow.group@gmail.com</a>
+            {' '}and we'll help you coordinate a pickup.
           </p>
-          <p className="rw-small">New here? Read common questions.</p>
-          <a href="/receiver/faq" className="rw-btn secondary">
-            View FAQs
-          </a>
+          <p className="rw-small">{t('receiverWelcome.needAssistance.newHere')}</p>
+          <a href="/receiver/faq" className="rw-btn secondary">{t('receiverWelcome.needAssistance.button')}</a>
         </div>
       </div>
     </div>

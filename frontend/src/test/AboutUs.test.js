@@ -7,21 +7,19 @@ const mockIntersectionObserver = jest.fn();
 let observerCallback;
 
 beforeEach(() => {
-  mockIntersectionObserver.mockImplementation(callback => {
+  mockIntersectionObserver.mockImplementation((callback) => {
     observerCallback = callback;
     return {
-      observe: jest.fn(element => {
+      observe: jest.fn((element) => {
         // Simulate intersection immediately
         setTimeout(() => {
-          callback([
-            {
-              isIntersecting: true,
-              target: element,
-              classList: {
-                add: jest.fn(),
-              },
-            },
-          ]);
+          callback([{ 
+            isIntersecting: true, 
+            target: element,
+            classList: {
+              add: jest.fn()
+            }
+          }]);
         }, 0);
       }),
       unobserve: jest.fn(),
@@ -50,15 +48,15 @@ describe('AboutUs Component', () => {
 
   test('carousel navigation works', () => {
     render(<AboutUs />);
-
+    
     // Test next button
     const nextButton = screen.getByLabelText('Next slide');
     fireEvent.click(nextButton);
-
+    
     // Test previous button
     const prevButton = screen.getByLabelText('Previous slide');
     fireEvent.click(prevButton);
-
+    
     // Test dot navigation
     const dots = screen.getAllByRole('button', { name: /go to slide/i });
     fireEvent.click(dots[1]); //Press the second dot
@@ -66,22 +64,16 @@ describe('AboutUs Component', () => {
 
   test('renders carousel content correctly', () => {
     render(<AboutUs />);
-
+    
     // Check for card content
-    expect(
-      screen.getByText(/thorough verification and background checks/i)
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/Instant alerts when food donations become available/i)
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/intelligent algorithm matches food type/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/thorough verification and background checks/i)).toBeInTheDocument();
+    expect(screen.getByText(/Instant alerts when food donations become available/i)).toBeInTheDocument();
+    expect(screen.getByText(/intelligent algorithm matches food type/i)).toBeInTheDocument();
   });
 
   test('renders all carousel dots', () => {
     render(<AboutUs />);
     const dots = screen.getAllByRole('button', { name: /go to slide/i });
-    expect(dots).toHaveLength(3);
+    expect(dots).toHaveLength(3); 
   });
 });

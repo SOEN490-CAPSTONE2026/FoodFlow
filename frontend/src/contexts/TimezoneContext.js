@@ -24,26 +24,19 @@ export const TimezoneProvider = ({ children }) => {
     try {
       const response = await api.get('/profile/region');
       console.log('[TimezoneContext] API response:', response.data);
-
+      
       if (response.data && response.data.timezone) {
-        console.log(
-          '[TimezoneContext] Setting timezone to:',
-          response.data.timezone
-        );
+        console.log('[TimezoneContext] Setting timezone to:', response.data.timezone);
         setUserTimezone(response.data.timezone);
       } else {
-        console.log(
-          '[TimezoneContext] No timezone in response, using browser timezone'
-        );
-        const browserTz =
-          Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+        console.log('[TimezoneContext] No timezone in response, using browser timezone');
+        const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
         console.log('[TimezoneContext] Browser timezone:', browserTz);
         setUserTimezone(browserTz);
       }
     } catch (error) {
       console.error('[TimezoneContext] Error fetching user timezone:', error);
-      const browserTz =
-        Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+      const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
       console.log('[TimezoneContext] Fallback to browser timezone:', browserTz);
       setUserTimezone(browserTz);
     } finally {
@@ -51,7 +44,7 @@ export const TimezoneProvider = ({ children }) => {
     }
   };
 
-  const updateTimezone = newTimezone => {
+  const updateTimezone = (newTimezone) => {
     setUserTimezone(newTimezone);
   };
 
@@ -59,7 +52,7 @@ export const TimezoneProvider = ({ children }) => {
     userTimezone,
     isLoading,
     updateTimezone,
-    refreshTimezone: fetchUserTimezone,
+    refreshTimezone: fetchUserTimezone
   };
 
   return (

@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import HomeIllustration from '../../assets/illustrations/home-illustration.jpg';
-import backgroundVideo from '../../assets/LandingPage_VIDEO.mp4';
+import backgroundVideo from "../../assets/LandingPage_VIDEO.mp4"; 
 import '../LandingPage/style/Home.css';
 
 const Home = () => {
-  const navigate = useNavigate();
-  const [line1Completed, setLine1Completed] = useState(false);
-  const [line2Completed, setLine2Completed] = useState(false);
-  const [showReceiver, setShowReceiver] = useState(false);
+    const navigate = useNavigate();
+    const { t } = useTranslation();
+    const [line1Completed, setLine1Completed] = useState(false);
+    const [line2Completed, setLine2Completed] = useState(false);
+    const [showReceiver, setShowReceiver] = useState(false);
 
   useEffect(() => {
     const timer1 = setTimeout(() => {
@@ -40,49 +42,45 @@ const Home = () => {
       <div className="floating-element"></div>
       <div className="floating-element"></div>
 
-      <div className="home-content">
-        {!showReceiver ? (
-          <div className="home-title">
-            <h1>
-              <span
-                className={`typewriter-text typewriter-line-1 ${line1Completed ? 'completed' : ''}`}
-              >
-                Connect surplus with
-              </span>
-            </h1>
-            <span className="gradient-text">
-              <span
-                className={`typewriter-text typewriter-line-2 ${line2Completed ? 'completed' : ''}`}
-              >
-                those in need
-              </span>
-            </span>
-          </div>
-        ) : (
-          <div className="home-title receiver-title">
-            <h1>
-              <span className="typewriter-text typewriter-line-3">
-                Receive quality food
-              </span>
-            </h1>
-            <span className="gradient-text">
-              <span className="typewriter-text typewriter-line-4">
-                for your community
-              </span>
-            </span>
-          </div>
-        )}
-
-        <div className="home-description">
-          <p>
-            Connecting food businesses with community organizations. Turn
-            surplus into impact—whether it's event leftovers, restaurant excess,
-            or grocery overstock.
-          </p>
-          <button onClick={() => navigate('/register')}>Join Us Now</button>
+            <div className="home-content">
+                {!showReceiver ? (
+                    <div className="home-title">
+                        <h1>
+                            <span
+                                className={`typewriter-text typewriter-line-1 ${line1Completed ? 'completed' : ''}`}
+                            >
+                                {t('landing.home.title1')}
+                            </span>
+                        </h1>
+                        <span className="gradient-text">
+                            <span
+                                className={`typewriter-text typewriter-line-2 ${line2Completed ? 'completed' : ''}`}
+                            >
+                                {t('landing.home.title2')}
+                            </span>
+                        </span>
+                    </div>
+                ) : (
+                    <div className="home-title receiver-title">
+                        <h1>
+                            <span className="typewriter-text typewriter-line-3">
+                                {t('landing.home.title3')}
+                            </span>
+                        </h1>
+                        <span className="gradient-text">
+                            <span className="typewriter-text typewriter-line-4">
+                                {t('landing.home.title4')}
+                            </span>
+                        </span>
+                    </div>
+                )}
+                
+                <div className="home-description">
+                    <p>{t('landing.home.description')}</p>
+                    <button onClick={() => navigate('/register')}>{t('landing.home.joinUs')}</button>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
   );
 };
 export default Home;

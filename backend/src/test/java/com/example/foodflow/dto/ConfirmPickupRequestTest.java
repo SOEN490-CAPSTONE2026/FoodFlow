@@ -64,7 +64,7 @@ class ConfirmPickupRequestTest {
         assertThat(violations).hasSize(1);
         ConstraintViolation<ConfirmPickupRequest> violation = violations.iterator().next();
         assertThat(violation.getPropertyPath().toString()).isEqualTo("otpCode");
-        assertThat(violation.getMessage()).contains("must not be blank");
+        assertThat(violation.getMessage()).contains("validation.otpCode.required");
     }
 
     @Test
@@ -81,7 +81,7 @@ class ConfirmPickupRequestTest {
         assertThat(violations).hasSize(1);
         ConstraintViolation<ConfirmPickupRequest> violation = violations.iterator().next();
         assertThat(violation.getPropertyPath().toString()).isEqualTo("otpCode");
-        assertThat(violation.getMessage()).contains("must not be blank");
+        assertThat(violation.getMessage()).contains("validation.otpCode.required");
     }
 
     @Test
@@ -98,14 +98,14 @@ class ConfirmPickupRequestTest {
         assertThat(violations).hasSize(1);
         ConstraintViolation<ConfirmPickupRequest> violation = violations.iterator().next();
         assertThat(violation.getPropertyPath().toString()).isEqualTo("otpCode");
-        assertThat(violation.getMessage()).contains("must not be blank");
+        assertThat(violation.getMessage()).contains("validation.otpCode.required");
     }
 
     @Test
     void testGettersAndSetters() {
         // Given
         ConfirmPickupRequest request = new ConfirmPickupRequest();
-        
+
         // When
         request.setPostId(123L);
         request.setOtpCode("654321");
@@ -118,15 +118,15 @@ class ConfirmPickupRequestTest {
     @Test
     void testValidOtpCodeFormats() {
         // Test various valid OTP formats
-        String[] validOtps = {"000000", "123456", "999999", "abc123", "A1B2C3"};
-        
+        String[] validOtps = { "000000", "123456", "999999", "abc123", "A1B2C3" };
+
         for (String otp : validOtps) {
             ConfirmPickupRequest request = new ConfirmPickupRequest();
             request.setPostId(1L);
             request.setOtpCode(otp);
 
             Set<ConstraintViolation<ConfirmPickupRequest>> violations = validator.validate(request);
-            
+
             assertThat(violations).isEmpty();
         }
     }

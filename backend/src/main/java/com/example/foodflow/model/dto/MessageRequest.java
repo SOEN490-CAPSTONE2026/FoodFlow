@@ -5,10 +5,10 @@ import jakarta.validation.constraints.NotNull;
 
 public class MessageRequest {
     
-    @NotNull(message = "Conversation ID is required")
+    @NotNull(message = "{validation.conversationId.required}")
     private Long conversationId;
     
-    @NotBlank(message = "Message body cannot be empty")
+    @NotBlank(message = "{validation.messageBody.required}")
     private String messageBody;
     
     // Constructors

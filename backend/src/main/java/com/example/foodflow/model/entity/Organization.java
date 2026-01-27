@@ -21,16 +21,16 @@ public class Organization {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @NotBlank
+    @NotBlank(message = "{validation.organizationName.required}")
     private String name;
 
-    @NotBlank
+    @NotBlank(message = "{validation.contactPerson.required}")
     private String contactPerson;
 
-    @NotBlank
+    @NotBlank(message = "{validation.phone.required}")
     private String phone;
 
-    @NotBlank
+    @NotBlank(message = "{validation.address.required}")
     private String address;
 
     @Enumerated(EnumType.STRING)

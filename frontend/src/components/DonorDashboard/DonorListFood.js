@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from "react-router-dom";
 import {
   Calendar,
   Clock,
@@ -199,6 +200,7 @@ const getEvidenceImageUrl = url => {
 };
 
 export default function DonorListFood() {
+  const { t } = useTranslation();
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
     libraries: libraries,
@@ -279,7 +281,7 @@ export default function DonorListFood() {
       ).catch(err => console.error('Error loading evidence photos:', err));
     } catch (err) {
       const errorMessage =
-        err.response?.data?.message || err.message || 'Failed to fetch posts';
+        err.response?.data?.message || err.message || t('donorListFood.failedToFetch');
       setError(`Error: ${errorMessage}`);
       setLoading(false);
     }
@@ -439,26 +441,27 @@ export default function DonorListFood() {
     setIsSortDropdownOpen(false);
   };
 
-  async function requestDelete(id) {
-    console.log('DELETE CLICKED for ID =', id);
-    const confirmDelete = window.confirm(
-      'Are you sure you want to delete this post?'
-    );
-    if (!confirmDelete) {
-      return;
-    }
+ async function requestDelete(id) {
+  console.log("DELETE CLICKED for ID =", id); 
+  const confirmDelete = window.confirm(
+    t('donorListFood.confirmDelete')
+  );
+  if (!confirmDelete) return;
 
     try {
       await surplusAPI.deletePost(id);
       setItems(prev => prev.filter(item => item.id !== id));
 
-      alert('Post deleted successfully.');
-    } catch (err) {
-      alert(err.response?.data?.message || 'Failed to delete post.');
-    }
+    alert(t('donorListFood.postDeletedSuccess'));
+  } catch (err) {
+    alert(err.response?.data?.message || t('donorListFood.postDeleteFailed'));
   }
+}
 
   function openEdit(item) {
+    alert(
+      t('donorListFood.editFunctionality', { title: item.title })
+    );
     setEditPostId(item.id);
     setIsEditMode(true);
     setIsModalOpen(true);
@@ -692,7 +695,7 @@ export default function DonorListFood() {
       <div className="donor-list-wrapper">
         <div className="loading-state">
           <Package className="loading-icon" size={48} />
-          <h3>Loading your donations...</h3>
+          <h3>{t('donorListFood.loading')}</h3>
         </div>
       </div>
     );
@@ -719,7 +722,7 @@ export default function DonorListFood() {
               onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
             >
               <span className="sort-label">
-                {sortBy === 'date' ? 'Sort by Date' : 'Sort by Status'}
+                {sortBy === "date" ? t('donorListFood.sortByDate') : t('donorListFood.sortByStatus')}
               </span>
               <ChevronDown
                 size={18}
@@ -733,13 +736,13 @@ export default function DonorListFood() {
                   className={`sort-option ${sortBy === 'date' ? 'active' : ''}`}
                   onClick={() => handleSortChange('date')}
                 >
-                  Sort by Date
+                  {t('donorListFood.sortByDate')}
                 </button>
                 <button
                   className={`sort-option ${sortBy === 'status' ? 'active' : ''}`}
                   onClick={() => handleSortChange('status')}
                 >
-                  Sort by Status
+                  {t('donorListFood.sortByStatus')}
                 </button>
               </div>
             )}
@@ -754,7 +757,7 @@ export default function DonorListFood() {
             setIsModalOpen(true);
           }}
         >
-          + Donate More
+          + {t('donorListFood.donateMore')}
         </button>
         {isLoaded && (
           <SurplusFormModal
@@ -769,10 +772,9 @@ export default function DonorListFood() {
       {items.length === 0 ? (
         <div className="empty-state">
           <Package className="empty-state-icon" size={64} />
-          <h3 className="empty-state-title">You haven't posted anything yet</h3>
+          <h3 className="empty-state-title">{t('donorListFood.emptyStateTitle')}</h3>
           <p className="empty-state-description">
-            Create your first donation post to start helping your community
-            reduce food waste.
+            {t('donorListFood.emptyStateDescription')}
           </p>
         </div>
       ) : (

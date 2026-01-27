@@ -18,15 +18,14 @@ const LandingPage = () => {
         if (element) {
           const navbarHeight = 80;
           const elementPosition = element.getBoundingClientRect().top;
-          const offsetPosition =
-            elementPosition + window.pageYOffset - navbarHeight;
+          const offsetPosition = elementPosition + window.pageYOffset - navbarHeight;
 
           window.scrollTo({
             top: offsetPosition,
-            behavior: 'smooth',
+            behavior: 'smooth'
           });
         }
-      }, 300);
+      }, 300); 
     }
   }, [location]);
 

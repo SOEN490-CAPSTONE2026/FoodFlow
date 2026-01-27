@@ -1,5 +1,6 @@
 package com.example.foodflow.service;
 
+import com.example.foodflow.exception.BusinessException;
 import com.example.foodflow.helpers.ArrayFilter;
 import com.example.foodflow.helpers.BasicFilter;
 import com.example.foodflow.helpers.LocationFilter;
@@ -805,7 +806,7 @@ public class SurplusService {
         }
 
         if (post.getOtpCode() == null || !post.getOtpCode().equals(otpCode)) {
-            throw new RuntimeException("Invalid OTP code");
+            throw new BusinessException("error.auth.invalid_credentials");
         }
 
         post.setStatus(PostStatus.COMPLETED);

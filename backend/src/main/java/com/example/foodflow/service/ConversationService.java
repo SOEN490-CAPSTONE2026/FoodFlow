@@ -1,4 +1,6 @@
 package com.example.foodflow.service;
+
+import com.example.foodflow.exception.BusinessException;
 import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.repository.SurplusPostRepository;
 import com.example.foodflow.model.dto.ConversationResponse;
@@ -70,7 +72,7 @@ public class ConversationService {
         
         // Prevent self-conversation
         if (currentUser.getId().equals(recipient.getId())) {
-            throw new IllegalArgumentException("Cannot start conversation with yourself");
+            throw new BusinessException("error.conversation.self_conversation");
         }
         
         // Check if conversation already exists
@@ -119,7 +121,7 @@ public class ConversationService {
         
         // Validate user is a participant
         if (!conversation.isParticipant(currentUser.getId())) {
-            throw new IllegalArgumentException("You are not a participant in this conversation");
+            throw new BusinessException("error.conversation.not_participant");
         }
         
         return conversation;

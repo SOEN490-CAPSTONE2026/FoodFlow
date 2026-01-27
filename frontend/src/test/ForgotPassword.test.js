@@ -9,14 +9,14 @@ import { signInWithPhoneNumber } from 'firebase/auth';
 // Mock API and Firebase
 jest.mock('../services/api');
 jest.mock('../services/firebase', () => ({
-  auth: {},
+  auth: {}
 }));
 jest.mock('firebase/auth', () => ({
   signInWithPhoneNumber: jest.fn(),
-  RecaptchaVerifier: jest.fn().mockImplementation(() => ({})),
+  RecaptchaVerifier: jest.fn().mockImplementation(() => ({}))
 }));
 
-const renderWithRouter = ui => render(<BrowserRouter>{ui}</BrowserRouter>);
+const renderWithRouter = (ui) => render(<BrowserRouter>{ui}</BrowserRouter>);
 
 describe('ForgotPassword - Method Selection', () => {
   beforeEach(() => {
@@ -81,9 +81,7 @@ describe('ForgotPassword - Email Validation', () => {
     const submitButton = screen.getByRole('button', { name: /send code/i });
     await user.click(submitButton);
 
-    expect(
-      await screen.findByText(/please enter your email address/i)
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/please enter your email address/i)).toBeInTheDocument();
   });
 
   test('shows error for invalid email format', async () => {
@@ -97,16 +95,12 @@ describe('ForgotPassword - Email Validation', () => {
     const submitButton = screen.getByRole('button', { name: /send code/i });
     await user.click(submitButton);
 
-    expect(
-      await screen.findByText(/please enter a valid email address/i)
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/please enter a valid email address/i)).toBeInTheDocument();
   });
 
   test('successfully sends email when valid', async () => {
-    authAPI.forgotPassword = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Success' } });
-
+    authAPI.forgotPassword = jest.fn().mockResolvedValue({ data: { message: 'Success' } });
+    
     renderWithRouter(<ForgotPassword />);
     const user = userEvent.setup();
 
@@ -120,16 +114,16 @@ describe('ForgotPassword - Email Validation', () => {
     await waitFor(() => {
       expect(authAPI.forgotPassword).toHaveBeenCalledWith({
         email: 'test@example.com',
-        method: 'email',
+        method: 'email'
       });
     });
   });
 
   test('shows error when email does not exist in database', async () => {
     authAPI.forgotPassword = jest.fn().mockRejectedValue({
-      response: { data: { message: 'User not found' } },
+      response: { data: { message: 'User not found' } }
     });
-
+    
     renderWithRouter(<ForgotPassword />);
     const user = userEvent.setup();
 
@@ -157,9 +151,7 @@ describe('ForgotPassword - Phone Validation', () => {
     const submitButton = screen.getByRole('button', { name: /send code/i });
     await user.click(submitButton);
 
-    expect(
-      await screen.findByText(/please enter your phone number/i)
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/please enter your phone number/i)).toBeInTheDocument();
   });
 });
 
@@ -175,10 +167,8 @@ describe('ForgotPassword - Code Entry', () => {
   });
 
   test('shows 6 code input fields after email submission', async () => {
-    authAPI.forgotPassword = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Success' } });
-
+    authAPI.forgotPassword = jest.fn().mockResolvedValue({ data: { message: 'Success' } });
+    
     renderWithRouter(<ForgotPassword />);
     const user = userEvent.setup({ delay: null });
 
@@ -196,10 +186,8 @@ describe('ForgotPassword - Code Entry', () => {
   });
 
   test('shows timer countdown for email (60 seconds)', async () => {
-    authAPI.forgotPassword = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Success' } });
-
+    authAPI.forgotPassword = jest.fn().mockResolvedValue({ data: { message: 'Success' } });
+    
     renderWithRouter(<ForgotPassword />);
     const user = userEvent.setup({ delay: null });
 
@@ -217,10 +205,8 @@ describe('ForgotPassword - Code Entry', () => {
   });
 
   test('auto-focuses next input when entering digit', async () => {
-    authAPI.forgotPassword = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Success' } });
-
+    authAPI.forgotPassword = jest.fn().mockResolvedValue({ data: { message: 'Success' } });
+    
     renderWithRouter(<ForgotPassword />);
     const user = userEvent.setup({ delay: null });
 
@@ -251,13 +237,11 @@ describe('ForgotPassword - Code Verification', () => {
   });
 
   test('shows error when incorrect email code is entered', async () => {
-    authAPI.forgotPassword = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Success' } });
+    authAPI.forgotPassword = jest.fn().mockResolvedValue({ data: { message: 'Success' } });
     authAPI.verifyResetCode = jest.fn().mockRejectedValue({
-      response: { data: { message: 'Invalid reset code' } },
+      response: { data: { message: 'Invalid reset code' } }
     });
-
+    
     renderWithRouter(<ForgotPassword />);
     const user = userEvent.setup({ delay: null });
 
@@ -280,20 +264,14 @@ describe('ForgotPassword - Code Verification', () => {
     }
 
     await waitFor(() => {
-      expect(
-        screen.getByText(/the code you submitted is incorrect/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/the code you submitted is incorrect/i)).toBeInTheDocument();
     });
   });
 
   test('shows password form when correct email code is entered', async () => {
-    authAPI.forgotPassword = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Success' } });
-    authAPI.verifyResetCode = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Code verified' } });
-
+    authAPI.forgotPassword = jest.fn().mockResolvedValue({ data: { message: 'Success' } });
+    authAPI.verifyResetCode = jest.fn().mockResolvedValue({ data: { message: 'Code verified' } });
+    
     renderWithRouter(<ForgotPassword />);
     const user = userEvent.setup({ delay: null });
 
@@ -317,20 +295,16 @@ describe('ForgotPassword - Code Verification', () => {
 
     await waitFor(() => {
       expect(screen.getByPlaceholderText('New Password')).toBeInTheDocument();
-      expect(
-        screen.getByPlaceholderText('Confirm New Password')
-      ).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('Confirm New Password')).toBeInTheDocument();
     });
   });
 
   test('shows error when SMS code is incorrect', async () => {
     const mockConfirmationResult = {
-      confirm: jest
-        .fn()
-        .mockRejectedValue({ code: 'auth/invalid-verification-code' }),
+      confirm: jest.fn().mockRejectedValue({ code: 'auth/invalid-verification-code' })
     };
     signInWithPhoneNumber.mockResolvedValue(mockConfirmationResult);
-
+    
     renderWithRouter(<ForgotPassword />);
     const user = userEvent.setup({ delay: null });
 
@@ -353,9 +327,7 @@ describe('ForgotPassword - Code Verification', () => {
     }
 
     await waitFor(() => {
-      expect(
-        screen.getByText(/the code you submitted is incorrect/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/the code you submitted is incorrect/i)).toBeInTheDocument();
     });
   });
 });
@@ -366,13 +338,9 @@ describe('ForgotPassword - Password Reset', () => {
   });
 
   test('shows error when passwords do not match', async () => {
-    authAPI.forgotPassword = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Success' } });
-    authAPI.verifyResetCode = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Code verified' } });
-
+    authAPI.forgotPassword = jest.fn().mockResolvedValue({ data: { message: 'Success' } });
+    authAPI.verifyResetCode = jest.fn().mockResolvedValue({ data: { message: 'Code verified' } });
+    
     renderWithRouter(<ForgotPassword />);
     const user = userEvent.setup({ delay: null });
 
@@ -399,10 +367,8 @@ describe('ForgotPassword - Password Reset', () => {
 
     // Enter non-matching passwords
     const newPasswordInput = screen.getByPlaceholderText('New Password');
-    const confirmPasswordInput = screen.getByPlaceholderText(
-      'Confirm New Password'
-    );
-
+    const confirmPasswordInput = screen.getByPlaceholderText('Confirm New Password');
+    
     await user.type(newPasswordInput, 'Password123');
     await user.type(confirmPasswordInput, 'DifferentPassword');
 
@@ -412,14 +378,10 @@ describe('ForgotPassword - Password Reset', () => {
   });
 
   test('shows error when password is too short', async () => {
-    authAPI.forgotPassword = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Success' } });
-    authAPI.verifyResetCode = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Code verified' } });
+    authAPI.forgotPassword = jest.fn().mockResolvedValue({ data: { message: 'Success' } });
+    authAPI.verifyResetCode = jest.fn().mockResolvedValue({ data: { message: 'Code verified' } });
     authAPI.resetPassword = jest.fn();
-
+    
     renderWithRouter(<ForgotPassword />);
     const user = userEvent.setup({ delay: null });
 
@@ -446,10 +408,8 @@ describe('ForgotPassword - Password Reset', () => {
 
     // Enter short password
     const newPasswordInput = screen.getByPlaceholderText('New Password');
-    const confirmPasswordInput = screen.getByPlaceholderText(
-      'Confirm New Password'
-    );
-
+    const confirmPasswordInput = screen.getByPlaceholderText('Confirm New Password');
+    
     await user.type(newPasswordInput, 'Pass1');
     await user.type(confirmPasswordInput, 'Pass1');
 
@@ -457,25 +417,17 @@ describe('ForgotPassword - Password Reset', () => {
     await user.click(resetButton);
 
     await waitFor(() => {
-      expect(
-        screen.getByText(/password must be at least 8 characters/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/password must be at least 8 characters/i)).toBeInTheDocument();
     });
 
     expect(authAPI.resetPassword).not.toHaveBeenCalled();
   });
 
   test('successfully resets password with valid input', async () => {
-    authAPI.forgotPassword = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Success' } });
-    authAPI.verifyResetCode = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Code verified' } });
-    authAPI.resetPassword = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Password reset successful' } });
-
+    authAPI.forgotPassword = jest.fn().mockResolvedValue({ data: { message: 'Success' } });
+    authAPI.verifyResetCode = jest.fn().mockResolvedValue({ data: { message: 'Code verified' } });
+    authAPI.resetPassword = jest.fn().mockResolvedValue({ data: { message: 'Password reset successful' } });
+    
     renderWithRouter(<ForgotPassword />);
     const user = userEvent.setup({ delay: null });
 
@@ -502,10 +454,8 @@ describe('ForgotPassword - Password Reset', () => {
 
     // Enter valid password
     const newPasswordInput = screen.getByPlaceholderText('New Password');
-    const confirmPasswordInput = screen.getByPlaceholderText(
-      'Confirm New Password'
-    );
-
+    const confirmPasswordInput = screen.getByPlaceholderText('Confirm New Password');
+    
     await user.type(newPasswordInput, 'NewPassword123');
     await user.type(confirmPasswordInput, 'NewPassword123');
 
@@ -516,7 +466,7 @@ describe('ForgotPassword - Password Reset', () => {
       expect(authAPI.resetPassword).toHaveBeenCalledWith({
         email: 'test@example.com',
         code: '111111',
-        newPassword: 'NewPassword123',
+        newPassword: 'NewPassword123'
       });
     });
 
@@ -527,19 +477,13 @@ describe('ForgotPassword - Password Reset', () => {
 
   test('shows success screen and redirects after password reset', async () => {
     jest.useFakeTimers();
-    authAPI.forgotPassword = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Success' } });
-    authAPI.verifyResetCode = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Code verified' } });
-    authAPI.resetPassword = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Password reset successful' } });
-
+    authAPI.forgotPassword = jest.fn().mockResolvedValue({ data: { message: 'Success' } });
+    authAPI.verifyResetCode = jest.fn().mockResolvedValue({ data: { message: 'Code verified' } });
+    authAPI.resetPassword = jest.fn().mockResolvedValue({ data: { message: 'Password reset successful' } });
+    
     delete window.location;
     window.location = { href: jest.fn() };
-
+    
     renderWithRouter(<ForgotPassword />);
     const user = userEvent.setup({ delay: null });
 
@@ -564,10 +508,8 @@ describe('ForgotPassword - Password Reset', () => {
     });
 
     const newPasswordInput = screen.getByPlaceholderText('New Password');
-    const confirmPasswordInput = screen.getByPlaceholderText(
-      'Confirm New Password'
-    );
-
+    const confirmPasswordInput = screen.getByPlaceholderText('Confirm New Password');
+    
     await user.type(newPasswordInput, 'NewPassword123');
     await user.type(confirmPasswordInput, 'NewPassword123');
 
@@ -575,9 +517,7 @@ describe('ForgotPassword - Password Reset', () => {
     await user.click(resetButton);
 
     await waitFor(() => {
-      expect(
-        screen.getByText(/you will be redirected to the login page now/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/you will be redirected to the login page now/i)).toBeInTheDocument();
     });
 
     act(() => {
@@ -599,10 +539,8 @@ describe('ForgotPassword - Resend Code', () => {
 
   test('allows resending code when expired', async () => {
     jest.useFakeTimers();
-    authAPI.forgotPassword = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Success' } });
-
+    authAPI.forgotPassword = jest.fn().mockResolvedValue({ data: { message: 'Success' } });
+    
     renderWithRouter(<ForgotPassword />);
     const user = userEvent.setup({ delay: null });
 
@@ -636,3 +574,5 @@ describe('ForgotPassword - Resend Code', () => {
     jest.useRealTimers();
   });
 });
+
+

@@ -62,9 +62,7 @@
   align-items: center;
   gap: 20px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
   min-height: 110px;
   width: 100%;
   box-sizing: border-box;
@@ -632,7 +630,7 @@
   background: none;
   border: none;
   font-size: 28px;
-  color: #6b7280;
+  color: #6B7280;
   cursor: pointer;
   width: 32px;
   height: 32px;
@@ -644,7 +642,7 @@
 }
 
 .modal-close:hover {
-  color: #1b4965;
+  color: #1B4965;
 }
 
 .modal-alert {
@@ -654,10 +652,10 @@
 .alert-user-name {
   font-size: 18px !important;
   font-weight: 400 !important;
-  color: #1b4965;
+  color: #1B4965;
   margin: 0 0 20px 0;
   padding-bottom: 16px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid #E5E7EB;
   text-align: left;
 }
 
@@ -669,7 +667,7 @@
   display: block;
   font-size: 14px;
   font-weight: 500;
-  color: #6b7280;
+  color: #6B7280;
   margin-bottom: 12px;
   text-align: left;
 }
@@ -685,7 +683,7 @@
   align-items: flex-start;
   gap: 10px;
   padding: 12px 14px;
-  border: 1.5px solid #e5e7eb;
+  border: 1.5px solid #E5E7EB;
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s;
@@ -693,16 +691,16 @@
 }
 
 .alert-option:hover {
-  border-color: #d1d5dc;
-  background: #f9fafb;
+  border-color: #D1D5DC;
+  background: #F9FAFB;
 }
 
 .alert-option.selected {
-  border-color: #62b6cb;
-  background: #f0f9ff;
+  border-color: #62B6CB;
+  background: #F0F9FF;
 }
 
-.alert-option input[type='radio'] {
+.alert-option input[type="radio"] {
   margin-top: 2px;
   width: 18px;
   height: 18px;
@@ -711,23 +709,23 @@
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  border: 2px solid #d1d5db;
+  border: 2px solid #D1D5DB;
   border-radius: 50%;
   background: white;
   position: relative;
   transition: all 0.2s ease;
 }
 
-.alert-option input[type='radio']:hover {
-  border-color: #62b6cb;
+.alert-option input[type="radio"]:hover {
+  border-color: #62B6CB;
 }
 
-.alert-option input[type='radio']:checked {
-  border-color: #62b6cb;
+.alert-option input[type="radio"]:checked {
+  border-color: #62B6CB;
   background: white;
 }
 
-.alert-option input[type='radio']:checked::after {
+.alert-option input[type="radio"]:checked::after {
   content: '';
   position: absolute;
   top: 50%;
@@ -736,7 +734,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #62b6cb;
+  background: #62B6CB;
 }
 
 .alert-option-content {
@@ -746,14 +744,14 @@
 .alert-option-title {
   font-size: 15px;
   font-weight: 600;
-  color: #1b4965;
+  color: #1B4965;
   margin-bottom: 4px;
   text-align: left;
 }
 
 .alert-option-desc {
   font-size: 13px;
-  color: #6b7280;
+  color: #6B7280;
   line-height: 1.5;
   font-weight: 400;
   text-align: left;
@@ -785,7 +783,7 @@
 
 .modal-content h2 {
   margin-bottom: 8px;
-  color: #1b4965;
+  color: #1B4965;
   font-size: 18px;
   font-weight: 600;
   text-align: left;
@@ -825,7 +823,7 @@
 
 .btn-confirm {
   padding: 12px 28px;
-  background: #62b6cb;
+  background: #62B6CB;
   color: white;
   border: none;
   border-radius: 8px;
@@ -836,23 +834,23 @@
 }
 
 .btn-confirm:hover {
-  background: #4a9fb5;
+  background: #4A9FB5;
   transform: translateY(-1px);
 }
 
 .btn-send-alert {
-  background: #62b6cb;
+  background: #62B6CB;
 }
 
 .btn-send-alert:hover {
-  background: #4a9fb5;
+  background: #4A9FB5;
 }
 
 .btn-cancel {
   padding: 12px 28px;
   background: white;
-  color: #6b7280;
-  border: 1.5px solid #e5e7eb;
+  color: #6B7280;
+  border: 1.5px solid #E5E7EB;
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
@@ -861,8 +859,8 @@
 }
 
 .btn-cancel:hover {
-  background: #f9fafb;
-  border-color: #d1d5dc;
+  background: #F9FAFB;
+  border-color: #D1D5DC;
   transform: translateY(-1px);
 }
 
@@ -913,18 +911,18 @@
     font-size: 12px;
     padding: 10px 6px;
   }
-
+  
   .users-table th {
     font-size: 10px;
     padding: 10px 6px;
   }
-
+  
   .action-btn {
     width: 28px;
     height: 28px;
     min-width: 28px;
   }
-
+  
   .action-btn svg {
     width: 16px;
     height: 16px;
@@ -936,34 +934,34 @@
     font-size: 11px;
     padding: 8px 4px;
   }
-
+  
   .users-table th {
     font-size: 10px;
     padding: 8px 4px;
   }
-
+  
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-
+  
   .user-name-info .user-name {
     font-size: 12px;
   }
-
+  
   .user-name-info .user-org {
     font-size: 10px;
   }
-
+  
   .action-buttons {
     gap: 4px;
   }
-
+  
   .action-btn {
     width: 26px;
     height: 26px;
     min-width: 26px;
   }
-
+  
   .action-btn svg {
     width: 15px;
     height: 15px;
@@ -1007,19 +1005,19 @@
     flex-wrap: nowrap;
     gap: 3px;
   }
-
+  
   .action-btn {
     width: 24px;
     height: 24px;
     min-width: 24px;
     padding: 4px;
   }
-
+  
   .action-btn svg {
     width: 14px;
     height: 14px;
   }
-
+  
   .stat-value {
     font-size: 24px;
   }
@@ -1053,7 +1051,7 @@
   gap: 16px;
   margin-bottom: 16px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #e8f4f8;
+  border-bottom: 1px solid #E8F4F8;
 }
 
 .details-section {
@@ -1072,7 +1070,7 @@
 .details-section h4 {
   font-size: 11px;
   font-weight: 600;
-  color: #64748b;
+  color: #64748B;
   margin: 0 0 6px 0;
   text-transform: uppercase;
   letter-spacing: 0.6px;
@@ -1081,7 +1079,7 @@
 .details-value {
   font-size: 15px;
   font-weight: 600;
-  color: #1b4965;
+  color: #1B4965;
   margin: 0;
   line-height: 1.2;
 }
@@ -1089,7 +1087,7 @@
 .details-activity h4 {
   font-size: 11px;
   font-weight: 600;
-  color: #64748b;
+  color: #64748B;
   margin: 0 0 12px 0;
   text-align: left;
   text-transform: uppercase;
@@ -1104,7 +1102,7 @@
 
 .activity-list li {
   padding: 6px 0;
-  color: #1b4965;
+  color: #1B4965;
   font-size: 13px;
   border-bottom: none;
   line-height: 1.5;
@@ -1128,12 +1126,7 @@
 .modal-notification {
   max-width: 520px;
   padding: 32px;
-  font-family:
-    'Poppins',
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    sans-serif;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 .modal-notification + .modal-overlay,
@@ -1150,13 +1143,8 @@
   margin: 0;
   font-size: 24px;
   font-weight: 600;
-  font-family:
-    'Poppins',
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    sans-serif;
-  color: #1b4965;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #1B4965;
 }
 
 .notification-success .notification-header h3 {
@@ -1164,11 +1152,11 @@
 }
 
 .notification-error .notification-header h3 {
-  color: #dc2626;
+  color: #DC2626;
 }
 
 .notification-info .notification-header h3 {
-  color: #2563eb;
+  color: #2563EB;
 }
 
 .notification-body {
@@ -1181,12 +1169,7 @@
   font-size: 16px;
   color: #374151;
   line-height: 1.6;
-  font-family:
-    'Poppins',
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    sans-serif;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 .modal-notification .modal-actions {
@@ -1197,10 +1180,5 @@
 
 .modal-notification .btn-confirm {
   min-width: 120px;
-  font-family:
-    'Poppins',
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    sans-serif;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }

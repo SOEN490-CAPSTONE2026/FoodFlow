@@ -8,14 +8,15 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public class RegisterReceiverRequest {
-    @Email
-    @NotBlank
+    @Email(message = "{validation.email.invalid}")
+    @NotBlank(message = "{validation.email.required}")
     private String email;
 
-    @NotBlank
-    @Size(min = 8)
+    @NotBlank(message = "{validation.password.required}")
+    @Size(min = 8, message = "{validation.password.minLength}")
     private String password;
 
+    @NotBlank(message = "{validation.organizationName.required}")
     @NotBlank
     @Size(min = 8)
     private String confirmPassword;
@@ -23,13 +24,13 @@ public class RegisterReceiverRequest {
     @NotBlank
     private String organizationName;
 
-    @NotBlank
+    @NotBlank(message = "{validation.contactPerson.required}")
     private String contactPerson;
 
-    @NotBlank
+    @NotBlank(message = "{validation.phone.required}")
     private String phone;
 
-    @NotBlank
+    @NotBlank(message = "{validation.address.required}")
     private String address;
 
     @JsonDeserialize(using = OrganizationTypeDeserializer.class)

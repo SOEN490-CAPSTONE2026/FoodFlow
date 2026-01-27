@@ -1,3 +1,6 @@
+// Unmock the global API mock from setupTests.js so we can test the real implementation
+jest.unmock('../api');
+
 const mockPost = jest.fn();
 const mockGet = jest.fn();
 const mockPatch = jest.fn();
@@ -23,19 +26,16 @@ describe('API service', () => {
     localStorage.clear();
   });
 
-  test('call /auth/login', async () => {
+  test('test call /auth/login', async () => {
     mockPost.mockResolvedValue({ data: { token: 'test-token-123' } });
     const { authAPI } = require('../api');
     const resp = await authAPI.login({ username: 'alice', password: 'pw' });
-    expect(mockPost).toHaveBeenCalledWith('/auth/login', {
-      username: 'alice',
-      password: 'pw',
-    });
+    expect(mockPost).toHaveBeenCalledWith('/auth/login', { username: 'alice', password: 'pw' });
     expect(localStorage.getItem('jwtToken')).toBe('test-token-123');
     expect(resp).toEqual({ data: { token: 'test-token-123' } });
   });
 
-  test('call /auth/logout', async () => {
+  test('test call /auth/logout', async () => {
     localStorage.setItem('jwtToken', 'existing-token');
     mockPost.mockResolvedValue({ status: 200 });
     const { authAPI } = require('../api');
@@ -45,7 +45,7 @@ describe('API service', () => {
     expect(resp).toEqual({ status: 200 });
   });
 
-  test('call /surplus/search', async () => {
+  test('test call /surplus/search', async () => {
     mockPost.mockResolvedValue({ data: { results: [] } });
     const { surplusAPI } = require('../api');
     const filters = {
@@ -68,47 +68,36 @@ describe('API service', () => {
     expect(resp).toEqual({ data: { results: [] } });
   });
 
-  test('send pickupSlotId', async () => {
+  test('test send pickupSlotId', async () => {
     mockPost.mockResolvedValue({ data: { success: true } });
     const { surplusAPI } = require('../api');
     const postId = 123;
     const slot = { id: 55 };
     const resp = await surplusAPI.claim(postId, slot);
-    expect(mockPost).toHaveBeenCalledWith('/claims', {
-      surplusPostId: postId,
-      pickupSlotId: 55,
-    });
+    expect(mockPost).toHaveBeenCalledWith('/claims', { surplusPostId: postId, pickupSlotId: 55 });
     expect(resp).toEqual({ data: { success: true } });
   });
 
-  test('surplusAPI.claim includes pickupSlot', async () => {
+  test('test surplusAPI.claim includes pickupSlot', async () => {
     mockPost.mockResolvedValue({ data: { success: true } });
     const { surplusAPI } = require('../api');
     const postId = 222;
     const slot = { start: '10:00', end: '10:30' };
     const resp = await surplusAPI.claim(postId, slot);
-    expect(mockPost).toHaveBeenCalledWith('/claims', {
-      surplusPostId: postId,
-      pickupSlot: slot,
-    });
+    expect(mockPost).toHaveBeenCalledWith('/claims', { surplusPostId: postId, pickupSlot: slot });
     expect(resp).toEqual({ data: { success: true } });
   });
 
-  test('surplusAPI.searchBasic builds query params and calls GET', async () => {
+  test('test surplusAPI.searchBasic builds query params and calls GET', async () => {
     mockGet.mockResolvedValue({ data: { items: [] } });
     const { surplusAPI } = require('../api');
-    const filters = {
-      foodType: ['Bakery & Pastry'],
-      expiryBefore: '2025-01-01',
-    };
+    const filters = { foodType: ['Bakery & Pastry'], expiryBefore: '2025-01-01' };
     const resp = await surplusAPI.searchBasic(filters);
-    expect(mockGet).toHaveBeenCalledWith(
-      expect.stringMatching(/\/surplus\/search\?.*foodCategories=BAKERY_PASTRY/)
-    );
+    expect(mockGet).toHaveBeenCalledWith(expect.stringMatching(/\/surplus\/search\?.*foodCategories=BAKERY_PASTRY/));
     expect(resp).toEqual({ data: { items: [] } });
   });
 
-  test('surplusAPI.getTimeline calls GET /surplus/{postId}/timeline', async () => {
+  test('test surplusAPI.getTimeline calls GET /surplus/{postId}/timeline', async () => {
     const mockTimelineData = [
       {
         id: 1,
@@ -143,7 +132,7 @@ describe('API service', () => {
     expect(resp.data.length).toBe(2);
   });
 
-  test('surplusAPI.getTimeline handles empty timeline', async () => {
+  test('test surplusAPI.getTimeline handles empty timeline', async () => {
     mockGet.mockResolvedValue({ data: [] });
     const { surplusAPI } = require('../api');
     const postId = 456;
@@ -153,14 +142,12 @@ describe('API service', () => {
     expect(resp.data).toEqual([]);
   });
 
-  test('surplusAPI.getTimeline handles API error', async () => {
+  test('test surplusAPI.getTimeline handles API error', async () => {
     mockGet.mockRejectedValue(new Error('Network error'));
     const { surplusAPI } = require('../api');
     const postId = 789;
 
-    await expect(surplusAPI.getTimeline(postId)).rejects.toThrow(
-      'Network error'
-    );
+    await expect(surplusAPI.getTimeline(postId)).rejects.toThrow('Network error');
     expect(mockGet).toHaveBeenCalledWith('/surplus/789/timeline');
   });
 });

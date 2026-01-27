@@ -1,41 +1,32 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Package, User, ArrowRight, Filter, Clock, Star } from 'lucide-react';
 import Select from 'react-select';
 import { claimsAPI, feedbackAPI } from '../../services/api';
 import { useNotification } from '../../contexts/NotificationContext';
 import { useTimezone } from '../../contexts/TimezoneContext';
-import {
-  getPrimaryFoodCategory,
-  foodTypeImages,
-  getUnitLabel,
-} from '../../constants/foodConstants';
+import { getPrimaryFoodCategory, foodTypeImages, getUnitLabel } from '../../constants/foodConstants';
 import ClaimDetailModal from './ClaimDetailModal.js';
-import './Receiver_Styles/ReceiverMyClaims.css';
+import "./Receiver_Styles/ReceiverMyClaims.css";
 
 export default function ReceiverMyClaims() {
+  const { t } = useTranslation();
   const { showNotification } = useNotification();
   const { userTimezone } = useTimezone();
+  const hasSetInitialFilter = useRef(false);
   const [claims, setClaims] = useState([]);
   const [activeFilter, setActiveFilter] = useState('All');
-  const [sortBy, setSortBy] = useState({
-    value: 'date',
-    label: 'Sort by Date',
-  });
+  const [sortBy, setSortBy] = useState({ value: 'date', label: 'Sort by Date' });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedClaim, setSelectedClaim] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [confirmCancel, setConfirmCancel] = useState({
-    show: false,
-    claimId: null,
-    postTitle: '',
-  });
+  const [confirmCancel, setConfirmCancel] = useState({ show: false, claimId: null, postTitle: '' });
   const [rating, setRating] = useState({ averageRating: 0, totalReviews: 0 });
-  const hasSetInitialFilter = useRef(false);
 
   const sortOptions = [
-    { value: 'date', label: 'Sort by Date' },
-    { value: 'status', label: 'Sort by Status' },
+    { value: 'date', label: t('receiverMyClaims.sortByDate') },
+    { value: 'status', label: t('receiverMyClaims.sortByStatus') }
   ];
 
   const getNormalizedStatus = claim => {
@@ -132,7 +123,7 @@ export default function ReceiverMyClaims() {
       setError(null);
     } catch (error) {
       console.error('Error fetching claims:', error);
-      setError('Failed to load your claimed donations');
+      setError(t('receiverMyClaims.failedToLoad'));
       setClaims([]);
     } finally {
       setLoading(false);
@@ -144,9 +135,8 @@ export default function ReceiverMyClaims() {
       const response = await feedbackAPI.getMyRating();
       if (response && response.data) {
         setRating({
-          averageRating:
-            Math.round((response.data.averageRating || 0) * 10) / 10,
-          totalReviews: response.data.totalReviews || 0,
+          averageRating: Math.round((response.data.averageRating || 0) * 10) / 10,
+          totalReviews: response.data.totalReviews || 0
         });
       }
     } catch (error) {
@@ -154,38 +144,35 @@ export default function ReceiverMyClaims() {
     }
   };
 
-  const handleCancelClick = claimId => {
+  const handleCancelClick = (claimId) => {
     // Find the claim to get its title for the confirmation
     const claim = claims.find(c => c.id === claimId);
     const postTitle = claim?.surplusPost?.title || 'donation';
-
-    setConfirmCancel({
-      show: true,
-      claimId: claimId,
-      postTitle: postTitle,
+    
+    setConfirmCancel({ 
+      show: true, 
+      claimId: claimId, 
+      postTitle: postTitle 
     });
   };
 
   const handleConfirmCancel = async () => {
     try {
       const { claimId, postTitle } = confirmCancel;
-
+      
       await claimsAPI.cancel(claimId);
       console.log('Claim cancelled successfully');
-
+      
       // Show toast notification
-      showNotification(
-        'Claim Cancelled',
-        `Your claim on "${postTitle}" has been cancelled`
-      );
-
+      showNotification(t('receiverMyClaims.claimCancelled'), t('receiverMyClaims.claimCancelledMessage', { postTitle }));
+      
       // Close confirmation dialog
       setConfirmCancel({ show: false, claimId: null, postTitle: '' });
-
+      
       fetchMyClaims(); // Refresh list
     } catch (error) {
       console.error('Error cancelling claim:', error);
-      showNotification('Error', 'Failed to cancel claim. Please try again.');
+      showNotification(t('common.error'), t('receiverMyClaims.cancelFailed'));
       // Close confirmation dialog even on error
       setConfirmCancel({ show: false, claimId: null, postTitle: '' });
     }
@@ -195,7 +182,7 @@ export default function ReceiverMyClaims() {
     setConfirmCancel({ show: false, claimId: null, postTitle: '' });
   };
 
-  const handleViewDetails = claim => {
+  const handleViewDetails = (claim) => {
     setSelectedClaim(claim);
     setIsModalOpen(true);
   };
@@ -207,15 +194,8 @@ export default function ReceiverMyClaims() {
   };
 
   // Format pickup time consistently with ReceiverBrowse
-  const formatPickupTime = (
-    pickupDate,
-    pickupFrom,
-    pickupTo,
-    userTimezone = 'UTC'
-  ) => {
-    if (!pickupDate || !pickupFrom || !pickupTo) {
-      return '—';
-    }
+  const formatPickupTime = (pickupDate, pickupFrom, pickupTo, userTimezone = 'UTC') => {
+    if (!pickupDate || !pickupFrom || !pickupTo) return "—";
     try {
       // Backend sends LocalDateTime, treat as UTC by adding 'Z'
       let fromDateStr = `${pickupDate}T${pickupFrom}`;
@@ -226,32 +206,32 @@ export default function ReceiverMyClaims() {
       if (!toDateStr.endsWith('Z') && !toDateStr.includes('+')) {
         toDateStr = toDateStr + 'Z';
       }
-
+      
       const fromDate = new Date(fromDateStr);
       const toDate = new Date(toDateStr);
-
-      const dateStr = fromDate.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        timeZone: userTimezone,
+      
+      const dateStr = fromDate.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        timeZone: userTimezone
       });
-      const fromTime = fromDate.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
+      const fromTime = fromDate.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
         hour12: true,
-        timeZone: userTimezone,
+        timeZone: userTimezone
       });
-      const toTime = toDate.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
+      const toTime = toDate.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
         hour12: true,
-        timeZone: userTimezone,
+        timeZone: userTimezone
       });
       return `${dateStr} ${fromTime}-${toTime}`;
     } catch (error) {
       console.error('Error formatting pickup time:', error);
-      return '—';
+      return "—";
     }
   };
 
@@ -286,12 +266,12 @@ export default function ReceiverMyClaims() {
   };
 
   const filters = [
-    { name: 'Claimed', count: getStatusCount('Claimed') },
-    { name: 'Ready', count: getStatusCount('Ready') },
-    { name: 'Completed', count: getStatusCount('Completed') },
-    { name: 'Not Completed', count: getStatusCount('Not Completed') },
+    { name: t('receiverMyClaims.filters.claimed'), count: getStatusCount(t('receiverMyClaims.filters.claimed')) },
+    { name: t('receiverMyClaims.filters.ready'), count: getStatusCount(t('receiverMyClaims.filters.ready')) },
+    { name: t('receiverMyClaims.filters.completed'), count: getStatusCount(t('receiverMyClaims.filters.completed')) },
+    { name: t('receiverMyClaims.filters.notCompleted'), count: getStatusCount(t('receiverMyClaims.filters.notCompleted')) },
     { name: 'Expired', count: getStatusCount('Expired') },
-    { name: 'All', count: getStatusCount('All') },
+    { name: t('receiverMyClaims.filters.all'), count: getStatusCount(t('receiverMyClaims.filters.all')) }
   ];
 
   const filteredClaims = claims.filter(claim => {
@@ -324,50 +304,35 @@ export default function ReceiverMyClaims() {
   // Sort claims
   const sortedClaims = [...filteredClaims].sort((a, b) => {
     if (sortBy.value === 'date') {
-      // For completed claims, use completedAt date; otherwise use pickup date
-      const getRelevantDate = claim => {
-        if (claim.surplusPost?.status === 'COMPLETED' && claim.completedAt) {
-          return claim.completedAt;
-        }
-        return (
-          claim.confirmedPickupSlot?.pickupDate ||
-          claim.confirmedPickupSlot?.date ||
-          claim.surplusPost?.pickupDate
-        );
+      // Get the pickup date (prioritize confirmed slot, fallback to post pickup date)
+      const getPickupDate = (claim) => {
+        return claim.confirmedPickupSlot?.pickupDate || 
+               claim.confirmedPickupSlot?.date || 
+               claim.surplusPost?.pickupDate;
       };
-
-      const dateA = getRelevantDate(a);
-      const dateB = getRelevantDate(b);
-
+      
+      const dateA = getPickupDate(a);
+      const dateB = getPickupDate(b);
+      
       // Handle missing dates
-      if (!dateA && !dateB) {
-        return 0;
-      }
-      if (!dateA) {
-        return 1;
-      } // Put items without dates at the end
-      if (!dateB) {
-        return -1;
-      }
-
-      // For completed claims, sort by most recent first (descending)
-      // For other claims, sort by earliest pickup first (ascending)
-      const isCompletedFilter = activeFilter === 'Completed';
-      const timeA = new Date(dateA).getTime();
-      const timeB = new Date(dateB).getTime();
-
-      return isCompletedFilter ? timeB - timeA : timeA - timeB;
+      if (!dateA && !dateB) return 0;
+      if (!dateA) return 1; // Put items without dates at the end
+      if (!dateB) return -1;
+      
+      // Sort by pickup date - earliest pickup first (ascending)
+      return new Date(dateA).getTime() - new Date(dateB).getTime();
+      
     }
     if (sortBy.value === 'status') {
       const statusPriority = {
-        'Ready for Pickup': 1,
-        Claimed: 2,
-        Completed: 3,
+        [t('receiverMyClaims.readyForPickup')]: 1,
+        [t('receiverMyClaims.claimed')]: 2,
+        [t('receiverMyClaims.completed')]: 3
       };
-
+      
       const statusA = getDisplayStatus(a);
       const statusB = getDisplayStatus(b);
-
+      
       return (statusPriority[statusA] || 99) - (statusPriority[statusB] || 99);
     }
     return 0;
@@ -376,7 +341,7 @@ export default function ReceiverMyClaims() {
   if (loading && claims.length === 0) {
     return (
       <div className="claimed-page claimed-donations-container">
-        <div className="claimed-page loading">Loading your claims...</div>
+        <div className="claimed-page loading">{t('receiverMyClaims.loading')}</div>
       </div>
     );
   }
@@ -411,36 +376,38 @@ export default function ReceiverMyClaims() {
         </div>
       </div>
 
-      <h1>My Claimed Donations</h1>
-      <p className="claimed-page claimed-subtitle">
-        Track your donations and get ready for pickup — every claim helps reduce
-        waste and feed our community.
-      </p>
+      <h1>{t('receiverMyClaims.title')}</h1>
+      <p className="claimed-page claimed-subtitle">{t('receiverMyClaims.subtitle')}</p>
 
-      {error && <div className="claimed-page error-message">{error}</div>}
+      {error && (
+        <div className="claimed-page error-message">
+          {error}
+        </div>
+      )}
 
       {/* Filters and Sort */}
       <div className="claimed-page donation-filters-container">
         <div className="claimed-page donation-filter-buttons">
-          {filters.map(filter => (
+          {filters.map((filter) => (
             <button
               key={filter.name}
               onClick={() => setActiveFilter(filter.name)}
               className={`claimed-page filter-btn ${activeFilter === filter.name ? 'active' : ''}`}
             >
-              <span>{filter.name}</span>
-              <span className="claimed-page donation-filter-count">
-                ({filter.count})
-              </span>
+              <span>{filter.name}</span> 
+              <span className="claimed-page donation-filter-count">({filter.count})</span>
             </button>
           ))}
         </div>
 
         <div className="claimed-page donation-sort-dropdown">
-          <Filter size={20} className="claimed-page donation-filter-icon" />
+          <Filter
+            size={20}
+            className="claimed-page donation-filter-icon"
+          />
           <Select
             value={sortBy}
-            onChange={selectedOption => setSortBy(selectedOption)}
+            onChange={(selectedOption) => setSortBy(selectedOption)}
             options={sortOptions}
             classNamePrefix="react-select"
             isSearchable={false}
@@ -449,70 +416,48 @@ export default function ReceiverMyClaims() {
       </div>
 
       <div className="claimed-page donations-grid">
-        {sortedClaims.map(claim => {
+        {sortedClaims.map((claim) => {
           const post = claim.surplusPost;
           const displayStatus = getDisplayStatus(claim);
-
+          
           // Get the primary food category from foodCategories array
-          const primaryFoodCategory = getPrimaryFoodCategory(
-            post?.foodCategories
-          );
-
+          const primaryFoodCategory = getPrimaryFoodCategory(post?.foodCategories);
+          
           return (
             <div key={claim.id} className="claimed-page donation-card">
               {/* Image */}
               <div className="claimed-page card-image">
                 <img
-                  src={
-                    foodTypeImages[primaryFoodCategory] ||
-                    foodTypeImages['Prepared Meals']
-                  }
+                  src={foodTypeImages[primaryFoodCategory] || foodTypeImages['Prepared Meals']}
                   alt={post?.title || 'Donation'}
                 />
-                <span
-                  className={`claimed-page status-badge status-${displayStatus.toLowerCase().replace(' ', '-')}`}
-                >
+                <span className={`claimed-page status-badge status-${displayStatus.toLowerCase().replace(' ', '-')}`}>
                   {displayStatus}
                 </span>
               </div>
 
               {/* Content */}
               <div className="claimed-page card-content">
-                <h3 className="claimed-page card-title">
-                  {post?.title || 'Untitled Donation'}
-                </h3>
+                <h3 className="claimed-page card-title">{post?.title || t('receiverMyClaims.untitledDonation')}</h3>
 
-                <div className="claimed-page card-details">
+                 <div className="claimed-page card-details">
                   <div className="claimed-page detail-item">
-                    <Package
-                      size={16}
-                      className="claimed-page quantity-detail-icon"
-                    />
+                    <Package size={16} className="claimed-page quantity-detail-icon" />
                     <span>
-                      {post?.quantity?.value || 0}{' '}
-                      {getUnitLabel(post?.quantity?.unit) || 'items'}
+                      {post?.quantity?.value || 0} {getUnitLabel(post?.quantity?.unit) || 'items'}
                     </span>
                   </div>
                   <div className="claimed-page detail-item">
-                    <User
-                      size={16}
-                      className="claimed-page donor-detail-icon"
-                    />
-                    <span>{post?.donorName || 'Not specified'}</span>
+                    <User size={16} className="claimed-page donor-detail-icon" />
+                    <span>{post?.donorName || t('receiverMyClaims.notSpecified')}</span>
                   </div>
                   <div className="claimed-page detail-item">
-                    <Clock
-                      size={16}
-                      className="claimed-page date-detail-icon"
-                    />
+                    <Clock size={16} className="claimed-page date-detail-icon" />
                     <span>
                       {formatPickupTime(
-                        claim.confirmedPickupSlot?.pickupDate ||
-                          claim.confirmedPickupSlot?.date,
-                        claim.confirmedPickupSlot?.startTime ||
-                          claim.confirmedPickupSlot?.pickupFrom,
-                        claim.confirmedPickupSlot?.endTime ||
-                          claim.confirmedPickupSlot?.pickupTo,
+                        claim.confirmedPickupSlot?.pickupDate || claim.confirmedPickupSlot?.date,
+                        claim.confirmedPickupSlot?.startTime || claim.confirmedPickupSlot?.pickupFrom,
+                        claim.confirmedPickupSlot?.endTime || claim.confirmedPickupSlot?.pickupTo,
                         userTimezone
                       )}
                     </span>
@@ -526,20 +471,14 @@ export default function ReceiverMyClaims() {
                       onClick={() => handleCancelClick(claim.id)}
                       className="claimed-page cancel-claim-btn"
                     >
-                      Cancel
+                      {t('receiverMyClaims.cancel')}
                     </button>
                   )}
-
-                  <div
-                    className="claimed-page view-details-container"
-                    onClick={() => handleViewDetails(claim)}
-                  >
-                    <span>View details</span>
+                  
+                  <div className="claimed-page view-details-container" onClick={() => handleViewDetails(claim)}>
+                    <span>{t('receiverMyClaims.viewDetails')}</span>
                     <button className="claimed-page view-details-btn">
-                      <ArrowRight
-                        size={16}
-                        className="claimed-page arrow-icon"
-                      />
+                      <ArrowRight size={16} className="claimed-page arrow-icon" />
                     </button>
                   </div>
                 </div>
@@ -553,9 +492,9 @@ export default function ReceiverMyClaims() {
         <div className="claimed-page empty-state">
           <Package size={48} className="claimed-page empty-icon" />
           <p>
-            {activeFilter === 'All'
-              ? "You haven't claimed any donations yet. Browse available donations to make your first claim!"
-              : `No donations found for the "${activeFilter}" filter.`}
+            {activeFilter === t('receiverMyClaims.filters.all')
+              ? t('receiverMyClaims.noClaimsYet')
+              : t('receiverMyClaims.noDonationsForFilter', { filter: activeFilter })}
           </p>
         </div>
       )}
@@ -564,18 +503,22 @@ export default function ReceiverMyClaims() {
       {confirmCancel.show && (
         <div className="claimed-page confirmation-overlay">
           <div className="confirmation-dialog">
-            <h3>Cancel Claim</h3>
+            <h3>{t('receiverMyClaims.cancelClaim')}</h3>
             <p>
-              Are you sure you want to cancel your claim on{' '}
-              <strong>"{confirmCancel.postTitle}"</strong>? This action cannot
-              be undone.
+              {t('receiverMyClaims.confirmCancelMessage', { postTitle: confirmCancel.postTitle })}
             </p>
             <div className="confirmation-buttons">
-              <button onClick={handleCancelCancel} className="btn btn-cancel">
-                Keep Claim
+              <button 
+                onClick={handleCancelCancel}
+                className="btn btn-cancel"
+              >
+                {t('receiverMyClaims.keepClaim')}
               </button>
-              <button onClick={handleConfirmCancel} className="btn btn-create">
-                Yes, Cancel Claim
+              <button 
+                onClick={handleConfirmCancel}
+                className="btn btn-create"
+              >
+                {t('receiverMyClaims.yesCancelClaim')}
               </button>
             </div>
           </div>
@@ -583,7 +526,7 @@ export default function ReceiverMyClaims() {
       )}
 
       {/* Modal */}
-      <ClaimDetailModal
+      <ClaimDetailModal 
         claim={selectedClaim}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
