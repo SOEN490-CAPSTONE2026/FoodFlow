@@ -169,7 +169,7 @@ const mockItems = [
       value: 10,
       unit: 'LOAF',
     },
-    expiryDate: '2025-10-02',
+    expiryDate: '2099-10-02',
     pickupSlots: [
       {
         pickupDate: '2025-10-01',
