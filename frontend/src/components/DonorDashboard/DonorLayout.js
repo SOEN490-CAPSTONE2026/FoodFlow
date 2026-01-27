@@ -112,8 +112,8 @@ export default function DonorLayout() {
       const foodTitle = payload.surplusPostTitle || 'your food item';
       const message = t('donorLayout.notifications.hasClaimed', { receiverName, foodTitle });
       console.log('DONOR: Setting notification with message:', message);
-      setNotification({ 
-        senderName: t('donorLayout.notifications.newClaim'), 
+      setNotification({
+        senderName: t('donorLayout.notifications.newClaim'),
         message
       });
     };
@@ -125,8 +125,8 @@ export default function DonorLayout() {
       const foodTitle = payload.surplusPostTitle || 'your food item';
       const message = t('donorLayout.notifications.cancelledClaim', { receiverName, foodTitle });
       console.log('DONOR: Setting notification with message:', message);
-      setNotification({ 
-        senderName: t('donorLayout.notifications.claimCancelled'), 
+      setNotification({
+        senderName: t('donorLayout.notifications.claimCancelled'),
         message
       });
     };
@@ -214,8 +214,8 @@ export default function DonorLayout() {
         <BadgeDisplay />
 
         <nav className="donor-nav-links">
-          <Link 
-            to="/donor" 
+          <Link
+            to="/donor"
             className={`donor-nav-link ${isActive("/donor") ? "active" : ""}`}
             data-tooltip={t('donorLayout.home')}
           >
@@ -225,8 +225,8 @@ export default function DonorLayout() {
             {t('donorLayout.home')}
           </Link>
 
-          <Link 
-            to="/donor/dashboard" 
+          <Link
+            to="/donor/dashboard"
             className={`donor-nav-link ${isActive("/donor/dashboard") ? "active" : ""}`}
             data-tooltip={t('donorLayout.dashboard')}
           >
@@ -236,8 +236,8 @@ export default function DonorLayout() {
             {t('donorLayout.dashboard')}
           </Link>
 
-          <Link 
-            to="/donor/list" 
+          <Link
+            to="/donor/list"
             className={`donor-nav-link ${isActive("/donor/list") ? "active" : ""}`}
             data-tooltip={t('donorLayout.donateNow')}
           >
@@ -247,8 +247,8 @@ export default function DonorLayout() {
             {t('donorLayout.donateNow')}
           </Link>
 
-          <Link 
-            to="/donor/requests" 
+          <Link
+            to="/donor/requests"
             className={`donor-nav-link ${isActive("/donor/requests") ? "active" : ""}`}
             data-tooltip={t('donorLayout.requestsClaims')}
           >
@@ -258,8 +258,8 @@ export default function DonorLayout() {
             {t('donorLayout.requestsClaims')}
           </Link>
 
-          <Link 
-            to="/donor/search" 
+          <Link
+            to="/donor/search"
             className={`donor-nav-link ${isActive("/donor/search") ? "active" : ""}`}
             data-tooltip={t('donorLayout.pickupSchedule')}
           >
@@ -269,8 +269,8 @@ export default function DonorLayout() {
             {t('donorLayout.pickupSchedule')}
           </Link>
 
-          <Link 
-            to="/donor/messages" 
+          <Link
+            to="/donor/messages"
             className={`donor-nav-link ${isActive("/donor/messages") ? "active" : ""}`}
             data-tooltip={t('donorLayout.messages')}
           >
@@ -282,8 +282,8 @@ export default function DonorLayout() {
         </nav>
 
         <div className="donor-nav-bottom">
-          <Link 
-            to="/donor/settings" 
+          <Link
+            to="/donor/settings"
             className={`donor-nav-link ${isActive("/donor/settings") ? "active" : ""}`}
             data-tooltip={t('donorLayout.settings')}
           >
@@ -292,12 +292,16 @@ export default function DonorLayout() {
             </span>
             {t('donorLayout.settings')}
           </Link>
-          <div className={`donor-nav-link ${isActive('/donor/help') ? 'active' : ''}`} data-tooltip={t('donorLayout.help')}>
+          <Link
+            to="/donor/help"
+            className={`donor-nav-link ${isActive('/donor/help') ? 'active' : ''}`}
+            data-tooltip={t('donorLayout.help')}
+          >
             <span className="nav-icon" aria-hidden>
               <HelpCircle size={18} className="lucide" />
             </span>
             {t('donorLayout.help')}
-          </div>
+          </Link>
         </div>
 
         <div className="donor-sidebar-footer donor-user" ref={menuRef}>
