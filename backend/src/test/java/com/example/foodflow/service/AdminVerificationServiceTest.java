@@ -4,6 +4,7 @@ import com.example.foodflow.model.dto.ApprovalResponse;
 import com.example.foodflow.model.dto.RejectionResponse;
 import com.example.foodflow.model.dto.UserVerificationPageResponse;
 import com.example.foodflow.model.entity.*;
+import com.example.foodflow.repository.EmailVerificationTokenRepository;
 import com.example.foodflow.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -35,6 +36,9 @@ class AdminVerificationServiceTest {
 
     @Mock
     private EmailService emailService;
+
+    @Mock
+    private EmailVerificationTokenRepository verificationTokenRepository;
 
     @InjectMocks
     private AdminVerificationService adminVerificationService;
@@ -80,8 +84,8 @@ class AdminVerificationServiceTest {
         void getPendingUsers_Success() {
             // Arrange
             Page<User> userPage = new PageImpl<>(Arrays.asList(testUser));
-            when(userRepository.findByAccountStatusAndSearchTerm(
-                    eq(AccountStatus.PENDING_ADMIN_APPROVAL),
+            when(userRepository.findByAccountStatusInAndSearchTerm(
+                    eq(Arrays.asList(AccountStatus.PENDING_ADMIN_APPROVAL, AccountStatus.PENDING_VERIFICATION)),
                     isNull(),
                     isNull(),
                     any(PageRequest.class)
@@ -107,8 +111,8 @@ class AdminVerificationServiceTest {
         void getPendingUsers_WithRoleFilter() {
             // Arrange
             Page<User> userPage = new PageImpl<>(Arrays.asList(testUser));
-            when(userRepository.findByAccountStatusAndSearchTerm(
-                    eq(AccountStatus.PENDING_ADMIN_APPROVAL),
+            when(userRepository.findByAccountStatusInAndSearchTerm(
+                    eq(Arrays.asList(AccountStatus.PENDING_ADMIN_APPROVAL, AccountStatus.PENDING_VERIFICATION)),
                     eq(UserRole.RECEIVER),
                     isNull(),
                     any(PageRequest.class)
@@ -122,8 +126,8 @@ class AdminVerificationServiceTest {
             // Assert
             assertNotNull(response);
             assertEquals(1, response.getContent().size());
-            verify(userRepository).findByAccountStatusAndSearchTerm(
-                    eq(AccountStatus.PENDING_ADMIN_APPROVAL),
+            verify(userRepository).findByAccountStatusInAndSearchTerm(
+                    eq(Arrays.asList(AccountStatus.PENDING_ADMIN_APPROVAL, AccountStatus.PENDING_VERIFICATION)),
                     eq(UserRole.RECEIVER),
                     isNull(),
                     any(PageRequest.class)
@@ -136,8 +140,8 @@ class AdminVerificationServiceTest {
             // Arrange
             String searchTerm = "food bank";
             Page<User> userPage = new PageImpl<>(Arrays.asList(testUser));
-            when(userRepository.findByAccountStatusAndSearchTerm(
-                    eq(AccountStatus.PENDING_ADMIN_APPROVAL),
+            when(userRepository.findByAccountStatusInAndSearchTerm(
+                    eq(Arrays.asList(AccountStatus.PENDING_ADMIN_APPROVAL, AccountStatus.PENDING_VERIFICATION)),
                     isNull(),
                     eq(searchTerm),
                     any(PageRequest.class)
@@ -150,8 +154,8 @@ class AdminVerificationServiceTest {
 
             // Assert
             assertNotNull(response);
-            verify(userRepository).findByAccountStatusAndSearchTerm(
-                    eq(AccountStatus.PENDING_ADMIN_APPROVAL),
+            verify(userRepository).findByAccountStatusInAndSearchTerm(
+                    eq(Arrays.asList(AccountStatus.PENDING_ADMIN_APPROVAL, AccountStatus.PENDING_VERIFICATION)),
                     isNull(),
                     eq(searchTerm),
                     any(PageRequest.class)
@@ -163,8 +167,8 @@ class AdminVerificationServiceTest {
         void getPendingUsers_SortByUserType() {
             // Arrange
             Page<User> userPage = new PageImpl<>(Arrays.asList(testUser));
-            when(userRepository.findByAccountStatusAndSearchTerm(
-                    any(AccountStatus.class),
+            when(userRepository.findByAccountStatusInAndSearchTerm(
+                    anyList(),
                     isNull(),
                     isNull(),
                     any(PageRequest.class)
@@ -174,8 +178,8 @@ class AdminVerificationServiceTest {
             adminVerificationService.getPendingUsers(0, 20, "usertype", "asc", null, null);
 
             // Assert
-            verify(userRepository).findByAccountStatusAndSearchTerm(
-                    any(AccountStatus.class),
+            verify(userRepository).findByAccountStatusInAndSearchTerm(
+                    anyList(),
                     isNull(),
                     isNull(),
                     argThat(pageable -> 
@@ -190,8 +194,8 @@ class AdminVerificationServiceTest {
         void getPendingUsers_InvalidRole() {
             // Arrange
             Page<User> userPage = new PageImpl<>(Arrays.asList(testUser));
-            when(userRepository.findByAccountStatusAndSearchTerm(
-                    eq(AccountStatus.PENDING_ADMIN_APPROVAL),
+            when(userRepository.findByAccountStatusInAndSearchTerm(
+                    eq(Arrays.asList(AccountStatus.PENDING_ADMIN_APPROVAL, AccountStatus.PENDING_VERIFICATION)),
                     isNull(), // Should be null for invalid role
                     isNull(),
                     any(PageRequest.class)
@@ -204,8 +208,8 @@ class AdminVerificationServiceTest {
 
             // Assert
             assertNotNull(response);
-            verify(userRepository).findByAccountStatusAndSearchTerm(
-                    eq(AccountStatus.PENDING_ADMIN_APPROVAL),
+            verify(userRepository).findByAccountStatusInAndSearchTerm(
+                    eq(Arrays.asList(AccountStatus.PENDING_ADMIN_APPROVAL, AccountStatus.PENDING_VERIFICATION)),
                     isNull(),
                     isNull(),
                     any(PageRequest.class)
@@ -384,6 +388,51 @@ class AdminVerificationServiceTest {
                     () -> adminVerificationService.rejectUser(1L, "other", "Test")
             );
             assertEquals("User is not pending admin approval", exception.getMessage());
+            verify(userRepository).findById(1L);
+            verify(userRepository, never()).save(any(User.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("verifyEmailManually Tests")
+    class VerifyEmailManuallyTests {
+
+        @Test
+        @DisplayName("Should verify email and move to admin approval")
+        void verifyEmailManually_Success() {
+            // Arrange
+            testUser.setAccountStatus(AccountStatus.PENDING_VERIFICATION);
+            when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+            when(userRepository.save(any(User.class))).thenReturn(testUser);
+            when(verificationTokenRepository.findTopByUserIdOrderByCreatedAtDesc(1L))
+                    .thenReturn(Optional.empty());
+
+            // Act
+            ApprovalResponse response = adminVerificationService.verifyEmailManually(1L);
+
+            // Assert
+            assertNotNull(response);
+            assertTrue(response.isSuccess());
+            assertEquals("Email verified manually", response.getMessage());
+            assertEquals(AccountStatus.PENDING_ADMIN_APPROVAL, testUser.getAccountStatus());
+            verify(userRepository).findById(1L);
+            verify(verificationTokenRepository).findTopByUserIdOrderByCreatedAtDesc(1L);
+            verify(userRepository).save(testUser);
+        }
+
+        @Test
+        @DisplayName("Should throw when user not pending verification")
+        void verifyEmailManually_NotPendingVerification() {
+            // Arrange
+            testUser.setAccountStatus(AccountStatus.PENDING_ADMIN_APPROVAL);
+            when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+
+            // Act & Assert
+            IllegalStateException exception = assertThrows(
+                    IllegalStateException.class,
+                    () -> adminVerificationService.verifyEmailManually(1L)
+            );
+            assertEquals("User is not pending email verification", exception.getMessage());
             verify(userRepository).findById(1L);
             verify(userRepository, never()).save(any(User.class));
         }

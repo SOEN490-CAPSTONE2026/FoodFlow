@@ -123,6 +123,14 @@ jest.mock('../ClaimedSuccessModal', () => {
   };
 });
 
+jest.mock('../RescheduleModal', () => {
+  return function MockRescheduleModal({ isOpen }) {
+    return isOpen ? (
+      <div data-testid="reschedule-modal">Reschedule Modal</div>
+    ) : null;
+  };
+});
+
 jest.mock('../../FeedbackModal/FeedbackModal', () => {
   return function MockFeedbackModal() {
     return <div data-testid="feedback-modal">Feedback Modal</div>;
@@ -161,7 +169,7 @@ const mockItems = [
       value: 10,
       unit: 'LOAF',
     },
-    expiryDate: '2025-10-02',
+    expiryDate: '2099-10-02',
     pickupSlots: [
       {
         pickupDate: '2025-10-01',
@@ -354,7 +362,7 @@ describe('DonorListFood', () => {
     expect(rescheduleButton).toBeInTheDocument();
   });
 
-  test('reschedule button shows alert when clicked', async () => {
+  test('reschedule button opens reschedule modal when clicked', async () => {
     surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
     const user = userEvent.setup();
 
@@ -371,9 +379,7 @@ describe('DonorListFood', () => {
     });
     await user.click(rescheduleButton);
 
-    expect(window.alert).toHaveBeenCalledWith(
-      'Reschedule functionality coming soon!'
-    );
+    expect(screen.getByTestId('reschedule-modal')).toBeInTheDocument();
   });
 
   test('edit button opens modal in edit mode when clicked', async () => {

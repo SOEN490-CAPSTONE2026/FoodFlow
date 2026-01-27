@@ -40,7 +40,6 @@ public class SurplusPostSchedulerService {
 
     @Value("${pickup.tolerance.late-minutes:15}")
     private int lateToleranceMinutes;
-
     public SurplusPostSchedulerService(SurplusPostRepository surplusPostRepository,
             ClaimRepository claimRepository,
             TimelineService timelineService) {
@@ -222,6 +221,13 @@ public class SurplusPostSchedulerService {
             post.setStatus(PostStatus.NOT_COMPLETED);
             surplusPostRepository.save(post);
 
+            // Also update the claim status to NOT_COMPLETED
+            Optional<Claim> claimOpt = claimRepository.findBySurplusPost(post);
+            if (claimOpt.isPresent()) {
+                Claim claim = claimOpt.get();
+                claim.setStatus(com.example.foodflow.model.types.ClaimStatus.NOT_COMPLETED);
+                claimRepository.save(claim);
+            }
             // Create timeline event for missed pickup
             timelineService.createTimelineEvent(
                     post,

@@ -204,6 +204,69 @@ class AdminVerificationControllerTest {
     }
 
     @Nested
+    @DisplayName("POST /api/admin/verify-email/{userId} Tests")
+    class VerifyEmailTests {
+
+        @Test
+        @DisplayName("Should verify email successfully")
+        void verifyEmail_Success() {
+            // Arrange
+            Long userId = 1L;
+            ApprovalResponse expectedResponse = new ApprovalResponse(true, "Email verified manually");
+            when(adminVerificationService.verifyEmailManually(userId)).thenReturn(expectedResponse);
+
+            // Act
+            ResponseEntity<ApprovalResponse> response = adminVerificationController.verifyEmailManually(userId);
+
+            // Assert
+            assertNotNull(response);
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertNotNull(response.getBody());
+            assertTrue(response.getBody().isSuccess());
+            assertEquals("Email verified manually", response.getBody().getMessage());
+            verify(adminVerificationService, times(1)).verifyEmailManually(userId);
+        }
+
+        @Test
+        @DisplayName("Should return bad request when user not found")
+        void verifyEmail_UserNotFound() {
+            // Arrange
+            Long userId = 999L;
+            when(adminVerificationService.verifyEmailManually(userId))
+                    .thenThrow(new IllegalArgumentException("User not found"));
+
+            // Act
+            ResponseEntity<ApprovalResponse> response = adminVerificationController.verifyEmailManually(userId);
+
+            // Assert
+            assertNotNull(response);
+            assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+            assertNotNull(response.getBody());
+            assertFalse(response.getBody().isSuccess());
+            assertEquals("User not found", response.getBody().getMessage());
+        }
+
+        @Test
+        @DisplayName("Should return bad request when user not pending verification")
+        void verifyEmail_NotPendingVerification() {
+            // Arrange
+            Long userId = 1L;
+            when(adminVerificationService.verifyEmailManually(userId))
+                    .thenThrow(new IllegalStateException("User is not pending email verification"));
+
+            // Act
+            ResponseEntity<ApprovalResponse> response = adminVerificationController.verifyEmailManually(userId);
+
+            // Assert
+            assertNotNull(response);
+            assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+            assertNotNull(response.getBody());
+            assertFalse(response.getBody().isSuccess());
+            assertEquals("User is not pending email verification", response.getBody().getMessage());
+        }
+    }
+
+    @Nested
     @DisplayName("POST /api/admin/reject/{userId} Tests")
     class RejectUserTests {
 
