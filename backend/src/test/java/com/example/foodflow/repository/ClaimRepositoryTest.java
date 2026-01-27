@@ -170,7 +170,7 @@ class ClaimRepositoryTest {
 
         // When
         List<Claim> claims = claimRepository.findReceiverClaimsWithDetails(
-            receiver.getId(), ClaimStatus.ACTIVE
+            receiver.getId(), List.of(ClaimStatus.ACTIVE)
         );
 
         // Then
@@ -183,7 +183,7 @@ class ClaimRepositoryTest {
     void testFindReceiverClaimsWithDetails_ReturnsEmpty_WhenNoMatchingClaims() {
         // When
         List<Claim> claims = claimRepository.findReceiverClaimsWithDetails(
-            receiver.getId(), ClaimStatus.ACTIVE
+            receiver.getId(), List.of(ClaimStatus.ACTIVE)
         );
 
         // Then

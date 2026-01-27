@@ -38,6 +38,35 @@ export default function ReceiverMyClaims() {
     { value: 'status', label: 'Sort by Status' },
   ];
 
+  const getNormalizedStatus = claim => {
+    const postStatus = claim.surplusPost?.status;
+    if (postStatus) {
+      return postStatus;
+    }
+    const claimStatus = claim?.status;
+    if (!claimStatus || typeof claimStatus !== 'string') {
+      return null;
+    }
+    return claimStatus.toUpperCase().replace(/\s+/g, '_');
+  };
+
+  const getDisplayStatus = claim => {
+    const status = getNormalizedStatus(claim);
+    if (status === 'READY_FOR_PICKUP') {
+      return 'Ready for Pickup';
+    }
+    if (status === 'COMPLETED') {
+      return 'Completed';
+    }
+    if (status === 'EXPIRED') {
+      return 'EXPIRED';
+    }
+    if (status === 'NOT_COMPLETED') {
+      return 'Not Completed';
+    }
+    return 'Claimed';
+  };
+
   useEffect(() => {
     fetchMyClaims();
     fetchMyRating();
@@ -58,7 +87,7 @@ export default function ReceiverMyClaims() {
 
     // Check for Ready for Pickup claims
     const hasReady = claims.some(
-      c => c.surplusPost?.status === 'READY_FOR_PICKUP'
+      c => getNormalizedStatus(c) === 'READY_FOR_PICKUP'
     );
     if (hasReady) {
       setActiveFilter('Ready');
@@ -69,10 +98,10 @@ export default function ReceiverMyClaims() {
     // Check for Claimed (not ready, not completed, not expired)
     const hasClaimed = claims.some(
       c =>
-        c.surplusPost?.status !== 'READY_FOR_PICKUP' &&
-        c.surplusPost?.status !== 'COMPLETED' &&
-        c.surplusPost?.status !== 'NOT_COMPLETED' &&
-        c.surplusPost?.status !== 'EXPIRED'
+        getNormalizedStatus(c) !== 'READY_FOR_PICKUP' &&
+        getNormalizedStatus(c) !== 'COMPLETED' &&
+        getNormalizedStatus(c) !== 'NOT_COMPLETED' &&
+        getNormalizedStatus(c) !== 'EXPIRED'
     );
     if (hasClaimed) {
       setActiveFilter('Claimed');
@@ -82,7 +111,7 @@ export default function ReceiverMyClaims() {
 
     // Check for Completed claims
     const hasCompleted = claims.some(
-      c => c.surplusPost?.status === 'COMPLETED'
+      c => getNormalizedStatus(c) === 'COMPLETED'
     );
     if (hasCompleted) {
       setActiveFilter('Completed');
@@ -226,48 +255,31 @@ export default function ReceiverMyClaims() {
     }
   };
 
-  // Map claim status to display status
-  const getDisplayStatus = claim => {
-    const postStatus = claim.surplusPost?.status;
-    if (postStatus === 'READY_FOR_PICKUP') {
-      return 'Ready for Pickup';
-    }
-    if (postStatus === 'COMPLETED') {
-      return 'Completed';
-    }
-    if (postStatus === 'EXPIRED') {
-      return 'EXPIRED';
-    }
-    if (postStatus === 'NOT_COMPLETED') {
-      return 'Not Completed';
-    }
-    return 'Claimed';
-  };
-
   const getStatusCount = status => {
     if (status === 'All') {
       return claims.length;
     }
     if (status === 'Ready') {
-      return claims.filter(c => c.surplusPost?.status === 'READY_FOR_PICKUP')
+      return claims.filter(c => getNormalizedStatus(c) === 'READY_FOR_PICKUP')
         .length;
     }
     if (status === 'Completed') {
-      return claims.filter(c => c.surplusPost?.status === 'COMPLETED').length;
+      return claims.filter(c => getNormalizedStatus(c) === 'COMPLETED').length;
     }
     if (status === 'Not Completed') {
-      return claims.filter(c => c.surplusPost?.status === 'NOT_COMPLETED')
+      return claims.filter(c => getNormalizedStatus(c) === 'NOT_COMPLETED')
         .length;
     }
     if (status === 'Expired') {
-      return claims.filter(c => c.surplusPost?.status === 'EXPIRED').length;
+      return claims.filter(c => getNormalizedStatus(c) === 'EXPIRED').length;
     }
     if (status === 'Claimed') {
       return claims.filter(
         c =>
-          c.surplusPost?.status !== 'READY_FOR_PICKUP' &&
-          c.surplusPost?.status !== 'COMPLETED' &&
-          c.surplusPost?.status !== 'NOT_COMPLETED'
+          getNormalizedStatus(c) !== 'READY_FOR_PICKUP' &&
+          getNormalizedStatus(c) !== 'COMPLETED' &&
+          getNormalizedStatus(c) !== 'NOT_COMPLETED' &&
+          getNormalizedStatus(c) !== 'EXPIRED'
       ).length;
     }
     return 0;
@@ -287,22 +299,23 @@ export default function ReceiverMyClaims() {
       return true;
     }
     if (activeFilter === 'Ready') {
-      return claim.surplusPost?.status === 'READY_FOR_PICKUP';
+      return getNormalizedStatus(claim) === 'READY_FOR_PICKUP';
     }
     if (activeFilter === 'Completed') {
-      return claim.surplusPost?.status === 'COMPLETED';
+      return getNormalizedStatus(claim) === 'COMPLETED';
     }
     if (activeFilter === 'Not Completed') {
-      return claim.surplusPost?.status === 'NOT_COMPLETED';
+      return getNormalizedStatus(claim) === 'NOT_COMPLETED';
     }
     if (activeFilter === 'Expired') {
-      return claim.surplusPost?.status === 'EXPIRED';
+      return getNormalizedStatus(claim) === 'EXPIRED';
     }
     if (activeFilter === 'Claimed') {
       return (
-        claim.surplusPost?.status !== 'READY_FOR_PICKUP' &&
-        claim.surplusPost?.status !== 'COMPLETED' &&
-        claim.surplusPost?.status !== 'NOT_COMPLETED'
+        getNormalizedStatus(claim) !== 'READY_FOR_PICKUP' &&
+        getNormalizedStatus(claim) !== 'COMPLETED' &&
+        getNormalizedStatus(claim) !== 'NOT_COMPLETED' &&
+        getNormalizedStatus(claim) !== 'EXPIRED'
       );
     }
     return true;
@@ -373,17 +386,23 @@ export default function ReceiverMyClaims() {
       {/* Rating Stats Box */}
       <div className="receiver-stats-box">
         <div className="stat-item">
-          <Star size={16} fill="#F59E0B" color="#F59E0B" />
           <div className="stat-info">
-            <div className="stat-label">Rating:</div>
             <div className="stat-value">
               {rating.totalReviews > 0 ? (
-                <>
-                  {rating.averageRating.toFixed(1)}
-                  <span className="rating-count">
-                    ★ ({rating.totalReviews})
+                <span className="rating-vertical-wrap">
+                  <span className="rating-main">
+                    <span className="rating-star">★</span> Your Rating :
+                    <span className="rating-number">
+                      {rating.averageRating.toFixed(1)}
+                    </span>
+                    <span className="rating-count">
+                      ({rating.totalReviews})
+                    </span>
                   </span>
-                </>
+                  <span className="rating-count-row">
+                    <span className="rating-count"></span>
+                  </span>
+                </span>
               ) : (
                 <span className="no-rating">—</span>
               )}
@@ -502,7 +521,7 @@ export default function ReceiverMyClaims() {
                 {/* Action Buttons */}
                 <div className="claimed-page card-actions">
                   {/* Only show Cancel button when status is CLAIMED */}
-                  {claim.surplusPost?.status === 'CLAIMED' && (
+                  {getNormalizedStatus(claim) === 'CLAIMED' && (
                     <button
                       onClick={() => handleCancelClick(claim.id)}
                       className="claimed-page cancel-claim-btn"
