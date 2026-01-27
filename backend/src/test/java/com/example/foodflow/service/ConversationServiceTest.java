@@ -1,5 +1,6 @@
 package com.example.foodflow.service;
 
+import com.example.foodflow.exception.BusinessException;
 import com.example.foodflow.model.dto.ConversationResponse;
 import com.example.foodflow.model.dto.StartConversationRequest;
 import com.example.foodflow.model.entity.Conversation;
@@ -223,9 +224,10 @@ class ConversationServiceTest {
         when(userRepository.findByEmail("user1@test.com")).thenReturn(Optional.of(user1));
 
         // When & Then
+        // FIXED: Changed from IllegalArgumentException to BusinessException
         assertThatThrownBy(() -> conversationService.startConversation(user1, request))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Cannot start conversation with yourself");
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("error.conversation.self_conversation");
     }
 
     @Test
@@ -284,9 +286,10 @@ class ConversationServiceTest {
         when(conversationRepository.findById(1L)).thenReturn(Optional.of(conversation));
 
         // When & Then
+        // FIXED: Changed from IllegalArgumentException to BusinessException
         assertThatThrownBy(() -> conversationService.getConversation(1L, user3))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("You are not a participant in this conversation");
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("error.conversation.not_participant");
     }
 
     @Test
@@ -346,9 +349,10 @@ class ConversationServiceTest {
         when(conversationRepository.findById(1L)).thenReturn(Optional.of(conversation));
 
         // When & Then
+        // FIXED: Changed from IllegalArgumentException to BusinessException
         assertThatThrownBy(() -> conversationService.getConversationResponse(1L, user3))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("You are not a participant in this conversation");
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("error.conversation.not_participant");
     }
 
     // ==================== Tests for getConversationByPost ====================

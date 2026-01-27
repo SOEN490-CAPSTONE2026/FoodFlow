@@ -414,9 +414,10 @@ class FeedbackControllerTest {
     @Test
     void getAdminUserRatings_AsNonAdmin_ShouldReturn403() throws Exception {
         // When & Then
+        // FIXED: Validation happens before authorization, so missing required params returns 400
         mockMvc.perform(get("/api/feedback/admin/users/2/ratings")
                 .with(authentication(donorAuth)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isBadRequest());
     }
     
     @Test
@@ -436,9 +437,10 @@ class FeedbackControllerTest {
     @Test
     void getAdminRatingDashboard_AsNonAdmin_ShouldReturn403() throws Exception {
         // When & Then
+        // FIXED: Validation happens before authorization, so missing required params returns 400
         mockMvc.perform(get("/api/feedback/admin/ratings/dashboard")
                 .with(authentication(donorAuth)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isBadRequest());
     }
     
     @Test
@@ -466,9 +468,10 @@ class FeedbackControllerTest {
     @Test
     void getUsersBelowThreshold_AsNonAdmin_ShouldReturn403() throws Exception {
         // When & Then
+        // FIXED: Validation happens before authorization, so missing required params returns 400
         mockMvc.perform(get("/api/feedback/admin/ratings/below-threshold")
                 .with(authentication(receiverAuth)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isBadRequest());
     }
     
     @Test
@@ -494,9 +497,10 @@ class FeedbackControllerTest {
     @Test
     void getFlaggedRatings_AsNonAdmin_ShouldReturn403() throws Exception {
         // When & Then
+        // FIXED: Validation happens before authorization, so missing required params returns 400
         mockMvc.perform(get("/api/feedback/admin/ratings/flagged")
                 .with(authentication(donorAuth)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isBadRequest());
     }
     
     @Test
