@@ -16,6 +16,11 @@ public class AdminUserResponse {
     private String adminNotes;
     private LocalDateTime createdAt;
     private LocalDateTime deactivatedAt;
+    
+    // Additional organization fields
+    private String address;
+    private String businessLicense;
+    private String charityRegistrationNumber;
 
     // Constructors
     public AdminUserResponse() {}
@@ -78,4 +83,13 @@ public class AdminUserResponse {
 
     public LocalDateTime getDeactivatedAt() { return deactivatedAt; }
     public void setDeactivatedAt(LocalDateTime deactivatedAt) { this.deactivatedAt = deactivatedAt; }
+    
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+    
+    public String getBusinessLicense() { return businessLicense; }
+    public void setBusinessLicense(String businessLicense) { this.businessLicense = businessLicense; }
+    
+    public String getCharityRegistrationNumber() { return charityRegistrationNumber; }
+    public void setCharityRegistrationNumber(String charityRegistrationNumber) { this.charityRegistrationNumber = charityRegistrationNumber; }
 }

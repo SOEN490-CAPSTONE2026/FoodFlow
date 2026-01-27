@@ -200,6 +200,9 @@ public class AdminUserService {
             response.setOrganizationName(user.getOrganization().getName());
             response.setContactPerson(user.getOrganization().getContactPerson());
             response.setPhone(user.getOrganization().getPhone());
+            response.setAddress(user.getOrganization().getAddress());
+            response.setBusinessLicense(user.getOrganization().getBusinessLicense());
+            response.setCharityRegistrationNumber(user.getOrganization().getCharityRegistrationNumber());
             response.setVerificationStatus(
                 user.getOrganization().getVerificationStatus() != null 
                     ? user.getOrganization().getVerificationStatus().toString() 

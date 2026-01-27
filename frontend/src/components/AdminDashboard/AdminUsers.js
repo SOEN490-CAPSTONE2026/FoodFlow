@@ -321,6 +321,8 @@ const AdminUsers = () => {
         }
       );
 
+      console.log('Backend user data:', response.data);
+      
       // Set the detailed user data
       setSelectedUserForView(response.data);
       setShowUserDetailModal(true);
