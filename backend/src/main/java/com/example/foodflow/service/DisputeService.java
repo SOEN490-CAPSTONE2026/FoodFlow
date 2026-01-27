@@ -27,13 +27,16 @@ public class DisputeService {
     private final DisputeRepository disputeRepository;
     private final UserRepository userRepository;
     private final SurplusPostRepository surplusPostRepository;
+    private final BusinessMetricsService businessMetricsService;
     
     public DisputeService(DisputeRepository disputeRepository,
                          UserRepository userRepository,
-                         SurplusPostRepository surplusPostRepository) {
+                         SurplusPostRepository surplusPostRepository,
+                         BusinessMetricsService businessMetricsService) {
         this.disputeRepository = disputeRepository;
         this.userRepository = userRepository;
         this.surplusPostRepository = surplusPostRepository;
+        this.businessMetricsService = businessMetricsService;
     }
     
     /**
@@ -63,6 +66,9 @@ public class DisputeService {
         dispute.setImageUrl(request.getImageUrl());
         
         Dispute saved = disputeRepository.save(dispute);
+        
+        // Track metrics
+        businessMetricsService.incrementDisputesCreated();
         
         log.info("Report created with ID: {}", saved.getId());
         
@@ -117,9 +123,21 @@ public class DisputeService {
         Dispute dispute = disputeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Dispute not found with ID: " + id));
         
+        String oldStatus = dispute.getStatus().toString();
+        
         try {
             DisputeStatus status = DisputeStatus.valueOf(newStatus.toUpperCase());
             dispute.setStatus(status);
+            
+            // Track metrics based on status change
+            businessMetricsService.incrementDisputeStatusChange(oldStatus, newStatus);
+            businessMetricsService.incrementAdminDisputeAction("status_change");
+            
+            if (status == DisputeStatus.RESOLVED) {
+                businessMetricsService.incrementDisputesResolved();
+            } else if (status == DisputeStatus.CLOSED) {
+                businessMetricsService.incrementDisputesRejected();
+            }
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("Invalid status: " + newStatus);
         }

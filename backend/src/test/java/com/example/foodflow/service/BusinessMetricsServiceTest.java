@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.lang.reflect.Method;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
@@ -28,7 +30,7 @@ class BusinessMetricsServiceTest {
     private SurplusPostRepository surplusPostRepository;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         MockitoAnnotations.openMocks(this);
         meterRegistry = new SimpleMeterRegistry();
         
@@ -39,6 +41,12 @@ class BusinessMetricsServiceTest {
         
         businessMetricsService = new BusinessMetricsService(
                 meterRegistry, claimRepository, surplusPostRepository);
+        
+        // Call the private registerActiveClaimsGauges method using reflection
+        Method registerGauges = BusinessMetricsService.class
+                .getDeclaredMethod("registerActiveClaimsGauges");
+        registerGauges.setAccessible(true);
+        registerGauges.invoke(businessMetricsService);
     }
 
     @Test
@@ -286,15 +294,22 @@ class BusinessMetricsServiceTest {
     }
 
     @Test
-    void testGaugesReflectRepositoryData() {
+    void testGaugesReflectRepositoryData() throws Exception {
         // Given - Update repository mock
         when(claimRepository.countByStatus(ClaimStatus.ACTIVE)).thenReturn(15L);
         
         // When - Recreate service to register gauges with new data
+        MeterRegistry newRegistry = new SimpleMeterRegistry();
         BusinessMetricsService newService = new BusinessMetricsService(
-                meterRegistry, claimRepository, surplusPostRepository);
+                newRegistry, claimRepository, surplusPostRepository);
         
-        Gauge activeGauge = meterRegistry.find("claims.active").gauge();
+        // Call the private registerActiveClaimsGauges method using reflection
+        Method registerGauges = BusinessMetricsService.class
+                .getDeclaredMethod("registerActiveClaimsGauges");
+        registerGauges.setAccessible(true);
+        registerGauges.invoke(newService);
+        
+        Gauge activeGauge = newRegistry.find("claims.active").gauge();
 
         // Then - Gauge should reflect updated repository count
         assertNotNull(activeGauge);

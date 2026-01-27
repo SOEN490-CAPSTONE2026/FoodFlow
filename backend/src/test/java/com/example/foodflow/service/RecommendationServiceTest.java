@@ -37,6 +37,9 @@ class RecommendationServiceTest {
     @Mock
     private SurplusPostRepository surplusPostRepository;
 
+    @Mock
+    private BusinessMetricsService businessMetricsService;
+
     @InjectMocks
     private RecommendationService recommendationService;
 

@@ -9,6 +9,8 @@ import com.example.foodflow.model.entity.User;
 import com.example.foodflow.repository.OrganizationRepository;
 import com.example.foodflow.repository.UserRepository;
 import com.example.foodflow.util.TimezoneResolver;
+import com.example.foodflow.service.BusinessMetricsService;
+import io.micrometer.core.annotation.Timed;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,16 +24,19 @@ public class UserProfileService {
     
     private final UserRepository userRepository;
     private final OrganizationRepository organizationRepository;
+    private final BusinessMetricsService businessMetricsService;
     
-    public UserProfileService(UserRepository userRepository, OrganizationRepository organizationRepository) {
+    public UserProfileService(UserRepository userRepository, OrganizationRepository organizationRepository, BusinessMetricsService businessMetricsService) {
         this.userRepository = userRepository;
         this.organizationRepository = organizationRepository;
+        this.businessMetricsService = businessMetricsService;
     }
     
     /**
      * Updates user's region settings (country, city) and automatically resolves timezone.
      */
     @Transactional
+    @Timed(value = "userprofile.service.updateRegionSettings", description = "Time taken to update region settings")
     public RegionResponse updateRegionSettings(User user, UpdateRegionRequest request) {
         String timezone;
         if (request.getTimezone() != null && !request.getTimezone().trim().isEmpty()) {
@@ -55,6 +60,7 @@ public class UserProfileService {
         user.setTimezone(timezone);
         
         userRepository.save(user);
+        businessMetricsService.incrementRegionSettingsUpdates();
         
         return buildRegionResponse(user);
     }
@@ -115,6 +121,7 @@ public class UserProfileService {
      * Updates user profile data.
      */
     @Transactional
+    @Timed(value = "userprofile.service.updateProfile", description = "Time taken to update user profile")
     public UserProfileResponse updateProfile(User user, UpdateProfileRequest request) {
         // Validate email uniqueness if changing
         if (request.getEmail() != null && !request.getEmail().equalsIgnoreCase(user.getEmail())) {
@@ -145,6 +152,7 @@ public class UserProfileService {
         }
 
         userRepository.save(user);
+        businessMetricsService.incrementProfileUpdates();
 
         // Organization fields
         String addressValue = request.getOrganizationAddress();
