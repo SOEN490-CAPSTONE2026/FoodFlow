@@ -74,10 +74,11 @@ export const authAPI = {
 };
 
 export const surplusAPI = {
-  list: () => api.get('/surplus'), // Just /surplus, not /api/surplus
-  getMyPosts: () => api.get('/surplus/my-posts'),
-  getPost: id => api.get(`/surplus/${id}`),
-  create: data => api.post('/surplus', data),
+  list: () => api.get("/surplus"), // Just /surplus, not /api/surplus
+  myPosts: () => api.get("/surplus/my-posts"),
+  getMyPosts: () => api.get("/surplus/my-posts"),
+  getPost: (id) => api.get(`/surplus/${id}`),
+  create: (data) => api.post("/surplus", data),
   update: (id, data) => api.put(`/surplus/${id}`, data),
   // claim now accepts an optional `slot` parameter. If `slot` has an `id` we send `pickupSlotId`,
   // otherwise we include the slot object as `pickupSlot` so the backend can interpret it.
@@ -339,11 +340,11 @@ export const adminDisputeAPI = {
    */
   getAllDisputes: (filters = {}) => {
     const params = new URLSearchParams();
-
+    
     if (filters.status) params.append('status', filters.status);
     params.append('page', filters.page || 0);
     params.append('size', filters.size || 20);
-
+    
     return api.get(`/admin/disputes?${params.toString()}`);
   },
 
@@ -361,7 +362,7 @@ export const adminDisputeAPI = {
    * @param {string} adminNotes - Optional admin notes
    * @returns {Promise} Updated dispute data
    */
-  updateDisputeStatus: (disputeId, status, adminNotes) =>
+  updateDisputeStatus: (disputeId, status, adminNotes) => 
     api.put(`/admin/disputes/${disputeId}/status`, {
       status,
       adminNotes
@@ -388,7 +389,7 @@ export const adminDonationAPI = {
    */
   getAllDonations: (filters = {}) => {
     const params = new URLSearchParams();
-
+    
     if (filters.status) params.append('status', filters.status);
     if (filters.donorId) params.append('donorId', filters.donorId);
     if (filters.receiverId) params.append('receiverId', filters.receiverId);
@@ -396,10 +397,10 @@ export const adminDonationAPI = {
     if (filters.fromDate) params.append('fromDate', filters.fromDate);
     if (filters.toDate) params.append('toDate', filters.toDate);
     if (filters.search) params.append('search', filters.search);
-
+    
     params.append('page', filters.page || 0);
     params.append('size', filters.size || 20);
-
+    
     return api.get(`/admin/donations?${params.toString()}`);
   },
 
@@ -417,7 +418,7 @@ export const adminDonationAPI = {
    * @param {string} reason - Reason for override
    * @returns {Promise} Updated donation data
    */
-  overrideStatus: (donationId, newStatus, reason) =>
+  overrideStatus: (donationId, newStatus, reason) => 
     api.post(`/admin/donations/${donationId}/override-status`, {
       newStatus,
       reason
@@ -441,15 +442,15 @@ export const adminVerificationAPI = {
    */
   getPendingUsers: (filters = {}) => {
     const params = new URLSearchParams();
-
+    
     if (filters.userType) params.append('userType', filters.userType);
     if (filters.search) params.append('search', filters.search);
     if (filters.sortBy) params.append('sortBy', filters.sortBy);
     if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
-
+    
     params.append('page', filters.page || 0);
     params.append('size', filters.size || 20);
-
+    
     return api.get(`/admin/pending-users?${params.toString()}`);
   },
 
@@ -467,7 +468,7 @@ export const adminVerificationAPI = {
    * @param {string} message - Optional custom message
    * @returns {Promise} Response data
    */
-  rejectUser: (userId, reason, message) =>
+  rejectUser: (userId, reason, message) => 
     api.post(`/admin/reject/${userId}`, {
       reason,
       message
