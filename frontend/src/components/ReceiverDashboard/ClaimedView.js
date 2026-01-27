@@ -192,7 +192,8 @@ const ClaimedView = ({ claim, isOpen, onClose, onBack }) => {
             Pickup code will unlock when it's time
           </div>
           <div className="pickup-tolerance-info">
-            💡 You can arrive up to 15 minutes early or 15 minutes late. The pickup code will be available during this window.
+            💡 You can arrive up to 15 minutes early or 15 minutes late. The
+            pickup code will be available during this window.
           </div>
 
           {/* Action Buttons */}
