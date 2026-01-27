@@ -35,6 +35,11 @@ public class SurplusPostSchedulerService {
     @Value("${foodflow.expiry.enable-auto-flagging:true}")
     private boolean enableAutoFlagging;
 
+    @Value("${pickup.tolerance.early-minutes:15}")
+    private int earlyToleranceMinutes;
+
+    @Value("${pickup.tolerance.late-minutes:15}")
+    private int lateToleranceMinutes;
     public SurplusPostSchedulerService(SurplusPostRepository surplusPostRepository,
             ClaimRepository claimRepository,
             TimelineService timelineService) {
@@ -99,8 +104,12 @@ public class SurplusPostSchedulerService {
                     }
 
                     // If confirmed pickup date is today, check if start time has arrived
+                    // Apply early tolerance - allow READY_FOR_PICKUP status before window starts
                     if (confirmedPickupDate.isEqual(today)) {
-                        boolean started = !currentTime.isBefore(confirmedPickupStartTime);
+                        LocalTime adjustedStartTime = confirmedPickupStartTime.minusMinutes(earlyToleranceMinutes);
+                        boolean started = !currentTime.isBefore(adjustedStartTime);
+                        logger.debug("Post ID {} - confirmedStart={}, adjustedStart={}, currentTime={}, started={}",
+                                post.getId(), confirmedPickupStartTime, adjustedStartTime, currentTime, started);
                         return started;
                     }
 
@@ -190,8 +199,13 @@ public class SurplusPostSchedulerService {
                     }
 
                     // Confirmed pickup date is today and window ended
+                    // Apply late tolerance - only mark as NOT_COMPLETED after tolerance period
                     if (confirmedPickupDate.isEqual(today)) {
-                        return currentTime.isAfter(confirmedPickupEndTime);
+                        LocalTime adjustedEndTime = confirmedPickupEndTime.plusMinutes(lateToleranceMinutes);
+                        boolean ended = currentTime.isAfter(adjustedEndTime);
+                        logger.debug("Post ID {} - confirmedEnd={}, adjustedEnd={}, currentTime={}, ended={}",
+                                post.getId(), confirmedPickupEndTime, adjustedEndTime, currentTime, ended);
+                        return ended;
                     }
 
                     return false;

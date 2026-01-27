@@ -127,6 +127,19 @@
   color: #136b80;
 }
 
+/* Tolerance Info */
+.confirm-pickup-tolerance-info {
+  background: #ecfeff;
+  border: 1px solid #a2f4fd;
+  border-radius: 8px;
+  padding: 10px 14px;
+  text-align: center;
+  color: #0e7490;
+  font-size: 12px;
+  font-weight: 500;
+  margin: 0 0 20px 0;
+}
+
 /* Action Buttons */
 .confirm-pickup-actions {
   display: flex;

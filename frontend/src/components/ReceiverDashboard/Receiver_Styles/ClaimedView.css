@@ -234,3 +234,16 @@
   font-weight: 500;
   margin: 24px 0;
 }
+
+/* Tolerance Info */
+.pickup-tolerance-info {
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+  padding: 12px 16px;
+  text-align: center;
+  color: #92400e;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 20px;
+}

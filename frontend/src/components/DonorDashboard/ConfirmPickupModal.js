@@ -126,6 +126,10 @@ const ConfirmPickupModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
           </button>
         </p>
 
+        <p className="confirm-pickup-tolerance-info">
+          ℹ️ Receivers can arrive up to 15 minutes early or 15 minutes late.
+        </p>
+
         <div className="confirm-pickup-actions">
           <button
             className="confirm-pickup-button secondary"
