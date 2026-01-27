@@ -24,6 +24,9 @@ class TimelineServiceTest {
     @Mock
     private DonationTimelineRepository timelineRepository;
 
+    @Mock 
+    private BusinessMetricsService businessMetricsService;
+
     @InjectMocks
     private TimelineService timelineService;
 
