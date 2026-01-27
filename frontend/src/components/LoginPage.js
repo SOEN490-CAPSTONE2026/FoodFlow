@@ -1,6 +1,6 @@
-import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import '../style/LoginPage.css';
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import { authAPI } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
@@ -10,24 +10,13 @@ import { Eye, EyeOff } from 'lucide-react';
 const LoginPage = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const location = useLocation();
   const { login } = useContext(AuthContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { trackButtonClick, trackLogin } = useAnalytics();
-
-  // Check for success message from email verification
-  useEffect(() => {
-    if (location.state?.message) {
-      setSuccessMessage(location.state.message);
-      // Clear the message after 5 seconds
-      setTimeout(() => setSuccessMessage(''), 5000);
-    }
-  }, [location]);
 
   const handleLogin = async e => {
     e.preventDefault();
@@ -37,26 +26,17 @@ const LoginPage = () => {
     try {
       const response = await authAPI.login({ email, password });
 
-      // get token, role, userId, and organizationName from backend response
       const token = response?.data?.token;
       const userRole = response?.data?.role;
       const userId = response?.data?.userId;
       const organizationName = response?.data?.organizationName;
       const verificationStatus = response?.data?.verificationStatus;
-      const accountStatus = response?.data?.accountStatus;
 
       if (!token || !userRole || !userId) {
         throw new Error('Invalid server response');
       }
 
-      login(
-        token,
-        userRole,
-        userId,
-        organizationName,
-        verificationStatus,
-        accountStatus
-      ); // this automatically updates localStorage and context
+      login(token, userRole, userId, organizationName, verificationStatus);
       trackLogin(true);
 
       switch (userRole.toUpperCase()) {
@@ -179,10 +159,11 @@ const LoginPage = () => {
                   </div>
                 </div>
 
-                {successMessage && (
-                  <p className="form-success">{successMessage}</p>
+                {error && (
+                  <p className="form-error" role="alert">
+                    {error}
+                  </p>
                 )}
-                {error && <p className="form-error">{error}</p>}
 
                 <button
                   type="submit"

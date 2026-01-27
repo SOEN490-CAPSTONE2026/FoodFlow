@@ -84,6 +84,8 @@ const PrivacyPolicy = () => {
     },
   };
 
+  const [hover, setHover] = useState(false);
+
   return (
     <div style={styles.wrapper}>
       <div style={styles.container}>

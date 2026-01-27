@@ -4,7 +4,6 @@ import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import { authAPI } from '../services/api';
-import { MemoryRouter } from 'react-router-dom';
 
 // Mock static imports
 jest.mock('../assets/illustrations/donor-illustration.jpg', () => 'donor.jpg');
@@ -14,11 +13,7 @@ jest.mock('../style/Registration.css', () => ({}), { virtual: true });
 const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => {
   const actual = jest.requireActual('react-router-dom');
-  return {
-    ...actual,
-    useNavigate: () => mockNavigate,
-    MemoryRouter: actual.MemoryRouter,
-  };
+  return { ...actual, useNavigate: () => mockNavigate };
 });
 
 // Mock API
@@ -43,11 +38,9 @@ const mockAuthContextValue = {
 
 const renderWithAuth = (component) =>
   render(
-    <MemoryRouter>
-      <AuthContext.Provider value={mockAuthContextValue}>
-        {component}
-      </AuthContext.Provider>
-    </MemoryRouter>
+    <AuthContext.Provider value={mockAuthContextValue}>
+      {component}
+    </AuthContext.Provider>
   );
 
 // Helper to fill fields across all steps
@@ -78,12 +71,7 @@ const fillAllFields = async (user) => {
   await waitFor(() => expect(screen.getByLabelText(/contact person/i)).toBeInTheDocument());
   await user.type(screen.getByLabelText(/contact person/i), 'Jane Doe');
   await user.type(screen.getByLabelText(/phone number/i), '1234567890');
-
-  // Click both checkboxes
-  const checkboxes = screen.getAllByRole('checkbox');
-  for (const checkbox of checkboxes) {
-    await user.click(checkbox);
-  }
+  await user.click(screen.getByRole('checkbox'));
 };
 
 describe('DonorRegistration', () => {
@@ -372,12 +360,8 @@ describe('DonorRegistration', () => {
     await waitFor(() => expect(screen.getByLabelText(/contact person/i)).toBeInTheDocument());
     await user.type(screen.getByLabelText(/contact person/i), 'Jane Doe');
     await user.type(screen.getByLabelText(/phone number/i), '1234567890');
-    // Click both checkboxes
-    const checkboxes = screen.getAllByRole('checkbox');
-    for (const checkbox of checkboxes) {
-      await user.click(checkbox);
-    }
-
+    await user.click(screen.getByRole('checkbox'));
+    
     // Try to submit - should be blocked by phone validation
     await user.click(screen.getByRole('button', { name: /register as donor/i }));
     
@@ -387,227 +371,5 @@ describe('DonorRegistration', () => {
     
     // Should still be on step 4
     expect(screen.getByLabelText(/contact person/i)).toBeInTheDocument();
-  });
-
-  describe('Data Storage Consent', () => {
-    it('renders data storage consent checkbox on step 4', async () => {
-      const user = userEvent.setup({ delay: null });
-      authAPI.checkEmailExists.mockResolvedValue({ data: { exists: false } });
-      authAPI.checkPhoneExists.mockResolvedValue({ data: { exists: false } });
-
-      renderWithAuth(<DonorRegistration />);
-
-      // Navigate to step 4
-      await user.type(
-        screen.getByLabelText(/^email address$/i),
-        'donor@example.com'
-      );
-      await user.type(screen.getByLabelText(/^password$/i), 'password123');
-      await user.type(
-        screen.getByLabelText(/^confirm password$/i),
-        'password123'
-      );
-      await user.click(screen.getByRole('button', { name: /next/i }));
-
-      await screen.findByLabelText(/organization name/i);
-      await user.type(screen.getByLabelText(/organization name/i), 'Donor Org');
-      await user.selectOptions(
-        screen.getByLabelText(/organization type/i),
-        'RESTAURANT'
-      );
-      await user.type(screen.getByLabelText(/business license/i), 'BL-123456');
-      await user.click(screen.getByRole('button', { name: /next/i }));
-
-      await screen.findByLabelText(/street address/i);
-      await user.type(screen.getByLabelText(/street address/i), '456 Main St');
-      await user.type(screen.getByLabelText(/city/i), 'Montreal');
-      await user.type(screen.getByLabelText(/postal code/i), 'H1A1A1');
-      await user.type(screen.getByLabelText(/province/i), 'Quebec');
-      await user.type(screen.getByLabelText(/country/i), 'Canada');
-      await user.click(screen.getByRole('button', { name: /next/i }));
-
-      await screen.findByLabelText(/contact person/i);
-
-      // Check for data storage consent checkbox
-      expect(
-        screen.getByText(/I consent to data storage as outlined in the/i)
-      ).toBeInTheDocument();
-    });
-
-    it('privacy policy link is present and has correct attributes', async () => {
-      const user = userEvent.setup({ delay: null });
-      authAPI.checkEmailExists.mockResolvedValue({ data: { exists: false } });
-      authAPI.checkPhoneExists.mockResolvedValue({ data: { exists: false } });
-
-      renderWithAuth(<DonorRegistration />);
-
-      // Navigate to step 4
-      await user.type(
-        screen.getByLabelText(/^email address$/i),
-        'donor@example.com'
-      );
-      await user.type(screen.getByLabelText(/^password$/i), 'password123');
-      await user.type(
-        screen.getByLabelText(/^confirm password$/i),
-        'password123'
-      );
-      await user.click(screen.getByRole('button', { name: /next/i }));
-
-      await screen.findByLabelText(/organization name/i);
-      await user.type(screen.getByLabelText(/organization name/i), 'Donor Org');
-      await user.selectOptions(
-        screen.getByLabelText(/organization type/i),
-        'RESTAURANT'
-      );
-      await user.type(screen.getByLabelText(/business license/i), 'BL-123456');
-      await user.click(screen.getByRole('button', { name: /next/i }));
-
-      await screen.findByLabelText(/street address/i);
-      await user.type(screen.getByLabelText(/street address/i), '456 Main St');
-      await user.type(screen.getByLabelText(/city/i), 'Montreal');
-      await user.type(screen.getByLabelText(/postal code/i), 'H1A1A1');
-      await user.type(screen.getByLabelText(/province/i), 'Quebec');
-      await user.type(screen.getByLabelText(/country/i), 'Canada');
-      await user.click(screen.getByRole('button', { name: /next/i }));
-
-      await screen.findByLabelText(/contact person/i);
-
-      const privacyLink = screen.getByRole('link', { name: /privacy policy/i });
-      expect(privacyLink).toBeInTheDocument();
-      expect(privacyLink).toHaveAttribute('href', '/privacy-policy');
-      expect(privacyLink).toHaveAttribute('target', '_blank');
-      expect(privacyLink).toHaveAttribute('rel', 'noopener noreferrer');
-    });
-
-    it('blocks registration when data storage consent is not checked', async () => {
-      const user = userEvent.setup({ delay: null });
-      authAPI.checkEmailExists.mockResolvedValue({ data: { exists: false } });
-      authAPI.checkPhoneExists.mockResolvedValue({ data: { exists: false } });
-
-      renderWithAuth(<DonorRegistration />);
-
-      // Navigate to step 4 and fill fields
-      await user.type(
-        screen.getByLabelText(/^email address$/i),
-        'donor@example.com'
-      );
-      await user.type(screen.getByLabelText(/^password$/i), 'password123');
-      await user.type(
-        screen.getByLabelText(/^confirm password$/i),
-        'password123'
-      );
-      await user.click(screen.getByRole('button', { name: /next/i }));
-
-      await screen.findByLabelText(/organization name/i);
-      await user.type(screen.getByLabelText(/organization name/i), 'Donor Org');
-      await user.selectOptions(
-        screen.getByLabelText(/organization type/i),
-        'RESTAURANT'
-      );
-      await user.type(screen.getByLabelText(/business license/i), 'BL-123456');
-      await user.click(screen.getByRole('button', { name: /next/i }));
-
-      await screen.findByLabelText(/street address/i);
-      await user.type(screen.getByLabelText(/street address/i), '456 Main St');
-      await user.type(screen.getByLabelText(/city/i), 'Montreal');
-      await user.type(screen.getByLabelText(/postal code/i), 'H1A1A1');
-      await user.type(screen.getByLabelText(/province/i), 'Quebec');
-      await user.type(screen.getByLabelText(/country/i), 'Canada');
-      await user.click(screen.getByRole('button', { name: /next/i }));
-
-      await screen.findByLabelText(/contact person/i);
-      await user.type(screen.getByLabelText(/contact person/i), 'Jane Doe');
-      await user.type(screen.getByLabelText(/phone number/i), '5141234567');
-
-      // Check only accuracy confirmation, not data storage consent
-      const accuracyCheckbox = screen.getByLabelText(
-        /I confirm that the information provided is accurate/i
-      );
-      await user.click(accuracyCheckbox);
-
-      // Register button should be disabled
-      const registerButton = screen.getByRole('button', {
-        name: /register as donor/i,
-      });
-      expect(registerButton).toBeDisabled();
-    });
-
-    it('allows registration when both checkboxes are checked', async () => {
-      const user = userEvent.setup({ delay: null });
-      authAPI.checkEmailExists.mockResolvedValue({ data: { exists: false } });
-      authAPI.checkPhoneExists.mockResolvedValue({ data: { exists: false } });
-      authAPI.registerDonor.mockResolvedValue({
-        data: {
-          token: 'test-token',
-          role: 'DONOR',
-          userId: 1,
-          organizationName: 'Donor Org',
-        },
-      });
-
-      renderWithAuth(<DonorRegistration />);
-
-      // Navigate to step 4 and fill fields
-      await user.type(
-        screen.getByLabelText(/^email address$/i),
-        'donor@example.com'
-      );
-      await user.type(screen.getByLabelText(/^password$/i), 'password123');
-      await user.type(
-        screen.getByLabelText(/^confirm password$/i),
-        'password123'
-      );
-      await user.click(screen.getByRole('button', { name: /next/i }));
-
-      await screen.findByLabelText(/organization name/i);
-      await user.type(screen.getByLabelText(/organization name/i), 'Donor Org');
-      await user.selectOptions(
-        screen.getByLabelText(/organization type/i),
-        'RESTAURANT'
-      );
-      await user.type(screen.getByLabelText(/business license/i), 'BL-123456');
-      await user.click(screen.getByRole('button', { name: /next/i }));
-
-      await screen.findByLabelText(/street address/i);
-      await user.type(screen.getByLabelText(/street address/i), '456 Main St');
-      await user.type(screen.getByLabelText(/city/i), 'Montreal');
-      await user.type(screen.getByLabelText(/postal code/i), 'H1A1A1');
-      await user.type(screen.getByLabelText(/province/i), 'Quebec');
-      await user.type(screen.getByLabelText(/country/i), 'Canada');
-      await user.click(screen.getByRole('button', { name: /next/i }));
-
-      await screen.findByLabelText(/contact person/i);
-      await user.type(screen.getByLabelText(/contact person/i), 'Jane Doe');
-      await user.type(screen.getByLabelText(/phone number/i), '5141234567');
-
-      // Check both checkboxes
-      const accuracyCheckbox = screen.getByLabelText(
-        /I confirm that the information provided is accurate/i
-      );
-      const consentCheckbox = screen.getByLabelText(
-        /I consent to data storage as outlined in the/i
-      );
-
-      await user.click(accuracyCheckbox);
-      await user.click(consentCheckbox);
-
-      // Register button should be enabled
-      const registerButton = screen.getByRole('button', {
-        name: /register as donor/i,
-      });
-      expect(registerButton).not.toBeDisabled();
-
-      // Submit the form
-      await user.click(registerButton);
-
-      // Verify API was called with consent flag
-      await waitFor(() => {
-        expect(authAPI.registerDonor).toHaveBeenCalledWith(
-          expect.objectContaining({
-            dataStorageConsent: true,
-          })
-        );
-      });
-    });
   });
 });

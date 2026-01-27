@@ -17,49 +17,43 @@ const ReceiverLayoutContent = require('./ReceiverLayout').default;
 
 // We only test the banner rendering logic. Render the component with a mocked AuthContext
 
-describe('ReceiverLayout admin approval banner', () => {
-  it('shows admin approval banner when accountStatus is PENDING_ADMIN_APPROVAL', () => {
+describe('ReceiverLayout verification banner', () => {
+  it('shows pending verification banner for receiver role with PENDING status', () => {
     render(
       <MemoryRouter>
-        <AuthContext.Provider
-          value={{ role: 'RECEIVER', accountStatus: 'PENDING_ADMIN_APPROVAL' }}
-        >
+        <AuthContext.Provider value={{ role: 'RECEIVER', organizationVerificationStatus: 'PENDING' }}>
           <ReceiverLayoutContent />
         </AuthContext.Provider>
       </MemoryRouter>
     );
 
-    const banner = screen.getByText(/Account Pending Admin Approval/i);
+    const banner = screen.getByText(/Your account is pending verification/i);
     expect(banner).toBeInTheDocument();
   });
 
-  it('does not show banner when accountStatus is PENDING_VERIFICATION', () => {
+  it('does not show banner for non-receiver roles', () => {
     render(
       <MemoryRouter>
-        <AuthContext.Provider
-          value={{ role: 'RECEIVER', accountStatus: 'PENDING_VERIFICATION' }}
-        >
+        <AuthContext.Provider value={{ role: 'DONOR', organizationVerificationStatus: 'PENDING' }}>
           <ReceiverLayoutContent />
         </AuthContext.Provider>
       </MemoryRouter>
     );
 
-    const results = screen.queryByText(/Account Pending Admin Approval/i);
+    const results = screen.queryByText(/Your account is pending verification/i);
     expect(results).toBeNull();
   });
 
-  it('does not show banner when accountStatus is ACTIVE', () => {
+  it('does not show banner when verification status is not PENDING', () => {
     render(
       <MemoryRouter>
-        <AuthContext.Provider
-          value={{ role: 'RECEIVER', accountStatus: 'ACTIVE' }}
-        >
+        <AuthContext.Provider value={{ role: 'RECEIVER', organizationVerificationStatus: 'VERIFIED' }}>
           <ReceiverLayoutContent />
         </AuthContext.Provider>
       </MemoryRouter>
     );
 
-    const results = screen.queryByText(/Account Pending Admin Approval/i);
+    const results = screen.queryByText(/Your account is pending verification/i);
     expect(results).toBeNull();
   });
 });

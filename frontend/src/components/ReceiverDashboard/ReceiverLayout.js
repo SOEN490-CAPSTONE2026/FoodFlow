@@ -1,26 +1,15 @@
-import React, { useState, useRef, useEffect } from 'react';
-import {
-  Outlet,
-  useLocation,
-  useNavigate,
-  Link,
-  useNavigationType,
-} from 'react-router-dom';
-import './Receiver_Styles/ReceiverLayout.css';
-import Logo from '../../assets/Logo.png';
-import ProfilePhoto from './pfp.png';
-import { AuthContext } from '../../contexts/AuthContext';
-import {
-  NotificationProvider,
-  useNotification,
-} from '../../contexts/NotificationContext';
+import React, { useState, useRef, useEffect } from "react";
+import { Outlet, useLocation, useNavigate, Link, useNavigationType } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
-import MessageNotification from '../MessagingDashboard/MessageNotification';
-import ReceiverPreferences from './ReceiverPreferences';
-import EmailVerificationRequired from '../EmailVerificationRequired';
-import AdminApprovalBanner from '../AdminApprovalBanner';
+import "./Receiver_Styles/ReceiverLayout.css";
+import Logo from "../../assets/Logo.png";
+import ProfilePhoto from "./pfp.png";
+import { AuthContext } from "../../contexts/AuthContext";
+import { NotificationProvider, useNotification } from "../../contexts/NotificationContext";
+import MessageNotification from "../MessagingDashboard/MessageNotification";
+import ReceiverPreferences from "./ReceiverPreferences";
 import { connectToUserQueue, disconnect } from '../../services/socket';
-import api, { profileAPI } from '../../services/api';
+import api from '../../services/api';
 import {
   Settings as IconSettings,
   HelpCircle as IconHelpCircle,
@@ -35,68 +24,17 @@ function ReceiverLayoutContent() {
   const location = useLocation();
   const navigate = useNavigate();
   const navType = useNavigationType();
-  const {
-    logout,
-    organizationName,
-    organizationVerificationStatus,
-    accountStatus,
-    role,
-  } = React.useContext(AuthContext);
+  const { logout, organizationName, organizationVerificationStatus, role } =
+    React.useContext(AuthContext);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
-  const [profilePhotoUrl, setProfilePhotoUrl] = useState(null);
   const dropdownRef = useRef(null);
   const isActive = path => location.pathname === path;
   const { notification, showNotification, clearNotification } =
     useNotification();
 
   const isMessagesPage = location.pathname === '/receiver/messages';
-
-  const getProfilePhotoUrl = photoUrl => {
-    if (!photoUrl) {
-      return null;
-    }
-    if (
-      photoUrl.startsWith('http://') ||
-      photoUrl.startsWith('https://') ||
-      photoUrl.startsWith('data:')
-    ) {
-      return photoUrl;
-    }
-    const apiBaseUrl =
-      process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
-    const backendBaseUrl = apiBaseUrl.endsWith('/api')
-      ? apiBaseUrl.slice(0, -4)
-      : apiBaseUrl.replace(/\/api$/, '');
-    if (photoUrl.startsWith('/uploads/')) {
-      const filename = photoUrl.substring('/uploads/'.length);
-      return `${backendBaseUrl}/api/files/uploads/${filename}`;
-    }
-    if (photoUrl.startsWith('/api/files/')) {
-      return `${backendBaseUrl}${photoUrl}`;
-    }
-    return `${backendBaseUrl}${photoUrl.startsWith('/') ? '' : '/'}${photoUrl}`;
-  };
-
-  useEffect(() => {
-    let isMounted = true;
-    const fetchProfilePhoto = async () => {
-      try {
-        const response = await profileAPI.get();
-        if (isMounted) {
-          const url = getProfilePhotoUrl(response.data?.profilePhoto);
-          setProfilePhotoUrl(url);
-        }
-      } catch (error) {
-        console.error('Error fetching profile photo:', error);
-      }
-    };
-    fetchProfilePhoto();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   const getPageTitle = () => {
     switch (location.pathname) {
@@ -318,7 +256,7 @@ function ReceiverLayoutContent() {
               onClick={toggleDropdown}
               title={t('receiverLayout.account')}
             >
-              <img src={profilePhotoUrl || ProfilePhoto} alt="Profile" />
+              <img src={ProfilePhoto} alt="Profile" />
             </button>
           </div>
 
@@ -377,36 +315,35 @@ function ReceiverLayoutContent() {
       </div>
 
       <div className="receiver-main">
-        {/* Show email verification screen if account not verified */}
-        {accountStatus === 'PENDING_VERIFICATION' ? (
-          <EmailVerificationRequired />
-        ) : (
-          <>
-            {/* Show admin approval banner if waiting for approval */}
-            {accountStatus === 'PENDING_ADMIN_APPROVAL' && (
-              <AdminApprovalBanner />
-            )}
+        {!isMessagesPage && (
+          <div className="receiver-topbar">
+            <div className="receiver-topbar-left">
+              <h1>{getPageTitle()}</h1>
+              <p>{getPageDescription()}</p>
+            </div>
+          </div>
+        )}
 
-            {!isMessagesPage && (
-              <div className="receiver-topbar">
-                <div className="receiver-topbar-left">
-                  <h1>{getPageTitle()}</h1>
-                  <p>{getPageDescription()}</p>
-                </div>
+        <div
+          className={`receiver-content ${isMessagesPage ? 'messages-page' : ''}`}
+        >
+          {role === 'RECEIVER' &&
+            organizationVerificationStatus === 'PENDING' && (
+              <div
+                className="verification-banner"
+                role="status"
+                aria-live="polite"
+              >
+                Your account is pending verification. Some features may be
+                limited until your organization is verified.
               </div>
             )}
-
-            <div
-              className={`receiver-content ${isMessagesPage ? 'messages-page' : ''}`}
-            >
-              <Outlet />
-              <MessageNotification
-                notification={notification}
-                onClose={clearNotification}
-              />
-            </div>
-          </>
-        )}
+          <Outlet />
+          <MessageNotification
+            notification={notification}
+            onClose={clearNotification}
+          />
+        </div>
       </div>
 
       <ReceiverPreferences
