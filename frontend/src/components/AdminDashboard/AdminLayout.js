@@ -19,8 +19,6 @@ import {
   ChevronLeft,
   ChevronDown,
   Settings,
-  HelpCircle,
-  MoreVertical,
   LogOut,
   Menu,
   X,
@@ -310,12 +308,6 @@ export default function AdminLayout() {
             </span>
             Settings
           </Link>
-          <div className="admin-nav-link disabled" data-tooltip="Help">
-            <span className="nav-icon" aria-hidden>
-              <HelpCircle size={18} className="lucide" />
-            </span>
-            Help
-          </div>
           <button
             onClick={handleLogout}
             className="admin-nav-link logout-btn"
@@ -336,13 +328,6 @@ export default function AdminLayout() {
                 <span className="account-name">Evian</span>
                 <span className="account-role">admin</span>
               </div>
-            </button>
-            <button
-              className="account-dotted-menu"
-              onClick={() => setOpen(s => !s)}
-              aria-label="Menu"
-            >
-              <MoreVertical size={18} className="lucide" />
             </button>
           </div>
         </div>

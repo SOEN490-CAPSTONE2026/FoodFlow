@@ -269,24 +269,12 @@
   border: none;
   margin-top: 0;
   background: white;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .users-table-container::-webkit-scrollbar {
-  height: 6px;
-}
-
-.users-table-container::-webkit-scrollbar-track {
-  background: #f3f4f6;
-  border-radius: 10px;
-}
-
-.users-table-container::-webkit-scrollbar-thumb {
-  background: #c1d9df;
-  border-radius: 10px;
-}
-
-.users-table-container::-webkit-scrollbar-thumb:hover {
-  background: #b1d2da;
+  display: none;
 }
 
 .users-table {
