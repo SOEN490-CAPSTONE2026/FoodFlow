@@ -51,6 +51,9 @@ jest.mock('../../../services/api', () => ({
     put: jest.fn(),
     delete: jest.fn(),
   },
+  profileAPI: {
+    get: jest.fn(() => Promise.resolve({ data: {} })),
+  },
 }));
 
 const mockLogout = jest.fn();

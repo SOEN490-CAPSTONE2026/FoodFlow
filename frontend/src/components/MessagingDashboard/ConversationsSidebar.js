@@ -10,6 +10,32 @@ const ConversationsSidebar = ({
 }) => {
   const [filter, setFilter] = useState('all'); // 'all' or 'unread'
 
+  const getProfilePhotoUrl = photoUrl => {
+    if (!photoUrl) {
+      return null;
+    }
+    if (
+      photoUrl.startsWith('http://') ||
+      photoUrl.startsWith('https://') ||
+      photoUrl.startsWith('data:')
+    ) {
+      return photoUrl;
+    }
+    const apiBaseUrl =
+      process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+    const backendBaseUrl = apiBaseUrl.endsWith('/api')
+      ? apiBaseUrl.slice(0, -4)
+      : apiBaseUrl.replace(/\/api$/, '');
+    if (photoUrl.startsWith('/uploads/')) {
+      const filename = photoUrl.substring('/uploads/'.length);
+      return `${backendBaseUrl}/api/files/uploads/${filename}`;
+    }
+    if (photoUrl.startsWith('/api/files/')) {
+      return `${backendBaseUrl}${photoUrl}`;
+    }
+    return `${backendBaseUrl}${photoUrl.startsWith('/') ? '' : '/'}${photoUrl}`;
+  };
+
   const formatTimestamp = timestamp => {
     if (!timestamp) {
       return '';
@@ -97,7 +123,15 @@ const ConversationsSidebar = ({
               onClick={() => onSelectConversation(conversation)}
             >
               <div className="conversation-avatar">
-                {conversation.otherUserName.charAt(0).toUpperCase()}
+                {conversation.otherUserProfilePhoto ? (
+                  <img
+                    src={getProfilePhotoUrl(conversation.otherUserProfilePhoto)}
+                    alt={conversation.otherUserName}
+                    className="conversation-avatar-image"
+                  />
+                ) : (
+                  conversation.otherUserName.charAt(0).toUpperCase()
+                )}
               </div>
 
               <div className="conversation-info">
