@@ -178,6 +178,81 @@ const RejectionModal = ({ user, onClose, onConfirm, loading }) => {
   );
 };
 
+const ManualVerifyModal = ({ user, onClose, onConfirm, loading }) => {
+  const [mouseDownInsideModal, setMouseDownInsideModal] = useState(false);
+
+  const handleBackdropClick = e => {
+    if (
+      !mouseDownInsideModal &&
+      e.target.classList.contains('modal-backdrop')
+    ) {
+      onClose();
+    }
+    setMouseDownInsideModal(false);
+  };
+
+  return (
+    <div
+      className="modal-backdrop"
+      onClick={handleBackdropClick}
+      onMouseDown={e => {
+        if (e.target.classList.contains('modal-backdrop')) {
+          setMouseDownInsideModal(false);
+        }
+      }}
+    >
+      <div
+        className="modal-content verification-modal"
+        onMouseDown={() => setMouseDownInsideModal(true)}
+      >
+        <div className="modal-header">
+          <Mail size={24} color="#2563eb" />
+          <h3>Manually Verify Email</h3>
+        </div>
+        <div className="modal-body">
+          <p>
+            This will mark the user's email as verified and move them to the
+            admin approval queue.
+          </p>
+          <div className="user-info-summary">
+            <p>
+              <strong>Organization:</strong> {user.organizationName}
+            </p>
+            <p>
+              <strong>Contact:</strong> {user.contactName}
+            </p>
+            <p>
+              <strong>Email:</strong> {user.email}
+            </p>
+            <p>
+              <strong>Type:</strong> {user.role}
+            </p>
+          </div>
+          <p className="approval-note">
+            Use this only when the verification link fails.
+          </p>
+        </div>
+        <div className="modal-actions">
+          <button
+            className="btn-secondary"
+            onClick={onClose}
+            disabled={loading}
+          >
+            Cancel
+          </button>
+          <button
+            className="btn-approve"
+            onClick={onConfirm}
+            disabled={loading}
+          >
+            {loading ? 'Verifying...' : 'Verify Email'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Main Component
 const AdminVerificationQueue = () => {
   const [pendingUsers, setPendingUsers] = useState([]);
@@ -194,6 +269,7 @@ const AdminVerificationQueue = () => {
 
   // Filters
   const [userTypeFilter, setUserTypeFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('PENDING_ADMIN_APPROVAL');
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('date');
@@ -207,6 +283,7 @@ const AdminVerificationQueue = () => {
   // Modals
   const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [showRejectionModal, setShowRejectionModal] = useState(false);
+  const [showManualVerifyModal, setShowManualVerifyModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -267,7 +344,6 @@ const AdminVerificationQueue = () => {
       });
 
       setPendingUsers(content);
-      setFilteredUsers(content);
       setTotalPages(totalPagesCount);
       setLoading(false);
     } catch (err) {
@@ -284,6 +360,20 @@ const AdminVerificationQueue = () => {
     }, 500);
     return () => clearTimeout(timer);
   }, [searchTerm]);
+
+  // Apply client-side status filter
+  useEffect(() => {
+    if (pendingUsers.length === 0) {
+      setFilteredUsers([]);
+      return;
+    }
+
+    const filtered = statusFilter
+      ? pendingUsers.filter(user => user.accountStatus === statusFilter)
+      : pendingUsers;
+
+    setFilteredUsers(filtered);
+  }, [pendingUsers, statusFilter]);
 
   // Fetch users when filters change
   useEffect(() => {
@@ -366,6 +456,30 @@ const AdminVerificationQueue = () => {
     }
   };
 
+  const handleManualVerify = async () => {
+    if (!selectedUser) {
+      return;
+    }
+
+    setActionLoading(true);
+    try {
+      await adminVerificationAPI.verifyEmail(selectedUser.id);
+      showToast('Email verified manually');
+      setShowManualVerifyModal(false);
+      setSelectedUser(null);
+      fetchPendingUsers();
+    } catch (err) {
+      console.error('Error manually verifying email:', err);
+      showToast(
+        err.response?.data?.message ||
+          'Failed to verify email. Please try again.',
+        'error'
+      );
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   // Calculate waiting time
   const getWaitingTime = (createdAt) => {
     const now = new Date();
@@ -415,6 +529,11 @@ const AdminVerificationQueue = () => {
     { value: '', label: 'All Types' },
     { value: 'DONOR', label: 'Donors' },
     { value: 'RECEIVER', label: 'Receivers' },
+  ];
+
+  const statusOptions = [
+    { value: 'PENDING_ADMIN_APPROVAL', label: 'Email Verified' },
+    { value: 'PENDING_VERIFICATION', label: 'Email Not Verified' },
   ];
 
   // Sort options
@@ -510,6 +629,18 @@ const AdminVerificationQueue = () => {
           />
 
           <Select
+            options={statusOptions}
+            value={statusOptions.find(opt => opt.value === statusFilter)}
+            onChange={option => {
+              setStatusFilter(option.value);
+              setCurrentPage(0);
+            }}
+            className="filter-select"
+            classNamePrefix="select"
+            placeholder="Filter by status"
+          />
+
+          <Select
             options={sortOptions}
             value={sortOptions.find(opt => opt.value === sortBy)}
             onChange={(option) => setSortBy(option.value)}
@@ -588,9 +719,15 @@ const AdminVerificationQueue = () => {
                           </span>
                         </TableCell>
                         <TableCell>
-                          <span className="pill pill-pending">
-                            Pending Approval
-                          </span>
+                          {user.accountStatus === 'PENDING_VERIFICATION' ? (
+                            <span className="pill pill-email-pending">
+                              Email Not Verified
+                            </span>
+                          ) : (
+                            <span className="pill pill-pending">
+                              Pending Approval
+                            </span>
+                          )}
                         </TableCell>
                         <TableCell className="email-cell">{user.email}</TableCell>
                         <TableCell>{user.phoneNumber || 'N/A'}</TableCell>
@@ -602,26 +739,41 @@ const AdminVerificationQueue = () => {
                         </TableCell>
                         <TableCell>
                           <div className="action-buttons">
+                            {user.accountStatus === 'PENDING_VERIFICATION' ? (
                               <button
-                                className="btn-approve-small"
+                                className="btn-verify-small"
                                 onClick={() => {
                                   setSelectedUser(user);
-                                  setShowApprovalModal(true);
+                                  setShowManualVerifyModal(true);
                                 }}
-                                title="Approve"
+                                title="Verify Email"
                               >
-                                <CheckCircle size={16} />
+                                <Mail size={16} />
                               </button>
-                              <button
-                                className="btn-reject-small"
-                                onClick={() => {
-                                  setSelectedUser(user);
-                                  setShowRejectionModal(true);
-                                }}
-                                title="Reject"
-                              >
-                                <XCircle size={16} />
-                              </button>
+                            ) : (
+                              <>
+                                <button
+                                  className="btn-approve-small"
+                                  onClick={() => {
+                                    setSelectedUser(user);
+                                    setShowApprovalModal(true);
+                                  }}
+                                  title="Approve"
+                                >
+                                  <CheckCircle size={16} />
+                                </button>
+                                <button
+                                  className="btn-reject-small"
+                                  onClick={() => {
+                                    setSelectedUser(user);
+                                    setShowRejectionModal(true);
+                                  }}
+                                  title="Reject"
+                                >
+                                  <XCircle size={16} />
+                                </button>
+                              </>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
@@ -860,6 +1012,18 @@ const AdminVerificationQueue = () => {
             setSelectedUser(null);
           }}
           onConfirm={handleRejectUser}
+          loading={actionLoading}
+        />
+      )}
+
+      {showManualVerifyModal && selectedUser && (
+        <ManualVerifyModal
+          user={selectedUser}
+          onClose={() => {
+            setShowManualVerifyModal(false);
+            setSelectedUser(null);
+          }}
+          onConfirm={handleManualVerify}
           loading={actionLoading}
         />
       )}

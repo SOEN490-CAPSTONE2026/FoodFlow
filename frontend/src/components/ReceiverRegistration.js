@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Link } from 'react-i18next';
 import { authAPI } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
 import ReceiverIllustration from "../assets/illustrations/receiver-ilustration.jpg";
@@ -68,6 +68,7 @@ const ReceiverRegistration = () => {
   const [submitted, setSubmitted] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [confirmAccuracy, setConfirmAccuracy] = useState(false);
+  const [dataStorageConsent, setDataStorageConsent] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -377,6 +378,7 @@ const ReceiverRegistration = () => {
         payload.append('contactPerson', formData.contactPerson);
         payload.append('phone', formatPhoneNumber(formData.phone));
         payload.append('capacity', parseInt(formData.capacity));
+        payload.append('dataStorageConsent', dataStorageConsent);
       } else {
         // Use JSON payload if no file
         payload = {
@@ -389,21 +391,32 @@ const ReceiverRegistration = () => {
           address: fullAddress,
           contactPerson: formData.contactPerson,
           phone: formatPhoneNumber(formData.phone),
-          capacity: parseInt(formData.capacity)
+          capacity: parseInt(formData.capacity),
+          dataStorageConsent: dataStorageConsent,
         };
       }
 
       const response = await authAPI.registerReceiver(payload);
 
-      // Extract token, role, userId, organizationName and verificationStatus from response
+      // Extract token, role, userId, organizationName, verificationStatus, and accountStatus from response
       const token = response?.data?.token;
       const userRole = response?.data?.role;
       const userId = response?.data?.userId;
       const organizationName = response?.data?.organizationName;
-      const verificationStatus = response?.data?.verificationStatus || 'pending_verification';
+      const verificationStatus =
+        response?.data?.verificationStatus || 'pending_verification';
+      const accountStatus =
+        response?.data?.accountStatus || 'PENDING_VERIFICATION';
 
       if (token && userRole && userId) {
-        login(token, userRole, userId, organizationName, verificationStatus);
+        login(
+          token,
+          userRole,
+          userId,
+          organizationName,
+          verificationStatus,
+          accountStatus
+        );
       }
 
       setSubmitted(true);
@@ -910,6 +923,27 @@ const ReceiverRegistration = () => {
               {fieldErrors.confirmAccuracy && <span className="error-text">{fieldErrors.confirmAccuracy}</span>}
             </div>
 
+            <div className="form-group confirmation-checkbox">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={dataStorageConsent}
+                  onChange={e => setDataStorageConsent(e.target.checked)}
+                />
+                <span>
+                  I consent to data storage as outlined in the{' '}
+                  <Link
+                    to="/privacy-policy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: '#609B7E', textDecoration: 'underline' }}
+                  >
+                    Privacy Policy
+                  </Link>
+                </span>
+              </label>
+            </div>
+
             <div className="info-box">
               <p><strong>What happens next?</strong></p>
               <p>Your registration will be submitted with a status of "Verification Pending". Our admin team will review your information within 1–3 business days.</p>
@@ -983,7 +1017,12 @@ const ReceiverRegistration = () => {
                   type="button"
                   className="submit-button"
                   onClick={handleSubmit}
-                  disabled={loading || !isStepValid(currentStep)}
+                  disabled={
+                    loading ||
+                    !confirmAccuracy ||
+                    !dataStorageConsent ||
+                    !isStepValid(currentStep)
+                  }
                 >
                   {loading ? 'Submitting...' : 'Submit Registration'}
                 </button>

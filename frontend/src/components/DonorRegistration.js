@@ -65,6 +65,7 @@ const DonorRegistration = () => {
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [confirmAccuracy, setConfirmAccuracy] = useState(false);
+  const [dataStorageConsent, setDataStorageConsent] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
   const handleChange = (e) => {
@@ -354,6 +355,7 @@ const DonorRegistration = () => {
         payload.append('address', fullAddress);
         payload.append('contactPerson', formData.contactPerson);
         payload.append('phone', formatPhoneNumber(formData.phone));
+        payload.append('dataStorageConsent', dataStorageConsent);
       } else {
         // Use JSON payload if no file
         payload = {
@@ -366,20 +368,31 @@ const DonorRegistration = () => {
           address: fullAddress,
           contactPerson: formData.contactPerson,
           phone: formatPhoneNumber(formData.phone),
+          dataStorageConsent: dataStorageConsent,
         };
       }
 
       const response = await authAPI.registerDonor(payload);
 
-      // Extract token, role, userId, organizationName and verificationStatus from response
+      // Extract token, role, userId, organizationName, verificationStatus, and accountStatus from response
       const token = response?.data?.token;
       const userRole = response?.data?.role;
       const userId = response?.data?.userId;
       const organizationName = response?.data?.organizationName;
-      const verificationStatus = response?.data?.verificationStatus || 'verified';
+      const verificationStatus =
+        response?.data?.verificationStatus || 'verified';
+      const accountStatus =
+        response?.data?.accountStatus || 'PENDING_VERIFICATION';
 
       if (token && userRole && userId) {
-        login(token, userRole, userId, organizationName, verificationStatus);
+        login(
+          token,
+          userRole,
+          userId,
+          organizationName,
+          verificationStatus,
+          accountStatus
+        );
       }
 
       setSubmitted(true);
@@ -831,6 +844,27 @@ const DonorRegistration = () => {
                 <span>I confirm that the information provided is accurate</span>
               </label>
             </div>
+
+            <div className="form-group confirmation-checkbox">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={dataStorageConsent}
+                  onChange={e => setDataStorageConsent(e.target.checked)}
+                />
+                <span>
+                  I consent to data storage as outlined in the{' '}
+                  <Link
+                    to="/privacy-policy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: '#609B7E', textDecoration: 'underline' }}
+                  >
+                    Privacy Policy
+                  </Link>
+                </span>
+              </label>
+            </div>
           </div>
         );
 
@@ -907,7 +941,12 @@ const DonorRegistration = () => {
                   type="button"
                   className="submit-button"
                   onClick={handleSubmit}
-                  disabled={loading || !confirmAccuracy || !isStepValid(currentStep)}
+                  disabled={
+                    loading ||
+                    !confirmAccuracy ||
+                    !dataStorageConsent ||
+                    !isStepValid(currentStep)
+                  }
                 >
                   {loading ? 'Submitting...' : 'Register as Donor'}
                 </button>

@@ -28,6 +28,35 @@ export default function ReceiverMyClaims() {
     { value: 'status', label: t('receiverMyClaims.sortByStatus') }
   ];
 
+  const getNormalizedStatus = claim => {
+    const postStatus = claim.surplusPost?.status;
+    if (postStatus) {
+      return postStatus;
+    }
+    const claimStatus = claim?.status;
+    if (!claimStatus || typeof claimStatus !== 'string') {
+      return null;
+    }
+    return claimStatus.toUpperCase().replace(/\s+/g, '_');
+  };
+
+  const getDisplayStatus = claim => {
+    const status = getNormalizedStatus(claim);
+    if (status === 'READY_FOR_PICKUP') {
+      return 'Ready for Pickup';
+    }
+    if (status === 'COMPLETED') {
+      return 'Completed';
+    }
+    if (status === 'EXPIRED') {
+      return 'EXPIRED';
+    }
+    if (status === 'NOT_COMPLETED') {
+      return 'Not Completed';
+    }
+    return 'Claimed';
+  };
+
   useEffect(() => {
     fetchMyClaims();
     fetchMyRating();
@@ -39,6 +68,51 @@ export default function ReceiverMyClaims() {
 
     return () => clearInterval(intervalId);
   }, []);
+
+  // Set initial filter based on priority: Ready > Claimed > Completed (only once on first load)
+  useEffect(() => {
+    if (claims.length === 0 || hasSetInitialFilter.current) {
+      return;
+    }
+
+    // Check for Ready for Pickup claims
+    const hasReady = claims.some(
+      c => getNormalizedStatus(c) === 'READY_FOR_PICKUP'
+    );
+    if (hasReady) {
+      setActiveFilter('Ready');
+      hasSetInitialFilter.current = true;
+      return;
+    }
+
+    // Check for Claimed (not ready, not completed, not expired)
+    const hasClaimed = claims.some(
+      c =>
+        getNormalizedStatus(c) !== 'READY_FOR_PICKUP' &&
+        getNormalizedStatus(c) !== 'COMPLETED' &&
+        getNormalizedStatus(c) !== 'NOT_COMPLETED' &&
+        getNormalizedStatus(c) !== 'EXPIRED'
+    );
+    if (hasClaimed) {
+      setActiveFilter('Claimed');
+      hasSetInitialFilter.current = true;
+      return;
+    }
+
+    // Check for Completed claims
+    const hasCompleted = claims.some(
+      c => getNormalizedStatus(c) === 'COMPLETED'
+    );
+    if (hasCompleted) {
+      setActiveFilter('Completed');
+      hasSetInitialFilter.current = true;
+      return;
+    }
+
+    // Otherwise show All
+    setActiveFilter('All');
+    hasSetInitialFilter.current = true;
+  }, [claims]);
 
   const fetchMyClaims = async () => {
     setLoading(true);
@@ -182,7 +256,7 @@ export default function ReceiverMyClaims() {
       return claims.filter(c => c.surplusPost?.status === 'NOT_COMPLETED').length;
     }
     if (status === 'Expired') {
-      return claims.filter(c => c.surplusPost?.status === 'EXPIRED').length;
+      return claims.filter(c => getNormalizedStatus(c) === 'EXPIRED').length;
     }
     if (status === t('receiverMyClaims.filters.claimed')) {
       return claims.filter(c => c.surplusPost?.status !== 'READY_FOR_PICKUP' && 
@@ -265,15 +339,23 @@ export default function ReceiverMyClaims() {
       {/* Rating Stats Box */}
       <div className="receiver-stats-box">
         <div className="stat-item">
-          <Star size={16} fill="#F59E0B" color="#F59E0B" />
           <div className="stat-info">
-            <div className="stat-label">Rating:</div>
             <div className="stat-value">
               {rating.totalReviews > 0 ? (
-                <>
-                  {rating.averageRating.toFixed(1)}
-                  <span className="rating-count">★ ({rating.totalReviews})</span>
-                </>
+                <span className="rating-vertical-wrap">
+                  <span className="rating-main">
+                    <span className="rating-star">★</span> Your Rating :
+                    <span className="rating-number">
+                      {rating.averageRating.toFixed(1)}
+                    </span>
+                    <span className="rating-count">
+                      ({rating.totalReviews})
+                    </span>
+                  </span>
+                  <span className="rating-count-row">
+                    <span className="rating-count"></span>
+                  </span>
+                </span>
               ) : (
                 <span className="no-rating">—</span>
               )}
@@ -372,8 +454,8 @@ export default function ReceiverMyClaims() {
                 {/* Action Buttons */}
                 <div className="claimed-page card-actions">
                   {/* Only show Cancel button when status is CLAIMED */}
-                  {claim.surplusPost?.status === 'CLAIMED' && (
-                    <button 
+                  {getNormalizedStatus(claim) === 'CLAIMED' && (
+                    <button
                       onClick={() => handleCancelClick(claim.id)}
                       className="claimed-page cancel-claim-btn"
                     >

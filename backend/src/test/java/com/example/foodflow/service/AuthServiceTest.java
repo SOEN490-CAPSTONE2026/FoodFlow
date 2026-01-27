@@ -5,9 +5,13 @@ import com.example.foodflow.model.dto.LoginRequest;
 import com.example.foodflow.model.dto.RegisterDonorRequest;
 import com.example.foodflow.model.dto.RegisterReceiverRequest;
 import com.example.foodflow.model.entity.*;
+import com.example.foodflow.repository.EmailVerificationTokenRepository;
 import com.example.foodflow.repository.OrganizationRepository;
 import com.example.foodflow.repository.UserRepository;
 import com.example.foodflow.security.JwtTokenProvider;
+
+import brevo.ApiException;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,7 +25,13 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.willDoNothing;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.*;
+
+import org.mockito.ArgumentCaptor;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
@@ -40,6 +50,12 @@ class AuthServiceTest {
 
     @Mock
     private MetricsService metricsService;
+
+    @Mock
+    private EmailVerificationTokenRepository verificationTokenRepository;
+
+    @Mock
+    private EmailService emailService;
 
     @InjectMocks
     private AuthService authService;
@@ -92,7 +108,7 @@ class AuthServiceTest {
     }
 
     @Test
-    void registerDonor_Success() {
+    void registerDonor_Success() throws ApiException {
         // Given
         when(userRepository.existsByEmail(anyString())).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
@@ -109,6 +125,8 @@ class AuthServiceTest {
 
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
         when(organizationRepository.save(any(Organization.class))).thenReturn(savedOrg);
+        when(verificationTokenRepository.save(any(EmailVerificationToken.class))).thenReturn(new EmailVerificationToken());
+        willDoNothing().given(emailService).sendVerificationEmail(anyString(), anyString());
 
         // When
         AuthResponse response = authService.registerDonor(donorRequest);
@@ -122,10 +140,12 @@ class AuthServiceTest {
         verify(userRepository).save(any(User.class));
         verify(organizationRepository).save(any(Organization.class));
         verify(jwtTokenProvider).generateToken("donor@test.com", "DONOR");
+        verify(verificationTokenRepository).save(any(EmailVerificationToken.class));
+        verify(emailService).sendVerificationEmail(anyString(), anyString());
     }
 
     @Test
-    void registerReceiver_Success() {
+    void registerReceiver_Success() throws ApiException {
         // Given
         when(userRepository.existsByEmail(anyString())).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
@@ -141,13 +161,13 @@ class AuthServiceTest {
         savedOrg.setName("Test Charity");
 
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
-        // Capture organization passed to save to assert fields set correctly
         when(organizationRepository.save(any(Organization.class))).thenAnswer(invocation -> {
             Organization orgArg = invocation.getArgument(0);
-            // Simulate DB assigning id
             orgArg.setId(1L);
             return orgArg;
         });
+        when(verificationTokenRepository.save(any(EmailVerificationToken.class))).thenReturn(new EmailVerificationToken());
+        willDoNothing().given(emailService).sendVerificationEmail(anyString(), anyString());
 
         // When
         AuthResponse response = authService.registerReceiver(receiverRequest);
@@ -156,18 +176,17 @@ class AuthServiceTest {
         assertNotNull(response);
         assertEquals("jwt-token", response.getToken());
         assertEquals("receiver@test.com", response.getEmail());
-        // verificationStatus should be included in response and set to PENDING
-        assertEquals("PENDING", response.getVerificationStatus());
-
+        
         verify(userRepository).existsByEmail("receiver@test.com");
         verify(userRepository).save(any(User.class));
         verify(organizationRepository).save(any(Organization.class));
-        // Assert the organization saved had charity registration number and PENDING
-        // status
-        verify(organizationRepository).save(argThat(org -> "CRN-12345".equals(org.getCharityRegistrationNumber())
-                && org.getVerificationStatus() == VerificationStatus.PENDING
-                && org.getOrganizationType() == com.example.foodflow.model.entity.OrganizationType.CHARITY));
+        verify(organizationRepository).save(argThat(org -> 
+            "CRN-12345".equals(org.getCharityRegistrationNumber()) && org.getVerificationStatus() == VerificationStatus.PENDING
+            && org.getOrganizationType() == com.example.foodflow.model.entity.OrganizationType.CHARITY
+        ));
         verify(jwtTokenProvider).generateToken("receiver@test.com", "RECEIVER");
+        verify(verificationTokenRepository).save(any(EmailVerificationToken.class));
+        verify(emailService).sendVerificationEmail(anyString(), anyString());
     }
 
     @Test
@@ -509,5 +528,343 @@ class AuthServiceTest {
         // Then
         assertFalse(exists);
         verify(userRepository, never()).findByOrganizationPhone(any());
+    }
+
+    @Test
+    void registerDonor_WithDataStorageConsent_SavesConsentFlag() {
+        // Given
+        donorRequest.setDataStorageConsent(true);
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
+        when(jwtTokenProvider.generateToken(anyString(), anyString())).thenReturn("jwt-token");
+        
+        User savedUser = new User();
+        savedUser.setId(1L);
+        savedUser.setEmail("donor@test.com");
+        savedUser.setRole(UserRole.DONOR);
+        
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+        when(organizationRepository.save(any(Organization.class))).thenReturn(new Organization());
+
+        // When
+        authService.registerDonor(donorRequest);
+
+        // Then
+        verify(userRepository).save(argThat(user -> 
+            user.getDataStorageConsent() != null && user.getDataStorageConsent() == true
+        ));
+    }
+
+    @Test
+    void registerReceiver_WithDataStorageConsent_SavesConsentFlag() {
+        // Given
+        receiverRequest.setDataStorageConsent(true);
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
+        when(jwtTokenProvider.generateToken(anyString(), anyString())).thenReturn("jwt-token");
+        
+        User savedUser = new User();
+        savedUser.setId(1L);
+        savedUser.setEmail("receiver@test.com");
+        savedUser.setRole(UserRole.RECEIVER);
+        
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+        when(organizationRepository.save(any(Organization.class))).thenReturn(new Organization());
+
+        // When
+        authService.registerReceiver(receiverRequest);
+
+        // Then
+        verify(userRepository).save(argThat(user -> 
+            user.getDataStorageConsent() != null && user.getDataStorageConsent() == true
+        ));
+    }
+
+    @Test
+    void registerDonor_WithoutDataStorageConsent_SavesFalseFlag() {
+        // Given
+        donorRequest.setDataStorageConsent(false);
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
+        when(jwtTokenProvider.generateToken(anyString(), anyString())).thenReturn("jwt-token");
+        
+        User savedUser = new User();
+        savedUser.setId(1L);
+        savedUser.setEmail("donor@test.com");
+        savedUser.setRole(UserRole.DONOR);
+        
+        Organization savedOrg = new Organization();
+        savedOrg.setId(1L);
+        
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+        when(organizationRepository.save(any(Organization.class))).thenReturn(savedOrg);
+
+        // When
+        authService.registerDonor(donorRequest);
+
+        // Then
+        verify(userRepository).save(argThat(user -> 
+            user.getDataStorageConsent() != null && user.getDataStorageConsent() == false
+        ));
+    }
+
+    // ====== EMAIL VERIFICATION TESTS ======
+
+    @Test
+    void verifyEmail_ValidToken_VerifiesSuccessfully() {
+        // Given
+        String tokenValue = "valid-token-123";
+        
+        User user = new User();
+        user.setId(1L);
+        user.setEmail("test@example.com");
+        user.setAccountStatus(AccountStatus.PENDING_VERIFICATION);
+        
+        EmailVerificationToken token = new EmailVerificationToken(user, tokenValue);
+        
+        when(verificationTokenRepository.findByToken(tokenValue)).thenReturn(java.util.Optional.of(token));
+        when(userRepository.save(any(User.class))).thenReturn(user);
+        when(verificationTokenRepository.save(any(EmailVerificationToken.class))).thenReturn(token);
+
+        // When
+        var response = authService.verifyEmail(tokenValue);
+
+        // Then
+        assertNotNull(response);
+        assertEquals("test@example.com", response.get("email"));
+        assertTrue(response.get("message").contains("Email verified successfully"));
+        
+        verify(verificationTokenRepository).findByToken(tokenValue);
+        verify(userRepository).save(argThat(u -> u.getAccountStatus() == AccountStatus.PENDING_ADMIN_APPROVAL));
+        verify(verificationTokenRepository).save(argThat(t -> t.getVerifiedAt() != null));
+    }
+
+    @Test
+    void verifyEmail_InvalidToken_ThrowsException() {
+        // Given
+        String invalidToken = "invalid-token";
+        when(verificationTokenRepository.findByToken(invalidToken)).thenReturn(java.util.Optional.empty());
+
+        // When & Then
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            authService.verifyEmail(invalidToken);
+        });
+        
+        assertEquals("Invalid verification link. Please check your email or request a new verification link.", ex.getMessage());
+        verify(verificationTokenRepository).findByToken(invalidToken);
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void verifyEmail_AlreadyVerifiedToken_ThrowsException() {
+        // Given
+        String tokenValue = "already-verified-token";
+        
+        User user = new User();
+        user.setId(1L);
+        user.setEmail("test@example.com");
+        
+        EmailVerificationToken token = new EmailVerificationToken(user, tokenValue);
+        token.setVerifiedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+        
+        when(verificationTokenRepository.findByToken(tokenValue)).thenReturn(java.util.Optional.of(token));
+
+        // When & Then
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            authService.verifyEmail(tokenValue);
+        });
+        
+        assertEquals("This verification link has already been used. Log into your account to proceed.", ex.getMessage());
+        verify(verificationTokenRepository).findByToken(tokenValue);
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void verifyEmail_ExpiredToken_ThrowsException() {
+        // Given
+        String tokenValue = "expired-token";
+        
+        User user = new User();
+        user.setId(1L);
+        user.setEmail("test@example.com");
+        
+        EmailVerificationToken token = new EmailVerificationToken(user, tokenValue);
+        // Set expiry to past
+        token.setExpiresAt(new java.sql.Timestamp(System.currentTimeMillis() - 100000));
+        
+        when(verificationTokenRepository.findByToken(tokenValue)).thenReturn(java.util.Optional.of(token));
+
+        // When & Then
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            authService.verifyEmail(tokenValue);
+        });
+        
+        assertTrue(ex.getMessage().contains("verification link has expired"));
+        verify(verificationTokenRepository).findByToken(tokenValue);
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void resendVerificationEmail_ValidUser_SendsEmail() throws ApiException {
+        // Given
+        String email = "test@example.com";
+        
+        User user = new User();
+        user.setId(1L);
+        user.setEmail(email);
+        user.setAccountStatus(AccountStatus.PENDING_VERIFICATION);
+        
+        when(userRepository.findByEmail(email)).thenReturn(java.util.Optional.of(user));
+        when(verificationTokenRepository.save(any(EmailVerificationToken.class))).thenReturn(new EmailVerificationToken());
+        willDoNothing().given(emailService).sendVerificationEmail(anyString(), anyString());
+
+        // When
+        var response = authService.resendVerificationEmail(email);
+
+        // Then
+        assertNotNull(response);
+        assertEquals("Verification email sent successfully", response.get("message"));
+        
+        verify(userRepository).findByEmail(email);
+        verify(verificationTokenRepository).deleteByUserId(user.getId());
+        verify(verificationTokenRepository).save(any(EmailVerificationToken.class));
+        verify(emailService).sendVerificationEmail(eq(email), anyString());
+    }
+
+    @Test
+    void resendVerificationEmail_UserNotFound_ThrowsException() {
+        // Given
+        String email = "nonexistent@example.com";
+        when(userRepository.findByEmail(email)).thenReturn(java.util.Optional.empty());
+
+        // When & Then
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            authService.resendVerificationEmail(email);
+        });
+        
+        assertEquals("User not found", ex.getMessage());
+        verify(userRepository).findByEmail(email);
+        verify(verificationTokenRepository, never()).save(any(EmailVerificationToken.class));
+    }
+
+    @Test
+    void resendVerificationEmail_AlreadyVerifiedUser_ThrowsException() {
+        // Given
+        String email = "verified@example.com";
+        
+        User user = new User();
+        user.setId(1L);
+        user.setEmail(email);
+        user.setAccountStatus(AccountStatus.ACTIVE);
+        
+        when(userRepository.findByEmail(email)).thenReturn(java.util.Optional.of(user));
+
+        // When & Then
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            authService.resendVerificationEmail(email);
+        });
+        
+        assertTrue(ex.getMessage().contains("already verified"));
+        verify(userRepository).findByEmail(email);
+        verify(verificationTokenRepository, never()).save(any(EmailVerificationToken.class));
+    }
+
+    @Test
+    void resendVerificationEmail_EmailServiceFails_ThrowsException() throws ApiException {
+        // Given
+        String email = "test@example.com";
+        
+        User user = new User();
+        user.setId(1L);
+        user.setEmail(email);
+        user.setAccountStatus(AccountStatus.PENDING_VERIFICATION);
+        
+        when(userRepository.findByEmail(email)).thenReturn(java.util.Optional.of(user));
+        when(verificationTokenRepository.save(any(EmailVerificationToken.class))).thenReturn(new EmailVerificationToken());
+        willThrow(new ApiException("Email service error")).given(emailService).sendVerificationEmail(anyString(), anyString());
+
+        // When & Then
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            authService.resendVerificationEmail(email);
+        });
+        
+        assertTrue(ex.getMessage().contains("Failed to send verification email"));
+        verify(userRepository).findByEmail(email);
+        verify(verificationTokenRepository).deleteByUserId(user.getId());
+        verify(emailService).sendVerificationEmail(eq(email), anyString());
+    }
+
+    @Test
+    void registerDonor_CreatesVerificationToken() throws ApiException {
+        // Given
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
+        when(jwtTokenProvider.generateToken(anyString(), anyString())).thenReturn("jwt-token");
+        
+        User savedUser = new User();
+        savedUser.setId(1L);
+        savedUser.setEmail("donor@test.com");
+        savedUser.setRole(UserRole.DONOR);
+        
+        Organization savedOrg = new Organization();
+        savedOrg.setId(1L);
+        
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+        when(organizationRepository.save(any(Organization.class))).thenReturn(savedOrg);
+        
+        ArgumentCaptor<EmailVerificationToken> tokenCaptor = ArgumentCaptor.forClass(EmailVerificationToken.class);
+        when(verificationTokenRepository.save(tokenCaptor.capture())).thenReturn(new EmailVerificationToken());
+        willDoNothing().given(emailService).sendVerificationEmail(anyString(), anyString());
+
+        // When
+        authService.registerDonor(donorRequest);
+
+        // Then
+        EmailVerificationToken capturedToken = tokenCaptor.getValue();
+        assertNotNull(capturedToken);
+        assertNotNull(capturedToken.getToken());
+        assertEquals(savedUser, capturedToken.getUser());
+        assertNotNull(capturedToken.getCreatedAt());
+        assertNotNull(capturedToken.getExpiresAt());
+        assertNull(capturedToken.getVerifiedAt());
+    }
+
+    @Test
+    void registerReceiver_CreatesVerificationToken() throws ApiException {
+        // Given
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
+        when(jwtTokenProvider.generateToken(anyString(), anyString())).thenReturn("jwt-token");
+        
+        User savedUser = new User();
+        savedUser.setId(1L);
+        savedUser.setEmail("receiver@test.com");
+        savedUser.setRole(UserRole.RECEIVER);
+        
+        Organization savedOrg = new Organization();
+        savedOrg.setId(1L);
+        
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+        when(organizationRepository.save(any(Organization.class))).thenAnswer(invocation -> {
+            Organization orgArg = invocation.getArgument(0);
+            orgArg.setId(1L);
+            return orgArg;
+        });
+        
+        ArgumentCaptor<EmailVerificationToken> tokenCaptor = ArgumentCaptor.forClass(EmailVerificationToken.class);
+        when(verificationTokenRepository.save(tokenCaptor.capture())).thenReturn(new EmailVerificationToken());
+        willDoNothing().given(emailService).sendVerificationEmail(anyString(), anyString());
+
+        // When
+        authService.registerReceiver(receiverRequest);
+
+        // Then
+        EmailVerificationToken capturedToken = tokenCaptor.getValue();
+        assertNotNull(capturedToken);
+        assertNotNull(capturedToken.getToken());
+        assertEquals(savedUser, capturedToken.getUser());
+        assertNotNull(capturedToken.getCreatedAt());
+        assertNotNull(capturedToken.getExpiresAt());
+        assertNull(capturedToken.getVerifiedAt());
     }
 }
