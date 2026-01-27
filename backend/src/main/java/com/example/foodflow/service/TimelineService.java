@@ -4,6 +4,8 @@ import com.example.foodflow.model.entity.DonationTimeline;
 import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.repository.DonationTimelineRepository;
+import com.example.foodflow.service.BusinessMetricsService;
+import io.micrometer.core.annotation.Timed;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,9 +19,11 @@ import java.time.LocalDateTime;
 public class TimelineService {
     
     private final DonationTimelineRepository timelineRepository;
+    private final BusinessMetricsService businessMetricsService;
     
-    public TimelineService(DonationTimelineRepository timelineRepository) {
+    public TimelineService(DonationTimelineRepository timelineRepository, BusinessMetricsService businessMetricsService) {
         this.timelineRepository = timelineRepository;
+        this.businessMetricsService = businessMetricsService;
     }
     
     /**
@@ -37,6 +41,7 @@ public class TimelineService {
      * @return The created timeline event
      */
     @Transactional
+    @Timed(value = "timeline.service.createTimelineEvent", description = "Time taken to create timeline event")
     public DonationTimeline createTimelineEvent(
             SurplusPost post,
             String eventType,
@@ -58,7 +63,10 @@ public class TimelineService {
         event.setVisibleToUsers(visibleToUsers != null ? visibleToUsers : true);
         event.setTimestamp(LocalDateTime.now()); // UTC timestamp
         
-        return timelineRepository.save(event);
+        DonationTimeline savedEvent = timelineRepository.save(event);
+        businessMetricsService.incrementTimelineEventsCreated();
+        
+        return savedEvent;
     }
     
     /**

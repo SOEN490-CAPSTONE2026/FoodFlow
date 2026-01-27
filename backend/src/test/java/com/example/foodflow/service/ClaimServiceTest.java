@@ -181,8 +181,14 @@ class ClaimServiceTest {
         claim2.setId(2L);
 
         when(claimRepository.findReceiverClaimsWithDetails(
-                eq(receiver.getId()), eq(ClaimStatus.ACTIVE)))
-                .thenReturn(Arrays.asList(claim1, claim2));
+            eq(receiver.getId()),
+            eq(List.of(
+                ClaimStatus.ACTIVE,
+                ClaimStatus.COMPLETED,
+                ClaimStatus.NOT_COMPLETED,
+                ClaimStatus.EXPIRED
+            ))))
+            .thenReturn(Arrays.asList(claim1, claim2));
 
         // When
         List<ClaimResponse> responses = claimService.getReceiverClaims(receiver);
@@ -197,8 +203,14 @@ class ClaimServiceTest {
     void getReceiverClaims_NoClaims_ReturnsEmptyList() {
         // Given
         when(claimRepository.findReceiverClaimsWithDetails(
-                eq(receiver.getId()), eq(ClaimStatus.ACTIVE)))
-                .thenReturn(Arrays.asList());
+            eq(receiver.getId()),
+            eq(List.of(
+                ClaimStatus.ACTIVE,
+                ClaimStatus.COMPLETED,
+                ClaimStatus.NOT_COMPLETED,
+                ClaimStatus.EXPIRED
+            ))))
+            .thenReturn(Arrays.asList());
 
         // When
         List<ClaimResponse> responses = claimService.getReceiverClaims(receiver);

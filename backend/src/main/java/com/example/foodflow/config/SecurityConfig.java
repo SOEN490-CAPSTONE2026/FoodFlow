@@ -40,18 +40,30 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        // Public endpoints
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/public/**").permitAll()
-                        .requestMatchers("/api/files/**").permitAll() // Allow access to uploaded files
-                        .requestMatchers("/uploads/**").permitAll() // Allow access to legacy upload URLs
-                        .requestMatchers("/actuator/**").permitAll()
-                        .requestMatchers("/api/analytics/**").permitAll()
-                        .requestMatchers("/ws/**").permitAll() // Allow WebSocket connections
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
+                // Public endpoints
+                .requestMatchers("/api/auth/resend-verification-email").authenticated()
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/public/**").permitAll()
+                .requestMatchers("/api/files/**").permitAll()  // Allow access to uploaded files
+                .requestMatchers("/uploads/**").permitAll()  // Allow access to legacy upload URLs
+                .requestMatchers("/actuator/**").permitAll()
+                .requestMatchers("/api/analytics/**").permitAll()
+                .requestMatchers("/ws/**").permitAll()  // Allow WebSocket connections
+                
+                // Messaging endpoints - must be accessible to all authenticated users
+                .requestMatchers("/api/conversations/**").hasAnyAuthority("DONOR", "RECEIVER")
+                .requestMatchers("/api/messages/**").hasAnyAuthority("DONOR", "RECEIVER")
+                
+                // Surplus endpoints with proper role restrictions
+                .requestMatchers(HttpMethod.POST, "/api/surplus").hasAuthority("DONOR")
+                .requestMatchers(HttpMethod.POST, "/api/surplus/*/evidence").hasAuthority("DONOR")
+                .requestMatchers(HttpMethod.GET, "/api/surplus").hasAuthority("RECEIVER")
+                .requestMatchers(HttpMethod.GET, "/api/surplus/my-posts").hasAuthority("DONOR")
+                .requestMatchers(HttpMethod.DELETE, "/api/surplus/**").hasAuthority("DONOR")
 
                         // Messaging endpoints - must be accessible to all authenticated users
                         .requestMatchers("/api/conversations/**").hasAnyAuthority("DONOR", "RECEIVER")

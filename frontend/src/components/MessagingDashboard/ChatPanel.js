@@ -19,6 +19,32 @@ const ChatPanel = ({ conversation, onMessageSent, onConversationRead, onBack, sh
   // Debug: log timezone
   console.log('ChatPanel using timezone:', userTimezone);
 
+  const getProfilePhotoUrl = photoUrl => {
+    if (!photoUrl) {
+      return null;
+    }
+    if (
+      photoUrl.startsWith('http://') ||
+      photoUrl.startsWith('https://') ||
+      photoUrl.startsWith('data:')
+    ) {
+      return photoUrl;
+    }
+    const apiBaseUrl =
+      process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+    const backendBaseUrl = apiBaseUrl.endsWith('/api')
+      ? apiBaseUrl.slice(0, -4)
+      : apiBaseUrl.replace(/\/api$/, '');
+    if (photoUrl.startsWith('/uploads/')) {
+      const filename = photoUrl.substring('/uploads/'.length);
+      return `${backendBaseUrl}/api/files/uploads/${filename}`;
+    }
+    if (photoUrl.startsWith('/api/files/')) {
+      return `${backendBaseUrl}${photoUrl}`;
+    }
+    return `${backendBaseUrl}${photoUrl.startsWith('/') ? '' : '/'}${photoUrl}`;
+  };
+
   // Load messages when conversation changes
   useEffect(() => {
     if (conversation) {
@@ -199,11 +225,34 @@ const ChatPanel = ({ conversation, onMessageSent, onConversationRead, onBack, sh
                     {conversation.otherUserName.charAt(0).toUpperCase()}
                   </div>
                 )}
-                <div className="message-content">
-                  <p className="message-text">{message.messageBody}</p>
-                  <span className="message-time">
-                    {formatTimeInTimezone(message.createdAt, userTimezone)}
-                  </span>
+                <div
+                  className={`message ${
+                    message.senderId.toString() === currentUserId
+                      ? 'sent'
+                      : 'received'
+                  }`}
+                >
+                  {message.senderId.toString() !== currentUserId && (
+                    <div className="message-avatar">
+                      {conversation.otherUserProfilePhoto ? (
+                        <img
+                          src={getProfilePhotoUrl(
+                            conversation.otherUserProfilePhoto
+                          )}
+                          alt={conversation.otherUserName}
+                          className="message-avatar-image"
+                        />
+                      ) : (
+                        conversation.otherUserName.charAt(0).toUpperCase()
+                      )}
+                    </div>
+                  )}
+                  <div className="message-content">
+                    <p className="message-text">{message.messageBody}</p>
+                    <span className="message-time">
+                      {formatTimeInTimezone(message.createdAt, userTimezone)}
+                    </span>
+                  </div>
                 </div>
               </div>
             </React.Fragment>

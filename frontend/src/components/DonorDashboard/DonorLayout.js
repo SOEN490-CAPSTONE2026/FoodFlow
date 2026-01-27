@@ -21,20 +21,25 @@ import { AuthContext } from '../../contexts/AuthContext';
 import Logo from '../../assets/Logo_White.png';
 import './Donor_Styles/DonorLayout.css';
 import MessageNotification from '../MessagingDashboard/MessageNotification';
+import EmailVerificationRequired from '../EmailVerificationRequired';
+import AdminApprovalBanner from '../AdminApprovalBanner';
 import { connectToUserQueue, disconnect } from '../../services/socket';
 import BadgeDisplay from '../shared/BadgeDisplay';
+import { profileAPI } from '../../services/api';
 
 export default function DonorLayout() {
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const navType = useNavigationType();
-  const { logout, organizationName, role } = useContext(AuthContext);
+  const { logout, organizationName, accountStatus, role } =
+    useContext(AuthContext);
   const [open, setOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const menuRef = useRef(null);
   const [notification, setNotification] = useState(null);
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState(null);
 
   const pageTitle = (() => {
     switch (location.pathname) {
@@ -79,6 +84,51 @@ export default function DonorLayout() {
         return t('donorLayout.pageDescriptions.donorPortal');
     }
   })();
+
+  const getProfilePhotoUrl = photoUrl => {
+    if (!photoUrl) {
+      return null;
+    }
+    if (
+      photoUrl.startsWith('http://') ||
+      photoUrl.startsWith('https://') ||
+      photoUrl.startsWith('data:')
+    ) {
+      return photoUrl;
+    }
+    const apiBaseUrl =
+      process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+    const backendBaseUrl = apiBaseUrl.endsWith('/api')
+      ? apiBaseUrl.slice(0, -4)
+      : apiBaseUrl.replace(/\/api$/, '');
+    if (photoUrl.startsWith('/uploads/')) {
+      const filename = photoUrl.substring('/uploads/'.length);
+      return `${backendBaseUrl}/api/files/uploads/${filename}`;
+    }
+    if (photoUrl.startsWith('/api/files/')) {
+      return `${backendBaseUrl}${photoUrl}`;
+    }
+    return `${backendBaseUrl}${photoUrl.startsWith('/') ? '' : '/'}${photoUrl}`;
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchProfilePhoto = async () => {
+      try {
+        const response = await profileAPI.get();
+        if (isMounted) {
+          const url = getProfilePhotoUrl(response.data?.profilePhoto);
+          setProfilePhotoUrl(url);
+        }
+      } catch (error) {
+        console.error('Error fetching profile photo:', error);
+      }
+    };
+    fetchProfilePhoto();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     const onDocClick = e => {
@@ -307,7 +357,18 @@ export default function DonorLayout() {
         <div className="donor-sidebar-footer donor-user" ref={menuRef}>
           <div className="account-row">
             <button className="user-profile-pic" type="button">
-              <div className="account-avatar"></div>
+              <div
+                className="account-avatar"
+                style={
+                  profilePhotoUrl
+                    ? {
+                        backgroundImage: `url(${profilePhotoUrl})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                      }
+                    : undefined
+                }
+              ></div>
               <div className="account-text">
                 <span className="account-name">
                   {organizationName || 'Donor'}
@@ -340,29 +401,40 @@ export default function DonorLayout() {
       </aside>
 
       <main className="donor-main">
-        {!isMessagesPage &&
-          location.pathname !== '/donor' &&
-          location.pathname !== '/donor/' && (
-            <header className="donor-topbar">
-              <div className="donor-topbar-left">
-                <h1>{pageTitle}</h1>
-                <p>{pageDesc}</p>
-              </div>
-            </header>
-          )}
+        {accountStatus === 'PENDING_VERIFICATION' ? (
+          <EmailVerificationRequired />
+        ) : (
+          <>
+            {/* Show admin approval banner if waiting for approval */}
+            {accountStatus === 'PENDING_ADMIN_APPROVAL' && (
+              <AdminApprovalBanner />
+            )}
 
-        <section
-          className={`donor-content ${isMessagesPage ? 'messages-page' : ''}`}
-        >
-          <Outlet />
+            {!isMessagesPage &&
+              location.pathname !== '/donor' &&
+              location.pathname !== '/donor/' && (
+                <header className="donor-topbar">
+                  <div className="donor-topbar-left">
+                    <h1>{pageTitle}</h1>
+                    <p>{pageDesc}</p>
+                  </div>
+                </header>
+              )}
 
-          {notification && (
-            <MessageNotification
-              notification={notification}
-              onClose={() => setNotification(null)}
-            />
-          )}
-        </section>
+            <section
+              className={`donor-content ${isMessagesPage ? 'messages-page' : ''}`}
+            >
+              <Outlet />
+
+              {notification && (
+                <MessageNotification
+                  notification={notification}
+                  onClose={() => setNotification(null)}
+                />
+              )}
+            </section>
+          </>
+        )}
       </main>
     </div>
   );

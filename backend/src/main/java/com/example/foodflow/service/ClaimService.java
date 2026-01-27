@@ -240,7 +240,14 @@ public class ClaimService {
     @Timed(value = "claim.service.getReceiverClaims", description = "Time taken to get receiver claims")
     public List<ClaimResponse> getReceiverClaims(User receiver) {
         return claimRepository.findReceiverClaimsWithDetails(
-            receiver.getId(), ClaimStatus.ACTIVE)
+            receiver.getId(),
+            java.util.List.of(
+                ClaimStatus.ACTIVE,
+                ClaimStatus.COMPLETED,
+                ClaimStatus.NOT_COMPLETED,
+                ClaimStatus.EXPIRED
+            )
+        )
             .stream()
             .map(ClaimResponse::new)
             .collect(Collectors.toList());

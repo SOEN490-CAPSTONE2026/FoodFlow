@@ -12,8 +12,11 @@ import com.example.foodflow.model.entity.Organization;
 import com.example.foodflow.model.entity.VerificationStatus;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.UserRole;
+import com.example.foodflow.model.entity.AccountStatus;
+import com.example.foodflow.model.entity.EmailVerificationToken;
 import com.example.foodflow.repository.OrganizationRepository;
 import com.example.foodflow.repository.UserRepository;
+import com.example.foodflow.repository.EmailVerificationTokenRepository;
 import com.example.foodflow.security.JwtTokenProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -25,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import io.micrometer.core.annotation.Timed;
 import java.security.SecureRandom;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.UUID;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,20 +42,12 @@ public class AuthService {
     private final MetricsService metricsService;
     private final ObjectMapper objectMapper;
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private OrganizationRepository organizationRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private JwtTokenProvider jwtTokenProvider;
-    
-    @Autowired
-    private EmailService emailService;
+    private final UserRepository userRepository;
+    private final OrganizationRepository organizationRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final EmailService emailService;
+    private final EmailVerificationTokenRepository verificationTokenRepository;
         
     // In-memory storage for reset codes (expiry handled by timestamp)
     private final Map<String, ResetCodeData> resetCodes = new ConcurrentHashMap<>();
@@ -82,13 +78,17 @@ public class AuthService {
                     PasswordEncoder passwordEncoder, 
                     JwtTokenProvider jwtTokenProvider,
                     MetricsService metricsService,
-                    ObjectMapper objectMapper) {
+                    ObjectMapper objectMapper,
+                    EmailService emailService,
+                    EmailVerificationTokenRepository verificationTokenRepository) {
         this.userRepository = userRepository;
         this.organizationRepository = organizationRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.metricsService = metricsService;
         this.objectMapper = objectMapper;
+        this.emailService = emailService;
+        this.verificationTokenRepository = verificationTokenRepository;
     }
 
 
@@ -113,8 +113,10 @@ public class AuthService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(UserRole.DONOR);
+        user.setAccountStatus(AccountStatus.PENDING_VERIFICATION);
         user.setFullName(request.getContactPerson());
         user.setPhone(request.getPhone());
+        user.setDataStorageConsent(request.getDataStorageConsent() != null ? request.getDataStorageConsent() : false);
 
         // Initialize default notification preferences
         initializeDefaultNotificationPreferences(user);
@@ -138,7 +140,22 @@ public class AuthService {
         log.debug("Organization created for user: {} - Organization: {}", 
             savedUser.getEmail(), request.getOrganizationName());
 
-        // Generate JWT token
+        // Generate and save email verification token
+        String verificationToken = UUID.randomUUID().toString();
+        EmailVerificationToken tokenEntity = new EmailVerificationToken(savedUser, verificationToken);
+        verificationTokenRepository.save(tokenEntity);
+        log.debug("Verification token created for user: {}", savedUser.getEmail());
+
+        // Send verification email
+        try {
+            emailService.sendVerificationEmail(savedUser.getEmail(), verificationToken);
+            log.info("Verification email sent to: {}", savedUser.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to send verification email to: {}", savedUser.getEmail(), e);
+            // Don't fail registration if email fails, user can request resend
+        }
+
+        // Generate JWT token (user can still receive token but won't be able to use platform until verified)
         String token = jwtTokenProvider.generateToken(savedUser.getEmail(), savedUser.getRole().toString());
 
         metricsService.incrementDonorRegistration();
@@ -147,7 +164,10 @@ public class AuthService {
         log.info("Donor registration successful: email={}, organization={}, type={}",
             savedUser.getEmail(), request.getOrganizationName(), request.getOrganizationType());
 
-        return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), "Donor registered successfully", savedUser.getId(), request.getOrganizationName(), organization.getVerificationStatus() != null ? organization.getVerificationStatus().toString() : null);
+        return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), 
+            "Donor registered successfully", savedUser.getId(), request.getOrganizationName(), 
+            organization.getVerificationStatus() != null ? organization.getVerificationStatus().toString() : null,
+            savedUser.getAccountStatus() != null ? savedUser.getAccountStatus().toString() : null);
     }
 
     @Transactional
@@ -167,8 +187,10 @@ public class AuthService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(UserRole.RECEIVER);
+        user.setAccountStatus(AccountStatus.PENDING_VERIFICATION);
         user.setFullName(request.getContactPerson());
         user.setPhone(request.getPhone());
+        user.setDataStorageConsent(request.getDataStorageConsent() != null ? request.getDataStorageConsent() : false);
 
         // Initialize default notification preferences
         initializeDefaultNotificationPreferences(user);
@@ -200,13 +222,31 @@ public class AuthService {
 
         organizationRepository.save(organization);
 
+        // Generate and save email verification token
+        String verificationToken = UUID.randomUUID().toString();
+        EmailVerificationToken tokenEntity = new EmailVerificationToken(savedUser, verificationToken);
+        verificationTokenRepository.save(tokenEntity);
+        log.debug("Verification token created for user: {}", savedUser.getEmail());
+
+        // Send verification email
+        try {
+            emailService.sendVerificationEmail(savedUser.getEmail(), verificationToken);
+            log.info("Verification email sent to: {}", savedUser.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to send verification email to: {}", savedUser.getEmail(), e);
+            // Don't fail registration if email fails, user can request resend
+        }
+
         // Generate JWT token
         String token = jwtTokenProvider.generateToken(savedUser.getEmail(), savedUser.getRole().toString());
 
         metricsService.incrementReceiverRegistration();
         metricsService.incrementUserRegistration();
 
-        return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), "Receiver registered successfully", savedUser.getId(), request.getOrganizationName(), organization.getVerificationStatus() != null ? organization.getVerificationStatus().toString() : null);
+        return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), 
+            "Receiver registered successfully", savedUser.getId(), request.getOrganizationName(), 
+            organization.getVerificationStatus() != null ? organization.getVerificationStatus().toString() : null,
+            savedUser.getAccountStatus() != null ? savedUser.getAccountStatus().toString() : null);
     }
 
     @Transactional(readOnly = true)
@@ -229,7 +269,7 @@ public class AuthService {
             }
 
             // Check if account is deactivated
-            if (user.getAccountStatus() == com.example.foodflow.model.entity.AccountStatus.DEACTIVATED) {
+            if (user.getAccountStatus() == AccountStatus.DEACTIVATED) {
                     log.warn("Login failed: Account deactivated for user: {}", request.getEmail());
                     metricsService.incrementAuthFailure("account_deactivated");
                     throw new RuntimeException("Your account has been deactivated. Please contact support for assistance.");
@@ -241,10 +281,12 @@ public class AuthService {
 
             String organizationName = user.getOrganization() != null ? user.getOrganization().getName() : null;
             String verificationStatus = user.getOrganization() != null && user.getOrganization().getVerificationStatus() != null ? user.getOrganization().getVerificationStatus().toString() : null;
+            String accountStatus = user.getAccountStatus() != null ? user.getAccountStatus().toString() : null;
 
-            log.info("Login successful: email={}, role={}, organizationName={}, verificationStatus={}", user.getEmail(), user.getRole(), organizationName, verificationStatus);
+            log.info("Login successful: email={}, role={}, accountStatus={}, organizationName={}, verificationStatus={}", 
+                user.getEmail(), user.getRole(), accountStatus, organizationName, verificationStatus);
             return new AuthResponse(token, user.getEmail(), user.getRole().toString(),
-                       "Account logged in successfully.", user.getId(), organizationName, verificationStatus);
+                       "Account logged in successfully.", user.getId(), organizationName, verificationStatus, accountStatus);
         } catch (RuntimeException e) {
             // Already logged failure metrics above
             throw e;
@@ -575,6 +617,103 @@ public class AuthService {
         // Use the same repository method as forgot password
         return userRepository.findByOrganizationPhone(phone).isPresent();
     }
+
+    /**
+     * Verify user's email address using the token sent via email
+     * @param token UUID verification token
+     * @return success message
+     */
+    @Transactional
+    @Timed(value = "auth.service.verifyEmail", description = "Time taken to verify email")
+    public Map<String, String> verifyEmail(String token) {
+        log.info("Email verification attempt with token: {}", token.substring(0, 8) + "...");
+        
+        // Find the token in database
+        EmailVerificationToken tokenEntity = verificationTokenRepository.findByToken(token)
+            .orElseThrow(() -> {
+                log.warn("Email verification failed: Invalid token");
+                return new RuntimeException("Invalid verification link. Please check your email or request a new verification link.");
+            });
+        
+        // Log the actual verified_at value for debugging
+        log.info("Token found for user: {} - verifiedAt value: {}", 
+            tokenEntity.getUser().getEmail(), 
+            tokenEntity.getVerifiedAt());
+        
+        // Check if already verified
+        if (tokenEntity.getVerifiedAt() != null) {
+            log.warn("Email verification failed: Token already used for user: {} (verified_at: {})", 
+                tokenEntity.getUser().getEmail(), 
+                tokenEntity.getVerifiedAt());
+            throw new RuntimeException("This verification link has already been used. Log into your account to proceed.");
+        }
+        
+        // Check if expired
+        if (tokenEntity.isExpired()) {
+            log.warn("Email verification failed: Token expired for user: {}", tokenEntity.getUser().getEmail());
+            throw new RuntimeException("This verification link has expired (24 hours). Please request a new verification email.");
+        }
+        
+        // Verify the user - transition to PENDING_ADMIN_APPROVAL
+        User user = tokenEntity.getUser();
+        user.setAccountStatus(AccountStatus.PENDING_ADMIN_APPROVAL);
+        userRepository.save(user);
+        
+        // Mark token as verified
+        tokenEntity.setVerifiedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+        verificationTokenRepository.save(tokenEntity);
+        
+        log.info("Email verified successfully for user: {} - Status set to PENDING_ADMIN_APPROVAL", user.getEmail());
+        
+        return Map.of(
+            "message", "Email verified successfully! Your account is now awaiting admin approval. You can log in, but full access will be granted within 48 hours.",
+            "email", user.getEmail()
+        );
+    }
+
+    /**
+     * Resend verification email to user
+     * @param email user's email from JWT token
+     * @return success message
+     */
+    @Transactional
+    @Timed(value = "auth.service.resendVerificationEmail", description = "Time taken to resend verification email")
+    public Map<String, String> resendVerificationEmail(String email) {
+        log.info("Resend verification email request for: {}", email);
+        
+        // Find user
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> {
+                log.warn("Resend verification failed: User not found: {}", email);
+                return new RuntimeException("User not found");
+            });
+        
+        // Check if already verified
+        if (user.getAccountStatus() == AccountStatus.ACTIVE) {
+            log.warn("Resend verification failed: User already verified: {}", email);
+            throw new RuntimeException("Your email is already verified. You can log in to your account.");
+        }
+        
+        // Delete old tokens for this user
+        verificationTokenRepository.deleteByUserId(user.getId());
+        
+        // Generate new token
+        String verificationToken = UUID.randomUUID().toString();
+        EmailVerificationToken tokenEntity = new EmailVerificationToken(user, verificationToken);
+        verificationTokenRepository.save(tokenEntity);
+        log.debug("New verification token created for user: {}", user.getEmail());
+        
+        // Send verification email
+        try {
+            emailService.sendVerificationEmail(user.getEmail(), verificationToken);
+            log.info("Verification email resent to: {}", user.getEmail());
+            return Map.of("message", "Verification email sent successfully");
+        } catch (Exception e) {
+            log.error("Failed to resend verification email to: {}", user.getEmail(), e);
+            throw new RuntimeException("Failed to send verification email. Please try again.");
+        }
+    }
 }
+
 
 

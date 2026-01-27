@@ -222,13 +222,26 @@
 
 /* Info Box */
 .pickup-info-box {
-    background: #ECFEFF;
-    border: 1px solid #A2F4FD;
-    border-radius: 8px;
-    padding: 20px 18px;
-    text-align: center;
-    color: #104E64;
-    font-size: 14px;
-    font-weight: 500;
-    margin: 24px 0;
+  background: #ecfeff;
+  border: 1px solid #a2f4fd;
+  border-radius: 8px;
+  padding: 20px 18px;
+  text-align: center;
+  color: #104e64;
+  font-size: 14px;
+  font-weight: 500;
+  margin: 24px 0;
+}
+
+/* Tolerance Info */
+.pickup-tolerance-info {
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+  padding: 12px 16px;
+  text-align: center;
+  color: #92400e;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 20px;
 }

@@ -39,3 +39,57 @@ groups:
         annotations:
           summary: "High authentication failure rate (>10%)"
           description: "More than 10% of login attempts failed over the last 5 minutes."
+
+      - alert: HighDisputeCreationRate
+        expr: rate(disputes_created_total[5m]) > 0.5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High dispute creation rate"
+          description: "Dispute creation rate is unusually high (>0.5/sec for 10 minutes)."
+
+      - alert: EmailDeliveryFailureRate
+        expr: rate(emails_failed_total[5m]) / rate(emails_sent_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High email delivery failure rate (>10%)"
+          description: "More than 10% of emails are failing to deliver."
+
+      - alert: NotificationFailureRate
+        expr: rate(notifications_failed_total[5m]) / rate(notifications_sent_total[5m]) > 0.15
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High notification failure rate (>15%)"
+          description: "More than 15% of notifications are failing."
+
+      - alert: LowRecommendationQuality
+        expr: rate(recommendations_high_score_total[5m]) / rate(recommendations_calculated_total[5m]) < 0.3
+        for: 15m
+        labels:
+          severity: info
+        annotations:
+          summary: "Low recommendation quality"
+          description: "Less than 30% of recommendations have high scores (>80) for 15 minutes."
+
+      - alert: HighClaimCancellationRate
+        expr: rate(claims_cancelled_total[5m]) / rate(claims_created_total[5m]) > 0.3
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High claim cancellation rate (>30%)"
+          description: "More than 30% of claims are being cancelled."
+
+      - alert: WebSocketConnectionIssues
+        expr: rate(websocket_disconnections_total[5m]) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High WebSocket disconnection rate"
+          description: "WebSocket disconnection rate is higher than expected (>1/sec)."

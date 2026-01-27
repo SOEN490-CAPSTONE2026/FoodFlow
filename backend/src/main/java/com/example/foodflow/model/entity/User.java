@@ -32,7 +32,7 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "account_status")
-    private AccountStatus accountStatus = AccountStatus.ACTIVE;
+    private AccountStatus accountStatus = AccountStatus.PENDING_VERIFICATION;
 
     @Column(name = "admin_notes", columnDefinition = "TEXT")
     private String adminNotes;
@@ -72,6 +72,9 @@ public class User {
 
     @Column(name = "total_points")
     private Integer totalPoints = 0;
+
+    @Column(name = "data_storage_consent")
+    private Boolean dataStorageConsent = false;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Organization organization;
@@ -159,4 +162,7 @@ public class User {
 
     public Integer getTotalPoints() { return totalPoints; }
     public void setTotalPoints(Integer totalPoints) { this.totalPoints = totalPoints; }
+
+    public Boolean getDataStorageConsent() { return dataStorageConsent; }
+    public void setDataStorageConsent(Boolean dataStorageConsent) { this.dataStorageConsent = dataStorageConsent; }
 }

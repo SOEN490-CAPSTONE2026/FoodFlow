@@ -65,20 +65,24 @@ export const authAPI = {
     localStorage.removeItem("jwtToken");
     return api.post("/auth/logout");
   },
-  forgotPassword: (data) => api.post("/auth/forgot-password", data),
-  verifyResetCode: (data) => api.post("/auth/verify-reset-code", data),
-  resetPassword: (data) => api.post("/auth/reset-password", data),
-  checkEmailExists: (email) => api.get("/auth/check-email", { params: { email } }),
-  checkPhoneExists: (phone) => api.get("/auth/check-phone", { params: { phone } }),
-  changePassword: (data) => api.post("/auth/change-password", data),
+  forgotPassword: data => api.post('/auth/forgot-password', data),
+  verifyResetCode: data => api.post('/auth/verify-reset-code', data),
+  resetPassword: data => api.post('/auth/reset-password', data),
+  checkEmailExists: email =>
+    api.get('/auth/check-email', { params: { email } }),
+  checkPhoneExists: phone =>
+    api.get('/auth/check-phone', { params: { phone } }),
+  changePassword: data => api.post('/auth/change-password', data),
+  verifyEmail: token =>
+    api.post('/auth/verify-email', null, { params: { token } }),
+  resendVerificationEmail: () => api.post('/auth/resend-verification-email'),
 };
 
 export const surplusAPI = {
-  list: () => api.get("/surplus"), // Just /surplus, not /api/surplus
-  myPosts: () => api.get("/surplus/my-posts"),
-  getMyPosts: () => api.get("/surplus/my-posts"),
-  getPost: (id) => api.get(`/surplus/${id}`),
-  create: (data) => api.post("/surplus", data),
+  list: () => api.get('/surplus'), // Just /surplus, not /api/surplus
+  getMyPosts: () => api.get('/surplus/my-posts'),
+  getPost: id => api.get(`/surplus/${id}`),
+  create: data => api.post('/surplus', data),
   update: (id, data) => api.put(`/surplus/${id}`, data),
   // claim now accepts an optional `slot` parameter. If `slot` has an `id` we send `pickupSlotId`,
   // otherwise we include the slot object as `pickupSlot` so the backend can interpret it.
@@ -460,6 +464,13 @@ export const adminVerificationAPI = {
    * @returns {Promise} Updated user data
    */
   approveUser: (userId) => api.post(`/admin/approve/${userId}`),
+
+  /**
+   * Manually verify a user's email
+   * @param {number} userId - User ID to mark email verified
+   * @returns {Promise} Response data
+   */
+  verifyEmail: userId => api.post(`/admin/verify-email/${userId}`),
 
   /**
    * Reject a pending user registration

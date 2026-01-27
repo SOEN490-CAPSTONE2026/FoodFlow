@@ -36,6 +36,8 @@ public class RegisterDonorRequest {
     @NotBlank(message = "Business license is required for donor registration")
     private String businessLicense;
 
+    private Boolean dataStorageConsent = false;
+
     // Constructors, getters, setters
     public RegisterDonorRequest() {}
 
@@ -65,4 +67,7 @@ public class RegisterDonorRequest {
     
     public String getBusinessLicense() { return businessLicense; }
     public void setBusinessLicense(String businessLicense) { this.businessLicense = businessLicense; }
+
+    public Boolean getDataStorageConsent() { return dataStorageConsent; }
+    public void setDataStorageConsent(Boolean dataStorageConsent) { this.dataStorageConsent = dataStorageConsent; }
 }

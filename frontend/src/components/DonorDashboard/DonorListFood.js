@@ -24,6 +24,7 @@ import { surplusAPI, claimsAPI, reportAPI } from '../../services/api';
 import SurplusFormModal from '../DonorDashboard/SurplusFormModal';
 import ConfirmPickupModal from '../DonorDashboard/ConfirmPickupModal';
 import ClaimedSuccessModal from '../DonorDashboard/ClaimedSuccessModal';
+import RescheduleModal from '../DonorDashboard/RescheduleModal';
 import ReportUserModal from '../ReportUserModal';
 import FeedbackModal from '../FeedbackModal/FeedbackModal';
 import DonationTimeline from '../shared/DonationTimeline';
@@ -87,6 +88,28 @@ function formatExpiryDate(dateString) {
   } catch {
     return 'Not specified';
   }
+}
+
+function normalizeStatus(status) {
+  if (!status) {
+    return '';
+  }
+  return String(status).toUpperCase().replace(/\s+/g, '_');
+}
+
+function isExpired(dateString) {
+  if (!dateString) {
+    return false;
+  }
+  const [year, month, day] = dateString.split('-').map(Number);
+  if (!year || !month || !day) {
+    return false;
+  }
+  const expiryDate = new Date(year, month - 1, day);
+  expiryDate.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return expiryDate < today;
 }
 
 // Format the pickup time range
@@ -186,7 +209,9 @@ export default function DonorListFood() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPickupModalOpen, setIsPickupModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [rescheduleItem, setRescheduleItem] = useState(null);
   const [editPostId, setEditPostId] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -471,6 +496,21 @@ export default function DonorListFood() {
     setIsSuccessModalOpen(false);
   };
 
+  const handleOpenRescheduleModal = item => {
+    setRescheduleItem(item);
+    setIsRescheduleModalOpen(true);
+  };
+
+  const handleCloseRescheduleModal = () => {
+    setIsRescheduleModalOpen(false);
+    setRescheduleItem(null);
+  };
+
+  const handleRescheduleSuccess = async () => {
+    await fetchMyPosts();
+    handleCloseRescheduleModal();
+  };
+
   const handleOpenReport = item => {
     setReportTargetUser({
       id: item.receiverId,
@@ -739,309 +779,323 @@ export default function DonorListFood() {
         </div>
       ) : (
         <section className="donor-list-grid" aria-label="Donations list">
-          {items.map(item => (
-            <article
-              key={item.id}
-              className="donation-card"
-              aria-label={item.title}
-            >
-              <div className="donation-header">
-                <h3 className="donation-title">{item.title}</h3>
-                <span className={statusClass(item.status)}>
-                  {item.status === "AVAILABLE"
-                    ? t('donorListFood.status.available')
-                    : item.status === "READY_FOR_PICKUP"
-                      ? t('donorListFood.status.readyForPickup')
-                      : item.status === "CLAIMED"
-                        ? t('donorListFood.status.claimed')
-                        : item.status === "NOT_COMPLETED"
-                          ? t('donorListFood.status.notCompleted')
-                          : item.status === "COMPLETED"
-                            ? t('donorListFood.status.completed')
-                            : item.status === "EXPIRED"
-                              ? t('donorListFood.status.expired')
-                              : item.status}
-                </span>
-              </div>
-
-              {item.foodCategories && item.foodCategories.length > 0 && (
-                <div className="donation-tags">
-                  {item.foodCategories.map((category, index) => {
-                    // Get the category value (handle both object and string formats)
-                    const categoryValue = category.name || category;
-                    // Map to display label using centralized helper function
-                    const displayLabel = getFoodTypeLabel(categoryValue);
-
-                    return (
-                      <span key={index} className="donation-tag">
-                        {displayLabel}
-                      </span>
-                    );
-                  })}
+          {items.map(item => {
+            const normalizedStatus = normalizeStatus(item.status);
+            return (
+              <article
+                key={item.id}
+                className="donation-card"
+                aria-label={item.title}
+              >
+                <div className="donation-header">
+                  <h3 className="donation-title">{item.title}</h3>
+                  <span className={statusClass(item.status)}>
+                    {item.status === 'AVAILABLE'
+                      ? 'Available'
+                      : item.status === 'READY_FOR_PICKUP'
+                        ? 'Ready for Pickup'
+                        : item.status === 'CLAIMED'
+                          ? 'Claimed'
+                          : item.status === 'NOT_COMPLETED'
+                            ? 'Not Completed'
+                            : item.status === 'COMPLETED'
+                              ? 'Completed'
+                              : item.status === 'EXPIRED'
+                                ? 'Expired'
+                                : item.status}
+                  </span>
                 </div>
-              )}
 
-              {/* Food Safety Compliance Info */}
-              {(item.temperatureCategory || item.packagingType) && (
-                <div className="compliance-badges">
-                  {item.temperatureCategory && (
-                    <span className="compliance-badge temperature">
-                      <span className="badge-icon">
-                        {getTemperatureCategoryIcon(item.temperatureCategory)}
-                      </span>
-                      <span className="badge-label">
-                        {getTemperatureCategoryLabel(item.temperatureCategory)}
-                      </span>
-                    </span>
-                  )}
-                  {item.packagingType && (
-                    <span className="compliance-badge packaging">
-                      <Package size={14} />
-                      <span className="badge-label">
-                        {getPackagingTypeLabel(item.packagingType)}
-                      </span>
-                    </span>
-                  )}
-                </div>
-              )}
+                {item.foodCategories && item.foodCategories.length > 0 && (
+                  <div className="donation-tags">
+                    {item.foodCategories.map((category, index) => {
+                      // Get the category value (handle both object and string formats)
+                      const categoryValue = category.name || category;
+                      // Map to display label using centralized helper function
+                      const displayLabel = getFoodTypeLabel(categoryValue);
 
-              <div className="donation-quantity">
-                {item.quantity.value} {getUnitLabel(item.quantity.unit)}
-              </div>
+                      return (
+                        <span key={index} className="donation-tag">
+                          {displayLabel}
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
 
-              <ul className="donation-meta" aria-label="details">
-                <li>
-                  <Calendar size={16} className="calendar-icon" />
-                  <span>{t('donorListFood.expires')}: {formatExpiryDate(item.expiryDate)}</span>
-                </li>
-                <li>
-                  <Clock size={16} className="time-icon" />
-                  <div className="pickup-times-container">
-                    <span className="pickup-label">{t('donorListFood.pickup')}:</span>
-                    {/* Show only confirmed pickup slot if it exists, otherwise show all slots */}
-                    {item.confirmedPickupSlot ? (
-                      <span className="pickup-time-item">
-                        {formatPickupTime(
-                          item.confirmedPickupSlot.pickupDate,
-                          item.confirmedPickupSlot.startTime,
-                          item.confirmedPickupSlot.endTime
-                        )}
+                {/* Food Safety Compliance Info */}
+                {(item.temperatureCategory || item.packagingType) && (
+                  <div className="compliance-badges">
+                    {item.temperatureCategory && (
+                      <span className="compliance-badge temperature">
+                        <span className="badge-icon">
+                          {getTemperatureCategoryIcon(item.temperatureCategory)}
+                        </span>
+                        <span className="badge-label">
+                          {getTemperatureCategoryLabel(
+                            item.temperatureCategory
+                          )}
+                        </span>
                       </span>
-                    ) : item.pickupSlots && item.pickupSlots.length > 0 ? (
-                      <>
-                        {item.pickupSlots.map((slot, idx) => (
-                          <React.Fragment key={idx}>
-                            <span className="pickup-time-item">
-                              {formatPickupTime(
-                                slot.pickupDate || slot.date,
-                                slot.startTime || slot.pickupFrom,
-                                slot.endTime || slot.pickupTo
-                              )}
-                            </span>
-                            {idx < item.pickupSlots.length - 1 && (
-                              <span className="pickup-time-divider">|</span>
-                            )}
-                          </React.Fragment>
-                        ))}
-                      </>
-                    ) : (
-                      <span className="pickup-time-item">
-                        {formatPickupTime(
-                          item.pickupDate,
-                          item.pickupFrom,
-                          item.pickupTo
-                        )}
+                    )}
+                    {item.packagingType && (
+                      <span className="compliance-badge packaging">
+                        <Package size={14} />
+                        <span className="badge-label">
+                          {getPackagingTypeLabel(item.packagingType)}
+                        </span>
                       </span>
                     )}
                   </div>
-                </li>
-                <li>
-                  <MapPin size={16} className="locationMap-icon" />
-                  {item.pickupLocation.address ? (
-                    <a
-                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                        item.pickupLocation.address
-                      )}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="donation-address"
-                      title={item.pickupLocation.address}
-                    >
-                      {addressLabel(item.pickupLocation.address)}
-                    </a>
-                    ) : (
-                      <span className="donation-address">
-                        {t('donorListFood.addressNotSpecified')}
-                      </span>
-                    )}
-                </li>
-              </ul>
+                )}
 
-              {item.description && (
-                <p className="donation-notes">{item.description}</p>
-              )}
+                <div className="donation-quantity">
+                  {item.quantity.value} {getUnitLabel(item.quantity.unit)}
+                </div>
 
-              {/* Photo Upload/View Section - Only visible for CLAIMED or READY_FOR_PICKUP */}
-              {(item.status === 'CLAIMED' ||
-                item.status === 'READY_FOR_PICKUP') && (
-                <div className="donation-photos-section">
-                  {/* Upload error message */}
-                  {uploadError[item.id] && (
-                    <div className="photo-upload-error">
-                      <AlertTriangle size={14} />
-                      <span>{uploadError[item.id]}</span>
-                      <button
-                        className="dismiss-error"
-                        onClick={() =>
-                          setUploadError(prev => ({ ...prev, [item.id]: null }))
-                        }
-                      >
-                        <X size={12} />
-                      </button>
-                    </div>
-                  )}
-
-                  {!viewingPhotos[item.id] ? (
-                    // Upload mode
-                    <label
-                      className={`photo-upload-button ${uploadingPhotos[item.id] ? 'uploading' : ''}`}
-                    >
-                      <input
-                        type="file"
-                        multiple
-                        accept="image/jpeg,image/png"
-                        onChange={e => handlePhotoUpload(item.id, e)}
-                        style={{ display: 'none' }}
-                        disabled={uploadingPhotos[item.id]}
-                      />
-                      {uploadingPhotos[item.id] ? (
+                <ul className="donation-meta" aria-label="details">
+                  <li>
+                    <Calendar size={16} className="calendar-icon" />
+                    <span>Expires: {formatExpiryDate(item.expiryDate)}</span>
+                  </li>
+                  <li>
+                    <Clock size={16} className="time-icon" />
+                    <div className="pickup-times-container">
+                      <span className="pickup-label">Pickup:</span>
+                      {/* Show only confirmed pickup slot if it exists, otherwise show all slots */}
+                      {item.confirmedPickupSlot ? (
+                        <span className="pickup-time-item">
+                          {formatPickupTime(
+                            item.confirmedPickupSlot.pickupDate,
+                            item.confirmedPickupSlot.startTime,
+                            item.confirmedPickupSlot.endTime
+                          )}
+                        </span>
+                      ) : item.pickupSlots && item.pickupSlots.length > 0 ? (
                         <>
-                          <span className="upload-spinner"></span>
-                          <span>Uploading...</span>
+                          {item.pickupSlots.map((slot, idx) => (
+                            <React.Fragment key={idx}>
+                              <span className="pickup-time-item">
+                                {formatPickupTime(
+                                  slot.pickupDate || slot.date,
+                                  slot.startTime || slot.pickupFrom,
+                                  slot.endTime || slot.pickupTo
+                                )}
+                              </span>
+                              {idx < item.pickupSlots.length - 1 && (
+                                <span className="pickup-time-divider">|</span>
+                              )}
+                            </React.Fragment>
+                          ))}
                         </>
                       ) : (
-                        <>
-                          <Camera size={14} />
-                          <span>
-                            {donationPhotos[item.id]?.length > 0
-                              ? `${donationPhotos[item.id].length} photo${donationPhotos[item.id].length > 1 ? 's' : ''} uploaded`
-                              : 'Upload photo of donation'}
-                          </span>
-                        </>
+                        <span className="pickup-time-item">
+                          {formatPickupTime(
+                            item.pickupDate,
+                            item.pickupFrom,
+                            item.pickupTo
+                          )}
+                        </span>
                       )}
-                    </label>
-                  ) : null}
-
-                  {donationPhotos[item.id]?.length > 0 && (
-                    <button
-                      className="view-photos-button"
-                      onClick={() => toggleViewPhotos(item.id)}
-                    >
-                      <ImageIcon size={14} />
-                      View {donationPhotos[item.id].length} photo
-                      {donationPhotos[item.id].length > 1 ? 's' : ''}
-                    </button>
-                  )}
-                </div>
-              )}
-
-              {/* Timeline Section - Show for CLAIMED, READY_FOR_PICKUP, COMPLETED, NOT_COMPLETED */}
-              {(item.status === 'CLAIMED' ||
-                item.status === 'READY_FOR_PICKUP' ||
-                item.status === 'COMPLETED' ||
-                item.status === 'NOT_COMPLETED') && (
-                <div className="donation-timeline-section">
-                  <button
-                    className="timeline-toggle-button"
-                    onClick={() => toggleTimeline(item.id)}
-                  >
-                    <Clock size={16} />
-                    <span>
-                      {expandedTimeline[item.id] ? 'Hide' : 'View'} Donation
-                      Timeline
-                    </span>
-                    <ChevronDown
-                      size={16}
-                      className={`chevron ${expandedTimeline[item.id] ? 'open' : ''}`}
-                    />
-                  </button>
-
-                  {expandedTimeline[item.id] && (
-                    <div className="timeline-content-wrapper">
-                      <DonationTimeline
-                        timeline={timelines[item.id] || []}
-                        loading={loadingTimelines[item.id]}
-                      />
                     </div>
-                  )}
-                </div>
-              )}
+                  </li>
+                  <li>
+                    <MapPin size={16} className="locationMap-icon" />
+                    {item.pickupLocation.address ? (
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                          item.pickupLocation.address
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="donation-address"
+                        title={item.pickupLocation.address}
+                      >
+                        {addressLabel(item.pickupLocation.address)}
+                      </a>
+                    ) : (
+                      <span className="donation-address">
+                        Address not specified
+                      </span>
+                    )}
+                  </li>
+                </ul>
 
-              {item.status === 'AVAILABLE' ? (
-                <div className="donation-actions">
-                  <button
-                    className="donation-link"
-                    onClick={() => openEdit(item)}
-                  >
-                    <Edit className="icon" /> {t('donorListFood.edit')}
-                  </button>
-                  <button
-                    className="donation-link danger"
-                    onClick={() => requestDelete(item.id)}
-                  >
-                    <Trash2 className="icon" /> {t('donorListFood.delete')}
-                  </button>
-                </div>
-              ) : item.status === 'NOT_COMPLETED' ? (
-                <div className="donation-actions">
-                  <button
-                    className="donation-action-button primary"
-                    onClick={() => alert(t('donorListFood.rescheduleComingSoon'))}
-                  >
-                    {t('donorListFood.reschedule')}
-                  </button>
-                  <button
-                    className="donation-action-button secondary"
-                    onClick={() => handleOpenFeedback(item)}
-                  >
-                    <Star className="icon" /> LEAVE FEEDBACK
-                  </button>
-                </div>
-              ) : (
-                <div className="donation-actions">
-                  {item.status === 'READY_FOR_PICKUP' && (
+                {item.description && (
+                  <p className="donation-notes">{item.description}</p>
+                )}
+
+                {/* Photo Upload/View Section - Only visible for CLAIMED or READY_FOR_PICKUP */}
+                {(normalizedStatus === 'CLAIMED' ||
+                  normalizedStatus === 'READY_FOR_PICKUP' ||
+                  normalizedStatus === 'COMPLETED') && (
+                  <div className="donation-photos-section">
+                    {/* Upload error message */}
+                    {uploadError[item.id] && (
+                      <div className="photo-upload-error">
+                        <AlertTriangle size={14} />
+                        <span>{uploadError[item.id]}</span>
+                        <button
+                          className="dismiss-error"
+                          onClick={() =>
+                            setUploadError(prev => ({
+                              ...prev,
+                              [item.id]: null,
+                            }))
+                          }
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    )}
+
+                    {!viewingPhotos[item.id] ? (
+                      // Upload mode
+                      <label
+                        className={`photo-upload-button ${uploadingPhotos[item.id] ? 'uploading' : ''}`}
+                      >
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/jpeg,image/png"
+                          onChange={e => handlePhotoUpload(item.id, e)}
+                          style={{ display: 'none' }}
+                          disabled={uploadingPhotos[item.id]}
+                        />
+                        {uploadingPhotos[item.id] ? (
+                          <>
+                            <span className="upload-spinner"></span>
+                            <span>Uploading...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Camera size={14} />
+                            <span>
+                              {donationPhotos[item.id]?.length > 0
+                                ? `${donationPhotos[item.id].length} photo${donationPhotos[item.id].length > 1 ? 's' : ''} uploaded`
+                                : 'Upload photo of donation'}
+                            </span>
+                          </>
+                        )}
+                      </label>
+                    ) : null}
+
+                    {donationPhotos[item.id]?.length > 0 && (
+                      <button
+                        className="view-photos-button"
+                        onClick={() => toggleViewPhotos(item.id)}
+                      >
+                        <ImageIcon size={14} />
+                        View {donationPhotos[item.id].length} photo
+                        {donationPhotos[item.id].length > 1 ? 's' : ''}
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Timeline Section - Show for CLAIMED, READY_FOR_PICKUP, COMPLETED, NOT_COMPLETED */}
+                {(item.status === 'CLAIMED' ||
+                  item.status === 'READY_FOR_PICKUP' ||
+                  item.status === 'COMPLETED' ||
+                  item.status === 'NOT_COMPLETED') && (
+                  <div className="donation-timeline-section">
                     <button
-                      className="donation-action-button primary"
-                      onClick={() => handleOpenPickupModal(item)}
+                      className="timeline-toggle-button"
+                      onClick={() => toggleTimeline(item.id)}
                     >
-                      {t('donorListFood.enterPickupCode')}
+                      <Clock size={16} />
+                      <span>
+                        {expandedTimeline[item.id] ? 'Hide' : 'View'} Donation
+                        Timeline
+                      </span>
+                      <ChevronDown
+                        size={16}
+                        className={`chevron ${expandedTimeline[item.id] ? 'open' : ''}`}
+                      />
                     </button>
-                  )}
-                  {item.status === 'COMPLETED' && (
-                    <>
+
+                    {expandedTimeline[item.id] && (
+                      <div className="timeline-content-wrapper">
+                        <DonationTimeline
+                          timeline={timelines[item.id] || []}
+                          loading={loadingTimelines[item.id]}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {item.status === 'AVAILABLE' ? (
+                  <div className="donation-actions">
+                    <button
+                      className="donation-link"
+                      onClick={() => openEdit(item)}
+                    >
+                      <Edit className="icon" /> Edit
+                    </button>
+                    <button
+                      className="donation-link danger"
+                      onClick={() => requestDelete(item.id)}
+                    >
+                      <Trash2 className="icon" /> Delete
+                    </button>
+                  </div>
+                ) : item.status === 'NOT_COMPLETED' ? (
+                  <div className="donation-actions">
+                    {!isExpired(item.expiryDate) && (
+                      <button
+                        className="donation-action-button primary"
+                        onClick={() => handleOpenRescheduleModal(item)}
+                      >
+                        RESCHEDULE
+                      </button>
+                    )}
                     <button
                       className="donation-action-button secondary"
-                      disabled
+                      onClick={() => handleOpenFeedback(item)}
                     >
-                      {t('donorListFood.thankYou')}
+                      <Star className="icon" /> LEAVE FEEDBACK
                     </button>
-                    <button
-                        className="donation-action-button secondary"
-                        onClick={() => handleOpenFeedback(item)}
+                  </div>
+                ) : (
+                  <div className="donation-actions">
+                    {item.status === 'READY_FOR_PICKUP' && (
+                      <button
+                        className="donation-action-button primary"
+                        onClick={() => handleOpenPickupModal(item)}
                       >
-                        <Star className="icon" /> LEAVE FEEDBACK
+                        ENTER PICKUP CODE
                       </button>
-                    </>
-                  )}
-                  {item.status === "CLAIMED" && (
-                    <button className="donation-action-button primary" onClick={() => contactReceiver(item)}>
-                      {t('donorListFood.openChat')}
-                    </button>
-                  )}
-                </div>
-              )}
-            </article>
-          ))}
+                    )}
+                    {item.status === 'COMPLETED' && (
+                      <>
+                        <button
+                          className="donation-action-button secondary"
+                          disabled
+                        >
+                          THANK YOU
+                        </button>
+                        <button
+                          className="donation-action-button secondary"
+                          onClick={() => handleOpenFeedback(item)}
+                        >
+                          <Star className="icon" /> LEAVE FEEDBACK
+                        </button>
+                      </>
+                    )}
+                    {item.status === 'CLAIMED' && (
+                      <button
+                        className="donation-action-button primary"
+                        onClick={() => contactReceiver(item)}
+                      >
+                        OPEN CHAT
+                      </button>
+                    )}
+                  </div>
+                )}
+              </article>
+            );
+          })}
         </section>
       )}
 
@@ -1055,6 +1109,13 @@ export default function DonorListFood() {
       <ClaimedSuccessModal
         isOpen={isSuccessModalOpen}
         onClose={handleCloseSuccessModal}
+      />
+
+      <RescheduleModal
+        isOpen={isRescheduleModalOpen}
+        onClose={handleCloseRescheduleModal}
+        donationItem={rescheduleItem}
+        onSuccess={handleRescheduleSuccess}
       />
 
       {/* Photo Viewer Modal - Outside of cards */}

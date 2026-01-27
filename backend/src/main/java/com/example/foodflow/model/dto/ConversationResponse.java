@@ -10,6 +10,7 @@ public class ConversationResponse {
     private Long otherUserId;
     private String otherUserName;
     private String otherUserEmail;
+    private String otherUserProfilePhoto;
     private LocalDateTime createdAt;
     private LocalDateTime lastMessageAt;
     private String lastMessagePreview;
@@ -35,6 +36,7 @@ public class ConversationResponse {
                               otherUser.getOrganization().getName() : 
                               otherUser.getEmail();
         this.otherUserEmail = otherUser.getEmail();
+        this.otherUserProfilePhoto = otherUser.getProfilePhoto();
 
         this.alreadyExists = conversationAlreadyExists;
     }
@@ -70,6 +72,14 @@ public class ConversationResponse {
     
     public void setOtherUserEmail(String otherUserEmail) {
         this.otherUserEmail = otherUserEmail;
+    }
+
+    public String getOtherUserProfilePhoto() {
+        return otherUserProfilePhoto;
+    }
+
+    public void setOtherUserProfilePhoto(String otherUserProfilePhoto) {
+        this.otherUserProfilePhoto = otherUserProfilePhoto;
     }
     
     public LocalDateTime getCreatedAt() {
