@@ -1,234 +1,249 @@
-*{
-    font-family: Poppins, sans-serif;
+* {
+  font-family: Poppins, sans-serif;
 }
 
 /* Pickup Steps */
 .pickup-step {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    margin-bottom: 24px;
-    padding: 20px;
-    background: #ECFEFF;
-    border-radius: 12px;
-    border: 1px solid #A2F4FD;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding: 20px;
+  background: #ecfeff;
+  border-radius: 12px;
+  border: 1px solid #a2f4fd;
 }
 
 .pickup-step-header {
-    display: flex;
-    gap: 16px;
+  display: flex;
+  gap: 16px;
 }
 
-.pickup-step-placeholder{
-    display: flex;
-    gap: 16px;
-    margin-bottom: 24px;
-    padding: 20px;
-    background: #F8FAFC;
-    border-radius: 12px;
-    border: 1px solid #E2E8F0;
+.pickup-step-placeholder {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
 }
 
 .pickup-step-number {
-    flex-shrink: 0;
-    width: 40px;
-    height: 40px;
-    color: #1B4965;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 3.5rem;
-    font-weight: 700;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  color: #1b4965;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.5rem;
+  font-weight: 700;
 }
 .pickup-step-number-placeholder {
-    flex-shrink: 0;
-    width: 40px;
-    height: 40px;
-    color: #90A1B9;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    text-align: center;
-    justify-content: center;
-    font-size: 4rem;
-    font-weight: 700;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  color: #90a1b9;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  text-align: center;
+  justify-content: center;
+  font-size: 4rem;
+  font-weight: 700;
 }
 
 .pickup-step-content {
-    flex: 1;
+  flex: 1;
 }
 
 /* Timer Styles */
 .pickup-step-timer {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px;
-    border-radius: 12px;
-    margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  border-radius: 12px;
+  margin: 0;
 }
 
 .timer-content {
-    flex: 1;
-    display: flex;
-    justify-content: center;
+  flex: 1;
+  display: flex;
+  justify-content: center;
 }
 
 .timer-display {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
 }
 
 .timer-unit {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    min-width: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 60px;
 }
 
 .timer-value {
-    font-size: 32px;
-    font-weight: 700;
-    color: #1B4965;
-    line-height: 1;
-    text-align: center;
-    font-variant-numeric: tabular-nums;
+  font-size: 32px;
+  font-weight: 700;
+  color: #1b4965;
+  line-height: 1;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 
 .timer-unit-label {
-    font-size: 11px;
-    color: #1B4965;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+  font-size: 11px;
+  color: #1b4965;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .timer-separator {
-    font-size: 28px;
-    font-weight: 700;
-    color: #1B4965;
-    margin: 0 4px;
-    padding-bottom: 16px;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1b4965;
+  margin: 0 4px;
+  padding-bottom: 16px;
 }
 
 .timer-expired {
-    background: linear-gradient(135deg, #D1FAE5 0%, #ECFDF5 100%);
-    border-color: #6EE7B7;
-    color: #059669;
-    font-weight: 600;
-    justify-content: center;
-    gap: 8px;
+  background: linear-gradient(135deg, #d1fae5 0%, #ecfdf5 100%);
+  border-color: #6ee7b7;
+  color: #059669;
+  font-weight: 600;
+  justify-content: center;
+  gap: 8px;
 }
 
 .timer-expired svg {
-    color: #059669;
+  color: #059669;
 }
 
 .pickup-step-title {
-    font-size: 16px;
-    font-weight: 600;
-    text-align: left;
-    color: #1B4965;
-    margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: left;
+  color: #1b4965;
+  margin: 0 0 8px 0;
 }
 
 .pickup-step-description {
-    font-size: 14px;
-    color: #364153;
-    text-align: left;
-    opacity: 0.8;
-    margin: 0 0 12px 0;
-    line-height: 1.5;
+  font-size: 14px;
+  color: #364153;
+  text-align: left;
+  opacity: 0.8;
+  margin: 0 0 12px 0;
+  line-height: 1.5;
 }
 
 /* Pickup Code Placeholder */
 .pickup-code-placeholder {
-    border-radius: 8px;
-    padding: 0px;
-    text-align: center;
+  border-radius: 8px;
+  padding: 0px;
+  text-align: center;
 }
 
 .pickup-dots {
-    font-size: 32px;
-    color: #90A1B9;
-    letter-spacing: 8px;
-    display: inline-flex;
-    gap: 0px;
+  font-size: 32px;
+  color: #90a1b9;
+  letter-spacing: 8px;
+  display: inline-flex;
+  gap: 0px;
 }
 
 .pickup-dots span {
-    display: inline-block;
-    animation: loading-dots 1.4s infinite;
+  display: inline-block;
+  animation: loading-dots 1.4s infinite;
 }
 
 .pickup-dots .dot-1 {
-    animation-delay: 0s;
+  animation-delay: 0s;
 }
 
 .pickup-dots .dot-2 {
-    animation-delay: 0.2s;
+  animation-delay: 0.2s;
 }
 
 .pickup-dots .dot-3 {
-    animation-delay: 0.4s;
+  animation-delay: 0.4s;
 }
 .claimed-view-btn-back {
-    flex: 1;
-    padding: 0.875rem 1.5rem;
-    font-size: 0.95rem;
-    font-weight: 600;
-    cursor: pointer;
-    border-radius: 8px;
-    transition: all 0.2s;
-    background: #1B4965;
-    color: white;
-    border: none;
+  flex: 1;
+  padding: 0.875rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s;
+  background: #1b4965;
+  color: white;
+  border: none;
 }
 
 .claimed-view-btn-back:hover {
-    background: #164058;
+  background: #164058;
 }
 
 .claimed-view-btn-view {
-    flex: 1;
-    padding: 0.875rem 1.5rem;
-    font-size: 0.95rem;
-    font-weight: 600;
-    cursor: pointer;
-    border-radius: 8px;
-    transition: all 0.2s;
-    background: white;
-    color: #1B4965;
-    border: 1px solid #d1d5db;
+  flex: 1;
+  padding: 0.875rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s;
+  background: white;
+  color: #1b4965;
+  border: 1px solid #d1d5db;
 }
 
 .claimed-view-btn-view:hover {
-    background: #f9fafb;
+  background: #f9fafb;
 }
 @keyframes loading-dots {
-    0%, 60%, 100% {
-        opacity: 0.3;
-        transform: translateY(0);
-    }
-    30% {
-        opacity: 1;
-        transform: translateY(-8px);
-    }
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-8px);
+  }
 }
 
 /* Info Box */
 .pickup-info-box {
-    background: #ECFEFF;
-    border: 1px solid #A2F4FD;
-    border-radius: 8px;
-    padding: 20px 18px;
-    text-align: center;
-    color: #104E64;
-    font-size: 14px;
-    font-weight: 500;
-    margin: 24px 0;
+  background: #ecfeff;
+  border: 1px solid #a2f4fd;
+  border-radius: 8px;
+  padding: 20px 18px;
+  text-align: center;
+  color: #104e64;
+  font-size: 14px;
+  font-weight: 500;
+  margin: 24px 0;
+}
+
+/* Tolerance Info */
+.pickup-tolerance-info {
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+  padding: 12px 16px;
+  text-align: center;
+  color: #92400e;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 20px;
 }

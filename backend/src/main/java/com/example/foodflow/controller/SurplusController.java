@@ -5,16 +5,20 @@ import com.example.foodflow.model.dto.ConfirmPickupRequest;
 import com.example.foodflow.model.dto.CreateSurplusRequest;
 import com.example.foodflow.model.dto.DonationTimelineDTO;
 import com.example.foodflow.model.dto.SurplusResponse;
+import com.example.foodflow.model.dto.SurplusFilterRequest;
+import com.example.foodflow.model.dto.UploadEvidenceResponse;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.service.SurplusService;
-import com.example.foodflow.model.dto.SurplusFilterRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 
@@ -80,7 +84,7 @@ public class SurplusController {
         return ResponseEntity.ok(availablePosts);
     }
 
-     /**
+    /**
      * New endpoint for filtered surplus posts based on receiver criteria.
      * If no filters are provided, returns all available posts.
      * Times are converted to receiver's timezone.
@@ -94,6 +98,7 @@ public class SurplusController {
         return ResponseEntity.ok(filteredPosts);
 
     }
+
     /**
      * Alternative GET endpoint for basic filtering via query parameters.
      * Useful for simple filters without complex objects like Location.
@@ -108,14 +113,13 @@ public class SurplusController {
             @AuthenticationPrincipal User receiver) {
 
 
-
         // Create filter request from query parameters
         SurplusFilterRequest filterRequest = new SurplusFilterRequest();
         filterRequest.setFoodCategories(foodCategories);
         filterRequest.setStatus(status != null ? status : "AVAILABLE");
 
         if (expiryBefore != null && !expiryBefore.trim().isEmpty()) {
-            
+
             try {
 
                 filterRequest.setExpiryBefore(java.time.LocalDate.parse(expiryBefore));
@@ -131,7 +135,7 @@ public class SurplusController {
 
     }
 
-    
+
     @PatchMapping("/{id}/complete")
     @PreAuthorize("hasAuthority('DONOR')")
     public ResponseEntity<SurplusResponse> completeSurplusPost(
@@ -143,18 +147,18 @@ public class SurplusController {
         return ResponseEntity.ok(response);
     }
 
-   @PostMapping("/pickup/confirm")
+    @PostMapping("/pickup/confirm")
     public ResponseEntity<SurplusResponse> confirmPickup(
-        @RequestBody ConfirmPickupRequest request,
-        @AuthenticationPrincipal User donor) {
+            @RequestBody ConfirmPickupRequest request,
+            @AuthenticationPrincipal User donor) {
 
-    SurplusResponse response = surplusService.confirmPickup(
-        request.getPostId(), 
-        request.getOtpCode(), 
-        donor
-    );
-    return ResponseEntity.ok(response);
-}
+        SurplusResponse response = surplusService.confirmPickup(
+                request.getPostId(),
+                request.getOtpCode(),
+                donor
+        );
+        return ResponseEntity.ok(response);
+    }
 
     @GetMapping("/{id}/timeline")
     public ResponseEntity<List<DonationTimelineDTO>> getTimeline(
@@ -168,12 +172,38 @@ public class SurplusController {
     @DeleteMapping("/{id}/delete")
     @PreAuthorize("hasAuthority('DONOR')")
     public ResponseEntity<Void> deleteSurplusPost(
-        @PathVariable Long id,
-        @AuthenticationPrincipal User donor) {
+            @PathVariable Long id,
+            @AuthenticationPrincipal User donor) {
 
-    surplusService.deleteSurplusPost(id, donor);
-    return ResponseEntity.noContent().build(); // 204
+        surplusService.deleteSurplusPost(id, donor);
+        return ResponseEntity.noContent().build(); // 204
+    }
+
+    /**
+     * Upload pickup evidence photo for a donation.
+     * Only the donor of this donation can upload evidence.
+     */
+    @PostMapping(value = "/{id}/evidence", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAuthority('DONOR')")
+    public ResponseEntity<UploadEvidenceResponse> uploadPickupEvidence(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file,
+            @AuthenticationPrincipal User donor) {
+
+        try {
+            UploadEvidenceResponse response = surplusService.uploadPickupEvidence(id, file, donor);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(
+                new UploadEvidenceResponse(null, e.getMessage(), false)
+            );
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                new UploadEvidenceResponse(null, "Failed to upload file", false)
+            );
+        }
+    }
+
 }
 
 
-}

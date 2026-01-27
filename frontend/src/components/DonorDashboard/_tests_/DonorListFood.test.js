@@ -1,18 +1,22 @@
-import React from "react";
-import { render, screen, within, waitFor } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
-import userEvent from "@testing-library/user-event";
-import "@testing-library/jest-dom";
+import React from 'react';
+import { render, screen, within, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import userEvent from '@testing-library/user-event';
+import '@testing-library/jest-dom';
+
+import DonorListFood from '../DonorListFood';
+import { surplusAPI } from '../../../services/api';
+import { AuthContext } from '../../../contexts/AuthContext';
 
 // Mock the dependencies
-jest.mock("axios", () => ({
+jest.mock('axios', () => ({
   get: jest.fn(),
   post: jest.fn(),
   put: jest.fn(),
   delete: jest.fn(),
 }));
 
-jest.mock("@react-google-maps/api", () => ({
+jest.mock('@react-google-maps/api', () => ({
   LoadScript: ({ children }) => children,
   useLoadScript: () => ({
     isLoaded: true,
@@ -20,7 +24,7 @@ jest.mock("@react-google-maps/api", () => ({
   }),
 }));
 
-jest.mock("../SurplusFormModal", () => {
+jest.mock('../SurplusFormModal', () => {
   return function MockSurplusFormModal({ isOpen, onClose }) {
     return isOpen ? (
       <div data-testid="surplus-form-modal">Mock Modal</div>
@@ -29,16 +33,16 @@ jest.mock("../SurplusFormModal", () => {
 });
 
 // Fixed AuthContext mock - define it inline
-jest.mock("../../../contexts/AuthContext", () => {
-  const React = require("react");
+jest.mock('../../../contexts/AuthContext', () => {
+  const React = require('react');
   return {
     AuthContext: React.createContext({
-      user: { id: 1, name: "Test User" },
+      user: { id: 1, name: 'Test User' },
     }),
   };
 });
 
-jest.mock("../../../services/api", () => ({
+jest.mock('../../../services/api', () => ({
   surplusAPI: {
     getMyPosts: jest.fn(),
     deletePost: jest.fn(),
@@ -56,133 +60,137 @@ jest.mock("../../../services/api", () => ({
   },
 }));
 
-jest.mock("../../../constants/foodConstants", () => ({
-  getFoodTypeLabel: (value) => {
+jest.mock('../../../constants/foodConstants', () => ({
+  getFoodTypeLabel: value => {
     const mapping = {
-      FRUITS_VEGETABLES: "Fruits & Vegetables",
-      BAKERY_ITEMS: "Bakery & Pastry",
-      PREPARED_MEALS: "Prepared Meals",
-      DAIRY_COLD: "Dairy & Cold",
-      FROZEN: "Frozen",
+      FRUITS_VEGETABLES: 'Fruits & Vegetables',
+      BAKERY_ITEMS: 'Bakery & Pastry',
+      PREPARED_MEALS: 'Prepared Meals',
+      DAIRY_COLD: 'Dairy & Cold',
+      FROZEN: 'Frozen',
     };
     return mapping[value] || value;
   },
-  getUnitLabel: (value) => {
+  getUnitLabel: value => {
     const mapping = {
-      KILOGRAM: "kg",
-      LOAF: "loaves",
-      SERVINGS: "servings",
-      ITEM: "items",
-      LITER: "liters",
-      POUND: "lbs",
-      BOX: "boxes",
-      PACKAGES: "packages",
+      KILOGRAM: 'kg',
+      LOAF: 'loaves',
+      SERVINGS: 'servings',
+      ITEM: 'items',
+      LITER: 'liters',
+      POUND: 'lbs',
+      BOX: 'boxes',
+      PACKAGES: 'packages',
     };
     return mapping[value] || value;
-  }
+  },
 }));
 
-jest.mock("lucide-react", () => ({
-  Calendar: () => "CalendarIcon",
-  Clock: () => "ClockIcon",
-  MapPin: () => "MapPinIcon",
-  Edit: () => "EditIcon",
-  Trash2: () => "TrashIcon",
-  AlertTriangle: () => "AlertIcon",
-  X: () => "XIcon",
-  Package: () => "PackageIcon",
-  ChevronDown: () => "ChevronDownIcon",
-  Filter: () => "FilterIcon",
-  Camera: () => "CameraIcon",
-  Image: () => "ImageIcon",
-  ChevronLeft: () => "ChevronLeftIcon",
-  ChevronRight: () => "ChevronRightIcon",
-  Upload: () => "UploadIcon",
-  Star: () => "StarIcon",
+jest.mock('lucide-react', () => ({
+  Calendar: () => 'CalendarIcon',
+  Clock: () => 'ClockIcon',
+  MapPin: () => 'MapPinIcon',
+  Edit: () => 'EditIcon',
+  Trash2: () => 'TrashIcon',
+  AlertTriangle: () => 'AlertIcon',
+  X: () => 'XIcon',
+  Package: () => 'PackageIcon',
+  ChevronDown: () => 'ChevronDownIcon',
+  Filter: () => 'FilterIcon',
+  Camera: () => 'CameraIcon',
+  Image: () => 'ImageIcon',
+  ChevronLeft: () => 'ChevronLeftIcon',
+  ChevronRight: () => 'ChevronRightIcon',
+  Upload: () => 'UploadIcon',
+  Star: () => 'StarIcon',
 }));
 
-jest.mock("../../shared/DonationTimeline", () => {
+jest.mock('../../shared/DonationTimeline', () => {
   return function MockDonationTimeline() {
     return <div data-testid="donation-timeline">Timeline</div>;
   };
 });
 
-jest.mock("../ConfirmPickupModal", () => {
+jest.mock('../ConfirmPickupModal', () => {
   return function MockConfirmPickupModal() {
     return <div data-testid="confirm-pickup-modal">Pickup Modal</div>;
   };
 });
 
-jest.mock("../ClaimedSuccessModal", () => {
+jest.mock('../ClaimedSuccessModal', () => {
   return function MockClaimedSuccessModal() {
     return <div data-testid="claimed-success-modal">Success Modal</div>;
   };
 });
 
-jest.mock("../../FeedbackModal/FeedbackModal", () => {
+jest.mock('../RescheduleModal', () => {
+  return function MockRescheduleModal({ isOpen }) {
+    return isOpen ? (
+      <div data-testid="reschedule-modal">Reschedule Modal</div>
+    ) : null;
+  };
+});
+
+jest.mock('../../FeedbackModal/FeedbackModal', () => {
   return function MockFeedbackModal() {
     return <div data-testid="feedback-modal">Feedback Modal</div>;
   };
 });
 
-jest.mock("../../ReportUserModal", () => {
+jest.mock('../../ReportUserModal', () => {
   return function MockReportUserModal() {
     return <div data-testid="report-modal">Report Modal</div>;
   };
 });
 
-import DonorListFood from "../DonorListFood";
-import { surplusAPI } from "../../../services/api";
-import { AuthContext } from "../../../contexts/AuthContext";
-
 // Mock data - changed to use objects with name property like the real API
 const mockItems = [
   {
     id: 1,
-    title: "Fresh Apples",
-    foodCategories: [{ name: "FRUITS_VEGETABLES" }],
+    title: 'Fresh Apples',
+    foodCategories: [{ name: 'FRUITS_VEGETABLES' }],
     quantity: {
       value: 5,
-      unit: "KILOGRAM",
+      unit: 'KILOGRAM',
     },
-    expiryDate: "2025-10-08",
-    pickupDate: "2025-10-01",
-    pickupFrom: "14:00",
-    pickupTo: "17:00",
-    pickupLocation: { address: "123 Main St, City, State 12345" },
-    description: "Red Delicious apples, perfect for snacking or baking",
-    status: "AVAILABLE",
+    expiryDate: '2025-10-08',
+    pickupDate: '2025-10-01',
+    pickupFrom: '14:00',
+    pickupTo: '17:00',
+    pickupLocation: { address: '123 Main St, City, State 12345' },
+    description: 'Red Delicious apples, perfect for snacking or baking',
+    status: 'AVAILABLE',
   },
   {
     id: 2,
-    title: "Artisan Bread Selection",
-    foodCategories: [{ name: "BAKERY_ITEMS" }],
+    title: 'Artisan Bread Selection',
+    foodCategories: [{ name: 'BAKERY_ITEMS' }],
     quantity: {
       value: 10,
-      unit: "LOAF",
+      unit: 'LOAF',
     },
-    expiryDate: "2025-10-02",
+    expiryDate: '2099-10-02',
     pickupSlots: [
       {
-        pickupDate: "2025-10-01",
-        startTime: "09:00",
-        endTime: "12:00",
+        pickupDate: '2025-10-01',
+        startTime: '09:00',
+        endTime: '12:00',
       },
       {
-        pickupDate: "2025-10-02",
-        startTime: "14:00",
-        endTime: "17:00",
+        pickupDate: '2025-10-02',
+        startTime: '14:00',
+        endTime: '17:00',
       },
     ],
-    pickupLocation: { address: "456 Oak Ave, Town, State 67890" },
-    description: "Fresh sourdough, whole wheat, and gluten-free options",
-    status: "NOT_COMPLETED",
+    pickupLocation: { address: '456 Oak Ave, Town, State 67890' },
+    description: 'Fresh sourdough, whole wheat, and gluten-free options',
+    status: 'NOT_COMPLETED',
   },
 ];
 
 // Create a wrapper component to provide the AuthContext AND Router
 const TestWrapper = ({ children }) => {
-  const mockUser = { id: 1, name: "Test User" };
+  const mockUser = { id: 1, name: 'Test User' };
   return (
     <MemoryRouter>
       <AuthContext.Provider value={{ user: mockUser }}>
@@ -192,7 +200,7 @@ const TestWrapper = ({ children }) => {
   );
 };
 
-describe("DonorListFood", () => {
+describe('DonorListFood', () => {
   const setup = () => render(<DonorListFood />, { wrapper: TestWrapper });
 
   let originalAlert;
@@ -214,7 +222,7 @@ describe("DonorListFood", () => {
     window.confirm = originalConfirm;
   });
 
-  test("renders loading state initially", () => {
+  test('renders loading state initially', () => {
     surplusAPI.getMyPosts.mockImplementation(() => new Promise(() => {})); // Never resolves
 
     setup();
@@ -222,7 +230,7 @@ describe("DonorListFood", () => {
     expect(screen.getByText(/loading your donations/i)).toBeInTheDocument();
   });
 
-  test("renders empty state when no donations exist", async () => {
+  test('renders empty state when no donations exist', async () => {
     surplusAPI.getMyPosts.mockResolvedValue({ data: [] });
 
     setup();
@@ -240,29 +248,29 @@ describe("DonorListFood", () => {
     ).toBeInTheDocument();
   });
 
-  test("renders donation listings after loading data", async () => {
+  test('renders donation listings after loading data', async () => {
     surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
 
     setup();
 
     await waitFor(() => {
       expect(
-        screen.getByRole("button", { name: /\+ donate more/i })
+        screen.getByRole('button', { name: /\+ donate more/i })
       ).toBeInTheDocument();
     });
 
     expect(
-      screen.getByRole("region", { name: /donations list/i })
+      screen.getByRole('region', { name: /donations list/i })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: /fresh apples/i })
+      screen.getByRole('heading', { name: /fresh apples/i })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: /artisan bread selection/i })
+      screen.getByRole('heading', { name: /artisan bread selection/i })
     ).toBeInTheDocument();
   });
 
-  test("displays correct donation information after loading data", async () => {
+  test('displays correct donation information after loading data', async () => {
     surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
 
     setup();
@@ -283,7 +291,7 @@ describe("DonorListFood", () => {
     ).toBeInTheDocument();
   });
 
-  test("displays donation details like time and location after loading data", async () => {
+  test('displays donation details like time and location after loading data', async () => {
     surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
 
     setup();
@@ -299,26 +307,28 @@ describe("DonorListFood", () => {
     expect(within(appleCard).getByText(/Pickup:/)).toBeInTheDocument();
   });
 
-  test("displays multiple pickup slots when available", async () => {
+  test('displays multiple pickup slots when available', async () => {
     surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
 
     setup();
 
     await waitFor(() => {
-      expect(screen.getByLabelText(/artisan bread selection/i)).toBeInTheDocument();
+      expect(
+        screen.getByLabelText(/artisan bread selection/i)
+      ).toBeInTheDocument();
     });
 
     const breadCard = screen.getByLabelText(/artisan bread selection/i);
-    
+
     // Should display "Pickup:" label once
     const pickupLabels = within(breadCard).getAllByText(/Pickup:/i);
     expect(pickupLabels).toHaveLength(1);
-    
+
     // Should display the divider between slots
     expect(within(breadCard).getByText(/\|/)).toBeInTheDocument();
   });
 
-  test("shows edit and delete buttons for AVAILABLE status donations", async () => {
+  test('shows edit and delete buttons for AVAILABLE status donations', async () => {
     surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
 
     setup();
@@ -328,45 +338,51 @@ describe("DonorListFood", () => {
     });
 
     // Only the AVAILABLE item should have edit and delete buttons
-    const editButtons = screen.getAllByRole("button", { name: /edit/i });
-    const deleteButtons = screen.getAllByRole("button", { name: /delete/i });
+    const editButtons = screen.getAllByRole('button', { name: /edit/i });
+    const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
 
     expect(editButtons).toHaveLength(1);
     expect(deleteButtons).toHaveLength(1);
   });
 
-  test("shows reschedule button for NOT_COMPLETED status donations", async () => {
+  test('shows reschedule button for NOT_COMPLETED status donations', async () => {
     surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
 
     setup();
 
     await waitFor(() => {
-      expect(screen.getByLabelText(/artisan bread selection/i)).toBeInTheDocument();
+      expect(
+        screen.getByLabelText(/artisan bread selection/i)
+      ).toBeInTheDocument();
     });
 
-    const rescheduleButton = screen.getByRole("button", { name: /reschedule/i });
+    const rescheduleButton = screen.getByRole('button', {
+      name: /reschedule/i,
+    });
     expect(rescheduleButton).toBeInTheDocument();
   });
 
-  test("reschedule button shows alert when clicked", async () => {
+  test('reschedule button opens reschedule modal when clicked', async () => {
     surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
     const user = userEvent.setup();
 
     setup();
 
     await waitFor(() => {
-      expect(screen.getByLabelText(/artisan bread selection/i)).toBeInTheDocument();
+      expect(
+        screen.getByLabelText(/artisan bread selection/i)
+      ).toBeInTheDocument();
     });
 
-    const rescheduleButton = screen.getByRole("button", { name: /reschedule/i });
+    const rescheduleButton = screen.getByRole('button', {
+      name: /reschedule/i,
+    });
     await user.click(rescheduleButton);
 
-    expect(window.alert).toHaveBeenCalledWith(
-      "Reschedule functionality coming soon!"
-    );
+    expect(screen.getByTestId('reschedule-modal')).toBeInTheDocument();
   });
 
-  test("edit button opens modal in edit mode when clicked", async () => {
+  test('edit button opens modal in edit mode when clicked', async () => {
     surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
     const user = userEvent.setup();
 
@@ -376,20 +392,20 @@ describe("DonorListFood", () => {
       expect(screen.getByLabelText(/fresh apples/i)).toBeInTheDocument();
     });
 
-    const editButtons = screen.getAllByRole("button", { name: /edit/i });
+    const editButtons = screen.getAllByRole('button', { name: /edit/i });
     await user.click(editButtons[0]);
 
     // Modal should open
-    expect(screen.getByTestId("surplus-form-modal")).toBeInTheDocument();
+    expect(screen.getByTestId('surplus-form-modal')).toBeInTheDocument();
   });
 
-test("delete button shows confirmation and removes item when confirmed", async () => {
-  surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
+  test('delete button shows confirmation and removes item when confirmed', async () => {
+    surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
 
-  surplusAPI.deletePost = jest.fn(() => Promise.resolve({}));
+    surplusAPI.deletePost = jest.fn(() => Promise.resolve({}));
 
-  window.confirm.mockReturnValue(true);
-  const user = userEvent.setup();
+    window.confirm.mockReturnValue(true);
+    const user = userEvent.setup();
 
     setup();
 
@@ -397,13 +413,13 @@ test("delete button shows confirmation and removes item when confirmed", async (
       expect(screen.getByLabelText(/fresh apples/i)).toBeInTheDocument();
     });
 
-    const deleteButtons = screen.getAllByRole("button", { name: /delete/i });
+    const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
     await user.click(deleteButtons[0]);
 
     expect(window.confirm).toHaveBeenCalledWith(
-      "Are you sure you want to delete this post?"
+      'Are you sure you want to delete this post?'
     );
-    expect(window.alert).toHaveBeenCalledWith("Post deleted successfully.");
+    expect(window.alert).toHaveBeenCalledWith('Post deleted successfully.');
 
     // The item should be removed from the UI
     expect(screen.queryByLabelText(/fresh apples/i)).not.toBeInTheDocument();
@@ -412,7 +428,7 @@ test("delete button shows confirmation and removes item when confirmed", async (
     ).toBeInTheDocument();
   });
 
-  test("delete button does not delete when confirmation is cancelled", async () => {
+  test('delete button does not delete when confirmation is cancelled', async () => {
     surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
     window.confirm.mockReturnValue(false);
     const user = userEvent.setup();
@@ -423,19 +439,19 @@ test("delete button shows confirmation and removes item when confirmed", async (
       expect(screen.getByLabelText(/fresh apples/i)).toBeInTheDocument();
     });
 
-    const deleteButtons = screen.getAllByRole("button", { name: /delete/i });
+    const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
     await user.click(deleteButtons[0]);
 
     expect(window.confirm).toHaveBeenCalledWith(
-      "Are you sure you want to delete this post?"
+      'Are you sure you want to delete this post?'
     );
-    expect(window.alert).not.toHaveBeenCalledWith("Post deleted successfully.");
+    expect(window.alert).not.toHaveBeenCalledWith('Post deleted successfully.');
 
     // The item should still be in the UI
     expect(screen.getByLabelText(/fresh apples/i)).toBeInTheDocument();
   });
 
-  test("renders donation notes after loading data", async () => {
+  test('renders donation notes after loading data', async () => {
     surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
 
     setup();
@@ -452,7 +468,7 @@ test("delete button shows confirmation and removes item when confirmed", async (
     ).toBeInTheDocument();
   });
 
-  test("location links open in new tab after loading data", async () => {
+  test('location links open in new tab after loading data', async () => {
     surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
 
     setup();
@@ -461,17 +477,17 @@ test("delete button shows confirmation and removes item when confirmed", async (
       expect(screen.getByLabelText(/fresh apples/i)).toBeInTheDocument();
     });
 
-    const locationLinks = screen.getAllByRole("link");
+    const locationLinks = screen.getAllByRole('link');
 
-    locationLinks.forEach((link) => {
-      expect(link).toHaveAttribute("target", "_blank");
-      expect(link).toHaveAttribute("rel", "noopener noreferrer");
-      expect(link.href).toContain("google.com/maps");
+    locationLinks.forEach(link => {
+      expect(link).toHaveAttribute('target', '_blank');
+      expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+      expect(link.href).toContain('google.com/maps');
     });
   });
 
-  test("shows error banner when API call fails", async () => {
-    surplusAPI.getMyPosts.mockRejectedValue(new Error("API Error"));
+  test('shows error banner when API call fails', async () => {
+    surplusAPI.getMyPosts.mockRejectedValue(new Error('API Error'));
 
     setup();
 
@@ -480,11 +496,11 @@ test("delete button shows confirmation and removes item when confirmed", async (
     });
 
     // Find and test the error close button
-    const errorCloseButton = screen.getByRole("button", { name: "XIcon" });
+    const errorCloseButton = screen.getByRole('button', { name: 'XIcon' });
     expect(errorCloseButton).toBeInTheDocument();
   });
 
-  test("opens and closes donation modal", async () => {
+  test('opens and closes donation modal', async () => {
     surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
     const user = userEvent.setup();
 
@@ -495,28 +511,28 @@ test("delete button shows confirmation and removes item when confirmed", async (
     });
 
     // Open modal
-    await user.click(screen.getByRole("button", { name: /\+ donate more/i }));
-    expect(screen.getByTestId("surplus-form-modal")).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /\+ donate more/i }));
+    expect(screen.getByTestId('surplus-form-modal')).toBeInTheDocument();
   });
 
-  test("shows only confirmed pickup slot when confirmedPickupSlot exists", async () => {
+  test('shows only confirmed pickup slot when confirmedPickupSlot exists', async () => {
     const itemWithConfirmedSlot = {
       id: 3,
-      title: "Confirmed Slot Item",
-      foodCategories: [{ name: "PREPARED_MEALS" }],
-      quantity: { value: 3, unit: "SERVINGS" },
-      expiryDate: "2025-10-10",
+      title: 'Confirmed Slot Item',
+      foodCategories: [{ name: 'PREPARED_MEALS' }],
+      quantity: { value: 3, unit: 'SERVINGS' },
+      expiryDate: '2025-10-10',
       pickupSlots: [
-        { pickupDate: "2025-10-05", startTime: "10:00", endTime: "12:00" },
-        { pickupDate: "2025-10-06", startTime: "14:00", endTime: "16:00" },
+        { pickupDate: '2025-10-05', startTime: '10:00', endTime: '12:00' },
+        { pickupDate: '2025-10-06', startTime: '14:00', endTime: '16:00' },
       ],
       confirmedPickupSlot: {
-        pickupDate: "2025-10-06",
-        startTime: "14:00",
-        endTime: "16:00",
+        pickupDate: '2025-10-06',
+        startTime: '14:00',
+        endTime: '16:00',
       },
-      pickupLocation: { address: "789 Test St" },
-      status: "CLAIMED",
+      pickupLocation: { address: '789 Test St' },
+      status: 'CLAIMED',
     };
 
     surplusAPI.getMyPosts.mockResolvedValue({ data: [itemWithConfirmedSlot] });
@@ -528,87 +544,95 @@ test("delete button shows confirmation and removes item when confirmed", async (
     });
 
     const card = screen.getByLabelText(/confirmed slot item/i);
-    const pickupTimes = card.querySelectorAll(".pickup-time-item");
+    const pickupTimes = card.querySelectorAll('.pickup-time-item');
 
     // Should only show ONE pickup time (the confirmed one)
     expect(pickupTimes).toHaveLength(1);
-    
+
     // Should not have divider since there's only one slot shown
     expect(within(card).queryByText(/\|/)).not.toBeInTheDocument();
   });
 
-  test("shows all pickup slots when no confirmedPickupSlot exists", async () => {
+  test('shows all pickup slots when no confirmedPickupSlot exists', async () => {
     const itemWithoutConfirmedSlot = {
       id: 4,
-      title: "No Confirmed Slot Item",
-      foodCategories: [{ name: "DAIRY_COLD" }],
-      quantity: { value: 2, unit: "LITER" },
-      expiryDate: "2025-10-08",
+      title: 'No Confirmed Slot Item',
+      foodCategories: [{ name: 'DAIRY_COLD' }],
+      quantity: { value: 2, unit: 'LITER' },
+      expiryDate: '2025-10-08',
       pickupSlots: [
-        { pickupDate: "2025-10-05", startTime: "10:00", endTime: "12:00" },
-        { pickupDate: "2025-10-06", startTime: "14:00", endTime: "16:00" },
+        { pickupDate: '2025-10-05', startTime: '10:00', endTime: '12:00' },
+        { pickupDate: '2025-10-06', startTime: '14:00', endTime: '16:00' },
       ],
-      pickupLocation: { address: "321 Test Ave" },
-      status: "AVAILABLE",
+      pickupLocation: { address: '321 Test Ave' },
+      status: 'AVAILABLE',
     };
 
-    surplusAPI.getMyPosts.mockResolvedValue({ data: [itemWithoutConfirmedSlot] });
+    surplusAPI.getMyPosts.mockResolvedValue({
+      data: [itemWithoutConfirmedSlot],
+    });
 
     setup();
 
     await waitFor(() => {
-      expect(screen.getByLabelText(/no confirmed slot item/i)).toBeInTheDocument();
+      expect(
+        screen.getByLabelText(/no confirmed slot item/i)
+      ).toBeInTheDocument();
     });
 
     const card = screen.getByLabelText(/no confirmed slot item/i);
-    const pickupTimes = card.querySelectorAll(".pickup-time-item");
+    const pickupTimes = card.querySelectorAll('.pickup-time-item');
 
     // Should show ALL pickup slots when not confirmed
     expect(pickupTimes).toHaveLength(2);
-    
+
     // Should have divider between multiple slots
     expect(within(card).getByText(/\|/)).toBeInTheDocument();
   });
 
-  test("shows only the confirmed slot for single slot item when confirmed", async () => {
+  test('shows only the confirmed slot for single slot item when confirmed', async () => {
     const itemWithSingleConfirmedSlot = {
       id: 5,
-      title: "Single Confirmed Slot",
-      foodCategories: [{ name: "FROZEN" }],
-      quantity: { value: 5, unit: "PACKAGES" },
-      expiryDate: "2025-10-15",
+      title: 'Single Confirmed Slot',
+      foodCategories: [{ name: 'FROZEN' }],
+      quantity: { value: 5, unit: 'PACKAGES' },
+      expiryDate: '2025-10-15',
       pickupSlots: [
-        { pickupDate: "2025-10-10", startTime: "09:00", endTime: "11:00" },
+        { pickupDate: '2025-10-10', startTime: '09:00', endTime: '11:00' },
       ],
       confirmedPickupSlot: {
-        pickupDate: "2025-10-10",
-        startTime: "09:00",
-        endTime: "11:00",
+        pickupDate: '2025-10-10',
+        startTime: '09:00',
+        endTime: '11:00',
       },
-      pickupLocation: { address: "555 Frozen Lane" },
-      status: "READY_FOR_PICKUP",
+      pickupLocation: { address: '555 Frozen Lane' },
+      status: 'READY_FOR_PICKUP',
     };
 
-    surplusAPI.getMyPosts.mockResolvedValue({ data: [itemWithSingleConfirmedSlot] });
+    surplusAPI.getMyPosts.mockResolvedValue({
+      data: [itemWithSingleConfirmedSlot],
+    });
 
     setup();
 
     await waitFor(() => {
-      expect(screen.getByLabelText(/single confirmed slot/i)).toBeInTheDocument();
+      expect(
+        screen.getByLabelText(/single confirmed slot/i)
+      ).toBeInTheDocument();
     });
 
     const card = screen.getByLabelText(/single confirmed slot/i);
-    const pickupTimes = card.querySelectorAll(".pickup-time-item");
+    const pickupTimes = card.querySelectorAll('.pickup-time-item');
 
     // Should show only one slot
     expect(pickupTimes).toHaveLength(1);
-    
+
     // Should not have divider for single slot
     expect(within(card).queryByText(/\|/)).not.toBeInTheDocument();
   });
 
   // Additional test to verify navigation functionality works
-  test("handles navigation functionality when buttons are clicked", async () => {
+  test('handles navigation functionality when buttons are clicked', async () => {
     surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
     const user = userEvent.setup();
 
@@ -620,14 +644,16 @@ test("delete button shows confirmation and removes item when confirmed", async (
 
     // Test that components with navigation hooks render properly
     // This would fail with the Router error if not wrapped properly
-    expect(screen.getByRole("button", { name: /\+ donate more/i })).toBeInTheDocument();
-    
+    expect(
+      screen.getByRole('button', { name: /\+ donate more/i })
+    ).toBeInTheDocument();
+
     // If your buttons trigger navigation, they should work without throwing Router errors
-    const editButtons = screen.getAllByRole("button", { name: /edit/i });
+    const editButtons = screen.getAllByRole('button', { name: /edit/i });
     await user.click(editButtons[0]);
-    
+
     // Modal should open properly with Router context
-    expect(screen.getByTestId("surplus-form-modal")).toBeInTheDocument();
+    expect(screen.getByTestId('surplus-form-modal')).toBeInTheDocument();
   });
 
   describe('Timeline Feature', () => {
@@ -669,18 +695,20 @@ test("delete button shows confirmation and removes item when confirmed", async (
 
       render(
         <MemoryRouter>
-          <AuthContext.Provider value={{ user: { id: 1, name: "Test User" } }}>
+          <AuthContext.Provider value={{ user: { id: 1, name: 'Test User' } }}>
             <DonorListFood />
           </AuthContext.Provider>
         </MemoryRouter>
       );
 
       await waitFor(() => {
-        expect(screen.getByText("Fresh Apples")).toBeInTheDocument();
+        expect(screen.getByText('Fresh Apples')).toBeInTheDocument();
       });
 
       // Find and click the view timeline button - Item 2 (Artisan Bread) has the timeline button
-      const timelineButtons = screen.getAllByRole('button', { name: /view.*donation timeline/i });
+      const timelineButtons = screen.getAllByRole('button', {
+        name: /view.*donation timeline/i,
+      });
       await user.click(timelineButtons[0]);
 
       await waitFor(() => {
@@ -693,53 +721,67 @@ test("delete button shows confirmation and removes item when confirmed", async (
 
       render(
         <MemoryRouter>
-          <AuthContext.Provider value={{ user: { id: 1, name: "Test User" } }}>
+          <AuthContext.Provider value={{ user: { id: 1, name: 'Test User' } }}>
             <DonorListFood />
           </AuthContext.Provider>
         </MemoryRouter>
       );
 
       await waitFor(() => {
-        expect(screen.getByText("Fresh Apples")).toBeInTheDocument();
+        expect(screen.getByText('Fresh Apples')).toBeInTheDocument();
       });
 
-      const timelineButtons = screen.getAllByRole('button', { name: /view.*donation timeline/i });
+      const timelineButtons = screen.getAllByRole('button', {
+        name: /view.*donation timeline/i,
+      });
 
       // Click to expand
       await user.click(timelineButtons[0]);
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /hide.*donation timeline/i })).toBeInTheDocument();
+        expect(
+          screen.getByRole('button', { name: /hide.*donation timeline/i })
+        ).toBeInTheDocument();
       });
 
       // Click to collapse
-      const hideButton = screen.getByRole('button', { name: /hide.*donation timeline/i });
+      const hideButton = screen.getByRole('button', {
+        name: /hide.*donation timeline/i,
+      });
       await user.click(hideButton);
 
       await waitFor(() => {
-        expect(screen.queryByRole('button', { name: /hide.*donation timeline/i })).not.toBeInTheDocument();
+        expect(
+          screen.queryByRole('button', { name: /hide.*donation timeline/i })
+        ).not.toBeInTheDocument();
       });
     });
 
     it('should handle timeline fetch error gracefully', async () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-      surplusAPI.getTimeline.mockRejectedValue(new Error('Failed to fetch timeline'));
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      surplusAPI.getTimeline.mockRejectedValue(
+        new Error('Failed to fetch timeline')
+      );
 
       const user = userEvent.setup();
 
       render(
         <MemoryRouter>
-          <AuthContext.Provider value={{ user: { id: 1, name: "Test User" } }}>
+          <AuthContext.Provider value={{ user: { id: 1, name: 'Test User' } }}>
             <DonorListFood />
           </AuthContext.Provider>
         </MemoryRouter>
       );
 
       await waitFor(() => {
-        expect(screen.getByText("Fresh Apples")).toBeInTheDocument();
+        expect(screen.getByText('Fresh Apples')).toBeInTheDocument();
       });
 
-      const timelineButtons = screen.getAllByRole('button', { name: /view.*donation timeline/i });
+      const timelineButtons = screen.getAllByRole('button', {
+        name: /view.*donation timeline/i,
+      });
       await user.click(timelineButtons[0]);
 
       await waitFor(() => {
@@ -762,17 +804,19 @@ test("delete button shows confirmation and removes item when confirmed", async (
 
       render(
         <MemoryRouter>
-          <AuthContext.Provider value={{ user: { id: 1, name: "Test User" } }}>
+          <AuthContext.Provider value={{ user: { id: 1, name: 'Test User' } }}>
             <DonorListFood />
           </AuthContext.Provider>
         </MemoryRouter>
       );
 
       await waitFor(() => {
-        expect(screen.getByText("Fresh Apples")).toBeInTheDocument();
+        expect(screen.getByText('Fresh Apples')).toBeInTheDocument();
       });
 
-      const timelineButtons = screen.getAllByRole('button', { name: /view.*donation timeline/i });
+      const timelineButtons = screen.getAllByRole('button', {
+        name: /view.*donation timeline/i,
+      });
 
       // Click to expand first time
       await user.click(timelineButtons[0]);
@@ -782,11 +826,15 @@ test("delete button shows confirmation and removes item when confirmed", async (
       });
 
       // Collapse
-      const hideButton = screen.getByRole('button', { name: /hide.*donation timeline/i });
+      const hideButton = screen.getByRole('button', {
+        name: /hide.*donation timeline/i,
+      });
       await user.click(hideButton);
 
       // Expand again
-      const viewButtons = screen.getAllByRole('button', { name: /view.*donation timeline/i });
+      const viewButtons = screen.getAllByRole('button', {
+        name: /view.*donation timeline/i,
+      });
       await user.click(viewButtons[0]);
 
       // Should still only have been called once (cached)
@@ -794,4 +842,3 @@ test("delete button shows confirmation and removes item when confirmed", async (
     });
   });
 });
-

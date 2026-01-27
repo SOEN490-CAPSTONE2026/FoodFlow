@@ -1,7 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Select from 'react-select';
-import { ChevronRight, ChevronDown, Power, Bell, Edit3, Search, Users, Gift, Sparkles, Handshake } from 'lucide-react';
+import {
+  ChevronRight,
+  ChevronDown,
+  Power,
+  Bell,
+  Edit3,
+  Search,
+  Users,
+  Gift,
+  Sparkles,
+  Handshake,
+} from 'lucide-react';
 import { feedbackAPI } from '../../services/api';
 import './Admin_Styles/AdminUsers.css';
 import {
@@ -11,7 +22,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../ui/table";
+} from '../ui/table';
 
 const AdminUsers = () => {
   const [users, setUsers] = useState([]);
@@ -22,20 +33,20 @@ const AdminUsers = () => {
     totalUsers: 0,
     totalDonors: 0,
     totalReceivers: 0,
-    newUsers: 0
+    newUsers: 0,
   });
-  
+
   // Filters
   const [roleFilter, setRoleFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
-  
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [pageSize] = useState(20);
-  
+
   // Modals
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
   const [showReactivateModal, setShowReactivateModal] = useState(false);
@@ -45,15 +56,15 @@ const AdminUsers = () => {
   const [alertMessage, setAlertMessage] = useState('');
   const [alertType, setAlertType] = useState('');
   const [mouseDownInsideModal, setMouseDownInsideModal] = useState(false);
-  
+
   // Notification modal
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
   const [notificationType, setNotificationType] = useState('info'); // 'success', 'error', 'info'
-  
+
   // Expanded rows
   const [expandedRows, setExpandedRows] = useState(new Set());
-  
+
   // User ratings
   const [userRatings, setUserRatings] = useState({});
 
@@ -61,27 +72,35 @@ const AdminUsers = () => {
   const fetchUsers = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
-      const token = localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
+      const token =
+        localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
       const params = {
         page: currentPage,
         size: pageSize,
       };
-      
-      if (roleFilter) params.role = roleFilter;
-      if (statusFilter) params.accountStatus = statusFilter;
+
+      if (roleFilter) {
+        params.role = roleFilter;
+      }
+      if (statusFilter) {
+        params.accountStatus = statusFilter;
+      }
       // Remove search from API call - handle it frontend only
-      
-      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/admin/users`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params
-      });
-      
+
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_BASE_URL}/admin/users`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params,
+        }
+      );
+
       // Handle paginated response
       const content = response.data.content || [];
       const totalPagesCount = response.data.totalPages || 0;
-      
+
       // Calculate stats
       const totalDonors = content.filter(u => u.role === 'DONOR').length;
       const totalReceivers = content.filter(u => u.role === 'RECEIVER').length;
@@ -91,14 +110,14 @@ const AdminUsers = () => {
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         return createdDate > thirtyDaysAgo;
       }).length;
-      
+
       setStats({
         totalUsers: content.length,
         totalDonors,
         totalReceivers,
-        newUsers
+        newUsers,
       });
-      
+
       setUsers(content);
       setTotalPages(totalPagesCount);
       setLoading(false);
@@ -110,9 +129,11 @@ const AdminUsers = () => {
   };
 
   // Fetch user rating
-  const fetchUserRating = async (userId) => {
-    if (userRatings[userId]) return; // Already fetched
-    
+  const fetchUserRating = async userId => {
+    if (userRatings[userId]) {
+      return;
+    } // Already fetched
+
     try {
       const response = await feedbackAPI.getUserRating(userId);
       if (response && response.data) {
@@ -120,15 +141,15 @@ const AdminUsers = () => {
           ...prev,
           [userId]: {
             averageRating: response.data.averageRating || 0,
-            totalReviews: response.data.totalReviews || 0
-          }
+            totalReviews: response.data.totalReviews || 0,
+          },
         }));
       }
     } catch (error) {
       console.error('Error fetching user rating:', error);
       setUserRatings(prev => ({
         ...prev,
-        [userId]: { averageRating: 0, totalReviews: 0 }
+        [userId]: { averageRating: 0, totalReviews: 0 },
       }));
     }
   };
@@ -160,13 +181,15 @@ const AdminUsers = () => {
       const email = (user.email || '').toLowerCase();
       const org = (user.organizationName || '').toLowerCase();
       const phone = (user.phone || '').toLowerCase();
-      
-      return name.includes(searchLower) || 
-             email.includes(searchLower) || 
-             org.includes(searchLower) ||
-             phone.includes(searchLower);
+
+      return (
+        name.includes(searchLower) ||
+        email.includes(searchLower) ||
+        org.includes(searchLower) ||
+        phone.includes(searchLower)
+      );
     });
-    
+
     setFilteredUsers(filtered);
   }, [users, debouncedSearchTerm]);
 
@@ -178,15 +201,16 @@ const AdminUsers = () => {
       setShowNotification(true);
       return;
     }
-    
+
     try {
-      const token = localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
+      const token =
+        localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
       await axios.put(
         `${process.env.REACT_APP_API_BASE_URL}/admin/users/${selectedUser.id}/deactivate`,
         { adminNotes },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       setNotificationMessage('User deactivated successfully');
       setNotificationType('success');
       setShowNotification(true);
@@ -204,16 +228,19 @@ const AdminUsers = () => {
 
   // Reactivate user
   const handleReactivate = async () => {
-    if (!selectedUser) return;
-    
+    if (!selectedUser) {
+      return;
+    }
+
     try {
-      const token = localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
+      const token =
+        localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
       await axios.put(
         `${process.env.REACT_APP_API_BASE_URL}/admin/users/${selectedUser.id}/reactivate`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       setNotificationMessage('User reactivated successfully');
       setNotificationType('success');
       setShowNotification(true);
@@ -236,15 +263,16 @@ const AdminUsers = () => {
       setShowNotification(true);
       return;
     }
-    
+
     try {
-      const token = localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
+      const token =
+        localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
       await axios.post(
         `${process.env.REACT_APP_API_BASE_URL}/admin/users/${selectedUser.id}/send-alert`,
         { message: alertMessage },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       setNotificationMessage('Alert sent successfully');
       setNotificationType('success');
       setShowNotification(true);
@@ -274,7 +302,7 @@ const AdminUsers = () => {
   };
 
   // Get badge color
-  const getBadgeColor = (status) => {
+  const getBadgeColor = status => {
     switch (status) {
       case 'ACTIVE':
         return 'badge-success';
@@ -294,8 +322,10 @@ const AdminUsers = () => {
   }
 
   // Get user initials for avatar
-  const getInitials = (name) => {
-    if (!name) return '?';
+  const getInitials = name => {
+    if (!name) {
+      return '?';
+    }
     const parts = name.split(' ');
     if (parts.length >= 2) {
       return (parts[0][0] + parts[1][0]).toUpperCase();
@@ -304,8 +334,15 @@ const AdminUsers = () => {
   };
 
   // Get avatar color based on name
-  const getAvatarColor = (name) => {
-    const colors = ['#3498db', '#9b59b6', '#e74c3c', '#f39c12', '#1abc9c', '#34495e'];
+  const getAvatarColor = name => {
+    const colors = [
+      '#3498db',
+      '#9b59b6',
+      '#e74c3c',
+      '#f39c12',
+      '#1abc9c',
+      '#34495e',
+    ];
     const charCode = name ? name.charCodeAt(0) : 0;
     return colors[charCode % colors.length];
   };
@@ -315,38 +352,42 @@ const AdminUsers = () => {
     { value: '', label: 'All Roles' },
     { value: 'DONOR', label: 'Donor' },
     { value: 'RECEIVER', label: 'Receiver' },
-    { value: 'ADMIN', label: 'Admin' }
+    { value: 'ADMIN', label: 'Admin' },
   ];
 
   const statusOptions = [
     { value: '', label: 'All Status' },
     { value: 'ACTIVE', label: 'Active' },
-    { value: 'DEACTIVATED', label: 'Deactivated' }
+    { value: 'DEACTIVATED', label: 'Deactivated' },
   ];
 
   // Custom styles for React Select
   const selectStyles = {
-    control: (base) => ({
+    control: base => ({
       ...base,
       minHeight: '42px',
       border: '1px solid #e5e7eb',
       borderRadius: '6px',
       boxShadow: 'none',
       '&:hover': {
-        borderColor: '#d1d5db'
-      }
+        borderColor: '#d1d5db',
+      },
     }),
     option: (base, state) => ({
       ...base,
-      backgroundColor: state.isSelected ? '#3b82f6' : state.isFocused ? '#f3f4f6' : 'white',
+      backgroundColor: state.isSelected
+        ? '#3b82f6'
+        : state.isFocused
+          ? '#f3f4f6'
+          : 'white',
       color: state.isSelected ? 'white' : '#374151',
-      cursor: 'pointer'
+      cursor: 'pointer',
     }),
-    menu: (base) => ({
+    menu: base => ({
       ...base,
       borderRadius: '6px',
-      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
-    })
+      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+    }),
   };
 
   return (
@@ -397,7 +438,9 @@ const AdminUsers = () => {
           <h2>All Users</h2>
           <div className="pagination-info">
             {filteredUsers.length > 0 && (
-              <span>1 - {filteredUsers.length} of {stats.totalUsers}</span>
+              <span>
+                1 - {filteredUsers.length} of {stats.totalUsers}
+              </span>
             )}
           </div>
         </div>
@@ -410,15 +453,15 @@ const AdminUsers = () => {
               type="text"
               placeholder="Search by name, email, or organization..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={e => setSearchTerm(e.target.value)}
               className="search-input admin-users-search-input"
             />
           </div>
-          
+
           <div className="filters-wrapper">
             <Select
               value={roleOptions.find(opt => opt.value === roleFilter)}
-              onChange={(option) => setRoleFilter(option.value)}
+              onChange={option => setRoleFilter(option.value)}
               options={roleOptions}
               styles={selectStyles}
               className="filter-select-react"
@@ -428,7 +471,7 @@ const AdminUsers = () => {
 
             <Select
               value={statusOptions.find(opt => opt.value === statusFilter)}
-              onChange={(option) => setStatusFilter(option.value)}
+              onChange={option => setStatusFilter(option.value)}
               options={statusOptions}
               styles={selectStyles}
               className="filter-select-react"
@@ -470,11 +513,13 @@ const AdminUsers = () => {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredUsers.map((user) => (
+              filteredUsers.map(user => (
                 <React.Fragment key={user.id}>
-                  <TableRow className={expandedRows.has(user.id) ? 'expanded' : ''}>
+                  <TableRow
+                    className={expandedRows.has(user.id) ? 'expanded' : ''}
+                  >
                     <TableCell>
-                      <button 
+                      <button
                         className="expand-btn"
                         onClick={() => {
                           const newExpanded = new Set(expandedRows);
@@ -488,139 +533,163 @@ const AdminUsers = () => {
                           setExpandedRows(newExpanded);
                         }}
                       >
-                        {expandedRows.has(user.id) ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                        {expandedRows.has(user.id) ? (
+                          <ChevronDown size={18} />
+                        ) : (
+                          <ChevronRight size={18} />
+                        )}
                       </button>
                     </TableCell>
-                  <TableCell className="id-cell">{user.id}</TableCell>
-                  <TableCell>
-                    <div className="user-name-info">
-                      <div className="user-name">{user.contactPerson || 'N/A'}</div>
-                      <div className="user-org">{user.organizationName || 'N/A'}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className={`pill pill-${user.role.toLowerCase()}`}>
-                      {user.role === 'DONOR' ? 'Donor' : user.role === 'RECEIVER' ? 'Receiver' : 'Admin'}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    {user.verificationStatus && (
-                      <span className={`pill pill-${user.verificationStatus.toLowerCase()}`}>
-                        {user.verificationStatus === 'VERIFIED' ? 'Verified' : 'Pending'}
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <span className={`pill pill-status-${user.accountStatus.toLowerCase()}`}>
-                      {user.accountStatus === 'ACTIVE' ? 'Active' : 'Deactivated'}
-                    </span>
-                  </TableCell>
-                  <TableCell className="email-cell">{user.email}</TableCell>
-                  <TableCell>{user.phone || 'N/A'}</TableCell>
-                  <TableCell className="activity-cell">
-                    {user.role === 'DONOR' && (user.donationCount || 0)}
-                    {user.role === 'RECEIVER' && (user.claimCount || 0)}
-                    {user.role === 'ADMIN' && '-'}
-                  </TableCell>
-                  <TableCell>
-                    <div className="action-buttons">
-                      {user.accountStatus === 'ACTIVE' && user.role !== 'ADMIN' && (
-                        <button
-                          onClick={() => {
-                            setSelectedUser(user);
-                            setShowDeactivateModal(true);
-                          }}
-                          className="action-btn action-btn-power"
-                          title="Deactivate"
-                        >
-                          <Power size={16} />
-                        </button>
-                      )}
-                      {user.accountStatus === 'DEACTIVATED' && (
-                        <button
-                          onClick={() => {
-                            setSelectedUser(user);
-                            setShowReactivateModal(true);
-                          }}
-                          className="action-btn action-btn-power"
-                          title="Reactivate"
-                        >
-                          <Power size={16} />
-                        </button>
-                      )}
-                      <button
-                        onClick={() => {
-                          setSelectedUser(user);
-                          setShowAlertModal(true);
-                        }}
-                        className="action-btn action-btn-bell"
-                        title="Send Alert"
-                      >
-                        <Bell size={16} />
-                      </button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-                
-                {/* Expanded details row */}
-                {expandedRows.has(user.id) && (
-                  <TableRow className="details-row">
-                    <TableCell colSpan="10">
-                      <div className="user-details-expanded">
-                        <div className="details-grid">
-                          <div className="details-section">
-                            <h4>Total Activity</h4>
-                            <p className="details-value">
-                              {user.role === 'DONOR' && `${user.donationCount || 0} donations`}
-                              {user.role === 'RECEIVER' && `${user.claimCount || 0} claims`}
-                              {user.role === 'ADMIN' && 'N/A'}
-                            </p>
-                          </div>
-                          
-                          <div className="details-section">
-                            <h4>Disputes</h4>
-                            <p className="details-value">0</p>
-                          </div>
-                          
-                          <div className="details-section">
-                            <h4>Feedback Score</h4>
-                            <p className="details-value">
-                              {userRatings[user.id] ? (
-                                userRatings[user.id].totalReviews > 0 ? (
-                                  `${userRatings[user.id].averageRating.toFixed(1)}/5 (${userRatings[user.id].totalReviews} reviews)`
-                                ) : (
-                                  'No reviews yet'
-                                )
-                              ) : (
-                                'Loading...'
-                              )}
-                            </p>
-                          </div>
-                          
-                          <div className="details-section">
-                            <h4>Member Since</h4>
-                            <p className="details-value">
-                              {new Date(user.createdAt).toLocaleDateString('en-US', { 
-                                month: 'short',
-                                day: 'numeric',
-                                year: 'numeric' 
-                              })}
-                            </p>
-                          </div>
+                    <TableCell className="id-cell">{user.id}</TableCell>
+                    <TableCell>
+                      <div className="user-name-info">
+                        <div className="user-name">
+                          {user.contactPerson || 'N/A'}
                         </div>
-                        
-                        <div className="details-activity">
-                          <h4>Recent Activity</h4>
-                          <ul className="activity-list">
-                            <li>• Donated 50kg of produce on Dec 15, 2025</li>
-                            <li>• Donated 30kg of bakery items on Dec 10, 2025</li>
-                            <li>• Completed verification on Dec 1, 2024</li>
-                          </ul>
+                        <div className="user-org">
+                          {user.organizationName || 'N/A'}
                         </div>
                       </div>
                     </TableCell>
+                    <TableCell>
+                      <span className={`pill pill-${user.role.toLowerCase()}`}>
+                        {user.role === 'DONOR'
+                          ? 'Donor'
+                          : user.role === 'RECEIVER'
+                            ? 'Receiver'
+                            : 'Admin'}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {user.verificationStatus && (
+                        <span
+                          className={`pill pill-${user.verificationStatus.toLowerCase()}`}
+                        >
+                          {user.verificationStatus === 'VERIFIED'
+                            ? 'Verified'
+                            : 'Pending'}
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className={`pill pill-status-${user.accountStatus.toLowerCase()}`}
+                      >
+                        {user.accountStatus === 'ACTIVE'
+                          ? 'Active'
+                          : 'Deactivated'}
+                      </span>
+                    </TableCell>
+                    <TableCell className="email-cell">{user.email}</TableCell>
+                    <TableCell>{user.phone || 'N/A'}</TableCell>
+                    <TableCell className="activity-cell">
+                      {user.role === 'DONOR' && (user.donationCount || 0)}
+                      {user.role === 'RECEIVER' && (user.claimCount || 0)}
+                      {user.role === 'ADMIN' && '-'}
+                    </TableCell>
+                    <TableCell>
+                      <div className="action-buttons">
+                        {user.accountStatus === 'ACTIVE' &&
+                          user.role !== 'ADMIN' && (
+                            <button
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setShowDeactivateModal(true);
+                              }}
+                              className="action-btn action-btn-power"
+                              title="Deactivate"
+                            >
+                              <Power size={16} />
+                            </button>
+                          )}
+                        {user.accountStatus === 'DEACTIVATED' && (
+                          <button
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setShowReactivateModal(true);
+                            }}
+                            className="action-btn action-btn-power"
+                            title="Reactivate"
+                          >
+                            <Power size={16} />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setShowAlertModal(true);
+                          }}
+                          className="action-btn action-btn-bell"
+                          title="Send Alert"
+                        >
+                          <Bell size={16} />
+                        </button>
+                      </div>
+                    </TableCell>
                   </TableRow>
-                )}
+
+                  {/* Expanded details row */}
+                  {expandedRows.has(user.id) && (
+                    <TableRow className="details-row">
+                      <TableCell colSpan="10">
+                        <div className="user-details-expanded">
+                          <div className="details-grid">
+                            <div className="details-section">
+                              <h4>Total Activity</h4>
+                              <p className="details-value">
+                                {user.role === 'DONOR' &&
+                                  `${user.donationCount || 0} donations`}
+                                {user.role === 'RECEIVER' &&
+                                  `${user.claimCount || 0} claims`}
+                                {user.role === 'ADMIN' && 'N/A'}
+                              </p>
+                            </div>
+
+                            <div className="details-section">
+                              <h4>Disputes</h4>
+                              <p className="details-value">0</p>
+                            </div>
+
+                            <div className="details-section">
+                              <h4>Feedback Score</h4>
+                              <p className="details-value">
+                                {userRatings[user.id]
+                                  ? userRatings[user.id].totalReviews > 0
+                                    ? `${userRatings[user.id].averageRating.toFixed(1)}/5 (${userRatings[user.id].totalReviews} reviews)`
+                                    : 'No reviews yet'
+                                  : 'Loading...'}
+                              </p>
+                            </div>
+
+                            <div className="details-section">
+                              <h4>Member Since</h4>
+                              <p className="details-value">
+                                {new Date(user.createdAt).toLocaleDateString(
+                                  'en-US',
+                                  {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric',
+                                  }
+                                )}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="details-activity">
+                            <h4>Recent Activity</h4>
+                            <ul className="activity-list">
+                              <li>• Donated 50kg of produce on Dec 15, 2025</li>
+                              <li>
+                                • Donated 30kg of bakery items on Dec 10, 2025
+                              </li>
+                              <li>• Completed verification on Dec 1, 2024</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </React.Fragment>
               ))
             )}
@@ -628,25 +697,37 @@ const AdminUsers = () => {
         </Table>
       </div>
 
-
-
       {/* Deactivate Modal */}
       {showDeactivateModal && (
-        <div className="modal-overlay" onClick={() => setShowDeactivateModal(false)}>
-          <div className="modal-content modal-alert" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setShowDeactivateModal(false)}>×</button>
+        <div
+          className="modal-overlay"
+          onClick={() => setShowDeactivateModal(false)}
+        >
+          <div
+            className="modal-content modal-alert"
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              className="modal-close"
+              onClick={() => setShowDeactivateModal(false)}
+            >
+              ×
+            </button>
             <h2>Deactivate User:</h2>
             <p className="alert-user-name">{selectedUser?.email}</p>
-            
+
             <textarea
               placeholder="Enter reason for deactivation (required)..."
               value={adminNotes}
-              onChange={(e) => setAdminNotes(e.target.value)}
+              onChange={e => setAdminNotes(e.target.value)}
               className="modal-textarea"
               rows="4"
             />
             <div className="modal-actions">
-              <button onClick={() => setShowDeactivateModal(false)} className="btn-cancel">
+              <button
+                onClick={() => setShowDeactivateModal(false)}
+                className="btn-cancel"
+              >
                 Cancel
               </button>
               <button onClick={handleDeactivate} className="btn-confirm">
@@ -659,17 +740,24 @@ const AdminUsers = () => {
 
       {/* Reactivate Modal */}
       {showReactivateModal && (
-        <div className="modal-overlay" onClick={() => setShowReactivateModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="modal-overlay"
+          onClick={() => setShowReactivateModal(false)}
+        >
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
             <h2>Reactivate User</h2>
             <p>
-              Are you sure you want to reactivate <strong>{selectedUser?.email}</strong>?
+              Are you sure you want to reactivate{' '}
+              <strong>{selectedUser?.email}</strong>?
             </p>
             <div className="modal-actions">
               <button onClick={handleReactivate} className="btn-confirm">
                 Reactivate
               </button>
-              <button onClick={() => setShowReactivateModal(false)} className="btn-cancel">
+              <button
+                onClick={() => setShowReactivateModal(false)}
+                className="btn-cancel"
+              >
                 Cancel
               </button>
             </div>
@@ -679,42 +767,48 @@ const AdminUsers = () => {
 
       {/* Send Alert Modal */}
       {showAlertModal && (
-        <div 
-          className="modal-overlay" 
-          onMouseDown={(e) => {
+        <div
+          className="modal-overlay"
+          onMouseDown={e => {
             if (e.target === e.currentTarget) {
               setMouseDownInsideModal(false);
             }
           }}
-          onClick={(e) => {
+          onClick={e => {
             if (e.target === e.currentTarget && !mouseDownInsideModal) {
               closeAlertModal();
             }
           }}
         >
-          <div 
-            className="modal-content modal-alert" 
+          <div
+            className="modal-content modal-alert"
             onMouseDown={() => setMouseDownInsideModal(true)}
-            onClick={(e) => e.stopPropagation()}
+            onClick={e => e.stopPropagation()}
           >
-            <button className="modal-close" onClick={closeAlertModal}>×</button>
+            <button className="modal-close" onClick={closeAlertModal}>
+              ×
+            </button>
             <h2>Send Alert to:</h2>
-            <p className="alert-user-name">{selectedUser?.contactPerson || selectedUser?.email}</p>
-            
+            <p className="alert-user-name">
+              {selectedUser?.contactPerson || selectedUser?.email}
+            </p>
+
             <div className="alert-type-section">
               <label className="alert-section-label">Alert Type</label>
-              
+
               <div className="alert-options">
-                <label 
+                <label
                   className={`alert-option ${alertType === 'warning' ? 'selected' : ''}`}
-                  onClick={(e) => {
+                  onClick={e => {
                     e.preventDefault();
                     if (alertType === 'warning') {
                       setAlertType('');
                       setAlertMessage('');
                     } else {
                       setAlertType('warning');
-                      setAlertMessage('Dear User,\n\nWe have detected a policy violation in your recent activity. Please review our platform policies and ensure compliance to avoid further action.\n\nThank you for your cooperation.');
+                      setAlertMessage(
+                        'Dear User,\n\nWe have detected a policy violation in your recent activity. Please review our platform policies and ensure compliance to avoid further action.\n\nThank you for your cooperation.'
+                      );
                     }
                   }}
                 >
@@ -728,20 +822,24 @@ const AdminUsers = () => {
                   />
                   <div className="alert-option-content">
                     <div className="alert-option-title">Warning</div>
-                    <div className="alert-option-desc">Send a warning about policy violations</div>
+                    <div className="alert-option-desc">
+                      Send a warning about policy violations
+                    </div>
                   </div>
                 </label>
 
-                <label 
+                <label
                   className={`alert-option ${alertType === 'safety' ? 'selected' : ''}`}
-                  onClick={(e) => {
+                  onClick={e => {
                     e.preventDefault();
                     if (alertType === 'safety') {
                       setAlertType('');
                       setAlertMessage('');
                     } else {
                       setAlertType('safety');
-                      setAlertMessage('Important Safety Notice\n\nPlease be aware of the following safety guidelines when handling food donations:\n\n- Maintain proper food storage temperatures\n- Check expiration dates regularly\n- Follow hygiene protocols\n\nYour safety and the safety of recipients is our top priority.');
+                      setAlertMessage(
+                        'Important Safety Notice\n\nPlease be aware of the following safety guidelines when handling food donations:\n\n- Maintain proper food storage temperatures\n- Check expiration dates regularly\n- Follow hygiene protocols\n\nYour safety and the safety of recipients is our top priority.'
+                      );
                     }
                   }}
                 >
@@ -755,20 +853,24 @@ const AdminUsers = () => {
                   />
                   <div className="alert-option-content">
                     <div className="alert-option-title">Safety Notice</div>
-                    <div className="alert-option-desc">Important safety information</div>
+                    <div className="alert-option-desc">
+                      Important safety information
+                    </div>
                   </div>
                 </label>
 
-                <label 
+                <label
                   className={`alert-option ${alertType === 'compliance' ? 'selected' : ''}`}
-                  onClick={(e) => {
+                  onClick={e => {
                     e.preventDefault();
                     if (alertType === 'compliance') {
                       setAlertType('');
                       setAlertMessage('');
                     } else {
                       setAlertType('compliance');
-                      setAlertMessage('Compliance Reminder\n\nThis is a friendly reminder to ensure your account meets all compliance requirements:\n\n✓ Complete profile information\n✓ Updated documentation\n✓ Adherence to platform policies\n\nPlease review your account settings and update any missing information.\n\nThank you for maintaining compliance.');
+                      setAlertMessage(
+                        'Compliance Reminder\n\nThis is a friendly reminder to ensure your account meets all compliance requirements:\n\n✓ Complete profile information\n✓ Updated documentation\n✓ Adherence to platform policies\n\nPlease review your account settings and update any missing information.\n\nThank you for maintaining compliance.'
+                      );
                     }
                   }}
                 >
@@ -781,14 +883,18 @@ const AdminUsers = () => {
                     readOnly
                   />
                   <div className="alert-option-content">
-                    <div className="alert-option-title">Compliance Reminder</div>
-                    <div className="alert-option-desc">Remind about compliance requirements</div>
+                    <div className="alert-option-title">
+                      Compliance Reminder
+                    </div>
+                    <div className="alert-option-desc">
+                      Remind about compliance requirements
+                    </div>
                   </div>
                 </label>
 
-                <label 
+                <label
                   className={`alert-option ${alertType === 'custom' ? 'selected' : ''}`}
-                  onClick={(e) => {
+                  onClick={e => {
                     e.preventDefault();
                     if (alertType === 'custom') {
                       setAlertType('');
@@ -809,23 +915,33 @@ const AdminUsers = () => {
                   />
                   <div className="alert-option-content">
                     <div className="alert-option-title">Custom Alert</div>
-                    <div className="alert-option-desc">Send a custom message</div>
+                    <div className="alert-option-desc">
+                      Send a custom message
+                    </div>
                   </div>
                 </label>
               </div>
             </div>
 
             {alertType && (
-              <div className="custom-message-section" onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
+              <div
+                className="custom-message-section"
+                onClick={e => e.stopPropagation()}
+                onMouseDown={e => e.stopPropagation()}
+              >
                 <textarea
-                  placeholder={alertType === 'custom' ? "Enter your custom message..." : "Edit message"}
+                  placeholder={
+                    alertType === 'custom'
+                      ? 'Enter your custom message...'
+                      : 'Edit message'
+                  }
                   value={alertMessage}
-                  onChange={(e) => setAlertMessage(e.target.value)}
+                  onChange={e => setAlertMessage(e.target.value)}
                   className="modal-textarea"
                   rows="4"
-                  onClick={(e) => e.stopPropagation()}
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onFocus={(e) => e.stopPropagation()}
+                  onClick={e => e.stopPropagation()}
+                  onMouseDown={e => e.stopPropagation()}
+                  onFocus={e => e.stopPropagation()}
                 />
               </div>
             )}
@@ -834,7 +950,10 @@ const AdminUsers = () => {
               <button onClick={closeAlertModal} className="btn-cancel">
                 Cancel
               </button>
-              <button onClick={handleSendAlert} className="btn-confirm btn-send-alert">
+              <button
+                onClick={handleSendAlert}
+                className="btn-confirm btn-send-alert"
+              >
                 Send Alert
               </button>
             </div>
@@ -844,16 +963,33 @@ const AdminUsers = () => {
 
       {/* Notification Modal */}
       {showNotification && (
-        <div className="modal-overlay" onClick={() => setShowNotification(false)}>
-          <div className="modal-content modal-notification" onClick={(e) => e.stopPropagation()}>
-            <div className={`notification-header notification-${notificationType}`}>
-              <h3>{notificationType === 'success' ? '✓ Success' : notificationType === 'error' ? 'Error' : 'ℹ Notice'}</h3>
+        <div
+          className="modal-overlay"
+          onClick={() => setShowNotification(false)}
+        >
+          <div
+            className="modal-content modal-notification"
+            onClick={e => e.stopPropagation()}
+          >
+            <div
+              className={`notification-header notification-${notificationType}`}
+            >
+              <h3>
+                {notificationType === 'success'
+                  ? '✓ Success'
+                  : notificationType === 'error'
+                    ? 'Error'
+                    : 'ℹ Notice'}
+              </h3>
             </div>
             <div className="notification-body">
               <p>{notificationMessage}</p>
             </div>
             <div className="modal-actions">
-              <button onClick={() => setShowNotification(false)} className="btn-confirm">
+              <button
+                onClick={() => setShowNotification(false)}
+                className="btn-confirm"
+              >
                 OK
               </button>
             </div>

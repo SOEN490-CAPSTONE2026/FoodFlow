@@ -169,8 +169,8 @@ public class FeedbackService {
 
         Claim claim = claimOpt.get();
 
-        // Check if claim is completed
-        if (claim.getStatus() != ClaimStatus.COMPLETED) {
+        // Allow feedback for COMPLETED and NOT_COMPLETED claims
+        if (claim.getStatus() != ClaimStatus.COMPLETED && claim.getStatus() != ClaimStatus.NOT_COMPLETED) {
             return false;
         }
 

@@ -157,4 +157,26 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/verify-email")
+    public ResponseEntity<Map<String, String>> verifyEmail(@RequestParam String token) {
+        try {
+            Map<String, String> response = authService.verifyEmail(token);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/resend-verification-email")
+    public ResponseEntity<Map<String, String>> resendVerificationEmail(@AuthenticationPrincipal User user) {
+        try {
+            Map<String, String> response = authService.resendVerificationEmail(user.getEmail());
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", e.getMessage()));
+        }
+    }
+
 }
