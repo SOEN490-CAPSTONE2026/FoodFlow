@@ -86,7 +86,6 @@ export const authAPI = {
 
 export const surplusAPI = {
   list: () => api.get('/surplus'), // Just /surplus, not /api/surplus
-  myPosts: () => api.get('/surplus/my-posts'),
   getMyPosts: () => api.get('/surplus/my-posts'),
   getPost: id => api.get(`/surplus/${id}`),
   create: data => api.post('/surplus', data),

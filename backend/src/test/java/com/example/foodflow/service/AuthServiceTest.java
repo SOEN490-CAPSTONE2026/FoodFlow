@@ -867,4 +867,631 @@ class AuthServiceTest {
         assertNotNull(capturedToken.getExpiresAt());
         assertNull(capturedToken.getVerifiedAt());
     }
+
+    // ====== Additional Coverage Tests for 90%+ ======
+
+    @Test
+    void login_DeactivatedAccount_ThrowsException() {
+        // Given
+        LoginRequest loginRequest = new LoginRequest("user@test.com", "password123");
+        
+        User user = new User();
+        user.setId(1L);
+        user.setEmail("user@test.com");
+        user.setPassword("encoded-password");
+        user.setRole(UserRole.DONOR);
+        user.setAccountStatus(AccountStatus.DEACTIVATED);
+        
+        when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("password123", "encoded-password")).thenReturn(true);
+
+        // When & Then
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            authService.login(loginRequest);
+        });
+        
+        assertTrue(ex.getMessage().contains("account has been deactivated"));
+        verify(metricsService).incrementAuthFailure("account_deactivated");
+        verify(jwtTokenProvider, never()).generateToken(anyString(), anyString());
+    }
+
+    @Test
+    void login_WithOrganization_ReturnsOrganizationInfo() {
+        // Given
+        LoginRequest loginRequest = new LoginRequest("donor@test.com", "password123");
+        
+        User user = new User();
+        user.setId(1L);
+        user.setEmail("donor@test.com");
+        user.setPassword("encoded-password");
+        user.setRole(UserRole.DONOR);
+        user.setAccountStatus(AccountStatus.ACTIVE);
+        
+        Organization org = new Organization();
+        org.setName("Test Restaurant");
+        org.setVerificationStatus(VerificationStatus.VERIFIED);
+        user.setOrganization(org);
+        
+        when(userRepository.findByEmail("donor@test.com")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("password123", "encoded-password")).thenReturn(true);
+        when(jwtTokenProvider.generateToken("donor@test.com", "DONOR")).thenReturn("jwt-token");
+
+        // When
+        AuthResponse response = authService.login(loginRequest);
+
+        // Then
+        assertNotNull(response);
+        assertEquals("Test Restaurant", response.getOrganizationName());
+        assertEquals("VERIFIED", response.getVerificationStatus());
+        assertEquals("ACTIVE", response.getAccountStatus());
+    }
+
+    @Test
+    void registerDonor_EmailServiceFails_ContinuesRegistration() throws ApiException {
+        // Given
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
+        when(jwtTokenProvider.generateToken(anyString(), anyString())).thenReturn("jwt-token");
+        
+        User savedUser = new User();
+        savedUser.setId(1L);
+        savedUser.setEmail("donor@test.com");
+        savedUser.setRole(UserRole.DONOR);
+        
+        Organization savedOrg = new Organization();
+        savedOrg.setId(1L);
+        
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+        when(organizationRepository.save(any(Organization.class))).thenReturn(savedOrg);
+        when(verificationTokenRepository.save(any(EmailVerificationToken.class))).thenReturn(new EmailVerificationToken());
+        willThrow(new ApiException("Email service error")).given(emailService).sendVerificationEmail(anyString(), anyString());
+
+        // When
+        AuthResponse response = authService.registerDonor(donorRequest);
+
+        // Then - Should still succeed
+        assertNotNull(response);
+        assertEquals("jwt-token", response.getToken());
+        verify(emailService).sendVerificationEmail(anyString(), anyString());
+    }
+
+    @Test
+    void registerReceiver_EmailServiceFails_ContinuesRegistration() throws ApiException {
+        // Given
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
+        when(jwtTokenProvider.generateToken(anyString(), anyString())).thenReturn("jwt-token");
+        
+        User savedUser = new User();
+        savedUser.setId(1L);
+        savedUser.setEmail("receiver@test.com");
+        savedUser.setRole(UserRole.RECEIVER);
+        
+        Organization savedOrg = new Organization();
+        savedOrg.setId(1L);
+        
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+        when(organizationRepository.save(any(Organization.class))).thenAnswer(invocation -> {
+            Organization orgArg = invocation.getArgument(0);
+            orgArg.setId(1L);
+            return orgArg;
+        });
+        when(verificationTokenRepository.save(any(EmailVerificationToken.class))).thenReturn(new EmailVerificationToken());
+        willThrow(new ApiException("Email service error")).given(emailService).sendVerificationEmail(anyString(), anyString());
+
+        // When
+        AuthResponse response = authService.registerReceiver(receiverRequest);
+
+        // Then - Should still succeed
+        assertNotNull(response);
+        assertEquals("jwt-token", response.getToken());
+        verify(emailService).sendVerificationEmail(anyString(), anyString());
+    }
+
+    @Test
+    void logout_ValidCredentials_Success() {
+        // Given
+        com.example.foodflow.model.dto.LogoutRequest logoutRequest = new com.example.foodflow.model.dto.LogoutRequest();
+        logoutRequest.setEmail("user@test.com");
+        logoutRequest.setPassword("password123");
+        
+        User user = new User();
+        user.setId(1L);
+        user.setEmail("user@test.com");
+        user.setPassword("encoded-password");
+        user.setRole(UserRole.DONOR);
+        
+        when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("password123", "encoded-password")).thenReturn(true);
+
+        // When
+        AuthResponse response = authService.logout(logoutRequest);
+
+        // Then
+        assertNotNull(response);
+        assertNull(response.getToken());
+        assertEquals("user@test.com", response.getEmail());
+        assertEquals("Account logged out successfully.", response.getMessage());
+    }
+
+    @Test
+    void logout_UserNotFound_ThrowsException() {
+        // Given
+        com.example.foodflow.model.dto.LogoutRequest logoutRequest = new com.example.foodflow.model.dto.LogoutRequest();
+        logoutRequest.setEmail("nonexistent@test.com");
+        logoutRequest.setPassword("password123");
+        
+        when(userRepository.findByEmail("nonexistent@test.com")).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThrows(RuntimeException.class, () -> authService.logout(logoutRequest));
+        verify(passwordEncoder, never()).matches(anyString(), anyString());
+    }
+
+    @Test
+    void logout_InvalidPassword_ThrowsException() {
+        // Given
+        com.example.foodflow.model.dto.LogoutRequest logoutRequest = new com.example.foodflow.model.dto.LogoutRequest();
+        logoutRequest.setEmail("user@test.com");
+        logoutRequest.setPassword("wrongpassword");
+        
+        User user = new User();
+        user.setId(1L);
+        user.setEmail("user@test.com");
+        user.setPassword("encoded-password");
+        
+        when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("wrongpassword", "encoded-password")).thenReturn(false);
+
+        // When & Then
+        assertThrows(RuntimeException.class, () -> authService.logout(logoutRequest));
+    }
+
+    // ====== FORGOT PASSWORD TESTS ======
+
+    @Test
+    void forgotPassword_EmailMethod_SendsResetCode() throws ApiException {
+        // Given
+        com.example.foodflow.model.dto.ForgotPasswordRequest request = new com.example.foodflow.model.dto.ForgotPasswordRequest();
+        request.setMethod("email");
+        request.setEmail("user@test.com");
+        
+        User user = new User();
+        user.setEmail("user@test.com");
+        
+        when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.of(user));
+        willDoNothing().given(emailService).sendPasswordResetEmail(anyString(), anyString());
+
+        // When
+        var response = authService.forgotPassword(request);
+
+        // Then
+        assertNotNull(response);
+        assertEquals("Reset code sent successfully", response.get("message"));
+        assertEquals("user@test.com", response.get("email"));
+        verify(emailService).sendPasswordResetEmail(eq("user@test.com"), anyString());
+    }
+
+    @Test
+    void forgotPassword_EmailMethod_UserNotFound_ThrowsException() {
+        // Given
+        com.example.foodflow.model.dto.ForgotPasswordRequest request = new com.example.foodflow.model.dto.ForgotPasswordRequest();
+        request.setMethod("email");
+        request.setEmail("nonexistent@test.com");
+        
+        when(userRepository.findByEmail("nonexistent@test.com")).thenReturn(Optional.empty());
+
+        // When & Then
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            authService.forgotPassword(request);
+        });
+        
+        assertEquals("User not found", ex.getMessage());
+        verify(userRepository).findByEmail("nonexistent@test.com");
+    }
+
+    @Test
+    void forgotPassword_EmailMethod_EmailServiceFails_ThrowsException() throws ApiException {
+        // Given
+        com.example.foodflow.model.dto.ForgotPasswordRequest request = new com.example.foodflow.model.dto.ForgotPasswordRequest();
+        request.setMethod("email");
+        request.setEmail("user@test.com");
+        
+        User user = new User();
+        user.setEmail("user@test.com");
+        
+        when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.of(user));
+        willThrow(new ApiException("Email service error")).given(emailService).sendPasswordResetEmail(anyString(), anyString());
+
+        // When & Then
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            authService.forgotPassword(request);
+        });
+        
+        assertTrue(ex.getMessage().contains("Failed to send reset email"));
+    }
+
+    @Test
+    void forgotPassword_SmsMethod_VerifiesPhone() {
+        // Given
+        com.example.foodflow.model.dto.ForgotPasswordRequest request = new com.example.foodflow.model.dto.ForgotPasswordRequest();
+        request.setMethod("sms");
+        request.setPhone("+15145551234");
+        
+        User user = new User();
+        Organization org = new Organization();
+        org.setPhone("+15145551234");
+        user.setOrganization(org);
+        
+        when(userRepository.findByOrganizationPhone("+15145551234")).thenReturn(Optional.of(user));
+
+        // When
+        var response = authService.forgotPassword(request);
+
+        // Then
+        assertNotNull(response);
+        assertEquals("Phone verified. SMS will be sent.", response.get("message"));
+        assertEquals("+15145551234", response.get("phone"));
+        verify(userRepository).findByOrganizationPhone("+15145551234");
+    }
+
+    @Test
+    void forgotPassword_SmsMethod_PhoneNotFound_ThrowsException() {
+        // Given
+        com.example.foodflow.model.dto.ForgotPasswordRequest request = new com.example.foodflow.model.dto.ForgotPasswordRequest();
+        request.setMethod("sms");
+        request.setPhone("+15145551234");
+        
+        when(userRepository.findByOrganizationPhone("+15145551234")).thenReturn(Optional.empty());
+
+        // When & Then
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            authService.forgotPassword(request);
+        });
+        
+        assertTrue(ex.getMessage().contains("No account found with this phone number"));
+    }
+
+    @Test
+    void forgotPassword_SmsMethod_NullPhone_ThrowsException() {
+        // Given
+        com.example.foodflow.model.dto.ForgotPasswordRequest request = new com.example.foodflow.model.dto.ForgotPasswordRequest();
+        request.setMethod("sms");
+        request.setPhone(null);
+
+        // When & Then
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            authService.forgotPassword(request);
+        });
+        
+        assertTrue(ex.getMessage().contains("Phone number is required"));
+    }
+
+    @Test
+    void forgotPassword_InvalidMethod_ThrowsException() {
+        // Given
+        com.example.foodflow.model.dto.ForgotPasswordRequest request = new com.example.foodflow.model.dto.ForgotPasswordRequest();
+        request.setMethod("invalid");
+
+        // When & Then
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            authService.forgotPassword(request);
+        });
+        
+        assertTrue(ex.getMessage().contains("Invalid method"));
+    }
+
+    // ====== VERIFY RESET CODE TESTS ======
+
+    @Test
+    void verifyResetCode_ValidCode_ReturnsTrue() throws ApiException {
+        // Given
+        String email = "user@test.com";
+        String code = "123456";
+        
+        User user = new User();
+        user.setEmail(email);
+        
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+        willDoNothing().given(emailService).sendPasswordResetEmail(anyString(), anyString());
+        
+        // First set up a reset code
+        com.example.foodflow.model.dto.ForgotPasswordRequest request = new com.example.foodflow.model.dto.ForgotPasswordRequest();
+        request.setMethod("email");
+        request.setEmail(email);
+        authService.forgotPassword(request);
+        
+        // Capture the code that was sent
+        ArgumentCaptor<String> codeCaptor = ArgumentCaptor.forClass(String.class);
+        verify(emailService).sendPasswordResetEmail(eq(email), codeCaptor.capture());
+        String actualCode = codeCaptor.getValue();
+
+        // When
+        boolean result = authService.verifyResetCode(email, actualCode);
+
+        // Then
+        assertTrue(result);
+    }
+
+    @Test
+    void verifyResetCode_NoCodeFound_ThrowsException() {
+        // Given
+        String email = "user@test.com";
+        String code = "123456";
+
+        // When & Then
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            authService.verifyResetCode(email, code);
+        });
+        
+        assertTrue(ex.getMessage().contains("No reset code found"));
+    }
+
+    @Test
+    void verifyResetCode_InvalidCode_ThrowsException() throws ApiException {
+        // Given
+        String email = "user@test.com";
+        
+        User user = new User();
+        user.setEmail(email);
+        
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+        willDoNothing().given(emailService).sendPasswordResetEmail(anyString(), anyString());
+        
+        // First set up a reset code
+        com.example.foodflow.model.dto.ForgotPasswordRequest request = new com.example.foodflow.model.dto.ForgotPasswordRequest();
+        request.setMethod("email");
+        request.setEmail(email);
+        authService.forgotPassword(request);
+
+        // When & Then - Try with wrong code
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            authService.verifyResetCode(email, "wrong");
+        });
+        
+        assertTrue(ex.getMessage().contains("Invalid reset code"));
+    }
+
+    // ====== RESET PASSWORD TESTS ======
+
+    @Test
+    void resetPassword_WithEmail_Success() throws ApiException {
+        // Given
+        String email = "user@test.com";
+        String code = "123456";
+        String newPassword = "newPassword123";
+        
+        User user = new User();
+        user.setId(1L);
+        user.setEmail(email);
+        user.setPassword("old-encoded-password");
+        
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode(newPassword)).thenReturn("new-encoded-password");
+        when(userRepository.save(any(User.class))).thenReturn(user);
+        willDoNothing().given(emailService).sendPasswordResetEmail(anyString(), anyString());
+        
+        // Set up reset code first
+        com.example.foodflow.model.dto.ForgotPasswordRequest request = new com.example.foodflow.model.dto.ForgotPasswordRequest();
+        request.setMethod("email");
+        request.setEmail(email);
+        authService.forgotPassword(request);
+        
+        // Capture the code
+        ArgumentCaptor<String> codeCaptor = ArgumentCaptor.forClass(String.class);
+        verify(emailService).sendPasswordResetEmail(eq(email), codeCaptor.capture());
+        String actualCode = codeCaptor.getValue();
+
+        // When
+        var response = authService.resetPassword(email, null, actualCode, newPassword);
+
+        // Then
+        assertNotNull(response);
+        assertEquals("Password reset successful", response.get("message"));
+        assertEquals(email, response.get("identifier"));
+        verify(passwordEncoder).encode(newPassword);
+        verify(userRepository).save(user);
+        assertEquals("new-encoded-password", user.getPassword());
+    }
+
+    @Test
+    void resetPassword_WithPhone_Success() {
+        // Given
+        String phone = "+15145551234";
+        String code = "123456"; // Firebase already verified this
+        String newPassword = "newPassword123";
+        
+        User user = new User();
+        user.setId(1L);
+        user.setEmail("user@test.com");
+        user.setPassword("old-encoded-password");
+        Organization org = new Organization();
+        org.setPhone(phone);
+        user.setOrganization(org);
+        
+        when(userRepository.findByOrganizationPhone(phone)).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode(newPassword)).thenReturn("new-encoded-password");
+        when(userRepository.save(any(User.class))).thenReturn(user);
+
+        // When
+        var response = authService.resetPassword(null, phone, code, newPassword);
+
+        // Then
+        assertNotNull(response);
+        assertEquals("Password reset successful", response.get("message"));
+        assertEquals(phone, response.get("identifier"));
+        verify(passwordEncoder).encode(newPassword);
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void resetPassword_InvalidCode_ThrowsException() throws ApiException {
+        // Given
+        String email = "user@test.com";
+        String invalidCode = "wrong";
+        String newPassword = "newPassword123";
+        
+        User user = new User();
+        user.setEmail(email);
+        
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+        willDoNothing().given(emailService).sendPasswordResetEmail(anyString(), anyString());
+        
+        // Set up reset code first
+        com.example.foodflow.model.dto.ForgotPasswordRequest request = new com.example.foodflow.model.dto.ForgotPasswordRequest();
+        request.setMethod("email");
+        request.setEmail(email);
+        authService.forgotPassword(request);
+
+        // When & Then
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            authService.resetPassword(email, null, invalidCode, newPassword);
+        });
+        
+        assertTrue(ex.getMessage().contains("Invalid reset code"));
+    }
+
+    @Test
+    void resetPassword_UserNotFound_ThrowsException() {
+        // Given
+        String email = "nonexistent@test.com";
+        String code = "123456";
+        String newPassword = "newPassword123";
+        
+        // No mock setup needed - code validation happens before user lookup
+
+        // When & Then
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            authService.resetPassword(email, null, code, newPassword);
+        });
+        
+        // The actual error message is "Invalid reset code" when code doesn't exist in storage
+        assertTrue(ex.getMessage().contains("Invalid") || ex.getMessage().contains("reset code"));
+    }
+
+    @Test
+    void resetPassword_NoEmailOrPhone_ThrowsException() {
+        // When & Then
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            authService.resetPassword(null, null, "123456", "newPassword");
+        });
+        
+        assertTrue(ex.getMessage().contains("Either email or phone is required"));
+    }
+
+    @Test
+    void registerReceiver_WithNullOrganizationType_DefaultsToCharity() {
+        // Given
+        receiverRequest.setOrganizationType(null);
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
+        when(jwtTokenProvider.generateToken(anyString(), anyString())).thenReturn("jwt-token");
+        
+        User savedUser = new User();
+        savedUser.setId(1L);
+        savedUser.setEmail("receiver@test.com");
+        savedUser.setRole(UserRole.RECEIVER);
+        
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+        when(organizationRepository.save(any(Organization.class))).thenAnswer(invocation -> {
+            Organization orgArg = invocation.getArgument(0);
+            orgArg.setId(1L);
+            return orgArg;
+        });
+
+        // When
+        authService.registerReceiver(receiverRequest);
+
+        // Then
+        verify(organizationRepository).save(argThat(org -> 
+            org.getOrganizationType() == com.example.foodflow.model.entity.OrganizationType.CHARITY
+        ));
+    }
+
+    @Test
+    void registerDonor_NullConfirmPassword_ThrowsException() {
+        // Given
+        donorRequest.setConfirmPassword(null);
+
+        // When & Then
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            authService.registerDonor(donorRequest);
+        });
+        
+        assertEquals("Passwords do not match", ex.getMessage());
+    }
+
+    @Test
+    void registerReceiver_NullConfirmPassword_ThrowsException() {
+        // Given
+        receiverRequest.setConfirmPassword(null);
+
+        // When & Then
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            authService.registerReceiver(receiverRequest);
+        });
+        
+        assertEquals("Passwords do not match", ex.getMessage());
+    }
+
+    @Test
+    void registerDonor_SetsDefaultAccountStatus() {
+        // Given
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
+        when(jwtTokenProvider.generateToken(anyString(), anyString())).thenReturn("jwt-token");
+        
+        User savedUser = new User();
+        savedUser.setId(1L);
+        savedUser.setEmail("donor@test.com");
+        savedUser.setRole(UserRole.DONOR);
+        
+        Organization savedOrg = new Organization();
+        savedOrg.setId(1L);
+        
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+        when(organizationRepository.save(any(Organization.class))).thenReturn(savedOrg);
+
+        // When
+        authService.registerDonor(donorRequest);
+
+        // Then
+        verify(userRepository).save(argThat(user -> 
+            user.getAccountStatus() == AccountStatus.PENDING_VERIFICATION
+        ));
+        verify(organizationRepository).save(argThat(org -> 
+            org.getVerificationStatus() == VerificationStatus.PENDING
+        ));
+    }
+
+    @Test
+    void registerReceiver_SetsDefaultAccountStatus() {
+        // Given
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
+        when(jwtTokenProvider.generateToken(anyString(), anyString())).thenReturn("jwt-token");
+        
+        User savedUser = new User();
+        savedUser.setId(1L);
+        savedUser.setEmail("receiver@test.com");
+        savedUser.setRole(UserRole.RECEIVER);
+        
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+        when(organizationRepository.save(any(Organization.class))).thenAnswer(invocation -> {
+            Organization orgArg = invocation.getArgument(0);
+            orgArg.setId(1L);
+            return orgArg;
+        });
+
+        // When
+        authService.registerReceiver(receiverRequest);
+
+        // Then
+        verify(userRepository).save(argThat(user -> 
+            user.getAccountStatus() == AccountStatus.PENDING_VERIFICATION
+        ));
+        verify(organizationRepository).save(argThat(org -> 
+            org.getVerificationStatus() == VerificationStatus.PENDING
+        ));
+    }
 }
