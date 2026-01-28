@@ -15,10 +15,27 @@ describe('LanguageSwitcher', () => {
   beforeEach(() => {
     // Clear any existing toast elements before each test
     document.body.innerHTML = '';
+    
+    // Mock localStorage with a token
+    Storage.prototype.getItem = jest.fn((key) => {
+      if (key === 'jwtToken') return 'mock-token';
+      return null;
+    });
+    Storage.prototype.setItem = jest.fn();
+    
+    // Mock fetch to return a successful response
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({}),
+      })
+    );
   });
 
   afterEach(() => {
     jest.clearAllMocks();
+    jest.restoreAllMocks();
+    delete global.fetch;
   });
 
   test('renders with default language (English)', () => {
@@ -183,14 +200,15 @@ describe('LanguageSwitcher', () => {
     fireEvent.click(screen.getByRole('button'));
     fireEvent.click(screen.getByText('Français'));
     
+    // Wait for the async operation to complete
     await waitFor(() => {
       const toast = document.querySelector('.language-toast');
       expect(toast).toBeInTheDocument();
       expect(toast).toHaveTextContent('Language switched to Français');
-    });
+    }, { timeout: 3000 });
   });
 
-  test('console logs selected language code', () => {
+  test('console logs selected language code', async () => {
     const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
     
     render(<LanguageSwitcher />);
@@ -198,7 +216,9 @@ describe('LanguageSwitcher', () => {
     fireEvent.click(screen.getByRole('button'));
     fireEvent.click(screen.getByText('中文'));
     
-    expect(consoleSpy).toHaveBeenCalledWith('Language selected: zh');
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith('Language selected: zh');
+    });
     
     consoleSpy.mockRestore();
   });

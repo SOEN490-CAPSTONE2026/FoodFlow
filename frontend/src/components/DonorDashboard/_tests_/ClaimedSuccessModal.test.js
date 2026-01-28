@@ -23,21 +23,21 @@ describe('ClaimedSuccessModal', () => {
     it('should render modal when isOpen is true', () => {
       render(<ClaimedSuccessModal isOpen={true} onClose={mockOnClose} />);
 
-      expect(screen.getByText('Your donation has been claimed !')).toBeInTheDocument();
-      expect(screen.getByText('Your generosity is making a real difference.')).toBeInTheDocument();
+      expect(screen.getByText('claimedSuccessModal.title')).toBeInTheDocument();
+      expect(screen.getByText('claimedSuccessModal.subtitle')).toBeInTheDocument();
     });
 
     it('should render the success title', () => {
       render(<ClaimedSuccessModal isOpen={true} onClose={mockOnClose} />);
 
-      const title = screen.getByText('Your donation has been claimed !');
+      const title = screen.getByText('claimedSuccessModal.title');
       expect(title).toHaveClass('claimed-success-title');
     });
 
     it('should render the success subtitle', () => {
       render(<ClaimedSuccessModal isOpen={true} onClose={mockOnClose} />);
 
-      const subtitle = screen.getByText('Your generosity is making a real difference.');
+      const subtitle = screen.getByText('claimedSuccessModal.subtitle');
       expect(subtitle).toHaveClass('claimed-success-subtitle');
     });
 
@@ -124,7 +124,7 @@ describe('ClaimedSuccessModal', () => {
       const user = userEvent.setup();
       render(<ClaimedSuccessModal isOpen={true} onClose={mockOnClose} />);
 
-      const title = screen.getByText('Your donation has been claimed !');
+      const title = screen.getByText('claimedSuccessModal.title');
       await user.click(title);
 
       expect(mockOnClose).not.toHaveBeenCalled();
@@ -160,7 +160,7 @@ describe('ClaimedSuccessModal', () => {
       const user = userEvent.setup();
       render(<ClaimedSuccessModal isOpen={true} onClose={mockOnClose} />);
 
-      const subtitle = screen.getByText('Your generosity is making a real difference.');
+      const subtitle = screen.getByText('claimedSuccessModal.subtitle');
       await user.click(subtitle);
 
       expect(mockOnClose).not.toHaveBeenCalled();
@@ -181,11 +181,11 @@ describe('ClaimedSuccessModal', () => {
         <ClaimedSuccessModal isOpen={false} onClose={mockOnClose} />
       );
 
-      expect(screen.queryByText('Your donation has been claimed !')).not.toBeInTheDocument();
+      expect(screen.queryByText('claimedSuccessModal.title')).not.toBeInTheDocument();
 
       rerender(<ClaimedSuccessModal isOpen={true} onClose={mockOnClose} />);
 
-      expect(screen.getByText('Your donation has been claimed !')).toBeInTheDocument();
+      expect(screen.getByText('claimedSuccessModal.title')).toBeInTheDocument();
     });
 
     it('should re-render when isOpen prop changes from true to false', () => {
@@ -193,7 +193,7 @@ describe('ClaimedSuccessModal', () => {
         <ClaimedSuccessModal isOpen={true} onClose={mockOnClose} />
       );
 
-      expect(screen.getByText('Your donation has been claimed !')).toBeInTheDocument();
+      expect(screen.getByText('claimedSuccessModal.title')).toBeInTheDocument();
 
       rerender(<ClaimedSuccessModal isOpen={false} onClose={mockOnClose} />);
 
@@ -243,8 +243,8 @@ describe('ClaimedSuccessModal', () => {
     it('should render text content that is accessible', () => {
       render(<ClaimedSuccessModal isOpen={true} onClose={mockOnClose} />);
 
-      expect(screen.getByText('Your donation has been claimed !')).toBeVisible();
-      expect(screen.getByText('Your generosity is making a real difference.')).toBeVisible();
+      expect(screen.getByText('claimedSuccessModal.title')).toBeVisible();
+      expect(screen.getByText('claimedSuccessModal.subtitle')).toBeVisible();
     });
   });
 
@@ -294,7 +294,7 @@ describe('ClaimedSuccessModal', () => {
       );
 
       // Only one modal should be visible
-      expect(screen.getAllByText('Your donation has been claimed !')).toHaveLength(1);
+      expect(screen.getAllByText('claimedSuccessModal.title')).toHaveLength(1);
 
       // Swap states
       rerender(
@@ -305,7 +305,7 @@ describe('ClaimedSuccessModal', () => {
       );
 
       // Still only one modal should be visible
-      expect(screen.getAllByText('Your donation has been claimed !')).toHaveLength(1);
+      expect(screen.getAllByText('claimedSuccessModal.title')).toHaveLength(1);
     });
   });
 });
