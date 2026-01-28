@@ -1,5 +1,7 @@
 package com.example.foodflow.service;
 
+import com.example.foodflow.exception.BusinessException;
+import com.example.foodflow.exception.ResourceNotFoundException;
 import com.example.foodflow.model.dto.ClaimRequest;
 import com.example.foodflow.model.dto.ClaimResponse;
 import com.example.foodflow.model.entity.Claim;
@@ -31,19 +33,25 @@ public class ClaimService {
     private final SimpMessagingTemplate messagingTemplate;
     private final NotificationPreferenceService notificationPreferenceService;
     private final TimelineService timelineService;
+    private final EmailService emailService;
+    private final GamificationService gamificationService;
     
     public ClaimService(ClaimRepository claimRepository,
                        SurplusPostRepository surplusPostRepository,
                        BusinessMetricsService businessMetricsService,
                        SimpMessagingTemplate messagingTemplate,
                        NotificationPreferenceService notificationPreferenceService,
-                       TimelineService timelineService) {
+                       TimelineService timelineService,
+                       EmailService emailService,
+                       GamificationService gamificationService) {
         this.claimRepository = claimRepository;
         this.surplusPostRepository = surplusPostRepository;
         this.businessMetricsService = businessMetricsService;
         this.messagingTemplate = messagingTemplate;
         this.notificationPreferenceService = notificationPreferenceService;
         this.timelineService = timelineService;
+        this.emailService = emailService;
+        this.gamificationService = gamificationService;
     }
                        
     @Transactional
@@ -52,7 +60,7 @@ public class ClaimService {
         Timer.Sample sample = businessMetricsService.startTimer();
         // Fetch and lock the surplus post to prevent concurrent claims
         SurplusPost surplusPost = surplusPostRepository.findById(request.getSurplusPostId())
-            .orElseThrow(() -> new RuntimeException("Surplus post not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("error.resource.not_found"));
 
         // Check if post has expired
         if (surplusPost.getExpiryDate() != null &&
@@ -67,18 +75,18 @@ public class ClaimService {
 
         if (surplusPost.getStatus() != PostStatus.AVAILABLE &&
             surplusPost.getStatus() != PostStatus.READY_FOR_PICKUP) {
-            throw new RuntimeException("This post is no longer available for claiming");
+            throw new BusinessException("error.claim.not_available");
         }
 
         // Check if already claimed (race condition prevention)
         if (claimRepository.existsBySurplusPostIdAndStatus(
                 surplusPost.getId(), ClaimStatus.ACTIVE)) {
-            throw new RuntimeException("This post has already been claimed");
+            throw new BusinessException("error.claim.already_claimed");
         }
 
         // Prevent donor from claiming their own post
         if (surplusPost.getDonor().getId().equals(receiver.getId())) {
-            throw new RuntimeException("You cannot claim your own surplus post");
+            throw new BusinessException("error.claim.own_post");
         }
 
         // Create the claim
@@ -160,6 +168,14 @@ public class ClaimService {
         businessMetricsService.incrementSurplusPostClaimed();
         businessMetricsService.recordTimer(sample, "claim.service.create", "status", claim.getStatus().toString());
 
+        // Award gamification points for claiming donation
+        try {
+            gamificationService.awardPoints(receiver.getId(), 5, "Claimed donation: " + surplusPost.getTitle());
+            gamificationService.checkAndUnlockAchievements(receiver.getId());
+        } catch (Exception e) {
+            logger.error("Failed to award gamification points for claimId={}: {}", claim.getId(), e.getMessage());
+        }
+
         ClaimResponse response = new ClaimResponse(claim);
         
         // Broadcast websocket event to donor (if they have notifications enabled)
@@ -178,6 +194,23 @@ public class ClaimService {
             }
         } else {
             logger.info("Skipped claim notification to donor userId={} - notification type disabled", donor.getId());
+        }
+        
+        // Send email notification to donor if enabled
+        if (notificationPreferenceService.shouldSendNotification(donor, "donationClaimed", "email")) {
+            try {
+                String donorName = getDonorName(donor);
+                java.util.Map<String, Object> claimData = new java.util.HashMap<>();
+                claimData.put("title", surplusPost.getTitle());
+                claimData.put("receiverName", receiverName);
+                claimData.put("quantity", surplusPost.getQuantity() != null ? 
+                    surplusPost.getQuantity().getValue().intValue() : "N/A");
+                
+                emailService.sendDonationClaimedNotification(donor.getEmail(), donorName, claimData);
+                logger.info("Sent donation claimed email to donor userId={}", donor.getId());
+            } catch (Exception e) {
+                logger.error("Failed to send email notification to donor userId={}: {}", donor.getId(), e.getMessage());
+            }
         }
         
         // Broadcast websocket event to receiver
@@ -207,7 +240,14 @@ public class ClaimService {
     @Timed(value = "claim.service.getReceiverClaims", description = "Time taken to get receiver claims")
     public List<ClaimResponse> getReceiverClaims(User receiver) {
         return claimRepository.findReceiverClaimsWithDetails(
-            receiver.getId(), ClaimStatus.ACTIVE)
+            receiver.getId(),
+            java.util.List.of(
+                ClaimStatus.ACTIVE,
+                ClaimStatus.COMPLETED,
+                ClaimStatus.NOT_COMPLETED,
+                ClaimStatus.EXPIRED
+            )
+        )
             .stream()
             .map(ClaimResponse::new)
             .collect(Collectors.toList());
@@ -226,11 +266,11 @@ public class ClaimService {
     public void cancelClaim(Long claimId, User receiver) {
         Timer.Sample sample = businessMetricsService.startTimer();
         Claim claim = claimRepository.findById(claimId)
-            .orElseThrow(() -> new RuntimeException("Claim not found"));
-        
+            .orElseThrow(() -> new ResourceNotFoundException("error.resource.not_found"));
+
         // Verify receiver owns this claim
         if (!claim.getReceiver().getId().equals(receiver.getId())) {
-            throw new RuntimeException("You can only cancel your own claims");
+            throw new BusinessException("error.claim.unauthorized_cancel");
         }
         
         // Cancel the claim
@@ -280,6 +320,21 @@ public class ClaimService {
             logger.info("Skipped claim cancellation notification to donor userId={} - claimCanceled disabled", 
                 donor.getId());
         }
+        
+        // Send email notification to donor if enabled
+        if (notificationPreferenceService.shouldSendNotification(donor, "claimCanceled", "email")) {
+            try {
+                String donorName = getDonorName(donor);
+                java.util.Map<String, Object> claimData = new java.util.HashMap<>();
+                claimData.put("title", post.getTitle());
+                claimData.put("reason", "The receiver canceled their claim");
+                
+                emailService.sendClaimCanceledNotification(donor.getEmail(), donorName, claimData);
+                logger.info("Sent claim canceled email to donor userId={}", donor.getId());
+            } catch (Exception e) {
+                logger.error("Failed to send email notification to donor userId={}: {}", donor.getId(), e.getMessage());
+            }
+        }
     }
 
     @Transactional
@@ -293,10 +348,42 @@ public class ClaimService {
         claim.setStatus(ClaimStatus.COMPLETED);
         claimRepository.save(claim);
 
+        // Award gamification points for completing pickup
+        try {
+            gamificationService.awardPoints(
+                claim.getReceiver().getId(), 
+                15, 
+                "Completed pickup for: " + claim.getSurplusPost().getTitle()
+            );
+            gamificationService.checkAndUnlockAchievements(claim.getReceiver().getId());
+        } catch (Exception e) {
+            logger.error("Failed to award pickup completion points for claimId={}: {}", claimId, e.getMessage());
+        }
+
         // Increment completed claim counter
         businessMetricsService.incrementClaimCompleted();
 
         // Record timer
         businessMetricsService.recordTimer(sample, "claim.service.complete", "status", "completed");
+    }
+    
+    /**
+     * Get donor name from organization
+     */
+    private String getDonorName(User donor) {
+        if (donor.getOrganization() != null && donor.getOrganization().getName() != null) {
+            return donor.getOrganization().getName();
+        }
+        return "Donor";
+    }
+    
+    /**
+     * Get receiver name from organization
+     */
+    private String getReceiverName(User receiver) {
+        if (receiver.getOrganization() != null && receiver.getOrganization().getName() != null) {
+            return receiver.getOrganization().getName();
+        }
+        return "Receiver";
     }
 }

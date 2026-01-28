@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotNull;
 
 public class ClaimRequest {
     
-    @NotNull(message = "Surplus post ID is required")
+    @NotNull(message = "{validation.surplusPostId.required}")
     private Long surplusPostId;
     
     // Optional: ID of an existing pickup slot

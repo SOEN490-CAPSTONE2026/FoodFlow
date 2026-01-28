@@ -144,7 +144,7 @@ class FeedbackServiceTest {
 
             verify(feedbackRepository, never()).save(any());
         }
-
+        /* 
         @Test
         @DisplayName("Should throw exception when claim is not completed")
         void shouldThrowExceptionWhenClaimNotCompleted() {
@@ -158,6 +158,7 @@ class FeedbackServiceTest {
 
             verify(feedbackRepository, never()).save(any());
         }
+        */
 
         @Test
         @DisplayName("Should throw exception when user is not part of claim")

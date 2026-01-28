@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 import { X, Package, Calendar, MapPin, User, Clock, MessageCircle, ChevronDown, Star } from 'lucide-react';
 import useGoogleMap from '../../hooks/useGoogleMaps';
 import ClaimedView from './ClaimedView';
@@ -13,6 +14,7 @@ import { useTimezone } from '../../contexts/TimezoneContext';
 import './Receiver_Styles/ClaimDetailModal.css';
 
 const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
+    const { t } = useTranslation();
     const post = claim?.surplusPost;
     const [showPickupSteps, setShowPickupSteps] = useState(false);
     const [showFeedbackModal, setShowFeedbackModal] = useState(false);
@@ -58,7 +60,7 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
     };
 
     const formatPickupTime = (pickupDate, pickupFrom, pickupTo) => {
-        if (!pickupDate || !pickupFrom || !pickupTo) return "—";
+        if (!pickupDate || !pickupFrom || !pickupTo) return t('claimDetail.notSpecified');
         try {
             // Backend sends LocalDateTime, treat as UTC by adding 'Z'
             let fromDateStr = `${pickupDate}T${pickupFrom}`;
@@ -94,9 +96,10 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
             return `${dateStr} ${fromTime}-${toTime}`;
         } catch (error) {
             console.error('Error formatting pickup time:', error);
-            return "—";
+            return t('claimDetail.notSpecified');
         }
     };
+
     const mapRef = useGoogleMap(
         post?.pickupLocation,
         {
@@ -107,14 +110,12 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
         }
     );
 
-
-
     const getDisplayStatus = () => {
         const postStatus = post?.status;
-        if (postStatus === 'READY_FOR_PICKUP') return 'Ready for Pickup';
-        if (postStatus === 'COMPLETED') return 'Completed';
-        if (postStatus === 'NOT_COMPLETED') return 'Not Completed';
-        return 'Claimed';
+        if (postStatus === 'READY_FOR_PICKUP') return t('claimDetail.status.readyForPickup');
+        if (postStatus === 'COMPLETED') return t('claimDetail.status.completed');
+        if (postStatus === 'NOT_COMPLETED') return t('claimDetail.status.notCompleted');
+        return t('claimDetail.status.claimed');
     };
 
     const handleViewPickupSteps = () => {
@@ -141,21 +142,21 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                     <div className="claimed-modal-header">
                         <img
                             src={foodTypeImages[getPrimaryFoodCategory(post?.foodCategories)] || foodTypeImages['Prepared Meals']}
-                            alt={post?.title || 'Donation'}
+                            alt={post?.title || t('claimDetail.defaultTitle')}
                             className="claimed-modal-header-image"
                         />
                         <span className={`claimed-modal-status-badge claimed-status-${getDisplayStatus().toLowerCase().replace(' ', '-')}`}>
                             {getDisplayStatus()}
                         </span>
                         <div className="claimed-modal-header-overlay">
-                            <h2 className="claimed-modal-title">{post?.title || 'Untitled Donation'}</h2>
+                            <h2 className="claimed-modal-title">{post?.title || t('claimDetail.defaultTitle')}</h2>
                         </div>
                     </div>
 
                     {/* Modal Body */}
                     <div className="claimed-modal-body">
                         <div className="claimed-modal-section-header">
-                            <h3 className="claimed-modal-section-title">Donation Details</h3>
+                            <h3 className="claimed-modal-section-title">{t('claimDetail.donationDetails')}</h3>
                             <a 
                                 href="#"
                                 className="claimed-modal-chat-link"
@@ -164,10 +165,10 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                                     // Navigate to chat with donor
                                     navigate(`/receiver/messages?recipientEmail=${encodeURIComponent(post?.donorEmail)}`);
                                 }}
-                                title={`Chat with ${post?.donorName || 'donor'}`}
+                                title={t('claimDetail.chatWithDonor', { name: post?.donorName || t('claimDetail.donor') })}
                             >
                                 <MessageCircle size={16} />
-                                <span>Chat with Donor</span>
+                                <span>{t('claimDetail.chatWithDonorLabel')}</span>
                             </a>
                         </div>
 
@@ -178,9 +179,9 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                                     <Package size={20} />
                                 </div>
                                 <div className="claimed-modal-detail-content">
-                                    <span className="claimed-modal-detail-label">Quantity</span>
+                                    <span className="claimed-modal-detail-label">{t('claimDetail.quantity')}</span>
                                     <span className="claimed-modal-detail-value">
-                                        {post?.quantity?.value || 0} {getUnitLabel(post?.quantity?.unit) || 'items'}
+                                        {post?.quantity?.value || 0} {getUnitLabel(post?.quantity?.unit) || t('claimDetail.items')}
                                     </span>
                                 </div>
                             </div>
@@ -191,8 +192,8 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                                     <Calendar size={20} />
                                 </div>
                                 <div className="claimed-modal-detail-content">
-                                    <span className="claimed-modal-detail-label">Expiry Date</span>
-                                    <span className="claimed-modal-detail-value">{post?.expiryDate || 'Not specified'}</span>
+                                    <span className="claimed-modal-detail-label">{t('claimDetail.expiryDate')}</span>
+                                    <span className="claimed-modal-detail-value">{post?.expiryDate || t('claimDetail.notSpecified')}</span>
                                 </div>
                             </div>
 
@@ -202,8 +203,8 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                                     <User size={20} />
                                 </div>
                                 <div className="claimed-modal-detail-content">
-                                    <span className="claimed-modal-detail-label">Donor</span>
-                                    <span className="claimed-modal-detail-value">{post?.donorName || 'Not specified'}</span>
+                                    <span className="claimed-modal-detail-label">{t('claimDetail.donor')}</span>
+                                    <span className="claimed-modal-detail-value">{post?.donorName || t('claimDetail.notSpecified')}</span>
                                 </div>
                             </div>
 
@@ -214,7 +215,7 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                                         <span style={{ fontSize: '20px' }}>{getTemperatureCategoryIcon(post.temperatureCategory)}</span>
                                     </div>
                                     <div className="claimed-modal-detail-content">
-                                        <span className="claimed-modal-detail-label">Temperature</span>
+                                        <span className="claimed-modal-detail-label">{t('claimDetail.temperature')}</span>
                                         <span className="claimed-modal-detail-value temperature-badge">
                                             {getTemperatureCategoryLabel(post.temperatureCategory)}
                                         </span>
@@ -229,7 +230,7 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                                         <Package size={20} />
                                     </div>
                                     <div className="claimed-modal-detail-content">
-                                        <span className="claimed-modal-detail-label">Packaging</span>
+                                        <span className="claimed-modal-detail-label">{t('claimDetail.packaging')}</span>
                                         <span className="claimed-modal-detail-value">
                                             {getPackagingTypeLabel(post.packagingType)}
                                         </span>
@@ -245,7 +246,7 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                                     <Clock size={20} />
                                 </div>
                                 <div className="claimed-modal-detail-content">
-                                    <span className="claimed-modal-detail-label">Pickup Date & Time</span>
+                                    <span className="claimed-modal-detail-label">{t('claimDetail.pickupDateTime')}</span>
                                     <span className={`claimed-modal-detail-value ${claim?.confirmedPickupSlot ? 'confirmed-pickup-time' : ''}`}>
                                         {claim?.confirmedPickupSlot ? (
                                             formatPickupTime(
@@ -268,7 +269,7 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                                     <MapPin size={20} />
                                 </div>
                                 <div className="claimed-modal-detail-content">
-                                    <span className="claimed-modal-detail-label">Pickup Location</span>
+                                    <span className="claimed-modal-detail-label">{t('claimDetail.pickupLocation')}</span>
                                     {post?.pickupLocation?.address ? (
                                         <a
                                             href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(post.pickupLocation.address)}`}
@@ -279,7 +280,7 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                                             {post.pickupLocation.address}
                                         </a>
                                     ) : (
-                                        <span className="claimed-modal-detail-value">Not specified</span>
+                                        <span className="claimed-modal-detail-value">{t('claimDetail.notSpecified')}</span>
                                     )}
                                 </div>
                             </div>
@@ -291,9 +292,9 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                                 ) : (
                                     <div className="claimed-modal-map-placeholder">
                                         <MapPin size={48} />
-                                        <p>Map view coming soon</p>
+                                        <p>{t('claimDetail.mapComingSoon')}</p>
                                         <p className="claimed-modal-map-address">
-                                            {post?.pickupLocation?.address || 'Address not specified'}
+                                            {post?.pickupLocation?.address || t('claimDetail.addressNotSpecified')}
                                         </p>
                                     </div>
                                 )}
@@ -308,7 +309,7 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                             >
                                 <Clock size={16} />
                                 <span>
-                                    {expandedTimeline ? 'Hide' : 'View'} Donation Timeline
+                                    {expandedTimeline ? t('claimDetail.hideTimeline') : t('claimDetail.viewTimeline')}
                                 </span>
                                 <ChevronDown
                                     size={16}
@@ -328,16 +329,18 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
 
                         {/* Action Buttons */}
                         <div className="claimed-modal-actions">
-                            {(getDisplayStatus() === 'Claimed' || getDisplayStatus() === 'Ready for Pickup' || getDisplayStatus() === 'Completed') && (
+                            {(getDisplayStatus() === t('claimDetail.status.claimed') || 
+                              getDisplayStatus() === t('claimDetail.status.readyForPickup') || 
+                              getDisplayStatus() === t('claimDetail.status.completed')) && (
                                 <>
                                     <button className="claimed-modal-btn-secondary" onClick={onClose}>
-                                        Back to Details
+                                        {t('claimDetail.backToDetails')}
                                     </button>
                                     <button
                                         className="claimed-modal-btn-primary"
                                         onClick={handleViewPickupSteps}
                                     >
-                                        View Pickup Steps
+                                        {t('claimDetail.viewPickupSteps')}
                                     </button>
                                 </>
                             )}
@@ -347,7 +350,7 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
             </div>
 
             {/* Pickup Steps Modal */}
-            {getDisplayStatus() === 'Claimed' ? (
+            {getDisplayStatus() === t('claimDetail.status.claimed') ? (
                 <ClaimedView
                     claim={claim}
                     isOpen={showPickupSteps}
@@ -357,7 +360,7 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                     }}
                     onBack={handleBackToDetails}
                 />
-            ) : getDisplayStatus() === 'Ready for Pickup' ? (
+            ) : getDisplayStatus() === t('claimDetail.status.readyForPickup') ? (
                 <ReadyForPickUpView
                     claim={claim}
                     isOpen={showPickupSteps}

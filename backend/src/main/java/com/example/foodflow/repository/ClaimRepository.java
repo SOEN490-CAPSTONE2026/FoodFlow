@@ -36,11 +36,11 @@ public interface ClaimRepository extends JpaRepository<Claim, Long> {
            "JOIN FETCH c.surplusPost sp " +
            "JOIN FETCH sp.donor " +
            "WHERE c.receiver.id = :receiverId " +
-           "AND c.status = :status " +
+           "AND c.status IN :statuses " +
            "ORDER BY c.claimedAt DESC")
     List<Claim> findReceiverClaimsWithDetails(
         @Param("receiverId") Long receiverId,
-        @Param("status") ClaimStatus status
+        @Param("statuses") List<ClaimStatus> statuses
     );
 
     long countByStatus(ClaimStatus status);

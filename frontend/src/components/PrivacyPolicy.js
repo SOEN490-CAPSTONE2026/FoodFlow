@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 
 const PrivacyPolicy = () => {
   const [fadeIn, setFadeIn] = useState(false);
+  const [hover, setHover] = useState(false);
 
   useEffect(() => {
     setTimeout(() => setFadeIn(true), 50);
@@ -83,8 +84,6 @@ const PrivacyPolicy = () => {
       marginTop: "1.5rem",
     },
   };
-
-  const [hover, setHover] = useState(false);
 
   return (
     <div style={styles.wrapper}>

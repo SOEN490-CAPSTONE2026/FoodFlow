@@ -1,12 +1,7 @@
-import React from "react";
-import "./Donor_Styles/Dashboards.css";
-import {
-  BarChart3,
-  PieChart,
-  TrendingUp,
-  Utensils,
-  Inbox,
-} from "lucide-react";
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import './Donor_Styles/Dashboards.css';
+import { BarChart3, PieChart, TrendingUp, Utensils, Inbox } from 'lucide-react';
 
 // Helper function to calculate doughnut chart values
 const calculateDoughnut = (data = []) => {
@@ -14,7 +9,7 @@ const calculateDoughnut = (data = []) => {
   const circumference = 2 * Math.PI * 45; // radius 45
   let currentOffset = 0;
 
-  const segments = data.map((item) => {
+  const segments = data.map(item => {
     const percentage = (item.value ?? 0) / total;
     const offset = currentOffset;
     currentOffset += percentage;
@@ -31,16 +26,17 @@ const calculateDoughnut = (data = []) => {
 };
 
 export default function DonorDashboardHome({ stats, chartData }) {
+  const { t } = useTranslation();
   // Guard if no data provided
   if (!chartData || !stats) {
     return (
       <div className="donor-dashboard-home">
-        <h1>Dashboard</h1>
-        <p className="subtitle">Overview of your donations</p>
+        <h1>{t('donorDashboardHome.dashboard')}</h1>
+        <p className="subtitle">{t('donorDashboardHome.subtitle')}</p>
         <div className="empty-state">
           <Inbox className="lucide" size={20} aria-hidden />
           {" "}
-          No data provided.
+          {t('donorDashboardHome.noData')}
         </div>
       </div>
     );
@@ -50,80 +46,84 @@ export default function DonorDashboardHome({ stats, chartData }) {
   const foodDoughnut = calculateDoughnut(chartData.foodCategories);
 
   // Calculate max value for bar/line scaling (avoid /0)
-  const maxBarValue =
-    Math.max(...chartData.monthlyDonations.map((d) => d.value || 0), 1);
-  const maxTrendValue =
-    Math.max(...chartData.weeklyTrends.map((d) => d.value || 0), 1);
+  const maxBarValue = Math.max(
+    ...chartData.monthlyDonations.map(d => d.value || 0),
+    1
+  );
+  const maxTrendValue = Math.max(
+    ...chartData.weeklyTrends.map(d => d.value || 0),
+    1
+  );
 
   return (
     <div className="donor-dashboard-home">
-      <h1>Dashboard</h1>
-      <p className="subtitle">Overview of your donations</p>
+      <h1>{t('donorDashboardHome.dashboard')}</h1>
+      <p className="subtitle">{t('donorDashboardHome.subtitle')}</p>
 
       {/* Quick Metrics Overview */}
       <div className="donor-metrics-overview">
         <div className="metric-card">
           <div className="metric-value">{stats.totalListed ?? 0}</div>
-          <div className="metric-label">Total Listed Items</div>
+          <div className="metric-label">{t('donorDashboardHome.metrics.totalListedItems')}</div>
         </div>
         <div className="metric-card green">
           <div className="metric-value">{stats.completed ?? 0}</div>
-          <div className="metric-label">Completed Requests</div>
+          <div className="metric-label">{t('donorDashboardHome.metrics.completedRequests')}</div>
         </div>
         <div className="metric-card navy">
           <div className="metric-value">{stats.newRequests ?? 0}</div>
-          <div className="metric-label">Pending Requests</div>
+          <div className="metric-label">{t('donorDashboardHome.metrics.pendingRequests')}</div>
         </div>
         <div className="metric-card mint">
           <div className="metric-value">{stats.rejected ?? 0}</div>
-          <div className="metric-label">Rejected Requests</div>
+          <div className="metric-label">{t('donorDashboardHome.metrics.rejectedRequests')}</div>
         </div>
       </div>
 
       {/* Main Tiles Grid */}
       <div className="donor-tile-grid">
         <div className="donor-tile sky">
-          <h2>Total Listed Food</h2>
+          <h2>{t('donorDashboardHome.tiles.totalListedFood')}</h2>
           <div className="big">{stats.totalListed ?? 0}</div>
         </div>
 
         <div className="donor-tile green">
-          <h2>Take Away / Request Completed</h2>
+          <h2>{t('donorDashboardHome.tiles.takeAwayCompleted')}</h2>
           <div className="big">{stats.completed ?? 0}</div>
         </div>
 
         <div className="donor-tile navy">
-          <h2>Rejected Requests</h2>
+          <h2>{t('donorDashboardHome.tiles.rejectedRequests')}</h2>
           <div className="big">{stats.rejected ?? 0}</div>
         </div>
 
         <div className="donor-tile ice">
-          <h2>All Requests</h2>
+          <h2>{t('donorDashboardHome.tiles.allRequests')}</h2>
           <div className="big">{stats.allRequests ?? 0}</div>
         </div>
 
         <div className="donor-tile mint">
-          <h2>New Requests</h2>
+          <h2>{t('donorDashboardHome.tiles.newRequests')}</h2>
           <div className="big">{stats.newRequests ?? 0}</div>
         </div>
 
         <div className="donor-tile ice">
-          <h2>Tips</h2>
+          <h2>{t('donorDashboardHome.tiles.tips')}</h2>
           <div className="regular-text">
-            Keep listings up to date for faster matching.
+            {t('donorDashboardHome.tiles.tipsText')}
           </div>
         </div>
       </div>
 
       {/* Charts Section */}
       <div className="donor-charts-section">
-        <h2>Analytics & Insights</h2>
+        <h2>{t('donorDashboardHome.charts.analyticsInsights')}</h2>
         <div className="donor-charts-grid">
           {/* Bar Chart */}
           <div className="donor-chart-card">
             <h3>
               <BarChart3 className="lucide" size={16} aria-hidden />{" "}
-              Monthly Donation Activity
+              {t('donorDashboardHome.charts.monthlyDonationActivity')}
             </h3>
             <div className="css-bar-chart">
               {chartData.monthlyDonations.map((item, index) => (
@@ -144,7 +144,7 @@ export default function DonorDashboardHome({ stats, chartData }) {
           <div className="donor-chart-card">
             <h3>
               <PieChart className="lucide" size={16} aria-hidden />{" "}
-              Request Status Distribution
+              {t('donorDashboardHome.charts.requestStatusDistribution')}
             </h3>
             <div className="css-doughnut">
               <svg className="donut-icon" viewBox="0 0 100 100">
@@ -164,7 +164,7 @@ export default function DonorDashboardHome({ stats, chartData }) {
               </svg>
               <div className="doughnut-center">
                 <div className="doughnut-total">{statusDoughnut.total}</div>
-                <div className="doughnut-label">Total</div>
+                <div className="doughnut-label">{t('donorDashboardHome.charts.total')}</div>
               </div>
             </div>
             <div className="doughnut-legend">
@@ -184,7 +184,7 @@ export default function DonorDashboardHome({ stats, chartData }) {
           <div className="donor-chart-card">
             <h3>
               <TrendingUp className="lucide" size={16} aria-hidden />{" "}
-              Request Trends
+              {t('donorDashboardHome.charts.requestTrends')}
             </h3>
             <div className="css-line-chart">
               <div className="line-chart-grid">
@@ -194,7 +194,13 @@ export default function DonorDashboardHome({ stats, chartData }) {
               </div>
               <svg viewBox="0 0 400 200" preserveAspectRatio="none">
                 <defs>
-                  <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <linearGradient
+                    id="areaGradient"
+                    x1="0%"
+                    y1="0%"
+                    x2="0%"
+                    y2="100%"
+                  >
                     <stop offset="0%" stopColor="rgba(40, 167, 69, 0.3)" />
                     <stop offset="100%" stopColor="rgba(40, 167, 69, 0.05)" />
                   </linearGradient>
@@ -211,7 +217,7 @@ export default function DonorDashboardHome({ stats, chartData }) {
                             200 - (item.value / maxTrendValue) * 200
                           }`
                       )
-                      .join(" ")}
+                      .join(' ')}
                     L 400,200
                     Z
                   `}
@@ -228,7 +234,7 @@ export default function DonorDashboardHome({ stats, chartData }) {
                             200 - (item.value / maxTrendValue) * 200
                           }`
                       )
-                      .join(" ")}
+                      .join(' ')}
                   `}
                 />
               </svg>
@@ -258,7 +264,7 @@ export default function DonorDashboardHome({ stats, chartData }) {
           <div className="donor-chart-card">
             <h3>
               <Utensils className="lucide" size={16} aria-hidden />{" "}
-              Food Categories
+              {t('donorDashboardHome.charts.foodCategories')}
             </h3>
             <div className="css-doughnut">
               <svg className="donut-icon" viewBox="0 0 100 100">
@@ -278,7 +284,7 @@ export default function DonorDashboardHome({ stats, chartData }) {
               </svg>
               <div className="doughnut-center">
                 <div className="doughnut-total">100%</div>
-                <div className="doughnut-label">Distribution</div>
+                <div className="doughnut-label">{t('donorDashboardHome.charts.distribution')}</div>
               </div>
             </div>
             <div className="doughnut-legend">

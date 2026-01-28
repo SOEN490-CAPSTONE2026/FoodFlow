@@ -1,5 +1,6 @@
 import React, { useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { authAPI } from "../services/api";
 import { AuthContext } from "../contexts/AuthContext";
 import DonorIllustration from "../assets/illustrations/donor-illustration.jpg";
@@ -25,6 +26,7 @@ const validatePhoneNumber = (phone) => {
 };
 
 const DonorRegistration = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { login } = useContext(AuthContext);
   
@@ -63,6 +65,7 @@ const DonorRegistration = () => {
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [confirmAccuracy, setConfirmAccuracy] = useState(false);
+  const [dataStorageConsent, setDataStorageConsent] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
   const handleChange = (e) => {
@@ -111,7 +114,7 @@ const DonorRegistration = () => {
     if (!allowedTypes.includes(file.type)) {
       setFieldErrors({
         ...fieldErrors,
-        supportingDocument: 'Only PDF, JPG, and PNG files are allowed'
+        supportingDocument: t('donorRegistration.fileTypeError')
       });
       return;
     }
@@ -119,7 +122,7 @@ const DonorRegistration = () => {
     if (file.size > maxSize) {
       setFieldErrors({
         ...fieldErrors,
-        supportingDocument: 'File size must not exceed 10MB'
+        supportingDocument: t('donorRegistration.fileSizeError')
       });
       return;
     }
@@ -152,33 +155,33 @@ const DonorRegistration = () => {
     switch (name) {
       case 'email':
         if (!value) {
-          errorMsg = 'Email is required';
+          errorMsg = t('donorRegistration.emailRequired');
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-          errorMsg = 'Please enter a valid email address';
+          errorMsg = t('donorRegistration.emailInvalid');
         }
         break;
       case 'password':
         if (!value) {
-          errorMsg = 'Password is required';
+          errorMsg = t('donorRegistration.passwordRequired');
         } else if (value.length < 8) {
-          errorMsg = 'Password must be at least 8 characters';
+          errorMsg = t('donorRegistration.passwordMinLength');
         }
         break;
       case 'confirmPassword':
         if (!value) {
-          errorMsg = 'Please confirm your password';
+          errorMsg = t('donorRegistration.confirmPasswordRequired');
         } else if (value !== formData.password) {
-          errorMsg = 'Passwords do not match';
+          errorMsg = t('donorRegistration.passwordMismatch');
         }
         break;
       case 'phone':
         if (value && !validatePhoneNumber(value)) {
-          errorMsg = 'Please enter a valid phone number';
+          errorMsg = t('donorRegistration.phoneInvalid');
         }
         break;
       case 'postalCode':
         if (value && !/^[A-Za-z0-9\s-]+$/.test(value)) {
-          errorMsg = 'Please enter a valid postal code';
+          errorMsg = t('donorRegistration.postalCodeInvalid');
         }
         break;
       default:
@@ -196,45 +199,45 @@ const DonorRegistration = () => {
 
     switch (step) {
       case 1:
-        if (!formData.email) errors.email = 'Email is required';
+        if (!formData.email) errors.email = t('donorRegistration.emailRequired');
         else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-          errors.email = 'Please enter a valid email address';
+          errors.email = t('donorRegistration.emailInvalid');
         }
         
-        if (!formData.password) errors.password = 'Password is required';
+        if (!formData.password) errors.password = t('donorRegistration.passwordRequired');
         else if (formData.password.length < 8) {
-          errors.password = 'Password must be at least 8 characters';
+          errors.password = t('donorRegistration.passwordMinLength');
         }
         
-        if (!formData.confirmPassword) errors.confirmPassword = 'Please confirm your password';
+        if (!formData.confirmPassword) errors.confirmPassword = t('donorRegistration.confirmPasswordRequired');
         else if (formData.confirmPassword !== formData.password) {
-          errors.confirmPassword = 'Passwords do not match';
+          errors.confirmPassword = t('donorRegistration.passwordMismatch');
         }
         break;
 
       case 2:
-        if (!formData.organizationName) errors.organizationName = 'Organization name is required';
-        if (!formData.organizationType) errors.organizationType = 'Organization type is required';
+        if (!formData.organizationName) errors.organizationName = t('donorRegistration.organizationNameRequired');
+        if (!formData.organizationType) errors.organizationType = t('donorRegistration.organizationTypeRequired');
         
         // Either business license OR supporting document required
         if (!formData.businessLicense && !formData.supportingDocument) {
-          errors.verification = 'Please provide either a business license number or upload a supporting document';
+          errors.verification = t('donorRegistration.verificationRequired');
         }
         break;
 
       case 3:
-        if (!formData.streetAddress) errors.streetAddress = 'Street address is required';
-        if (!formData.city) errors.city = 'City is required';
-        if (!formData.postalCode) errors.postalCode = 'Postal code is required';
-        if (!formData.province) errors.province = 'Province/State is required';
-        if (!formData.country) errors.country = 'Country is required';
+        if (!formData.streetAddress) errors.streetAddress = t('donorRegistration.streetAddressRequired');
+        if (!formData.city) errors.city = t('donorRegistration.cityRequired');
+        if (!formData.postalCode) errors.postalCode = t('donorRegistration.postalCodeRequired');
+        if (!formData.province) errors.province = t('donorRegistration.provinceRequired');
+        if (!formData.country) errors.country = t('donorRegistration.countryRequired');
         break;
 
       case 4:
-        if (!formData.contactPerson) errors.contactPerson = 'Contact person name is required';
-        if (!formData.phone) errors.phone = 'Phone number is required';
+        if (!formData.contactPerson) errors.contactPerson = t('donorRegistration.contactPersonRequired');
+        if (!formData.phone) errors.phone = t('donorRegistration.phoneRequired');
         else if (!validatePhoneNumber(formData.phone)) {
-          errors.phone = 'Please enter a valid phone number';
+          errors.phone = t('donorRegistration.phoneInvalid');
         }
         break;
 
@@ -254,7 +257,7 @@ const DonorRegistration = () => {
     const errors = validateStep(currentStep);
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
-      setError('Please fix the errors before proceeding');
+      setError(t('donorRegistration.errorBeforeProceeding'));
       return;
     }
 
@@ -264,14 +267,14 @@ const DonorRegistration = () => {
       try {
         const response = await authAPI.checkEmailExists(formData.email);
         if (response.data.exists) {
-          setFieldErrors({ email: 'An account with this email already exists' });
-          setError('Email already registered. Please use a different email or login.');
+          setFieldErrors({ email: t('donorRegistration.emailExists') });
+          setError(t('donorRegistration.emailExistsError'));
           setLoading(false);
           return;
         }
       } catch (err) {
         console.error('Error checking email:', err);
-        setError('Unable to validate email. Please try again.');
+        setError(t('donorRegistration.emailValidationError'));
         setLoading(false);
         return;
       } finally {
@@ -352,6 +355,7 @@ const DonorRegistration = () => {
         payload.append('address', fullAddress);
         payload.append('contactPerson', formData.contactPerson);
         payload.append('phone', formatPhoneNumber(formData.phone));
+        payload.append('dataStorageConsent', dataStorageConsent);
       } else {
         // Use JSON payload if no file
         payload = {
@@ -364,20 +368,31 @@ const DonorRegistration = () => {
           address: fullAddress,
           contactPerson: formData.contactPerson,
           phone: formatPhoneNumber(formData.phone),
+          dataStorageConsent: dataStorageConsent,
         };
       }
 
       const response = await authAPI.registerDonor(payload);
 
-      // Extract token, role, userId, organizationName and verificationStatus from response
+      // Extract token, role, userId, organizationName, verificationStatus, and accountStatus from response
       const token = response?.data?.token;
       const userRole = response?.data?.role;
       const userId = response?.data?.userId;
       const organizationName = response?.data?.organizationName;
-      const verificationStatus = response?.data?.verificationStatus || 'verified';
+      const verificationStatus =
+        response?.data?.verificationStatus || 'verified';
+      const accountStatus =
+        response?.data?.accountStatus || 'PENDING_VERIFICATION';
 
       if (token && userRole && userId) {
-        login(token, userRole, userId, organizationName, verificationStatus);
+        login(
+          token,
+          userRole,
+          userId,
+          organizationName,
+          verificationStatus,
+          accountStatus
+        );
       }
 
       setSubmitted(true);
@@ -829,6 +844,27 @@ const DonorRegistration = () => {
                 <span>I confirm that the information provided is accurate</span>
               </label>
             </div>
+
+            <div className="form-group confirmation-checkbox">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={dataStorageConsent}
+                  onChange={e => setDataStorageConsent(e.target.checked)}
+                />
+                <span>
+                  I consent to data storage as outlined in the{' '}
+                  <Link
+                    to="/privacy-policy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: '#609B7E', textDecoration: 'underline' }}
+                  >
+                    Privacy Policy
+                  </Link>
+                </span>
+              </label>
+            </div>
           </div>
         );
 
@@ -905,7 +941,12 @@ const DonorRegistration = () => {
                   type="button"
                   className="submit-button"
                   onClick={handleSubmit}
-                  disabled={loading || !confirmAccuracy || !isStepValid(currentStep)}
+                  disabled={
+                    loading ||
+                    !confirmAccuracy ||
+                    !dataStorageConsent ||
+                    !isStepValid(currentStep)
+                  }
                 >
                   {loading ? 'Submitting...' : 'Register as Donor'}
                 </button>

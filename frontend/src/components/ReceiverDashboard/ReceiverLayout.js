@@ -1,52 +1,118 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Outlet, useLocation, useNavigate, Link, useNavigationType } from "react-router-dom";
-import "./Receiver_Styles/ReceiverLayout.css";
-import Logo from "../../assets/Logo.png";
-import ProfilePhoto from "./pfp.png";
-import { AuthContext } from "../../contexts/AuthContext";
-import { NotificationProvider, useNotification } from "../../contexts/NotificationContext";
-import MessageNotification from "../MessagingDashboard/MessageNotification";
-import ReceiverPreferences from "./ReceiverPreferences";
+import React, { useState, useRef, useEffect } from 'react';
+import {
+  Outlet,
+  useLocation,
+  useNavigate,
+  Link,
+  useNavigationType,
+} from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import './Receiver_Styles/ReceiverLayout.css';
+import Logo from '../../assets/Logo.png';
+import ProfilePhoto from './pfp.png';
+import { AuthContext } from '../../contexts/AuthContext';
+import {
+  NotificationProvider,
+  useNotification,
+} from '../../contexts/NotificationContext';
+import MessageNotification from '../MessagingDashboard/MessageNotification';
+import ReceiverPreferences from './ReceiverPreferences';
+import EmailVerificationRequired from '../EmailVerificationRequired';
+import AdminApprovalBanner from '../AdminApprovalBanner';
 import { connectToUserQueue, disconnect } from '../../services/socket';
-import api from '../../services/api';
+import api, { profileAPI } from '../../services/api';
 import {
   Settings as IconSettings,
   HelpCircle as IconHelpCircle,
   LogOut as IconLogOut,
   Inbox as IconInbox,
   CheckCircle,
-  User as IconUser
-} from "lucide-react";
+  User as IconUser,
+} from 'lucide-react';
 
 function ReceiverLayoutContent() {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const navType = useNavigationType();
-  const { logout, organizationName, organizationVerificationStatus, role } = React.useContext(AuthContext);
+  const {
+    logout,
+    organizationName,
+    organizationVerificationStatus,
+    accountStatus,
+    role,
+  } = React.useContext(AuthContext);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState(null);
   const dropdownRef = useRef(null);
-  const isActive = (path) => location.pathname === path;
-  const { notification, showNotification, clearNotification } = useNotification();
+  const isActive = path => location.pathname === path;
+  const { notification, showNotification, clearNotification } =
+    useNotification();
 
-  const isMessagesPage = location.pathname === "/receiver/messages";
+  const isMessagesPage = location.pathname === '/receiver/messages';
+
+  const getProfilePhotoUrl = photoUrl => {
+    if (!photoUrl) {
+      return null;
+    }
+    if (
+      photoUrl.startsWith('http://') ||
+      photoUrl.startsWith('https://') ||
+      photoUrl.startsWith('data:')
+    ) {
+      return photoUrl;
+    }
+    const apiBaseUrl =
+      process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+    const backendBaseUrl = apiBaseUrl.endsWith('/api')
+      ? apiBaseUrl.slice(0, -4)
+      : apiBaseUrl.replace(/\/api$/, '');
+    if (photoUrl.startsWith('/uploads/')) {
+      const filename = photoUrl.substring('/uploads/'.length);
+      return `${backendBaseUrl}/api/files/uploads/${filename}`;
+    }
+    if (photoUrl.startsWith('/api/files/')) {
+      return `${backendBaseUrl}${photoUrl}`;
+    }
+    return `${backendBaseUrl}${photoUrl.startsWith('/') ? '' : '/'}${photoUrl}`;
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchProfilePhoto = async () => {
+      try {
+        const response = await profileAPI.get();
+        if (isMounted) {
+          const url = getProfilePhotoUrl(response.data?.profilePhoto);
+          setProfilePhotoUrl(url);
+        }
+      } catch (error) {
+        console.error('Error fetching profile photo:', error);
+      }
+    };
+    fetchProfilePhoto();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const getPageTitle = () => {
     switch (location.pathname) {
       case "/receiver":
       case "/receiver/dashboard":
-        return "Receiver Dashboard";
+        return t('receiverLayout.pageTitles.receiverDashboard');
       case "/receiver/welcome":
-        return "Welcome";
+        return t('receiverLayout.pageTitles.welcome');
       case "/receiver/browse":
-        return "Browse Available Food";
+        return t('receiverLayout.pageTitles.browse');
       case "/receiver/messages":
-        return "Messages";
+        return t('receiverLayout.pageTitles.messages');
       case "/receiver/settings":
-        return "Settings";
+        return t('receiverLayout.pageTitles.settings');
       default:
-        return "Receiver Dashboard";
+        return t('receiverLayout.pageTitles.default');
     }
   };
 
@@ -54,28 +120,28 @@ function ReceiverLayoutContent() {
     switch (location.pathname) {
       case "/receiver":
       case "/receiver/dashboard":
-        return "Overview of nearby food and your activity";
+        return t('receiverLayout.pageDescriptions.receiverDashboard');
       case "/receiver/welcome":
-        return "Start here: search the map or browse nearby food";
+        return t('receiverLayout.pageDescriptions.welcome');
       case "/receiver/browse":
-        return "Browse available food listings";
+        return t('receiverLayout.pageDescriptions.browse');
       case "/receiver/messages":
-        return "Communicate with donors and other users";
+        return t('receiverLayout.pageDescriptions.messages');
       case "/receiver/settings":
-        return "Manage your preferences and account settings";
+        return t('receiverLayout.pageDescriptions.settings');
       default:
-        return "FoodFlow Receiver Portal";
+        return t('receiverLayout.pageDescriptions.default');
     }
   };
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
+    const handleClickOutside = event => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowDropdown(false);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   // Fetch unread message count
@@ -83,7 +149,10 @@ function ReceiverLayoutContent() {
     const fetchUnreadCount = async () => {
       try {
         const response = await api.get('/conversations');
-        const totalUnread = response.data.reduce((sum, conv) => sum + (conv.unreadCount || 0), 0);
+        const totalUnread = response.data.reduce(
+          (sum, conv) => sum + (conv.unreadCount || 0),
+          0
+        );
         setUnreadMessagesCount(totalUnread);
       } catch (err) {
         console.error('Error fetching unread message count:', err);
@@ -98,9 +167,14 @@ function ReceiverLayoutContent() {
 
   // Connect to websocket for user-specific notifications (receiver)
   useEffect(() => {
-    const onMessage = (payload) => {
-      const senderName = payload.senderName || payload.sender?.email || payload.senderEmail || '';
-      const message = payload.messageBody || payload.message || payload.body || '';
+    const onMessage = payload => {
+      const senderName =
+        payload.senderName ||
+        payload.sender?.email ||
+        payload.senderEmail ||
+        '';
+      const message =
+        payload.messageBody || payload.message || payload.body || '';
       if (message) {
         showNotification(senderName, message);
         // Increment unread count when receiving a new message
@@ -108,30 +182,30 @@ function ReceiverLayoutContent() {
       }
     };
 
-    const onClaimNotification = (payload) => {
+    const onClaimNotification = payload => {
       console.log('RECEIVER: Claim confirmation received:', payload);
       const foodTitle = payload.surplusPostTitle || 'a food item';
       const donorName = payload.surplusPost?.donorEmail || 'a donor';
       const status = payload.status || '';
-      let message = `Successfully claimed "${foodTitle}" from ${donorName}`;
+      let message = t('notifications.successfullyClaimed', { foodTitle, donorName });
 
       if (status === 'READY_FOR_PICKUP' || status === 'Ready for Pickup') {
-        message = `"${foodTitle}" is ready for pickup! Check your claims for details.`;
+        message = t('notifications.readyForPickup', { foodTitle });
       }
 
       console.log('RECEIVER: Setting notification with message:', message);
-      showNotification('Claim Confirmed', message);
+      showNotification(t('notifications.claimConfirmed'), message);
     };
 
-    const onClaimCancelled = (payload) => {
+    const onClaimCancelled = payload => {
       console.log('RECEIVER: Claim cancellation received:', payload);
       const foodTitle = payload.surplusPostTitle || 'a food item';
-      const message = `Your claim on "${foodTitle}" has been cancelled`;
+      const message = t('notifications.claimCancelled', { foodTitle });
       console.log('RECEIVER: Setting notification with message:', message);
-      showNotification('Claim Status', message);
+      showNotification(t('notifications.claimStatus'), message);
     };
 
-    const onNewPostNotification = (payload) => {
+    const onNewPostNotification = payload => {
       console.log('RECEIVER: New post notification received:', payload);
       const title = payload.title || 'New donation';
       const quantity = payload.quantity || 0;
@@ -141,22 +215,34 @@ function ReceiverLayoutContent() {
       showNotification('🔔 New Donation Available', message);
     };
 
-    connectToUserQueue(onMessage, onClaimNotification, onClaimCancelled, onNewPostNotification);
+    connectToUserQueue(
+      onMessage,
+      onClaimNotification,
+      onClaimCancelled,
+      onNewPostNotification
+    );
     return () => {
-      try { disconnect(); } catch (e) { /* ignore */ }
+      try {
+        disconnect();
+      } catch (e) {
+        /* ignore */
+      }
     };
   }, [showNotification]);
 
   useEffect(() => {
-    if (navType === "POP" && !location.pathname.startsWith("/receiver")) {
-      navigate("/receiver/dashboard", { replace: true });
+    if (navType === 'POP' && !location.pathname.startsWith('/receiver')) {
+      navigate('/receiver/dashboard', { replace: true });
     }
     // Refresh unread count when navigating away from messages page
     if (!isMessagesPage) {
       const fetchUnreadCount = async () => {
         try {
           const response = await api.get('/conversations');
-          const totalUnread = response.data.reduce((sum, conv) => sum + (conv.unreadCount || 0), 0);
+          const totalUnread = response.data.reduce(
+            (sum, conv) => sum + (conv.unreadCount || 0),
+            0
+          );
           setUnreadMessagesCount(totalUnread);
         } catch (err) {
           console.error('Error fetching unread message count:', err);
@@ -166,15 +252,16 @@ function ReceiverLayoutContent() {
     }
   }, [navType, location.pathname, navigate, isMessagesPage]);
 
-  const toggleDropdown = () => setShowDropdown((s) => !s);
+  const toggleDropdown = () => setShowDropdown(s => !s);
 
   const handleLogout = async () => {
     try {
       await logout();
     } catch (e) {
+      // Ignore logout errors
     } finally {
       setShowDropdown(false);
-      navigate("/", { replace: true, state: { scrollTo: "home" } });
+      navigate('/', { replace: true, state: { scrollTo: 'home' } });
     }
   };
 
@@ -182,7 +269,7 @@ function ReceiverLayoutContent() {
     <div className="receiver-layout">
       <div className="receiver-sidebar">
         <div className="receiver-sidebar-header">
-          <Link to="/" state={{ scrollTo: "home", from: "receiver" }}>
+          <Link to="/" state={{ scrollTo: 'home', from: 'receiver' }}>
             <img src={Logo} alt="FoodFlow" className="receiver-logo" />
           </Link>
         </div>
@@ -190,31 +277,31 @@ function ReceiverLayoutContent() {
         <div className="receiver-nav-links">
           <Link
             to="/receiver"
-            className={`receiver-nav-link ${location.pathname === "/receiver" || location.pathname === "/receiver/browse" ? "active" : ""}`}
+            className={`receiver-nav-link ${location.pathname === '/receiver' || location.pathname === '/receiver/browse' ? 'active' : ''}`}
           >
-            Donations
+            {t('receiverLayout.donations')}
           </Link>
 
           <Link
             to="/receiver/my-claims"
-            className={`receiver-nav-link ${isActive("/receiver/my-claims") || isActive("/receiver/dashboard") ? "active" : ""}`}
+            className={`receiver-nav-link ${isActive('/receiver/my-claims') || isActive('/receiver/dashboard') ? 'active' : ''}`}
           >
-            My Claims
+            {t('receiverLayout.myClaims')}
           </Link>
 
           <Link
             to="/receiver/welcome"
-            className={`receiver-nav-link ${location.pathname === "/receiver/welcome" ? "active" : ""}`}
+            className={`receiver-nav-link ${location.pathname === '/receiver/welcome' ? 'active' : ''}`}
           >
-            Saved Donations
+            {t('receiverLayout.savedDonations')}
           </Link>
         </div>
 
         <div className="receiver-user-info" ref={dropdownRef}>
           <div className="user-actions">
-            <button 
-              className="inbox-btn" 
-              type="button" 
+            <button
+              className="inbox-btn"
+              type="button"
               aria-label="Messages"
               onClick={() => navigate('/receiver/messages')}
             >
@@ -229,51 +316,60 @@ function ReceiverLayoutContent() {
               type="button"
               aria-label="Account menu"
               onClick={toggleDropdown}
-              title="Account"
+              title={t('receiverLayout.account')}
             >
-              <img src={ProfilePhoto} alt="Profile" />
+              <img src={profilePhotoUrl || ProfilePhoto} alt="Profile" />
             </button>
           </div>
 
           {showDropdown && (
             <div className="dropdown-menu dropdown-menu--card">
               <div className="dropdown-header">
-                Hello {organizationName || 'User'}!
+                {t('receiverLayout.hello', { name: organizationName || t('receiverLayout.user') })}
               </div>
               <div className="dropdown-divider"></div>
 
-              <div className="dropdown-item dropdown-item--settings" onClick={() => {
-                setShowDropdown(false);
-                navigate('/receiver/settings');
-              }}>
+              <div
+                className="dropdown-item dropdown-item--settings"
+                onClick={() => {
+                  setShowDropdown(false);
+                  navigate('/receiver/settings');
+                }}
+              >
                 <IconSettings size={18} />
-                <span>Settings</span>
+                <span>{t('receiverLayout.settings')}</span>
               </div>
 
-              <div className="dropdown-item dropdown-item--preferences" onClick={() => {
-                setShowDropdown(false);
-                setShowPreferences(true);
-              }}>
+              <div
+                className="dropdown-item dropdown-item--preferences"
+                onClick={() => {
+                  setShowDropdown(false);
+                  setShowPreferences(true);
+                }}
+              >
                 <IconUser size={18} />
-                <span>Preferences</span>
+                <span>{t('receiverLayout.preferences')}</span>
               </div>
 
               <div
                 className="dropdown-item dropdown-item--help"
                 onClick={() => {
                   setShowDropdown(false);
-                  navigate("/receiver/help");
+                  navigate('/receiver/help');
                 }}
               >
                 <IconHelpCircle size={18} />
-                <span>Help</span>
+                <span>{t('receiverLayout.help')}</span>
               </div>
 
               <div className="dropdown-divider"></div>
 
-              <div className="dropdown-item dropdown-item-logout" onClick={handleLogout}>
+              <div
+                className="dropdown-item dropdown-item-logout"
+                onClick={handleLogout}
+              >
                 <IconLogOut size={18} />
-                <span>Logout</span>
+                <span>{t('receiverLayout.logout')}</span>
               </div>
             </div>
           )}
@@ -281,33 +377,42 @@ function ReceiverLayoutContent() {
       </div>
 
       <div className="receiver-main">
-        {!isMessagesPage && (
-          <div className="receiver-topbar">
-            <div className="receiver-topbar-left">
-              <h1>{getPageTitle()}</h1>
-              <p>{getPageDescription()}</p>
-            </div>
-          </div>
-        )}
+        {/* Show email verification screen if account not verified */}
+        {accountStatus === 'PENDING_VERIFICATION' ? (
+          <EmailVerificationRequired />
+        ) : (
+          <>
+            {/* Show admin approval banner if waiting for approval */}
+            {accountStatus === 'PENDING_ADMIN_APPROVAL' && (
+              <AdminApprovalBanner />
+            )}
 
-        <div className={`receiver-content ${isMessagesPage ? 'messages-page' : ''}`}>
-          {role === 'RECEIVER' && organizationVerificationStatus === 'PENDING' && (
-            <div className="verification-banner" role="status" aria-live="polite">
-              Your account is pending verification. Some features may be limited until your organization is verified.
+            {!isMessagesPage && (
+              <div className="receiver-topbar">
+                <div className="receiver-topbar-left">
+                  <h1>{getPageTitle()}</h1>
+                  <p>{getPageDescription()}</p>
+                </div>
+              </div>
+            )}
+
+            <div
+              className={`receiver-content ${isMessagesPage ? 'messages-page' : ''}`}
+            >
+              <Outlet />
+              <MessageNotification
+                notification={notification}
+                onClose={clearNotification}
+              />
             </div>
-          )}
-          <Outlet />
-          <MessageNotification
-            notification={notification}
-            onClose={clearNotification}
-          />
-        </div>
+          </>
+        )}
       </div>
 
       <ReceiverPreferences
         isOpen={showPreferences}
         onClose={() => setShowPreferences(false)}
-        onSave={(savedPreferences) => {
+        onSave={savedPreferences => {
           console.log('Preferences saved:', savedPreferences);
           // You can add additional logic here if needed
         }}

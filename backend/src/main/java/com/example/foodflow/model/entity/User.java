@@ -18,13 +18,13 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Email
-    @NotBlank
+    @Email(message = "{validation.email.invalid}")
+    @NotBlank(message = "{validation.email.required}")
     @Column(unique = true)
     private String email;
 
-    @NotBlank
-    @Size(min = 8)
+    @NotBlank(message = "{validation.password.required}")
+    @Size(min = 8, message = "{validation.password.minLength}")
     private String password;
 
     @Enumerated(EnumType.STRING)
@@ -32,7 +32,7 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "account_status")
-    private AccountStatus accountStatus = AccountStatus.ACTIVE;
+    private AccountStatus accountStatus = AccountStatus.PENDING_VERIFICATION;
 
     @Column(name = "admin_notes", columnDefinition = "TEXT")
     private String adminNotes;
@@ -70,6 +70,12 @@ public class User {
     @Column(name = "profile_photo", columnDefinition = "TEXT")
     private String profilePhoto;
 
+    @Column(name = "total_points")
+    private Integer totalPoints = 0;
+
+    @Column(name = "data_storage_consent")
+    private Boolean dataStorageConsent = false;
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Organization organization;
 
@@ -78,6 +84,9 @@ public class User {
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    @Column(length = 5)
+    private String languagePreference = "en";
 
     // Constructors, getters, setters
     public User() {}
@@ -110,6 +119,9 @@ public class User {
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
     
+    public String getLanguagePreference() { return languagePreference; }
+    public void setLanguagePreference(String languagePreference) { this.languagePreference = languagePreference; }
+
     public AccountStatus getAccountStatus() { return accountStatus; }
     public void setAccountStatus(AccountStatus accountStatus) { this.accountStatus = accountStatus; }
     
@@ -147,4 +159,10 @@ public class User {
 
     public String getProfilePhoto() { return profilePhoto; }
     public void setProfilePhoto(String profilePhoto) { this.profilePhoto = profilePhoto; }
+
+    public Integer getTotalPoints() { return totalPoints; }
+    public void setTotalPoints(Integer totalPoints) { this.totalPoints = totalPoints; }
+
+    public Boolean getDataStorageConsent() { return dataStorageConsent; }
+    public void setDataStorageConsent(Boolean dataStorageConsent) { this.dataStorageConsent = dataStorageConsent; }
 }

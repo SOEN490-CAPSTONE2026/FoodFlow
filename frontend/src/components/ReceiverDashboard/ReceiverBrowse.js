@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
+import { useTranslation } from 'react-i18next';
 import {Calendar, MapPin, Clock, Package2, Bookmark, ChevronDown, ChevronUp, Package, User, Target, ArrowUpDown, Star} from "lucide-react";
 import { useLoadScript } from "@react-google-maps/api";
 import { surplusAPI, recommendationAPI } from "../../services/api";
@@ -11,6 +12,7 @@ import "./ReceiverBrowse.css";
 const libraries = ["places"];
 
 export default function ReceiverBrowse() {
+  const { t } = useTranslation();
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY || "",
     libraries: libraries,
@@ -74,11 +76,11 @@ export default function ReceiverBrowse() {
       setError(null);
     } catch (e) {
       console.error("Error fetching donations:", e);
-      setError("Failed to load available donations");
+      setError(t('receiverBrowse.failedToLoad'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   const fetchFilteredDonations = useCallback(async (filterCriteria) => {
     setLoading(true);
@@ -100,12 +102,12 @@ export default function ReceiverBrowse() {
       setItems(Array.isArray(data) ? data : []);
       setError(null);
     } catch (e) {
-      setError("Failed to load donations with applied filters");
+      setError(t('receiverBrowse.failedToLoadFiltered'));
       console.error("Error fetching filtered donations:", e);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchDonations();
@@ -174,12 +176,12 @@ export default function ReceiverBrowse() {
       console.error("Error claiming post:", error);
       alert(
         error.response?.data?.message ||
-        "Failed to claim. It may have already been claimed."
+        t('receiverBrowse.failedToClaim')
       );
     } finally {
       setClaiming(false);
     }
-  }, []);
+  }, [t]);
 
   const handleClaimDonation = useCallback((item) => {
     if (item.pickupSlots && Array.isArray(item.pickupSlots) && item.pickupSlots.length > 0) {
@@ -189,7 +191,7 @@ export default function ReceiverBrowse() {
       return;
     }
 
-    if (!window.confirm("Are you sure you want to claim this donation?")) {
+    if (!window.confirm(t('receiverBrowse.confirmClaim'))) {
       return;
     }
 
@@ -200,7 +202,7 @@ export default function ReceiverBrowse() {
     } : null;
 
     confirmClaim(item, legacySlot);
-  }, [confirmClaim]);
+  }, [confirmClaim, t]);
 
   const formatExpiryDate = useCallback((dateString) => {
     if (!dateString) return "—";
@@ -249,35 +251,35 @@ export default function ReceiverBrowse() {
       const now = new Date();
       const posted = new Date(dateString);
       const diffInHours = Math.floor((now - posted) / (1000 * 60 * 60));
-      if (diffInHours < 1) return "Just now";
-      if (diffInHours === 1) return "1 hour ago";
-      if (diffInHours < 24) return `${diffInHours} hours ago`;
+      if (diffInHours < 1) return t('receiverBrowse.justNow');
+      if (diffInHours === 1) return t('receiverBrowse.hourAgo');
+      if (diffInHours < 24) return t('receiverBrowse.hoursAgo', { hours: diffInHours });
       const diffInDays = Math.floor(diffInHours / 24);
-      if (diffInDays === 1) return "1 day ago";
-      return `${diffInDays} days ago`;
+      if (diffInDays === 1) return t('receiverBrowse.dayAgo');
+      return t('receiverBrowse.daysAgo', { days: diffInDays });
     } catch {
       return "";
     }
-  }, []);
+  }, [t]);
 
   const formatStatus = useCallback((status) => {
     switch (status) {
       case "AVAILABLE":
-        return "Available";
+        return t('receiverBrowse.status.available');
       case "READY_FOR_PICKUP":
-        return "Ready for Pickup";
+        return t('receiverBrowse.status.readyForPickup');
       case "CLAIMED":
-        return "Claimed";
+        return t('receiverBrowse.status.claimed');
       case "COMPLETED":
-        return "Completed";
+        return t('receiverBrowse.status.completed');
       case "NOT_COMPLETED":
-        return "Not Completed";
+        return t('receiverBrowse.status.notCompleted');
       case "EXPIRED":
-        return "Expired";
+        return t('receiverBrowse.status.expired');
       default:
-        return status || "Available";
+        return status || t('receiverBrowse.status.available');
     }
-  }, []);
+  }, [t]);
 
   const getStatusClass = useCallback((status) => {
     switch (status) {
@@ -301,12 +303,12 @@ export default function ReceiverBrowse() {
   return (
     <div className="receiver-browse-container">
       <div className="receiver-browse-header">
-        <h1 className="receiver-section-title-browse">Explore Available Donations</h1>
+        <h1 className="receiver-section-title-browse">{t('receiverBrowse.title')}</h1>
         
         <div className="sort-controls">
           <span className="sort-label">
             <ArrowUpDown size={16} />
-            Sort by:
+            {t('receiverBrowse.sortBy')}
           </span>
           <div className="sort-buttons">
             <button 
@@ -314,14 +316,14 @@ export default function ReceiverBrowse() {
               onClick={() => setSortBy('relevance')}
             >
               <Target size={16} />
-              Relevance
+              {t('receiverBrowse.relevance')}
             </button>
             <button 
               className={`sort-button ${sortBy === 'date' ? 'active' : ''}`}
               onClick={() => setSortBy('date')}
             >
               <Calendar size={16} />
-              Date Posted
+              {t('receiverBrowse.datePosted')}
             </button>
           </div>
         </div>
@@ -348,15 +350,15 @@ export default function ReceiverBrowse() {
 
       {loading && (
         <div className="receiver-loading-state">
-          <p>Loading donations...</p>
+          <p>{t('receiverBrowse.loading')}</p>
         </div>
       )}
 
       {!loading && !error && items.length === 0 && (
         <div className="receiver-empty-state">
           <Package className="receiver-empty-state-icon" size={64} />
-          <p>No donations available right now.</p>
-          <p>Check back soon for new surplus food!</p>
+          <p>{t('receiverBrowse.noDonations')}</p>
+          <p>{t('receiverBrowse.checkBackSoon')}</p>
         </div>
       )}
 
@@ -480,12 +482,12 @@ export default function ReceiverBrowse() {
                   <div className="receiver-donation-info">
                     <div className="receiver-info-item">
                       <Calendar size={16} className="receiver-info-icon-expiry-icon" />
-                      <span>Expires: {formatExpiryDate(item.expiryDate)}</span>
+                      <span>{t('receiverBrowse.expires')}: {formatExpiryDate(item.expiryDate)}</span>
                     </div>
                     <div className="receiver-info-item">
                       <MapPin size={16} className="receiver-info-icon-location-icon" />
                       <span>
-                        {item.pickupLocation?.address || "Location not specified"}
+                        {item.pickupLocation?.address || t('receiverBrowse.locationNotSpecified')}
                       </span>
                     </div>
                     <div className="receiver-info-item">
@@ -524,7 +526,7 @@ export default function ReceiverBrowse() {
                     </div>
                     <div className="receiver-donor-info">
                       <User size={16} />
-                      <span>Donated by {item.donorName || "Local Business"}</span>
+                      <span>{t('receiverBrowse.donatedBy', { donorName: item.donorName || t('receiverBrowse.localBusiness') })}</span>
                     </div>
                   </div>
 
@@ -533,17 +535,17 @@ export default function ReceiverBrowse() {
                       <div className="receiver-details-grid">
                         <div className="receiver-details-section">
                           <div className="receiver-detail-item">
-                            <span className="receiver-detail-label">Quantity</span>
+                            <span className="receiver-detail-label">{t('receiverBrowse.quantity')}</span>
                             <div className="receiver-detail-value">
                               <span className="receiver-quantity-icon-detail">
                                 <Package2 size={14} />
                               </span>
-                              {item.quantity?.value || 0} {getUnitLabel(item.quantity?.unit) || "items"}
+                              {item.quantity?.value || 0} {getUnitLabel(item.quantity?.unit) || t('receiverBrowse.items')}
                             </div>
                           </div>
                           <div className="receiver-detail-item">
                             <span className="receiver-detail-label">
-                              Pickup Time{item.pickupSlots && item.pickupSlots.length > 1 ? 's' : ''}
+                              {t('receiverBrowse.pickupTime')}{item.pickupSlots && item.pickupSlots.length > 1 ? 's' : ''}
                             </span>
                             <div className="receiver-detail-value">
                               <span className="receiver-time-icon-detail">
@@ -576,7 +578,7 @@ export default function ReceiverBrowse() {
 
                         <div className="receiver-details-section">
                           <div className="receiver-detail-item">
-                            <span className="receiver-detail-label">Expires</span>
+                            <span className="receiver-detail-label">{t('receiverBrowse.expires')}</span>
                             <div className="receiver-detail-value">
                               <span className="receiver-expiry-icon-detail">
                                 <Calendar size={14} />
@@ -585,12 +587,12 @@ export default function ReceiverBrowse() {
                             </div>
                           </div>
                           <div className="receiver-detail-item">
-                            <span className="receiver-detail-label">Location</span>
+                            <span className="receiver-detail-label">{t('common.location', 'Location')}</span>
                             <div className="receiver-detail-value">
                               <span className="receiver-location-icon-detail">
                                 <MapPin size={14} />
                               </span>
-                              {item.pickupLocation?.address || "Location not specified"}
+                              {item.pickupLocation?.address || t('receiverBrowse.locationNotSpecified')}
                             </div>
                           </div>
                         </div>
@@ -632,14 +634,14 @@ export default function ReceiverBrowse() {
 
                       {item.description && (
                         <div className="receiver-donor-note">
-                          <div className="receiver-note-label">Donor's Note</div>
+                          <div className="receiver-note-label">{t('receiverBrowse.donorsNote')}</div>
                           <div className="receiver-note-content">{item.description}</div>
                         </div>
                       )}
 
                       {item.createdAt && (
                         <div className="receiver-posted-time">
-                          Posted {formatPostedTime(item.createdAt)}
+                          {t('receiverBrowse.posted')} {formatPostedTime(item.createdAt)}
                         </div>
                       )}
                     </div>
@@ -651,7 +653,7 @@ export default function ReceiverBrowse() {
                       className="receiver-claim-button"
                       disabled={claiming}
                     >
-                      {claiming && claimTargetItem?.id === item.id ? 'Claiming...' : 'Claim Donation'}
+                      {claiming && claimTargetItem?.id === item.id ? t('receiverBrowse.claiming') : t('receiverBrowse.claimDonation')}
                     </button>
                     <button
                       onClick={() => handleMoreClick(item)}
@@ -659,7 +661,7 @@ export default function ReceiverBrowse() {
                         expandedCardId === item.id ? "expanded" : ""
                       }`}
                     >
-                      {expandedCardId === item.id ? "Less" : "More"}
+                      {expandedCardId === item.id ? t('receiverBrowse.less') : t('receiverBrowse.more')}
                       {expandedCardId === item.id ? (
                         <ChevronUp size={14} className="receiver-dropdown-icon" />
                       ) : (
@@ -693,6 +695,7 @@ export default function ReceiverBrowse() {
 }
 
 function ClaimModal({ open, item, selectedIndex, onSelectIndex, onConfirm, onClose, loading, formatFn }) {
+  const { t } = useTranslation();
   if (!open || !item) return null;
 
   const slots = Array.isArray(item.pickupSlots) ? item.pickupSlots : [];
@@ -729,7 +732,7 @@ function ClaimModal({ open, item, selectedIndex, onSelectIndex, onConfirm, onClo
 
         <div className="claim-modal-actions">
           <button className="btn btn-cancel" onClick={onClose} disabled={loading}>
-            Cancel
+            {t('common.cancel')}
           </button>
           <button
             className="btn btn-create"
@@ -746,7 +749,7 @@ function ClaimModal({ open, item, selectedIndex, onSelectIndex, onConfirm, onClo
             }}
             disabled={loading || slots.length === 0}
           >
-            {loading ? 'Confirming...' : 'Confirm & Claim'}
+            {loading ? t('receiverBrowse.confirming') : t('receiverBrowse.confirmAndClaim')}
           </button>
         </div>
       </div>

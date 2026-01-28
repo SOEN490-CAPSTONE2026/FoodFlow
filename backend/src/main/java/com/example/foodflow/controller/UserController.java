@@ -2,7 +2,10 @@ package com.example.foodflow.controller;
 
 import com.example.foodflow.model.dto.UpdateNotificationPreferencesRequest;
 import com.example.foodflow.model.entity.User;
+import com.example.foodflow.model.dto.UserDTO;
+import com.example.foodflow.model.dto.LanguagePreference;
 import com.example.foodflow.service.UserService;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +28,23 @@ public class UserController {
         this.userService = userService;
     }
     
+    @PutMapping("/language")
+    public ResponseEntity<Void> updateLanguagePreference(
+            @AuthenticationPrincipal User currentUser,
+            @Valid @RequestBody LanguagePreference request) {
+            
+        userService.updateLanguagePreference(currentUser, request.getLanguagePreference());
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<UserDTO> getProfile(
+            @AuthenticationPrincipal User currentUser) {
+        
+        UserDTO dto = userService.getProfile(currentUser);
+        return ResponseEntity.ok(dto);
+    }
+
     @GetMapping("/notifications/preferences")
     public ResponseEntity<Map<String, Object>> getNotificationPreferences(
             @AuthenticationPrincipal User currentUser) {

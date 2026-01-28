@@ -47,7 +47,7 @@ class CompleteSurplusRequestTest {
 
         // Then
         assertThat(violations).hasSize(1);
-        assertThat(violations.iterator().next().getMessage()).contains("OTP code is required");
+        assertThat(violations.iterator().next().getMessage()).contains("validation.otpCode.required");
     }
 
     @Test
@@ -61,7 +61,7 @@ class CompleteSurplusRequestTest {
         // Then
         assertThat(violations).isNotEmpty();
         assertThat(violations.stream()
-            .anyMatch(v -> v.getMessage().contains("OTP code is required"))).isTrue();
+                .anyMatch(v -> v.getMessage().contains("validation.otpCode.required"))).isTrue();
     }
 
     @Test
@@ -74,7 +74,7 @@ class CompleteSurplusRequestTest {
 
         // Then
         assertThat(violations).hasSize(1);
-        assertThat(violations.iterator().next().getMessage()).contains("OTP code must be exactly 6 digits");
+        assertThat(violations.iterator().next().getMessage()).contains("validation.otpCode.pattern");
     }
 
     @Test
@@ -87,7 +87,7 @@ class CompleteSurplusRequestTest {
 
         // Then
         assertThat(violations).hasSize(1);
-        assertThat(violations.iterator().next().getMessage()).contains("OTP code must be exactly 6 digits");
+        assertThat(violations.iterator().next().getMessage()).contains("validation.otpCode.pattern");
     }
 
     @Test
@@ -100,7 +100,7 @@ class CompleteSurplusRequestTest {
 
         // Then
         assertThat(violations).hasSize(1);
-        assertThat(violations.iterator().next().getMessage()).contains("OTP code must be exactly 6 digits");
+        assertThat(violations.iterator().next().getMessage()).contains("validation.otpCode.pattern");
     }
 
     @Test
@@ -113,7 +113,7 @@ class CompleteSurplusRequestTest {
 
         // Then
         assertThat(violations).hasSize(1);
-        assertThat(violations.iterator().next().getMessage()).contains("OTP code must be exactly 6 digits");
+        assertThat(violations.iterator().next().getMessage()).contains("validation.otpCode.pattern");
     }
 
     @Test
@@ -126,7 +126,7 @@ class CompleteSurplusRequestTest {
 
         // Then
         assertThat(violations).hasSize(1);
-        assertThat(violations.iterator().next().getMessage()).contains("OTP code must be exactly 6 digits");
+        assertThat(violations.iterator().next().getMessage()).contains("validation.otpCode.pattern");
     }
 
     @Test

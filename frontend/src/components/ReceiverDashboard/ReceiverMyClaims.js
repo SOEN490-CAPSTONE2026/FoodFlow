@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Package, User, ArrowRight, Filter, Clock, Star } from 'lucide-react';
 import Select from 'react-select';
 import { claimsAPI, feedbackAPI } from '../../services/api';
@@ -9,8 +10,10 @@ import ClaimDetailModal from './ClaimDetailModal.js';
 import "./Receiver_Styles/ReceiverMyClaims.css";
 
 export default function ReceiverMyClaims() {
+  const { t } = useTranslation();
   const { showNotification } = useNotification();
   const { userTimezone } = useTimezone();
+  const hasSetInitialFilter = useRef(false);
   const [claims, setClaims] = useState([]);
   const [activeFilter, setActiveFilter] = useState('All');
   const [sortBy, setSortBy] = useState({ value: 'date', label: 'Sort by Date' });
@@ -22,9 +25,38 @@ export default function ReceiverMyClaims() {
   const [rating, setRating] = useState({ averageRating: 0, totalReviews: 0 });
 
   const sortOptions = [
-    { value: 'date', label: 'Sort by Date' },
-    { value: 'status', label: 'Sort by Status' }
+    { value: 'date', label: t('receiverMyClaims.sortByDate') },
+    { value: 'status', label: t('receiverMyClaims.sortByStatus') }
   ];
+
+  const getNormalizedStatus = claim => {
+    const postStatus = claim.surplusPost?.status;
+    if (postStatus) {
+      return postStatus;
+    }
+    const claimStatus = claim?.status;
+    if (!claimStatus || typeof claimStatus !== 'string') {
+      return null;
+    }
+    return claimStatus.toUpperCase().replace(/\s+/g, '_');
+  };
+
+  const getDisplayStatus = claim => {
+    const status = getNormalizedStatus(claim);
+    if (status === 'READY_FOR_PICKUP') {
+      return 'Ready for Pickup';
+    }
+    if (status === 'COMPLETED') {
+      return 'Completed';
+    }
+    if (status === 'EXPIRED') {
+      return 'EXPIRED';
+    }
+    if (status === 'NOT_COMPLETED') {
+      return 'Not Completed';
+    }
+    return 'Claimed';
+  };
 
   useEffect(() => {
     fetchMyClaims();
@@ -38,6 +70,51 @@ export default function ReceiverMyClaims() {
     return () => clearInterval(intervalId);
   }, []);
 
+  // Set initial filter based on priority: Ready > Claimed > Completed (only once on first load)
+  useEffect(() => {
+    if (claims.length === 0 || hasSetInitialFilter.current) {
+      return;
+    }
+
+    // Check for Ready for Pickup claims
+    const hasReady = claims.some(
+      c => getNormalizedStatus(c) === 'READY_FOR_PICKUP'
+    );
+    if (hasReady) {
+      setActiveFilter('Ready');
+      hasSetInitialFilter.current = true;
+      return;
+    }
+
+    // Check for Claimed (not ready, not completed, not expired)
+    const hasClaimed = claims.some(
+      c =>
+        getNormalizedStatus(c) !== 'READY_FOR_PICKUP' &&
+        getNormalizedStatus(c) !== 'COMPLETED' &&
+        getNormalizedStatus(c) !== 'NOT_COMPLETED' &&
+        getNormalizedStatus(c) !== 'EXPIRED'
+    );
+    if (hasClaimed) {
+      setActiveFilter('Claimed');
+      hasSetInitialFilter.current = true;
+      return;
+    }
+
+    // Check for Completed claims
+    const hasCompleted = claims.some(
+      c => getNormalizedStatus(c) === 'COMPLETED'
+    );
+    if (hasCompleted) {
+      setActiveFilter('Completed');
+      hasSetInitialFilter.current = true;
+      return;
+    }
+
+    // Otherwise show All
+    setActiveFilter('All');
+    hasSetInitialFilter.current = true;
+  }, [claims]);
+
   const fetchMyClaims = async () => {
     setLoading(true);
     try {
@@ -46,7 +123,7 @@ export default function ReceiverMyClaims() {
       setError(null);
     } catch (error) {
       console.error('Error fetching claims:', error);
-      setError('Failed to load your claimed donations');
+      setError(t('receiverMyClaims.failedToLoad'));
       setClaims([]);
     } finally {
       setLoading(false);
@@ -87,7 +164,7 @@ export default function ReceiverMyClaims() {
       console.log('Claim cancelled successfully');
       
       // Show toast notification
-      showNotification('Claim Cancelled', `Your claim on "${postTitle}" has been cancelled`);
+      showNotification(t('receiverMyClaims.claimCancelled'), t('receiverMyClaims.claimCancelledMessage', { postTitle }));
       
       // Close confirmation dialog
       setConfirmCancel({ show: false, claimId: null, postTitle: '' });
@@ -95,7 +172,7 @@ export default function ReceiverMyClaims() {
       fetchMyClaims(); // Refresh list
     } catch (error) {
       console.error('Error cancelling claim:', error);
-      showNotification('Error', 'Failed to cancel claim. Please try again.');
+      showNotification(t('common.error'), t('receiverMyClaims.cancelFailed'));
       // Close confirmation dialog even on error
       setConfirmCancel({ show: false, claimId: null, postTitle: '' });
     }
@@ -158,57 +235,68 @@ export default function ReceiverMyClaims() {
     }
   };
 
-  // Map claim status to display status
-  const getDisplayStatus = (claim) => {
-    const postStatus = claim.surplusPost?.status;
-    if (postStatus === 'READY_FOR_PICKUP') return 'Ready for Pickup';
-    if (postStatus === 'COMPLETED') return 'Completed';
-    if (postStatus === 'EXPIRED') return 'EXPIRED';
-    if (postStatus === 'NOT_COMPLETED') return 'Not Completed';
-    return 'Claimed';
-  };
-
-  const getStatusCount = (status) => {
-    if (status === 'All') return claims.length;
+  const getStatusCount = status => {
+    if (status === 'All') {
+      return claims.length;
+    }
     if (status === 'Ready') {
-      return claims.filter(c => c.surplusPost?.status === 'READY_FOR_PICKUP').length;
+      return claims.filter(c => getNormalizedStatus(c) === 'READY_FOR_PICKUP')
+        .length;
     }
     if (status === 'Completed') {
-      return claims.filter(c => c.surplusPost?.status === 'COMPLETED').length;
+      return claims.filter(c => getNormalizedStatus(c) === 'COMPLETED').length;
     }
     if (status === 'Not Completed') {
-      return claims.filter(c => c.surplusPost?.status === 'NOT_COMPLETED').length;
+      return claims.filter(c => getNormalizedStatus(c) === 'NOT_COMPLETED')
+        .length;
     }
     if (status === 'Expired') {
-      return claims.filter(c => c.surplusPost?.status === 'EXPIRED').length;
+      return claims.filter(c => getNormalizedStatus(c) === 'EXPIRED').length;
     }
     if (status === 'Claimed') {
-      return claims.filter(c => c.surplusPost?.status !== 'READY_FOR_PICKUP' && 
-                                c.surplusPost?.status !== 'COMPLETED' && 
-                                c.surplusPost?.status !== 'NOT_COMPLETED').length;
+      return claims.filter(
+        c =>
+          getNormalizedStatus(c) !== 'READY_FOR_PICKUP' &&
+          getNormalizedStatus(c) !== 'COMPLETED' &&
+          getNormalizedStatus(c) !== 'NOT_COMPLETED' &&
+          getNormalizedStatus(c) !== 'EXPIRED'
+      ).length;
     }
     return 0;
   };
 
   const filters = [
-    { name: 'Claimed', count: getStatusCount('Claimed') },
-    { name: 'Ready', count: getStatusCount('Ready') },
-    { name: 'Completed', count: getStatusCount('Completed') },
-    { name: 'Not Completed', count: getStatusCount('Not Completed') },
+    { name: t('receiverMyClaims.filters.claimed'), count: getStatusCount(t('receiverMyClaims.filters.claimed')) },
+    { name: t('receiverMyClaims.filters.ready'), count: getStatusCount(t('receiverMyClaims.filters.ready')) },
+    { name: t('receiverMyClaims.filters.completed'), count: getStatusCount(t('receiverMyClaims.filters.completed')) },
+    { name: t('receiverMyClaims.filters.notCompleted'), count: getStatusCount(t('receiverMyClaims.filters.notCompleted')) },
     { name: 'Expired', count: getStatusCount('Expired') },
-    { name: 'All', count: getStatusCount('All') }
+    { name: t('receiverMyClaims.filters.all'), count: getStatusCount(t('receiverMyClaims.filters.all')) }
   ];
 
   const filteredClaims = claims.filter(claim => {
-    if (activeFilter === 'All') return true;
-    if (activeFilter === 'Ready') return claim.surplusPost?.status === 'READY_FOR_PICKUP';
-    if (activeFilter === 'Completed') return claim.surplusPost?.status === 'COMPLETED';
-    if (activeFilter === 'Not Completed') return claim.surplusPost?.status === 'NOT_COMPLETED';
-    if (activeFilter === 'Expired') return claim.surplusPost?.status === 'EXPIRED';
+    if (activeFilter === 'All') {
+      return true;
+    }
+    if (activeFilter === 'Ready') {
+      return getNormalizedStatus(claim) === 'READY_FOR_PICKUP';
+    }
+    if (activeFilter === 'Completed') {
+      return getNormalizedStatus(claim) === 'COMPLETED';
+    }
+    if (activeFilter === 'Not Completed') {
+      return getNormalizedStatus(claim) === 'NOT_COMPLETED';
+    }
+    if (activeFilter === 'Expired') {
+      return getNormalizedStatus(claim) === 'EXPIRED';
+    }
     if (activeFilter === 'Claimed') {
-      return claim.surplusPost?.status !== 'READY_FOR_PICKUP' && 
-             claim.surplusPost?.status !== 'COMPLETED' && 
-             claim.surplusPost?.status !== 'NOT_COMPLETED';
+      return (
+        getNormalizedStatus(claim) !== 'READY_FOR_PICKUP' &&
+        getNormalizedStatus(claim) !== 'COMPLETED' &&
+        getNormalizedStatus(claim) !== 'NOT_COMPLETED' &&
+        getNormalizedStatus(claim) !== 'EXPIRED'
+      );
     }
     return true;
   });
@@ -237,9 +325,9 @@ export default function ReceiverMyClaims() {
     }
     if (sortBy.value === 'status') {
       const statusPriority = {
-        'Ready for Pickup': 1,
-        'Claimed': 2,
-        'Completed': 3
+        [t('receiverMyClaims.readyForPickup')]: 1,
+        [t('receiverMyClaims.claimed')]: 2,
+        [t('receiverMyClaims.completed')]: 3
       };
       
       const statusA = getDisplayStatus(a);
@@ -253,7 +341,7 @@ export default function ReceiverMyClaims() {
   if (loading && claims.length === 0) {
     return (
       <div className="claimed-page claimed-donations-container">
-        <div className="claimed-page loading">Loading your claims...</div>
+        <div className="claimed-page loading">{t('receiverMyClaims.loading')}</div>
       </div>
     );
   }
@@ -263,15 +351,23 @@ export default function ReceiverMyClaims() {
       {/* Rating Stats Box */}
       <div className="receiver-stats-box">
         <div className="stat-item">
-          <Star size={16} fill="#F59E0B" color="#F59E0B" />
           <div className="stat-info">
-            <div className="stat-label">Rating:</div>
             <div className="stat-value">
               {rating.totalReviews > 0 ? (
-                <>
-                  {rating.averageRating.toFixed(1)}
-                  <span className="rating-count">★ ({rating.totalReviews})</span>
-                </>
+                <span className="rating-vertical-wrap">
+                  <span className="rating-main">
+                    <span className="rating-star">★</span> Your Rating :
+                    <span className="rating-number">
+                      {rating.averageRating.toFixed(1)}
+                    </span>
+                    <span className="rating-count">
+                      ({rating.totalReviews})
+                    </span>
+                  </span>
+                  <span className="rating-count-row">
+                    <span className="rating-count"></span>
+                  </span>
+                </span>
               ) : (
                 <span className="no-rating">—</span>
               )}
@@ -280,8 +376,8 @@ export default function ReceiverMyClaims() {
         </div>
       </div>
 
-      <h1>My Claimed Donations</h1>
-      <p className="claimed-page claimed-subtitle">Track your donations and get ready for pickup — every claim helps reduce waste and feed our community.</p>
+      <h1>{t('receiverMyClaims.title')}</h1>
+      <p className="claimed-page claimed-subtitle">{t('receiverMyClaims.subtitle')}</p>
 
       {error && (
         <div className="claimed-page error-message">
@@ -342,7 +438,7 @@ export default function ReceiverMyClaims() {
 
               {/* Content */}
               <div className="claimed-page card-content">
-                <h3 className="claimed-page card-title">{post?.title || 'Untitled Donation'}</h3>
+                <h3 className="claimed-page card-title">{post?.title || t('receiverMyClaims.untitledDonation')}</h3>
 
                  <div className="claimed-page card-details">
                   <div className="claimed-page detail-item">
@@ -353,7 +449,7 @@ export default function ReceiverMyClaims() {
                   </div>
                   <div className="claimed-page detail-item">
                     <User size={16} className="claimed-page donor-detail-icon" />
-                    <span>{post?.donorName || 'Not specified'}</span>
+                    <span>{post?.donorName || t('receiverMyClaims.notSpecified')}</span>
                   </div>
                   <div className="claimed-page detail-item">
                     <Clock size={16} className="claimed-page date-detail-icon" />
@@ -370,17 +466,17 @@ export default function ReceiverMyClaims() {
                 {/* Action Buttons */}
                 <div className="claimed-page card-actions">
                   {/* Only show Cancel button when status is CLAIMED */}
-                  {claim.surplusPost?.status === 'CLAIMED' && (
-                    <button 
+                  {getNormalizedStatus(claim) === 'CLAIMED' && (
+                    <button
                       onClick={() => handleCancelClick(claim.id)}
                       className="claimed-page cancel-claim-btn"
                     >
-                      Cancel
+                      {t('receiverMyClaims.cancel')}
                     </button>
                   )}
                   
                   <div className="claimed-page view-details-container" onClick={() => handleViewDetails(claim)}>
-                    <span>View details</span>
+                    <span>{t('receiverMyClaims.viewDetails')}</span>
                     <button className="claimed-page view-details-btn">
                       <ArrowRight size={16} className="claimed-page arrow-icon" />
                     </button>
@@ -396,9 +492,9 @@ export default function ReceiverMyClaims() {
         <div className="claimed-page empty-state">
           <Package size={48} className="claimed-page empty-icon" />
           <p>
-            {activeFilter === 'All' 
-              ? "You haven't claimed any donations yet. Browse available donations to make your first claim!"
-              : `No donations found for the "${activeFilter}" filter.`}
+            {activeFilter === t('receiverMyClaims.filters.all')
+              ? t('receiverMyClaims.noClaimsYet')
+              : t('receiverMyClaims.noDonationsForFilter', { filter: activeFilter })}
           </p>
         </div>
       )}
@@ -407,23 +503,22 @@ export default function ReceiverMyClaims() {
       {confirmCancel.show && (
         <div className="claimed-page confirmation-overlay">
           <div className="confirmation-dialog">
-            <h3>Cancel Claim</h3>
+            <h3>{t('receiverMyClaims.cancelClaim')}</h3>
             <p>
-              Are you sure you want to cancel your claim on <strong>"{confirmCancel.postTitle}"</strong>? 
-              This action cannot be undone.
+              {t('receiverMyClaims.confirmCancelMessage', { postTitle: confirmCancel.postTitle })}
             </p>
             <div className="confirmation-buttons">
               <button 
                 onClick={handleCancelCancel}
                 className="btn btn-cancel"
               >
-                Keep Claim
+                {t('receiverMyClaims.keepClaim')}
               </button>
               <button 
                 onClick={handleConfirmCancel}
                 className="btn btn-create"
               >
-                Yes, Cancel Claim
+                {t('receiverMyClaims.yesCancelClaim')}
               </button>
             </div>
           </div>

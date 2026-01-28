@@ -92,15 +92,15 @@ describe('LoginPage', () => {
     renderWithProviders();
 
     const pwd = screen.getByLabelText(/^password$/i, { selector: 'input' });
-    const toggle = screen.getByRole('button', { name: /toggle password visibility \(show\)/i });
+    const toggle = screen.getByRole('button', { name: /show password/i });
 
     expect(pwd).toHaveAttribute('type', 'password');
     fireEvent.click(toggle);
 
     expect(screen.getByLabelText(/^password$/i, { selector: 'input' })).toHaveAttribute('type', 'text');
-    expect(screen.getByRole('button', { name: /toggle password visibility \(hide\)/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /hide password/i })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: /toggle password visibility \(hide\)/i }));
+    fireEvent.click(screen.getByRole('button', { name: /hide password/i }));
     expect(screen.getByLabelText(/^password$/i, { selector: 'input' })).toHaveAttribute('type', 'password');
   });
 
@@ -117,8 +117,10 @@ describe('LoginPage', () => {
         token: 'abc123',
         role: 'donor',
         userId: '42',
-        organizationName: 'Test Organization'
-      }
+        organizationName: 'Test Organization',
+        verificationStatus: null,
+        accountStatus: 'ACTIVE',
+      },
     });
 
     renderWithProviders();
@@ -141,7 +143,14 @@ describe('LoginPage', () => {
     });
 
     await waitFor(() => {
-      expect(defaultAuthValue.login).toHaveBeenCalledWith('abc123', 'donor', '42', 'Test Organization', undefined);
+      expect(defaultAuthValue.login).toHaveBeenCalledWith(
+        'abc123',
+        'donor',
+        '42',
+        'Test Organization',
+        null,
+        'ACTIVE'
+      );
     });
 
     await waitFor(() => {

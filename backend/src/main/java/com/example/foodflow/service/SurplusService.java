@@ -1,5 +1,6 @@
 package com.example.foodflow.service;
 
+import com.example.foodflow.exception.BusinessException;
 import com.example.foodflow.helpers.ArrayFilter;
 import com.example.foodflow.helpers.BasicFilter;
 import com.example.foodflow.helpers.LocationFilter;
@@ -10,11 +11,13 @@ import com.example.foodflow.model.dto.SurplusFilterRequest;
 import com.example.foodflow.model.dto.PickupSlotRequest;
 import com.example.foodflow.model.dto.PickupSlotResponse;
 import com.example.foodflow.model.dto.SurplusResponse;
+import com.example.foodflow.model.dto.UploadEvidenceResponse;
 import com.example.foodflow.model.entity.Claim;
 import com.example.foodflow.model.entity.DonationTimeline;
 import com.example.foodflow.model.entity.PickupSlot;
 import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.entity.User;
+import com.example.foodflow.model.types.FoodCategory;
 import com.example.foodflow.model.types.ClaimStatus;
 import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.repository.ClaimRepository;
@@ -24,12 +27,18 @@ import com.example.foodflow.util.TimezoneResolver;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.Timer;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -48,6 +57,15 @@ public class SurplusService {
     private final ExpiryCalculationService expiryCalculationService;
     private final TimelineService timelineService;
     private final DonationTimelineRepository timelineRepository;
+    private final FileStorageService fileStorageService;
+    private final GamificationService gamificationService;
+    private final ClaimService claimService;
+
+    @Value("${pickup.tolerance.early-minutes:15}")
+    private int earlyToleranceMinutes;
+
+    @Value("${pickup.tolerance.late-minutes:15}")
+    private int lateToleranceMinutes;
 
     public SurplusService(SurplusPostRepository surplusPostRepository,
             ClaimRepository claimRepository,
@@ -56,7 +74,10 @@ public class SurplusService {
             NotificationService notificationService,
             ExpiryCalculationService expiryCalculationService,
             TimelineService timelineService,
-            DonationTimelineRepository timelineRepository) {
+            DonationTimelineRepository timelineRepository,
+            FileStorageService fileStorageService,
+            GamificationService gamificationService,
+            ClaimService claimService) {
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;
         this.pickupSlotValidationService = pickupSlotValidationService;
@@ -65,6 +86,9 @@ public class SurplusService {
         this.expiryCalculationService = expiryCalculationService;
         this.timelineService = timelineService;
         this.timelineRepository = timelineRepository;
+        this.fileStorageService = fileStorageService;
+        this.gamificationService = gamificationService;
+        this.claimService = claimService;
     }
 
     /**
@@ -193,6 +217,13 @@ public class SurplusService {
 
         SurplusPost savedPost = surplusPostRepository.save(post);
 
+        // Track food category metrics
+        if (savedPost.getFoodCategories() != null) {
+            for (FoodCategory category : savedPost.getFoodCategories()) {
+                businessMetricsService.incrementFoodCategoryPosts(category.name());
+            }
+        }
+
         // Create timeline event for donation posting
         timelineService.createTimelineEvent(
                 savedPost,
@@ -208,6 +239,16 @@ public class SurplusService {
         businessMetricsService.incrementSurplusPostCreated();
         businessMetricsService.recordTimer(sample, "surplus.service.create", "status",
                 savedPost.getStatus().toString());
+
+        // Award gamification points for donation creation
+        try {
+            gamificationService.awardPoints(donor.getId(), 10, "Created donation: " + savedPost.getTitle());
+            gamificationService.checkAndUnlockAchievements(donor.getId());
+        } catch (Exception e) {
+            // Log error but don't fail the post creation
+            org.slf4j.LoggerFactory.getLogger(SurplusService.class)
+                    .error("Failed to award gamification points for postId={}: {}", savedPost.getId(), e.getMessage());
+        }
 
         // Send notifications to eligible receivers
         try {
@@ -765,7 +806,7 @@ public class SurplusService {
         }
 
         if (post.getOtpCode() == null || !post.getOtpCode().equals(otpCode)) {
-            throw new RuntimeException("Invalid OTP code");
+            throw new BusinessException("error.auth.invalid_credentials");
         }
 
         post.setStatus(PostStatus.COMPLETED);
@@ -808,12 +849,44 @@ public class SurplusService {
         Claim claim = claimRepository.findBySurplusPost(post)
                 .orElseThrow(() -> new RuntimeException("No active claim found for this post"));
 
+        // Validate pickup time with tolerance
+        LocalDate confirmedDate = claim.getConfirmedPickupDate();
+        LocalTime confirmedStartTime = claim.getConfirmedPickupStartTime();
+        LocalTime confirmedEndTime = claim.getConfirmedPickupEndTime();
+
+        if (confirmedDate != null && confirmedStartTime != null && confirmedEndTime != null) {
+            ZonedDateTime nowUtc = ZonedDateTime.now(ZoneId.of("UTC"));
+            LocalDate today = nowUtc.toLocalDate();
+            LocalTime currentTime = nowUtc.toLocalTime();
+
+            // Apply tolerance: early tolerance for start, late tolerance for end
+            LocalTime adjustedStartTime = confirmedStartTime.minusMinutes(earlyToleranceMinutes);
+            LocalTime adjustedEndTime = confirmedEndTime.plusMinutes(lateToleranceMinutes);
+
+            boolean isTooEarly = confirmedDate.isAfter(today) ||
+                    (confirmedDate.isEqual(today) && currentTime.isBefore(adjustedStartTime));
+            boolean isTooLate = confirmedDate.isBefore(today) ||
+                    (confirmedDate.isEqual(today) && currentTime.isAfter(adjustedEndTime));
+
+            if (isTooEarly) {
+                throw new RuntimeException("Pickup cannot be confirmed yet. The pickup window starts at "
+                        + confirmedStartTime + " (you can arrive up to " + earlyToleranceMinutes + " minutes early).");
+            }
+
+            if (isTooLate) {
+                throw new RuntimeException("Pickup window has expired. The window ended at "
+                        + confirmedEndTime + " (with " + lateToleranceMinutes + " minutes grace period).");
+            }
+        }
+
         post.setStatus(PostStatus.COMPLETED);
         post.setOtpCode(null);
-        claim.setStatus(ClaimStatus.COMPLETED);
 
         surplusPostRepository.save(post);
-        claimRepository.save(claim);
+
+        // Complete the claim - this awards points and checks achievements for the
+        // receiver
+        claimService.completeClaim(claim.getId());
 
         // Create timeline event for pickup confirmation
         timelineService.createTimelineEvent(
@@ -918,6 +991,49 @@ public class SurplusService {
         dto.setPackagingCondition(timeline.getPackagingCondition());
         dto.setPickupEvidenceUrl(timeline.getPickupEvidenceUrl());
         return dto;
+    }
+
+    /**
+     * Upload pickup evidence photo for a donation.
+     * Only the donor who owns this donation can upload evidence.
+     * Creates a timeline event to track the evidence upload.
+     */
+    @Transactional
+    public UploadEvidenceResponse uploadPickupEvidence(Long postId, MultipartFile file, User donor) throws IOException {
+        // Find the surplus post
+        SurplusPost post = surplusPostRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("Donation not found"));
+
+        // Verify the donor owns this post
+        if (!post.getDonor().getId().equals(donor.getId())) {
+            throw new IllegalArgumentException("You are not authorized to upload evidence for this donation");
+        }
+
+        // Check that the donation is in a valid status for evidence upload (CLAIMED or
+        // READY_FOR_PICKUP)
+        PostStatus status = post.getStatus();
+        if (status != PostStatus.CLAIMED && status != PostStatus.READY_FOR_PICKUP && status != PostStatus.COMPLETED) {
+            throw new IllegalArgumentException(
+                    "Evidence can only be uploaded for claimed, ready for pickup, or completed donations");
+        }
+
+        // Store the file
+        String fileUrl = fileStorageService.storePickupEvidence(file, postId);
+
+        // Create a timeline event for the evidence upload
+        DonationTimeline evidenceEvent = new DonationTimeline();
+        evidenceEvent.setSurplusPost(post);
+        evidenceEvent.setEventType("PICKUP_EVIDENCE_UPLOADED");
+        evidenceEvent.setActor("donor");
+        evidenceEvent.setActorUserId(donor.getId());
+        evidenceEvent.setPickupEvidenceUrl(fileUrl);
+        evidenceEvent.setDetails("Pickup evidence photo uploaded");
+        evidenceEvent.setVisibleToUsers(true); // Visible to donor and admin
+        evidenceEvent.setTimestamp(LocalDateTime.now());
+
+        timelineRepository.save(evidenceEvent);
+
+        return new UploadEvidenceResponse(fileUrl, "Evidence uploaded successfully", true);
     }
 
 }

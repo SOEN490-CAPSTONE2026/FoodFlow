@@ -43,12 +43,8 @@ public class ConversationController {
     public ResponseEntity<ConversationResponse> startConversation(
             @Valid @RequestBody StartConversationRequest request,
             @AuthenticationPrincipal User currentUser) {
-        try {
-            ConversationResponse conversation = conversationService.startConversation(currentUser, request);
-            return ResponseEntity.status(HttpStatus.CREATED).body(conversation);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        ConversationResponse conversation = conversationService.startConversation(currentUser, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(conversation);
     }
     
     /**

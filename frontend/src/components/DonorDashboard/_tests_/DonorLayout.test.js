@@ -8,6 +8,12 @@ import * as socketModule from '../../../services/socket';
 
 // --- Mocks ---
 
+jest.mock('../../../services/api', () => ({
+  profileAPI: {
+    get: jest.fn(() => Promise.resolve({ data: {} })),
+  },
+}));
+
 jest.mock('../../MessagingDashboard/MessageNotification', () => {
   return function MockMessageNotification({ notification, onClose }) {
     return (

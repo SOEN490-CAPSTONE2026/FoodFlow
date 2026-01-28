@@ -65,20 +65,24 @@ export const authAPI = {
     localStorage.removeItem("jwtToken");
     return api.post("/auth/logout");
   },
-  forgotPassword: (data) => api.post("/auth/forgot-password", data),
-  verifyResetCode: (data) => api.post("/auth/verify-reset-code", data),
-  resetPassword: (data) => api.post("/auth/reset-password", data),
-  checkEmailExists: (email) => api.get("/auth/check-email", { params: { email } }),
-  checkPhoneExists: (phone) => api.get("/auth/check-phone", { params: { phone } }),
-  changePassword: (data) => api.post("/auth/change-password", data),
+  forgotPassword: data => api.post('/auth/forgot-password', data),
+  verifyResetCode: data => api.post('/auth/verify-reset-code', data),
+  resetPassword: data => api.post('/auth/reset-password', data),
+  checkEmailExists: email =>
+    api.get('/auth/check-email', { params: { email } }),
+  checkPhoneExists: phone =>
+    api.get('/auth/check-phone', { params: { phone } }),
+  changePassword: data => api.post('/auth/change-password', data),
+  verifyEmail: token =>
+    api.post('/auth/verify-email', null, { params: { token } }),
+  resendVerificationEmail: () => api.post('/auth/resend-verification-email'),
 };
 
 export const surplusAPI = {
-  list: () => api.get("/surplus"), // Just /surplus, not /api/surplus
-  myPosts: () => api.get("/surplus/my-posts"),
-  getMyPosts: () => api.get("/surplus/my-posts"),
-  getPost: (id) => api.get(`/surplus/${id}`),
-  create: (data) => api.post("/surplus", data),
+  list: () => api.get('/surplus'), // Just /surplus, not /api/surplus
+  getMyPosts: () => api.get('/surplus/my-posts'),
+  getPost: id => api.get(`/surplus/${id}`),
+  create: data => api.post('/surplus', data),
   update: (id, data) => api.put(`/surplus/${id}`, data),
   // claim now accepts an optional `slot` parameter. If `slot` has an `id` we send `pickupSlotId`,
   // otherwise we include the slot object as `pickupSlot` so the backend can interpret it.
@@ -166,7 +170,23 @@ export const surplusAPI = {
    * @param {number} postId - Surplus post ID
    * @returns {Promise} API response with timeline events
    */
-  getTimeline: (postId) => api.get(`/surplus/${postId}/timeline`),
+  getTimeline: postId => api.get(`/surplus/${postId}/timeline`),
+
+  /**
+   * Upload pickup evidence photo for a donation
+   * @param {number} postId - Surplus post ID
+   * @param {File} file - The image file to upload
+   * @returns {Promise} API response with uploaded file URL
+   */
+  uploadEvidence: (postId, file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post(`/surplus/${postId}/evidence`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
 };
 
 export const claimsAPI = {
@@ -410,6 +430,63 @@ export const adminDonationAPI = {
 };
 
 /**
+ * Admin API functions for user verification queue management
+ */
+export const adminVerificationAPI = {
+  /**
+   * Get all pending users awaiting admin approval
+   * @param {Object} filters - Filter criteria
+   * @param {string} filters.userType - Filter by user type (DONOR, RECEIVER)
+   * @param {string} filters.search - Search by organization name or email
+   * @param {string} filters.sortBy - Sort field (date, userType, waitingTime)
+   * @param {string} filters.sortOrder - Sort order (asc, desc)
+   * @param {number} filters.page - Page number (default: 0)
+   * @param {number} filters.size - Page size (default: 20)
+   * @returns {Promise} Paginated pending users list
+   */
+  getPendingUsers: (filters = {}) => {
+    const params = new URLSearchParams();
+    
+    if (filters.userType) params.append('userType', filters.userType);
+    if (filters.search) params.append('search', filters.search);
+    if (filters.sortBy) params.append('sortBy', filters.sortBy);
+    if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
+    
+    params.append('page', filters.page || 0);
+    params.append('size', filters.size || 20);
+    
+    return api.get(`/admin/pending-users?${params.toString()}`);
+  },
+
+  /**
+   * Approve a pending user registration
+   * @param {number} userId - User ID to approve
+   * @returns {Promise} Updated user data
+   */
+  approveUser: (userId) => api.post(`/admin/approve/${userId}`),
+
+  /**
+   * Manually verify a user's email
+   * @param {number} userId - User ID to mark email verified
+   * @returns {Promise} Response data
+   */
+  verifyEmail: userId => api.post(`/admin/verify-email/${userId}`),
+
+  /**
+   * Reject a pending user registration
+   * @param {number} userId - User ID to reject
+   * @param {string} reason - Rejection reason
+   * @param {string} message - Optional custom message
+   * @returns {Promise} Response data
+   */
+  rejectUser: (userId, reason, message) => 
+    api.post(`/admin/reject/${userId}`, {
+      reason,
+      message
+    }),
+};
+
+/**
  * Maps frontend food categories to backend enum values.
  * @param {string} frontendCategory - Frontend category name
  * @returns {string} Backend enum value
@@ -422,6 +499,22 @@ function mapFrontendCategoryToBackend(frontendCategory) {
 export const notificationPreferencesAPI = {
   getPreferences: () => api.get('/user/notifications/preferences'),
   updatePreferences: (data) => api.put('/user/notifications/preferences', data)
+};
+
+// Gamification API
+export const gamificationAPI = {
+  /**
+   * Get gamification stats for a user (points, achievements, progress)
+   * @param {number} userId - User ID
+   * @returns {Promise} Gamification stats including points and achievements
+   */
+  getUserStats: userId => api.get(`/gamification/users/${userId}/stats`),
+
+  /**
+   * Get all available achievements
+   * @returns {Promise} List of all achievements
+   */
+  getAllAchievements: () => api.get('/gamification/achievements'),
 };
 
 export default api;

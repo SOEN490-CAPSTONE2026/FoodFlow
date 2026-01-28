@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import io.micrometer.core.annotation.Timed;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,10 +33,16 @@ public class RecommendationService {
     @Autowired 
     private SurplusPostRepository surplusPostRepository;
 
+    @Autowired
+    private BusinessMetricsService businessMetricsService;
+
     /**
      * Get recommendation data for a specific post and user
      */
+    @Timed(value = "recommendation.service.getRecommendationData", description = "Time taken to get recommendation data")
     public RecommendationDTO getRecommendationData(Long postId, User user) {
+        businessMetricsService.incrementRecommendationsCalculated();
+        
         SurplusPost post = surplusPostRepository.findById(postId).orElse(null);
         if (post == null) {
             return new RecommendationDTO(postId, 0, List.of("Post not found"));
@@ -46,12 +53,20 @@ public class RecommendationService {
             return new RecommendationDTO(postId, 0, List.of("No preferences set"));
         }
 
-        return calculateRecommendation(post, preferences);
+        RecommendationDTO result = calculateRecommendation(post, preferences);
+        
+        // Track high-scoring recommendations
+        if (result.getScore() > 80) {
+            businessMetricsService.incrementRecommendationsHighScore();
+        }
+        
+        return result;
     }
 
     /**
      * Get recommendation data for multiple posts for a user
      */
+    @Timed(value = "recommendation.service.getRecommendationsForUser", description = "Time taken to get recommendations for user")
     public Map<Long, RecommendationDTO> getRecommendationsForUser(User user, List<Long> postIds) {
         ReceiverPreferences preferences = preferencesRepository.findByUser(user).orElse(null);
         if (preferences == null) {
@@ -64,13 +79,21 @@ public class RecommendationService {
         List<SurplusPost> posts = surplusPostRepository.findAllById(postIds);
         return posts.stream().collect(Collectors.toMap(
             SurplusPost::getId,
-            post -> calculateRecommendation(post, preferences)
+            post -> {
+                businessMetricsService.incrementRecommendationsCalculated();
+                RecommendationDTO result = calculateRecommendation(post, preferences);
+                if (result.getScore() > 80) {
+                    businessMetricsService.incrementRecommendationsHighScore();
+                }
+                return result;
+            }
         ));
     }
 
     /**
      * Get all recommended posts for a user above a certain threshold
      */
+    @Timed(value = "recommendation.service.getRecommendedPosts", description = "Time taken to get recommended posts")
     public List<RecommendationDTO> getRecommendedPosts(User user, int minScore) {
         ReceiverPreferences preferences = preferencesRepository.findByUser(user).orElse(null);
         if (preferences == null) {
@@ -82,7 +105,14 @@ public class RecommendationService {
         );
 
         return availablePosts.stream()
-            .map(post -> calculateRecommendation(post, preferences))
+            .map(post -> {
+                businessMetricsService.incrementRecommendationsCalculated();
+                RecommendationDTO result = calculateRecommendation(post, preferences);
+                if (result.getScore() > 80) {
+                    businessMetricsService.incrementRecommendationsHighScore();
+                }
+                return result;
+            })
             .filter(rec -> rec.getScore() >= minScore)
             .collect(Collectors.toList());
     }

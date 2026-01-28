@@ -16,33 +16,100 @@ import PRIcon from '../assets/lang-icons/PR.svg';
  */
 const LanguageSwitcher = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState('en');
+  const [selectedLanguage, setSelectedLanguage] = useState(
+    localStorage.getItem("languagePreference") || "en"
+  );
   const [searchQuery, setSearchQuery] = useState('');
 
   const languages = [
-    { code: 'en', name: 'English', nativeName: 'English', dir: 'ltr', icon: ENIcon },
-    { code: 'fr', name: 'French', nativeName: 'Français', dir: 'ltr', icon: FRIcon },
-    { code: 'es', name: 'Spanish', nativeName: 'Español', dir: 'ltr', icon: ESIcon },
-    { code: 'zh', name: 'Chinese', nativeName: '中文', dir: 'ltr', icon: ZHIcon },
-    { code: 'ar', name: 'Arabic', nativeName: 'العربية', dir: 'rtl', icon: ARIcon },
-    { code: 'pt', name: 'Portuguese', nativeName: 'Português', dir: 'ltr', icon: PRIcon },
+    {
+      code: 'en',
+      name: 'English',
+      nativeName: 'English',
+      dir: 'ltr',
+      icon: ENIcon,
+    },
+    {
+      code: 'fr',
+      name: 'French',
+      nativeName: 'Français',
+      dir: 'ltr',
+      icon: FRIcon,
+    },
+    {
+      code: 'es',
+      name: 'Spanish',
+      nativeName: 'Español',
+      dir: 'ltr',
+      icon: ESIcon,
+    },
+    {
+      code: 'zh',
+      name: 'Chinese',
+      nativeName: '中文',
+      dir: 'ltr',
+      icon: ZHIcon,
+    },
+    {
+      code: 'ar',
+      name: 'Arabic',
+      nativeName: 'العربية',
+      dir: 'rtl',
+      icon: ARIcon,
+    },
+    {
+      code: 'pt',
+      name: 'Portuguese',
+      nativeName: 'Português',
+      dir: 'ltr',
+      icon: PRIcon,
+    },
   ];
 
-  const filteredLanguages = languages.filter(lang =>
-    lang.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    lang.nativeName.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredLanguages = languages.filter(
+    lang =>
+      lang.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      lang.nativeName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const selectedLang = languages.find(lang => lang.code === selectedLanguage);
 
-  const handleLanguageSelect = (langCode) => {
+  const handleLanguageSelect = async (langCode) => {
     setSelectedLanguage(langCode);
+    localStorage.setItem("languagePreference", langCode);
     setIsOpen(false);
     setSearchQuery('');
     
+    const token = 
+      localStorage.getItem("jwtToken") ||
+      sessionStorage.getItem("jwtToken");
+
+    if (!token) {
+      console.warn("No token found; user may not be logged in");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:8080/api/user/language", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ languagePreference: langCode })
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update language preference", response.status);
+      }
+
+    } catch (e) {
+      console.error("Failed to update language preference:", e);
+    } 
+
     // Visual feedback only - no actual i18n change yet
     console.log(`Language selected: ${langCode}`);
-    
+
     // Show a brief toast/message (optional)
     const toast = document.createElement('div');
     toast.className = 'language-toast';
@@ -61,7 +128,7 @@ const LanguageSwitcher = () => {
   return (
     <div className="language-switcher-wrapper">
       <div className="language-selector">
-        <button 
+        <button
           className="language-button"
           onClick={toggleDropdown}
           aria-expanded={isOpen}
@@ -69,27 +136,23 @@ const LanguageSwitcher = () => {
         >
           <span className="selected-language">
             <span className="language-icon">
-              <img
-                src={selectedLang?.icon}
-                alt=""
-                aria-hidden="true"
-              />
+              <img src={selectedLang?.icon} alt="" aria-hidden="true" />
             </span>
             <span className="language-name">{selectedLang?.nativeName}</span>
           </span>
-          <svg 
+          <svg
             className={`dropdown-icon ${isOpen ? 'open' : ''}`}
-            width="20" 
-            height="20" 
-            viewBox="0 0 20 20" 
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
           >
-            <path 
-              d="M5 7.5L10 12.5L15 7.5" 
-              stroke="currentColor" 
-              strokeWidth="1.5" 
-              strokeLinecap="round" 
+            <path
+              d="M5 7.5L10 12.5L15 7.5"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
               strokeLinejoin="round"
             />
           </svg>
@@ -103,7 +166,7 @@ const LanguageSwitcher = () => {
                 type="text"
                 placeholder="Search languages..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={e => setSearchQuery(e.target.value)}
                 className="search-input"
                 autoFocus
               />
@@ -111,7 +174,7 @@ const LanguageSwitcher = () => {
 
             <ul className="language-list" role="listbox">
               {filteredLanguages.length > 0 ? (
-                filteredLanguages.map((lang) => (
+                filteredLanguages.map(lang => (
                   <li
                     key={lang.code}
                     className={`language-option ${selectedLanguage === lang.code ? 'selected' : ''}`}
@@ -120,11 +183,7 @@ const LanguageSwitcher = () => {
                     aria-selected={selectedLanguage === lang.code}
                   >
                     <span className="language-icon">
-                      <img
-                        src={lang.icon}
-                        alt=""
-                        aria-hidden="true"
-                      />
+                      <img src={lang.icon} alt="" aria-hidden="true" />
                     </span>
                     <span className="language-details">
                       <span className="language-native">{lang.nativeName}</span>
@@ -145,10 +204,7 @@ const LanguageSwitcher = () => {
 
       {/* Overlay to close dropdown when clicking outside */}
       {isOpen && (
-        <div 
-          className="language-overlay"
-          onClick={() => setIsOpen(false)}
-        />
+        <div className="language-overlay" onClick={() => setIsOpen(false)} />
       )}
     </div>
   );

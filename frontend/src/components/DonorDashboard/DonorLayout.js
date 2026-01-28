@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useContext } from "react";
 import { Outlet, useLocation, useNavigate, Link, useNavigationType } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 import {
   Home,
   LayoutGrid,
@@ -14,44 +15,51 @@ import {
   MoreVertical,
   LogOut,
   Menu,
-  X
-} from "lucide-react";
-import { AuthContext } from "../../contexts/AuthContext";
-import Logo from "../../assets/Logo_White.png";
-import "./Donor_Styles/DonorLayout.css";
-import MessageNotification from "../MessagingDashboard/MessageNotification";
+  X,
+} from 'lucide-react';
+import { AuthContext } from '../../contexts/AuthContext';
+import Logo from '../../assets/Logo_White.png';
+import './Donor_Styles/DonorLayout.css';
+import MessageNotification from '../MessagingDashboard/MessageNotification';
+import EmailVerificationRequired from '../EmailVerificationRequired';
+import AdminApprovalBanner from '../AdminApprovalBanner';
 import { connectToUserQueue, disconnect } from '../../services/socket';
+import BadgeDisplay from '../shared/BadgeDisplay';
+import { profileAPI } from '../../services/api';
 
 export default function DonorLayout() {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const navType = useNavigationType();
-  const { logout, organizationName, role } = useContext(AuthContext);
+  const { logout, organizationName, accountStatus, role } =
+    useContext(AuthContext);
   const [open, setOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const menuRef = useRef(null);
   const [notification, setNotification] = useState(null);
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState(null);
 
   const pageTitle = (() => {
     switch (location.pathname) {
       case "/donor":
       case "/donor/dashboard":
-        return "Donor Dashboard";
+        return t('donorLayout.pageTitles.donorDashboard');
       case "/donor/list":
-        return "Donate Now";
+        return t('donorLayout.pageTitles.donateNow');
       case "/donor/requests":
-        return "Requests & Claims";
+        return t('donorLayout.pageTitles.requestsClaims');
       case "/donor/search":
-        return " Pickup Schdule";
+        return t('donorLayout.pageTitles.pickupSchedule');
       case "/donor/messages":
-        return "Messages";
+        return t('donorLayout.pageTitles.messages');
       case "/donor/settings":
-        return "Settings";
+        return t('donorLayout.pageTitles.settings');
       case "/donor/help":
-        return "Help";
+        return t('donorLayout.pageTitles.help');
       default:
-        return "Donor";
+        return t('donorLayout.pageTitles.donor');
     }
   })();
 
@@ -59,75 +67,133 @@ export default function DonorLayout() {
     switch (location.pathname) {
       case "/donor":
       case "/donor/dashboard":
-        return "Overview and quick actions";
+        return t('donorLayout.pageDescriptions.donorDashboard');
       case "/donor/list":
-        return "Create and manage donation listings";
+        return t('donorLayout.pageDescriptions.donateNow');
       case "/donor/requests":
-        return "Incoming requests and status";
+        return t('donorLayout.pageDescriptions.requestsClaims');
       case "/donor/search":
-        return "Recent activity and history";
+        return t('donorLayout.pageDescriptions.pickupSchedule');
       case "/donor/messages":
-        return "Incoming communications";
+        return t('donorLayout.pageDescriptions.messages');
       case "/donor/settings":
-        return "Manage your preferences and account settings";
+        return t('donorLayout.pageDescriptions.settings');
       case "/donor/help":
-        return "Guides and support";
+        return t('donorLayout.pageDescriptions.help');
       default:
-        return "FoodFlow Donor Portal";
+        return t('donorLayout.pageDescriptions.donorPortal');
     }
   })();
 
+  const getProfilePhotoUrl = photoUrl => {
+    if (!photoUrl) {
+      return null;
+    }
+    if (
+      photoUrl.startsWith('http://') ||
+      photoUrl.startsWith('https://') ||
+      photoUrl.startsWith('data:')
+    ) {
+      return photoUrl;
+    }
+    const apiBaseUrl =
+      process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+    const backendBaseUrl = apiBaseUrl.endsWith('/api')
+      ? apiBaseUrl.slice(0, -4)
+      : apiBaseUrl.replace(/\/api$/, '');
+    if (photoUrl.startsWith('/uploads/')) {
+      const filename = photoUrl.substring('/uploads/'.length);
+      return `${backendBaseUrl}/api/files/uploads/${filename}`;
+    }
+    if (photoUrl.startsWith('/api/files/')) {
+      return `${backendBaseUrl}${photoUrl}`;
+    }
+    return `${backendBaseUrl}${photoUrl.startsWith('/') ? '' : '/'}${photoUrl}`;
+  };
+
   useEffect(() => {
-    const onDocClick = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) setOpen(false);
+    let isMounted = true;
+    const fetchProfilePhoto = async () => {
+      try {
+        const response = await profileAPI.get();
+        if (isMounted) {
+          const url = getProfilePhotoUrl(response.data?.profilePhoto);
+          setProfilePhotoUrl(url);
+        }
+      } catch (error) {
+        console.error('Error fetching profile photo:', error);
+      }
     };
-    document.addEventListener("mousedown", onDocClick);
-    return () => document.removeEventListener("mousedown", onDocClick);
+    fetchProfilePhoto();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const onDocClick = e => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
   }, []);
 
   // Connect to websocket for user-specific notifications (donor)
   useEffect(() => {
-    const onMessage = (payload) => {
-      const senderName = payload.senderName || payload.sender?.email || payload.senderEmail || '';
-      const message = payload.messageBody || payload.message || payload.body || '';
-      if (message) setNotification({ senderName, message });
+    const onMessage = payload => {
+      const senderName =
+        payload.senderName ||
+        payload.sender?.email ||
+        payload.senderEmail ||
+        '';
+      const message =
+        payload.messageBody || payload.message || payload.body || '';
+      if (message) {
+        setNotification({ senderName, message });
+      }
     };
 
-    const onClaimNotification = (payload) => {
+    const onClaimNotification = payload => {
       // Handle claim notifications from receivers
       console.log('DONOR: Claim notification received:', payload);
       const receiverName = payload.receiverEmail || 'A receiver';
       const foodTitle = payload.surplusPostTitle || 'your food item';
-      const message = `${receiverName} has claimed your "${foodTitle}"`;
+      const message = t('donorLayout.notifications.hasClaimed', { receiverName, foodTitle });
       console.log('DONOR: Setting notification with message:', message);
-      setNotification({ 
-        senderName: 'New Claim', 
+      setNotification({
+        senderName: t('donorLayout.notifications.newClaim'),
         message
       });
     };
 
-    const onClaimCancelled = (payload) => {
+    const onClaimCancelled = payload => {
       // Handle claim cancellation notifications
       console.log('DONOR: Claim cancellation received:', payload);
       const receiverName = payload.receiverEmail || 'A receiver';
       const foodTitle = payload.surplusPostTitle || 'your food item';
-      const message = `${receiverName} cancelled their claim on "${foodTitle}"`;
+      const message = t('donorLayout.notifications.cancelledClaim', { receiverName, foodTitle });
       console.log('DONOR: Setting notification with message:', message);
-      setNotification({ 
-        senderName: 'Claim Cancelled', 
+      setNotification({
+        senderName: t('donorLayout.notifications.claimCancelled'),
         message
       });
     };
 
     connectToUserQueue(onMessage, onClaimNotification, onClaimCancelled);
     return () => {
-      try { disconnect(); } catch (e) { /* ignore */ }
+      try {
+        disconnect();
+      } catch (e) {
+        /* ignore */
+      }
     };
   }, []);
 
   useEffect(() => {
-    if (navType === "POP" && !location.pathname.startsWith("/donor")) {
-      navigate("/donor/dashboard", { replace: true });
+    if (navType === 'POP' && !location.pathname.startsWith('/donor')) {
+      navigate('/donor/dashboard', { replace: true });
     }
   }, [navType, location.pathname, navigate]);
 
@@ -136,13 +202,13 @@ export default function DonorLayout() {
       await logout();
     } finally {
       setOpen(false);
-      navigate("/", { replace: true, state: { scrollTo: "home" } });
+      navigate('/', { replace: true, state: { scrollTo: 'home' } });
     }
   };
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = path => location.pathname === path;
 
-  const isMessagesPage = location.pathname === "/donor/messages";
+  const isMessagesPage = location.pathname === '/donor/messages';
 
   // Close menu when navigating
   useEffect(() => {
@@ -152,7 +218,7 @@ export default function DonorLayout() {
   return (
     <div className="donor-layout">
       <div className="mobile-header">
-        <Link to="/" state={{ scrollTo: "home", from: "donor" }}>
+        <Link to="/" state={{ scrollTo: 'home', from: 'donor' }}>
           <img src={Logo} alt="FoodFlow" className="mobile-logo" />
         </Link>
         <button
@@ -164,109 +230,170 @@ export default function DonorLayout() {
         </button>
       </div>
 
-      {mobileMenuOpen && <div className="mobile-overlay" onClick={() => setMobileMenuOpen(false)}></div>}
+      {mobileMenuOpen && (
+        <div
+          className="mobile-overlay"
+          onClick={() => setMobileMenuOpen(false)}
+        ></div>
+      )}
 
-      <aside className={`donor-sidebar ${mobileMenuOpen ? 'mobile-open' : ''} ${sidebarCollapsed ? 'collapsed' : ''}`}>
+      <aside
+        className={`donor-sidebar ${mobileMenuOpen ? 'mobile-open' : ''} ${sidebarCollapsed ? 'collapsed' : ''}`}
+      >
         <div className="donor-sidebar-header">
-          <Link to="/" state={{ scrollTo: "home", from: "donor" }} aria-label="FoodFlow Home">
+          <Link
+            to="/"
+            state={{ scrollTo: 'home', from: 'donor' }}
+            aria-label="FoodFlow Home"
+          >
             <img src={Logo} alt="FoodFlow" className="donor-logo" />
           </Link>
-          <button 
+          <button
             className="sidebar-toggle-btn"
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
             aria-label="Toggle sidebar"
           >
-            {sidebarCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+            {sidebarCollapsed ? (
+              <ChevronRight size={20} />
+            ) : (
+              <ChevronLeft size={20} />
+            )}
           </button>
         </div>
 
+        <BadgeDisplay />
+
         <nav className="donor-nav-links">
-          <Link 
-            to="/donor" 
+          <Link
+            to="/donor"
             className={`donor-nav-link ${isActive("/donor") ? "active" : ""}`}
-            data-tooltip="Home"
+            data-tooltip={t('donorLayout.home')}
           >
             <span className="nav-icon" aria-hidden>
               <Home size={18} className="lucide" />
             </span>
-            Home
+            {t('donorLayout.home')}
           </Link>
 
-          <Link 
-            to="/donor/dashboard" 
+          <Link
+            to="/donor/dashboard"
             className={`donor-nav-link ${isActive("/donor/dashboard") ? "active" : ""}`}
-            data-tooltip="Dashboard"
+            data-tooltip={t('donorLayout.dashboard')}
           >
             <span className="nav-icon" aria-hidden>
               <LayoutGrid size={18} className="lucide" />
             </span>
-            Dashboard
+            {t('donorLayout.dashboard')}
           </Link>
 
-          <Link 
-            to="/donor/list" 
+          <Link
+            to="/donor/list"
             className={`donor-nav-link ${isActive("/donor/list") ? "active" : ""}`}
-            data-tooltip="Donate Now"
+            data-tooltip={t('donorLayout.donateNow')}
           >
             <span className="nav-icon" aria-hidden>
               <Heart size={18} className="lucide" />
             </span>
-            Donate Now
+            {t('donorLayout.donateNow')}
           </Link>
 
-          <Link 
-            to="/donor/messages" 
+          <Link
+            to="/donor/requests"
+            className={`donor-nav-link ${isActive("/donor/requests") ? "active" : ""}`}
+            data-tooltip={t('donorLayout.requestsClaims')}
+          >
+            <span className="nav-icon" aria-hidden>
+              <CalendarIcon size={18} className="lucide" />
+            </span>
+            {t('donorLayout.requestsClaims')}
+          </Link>
+
+          <Link
+            to="/donor/search"
+            className={`donor-nav-link ${isActive("/donor/search") ? "active" : ""}`}
+            data-tooltip={t('donorLayout.pickupSchedule')}
+          >
+            <span className="nav-icon" aria-hidden>
+              <FileText size={18} className="lucide" />
+            </span>
+            {t('donorLayout.pickupSchedule')}
+          </Link>
+
+          <Link
+            to="/donor/messages"
             className={`donor-nav-link ${isActive("/donor/messages") ? "active" : ""}`}
-            data-tooltip="Messages"
+            data-tooltip={t('donorLayout.messages')}
           >
             <span className="nav-icon" aria-hidden>
               <Mail size={18} className="lucide" />
             </span>
-            Messages
+            {t('donorLayout.messages')}
           </Link>
         </nav>
 
         <div className="donor-nav-bottom">
-          <Link 
-            to="/donor/settings" 
+          <Link
+            to="/donor/settings"
             className={`donor-nav-link ${isActive("/donor/settings") ? "active" : ""}`}
-            data-tooltip="Settings"
+            data-tooltip={t('donorLayout.settings')}
           >
             <span className="nav-icon" aria-hidden>
               <Settings size={18} className="lucide" />
             </span>
-            Settings
+            {t('donorLayout.settings')}
           </Link>
-          <Link 
-            to="/donor/help" 
-            className={`donor-nav-link ${isActive("/donor/help") ? "active" : ""}`}
-            data-tooltip="Help"
+          <Link
+            to="/donor/help"
+            className={`donor-nav-link ${isActive('/donor/help') ? 'active' : ''}`}
+            data-tooltip={t('donorLayout.help')}
           >
             <span className="nav-icon" aria-hidden>
               <HelpCircle size={18} className="lucide" />
             </span>
-            Help
+            {t('donorLayout.help')}
           </Link>
         </div>
 
         <div className="donor-sidebar-footer donor-user" ref={menuRef}>
           <div className="account-row">
             <button className="user-profile-pic" type="button">
-              <div className="account-avatar"></div>
+              <div
+                className="account-avatar"
+                style={
+                  profilePhotoUrl
+                    ? {
+                        backgroundImage: `url(${profilePhotoUrl})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                      }
+                    : undefined
+                }
+              ></div>
               <div className="account-text">
-                <span className="account-name">{organizationName || 'Donor'}</span>
-                <span className="account-role">{role?.toLowerCase() || 'donor'}</span>
+                <span className="account-name">
+                  {organizationName || 'Donor'}
+                </span>
+                <span className="account-role">
+                  {role?.toLowerCase() || 'donor'}
+                </span>
               </div>
             </button>
-            <button className="account-dotted-menu" onClick={() => setOpen((s) => !s)} aria-label="Menu">
+            <button
+              className="account-dotted-menu"
+              onClick={() => setOpen(s => !s)}
+              aria-label="Menu"
+            >
               <MoreVertical size={18} className="lucide" />
             </button>
           </div>
           {open && (
             <div className="account-menu">
-              <button className="account-menu-item logout" onClick={handleLogout}>
+              <button
+                className="account-menu-item logout"
+                onClick={handleLogout}
+              >
                 <LogOut size={16} className="lucide" />
-                Logout
+                {t('donorLayout.logout')}
               </button>
             </div>
           )}
@@ -274,27 +401,40 @@ export default function DonorLayout() {
       </aside>
 
       <main className="donor-main">
-        {!isMessagesPage && location.pathname !== "/donor" && location.pathname !== "/donor/" && (
-          <header className="donor-topbar">
-            <div className="donor-topbar-left">
-              <h1>{pageTitle}</h1>
-              <p>{pageDesc}</p>
-            </div>
-          </header>
+        {accountStatus === 'PENDING_VERIFICATION' ? (
+          <EmailVerificationRequired />
+        ) : (
+          <>
+            {/* Show admin approval banner if waiting for approval */}
+            {accountStatus === 'PENDING_ADMIN_APPROVAL' && (
+              <AdminApprovalBanner />
+            )}
+
+            {!isMessagesPage &&
+              location.pathname !== '/donor' &&
+              location.pathname !== '/donor/' && (
+                <header className="donor-topbar">
+                  <div className="donor-topbar-left">
+                    <h1>{pageTitle}</h1>
+                    <p>{pageDesc}</p>
+                  </div>
+                </header>
+              )}
+
+            <section
+              className={`donor-content ${isMessagesPage ? 'messages-page' : ''}`}
+            >
+              <Outlet />
+
+              {notification && (
+                <MessageNotification
+                  notification={notification}
+                  onClose={() => setNotification(null)}
+                />
+              )}
+            </section>
+          </>
         )}
-
-        
-<section className={`donor-content ${isMessagesPage ? 'messages-page' : ''}`}>
-  <Outlet />
-
-  {notification && (
-    <MessageNotification
-      notification={notification}
-      onClose={() => setNotification(null)}
-    />
-  )}
-</section>
-
       </main>
     </div>
   );

@@ -1,11 +1,14 @@
 import React from 'react';
+import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import LandingPage from './components/LandingPage/LandingPage';
 import RegisterType from './components/RegisterType';
 import DonorRegistration from './components/DonorRegistration';
 import ReceiverRegistration from './components/ReceiverRegistration';
 import LoginPage from './components/LoginPage';
 import ForgotPassword from './components/ForgotPassword';
+import EmailVerification from './components/EmailVerification';
 import NavigationBar from './components/NavigationBar';
 import { AuthProvider } from './contexts/AuthContext';
 import { TimezoneProvider } from './contexts/TimezoneContext';
@@ -21,20 +24,37 @@ import SurplusForm from './components/DonorDashboard/SurplusFormModal';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import './App.css';
 
-import { useLocation } from "react-router-dom";
+import { useLocation } from 'react-router-dom';
+
+import "./locales/i18n"; 
 
 function AppContent() {
-  useAnalytics(); // This will track page views automatically
+  useAnalytics();
   const location = useLocation();
+  const { i18n } = useTranslation();
 
-  // Hide navbar on login and registration pages
+  // Set document direction and lang attribute based on current language
+  useEffect(() => {
+    const rtlLanguages = ["ar"];
+    const isRTL = rtlLanguages.includes(i18n.language);
+    const dir = isRTL ? "rtl" : "ltr";
+    
+    document.documentElement.setAttribute("dir", dir);
+    document.documentElement.setAttribute("lang", i18n.language);
+    document.body.style.direction = dir;
+  }, [i18n.language]);
+
+  // Top navbar only shown on public pages (landing, login, registration)
+  // Dashboard routes (/donor, /admin, /receiver) have their own internal layouts
+  // and don't need the top public navigation
   const hideNavbar =
-    location.pathname === "/login" ||
-    location.pathname === "/forgot-password" ||
-    location.pathname.startsWith("/register") ||
-    location.pathname.startsWith("/donor") ||
-    location.pathname.startsWith("/admin") ||
-    location.pathname.startsWith("/receiver");
+    location.pathname === '/login' ||
+    location.pathname === '/forgot-password' ||
+    location.pathname === '/verify-email' ||
+    location.pathname.startsWith('/register') ||
+    location.pathname.startsWith('/donor') ||
+    location.pathname.startsWith('/admin') ||
+    location.pathname.startsWith('/receiver');
 
   return (
     <div className="App">
@@ -47,27 +67,31 @@ function AppContent() {
         <Route path="/register/receiver" element={<ReceiverRegistration />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/verify-email" element={<EmailVerification />} />
 
         {/* ===== Admin Dashboard (UNPROTECTED for dev preview) ===== */}
-        <Route 
-          path="/admin/*" 
+        <Route
+          path="/admin/*"
           element={
             <PrivateRoutes allowedRoles={['ADMIN']}>
               <AdminDashboard />
             </PrivateRoutes>
-          } 
+          }
         />
         {/* Back-compat redirect from old path */}
-        <Route path="/dashboard/admin/*" element={<Navigate to="/admin" replace />} />
+        <Route
+          path="/dashboard/admin/*"
+          element={<Navigate to="/admin" replace />}
+        />
 
         {/* ===== Donor Dashboard ===== */}
         <Route
           path="/donor/*"
-         element={
-      <PrivateRoutes allowedRoles={['DONOR']}>
-        <DonorDashboard />
-      </PrivateRoutes>
-    }
+          element={
+            <PrivateRoutes allowedRoles={['DONOR']}>
+              <DonorDashboard />
+            </PrivateRoutes>
+          }
         />
 
         {/* ===== Receiver Dashboard ===== */}

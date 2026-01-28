@@ -5,6 +5,46 @@ import { TimezoneProvider } from "../../../contexts/TimezoneContext";
 import { MemoryRouter } from 'react-router-dom';
 import ClaimDetailModal from "../ClaimDetailModal";
 
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key, params) => {
+      const translations = {
+        "claimDetail.status.claimed": "Claimed",
+        "claimDetail.status.readyForPickup": "Ready for Pickup",
+        "claimDetail.status.completed": "Completed",
+        "claimDetail.status.notCompleted": "Not Completed",
+        "claimDetail.defaultTitle": "Untitled Donation",
+        "claimDetail.donationDetails": "Donation Details",
+        "claimDetail.chatWithDonor": "Chat with {{name}}",
+        "claimDetail.chatWithDonorLabel": "Chat with Donor",
+        "claimDetail.donor": "Donor",
+        "claimDetail.quantity": "Quantity",
+        "claimDetail.items": "items",
+        "claimDetail.expiryDate": "Expiry Date",
+        "claimDetail.temperature": "Temperature",
+        "claimDetail.packaging": "Packaging",
+        "claimDetail.pickupDateTime": "Pickup Date & Time",
+        "claimDetail.pickupLocation": "Pickup Location",
+        "claimDetail.notSpecified": "Not specified",
+        "claimDetail.mapComingSoon": "Map view coming soon",
+        "claimDetail.addressNotSpecified": "Address not specified",
+        "claimDetail.viewTimeline": "View Donation Timeline",
+        "claimDetail.hideTimeline": "Hide Donation Timeline",
+        "claimDetail.backToDetails": "Back to Details",
+        "claimDetail.viewPickupSteps": "View Pickup Steps"
+      };
+
+  let result = translations[key] || key;
+      if (params) {
+        result = result.replace(/\{\{(\w+)\}\}/g, (match, p1) => {
+          return params[p1] !== undefined ? params[p1] : match;
+        });
+      }
+      return result;
+    },
+  }),
+}));
+
 jest.mock("../../../services/api", () => ({
   surplusAPI: {
     getTimeline: jest.fn(),

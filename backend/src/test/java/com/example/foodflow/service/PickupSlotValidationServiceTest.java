@@ -39,13 +39,13 @@ class PickupSlotValidationServiceTest {
     void validateSlots_ValidMultipleSlots_Success() {
         // Given
         List<PickupSlotRequest> slots = new ArrayList<>();
-        
+
         PickupSlotRequest slot1 = new PickupSlotRequest();
         slot1.setPickupDate(LocalDate.now().plusDays(1));
         slot1.setStartTime(LocalTime.of(9, 0));
         slot1.setEndTime(LocalTime.of(12, 0));
         slots.add(slot1);
-        
+
         PickupSlotRequest slot2 = new PickupSlotRequest();
         slot2.setPickupDate(LocalDate.now().plusDays(1));
         slot2.setStartTime(LocalTime.of(14, 0));
@@ -63,16 +63,16 @@ class PickupSlotValidationServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> validationService.validateSlots(slots))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("At least one pickup slot");
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("error.pickupslot.required");
     }
 
     @Test
     void validateSlots_NullList_ThrowsException() {
         // When & Then
         assertThatThrownBy(() -> validationService.validateSlots(null))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("At least one pickup slot");
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("error.pickupslot.required");
     }
 
     @Test
@@ -87,8 +87,8 @@ class PickupSlotValidationServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> validationService.validateSlots(slots))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("End time must be after start time");
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("error.pickupslot.invalid_time");
     }
 
     @Test
@@ -103,8 +103,8 @@ class PickupSlotValidationServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> validationService.validateSlots(slots))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("End time must be after start time");
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("error.pickupslot.invalid_time");
     }
 
     @Test
@@ -112,13 +112,13 @@ class PickupSlotValidationServiceTest {
         // Given
         List<PickupSlotRequest> slots = new ArrayList<>();
         LocalDate date = LocalDate.now().plusDays(1);
-        
+
         PickupSlotRequest slot1 = new PickupSlotRequest();
         slot1.setPickupDate(date);
         slot1.setStartTime(LocalTime.of(9, 0));
         slot1.setEndTime(LocalTime.of(13, 0));
         slots.add(slot1);
-        
+
         PickupSlotRequest slot2 = new PickupSlotRequest();
         slot2.setPickupDate(date); // Same day
         slot2.setStartTime(LocalTime.of(12, 0)); // Overlaps with slot1
@@ -127,8 +127,8 @@ class PickupSlotValidationServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> validationService.validateSlots(slots))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Pickup slots cannot overlap");
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("validation.pickupSlot.overlap");
     }
 
     @Test
@@ -136,20 +136,21 @@ class PickupSlotValidationServiceTest {
         // Given - Slot 2 starts exactly when slot 1 ends (this is allowed - no overlap)
         List<PickupSlotRequest> slots = new ArrayList<>();
         LocalDate date = LocalDate.now().plusDays(1);
-        
+
         PickupSlotRequest slot1 = new PickupSlotRequest();
         slot1.setPickupDate(date);
         slot1.setStartTime(LocalTime.of(9, 0));
         slot1.setEndTime(LocalTime.of(12, 0));
         slots.add(slot1);
-        
+
         PickupSlotRequest slot2 = new PickupSlotRequest();
         slot2.setPickupDate(date);
         slot2.setStartTime(LocalTime.of(12, 0)); // Starts when slot1 ends
         slot2.setEndTime(LocalTime.of(15, 0));
         slots.add(slot2);
 
-        // When & Then - Should not throw since they don't overlap (boundary touching is OK)
+        // When & Then - Should not throw since they don't overlap (boundary touching is
+        // OK)
         validationService.validateSlots(slots);
     }
 
@@ -158,13 +159,13 @@ class PickupSlotValidationServiceTest {
         // Given
         List<PickupSlotRequest> slots = new ArrayList<>();
         LocalDate date = LocalDate.now().plusDays(1);
-        
+
         PickupSlotRequest slot1 = new PickupSlotRequest();
         slot1.setPickupDate(date);
         slot1.setStartTime(LocalTime.of(9, 0));
         slot1.setEndTime(LocalTime.of(11, 59));
         slots.add(slot1);
-        
+
         PickupSlotRequest slot2 = new PickupSlotRequest();
         slot2.setPickupDate(date);
         slot2.setStartTime(LocalTime.of(12, 0)); // Starts 1 minute after slot1 ends
@@ -179,13 +180,13 @@ class PickupSlotValidationServiceTest {
     void validateSlots_OverlappingTimesDifferentDates_Success() {
         // Given - Same times but different dates should be valid
         List<PickupSlotRequest> slots = new ArrayList<>();
-        
+
         PickupSlotRequest slot1 = new PickupSlotRequest();
         slot1.setPickupDate(LocalDate.now().plusDays(1));
         slot1.setStartTime(LocalTime.of(9, 0));
         slot1.setEndTime(LocalTime.of(12, 0));
         slots.add(slot1);
-        
+
         PickupSlotRequest slot2 = new PickupSlotRequest();
         slot2.setPickupDate(LocalDate.now().plusDays(2)); // Different date
         slot2.setStartTime(LocalTime.of(9, 0)); // Same times as slot1
@@ -201,19 +202,19 @@ class PickupSlotValidationServiceTest {
         // Given
         List<PickupSlotRequest> slots = new ArrayList<>();
         LocalDate date = LocalDate.now().plusDays(1);
-        
+
         PickupSlotRequest slot1 = new PickupSlotRequest();
         slot1.setPickupDate(date);
         slot1.setStartTime(LocalTime.of(9, 0));
         slot1.setEndTime(LocalTime.of(12, 0));
         slots.add(slot1);
-        
+
         PickupSlotRequest slot2 = new PickupSlotRequest();
         slot2.setPickupDate(date);
         slot2.setStartTime(LocalTime.of(13, 0));
         slot2.setEndTime(LocalTime.of(16, 0));
         slots.add(slot2);
-        
+
         PickupSlotRequest slot3 = new PickupSlotRequest();
         slot3.setPickupDate(date);
         slot3.setStartTime(LocalTime.of(15, 0)); // Overlaps with slot2
@@ -222,8 +223,8 @@ class PickupSlotValidationServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> validationService.validateSlots(slots))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Pickup slots cannot overlap");
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("validation.pickupSlot.overlap");
     }
 
     @Test
@@ -231,13 +232,13 @@ class PickupSlotValidationServiceTest {
         // Given - Slot 2 is completely inside slot 1
         List<PickupSlotRequest> slots = new ArrayList<>();
         LocalDate date = LocalDate.now().plusDays(1);
-        
+
         PickupSlotRequest slot1 = new PickupSlotRequest();
         slot1.setPickupDate(date);
         slot1.setStartTime(LocalTime.of(9, 0));
         slot1.setEndTime(LocalTime.of(17, 0));
         slots.add(slot1);
-        
+
         PickupSlotRequest slot2 = new PickupSlotRequest();
         slot2.setPickupDate(date);
         slot2.setStartTime(LocalTime.of(12, 0)); // Inside slot1
@@ -246,8 +247,8 @@ class PickupSlotValidationServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> validationService.validateSlots(slots))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Pickup slots cannot overlap");
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("validation.pickupSlot.overlap");
     }
 
     @Test

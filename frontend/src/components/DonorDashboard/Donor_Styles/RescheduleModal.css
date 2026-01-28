@@ -1,0 +1,285 @@
+.reschedule-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  z-index: 1000;
+}
+
+.reschedule-modal {
+  background-color: #ffffff;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 760px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.reschedule-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e2e8f0;
+  background-color: #f8f9fa;
+}
+
+.reschedule-header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  color: #1b4965;
+}
+
+.reschedule-close {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #64748b;
+  padding: 6px;
+  border-radius: 6px;
+}
+
+.reschedule-close:hover {
+  background-color: #e2e8f0;
+  color: #1f2937;
+}
+
+.reschedule-body {
+  padding: 20px 24px 28px;
+}
+
+.reschedule-subtitle {
+  margin: 0 0 6px;
+  color: #475569;
+}
+
+.reschedule-title {
+  font-weight: 600;
+  color: #1b4965;
+}
+
+.reschedule-expiry {
+  margin: 0 0 20px;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.reschedule-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.reschedule-button {
+  padding: 10px 18px;
+  border-radius: 6px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.reschedule-button.primary {
+  background-color: #1b4965;
+  color: white;
+}
+
+.reschedule-button.primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.reschedule-button.secondary {
+  background-color: #e2e8f0;
+  color: #1f2937;
+}
+
+.reschedule-error {
+  margin-top: 12px;
+  color: #b91c1c;
+  background-color: #fee2e2;
+  border: 1px solid #fecaca;
+  padding: 10px 12px;
+  border-radius: 6px;
+}
+
+.reschedule-success {
+  margin-top: 12px;
+  color: #0f766e;
+  background-color: #ccfbf1;
+  border: 1px solid #99f6e4;
+  padding: 10px 12px;
+  border-radius: 6px;
+}
+
+.input-group {
+  margin-bottom: 0;
+}
+
+.third-width,
+.full-width {
+  flex: 1;
+}
+
+/* Pickup Slots Styles (mirrors SurplusFormModal) */
+.pickup-slots-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.btn-add-slot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background-color: #1b4965;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-add-slot:hover {
+  background-color: #245b7c;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(27, 73, 101, 0.3);
+}
+
+.pickup-slot-card {
+  background-color: #f8f9fa;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  transition: all 0.2s ease;
+}
+
+.pickup-slot-card:hover {
+  border-color: #cbd5e0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.pickup-slot-card:last-child {
+  margin-bottom: 0;
+}
+
+.slot-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.slot-number {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1b4965;
+}
+
+.btn-remove-slot {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background-color: transparent;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-remove-slot:hover {
+  background-color: #fee2e2;
+  border-color: #fca5a5;
+}
+
+.slot-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.slot-row {
+  display: flex;
+  gap: 12px;
+}
+
+.input-label {
+  display: block;
+  margin-bottom: 6px;
+  text-align: left;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #4a5568;
+}
+
+.input-label-small {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.input-field-small {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+  background-color: white;
+}
+
+.input-field-small:focus {
+  outline: none;
+  border-color: #4299e1;
+  box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.1);
+}
+
+.input-field-small::placeholder {
+  color: #cbd5e0;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 768px) {
+  .pickup-slots-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .btn-add-slot {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .slot-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .reschedule-actions {
+    flex-direction: column;
+  }
+
+  .reschedule-button {
+    width: 100%;
+  }
+}

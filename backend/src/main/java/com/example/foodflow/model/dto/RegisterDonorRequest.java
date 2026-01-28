@@ -6,14 +6,15 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public class RegisterDonorRequest {
-    @Email
-    @NotBlank
+    @Email(message = "{validation.email.invalid}")
+    @NotBlank(message = "{validation.email.required}")
     private String email;
 
-    @NotBlank
-    @Size(min = 8)
+    @NotBlank(message = "{validation.password.required}")
+    @Size(min = 8, message = "{validation.password.minLength}")
     private String password;
 
+    @NotBlank(message = "{validation.organizationName.required}")
     @NotBlank
     @Size(min = 8)
     private String confirmPassword;
@@ -21,19 +22,21 @@ public class RegisterDonorRequest {
     @NotBlank
     private String organizationName;
 
-    @NotBlank
+    @NotBlank(message = "{validation.contactPerson.required}")
     private String contactPerson;
 
-    @NotBlank
+    @NotBlank(message = "{validation.phone.required}")
     private String phone;
 
-    @NotBlank
+    @NotBlank(message = "{validation.address.required}")
     private String address;
 
     private OrganizationType organizationType;
 
     @NotBlank(message = "Business license is required for donor registration")
     private String businessLicense;
+
+    private Boolean dataStorageConsent = false;
 
     // Constructors, getters, setters
     public RegisterDonorRequest() {}
@@ -64,4 +67,7 @@ public class RegisterDonorRequest {
     
     public String getBusinessLicense() { return businessLicense; }
     public void setBusinessLicense(String businessLicense) { this.businessLicense = businessLicense; }
+
+    public Boolean getDataStorageConsent() { return dataStorageConsent; }
+    public void setDataStorageConsent(Boolean dataStorageConsent) { this.dataStorageConsent = dataStorageConsent; }
 }

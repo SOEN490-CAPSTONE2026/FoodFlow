@@ -9,6 +9,8 @@ import com.example.foodflow.model.types.FoodCategory;
 import com.example.foodflow.repository.ClaimRepository;
 import com.example.foodflow.repository.ReceiverPreferencesRepository;
 import com.example.foodflow.repository.UserRepository;
+import com.example.foodflow.service.BusinessMetricsService;
+import io.micrometer.core.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -30,23 +32,30 @@ public class NotificationService {
     private final ClaimRepository claimRepository;
     private final UserRepository userRepository;
     private final NotificationPreferenceService notificationPreferenceService;
+    private final BusinessMetricsService businessMetricsService;
+    private final EmailService emailService;
     
     public NotificationService(
             SimpMessagingTemplate messagingTemplate,
             ReceiverPreferencesRepository receiverPreferencesRepository,
             ClaimRepository claimRepository,
             UserRepository userRepository,
-            NotificationPreferenceService notificationPreferenceService) {
+            NotificationPreferenceService notificationPreferenceService,
+            BusinessMetricsService businessMetricsService,
+            EmailService emailService) {
         this.messagingTemplate = messagingTemplate;
         this.receiverPreferencesRepository = receiverPreferencesRepository;
         this.claimRepository = claimRepository;
         this.userRepository = userRepository;
         this.notificationPreferenceService = notificationPreferenceService;
+        this.businessMetricsService = businessMetricsService;
+        this.emailService = emailService;
     }
     
     /**
      * Send notification to all eligible receivers when a new post is created
      */
+    @Timed(value = "notification.service.sendNewPostNotification", description = "Time taken to send new post notifications")
     public void sendNewPostNotification(SurplusPost surplusPost) {
         logger.info("===== NOTIFICATION SERVICE START =====");
         logger.info("Processing new post notification for postId={}, title={}, foodCategories={}", 
@@ -82,6 +91,15 @@ public class NotificationService {
         
         logger.info("Notification processing complete for postId={}. Total receivers: {}, Sent: {}, Filtered: {}", 
             surplusPost.getId(), totalReceivers, notificationsSent, filteredOut);
+        
+        // Record metrics
+        businessMetricsService.incrementNotificationsSent();
+        for (int i = 0; i < notificationsSent; i++) {
+            businessMetricsService.incrementNotificationsDelivered();
+        }
+        for (int i = 0; i < filteredOut; i++) {
+            businessMetricsService.incrementNotificationsFiltered();
+        }
     }
     
     /**
@@ -277,5 +295,27 @@ public class NotificationService {
                 receiver.getId(), e.getMessage());
             throw e;
         }
+        
+        // Send email notification if user has email notifications enabled
+        if (notificationPreferenceService.shouldSendNotification(receiver, "newDonationAvailable", "email")) {
+            try {
+                String userName = getReceiverName(receiver);
+                emailService.sendNewDonationNotification(receiver.getEmail(), userName, notification);
+                logger.info("Sent email notification to receiverId={} for postId={}", receiver.getId(), surplusPost.getId());
+            } catch (Exception e) {
+                logger.error("Failed to send email notification to receiverId={}: {}", receiver.getId(), e.getMessage());
+                // Don't fail the whole operation if email fails
+            }
+        }
+    }
+    
+    /**
+     * Get receiver name from organization
+     */
+    private String getReceiverName(User receiver) {
+        if (receiver.getOrganization() != null && receiver.getOrganization().getName() != null) {
+            return receiver.getOrganization().getName();
+        }
+        return "Receiver";
     }
 }

@@ -1,29 +1,31 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useTranslation } from 'react-i18next';
 import { FaMobileAlt, FaBell, FaShieldAlt } from "react-icons/fa";
 import "../LandingPage/style/HowItWorks.css";
 
-const steps = [
-  {
-    number: "01",
-    title: "Post Surplus Instantly",
-    text: "Restaurants, events, and stores post surplus food with quantity, pickup location, and time window before it spoils.",
-    icon: <FaMobileAlt />
-  },
-  {
-    number: "02",
-    title: "Smart Instant Matching",
-    text: "Our algorithm instantly alerts the nearest verified charity, shelter, or volunteer who can pick up within the time window.",
-    icon: <FaBell />
-  },
-  {
-    number: "03",
-    title: "Tracked Safe Pickup",
-    text: "Built-in food safety tracking logs temperature, expiry dates, and pickup times for compliance while ensuring meals reach people fast.",
-    icon: <FaShieldAlt />
-  }
-];
-
 const HowItWorks = () => {
+  const { t } = useTranslation();
+  
+  const steps = [
+    {
+      number: t('landing.howItWorks.step1.number'),
+      title: t('landing.howItWorks.step1.title'),
+      text: t('landing.howItWorks.step1.text'),
+      icon: <FaMobileAlt />
+    },
+    {
+      number: t('landing.howItWorks.step2.number'),
+      title: t('landing.howItWorks.step2.title'),
+      text: t('landing.howItWorks.step2.text'),
+      icon: <FaBell />
+    },
+    {
+      number: t('landing.howItWorks.step3.number'),
+      title: t('landing.howItWorks.step3.title'),
+      text: t('landing.howItWorks.step3.text'),
+      icon: <FaShieldAlt />
+    }
+  ];
   const [currentStep, setCurrentStep] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isInView, setIsInView] = useState(false);
@@ -48,12 +50,14 @@ const HowItWorks = () => {
     return () => observer.disconnect();
   }, []);
 
-  // Logic for the Step animation 
+  // Logic for the Step animation
   useEffect(() => {
-    if (!isInView) return;
-    
+    if (!isInView) {
+      return;
+    }
+
     setIsAnimating(true);
-    
+
     const animationTimer = setTimeout(() => {
       setIsAnimating(false);
     }, duration);
@@ -62,10 +66,10 @@ const HowItWorks = () => {
       if (currentStep < steps.length - 1) {
         setCurrentStep(currentStep + 1);
       } else {
-        setCurrentStep(0); 
+        setCurrentStep(0);
       }
     }, duration + 500);
-    
+
     return () => {
       clearTimeout(animationTimer);
       clearTimeout(stepTimer);
@@ -73,15 +77,14 @@ const HowItWorks = () => {
   }, [currentStep, isInView]);
 
   return (
-    <div 
-      className={`hiw-container ${isInView ? "hiw-animate-in" : ""}`} 
+    <div
+      className={`hiw-container ${isInView ? 'hiw-animate-in' : ''}`}
       ref={sectionRef}
     >
       <div className="hiw-header">
-        <h1>How FoodFlow Works</h1>
+        <h1>{t('landing.howItWorks.title')}</h1>
         <p>
-          Surplus food reaches charities in minutes, not hours. Our smart
-          matching prevents good food from going to waste.
+          {t('landing.howItWorks.subtitle')}
         </p>
       </div>
 
@@ -89,7 +92,9 @@ const HowItWorks = () => {
         <div className="hiw-steps-container">
           {steps.map((step, i) => (
             <div key={i} className="hiw-step-column">
-              <div className={`hiw-step-card ${i === currentStep ? "hiw-active" : ""}`}>
+              <div
+                className={`hiw-step-card ${i === currentStep ? 'hiw-active' : ''}`}
+              >
                 <div className="hiw-step-visual">
                   <div className="hiw-step-icon">
                     <div className="hiw-icon-circle">{step.icon}</div>
@@ -102,12 +107,19 @@ const HowItWorks = () => {
                 </div>
               </div>
               <div className="hiw-progress-container">
-                <div 
+                <div
                   className={`hiw-progress-bar ${
-                    i < currentStep ? "hiw-completed" : 
-                    i === currentStep && isAnimating ? "hiw-animating" : ""
+                    i < currentStep
+                      ? 'hiw-completed'
+                      : i === currentStep && isAnimating
+                        ? 'hiw-animating'
+                        : ''
                   }`}
-                  style={i === currentStep && isAnimating ? {animationDuration: `${duration}ms`} : {}}
+                  style={
+                    i === currentStep && isAnimating
+                      ? { animationDuration: `${duration}ms` }
+                      : {}
+                  }
                 ></div>
               </div>
             </div>

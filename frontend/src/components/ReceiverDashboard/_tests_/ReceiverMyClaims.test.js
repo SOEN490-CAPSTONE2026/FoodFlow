@@ -2,17 +2,9 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ReceiverMyClaims from '../ReceiverMyClaims';
-import { claimsAPI } from '../../../services/api';
+import { surplusAPI, claimsAPI } from '../../../services/api';
 import { NotificationProvider } from '../../../contexts/NotificationContext';
 import { TimezoneProvider } from '../../../contexts/TimezoneContext';
-
-// Mock the API
-jest.mock('../../../services/api', () => ({
-    claimsAPI: {
-        myClaims: jest.fn(),
-        cancel: jest.fn(),
-    },
-}));
 
 // Mock images
 jest.mock('../../../assets/foodtypes/Pastry&Bakery.jpg', () => 'bakery.jpg');
@@ -327,7 +319,7 @@ describe('ReceiverMyClaims Component', () => {
                 );
             });
 
-            const viewDetailsButton = await screen.findByText('View details');
+            const viewDetailsButton = await screen.findByText('View Details');
             await act(async () => {
                 fireEvent.click(viewDetailsButton);
             });
@@ -348,7 +340,7 @@ describe('ReceiverMyClaims Component', () => {
                 );
             });
 
-            const viewDetailsButton = await screen.findByText('View details');
+            const viewDetailsButton = await screen.findByText('View Details');
             await act(async () => {
                 fireEvent.click(viewDetailsButton);
             });
