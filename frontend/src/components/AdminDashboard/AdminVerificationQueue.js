@@ -1,21 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
-import {
-  ChevronRight,
-  ChevronDown,
-  Search,
-  UserCheck,
-  Clock,
-  Mail,
-  Phone,
-  MapPin,
-  Building2,
-  Calendar,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  FileText,
-} from 'lucide-react';
+import { ChevronRight, ChevronDown, Search, UserCheck, Clock, Mail, Phone, MapPin, Building2, Calendar, CheckCircle, XCircle, AlertCircle, FileText } from 'lucide-react';
 import { adminVerificationAPI } from '../../services/api';
 import './Admin_Styles/AdminVerificationQueue.css';
 import {
@@ -25,17 +10,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '../ui/table';
+} from "../ui/table";
 
 // Modals
 const ApprovalModal = ({ user, onClose, onConfirm, loading }) => {
   const [mouseDownInsideModal, setMouseDownInsideModal] = useState(false);
 
-  const handleBackdropClick = e => {
-    if (
-      !mouseDownInsideModal &&
-      e.target.classList.contains('modal-backdrop')
-    ) {
+  const handleBackdropClick = (e) => {
+    if (!mouseDownInsideModal && e.target.classList.contains('modal-backdrop')) {
       onClose();
     }
     setMouseDownInsideModal(false);
@@ -45,7 +27,7 @@ const ApprovalModal = ({ user, onClose, onConfirm, loading }) => {
     <div
       className="modal-backdrop"
       onClick={handleBackdropClick}
-      onMouseDown={e => {
+      onMouseDown={(e) => {
         if (e.target.classList.contains('modal-backdrop')) {
           setMouseDownInsideModal(false);
         }
@@ -62,22 +44,13 @@ const ApprovalModal = ({ user, onClose, onConfirm, loading }) => {
         <div className="modal-body">
           <p>Are you sure you want to approve this registration?</p>
           <div className="user-info-summary">
-            <p>
-              <strong>Organization:</strong> {user.organizationName}
-            </p>
-            <p>
-              <strong>Contact:</strong> {user.contactName}
-            </p>
-            <p>
-              <strong>Email:</strong> {user.email}
-            </p>
-            <p>
-              <strong>Type:</strong> {user.role}
-            </p>
+            <p><strong>Organization:</strong> {user.organizationName}</p>
+            <p><strong>Contact:</strong> {user.contactName}</p>
+            <p><strong>Email:</strong> {user.email}</p>
+            <p><strong>Type:</strong> {user.role}</p>
           </div>
           <p className="approval-note">
-            The user will receive an approval email and their status will be set
-            to ACTIVE.
+            The user will receive an approval email and their status will be set to ACTIVE.
           </p>
         </div>
         <div className="modal-actions">
@@ -115,11 +88,8 @@ const RejectionModal = ({ user, onClose, onConfirm, loading }) => {
     { value: 'other', label: 'Other' },
   ];
 
-  const handleBackdropClick = e => {
-    if (
-      !mouseDownInsideModal &&
-      e.target.classList.contains('modal-backdrop')
-    ) {
+  const handleBackdropClick = (e) => {
+    if (!mouseDownInsideModal && e.target.classList.contains('modal-backdrop')) {
       onClose();
     }
     setMouseDownInsideModal(false);
@@ -137,7 +107,7 @@ const RejectionModal = ({ user, onClose, onConfirm, loading }) => {
     <div
       className="modal-backdrop"
       onClick={handleBackdropClick}
-      onMouseDown={e => {
+      onMouseDown={(e) => {
         if (e.target.classList.contains('modal-backdrop')) {
           setMouseDownInsideModal(false);
         }
@@ -154,26 +124,18 @@ const RejectionModal = ({ user, onClose, onConfirm, loading }) => {
         <div className="modal-body">
           <p>Please provide a reason for rejecting this registration:</p>
           <div className="user-info-summary">
-            <p>
-              <strong>Organization:</strong> {user.organizationName}
-            </p>
-            <p>
-              <strong>Contact:</strong> {user.contactName}
-            </p>
-            <p>
-              <strong>Email:</strong> {user.email}
-            </p>
-            <p>
-              <strong>Type:</strong> {user.role}
-            </p>
+            <p><strong>Organization:</strong> {user.organizationName}</p>
+            <p><strong>Contact:</strong> {user.contactName}</p>
+            <p><strong>Email:</strong> {user.email}</p>
+            <p><strong>Type:</strong> {user.role}</p>
           </div>
-
+          
           <div className="form-group">
             <label>Rejection Reason *</label>
             <Select
               options={rejectionReasons}
               value={rejectionReasons.find(r => r.value === reason)}
-              onChange={option => setReason(option.value)}
+              onChange={(option) => setReason(option.value)}
               placeholder="Select a reason..."
               className="rejection-reason-select"
               classNamePrefix="select"
@@ -184,7 +146,7 @@ const RejectionModal = ({ user, onClose, onConfirm, loading }) => {
             <label>Additional Message (Optional)</label>
             <textarea
               value={customMessage}
-              onChange={e => setCustomMessage(e.target.value)}
+              onChange={(e) => setCustomMessage(e.target.value)}
               placeholder="Add any additional information for the user..."
               rows={4}
               className="rejection-message-input"
@@ -192,8 +154,7 @@ const RejectionModal = ({ user, onClose, onConfirm, loading }) => {
           </div>
 
           <p className="rejection-note">
-            The user will receive a rejection email with the reason and can
-            re-register if needed.
+            The user will receive a rejection email with the reason and can re-register if needed.
           </p>
         </div>
         <div className="modal-actions">
@@ -298,7 +259,7 @@ const AdminVerificationQueue = () => {
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
+  
   const [stats, setStats] = useState({
     totalPending: 0,
     pendingDonors: 0,
@@ -363,20 +324,17 @@ const AdminVerificationQueue = () => {
 
       // Calculate stats
       const pendingDonors = content.filter(u => u.role === 'DONOR').length;
-      const pendingReceivers = content.filter(
-        u => u.role === 'RECEIVER'
-      ).length;
-
+      const pendingReceivers = content.filter(u => u.role === 'RECEIVER').length;
+      
       // Calculate average wait time in hours
       const now = new Date();
       const waitTimes = content.map(u => {
         const createdDate = new Date(u.createdAt);
         return (now - createdDate) / (1000 * 60 * 60); // hours
       });
-      const avgWaitTime =
-        waitTimes.length > 0
-          ? Math.round(waitTimes.reduce((a, b) => a + b, 0) / waitTimes.length)
-          : 0;
+      const avgWaitTime = waitTimes.length > 0
+        ? Math.round(waitTimes.reduce((a, b) => a + b, 0) / waitTimes.length)
+        : 0;
 
       setStats({
         totalPending: totalElements,
@@ -424,7 +382,7 @@ const AdminVerificationQueue = () => {
   }, [currentPage, userTypeFilter, debouncedSearchTerm, sortBy, sortOrder]);
 
   // Toggle row expansion
-  const toggleRowExpansion = userId => {
+  const toggleRowExpansion = (userId) => {
     const newExpanded = new Set(expandedRows);
     if (newExpanded.has(userId)) {
       newExpanded.delete(userId);
@@ -451,18 +409,15 @@ const AdminVerificationQueue = () => {
     setActionLoading(true);
     try {
       await adminVerificationAPI.approveUser(selectedUser.id);
-
+      
       // Update UI optimistically
       setPendingUsers(prev => prev.filter(u => u.id !== selectedUser.id));
       setFilteredUsers(prev => prev.filter(u => u.id !== selectedUser.id));
-
-      showToast(
-        `${selectedUser.organizationName} has been approved successfully!`,
-        'success'
-      );
+      
+      showToast(`${selectedUser.organizationName} has been approved successfully!`, 'success');
       setShowApprovalModal(false);
       setSelectedUser(null);
-
+      
       // Refresh data
       fetchPendingUsers();
     } catch (err) {
@@ -482,18 +437,15 @@ const AdminVerificationQueue = () => {
     setActionLoading(true);
     try {
       await adminVerificationAPI.rejectUser(selectedUser.id, reason, message);
-
+      
       // Update UI optimistically
       setPendingUsers(prev => prev.filter(u => u.id !== selectedUser.id));
       setFilteredUsers(prev => prev.filter(u => u.id !== selectedUser.id));
-
-      showToast(
-        `${selectedUser.organizationName} has been rejected.`,
-        'success'
-      );
+      
+      showToast(`${selectedUser.organizationName} has been rejected.`, 'success');
       setShowRejectionModal(false);
       setSelectedUser(null);
-
+      
       // Refresh data
       fetchPendingUsers();
     } catch (err) {
@@ -529,7 +481,7 @@ const AdminVerificationQueue = () => {
   };
 
   // Calculate waiting time
-  const getWaitingTime = createdAt => {
+  const getWaitingTime = (createdAt) => {
     const now = new Date();
     const created = new Date(createdAt);
     const diffMs = now - created;
@@ -544,7 +496,7 @@ const AdminVerificationQueue = () => {
   };
 
   // Format date
-  const formatDate = dateString => {
+  const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
@@ -567,11 +519,9 @@ const AdminVerificationQueue = () => {
   };
 
   // Handle document view
-  const handleViewDocument = documentName => {
+  const handleViewDocument = (documentName) => {
     // In a real app, this would open the document
-    alert(
-      `Viewing document: ${documentName}\n\nIn production, this would open the uploaded document for review.`
-    );
+    alert(`Viewing document: ${documentName}\n\nIn production, this would open the uploaded document for review.`);
   };
 
   // User type filter options
@@ -594,9 +544,7 @@ const AdminVerificationQueue = () => {
   ];
 
   if (loading && pendingUsers.length === 0) {
-    return (
-      <div className="admin-verification-loading">Loading pending users...</div>
-    );
+    return <div className="admin-verification-loading">Loading pending users...</div>;
   }
 
   return (
@@ -663,7 +611,7 @@ const AdminVerificationQueue = () => {
               type="text"
               placeholder="Search by organization name or email..."
               value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="admin-users-search"
             />
           </div>
@@ -671,7 +619,7 @@ const AdminVerificationQueue = () => {
           <Select
             options={userTypeOptions}
             value={userTypeOptions.find(opt => opt.value === userTypeFilter)}
-            onChange={option => {
+            onChange={(option) => {
               setUserTypeFilter(option.value);
               setCurrentPage(0);
             }}
@@ -695,7 +643,7 @@ const AdminVerificationQueue = () => {
           <Select
             options={sortOptions}
             value={sortOptions.find(opt => opt.value === sortBy)}
-            onChange={option => setSortBy(option.value)}
+            onChange={(option) => setSortBy(option.value)}
             className="filter-select"
             classNamePrefix="select"
             placeholder="Sort by"
@@ -703,9 +651,7 @@ const AdminVerificationQueue = () => {
 
           <button
             className="sort-order-btn"
-            onClick={() =>
-              setSortOrder(prev => (prev === 'asc' ? 'desc' : 'asc'))
-            }
+            onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
             title={`Sort ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
           >
             {sortOrder === 'asc' ? '↑' : '↓'}
@@ -745,11 +691,9 @@ const AdminVerificationQueue = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredUsers.map(user => (
+                  {filteredUsers.map((user) => (
                     <React.Fragment key={user.id}>
-                      <TableRow
-                        className={expandedRows.has(user.id) ? 'expanded' : ''}
-                      >
+                      <TableRow className={expandedRows.has(user.id) ? 'expanded' : ''}>
                         <TableCell>
                           <button
                             className="expand-btn"
@@ -765,16 +709,12 @@ const AdminVerificationQueue = () => {
                         <TableCell className="id-cell">{user.id}</TableCell>
                         <TableCell>
                           <div className="user-name-info">
-                            <div className="user-name">
-                              {user.organizationName}
-                            </div>
+                            <div className="user-name">{user.organizationName}</div>
                             <div className="user-org">{user.contactName}</div>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <span
-                            className={`pill pill-${user.role.toLowerCase()}`}
-                          >
+                          <span className={`pill pill-${user.role.toLowerCase()}`}>
                             {user.role === 'DONOR' ? 'Donor' : 'Receiver'}
                           </span>
                         </TableCell>
@@ -789,9 +729,7 @@ const AdminVerificationQueue = () => {
                             </span>
                           )}
                         </TableCell>
-                        <TableCell className="email-cell">
-                          {user.email}
-                        </TableCell>
+                        <TableCell className="email-cell">{user.email}</TableCell>
                         <TableCell>{user.phoneNumber || 'N/A'}</TableCell>
                         <TableCell>
                           <span className="waiting-time">
@@ -849,120 +787,69 @@ const AdminVerificationQueue = () => {
                               <div className="detail-content-grid">
                                 {/* Organization Identity */}
                                 <div className="detail-card">
-                                  <h3 className="card-title">
-                                    Organization Identity
-                                  </h3>
+                                  <h3 className="card-title">Organization Identity</h3>
                                   <div className="detail-item">
-                                    <span className="detail-label">
-                                      Organization Name
-                                    </span>
-                                    <span className="detail-value">
-                                      {user.organizationName}
-                                    </span>
+                                    <span className="detail-label">Organization Name</span>
+                                    <span className="detail-value">{user.organizationName}</span>
                                   </div>
                                   <div className="detail-item">
-                                    <span className="detail-label">
-                                      Organization Type
-                                    </span>
-                                    <span className="detail-value">
-                                      {formatOrgType(user.organizationType)}
-                                    </span>
+                                    <span className="detail-label">Organization Type</span>
+                                    <span className="detail-value">{formatOrgType(user.organizationType)}</span>
                                   </div>
                                   <div className="detail-item">
-                                    <span className="detail-label">
-                                      Contact Person
-                                    </span>
-                                    <span className="detail-value">
-                                      {user.contactName}
-                                    </span>
+                                    <span className="detail-label">Contact Person</span>
+                                    <span className="detail-value">{user.contactName}</span>
                                   </div>
                                   <div className="detail-item">
                                     <Mail size={16} className="detail-icon" />
                                     <span className="detail-label">Email</span>
-                                    <a
-                                      href={`mailto:${user.email}`}
-                                      className="detail-value-link"
-                                    >
+                                    <a href={`mailto:${user.email}`} className="detail-value-link">
                                       {user.email}
                                     </a>
                                   </div>
                                   <div className="detail-item">
                                     <Phone size={16} className="detail-icon" />
                                     <span className="detail-label">Phone</span>
-                                    <a
-                                      href={`tel:${user.phoneNumber}`}
-                                      className="detail-value-link"
-                                    >
+                                    <a href={`tel:${user.phoneNumber}`} className="detail-value-link">
                                       {user.phoneNumber || 'Not provided'}
                                     </a>
                                   </div>
                                   <div className="detail-item">
                                     <MapPin size={16} className="detail-icon" />
-                                    <span className="detail-label">
-                                      Location
-                                    </span>
+                                    <span className="detail-label">Location</span>
                                     <span className="detail-value">
-                                      {user.address?.street}
-                                      {user.address?.unit
-                                        ? `, ${user.address.unit}`
-                                        : ''}
-                                      <br />
-                                      {user.address?.city},{' '}
-                                      {user.address?.state}{' '}
-                                      {user.address?.zipCode}
+                                      {user.address?.street}{user.address?.unit ? `, ${user.address.unit}` : ''}<br />
+                                      {user.address?.city}, {user.address?.state} {user.address?.zipCode}
                                     </span>
                                   </div>
                                 </div>
 
                                 {/* Verification & Trust */}
                                 <div className="detail-card">
-                                  <h3 className="card-title">
-                                    Verification & Trust
-                                  </h3>
+                                  <h3 className="card-title">Verification & Trust</h3>
                                   {user.role === 'RECEIVER' ? (
                                     <>
                                       <div className="detail-item-highlight">
-                                        <CheckCircle
-                                          size={18}
-                                          className="verify-icon"
-                                        />
+                                        <CheckCircle size={18} className="verify-icon" />
                                         <div>
-                                          <span className="detail-label">
-                                            Charity Registration Number
-                                          </span>
-                                          <span className="detail-value-emphasis">
-                                            {user.charityRegistrationNumber ||
-                                              'Not provided'}
-                                          </span>
+                                          <span className="detail-label">Charity Registration Number</span>
+                                          <span className="detail-value-emphasis">{user.charityRegistrationNumber || 'Not provided'}</span>
                                         </div>
                                       </div>
                                       {user.supportingDocument && (
                                         <div className="detail-item-document">
                                           <div className="document-header">
-                                            <CheckCircle
-                                              size={16}
-                                              className="verified-badge"
-                                            />
-                                            <span className="document-label">
-                                              Supporting Document
-                                            </span>
+                                            <CheckCircle size={16} className="verified-badge" />
+                                            <span className="document-label">Supporting Document</span>
                                           </div>
-                                          <button
+                                          <button 
                                             className="document-preview-btn"
-                                            onClick={() =>
-                                              handleViewDocument(
-                                                user.supportingDocument
-                                              )
-                                            }
+                                            onClick={() => handleViewDocument(user.supportingDocument)}
                                           >
                                             <FileText size={18} />
                                             <div className="document-info">
-                                              <span className="document-name">
-                                                {user.supportingDocument}
-                                              </span>
-                                              <span className="document-action">
-                                                Click to preview
-                                              </span>
+                                              <span className="document-name">{user.supportingDocument}</span>
+                                              <span className="document-action">Click to preview</span>
                                             </div>
                                           </button>
                                         </div>
@@ -971,47 +858,26 @@ const AdminVerificationQueue = () => {
                                   ) : (
                                     <>
                                       <div className="detail-item-highlight">
-                                        <CheckCircle
-                                          size={18}
-                                          className="verify-icon"
-                                        />
+                                        <CheckCircle size={18} className="verify-icon" />
                                         <div>
-                                          <span className="detail-label">
-                                            Business License Number
-                                          </span>
-                                          <span className="detail-value-emphasis">
-                                            {user.businessLicense ||
-                                              'Not provided'}
-                                          </span>
+                                          <span className="detail-label">Business License Number</span>
+                                          <span className="detail-value-emphasis">{user.businessLicense || 'Not provided'}</span>
                                         </div>
                                       </div>
                                       {user.supportingDocument && (
                                         <div className="detail-item-document">
                                           <div className="document-header">
-                                            <CheckCircle
-                                              size={16}
-                                              className="verified-badge"
-                                            />
-                                            <span className="document-label">
-                                              Supporting Document
-                                            </span>
+                                            <CheckCircle size={16} className="verified-badge" />
+                                            <span className="document-label">Supporting Document</span>
                                           </div>
-                                          <button
+                                          <button 
                                             className="document-preview-btn"
-                                            onClick={() =>
-                                              handleViewDocument(
-                                                user.supportingDocument
-                                              )
-                                            }
+                                            onClick={() => handleViewDocument(user.supportingDocument)}
                                           >
                                             <FileText size={18} />
                                             <div className="document-info">
-                                              <span className="document-name">
-                                                {user.supportingDocument}
-                                              </span>
-                                              <span className="document-action">
-                                                Click to preview
-                                              </span>
+                                              <span className="document-name">{user.supportingDocument}</span>
+                                              <span className="document-action">Click to preview</span>
                                             </div>
                                           </button>
                                         </div>
@@ -1024,121 +890,64 @@ const AdminVerificationQueue = () => {
                                 <div className="detail-card">
                                   {user.role === 'RECEIVER' ? (
                                     <>
-                                      <h3 className="card-title">
-                                        Capacity & Impact
-                                      </h3>
+                                      <h3 className="card-title">Capacity & Impact</h3>
                                       <div className="capacity-stat-card">
                                         <div className="capacity-number">
-                                          {user.capacity
-                                            ? user.capacity.split(' ')[0]
-                                            : 'N/A'}
+                                          {user.capacity ? user.capacity.split(' ')[0] : 'N/A'}
                                         </div>
                                         <div className="capacity-label">
-                                          {user.capacity
-                                            ? user.capacity
-                                                .split(' ')
-                                                .slice(1)
-                                                .join(' ')
-                                            : 'Not specified'}
+                                          {user.capacity ? user.capacity.split(' ').slice(1).join(' ') : 'Not specified'}
                                         </div>
                                       </div>
                                       <div className="verification-checklist">
                                         <h4>Verification Checklist</h4>
                                         <div className="checklist-item">
-                                          <CheckCircle
-                                            size={16}
-                                            className="check-icon"
-                                          />
-                                          <span>
-                                            Organization type provided
-                                          </span>
+                                          <CheckCircle size={16} className="check-icon" />
+                                          <span>Organization type provided</span>
                                         </div>
                                         <div className="checklist-item">
-                                          <CheckCircle
-                                            size={16}
-                                            className="check-icon"
-                                          />
+                                          <CheckCircle size={16} className="check-icon" />
                                           <span>Capacity provided</span>
                                         </div>
                                         <div className="checklist-item">
-                                          <CheckCircle
-                                            size={16}
-                                            className="check-icon"
-                                          />
-                                          <span>
-                                            Supporting documents uploaded
-                                          </span>
+                                          <CheckCircle size={16} className="check-icon" />
+                                          <span>Supporting documents uploaded</span>
                                         </div>
                                         <div className="checklist-item">
-                                          <CheckCircle
-                                            size={16}
-                                            className="check-icon"
-                                          />
+                                          <CheckCircle size={16} className="check-icon" />
                                           <span>Contact details complete</span>
                                         </div>
                                       </div>
                                     </>
                                   ) : (
                                     <>
-                                      <h3 className="card-title">
-                                        Registration Details
-                                      </h3>
+                                      <h3 className="card-title">Registration Details</h3>
                                       <div className="detail-item">
-                                        <Calendar
-                                          size={16}
-                                          className="detail-icon"
-                                        />
-                                        <span className="detail-label">
-                                          Submitted
-                                        </span>
-                                        <span className="detail-value">
-                                          {formatDate(user.createdAt)}
-                                        </span>
+                                        <Calendar size={16} className="detail-icon" />
+                                        <span className="detail-label">Submitted</span>
+                                        <span className="detail-value">{formatDate(user.createdAt)}</span>
                                       </div>
                                       <div className="detail-item">
-                                        <Clock
-                                          size={16}
-                                          className="detail-icon"
-                                        />
-                                        <span className="detail-label">
-                                          Waiting Time
-                                        </span>
-                                        <span className="detail-value">
-                                          {getWaitingTime(user.createdAt)}
-                                        </span>
+                                        <Clock size={16} className="detail-icon" />
+                                        <span className="detail-label">Waiting Time</span>
+                                        <span className="detail-value">{getWaitingTime(user.createdAt)}</span>
                                       </div>
                                       <div className="verification-checklist">
                                         <h4>Verification Checklist</h4>
                                         <div className="checklist-item">
-                                          <CheckCircle
-                                            size={16}
-                                            className="check-icon"
-                                          />
-                                          <span>
-                                            Organization type provided
-                                          </span>
+                                          <CheckCircle size={16} className="check-icon" />
+                                          <span>Organization type provided</span>
                                         </div>
                                         <div className="checklist-item">
-                                          <CheckCircle
-                                            size={16}
-                                            className="check-icon"
-                                          />
+                                          <CheckCircle size={16} className="check-icon" />
                                           <span>Business license provided</span>
                                         </div>
                                         <div className="checklist-item">
-                                          <CheckCircle
-                                            size={16}
-                                            className="check-icon"
-                                          />
-                                          <span>
-                                            Supporting documents uploaded
-                                          </span>
+                                          <CheckCircle size={16} className="check-icon" />
+                                          <span>Supporting documents uploaded</span>
                                         </div>
                                         <div className="checklist-item">
-                                          <CheckCircle
-                                            size={16}
-                                            className="check-icon"
-                                          />
+                                          <CheckCircle size={16} className="check-icon" />
                                           <span>Contact details complete</span>
                                         </div>
                                       </div>
@@ -1170,9 +979,7 @@ const AdminVerificationQueue = () => {
                   Page {currentPage + 1} of {totalPages}
                 </span>
                 <button
-                  onClick={() =>
-                    setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))
-                  }
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
                   disabled={currentPage >= totalPages - 1}
                   className="pagination-btn"
                 >

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { User, Globe, Bell, Camera, Lock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './LanguageSwitcher';
 import RegionSelector from './RegionSelector';
 import ChangePasswordModal from './ChangePasswordModal';
@@ -13,188 +14,69 @@ import '../style/Settings.css';
  */
 const Settings = () => {
   const { userId, organizationName, role } = useContext(AuthContext);
-
-  // Role-based notification categories
-  const notificationCategories = {
+  const { t } = useTranslation();
+  
+  // Role-based notification categories - using translation function
+  const getNotificationCategories = () => ({
     DONOR: {
-      'Claim & Pickup Flow': [
-        {
-          key: 'donationClaimed',
-          label: 'Donation Claimed',
-          desc: 'A receiver claimed your donation',
-        },
-        {
-          key: 'claimCanceled',
-          label: 'Claim Canceled',
-          desc: 'A receiver canceled their claim',
-        },
-        {
-          key: 'pickupReminder',
-          label: 'Pickup Reminders',
-          desc: 'Upcoming pickup time reminders',
-        },
-        {
-          key: 'donationPickedUp',
-          label: 'Donation Picked Up',
-          desc: 'Receiver marked the donation as picked up',
-        },
-        {
-          key: 'donationExpired',
-          label: 'Donation Expired',
-          desc: 'Donation automatically marked expired or overdue',
-        },
+      [t('settings.notificationTypes.donor.claimPickup')]: [
+        { key: 'donationClaimed', label: t('settings.notificationTypes.donor.donationClaimed'), desc: t('settings.notificationTypes.donor.donationClaimedDesc') },
+        { key: 'claimCanceled', label: t('settings.notificationTypes.donor.claimCanceled'), desc: t('settings.notificationTypes.donor.claimCanceledDesc') },
+        { key: 'pickupReminder', label: t('settings.notificationTypes.donor.pickupReminder'), desc: t('settings.notificationTypes.donor.pickupReminderDesc') },
+        { key: 'donationPickedUp', label: t('settings.notificationTypes.donor.donationPickedUp'), desc: t('settings.notificationTypes.donor.donationPickedUpDesc') },
+        { key: 'donationExpired', label: t('settings.notificationTypes.donor.donationExpired'), desc: t('settings.notificationTypes.donor.donationExpiredDesc') }
       ],
-      Messaging: [
-        {
-          key: 'newMessageFromReceiver',
-          label: 'New Messages',
-          desc: 'New chat message from the receiver',
-        },
+      [t('settings.notificationTypes.donor.messaging')]: [
+        { key: 'newMessageFromReceiver', label: t('settings.notificationTypes.donor.newMessageFromReceiver'), desc: t('settings.notificationTypes.donor.newMessageFromReceiverDesc') }
       ],
-      Feedback: [
-        {
-          key: 'receiverReview',
-          label: 'Reviews & Ratings',
-          desc: 'Receiver left you a rating or review',
-        },
+      [t('settings.notificationTypes.donor.feedback')]: [
+        { key: 'receiverReview', label: t('settings.notificationTypes.donor.receiverReview'), desc: t('settings.notificationTypes.donor.receiverReviewDesc') }
       ],
-      'Admin & System': [
-        {
-          key: 'donationFlagged',
-          label: 'Donation Flagged',
-          desc: 'Admin flagged your donation',
-        },
-        {
-          key: 'donationStatusUpdated',
-          label: 'Status Updates',
-          desc: 'Admin updated your donation status',
-        },
-        {
-          key: 'complianceWarning',
-          label: 'Compliance Warnings',
-          desc: 'Admin sent a compliance warning',
-        },
-        {
-          key: 'issueResolved',
-          label: 'Issue Resolved',
-          desc: 'Admin resolved an issue related to your donation',
-        },
-        {
-          key: 'verificationStatusChanged',
-          label: 'Verification Status',
-          desc: 'Your account verification status changed',
-        },
-      ],
+      [t('settings.notificationTypes.donor.adminSystem')]: [
+        { key: 'donationFlagged', label: t('settings.notificationTypes.donor.donationFlagged'), desc: t('settings.notificationTypes.donor.donationFlaggedDesc') },
+        { key: 'donationStatusUpdated', label: t('settings.notificationTypes.donor.donationStatusUpdated'), desc: t('settings.notificationTypes.donor.donationStatusUpdatedDesc') },
+        { key: 'complianceWarning', label: t('settings.notificationTypes.donor.complianceWarning'), desc: t('settings.notificationTypes.donor.complianceWarningDesc') },
+        { key: 'issueResolved', label: t('settings.notificationTypes.donor.issueResolved'), desc: t('settings.notificationTypes.donor.issueResolvedDesc') },
+        { key: 'verificationStatusChanged', label: t('settings.notificationTypes.donor.verificationStatusChanged'), desc: t('settings.notificationTypes.donor.verificationStatusChangedDesc') }
+      ]
     },
     RECEIVER: {
-      'Matching & Claim Flow': [
-        {
-          key: 'newDonationAvailable',
-          label: 'New Donations',
-          desc: 'New donation available matching your preferences',
-        },
-        {
-          key: 'donationReadyForPickup',
-          label: 'Ready for Pickup',
-          desc: 'Donation marked "Ready for Pickup"',
-        },
-        {
-          key: 'pickupReminder',
-          label: 'Pickup Reminders',
-          desc: 'Approaching pickup time reminders',
-        },
-        {
-          key: 'donationCompleted',
-          label: 'Donation Completed',
-          desc: 'Donor marked donation as completed',
-        },
+      [t('settings.notificationTypes.receiver.matchingClaim')]: [
+        { key: 'newDonationAvailable', label: t('settings.notificationTypes.receiver.newDonationAvailable'), desc: t('settings.notificationTypes.receiver.newDonationAvailableDesc') },
+        { key: 'donationReadyForPickup', label: t('settings.notificationTypes.receiver.donationReadyForPickup'), desc: t('settings.notificationTypes.receiver.donationReadyForPickupDesc') },
+        { key: 'pickupReminder', label: t('settings.notificationTypes.receiver.pickupReminder'), desc: t('settings.notificationTypes.receiver.pickupReminderDesc') },
+        { key: 'donationCompleted', label: t('settings.notificationTypes.receiver.donationCompleted'), desc: t('settings.notificationTypes.receiver.donationCompletedDesc') }
       ],
-      Messaging: [
-        {
-          key: 'newMessageFromDonor',
-          label: 'New Messages',
-          desc: 'New chat message from the donor',
-        },
+      [t('settings.notificationTypes.receiver.messaging')]: [
+        { key: 'newMessageFromDonor', label: t('settings.notificationTypes.receiver.newMessageFromDonor'), desc: t('settings.notificationTypes.receiver.newMessageFromDonorDesc') }
       ],
-      Feedback: [
-        {
-          key: 'donorReview',
-          label: 'Reviews & Ratings',
-          desc: 'Donor left you a rating or review',
-        },
+      [t('settings.notificationTypes.receiver.feedback')]: [
+        { key: 'donorReview', label: t('settings.notificationTypes.receiver.donorReview'), desc: t('settings.notificationTypes.receiver.donorReviewDesc') }
       ],
-      'Admin & System': [
-        {
-          key: 'claimFlagged',
-          label: 'Claim Flagged',
-          desc: 'Admin flagged your claim',
-        },
-        {
-          key: 'donationStatusChanged',
-          label: 'Status Changes',
-          desc: 'Admin changed donation status',
-        },
-        {
-          key: 'disputeResolved',
-          label: 'Dispute Resolved',
-          desc: 'Admin resolved your dispute/case',
-        },
-        {
-          key: 'verificationStatusChanged',
-          label: 'Verification Status',
-          desc: 'Organization verification status changed',
-        },
-      ],
+      [t('settings.notificationTypes.receiver.adminSystem')]: [
+        { key: 'claimFlagged', label: t('settings.notificationTypes.receiver.claimFlagged'), desc: t('settings.notificationTypes.receiver.claimFlaggedDesc') },
+        { key: 'donationStatusChanged', label: t('settings.notificationTypes.receiver.donationStatusChanged'), desc: t('settings.notificationTypes.receiver.donationStatusChangedDesc') },
+        { key: 'disputeResolved', label: t('settings.notificationTypes.receiver.disputeResolved'), desc: t('settings.notificationTypes.receiver.disputeResolvedDesc') },
+        { key: 'verificationStatusChanged', label: t('settings.notificationTypes.receiver.verificationStatusChanged'), desc: t('settings.notificationTypes.receiver.verificationStatusChangedDesc') }
+      ]
     },
     ADMIN: {
-      'System Oversight': [
-        {
-          key: 'donationFlagged',
-          label: 'Flagged Donations',
-          desc: 'New flagged donation (safety/fraud/inappropriate content)',
-        },
-        {
-          key: 'suspiciousActivity',
-          label: 'Suspicious Activity',
-          desc: 'New suspicious user action detected',
-        },
-        {
-          key: 'verificationRequest',
-          label: 'Verification Requests',
-          desc: 'New verification request (receiver/donor)',
-        },
+      [t('settings.notificationTypes.admin.systemOversight')]: [
+        { key: 'donationFlagged', label: t('settings.notificationTypes.admin.donationFlagged'), desc: t('settings.notificationTypes.admin.donationFlaggedDesc') },
+        { key: 'suspiciousActivity', label: t('settings.notificationTypes.admin.suspiciousActivity'), desc: t('settings.notificationTypes.admin.suspiciousActivityDesc') },
+        { key: 'verificationRequest', label: t('settings.notificationTypes.admin.verificationRequest'), desc: t('settings.notificationTypes.admin.verificationRequestDesc') }
       ],
-      'Dispute & Compliance': [
-        {
-          key: 'newDispute',
-          label: 'New Disputes',
-          desc: 'New dispute/case opened',
-        },
-        {
-          key: 'escalatedIssue',
-          label: 'Escalated Issues',
-          desc: 'Repeat offender, unsafe food, dangerous temperature logs',
-        },
-        {
-          key: 'safetyAlert',
-          label: 'Safety Alerts',
-          desc: 'Automated safety alerts (expired donations, cold-chain issues)',
-        },
+      [t('settings.notificationTypes.admin.disputeCompliance')]: [
+        { key: 'newDispute', label: t('settings.notificationTypes.admin.newDispute'), desc: t('settings.notificationTypes.admin.newDisputeDesc') },
+        { key: 'escalatedIssue', label: t('settings.notificationTypes.admin.escalatedIssue'), desc: t('settings.notificationTypes.admin.escalatedIssueDesc') },
+        { key: 'safetyAlert', label: t('settings.notificationTypes.admin.safetyAlert'), desc: t('settings.notificationTypes.admin.safetyAlertDesc') }
       ],
-      Operational: [
-        {
-          key: 'systemError',
-          label: 'System Errors',
-          desc: 'System errors/failures (internal use)',
-        },
-        {
-          key: 'highVolumeDonation',
-          label: 'High Volume Alerts',
-          desc: 'High-volume donation alert',
-        },
-      ],
-    },
-  };
+      [t('settings.notificationTypes.admin.operational')]: [
+        { key: 'systemError', label: t('settings.notificationTypes.admin.systemError'), desc: t('settings.notificationTypes.admin.systemErrorDesc') },
+        { key: 'highVolumeDonation', label: t('settings.notificationTypes.admin.highVolumeDonation'), desc: t('settings.notificationTypes.admin.highVolumeDonationDesc') }
+      ]
+    }
+  });
 
   // Initialize notifications based on role with all enabled by default
   const [notifications, setNotifications] = useState({});
@@ -203,15 +85,13 @@ const Settings = () => {
   useEffect(() => {
     if (role && Object.keys(notifications).length === 0) {
       const initialNotifications = {};
-      const categories =
-        notificationCategories[role] || notificationCategories.RECEIVER;
-
-      Object.values(categories)
-        .flat()
-        .forEach(notification => {
-          initialNotifications[notification.key] = true;
-        });
-
+      const notificationCats = getNotificationCategories();
+      const categories = notificationCats[role] || notificationCats.RECEIVER;
+      
+      Object.values(categories).flat().forEach(notification => {
+        initialNotifications[notification.key] = true;
+      });
+      
       setNotifications(initialNotifications);
     }
   }, [role]);
@@ -222,29 +102,28 @@ const Settings = () => {
     email: '',
     phoneNumber: '',
     organization: organizationName || '',
-    address: '',
+    address: ''
   });
 
   const [profileImage, setProfileImage] = useState(null);
   const [profileImageFile, setProfileImageFile] = useState(null);
-  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] =
-    useState(false);
+  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
   const [regionSettings, setRegionSettings] = useState(null);
-
+  
   // Notification preferences state
   const [notificationPreferences, setNotificationPreferences] = useState({
     emailAlerts: false,
     smsAlerts: false,
-    smsPhoneNumber: '',
+    smsPhoneNumber: ''
   });
   const [preferencesMessage, setPreferencesMessage] = useState('');
   const [preferencesError, setPreferencesError] = useState('');
-
+  
   // Password state
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
-    confirmPassword: '',
+    confirmPassword: ''
   });
 
   // UI state
@@ -252,7 +131,7 @@ const Settings = () => {
   const [errors, setErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState('');
   const [loadingProfile, setLoadingProfile] = useState(true);
-
+  
   const fileInputRef = useRef(null);
 
   // Load user profile on component mount
@@ -270,9 +149,9 @@ const Settings = () => {
         setNotificationPreferences({
           emailAlerts: response.data.emailNotificationsEnabled || false,
           smsAlerts: response.data.smsNotificationsEnabled || false,
-          smsPhoneNumber: formData.phoneNumber || '',
+          smsPhoneNumber: formData.phoneNumber || ''
         });
-
+        
         // Load notification types
         if (response.data.notificationTypes) {
           setNotifications(response.data.notificationTypes);
@@ -356,21 +235,20 @@ const Settings = () => {
   };
 
   // Validation functions
-  const validateEmail = email => {
+  const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
-  const validatePhoneNumber = phone => {
+  const validatePhoneNumber = (phone) => {
     // Accepts various formats: (123) 456-7890, 123-456-7890, 1234567890, +1234567890
-    const phoneRegex =
-      /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/;
+    const phoneRegex = /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/;
     return phoneRegex.test(phone);
   };
 
-  const formatPhoneNumber = phone => {
+  const formatPhoneNumber = (phone) => {
     const cleaned = phone.replace(/\D/g, '');
-
+    
     // Format as E.164 standard with country code (assuming North America +1)
     if (cleaned.length === 10) {
       return `+1${cleaned}`;
@@ -405,7 +283,7 @@ const Settings = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleInputChange = e => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     // Clear error for this field when user starts typing
@@ -414,7 +292,7 @@ const Settings = () => {
     }
   };
 
-  const handlePasswordChange = e => {
+  const handlePasswordChange = (e) => {
     const { name, value } = e.target;
     setPasswordData(prev => ({ ...prev, [name]: value }));
     if (errors[name]) {
@@ -422,18 +300,18 @@ const Settings = () => {
     }
   };
 
-  const handleToggle = async key => {
+  const handleToggle = async (key) => {
     const newValue = !notifications[key];
-
+    
     // Update state immediately for responsiveness
     setNotifications(prev => ({ ...prev, [key]: newValue }));
-
+    
     // Update backend
     try {
       await notificationPreferencesAPI.updatePreferences({
         emailNotificationsEnabled: notificationPreferences.emailAlerts,
         smsNotificationsEnabled: notificationPreferences.smsAlerts,
-        notificationTypes: { ...notifications, [key]: newValue },
+        notificationTypes: { ...notifications, [key]: newValue }
       });
     } catch (error) {
       console.error('Error updating notification type:', error);
@@ -442,20 +320,20 @@ const Settings = () => {
     }
   };
 
-  const handleRegionChange = async regionData => {
+  const handleRegionChange = async (regionData) => {
     // Only update if the data has actually changed
     if (JSON.stringify(regionData) !== JSON.stringify(regionSettings)) {
       setRegionSettings(regionData);
       console.log('Region settings updated:', regionData);
-
+      
       // Save to backend using api service
       try {
         await api.put('/profile/region', {
           country: regionData.countryName || regionData.country,
           city: regionData.city,
-          timezone: regionData.timezone, // Send the selected timezone
+          timezone: regionData.timezone  // Send the selected timezone
         });
-
+        
         console.log('Region saved to backend successfully');
         // Refresh timezone context
         if (window.location.pathname.includes('/messages')) {
@@ -467,7 +345,7 @@ const Settings = () => {
     }
   };
 
-  const handleImageUpload = e => {
+  const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
       // Validate file size (max 5MB)
@@ -488,7 +366,7 @@ const Settings = () => {
         setProfileImage(reader.result);
       };
       reader.readAsDataURL(file);
-
+      
       // Clear any previous image errors
       if (errors.profileImage) {
         setErrors(prev => ({ ...prev, profileImage: '' }));
@@ -515,12 +393,10 @@ const Settings = () => {
       const payload = {
         fullName: formData.fullName,
         email: formData.email,
-        phone: formData.phoneNumber
-          ? formatPhoneNumber(formData.phoneNumber)
-          : '',
+        phone: formData.phoneNumber ? formatPhoneNumber(formData.phoneNumber) : '',
         profilePhoto: profileImage || null,
         organizationName: formData.organization || null,
-        organizationAddress: formData.address || null,
+        organizationAddress: formData.address || null
       };
 
       const resp = await profileAPI.update(payload);
@@ -533,7 +409,7 @@ const Settings = () => {
           email: resp.data.email || prev.email,
           phoneNumber: resp.data.phone || prev.phoneNumber,
           organization: resp.data.organizationName || prev.organization,
-          address: resp.data.organizationAddress || prev.address,
+          address: resp.data.organizationAddress || prev.address
         }));
 
         if (resp.data.profilePhoto) {
@@ -541,32 +417,20 @@ const Settings = () => {
         }
 
         try {
-          localStorage.setItem(
-            'organizationName',
-            resp.data.organizationName || ''
-          );
-        } catch (e) {
-          /* ignore storage errors */
-        }
+          localStorage.setItem('organizationName', resp.data.organizationName || '');
+        } catch (e) { /* ignore storage errors */ }
 
         // Update notification phone for SMS toggles
-        setNotificationPreferences(prev => ({
-          ...prev,
-          smsPhoneNumber: resp.data.phone || prev.smsPhoneNumber,
-        }));
+        setNotificationPreferences(prev => ({ ...prev, smsPhoneNumber: resp.data.phone || prev.smsPhoneNumber }));
 
-        setSuccessMessage('Profile updated successfully!');
+        setSuccessMessage(t('settings.account.profileUpdated'));
       }
     } catch (error) {
       console.error('Error updating profile:', error);
-      if (
-        error.response &&
-        error.response.data &&
-        error.response.data.message
-      ) {
+      if (error.response && error.response.data && error.response.data.message) {
         setErrors({ submit: error.response.data.message });
       } else {
-        setErrors({ submit: 'Failed to update profile. Please try again.' });
+        setErrors({ submit: t('settings.account.updateFailed') });
       }
     } finally {
       setLoading(false);
@@ -577,30 +441,30 @@ const Settings = () => {
     const newValue = !notificationPreferences.emailAlerts;
     setNotificationPreferences(prev => ({
       ...prev,
-      emailAlerts: newValue,
+      emailAlerts: newValue
     }));
-
+    
     // Show toast notification like language switcher
     const toast = document.createElement('div');
     toast.className = 'language-toast';
-    toast.textContent = `Email alerts ${newValue ? 'enabled' : 'disabled'}`;
+    toast.textContent = t(newValue ? 'settings.notificationPreferences.emailEnabled' : 'settings.notificationPreferences.emailDisabled');
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 2000);
-
+    
     // Update backend
     try {
       await notificationPreferencesAPI.updatePreferences({
         emailNotificationsEnabled: newValue,
-        smsNotificationsEnabled: notificationPreferences.smsAlerts,
+        smsNotificationsEnabled: notificationPreferences.smsAlerts
       });
     } catch (error) {
       console.error('Error updating email alerts:', error);
       // Revert on error
       setNotificationPreferences(prev => ({
         ...prev,
-        emailAlerts: !newValue,
+        emailAlerts: !newValue
       }));
-      setPreferencesError('Failed to update email alerts. Please try again.');
+      setPreferencesError(t('settings.notificationPreferences.updateFailed'));
     }
   };
 
@@ -608,44 +472,51 @@ const Settings = () => {
     const newValue = !notificationPreferences.smsAlerts;
     setNotificationPreferences(prev => ({
       ...prev,
-      smsAlerts: newValue,
+      smsAlerts: newValue
     }));
-
+    
     // Show toast notification like language switcher
     const toast = document.createElement('div');
     toast.className = 'language-toast';
-    toast.textContent = `SMS alerts ${newValue ? 'enabled' : 'disabled'}`;
+    toast.textContent = t(newValue ? 'settings.notificationPreferences.smsEnabled' : 'settings.notificationPreferences.smsDisabled');
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 2000);
-
+    
     // Update backend
     try {
       await notificationPreferencesAPI.updatePreferences({
         emailNotificationsEnabled: notificationPreferences.emailAlerts,
-        smsNotificationsEnabled: newValue,
+        smsNotificationsEnabled: newValue
       });
     } catch (error) {
       console.error('Error updating SMS alerts:', error);
       // Revert on error
       setNotificationPreferences(prev => ({
         ...prev,
-        smsAlerts: !newValue,
+        smsAlerts: !newValue
       }));
-      setPreferencesError('Failed to update SMS alerts. Please try again.');
+      setPreferencesError(t('settings.notificationPreferences.updateFailed'));
     }
   };
 
   return (
     <div className="settings-container">
       <div className="settings-content">
+        
         {/* Success Message */}
         {successMessage && (
-          <div className="success-message">{successMessage}</div>
+          <div className="success-message">
+            {successMessage}
+          </div>
         )}
 
         {/* Error Message */}
-        {errors.submit && <div className="error-message">{errors.submit}</div>}
-
+        {errors.submit && (
+          <div className="error-message">
+            {errors.submit}
+          </div>
+        )}
+        
         {/* Account Section */}
         <div className="settings-section">
           <div className="section-header-with-icon">
@@ -653,15 +524,13 @@ const Settings = () => {
               <User size={24} />
             </div>
             <div className="section-title-group">
-              <h2>Account</h2>
-              <p className="section-description">
-                Manage your profile and account details
-              </p>
+              <h2>{t('settings.account.title')}</h2>
+              <p className="section-description">{t('settings.account.description')}</p>
             </div>
           </div>
           <div className="section-content">
             {loadingProfile ? (
-              <div className="loading-spinner">Loading profile...</div>
+              <div className="loading-spinner">{t('settings.account.loadingProfile')}</div>
             ) : (
               <>
                 {/* Profile Image Upload */}
@@ -669,18 +538,14 @@ const Settings = () => {
                   <div className="profile-image-container">
                     <div className="profile-image-wrapper">
                       {profileImage ? (
-                        <img
-                          src={profileImage}
-                          alt="Profile"
-                          className="profile-image"
-                        />
+                        <img src={profileImage} alt="Profile" className="profile-image" />
                       ) : (
                         <div className="profile-image-placeholder">
                           <User size={48} />
                         </div>
                       )}
-                      <button
-                        className="profile-image-upload-btn"
+                      <button 
+                        className="profile-image-upload-btn" 
                         onClick={triggerFileInput}
                         type="button"
                       >
@@ -695,78 +560,68 @@ const Settings = () => {
                       />
                     </div>
                     <div className="profile-image-info">
-                      <h3>Profile Photo</h3>
-                      <p>Upload a photo to personalize your account</p>
-                      {errors.profileImage && (
-                        <span className="field-error">
-                          {errors.profileImage}
-                        </span>
-                      )}
+                      <h3>{t('settings.account.profilePhoto')}</h3>
+                      <p>{t('settings.account.profilePhotoDesc')}</p>
+                      {errors.profileImage && <span className="field-error">{errors.profileImage}</span>}
                     </div>
                   </div>
                 </div>
 
                 <div className="account-form-grid">
                   <div className="form-field">
-                    <label className="field-label">Full Name *</label>
-                    <input
+                    <label className="field-label">{t('settings.account.fullName')} *</label>
+                    <input 
                       type="text"
                       name="fullName"
                       className={`field-input ${errors.fullName ? 'error' : ''}`}
-                      placeholder="Enter your full name"
+                      placeholder={t('settings.account.fullNamePlaceholder')}
                       value={formData.fullName}
                       onChange={handleInputChange}
                     />
-                    {errors.fullName && (
-                      <span className="field-error">{errors.fullName}</span>
-                    )}
+                    {errors.fullName && <span className="field-error">{errors.fullName}</span>}
                   </div>
                   <div className="form-field">
-                    <label className="field-label">Email Address *</label>
-                    <input
+                    <label className="field-label">{t('settings.account.emailAddress')} *</label>
+                    <input 
                       type="email"
                       name="email"
                       className={`field-input ${errors.email ? 'error' : ''}`}
-                      placeholder="Enter your email"
+                      placeholder={t('settings.account.emailPlaceholder')}
                       value={formData.email}
                       onChange={handleInputChange}
                     />
-                    {errors.email && (
-                      <span className="field-error">{errors.email}</span>
-                    )}
+                    {errors.email && <span className="field-error">{errors.email}</span>}
                   </div>
                   <div className="form-field">
-                    <label className="field-label">Organization</label>
-                    <input
+                    <label className="field-label">{t('settings.account.organization')}</label>
+                    <input 
                       type="text"
                       name="organization"
                       className="field-input"
-                      placeholder="Enter your organization"
+                      placeholder={t('settings.account.organizationPlaceholder')}
                       value={formData.organization}
                       onChange={handleInputChange}
                     />
                   </div>
                   <div className="form-field">
-                    <label className="field-label">Phone Number</label>
-                    <input
+                    <label className="field-label">{t('settings.account.phoneNumber')}</label>
+                    <input 
                       type="tel"
                       name="phoneNumber"
                       className={`field-input ${errors.phoneNumber ? 'error' : ''}`}
-                      placeholder="Enter your phone number"
+                      placeholder={t('settings.account.phonePlaceholder')}
                       value={formData.phoneNumber}
                       onChange={handleInputChange}
                     />
-                    {errors.phoneNumber && (
-                      <span className="field-error">{errors.phoneNumber}</span>
-                    )}
+                    {errors.phoneNumber && <span className="field-error">{errors.phoneNumber}</span>}
                   </div>
                   <div className="form-field form-field-full">
-                    <label className="field-label">Address</label>
-                    <input
+                    <label className="field-label">{t('settings.account.address')}</label>
+                    <input 
                       type="text"
                       name="address"
                       className="field-input"
-                      placeholder="Enter your address"
+                      placeholder={t('settings.account.addressPlaceholder')}
                       value={formData.address}
                       onChange={handleInputChange}
                     />
@@ -775,22 +630,22 @@ const Settings = () => {
 
                 {/* Password Section */}
                 <div className="password-section">
-                  <button
+                  <button 
                     className="password-toggle-btn"
                     onClick={() => setIsChangePasswordModalOpen(true)}
                     type="button"
                   >
                     <Lock size={18} />
-                    <span>Change Password</span>
+                    <span>{t('settings.account.changePassword')}</span>
                   </button>
                 </div>
 
-                <button
-                  className="save-changes-btn"
+                <button 
+                  className="save-changes-btn" 
                   onClick={handleSaveChanges}
                   disabled={loading}
                 >
-                  {loading ? 'Saving...' : 'Save Changes'}
+                  {loading ? t('settings.account.saving') : t('settings.account.saveChanges')}
                 </button>
               </>
             )}
@@ -804,36 +659,27 @@ const Settings = () => {
               <Globe size={24} />
             </div>
             <div className="section-title-group">
-              <h2>Language & Region</h2>
-              <p className="section-description">
-                Set your language, location, and timezone preferences
-              </p>
+              <h2>{t('settings.languageRegion.title')}</h2>
+              <p className="section-description">{t('settings.languageRegion.description')}</p>
             </div>
           </div>
           <div className="section-content">
             <div className="language-region-container">
               <div className="subsection-header">
-                <h3 className="subsection-title">Language Preference</h3>
-                <p className="subsection-description">
-                  Choose your preferred language for the interface
-                </p>
+                <h3 className="subsection-title">{t('settings.languageRegion.languagePreference')}</h3>
+                <p className="subsection-description">{t('settings.languageRegion.languageDesc')}</p>
               </div>
               <LanguageSwitcher />
             </div>
-
+            
             <div className="region-settings-divider"></div>
-
+            
             <div className="language-region-container">
               <div className="subsection-header">
-                <h3 className="subsection-title">Location & Timezone</h3>
-                <p className="subsection-description">
-                  Set your location to ensure accurate date and time information
-                </p>
+                <h3 className="subsection-title">{t('settings.languageRegion.locationTimezone')}</h3>
+                <p className="subsection-description">{t('settings.languageRegion.locationDesc')}</p>
               </div>
-              <RegionSelector
-                value={regionSettings}
-                onChange={handleRegionChange}
-              />
+              <RegionSelector value={regionSettings} onChange={handleRegionChange} />
             </div>
           </div>
         </div>
@@ -845,10 +691,8 @@ const Settings = () => {
               <Bell size={24} />
             </div>
             <div className="section-title-group">
-              <h2>Notification Preferences</h2>
-              <p className="section-description">
-                Choose how you want to receive notifications
-              </p>
+              <h2>{t('settings.notificationPreferences.title')}</h2>
+              <p className="section-description">{t('settings.notificationPreferences.description')}</p>
             </div>
           </div>
           <div className="section-content">
@@ -858,16 +702,13 @@ const Settings = () => {
             {preferencesError && (
               <div className="error-banner">{preferencesError}</div>
             )}
-
+            
             <div className="notification-preferences">
               {/* Email Alerts Toggle */}
               <div className="preference-item">
                 <div className="preference-info">
-                  <h4>Email Alerts</h4>
-                  <p>
-                    Receive notifications via email at{' '}
-                    {formData.email || 'your email address'}
-                  </p>
+                  <h4>{t('settings.notificationPreferences.emailAlerts')}</h4>
+                  <p>{t('settings.notificationPreferences.emailAlertsDesc')} {formData.email || t('settings.notificationPreferences.emailAlertsDescAlt')}</p>
                 </div>
                 <label className="toggle-switch">
                   <input
@@ -882,11 +723,8 @@ const Settings = () => {
               {/* SMS Alerts Toggle */}
               <div className="preference-item">
                 <div className="preference-info">
-                  <h4>SMS Alerts</h4>
-                  <p>
-                    Receive notifications via text message
-                    {formData.phoneNumber ? ` at ${formData.phoneNumber}` : ''}
-                  </p>
+                  <h4>{t('settings.notificationPreferences.smsAlerts')}</h4>
+                  <p>{t('settings.notificationPreferences.smsAlertsDesc')}{formData.phoneNumber ? ` ${t('settings.notificationPreferences.smsAlertsDescAt')} ${formData.phoneNumber}` : ''}</p>
                 </div>
                 <label className="toggle-switch">
                   <input
@@ -949,25 +787,19 @@ const Settings = () => {
               <Bell size={24} />
             </div>
             <div className="section-title-group">
-              <h2>Notification Types</h2>
-              <p className="section-description">
-                Customize which types of notifications you want to receive
-              </p>
+              <h2>{t('settings.notificationTypes.title')}</h2>
+              <p className="section-description">{t('settings.notificationTypes.description')}</p>
             </div>
           </div>
           <div className="section-content">
-            {Object.entries(
-              notificationCategories[role] || notificationCategories.RECEIVER
-            ).map(([categoryName, categoryItems]) => (
+            {Object.entries(getNotificationCategories()[role] || getNotificationCategories().RECEIVER).map(([categoryName, categoryItems]) => (
               <div key={categoryName} className="notification-category">
                 <h3 className="notification-category-title">{categoryName}</h3>
                 <div className="notification-list">
-                  {categoryItems.map(notification => (
+                  {categoryItems.map((notification) => (
                     <div key={notification.key} className="notification-item">
                       <div className="notification-info">
-                        <h4 className="notification-title">
-                          {notification.label}
-                        </h4>
+                        <h4 className="notification-title">{notification.label}</h4>
                         <p className="notification-desc">{notification.desc}</p>
                       </div>
                       <label className="toggle-switch">
@@ -985,11 +817,12 @@ const Settings = () => {
             ))}
           </div>
         </div>
+
       </div>
 
-      <ChangePasswordModal
-        isOpen={isChangePasswordModalOpen}
-        onClose={() => setIsChangePasswordModalOpen(false)}
+      <ChangePasswordModal 
+        isOpen={isChangePasswordModalOpen} 
+        onClose={() => setIsChangePasswordModalOpen(false)} 
       />
     </div>
   );

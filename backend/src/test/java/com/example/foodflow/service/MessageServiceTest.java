@@ -27,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -171,9 +172,9 @@ class MessageServiceTest {
         when(messageRepository.findById(999L)).thenReturn(Optional.empty());
 
         // When & Then
-        assertThrows(IllegalArgumentException.class, () -> {
-            messageService.markAsRead(999L, recipient);
-        });
+        assertThatThrownBy(() -> messageService.markAsRead(999L, recipient))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("error.resource.not_found");
     }
 
     @Test
@@ -185,10 +186,9 @@ class MessageServiceTest {
         when(messageRepository.findById(1L)).thenReturn(Optional.of(message));
 
         // When & Then
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            messageService.markAsRead(1L, sender);
-        });
-        assertEquals("Cannot mark your own message as read", exception.getMessage());
+        assertThatThrownBy(() -> messageService.markAsRead(1L, sender))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("error.message.mark_own_read");
     }
 
     @Test
@@ -204,10 +204,9 @@ class MessageServiceTest {
         when(messageRepository.findById(1L)).thenReturn(Optional.of(message));
 
         // When & Then
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            messageService.markAsRead(1L, unauthorizedUser);
-        });
-        assertEquals("Unauthorized to mark this message as read", exception.getMessage());
+        assertThatThrownBy(() -> messageService.markAsRead(1L, unauthorizedUser))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("error.message.unauthorized_read");
     }
 
     @Test

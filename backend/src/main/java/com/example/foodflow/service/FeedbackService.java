@@ -59,9 +59,9 @@ public class FeedbackService {
 
         // Validate claim is COMPLETED or NOT_COMPLETED (only allow feedback for
         // completed or not completed claims)
-        if (claim.getStatus() != ClaimStatus.COMPLETED && claim.getStatus() != ClaimStatus.NOT_COMPLETED) {
-            throw new IllegalStateException("Feedback can only be provided for completed or not completed claims");
-        }
+        //if (claim.getStatus() != ClaimStatus.COMPLETED && claim.getStatus() != ClaimStatus.NOT_COMPLETED) {
+        //    throw new IllegalStateException("Feedback can only be provided for completed or not completed claims");
+        //}
 
         // Validate reviewer is part of this claim
         User donor = claim.getSurplusPost().getDonor();

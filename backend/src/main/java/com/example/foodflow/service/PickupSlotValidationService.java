@@ -1,5 +1,6 @@
 package com.example.foodflow.service;
 
+import com.example.foodflow.exception.BusinessException;
 import com.example.foodflow.model.dto.PickupSlotRequest;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +18,7 @@ public class PickupSlotValidationService {
      */
     public void validateSlots(List<PickupSlotRequest> slots) {
         if (slots == null || slots.isEmpty()) {
-            throw new IllegalArgumentException("At least one pickup slot is required");
+            throw new BusinessException("error.pickupslot.required");
         }
         
         // Validate each individual slot
@@ -34,24 +35,19 @@ public class PickupSlotValidationService {
      */
     private void validateSingleSlot(PickupSlotRequest slot) {
         if (slot.getPickupDate() == null) {
-            throw new IllegalArgumentException("Pickup date is required for all slots");
+            throw new BusinessException("validation.pickupSlot.date.required");
         }
         
         if (slot.getStartTime() == null) {
-            throw new IllegalArgumentException("Start time is required for all slots");
+            throw new BusinessException("validation.pickupSlot.startTime.required");
         }
         
         if (slot.getEndTime() == null) {
-            throw new IllegalArgumentException("End time is required for all slots");
+            throw new BusinessException("validation.pickupSlot.endTime.required");
         }
         
         if (!slot.getEndTime().isAfter(slot.getStartTime())) {
-            throw new IllegalArgumentException(
-                String.format("End time must be after start time for slot on %s (start: %s, end: %s)",
-                    slot.getPickupDate(), 
-                    slot.getStartTime(), 
-                    slot.getEndTime())
-            );
+            throw new BusinessException("error.pickupslot.invalid_time");
         }
     }
     
@@ -65,17 +61,7 @@ public class PickupSlotValidationService {
                 PickupSlotRequest slot2 = slots.get(j);
                 
                 if (slotsOverlap(slot1, slot2)) {
-                    throw new IllegalArgumentException(
-                        String.format("Pickup slots cannot overlap: Slot %d (%s %s-%s) overlaps with Slot %d (%s %s-%s)",
-                            i + 1,
-                            slot1.getPickupDate(),
-                            slot1.getStartTime(),
-                            slot1.getEndTime(),
-                            j + 1,
-                            slot2.getPickupDate(),
-                            slot2.getStartTime(),
-                            slot2.getEndTime())
-                    );
+                    throw new BusinessException("validation.pickupSlot.overlap");
                 }
             }
         }

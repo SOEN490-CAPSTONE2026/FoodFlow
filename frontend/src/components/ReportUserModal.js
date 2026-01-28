@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { X, Upload, AlertCircle } from 'lucide-react';
 import './ReportUserModal.css';
 
-const ReportUserModal = ({
-  isOpen,
-  onClose,
-  reportedUser,
-  donationId,
-  onSubmit,
+const ReportUserModal = ({ 
+  isOpen, 
+  onClose, 
+  reportedUser, 
+  donationId, 
+  onSubmit 
 }) => {
   const [description, setDescription] = useState('');
   const [photoFile, setPhotoFile] = useState(null);
@@ -15,11 +15,10 @@ const ReportUserModal = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const handlePhotoChange = e => {
+  const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        // 5MB limit
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
         setError('Photo size must be less than 5MB');
         return;
       }
@@ -33,9 +32,9 @@ const ReportUserModal = ({
     }
   };
 
-  const handleSubmit = async e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
+    
     if (!description.trim()) {
       setError('Please provide a description');
       return;
@@ -57,7 +56,7 @@ const ReportUserModal = ({
         reportedUserId: reportedUser.id,
         donationId: donationId,
         description: description.trim(),
-        photoEvidenceUrl: photoUrl,
+        photoEvidenceUrl: photoUrl
       });
 
       // Reset form and close - parent will handle success message
@@ -80,13 +79,11 @@ const ReportUserModal = ({
     onClose();
   };
 
-  if (!isOpen) {
-    return null;
-  }
+  if (!isOpen) return null;
 
   return (
     <div className="report-modal-overlay" onClick={handleClose}>
-      <div className="report-modal-content" onClick={e => e.stopPropagation()}>
+      <div className="report-modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="report-modal-header">
           <h2>Report User</h2>
           <button className="report-modal-close" onClick={handleClose}>
@@ -98,8 +95,7 @@ const ReportUserModal = ({
           <div className="report-info-card">
             <AlertCircle size={20} />
             <p>
-              You are reporting{' '}
-              <strong>{reportedUser?.name || 'this user'}</strong>.
+              You are reporting <strong>{reportedUser?.name || 'this user'}</strong>.
               {donationId && ' This report will be linked to the donation.'}
             </p>
           </div>
@@ -112,7 +108,7 @@ const ReportUserModal = ({
               <textarea
                 id="description"
                 value={description}
-                onChange={e => setDescription(e.target.value)}
+                onChange={(e) => setDescription(e.target.value)}
                 placeholder="Please describe what happened..."
                 rows={5}
                 required

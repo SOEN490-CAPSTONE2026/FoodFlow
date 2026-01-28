@@ -21,6 +21,7 @@ public class UserDTO {
     private LocalDateTime createdAt;
     @JsonProperty("updated_at")
     private LocalDateTime updatedAt;
+    private String languagePreference;
     private Boolean emailNotificationsEnabled;
     private Boolean smsNotificationsEnabled;
 
@@ -33,6 +34,7 @@ public class UserDTO {
         dto.setOrganization(OrganizationDTO.toDTO(user.getOrganization()));
         dto.setCreatedAt(user.getCreatedAt());
         dto.setUpdatedAt(user.getUpdatedAt());
+        dto.setLanguagePreference(user.getLanguagePreference());
         dto.setEmailNotificationsEnabled(user.getEmailNotificationsEnabled());
         dto.setSmsNotificationsEnabled(user.getSmsNotificationsEnabled());
         return dto;

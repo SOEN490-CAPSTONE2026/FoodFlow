@@ -7,117 +7,114 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({
     currentPassword: '',
     newPassword: '',
-    confirmPassword: '',
+    confirmPassword: ''
   });
-
+  
   const [showPassword, setShowPassword] = useState({
     current: false,
     new: false,
-    confirm: false,
+    confirm: false
   });
-
+  
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
-  const handleChange = e => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value,
+      [name]: value
     }));
-
+    
     // Clear field-specific error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
-        [name]: '',
+        [name]: ''
       }));
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
-
+    
     // Validate current password
     if (!formData.currentPassword) {
       newErrors.currentPassword = 'Current password is required';
       setErrors(newErrors);
       return false;
     }
-
+    
     // Validate new password
     if (!formData.newPassword) {
       newErrors.newPassword = 'New password is required';
       setErrors(newErrors);
       return false;
     }
-
+    
     if (formData.newPassword.length < 8) {
       newErrors.newPassword = 'Password must be at least 8 characters long';
       setErrors(newErrors);
       return false;
     }
-
+    
     if (formData.currentPassword === formData.newPassword) {
-      newErrors.newPassword =
-        'New password must be different from current password';
+      newErrors.newPassword = 'New password must be different from current password';
       setErrors(newErrors);
       return false;
     }
-
+    
     // Validate confirm password
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = 'Please confirm your new password';
       setErrors(newErrors);
       return false;
     }
-
+    
     if (formData.newPassword !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
       setErrors(newErrors);
       return false;
     }
-
+    
     setErrors(newErrors);
     return true;
   };
 
-  const handleSubmit = async e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
+    
     if (!validateForm()) {
       return;
     }
-
+    
     setLoading(true);
     setErrors({});
-
+    
     try {
       const response = await authAPI.changePassword({
         currentPassword: formData.currentPassword,
         newPassword: formData.newPassword,
-        confirmPassword: formData.confirmPassword,
+        confirmPassword: formData.confirmPassword
       });
-
-      setSuccessMessage(
-        response.data.message || 'Password changed successfully'
-      );
-
+      
+      setSuccessMessage(response.data.message || 'Password changed successfully');
+      
       // Clear form after 2 seconds and close modal
       setTimeout(() => {
         setFormData({
           currentPassword: '',
           newPassword: '',
-          confirmPassword: '',
+          confirmPassword: ''
         });
         setSuccessMessage('');
         onClose();
       }, 2000);
+      
     } catch (error) {
-      const errorMessage =
-        error.response?.data?.message || 'Failed to change password';
-
+      const errorMessage = error.response?.data?.message || 'Failed to change password';
+      
       // Map backend errors to specific fields
       if (errorMessage.toLowerCase().includes('incorrect current password')) {
         setErrors({ currentPassword: errorMessage });
@@ -133,10 +130,10 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
     }
   };
 
-  const togglePasswordVisibility = field => {
+  const togglePasswordVisibility = (field) => {
     setShowPassword(prev => ({
       ...prev,
-      [field]: !prev[field],
+      [field]: !prev[field]
     }));
   };
 
@@ -144,27 +141,21 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
     setFormData({
       currentPassword: '',
       newPassword: '',
-      confirmPassword: '',
+      confirmPassword: ''
     });
     setErrors({});
     onClose();
   };
 
-  if (!isOpen) {
-    return null;
-  }
+  if (!isOpen) return null;
 
   return (
     <>
       <div className="modal-overlay" onClick={handleCancel}></div>
-      <div className="change-password-modal" onClick={e => e.stopPropagation()}>
+      <div className="change-password-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3>Change Password</h3>
-          <button
-            className="close-button"
-            onClick={handleCancel}
-            aria-label="Close modal"
-          >
+          <button className="close-button" onClick={handleCancel} aria-label="Close modal">
             <X size={24} />
           </button>
         </div>
@@ -189,11 +180,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
                 onClick={() => togglePasswordVisibility('current')}
                 aria-label="Toggle password visibility"
               >
-                {showPassword.current ? (
-                  <EyeOff size={20} />
-                ) : (
-                  <Eye size={20} />
-                )}
+                {showPassword.current ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
             {errors.currentPassword && (
@@ -247,11 +234,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
                 onClick={() => togglePasswordVisibility('confirm')}
                 aria-label="Toggle password visibility"
               >
-                {showPassword.confirm ? (
-                  <EyeOff size={20} />
-                ) : (
-                  <Eye size={20} />
-                )}
+                {showPassword.confirm ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
             {errors.confirmPassword && (

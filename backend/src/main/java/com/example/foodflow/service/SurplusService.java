@@ -1,5 +1,6 @@
 package com.example.foodflow.service;
 
+import com.example.foodflow.exception.BusinessException;
 import com.example.foodflow.helpers.ArrayFilter;
 import com.example.foodflow.helpers.BasicFilter;
 import com.example.foodflow.helpers.LocationFilter;
@@ -16,6 +17,7 @@ import com.example.foodflow.model.entity.DonationTimeline;
 import com.example.foodflow.model.entity.PickupSlot;
 import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.entity.User;
+import com.example.foodflow.model.types.FoodCategory;
 import com.example.foodflow.model.types.ClaimStatus;
 import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.repository.ClaimRepository;
@@ -214,6 +216,13 @@ public class SurplusService {
         post.setStatus(request.getStatus() != null ? request.getStatus() : PostStatus.AVAILABLE);
 
         SurplusPost savedPost = surplusPostRepository.save(post);
+
+        // Track food category metrics
+        if (savedPost.getFoodCategories() != null) {
+            for (FoodCategory category : savedPost.getFoodCategories()) {
+                businessMetricsService.incrementFoodCategoryPosts(category.name());
+            }
+        }
 
         // Create timeline event for donation posting
         timelineService.createTimelineEvent(
@@ -797,7 +806,7 @@ public class SurplusService {
         }
 
         if (post.getOtpCode() == null || !post.getOtpCode().equals(otpCode)) {
-            throw new RuntimeException("Invalid OTP code");
+            throw new BusinessException("error.auth.invalid_credentials");
         }
 
         post.setStatus(PostStatus.COMPLETED);

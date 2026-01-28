@@ -6,17 +6,17 @@ const RegionSelector = ({ value, onChange }) => {
   const [selectedCountry, setSelectedCountry] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
   const [selectedTimezone, setSelectedTimezone] = useState('');
-
+  
   const [countries, setCountries] = useState([]);
   const [timezones, setTimezones] = useState([]);
-
+  
   const [loadingCountries, setLoadingCountries] = useState(true);
   const [detectingLocation, setDetectingLocation] = useState(false);
-
+  
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [showTimezoneDropdown, setShowTimezoneDropdown] = useState(false);
   const [countrySearch, setCountrySearch] = useState('');
-
+  
   const countryDropdownRef = useRef(null);
   const timezoneDropdownRef = useRef(null);
 
@@ -24,19 +24,17 @@ const RegionSelector = ({ value, onChange }) => {
   useEffect(() => {
     const loadCountries = async () => {
       try {
-        const response = await fetch(
-          'https://restcountries.com/v3.1/all?fields=name,cca2,timezones'
-        );
+        const response = await fetch('https://restcountries.com/v3.1/all?fields=name,cca2,timezones');
         const data = await response.json();
-
+        
         const sortedCountries = data
           .map(country => ({
             code: country.cca2,
             name: country.name.common,
-            timezones: country.timezones || [],
+            timezones: country.timezones || []
           }))
           .sort((a, b) => a.name.localeCompare(b.name));
-
+        
         setCountries(sortedCountries);
         setLoadingCountries(false);
       } catch (error) {
@@ -44,7 +42,7 @@ const RegionSelector = ({ value, onChange }) => {
         setLoadingCountries(false);
       }
     };
-
+    
     loadCountries();
   }, []);
 
@@ -54,7 +52,7 @@ const RegionSelector = ({ value, onChange }) => {
       const country = countries.find(c => c.code === selectedCountry);
       if (country) {
         setTimezones(country.timezones);
-
+        
         if (country.timezones.length === 1) {
           setSelectedTimezone(country.timezones[0]);
         } else if (!selectedTimezone) {
@@ -76,7 +74,7 @@ const RegionSelector = ({ value, onChange }) => {
   // Auto-detect location using browser geolocation
   const detectLocation = async () => {
     setDetectingLocation(true);
-
+    
     if (!navigator.geolocation) {
       alert('Geolocation is not supported by your browser');
       setDetectingLocation(false);
@@ -84,42 +82,33 @@ const RegionSelector = ({ value, onChange }) => {
     }
 
     navigator.geolocation.getCurrentPosition(
-      async position => {
+      async (position) => {
         try {
-          // Use reverse geocoding API
+          // Use reverse geocoding API 
           const { latitude, longitude } = position.coords;
           const response = await fetch(
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10`
           );
           const data = await response.json();
-
+          
           if (data.address) {
             const countryCode = data.address.country_code?.toUpperCase();
-            const city =
-              data.address.city ||
-              data.address.town ||
-              data.address.village ||
-              '';
-
+            const city = data.address.city || data.address.town || data.address.village || '';
+            
             if (countryCode) {
               setSelectedCountry(countryCode);
               setSelectedCity(city);
-
+              
               // Timezone from browser
-              const browserTz =
-                Intl.DateTimeFormat().resolvedOptions().timeZone;
+              const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
               setSelectedTimezone(browserTz);
-
+              
               // Save to backend immediately after auto-detect
-              const getUTCOffset = tz => {
+              const getUTCOffset = (tz) => {
                 try {
                   const now = new Date();
-                  const tzDate = new Date(
-                    now.toLocaleString('en-US', { timeZone: tz })
-                  );
-                  const utcDate = new Date(
-                    now.toLocaleString('en-US', { timeZone: 'UTC' })
-                  );
+                  const tzDate = new Date(now.toLocaleString('en-US', { timeZone: tz }));
+                  const utcDate = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
                   const offset = (tzDate - utcDate) / (1000 * 60 * 60);
                   const sign = offset >= 0 ? '+' : '-';
                   const absOffset = Math.abs(offset);
@@ -140,7 +129,7 @@ const RegionSelector = ({ value, onChange }) => {
                 timezoneOffset: getUTCOffset(browserTz),
                 utcOffset: getUTCOffset(browserTz),
               };
-
+              
               if (onChange) {
                 onChange(regionData);
               }
@@ -153,7 +142,7 @@ const RegionSelector = ({ value, onChange }) => {
           setDetectingLocation(false);
         }
       },
-      error => {
+      (error) => {
         console.error('Geolocation error:', error);
         alert('Unable to access your location. Please select manually.');
         setDetectingLocation(false);
@@ -163,17 +152,11 @@ const RegionSelector = ({ value, onChange }) => {
 
   // Close dropdowns when clicking outside
   useEffect(() => {
-    const handleClickOutside = event => {
-      if (
-        countryDropdownRef.current &&
-        !countryDropdownRef.current.contains(event.target)
-      ) {
+    const handleClickOutside = (event) => {
+      if (countryDropdownRef.current && !countryDropdownRef.current.contains(event.target)) {
         setShowCountryDropdown(false);
       }
-      if (
-        timezoneDropdownRef.current &&
-        !timezoneDropdownRef.current.contains(event.target)
-      ) {
+      if (timezoneDropdownRef.current && !timezoneDropdownRef.current.contains(event.target)) {
         setShowTimezoneDropdown(false);
       }
     };
@@ -182,32 +165,28 @@ const RegionSelector = ({ value, onChange }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleCountrySelect = countryCode => {
+  const handleCountrySelect = (countryCode) => {
     setSelectedCountry(countryCode);
     setSelectedCity('');
     setShowCountryDropdown(false);
     setCountrySearch('');
   };
 
-  const handleCityChange = e => {
+  const handleCityChange = (e) => {
     setSelectedCity(e.target.value);
   };
 
-  const handleTimezoneSelect = timezone => {
+  const handleTimezoneSelect = (timezone) => {
     setSelectedTimezone(timezone);
     setShowTimezoneDropdown(false);
-
+    
     // Only save to backend when user explicitly selects timezone
     if (selectedCountry && selectedCity && timezone) {
-      const getUTCOffset = tz => {
+      const getUTCOffset = (tz) => {
         try {
           const now = new Date();
-          const tzDate = new Date(
-            now.toLocaleString('en-US', { timeZone: tz })
-          );
-          const utcDate = new Date(
-            now.toLocaleString('en-US', { timeZone: 'UTC' })
-          );
+          const tzDate = new Date(now.toLocaleString('en-US', { timeZone: tz }));
+          const utcDate = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
           const offset = (tzDate - utcDate) / (1000 * 60 * 60);
           const sign = offset >= 0 ? '+' : '-';
           const absOffset = Math.abs(offset);
@@ -227,14 +206,14 @@ const RegionSelector = ({ value, onChange }) => {
         timezoneOffset: getUTCOffset(timezone),
         utcOffset: getUTCOffset(timezone),
       };
-
+      
       if (onChange) {
         onChange(regionData);
       }
     }
   };
 
-  const formatTimezone = timezone => {
+  const formatTimezone = (timezone) => {
     try {
       const now = new Date();
       const formatter = new Intl.DateTimeFormat('en-US', {
@@ -242,9 +221,8 @@ const RegionSelector = ({ value, onChange }) => {
         timeZoneName: 'short',
       });
       const parts = formatter.formatToParts(now);
-      const tzName =
-        parts.find(part => part.type === 'timeZoneName')?.value || '';
-
+      const tzName = parts.find(part => part.type === 'timeZoneName')?.value || '';
+      
       return `${timezone.split('/').pop().replace(/_/g, ' ')} (${tzName})`;
     } catch (e) {
       return timezone;
@@ -252,7 +230,7 @@ const RegionSelector = ({ value, onChange }) => {
   };
 
   const selectedCountryData = countries.find(c => c.code === selectedCountry);
-  const filteredCountries = countries.filter(c =>
+  const filteredCountries = countries.filter(c => 
     c.name.toLowerCase().includes(countrySearch.toLowerCase())
   );
 
@@ -285,23 +263,19 @@ const RegionSelector = ({ value, onChange }) => {
             <MapPin size={16} />
             Country
           </label>
-          <div
+          <div 
             className={`custom-select ${showCountryDropdown ? 'open' : ''}`}
-            onClick={() =>
-              !loadingCountries && setShowCountryDropdown(!showCountryDropdown)
-            }
+            onClick={() => !loadingCountries && setShowCountryDropdown(!showCountryDropdown)}
           >
             <div className="select-trigger">
               <span className={selectedCountry ? 'selected' : 'placeholder'}>
-                {selectedCountry
-                  ? selectedCountryData?.name
-                  : loadingCountries
-                    ? 'Loading countries...'
-                    : 'Select your country...'}
+                {selectedCountry 
+                  ? selectedCountryData?.name 
+                  : loadingCountries ? 'Loading countries...' : 'Select your country...'}
               </span>
               <ChevronDown size={20} className="chevron-icon" />
             </div>
-
+            
             {showCountryDropdown && (
               <div className="select-dropdown">
                 <div className="dropdown-search">
@@ -309,8 +283,8 @@ const RegionSelector = ({ value, onChange }) => {
                     type="text"
                     placeholder="Search countries..."
                     value={countrySearch}
-                    onChange={e => setCountrySearch(e.target.value)}
-                    onClick={e => e.stopPropagation()}
+                    onChange={(e) => setCountrySearch(e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
                   />
                 </div>
                 <div className="dropdown-options">
@@ -354,19 +328,17 @@ const RegionSelector = ({ value, onChange }) => {
               <Clock size={16} />
               Timezone
             </label>
-            <div
+            <div 
               className={`custom-select ${showTimezoneDropdown ? 'open' : ''}`}
               onClick={() => setShowTimezoneDropdown(!showTimezoneDropdown)}
             >
               <div className="select-trigger">
                 <span className={selectedTimezone ? 'selected' : 'placeholder'}>
-                  {selectedTimezone
-                    ? formatTimezone(selectedTimezone)
-                    : 'Select timezone...'}
+                  {selectedTimezone ? formatTimezone(selectedTimezone) : 'Select timezone...'}
                 </span>
                 <ChevronDown size={20} className="chevron-icon" />
               </div>
-
+              
               {showTimezoneDropdown && (
                 <div className="select-dropdown">
                   <div className="dropdown-options">
@@ -385,7 +357,7 @@ const RegionSelector = ({ value, onChange }) => {
               )}
             </div>
             <small className="region-hint">
-              {timezones.length === 1
+              {timezones.length === 1 
                 ? 'Automatically set based on your country'
                 : 'Your timezone has been auto-detected. You can change it if needed.'}
             </small>
@@ -398,9 +370,7 @@ const RegionSelector = ({ value, onChange }) => {
         <div className="region-summary">
           <div className="region-summary-item">
             <MapPin size={14} />
-            <span>
-              {value.city}, {value.country}
-            </span>
+            <span>{value.city}, {value.country}</span>
           </div>
           <div className="region-summary-item">
             <Clock size={14} />

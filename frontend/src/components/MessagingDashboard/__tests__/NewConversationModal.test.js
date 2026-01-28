@@ -30,12 +30,8 @@ describe('NewConversationModal', () => {
     );
 
     expect(screen.getByText('Start New Conversation')).toBeInTheDocument();
-    expect(
-      screen.getByLabelText(/recipient email address/i)
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: /start conversation/i })
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/recipient email address/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /start conversation/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument();
   });
 
@@ -75,9 +71,7 @@ describe('NewConversationModal', () => {
       />
     );
 
-    const backdrop = screen
-      .getByText('Start New Conversation')
-      .closest('.modal-backdrop');
+    const backdrop = screen.getByText('Start New Conversation').closest('.modal-backdrop');
     fireEvent.click(backdrop);
 
     expect(mockOnClose).toHaveBeenCalled();
@@ -91,9 +85,7 @@ describe('NewConversationModal', () => {
       />
     );
 
-    const modalContent = screen
-      .getByText('Start New Conversation')
-      .closest('.modal-content');
+    const modalContent = screen.getByText('Start New Conversation').closest('.modal-content');
     fireEvent.click(modalContent);
 
     expect(mockOnClose).not.toHaveBeenCalled();
@@ -107,9 +99,7 @@ describe('NewConversationModal', () => {
       />
     );
 
-    const submitButton = screen.getByRole('button', {
-      name: /start conversation/i,
-    });
+    const submitButton = screen.getByRole('button', { name: /start conversation/i });
     expect(submitButton).toBeDisabled();
   });
 
@@ -130,9 +120,7 @@ describe('NewConversationModal', () => {
     );
 
     const emailInput = screen.getByLabelText(/recipient email address/i);
-    const submitButton = screen.getByRole('button', {
-      name: /start conversation/i,
-    });
+    const submitButton = screen.getByRole('button', { name: /start conversation/i });
 
     fireEvent.change(emailInput, { target: { value: 'john@test.com' } });
     fireEvent.click(submitButton);
@@ -158,17 +146,13 @@ describe('NewConversationModal', () => {
     );
 
     const emailInput = screen.getByLabelText(/recipient email address/i);
-    const submitButton = screen.getByRole('button', {
-      name: /start conversation/i,
-    });
+    const submitButton = screen.getByRole('button', { name: /start conversation/i });
 
     fireEvent.change(emailInput, { target: { value: 'nonexistent@test.com' } });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(
-        screen.getByText('User not found or invalid email')
-      ).toBeInTheDocument();
+      expect(screen.getByText('User not found or invalid email')).toBeInTheDocument();
     });
   });
 
@@ -183,17 +167,13 @@ describe('NewConversationModal', () => {
     );
 
     const emailInput = screen.getByLabelText(/recipient email address/i);
-    const submitButton = screen.getByRole('button', {
-      name: /start conversation/i,
-    });
+    const submitButton = screen.getByRole('button', { name: /start conversation/i });
 
     fireEvent.change(emailInput, { target: { value: 'test@test.com' } });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(
-        screen.getByText('Failed to start conversation. Please try again.')
-      ).toBeInTheDocument();
+      expect(screen.getByText('Failed to start conversation. Please try again.')).toBeInTheDocument();
     });
   });
 
@@ -208,17 +188,14 @@ describe('NewConversationModal', () => {
     );
 
     const emailInput = screen.getByLabelText(/recipient email address/i);
-    const submitButton = screen.getByRole('button', {
-      name: /start conversation/i,
-    });
+    const submitButton = screen.getByRole('button', { name: /start conversation/i });
 
     fireEvent.change(emailInput, { target: { value: 'test@test.com' } });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(
-        screen.getByRole('button', { name: /starting.../i })
-      ).toBeDisabled();
+      expect(screen.getByRole('button', { name: /starting.../i })).toBeDisabled();
     });
   });
+
 });

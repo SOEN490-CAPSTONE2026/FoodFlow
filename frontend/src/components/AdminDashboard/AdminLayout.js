@@ -24,13 +24,15 @@ import {
   LogOut,
   Menu,
   X,
-  AlertTriangle,
-} from 'lucide-react';
-import Logo from '../../assets/Logo_White.png';
-import { AuthContext } from '../../contexts/AuthContext';
-import './Admin_Styles/AdminLayout.css';
+  AlertTriangle
+} from "lucide-react";
+import { useTranslation } from 'react-i18next';
+import Logo from "../../assets/Logo_White.png";
+import { AuthContext } from "../../contexts/AuthContext";
+import "./Admin_Styles/AdminLayout.css";
 
 export default function AdminLayout() {
+  const { t } = useTranslation();
   const { logout } = useContext(AuthContext);
   const location = useLocation();
   const navigate = useNavigate();
@@ -71,55 +73,49 @@ export default function AdminLayout() {
 
   const pageTitle = (() => {
     switch (location.pathname) {
-      case '/admin':
-      case '/admin/dashboard':
-        return 'Admin Dashboard';
-      case '/admin/users':
-        return 'User Management';
-      case '/admin/verification-queue':
-        return 'Verification Queue';
-      case '/admin/analytics':
-        return 'Analytics';
-      case '/admin/calendar':
-        return 'Calendar';
-      case '/admin/messages':
-        return 'Messages';
-      case '/admin/disputes':
-        return 'Disputes & Reports';
-      case '/admin/help':
-        return 'Help';
+      case "/admin":
+      case "/admin/dashboard":
+        return t('admin.dashboard');
+      case "/admin/users":
+        return "User Management";
+      case "/admin/verification-queue":
+        return "Verification Queue";
+      case "/admin/analytics":
+        return t('admin.analytics');
+      case "/admin/calendar":
+        return t('admin.calendar');
+      case "/admin/messages":
+        return t('admin.messages');
+      case "/admin/disputes":
+        return "Disputes & Reports";
+      case "/admin/help":
+        return t('admin.help');
       default:
-        if (location.pathname.startsWith('/admin/disputes/')) {
-          return 'Dispute Details';
-        }
-        return 'Admin';
+        return t('admin.dashboard');
     }
   })();
 
   const pageDesc = (() => {
     switch (location.pathname) {
-      case '/admin':
-      case '/admin/dashboard':
-        return 'Overview and quick actions';
-      case '/admin/verification-queue':
-        return 'Review and approve pending user registrations';
-      case '/admin/users':
-        return 'Manage and monitor all platform users';
-      case '/admin/analytics':
-        return 'Metrics and insights';
-      case '/admin/calendar':
-        return 'Events and schedules';
-      case '/admin/messages':
-        return 'Incoming communications';
-      case '/admin/disputes':
-        return 'Track, review, and resolve reported issues';
-      case '/admin/help':
-        return 'Guides and support';
+      case "/admin":
+      case "/admin/dashboard":
+        return t('admin.overview');
+      case "/admin/verification-queue":
+        return "Review and approve pending user registrations";
+      case "/admin/users":
+        return "Manage and monitor all platform users";
+      case "/admin/analytics":
+        return t('admin.metrics');
+      case "/admin/calendar":
+        return t('admin.events');
+      case "/admin/messages":
+        return t('admin.communications');
+      case "/admin/disputes":
+        return "Track, review, and resolve reported issues";
+      case "/admin/help":
+        return t('admin.guides');
       default:
-        if (location.pathname.startsWith('/admin/disputes/')) {
-          return 'View and manage case details';
-        }
-        return 'Administration';
+        return t('admin.administration');
     }
   })();
 

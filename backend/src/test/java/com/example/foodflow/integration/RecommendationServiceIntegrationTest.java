@@ -24,6 +24,7 @@ import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.model.types.Quantity;
 import com.example.foodflow.repository.ReceiverPreferencesRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
+import com.example.foodflow.service.BusinessMetricsService;
 import com.example.foodflow.service.RecommendationService;
 
 /**
@@ -39,6 +40,9 @@ class RecommendationServiceIntegrationTest {
 
     @Mock
     private SurplusPostRepository surplusPostRepository;
+
+    @Mock 
+    private BusinessMetricsService businessMetricsService;
 
     @InjectMocks
     private RecommendationService recommendationService;

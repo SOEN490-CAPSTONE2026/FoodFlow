@@ -41,6 +41,9 @@ class NotificationServiceTest {
     @Mock
     private NotificationPreferenceService notificationPreferenceService;
 
+    @Mock
+    private BusinessMetricsService businessMetricsService;
+
     @InjectMocks
     private NotificationService notificationService;
 

@@ -18,35 +18,34 @@ import jakarta.validation.Valid;
 
 public class CreateSurplusRequest {
 
-    @NotBlank(message = "Title is required")
+    @NotBlank(message = "{validation.title.required}")
     private String title;
 
-    @NotEmpty(message = "At least one food category is required")
+    @NotEmpty(message = "{validation.foodCategories.required}")
     private Set<FoodCategory> foodCategories = new HashSet<>();
 
     @Valid
-    @NotNull(message = "Quantity is required")
+    @NotNull(message = "{validation.quantity.required}")
     private Quantity quantity;
 
     private LocalDate fabricationDate;
-
-    @NotNull(message = "Expiry date is required")
-    @Future(message = "Expiry date must be in the future")
+    @NotNull(message = "{validation.expiryDate.required}")
+    @Future(message = "{validation.expiryDate.future}")
     private LocalDate expiryDate;
 
-    @NotBlank(message = "Description is required")
+    @NotBlank(message = "{validation.description.required}")
     private String description;
 
-    @NotNull(message = "Pickup date is required")
+    @NotNull(message = "{validation.pickupDate.required}")
     private LocalDate pickupDate;
 
-    @NotNull(message = "Pickup start time is required")
+    @NotNull(message = "{validation.pickupFrom.required}")
     private LocalTime pickupFrom;
 
-    @NotNull(message = "Pickup end time is required")
+    @NotNull(message = "{validation.pickupTo.required}")
     private LocalTime pickupTo;
 
-    @NotNull(message = "Pickup location is required")
+    @NotNull(message = "{validation.pickupLocation.required}")
     private Location pickupLocation;
 
     @Valid

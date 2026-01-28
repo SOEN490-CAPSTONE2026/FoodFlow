@@ -1,12 +1,12 @@
-import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { MemoryRouter, Routes, Route } from 'react-router-dom';
-import '@testing-library/jest-dom';
-import ReceiverDashboard from '../ReceiverDashboard';
+import React from "react";
+import { render, screen } from "@testing-library/react";
+import { MemoryRouter, Routes, Route } from "react-router-dom";
+import "@testing-library/jest-dom";
+import ReceiverDashboard from "../ReceiverDashboard";
 
 // Mock ReceiverLayout to render Outlet properly (using .js extension)
-jest.mock('../ReceiverLayout.js', () => {
-  const { Outlet } = require('react-router-dom');
+jest.mock("../ReceiverLayout.js", () => {
+  const { Outlet } = require("react-router-dom");
   return function ReceiverLayout() {
     return (
       <div data-testid="receiver-layout">
@@ -16,32 +16,32 @@ jest.mock('../ReceiverLayout.js', () => {
   };
 });
 
-jest.mock('../ReceiverWelcome.js', () => {
+jest.mock("../ReceiverWelcome.js", () => {
   return function ReceiverWelcome() {
     return <div data-testid="welcome">Welcome Page</div>;
   };
 });
 
-jest.mock('../ReceiverBrowse.js', () => {
+jest.mock("../ReceiverBrowse.js", () => {
   return function ReceiverBrowse() {
     return <div data-testid="browse">Browse Page</div>;
   };
 });
 
-jest.mock('../ReceiverMyClaims.js', () => {
+jest.mock("../ReceiverMyClaims.js", () => {
   return function ReceiverMyClaims() {
     return <div data-testid="my-claims">My Claims Page</div>;
   };
 });
 
-jest.mock('../../MessagingDashboard/MessagingDashboard.js', () => {
+jest.mock("../../MessagingDashboard/MessagingDashboard.js", () => {
   return function MessagingDashboard() {
     return <div data-testid="messages">Messages Page</div>;
   };
 });
 
 // Helper function to render with router - wrapping in a parent route
-const renderWithRouter = (initialRoute = '/receiver') => {
+const renderWithRouter = (initialRoute = "/receiver") => {
   return render(
     <MemoryRouter initialEntries={[initialRoute]}>
       <Routes>
@@ -51,110 +51,106 @@ const renderWithRouter = (initialRoute = '/receiver') => {
   );
 };
 
-describe('ReceiverDashboard', () => {
-  test('renders ReceiverLayout wrapper', () => {
-    renderWithRouter('/receiver');
-    expect(screen.getByTestId('receiver-layout')).toBeInTheDocument();
+describe("ReceiverDashboard", () => {
+  test("renders ReceiverLayout wrapper", () => {
+    renderWithRouter("/receiver");
+    expect(screen.getByTestId("receiver-layout")).toBeInTheDocument();
   });
 
-  test('renders browse page on index route', () => {
-    renderWithRouter('/receiver');
-    expect(screen.getByTestId('browse')).toBeInTheDocument();
-    expect(screen.getByText('Browse Page')).toBeInTheDocument();
+  test("renders browse page on index route", () => {
+    renderWithRouter("/receiver");
+    expect(screen.getByTestId("browse")).toBeInTheDocument();
+    expect(screen.getByText("Browse Page")).toBeInTheDocument();
   });
 
-  test('renders welcome page on /welcome route', () => {
-    renderWithRouter('/receiver/welcome');
-    expect(screen.getByTestId('welcome')).toBeInTheDocument();
-    expect(screen.getByText('Welcome Page')).toBeInTheDocument();
+  test("renders welcome page on /welcome route", () => {
+    renderWithRouter("/receiver/welcome");
+    expect(screen.getByTestId("welcome")).toBeInTheDocument();
+    expect(screen.getByText("Welcome Page")).toBeInTheDocument();
   });
 
-  test('renders browse page on /browse route', () => {
-    renderWithRouter('/receiver/browse');
-    expect(screen.getByTestId('browse')).toBeInTheDocument();
-    expect(screen.getByText('Browse Page')).toBeInTheDocument();
+  test("renders browse page on /browse route", () => {
+    renderWithRouter("/receiver/browse");
+    expect(screen.getByTestId("browse")).toBeInTheDocument();
+    expect(screen.getByText("Browse Page")).toBeInTheDocument();
   });
 
-  test('renders my claims page on /my-claims route', () => {
-    renderWithRouter('/receiver/my-claims');
-    expect(screen.getByTestId('my-claims')).toBeInTheDocument();
-    expect(screen.getByText('My Claims Page')).toBeInTheDocument();
+  test("renders my claims page on /my-claims route", () => {
+    renderWithRouter("/receiver/my-claims");
+    expect(screen.getByTestId("my-claims")).toBeInTheDocument();
+    expect(screen.getByText("My Claims Page")).toBeInTheDocument();
   });
 
-  test('renders messages page on /messages route', () => {
-    renderWithRouter('/receiver/messages');
-    expect(screen.getByTestId('messages')).toBeInTheDocument();
-    expect(screen.getByText('Messages Page')).toBeInTheDocument();
+  test("renders messages page on /messages route", () => {
+    renderWithRouter("/receiver/messages");
+    expect(screen.getByTestId("messages")).toBeInTheDocument();
+    expect(screen.getByText("Messages Page")).toBeInTheDocument();
   });
 
-  test('redirects unknown routes to index', () => {
-    renderWithRouter('/receiver/unknown-route');
+  test("redirects unknown routes to index", () => {
+    renderWithRouter("/receiver/unknown-route");
     // Should redirect to browse page (index route)
-    expect(screen.getByTestId('browse')).toBeInTheDocument();
+    expect(screen.getByTestId("browse")).toBeInTheDocument();
   });
 
-  test('handles deeply nested unknown routes', () => {
-    renderWithRouter('/receiver/unknown/nested/route');
+  test("handles deeply nested unknown routes", () => {
+    renderWithRouter("/receiver/unknown/nested/route");
     // Should redirect to browse page
-    expect(screen.getByTestId('browse')).toBeInTheDocument();
+    expect(screen.getByTestId("browse")).toBeInTheDocument();
   });
 
-  test('all routes render within ReceiverLayout', () => {
+  test("all routes render within ReceiverLayout", () => {
     const routes = [
-      '/receiver',
-      '/receiver/welcome',
-      '/receiver/browse',
-      '/receiver/my-claims',
-      '/receiver/messages',
+      "/receiver",
+      "/receiver/welcome",
+      "/receiver/browse",
+      "/receiver/my-claims",
+      "/receiver/messages",
     ];
 
-    routes.forEach(route => {
+    routes.forEach((route) => {
       const { unmount } = renderWithRouter(route);
-      expect(screen.getByTestId('receiver-layout')).toBeInTheDocument();
+      expect(screen.getByTestId("receiver-layout")).toBeInTheDocument();
       unmount();
     });
   });
 
-  test('does not render multiple pages simultaneously', () => {
-    renderWithRouter('/receiver/welcome');
-
+  test("does not render multiple pages simultaneously", () => {
+    renderWithRouter("/receiver/welcome");
+    
     // Should only render welcome page, not others
-    expect(screen.getByTestId('welcome')).toBeInTheDocument();
-    expect(screen.queryByTestId('browse')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('my-claims')).not.toBeInTheDocument();
+    expect(screen.getByTestId("welcome")).toBeInTheDocument();
+    expect(screen.queryByTestId("browse")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("my-claims")).not.toBeInTheDocument();
   });
 
-  test('index route and /browse route render the same component', () => {
-    const { unmount } = renderWithRouter('/receiver');
-    expect(screen.getByTestId('browse')).toBeInTheDocument();
+  test("index route and /browse route render the same component", () => {
+    const { unmount } = renderWithRouter("/receiver");
+    expect(screen.getByTestId("browse")).toBeInTheDocument();
     unmount();
 
-    renderWithRouter('/receiver/browse');
-    expect(screen.getByTestId('browse')).toBeInTheDocument();
+    renderWithRouter("/receiver/browse");
+    expect(screen.getByTestId("browse")).toBeInTheDocument();
   });
 
-  test('each route maintains layout wrapper', () => {
+  test("each route maintains layout wrapper", () => {
     // Test multiple routes to verify layout always renders
-    const routes = [
-      '/receiver/welcome',
-      '/receiver/browse',
-      '/receiver/my-claims',
-    ];
-
-    routes.forEach(route => {
+    const routes = ["/receiver/welcome", "/receiver/browse", "/receiver/my-claims"];
+    
+    routes.forEach((route) => {
       const { unmount } = renderWithRouter(route);
-      expect(screen.getByTestId('receiver-layout')).toBeInTheDocument();
+      expect(screen.getByTestId("receiver-layout")).toBeInTheDocument();
       unmount();
     });
   });
 
-  test('renders correct component for each unique route', () => {
+  test("renders correct component for each unique route", () => {
     const routeComponentMap = {
-      '/receiver': 'browse',
-      '/receiver/welcome': 'welcome',
-      '/receiver/browse': 'browse',
-      '/receiver/my-claims': 'my-claims',
-      '/receiver/messages': 'messages',
+      "/receiver": "browse",
+      "/receiver/welcome": "welcome",
+      "/receiver/browse": "browse",
+      "/receiver/my-claims": "my-claims",
+      "/receiver/messages": "messages",
     };
 
     Object.entries(routeComponentMap).forEach(([route, testId]) => {
@@ -164,74 +160,75 @@ describe('ReceiverDashboard', () => {
     });
   });
 
-  test('catch-all route redirects with replace flag', () => {
+  test("catch-all route redirects with replace flag", () => {
     // The Navigate component should use replace=true to avoid adding to history
-    renderWithRouter('/receiver/nonexistent');
-    expect(screen.getByTestId('browse')).toBeInTheDocument();
+    renderWithRouter("/receiver/nonexistent");
+    expect(screen.getByTestId("browse")).toBeInTheDocument();
   });
 
-  test('all route paths are defined correctly', () => {
+  test("all route paths are defined correctly", () => {
     // Test that each specific route works
     const specificRoutes = [
-      { path: '/receiver/welcome', testId: 'welcome' },
-      { path: '/receiver/browse', testId: 'browse' },
-      { path: '/receiver/my-claims', testId: 'my-claims' },
-      { path: '/receiver/messages', testId: 'messages' },
+      { path: "/receiver/welcome", testId: "welcome" },
+      { path: "/receiver/browse", testId: "browse" },
+      { path: "/receiver/my-claims", testId: "my-claims" },
+      { path: "/receiver/messages", testId: "messages" },
     ];
 
     specificRoutes.forEach(({ path, testId }) => {
       const { unmount } = renderWithRouter(path);
       expect(screen.getByTestId(testId)).toBeInTheDocument();
-      expect(screen.getByTestId('receiver-layout')).toBeInTheDocument();
+      expect(screen.getByTestId("receiver-layout")).toBeInTheDocument();
       unmount();
     });
   });
 
-  test('nested Route components are properly configured', () => {
+  test("nested Route components are properly configured", () => {
     // Test that nested routes work correctly
     const nestedRoutes = [
-      '/receiver/welcome',
-      '/receiver/browse',
-      '/receiver/my-claims',
+      "/receiver/welcome",
+      "/receiver/browse",
+      "/receiver/my-claims",
     ];
 
-    nestedRoutes.forEach(route => {
+    nestedRoutes.forEach((route) => {
       const { unmount } = renderWithRouter(route);
-      expect(screen.getByTestId('receiver-layout')).toBeInTheDocument();
+      expect(screen.getByTestId("receiver-layout")).toBeInTheDocument();
       unmount();
     });
   });
 
-  test('different routes render different content with same layout', () => {
+  test("different routes render different content with same layout", () => {
     // Test that layout persists but content changes
-    const { unmount: unmount1 } = renderWithRouter('/receiver/welcome');
-    expect(screen.getByTestId('receiver-layout')).toBeInTheDocument();
-    expect(screen.getByTestId('welcome')).toBeInTheDocument();
+    const { unmount: unmount1 } = renderWithRouter("/receiver/welcome");
+    expect(screen.getByTestId("receiver-layout")).toBeInTheDocument();
+    expect(screen.getByTestId("welcome")).toBeInTheDocument();
     unmount1();
 
-    const { unmount: unmount2 } = renderWithRouter('/receiver/browse');
-    expect(screen.getByTestId('receiver-layout')).toBeInTheDocument();
-    expect(screen.getByTestId('browse')).toBeInTheDocument();
-    expect(screen.queryByTestId('welcome')).not.toBeInTheDocument();
+    const { unmount: unmount2 } = renderWithRouter("/receiver/browse");
+    expect(screen.getByTestId("receiver-layout")).toBeInTheDocument();
+    expect(screen.getByTestId("browse")).toBeInTheDocument();
+    expect(screen.queryByTestId("welcome")).not.toBeInTheDocument();
     unmount2();
   });
 
-  test('unknown route does not break application', () => {
-    const { container } = renderWithRouter(
-      '/receiver/completely-invalid-route'
-    );
-
+  test("unknown route does not break application", () => {
+    const { container } = renderWithRouter("/receiver/completely-invalid-route");
+    
     // Should still render layout and redirect to browse
     expect(container).toBeInTheDocument();
-    expect(screen.getByTestId('receiver-layout')).toBeInTheDocument();
-    expect(screen.getByTestId('browse')).toBeInTheDocument();
+    expect(screen.getByTestId("receiver-layout")).toBeInTheDocument();
+    expect(screen.getByTestId("browse")).toBeInTheDocument();
   });
 
-  test('each route component receives correct route configuration', () => {
+  test("each route component receives correct route configuration", () => {
     // Test that all defined routes render successfully
-    const routes = ['/receiver/welcome', '/receiver/browse'];
+    const routes = [
+      "/receiver/welcome",
+      "/receiver/browse",
+    ];
 
-    routes.forEach(route => {
+    routes.forEach((route) => {
       const { container, unmount } = renderWithRouter(route);
       // Should render without errors, indicating proper route configuration
       expect(container.firstChild).toBeInTheDocument();
@@ -239,38 +236,38 @@ describe('ReceiverDashboard', () => {
     });
   });
 
-  test('root receiver path renders index route', () => {
-    renderWithRouter('/receiver');
+  test("root receiver path renders index route", () => {
+    renderWithRouter("/receiver");
     // Index route should render browse page
-    expect(screen.getByTestId('browse')).toBeInTheDocument();
+    expect(screen.getByTestId("browse")).toBeInTheDocument();
   });
 
-  test('MessagingDashboard route is configured correctly', () => {
-    renderWithRouter('/receiver/messages');
-    expect(screen.getByTestId('messages')).toBeInTheDocument();
-    expect(screen.getByText('Messages Page')).toBeInTheDocument();
+  test("MessagingDashboard route is configured correctly", () => {
+    renderWithRouter("/receiver/messages");
+    expect(screen.getByTestId("messages")).toBeInTheDocument();
+    expect(screen.getByText("Messages Page")).toBeInTheDocument();
   });
 
-  test('ReceiverMyClaims route is configured correctly', () => {
-    renderWithRouter('/receiver/my-claims');
-    expect(screen.getByTestId('my-claims')).toBeInTheDocument();
-    expect(screen.getByText('My Claims Page')).toBeInTheDocument();
+  test("ReceiverMyClaims route is configured correctly", () => {
+    renderWithRouter("/receiver/my-claims");
+    expect(screen.getByTestId("my-claims")).toBeInTheDocument();
+    expect(screen.getByText("My Claims Page")).toBeInTheDocument();
   });
 
-  test('Navigate component redirects to current location', () => {
+  test("Navigate component redirects to current location", () => {
     // Test that unknown routes use Navigate with relative path "."
-    renderWithRouter('/receiver/some-invalid-path');
+    renderWithRouter("/receiver/some-invalid-path");
     // Should redirect to index (browse page)
-    expect(screen.getByTestId('browse')).toBeInTheDocument();
+    expect(screen.getByTestId("browse")).toBeInTheDocument();
   });
 
-  test('all imported components are used in routes', () => {
+  test("all imported components are used in routes", () => {
     // Verify all mocked components can be rendered through routing
     const componentRoutes = {
-      browse: '/receiver/browse',
-      welcome: '/receiver/welcome',
-      'my-claims': '/receiver/my-claims',
-      messages: '/receiver/messages',
+      "browse": "/receiver/browse",
+      "welcome": "/receiver/welcome",
+      "my-claims": "/receiver/my-claims",
+      "messages": "/receiver/messages",
     };
 
     Object.entries(componentRoutes).forEach(([testId, route]) => {

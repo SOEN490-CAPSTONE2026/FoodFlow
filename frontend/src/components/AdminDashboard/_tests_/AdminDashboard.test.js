@@ -211,7 +211,7 @@ describe('AdminDashboard', () => {
         screen.queryByTestId('admin-help'),
         screen.queryByTestId('admin-welcome'),
       ].filter(Boolean);
-
+      
       expect(renderedComponents).toHaveLength(0);
       expect(screen.getByTestId('admin-messages')).toBeInTheDocument();
     });

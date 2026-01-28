@@ -1,15 +1,15 @@
-import React from 'react';
-import { render } from '@testing-library/react';
-import '@testing-library/jest-dom';
-
-import AdminUsers from '../AdminUsers';
+import React from "react";
+import { render } from "@testing-library/react";
+import "@testing-library/jest-dom";
 
 // Mock axios before importing the component
-jest.mock('axios');
+jest.mock("axios");
 
-describe('AdminUsers', () => {
+import AdminUsers from "../AdminUsers";
+
+describe("AdminUsers", () => {
   beforeEach(() => {
-    localStorage.setItem('jwtToken', 'test-token');
+    localStorage.setItem("jwtToken", "test-token");
   });
 
   afterEach(() => {
@@ -17,7 +17,7 @@ describe('AdminUsers', () => {
     jest.clearAllMocks();
   });
 
-  it('renders without crashing', () => {
+  it("renders without crashing", () => {
     const { container } = render(<AdminUsers />);
     expect(container).toBeInTheDocument();
   });

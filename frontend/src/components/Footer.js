@@ -1,9 +1,11 @@
 import React from 'react';
-import Logo from '../assets/Logo.png';
+import { useTranslation } from 'react-i18next';
+import Logo from "../assets/Logo.png";
 import { FaEnvelope, FaPhone } from 'react-icons/fa';
 import '../style/Footer.css';
 
 const Footer = () => {
+  const { t } = useTranslation();
   return (
     <footer className="footer">
       <div className="footer-content">
@@ -12,50 +14,32 @@ const Footer = () => {
             <img src={Logo} alt="FoodFlow Logo" className="footer-logo" />
           </div>
           <p className="footer-description">
-            Discover a charity shop platform designed to revolutionize food
-            distribution. Connect charities with food sources across distances,
-            enhance communications and ensure fresh food reaches those in need.
-            FoodFlow boosts an intuitive and user-friendly interface.
+            {t('footer.description')}
           </p>
         </div>
 
         <div className="footer-right">
           <div className="footer-grid">
             <div className="footer-column">
-              <h3 className="column-title">Company</h3>
+              <h3 className="column-title">{t('footer.company')}</h3>
               <ul className="footer-links">
-                <li>
-                  <a href="#home">Home</a>
-                </li>
-                <li>
-                  <a href="#how-it-works">How it works</a>
-                </li>
-                <li>
-                  <a href="#about">About Us</a>
-                </li>
-                <li>
-                  <a href="#faqs">FAQs</a>
-                </li>
+                <li><a href='#home'>{t('footer.home')}</a></li>
+                <li><a href='#how-it-works'>{t('footer.howItWorks')}</a></li>
+                <li><a href='#about'>{t('footer.about')}</a></li>
+                <li><a href='#faqs'>{t('footer.faqs')}</a></li>
               </ul>
             </div>
 
             <div className="footer-column">
-              <h3 className="column-title">Contact</h3>
+              <h3 className="column-title">{t('footer.contact')}</h3>
               <div className="contact-info">
                 <div className="contact-item">
                   <FaEnvelope className="contact-icon" />
-                  <a
-                    href="mailto:foodflow.group@gmail.com"
-                    className="contact-email"
-                  >
-                    foodflow.group@gmail.com
-                  </a>
+                  <a href="mailto:foodflow.group@gmail.com" className="contact-email">{t('footer.email')}</a>
                 </div>
                 <div className="contact-item">
                   <FaPhone className="contact-icon" />
-                  <a href="tel:18001224567" className="contact-phone">
-                    1-800-122-4567
-                  </a>
+                  <a href="tel:18001224567" className="contact-phone">{t('footer.phone')}</a>
                 </div>
               </div>
             </div>
@@ -67,12 +51,12 @@ const Footer = () => {
         <div className="footer-divider"></div>
         <div className="bottom-content">
           <div className="copyright">
-            Copyright © 2025. All right reserved to FoodFlow
+            {t('footer.copyright')}
           </div>
           <div className="legal-links">
-            <a href="/privacy-policy">Privacy Policy</a>
+            <a href="/privacy-policy">{t('footer.privacyPolicy')}</a>
             <span className="separator">|</span>
-            <a href="/terms-conditions">Terms & Conditions</a>
+            <a href="/terms-conditions">{t('footer.termsConditions')}</a>
           </div>
         </div>
       </div>

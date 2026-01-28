@@ -17,12 +17,7 @@ jest.mock('../../../services/api', () => ({
 // ConversationsSidebar mock: keep your UI AND add a "Select First" button to trigger onSelectConversation
 jest.mock('../ConversationsSidebar', () => ({
   __esModule: true,
-  default: ({
-    conversations,
-    loading,
-    onNewConversation,
-    onSelectConversation,
-  }) => (
+  default: ({ conversations, loading, onNewConversation, onSelectConversation }) => (
     <div data-testid="conversations-sidebar">
       {loading ? (
         <div>Loading...</div>
@@ -55,9 +50,7 @@ jest.mock('../ChatPanel', () => ({
   default: ({ conversation, onMessageSent, onConversationRead }) => (
     <div data-testid="chat-panel">
       <div>
-        {conversation
-          ? `Chat with ${conversation.otherUserName}`
-          : 'No conversation selected'}
+        {conversation ? `Chat with ${conversation.otherUserName}` : 'No conversation selected'}
       </div>
       <button onClick={onMessageSent}>Send Message</button>
       <button onClick={onConversationRead}>Mark Read</button>
@@ -92,22 +85,18 @@ describe('MessagingDashboard', () => {
     mockGet.mockClear();
   });
 
-  test('renders loading state initially', () => {
-    const neverResolvingPromise = new Promise(() => {});
-    mockGet.mockReturnValue(neverResolvingPromise);
-
-    // Also mock the POST request that runs in the second useEffect
-    const mockPost = jest.fn().mockReturnValue(neverResolvingPromise);
-    api.post = mockPost;
-
-    render(
-      <MemoryRouter>
-        <MessagingDashboard />
-      </MemoryRouter>
-    );
-
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
-  });
+test('renders loading state initially', () => {
+  const neverResolvingPromise = new Promise(() => {});
+  mockGet.mockReturnValue(neverResolvingPromise);
+  
+  // Also mock the POST request that runs in the second useEffect
+  const mockPost = jest.fn().mockReturnValue(neverResolvingPromise);
+  api.post = mockPost;
+  
+  render(<MemoryRouter><MessagingDashboard /></MemoryRouter>);
+  
+  expect(screen.getByText("Loading...")).toBeInTheDocument();
+});
 
   test('loads and displays conversations', async () => {
     const mockConversations = [
@@ -116,11 +105,9 @@ describe('MessagingDashboard', () => {
     ];
     mockGet.mockResolvedValue({ data: mockConversations });
 
-    render(
-      <MemoryRouter>
-        <MessagingDashboard />
-      </MemoryRouter>
-    );
+    render(<MemoryRouter>
+    <MessagingDashboard />
+  </MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('Conversations: 2')).toBeInTheDocument();
@@ -131,27 +118,21 @@ describe('MessagingDashboard', () => {
   test('displays error message when loading fails', async () => {
     mockGet.mockRejectedValue(new Error('Network error'));
 
-    render(
-      <MemoryRouter>
-        <MessagingDashboard />
-      </MemoryRouter>
-    );
+    render(<MemoryRouter>
+    <MessagingDashboard />
+  </MemoryRouter>);
 
     await waitFor(() => {
-      expect(
-        screen.getByText('Failed to load conversations')
-      ).toBeInTheDocument();
+      expect(screen.getByText('Failed to load conversations')).toBeInTheDocument();
     });
   });
 
   test('shows empty state when no conversations', async () => {
     mockGet.mockResolvedValue({ data: [] });
 
-    render(
-      <MemoryRouter>
-        <MessagingDashboard />
-      </MemoryRouter>
-    );
+    render(<MemoryRouter>
+    <MessagingDashboard />
+  </MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('Conversations: 0')).toBeInTheDocument();
@@ -161,11 +142,9 @@ describe('MessagingDashboard', () => {
   test('renders chat panel and sidebar', async () => {
     mockGet.mockResolvedValue({ data: [] });
 
-    render(
-      <MemoryRouter>
-        <MessagingDashboard />
-      </MemoryRouter>
-    );
+    render(<MemoryRouter>
+    <MessagingDashboard />
+  </MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByTestId('conversations-sidebar')).toBeInTheDocument();
@@ -182,11 +161,9 @@ describe('MessagingDashboard', () => {
     ];
     mockGet.mockResolvedValue({ data: mockConversations });
 
-    render(
-      <MemoryRouter>
-        <MessagingDashboard />
-      </MemoryRouter>
-    );
+    render(<MemoryRouter>
+    <MessagingDashboard />
+  </MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('Conversations: 2')).toBeInTheDocument();
@@ -199,11 +176,9 @@ describe('MessagingDashboard', () => {
   test('clicking New Conversation opens modal; Create prepends, selects, and closes modal (handleNewConversation & handleConversationCreated)', async () => {
     mockGet.mockResolvedValue({ data: [] });
 
-    render(
-      <MemoryRouter>
-        <MessagingDashboard />
-      </MemoryRouter>
-    );
+    render(<MemoryRouter>
+    <MessagingDashboard />
+  </MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('Conversations: 0')).toBeInTheDocument();
@@ -218,9 +193,7 @@ describe('MessagingDashboard', () => {
 
     // modal closed & chat switched to new conversation
     await waitFor(() => {
-      expect(
-        screen.queryByTestId('new-conversation-modal')
-      ).not.toBeInTheDocument();
+      expect(screen.queryByTestId('new-conversation-modal')).not.toBeInTheDocument();
       expect(screen.getByText('Chat with New User')).toBeInTheDocument();
       // conversations list updated
       expect(screen.getByText('Conversations: 1')).toBeInTheDocument();
@@ -230,11 +203,9 @@ describe('MessagingDashboard', () => {
   test('closing modal without creating hides the modal (show/hide branch)', async () => {
     mockGet.mockResolvedValue({ data: [] });
 
-    render(
-      <MemoryRouter>
-        <MessagingDashboard />
-      </MemoryRouter>
-    );
+    render(<MemoryRouter>
+    <MessagingDashboard />
+  </MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('Conversations: 0')).toBeInTheDocument();
@@ -244,26 +215,18 @@ describe('MessagingDashboard', () => {
     expect(screen.getByTestId('new-conversation-modal')).toBeInTheDocument();
 
     fireEvent.click(screen.getByText('Close'));
-    expect(
-      screen.queryByTestId('new-conversation-modal')
-    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId('new-conversation-modal')).not.toBeInTheDocument();
   });
 
   test('Send Message triggers a refresh (handleMessageSent -> loadConversations)', async () => {
     // 1st call returns 1 conversation; 2nd call returns same list (we only assert call count)
     mockGet
-      .mockResolvedValueOnce({
-        data: [{ id: 1, otherUserName: 'A', otherUserEmail: 'a@test.com' }],
-      })
-      .mockResolvedValueOnce({
-        data: [{ id: 1, otherUserName: 'A', otherUserEmail: 'a@test.com' }],
-      });
+      .mockResolvedValueOnce({ data: [{ id: 1, otherUserName: 'A', otherUserEmail: 'a@test.com' }] })
+      .mockResolvedValueOnce({ data: [{ id: 1, otherUserName: 'A', otherUserEmail: 'a@test.com' }] });
 
-    render(
-      <MemoryRouter>
-        <MessagingDashboard />
-      </MemoryRouter>
-    );
+    render(<MemoryRouter>
+    <MessagingDashboard />
+  </MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('Conversations: 1')).toBeInTheDocument();
@@ -284,18 +247,12 @@ describe('MessagingDashboard', () => {
 
   test('Mark Read triggers a refresh (handleConversationRead -> loadConversations)', async () => {
     mockGet
-      .mockResolvedValueOnce({
-        data: [{ id: 2, otherUserName: 'B', otherUserEmail: 'b@test.com' }],
-      })
-      .mockResolvedValueOnce({
-        data: [{ id: 2, otherUserName: 'B', otherUserEmail: 'b@test.com' }],
-      });
+      .mockResolvedValueOnce({ data: [{ id: 2, otherUserName: 'B', otherUserEmail: 'b@test.com' }] })
+      .mockResolvedValueOnce({ data: [{ id: 2, otherUserName: 'B', otherUserEmail: 'b@test.com' }] });
 
-    render(
-      <MemoryRouter>
-        <MessagingDashboard />
-      </MemoryRouter>
-    );
+    render(<MemoryRouter>
+    <MessagingDashboard />
+  </MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('Conversations: 1')).toBeInTheDocument();

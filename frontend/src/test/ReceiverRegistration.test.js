@@ -10,10 +10,7 @@ import { MemoryRouter } from 'react-router-dom';
 import ReceiverRegistration from '../components/ReceiverRegistration';
 
 // Mock static imports used by the component
-jest.mock(
-  '../assets/illustrations/receiver-ilustration.jpg',
-  () => 'receiver.jpg'
-);
+jest.mock('../assets/illustrations/receiver-ilustration.jpg', () => 'receiver.jpg');
 jest.mock('../components/Registration.css', () => ({}), { virtual: true });
 
 // Mock navigate
@@ -29,22 +26,22 @@ jest.mock('react-router-dom', () => {
 
 // Mock API
 jest.mock('../services/api', () => ({
-  authAPI: {
-    registerReceiver: jest.fn(),
-    checkEmailExists: jest.fn(),
-    checkPhoneExists: jest.fn(),
-  },
+    authAPI: { 
+        registerReceiver: jest.fn(),
+        checkEmailExists: jest.fn(),
+        checkPhoneExists: jest.fn(),
+    },
 }));
 
 const setItemSpy = jest.spyOn(Storage.prototype, 'setItem');
 
 // Mock AuthContext value
 const mockAuthContextValue = {
-  isLoggedIn: false,
-  role: null,
-  userId: null,
-  login: jest.fn(),
-  logout: jest.fn(),
+    isLoggedIn: false,
+    role: null,
+    userId: null,
+    login: jest.fn(),
+    logout: jest.fn(),
 };
 
 describe('ReceiverRegistration', () => {
@@ -187,9 +184,7 @@ describe('ReceiverRegistration', () => {
     renderWithAuth(<ReceiverRegistration />);
     await fillAllFields(user);
 
-    await user.click(
-      screen.getByRole('button', { name: /submit registration/i })
-    );
+    await user.click(screen.getByRole('button', { name: /submit registration/i }));
 
     expect(await screen.findByText(/email already exists/i)).toBeTruthy();
     expect(mockNavigate).not.toHaveBeenCalled();
@@ -205,53 +200,41 @@ describe('ReceiverRegistration', () => {
 
   test('prevents proceeding to step 2 if email already exists', async () => {
     const user = userEvent.setup();
-
+    
     authAPI.checkEmailExists.mockResolvedValueOnce({ data: { exists: true } });
-
+    
     renderWithAuth(<ReceiverRegistration />);
-
-    await user.type(
-      screen.getByLabelText(/^email address$/i),
-      'existing@example.com'
-    );
+    
+    await user.type(screen.getByLabelText(/^email address$/i), 'existing@example.com');
     await user.type(screen.getByLabelText(/^password$/i), 'password123');
-    await user.type(
-      screen.getByLabelText(/^confirm password$/i),
-      'password123'
-    );
+    await user.type(screen.getByLabelText(/^confirm password$/i), 'password123');
     await user.click(screen.getByRole('button', { name: /next/i }));
-
-    await screen.findByText(/an account with this email already exists/i);
-
+    
+    await waitFor(() => {
+      const errorMessages = screen.getAllByText(/an account with this email already exists/i);
+      expect(errorMessages.length).toBeGreaterThan(0);
+    });
+    
     // Should still be on step 1
     expect(screen.getByLabelText(/^email address$/i)).toBeInTheDocument();
   });
 
   test('proceeds to step 2 if email does not exist', async () => {
     const user = userEvent.setup();
-
+    
     authAPI.checkEmailExists.mockResolvedValueOnce({ data: { exists: false } });
-
+    
     renderWithAuth(<ReceiverRegistration />);
-
-    await user.type(
-      screen.getByLabelText(/^email address$/i),
-      'new@example.com'
-    );
+    
+    await user.type(screen.getByLabelText(/^email address$/i), 'new@example.com');
     await user.type(screen.getByLabelText(/^password$/i), 'password123');
-    await user.type(
-      screen.getByLabelText(/^confirm password$/i),
-      'password123'
-    );
+    await user.type(screen.getByLabelText(/^confirm password$/i), 'password123');
     await user.click(screen.getByRole('button', { name: /next/i }));
-
+    
     // Wait for step 2 to render after email validation completes
-    await waitFor(
-      () => {
-        expect(screen.getByLabelText(/organization name/i)).toBeInTheDocument();
-      },
-      { timeout: 3000 }
-    );
+    await waitFor(() => {
+      expect(screen.getByLabelText(/organization name/i)).toBeInTheDocument();
+    }, { timeout: 3000 });
   });
 
   test('prevents proceeding if phone already exists', async () => {
@@ -311,9 +294,10 @@ describe('ReceiverRegistration', () => {
     // Try to go to next step - should be blocked
     await user.click(screen.getByRole('button', { name: /next/i }));
 
-    await screen.findByText(
+    const errorMessages = await screen.findAllByText(
       /an account with this phone number already exists/i
     );
+    expect(errorMessages.length).toBeGreaterThan(0);
 
     // Should still be on step 4
     expect(screen.getByLabelText(/contact person/i)).toBeInTheDocument();

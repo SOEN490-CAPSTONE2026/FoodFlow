@@ -12,11 +12,9 @@ export const useAnalytics = () => {
 
   return {
     trackButtonClick: analyticsService.trackButtonClick.bind(analyticsService),
-    trackFormSubmission:
-      analyticsService.trackFormSubmission.bind(analyticsService),
-    trackUserRegistration:
-      analyticsService.trackUserRegistration.bind(analyticsService),
+    trackFormSubmission: analyticsService.trackFormSubmission.bind(analyticsService),
+    trackUserRegistration: analyticsService.trackUserRegistration.bind(analyticsService),
     trackLogin: analyticsService.trackLogin.bind(analyticsService),
-    trackEvent: analyticsService.trackEvent.bind(analyticsService),
+    trackEvent: analyticsService.trackEvent.bind(analyticsService)
   };
 };

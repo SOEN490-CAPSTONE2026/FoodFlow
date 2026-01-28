@@ -15,7 +15,7 @@ const useGoogleMap = (location, options = {}) => {
       try {
         const position = {
           lat: parseFloat(location.latitude),
-          lng: parseFloat(location.longitude),
+          lng: parseFloat(location.longitude)
         };
 
         console.log('Initializing map at position:', position);
@@ -27,7 +27,7 @@ const useGoogleMap = (location, options = {}) => {
           streetViewControl: false,
           fullscreenControl: false,
           zoomControl: true,
-          ...options,
+          ...options
         };
 
         // Create map
@@ -40,10 +40,11 @@ const useGoogleMap = (location, options = {}) => {
         markerRef.current = new window.google.maps.Marker({
           position: position,
           map: googleMapInstanceRef.current,
-          title: location.address || 'Pickup Location',
+          title: location.address || 'Pickup Location'
         });
 
         console.log('Map initialized successfully');
+
       } catch (error) {
         console.error('Error initializing Google Map:', error);
       }
@@ -60,10 +61,8 @@ const useGoogleMap = (location, options = {}) => {
       script.defer = true;
       script.onload = initMap;
       script.onerror = () => console.error('Failed to load Google Maps script');
-
-      const existingScript = document.querySelector(
-        `script[src*="maps.googleapis.com"]`
-      );
+      
+      const existingScript = document.querySelector(`script[src*="maps.googleapis.com"]`);
       if (!existingScript) {
         document.head.appendChild(script);
       } else {
