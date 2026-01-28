@@ -64,7 +64,7 @@ const CompletedView = ({ claim, isOpen, onClose, onBack, showFeedbackModal, setS
         }
     };
 
-    const donorInfo = post?.donor || {
+    const donorInfo = {
         id: post?.donorId,
         name: post?.donorName || 'Donor'
     };

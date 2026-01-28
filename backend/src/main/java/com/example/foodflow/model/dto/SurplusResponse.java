@@ -93,6 +93,7 @@ public class SurplusResponse {
         this.pickupTo = surplusPost.getPickupTo();
         this.status = surplusPost.getStatus();
         this.otpCode = surplusPost.getOtpCode();
+        this.donorId = surplusPost.getDonor().getId();
         this.donorEmail = surplusPost.getDonor().getEmail();
         this.donorName = surplusPost.getDonor().getOrganization() != null
                 ? surplusPost.getDonor().getOrganization().getName()
