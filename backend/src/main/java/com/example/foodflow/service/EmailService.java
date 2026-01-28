@@ -262,7 +262,7 @@ public class EmailService {
                         </div>
                         <p>Log in to FoodFlow to view details and claim this donation!</p>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/receiver-dashboard" class="button" style="color: white !important; text-decoration: none;">View Donation</a>
+                            <a href="http://localhost:3000/receiver" class="button" style="color: white !important; text-decoration: none;">View Donation</a>
                         </p>
                     </div>
                     <div class="footer">
@@ -318,7 +318,7 @@ public class EmailService {
                         </div>
                         <p>The receiver will coordinate pickup details with you. Please check your messages in FoodFlow.</p>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/donor-dashboard" class="button" style="color: white !important; text-decoration: none;">View Claim Details</a>
+                            <a href="http://localhost:3000/donor/dashboard" class="button" style="color: white !important; text-decoration: none;">View Claim Details</a>
                         </p>
                     </div>
                     <div class="footer">
@@ -372,7 +372,7 @@ public class EmailService {
                         </div>
                         <p>Your donation is now available again for other receivers to claim.</p>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/donor-dashboard" class="button" style="color: white !important; text-decoration: none;">View Your Donations</a>
+                            <a href="http://localhost:3000/donor/dashboard" class="button" style="color: white !important; text-decoration: none;">View Your Donations</a>
                         </p>
                     </div>
                     <div class="footer">
