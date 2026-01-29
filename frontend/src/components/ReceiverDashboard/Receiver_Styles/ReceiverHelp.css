@@ -42,7 +42,7 @@
 }
 
 .section-header svg {
-  color: #1B4965;
+  color: #1b4965;
   flex-shrink: 0;
 }
 
@@ -75,7 +75,9 @@
   border-radius: 10px;
   padding: 1.25rem;
   border: 1px solid #e5e7eb;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .step:hover {
@@ -89,7 +91,7 @@
   left: -10px;
   width: 28px;
   height: 28px;
-  background: linear-gradient(135deg, #1B4965, #2d6a8a);
+  background: linear-gradient(135deg, #1b4965, #2d6a8a);
   color: white;
   border-radius: 50%;
   display: flex;
@@ -116,7 +118,7 @@
 }
 
 .step-icon svg {
-  color: #1B4965;
+  color: #1b4965;
 }
 
 .step-content h4 {
@@ -150,12 +152,12 @@
 }
 
 .faq-item:hover {
-  border-color: #62B6CB;
+  border-color: #62b6cb;
   box-shadow: 0 2px 8px rgba(98, 182, 203, 0.15);
 }
 
 .faq-item.open {
-  border-color: #1B4965;
+  border-color: #1b4965;
   box-shadow: 0 4px 12px rgba(27, 73, 101, 0.2);
 }
 
@@ -187,22 +189,22 @@
 }
 
 .faq-question:focus {
-  outline: 2px solid #62B6CB;
+  outline: 2px solid #62b6cb;
   outline-offset: -2px;
 }
 
 .faq-item.open .faq-question {
   background-color: #e0f2fe !important;
   border-bottom: 1px solid #bae6fd;
-  color: #1B4965 !important;
+  color: #1b4965 !important;
 }
 
 .faq-item.open .faq-question span {
-  color: #1B4965 !important;
+  color: #1b4965 !important;
 }
 
 .faq-question svg {
-  color: #62B6CB !important;
+  color: #62b6cb !important;
   flex-shrink: 0;
   min-width: 24px;
   min-height: 24px;
@@ -210,7 +212,7 @@
 }
 
 .faq-item.open .faq-question svg {
-  color: #1B4965 !important;
+  color: #1b4965 !important;
 }
 
 .faq-answer {
@@ -256,13 +258,13 @@
 
 .contact-card:hover {
   background: #f0f9ff;
-  border-color: #62B6CB;
+  border-color: #62b6cb;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(98, 182, 203, 0.1);
 }
 
 .contact-card:focus {
-  outline: 2px solid #62B6CB;
+  outline: 2px solid #62b6cb;
   outline-offset: 2px;
 }
 
@@ -272,7 +274,7 @@
   justify-content: center;
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, #1B4965, #2d6a8a);
+  background: linear-gradient(135deg, #1b4965, #2d6a8a);
   border-radius: 10px;
   flex-shrink: 0;
 }
@@ -290,7 +292,7 @@
 
 .contact-info p {
   font-size: 0.95rem;
-  color: #1B4965;
+  color: #1b4965;
   font-weight: 500;
   margin: 0 0 0.25rem 0;
 }

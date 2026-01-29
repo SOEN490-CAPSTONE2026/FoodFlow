@@ -82,7 +82,9 @@ describe('FeedbackModal', () => {
 
     test('should render subtitle with default text when no target user name', () => {
       renderModal({ targetUser: { id: 2 } });
-      expect(screen.getByText(/Review for the other user/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Review for the other user/i)
+      ).toBeInTheDocument();
     });
 
     test('should not render subtitle when no target user', () => {
@@ -100,9 +102,9 @@ describe('FeedbackModal', () => {
 
     test('should render 5 star buttons', () => {
       renderModal();
-      const starButtons = screen.getAllByRole('button', { name: '' }).filter(btn => 
-        btn.className.includes('star-btn')
-      );
+      const starButtons = screen
+        .getAllByRole('button', { name: '' })
+        .filter(btn => btn.className.includes('star-btn'));
       expect(starButtons).toHaveLength(5);
     });
 
@@ -123,7 +125,9 @@ describe('FeedbackModal', () => {
     test('should render Submit button', () => {
       renderModal();
       expect(screen.getByText('Submit Feedback')).toBeInTheDocument();
-      expect(screen.getByText('Submit Feedback')).toHaveClass('feedback-submit');
+      expect(screen.getByText('Submit Feedback')).toHaveClass(
+        'feedback-submit'
+      );
     });
 
     test('should render overlay', () => {
@@ -142,7 +146,9 @@ describe('FeedbackModal', () => {
       renderModal();
 
       await waitFor(() => {
-        expect(feedbackAPI.getFeedbackForClaim).toHaveBeenCalledWith(mockClaimId);
+        expect(feedbackAPI.getFeedbackForClaim).toHaveBeenCalledWith(
+          mockClaimId
+        );
       });
     });
 
@@ -179,11 +185,17 @@ describe('FeedbackModal', () => {
       renderModal();
 
       await waitFor(() => {
-        expect(screen.getByText(/You have already submitted feedback for this donation/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            /You have already submitted feedback for this donation/i
+          )
+        ).toBeInTheDocument();
       });
 
       // Should not show rating stars or textarea
-      expect(screen.queryByPlaceholderText('Optional short review')).not.toBeInTheDocument();
+      expect(
+        screen.queryByPlaceholderText('Optional short review')
+      ).not.toBeInTheDocument();
       expect(screen.queryByText('Submit Feedback')).not.toBeInTheDocument();
     });
 
@@ -195,7 +207,11 @@ describe('FeedbackModal', () => {
       renderModal();
 
       await waitFor(() => {
-        expect(screen.getByText(/You have already submitted feedback for this donation/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            /You have already submitted feedback for this donation/i
+          )
+        ).toBeInTheDocument();
       });
     });
 
@@ -207,10 +223,16 @@ describe('FeedbackModal', () => {
       renderModal();
 
       await waitFor(() => {
-        expect(screen.queryByText(/You have already submitted feedback for this donation/i)).not.toBeInTheDocument();
+        expect(
+          screen.queryByText(
+            /You have already submitted feedback for this donation/i
+          )
+        ).not.toBeInTheDocument();
       });
 
-      expect(screen.getByPlaceholderText('Optional short review')).toBeInTheDocument();
+      expect(
+        screen.getByPlaceholderText('Optional short review')
+      ).toBeInTheDocument();
     });
 
     test('should handle error when checking feedback and allow submission', async () => {
@@ -219,7 +241,9 @@ describe('FeedbackModal', () => {
       renderModal();
 
       await waitFor(() => {
-        expect(screen.getByPlaceholderText('Optional short review')).toBeInTheDocument();
+        expect(
+          screen.getByPlaceholderText('Optional short review')
+        ).toBeInTheDocument();
       });
     });
 
@@ -231,7 +255,9 @@ describe('FeedbackModal', () => {
       const { rerender } = renderModal();
 
       await waitFor(() => {
-        expect(screen.getByText(/You have already submitted feedback/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/You have already submitted feedback/i)
+        ).toBeInTheDocument();
       });
 
       // Close modal
@@ -262,7 +288,9 @@ describe('FeedbackModal', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByPlaceholderText('Optional short review')).toBeInTheDocument();
+        expect(
+          screen.getByPlaceholderText('Optional short review')
+        ).toBeInTheDocument();
       });
     });
   });
@@ -276,9 +304,9 @@ describe('FeedbackModal', () => {
         expect(feedbackAPI.getFeedbackForClaim).toHaveBeenCalled();
       });
 
-      const starButtons = screen.getAllByRole('button').filter(btn => 
-        btn.className.includes('star-btn')
-      );
+      const starButtons = screen
+        .getAllByRole('button')
+        .filter(btn => btn.className.includes('star-btn'));
 
       await user.click(starButtons[2]); // Click 3rd star (rating 3)
 
@@ -297,9 +325,9 @@ describe('FeedbackModal', () => {
         expect(feedbackAPI.getFeedbackForClaim).toHaveBeenCalled();
       });
 
-      const starButtons = screen.getAllByRole('button').filter(btn => 
-        btn.className.includes('star-btn')
-      );
+      const starButtons = screen
+        .getAllByRole('button')
+        .filter(btn => btn.className.includes('star-btn'));
 
       await user.hover(starButtons[3]); // Hover on 4th star
 
@@ -318,9 +346,9 @@ describe('FeedbackModal', () => {
         expect(feedbackAPI.getFeedbackForClaim).toHaveBeenCalled();
       });
 
-      const starButtons = screen.getAllByRole('button').filter(btn => 
-        btn.className.includes('star-btn')
-      );
+      const starButtons = screen
+        .getAllByRole('button')
+        .filter(btn => btn.className.includes('star-btn'));
 
       // Click 2 stars
       await user.click(starButtons[1]);
@@ -344,9 +372,9 @@ describe('FeedbackModal', () => {
         expect(feedbackAPI.getFeedbackForClaim).toHaveBeenCalled();
       });
 
-      const starButtons = screen.getAllByRole('button').filter(btn => 
-        btn.className.includes('star-btn')
-      );
+      const starButtons = screen
+        .getAllByRole('button')
+        .filter(btn => btn.className.includes('star-btn'));
 
       await user.click(starButtons[4]); // 5 stars
       expect(starButtons[4]).toHaveClass('filled');
@@ -388,9 +416,9 @@ describe('FeedbackModal', () => {
         expect(feedbackAPI.getFeedbackForClaim).toHaveBeenCalled();
       });
 
-      const closeButton = screen.getAllByRole('button').find(btn => 
-        btn.className.includes('feedback-close')
-      );
+      const closeButton = screen
+        .getAllByRole('button')
+        .find(btn => btn.className.includes('feedback-close'));
       await user.click(closeButton);
 
       expect(mockOnClose).toHaveBeenCalledTimes(1);
@@ -458,9 +486,9 @@ describe('FeedbackModal', () => {
         expect(feedbackAPI.getFeedbackForClaim).toHaveBeenCalled();
       });
 
-      const starButtons = screen.getAllByRole('button').filter(btn => 
-        btn.className.includes('star-btn')
-      );
+      const starButtons = screen
+        .getAllByRole('button')
+        .filter(btn => btn.className.includes('star-btn'));
       await user.click(starButtons[2]);
 
       const submitButton = screen.getByText('Submit Feedback');
@@ -478,9 +506,9 @@ describe('FeedbackModal', () => {
       });
 
       // Select 4 stars
-      const starButtons = screen.getAllByRole('button').filter(btn => 
-        btn.className.includes('star-btn')
-      );
+      const starButtons = screen
+        .getAllByRole('button')
+        .filter(btn => btn.className.includes('star-btn'));
       await user.click(starButtons[3]);
 
       // Submit
@@ -510,9 +538,9 @@ describe('FeedbackModal', () => {
       });
 
       // Select 5 stars
-      const starButtons = screen.getAllByRole('button').filter(btn => 
-        btn.className.includes('star-btn')
-      );
+      const starButtons = screen
+        .getAllByRole('button')
+        .filter(btn => btn.className.includes('star-btn'));
       await user.click(starButtons[4]);
 
       // Type review
@@ -545,9 +573,9 @@ describe('FeedbackModal', () => {
         expect(feedbackAPI.getFeedbackForClaim).toHaveBeenCalled();
       });
 
-      const starButtons = screen.getAllByRole('button').filter(btn => 
-        btn.className.includes('star-btn')
-      );
+      const starButtons = screen
+        .getAllByRole('button')
+        .filter(btn => btn.className.includes('star-btn'));
       await user.click(starButtons[2]);
 
       const textarea = screen.getByPlaceholderText('Optional short review');
@@ -574,9 +602,9 @@ describe('FeedbackModal', () => {
         expect(feedbackAPI.getFeedbackForClaim).toHaveBeenCalled();
       });
 
-      const starButtons = screen.getAllByRole('button').filter(btn => 
-        btn.className.includes('star-btn')
-      );
+      const starButtons = screen
+        .getAllByRole('button')
+        .filter(btn => btn.className.includes('star-btn'));
       await user.click(starButtons[2]);
 
       const textarea = screen.getByPlaceholderText('Optional short review');
@@ -608,9 +636,9 @@ describe('FeedbackModal', () => {
         expect(feedbackAPI.getFeedbackForClaim).toHaveBeenCalled();
       });
 
-      const starButtons = screen.getAllByRole('button').filter(btn => 
-        btn.className.includes('star-btn')
-      );
+      const starButtons = screen
+        .getAllByRole('button')
+        .filter(btn => btn.className.includes('star-btn'));
       await user.click(starButtons[2]);
 
       const submitButton = screen.getByText('Submit Feedback');
@@ -643,9 +671,9 @@ describe('FeedbackModal', () => {
         expect(feedbackAPI.getFeedbackForClaim).toHaveBeenCalled();
       });
 
-      const starButtons = screen.getAllByRole('button').filter(btn => 
-        btn.className.includes('star-btn')
-      );
+      const starButtons = screen
+        .getAllByRole('button')
+        .filter(btn => btn.className.includes('star-btn'));
       await user.click(starButtons[2]);
 
       await user.click(screen.getByText('Submit Feedback'));
@@ -674,9 +702,9 @@ describe('FeedbackModal', () => {
         expect(feedbackAPI.getFeedbackForClaim).toHaveBeenCalled();
       });
 
-      const starButtons = screen.getAllByRole('button').filter(btn => 
-        btn.className.includes('star-btn')
-      );
+      const starButtons = screen
+        .getAllByRole('button')
+        .filter(btn => btn.className.includes('star-btn'));
       await user.click(starButtons[2]);
 
       await user.click(screen.getByText('Submit Feedback'));
@@ -696,9 +724,9 @@ describe('FeedbackModal', () => {
         expect(feedbackAPI.getFeedbackForClaim).toHaveBeenCalled();
       });
 
-      const starButtons = screen.getAllByRole('button').filter(btn => 
-        btn.className.includes('star-btn')
-      );
+      const starButtons = screen
+        .getAllByRole('button')
+        .filter(btn => btn.className.includes('star-btn'));
       await user.click(starButtons[2]);
 
       await user.click(screen.getByText('Submit Feedback'));
@@ -747,9 +775,9 @@ describe('FeedbackModal', () => {
         expect(feedbackAPI.getFeedbackForClaim).toHaveBeenCalled();
       });
 
-      const starButtons = screen.getAllByRole('button').filter(btn => 
-        btn.className.includes('star-btn')
-      );
+      const starButtons = screen
+        .getAllByRole('button')
+        .filter(btn => btn.className.includes('star-btn'));
       await user.click(starButtons[2]);
 
       await user.click(screen.getByText('Submit Feedback'));
@@ -771,16 +799,20 @@ describe('FeedbackModal', () => {
       renderModal();
 
       await waitFor(() => {
-        expect(screen.getByText(/You have already submitted feedback/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/You have already submitted feedback/i)
+        ).toBeInTheDocument();
       });
 
-      expect(screen.queryByPlaceholderText('Optional short review')).not.toBeInTheDocument();
+      expect(
+        screen.queryByPlaceholderText('Optional short review')
+      ).not.toBeInTheDocument();
       expect(screen.queryByText('Submit Feedback')).not.toBeInTheDocument();
       expect(screen.queryByText('Cancel')).not.toBeInTheDocument();
 
-      const starButtons = screen.queryAllByRole('button').filter(btn => 
-        btn.className.includes('star-btn')
-      );
+      const starButtons = screen
+        .queryAllByRole('button')
+        .filter(btn => btn.className.includes('star-btn'));
       expect(starButtons).toHaveLength(0);
     });
 
@@ -792,12 +824,14 @@ describe('FeedbackModal', () => {
       renderModal();
 
       await waitFor(() => {
-        expect(screen.getByText(/You have already submitted feedback/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/You have already submitted feedback/i)
+        ).toBeInTheDocument();
       });
 
-      const closeButton = screen.getAllByRole('button').find(btn => 
-        btn.className.includes('feedback-close')
-      );
+      const closeButton = screen
+        .getAllByRole('button')
+        .find(btn => btn.className.includes('feedback-close'));
       expect(closeButton).toBeInTheDocument();
     });
   });

@@ -100,16 +100,16 @@ function ReceiverLayoutContent() {
 
   const getPageTitle = () => {
     switch (location.pathname) {
-      case "/receiver":
-      case "/receiver/dashboard":
+      case '/receiver':
+      case '/receiver/dashboard':
         return t('receiverLayout.pageTitles.receiverDashboard');
-      case "/receiver/welcome":
+      case '/receiver/welcome':
         return t('receiverLayout.pageTitles.welcome');
-      case "/receiver/browse":
+      case '/receiver/browse':
         return t('receiverLayout.pageTitles.browse');
-      case "/receiver/messages":
+      case '/receiver/messages':
         return t('receiverLayout.pageTitles.messages');
-      case "/receiver/settings":
+      case '/receiver/settings':
         return t('receiverLayout.pageTitles.settings');
       default:
         return t('receiverLayout.pageTitles.default');
@@ -118,16 +118,16 @@ function ReceiverLayoutContent() {
 
   const getPageDescription = () => {
     switch (location.pathname) {
-      case "/receiver":
-      case "/receiver/dashboard":
+      case '/receiver':
+      case '/receiver/dashboard':
         return t('receiverLayout.pageDescriptions.receiverDashboard');
-      case "/receiver/welcome":
+      case '/receiver/welcome':
         return t('receiverLayout.pageDescriptions.welcome');
-      case "/receiver/browse":
+      case '/receiver/browse':
         return t('receiverLayout.pageDescriptions.browse');
-      case "/receiver/messages":
+      case '/receiver/messages':
         return t('receiverLayout.pageDescriptions.messages');
-      case "/receiver/settings":
+      case '/receiver/settings':
         return t('receiverLayout.pageDescriptions.settings');
       default:
         return t('receiverLayout.pageDescriptions.default');
@@ -187,7 +187,10 @@ function ReceiverLayoutContent() {
       const foodTitle = payload.surplusPostTitle || 'a food item';
       const donorName = payload.surplusPost?.donorEmail || 'a donor';
       const status = payload.status || '';
-      let message = t('notifications.successfullyClaimed', { foodTitle, donorName });
+      let message = t('notifications.successfullyClaimed', {
+        foodTitle,
+        donorName,
+      });
 
       if (status === 'READY_FOR_PICKUP' || status === 'Ready for Pickup') {
         message = t('notifications.readyForPickup', { foodTitle });
@@ -325,7 +328,9 @@ function ReceiverLayoutContent() {
           {showDropdown && (
             <div className="dropdown-menu dropdown-menu--card">
               <div className="dropdown-header">
-                {t('receiverLayout.hello', { name: organizationName || t('receiverLayout.user') })}
+                {t('receiverLayout.hello', {
+                  name: organizationName || t('receiverLayout.user'),
+                })}
               </div>
               <div className="dropdown-divider"></div>
 

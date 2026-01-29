@@ -1,7 +1,6 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import "./Receiver_Styles/ReceiverWelcome.css";
-
+import './Receiver_Styles/ReceiverWelcome.css';
 
 export default function ReceiverWelcome() {
   const { t } = useTranslation();
@@ -43,9 +42,7 @@ export default function ReceiverWelcome() {
       {/* Header */}
       <div ref={headerRef} className="rw-header animate-on-scroll">
         <h1>{t('receiverWelcome.title')}</h1>
-        <p>
-          {t('receiverWelcome.subtitle')}
-        </p>
+        <p>{t('receiverWelcome.subtitle')}</p>
       </div>
 
       {/* Notice */}
@@ -58,9 +55,7 @@ export default function ReceiverWelcome() {
         <div ref={addToRefs} className="rw-section animate-on-scroll">
           <div className="rw-icon">🗺️</div>
           <h2>{t('receiverWelcome.searchMap.title')}</h2>
-          <p>
-            {t('receiverWelcome.searchMap.description')}
-          </p>
+          <p>{t('receiverWelcome.searchMap.description')}</p>
 
           <a href="/receiver/search#org-search" className="rw-btn primary">
             {t('receiverWelcome.searchMap.button')}
@@ -71,12 +66,21 @@ export default function ReceiverWelcome() {
           <div className="rw-icon">📩</div>
           <h2>{t('receiverWelcome.needAssistance.title')}</h2>
           <p>
-            {t('receiverWelcome.needAssistance.description').replace('{{email}}', '')}{' '}
-            <a href="mailto:foodflow.group@gmail.com">foodflow.group@gmail.com</a>
-            {' '}and we'll help you coordinate a pickup.
+            {t('receiverWelcome.needAssistance.description').replace(
+              '{{email}}',
+              ''
+            )}{' '}
+            <a href="mailto:foodflow.group@gmail.com">
+              foodflow.group@gmail.com
+            </a>{' '}
+            and we'll help you coordinate a pickup.
           </p>
-          <p className="rw-small">{t('receiverWelcome.needAssistance.newHere')}</p>
-          <a href="/receiver/faq" className="rw-btn secondary">{t('receiverWelcome.needAssistance.button')}</a>
+          <p className="rw-small">
+            {t('receiverWelcome.needAssistance.newHere')}
+          </p>
+          <a href="/receiver/faq" className="rw-btn secondary">
+            {t('receiverWelcome.needAssistance.button')}
+          </a>
         </div>
       </div>
     </div>

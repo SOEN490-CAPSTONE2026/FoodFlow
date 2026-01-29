@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
 import {
   Calendar,
   Clock,
@@ -281,7 +281,9 @@ export default function DonorListFood() {
       ).catch(err => console.error('Error loading evidence photos:', err));
     } catch (err) {
       const errorMessage =
-        err.response?.data?.message || err.message || t('donorListFood.failedToFetch');
+        err.response?.data?.message ||
+        err.message ||
+        t('donorListFood.failedToFetch');
       setError(`Error: ${errorMessage}`);
       setLoading(false);
     }
@@ -441,27 +443,25 @@ export default function DonorListFood() {
     setIsSortDropdownOpen(false);
   };
 
- async function requestDelete(id) {
-  console.log("DELETE CLICKED for ID =", id); 
-  const confirmDelete = window.confirm(
-    t('donorListFood.confirmDelete')
-  );
-  if (!confirmDelete) return;
+  async function requestDelete(id) {
+    console.log('DELETE CLICKED for ID =', id);
+    const confirmDelete = window.confirm(t('donorListFood.confirmDelete'));
+    if (!confirmDelete) {
+      return;
+    }
 
     try {
       await surplusAPI.deletePost(id);
       setItems(prev => prev.filter(item => item.id !== id));
 
-    alert(t('donorListFood.postDeletedSuccess'));
-  } catch (err) {
-    alert(err.response?.data?.message || t('donorListFood.postDeleteFailed'));
+      alert(t('donorListFood.postDeletedSuccess'));
+    } catch (err) {
+      alert(err.response?.data?.message || t('donorListFood.postDeleteFailed'));
+    }
   }
-}
 
   function openEdit(item) {
-    alert(
-      t('donorListFood.editFunctionality', { title: item.title })
-    );
+    alert(t('donorListFood.editFunctionality', { title: item.title }));
     setEditPostId(item.id);
     setIsEditMode(true);
     setIsModalOpen(true);
@@ -722,7 +722,9 @@ export default function DonorListFood() {
               onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
             >
               <span className="sort-label">
-                {sortBy === "date" ? t('donorListFood.sortByDate') : t('donorListFood.sortByStatus')}
+                {sortBy === 'date'
+                  ? t('donorListFood.sortByDate')
+                  : t('donorListFood.sortByStatus')}
               </span>
               <ChevronDown
                 size={18}
@@ -772,7 +774,9 @@ export default function DonorListFood() {
       {items.length === 0 ? (
         <div className="empty-state">
           <Package className="empty-state-icon" size={64} />
-          <h3 className="empty-state-title">{t('donorListFood.emptyStateTitle')}</h3>
+          <h3 className="empty-state-title">
+            {t('donorListFood.emptyStateTitle')}
+          </h3>
           <p className="empty-state-description">
             {t('donorListFood.emptyStateDescription')}
           </p>

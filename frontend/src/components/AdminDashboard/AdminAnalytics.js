@@ -1,8 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { surplusAPI } from "../../services/api";
-import { getTemperatureCategoryLabel, getPackagingTypeLabel } from "../../constants/foodConstants";
-import { Package, Thermometer } from "lucide-react";
-import "./AdminAnalytics.css";
+import React, { useEffect, useState } from 'react';
+import { surplusAPI } from '../../services/api';
+import {
+  getTemperatureCategoryLabel,
+  getPackagingTypeLabel,
+} from '../../constants/foodConstants';
+import { Package, Thermometer } from 'lucide-react';
+import './AdminAnalytics.css';
 
 export default function AdminAnalytics() {
   const [complianceData, setComplianceData] = useState({
@@ -10,7 +13,7 @@ export default function AdminAnalytics() {
     packagingDistribution: {},
     totalPosts: 0,
     loading: true,
-    error: null
+    error: null,
   });
 
   useEffect(() => {
@@ -26,14 +29,16 @@ export default function AdminAnalytics() {
       // Calculate distribution
       const tempDist = {};
       const packDist = {};
-      let total = posts.length;
+      const total = posts.length;
 
       posts.forEach(post => {
         if (post.temperatureCategory) {
-          tempDist[post.temperatureCategory] = (tempDist[post.temperatureCategory] || 0) + 1;
+          tempDist[post.temperatureCategory] =
+            (tempDist[post.temperatureCategory] || 0) + 1;
         }
         if (post.packagingType) {
-          packDist[post.packagingType] = (packDist[post.packagingType] || 0) + 1;
+          packDist[post.packagingType] =
+            (packDist[post.packagingType] || 0) + 1;
         }
       });
 
@@ -42,20 +47,22 @@ export default function AdminAnalytics() {
         packagingDistribution: packDist,
         totalPosts: total,
         loading: false,
-        error: null
+        error: null,
       });
     } catch (error) {
-      console.error("Error fetching compliance data:", error);
+      console.error('Error fetching compliance data:', error);
       setComplianceData(prev => ({
         ...prev,
         loading: false,
-        error: "Failed to load compliance data"
+        error: 'Failed to load compliance data',
       }));
     }
   };
 
   const calculatePercentage = (count, total) => {
-    if (total === 0) return 0;
+    if (total === 0) {
+      return 0;
+    }
     return ((count / total) * 100).toFixed(1);
   };
 
@@ -80,7 +87,9 @@ export default function AdminAnalytics() {
   return (
     <div className="admin-analytics">
       <h2>Food Safety Compliance Analytics</h2>
-      <p className="analytics-subtitle">Monitor temperature and packaging compliance across all donations</p>
+      <p className="analytics-subtitle">
+        Monitor temperature and packaging compliance across all donations
+      </p>
 
       <div className="analytics-grid">
         {/* Temperature Category Distribution */}
@@ -96,14 +105,22 @@ export default function AdminAnalytics() {
                   .sort(([, a], [, b]) => b - a)
                   .map(([category, count]) => (
                     <div key={category} className="distribution-row">
-                      <span className="category-name">{getTemperatureCategoryLabel(category)}</span>
+                      <span className="category-name">
+                        {getTemperatureCategoryLabel(category)}
+                      </span>
                       <div className="count-bar">
                         <div
                           className="bar-fill temperature"
-                          style={{ width: `${calculatePercentage(count, complianceData.totalPosts)}%` }}
+                          style={{
+                            width: `${calculatePercentage(count, complianceData.totalPosts)}%`,
+                          }}
                         />
                       </div>
-                      <span className="category-count">{count} ({calculatePercentage(count, complianceData.totalPosts)}%)</span>
+                      <span className="category-count">
+                        {count} (
+                        {calculatePercentage(count, complianceData.totalPosts)}
+                        %)
+                      </span>
                     </div>
                   ))}
               </>
@@ -126,14 +143,22 @@ export default function AdminAnalytics() {
                   .sort(([, a], [, b]) => b - a)
                   .map(([type, count]) => (
                     <div key={type} className="distribution-row">
-                      <span className="category-name">{getPackagingTypeLabel(type)}</span>
+                      <span className="category-name">
+                        {getPackagingTypeLabel(type)}
+                      </span>
                       <div className="count-bar">
                         <div
                           className="bar-fill packaging"
-                          style={{ width: `${calculatePercentage(count, complianceData.totalPosts)}%` }}
+                          style={{
+                            width: `${calculatePercentage(count, complianceData.totalPosts)}%`,
+                          }}
                         />
                       </div>
-                      <span className="category-count">{count} ({calculatePercentage(count, complianceData.totalPosts)}%)</span>
+                      <span className="category-count">
+                        {count} (
+                        {calculatePercentage(count, complianceData.totalPosts)}
+                        %)
+                      </span>
                     </div>
                   ))}
               </>
@@ -145,7 +170,9 @@ export default function AdminAnalytics() {
       </div>
 
       <div className="analytics-summary">
-        <p>Total donations analyzed: <strong>{complianceData.totalPosts}</strong></p>
+        <p>
+          Total donations analyzed: <strong>{complianceData.totalPosts}</strong>
+        </p>
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FaCheckCircle, FaBell, FaLightbulb } from "react-icons/fa";
-import "../LandingPage/style/AboutUs.css";
+import { FaCheckCircle, FaBell, FaLightbulb } from 'react-icons/fa';
+import '../LandingPage/style/AboutUs.css';
 
 export default function AboutUs() {
   const { t } = useTranslation();
@@ -15,18 +15,18 @@ export default function AboutUs() {
     {
       icon: <FaCheckCircle />,
       title: t('landing.about.verifiedOrgs.title'),
-      content: t('landing.about.verifiedOrgs.content')
+      content: t('landing.about.verifiedOrgs.content'),
     },
     {
       icon: <FaBell />,
       title: t('landing.about.realTimeNotifications.title'),
-      content: t('landing.about.realTimeNotifications.content')
+      content: t('landing.about.realTimeNotifications.content'),
     },
     {
       icon: <FaLightbulb />,
       title: t('landing.about.smartMatching.title'),
-      content: t('landing.about.smartMatching.content')
-    }
+      content: t('landing.about.smartMatching.content'),
+    },
   ];
 
   useEffect(() => {
@@ -83,7 +83,9 @@ export default function AboutUs() {
   return (
     <div className="about-container">
       <div className="about-hero">
-        <h1 ref={titleRef} className="about-title">{t('landing.about.title')}</h1>
+        <h1 ref={titleRef} className="about-title">
+          {t('landing.about.title')}
+        </h1>
         <p ref={subtitleRef} className="about-subtitle">
           {t('landing.about.subtitle')}
         </p>

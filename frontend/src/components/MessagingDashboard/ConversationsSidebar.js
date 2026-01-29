@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import './ConversationsSidebar.css';
 
-const ConversationsSidebar = ({ 
-  conversations, 
-  selectedConversation, 
-  onSelectConversation, 
+const ConversationsSidebar = ({
+  conversations,
+  selectedConversation,
+  onSelectConversation,
   onNewConversation,
-  showOnMobile = true
+  showOnMobile = true,
 }) => {
   const { t } = useTranslation();
   const [filter, setFilter] = useState('all'); // 'all' or 'unread'
@@ -49,29 +49,42 @@ const ConversationsSidebar = ({
     const diffInHours = Math.floor(diffInMins / 60);
     const diffInDays = Math.floor(diffInHours / 24);
 
-    if (diffInMins < 1) return t('messaging.justNow');
-    if (diffInMins < 60) return t('messaging.minutesAgo', { count: diffInMins });
-    if (diffInHours < 24) return t('messaging.hoursAgo', { count: diffInHours });
-    if (diffInDays < 7) return t('messaging.daysAgo', { count: diffInDays });
+    if (diffInMins < 1) {
+      return t('messaging.justNow');
+    }
+    if (diffInMins < 60) {
+      return t('messaging.minutesAgo', { count: diffInMins });
+    }
+    if (diffInHours < 24) {
+      return t('messaging.hoursAgo', { count: diffInHours });
+    }
+    if (diffInDays < 7) {
+      return t('messaging.daysAgo', { count: diffInDays });
+    }
     return date.toLocaleDateString();
   };
 
   // Filter conversations based on selected filter
-  const filteredConversations = filter === 'unread' 
-    ? conversations.filter(conv => conv.unreadCount > 0)
-    : conversations;
+  const filteredConversations =
+    filter === 'unread'
+      ? conversations.filter(conv => conv.unreadCount > 0)
+      : conversations;
 
   // Count unread conversations
   const unreadCount = conversations.filter(conv => conv.unreadCount > 0).length;
 
   return (
-    <div className={`conversations-sidebar ${showOnMobile ? 'show-mobile' : 'hide-mobile'}`}>
+    <div
+      className={`conversations-sidebar ${showOnMobile ? 'show-mobile' : 'hide-mobile'}`}
+    >
       <div className="sidebar-header">
         <div className="header-content">
           <h2>{t('messaging.messages')}</h2>
-          <p className="sidebar-subtitle">{t('messaging.connectAndCoordinate')}</p>
+          <p className="sidebar-subtitle">
+            {t('messaging.connectAndCoordinate')}
+          </p>
         </div>
-        <button 
+        <button
           className="new-conversation-btn"
           onClick={onNewConversation}
           title={t('messaging.startNewConversation')}
@@ -81,13 +94,13 @@ const ConversationsSidebar = ({
       </div>
 
       <div className="filter-tabs">
-        <button 
+        <button
           className={`filter-tab ${filter === 'all' ? 'active' : ''}`}
           onClick={() => setFilter('all')}
         >
           {t('messaging.all')}
         </button>
-        <button 
+        <button
           className={`filter-tab ${filter === 'unread' ? 'active' : ''}`}
           onClick={() => setFilter('unread')}
         >
@@ -105,7 +118,7 @@ const ConversationsSidebar = ({
             <p className="hint">{t('messaging.clickToStart')}</p>
           </div>
         ) : (
-          filteredConversations.map((conversation) => (
+          filteredConversations.map(conversation => (
             <div
               key={conversation.id}
               className={`conversation-item ${
@@ -124,7 +137,7 @@ const ConversationsSidebar = ({
                   conversation.otherUserName.charAt(0).toUpperCase()
                 )}
               </div>
-              
+
               <div className="conversation-info">
                 <div className="conversation-header-row">
                   <h3 className="conversation-name">
@@ -134,7 +147,7 @@ const ConversationsSidebar = ({
                     {formatTimestamp(conversation.lastMessageAt)}
                   </span>
                 </div>
-                
+
                 <div className="conversation-preview-row">
                   <p className="conversation-preview">
                     {conversation.lastMessagePreview}

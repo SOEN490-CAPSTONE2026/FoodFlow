@@ -30,11 +30,13 @@ jest.mock('../../MessagingDashboard/MessageNotification', () => {
 jest.mock('../../../services/socket', () => {
   const handlers = { onMessage: null, onClaim: null, onCancel: null };
   return {
-    connectToUserQueue: jest.fn((onMessage, onClaimNotification, onClaimCancelled) => {
-      handlers.onMessage = onMessage;
-      handlers.onClaim = onClaimNotification;
-      handlers.onCancel = onClaimCancelled;
-    }),
+    connectToUserQueue: jest.fn(
+      (onMessage, onClaimNotification, onClaimCancelled) => {
+        handlers.onMessage = onMessage;
+        handlers.onClaim = onClaimNotification;
+        handlers.onCancel = onClaimCancelled;
+      }
+    ),
     disconnect: jest.fn(),
     __handlers: handlers,
   };
@@ -111,21 +113,30 @@ describe('DonorLayout', () => {
     // Simulate inbound message
     onMessage({ senderName: 'Receiver A', messageBody: 'Hello there!' });
 
-    expect(await screen.findByTestId('message-notification')).toBeInTheDocument();
+    expect(
+      await screen.findByTestId('message-notification')
+    ).toBeInTheDocument();
     expect(screen.getByText('Receiver A')).toBeInTheDocument();
     expect(screen.getByText('Hello there!')).toBeInTheDocument();
 
     fireEvent.click(screen.getByText('Close'));
-    expect(screen.queryByTestId('message-notification')).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId('message-notification')
+    ).not.toBeInTheDocument();
   });
 
   test('handles message with alternative field names', async () => {
     renderWithRouter('/donor/dashboard');
 
     const { onMessage } = await getSocketHandlers();
-    onMessage({ senderEmail: 'rx@example.com', message: 'Alternative message field' });
+    onMessage({
+      senderEmail: 'rx@example.com',
+      message: 'Alternative message field',
+    });
 
-    expect(await screen.findByTestId('message-notification')).toBeInTheDocument();
+    expect(
+      await screen.findByTestId('message-notification')
+    ).toBeInTheDocument();
     expect(screen.getByText('Alternative message field')).toBeInTheDocument();
   });
 
@@ -144,7 +155,9 @@ describe('DonorLayout', () => {
     renderWithRouter('/donor/dashboard');
     fireEvent.click(screen.getAllByText('Messages')[0]);
     expect(screen.getByText('Messages Page')).toBeInTheDocument();
-    expect(screen.queryByText('Overview and quick actions')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('Overview and quick actions')
+    ).not.toBeInTheDocument();
   });
 
   test('renders user profile snippet', () => {

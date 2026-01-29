@@ -1,9 +1,11 @@
 /* Donor Welcome Dashboard Page */
 .donor-welcome-page {
   padding: 32px;
-  background: #F7FBFD;
+  background: #f7fbfd;
   min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+    sans-serif;
 }
 
 /* Welcome Header */
@@ -14,7 +16,7 @@
 .welcome-header h1 {
   font-size: 32px;
   font-weight: 600;
-  color: #1B4965;
+  color: #1b4965;
   margin: 0;
   display: flex;
   align-items: center;
@@ -22,25 +24,26 @@
 }
 
 .wave-icon {
-  color: #62B6CB;
+  color: #62b6cb;
   animation: sparkle 2s ease-in-out infinite;
   display: inline-block;
 }
 
 @keyframes sparkle {
-  0%, 100% { 
+  0%,
+  100% {
     transform: scale(1) rotate(0deg);
     opacity: 1;
   }
-  25% { 
+  25% {
     transform: scale(1.2) rotate(10deg);
     opacity: 0.8;
   }
-  50% { 
+  50% {
     transform: scale(1.1) rotate(-10deg);
     opacity: 1;
   }
-  75% { 
+  75% {
     transform: scale(1.2) rotate(10deg);
     opacity: 0.8;
   }
@@ -62,7 +65,9 @@
   align-items: center;
   gap: 16px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .stat-card:hover {
@@ -81,26 +86,42 @@
 }
 
 .stat-icon.blue {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.08));
-  color: #2563EB;
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.15),
+    rgba(59, 130, 246, 0.08)
+  );
+  color: #2563eb;
   border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
 .stat-icon.teal {
-  background: linear-gradient(135deg, rgba(20, 184, 166, 0.15), rgba(20, 184, 166, 0.08));
-  color: #0D9488;
+  background: linear-gradient(
+    135deg,
+    rgba(20, 184, 166, 0.15),
+    rgba(20, 184, 166, 0.08)
+  );
+  color: #0d9488;
   border: 1px solid rgba(20, 184, 166, 0.2);
 }
 
 .stat-icon.green {
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.08));
-  color: #16A34A;
+  background: linear-gradient(
+    135deg,
+    rgba(34, 197, 94, 0.15),
+    rgba(34, 197, 94, 0.08)
+  );
+  color: #16a34a;
   border: 1px solid rgba(34, 197, 94, 0.2);
 }
 
 .stat-icon.yellow {
-  background: linear-gradient(135deg, rgba(234, 179, 8, 0.15), rgba(234, 179, 8, 0.08));
-  color: #CA8A04;
+  background: linear-gradient(
+    135deg,
+    rgba(234, 179, 8, 0.15),
+    rgba(234, 179, 8, 0.08)
+  );
+  color: #ca8a04;
   border: 1px solid rgba(234, 179, 8, 0.2);
 }
 
@@ -114,14 +135,14 @@
 
 .stat-label {
   font-size: 14px;
-  color: #6B7280;
+  color: #6b7280;
   margin-bottom: 4px;
 }
 
 .stat-value {
   font-size: 32px;
   font-weight: 700;
-  color: #1B4965;
+  color: #1b4965;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -134,13 +155,13 @@
 .rating-number {
   font-size: 32px;
   font-weight: 700;
-  color: #1B4965;
+  color: #1b4965;
 }
 
 .rating-count {
   font-size: 14px;
   font-weight: 500;
-  color: #F59E0B;
+  color: #f59e0b;
   position: absolute;
   right: 0;
   bottom: 0;
@@ -149,7 +170,7 @@
 .no-rating {
   font-size: 18px;
   font-weight: 500;
-  color: #D1D5DB;
+  color: #d1d5db;
 }
 
 /* Action Cards Grid */
@@ -165,7 +186,9 @@
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -193,14 +216,22 @@
 }
 
 .action-icon.teal {
-  background: linear-gradient(135deg, rgba(20, 184, 166, 0.15), rgba(20, 184, 166, 0.08));
-  color: #0D9488;
+  background: linear-gradient(
+    135deg,
+    rgba(20, 184, 166, 0.15),
+    rgba(20, 184, 166, 0.08)
+  );
+  color: #0d9488;
   border: 1px solid rgba(20, 184, 166, 0.2);
 }
 
 .action-icon.green {
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.08));
-  color: #16A34A;
+  background: linear-gradient(
+    135deg,
+    rgba(34, 197, 94, 0.15),
+    rgba(34, 197, 94, 0.08)
+  );
+  color: #16a34a;
   border: 1px solid rgba(34, 197, 94, 0.2);
 }
 
@@ -212,13 +243,13 @@
 .action-text h3 {
   font-size: 17px;
   font-weight: 600;
-  color: #1B4965;
+  color: #1b4965;
   margin: 0 0 6px 0;
 }
 
 .action-text p {
   font-size: 13px;
-  color: #6B7280;
+  color: #6b7280;
   margin: 0;
   line-height: 1.5;
 }
@@ -239,23 +270,23 @@
 }
 
 .action-btn.primary {
-  background: #62B6CB;
+  background: #62b6cb;
   color: white;
 }
 
 .action-btn.primary:hover {
-  background: #4A9FB5;
+  background: #4a9fb5;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(98, 182, 203, 0.3);
 }
 
 .action-btn.secondary {
-  background: #62B6CB;
+  background: #62b6cb;
   color: white;
 }
 
 .action-btn.secondary:hover {
-  background: #4A9FB5;
+  background: #4a9fb5;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(98, 182, 203, 0.3);
 }
@@ -278,14 +309,14 @@
 .section-header h2 {
   font-size: 20px;
   font-weight: 600;
-  color: #1B4965;
+  color: #1b4965;
   margin: 0;
 }
 
 .view-all-btn {
   background: none;
   border: none;
-  color: #62B6CB;
+  color: #62b6cb;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -296,7 +327,7 @@
 }
 
 .view-all-btn:hover {
-  color: #4A9FB5;
+  color: #4a9fb5;
   transform: translateX(2px);
 }
 
@@ -312,26 +343,26 @@
   grid-template-columns: 90px 1fr 1.2fr 140px;
   gap: 16px;
   padding: 16px 20px;
-  background: #F9FAFB;
+  background: #f9fafb;
   border-radius: 12px;
   align-items: center;
   transition: all 0.2s ease;
 }
 
 .donation-row:hover {
-  background: #F3F4F6;
+  background: #f3f4f6;
   transform: translateX(4px);
 }
 
 .donation-date {
   font-size: 13px;
-  color: #6B7280;
+  color: #6b7280;
   font-weight: 500;
 }
 
 .donation-recipient {
   font-size: 14px;
-  color: #1B4965;
+  color: #1b4965;
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -340,7 +371,7 @@
 
 .donation-items {
   font-size: 13px;
-  color: #6B7280;
+  color: #6b7280;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -532,7 +563,12 @@
   top: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(8, 48, 65, 0.1), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(8, 48, 65, 0.1),
+    transparent
+  );
   transition: left 0.6s ease;
 }
 
@@ -568,7 +604,12 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(8, 48, 65, 0.05), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(8, 48, 65, 0.05),
+    transparent
+  );
   transition: left 0.6s ease;
 }
 
@@ -691,15 +732,15 @@
     grid-template-columns: 1fr;
     gap: 20px;
   }
-  
+
   .donate-page {
     padding: 20px 15px;
   }
-  
+
   .donate-header h1 {
     font-size: 28px;
   }
-  
+
   .animate-on-scroll:nth-child(odd),
   .animate-on-scroll:nth-child(even) {
     transform: translateY(20px);
@@ -714,7 +755,7 @@
     transition: none !important;
     animation: none !important;
   }
-  
+
   .animate-on-scroll {
     opacity: 1;
     transform: none;

@@ -101,7 +101,7 @@ describe('ReceiverBrowse Component', () => {
     jest.clearAllMocks();
     global.alert.mockClear();
     global.confirm.mockClear();
-    
+
     // Set default mock implementations - no need for mockReset as clearAllMocks handles it
     surplusAPI.list.mockResolvedValue({ data: [] });
     surplusAPI.search.mockResolvedValue({ data: [] });

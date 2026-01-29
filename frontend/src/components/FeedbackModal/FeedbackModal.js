@@ -4,7 +4,13 @@ import { feedbackAPI } from '../../services/api';
 import { AuthContext } from '../../contexts/AuthContext';
 import './FeedbackModal.css';
 
-const FeedbackModal = ({ isOpen, onClose, claimId, targetUser, onSubmitted }) => {
+const FeedbackModal = ({
+  isOpen,
+  onClose,
+  claimId,
+  targetUser,
+  onSubmitted,
+}) => {
   const { userId } = useContext(AuthContext);
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
@@ -24,13 +30,23 @@ const FeedbackModal = ({ isOpen, onClose, claimId, targetUser, onSubmitted }) =>
         // Get all feedback for this claim
         const existingFeedback = await feedbackAPI.getFeedbackForClaim(claimId);
         console.log('Existing feedback for claim:', existingFeedback.data);
-        
+
         // Check if the current user has already submitted feedback
         // (their userId should match a reviewerId in the feedback list)
         // Use == instead of === to handle string vs number comparison
-        const hasSubmitted = existingFeedback.data && 
+        const hasSubmitted =
+          existingFeedback.data &&
           existingFeedback.data.some(feedback => {
-            console.log('Comparing reviewerId:', feedback.reviewerId, 'type:', typeof feedback.reviewerId, 'with userId:', userId, 'type:', typeof userId);
+            console.log(
+              'Comparing reviewerId:',
+              feedback.reviewerId,
+              'type:',
+              typeof feedback.reviewerId,
+              'with userId:',
+              userId,
+              'type:',
+              typeof userId
+            );
             return feedback.reviewerId == userId; // Use == for type coercion
           });
         setAlreadySubmitted(hasSubmitted);
@@ -42,18 +58,20 @@ const FeedbackModal = ({ isOpen, onClose, claimId, targetUser, onSubmitted }) =>
     check();
   }, [isOpen, claimId, userId]);
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   const handleSubmit = async () => {
     console.log('🎯 Submit button clicked');
     console.log('🎯 Current rating:', rating);
     console.log('🎯 Current review:', review);
     console.log('🎯 Claim ID:', claimId);
-    
+
     if (!rating) {
       return;
     }
-    
+
     setIsSubmitting(true);
     try {
       const payload = {
@@ -64,7 +82,9 @@ const FeedbackModal = ({ isOpen, onClose, claimId, targetUser, onSubmitted }) =>
       const response = await feedbackAPI.submitFeedback(payload);
       setAlreadySubmitted(true);
       alert('Thank you for your feedback!');
-      if (onSubmitted) onSubmitted();
+      if (onSubmitted) {
+        onSubmitted();
+      }
       onClose();
     } catch (err) {
       alert(
@@ -76,7 +96,11 @@ const FeedbackModal = ({ isOpen, onClose, claimId, targetUser, onSubmitted }) =>
       console.error('❌ Error response:', err.response);
       console.error('❌ Error status:', err.response?.status);
       console.error('❌ Error data:', err.response?.data);
-      alert(err.response?.data?.message || err.response?.data || 'Failed to submit feedback. Please try again.');
+      alert(
+        err.response?.data?.message ||
+          err.response?.data ||
+          'Failed to submit feedback. Please try again.'
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -84,11 +108,17 @@ const FeedbackModal = ({ isOpen, onClose, claimId, targetUser, onSubmitted }) =>
 
   return (
     <div className="feedback-overlay" onClick={onClose}>
-      <div className="feedback-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="feedback-close" onClick={onClose}><X size={20} /></button>
+      <div className="feedback-modal" onClick={e => e.stopPropagation()}>
+        <button className="feedback-close" onClick={onClose}>
+          <X size={20} />
+        </button>
 
         <h2 className="feedback-title">Leave Feedback</h2>
-        {targetUser && <p className="feedback-subtitle">Review for {targetUser.name || 'the other user'}</p>}
+        {targetUser && (
+          <p className="feedback-subtitle">
+            Review for {targetUser.name || 'the other user'}
+          </p>
+        )}
 
         {alreadySubmitted ? (
           <div className="feedback-already">
@@ -97,7 +127,7 @@ const FeedbackModal = ({ isOpen, onClose, claimId, targetUser, onSubmitted }) =>
         ) : (
           <>
             <div className="feedback-stars">
-              {[1,2,3,4,5].map((i) => (
+              {[1, 2, 3, 4, 5].map(i => (
                 <button
                   key={i}
                   type="button"
@@ -116,11 +146,17 @@ const FeedbackModal = ({ isOpen, onClose, claimId, targetUser, onSubmitted }) =>
               placeholder="Optional short review"
               maxLength={500}
               value={review}
-              onChange={(e) => setReview(e.target.value)}
+              onChange={e => setReview(e.target.value)}
             />
 
             <div className="feedback-actions">
-              <button className="feedback-cancel" onClick={onClose} disabled={isSubmitting}>Cancel</button>
+              <button
+                className="feedback-cancel"
+                onClick={onClose}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </button>
               <button
                 className="feedback-submit"
                 onClick={handleSubmit}
