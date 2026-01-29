@@ -2,10 +2,10 @@ import React from "react";
 import { render } from "@testing-library/react";
 import "@testing-library/jest-dom";
 
+import AdminUsers from "../AdminUsers";
+
 // Mock axios before importing the component
 jest.mock("axios");
-
-import AdminUsers from "../AdminUsers";
 
 describe("AdminUsers", () => {
   beforeEach(() => {

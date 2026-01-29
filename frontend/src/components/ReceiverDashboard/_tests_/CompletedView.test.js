@@ -3,6 +3,8 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import CompletedView from "../CompletedView";
 
+import { surplusAPI } from "../../../services/api";
+
 jest.mock("react-confetti");
 
 jest.mock("../../shared/DonationTimeline", () => {
@@ -34,8 +36,6 @@ jest.mock("../../../services/api", () => ({
     submitFeedback: jest.fn(),
   },
 }));
-
-import { surplusAPI } from "../../../services/api";
 
 const mockClaim = {
   surplusPost: {

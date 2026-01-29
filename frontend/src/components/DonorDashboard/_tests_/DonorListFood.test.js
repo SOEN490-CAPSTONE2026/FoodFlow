@@ -4,6 +4,10 @@ import { MemoryRouter } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 
+import DonorListFood from "../DonorListFood";
+import { surplusAPI } from "../../../services/api";
+import { AuthContext } from "../../../contexts/AuthContext";
+
 // Mock the dependencies
 jest.mock("axios", () => ({
   get: jest.fn(),
@@ -145,10 +149,6 @@ jest.mock("../../ReportUserModal", () => {
     return <div data-testid="report-modal">Report Modal</div>;
   };
 });
-
-import DonorListFood from "../DonorListFood";
-import { surplusAPI } from "../../../services/api";
-import { AuthContext } from "../../../contexts/AuthContext";
 
 // Mock data - changed to use objects with name property like the real API
 const mockItems = [

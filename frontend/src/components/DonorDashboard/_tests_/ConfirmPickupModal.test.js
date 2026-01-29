@@ -5,6 +5,8 @@ import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import ConfirmPickupModal from '../ConfirmPickupModal';
 
+import { surplusAPI } from '../../../services/api';
+
 // Mock the API
 jest.mock('../../../services/api', () => ({
   surplusAPI: {
@@ -14,8 +16,6 @@ jest.mock('../../../services/api', () => ({
 
 // Mock the CSS
 jest.mock('../Donor_Styles/ConfirmPickupModal.css', () => ({}), { virtual: true });
-
-import { surplusAPI } from '../../../services/api';
 
 describe('ConfirmPickupModal', () => {
   const mockOnClose = jest.fn();

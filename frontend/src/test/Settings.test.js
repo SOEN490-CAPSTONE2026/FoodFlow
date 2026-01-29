@@ -4,6 +4,9 @@ import '@testing-library/jest-dom';
 import Settings from '../components/Settings';
 import { AuthContext } from '../contexts/AuthContext';
 
+import { notificationPreferencesAPI, profileAPI } from '../services/api';
+import api from '../services/api';
+
 // Mock the dependencies
 jest.mock('../services/api', () => ({
   __esModule: true,
@@ -20,9 +23,6 @@ jest.mock('../services/api', () => ({
     updatePreferences: jest.fn(),
   },
 }));
-
-import { notificationPreferencesAPI, profileAPI } from '../services/api';
-import api from '../services/api';
 
 // Mock i18next
 jest.mock('react-i18next', () => ({

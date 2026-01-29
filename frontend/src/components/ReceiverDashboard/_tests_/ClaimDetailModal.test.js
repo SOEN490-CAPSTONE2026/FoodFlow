@@ -5,6 +5,8 @@ import { TimezoneProvider } from "../../../contexts/TimezoneContext";
 import { MemoryRouter } from 'react-router-dom';
 import ClaimDetailModal from "../ClaimDetailModal";
 
+import { surplusAPI } from "../../../services/api";
+
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key, params) => {
@@ -59,8 +61,6 @@ jest.mock("../../../services/api", () => ({
     submitFeedback: jest.fn(),
   },
 }));
-
-import { surplusAPI } from "../../../services/api";
 
 
 // Mock the custom hook

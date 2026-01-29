@@ -6,6 +6,8 @@ import { AuthContext } from '../contexts/AuthContext';
 import { authAPI } from '../services/api';
 import { MemoryRouter } from 'react-router-dom';
 
+import DonorRegistration from '../components/DonorRegistration';
+
 // Mock static imports
 jest.mock('../assets/illustrations/donor-illustration.jpg', () => 'donor.jpg');
 jest.mock('../style/Registration.css', () => ({}), { virtual: true });
@@ -29,8 +31,6 @@ jest.mock('../services/api', () => ({
     checkPhoneExists: jest.fn(),
   }
 }));
-
-import DonorRegistration from '../components/DonorRegistration';
 
 // Auth context mock
 const mockAuthContextValue = {
@@ -59,14 +59,14 @@ const fillAllFields = async (user) => {
   await user.click(screen.getByRole('button', { name: /next/i }));
   
   // Step 2: Organization Info
-  await waitFor(() => expect(screen.getByLabelText(/organization name/i)).toBeInTheDocument());
+  await screen.findByLabelText(/organization name/i);
   await user.type(screen.getByLabelText(/organization name/i), 'Donor Org');
   await user.selectOptions(screen.getByLabelText(/organization type/i), 'RESTAURANT');
   await user.type(screen.getByLabelText(/business license/i), 'BL-123456');
   await user.click(screen.getByRole('button', { name: /next/i }));
   
   // Step 3: Address
-  await waitFor(() => expect(screen.getByLabelText(/street address/i)).toBeInTheDocument());
+  await screen.findByLabelText(/street address/i);
   await user.type(screen.getByLabelText(/street address/i), '456 Main St');
   await user.type(screen.getByLabelText(/city/i), 'Montreal');
   await user.type(screen.getByLabelText(/postal code/i), 'H1A1A1');
@@ -75,7 +75,7 @@ const fillAllFields = async (user) => {
   await user.click(screen.getByRole('button', { name: /next/i }));
   
   // Step 4: Contact & Review
-  await waitFor(() => expect(screen.getByLabelText(/contact person/i)).toBeInTheDocument());
+  await screen.findByLabelText(/contact person/i);
   await user.type(screen.getByLabelText(/contact person/i), 'Jane Doe');
   await user.type(screen.getByLabelText(/phone number/i), '1234567890');
 
@@ -112,7 +112,7 @@ describe('DonorRegistration', () => {
     expect(screen.queryByLabelText(/^email address$/i)).not.toBeInTheDocument()
     );
     // Step 2 fields
-    await waitFor(() => expect(screen.getByLabelText(/organization name/i)).toBeInTheDocument());
+    await screen.findByLabelText(/organization name/i);
     expect(screen.getByLabelText(/organization type/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/business license/i)).toBeInTheDocument();
   });
@@ -146,9 +146,7 @@ describe('DonorRegistration', () => {
     await user.type(screen.getByLabelText(/^confirm password$/i), 'wrongpass');
     await user.click(screen.getByRole('button', { name: /next/i }));
 
-    await waitFor(() =>
-      expect(screen.getByText(/passwords do not match/i)).toBeInTheDocument()
-    );
+    await screen.findByText(/passwords do not match/i);
 
     expect(authAPI.registerDonor).not.toHaveBeenCalled();
   });
@@ -172,9 +170,7 @@ describe('DonorRegistration', () => {
 
     await user.click(screen.getByRole('button', { name: /register as donor/i }));
 
-    await waitFor(() =>
-      expect(screen.getByText(/registration submitted successfully/i)).toBeInTheDocument()
-    );
+    await screen.findByText(/registration submitted successfully/i);
 
     expect(mockAuthContextValue.login.mock.calls[0][0]).toBe('fake-token-123');
     expect(mockAuthContextValue.login.mock.calls[0][1]).toBe('DONOR');
@@ -203,9 +199,7 @@ describe('DonorRegistration', () => {
 
     await user.click(screen.getByRole('button', { name: /register as donor/i }));
 
-    await waitFor(() =>
-      expect(screen.getByText(/registration submitted successfully/i)).toBeInTheDocument()
-    );
+    await screen.findByText(/registration submitted successfully/i);
 
     expect(mockAuthContextValue.login).not.toHaveBeenCalled();
 
@@ -228,9 +222,7 @@ describe('DonorRegistration', () => {
 
     await user.click(screen.getByRole('button', { name: /register as donor/i }));
 
-    await waitFor(() =>
-      expect(screen.getByText(/email already exists/i)).toBeInTheDocument()
-    );
+    await screen.findByText(/email already exists/i);
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
@@ -246,9 +238,7 @@ describe('DonorRegistration', () => {
 
     await user.click(screen.getByRole('button', { name: /register as donor/i }));
 
-    await waitFor(() =>
-      expect(screen.getByText(/registration failed/i)).toBeInTheDocument()
-    );
+    await screen.findByText(/registration failed/i);
   });
 
   it('disables submit button while loading', async () => {
@@ -290,7 +280,7 @@ describe('DonorRegistration', () => {
     await user.type(screen.getByLabelText(/^confirm password$/i), 'password123');
     await user.click(screen.getByRole('button', { name: /next/i }));
 
-    await waitFor(() => expect(screen.getByLabelText(/organization name/i)).toBeInTheDocument());
+    await screen.findByLabelText(/organization name/i);
     await user.type(screen.getByLabelText(/organization name/i), 'Test Org');
     await user.type(screen.getByLabelText(/business license/i), 'BL123');
     await user.click(screen.getByRole('button', { name: /next/i }));
@@ -355,13 +345,13 @@ describe('DonorRegistration', () => {
     await user.type(screen.getByLabelText(/^confirm password$/i), 'password123');
     await user.click(screen.getByRole('button', { name: /next/i }));
     
-    await waitFor(() => expect(screen.getByLabelText(/organization name/i)).toBeInTheDocument());
+    await screen.findByLabelText(/organization name/i);
     await user.type(screen.getByLabelText(/organization name/i), 'Donor Org');
     await user.selectOptions(screen.getByLabelText(/organization type/i), 'RESTAURANT');
     await user.type(screen.getByLabelText(/business license/i), 'BL-123456');
     await user.click(screen.getByRole('button', { name: /next/i }));
     
-    await waitFor(() => expect(screen.getByLabelText(/street address/i)).toBeInTheDocument());
+    await screen.findByLabelText(/street address/i);
     await user.type(screen.getByLabelText(/street address/i), '456 Main St');
     await user.type(screen.getByLabelText(/city/i), 'Montreal');
     await user.type(screen.getByLabelText(/postal code/i), 'H1A1A1');
@@ -369,7 +359,7 @@ describe('DonorRegistration', () => {
     await user.type(screen.getByLabelText(/country/i), 'Canada');
     await user.click(screen.getByRole('button', { name: /next/i }));
     
-    await waitFor(() => expect(screen.getByLabelText(/contact person/i)).toBeInTheDocument());
+    await screen.findByLabelText(/contact person/i);
     await user.type(screen.getByLabelText(/contact person/i), 'Jane Doe');
     await user.type(screen.getByLabelText(/phone number/i), '1234567890');
     // Click both checkboxes
@@ -381,9 +371,7 @@ describe('DonorRegistration', () => {
     // Try to submit - should be blocked by phone validation
     await user.click(screen.getByRole('button', { name: /register as donor/i }));
     
-    await waitFor(() =>
-      expect(screen.getByText(/an account with this phone number already exists/i)).toBeInTheDocument()
-    );
+    await screen.findByText(/an account with this phone number already exists/i);
     
     // Should still be on step 4
     expect(screen.getByLabelText(/contact person/i)).toBeInTheDocument();
