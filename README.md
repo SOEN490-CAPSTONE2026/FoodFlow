@@ -171,12 +171,14 @@ __Backend not connecting to database:__
 [Meeting Minutes](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Meeting-Minutes)</br>
 [Missing knowledge and Independent Learning](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Missing-knowledge-and-Independent-Learning)</br>
 [Name Conventions](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Name-Conventions)</br>
-[Overall Architecture and Class Diagrams](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Overall-Architecture-and-Class-Diagrams)
+[Overall Architecture and Class Diagrams](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Overall-Architecture-and-Class-Diagrams)</br>
 [Performance](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Performance)</br>
 [Personas](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Personas)</br>
 [Risks](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Risks)</br>
 [Security](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Security)</br>
+[Stakeholder Validation Log](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Stakeholder-Validation-Log)</br>
 [Testing Plan and Continuous Integration](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Testing-Plan-and-Continuous-Integration)</br>
+[User Acceptance Testing](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/User-Acceptance-Testing)</br>
 [User Consent and End-User License Agreement (EULA)](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/User-Consent-and-End%E2%80%90user-License-Agreement)</br>
 
 ## 📄 License
