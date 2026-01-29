@@ -41,16 +41,32 @@ Our team values diversity and collaboration, creating an environment of mutual r
    Create a `.env` file in the project root:
 
    ```bash
+   # Database Configuration
    POSTGRES_DB=
    POSTGRES_USER=
    POSTGRES_PASSWORD=
    DB_HOST=
    DB_PORT=
-   SERVER_PORT=
+
+   # Backend Configuration
+   SERVER_PORT=8080
    JWT_SECRET=
-   JWT_EXPIRATION=
+   JWT_EXPIRATION=86400000
+
+   # Frontend Configuration
    REACT_APP_API_BASE_URL=
+
+   # CORS Configuration
    CORS_ALLOWED_ORIGINS=
+
+   # Brevo Configuration
+   BREVO_API_KEY=
+   BREVO_FROM_EMAIL=
+   BREVO_FROM_NAME=
+
+   REACT_APP_GOOGLE_MAPS_API_KEY=
+
+   FRONTEND_URL=
    ```
 
    Ask a team member for the necessary values for the .env file
@@ -171,12 +187,14 @@ __Backend not connecting to database:__
 [Meeting Minutes](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Meeting-Minutes)</br>
 [Missing knowledge and Independent Learning](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Missing-knowledge-and-Independent-Learning)</br>
 [Name Conventions](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Name-Conventions)</br>
-[Overall Architecture and Class Diagrams](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Overall-Architecture-and-Class-Diagrams)
+[Overall Architecture and Class Diagrams](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Overall-Architecture-and-Class-Diagrams)</br>
 [Performance](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Performance)</br>
 [Personas](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Personas)</br>
 [Risks](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Risks)</br>
 [Security](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Security)</br>
+[Stakeholder Validation Log](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Stakeholder-Validation-Log)</br>
 [Testing Plan and Continuous Integration](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/Testing-Plan-and-Continuous-Integration)</br>
+[User Acceptance Testing](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/User-Acceptance-Testing)</br>
 [User Consent and End-User License Agreement (EULA)](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/wiki/User-Consent-and-End%E2%80%90user-License-Agreement)</br>
 
 ## 📄 License
