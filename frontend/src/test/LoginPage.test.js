@@ -81,10 +81,12 @@ describe('LoginPage', () => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
     // Reset analytics mock to default behavior
-    jest.spyOn(require('../hooks/useAnalytics'), 'useAnalytics').mockReturnValue({
-      trackButtonClick: jest.fn(),
-      trackLogin: jest.fn(),
-    });
+    jest
+      .spyOn(require('../hooks/useAnalytics'), 'useAnalytics')
+      .mockReturnValue({
+        trackButtonClick: jest.fn(),
+        trackLogin: jest.fn(),
+      });
   });
 
   test('renders email, password fields and submit button', () => {
@@ -270,9 +272,7 @@ describe('LoginPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /log in/i }));
 
-    expect(
-      await screen.findByText(/email not verified/i)
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/email not verified/i)).toBeInTheDocument();
   });
 
   test('403 error with account not approved shows custom message', async () => {
@@ -401,7 +401,9 @@ describe('LoginPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /log in/i }));
 
     expect(
-      await screen.findByText(/unable to connect to server.*check your connection/i)
+      await screen.findByText(
+        /unable to connect to server.*check your connection/i
+      )
     ).toBeInTheDocument();
   });
 
@@ -609,5 +611,4 @@ describe('LoginPage', () => {
       expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
     });
   });
-
 });

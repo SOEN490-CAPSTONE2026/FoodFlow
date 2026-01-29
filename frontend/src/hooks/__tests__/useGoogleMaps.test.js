@@ -214,9 +214,12 @@ describe('useGoogleMap', () => {
     render(<TestComponent location={location} />);
 
     // Wait for the map to be initialized
-    await waitFor(() => {
-      expect(window.google.maps.Map).toHaveBeenCalled();
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(window.google.maps.Map).toHaveBeenCalled();
+      },
+      { timeout: 3000 }
+    );
 
     expect(window.google.maps.Map).toHaveBeenCalledWith(
       expect.any(HTMLElement),
@@ -243,9 +246,12 @@ describe('useGoogleMap', () => {
 
     render(<TestComponent location={location} />);
 
-    await waitFor(() => {
-      expect(window.google.maps.Marker).toHaveBeenCalled();
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(window.google.maps.Marker).toHaveBeenCalled();
+      },
+      { timeout: 3000 }
+    );
 
     expect(window.google.maps.Marker).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -271,9 +277,12 @@ describe('useGoogleMap', () => {
 
     render(<TestComponent location={location} options={customOptions} />);
 
-    await waitFor(() => {
-      expect(window.google.maps.Map).toHaveBeenCalled();
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(window.google.maps.Map).toHaveBeenCalled();
+      },
+      { timeout: 3000 }
+    );
 
     expect(window.google.maps.Map).toHaveBeenCalledWith(
       expect.any(HTMLElement),
@@ -301,9 +310,12 @@ describe('useGoogleMap', () => {
 
     render(<TestComponent location={location} />);
 
-    await waitFor(() => {
-      expect(console.error).toHaveBeenCalled();
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(console.error).toHaveBeenCalled();
+      },
+      { timeout: 3000 }
+    );
 
     expect(console.error).toHaveBeenCalledWith(
       'Error initializing Google Map:',
@@ -326,11 +338,18 @@ describe('useGoogleMap', () => {
 
     render(<TestComponent location={location} />);
 
-    await waitFor(() => {
-      expect(console.log).toHaveBeenCalledWith('Google Maps script not loaded, loading now...');
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(console.log).toHaveBeenCalledWith(
+          'Google Maps script not loaded, loading now...'
+        );
+      },
+      { timeout: 3000 }
+    );
 
-    const scripts = document.querySelectorAll('script[src*="maps.googleapis.com"]');
+    const scripts = document.querySelectorAll(
+      'script[src*="maps.googleapis.com"]'
+    );
     expect(scripts.length).toBeGreaterThan(0);
 
     process.env.REACT_APP_GOOGLE_MAPS_API_KEY = originalEnv;
@@ -354,7 +373,7 @@ describe('useGoogleMap', () => {
     document.body.appendChild(mapDiv);
 
     const { result } = renderHook(() => useGoogleMap(location));
-    
+
     if (result.current) {
       result.current.current = mapDiv;
     }
@@ -379,10 +398,15 @@ describe('useGoogleMap', () => {
 
     render(<TestComponent location={location} />);
 
-    await waitFor(() => {
-      const script = document.querySelector('script[src*="maps.googleapis.com"]');
-      expect(script).toBeTruthy();
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        const script = document.querySelector(
+          'script[src*="maps.googleapis.com"]'
+        );
+        expect(script).toBeTruthy();
+      },
+      { timeout: 3000 }
+    );
 
     const script = document.querySelector('script[src*="maps.googleapis.com"]');
     if (script && script.onerror) {
@@ -391,7 +415,9 @@ describe('useGoogleMap', () => {
       });
     }
 
-    expect(console.error).toHaveBeenCalledWith('Failed to load Google Maps script');
+    expect(console.error).toHaveBeenCalledWith(
+      'Failed to load Google Maps script'
+    );
   });
 
   test('cleans up marker on unmount', async () => {
@@ -404,9 +430,12 @@ describe('useGoogleMap', () => {
     const { unmount } = render(<TestComponent location={location} />);
 
     // Wait for marker to be created
-    await waitFor(() => {
-      expect(window.google.maps.Marker).toHaveBeenCalled();
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(window.google.maps.Marker).toHaveBeenCalled();
+      },
+      { timeout: 3000 }
+    );
 
     // Unmount the component
     unmount();
@@ -424,9 +453,12 @@ describe('useGoogleMap', () => {
 
     render(<TestComponent location={location} />);
 
-    await waitFor(() => {
-      expect(window.google.maps.Map).toHaveBeenCalled();
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(window.google.maps.Map).toHaveBeenCalled();
+      },
+      { timeout: 3000 }
+    );
 
     expect(window.google.maps.Map).toHaveBeenCalledWith(
       expect.any(HTMLElement),
@@ -451,12 +483,15 @@ describe('useGoogleMap', () => {
 
     render(<TestComponent location={location} />);
 
-    await waitFor(() => {
-      expect(console.log).toHaveBeenCalledWith(
-        'Initializing map at position:',
-        expect.objectContaining({ lat: 40.7128, lng: -74.006 })
-      );
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(console.log).toHaveBeenCalledWith(
+          'Initializing map at position:',
+          expect.objectContaining({ lat: 40.7128, lng: -74.006 })
+        );
+      },
+      { timeout: 3000 }
+    );
 
     expect(console.log).toHaveBeenCalledWith('Map initialized successfully');
   });
@@ -480,7 +515,7 @@ describe('useGoogleMap', () => {
     document.body.appendChild(mapDiv);
 
     const { result } = renderHook(() => useGoogleMap(location));
-    
+
     if (result.current) {
       result.current.current = mapDiv;
     }

@@ -1127,7 +1127,11 @@ describe('DonorListFood', () => {
 
   describe('Utility functions', () => {
     test('formatPickupTime should return Flexible when date is missing', () => {
-      const result = require('../DonorListFood').formatPickupTime?.(null, '10:00', '12:00');
+      const result = require('../DonorListFood').formatPickupTime?.(
+        null,
+        '10:00',
+        '12:00'
+      );
       // Function is not exported, tested through component rendering
       expect(result).toBeUndefined(); // formatPickupTime is not exported
     });
@@ -1158,14 +1162,18 @@ describe('DonorListFood', () => {
 
     beforeEach(() => {
       mockClaimsAPI.getClaimForSurplusPost.mockResolvedValue({
-        data: [{
-          id: 1,
-          receiverId: 2,
-          receiverEmail: 'receiver@test.com',
-        }],
+        data: [
+          {
+            id: 1,
+            receiverId: 2,
+            receiverEmail: 'receiver@test.com',
+          },
+        ],
       });
       mockFeedbackAPI.getFeedbackForClaim.mockResolvedValue({ data: [] });
-      mockFeedbackAPI.submitFeedback.mockResolvedValue({ data: { success: true } });
+      mockFeedbackAPI.submitFeedback.mockResolvedValue({
+        data: { success: true },
+      });
     });
 
     test('should show upload button for CLAIMED donations', async () => {
@@ -1214,9 +1222,12 @@ describe('DonorListFood', () => {
       });
 
       // Wait for photos to load in background
-      await waitFor(() => {
-        expect(surplusAPI.getTimeline).toHaveBeenCalled();
-      }, { timeout: 3000 });
+      await waitFor(
+        () => {
+          expect(surplusAPI.getTimeline).toHaveBeenCalled();
+        },
+        { timeout: 3000 }
+      );
     });
 
     test('should handle photo upload errors gracefully', async () => {
@@ -1270,13 +1281,17 @@ describe('DonorListFood', () => {
 
     beforeEach(() => {
       mockClaimsAPI.getClaimForSurplusPost.mockResolvedValue({
-        data: [{
-          id: 1,
-          receiverId: 2,
-          receiverEmail: 'receiver@test.com',
-        }],
+        data: [
+          {
+            id: 1,
+            receiverId: 2,
+            receiverEmail: 'receiver@test.com',
+          },
+        ],
       });
-      mockReportAPI.createReport = jest.fn().mockResolvedValue({ data: { success: true } });
+      mockReportAPI.createReport = jest
+        .fn()
+        .mockResolvedValue({ data: { success: true } });
     });
 
     test('should open feedback modal for completed donation', async () => {
@@ -1332,7 +1347,9 @@ describe('DonorListFood', () => {
       };
 
       surplusAPI.getMyPosts.mockResolvedValue({ data: [completedItem] });
-      mockClaimsAPI.getClaimForSurplusPost.mockRejectedValue(new Error('Network error'));
+      mockClaimsAPI.getClaimForSurplusPost.mockRejectedValue(
+        new Error('Network error')
+      );
 
       setup();
 
@@ -1371,11 +1388,13 @@ describe('DonorListFood', () => {
 
     beforeEach(() => {
       mockClaimsAPI.getClaimForSurplusPost.mockResolvedValue({
-        data: [{
-          id: 1,
-          receiverId: 2,
-          receiverEmail: 'receiver@test.com',
-        }],
+        data: [
+          {
+            id: 1,
+            receiverId: 2,
+            receiverEmail: 'receiver@test.com',
+          },
+        ],
       });
     });
 
@@ -1475,7 +1494,9 @@ describe('DonorListFood', () => {
       setup();
 
       await waitFor(() => {
-        expect(screen.getByText(/you haven't posted anything yet/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/you haven't posted anything yet/i)
+        ).toBeInTheDocument();
       });
     });
 

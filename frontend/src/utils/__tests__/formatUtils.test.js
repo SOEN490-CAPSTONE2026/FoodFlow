@@ -309,7 +309,10 @@ describe('formatUtils', () => {
     });
 
     test('formats time range from date strings', () => {
-      const result = formatTimeRange('2024-03-15T10:00:00Z', '2024-03-15T14:00:00Z');
+      const result = formatTimeRange(
+        '2024-03-15T10:00:00Z',
+        '2024-03-15T14:00:00Z'
+      );
       expect(result).toBeTruthy();
       expect(result).not.toBe('—');
     });
@@ -473,7 +476,10 @@ describe('formatUtils', () => {
     });
 
     test('accepts custom options', () => {
-      const result = formatNumber(1234.5678, { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+      const result = formatNumber(1234.5678, {
+        minimumFractionDigits: 3,
+        maximumFractionDigits: 3,
+      });
       expect(result).toBeTruthy();
       expect(result).not.toBe('—');
     });
@@ -539,7 +545,9 @@ describe('formatUtils', () => {
     });
 
     test('accepts custom options', () => {
-      const result = formatCurrency(1234.56, 'USD', { minimumFractionDigits: 0 });
+      const result = formatCurrency(1234.56, 'USD', {
+        minimumFractionDigits: 0,
+      });
       expect(result).toBeTruthy();
       expect(result).not.toBe('—');
     });

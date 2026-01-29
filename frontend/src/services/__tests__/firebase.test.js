@@ -1,17 +1,17 @@
 // Create mock implementations for Firebase SDK functions
-const mockInitializeApp = jest.fn((config) => ({ 
+const mockInitializeApp = jest.fn(config => ({
   name: '[DEFAULT]',
-  options: config 
+  options: config,
 }));
 
-const mockGetAnalytics = jest.fn((app) => ({ 
+const mockGetAnalytics = jest.fn(app => ({
   app,
-  measurementId: 'G-NNSDLTMQ29'
+  measurementId: 'G-NNSDLTMQ29',
 }));
 
-const mockGetAuth = jest.fn((app) => ({ 
+const mockGetAuth = jest.fn(app => ({
   app,
-  currentUser: null
+  currentUser: null,
 }));
 
 // Mock Firebase SDK functions to test the actual firebase.js initialization
@@ -59,11 +59,15 @@ describe('Firebase Configuration', () => {
   });
 
   test('app options contains apiKey', () => {
-    expect(firebaseModule.app.options.apiKey).toBe('AIzaSyCJBJqzAUkzs9Hb_6cbBT5TTaEo4KKUbVc');
+    expect(firebaseModule.app.options.apiKey).toBe(
+      'AIzaSyCJBJqzAUkzs9Hb_6cbBT5TTaEo4KKUbVc'
+    );
   });
 
   test('app options contains correct authDomain', () => {
-    expect(firebaseModule.app.options.authDomain).toBe('foodflow-2026.firebaseapp.com');
+    expect(firebaseModule.app.options.authDomain).toBe(
+      'foodflow-2026.firebaseapp.com'
+    );
   });
 
   test('app options contains correct projectId', () => {
@@ -71,7 +75,9 @@ describe('Firebase Configuration', () => {
   });
 
   test('app options contains correct storageBucket', () => {
-    expect(firebaseModule.app.options.storageBucket).toBe('foodflow-2026.firebasestorage.app');
+    expect(firebaseModule.app.options.storageBucket).toBe(
+      'foodflow-2026.firebasestorage.app'
+    );
   });
 
   test('app options contains correct messagingSenderId', () => {
@@ -79,7 +85,9 @@ describe('Firebase Configuration', () => {
   });
 
   test('app options contains correct appId', () => {
-    expect(firebaseModule.app.options.appId).toBe('1:75633139386:web:3cc7e8ddd208bf52dbec83');
+    expect(firebaseModule.app.options.appId).toBe(
+      '1:75633139386:web:3cc7e8ddd208bf52dbec83'
+    );
   });
 
   test('app options contains correct measurementId', () => {

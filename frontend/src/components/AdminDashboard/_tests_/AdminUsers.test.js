@@ -1,5 +1,11 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import '@testing-library/jest-dom';
 import axios from 'axios';
 import AdminUsers from '../AdminUsers';
@@ -72,7 +78,7 @@ describe('AdminUsers', () => {
   beforeEach(() => {
     localStorage.setItem('jwtToken', 'test-token');
     process.env.REACT_APP_API_BASE_URL = 'http://localhost:8080';
-    
+
     axios.get.mockResolvedValue({ data: mockPaginatedResponse });
     feedbackAPI.getUserRating.mockResolvedValue({
       data: { averageRating: 4.5, totalReviews: 10 },
@@ -124,10 +130,13 @@ describe('AdminUsers', () => {
     const searchInput = screen.getByPlaceholderText(/search by name/i);
     fireEvent.change(searchInput, { target: { value: 'Jane' } });
 
-    await waitFor(() => {
-      expect(screen.getByText('Jane Receiver')).toBeInTheDocument();
-      expect(screen.queryByText('John Donor')).not.toBeInTheDocument();
-    }, { timeout: 1000 });
+    await waitFor(
+      () => {
+        expect(screen.getByText('Jane Receiver')).toBeInTheDocument();
+        expect(screen.queryByText('John Donor')).not.toBeInTheDocument();
+      },
+      { timeout: 1000 }
+    );
   });
 
   it('filters users by role', async () => {
@@ -140,10 +149,12 @@ describe('AdminUsers', () => {
     // Find and click on the role filter
     const roleSelect = screen.getAllByText('All Roles')[0];
     fireEvent.mouseDown(roleSelect);
-    
+
     await waitFor(() => {
       const donorOptions = screen.getAllByText('Donor');
-      const donorOption = donorOptions.find(el => el.getAttribute('role') === 'option');
+      const donorOption = donorOptions.find(
+        el => el.getAttribute('role') === 'option'
+      );
       fireEvent.click(donorOption);
     });
 
@@ -166,10 +177,12 @@ describe('AdminUsers', () => {
 
     const statusSelect = screen.getAllByText('All Status')[0];
     fireEvent.mouseDown(statusSelect);
-    
+
     await waitFor(() => {
       const activeOptions = screen.getAllByText('Active');
-      const activeOption = activeOptions.find(el => el.getAttribute('role') === 'option');
+      const activeOption = activeOptions.find(
+        el => el.getAttribute('role') === 'option'
+      );
       fireEvent.click(activeOption);
     });
 
@@ -249,7 +262,9 @@ describe('AdminUsers', () => {
     fireEvent.click(powerButtons[0]);
 
     await waitFor(() => {
-      const textarea = screen.getByPlaceholderText(/enter reason for deactivation/i);
+      const textarea = screen.getByPlaceholderText(
+        /enter reason for deactivation/i
+      );
       fireEvent.change(textarea, { target: { value: 'Policy violation' } });
     });
 
@@ -262,7 +277,9 @@ describe('AdminUsers', () => {
         { adminNotes: 'Policy violation' },
         expect.any(Object)
       );
-      expect(screen.getByText('User deactivated successfully')).toBeInTheDocument();
+      expect(
+        screen.getByText('User deactivated successfully')
+      ).toBeInTheDocument();
     });
   });
 
@@ -282,7 +299,9 @@ describe('AdminUsers', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('Please provide a reason for deactivation')).toBeInTheDocument();
+      expect(
+        screen.getByText('Please provide a reason for deactivation')
+      ).toBeInTheDocument();
     });
   });
 
@@ -325,7 +344,9 @@ describe('AdminUsers', () => {
         {},
         expect.any(Object)
       );
-      expect(screen.getByText('User reactivated successfully')).toBeInTheDocument();
+      expect(
+        screen.getByText('User reactivated successfully')
+      ).toBeInTheDocument();
     });
   });
 
@@ -361,7 +382,9 @@ describe('AdminUsers', () => {
     });
 
     await waitFor(() => {
-      const textarea = screen.getByPlaceholderText(/enter your custom message/i);
+      const textarea = screen.getByPlaceholderText(
+        /enter your custom message/i
+      );
       fireEvent.change(textarea, { target: { value: 'Important message' } });
     });
 
@@ -394,7 +417,9 @@ describe('AdminUsers', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('Please enter an alert message')).toBeInTheDocument();
+      expect(
+        screen.getByText('Please enter an alert message')
+      ).toBeInTheDocument();
     });
   });
 
@@ -434,7 +459,9 @@ describe('AdminUsers', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByDisplayValue(/safety guidelines/i)).toBeInTheDocument();
+      expect(
+        screen.getByDisplayValue(/safety guidelines/i)
+      ).toBeInTheDocument();
     });
   });
 
@@ -454,7 +481,9 @@ describe('AdminUsers', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByDisplayValue(/compliance requirements/i)).toBeInTheDocument();
+      expect(
+        screen.getByDisplayValue(/compliance requirements/i)
+      ).toBeInTheDocument();
     });
   });
 
@@ -472,7 +501,9 @@ describe('AdminUsers', () => {
       expect(screen.getByText('Deactivate User:')).toBeInTheDocument();
     });
 
-    const overlay = screen.getByText('Deactivate User:').closest('.modal-overlay');
+    const overlay = screen
+      .getByText('Deactivate User:')
+      .closest('.modal-overlay');
     fireEvent.click(overlay);
 
     await waitFor(() => {
@@ -519,7 +550,9 @@ describe('AdminUsers', () => {
     });
 
     await waitFor(() => {
-      const textarea = screen.getByPlaceholderText(/enter your custom message/i);
+      const textarea = screen.getByPlaceholderText(
+        /enter your custom message/i
+      );
       fireEvent.change(textarea, { target: { value: 'Test message' } });
     });
 
@@ -534,7 +567,9 @@ describe('AdminUsers', () => {
     fireEvent.click(okButton);
 
     await waitFor(() => {
-      expect(screen.queryByText('Alert sent successfully')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Alert sent successfully')
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -543,7 +578,9 @@ describe('AdminUsers', () => {
     render(<AdminUsers />);
 
     await waitFor(() => {
-      expect(screen.getByText('Failed to load users. Please try again.')).toBeInTheDocument();
+      expect(
+        screen.getByText('Failed to load users. Please try again.')
+      ).toBeInTheDocument();
     });
   });
 
@@ -561,7 +598,9 @@ describe('AdminUsers', () => {
     fireEvent.click(powerButtons[0]);
 
     await waitFor(() => {
-      const textarea = screen.getByPlaceholderText(/enter reason for deactivation/i);
+      const textarea = screen.getByPlaceholderText(
+        /enter reason for deactivation/i
+      );
       fireEvent.change(textarea, { target: { value: 'Test reason' } });
     });
 
@@ -613,7 +652,9 @@ describe('AdminUsers', () => {
     });
 
     await waitFor(() => {
-      const textarea = screen.getByPlaceholderText(/enter your custom message/i);
+      const textarea = screen.getByPlaceholderText(
+        /enter your custom message/i
+      );
       fireEvent.change(textarea, { target: { value: 'Test' } });
     });
 
@@ -642,20 +683,24 @@ describe('AdminUsers', () => {
     await waitFor(() => {
       const table = screen.getByRole('table');
       const rows = within(table).getAllByRole('row');
-      const receiverRow = rows.find(row => row.textContent.includes('Jane Receiver'));
+      const receiverRow = rows.find(row =>
+        row.textContent.includes('Jane Receiver')
+      );
       expect(within(receiverRow).getByText('5')).toBeInTheDocument();
     });
   });
 
   it('displays N/A for admin phone when not available', async () => {
-    const usersWithoutPhone = [{
-      ...mockUsers[0],
-      phone: null,
-    }];
+    const usersWithoutPhone = [
+      {
+        ...mockUsers[0],
+        phone: null,
+      },
+    ];
     axios.get.mockResolvedValueOnce({
       data: { content: usersWithoutPhone, totalPages: 1 },
     });
-    
+
     render(<AdminUsers />);
 
     await waitFor(() => {
@@ -676,17 +721,19 @@ describe('AdminUsers', () => {
     await waitFor(() => {
       const warningOption = screen.getByText('Warning');
       const warningLabel = warningOption.closest('label');
-      
+
       // Select warning
       fireEvent.click(warningLabel);
       expect(screen.getByDisplayValue(/policy violation/i)).toBeInTheDocument();
-      
+
       // Deselect warning
       fireEvent.click(warningLabel);
     });
 
     await waitFor(() => {
-      expect(screen.queryByDisplayValue(/policy violation/i)).not.toBeInTheDocument();
+      expect(
+        screen.queryByDisplayValue(/policy violation/i)
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -701,7 +748,9 @@ describe('AdminUsers', () => {
     fireEvent.click(alertButtons[0]);
 
     await waitFor(() => {
-      const modalContent = screen.getByText('Send Alert to:').closest('.modal-content');
+      const modalContent = screen
+        .getByText('Send Alert to:')
+        .closest('.modal-content');
       fireEvent.click(modalContent);
     });
 
@@ -711,7 +760,9 @@ describe('AdminUsers', () => {
   });
 
   it('handles getUserRating error gracefully', async () => {
-    feedbackAPI.getUserRating.mockRejectedValueOnce(new Error('Rating fetch failed'));
+    feedbackAPI.getUserRating.mockRejectedValueOnce(
+      new Error('Rating fetch failed')
+    );
     render(<AdminUsers />);
 
     await waitFor(() => {
@@ -736,17 +787,17 @@ describe('AdminUsers', () => {
 
     const expandButtons = screen.getAllByRole('button');
     const expandButton = expandButtons.find(btn => btn.querySelector('svg'));
-    
+
     // Expand first time
     fireEvent.click(expandButton);
-    
+
     await waitFor(() => {
       expect(feedbackAPI.getUserRating).toHaveBeenCalledTimes(1);
     });
 
     // Collapse
     fireEvent.click(expandButton);
-    
+
     // Expand again
     fireEvent.click(expandButton);
 
@@ -871,10 +922,12 @@ describe('AdminUsers', () => {
   });
 
   it('does not show deactivate button for admin users', async () => {
-    const adminUser = [{
-      ...mockUsers[2],
-    }];
-    
+    const adminUser = [
+      {
+        ...mockUsers[2],
+      },
+    ];
+
     axios.get.mockResolvedValueOnce({
       data: { content: adminUser, totalPages: 1 },
     });

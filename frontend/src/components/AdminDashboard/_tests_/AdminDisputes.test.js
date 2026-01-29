@@ -94,7 +94,10 @@ describe('AdminDisputes', () => {
       <MemoryRouter initialEntries={['/admin/disputes']}>
         <Routes>
           <Route path="/admin/disputes" element={<AdminDisputes />} />
-          <Route path="/admin/disputes/:id" element={<div>Dispute Detail Page</div>} />
+          <Route
+            path="/admin/disputes/:id"
+            element={<div>Dispute Detail Page</div>}
+          />
         </Routes>
       </MemoryRouter>
     );
@@ -310,7 +313,9 @@ describe('AdminDisputes', () => {
       });
 
       const openButtons = screen.getAllByText('Open');
-      const openTabButton = openButtons.find(el => el.classList.contains('tab-btn'));
+      const openTabButton = openButtons.find(el =>
+        el.classList.contains('tab-btn')
+      );
       fireEvent.click(openTabButton);
 
       await waitFor(() => {
@@ -373,7 +378,9 @@ describe('AdminDisputes', () => {
 
       // First filter to something else
       const openButtons = screen.getAllByText('Open');
-      const openTabButton = openButtons.find(el => el.classList.contains('tab-btn'));
+      const openTabButton = openButtons.find(el =>
+        el.classList.contains('tab-btn')
+      );
       fireEvent.click(openTabButton);
 
       await waitFor(() => {
@@ -382,7 +389,9 @@ describe('AdminDisputes', () => {
 
       // Then click All Cases
       const allCasesButtons = screen.getAllByText('All Cases');
-      const allCasesTabButton = allCasesButtons.find(el => el.classList.contains('tab-btn'));
+      const allCasesTabButton = allCasesButtons.find(el =>
+        el.classList.contains('tab-btn')
+      );
       fireEvent.click(allCasesTabButton);
 
       await waitFor(() => {
@@ -401,11 +410,15 @@ describe('AdminDisputes', () => {
       });
 
       const allCasesButtons = screen.getAllByText('All Cases');
-      const allCasesTabButton = allCasesButtons.find(el => el.classList.contains('tab-btn'));
+      const allCasesTabButton = allCasesButtons.find(el =>
+        el.classList.contains('tab-btn')
+      );
       expect(allCasesTabButton).toHaveClass('active');
 
       const openButtons = screen.getAllByText('Open');
-      const openTabButton = openButtons.find(el => el.classList.contains('tab-btn'));
+      const openTabButton = openButtons.find(el =>
+        el.classList.contains('tab-btn')
+      );
       fireEvent.click(openTabButton);
 
       await waitFor(() => {
@@ -529,7 +542,7 @@ describe('AdminDisputes', () => {
       });
 
       const searchInput = screen.getByPlaceholderText('Search cases...');
-      
+
       // Search for something
       fireEvent.change(searchInput, { target: { value: 'John' } });
 
@@ -563,7 +576,9 @@ describe('AdminDisputes', () => {
 
       // Filter by OPEN status
       const openButtons = screen.getAllByText('Open');
-      const openTabButton = openButtons.find(el => el.classList.contains('tab-btn'));
+      const openTabButton = openButtons.find(el =>
+        el.classList.contains('tab-btn')
+      );
       fireEvent.click(openTabButton);
 
       await waitFor(() => {
@@ -589,7 +604,9 @@ describe('AdminDisputes', () => {
 
       // Filter by CLOSED (only Eve Donor)
       const closedButtons = screen.getAllByText('Closed');
-      const closedTabButton = closedButtons.find(el => el.classList.contains('tab-btn'));
+      const closedTabButton = closedButtons.find(el =>
+        el.classList.contains('tab-btn')
+      );
       fireEvent.click(closedTabButton);
 
       await waitFor(() => {
@@ -728,7 +745,9 @@ describe('AdminDisputes', () => {
 
       // Should have 2 open cases
       const openLabels = screen.getAllByText('Open');
-      const openStatLabel = openLabels.find(el => el.classList.contains('stat-label'));
+      const openStatLabel = openLabels.find(el =>
+        el.classList.contains('stat-label')
+      );
       const openSection = openStatLabel.closest('.stat-card');
       expect(openSection).toHaveTextContent('2');
     });
@@ -745,7 +764,9 @@ describe('AdminDisputes', () => {
       });
 
       // All stats should be 0
-      const totalSection = screen.getByText('Total Cases').closest('.stat-card');
+      const totalSection = screen
+        .getByText('Total Cases')
+        .closest('.stat-card');
       expect(totalSection).toHaveTextContent('0');
     });
   });
@@ -842,7 +863,7 @@ describe('AdminDisputes', () => {
       });
 
       const searchInput = screen.getByPlaceholderText('Search cases...');
-      
+
       // Change the input
       fireEvent.change(searchInput, { target: { value: 'John' } });
 

@@ -83,12 +83,16 @@ describe('AdminDisputeDetail', () => {
     });
 
     test('displays generic error message when no specific error message', async () => {
-      adminDisputeAPI.getDisputeById.mockRejectedValue(new Error('Network error'));
+      adminDisputeAPI.getDisputeById.mockRejectedValue(
+        new Error('Network error')
+      );
 
       renderComponent();
 
       await waitFor(() => {
-        expect(screen.getByText('Failed to load case details')).toBeInTheDocument();
+        expect(
+          screen.getByText('Failed to load case details')
+        ).toBeInTheDocument();
       });
     });
 
@@ -125,7 +129,9 @@ describe('AdminDisputeDetail', () => {
 
       expect(screen.getByText('John Doe')).toBeInTheDocument();
       expect(screen.getByText('Jane Smith')).toBeInTheDocument();
-      expect(screen.getByText('This is a test dispute description')).toBeInTheDocument();
+      expect(
+        screen.getByText('This is a test dispute description')
+      ).toBeInTheDocument();
     });
 
     test('displays correct case ID format', async () => {
@@ -250,15 +256,15 @@ describe('AdminDisputeDetail', () => {
       });
 
       const select = screen.getByRole('combobox');
-      
+
       // Status is already OPEN, so clicking save should alert
       // But button is disabled, so we need to test the function directly
       // Let's change status away and back to trigger the disabled state
       fireEvent.change(select, { target: { value: 'RESOLVED' } });
       fireEvent.change(select, { target: { value: 'OPEN' } });
-      
+
       const saveButton = screen.getByText('Save Status Change');
-      
+
       // The button should be disabled now since status matches
       expect(saveButton).toBeDisabled();
     });
@@ -380,7 +386,9 @@ describe('AdminDisputeDetail', () => {
       expect(global.confirm).toHaveBeenCalledWith(
         'Are you sure you want to deactivate this user account?'
       );
-      expect(global.alert).toHaveBeenCalledWith('User account deactivation requested');
+      expect(global.alert).toHaveBeenCalledWith(
+        'User account deactivation requested'
+      );
     });
 
     test('deactivate user button cancelled', async () => {
@@ -402,7 +410,9 @@ describe('AdminDisputeDetail', () => {
       renderComponent();
 
       await waitFor(() => {
-        expect(screen.getByText('Override Donation Status')).toBeInTheDocument();
+        expect(
+          screen.getByText('Override Donation Status')
+        ).toBeInTheDocument();
       });
 
       fireEvent.click(screen.getByText('Override Donation Status'));
@@ -596,11 +606,15 @@ describe('AdminDisputeDetail', () => {
       renderComponent();
 
       await waitFor(() => {
-        expect(screen.getByText('Status changes require confirmation')).toBeInTheDocument();
+        expect(
+          screen.getByText('Status changes require confirmation')
+        ).toBeInTheDocument();
       });
 
       expect(
-        screen.getByText('All actions are admin-only and not visible to platform users.')
+        screen.getByText(
+          'All actions are admin-only and not visible to platform users.'
+        )
       ).toBeInTheDocument();
       expect(
         screen.getByText('Case must be marked as Resolved before closing')

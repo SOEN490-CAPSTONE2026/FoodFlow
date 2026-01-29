@@ -20,9 +20,7 @@ describe('useGamification', () => {
   };
 
   const wrapper = ({ children, userId = mockUserId }) => (
-    <AuthContext.Provider value={{ userId }}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={{ userId }}>{children}</AuthContext.Provider>
   );
 
   beforeEach(() => {
@@ -36,8 +34,10 @@ describe('useGamification', () => {
 
   describe('Initial Load', () => {
     it('should initialize with loading state', () => {
-      gamificationAPI.getUserStats.mockImplementation(() => new Promise(() => {}));
-      
+      gamificationAPI.getUserStats.mockImplementation(
+        () => new Promise(() => {})
+      );
+
       const { result } = renderHook(() => useGamification(), {
         wrapper,
       });
@@ -259,7 +259,7 @@ describe('useGamification', () => {
 
       // Create a promise we can control
       let resolveRefresh;
-      const refreshPromise = new Promise((resolve) => {
+      const refreshPromise = new Promise(resolve => {
         resolveRefresh = resolve;
       });
 
@@ -430,16 +430,22 @@ describe('useGamification', () => {
       });
 
       expect(typeof result.current.loading).toBe('boolean');
-      expect(result.current.error === null || typeof result.current.error === 'string').toBe(true);
+      expect(
+        result.current.error === null ||
+          typeof result.current.error === 'string'
+      ).toBe(true);
       expect(typeof result.current.refresh).toBe('function');
-      expect(result.current.stats === null || typeof result.current.stats === 'object').toBe(true);
+      expect(
+        result.current.stats === null ||
+          typeof result.current.stats === 'object'
+      ).toBe(true);
     });
   });
 
   describe('Loading States', () => {
     it('should set loading to true when fetching starts', async () => {
       let resolveApi;
-      const apiPromise = new Promise((resolve) => {
+      const apiPromise = new Promise(resolve => {
         resolveApi = resolve;
       });
 
@@ -509,7 +515,9 @@ describe('useGamification', () => {
       });
 
       // Should have been called: 1 (initial) + 3 (refreshes) = 4 times
-      expect(gamificationAPI.getUserStats.mock.calls.length).toBeGreaterThanOrEqual(1);
+      expect(
+        gamificationAPI.getUserStats.mock.calls.length
+      ).toBeGreaterThanOrEqual(1);
     });
 
     it('should handle API returning null data', async () => {

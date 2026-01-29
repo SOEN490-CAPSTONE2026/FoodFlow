@@ -1,5 +1,11 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import '@testing-library/jest-dom';
 import AdminVerificationQueue from '../AdminVerificationQueue';
 import { adminVerificationAPI } from '../../../services/api';
@@ -139,17 +145,22 @@ describe('AdminVerificationQueue', () => {
       expect(screen.getByText('Food Bank Alpha')).toBeInTheDocument();
     });
 
-    const searchInput = screen.getByPlaceholderText(/search by organization name or email/i);
+    const searchInput = screen.getByPlaceholderText(
+      /search by organization name or email/i
+    );
     fireEvent.change(searchInput, { target: { value: 'Restaurant' } });
 
     // Wait for debounce
-    await waitFor(() => {
-      expect(adminVerificationAPI.getPendingUsers).toHaveBeenCalledWith(
-        expect.objectContaining({
-          search: 'Restaurant',
-        })
-      );
-    }, { timeout: 1000 });
+    await waitFor(
+      () => {
+        expect(adminVerificationAPI.getPendingUsers).toHaveBeenCalledWith(
+          expect.objectContaining({
+            search: 'Restaurant',
+          })
+        );
+      },
+      { timeout: 1000 }
+    );
   });
 
   it('filters users by type', async () => {
@@ -164,7 +175,9 @@ describe('AdminVerificationQueue', () => {
 
     await waitFor(() => {
       const donorOptions = screen.getAllByText('Donors');
-      const donorOption = donorOptions.find(el => el.getAttribute('role') === 'option');
+      const donorOption = donorOptions.find(
+        el => el.getAttribute('role') === 'option'
+      );
       if (donorOption) {
         fireEvent.click(donorOption);
       }
@@ -224,7 +237,9 @@ describe('AdminVerificationQueue', () => {
 
     await waitFor(() => {
       const userTypeOptions = screen.getAllByText('User Type');
-      const option = userTypeOptions.find(el => el.getAttribute('role') === 'option');
+      const option = userTypeOptions.find(
+        el => el.getAttribute('role') === 'option'
+      );
       if (option) {
         fireEvent.click(option);
       }
@@ -247,10 +262,10 @@ describe('AdminVerificationQueue', () => {
     });
 
     const expandButtons = screen.getAllByRole('button');
-    const expandButton = expandButtons.find(btn => 
-      btn.querySelector('svg') && btn.className.includes('expand-btn')
+    const expandButton = expandButtons.find(
+      btn => btn.querySelector('svg') && btn.className.includes('expand-btn')
     );
-    
+
     if (expandButton) {
       fireEvent.click(expandButton);
 
@@ -263,7 +278,9 @@ describe('AdminVerificationQueue', () => {
       fireEvent.click(expandButton);
 
       await waitFor(() => {
-        expect(screen.queryByText('Organization Identity')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('Organization Identity')
+        ).not.toBeInTheDocument();
       });
     }
   });
@@ -279,7 +296,9 @@ describe('AdminVerificationQueue', () => {
     fireEvent.click(approveButtons[0]);
 
     await waitFor(() => {
-      const modal = screen.getByText('Approve Registration').closest('.modal-content');
+      const modal = screen
+        .getByText('Approve Registration')
+        .closest('.modal-content');
       expect(screen.getByText('Approve Registration')).toBeInTheDocument();
       expect(within(modal).getByText('Food Bank Alpha')).toBeInTheDocument();
     });
@@ -304,7 +323,9 @@ describe('AdminVerificationQueue', () => {
 
     await waitFor(() => {
       expect(adminVerificationAPI.approveUser).toHaveBeenCalledWith(1);
-      expect(screen.getByText(/has been approved successfully/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/has been approved successfully/i)
+      ).toBeInTheDocument();
     });
   });
 
@@ -327,7 +348,9 @@ describe('AdminVerificationQueue', () => {
     fireEvent.click(approvalCancelButton);
 
     await waitFor(() => {
-      expect(screen.queryByText('Approve Registration')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Approve Registration')
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -370,8 +393,12 @@ describe('AdminVerificationQueue', () => {
     });
 
     // Add custom message
-    const textarea = screen.getByPlaceholderText(/add any additional information/i);
-    fireEvent.change(textarea, { target: { value: 'Missing required documents' } });
+    const textarea = screen.getByPlaceholderText(
+      /add any additional information/i
+    );
+    fireEvent.change(textarea, {
+      target: { value: 'Missing required documents' },
+    });
 
     const rejectButton = screen.getByText('Reject User');
     fireEvent.click(rejectButton);
@@ -448,9 +475,11 @@ describe('AdminVerificationQueue', () => {
     });
 
     // Change status filter to 'Email Not Verified'
-    const statusSelect = screen.getByText('Email Verified').closest('.select__control');
+    const statusSelect = screen
+      .getByText('Email Verified')
+      .closest('.select__control');
     fireEvent.mouseDown(within(statusSelect).getByText('Email Verified'));
-    
+
     await waitFor(() => {
       const option = screen.getByText('Email Not Verified');
       fireEvent.click(option);
@@ -488,9 +517,11 @@ describe('AdminVerificationQueue', () => {
     });
 
     // Change status filter to 'Email Not Verified'
-    const statusSelect = screen.getByText('Email Verified').closest('.select__control');
+    const statusSelect = screen
+      .getByText('Email Verified')
+      .closest('.select__control');
     fireEvent.mouseDown(within(statusSelect).getByText('Email Verified'));
-    
+
     await waitFor(() => {
       const option = screen.getByText('Email Not Verified');
       fireEvent.click(option);
@@ -536,9 +567,11 @@ describe('AdminVerificationQueue', () => {
     });
 
     // Change status filter to 'Email Not Verified'
-    const statusSelect = screen.getByText('Email Verified').closest('.select__control');
+    const statusSelect = screen
+      .getByText('Email Verified')
+      .closest('.select__control');
     fireEvent.mouseDown(within(statusSelect).getByText('Email Verified'));
-    
+
     await waitFor(() => {
       const option = screen.getByText('Email Not Verified');
       fireEvent.click(option);
@@ -559,7 +592,9 @@ describe('AdminVerificationQueue', () => {
     fireEvent.click(cancelButton);
 
     await waitFor(() => {
-      expect(screen.queryByText('Manually Verify Email')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Manually Verify Email')
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -570,7 +605,7 @@ describe('AdminVerificationQueue', () => {
       expect(screen.getByText('2 days')).toBeInTheDocument(); // Food Bank Alpha
       expect(screen.getByText('5 hours')).toBeInTheDocument(); // Restaurant Beta
     });
-    
+
     // Shelter Gamma is PENDING_VERIFICATION and won't show by default
     expect(screen.queryByText('Shelter Gamma')).not.toBeInTheDocument();
   });
@@ -583,10 +618,10 @@ describe('AdminVerificationQueue', () => {
     });
 
     const expandButtons = screen.getAllByRole('button');
-    const expandButton = expandButtons.find(btn => 
-      btn.querySelector('svg') && btn.className.includes('expand-btn')
+    const expandButton = expandButtons.find(
+      btn => btn.querySelector('svg') && btn.className.includes('expand-btn')
     );
-    
+
     if (expandButton) {
       fireEvent.click(expandButton);
 
@@ -604,10 +639,10 @@ describe('AdminVerificationQueue', () => {
     });
 
     const expandButtons = screen.getAllByRole('button');
-    const expandButton = expandButtons.find(btn => 
-      btn.querySelector('svg') && btn.className.includes('expand-btn')
+    const expandButton = expandButtons.find(
+      btn => btn.querySelector('svg') && btn.className.includes('expand-btn')
     );
-    
+
     if (expandButton) {
       fireEvent.click(expandButton);
 
@@ -626,11 +661,15 @@ describe('AdminVerificationQueue', () => {
 
     const table = screen.getByRole('table');
     const rows = within(table).getAllByRole('row');
-    const donorRow = rows.find(row => row.textContent.includes('Restaurant Beta'));
-    
+    const donorRow = rows.find(row =>
+      row.textContent.includes('Restaurant Beta')
+    );
+
     if (donorRow) {
       const buttons = within(donorRow).getAllByRole('button');
-      const expandButton = buttons.find(btn => btn.className.includes('expand-btn'));
+      const expandButton = buttons.find(btn =>
+        btn.className.includes('expand-btn')
+      );
       fireEvent.click(expandButton);
 
       await waitFor(() => {
@@ -647,10 +686,10 @@ describe('AdminVerificationQueue', () => {
     });
 
     const expandButtons = screen.getAllByRole('button');
-    const expandButton = expandButtons.find(btn => 
-      btn.querySelector('svg') && btn.className.includes('expand-btn')
+    const expandButton = expandButtons.find(
+      btn => btn.querySelector('svg') && btn.className.includes('expand-btn')
     );
-    
+
     if (expandButton) {
       fireEvent.click(expandButton);
 
@@ -676,7 +715,7 @@ describe('AdminVerificationQueue', () => {
         totalPages: 1,
       },
     });
-    
+
     render(<AdminVerificationQueue />);
 
     // Wait for component to load
@@ -685,9 +724,11 @@ describe('AdminVerificationQueue', () => {
     });
 
     // Change status filter to 'Email Not Verified'
-    const statusSelect = screen.getByText('Email Verified').closest('.select__control');
+    const statusSelect = screen
+      .getByText('Email Verified')
+      .closest('.select__control');
     fireEvent.mouseDown(within(statusSelect).getByText('Email Verified'));
-    
+
     await waitFor(() => {
       const option = screen.getByText('Email Not Verified');
       fireEvent.click(option);
@@ -696,7 +737,9 @@ describe('AdminVerificationQueue', () => {
     await waitFor(() => {
       const table = screen.getByRole('table');
       const rows = within(table).getAllByRole('row');
-      const shelterRow = rows.find(row => row.textContent.includes('Shelter Gamma'));
+      const shelterRow = rows.find(row =>
+        row.textContent.includes('Shelter Gamma')
+      );
       expect(within(shelterRow).getByText('N/A')).toBeInTheDocument();
     });
   });
@@ -710,7 +753,9 @@ describe('AdminVerificationQueue', () => {
 
     await waitFor(() => {
       expect(screen.getByText('No Pending Registrations')).toBeInTheDocument();
-      expect(screen.getByText('All user registrations have been reviewed.')).toBeInTheDocument();
+      expect(
+        screen.getByText('All user registrations have been reviewed.')
+      ).toBeInTheDocument();
     });
   });
 
@@ -722,7 +767,9 @@ describe('AdminVerificationQueue', () => {
     render(<AdminVerificationQueue />);
 
     await waitFor(() => {
-      expect(screen.getByText('Failed to load pending users. Please try again.')).toBeInTheDocument();
+      expect(
+        screen.getByText('Failed to load pending users. Please try again.')
+      ).toBeInTheDocument();
     });
   });
 
@@ -746,7 +793,9 @@ describe('AdminVerificationQueue', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('Failed to approve user. Please try again.')).toBeInTheDocument();
+      expect(
+        screen.getByText('Failed to approve user. Please try again.')
+      ).toBeInTheDocument();
     });
   });
 
@@ -778,7 +827,9 @@ describe('AdminVerificationQueue', () => {
     fireEvent.click(rejectButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Failed to reject user. Please try again.')).toBeInTheDocument();
+      expect(
+        screen.getByText('Failed to reject user. Please try again.')
+      ).toBeInTheDocument();
     });
   });
 
@@ -806,9 +857,11 @@ describe('AdminVerificationQueue', () => {
     });
 
     // Change status filter to 'Email Not Verified'
-    const statusSelect = screen.getByText('Email Verified').closest('.select__control');
+    const statusSelect = screen
+      .getByText('Email Verified')
+      .closest('.select__control');
     fireEvent.mouseDown(within(statusSelect).getByText('Email Verified'));
-    
+
     await waitFor(() => {
       const option = screen.getByText('Email Not Verified');
       fireEvent.click(option);
@@ -845,11 +898,15 @@ describe('AdminVerificationQueue', () => {
       expect(screen.getByText('Approve Registration')).toBeInTheDocument();
     });
 
-    const backdrop = screen.getByText('Approve Registration').closest('.modal-backdrop');
+    const backdrop = screen
+      .getByText('Approve Registration')
+      .closest('.modal-backdrop');
     fireEvent.click(backdrop);
 
     await waitFor(() => {
-      expect(screen.queryByText('Approve Registration')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Approve Registration')
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -867,7 +924,9 @@ describe('AdminVerificationQueue', () => {
       expect(screen.getByText('Approve Registration')).toBeInTheDocument();
     });
 
-    const modalContent = screen.getByText('Approve Registration').closest('.modal-content');
+    const modalContent = screen
+      .getByText('Approve Registration')
+      .closest('.modal-content');
     fireEvent.mouseDown(modalContent);
     fireEvent.click(modalContent);
 
@@ -885,11 +944,15 @@ describe('AdminVerificationQueue', () => {
 
     const table = screen.getByRole('table');
     const rows = within(table).getAllByRole('row');
-    const donorRow = rows.find(row => row.textContent.includes('Restaurant Beta'));
-    
+    const donorRow = rows.find(row =>
+      row.textContent.includes('Restaurant Beta')
+    );
+
     if (donorRow) {
       const buttons = within(donorRow).getAllByRole('button');
-      const expandButton = buttons.find(btn => btn.className.includes('expand-btn'));
+      const expandButton = buttons.find(btn =>
+        btn.className.includes('expand-btn')
+      );
       if (expandButton) {
         fireEvent.click(expandButton);
 
@@ -990,9 +1053,11 @@ describe('AdminVerificationQueue', () => {
     });
 
     // Change status filter to 'Email Not Verified'
-    const statusSelect = screen.getByText('Email Verified').closest('.select__control');
+    const statusSelect = screen
+      .getByText('Email Verified')
+      .closest('.select__control');
     fireEvent.mouseDown(within(statusSelect).getByText('Email Verified'));
-    
+
     await waitFor(() => {
       const option = screen.getByText('Email Not Verified');
       fireEvent.click(option);
@@ -1000,7 +1065,9 @@ describe('AdminVerificationQueue', () => {
 
     await waitFor(() => {
       const pills = screen.getAllByText('Email Not Verified');
-      const statusPill = pills.find(el => el.className.includes('pill-email-pending'));
+      const statusPill = pills.find(el =>
+        el.className.includes('pill-email-pending')
+      );
       expect(statusPill).toBeInTheDocument();
     });
   });
@@ -1018,7 +1085,7 @@ describe('AdminVerificationQueue', () => {
 
   it('shows notification toast and auto-hides', async () => {
     jest.useFakeTimers();
-    
+
     render(<AdminVerificationQueue />);
 
     await waitFor(() => {
@@ -1034,14 +1101,18 @@ describe('AdminVerificationQueue', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText(/has been approved successfully/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/has been approved successfully/i)
+      ).toBeInTheDocument();
     });
 
     // Fast-forward time
     jest.advanceTimersByTime(5000);
 
     await waitFor(() => {
-      expect(screen.queryByText(/has been approved successfully/i)).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/has been approved successfully/i)
+      ).not.toBeInTheDocument();
     });
 
     jest.useRealTimers();
@@ -1055,10 +1126,10 @@ describe('AdminVerificationQueue', () => {
     });
 
     const expandButtons = screen.getAllByRole('button');
-    const expandButton = expandButtons.find(btn => 
-      btn.querySelector('svg') && btn.className.includes('expand-btn')
+    const expandButton = expandButtons.find(
+      btn => btn.querySelector('svg') && btn.className.includes('expand-btn')
     );
-    
+
     if (expandButton) {
       fireEvent.click(expandButton);
 
@@ -1077,11 +1148,15 @@ describe('AdminVerificationQueue', () => {
 
     const table = screen.getByRole('table');
     const rows = within(table).getAllByRole('row');
-    const donorRow = rows.find(row => row.textContent.includes('Restaurant Beta'));
-    
+    const donorRow = rows.find(row =>
+      row.textContent.includes('Restaurant Beta')
+    );
+
     if (donorRow) {
       const buttons = within(donorRow).getAllByRole('button');
-      const expandButton = buttons.find(btn => btn.className.includes('expand-btn'));
+      const expandButton = buttons.find(btn =>
+        btn.className.includes('expand-btn')
+      );
       if (expandButton) {
         fireEvent.click(expandButton);
 
