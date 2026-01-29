@@ -4,6 +4,9 @@ import '@testing-library/jest-dom';
 import Settings from '../components/Settings';
 import { AuthContext } from '../contexts/AuthContext';
 
+import { notificationPreferencesAPI, profileAPI } from '../services/api';
+import api from '../services/api';
+
 // Mock the dependencies
 jest.mock('../services/api', () => ({
   __esModule: true,
@@ -21,13 +24,10 @@ jest.mock('../services/api', () => ({
   },
 }));
 
-import { notificationPreferencesAPI, profileAPI } from '../services/api';
-import api from '../services/api';
-
 // Mock i18next
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key) => key,
+    t: key => key,
     i18n: {
       language: 'en',
       changeLanguage: jest.fn(),
@@ -35,15 +35,33 @@ jest.mock('react-i18next', () => ({
   }),
 }));
 
-jest.mock('../components/LanguageSwitcher', () => () => <div data-testid="language-switcher">Language Switcher</div>);
+jest.mock('../components/LanguageSwitcher', () => () => (
+  <div data-testid="language-switcher">Language Switcher</div>
+));
 jest.mock('../components/RegionSelector', () => ({ value, onChange }) => (
-  <div data-testid="region-selector" onClick={() => onChange({ country: 'US', city: 'New York', timezone: 'America/New_York' })}>
+  <div
+    data-testid="region-selector"
+    onClick={() =>
+      onChange({
+        country: 'US',
+        city: 'New York',
+        timezone: 'America/New_York',
+      })
+    }
+  >
     Region Selector
   </div>
 ));
-jest.mock('../components/ChangePasswordModal', () => ({ isOpen, onClose }) => (
-  isOpen ? <div data-testid="change-password-modal" onClick={onClose}>Change Password Modal</div> : null
-));
+jest.mock(
+  '../components/ChangePasswordModal',
+  () =>
+    ({ isOpen, onClose }) =>
+      isOpen ? (
+        <div data-testid="change-password-modal" onClick={onClose}>
+          Change Password Modal
+        </div>
+      ) : null
+);
 
 describe('Settings', () => {
   const mockAuthContext = {
@@ -78,12 +96,17 @@ describe('Settings', () => {
     Storage.prototype.setItem = jest.fn();
 
     // Suppress act() warnings
-    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation((message) => {
-      if (typeof message === 'string' && message.includes('not wrapped in act')) {
-        return;
-      }
-      console.warn(message);
-    });
+    consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(message => {
+        if (
+          typeof message === 'string' &&
+          message.includes('not wrapped in act')
+        ) {
+          return;
+        }
+        console.warn(message);
+      });
 
     // Mock API responses
     profileAPI.get = jest.fn().mockResolvedValue({ data: mockProfileData });
@@ -97,7 +120,9 @@ describe('Settings', () => {
         notificationTypes: {},
       },
     });
-    notificationPreferencesAPI.updatePreferences = jest.fn().mockResolvedValue({ data: {} });
+    notificationPreferencesAPI.updatePreferences = jest
+      .fn()
+      .mockResolvedValue({ data: {} });
   });
 
   afterEach(() => {
@@ -122,16 +147,24 @@ describe('Settings', () => {
 
       await waitFor(() => {
         expect(screen.getByText('settings.account.title')).toBeInTheDocument();
-        expect(screen.getByText('settings.languageRegion.title')).toBeInTheDocument();
-        expect(screen.getByText('settings.notificationPreferences.title')).toBeInTheDocument();
+        expect(
+          screen.getByText('settings.languageRegion.title')
+        ).toBeInTheDocument();
+        expect(
+          screen.getByText('settings.notificationPreferences.title')
+        ).toBeInTheDocument();
         expect(screen.getByText('Privacy & Data Consent')).toBeInTheDocument();
-        expect(screen.getByText('settings.notificationTypes.title')).toBeInTheDocument();
+        expect(
+          screen.getByText('settings.notificationTypes.title')
+        ).toBeInTheDocument();
       });
     });
 
     test('displays loading state initially', () => {
       renderSettings();
-      expect(screen.getByText('settings.account.loadingProfile')).toBeInTheDocument();
+      expect(
+        screen.getByText('settings.account.loadingProfile')
+      ).toBeInTheDocument();
     });
 
     test('renders LanguageSwitcher component', async () => {
@@ -169,7 +202,9 @@ describe('Settings', () => {
 
       await waitFor(() => {
         expect(screen.getByDisplayValue('John Doe')).toBeInTheDocument();
-        expect(screen.getByDisplayValue('john@example.com')).toBeInTheDocument();
+        expect(
+          screen.getByDisplayValue('john@example.com')
+        ).toBeInTheDocument();
         expect(screen.getByDisplayValue('+11234567890')).toBeInTheDocument();
         expect(screen.getByDisplayValue('Test Org')).toBeInTheDocument();
         expect(screen.getByDisplayValue('123 Main St')).toBeInTheDocument();
@@ -180,23 +215,32 @@ describe('Settings', () => {
       renderSettings();
 
       await waitFor(() => {
-        expect(screen.queryByText('settings.account.loadingProfile')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('settings.account.loadingProfile')
+        ).not.toBeInTheDocument();
       });
 
-      const nameInput = screen.getByPlaceholderText('settings.account.fullNamePlaceholder');
+      const nameInput = screen.getByPlaceholderText(
+        'settings.account.fullNamePlaceholder'
+      );
       fireEvent.change(nameInput, { target: { value: 'Jane Doe' } });
 
       expect(nameInput).toHaveValue('Jane Doe');
     });
 
     test('handles profile fetch error gracefully', async () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
       profileAPI.get.mockRejectedValue(new Error('Fetch failed'));
 
       renderSettings();
 
       await waitFor(() => {
-        expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching profile from backend:', expect.any(Error));
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+          'Error fetching profile from backend:',
+          expect.any(Error)
+        );
       });
 
       consoleErrorSpy.mockRestore();
@@ -206,14 +250,19 @@ describe('Settings', () => {
       renderSettings();
 
       await waitFor(() => {
-        expect(screen.queryByText('settings.account.loadingProfile')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('settings.account.loadingProfile')
+        ).not.toBeInTheDocument();
       });
 
       const saveButton = screen.getByText('settings.account.saveChanges');
       fireEvent.click(saveButton);
 
       await waitFor(() => {
-        expect(localStorage.setItem).toHaveBeenCalledWith('organizationName', 'Test Org');
+        expect(localStorage.setItem).toHaveBeenCalledWith(
+          'organizationName',
+          'Test Org'
+        );
       });
     });
   });
@@ -223,10 +272,14 @@ describe('Settings', () => {
       renderSettings();
 
       await waitFor(() => {
-        expect(screen.queryByText('settings.account.loadingProfile')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('settings.account.loadingProfile')
+        ).not.toBeInTheDocument();
       });
 
-      const nameInput = screen.getByPlaceholderText('settings.account.fullNamePlaceholder');
+      const nameInput = screen.getByPlaceholderText(
+        'settings.account.fullNamePlaceholder'
+      );
       fireEvent.change(nameInput, { target: { value: '' } });
 
       const saveButton = screen.getByText('settings.account.saveChanges');
@@ -241,17 +294,23 @@ describe('Settings', () => {
       renderSettings();
 
       await waitFor(() => {
-        expect(screen.queryByText('settings.account.loadingProfile')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('settings.account.loadingProfile')
+        ).not.toBeInTheDocument();
       });
 
-      const nameInput = screen.getByPlaceholderText('settings.account.fullNamePlaceholder');
+      const nameInput = screen.getByPlaceholderText(
+        'settings.account.fullNamePlaceholder'
+      );
       fireEvent.change(nameInput, { target: { value: 'A' } });
 
       const saveButton = screen.getByText('settings.account.saveChanges');
       fireEvent.click(saveButton);
 
       await waitFor(() => {
-        expect(screen.getByText('Full name must be at least 2 characters')).toBeInTheDocument();
+        expect(
+          screen.getByText('Full name must be at least 2 characters')
+        ).toBeInTheDocument();
       });
     });
 
@@ -259,10 +318,14 @@ describe('Settings', () => {
       renderSettings();
 
       await waitFor(() => {
-        expect(screen.queryByText('settings.account.loadingProfile')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('settings.account.loadingProfile')
+        ).not.toBeInTheDocument();
       });
 
-      const emailInput = screen.getByPlaceholderText('settings.account.emailPlaceholder');
+      const emailInput = screen.getByPlaceholderText(
+        'settings.account.emailPlaceholder'
+      );
       fireEvent.change(emailInput, { target: { value: '' } });
 
       const saveButton = screen.getByText('settings.account.saveChanges');
@@ -277,17 +340,23 @@ describe('Settings', () => {
       renderSettings();
 
       await waitFor(() => {
-        expect(screen.queryByText('settings.account.loadingProfile')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('settings.account.loadingProfile')
+        ).not.toBeInTheDocument();
       });
 
-      const emailInput = screen.getByPlaceholderText('settings.account.emailPlaceholder');
+      const emailInput = screen.getByPlaceholderText(
+        'settings.account.emailPlaceholder'
+      );
       fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
 
       const saveButton = screen.getByText('settings.account.saveChanges');
       fireEvent.click(saveButton);
 
       await waitFor(() => {
-        expect(screen.getByText('Please enter a valid email address')).toBeInTheDocument();
+        expect(
+          screen.getByText('Please enter a valid email address')
+        ).toBeInTheDocument();
       });
     });
 
@@ -295,17 +364,23 @@ describe('Settings', () => {
       renderSettings();
 
       await waitFor(() => {
-        expect(screen.queryByText('settings.account.loadingProfile')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('settings.account.loadingProfile')
+        ).not.toBeInTheDocument();
       });
 
-      const phoneInput = screen.getByPlaceholderText('settings.account.phonePlaceholder');
+      const phoneInput = screen.getByPlaceholderText(
+        'settings.account.phonePlaceholder'
+      );
       fireEvent.change(phoneInput, { target: { value: 'abc' } });
 
       const saveButton = screen.getByText('settings.account.saveChanges');
       fireEvent.click(saveButton);
 
       await waitFor(() => {
-        expect(screen.getByText('Please enter a valid phone number')).toBeInTheDocument();
+        expect(
+          screen.getByText('Please enter a valid phone number')
+        ).toBeInTheDocument();
       });
     });
 
@@ -313,7 +388,9 @@ describe('Settings', () => {
       renderSettings();
 
       await waitFor(() => {
-        expect(screen.queryByText('settings.account.loadingProfile')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('settings.account.loadingProfile')
+        ).not.toBeInTheDocument();
       });
 
       const saveButton = screen.getByText('settings.account.saveChanges');
@@ -321,7 +398,9 @@ describe('Settings', () => {
 
       await waitFor(() => {
         expect(profileAPI.update).toHaveBeenCalled();
-        expect(screen.getByText('settings.account.profileUpdated')).toBeInTheDocument();
+        expect(
+          screen.getByText('settings.account.profileUpdated')
+        ).toBeInTheDocument();
       });
     });
 
@@ -331,14 +410,18 @@ describe('Settings', () => {
       renderSettings();
 
       await waitFor(() => {
-        expect(screen.queryByText('settings.account.loadingProfile')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('settings.account.loadingProfile')
+        ).not.toBeInTheDocument();
       });
 
       const saveButton = screen.getByText('settings.account.saveChanges');
       fireEvent.click(saveButton);
 
       await waitFor(() => {
-        expect(screen.getByText('settings.account.updateFailed')).toBeInTheDocument();
+        expect(
+          screen.getByText('settings.account.updateFailed')
+        ).toBeInTheDocument();
       });
     });
   });
@@ -348,10 +431,14 @@ describe('Settings', () => {
       renderSettings();
 
       await waitFor(() => {
-        expect(screen.queryByText('settings.account.loadingProfile')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('settings.account.loadingProfile')
+        ).not.toBeInTheDocument();
       });
 
-      const changePasswordButton = screen.getByText('settings.account.changePassword');
+      const changePasswordButton = screen.getByText(
+        'settings.account.changePassword'
+      );
       fireEvent.click(changePasswordButton);
 
       await waitFor(() => {
@@ -363,10 +450,14 @@ describe('Settings', () => {
       renderSettings();
 
       await waitFor(() => {
-        expect(screen.queryByText('settings.account.loadingProfile')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('settings.account.loadingProfile')
+        ).not.toBeInTheDocument();
       });
 
-      const changePasswordButton = screen.getByText('settings.account.changePassword');
+      const changePasswordButton = screen.getByText(
+        'settings.account.changePassword'
+      );
       fireEvent.click(changePasswordButton);
 
       await waitFor(() => {
@@ -377,7 +468,9 @@ describe('Settings', () => {
       fireEvent.click(modal);
 
       await waitFor(() => {
-        expect(screen.queryByTestId('change-password-modal')).not.toBeInTheDocument();
+        expect(
+          screen.queryByTestId('change-password-modal')
+        ).not.toBeInTheDocument();
       });
     });
   });
@@ -387,10 +480,14 @@ describe('Settings', () => {
       const { container } = renderSettings();
 
       await waitFor(() => {
-        expect(screen.queryByText('settings.account.loadingProfile')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('settings.account.loadingProfile')
+        ).not.toBeInTheDocument();
       });
 
-      const file = new File(['dummy content'], 'profile.jpg', { type: 'image/jpeg' });
+      const file = new File(['dummy content'], 'profile.jpg', {
+        type: 'image/jpeg',
+      });
       const imageInput = container.querySelector('input[type="file"]');
 
       Object.defineProperty(imageInput, 'files', {
@@ -411,11 +508,15 @@ describe('Settings', () => {
       const { container } = renderSettings();
 
       await waitFor(() => {
-        expect(screen.queryByText('settings.account.loadingProfile')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('settings.account.loadingProfile')
+        ).not.toBeInTheDocument();
       });
 
       // Create a file larger than 5MB
-      const largeFile = new File(['x'.repeat(6 * 1024 * 1024)], 'large.jpg', { type: 'image/jpeg' });
+      const largeFile = new File(['x'.repeat(6 * 1024 * 1024)], 'large.jpg', {
+        type: 'image/jpeg',
+      });
       const imageInput = container.querySelector('input[type="file"]');
 
       Object.defineProperty(imageInput, 'files', {
@@ -426,7 +527,9 @@ describe('Settings', () => {
       fireEvent.change(imageInput);
 
       await waitFor(() => {
-        expect(screen.getByText('Image size must be less than 5MB')).toBeInTheDocument();
+        expect(
+          screen.getByText('Image size must be less than 5MB')
+        ).toBeInTheDocument();
       });
     });
 
@@ -434,10 +537,14 @@ describe('Settings', () => {
       const { container } = renderSettings();
 
       await waitFor(() => {
-        expect(screen.queryByText('settings.account.loadingProfile')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('settings.account.loadingProfile')
+        ).not.toBeInTheDocument();
       });
 
-      const textFile = new File(['dummy content'], 'document.txt', { type: 'text/plain' });
+      const textFile = new File(['dummy content'], 'document.txt', {
+        type: 'text/plain',
+      });
       const imageInput = container.querySelector('input[type="file"]');
 
       Object.defineProperty(textFile, 'size', {
@@ -453,7 +560,9 @@ describe('Settings', () => {
       fireEvent.change(imageInput);
 
       await waitFor(() => {
-        expect(screen.getByText('Please upload a valid image file')).toBeInTheDocument();
+        expect(
+          screen.getByText('Please upload a valid image file')
+        ).toBeInTheDocument();
       });
     });
   });
@@ -471,7 +580,9 @@ describe('Settings', () => {
       renderSettings();
 
       await waitFor(() => {
-        expect(screen.queryByText('settings.account.loadingProfile')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('settings.account.loadingProfile')
+        ).not.toBeInTheDocument();
       });
 
       // Wait for region data to load first
@@ -495,13 +606,17 @@ describe('Settings', () => {
     });
 
     test('handles region update error', async () => {
-      const localErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const localErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
       api.put.mockRejectedValueOnce(new Error('Update failed'));
-      
+
       renderSettings();
 
       await waitFor(() => {
-        expect(screen.queryByText('settings.account.loadingProfile')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('settings.account.loadingProfile')
+        ).not.toBeInTheDocument();
       });
 
       // Wait for region data to load first
@@ -513,7 +628,10 @@ describe('Settings', () => {
       fireEvent.click(regionSelector);
 
       await waitFor(() => {
-        expect(localErrorSpy).toHaveBeenCalledWith('Error saving region:', expect.any(Error));
+        expect(localErrorSpy).toHaveBeenCalledWith(
+          'Error saving region:',
+          expect.any(Error)
+        );
       });
 
       localErrorSpy.mockRestore();
@@ -533,9 +651,15 @@ describe('Settings', () => {
       renderSettings();
 
       await waitFor(() => {
-        const emailToggle = screen.getAllByRole('checkbox').find(cb => 
-          cb.closest('.preference-item')?.textContent?.includes('settings.notificationPreferences.emailAlerts')
-        );
+        const emailToggle = screen
+          .getAllByRole('checkbox')
+          .find(cb =>
+            cb
+              .closest('.preference-item')
+              ?.textContent?.includes(
+                'settings.notificationPreferences.emailAlerts'
+              )
+          );
         expect(emailToggle).toBeChecked();
       });
     });
@@ -544,18 +668,26 @@ describe('Settings', () => {
       renderSettings();
 
       await waitFor(() => {
-        expect(screen.queryByText('settings.account.loadingProfile')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('settings.account.loadingProfile')
+        ).not.toBeInTheDocument();
       });
 
       const checkboxes = screen.getAllByRole('checkbox');
-      const emailToggle = checkboxes.find(cb => 
-        cb.closest('.preference-item')?.textContent?.includes('settings.notificationPreferences.emailAlerts')
+      const emailToggle = checkboxes.find(cb =>
+        cb
+          .closest('.preference-item')
+          ?.textContent?.includes(
+            'settings.notificationPreferences.emailAlerts'
+          )
       );
 
       fireEvent.click(emailToggle);
 
       await waitFor(() => {
-        expect(notificationPreferencesAPI.updatePreferences).toHaveBeenCalledWith(
+        expect(
+          notificationPreferencesAPI.updatePreferences
+        ).toHaveBeenCalledWith(
           expect.objectContaining({
             emailNotificationsEnabled: true,
           })
@@ -567,18 +699,24 @@ describe('Settings', () => {
       renderSettings();
 
       await waitFor(() => {
-        expect(screen.queryByText('settings.account.loadingProfile')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('settings.account.loadingProfile')
+        ).not.toBeInTheDocument();
       });
 
       const checkboxes = screen.getAllByRole('checkbox');
-      const smsToggle = checkboxes.find(cb => 
-        cb.closest('.preference-item')?.textContent?.includes('settings.notificationPreferences.smsAlerts')
+      const smsToggle = checkboxes.find(cb =>
+        cb
+          .closest('.preference-item')
+          ?.textContent?.includes('settings.notificationPreferences.smsAlerts')
       );
 
       fireEvent.click(smsToggle);
 
       await waitFor(() => {
-        expect(notificationPreferencesAPI.updatePreferences).toHaveBeenCalledWith(
+        expect(
+          notificationPreferencesAPI.updatePreferences
+        ).toHaveBeenCalledWith(
           expect.objectContaining({
             smsNotificationsEnabled: true,
           })
@@ -587,55 +725,80 @@ describe('Settings', () => {
     });
 
     test('handles email alerts toggle error', async () => {
-      notificationPreferencesAPI.updatePreferences.mockRejectedValue(new Error('Update failed'));
+      notificationPreferencesAPI.updatePreferences.mockRejectedValue(
+        new Error('Update failed')
+      );
 
       renderSettings();
 
       await waitFor(() => {
-        expect(screen.queryByText('settings.account.loadingProfile')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('settings.account.loadingProfile')
+        ).not.toBeInTheDocument();
       });
 
       const checkboxes = screen.getAllByRole('checkbox');
-      const emailToggle = checkboxes.find(cb => 
-        cb.closest('.preference-item')?.textContent?.includes('settings.notificationPreferences.emailAlerts')
+      const emailToggle = checkboxes.find(cb =>
+        cb
+          .closest('.preference-item')
+          ?.textContent?.includes(
+            'settings.notificationPreferences.emailAlerts'
+          )
       );
 
       fireEvent.click(emailToggle);
 
       await waitFor(() => {
-        expect(screen.getByText('settings.notificationPreferences.updateFailed')).toBeInTheDocument();
+        expect(
+          screen.getByText('settings.notificationPreferences.updateFailed')
+        ).toBeInTheDocument();
       });
     });
 
     test('handles SMS alerts toggle error', async () => {
-      notificationPreferencesAPI.updatePreferences.mockRejectedValue(new Error('Update failed'));
+      notificationPreferencesAPI.updatePreferences.mockRejectedValue(
+        new Error('Update failed')
+      );
 
       renderSettings();
 
       await waitFor(() => {
-        expect(screen.queryByText('settings.account.loadingProfile')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('settings.account.loadingProfile')
+        ).not.toBeInTheDocument();
       });
 
       const checkboxes = screen.getAllByRole('checkbox');
-      const smsToggle = checkboxes.find(cb => 
-        cb.closest('.preference-item')?.textContent?.includes('settings.notificationPreferences.smsAlerts')
+      const smsToggle = checkboxes.find(cb =>
+        cb
+          .closest('.preference-item')
+          ?.textContent?.includes('settings.notificationPreferences.smsAlerts')
       );
 
       fireEvent.click(smsToggle);
 
       await waitFor(() => {
-        expect(screen.getByText('settings.notificationPreferences.updateFailed')).toBeInTheDocument();
+        expect(
+          screen.getByText('settings.notificationPreferences.updateFailed')
+        ).toBeInTheDocument();
       });
     });
 
     test('handles notification preferences fetch error gracefully', async () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-      notificationPreferencesAPI.getPreferences.mockRejectedValue(new Error('Fetch failed'));
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      notificationPreferencesAPI.getPreferences.mockRejectedValue(
+        new Error('Fetch failed')
+      );
 
       renderSettings();
 
       await waitFor(() => {
-        expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching notification preferences:', expect.any(Error));
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+          'Error fetching notification preferences:',
+          expect.any(Error)
+        );
       });
 
       consoleErrorSpy.mockRestore();
@@ -647,12 +810,17 @@ describe('Settings', () => {
       renderSettings();
 
       await waitFor(() => {
-        expect(screen.queryByText('settings.account.loadingProfile')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('settings.account.loadingProfile')
+        ).not.toBeInTheDocument();
       });
 
       // Find a specific notification toggle
-      const donationClaimedLabel = screen.getByText('settings.notificationTypes.donor.donationClaimed');
-      const toggleContainer = donationClaimedLabel.closest('.notification-item');
+      const donationClaimedLabel = screen.getByText(
+        'settings.notificationTypes.donor.donationClaimed'
+      );
+      const toggleContainer =
+        donationClaimedLabel.closest('.notification-item');
       const toggle = toggleContainer.querySelector('input[type="checkbox"]');
 
       fireEvent.click(toggle);
@@ -663,23 +831,35 @@ describe('Settings', () => {
     });
 
     test('handles notification type toggle error', async () => {
-      notificationPreferencesAPI.updatePreferences.mockRejectedValue(new Error('Update failed'));
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      notificationPreferencesAPI.updatePreferences.mockRejectedValue(
+        new Error('Update failed')
+      );
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
 
       renderSettings();
 
       await waitFor(() => {
-        expect(screen.queryByText('settings.account.loadingProfile')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('settings.account.loadingProfile')
+        ).not.toBeInTheDocument();
       });
 
-      const donationClaimedLabel = screen.getByText('settings.notificationTypes.donor.donationClaimed');
-      const toggleContainer = donationClaimedLabel.closest('.notification-item');
+      const donationClaimedLabel = screen.getByText(
+        'settings.notificationTypes.donor.donationClaimed'
+      );
+      const toggleContainer =
+        donationClaimedLabel.closest('.notification-item');
       const toggle = toggleContainer.querySelector('input[type="checkbox"]');
 
       fireEvent.click(toggle);
 
       await waitFor(() => {
-        expect(consoleErrorSpy).toHaveBeenCalledWith('Error updating notification type:', expect.any(Error));
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+          'Error updating notification type:',
+          expect.any(Error)
+        );
       });
 
       consoleErrorSpy.mockRestore();
@@ -689,8 +869,12 @@ describe('Settings', () => {
       renderSettings();
 
       await waitFor(() => {
-        expect(screen.getByText('settings.notificationTypes.donor.donationClaimed')).toBeInTheDocument();
-        expect(screen.getByText('settings.notificationTypes.donor.claimCanceled')).toBeInTheDocument();
+        expect(
+          screen.getByText('settings.notificationTypes.donor.donationClaimed')
+        ).toBeInTheDocument();
+        expect(
+          screen.getByText('settings.notificationTypes.donor.claimCanceled')
+        ).toBeInTheDocument();
       });
     });
 
@@ -699,8 +883,16 @@ describe('Settings', () => {
       renderSettings(receiverContext);
 
       await waitFor(() => {
-        expect(screen.getByText('settings.notificationTypes.receiver.newDonationAvailable')).toBeInTheDocument();
-        expect(screen.getByText('settings.notificationTypes.receiver.donationReadyForPickup')).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            'settings.notificationTypes.receiver.newDonationAvailable'
+          )
+        ).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            'settings.notificationTypes.receiver.donationReadyForPickup'
+          )
+        ).toBeInTheDocument();
       });
     });
 
@@ -709,8 +901,14 @@ describe('Settings', () => {
       renderSettings(adminContext);
 
       await waitFor(() => {
-        expect(screen.getByText('settings.notificationTypes.admin.donationFlagged')).toBeInTheDocument();
-        expect(screen.getByText('settings.notificationTypes.admin.suspiciousActivity')).toBeInTheDocument();
+        expect(
+          screen.getByText('settings.notificationTypes.admin.donationFlagged')
+        ).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            'settings.notificationTypes.admin.suspiciousActivity'
+          )
+        ).toBeInTheDocument();
       });
     });
   });
@@ -720,57 +918,82 @@ describe('Settings', () => {
       renderSettings();
 
       await waitFor(() => {
-        expect(screen.queryByText('settings.account.loadingProfile')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('settings.account.loadingProfile')
+        ).not.toBeInTheDocument();
       });
 
       const saveButton = screen.getByText('settings.account.saveChanges');
       fireEvent.click(saveButton);
 
       await waitFor(() => {
-        expect(screen.getByText('settings.account.profileUpdated')).toBeInTheDocument();
+        expect(
+          screen.getByText('settings.account.profileUpdated')
+        ).toBeInTheDocument();
       });
 
       jest.advanceTimersByTime(3000);
 
       await waitFor(() => {
-        expect(screen.queryByText('settings.account.profileUpdated')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('settings.account.profileUpdated')
+        ).not.toBeInTheDocument();
       });
     });
 
     test('auto-clears preferences error after 3 seconds', async () => {
-      notificationPreferencesAPI.updatePreferences.mockRejectedValue(new Error('Update failed'));
+      notificationPreferencesAPI.updatePreferences.mockRejectedValue(
+        new Error('Update failed')
+      );
 
       renderSettings();
 
       await waitFor(() => {
-        expect(screen.queryByText('settings.account.loadingProfile')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('settings.account.loadingProfile')
+        ).not.toBeInTheDocument();
       });
 
       const checkboxes = screen.getAllByRole('checkbox');
-      const emailToggle = checkboxes.find(cb => 
-        cb.closest('.preference-item')?.textContent?.includes('settings.notificationPreferences.emailAlerts')
+      const emailToggle = checkboxes.find(cb =>
+        cb
+          .closest('.preference-item')
+          ?.textContent?.includes(
+            'settings.notificationPreferences.emailAlerts'
+          )
       );
 
       fireEvent.click(emailToggle);
 
       await waitFor(() => {
-        expect(screen.getByText('settings.notificationPreferences.updateFailed')).toBeInTheDocument();
+        expect(
+          screen.getByText('settings.notificationPreferences.updateFailed')
+        ).toBeInTheDocument();
       });
 
       jest.advanceTimersByTime(3000);
 
       await waitFor(() => {
-        expect(screen.queryByText('settings.notificationPreferences.updateFailed')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('settings.notificationPreferences.updateFailed')
+        ).not.toBeInTheDocument();
       });
     });
 
     test('displays loading indicator during save', async () => {
-      profileAPI.update.mockImplementation(() => new Promise(resolve => setTimeout(() => resolve({ data: mockProfileData }), 100)));
+      profileAPI.update.mockImplementation(
+        () =>
+          new Promise(resolve =>
+            setTimeout(() => resolve({ data: mockProfileData }), 100)
+          )
+      );
 
       renderSettings();
 
       await waitFor(() => {
-        expect(screen.queryByText('settings.account.loadingProfile')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('settings.account.loadingProfile')
+        ).not.toBeInTheDocument();
       });
 
       const saveButton = screen.getByText('settings.account.saveChanges');
@@ -801,7 +1024,9 @@ describe('Settings', () => {
       renderSettings();
 
       await waitFor(() => {
-        expect(screen.queryByText('settings.account.loadingProfile')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('settings.account.loadingProfile')
+        ).not.toBeInTheDocument();
       });
 
       // Component should render without errors
@@ -819,7 +1044,9 @@ describe('Settings', () => {
       renderSettings();
 
       await waitFor(() => {
-        expect(screen.queryByText('settings.account.loadingProfile')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('settings.account.loadingProfile')
+        ).not.toBeInTheDocument();
       });
 
       // Component should render without errors

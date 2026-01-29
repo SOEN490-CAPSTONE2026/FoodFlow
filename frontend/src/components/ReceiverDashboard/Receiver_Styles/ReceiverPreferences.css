@@ -53,7 +53,7 @@
   margin: 0 0 8px 0;
   font-size: 20px;
   font-weight: 600;
-  color: #1B4965;
+  color: #1b4965;
   text-align: left;
 }
 
@@ -80,7 +80,7 @@
 
 .close-btn:hover {
   background: #f1f5f9;
-  color: #1B4965;
+  color: #1b4965;
 }
 
 .preferences-body {
@@ -106,8 +106,8 @@
   letter-spacing: -0.01em;
 }
 
-.preference-field input[type="text"],
-.preference-field input[type="number"] {
+.preference-field input[type='text'],
+.preference-field input[type='number'] {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid #cbd5e1;
@@ -117,10 +117,10 @@
   transition: all 0.2s;
 }
 
-.preference-field input[type="text"]:focus,
-.preference-field input[type="number"]:focus {
+.preference-field input[type='text']:focus,
+.preference-field input[type='number']:focus {
   outline: none;
-  border-color: #62B6CB;
+  border-color: #62b6cb;
   box-shadow: 0 0 0 3px rgba(98, 182, 203, 0.1);
 }
 
@@ -178,12 +178,12 @@
   background: #f8fafc;
 }
 
-.category-option input[type="checkbox"] {
+.category-option input[type='checkbox'] {
   margin: 0 5px 0 0 !important;
   cursor: pointer;
   width: 16px;
   height: 16px;
-  accent-color: #1B4965;
+  accent-color: #1b4965;
   flex-shrink: 0;
   vertical-align: middle;
   position: relative;
@@ -285,7 +285,7 @@
 }
 
 .pickup-btn.active {
-  background: #1B4965;
+  background: #1b4965;
   color: white;
   font-size: 12px; /* active shows time string */
   font-weight: 500;
@@ -324,8 +324,8 @@
 
 .size-btn.active {
   background: #f0f9ff;
-  color: #1B4965;
-  border-color: #1B4965;
+  color: #1b4965;
+  border-color: #1b4965;
   border-width: 2px;
   font-weight: 600;
 }
@@ -337,7 +337,7 @@
   top: 0;
   bottom: 0;
   width: 4px;
-  background: linear-gradient(180deg, #1B4965 0%, #1B4965 100%);
+  background: linear-gradient(180deg, #1b4965 0%, #1b4965 100%);
   border-radius: 12px 0 0 12px;
 }
 
@@ -372,12 +372,12 @@
   line-height: 1;
 }
 
-.checkbox-label input[type="checkbox"] {
+.checkbox-label input[type='checkbox'] {
   width: 18px;
   height: 18px;
   margin: 0 5px 0 0 !important;
   cursor: pointer;
-  accent-color: #1B4965;
+  accent-color: #1b4965;
   flex-shrink: 0;
   vertical-align: middle;
   position: relative;
@@ -434,7 +434,7 @@
 }
 
 .btn-save {
-  background: #1B4965;
+  background: #1b4965;
   color: white;
 }
 
@@ -454,7 +454,7 @@
   .preferences-panel {
     width: 100%;
   }
-  
+
   .preferences-header,
   .preferences-body,
   .preferences-footer {

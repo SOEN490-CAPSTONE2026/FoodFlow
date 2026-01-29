@@ -1,18 +1,33 @@
-import React, { useState, useRef } from "react";
-import { Autocomplete } from "@react-google-maps/api";
-import DatePicker from "react-datepicker";
-import { Filter, X, ChevronDown, MapPin, Check } from "lucide-react";
-import { useTranslation } from "react-i18next";
-import "./Receiver_Styles/FiltersPanel.css";
+import React, { useState, useRef } from 'react';
+import { Autocomplete } from '@react-google-maps/api';
+import DatePicker from 'react-datepicker';
+import { Filter, X, ChevronDown, MapPin, Check } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import './Receiver_Styles/FiltersPanel.css';
 
 // Updated food categories to match backend enums exactly
 const FOOD_CATEGORIES = [
-  { value: "Fruits & Vegetables", labelKey: "filtersPanel.foodCategories.fruitsVegetables" },
-  { value: "Bakery & Pastry", labelKey: "filtersPanel.foodCategories.bakeryPastry" },
-  { value: "Packaged / Pantry Items", labelKey: "filtersPanel.foodCategories.packagedPantry" },
-  { value: "Dairy & Cold Items", labelKey: "filtersPanel.foodCategories.dairyCold" },
-  { value: "Frozen Food", labelKey: "filtersPanel.foodCategories.frozen" },
-  { value: "Prepared Meals", labelKey: "filtersPanel.foodCategories.preparedMeals" },
+  {
+    value: 'Fruits & Vegetables',
+    labelKey: 'filtersPanel.foodCategories.fruitsVegetables',
+  },
+  {
+    value: 'Bakery & Pastry',
+    labelKey: 'filtersPanel.foodCategories.bakeryPastry',
+  },
+  {
+    value: 'Packaged / Pantry Items',
+    labelKey: 'filtersPanel.foodCategories.packagedPantry',
+  },
+  {
+    value: 'Dairy & Cold Items',
+    labelKey: 'filtersPanel.foodCategories.dairyCold',
+  },
+  { value: 'Frozen Food', labelKey: 'filtersPanel.foodCategories.frozen' },
+  {
+    value: 'Prepared Meals',
+    labelKey: 'filtersPanel.foodCategories.preparedMeals',
+  },
 ];
 
 // Custom Date Picker Component using react-datepicker
@@ -24,18 +39,18 @@ const CustomDatePicker = ({ value, onChange, placeholder }) => {
     <div className="custom-date-picker">
       <DatePicker
         selected={dateValue}
-        onChange={(date) => {
+        onChange={date => {
           // Convert Date object to YYYY-MM-DD string format
           if (date) {
-            const formattedDate = date.toISOString().split("T")[0];
+            const formattedDate = date.toISOString().split('T')[0];
             onChange(formattedDate);
           } else {
-            onChange("");
+            onChange('');
           }
         }}
         minDate={new Date()}
         dateFormat="MMM d, yyyy"
-        placeholderText={placeholder || "Select date"}
+        placeholderText={placeholder || 'Select date'}
         className="date-picker-input"
       />
     </div>
@@ -52,17 +67,19 @@ const CustomMultiSelect = ({
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleOptionToggle = (optionValue) => {
+  const handleOptionToggle = optionValue => {
     const newSelected = selectedValues.includes(optionValue)
-      ? selectedValues.filter((val) => val !== optionValue)
+      ? selectedValues.filter(val => val !== optionValue)
       : [...selectedValues, optionValue];
     onChange(newSelected);
   };
 
   const getDisplayText = () => {
-    if (selectedValues.length === 0) return placeholder;
+    if (selectedValues.length === 0) {
+      return placeholder;
+    }
     if (selectedValues.length === 1) {
-      const option = options.find((opt) => opt.value === selectedValues[0]);
+      const option = options.find(opt => opt.value === selectedValues[0]);
       return option ? option.label : selectedValues[0];
     }
     return t('filtersPanel.selectedCount', { count: selectedValues.length });
@@ -77,14 +94,14 @@ const CustomMultiSelect = ({
       >
         <span className="selected-text">{getDisplayText()}</span>
         <ChevronDown
-          className={`dropdown-arrow ${isOpen ? "open" : ""}`}
+          className={`dropdown-arrow ${isOpen ? 'open' : ''}`}
           size={16}
         />
       </button>
 
       {isOpen && (
         <div className="multi-select-dropdown">
-          {options.map((option) => (
+          {options.map(option => (
             <label key={option.value} className="multi-select-option">
               <input
                 type="checkbox"
@@ -120,7 +137,7 @@ const FiltersPanel = ({
   // Translate food categories
   const translatedCategories = FOOD_CATEGORIES.map(cat => ({
     value: cat.value,
-    label: t(cat.labelKey)
+    label: t(cat.labelKey),
   }));
 
   const handleFilterChange = (filterType, value) => {
@@ -136,19 +153,19 @@ const FiltersPanel = ({
   };
 
   const handleRemoveFilter = (filterType, value = null) => {
-    if (filterType === "foodType" && value && appliedFilters?.foodType) {
+    if (filterType === 'foodType' && value && appliedFilters?.foodType) {
       const newFoodTypes = appliedFilters.foodType.filter(
-        (type) => type !== value
+        type => type !== value
       );
       onFiltersChange(filterType, newFoodTypes);
-    } else if (filterType === "distance") {
+    } else if (filterType === 'distance') {
       onFiltersChange(filterType, 10); // Reset to default
-    } else if (filterType === "location") {
+    } else if (filterType === 'location') {
       // Clear both location string and coordinates
-      onFiltersChange(filterType, "");
-      onFiltersChange("locationCoords", null);
+      onFiltersChange(filterType, '');
+      onFiltersChange('locationCoords', null);
     } else {
-      onFiltersChange(filterType, "");
+      onFiltersChange(filterType, '');
     }
     // Auto-apply when removing filters
     setTimeout(() => onApplyFilters(), 100);
@@ -160,7 +177,7 @@ const FiltersPanel = ({
       const place = autocomplete.getPlace();
       if (place && place.geometry && place.geometry.location) {
         // Get both address and coordinates
-        const address = place.formatted_address || place.name || "";
+        const address = place.formatted_address || place.name || '';
         const location = place.geometry.location;
         const coords = {
           lat: location.lat(),
@@ -169,12 +186,12 @@ const FiltersPanel = ({
         };
 
         // Store both the display address and coordinates
-        handleFilterChange("location", address);
-        handleFilterChange("locationCoords", coords);
+        handleFilterChange('location', address);
+        handleFilterChange('locationCoords', coords);
       } else if (place && place.formatted_address) {
-        handleFilterChange("location", place.formatted_address);
+        handleFilterChange('location', place.formatted_address);
       } else if (place && place.name) {
-        handleFilterChange("location", place.name);
+        handleFilterChange('location', place.name);
       }
     }
   };
@@ -201,23 +218,27 @@ const FiltersPanel = ({
         <div className="filters-row">
           {/* Food Type Filter */}
           <div className="filter-group">
-            <label className="filter-label">{t('filtersPanel.foodTypeLabel')}</label>
+            <label className="filter-label">
+              {t('filtersPanel.foodTypeLabel')}
+            </label>
             <CustomMultiSelect
               options={translatedCategories.filter(
-                (category) => category.value !== ""
+                category => category.value !== ''
               )}
               selectedValues={filters.foodType || []}
-              onChange={(selected) => handleFilterChange("foodType", selected)}
+              onChange={selected => handleFilterChange('foodType', selected)}
               placeholder={t('filtersPanel.selectFoodTypes')}
             />
           </div>
 
           {/* Expiry Date Filter */}
           <div className="filter-group">
-            <label className="filter-label">{t('filtersPanel.bestBeforeLabel')}</label>
+            <label className="filter-label">
+              {t('filtersPanel.bestBeforeLabel')}
+            </label>
             <CustomDatePicker
               value={filters.expiryBefore}
-              onChange={(date) => handleFilterChange("expiryBefore", date)}
+              onChange={date => handleFilterChange('expiryBefore', date)}
               placeholder={t('filtersPanel.selectDate')}
             />
           </div>
@@ -225,7 +246,9 @@ const FiltersPanel = ({
           {/* Distance Filter */}
           <div className="filter-group">
             <div className="distance-label-row">
-              <label className="filter-label">{t('filtersPanel.distanceLabel')}</label>
+              <label className="filter-label">
+                {t('filtersPanel.distanceLabel')}
+              </label>
               <span className="distance-display">
                 {filters.distance || 10} {t('filtersPanel.km')}
               </span>
@@ -237,13 +260,15 @@ const FiltersPanel = ({
                 min="1"
                 max="50"
                 value={filters.distance || 10}
-                onChange={(e) =>
-                  handleFilterChange("distance", parseInt(e.target.value))
+                onChange={e =>
+                  handleFilterChange('distance', parseInt(e.target.value))
                 }
                 style={{
-                  background: `linear-gradient(to right, #1B4965 0%, #1B4965 ${(((filters.distance || 10) - 1) / 49) * 100
-                    }%, #e9ecef ${(((filters.distance || 10) - 1) / 49) * 100
-                    }%, #e9ecef 100%)`,
+                  background: `linear-gradient(to right, #1B4965 0%, #1B4965 ${
+                    (((filters.distance || 10) - 1) / 49) * 100
+                  }%, #e9ecef ${
+                    (((filters.distance || 10) - 1) / 49) * 100
+                  }%, #e9ecef 100%)`,
                 }}
               />
             </div>
@@ -251,25 +276,25 @@ const FiltersPanel = ({
 
           {/* Location Filter */}
           <div className="filter-group">
-            <label className="filter-label">{t('filtersPanel.locationLabel')}</label>
+            <label className="filter-label">
+              {t('filtersPanel.locationLabel')}
+            </label>
             <div className="location-input-container">
               <MapPin className="location-icon" size={16} color="#717182" />
               <Autocomplete
-                onLoad={(autocomplete) =>
+                onLoad={autocomplete =>
                   (autocompleteRef.current = autocomplete)
                 }
                 onPlaceChanged={handlePlaceSelect}
-                types={["geocode", "establishment"]}
-                componentRestrictions={{ country: ["us", "ca"] }}
+                types={['geocode', 'establishment']}
+                componentRestrictions={{ country: ['us', 'ca'] }}
               >
                 <input
                   type="text"
                   className="location-input"
                   placeholder={t('filtersPanel.enterLocation')}
-                  value={filters.location || ""}
-                  onChange={(e) =>
-                    handleFilterChange("location", e.target.value)
-                  }
+                  value={filters.location || ''}
+                  onChange={e => handleFilterChange('location', e.target.value)}
                 />
               </Autocomplete>
             </div>
@@ -286,9 +311,9 @@ const FiltersPanel = ({
             {/* Applied Filters Tags */}
             <div className="applied-tags">
               {/* Food Type Tags */}
-              {(appliedFilters.foodType || []).map((foodType) => {
+              {(appliedFilters.foodType || []).map(foodType => {
                 const category = translatedCategories.find(
-                  (cat) => cat.value === foodType
+                  cat => cat.value === foodType
                 );
                 return (
                   <div key={`food-${foodType}`} className="filter-tag">
@@ -297,7 +322,7 @@ const FiltersPanel = ({
                     </span>
                     <button
                       className="tag-remove"
-                      onClick={() => handleRemoveFilter("foodType", foodType)}
+                      onClick={() => handleRemoveFilter('foodType', foodType)}
                     >
                       <X size={10} />
                     </button>
@@ -312,7 +337,7 @@ const FiltersPanel = ({
                   </span>
                   <button
                     className="tag-remove"
-                    onClick={() => handleRemoveFilter("expiryBefore")}
+                    onClick={() => handleRemoveFilter('expiryBefore')}
                   >
                     <X size={10} />
                   </button>
@@ -322,11 +347,12 @@ const FiltersPanel = ({
               {appliedFilters.distance && appliedFilters.distance !== 10 && (
                 <div className="filter-tag">
                   <span className="tag-text">
-                    {t('filtersPanel.tagWithin')} {appliedFilters.distance}{t('filtersPanel.km')}
+                    {t('filtersPanel.tagWithin')} {appliedFilters.distance}
+                    {t('filtersPanel.km')}
                   </span>
                   <button
                     className="tag-remove"
-                    onClick={() => handleRemoveFilter("distance")}
+                    onClick={() => handleRemoveFilter('distance')}
                   >
                     <X size={10} />
                   </button>
@@ -340,7 +366,7 @@ const FiltersPanel = ({
                   </span>
                   <button
                     className="tag-remove"
-                    onClick={() => handleRemoveFilter("location")}
+                    onClick={() => handleRemoveFilter('location')}
                   >
                     <X size={10} />
                   </button>

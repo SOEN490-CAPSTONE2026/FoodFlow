@@ -17,7 +17,7 @@ import PRIcon from '../assets/lang-icons/PR.svg';
 const LanguageSwitcher = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState(
-    localStorage.getItem("languagePreference") || "en"
+    localStorage.getItem('languagePreference') || 'en'
   );
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -74,38 +74,39 @@ const LanguageSwitcher = () => {
 
   const selectedLang = languages.find(lang => lang.code === selectedLanguage);
 
-  const handleLanguageSelect = async (langCode) => {
+  const handleLanguageSelect = async langCode => {
     setSelectedLanguage(langCode);
-    localStorage.setItem("languagePreference", langCode);
+    localStorage.setItem('languagePreference', langCode);
     setIsOpen(false);
     setSearchQuery('');
-    
-    const token = 
-      localStorage.getItem("jwtToken") ||
-      sessionStorage.getItem("jwtToken");
+
+    const token =
+      localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
 
     if (!token) {
-      console.warn("No token found; user may not be logged in");
+      console.warn('No token found; user may not be logged in');
       return;
     }
 
     try {
-      const response = await fetch("http://localhost:8080/api/user/language", {
-        method: "PUT",
+      const response = await fetch('http://localhost:8080/api/user/language', {
+        method: 'PUT',
         headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ languagePreference: langCode })
+        body: JSON.stringify({ languagePreference: langCode }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update language preference", response.status);
+        throw new Error(
+          'Failed to update language preference',
+          response.status
+        );
       }
-
     } catch (e) {
-      console.error("Failed to update language preference:", e);
-    } 
+      console.error('Failed to update language preference:', e);
+    }
 
     // Visual feedback only - no actual i18n change yet
     console.log(`Language selected: ${langCode}`);

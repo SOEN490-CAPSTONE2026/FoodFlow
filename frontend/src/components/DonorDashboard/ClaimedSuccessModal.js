@@ -6,7 +6,9 @@ import './Donor_Styles/ClaimedSuccessModal.css';
 const ClaimedSuccessModal = ({ isOpen, onClose }) => {
   const { t } = useTranslation();
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   return (
     <>
@@ -36,7 +38,9 @@ const ClaimedSuccessModal = ({ isOpen, onClose }) => {
               </svg>
             </div>
 
-            <h2 className="claimed-success-title">{t('claimedSuccessModal.title')}</h2>
+            <h2 className="claimed-success-title">
+              {t('claimedSuccessModal.title')}
+            </h2>
             <p className="claimed-success-subtitle">
               {t('claimedSuccessModal.subtitle')}
             </p>
@@ -46,6 +50,5 @@ const ClaimedSuccessModal = ({ isOpen, onClose }) => {
     </>
   );
 };
-
 
 export default ClaimedSuccessModal;

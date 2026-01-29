@@ -3,10 +3,20 @@ import { useTranslation } from 'react-i18next';
 import { Send, ArrowLeft } from 'lucide-react';
 import api from '../../services/api';
 import { useTimezone } from '../../contexts/TimezoneContext';
-import { formatTimeInTimezone, getDateSeparatorInTimezone, areDifferentDaysInTimezone } from '../../utils/timezoneUtils';
+import {
+  formatTimeInTimezone,
+  getDateSeparatorInTimezone,
+  areDifferentDaysInTimezone,
+} from '../../utils/timezoneUtils';
 import './ChatPanel.css';
 
-const ChatPanel = ({ conversation, onMessageSent, onConversationRead, onBack, showOnMobile = true }) => {
+const ChatPanel = ({
+  conversation,
+  onMessageSent,
+  onConversationRead,
+  onBack,
+  showOnMobile = true,
+}) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -64,7 +74,8 @@ const ChatPanel = ({ conversation, onMessageSent, onConversationRead, onBack, sh
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+      textareaRef.current.style.height =
+        textareaRef.current.scrollHeight + 'px';
     }
   }, [newMessage]);
 
@@ -73,11 +84,15 @@ const ChatPanel = ({ conversation, onMessageSent, onConversationRead, onBack, sh
   };
 
   const loadMessages = async () => {
-    if (!conversation) return;
-    
+    if (!conversation) {
+      return;
+    }
+
     try {
       setLoading(true);
-      const response = await api.get(`/conversations/${conversation.id}/messages`);
+      const response = await api.get(
+        `/conversations/${conversation.id}/messages`
+      );
       setMessages(response.data);
     } catch (err) {
       console.error('Error loading messages:', err);
@@ -87,8 +102,10 @@ const ChatPanel = ({ conversation, onMessageSent, onConversationRead, onBack, sh
   };
 
   const markAsRead = async () => {
-    if (!conversation) return;
-    
+    if (!conversation) {
+      return;
+    }
+
     try {
       await api.put(`/conversations/${conversation.id}/read`);
       // Notify parent to refresh conversations list
@@ -100,17 +117,19 @@ const ChatPanel = ({ conversation, onMessageSent, onConversationRead, onBack, sh
     }
   };
 
-  const handleSendMessage = async (e) => {
+  const handleSendMessage = async e => {
     e.preventDefault();
-    if (!newMessage.trim() || !conversation) return;
+    if (!newMessage.trim() || !conversation) {
+      return;
+    }
 
     try {
       setSending(true);
       const response = await api.post('/messages', {
         conversationId: conversation.id,
-        messageBody: newMessage.trim()
+        messageBody: newMessage.trim(),
       });
-      
+
       setMessages([...messages, response.data]);
       setNewMessage('');
       onMessageSent();
@@ -122,16 +141,16 @@ const ChatPanel = ({ conversation, onMessageSent, onConversationRead, onBack, sh
     }
   };
 
-  const formatMessageTime = (timestamp) => {
+  const formatMessageTime = timestamp => {
     const date = new Date(timestamp);
-    return date.toLocaleTimeString(i18n.language, { 
-      hour: 'numeric', 
+    return date.toLocaleTimeString(i18n.language, {
+      hour: 'numeric',
       minute: '2-digit',
-      hour12: true 
+      hour12: true,
     });
   };
 
-  const getDateSeparator = (timestamp) => {
+  const getDateSeparator = timestamp => {
     const messageDate = new Date(timestamp);
     const today = new Date();
     const yesterday = new Date(today);
@@ -146,29 +165,33 @@ const ChatPanel = ({ conversation, onMessageSent, onConversationRead, onBack, sh
     } else if (messageDate.getTime() === yesterday.getTime()) {
       return t('chat.yesterday');
     } else {
-      return messageDate.toLocaleDateString(i18n.language, { 
-        month: 'long', 
-        day: 'numeric', 
-        year: 'numeric' 
+      return messageDate.toLocaleDateString(i18n.language, {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
       });
     }
   };
 
   const shouldShowDateSeparator = (currentMessage, previousMessage) => {
-    if (!previousMessage) return true;
-    
+    if (!previousMessage) {
+      return true;
+    }
+
     const currentDate = new Date(currentMessage.createdAt);
     const previousDate = new Date(previousMessage.createdAt);
-    
+
     currentDate.setHours(0, 0, 0, 0);
     previousDate.setHours(0, 0, 0, 0);
-    
+
     return currentDate.getTime() !== previousDate.getTime();
   };
 
   if (!conversation) {
     return (
-      <div className={`chat-panel empty ${showOnMobile ? 'show-mobile' : 'hide-mobile'}`}>
+      <div
+        className={`chat-panel empty ${showOnMobile ? 'show-mobile' : 'hide-mobile'}`}
+      >
         <div className="empty-state">
           <h3>{t('chat.noConversationSelected')}</h3>
           <p>{t('chat.selectConversation')}</p>
@@ -178,7 +201,9 @@ const ChatPanel = ({ conversation, onMessageSent, onConversationRead, onBack, sh
   }
 
   return (
-    <div className={`chat-panel ${showOnMobile ? 'show-mobile' : 'hide-mobile'}`}>
+    <div
+      className={`chat-panel ${showOnMobile ? 'show-mobile' : 'hide-mobile'}`}
+    >
       <div className="chat-header">
         <button className="back-button" onClick={onBack}>
           <ArrowLeft size={20} />
@@ -186,43 +211,39 @@ const ChatPanel = ({ conversation, onMessageSent, onConversationRead, onBack, sh
         <div className="chat-header-left">
           <div className="chat-header-info">
             <h3>{conversation.postTitle || conversation.otherUserName}</h3>
-            <p className="chat-header-subtitle">{t('chat.with')} {conversation.otherUserName}</p>
+            <p className="chat-header-subtitle">
+              {t('chat.with')} {conversation.otherUserName}
+            </p>
           </div>
         </div>
         <div className="chat-header-actions">
-          <span className="status-badge claimed">
-            {t('chat.claimed')}
-          </span>
-          <button className="view-post-btn">
-            {t('chat.viewPost')}
-          </button>
+          <span className="status-badge claimed">{t('chat.claimed')}</span>
+          <button className="view-post-btn">{t('chat.viewPost')}</button>
           <button className="menu-btn">⋮</button>
         </div>
       </div>
 
       <div className="messages-container">
-        {messages.length === 0 ? (
-          !loading && (
-            <div className="no-messages">
-              <p>{t('chat.noMessagesYet')}</p>
-            </div>
-          )
-        ) : (
-          messages.map((message, index) => (
-            <React.Fragment key={message.id}>
-              {areDifferentDaysInTimezone(message.createdAt, messages[index - 1]?.createdAt, userTimezone) && (
-                <div className="date-separator">
-                  <span>{getDateSeparatorInTimezone(message.createdAt, userTimezone)}</span>
-                </div>
-              )}
-              <div
-                className={`message ${
-                  message.senderId.toString() === currentUserId ? 'sent' : 'received'
-                }`}
-              >
-                {message.senderId.toString() !== currentUserId && (
-                  <div className="message-avatar">
-                    {conversation.otherUserName.charAt(0).toUpperCase()}
+        {messages.length === 0
+          ? !loading && (
+              <div className="no-messages">
+                <p>{t('chat.noMessagesYet')}</p>
+              </div>
+            )
+          : messages.map((message, index) => (
+              <React.Fragment key={message.id}>
+                {areDifferentDaysInTimezone(
+                  message.createdAt,
+                  messages[index - 1]?.createdAt,
+                  userTimezone
+                ) && (
+                  <div className="date-separator">
+                    <span>
+                      {getDateSeparatorInTimezone(
+                        message.createdAt,
+                        userTimezone
+                      )}
+                    </span>
                   </div>
                 )}
                 <div
@@ -234,30 +255,41 @@ const ChatPanel = ({ conversation, onMessageSent, onConversationRead, onBack, sh
                 >
                   {message.senderId.toString() !== currentUserId && (
                     <div className="message-avatar">
-                      {conversation.otherUserProfilePhoto ? (
-                        <img
-                          src={getProfilePhotoUrl(
-                            conversation.otherUserProfilePhoto
-                          )}
-                          alt={conversation.otherUserName}
-                          className="message-avatar-image"
-                        />
-                      ) : (
-                        conversation.otherUserName.charAt(0).toUpperCase()
-                      )}
+                      {conversation.otherUserName.charAt(0).toUpperCase()}
                     </div>
                   )}
-                  <div className="message-content">
-                    <p className="message-text">{message.messageBody}</p>
-                    <span className="message-time">
-                      {formatTimeInTimezone(message.createdAt, userTimezone)}
-                    </span>
+                  <div
+                    className={`message ${
+                      message.senderId.toString() === currentUserId
+                        ? 'sent'
+                        : 'received'
+                    }`}
+                  >
+                    {message.senderId.toString() !== currentUserId && (
+                      <div className="message-avatar">
+                        {conversation.otherUserProfilePhoto ? (
+                          <img
+                            src={getProfilePhotoUrl(
+                              conversation.otherUserProfilePhoto
+                            )}
+                            alt={conversation.otherUserName}
+                            className="message-avatar-image"
+                          />
+                        ) : (
+                          conversation.otherUserName.charAt(0).toUpperCase()
+                        )}
+                      </div>
+                    )}
+                    <div className="message-content">
+                      <p className="message-text">{message.messageBody}</p>
+                      <span className="message-time">
+                        {formatTimeInTimezone(message.createdAt, userTimezone)}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </React.Fragment>
-          ))
-        )}
+              </React.Fragment>
+            ))}
         <div ref={messagesEndRef} />
       </div>
 
@@ -267,8 +299,8 @@ const ChatPanel = ({ conversation, onMessageSent, onConversationRead, onBack, sh
           className="message-input"
           placeholder={t('chat.typeMessage')}
           value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          onKeyDown={(e) => {
+          onChange={e => setNewMessage(e.target.value)}
+          onKeyDown={e => {
             if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey) {
               // Enter alone sends the message
               e.preventDefault();
@@ -279,8 +311,8 @@ const ChatPanel = ({ conversation, onMessageSent, onConversationRead, onBack, sh
           disabled={sending}
           rows={1}
         />
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           className="send-button"
           disabled={!newMessage.trim() || sending}
           title={t('chat.sendMessage')}

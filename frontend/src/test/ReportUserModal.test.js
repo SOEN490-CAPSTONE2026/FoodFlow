@@ -1,10 +1,18 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+} from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ReportUserModal from '../components/ReportUserModal';
 
 // Mock URL.createObjectURL
-global.URL.createObjectURL = jest.fn(() => 'blob:http://localhost/mock-blob-url');
+global.URL.createObjectURL = jest.fn(
+  () => 'blob:http://localhost/mock-blob-url'
+);
 
 describe('ReportUserModal', () => {
   const mockOnClose = jest.fn();
@@ -64,7 +72,9 @@ describe('ReportUserModal', () => {
       />
     );
 
-    expect(screen.getByText(/This report will be linked to the donation/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/This report will be linked to the donation/)
+    ).toBeInTheDocument();
   });
 
   test('does not display donation link message when donationId is not provided', () => {
@@ -78,7 +88,9 @@ describe('ReportUserModal', () => {
       />
     );
 
-    expect(screen.queryByText(/This report will be linked to the donation/)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/This report will be linked to the donation/)
+    ).not.toBeInTheDocument();
   });
 
   test('displays "this user" when reportedUser name is not available', () => {
@@ -106,7 +118,9 @@ describe('ReportUserModal', () => {
       />
     );
 
-    const textarea = screen.getByPlaceholderText('Please describe what happened...');
+    const textarea = screen.getByPlaceholderText(
+      'Please describe what happened...'
+    );
     fireEvent.change(textarea, { target: { value: 'Test description' } });
 
     expect(textarea).toHaveValue('Test description');
@@ -123,7 +137,9 @@ describe('ReportUserModal', () => {
       />
     );
 
-    const textarea = screen.getByPlaceholderText('Please describe what happened...');
+    const textarea = screen.getByPlaceholderText(
+      'Please describe what happened...'
+    );
     fireEvent.change(textarea, { target: { value: 'Test' } });
 
     expect(screen.getByText('4/1000')).toBeInTheDocument();
@@ -140,12 +156,16 @@ describe('ReportUserModal', () => {
       />
     );
 
-    const file = new File(['a'.repeat(6 * 1024 * 1024)], 'large.jpg', { type: 'image/jpeg' });
+    const file = new File(['a'.repeat(6 * 1024 * 1024)], 'large.jpg', {
+      type: 'image/jpeg',
+    });
     const fileInput = document.querySelector('input[type="file"]');
 
     fireEvent.change(fileInput, { target: { files: [file] } });
 
-    expect(screen.getByText('Photo size must be less than 5MB')).toBeInTheDocument();
+    expect(
+      screen.getByText('Photo size must be less than 5MB')
+    ).toBeInTheDocument();
   });
 
   test('handles valid photo upload', () => {
@@ -255,14 +275,18 @@ describe('ReportUserModal', () => {
       />
     );
 
-    const textarea = screen.getByPlaceholderText('Please describe what happened...');
+    const textarea = screen.getByPlaceholderText(
+      'Please describe what happened...'
+    );
     const form = textarea.closest('form');
-    
+
     // Submit form with empty description
     fireEvent.submit(form);
 
     await waitFor(() => {
-      expect(screen.getByText('Please provide a description')).toBeInTheDocument();
+      expect(
+        screen.getByText('Please provide a description')
+      ).toBeInTheDocument();
     });
     expect(mockOnSubmit).not.toHaveBeenCalled();
   });
@@ -293,7 +317,9 @@ describe('ReportUserModal', () => {
       />
     );
 
-    const textarea = screen.getByPlaceholderText('Please describe what happened...');
+    const textarea = screen.getByPlaceholderText(
+      'Please describe what happened...'
+    );
     fireEvent.change(textarea, { target: { value: 'Test description' } });
 
     const submitButton = screen.getByText('Submit Report');
@@ -313,8 +339,12 @@ describe('ReportUserModal', () => {
       />
     );
 
-    const textarea = screen.getByPlaceholderText('Please describe what happened...');
-    fireEvent.change(textarea, { target: { value: 'Test report description' } });
+    const textarea = screen.getByPlaceholderText(
+      'Please describe what happened...'
+    );
+    fireEvent.change(textarea, {
+      target: { value: 'Test report description' },
+    });
 
     const submitButton = screen.getByText('Submit Report');
     fireEvent.click(submitButton);
@@ -344,7 +374,9 @@ describe('ReportUserModal', () => {
       />
     );
 
-    const textarea = screen.getByPlaceholderText('Please describe what happened...');
+    const textarea = screen.getByPlaceholderText(
+      'Please describe what happened...'
+    );
     fireEvent.change(textarea, { target: { value: 'Test description' } });
 
     const submitButton = screen.getByText('Submit Report');
@@ -370,19 +402,25 @@ describe('ReportUserModal', () => {
       />
     );
 
-    const textarea = screen.getByPlaceholderText('Please describe what happened...');
+    const textarea = screen.getByPlaceholderText(
+      'Please describe what happened...'
+    );
     fireEvent.change(textarea, { target: { value: 'Test description' } });
 
     const submitButton = screen.getByText('Submit Report');
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Failed to submit report. Please try again.')).toBeInTheDocument();
+      expect(
+        screen.getByText('Failed to submit report. Please try again.')
+      ).toBeInTheDocument();
     });
   });
 
   test('shows submitting state during submission', async () => {
-    mockOnSubmit.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 1000)));
+    mockOnSubmit.mockImplementation(
+      () => new Promise(resolve => setTimeout(resolve, 1000))
+    );
 
     render(
       <ReportUserModal
@@ -394,7 +432,9 @@ describe('ReportUserModal', () => {
       />
     );
 
-    const textarea = screen.getByPlaceholderText('Please describe what happened...');
+    const textarea = screen.getByPlaceholderText(
+      'Please describe what happened...'
+    );
     fireEvent.change(textarea, { target: { value: 'Test description' } });
 
     const submitButton = screen.getByText('Submit Report');
@@ -485,7 +525,9 @@ describe('ReportUserModal', () => {
       />
     );
 
-    const textarea = screen.getByPlaceholderText('Please describe what happened...');
+    const textarea = screen.getByPlaceholderText(
+      'Please describe what happened...'
+    );
     fireEvent.change(textarea, { target: { value: 'Test description' } });
 
     const submitButton = screen.getByText('Submit Report');
@@ -506,7 +548,9 @@ describe('ReportUserModal', () => {
       />
     );
 
-    const newTextarea = screen.getByPlaceholderText('Please describe what happened...');
+    const newTextarea = screen.getByPlaceholderText(
+      'Please describe what happened...'
+    );
     expect(newTextarea).toHaveValue('');
   });
 
@@ -531,12 +575,16 @@ describe('ReportUserModal', () => {
     const fileInput = document.querySelector('input[type="file"]');
 
     // Upload large file
-    const largeFile = new File(['a'.repeat(6 * 1024 * 1024)], 'large.jpg', { type: 'image/jpeg' });
+    const largeFile = new File(['a'.repeat(6 * 1024 * 1024)], 'large.jpg', {
+      type: 'image/jpeg',
+    });
     Object.defineProperty(largeFile, 'size', { value: 6 * 1024 * 1024 });
     fireEvent.change(fileInput, { target: { files: [largeFile] } });
-    
+
     await waitFor(() => {
-      expect(screen.getByText('Photo size must be less than 5MB')).toBeInTheDocument();
+      expect(
+        screen.getByText('Photo size must be less than 5MB')
+      ).toBeInTheDocument();
     });
 
     // Upload valid file
@@ -545,12 +593,16 @@ describe('ReportUserModal', () => {
     fireEvent.change(fileInput, { target: { files: [validFile] } });
 
     await waitFor(() => {
-      expect(screen.queryByText('Photo size must be less than 5MB')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Photo size must be less than 5MB')
+      ).not.toBeInTheDocument();
     });
   });
 
   test('disables buttons during submission', async () => {
-    mockOnSubmit.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 1000)));
+    mockOnSubmit.mockImplementation(
+      () => new Promise(resolve => setTimeout(resolve, 1000))
+    );
 
     render(
       <ReportUserModal
@@ -562,7 +614,9 @@ describe('ReportUserModal', () => {
       />
     );
 
-    const textarea = screen.getByPlaceholderText('Please describe what happened...');
+    const textarea = screen.getByPlaceholderText(
+      'Please describe what happened...'
+    );
     fireEvent.change(textarea, { target: { value: 'Test description' } });
 
     const submitButton = screen.getByText('Submit Report');

@@ -1,30 +1,30 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FaMobileAlt, FaBell, FaShieldAlt } from "react-icons/fa";
-import "../LandingPage/style/HowItWorks.css";
+import { FaMobileAlt, FaBell, FaShieldAlt } from 'react-icons/fa';
+import '../LandingPage/style/HowItWorks.css';
 
 const HowItWorks = () => {
   const { t } = useTranslation();
-  
+
   const steps = [
     {
       number: t('landing.howItWorks.step1.number'),
       title: t('landing.howItWorks.step1.title'),
       text: t('landing.howItWorks.step1.text'),
-      icon: <FaMobileAlt />
+      icon: <FaMobileAlt />,
     },
     {
       number: t('landing.howItWorks.step2.number'),
       title: t('landing.howItWorks.step2.title'),
       text: t('landing.howItWorks.step2.text'),
-      icon: <FaBell />
+      icon: <FaBell />,
     },
     {
       number: t('landing.howItWorks.step3.number'),
       title: t('landing.howItWorks.step3.title'),
       text: t('landing.howItWorks.step3.text'),
-      icon: <FaShieldAlt />
-    }
+      icon: <FaShieldAlt />,
+    },
   ];
   const [currentStep, setCurrentStep] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -83,9 +83,7 @@ const HowItWorks = () => {
     >
       <div className="hiw-header">
         <h1>{t('landing.howItWorks.title')}</h1>
-        <p>
-          {t('landing.howItWorks.subtitle')}
-        </p>
+        <p>{t('landing.howItWorks.subtitle')}</p>
       </div>
 
       <div className="hiw-steps-wrapper">

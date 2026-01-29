@@ -608,7 +608,7 @@
       "pound": "lbs",
       "box": "caixas"
     },
-     "steps": {
+    "steps": {
       "foodDetails": "Detalhes do alimento",
       "quantityDates": "Quantidade e Datas",
       "pickupInfo": "Informações de Retirada",

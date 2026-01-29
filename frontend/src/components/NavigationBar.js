@@ -29,7 +29,9 @@ const NavigationBar = () => {
     { code: 'pt', name: t('language.portuguese'), flag: '🇵🇹' },
   ];
 
-  const currentLanguage = languages.find(lang => lang.code === i18n.language.split('-')[0]) || languages[0];
+  const currentLanguage =
+    languages.find(lang => lang.code === i18n.language.split('-')[0]) ||
+    languages[0];
 
   const [from, setFrom] = useState(
     () => location.state?.from || sessionStorage.getItem('returnFrom') || null
@@ -105,7 +107,7 @@ const NavigationBar = () => {
     }
   };
 
-  const handleLanguageSelect = (langCode) => {
+  const handleLanguageSelect = langCode => {
     i18n.changeLanguage(langCode);
     setIsLangDropdownOpen(false);
   };
@@ -152,19 +154,32 @@ const NavigationBar = () => {
       <div id="primary-menu" className={`menu ${isMenuOpen ? 'active' : ''}`}>
         <ul>
           <li>
-            <a href="#home" onClick={(e) => scrollToSection('home', e)}>{t('nav.home')}</a>
+            <a href="#home" onClick={e => scrollToSection('home', e)}>
+              {t('nav.home')}
+            </a>
           </li>
           <li>
-            <a href="#how-it-works" onClick={(e) => scrollToSection('how-it-works', e)}>{t('nav.howItWorks')}</a>
+            <a
+              href="#how-it-works"
+              onClick={e => scrollToSection('how-it-works', e)}
+            >
+              {t('nav.howItWorks')}
+            </a>
           </li>
           <li>
-            <a href="#about" onClick={(e) => scrollToSection('about', e)}>{t('nav.about')}</a>
+            <a href="#about" onClick={e => scrollToSection('about', e)}>
+              {t('nav.about')}
+            </a>
           </li>
           <li>
-            <a href="#faqs" onClick={(e) => scrollToSection('faqs', e)}>{t('nav.faqs')}</a>
+            <a href="#faqs" onClick={e => scrollToSection('faqs', e)}>
+              {t('nav.faqs')}
+            </a>
           </li>
           <li>
-            <a href="#contact" onClick={(e) => scrollToSection('contact', e)}>{t('nav.contact')}</a>
+            <a href="#contact" onClick={e => scrollToSection('contact', e)}>
+              {t('nav.contact')}
+            </a>
           </li>
         </ul>
 
@@ -175,8 +190,12 @@ const NavigationBar = () => {
             </button>
           ) : (
             <>
-              <button className="login-button" onClick={handleLogin}>{t('nav.login')}</button>
-              <button className="signup-button" onClick={handleSignUp}>{t('nav.register')}</button>
+              <button className="login-button" onClick={handleLogin}>
+                {t('nav.login')}
+              </button>
+              <button className="signup-button" onClick={handleSignUp}>
+                {t('nav.register')}
+              </button>
             </>
           )}
 
@@ -189,7 +208,9 @@ const NavigationBar = () => {
                 aria-label={t('language.select')}
               >
                 <span className="lang-flag">{currentLanguage.flag}</span>
-                <span className="lang-name">{currentLanguage.code.toUpperCase()}</span>
+                <span className="lang-name">
+                  {currentLanguage.code.toUpperCase()}
+                </span>
               </button>
 
               {isLangDropdownOpen && (
@@ -202,7 +223,9 @@ const NavigationBar = () => {
                     >
                       <span className="lang-flag">{lang.flag}</span>
                       <span className="lang-name">{lang.name}</span>
-                      {i18n.language.split('-')[0] === lang.code && <span className="lang-check">✓</span>}
+                      {i18n.language.split('-')[0] === lang.code && (
+                        <span className="lang-check">✓</span>
+                      )}
                     </button>
                   ))}
                 </div>
@@ -219,8 +242,12 @@ const NavigationBar = () => {
           </button>
         ) : (
           <>
-            <button className="login-button" onClick={handleLogin}>{t('nav.login')}</button>
-            <button className="signup-button" onClick={handleSignUp}>{t('nav.register')}</button>
+            <button className="login-button" onClick={handleLogin}>
+              {t('nav.login')}
+            </button>
+            <button className="signup-button" onClick={handleSignUp}>
+              {t('nav.register')}
+            </button>
           </>
         )}
 
@@ -233,7 +260,9 @@ const NavigationBar = () => {
               aria-label={t('language.select')}
             >
               <span className="lang-flag">{currentLanguage.flag}</span>
-              <span className="lang-name">{currentLanguage.code.toUpperCase()}</span>
+              <span className="lang-name">
+                {currentLanguage.code.toUpperCase()}
+              </span>
             </button>
 
             {isLangDropdownOpen && (
@@ -246,7 +275,9 @@ const NavigationBar = () => {
                   >
                     <span className="lang-flag">{lang.flag}</span>
                     <span className="lang-name">{lang.name}</span>
-                    {i18n.language.split('-')[0] === lang.code && <span className="lang-check">✓</span>}
+                    {i18n.language.split('-')[0] === lang.code && (
+                      <span className="lang-check">✓</span>
+                    )}
                   </button>
                 ))}
               </div>
