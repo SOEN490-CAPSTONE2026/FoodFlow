@@ -2,6 +2,9 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ReceiverPreferences from '../components/ReceiverDashboard/ReceiverPreferences';
 
+// Import mocked api
+import api from '../services/api';
+
 // Mock foodTypeOptions to include 'Prepared Meals'
 jest.mock('../constants/foodConstants', () => ({
   foodTypeOptions: [
@@ -19,9 +22,6 @@ jest.mock('../services/api', () => ({
     post: jest.fn(),
   }
 }));
-
-// Import mocked api
-import api from '../services/api';
 
 describe('ReceiverPreferences', () => {
   const mockOnClose = jest.fn();

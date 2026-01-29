@@ -4,6 +4,8 @@ import "@testing-library/jest-dom";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { AuthContext } from "../../../contexts/AuthContext";
 
+import AdminLayout from "../AdminLayout";
+
 const mockedNavigate = jest.fn();
 jest.mock("react-router-dom", () => {
   const actual = jest.requireActual("react-router-dom");
@@ -12,8 +14,6 @@ jest.mock("react-router-dom", () => {
     useNavigate: () => mockedNavigate,
   };
 });
-
-import AdminLayout from "../AdminLayout";
 
 function Stub({ label }) {
   return <div data-testid="stub-outlet">{label}</div>;

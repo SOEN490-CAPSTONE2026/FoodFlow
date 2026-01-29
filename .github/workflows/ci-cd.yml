@@ -44,6 +44,11 @@ jobs:
       - run: npm install
         working-directory: ./frontend
 
+
+      - name: Run frontend linting and formatting
+        run: npm run validate
+        working-directory: ./frontend
+
       - name: Run frontend tests
         run: npm test
         working-directory: ./frontend
