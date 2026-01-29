@@ -396,7 +396,7 @@ public class EmailService {
                         </div>
                         <p>Log in to FoodFlow to view details and claim this donation!</p>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/receiver-dashboard" class="button" style="color: white !important; text-decoration: none;">View Donation</a>
+                            <a href="http://localhost:3000/receiver/dashboard" class="button" style="color: white !important; text-decoration: none;">View Donation</a>
                         </p>
                     </div>
                     <div class="footer">
@@ -452,7 +452,7 @@ public class EmailService {
                         </div>
                         <p>The receiver will coordinate pickup details with you. Please check your messages in FoodFlow.</p>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/donor-dashboard" class="button" style="color: white !important; text-decoration: none;">View Claim Details</a>
+                            <a href="http://localhost:3000/donor/dashboard" class="button" style="color: white !important; text-decoration: none;">View Claim Details</a>
                         </p>
                     </div>
                     <div class="footer">
@@ -506,7 +506,7 @@ public class EmailService {
                         </div>
                         <p>Your donation is now available again for other receivers to claim.</p>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/donor-dashboard" class="button" style="color: white !important; text-decoration: none;">View Your Donations</a>
+                            <a href="http://localhost:3000/donor/dashboard" class="button" style="color: white !important; text-decoration: none;">View Your Donations</a>
                         </p>
                     </div>
                     <div class="footer">
@@ -520,6 +520,45 @@ public class EmailService {
             """.formatted(userName, title, reason);
     }
     
+    /**
+     * Send notification email for new message received
+     * Generalized method that works for both donors and receivers
+     * @param toEmail recipient email address
+     * @param recipientName recipient's name or organization name
+     * @param senderName sender's name or organization name
+     * @param messagePreview preview of the message content
+     */
+    public void sendNewMessageNotification(String toEmail, String recipientName, String senderName, String messagePreview) {
+        log.info("Sending new message notification email to: {}", toEmail);
+        
+        try {
+            ApiClient defaultClient = Configuration.getDefaultApiClient();
+            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
+            apiKey.setApiKey(brevoApiKey);
+            
+            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+            SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+            
+            SendSmtpEmailSender sender = new SendSmtpEmailSender();
+            sender.setEmail(fromEmail);
+            sender.setName(fromName);
+            sendSmtpEmail.setSender(sender);
+            
+            SendSmtpEmailTo recipient = new SendSmtpEmailTo();
+            recipient.setEmail(toEmail);
+            sendSmtpEmail.setTo(Collections.singletonList(recipient));
+            
+            sendSmtpEmail.setSubject("New Message from " + senderName + " - FoodFlow");
+            sendSmtpEmail.setHtmlContent(buildNewMessageEmailBody(recipientName, senderName, messagePreview));
+            
+            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            log.info("New message notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
+        } catch (ApiException ex) {
+            log.error("Error sending new message notification to: {}", toEmail, ex);
+            // Don't throw - email is secondary to websocket notification
+        }
+    }
+
     /**
      * Send account approval email to user
      * @param toEmail recipient email address
@@ -627,6 +666,63 @@ public class EmailService {
         };
     }
     
+    /**
+     * Build HTML email body for new message notification
+     */
+    private String buildNewMessageEmailBody(String recipientName, String senderName, String messagePreview) {
+        // Limit message preview to 150 characters
+        String preview = messagePreview;
+        if (preview.length() > 150) {
+            preview = preview.substring(0, 147) + "...";
+        }
+        
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                    .header { background-color: #224d68; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+                    .content { background-color: #f9f9f9; padding: 30px; border-radius: 0 0 5px 5px; }
+                    .message-box { background-color: white; border-left: 4px solid #224d68; padding: 20px; margin: 20px 0; border-radius: 5px; }
+                    .sender-name { font-weight: bold; color: #224d68; font-size: 18px; margin-bottom: 10px; }
+                    .message-preview { color: #555; font-style: italic; background-color: #f3f4f6; padding: 15px; border-radius: 5px; margin: 15px 0; }
+                    .button { display: inline-block; background-color: #224d68; color: white !important; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 20px; }
+                    a.button:visited { color: white !important; }
+                    a.button:hover { background-color: #1a3a4f; color: white !important; }
+                    a.button:active { color: white !important; }
+                    .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>💬 New Message Received</h1>
+                    </div>
+                    <div class="content">
+                        <p>Hi %s,</p>
+                        <p>You have received a new message on FoodFlow:</p>
+                        <div class="message-box">
+                            <div class="sender-name">From: %s</div>
+                            <div class="message-preview">"%s"</div>
+                        </div>
+                        <p>Log in to FoodFlow to view the full message and reply!</p>
+                        <p style="text-align: center;">
+                            <a href="%s/donor/messages" class="button" style="color: white !important; text-decoration: none;">View Message</a>
+                        </p>
+                    </div>
+                    <div class="footer">
+                        <p>© 2026 FoodFlow. All rights reserved.</p>
+                        <p>You're receiving this email because you have email notifications enabled in your preferences.</p>
+                        <p>To manage your notification settings, visit Settings in your FoodFlow account.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(recipientName, senderName, preview, frontendUrl);
+    }
+
     /**
      * Build HTML email body for account approval
      */

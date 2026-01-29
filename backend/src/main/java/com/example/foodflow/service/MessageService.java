@@ -43,6 +43,9 @@ public class MessageService {
     
     @Autowired
     private NotificationPreferenceService notificationPreferenceService;
+    
+    @Autowired
+    private EmailService emailService;
 
     private final BusinessMetricsService businessMetricsService;
     
@@ -81,6 +84,7 @@ public class MessageService {
         String notificationType = sender.getRole().toString().equals("DONOR") ? 
             "newMessageFromDonor" : "newMessageFromReceiver";
         
+        // Send websocket notification
         if (notificationPreferenceService.shouldSendNotification(otherUser, notificationType, "websocket")) {
             try {
                 messagingTemplate.convertAndSendToUser(
@@ -94,7 +98,34 @@ public class MessageService {
                 logger.error("Failed to send message notification: {}", e.getMessage());
             }
         } else {
-            logger.info("Skipped message notification to userId={} - notification type '{}' disabled", 
+            logger.info("Skipped websocket message notification to userId={} - notification type '{}' disabled", 
+                otherUser.getId(), notificationType);
+        }
+        
+        // Send email notification if enabled
+        if (notificationPreferenceService.shouldSendNotification(otherUser, notificationType, "email")) {
+            try {
+                String recipientName = (otherUser.getOrganization() != null && otherUser.getOrganization().getName() != null) ? 
+                    otherUser.getOrganization().getName() : otherUser.getEmail();
+                String senderName = (sender.getOrganization() != null && sender.getOrganization().getName() != null) ? 
+                    sender.getOrganization().getName() : sender.getEmail();
+                String messagePreview = request.getMessageBody();
+                
+                emailService.sendNewMessageNotification(
+                    otherUser.getEmail(), 
+                    recipientName, 
+                    senderName, 
+                    messagePreview
+                );
+                logger.info("Sent email message notification to userId={} (type: {})", 
+                    otherUser.getId(), notificationType);
+            } catch (Exception e) {
+                logger.error("Failed to send email message notification to userId={}: {}", 
+                    otherUser.getId(), e.getMessage());
+                // Don't fail the whole operation if email fails
+            }
+        } else {
+            logger.info("Skipped email message notification to userId={} - notification type '{}' disabled", 
                 otherUser.getId(), notificationType);
         }
         
