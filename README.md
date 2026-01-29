@@ -1,3 +1,5 @@
+Product Demo: https://drive.google.com/file/d/1nEElLNKFA6pm4d5NZZG9k_GQtKXwSGws/view?usp=sharing
+
 # FoodFlow
 
 ![Build Status](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/workflows/CI/badge.svg)
@@ -6,7 +8,7 @@
 
 ## 🎬 Release Demos
 - Release 1 Demo: [Video](https://drive.google.com/file/d/1QMPNL1EYaqpbYQZB4Q4PgDAAiZX4eoUZ/view?usp=sharing) [Slideshow](https://docs.google.com/presentation/d/1XW-psvClrD1vm02NoNI0VIn4971Y4OIbMR2bVWhAyp8/edit?usp=sharing)
-- [Release 2 Demo]() - [Coming Soon]
+- [Release 2 Demo]() - [Video is coming soon] [Slideshow](https://docs.google.com/presentation/d/1oSXrTyCY9ngMlPyji20SyCfQyJ3tqTullJgg0uAYKhs/edit?usp=sharing)
 - [Release 3 Demo]() - [Coming Soon]
 
 ## 📖 Project Summary
