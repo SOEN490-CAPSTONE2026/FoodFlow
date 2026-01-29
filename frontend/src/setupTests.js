@@ -902,6 +902,21 @@ jest.mock('./services/api', () => ({
 
 // Mock Firebase
 jest.mock('./services/firebase', () => ({
+  app: {
+    name: '[DEFAULT]',
+    options: {
+      apiKey: 'AIzaSyCJBJqzAUkzs9Hb_6cbBT5TTaEo4KKUbVc',
+      authDomain: 'foodflow-2026.firebaseapp.com',
+      projectId: 'foodflow-2026',
+      storageBucket: 'foodflow-2026.firebasestorage.app',
+      messagingSenderId: '75633139386',
+      appId: '1:75633139386:web:3cc7e8ddd208bf52dbec83',
+      measurementId: 'G-NNSDLTMQ29',
+    },
+  },
+  analytics: {
+    app: { name: '[DEFAULT]' },
+  },
   auth: {
     currentUser: null,
     signInWithEmailAndPassword: jest.fn(),
