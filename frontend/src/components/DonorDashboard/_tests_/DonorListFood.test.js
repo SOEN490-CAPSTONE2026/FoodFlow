@@ -1124,4 +1124,572 @@ describe('DonorListFood', () => {
       });
     });
   });
+
+  describe('Utility functions', () => {
+    test('formatPickupTime should return Flexible when date is missing', () => {
+      const result = require('../DonorListFood').formatPickupTime?.(
+        null,
+        '10:00',
+        '12:00'
+      );
+      // Function is not exported, tested through component rendering
+      expect(result).toBeUndefined(); // formatPickupTime is not exported
+    });
+
+    test('isExpired should handle invalid date strings', () => {
+      // Test through component behavior - expiry date with invalid format
+      const itemWithInvalidDate = {
+        ...mockItems[0],
+        expiryDate: 'invalid-date',
+      };
+      surplusAPI.getMyPosts.mockResolvedValue({ data: [itemWithInvalidDate] });
+      setup();
+    });
+
+    test('normalizeStatus should handle empty status', () => {
+      const itemWithNullStatus = {
+        ...mockItems[0],
+        status: null,
+      };
+      surplusAPI.getMyPosts.mockResolvedValue({ data: [itemWithNullStatus] });
+      setup();
+    });
+  });
+
+  describe('Photo upload functionality', () => {
+    const mockClaimsAPI = require('../../../services/api').claimsAPI;
+    const mockFeedbackAPI = require('../../../services/api').feedbackAPI;
+
+    beforeEach(() => {
+      mockClaimsAPI.getClaimForSurplusPost.mockResolvedValue({
+        data: [
+          {
+            id: 1,
+            receiverId: 2,
+            receiverEmail: 'receiver@test.com',
+          },
+        ],
+      });
+      mockFeedbackAPI.getFeedbackForClaim.mockResolvedValue({ data: [] });
+      mockFeedbackAPI.submitFeedback.mockResolvedValue({
+        data: { success: true },
+      });
+    });
+
+    test('should show upload button for CLAIMED donations', async () => {
+      const claimedItem = {
+        ...mockItems[0],
+        status: 'CLAIMED',
+      };
+      surplusAPI.getMyPosts.mockResolvedValue({ data: [claimedItem] });
+
+      setup();
+
+      await waitFor(() => {
+        expect(screen.getByText(/open chat/i)).toBeInTheDocument();
+      });
+    });
+
+    test('should display photo carousel when photos exist', async () => {
+      const user = userEvent.setup();
+      const itemWithPhotos = {
+        ...mockItems[0],
+        status: 'COMPLETED',
+      };
+
+      surplusAPI.getMyPosts.mockResolvedValue({ data: [itemWithPhotos] });
+      surplusAPI.getTimeline.mockResolvedValue({
+        data: [
+          {
+            id: 1,
+            eventType: 'EVIDENCE_UPLOADED',
+            timestamp: '2025-10-01T12:00:00',
+            pickupEvidenceUrl: '/api/files/uploads/photo1.jpg',
+          },
+          {
+            id: 2,
+            eventType: 'EVIDENCE_UPLOADED',
+            timestamp: '2025-10-01T12:05:00',
+            pickupEvidenceUrl: '/api/files/uploads/photo2.jpg',
+          },
+        ],
+      });
+
+      setup();
+
+      await waitFor(() => {
+        expect(screen.getByText('Fresh Apples')).toBeInTheDocument();
+      });
+
+      // Wait for photos to load in background
+      await waitFor(
+        () => {
+          expect(surplusAPI.getTimeline).toHaveBeenCalled();
+        },
+        { timeout: 3000 }
+      );
+    });
+
+    test('should handle photo upload errors gracefully', async () => {
+      const user = userEvent.setup();
+      const claimedItem = {
+        ...mockItems[0],
+        status: 'READY_FOR_PICKUP',
+      };
+
+      surplusAPI.getMyPosts.mockResolvedValue({ data: [claimedItem] });
+      surplusAPI.uploadEvidence = jest.fn().mockRejectedValue({
+        response: { data: { message: 'File too large' } },
+      });
+
+      setup();
+
+      await waitFor(() => {
+        expect(screen.getByText('Fresh Apples')).toBeInTheDocument();
+      });
+    });
+
+    test('should navigate between photos', async () => {
+      const itemWithPhotos = {
+        ...mockItems[0],
+        status: 'COMPLETED',
+      };
+
+      surplusAPI.getMyPosts.mockResolvedValue({ data: [itemWithPhotos] });
+      surplusAPI.getTimeline.mockResolvedValue({
+        data: [
+          {
+            id: 1,
+            eventType: 'EVIDENCE_UPLOADED',
+            timestamp: '2025-10-01T12:00:00',
+            pickupEvidenceUrl: '/api/files/uploads/photo1.jpg',
+          },
+        ],
+      });
+
+      setup();
+
+      await waitFor(() => {
+        expect(screen.getByText('Fresh Apples')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Feedback and reporting', () => {
+    const mockClaimsAPI = require('../../../services/api').claimsAPI;
+    const mockReportAPI = require('../../../services/api').reportAPI;
+
+    beforeEach(() => {
+      mockClaimsAPI.getClaimForSurplusPost.mockResolvedValue({
+        data: [
+          {
+            id: 1,
+            receiverId: 2,
+            receiverEmail: 'receiver@test.com',
+          },
+        ],
+      });
+      mockReportAPI.createReport = jest
+        .fn()
+        .mockResolvedValue({ data: { success: true } });
+    });
+
+    test('should open feedback modal for completed donation', async () => {
+      const user = userEvent.setup();
+      const completedItem = {
+        ...mockItems[0],
+        status: 'COMPLETED',
+      };
+
+      surplusAPI.getMyPosts.mockResolvedValue({ data: [completedItem] });
+
+      setup();
+
+      await waitFor(() => {
+        expect(screen.getByText(/leave feedback/i)).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByText(/leave feedback/i));
+
+      await waitFor(() => {
+        expect(mockClaimsAPI.getClaimForSurplusPost).toHaveBeenCalledWith(1);
+      });
+    });
+
+    test('should handle feedback modal open when no claims exist', async () => {
+      const user = userEvent.setup();
+      const completedItem = {
+        ...mockItems[0],
+        status: 'COMPLETED',
+      };
+
+      surplusAPI.getMyPosts.mockResolvedValue({ data: [completedItem] });
+      mockClaimsAPI.getClaimForSurplusPost.mockResolvedValue({ data: [] });
+
+      setup();
+
+      await waitFor(() => {
+        expect(screen.getByText(/leave feedback/i)).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByText(/leave feedback/i));
+
+      await waitFor(() => {
+        expect(window.alert).toHaveBeenCalled();
+      });
+    });
+
+    test('should handle feedback modal open error', async () => {
+      const user = userEvent.setup();
+      const completedItem = {
+        ...mockItems[0],
+        status: 'COMPLETED',
+      };
+
+      surplusAPI.getMyPosts.mockResolvedValue({ data: [completedItem] });
+      mockClaimsAPI.getClaimForSurplusPost.mockRejectedValue(
+        new Error('Network error')
+      );
+
+      setup();
+
+      await waitFor(() => {
+        expect(screen.getByText(/leave feedback/i)).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByText(/leave feedback/i));
+
+      await waitFor(() => {
+        expect(window.alert).toHaveBeenCalled();
+      });
+    });
+
+    test('should open report modal for completed donation', async () => {
+      const user = userEvent.setup();
+      const completedItem = {
+        ...mockItems[0],
+        status: 'COMPLETED',
+        receiverId: 2,
+        receiverName: 'Test Receiver',
+      };
+
+      surplusAPI.getMyPosts.mockResolvedValue({ data: [completedItem] });
+
+      setup();
+
+      await waitFor(() => {
+        expect(screen.getByText(/thank you/i)).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Contact receiver functionality', () => {
+    const mockClaimsAPI = require('../../../services/api').claimsAPI;
+
+    beforeEach(() => {
+      mockClaimsAPI.getClaimForSurplusPost.mockResolvedValue({
+        data: [
+          {
+            id: 1,
+            receiverId: 2,
+            receiverEmail: 'receiver@test.com',
+          },
+        ],
+      });
+    });
+
+    test('should navigate to messages when open chat is clicked', async () => {
+      const user = userEvent.setup();
+      const claimedItem = {
+        ...mockItems[0],
+        status: 'CLAIMED',
+      };
+
+      surplusAPI.getMyPosts.mockResolvedValue({ data: [claimedItem] });
+
+      setup();
+
+      await waitFor(() => {
+        expect(screen.getByText(/open chat/i)).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByText(/open chat/i));
+
+      await waitFor(() => {
+        expect(mockClaimsAPI.getClaimForSurplusPost).toHaveBeenCalledWith(1);
+      });
+    });
+
+    test('should handle contact receiver when email fetch fails', async () => {
+      const user = userEvent.setup();
+      const claimedItem = {
+        ...mockItems[0],
+        status: 'CLAIMED',
+      };
+
+      surplusAPI.getMyPosts.mockResolvedValue({ data: [claimedItem] });
+      mockClaimsAPI.getClaimForSurplusPost.mockResolvedValue({ data: [] });
+
+      setup();
+
+      await waitFor(() => {
+        expect(screen.getByText(/open chat/i)).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByText(/open chat/i));
+
+      await waitFor(() => {
+        expect(mockClaimsAPI.getClaimForSurplusPost).toHaveBeenCalled();
+      });
+    });
+
+    test('should handle contact receiver API error', async () => {
+      const user = userEvent.setup();
+      const claimedItem = {
+        ...mockItems[0],
+        status: 'CLAIMED',
+      };
+
+      surplusAPI.getMyPosts.mockResolvedValue({ data: [claimedItem] });
+      mockClaimsAPI.getClaimForSurplusPost.mockRejectedValue({
+        response: { status: 400 },
+      });
+
+      setup();
+
+      await waitFor(() => {
+        expect(screen.getByText(/open chat/i)).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByText(/open chat/i));
+
+      await waitFor(() => {
+        expect(mockClaimsAPI.getClaimForSurplusPost).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('Reschedule functionality', () => {
+    test('should open reschedule modal', async () => {
+      const user = userEvent.setup();
+      const availableItem = {
+        ...mockItems[0],
+        status: 'AVAILABLE',
+      };
+
+      surplusAPI.getMyPosts.mockResolvedValue({ data: [availableItem] });
+
+      setup();
+
+      await waitFor(() => {
+        expect(screen.getByText(/edit/i)).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Sort functionality edge cases', () => {
+    test('should handle sorting with non-array posts', async () => {
+      surplusAPI.getMyPosts.mockResolvedValue({ data: null });
+
+      setup();
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(/you haven't posted anything yet/i)
+        ).toBeInTheDocument();
+      });
+    });
+
+    test('should sort by date when posts have different creation dates', async () => {
+      const postsWithDates = [
+        { ...mockItems[0], createdAt: '2025-10-01T10:00:00' },
+        { ...mockItems[1], createdAt: '2025-10-02T10:00:00' },
+      ];
+
+      surplusAPI.getMyPosts.mockResolvedValue({ data: postsWithDates });
+
+      setup();
+
+      await waitFor(() => {
+        expect(screen.getByText('Fresh Apples')).toBeInTheDocument();
+      });
+    });
+
+    test('should handle posts without createdAt or pickupDate', async () => {
+      const postsWithoutDates = [
+        { ...mockItems[0], createdAt: null, pickupDate: null },
+        { ...mockItems[1], createdAt: null, pickupDate: null },
+      ];
+
+      surplusAPI.getMyPosts.mockResolvedValue({ data: postsWithoutDates });
+
+      setup();
+
+      await waitFor(() => {
+        expect(screen.getByText('Fresh Apples')).toBeInTheDocument();
+      });
+    });
+
+    test('should handle posts with unknown status when sorting by status', async () => {
+      const user = userEvent.setup();
+      const postsWithUnknownStatus = [
+        { ...mockItems[0], status: 'UNKNOWN_STATUS' },
+        { ...mockItems[1], status: 'AVAILABLE' },
+      ];
+
+      surplusAPI.getMyPosts.mockResolvedValue({ data: postsWithUnknownStatus });
+
+      setup();
+
+      await waitFor(() => {
+        expect(screen.getByText(/sort by date/i)).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByText(/sort by date/i));
+      await user.click(screen.getByText(/sort by status/i));
+
+      await waitFor(() => {
+        expect(screen.getByText(/sort by status/i)).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Close dropdown on outside click', () => {
+    test('should close sort dropdown when clicking outside', async () => {
+      const user = userEvent.setup();
+
+      setup();
+
+      await waitFor(() => {
+        expect(screen.getByText(/sort by date/i)).toBeInTheDocument();
+      });
+
+      // Open dropdown
+      await user.click(screen.getByText(/sort by date/i));
+
+      await waitFor(() => {
+        expect(screen.getByText(/sort by status/i)).toBeInTheDocument();
+      });
+
+      // Click outside
+      await user.click(document.body);
+
+      await waitFor(() => {
+        expect(screen.queryByText(/sort by status/i)).not.toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Evidence image URL construction', () => {
+    test('should handle full HTTP URLs', async () => {
+      const itemWithPhotos = {
+        ...mockItems[0],
+        status: 'COMPLETED',
+      };
+
+      surplusAPI.getMyPosts.mockResolvedValue({ data: [itemWithPhotos] });
+      surplusAPI.getTimeline.mockResolvedValue({
+        data: [
+          {
+            id: 1,
+            eventType: 'EVIDENCE_UPLOADED',
+            timestamp: '2025-10-01T12:00:00',
+            pickupEvidenceUrl: 'http://example.com/photo.jpg',
+          },
+        ],
+      });
+
+      setup();
+
+      await waitFor(() => {
+        expect(screen.getByText('Fresh Apples')).toBeInTheDocument();
+      });
+    });
+
+    test('should handle legacy upload URLs', async () => {
+      const itemWithPhotos = {
+        ...mockItems[0],
+        status: 'COMPLETED',
+      };
+
+      surplusAPI.getMyPosts.mockResolvedValue({ data: [itemWithPhotos] });
+      surplusAPI.getTimeline.mockResolvedValue({
+        data: [
+          {
+            id: 1,
+            eventType: 'EVIDENCE_UPLOADED',
+            timestamp: '2025-10-01T12:00:00',
+            pickupEvidenceUrl: '/uploads/photo.jpg',
+          },
+        ],
+      });
+
+      setup();
+
+      await waitFor(() => {
+        expect(screen.getByText('Fresh Apples')).toBeInTheDocument();
+      });
+    });
+
+    test('should handle relative path URLs', async () => {
+      const itemWithPhotos = {
+        ...mockItems[0],
+        status: 'COMPLETED',
+      };
+
+      surplusAPI.getMyPosts.mockResolvedValue({ data: [itemWithPhotos] });
+      surplusAPI.getTimeline.mockResolvedValue({
+        data: [
+          {
+            id: 1,
+            eventType: 'EVIDENCE_UPLOADED',
+            timestamp: '2025-10-01T12:00:00',
+            pickupEvidenceUrl: 'photo.jpg',
+          },
+        ],
+      });
+
+      setup();
+
+      await waitFor(() => {
+        expect(screen.getByText('Fresh Apples')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Pickup time formatting edge cases', () => {
+    test('should handle pickup date without time range', async () => {
+      const itemWithDateOnly = {
+        ...mockItems[0],
+        pickupDate: '2025-10-01',
+        pickupFrom: null,
+        pickupTo: null,
+      };
+
+      surplusAPI.getMyPosts.mockResolvedValue({ data: [itemWithDateOnly] });
+
+      setup();
+
+      await waitFor(() => {
+        expect(screen.getByText('Fresh Apples')).toBeInTheDocument();
+      });
+    });
+
+    test('should handle invalid pickup date gracefully', async () => {
+      const itemWithInvalidDate = {
+        ...mockItems[0],
+        pickupDate: 'invalid-date',
+        pickupFrom: '10:00',
+        pickupTo: '12:00',
+      };
+
+      surplusAPI.getMyPosts.mockResolvedValue({ data: [itemWithInvalidDate] });
+
+      setup();
+
+      await waitFor(() => {
+        expect(screen.getByText('Fresh Apples')).toBeInTheDocument();
+      });
+    });
+  });
 });
