@@ -41,16 +41,32 @@ Our team values diversity and collaboration, creating an environment of mutual r
    Create a `.env` file in the project root:
 
    ```bash
+   # Database Configuration
    POSTGRES_DB=
    POSTGRES_USER=
    POSTGRES_PASSWORD=
    DB_HOST=
    DB_PORT=
-   SERVER_PORT=
+
+   # Backend Configuration
+   SERVER_PORT=8080
    JWT_SECRET=
-   JWT_EXPIRATION=
+   JWT_EXPIRATION=86400000
+
+   # Frontend Configuration
    REACT_APP_API_BASE_URL=
+
+   # CORS Configuration
    CORS_ALLOWED_ORIGINS=
+
+   # Brevo Configuration
+   BREVO_API_KEY=
+   BREVO_FROM_EMAIL=
+   BREVO_FROM_NAME=
+
+   REACT_APP_GOOGLE_MAPS_API_KEY=
+
+   FRONTEND_URL=
    ```
 
    Ask a team member for the necessary values for the .env file
