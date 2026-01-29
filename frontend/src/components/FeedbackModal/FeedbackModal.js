@@ -27,15 +27,6 @@ const FeedbackModal = ({
     // Check if current user has already provided feedback for this claim
     const check = async () => {
       try {
-        console.log(
-          'Checking feedback for claimId:',
-          claimId,
-          'userId:',
-          userId,
-          'userId type:',
-          typeof userId
-        );
-
         // Get all feedback for this claim
         const existingFeedback = await feedbackAPI.getFeedbackForClaim(claimId);
         console.log('Existing feedback for claim:', existingFeedback.data);
@@ -58,10 +49,8 @@ const FeedbackModal = ({
             );
             return feedback.reviewerId == userId; // Use == for type coercion
           });
-        console.log('Current user has already submitted:', hasSubmitted);
         setAlreadySubmitted(hasSubmitted);
       } catch (err) {
-        console.error('Error checking feedback status:', err);
         // If error (like 404 or 500), assume they haven't submitted yet
         setAlreadySubmitted(false);
       }
@@ -80,7 +69,6 @@ const FeedbackModal = ({
     console.log('🎯 Claim ID:', claimId);
 
     if (!rating) {
-      console.log('❌ No rating selected, cannot submit');
       return;
     }
 
@@ -91,9 +79,7 @@ const FeedbackModal = ({
         rating,
         reviewText: review.trim() || null,
       };
-      console.log('📤 Submitting feedback payload:', payload);
       const response = await feedbackAPI.submitFeedback(payload);
-      console.log('✅ Feedback submitted successfully:', response);
       setAlreadySubmitted(true);
       alert('Thank you for your feedback!');
       if (onSubmitted) {
@@ -101,6 +87,11 @@ const FeedbackModal = ({
       }
       onClose();
     } catch (err) {
+      alert(
+        err.response?.data?.message ||
+          err.response?.data ||
+          'Failed to submit feedback. Please try again.'
+      );
       console.error('❌ Failed to submit feedback', err);
       console.error('❌ Error response:', err.response);
       console.error('❌ Error status:', err.response?.status);

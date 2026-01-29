@@ -148,7 +148,6 @@ export function disconnect() {
     try {
       stompClient.deactivate();
     } catch (e) {
-      // Ignore deactivation errors
       console.warn('Error while disconnecting stompClient', e);
     }
     stompClient = null;

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 
 const PrivacyPolicy = () => {
   const [fadeIn, setFadeIn] = useState(false);
+  const [hover, setHover] = useState(false);
 
   useEffect(() => {
     setTimeout(() => setFadeIn(true), 50);
@@ -61,6 +62,26 @@ const PrivacyPolicy = () => {
       color: '#609B7E',
       textDecoration: 'none',
       fontWeight: 500,
+    },
+    button: {
+      display: 'inline-block',
+      marginTop: '2rem',
+      backgroundColor: '#609B7E',
+      color: '#fff',
+      padding: '0.75rem 1.5rem',
+      borderRadius: '10px',
+      border: 'none',
+      fontSize: '1rem',
+      fontWeight: '500',
+      cursor: 'pointer',
+      transition: 'background-color 0.3s ease',
+    },
+    buttonHover: {
+      backgroundColor: '#4f866d',
+    },
+    footer: {
+      textAlign: 'center',
+      marginTop: '1.5rem',
     },
   };
 
@@ -182,6 +203,21 @@ const PrivacyPolicy = () => {
             <strong>Address:</strong> Montréal, QC, Canada
           </p>
         </section>
+
+        <div style={styles.footer}>
+          <button
+            style={
+              hover
+                ? { ...styles.button, ...styles.buttonHover }
+                : styles.button
+            }
+            onMouseEnter={() => setHover(true)}
+            onMouseLeave={() => setHover(false)}
+            onClick={() => (window.location.href = '/')}
+          >
+            Back to Home
+          </button>
+        </div>
       </div>
     </div>
   );

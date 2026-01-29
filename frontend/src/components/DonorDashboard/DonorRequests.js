@@ -1,10 +1,12 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 export default function DonorRequests() {
+  const { t } = useTranslation();
   return (
     <div style={{ padding: '1rem' }}>
-      <h2>Requests</h2>
-      <p>Manage incoming requests for your donations (coming soon).</p>
+      <h2>{t('donorRequests.title')}</h2>
+      <p>{t('donorRequests.description')}</p>
     </div>
   );
 }

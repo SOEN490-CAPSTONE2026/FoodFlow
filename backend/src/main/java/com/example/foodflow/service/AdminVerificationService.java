@@ -9,6 +9,8 @@ import com.example.foodflow.model.entity.AccountStatus;
 import com.example.foodflow.model.entity.Organization;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.UserRole;
+import com.example.foodflow.model.entity.EmailVerificationToken;
+import com.example.foodflow.repository.EmailVerificationTokenRepository;
 import com.example.foodflow.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +35,9 @@ public class AdminVerificationService {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private EmailVerificationTokenRepository verificationTokenRepository;
 
     /**
      * Get paginated list of users pending admin approval
@@ -60,8 +65,8 @@ public class AdminVerificationService {
         Pageable pageable = PageRequest.of(page, size, sort);
 
         // Query database
-        Page<User> userPage = userRepository.findByAccountStatusAndSearchTerm(
-                AccountStatus.PENDING_ADMIN_APPROVAL,
+        Page<User> userPage = userRepository.findByAccountStatusInAndSearchTerm(
+                List.of(AccountStatus.PENDING_ADMIN_APPROVAL, AccountStatus.PENDING_VERIFICATION),
                 userRole,
                 search,
                 pageable
@@ -112,6 +117,31 @@ public class AdminVerificationService {
         }
 
         return new ApprovalResponse(true, "User approved successfully");
+    }
+
+    /**
+     * Manually verify a user's email when the verification link fails.
+     * Moves user from PENDING_VERIFICATION to PENDING_ADMIN_APPROVAL.
+     */
+    @Transactional
+    public ApprovalResponse verifyEmailManually(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (user.getAccountStatus() != AccountStatus.PENDING_VERIFICATION) {
+            throw new IllegalStateException("User is not pending email verification");
+        }
+
+        user.setAccountStatus(AccountStatus.PENDING_ADMIN_APPROVAL);
+        userRepository.save(user);
+
+        verificationTokenRepository.findTopByUserIdOrderByCreatedAtDesc(userId)
+                .ifPresent(token -> {
+                    token.setVerifiedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+                    verificationTokenRepository.save(token);
+                });
+
+        return new ApprovalResponse(true, "Email verified manually");
     }
 
     /**

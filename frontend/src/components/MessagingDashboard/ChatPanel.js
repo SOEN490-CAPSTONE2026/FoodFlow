@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Send, ArrowLeft } from 'lucide-react';
 import api from '../../services/api';
 import { useTimezone } from '../../contexts/TimezoneContext';
@@ -24,9 +25,35 @@ const ChatPanel = ({
   const textareaRef = useRef(null);
   const currentUserId = localStorage.getItem('userId');
   const { userTimezone } = useTimezone();
-
+  const { t, i18n } = useTranslation();
   // Debug: log timezone
   console.log('ChatPanel using timezone:', userTimezone);
+
+  const getProfilePhotoUrl = photoUrl => {
+    if (!photoUrl) {
+      return null;
+    }
+    if (
+      photoUrl.startsWith('http://') ||
+      photoUrl.startsWith('https://') ||
+      photoUrl.startsWith('data:')
+    ) {
+      return photoUrl;
+    }
+    const apiBaseUrl =
+      process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+    const backendBaseUrl = apiBaseUrl.endsWith('/api')
+      ? apiBaseUrl.slice(0, -4)
+      : apiBaseUrl.replace(/\/api$/, '');
+    if (photoUrl.startsWith('/uploads/')) {
+      const filename = photoUrl.substring('/uploads/'.length);
+      return `${backendBaseUrl}/api/files/uploads/${filename}`;
+    }
+    if (photoUrl.startsWith('/api/files/')) {
+      return `${backendBaseUrl}${photoUrl}`;
+    }
+    return `${backendBaseUrl}${photoUrl.startsWith('/') ? '' : '/'}${photoUrl}`;
+  };
 
   // Load messages when conversation changes
   useEffect(() => {
@@ -108,7 +135,7 @@ const ChatPanel = ({
       onMessageSent();
     } catch (err) {
       console.error('Error sending message:', err);
-      alert('Failed to send message');
+      alert(t('chat.failedToSend'));
     } finally {
       setSending(false);
     }
@@ -116,7 +143,7 @@ const ChatPanel = ({
 
   const formatMessageTime = timestamp => {
     const date = new Date(timestamp);
-    return date.toLocaleTimeString('en-US', {
+    return date.toLocaleTimeString(i18n.language, {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
@@ -134,11 +161,11 @@ const ChatPanel = ({
     yesterday.setHours(0, 0, 0, 0);
 
     if (messageDate.getTime() === today.getTime()) {
-      return 'Today';
+      return t('chat.today');
     } else if (messageDate.getTime() === yesterday.getTime()) {
-      return 'Yesterday';
+      return t('chat.yesterday');
     } else {
-      return messageDate.toLocaleDateString('en-US', {
+      return messageDate.toLocaleDateString(i18n.language, {
         month: 'long',
         day: 'numeric',
         year: 'numeric',
@@ -166,8 +193,8 @@ const ChatPanel = ({
         className={`chat-panel empty ${showOnMobile ? 'show-mobile' : 'hide-mobile'}`}
       >
         <div className="empty-state">
-          <h3>No conversation selected</h3>
-          <p>Select a conversation from the sidebar or start a new one</p>
+          <h3>{t('chat.noConversationSelected')}</h3>
+          <p>{t('chat.selectConversation')}</p>
         </div>
       </div>
     );
@@ -185,13 +212,13 @@ const ChatPanel = ({
           <div className="chat-header-info">
             <h3>{conversation.postTitle || conversation.otherUserName}</h3>
             <p className="chat-header-subtitle">
-              with {conversation.otherUserName}
+              {t('chat.with')} {conversation.otherUserName}
             </p>
           </div>
         </div>
         <div className="chat-header-actions">
-          <span className="status-badge claimed">Claimed</span>
-          <button className="view-post-btn">View Post</button>
+          <span className="status-badge claimed">{t('chat.claimed')}</span>
+          <button className="view-post-btn">{t('chat.viewPost')}</button>
           <button className="menu-btn">⋮</button>
         </div>
       </div>
@@ -200,7 +227,7 @@ const ChatPanel = ({
         {messages.length === 0
           ? !loading && (
               <div className="no-messages">
-                <p>No messages yet. Start the conversation!</p>
+                <p>{t('chat.noMessagesYet')}</p>
               </div>
             )
           : messages.map((message, index) => (
@@ -231,11 +258,34 @@ const ChatPanel = ({
                       {conversation.otherUserName.charAt(0).toUpperCase()}
                     </div>
                   )}
-                  <div className="message-content">
-                    <p className="message-text">{message.messageBody}</p>
-                    <span className="message-time">
-                      {formatTimeInTimezone(message.createdAt, userTimezone)}
-                    </span>
+                  <div
+                    className={`message ${
+                      message.senderId.toString() === currentUserId
+                        ? 'sent'
+                        : 'received'
+                    }`}
+                  >
+                    {message.senderId.toString() !== currentUserId && (
+                      <div className="message-avatar">
+                        {conversation.otherUserProfilePhoto ? (
+                          <img
+                            src={getProfilePhotoUrl(
+                              conversation.otherUserProfilePhoto
+                            )}
+                            alt={conversation.otherUserName}
+                            className="message-avatar-image"
+                          />
+                        ) : (
+                          conversation.otherUserName.charAt(0).toUpperCase()
+                        )}
+                      </div>
+                    )}
+                    <div className="message-content">
+                      <p className="message-text">{message.messageBody}</p>
+                      <span className="message-time">
+                        {formatTimeInTimezone(message.createdAt, userTimezone)}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </React.Fragment>
@@ -247,7 +297,7 @@ const ChatPanel = ({
         <textarea
           ref={textareaRef}
           className="message-input"
-          placeholder="Type your message here..."
+          placeholder={t('chat.typeMessage')}
           value={newMessage}
           onChange={e => setNewMessage(e.target.value)}
           onKeyDown={e => {
@@ -265,7 +315,7 @@ const ChatPanel = ({
           type="submit"
           className="send-button"
           disabled={!newMessage.trim() || sending}
-          title="Send message"
+          title={t('chat.sendMessage')}
         >
           <Send size={20} />
         </button>

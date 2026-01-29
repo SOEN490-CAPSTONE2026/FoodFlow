@@ -1,0 +1,267 @@
+/* RTL (Right-to-Left) Support for Arabic */
+
+[dir='rtl'] {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir='rtl'] * {
+  text-align: inherit;
+}
+
+/* Navigation Bar RTL */
+[dir='rtl'] .navbar {
+  direction: rtl;
+}
+
+[dir='rtl'] .navbar .menu ul {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir='rtl'] .navbar .buttons {
+  direction: rtl;
+  flex-direction: row-reverse;
+}
+
+[dir='rtl'] .lang-selector {
+  direction: ltr; /* Keep language selector LTR for readability */
+}
+
+/* Forms RTL */
+[dir='rtl'] .form-field,
+[dir='rtl'] .form-group,
+[dir='rtl'] .input-group {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir='rtl'] input,
+[dir='rtl'] textarea,
+[dir='rtl'] select {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir='rtl'] .form-label {
+  text-align: right;
+}
+
+/* Buttons RTL */
+[dir='rtl'] .btn,
+[dir='rtl'] button {
+  direction: rtl;
+}
+
+[dir='rtl'] .action-btn {
+  direction: rtl;
+}
+
+/* Modal RTL */
+[dir='rtl'] .modal-container {
+  direction: rtl;
+}
+
+[dir='rtl'] .modal-header {
+  direction: rtl;
+  flex-direction: row-reverse;
+}
+
+[dir='rtl'] .close-button {
+  left: 16px;
+  right: auto;
+}
+
+/* Cards RTL */
+[dir='rtl'] .card,
+[dir='rtl'] .stat-card,
+[dir='rtl'] .action-card {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir='rtl'] .stat-content {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Tables RTL */
+[dir='rtl'] table {
+  direction: rtl;
+}
+
+[dir='rtl'] th,
+[dir='rtl'] td {
+  text-align: right;
+}
+
+/* Lists RTL */
+[dir='rtl'] ul,
+[dir='rtl'] ol {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Footer RTL */
+[dir='rtl'] .footer {
+  direction: rtl;
+}
+
+[dir='rtl'] .footer-content {
+  direction: rtl;
+}
+
+[dir='rtl'] .footer-grid {
+  direction: rtl;
+}
+
+/* Chat Panel RTL */
+[dir='rtl'] .chat-panel {
+  direction: rtl;
+}
+
+[dir='rtl'] .chat-header {
+  direction: rtl;
+  flex-direction: row-reverse;
+}
+
+[dir='rtl'] .message.sent {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir='rtl'] .message.received {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir='rtl'] .message-content {
+  direction: rtl;
+}
+
+/* Dashboard RTL */
+[dir='rtl'] .dashboard {
+  direction: rtl;
+}
+
+[dir='rtl'] .dashboard-header {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir='rtl'] .stats-grid {
+  direction: rtl;
+}
+
+[dir='rtl'] .action-cards-grid {
+  direction: rtl;
+}
+
+/* Landing Page RTL */
+[dir='rtl'] .landing-page {
+  direction: rtl;
+}
+
+[dir='rtl'] .home-container {
+  direction: rtl;
+}
+
+[dir='rtl'] .about-container {
+  direction: rtl;
+}
+
+[dir='rtl'] .faq-container {
+  direction: rtl;
+}
+
+[dir='rtl'] .how-it-works-container {
+  direction: rtl;
+}
+
+/* Flexbox RTL adjustments */
+[dir='rtl'] .row-group {
+  flex-direction: row-reverse;
+}
+
+[dir='rtl'] .half-width:first-child {
+  margin-right: 0;
+  margin-left: 12px;
+}
+
+[dir='rtl'] .half-width:last-child {
+  margin-left: 0;
+  margin-right: 12px;
+}
+
+/* Icons RTL */
+[dir='rtl'] .icon {
+  transform: scaleX(-1);
+}
+
+/* Date Picker RTL */
+[dir='rtl'] .react-datepicker {
+  direction: rtl;
+}
+
+[dir='rtl'] .react-datepicker__header {
+  direction: rtl;
+}
+
+[dir='rtl'] .react-datepicker__day-names {
+  direction: rtl;
+}
+
+/* Select Dropdown RTL */
+[dir='rtl'] .react-select__control {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir='rtl'] .react-select__menu {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir='rtl'] .react-select__single-value {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Padding/Margin RTL swaps */
+[dir='rtl'] .ml-auto {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+[dir='rtl'] .mr-auto {
+  margin-right: 0;
+  margin-left: auto;
+}
+
+[dir='rtl'] .pl-4 {
+  padding-left: 0;
+  padding-right: 1rem;
+}
+
+[dir='rtl'] .pr-4 {
+  padding-right: 0;
+  padding-left: 1rem;
+}
+
+/* Text alignment RTL */
+[dir='rtl'] .text-left {
+  text-align: right;
+}
+
+[dir='rtl'] .text-right {
+  text-align: left;
+}
+
+/* Float RTL */
+[dir='rtl'] .float-left {
+  float: right;
+}
+
+[dir='rtl'] .float-right {
+  float: left;
+}

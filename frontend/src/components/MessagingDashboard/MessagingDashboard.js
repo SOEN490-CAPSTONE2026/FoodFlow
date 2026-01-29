@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import ConversationsSidebar from './ConversationsSidebar';
 import ChatPanel from './ChatPanel';
@@ -7,6 +8,7 @@ import api from '../../services/api';
 import './MessagingDashboard.css';
 
 const MessagingDashboard = () => {
+  const { t } = useTranslation();
   const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [showNewConversationModal, setShowNewConversationModal] =
@@ -33,7 +35,7 @@ const MessagingDashboard = () => {
       setError(null);
     } catch (err) {
       console.error('Error loading conversations:', err);
-      setError('Failed to load conversations');
+      setError(t('messaging.failedToLoad'));
     } finally {
       setLoading(false);
     }
@@ -60,9 +62,9 @@ const MessagingDashboard = () => {
     } catch (err) {
       console.error('Error starting conversation:', err);
       if (err.response?.status === 400) {
-        setError('User not found or invalid email');
+        setError(t('messaging.userNotFound'));
       } else {
-        setError('Failed to start conversation. Please try again.');
+        setError(t('messaging.conversationFailed'));
       }
     } finally {
       setLoading(false);

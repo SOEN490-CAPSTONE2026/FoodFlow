@@ -48,7 +48,7 @@ describe('DonorDashboardHome', () => {
 
     // Header
     expect(
-      screen.getByRole('heading', { name: /dashboard/i })
+      screen.getByRole('heading', { name: /dashboard/i, level: 1 })
     ).toBeInTheDocument();
     expect(screen.getByText(/analytics & insights/i)).toBeInTheDocument();
 

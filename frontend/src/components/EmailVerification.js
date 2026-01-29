@@ -14,7 +14,9 @@ const EmailVerification = () => {
 
   useEffect(() => {
     // Prevent running verification multiple times
-    if (hasVerifiedRef.current) return;
+    if (hasVerifiedRef.current) {
+      return;
+    }
     hasVerifiedRef.current = true;
 
     const verifyToken = async () => {

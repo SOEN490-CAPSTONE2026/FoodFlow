@@ -57,6 +57,24 @@ public class AdminVerificationController {
     }
 
     /**
+     * POST /api/admin/verify-email/{userId}
+     * Manually verify a user's email when the verification link fails
+     */
+    @PostMapping("/verify-email/{userId}")
+    public ResponseEntity<ApprovalResponse> verifyEmailManually(@PathVariable Long userId) {
+        try {
+            ApprovalResponse response = adminVerificationService.verifyEmailManually(userId);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(new ApprovalResponse(false, e.getMessage()));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest()
+                    .body(new ApprovalResponse(false, e.getMessage()));
+        }
+    }
+
+    /**
      * POST /api/admin/reject/{userId}
      * Reject a pending user registration
      */

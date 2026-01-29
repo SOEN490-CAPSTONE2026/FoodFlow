@@ -8,9 +8,9 @@ import AdminMessages from './AdminMessages.js';
 import AdminHelp from './AdminHelp';
 import AdminWelcome from './AdminWelcome';
 import AdminUsers from './AdminUsers';
-import AdminVerificationQueue from './AdminVerificationQueue';
 import AdminDisputes from './AdminDisputes';
 import AdminDisputeDetail from './AdminDisputeDetail';
+import AdminVerificationQueue from './AdminVerificationQueue';
 
 import AdminSettings from './AdminSettings';
 import AdminDonations from './AdminDonations';

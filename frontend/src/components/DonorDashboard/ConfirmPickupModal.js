@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { surplusAPI } from '../../services/api';
 import './Donor_Styles/ConfirmPickupModal.css';
 
 const ConfirmPickupModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
+  const { t } = useTranslation();
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -54,12 +56,12 @@ const ConfirmPickupModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
   const handleConfirm = async () => {
     const fullCode = code.join('');
     if (fullCode.length !== 6) {
-      setError('Please enter the complete 6-digit code');
+      setError(t('confirmPickup.codeRequired'));
       return;
     }
 
     if (!donationItem || !donationItem.id) {
-      setError('Invalid donation item');
+      setError(t('confirmPickup.invalidDonation'));
       return;
     }
 
@@ -75,7 +77,9 @@ const ConfirmPickupModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
       }
     } catch (err) {
       const errorMessage =
-        err.response?.data?.message || err.message || 'Failed to verify code';
+        err.response?.data?.message ||
+        err.message ||
+        t('confirmPickup.verifyFailed');
       setError(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -94,10 +98,8 @@ const ConfirmPickupModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
           <X size={20} />
         </button>
 
-        <h2 className="confirm-pickup-title">Confirm Pickup</h2>
-        <p className="confirm-pickup-subtitle">
-          Enter the 6-digit code shown by the receiver:
-        </p>
+        <h2 className="confirm-pickup-title">{t('confirmPickup.title')}</h2>
+        <p className="confirm-pickup-subtitle">{t('confirmPickup.subtitle')}</p>
 
         <div className="confirm-pickup-code-inputs">
           {code.map((digit, index) => (
@@ -120,10 +122,14 @@ const ConfirmPickupModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
         {error && <p className="confirm-pickup-error">{error}</p>}
 
         <p className="confirm-pickup-info">
-          The receiver can find this code in their account:{' '}
+          {t('confirmPickup.info')}{' '}
           <button className="confirm-pickup-link" onClick={handleMyClaimsClick}>
-            My Claims
+            {t('confirmPickup.myClaims')}
           </button>
+        </p>
+
+        <p className="confirm-pickup-tolerance-info">
+          ℹ️ Receivers can arrive up to 15 minutes early or 15 minutes late.
         </p>
 
         <div className="confirm-pickup-actions">
@@ -132,14 +138,16 @@ const ConfirmPickupModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
             onClick={onClose}
             disabled={isSubmitting}
           >
-            Cancel
+            {t('confirmPickup.cancel')}
           </button>
           <button
             className="confirm-pickup-button primary"
             onClick={handleConfirm}
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Verifying...' : 'Confirm Pickup'}
+            {isSubmitting
+              ? t('confirmPickup.verifying')
+              : t('confirmPickup.confirm')}
           </button>
         </div>
       </div>

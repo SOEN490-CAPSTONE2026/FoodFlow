@@ -1,5 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { authAPI } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
 import ReceiverIllustration from '../assets/illustrations/receiver-ilustration.jpg';
@@ -27,6 +28,7 @@ const validatePhoneNumber = phone => {
 };
 
 const ReceiverRegistration = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { login } = useContext(AuthContext);
 
@@ -95,38 +97,38 @@ const ReceiverRegistration = () => {
     switch (name) {
       case 'email':
         if (!value) {
-          errorMsg = 'Email is required';
+          errorMsg = t('receiverRegistration.emailRequired');
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-          errorMsg = 'Please enter a valid email address';
+          errorMsg = t('receiverRegistration.emailInvalid');
         }
         break;
       case 'password':
         if (!value) {
-          errorMsg = 'Password is required';
+          errorMsg = t('receiverRegistration.passwordRequired');
         } else if (value.length < 8) {
-          errorMsg = 'Password must be at least 8 characters';
+          errorMsg = t('receiverRegistration.passwordMinLength');
         }
         break;
       case 'confirmPassword':
         if (!value) {
-          errorMsg = 'Please confirm your password';
+          errorMsg = t('receiverRegistration.confirmPasswordRequired');
         } else if (value !== formData.password) {
-          errorMsg = 'Passwords do not match';
+          errorMsg = t('receiverRegistration.passwordMismatch');
         }
         break;
       case 'phone':
         if (value && !validatePhoneNumber(value)) {
-          errorMsg = 'Please enter a valid phone number';
+          errorMsg = t('receiverRegistration.phoneInvalid');
         }
         break;
       case 'capacity':
         if (value && (isNaN(value) || parseInt(value) < 1)) {
-          errorMsg = 'Capacity must be a positive number';
+          errorMsg = t('receiverRegistration.capacityInvalid');
         }
         break;
       case 'postalCode':
         if (value && !/^[A-Za-z0-9\s-]+$/.test(value)) {
-          errorMsg = 'Please enter a valid postal code';
+          errorMsg = t('receiverRegistration.postalCodeInvalid');
         }
         break;
       default:
@@ -177,7 +179,7 @@ const ReceiverRegistration = () => {
     if (!allowedTypes.includes(file.type)) {
       setFieldErrors({
         ...fieldErrors,
-        supportingDocument: 'Only PDF, JPG, and PNG files are allowed',
+        supportingDocument: t('receiverRegistration.fileTypeError'),
       });
       return;
     }
@@ -185,7 +187,7 @@ const ReceiverRegistration = () => {
     if (file.size > maxSize) {
       setFieldErrors({
         ...fieldErrors,
-        supportingDocument: 'File size must not exceed 10MB',
+        supportingDocument: t('receiverRegistration.fileSizeError'),
       });
       return;
     }
@@ -213,30 +215,36 @@ const ReceiverRegistration = () => {
     switch (step) {
       case 1:
         if (!formData.email) {
-          errors.email = 'Email is required';
+          errors.email = t('receiverRegistration.emailRequired');
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-          errors.email = 'Please enter a valid email address';
+          errors.email = t('receiverRegistration.emailInvalid');
         }
 
         if (!formData.password) {
-          errors.password = 'Password is required';
+          errors.password = t('receiverRegistration.passwordRequired');
         } else if (formData.password.length < 8) {
-          errors.password = 'Password must be at least 8 characters';
+          errors.password = t('receiverRegistration.passwordMinLength');
         }
 
         if (!formData.confirmPassword) {
-          errors.confirmPassword = 'Please confirm your password';
+          errors.confirmPassword = t(
+            'receiverRegistration.confirmPasswordRequired'
+          );
         } else if (formData.confirmPassword !== formData.password) {
-          errors.confirmPassword = 'Passwords do not match';
+          errors.confirmPassword = t('receiverRegistration.passwordMismatch');
         }
         break;
 
       case 2:
         if (!formData.organizationName) {
-          errors.organizationName = 'Organization name is required';
+          errors.organizationName = t(
+            'receiverRegistration.organizationNameRequired'
+          );
         }
         if (!formData.organizationType) {
-          errors.organizationType = 'Organization type is required';
+          errors.organizationType = t(
+            'receiverRegistration.organizationTypeRequired'
+          );
         }
 
         // Either registration number OR supporting document required
@@ -244,51 +252,56 @@ const ReceiverRegistration = () => {
           !formData.charityRegistrationNumber &&
           !formData.supportingDocument
         ) {
-          errors.verification =
-            'Please provide either a registration number or upload a supporting document';
+          errors.verification = t('receiverRegistration.verificationRequired');
         }
         break;
 
       case 3:
         if (!formData.streetAddress) {
-          errors.streetAddress = 'Street address is required';
+          errors.streetAddress = t(
+            'receiverRegistration.streetAddressRequired'
+          );
         }
         if (!formData.city) {
-          errors.city = 'City is required';
+          errors.city = t('receiverRegistration.cityRequired');
         }
         if (!formData.postalCode) {
-          errors.postalCode = 'Postal code is required';
+          errors.postalCode = t('receiverRegistration.postalCodeRequired');
         }
         if (!formData.province) {
-          errors.province = 'Province/State is required';
+          errors.province = t('receiverRegistration.provinceRequired');
         }
         if (!formData.country) {
-          errors.country = 'Country is required';
+          errors.country = t('receiverRegistration.countryRequired');
         }
         break;
 
       case 4:
         if (!formData.contactPerson) {
-          errors.contactPerson = 'Contact person name is required';
+          errors.contactPerson = t(
+            'receiverRegistration.contactPersonRequired'
+          );
         }
         if (!formData.phone) {
-          errors.phone = 'Phone number is required';
+          errors.phone = t('receiverRegistration.phoneRequired');
         } else if (!validatePhoneNumber(formData.phone)) {
-          errors.phone = 'Please enter a valid phone number';
+          errors.phone = t('receiverRegistration.phoneInvalid');
         }
         if (!formData.capacity) {
-          errors.capacity = 'Daily capacity is required';
+          errors.capacity = t('receiverRegistration.capacityRequired');
         } else if (
           isNaN(formData.capacity) ||
           parseInt(formData.capacity) < 1
         ) {
-          errors.capacity = 'Capacity must be a positive number';
+          errors.capacity = t('receiverRegistration.capacityInvalid');
         }
         break;
 
       case 5:
         if (!confirmAccuracy) {
-          errors.confirmAccuracy = 'Please confirm the information is accurate';
+          errors.confirmAccuracy = t(
+            'receiverRegistration.confirmAccuracyRequired'
+          );
         }
         break;
 
@@ -308,7 +321,7 @@ const ReceiverRegistration = () => {
     const errors = validateStep(currentStep);
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
-      setError('Please fix the errors before proceeding');
+      setError(t('receiverRegistration.errorBeforeProceeding'));
       return;
     }
 
@@ -318,18 +331,14 @@ const ReceiverRegistration = () => {
       try {
         const response = await authAPI.checkEmailExists(formData.email);
         if (response.data.exists) {
-          setFieldErrors({
-            email: 'An account with this email already exists',
-          });
-          setError(
-            'Email already registered. Please use a different email or login.'
-          );
+          setFieldErrors({ email: t('receiverRegistration.emailExists') });
+          setError(t('receiverRegistration.emailExistsError'));
           setLoading(false);
           return;
         }
       } catch (err) {
         console.error('Error checking email:', err);
-        setError('Unable to validate email. Please try again.');
+        setError(t('receiverRegistration.emailValidationError'));
         setLoading(false);
         return;
       } finally {
@@ -344,12 +353,8 @@ const ReceiverRegistration = () => {
         const formattedPhone = formatPhoneNumber(formData.phone);
         const response = await authAPI.checkPhoneExists(formattedPhone);
         if (response.data.exists) {
-          setFieldErrors({
-            phone: 'An account with this phone number already exists',
-          });
-          setError(
-            'Phone number already registered. Please use a different number.'
-          );
+          setFieldErrors({ phone: t('receiverRegistration.phoneExists') });
+          setError(t('receiverRegistration.phoneExistsError'));
           setLoading(false);
           return;
         }
@@ -357,7 +362,7 @@ const ReceiverRegistration = () => {
         console.error('Error checking phone:', err);
         const errorMessage =
           err.response?.data?.message ||
-          'Phone number already exists in the system';
+          t('receiverRegistration.phoneValidationError');
         setError(errorMessage);
         setLoading(false);
         return;
@@ -476,7 +481,8 @@ const ReceiverRegistration = () => {
       }, 5000);
     } catch (err) {
       setError(
-        err.response?.data?.message || 'Registration failed. Please try again.'
+        err.response?.data?.message ||
+          t('receiverRegistration.registrationFailed')
       );
       setCurrentStep(1); // Go back to first step on error
     } finally {

@@ -1,7 +1,12 @@
-// Import AFTER mocks so the module under test sees them
-import * as stompModule from '@stomp/stompjs';
-import SockJS from 'sockjs-client';
+// Unmock the global socket mock from setupTests.js so we can test the real implementation
+// Import the socket service after unmocking
 import * as socketService from './socket';
+
+// Import mocked modules after they're set up
+import SockJS from 'sockjs-client';
+import * as stompModule from '@stomp/stompjs';
+
+jest.unmock('./socket');
 
 jest.mock('sockjs-client', () => {
   const mockCtor = jest.fn(function mockSock(url) {

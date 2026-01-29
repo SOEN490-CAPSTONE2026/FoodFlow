@@ -45,13 +45,13 @@ class ClaimServiceTest {
 
     @Mock
     private SimpMessagingTemplate messagingTemplate;
-    
+
     @Mock
     private BusinessMetricsService businessMetricsService;
-    
+
     @Mock
     private NotificationPreferenceService notificationPreferenceService;
-    
+
     @Mock
     private TimelineService timelineService;
 
@@ -87,11 +87,13 @@ class ClaimServiceTest {
 
         claimRequest = new ClaimRequest();
         claimRequest.setSurplusPostId(1L);
-        
+
         // Mock notification preference service to allow all notifications by default
         // Use lenient() because not all tests use this mock
-        lenient().when(notificationPreferenceService.shouldSendNotification(any(User.class), any(String.class), any(String.class)))
-            .thenReturn(true);
+        lenient()
+                .when(notificationPreferenceService.shouldSendNotification(any(User.class), any(String.class),
+                        any(String.class)))
+                .thenReturn(true);
     }
 
     @Test
@@ -99,7 +101,7 @@ class ClaimServiceTest {
         // Given
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
         when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
-        
+
         Claim savedClaim = new Claim(surplusPost, receiver);
         savedClaim.setId(1L);
         when(claimRepository.save(any(Claim.class))).thenReturn(savedClaim);
@@ -112,9 +114,7 @@ class ClaimServiceTest {
         assertThat(response).isNotNull();
         assertThat(response.getId()).isEqualTo(1L);
         verify(claimRepository).save(any(Claim.class));
-        verify(surplusPostRepository).save(argThat(post -> 
-            post.getStatus() == PostStatus.CLAIMED
-        ));
+        verify(surplusPostRepository).save(argThat(post -> post.getStatus() == PostStatus.CLAIMED));
     }
 
     @Test
@@ -124,9 +124,9 @@ class ClaimServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> claimService.claimSurplusPost(claimRequest, receiver))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("Surplus post not found");
-        
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("error.resource.not_found");
+
         verify(claimRepository, never()).save(any());
     }
 
@@ -138,9 +138,9 @@ class ClaimServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> claimService.claimSurplusPost(claimRequest, receiver))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("no longer available");
-        
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("error.claim.not_available");
+
         verify(claimRepository, never()).save(any());
     }
 
@@ -152,9 +152,9 @@ class ClaimServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> claimService.claimSurplusPost(claimRequest, receiver))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("already been claimed");
-        
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("error.claim.already_claimed");
+
         verify(claimRepository, never()).save(any());
     }
 
@@ -166,9 +166,9 @@ class ClaimServiceTest {
 
         // When & Then (donor trying to claim their own post)
         assertThatThrownBy(() -> claimService.claimSurplusPost(claimRequest, donor))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("cannot claim your own");
-        
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("error.claim.own_post");
+
         verify(claimRepository, never()).save(any());
     }
 
@@ -179,9 +179,15 @@ class ClaimServiceTest {
         claim1.setId(1L);
         Claim claim2 = new Claim(surplusPost, receiver);
         claim2.setId(2L);
-        
+
         when(claimRepository.findReceiverClaimsWithDetails(
-            eq(receiver.getId()), eq(ClaimStatus.ACTIVE)))
+            eq(receiver.getId()),
+            eq(List.of(
+                ClaimStatus.ACTIVE,
+                ClaimStatus.COMPLETED,
+                ClaimStatus.NOT_COMPLETED,
+                ClaimStatus.EXPIRED
+            ))))
             .thenReturn(Arrays.asList(claim1, claim2));
 
         // When
@@ -197,7 +203,13 @@ class ClaimServiceTest {
     void getReceiverClaims_NoClaims_ReturnsEmptyList() {
         // Given
         when(claimRepository.findReceiverClaimsWithDetails(
-            eq(receiver.getId()), eq(ClaimStatus.ACTIVE)))
+            eq(receiver.getId()),
+            eq(List.of(
+                ClaimStatus.ACTIVE,
+                ClaimStatus.COMPLETED,
+                ClaimStatus.NOT_COMPLETED,
+                ClaimStatus.EXPIRED
+            ))))
             .thenReturn(Arrays.asList());
 
         // When
@@ -212,9 +224,9 @@ class ClaimServiceTest {
         // Given
         Claim claim = new Claim(surplusPost, receiver);
         claim.setId(1L);
-        
+
         when(claimRepository.findBySurplusPostId(1L))
-            .thenReturn(Arrays.asList(claim));
+                .thenReturn(Arrays.asList(claim));
 
         // When
         List<ClaimResponse> responses = claimService.getClaimsForSurplusPost(1L);
@@ -229,7 +241,7 @@ class ClaimServiceTest {
         // Given
         Claim claim = new Claim(surplusPost, receiver);
         claim.setId(1L);
-        
+
         when(claimRepository.findById(1L)).thenReturn(Optional.of(claim));
         when(claimRepository.save(any(Claim.class))).thenReturn(claim);
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
@@ -238,12 +250,8 @@ class ClaimServiceTest {
         claimService.cancelClaim(1L, receiver);
 
         // Then
-        verify(claimRepository).save(argThat(c -> 
-            c.getStatus() == ClaimStatus.CANCELLED
-        ));
-        verify(surplusPostRepository).save(argThat(post -> 
-            post.getStatus() == PostStatus.AVAILABLE
-        ));
+        verify(claimRepository).save(argThat(c -> c.getStatus() == ClaimStatus.CANCELLED));
+        verify(surplusPostRepository).save(argThat(post -> post.getStatus() == PostStatus.AVAILABLE));
     }
 
     @Test
@@ -253,9 +261,9 @@ class ClaimServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> claimService.cancelClaim(1L, receiver))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("Claim not found");
-        
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("error.resource.not_found");
+
         verify(surplusPostRepository, never()).save(any());
     }
 
@@ -264,18 +272,18 @@ class ClaimServiceTest {
         // Given
         Claim claim = new Claim(surplusPost, receiver);
         claim.setId(1L);
-        
+
         User otherReceiver = new User();
         otherReceiver.setId(3L);
         otherReceiver.setEmail("other@test.com");
-        
+
         when(claimRepository.findById(1L)).thenReturn(Optional.of(claim));
 
         // When & Then
         assertThatThrownBy(() -> claimService.cancelClaim(1L, otherReceiver))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("only cancel your own claims");
-        
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("error.claim.unauthorized_cancel");
+
         verify(claimRepository, never()).save(any());
         verify(surplusPostRepository, never()).save(any());
     }
@@ -288,17 +296,17 @@ class ClaimServiceTest {
         LocalDate pickupDate = LocalDate.now().plusDays(2);
         LocalTime startTime = LocalTime.of(10, 0);
         LocalTime endTime = LocalTime.of(12, 0);
-        
+
         PickupSlotRequest pickupSlot = new PickupSlotRequest();
         pickupSlot.setPickupDate(pickupDate);
         pickupSlot.setStartTime(startTime);
         pickupSlot.setEndTime(endTime);
-        
+
         claimRequest.setPickupSlot(pickupSlot);
-        
+
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
         when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
-        
+
         ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
         Claim savedClaim = new Claim(surplusPost, receiver);
         savedClaim.setId(1L);
@@ -325,23 +333,23 @@ class ClaimServiceTest {
         LocalDate pickupDate = LocalDate.now().plusDays(2);
         LocalTime startTime = LocalTime.of(14, 0);
         LocalTime endTime = LocalTime.of(16, 0);
-        
+
         PickupSlot existingSlot = new PickupSlot();
         existingSlot.setId(100L);
         existingSlot.setPickupDate(pickupDate);
         existingSlot.setStartTime(startTime);
         existingSlot.setEndTime(endTime);
         existingSlot.setSurplusPost(surplusPost);
-        
+
         List<PickupSlot> pickupSlots = new ArrayList<>();
         pickupSlots.add(existingSlot);
         surplusPost.setPickupSlots(pickupSlots);
-        
+
         claimRequest.setPickupSlotId(100L);
-        
+
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
         when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
-        
+
         ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
         Claim savedClaim = new Claim(surplusPost, receiver);
         savedClaim.setId(1L);
@@ -370,17 +378,17 @@ class ClaimServiceTest {
         existingSlot.setPickupDate(LocalDate.now().plusDays(2));
         existingSlot.setStartTime(LocalTime.of(14, 0));
         existingSlot.setEndTime(LocalTime.of(16, 0));
-        
+
         List<PickupSlot> pickupSlots = new ArrayList<>();
         pickupSlots.add(existingSlot);
         surplusPost.setPickupSlots(pickupSlots);
-        
+
         // Request a non-existent slot ID
         claimRequest.setPickupSlotId(999L);
-        
+
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
         when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
-        
+
         ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
         Claim savedClaim = new Claim(surplusPost, receiver);
         savedClaim.setId(1L);
@@ -407,7 +415,7 @@ class ClaimServiceTest {
         // Given - no pickup slot provided in request
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
         when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
-        
+
         ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
         Claim savedClaim = new Claim(surplusPost, receiver);
         savedClaim.setId(1L);
@@ -436,13 +444,13 @@ class ClaimServiceTest {
         pickupSlot.setPickupDate(futureDate);
         pickupSlot.setStartTime(LocalTime.of(10, 0));
         pickupSlot.setEndTime(LocalTime.of(12, 0));
-        
+
         claimRequest.setPickupSlot(pickupSlot);
         surplusPost.setPickupDate(futureDate);
-        
+
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
         when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
-        
+
         Claim savedClaim = new Claim(surplusPost, receiver);
         savedClaim.setId(1L);
         when(claimRepository.save(any(Claim.class))).thenReturn(savedClaim);
@@ -452,9 +460,7 @@ class ClaimServiceTest {
         claimService.claimSurplusPost(claimRequest, receiver);
 
         // Then - status should be CLAIMED (not READY_FOR_PICKUP)
-        verify(surplusPostRepository).save(argThat(post -> 
-            post.getStatus() == PostStatus.CLAIMED
-        ));
+        verify(surplusPostRepository).save(argThat(post -> post.getStatus() == PostStatus.CLAIMED));
     }
 
     @Test
@@ -463,18 +469,18 @@ class ClaimServiceTest {
         LocalDate pastDate = LocalDate.now().minusDays(1);
         LocalTime startTime = LocalTime.of(10, 0);
         LocalTime endTime = LocalTime.of(12, 0);
-        
+
         PickupSlotRequest pickupSlot = new PickupSlotRequest();
         pickupSlot.setPickupDate(pastDate);
         pickupSlot.setStartTime(startTime);
         pickupSlot.setEndTime(endTime);
-        
+
         claimRequest.setPickupSlot(pickupSlot);
         surplusPost.setPickupDate(pastDate);
-        
+
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
         when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
-        
+
         // Mock needs to return a claim with confirmed pickup dates set!
         Claim savedClaim = new Claim(surplusPost, receiver);
         savedClaim.setId(1L);
@@ -488,11 +494,9 @@ class ClaimServiceTest {
         claimService.claimSurplusPost(claimRequest, receiver);
 
         // Then - status should be READY_FOR_PICKUP and OTP code generated
-        verify(surplusPostRepository).save(argThat(post -> 
-            post.getStatus() == PostStatus.READY_FOR_PICKUP && 
-            post.getOtpCode() != null && 
-            !post.getOtpCode().isEmpty()
-        ));
+        verify(surplusPostRepository).save(argThat(post -> post.getStatus() == PostStatus.READY_FOR_PICKUP &&
+                post.getOtpCode() != null &&
+                !post.getOtpCode().isEmpty()));
     }
 
     @Test
@@ -501,23 +505,23 @@ class ClaimServiceTest {
         LocalDate tomorrow = LocalDate.now().plusDays(1);
         LocalTime pickupStart = LocalTime.of(10, 0);
         LocalTime pickupEnd = LocalTime.of(12, 0);
-        
+
         PickupSlotRequest pickupSlot = new PickupSlotRequest();
         pickupSlot.setPickupDate(tomorrow);
         pickupSlot.setStartTime(pickupStart);
         pickupSlot.setEndTime(pickupEnd);
-        
+
         claimRequest.setPickupSlot(pickupSlot);
         surplusPost.setPickupDate(tomorrow);
         surplusPost.setPickupFrom(pickupStart);
-        
+
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
         when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
-        
+
         Claim savedClaim = new Claim(surplusPost, receiver);
         savedClaim.setId(1L);
         when(claimRepository.save(any(Claim.class))).thenReturn(savedClaim);
-        
+
         ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
         when(surplusPostRepository.save(postCaptor.capture())).thenReturn(surplusPost);
 

@@ -1,39 +1,103 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-
 import SurplusFormModal from '../SurplusFormModal';
-import axios from 'axios';
 import { TimezoneProvider } from '../../../contexts/TimezoneContext';
 
-// Mock axios
-jest.mock('axios', () => {
-  const mockPost = jest.fn();
-  const mockGet = jest.fn();
-  const mockPut = jest.fn();
-  const mockDelete = jest.fn();
-  const mockPatch = jest.fn();
-  const mockInstance = {
-    get: mockGet,
-    post: mockPost,
-    put: mockPut,
-    delete: mockDelete,
-    patch: mockPatch,
-    interceptors: {
-      request: { use: jest.fn(() => config => config), eject: jest.fn() },
-      response: { use: jest.fn(() => response => response), eject: jest.fn() },
+// Mock react-i18next
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key, params) => {
+      const translations = {
+        'surplusForm.title': 'Add New Donation',
+        'surplusForm.editTitle': 'Edit Donation',
+        'surplusForm.titleLabel': 'Title',
+        'surplusForm.titlePlaceholder': 'e.g., Vegetable Lasagna',
+        'surplusForm.foodCategoriesLabel': 'Food Categories',
+        'surplusForm.foodCategoriesPlaceholder': 'Select categories',
+        'surplusForm.temperatureCategoryLabel': 'Temperature Category',
+        'surplusForm.temperatureCategoryPlaceholder':
+          'Select temperature category',
+        'surplusForm.temperatureCategoryHelp':
+          'Select the storage temperature for food safety verification',
+        'surplusForm.packagingTypeLabel': 'Packaging Type',
+        'surplusForm.packagingTypePlaceholder': 'Select packaging type',
+        'surplusForm.packagingTypeHelp':
+          'Specify how the food is packaged for safety compliance',
+        'surplusForm.quantityLabel': 'Quantity',
+        'surplusForm.quantityPlaceholder': '0',
+        'surplusForm.unitLabel': 'Unit',
+        'surplusForm.unitPlaceholder': 'Select unit',
+        'surplusForm.fabricationDateLabel': 'Fabrication/Production Date',
+        'surplusForm.fabricationDatePlaceholder': 'When was it made?',
+        'surplusForm.fabricationDateHelp':
+          'System will auto-calculate expiry date based on food type',
+        'surplusForm.expiryDateLabel': 'Expiry Date',
+        'surplusForm.expiryDatePlaceholder': 'Select expiry date',
+        'surplusForm.expiryDateAutoCalculated':
+          '(Auto-calculated, you can edit)',
+        'surplusForm.expiryDateSuggestion':
+          'Suggested expiry: {{date}} (based on food category)',
+        'surplusForm.pickupTimeSlotsLabel': 'Pickup Time Slots',
+        'surplusForm.addAnotherSlot': 'Add Another Slot',
+        'surplusForm.slot': 'Slot',
+        'surplusForm.dateLabel': 'Date',
+        'surplusForm.datePlaceholder': 'Select date',
+        'surplusForm.startTimeLabel': 'Start Time',
+        'surplusForm.startTimePlaceholder': 'Start',
+        'surplusForm.endTimeLabel': 'End Time',
+        'surplusForm.endTimePlaceholder': 'End',
+        'surplusForm.notesLabel': 'Notes',
+        'surplusForm.notesPlaceholder':
+          'e.g., Use back entrance, Ask for manager',
+        'surplusForm.pickupLocationLabel': 'Pickup Location',
+        'surplusForm.pickupLocationPlaceholder': 'Start typing address...',
+        'surplusForm.descriptionLabel': 'Description',
+        'surplusForm.descriptionPlaceholder':
+          'Describe the food (ingredients, freshness, etc.)',
+        'surplusForm.previous': 'Previous',
+        'surplusForm.next': 'Next',
+        'surplusForm.createDonation': 'Create Donation',
+        'surplusForm.updateDonation': 'Update Donation',
+        'surplusForm.cancelConfirm': 'Cancel donation creation?',
+        'surplusForm.cancelEditConfirm':
+          'Cancel editing? Your changes will be lost.',
+        'surplusForm.validationError':
+          'Please complete all required fields before continuing.',
+        'surplusForm.loadingDetails': 'Loading donation details...',
+        'surplusForm.successCreated': 'Success! Post created with ID: {{id}}',
+        'surplusForm.successUpdated': 'Success! Donation updated successfully.',
+        'surplusForm.failed': 'Failed to create surplus post',
+        'surplusForm.failedToLoad': 'Failed to load post data',
+        'surplusForm.steps.foodDetails': 'Food Details',
+        'surplusForm.steps.quantityDates': 'Quantity & Dates',
+        'surplusForm.steps.pickupInfo': 'Pickup Info',
+        'surplusForm.steps.description': 'Description',
+      };
+      // Handle interpolation
+      let result = translations[key] || key;
+      if (params) {
+        result = result.replace(/\{\{(\w+)\}\}/g, (match, p1) => {
+          return params[p1] !== undefined ? params[p1] : match;
+        });
+      }
+      return result;
     },
-  };
-  return {
-    __esModule: true,
-    default: {
-      create: jest.fn(() => mockInstance),
-    },
-  };
-});
+  }),
+}));
 
-// Get reference to the mocked instance for use in tests
-const mockAxiosInstance = axios.create();
+// Mock the surplusAPI directly
+jest.mock('../../../services/api', () => ({
+  surplusAPI: {
+    create: jest.fn(),
+    update: jest.fn(),
+    getPost: jest.fn(),
+  },
+}));
+
+// Import the mocked module after the mock is set up
+// eslint-disable-next-line import/first
+import { surplusAPI as mockSurplusAPI } from '../../../services/api';
 
 // Helper function to render with required providers
 const renderWithProviders = (ui, options = {}) => {
@@ -226,7 +290,14 @@ describe('SurplusFormModal', () => {
 
   // Helper function to fill Step 2 (Quantity & Dates)
   const fillStep2 = async () => {
-    await userEvent.type(screen.getByPlaceholderText('0'), '10');
+    // Wait for step 2 to be visible first
+    await waitFor(() => {
+      expect(screen.getByText('Quantity & Dates')).toBeInTheDocument();
+    });
+
+    // Find quantity input by placeholder text (from setupTests.js mock)
+    const quantityInput = screen.getByPlaceholderText('0');
+    await userEvent.type(quantityInput, '10');
 
     const datePickers = screen.getAllByTestId('date-picker');
     fireEvent.click(datePickers[0]); // Fabrication date
@@ -345,7 +416,7 @@ describe('SurplusFormModal', () => {
   // Form submission with valid data through all steps
   test('submits form with valid data through all steps', async () => {
     const mockResponse = { data: { id: 123 } };
-    mockAxiosInstance.post.mockResolvedValue(mockResponse);
+    mockSurplusAPI.create.mockResolvedValue(mockResponse);
 
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
@@ -366,12 +437,11 @@ describe('SurplusFormModal', () => {
     fireEvent.click(screen.getByText('Create Donation'));
 
     await waitFor(() => {
-      expect(mockAxiosInstance.post).toHaveBeenCalled();
+      expect(mockSurplusAPI.create).toHaveBeenCalled();
     });
 
-    const apiCall = mockAxiosInstance.post.mock.calls[0];
-    expect(apiCall[0]).toBe('/surplus');
-    expect(apiCall[1]).toMatchObject({
+    const apiCall = mockSurplusAPI.create.mock.calls[0];
+    expect(apiCall[0]).toMatchObject({
       title: 'Test Food',
       quantity: { value: 10, unit: 'KILOGRAM' },
       temperatureCategory: 'REFRIGERATED',
@@ -431,7 +501,7 @@ describe('SurplusFormModal', () => {
   // API error handling
   test('handles API errors correctly', async () => {
     const errorMessage = 'Network Error';
-    mockAxiosInstance.post.mockRejectedValue({
+    mockSurplusAPI.create.mockRejectedValue({
       response: { data: { message: errorMessage } },
     });
 
@@ -476,7 +546,7 @@ describe('SurplusFormModal', () => {
   // Success message after successful submission
   test('shows success message after successful submission', async () => {
     const mockResponse = { data: { id: 123 } };
-    mockAxiosInstance.post.mockResolvedValue(mockResponse);
+    mockSurplusAPI.create.mockResolvedValue(mockResponse);
 
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
@@ -505,7 +575,7 @@ describe('SurplusFormModal', () => {
   // Verify API is called with correct endpoint
   test('calls the correct API endpoint on form submission', async () => {
     const mockResponse = { data: { id: 123 } };
-    mockAxiosInstance.post.mockResolvedValue(mockResponse);
+    mockSurplusAPI.create.mockResolvedValue(mockResponse);
 
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
@@ -526,9 +596,7 @@ describe('SurplusFormModal', () => {
     fireEvent.click(screen.getByText('Create Donation'));
 
     await waitFor(() => {
-      expect(mockAxiosInstance.post).toHaveBeenCalled();
-      const apiCall = mockAxiosInstance.post.mock.calls[0];
-      expect(apiCall[0]).toBe('/surplus');
+      expect(mockSurplusAPI.create).toHaveBeenCalled();
     });
   });
 
@@ -564,7 +632,7 @@ describe('SurplusFormModal', () => {
     fireEvent.click(screen.getByText('Next'));
     await screen.findByText('Quantity & Dates');
 
-    const quantityInput = screen.getByPlaceholderText('0');
+    const quantityInput = document.querySelector('input[name="quantityValue"]');
     await userEvent.type(quantityInput, '5');
     expect(quantityInput.value).toBe('5');
 
@@ -596,7 +664,7 @@ describe('SurplusFormModal', () => {
   // Modal closes after successful submission
   test('closes modal after successful submission', async () => {
     const mockResponse = { data: { id: 123 } };
-    mockAxiosInstance.post.mockResolvedValue(mockResponse);
+    mockSurplusAPI.create.mockResolvedValue(mockResponse);
 
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
@@ -859,7 +927,7 @@ describe('SurplusFormModal', () => {
   // Multiple pickup slots submission
   test('submits form with multiple pickup slots', async () => {
     const mockResponse = { data: { id: 456 } };
-    mockAxiosInstance.post.mockResolvedValue(mockResponse);
+    mockSurplusAPI.create.mockResolvedValue(mockResponse);
 
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
@@ -914,16 +982,18 @@ describe('SurplusFormModal', () => {
     fireEvent.click(screen.getByText('Create Donation'));
 
     await waitFor(() => {
-      expect(mockAxiosInstance.post).toHaveBeenCalled();
-      const apiCall = mockAxiosInstance.post.mock.calls[0];
-      expect(apiCall[1].pickupSlots).toHaveLength(2);
+      expect(mockSurplusAPI.create).toHaveBeenCalled();
     });
+
+    const apiCall = mockSurplusAPI.create.mock.calls[0];
+    expect(apiCall[0].pickupSlots).toHaveLength(2);
   });
 
   // Quantity with decimal values
   test('handles decimal quantity values', async () => {
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
+    // First fill step 1 and navigate to step 2 where quantity input is
     await fillStep1();
     fireEvent.click(screen.getByText('Next'));
     await screen.findByText('Quantity & Dates');
@@ -933,9 +1003,9 @@ describe('SurplusFormModal', () => {
     expect(quantityInput.value).toBe('5.5');
   });
 
-  // API error without response data
+  // API error without response message
   test('handles API error without response message', async () => {
-    mockAxiosInstance.post.mockRejectedValue({});
+    mockSurplusAPI.create.mockRejectedValue({});
 
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 

@@ -1,6 +1,7 @@
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import '../style/LoginPage.css';
 import React, { useState, useContext, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { authAPI } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
 import { useAnalytics } from '../hooks/useAnalytics';
@@ -8,6 +9,7 @@ import { Eye, EyeOff } from 'lucide-react';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const location = useLocation();
   const { login } = useContext(AuthContext);
   const [email, setEmail] = useState('');
@@ -143,7 +145,7 @@ const LoginPage = () => {
                 onClick={() => navigate('/')}
                 aria-label="Go back to homepage"
               >
-                ← Back Home
+                {t('login.backHome')}
               </button>
               <h1 id="login-title" className="login-title">
                 Log in to your account
@@ -152,13 +154,13 @@ const LoginPage = () => {
               <form onSubmit={handleLogin} noValidate>
                 <div className="form-field">
                   <label htmlFor="email" className="form-label">
-                    Email address
+                    {t('login.emailLabel')}
                   </label>
                   <input
                     id="email"
                     type="email"
                     className="form-input"
-                    placeholder="Enter your email"
+                    placeholder={t('login.emailPlaceholder')}
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     autoComplete="email"
@@ -168,14 +170,14 @@ const LoginPage = () => {
 
                 <div className="form-field">
                   <label htmlFor="password" className="form-label">
-                    Password
+                    {t('login.passwordLabel')}
                   </label>
                   <div className="password-wrapper">
                     <input
                       id="password"
                       type={showPassword ? 'text' : 'password'}
                       className="form-input"
-                      placeholder="Enter your password"
+                      placeholder={t('login.passwordPlaceholder')}
                       value={password}
                       onChange={e => setPassword(e.target.value)}
                       autoComplete="current-password"
@@ -197,7 +199,9 @@ const LoginPage = () => {
                     </button>
                   </div>
                   <div className="forgot-link">
-                    <Link to="/forgot-password">Forgot password?</Link>
+                    <Link to="/forgot-password">
+                      {t('login.forgotPassword')}
+                    </Link>
                   </div>
                 </div>
 
@@ -212,13 +216,13 @@ const LoginPage = () => {
                   disabled={loading}
                   onClick={() => trackButtonClick('login_submit', 'login_page')}
                 >
-                  {loading ? 'Logging in…' : 'LOG IN'}
+                  {loading ? t('login.loggingIn') : t('login.logIn')}
                 </button>
 
                 <p className="form-footer">
-                  Don't have an account?{' '}
+                  {t('login.dontHaveAccount')}{' '}
                   <Link to="/register" className="link-button">
-                    Sign up
+                    {t('login.signUp')}
                   </Link>
                 </p>
               </form>

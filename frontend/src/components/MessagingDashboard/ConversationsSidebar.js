@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import './ConversationsSidebar.css';
 
 const ConversationsSidebar = ({
@@ -8,7 +9,34 @@ const ConversationsSidebar = ({
   onNewConversation,
   showOnMobile = true,
 }) => {
+  const { t } = useTranslation();
   const [filter, setFilter] = useState('all'); // 'all' or 'unread'
+
+  const getProfilePhotoUrl = photoUrl => {
+    if (!photoUrl) {
+      return null;
+    }
+    if (
+      photoUrl.startsWith('http://') ||
+      photoUrl.startsWith('https://') ||
+      photoUrl.startsWith('data:')
+    ) {
+      return photoUrl;
+    }
+    const apiBaseUrl =
+      process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+    const backendBaseUrl = apiBaseUrl.endsWith('/api')
+      ? apiBaseUrl.slice(0, -4)
+      : apiBaseUrl.replace(/\/api$/, '');
+    if (photoUrl.startsWith('/uploads/')) {
+      const filename = photoUrl.substring('/uploads/'.length);
+      return `${backendBaseUrl}/api/files/uploads/${filename}`;
+    }
+    if (photoUrl.startsWith('/api/files/')) {
+      return `${backendBaseUrl}${photoUrl}`;
+    }
+    return `${backendBaseUrl}${photoUrl.startsWith('/') ? '' : '/'}${photoUrl}`;
+  };
 
   const formatTimestamp = timestamp => {
     if (!timestamp) {
@@ -22,16 +50,16 @@ const ConversationsSidebar = ({
     const diffInDays = Math.floor(diffInHours / 24);
 
     if (diffInMins < 1) {
-      return 'Just now';
+      return t('messaging.justNow');
     }
     if (diffInMins < 60) {
-      return `${diffInMins}m ago`;
+      return t('messaging.minutesAgo', { count: diffInMins });
     }
     if (diffInHours < 24) {
-      return `${diffInHours}h ago`;
+      return t('messaging.hoursAgo', { count: diffInHours });
     }
     if (diffInDays < 7) {
-      return `${diffInDays}d ago`;
+      return t('messaging.daysAgo', { count: diffInDays });
     }
     return date.toLocaleDateString();
   };
@@ -51,13 +79,15 @@ const ConversationsSidebar = ({
     >
       <div className="sidebar-header">
         <div className="header-content">
-          <h2>Messages</h2>
-          <p className="sidebar-subtitle">Connect and coordinate here!</p>
+          <h2>{t('messaging.messages')}</h2>
+          <p className="sidebar-subtitle">
+            {t('messaging.connectAndCoordinate')}
+          </p>
         </div>
         <button
           className="new-conversation-btn"
           onClick={onNewConversation}
-          title="Start new conversation"
+          title={t('messaging.startNewConversation')}
         >
           +
         </button>
@@ -68,13 +98,13 @@ const ConversationsSidebar = ({
           className={`filter-tab ${filter === 'all' ? 'active' : ''}`}
           onClick={() => setFilter('all')}
         >
-          All
+          {t('messaging.all')}
         </button>
         <button
           className={`filter-tab ${filter === 'unread' ? 'active' : ''}`}
           onClick={() => setFilter('unread')}
         >
-          Unread
+          {t('messaging.unread')}
           {unreadCount > 0 && (
             <span className="filter-badge">{unreadCount}</span>
           )}
@@ -84,8 +114,8 @@ const ConversationsSidebar = ({
       <div className="conversations-list">
         {conversations.length === 0 ? (
           <div className="no-conversations">
-            <p>No conversations yet</p>
-            <p className="hint">Click + to start a new conversation</p>
+            <p>{t('messaging.noConversationsYet')}</p>
+            <p className="hint">{t('messaging.clickToStart')}</p>
           </div>
         ) : (
           filteredConversations.map(conversation => (
@@ -97,7 +127,15 @@ const ConversationsSidebar = ({
               onClick={() => onSelectConversation(conversation)}
             >
               <div className="conversation-avatar">
-                {conversation.otherUserName.charAt(0).toUpperCase()}
+                {conversation.otherUserProfilePhoto ? (
+                  <img
+                    src={getProfilePhotoUrl(conversation.otherUserProfilePhoto)}
+                    alt={conversation.otherUserName}
+                    className="conversation-avatar-image"
+                  />
+                ) : (
+                  conversation.otherUserName.charAt(0).toUpperCase()
+                )}
               </div>
 
               <div className="conversation-info">

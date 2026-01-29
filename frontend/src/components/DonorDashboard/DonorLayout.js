@@ -6,6 +6,7 @@ import {
   Link,
   useNavigationType,
 } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Home,
   LayoutGrid,
@@ -30,8 +31,10 @@ import EmailVerificationRequired from '../EmailVerificationRequired';
 import AdminApprovalBanner from '../AdminApprovalBanner';
 import { connectToUserQueue, disconnect } from '../../services/socket';
 import BadgeDisplay from '../shared/BadgeDisplay';
+import { profileAPI } from '../../services/api';
 
 export default function DonorLayout() {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const navType = useNavigationType();
@@ -42,26 +45,27 @@ export default function DonorLayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const menuRef = useRef(null);
   const [notification, setNotification] = useState(null);
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState(null);
 
   const pageTitle = (() => {
     switch (location.pathname) {
       case '/donor':
       case '/donor/dashboard':
-        return 'Donor Dashboard';
+        return t('donorLayout.pageTitles.donorDashboard');
       case '/donor/list':
-        return 'Donate Now';
+        return t('donorLayout.pageTitles.donateNow');
       case '/donor/requests':
-        return 'Requests & Claims';
+        return t('donorLayout.pageTitles.requestsClaims');
       case '/donor/search':
-        return ' Pickup Schdule';
+        return t('donorLayout.pageTitles.pickupSchedule');
       case '/donor/messages':
-        return 'Messages';
+        return t('donorLayout.pageTitles.messages');
       case '/donor/settings':
-        return 'Settings';
+        return t('donorLayout.pageTitles.settings');
       case '/donor/help':
-        return 'Help';
+        return t('donorLayout.pageTitles.help');
       default:
-        return 'Donor';
+        return t('donorLayout.pageTitles.donor');
     }
   })();
 
@@ -69,23 +73,68 @@ export default function DonorLayout() {
     switch (location.pathname) {
       case '/donor':
       case '/donor/dashboard':
-        return 'Overview and quick actions';
+        return t('donorLayout.pageDescriptions.donorDashboard');
       case '/donor/list':
-        return 'Create and manage donation listings';
+        return t('donorLayout.pageDescriptions.donateNow');
       case '/donor/requests':
-        return 'Incoming requests and status';
+        return t('donorLayout.pageDescriptions.requestsClaims');
       case '/donor/search':
-        return 'Recent activity and history';
+        return t('donorLayout.pageDescriptions.pickupSchedule');
       case '/donor/messages':
-        return 'Incoming communications';
+        return t('donorLayout.pageDescriptions.messages');
       case '/donor/settings':
-        return 'Manage your preferences and account settings';
+        return t('donorLayout.pageDescriptions.settings');
       case '/donor/help':
-        return 'Guides and support';
+        return t('donorLayout.pageDescriptions.help');
       default:
-        return 'FoodFlow Donor Portal';
+        return t('donorLayout.pageDescriptions.donorPortal');
     }
   })();
+
+  const getProfilePhotoUrl = photoUrl => {
+    if (!photoUrl) {
+      return null;
+    }
+    if (
+      photoUrl.startsWith('http://') ||
+      photoUrl.startsWith('https://') ||
+      photoUrl.startsWith('data:')
+    ) {
+      return photoUrl;
+    }
+    const apiBaseUrl =
+      process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+    const backendBaseUrl = apiBaseUrl.endsWith('/api')
+      ? apiBaseUrl.slice(0, -4)
+      : apiBaseUrl.replace(/\/api$/, '');
+    if (photoUrl.startsWith('/uploads/')) {
+      const filename = photoUrl.substring('/uploads/'.length);
+      return `${backendBaseUrl}/api/files/uploads/${filename}`;
+    }
+    if (photoUrl.startsWith('/api/files/')) {
+      return `${backendBaseUrl}${photoUrl}`;
+    }
+    return `${backendBaseUrl}${photoUrl.startsWith('/') ? '' : '/'}${photoUrl}`;
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchProfilePhoto = async () => {
+      try {
+        const response = await profileAPI.get();
+        if (isMounted) {
+          const url = getProfilePhotoUrl(response.data?.profilePhoto);
+          setProfilePhotoUrl(url);
+        }
+      } catch (error) {
+        console.error('Error fetching profile photo:', error);
+      }
+    };
+    fetchProfilePhoto();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     const onDocClick = e => {
@@ -117,10 +166,13 @@ export default function DonorLayout() {
       console.log('DONOR: Claim notification received:', payload);
       const receiverName = payload.receiverEmail || 'A receiver';
       const foodTitle = payload.surplusPostTitle || 'your food item';
-      const message = `${receiverName} has claimed your "${foodTitle}"`;
+      const message = t('donorLayout.notifications.hasClaimed', {
+        receiverName,
+        foodTitle,
+      });
       console.log('DONOR: Setting notification with message:', message);
       setNotification({
-        senderName: 'New Claim',
+        senderName: t('donorLayout.notifications.newClaim'),
         message,
       });
     };
@@ -130,10 +182,13 @@ export default function DonorLayout() {
       console.log('DONOR: Claim cancellation received:', payload);
       const receiverName = payload.receiverEmail || 'A receiver';
       const foodTitle = payload.surplusPostTitle || 'your food item';
-      const message = `${receiverName} cancelled their claim on "${foodTitle}"`;
+      const message = t('donorLayout.notifications.cancelledClaim', {
+        receiverName,
+        foodTitle,
+      });
       console.log('DONOR: Setting notification with message:', message);
       setNotification({
-        senderName: 'Claim Cancelled',
+        senderName: t('donorLayout.notifications.claimCancelled'),
         message,
       });
     };
@@ -224,45 +279,67 @@ export default function DonorLayout() {
           <Link
             to="/donor"
             className={`donor-nav-link ${isActive('/donor') ? 'active' : ''}`}
-            data-tooltip="Home"
+            data-tooltip={t('donorLayout.home')}
           >
             <span className="nav-icon" aria-hidden>
               <Home size={18} className="lucide" />
             </span>
-            Home
+            {t('donorLayout.home')}
           </Link>
 
           <Link
             to="/donor/dashboard"
             className={`donor-nav-link ${isActive('/donor/dashboard') ? 'active' : ''}`}
-            data-tooltip="Dashboard"
+            data-tooltip={t('donorLayout.dashboard')}
           >
             <span className="nav-icon" aria-hidden>
               <LayoutGrid size={18} className="lucide" />
             </span>
-            Dashboard
+            {t('donorLayout.dashboard')}
           </Link>
 
           <Link
             to="/donor/list"
             className={`donor-nav-link ${isActive('/donor/list') ? 'active' : ''}`}
-            data-tooltip="Donate Now"
+            data-tooltip={t('donorLayout.donateNow')}
           >
             <span className="nav-icon" aria-hidden>
               <Heart size={18} className="lucide" />
             </span>
-            Donate Now
+            {t('donorLayout.donateNow')}
+          </Link>
+
+          <Link
+            to="/donor/requests"
+            className={`donor-nav-link ${isActive('/donor/requests') ? 'active' : ''}`}
+            data-tooltip={t('donorLayout.requestsClaims')}
+          >
+            <span className="nav-icon" aria-hidden>
+              <CalendarIcon size={18} className="lucide" />
+            </span>
+            {t('donorLayout.requestsClaims')}
+          </Link>
+
+          <Link
+            to="/donor/search"
+            className={`donor-nav-link ${isActive('/donor/search') ? 'active' : ''}`}
+            data-tooltip={t('donorLayout.pickupSchedule')}
+          >
+            <span className="nav-icon" aria-hidden>
+              <FileText size={18} className="lucide" />
+            </span>
+            {t('donorLayout.pickupSchedule')}
           </Link>
 
           <Link
             to="/donor/messages"
             className={`donor-nav-link ${isActive('/donor/messages') ? 'active' : ''}`}
-            data-tooltip="Messages"
+            data-tooltip={t('donorLayout.messages')}
           >
             <span className="nav-icon" aria-hidden>
               <Mail size={18} className="lucide" />
             </span>
-            Messages
+            {t('donorLayout.messages')}
           </Link>
         </nav>
 
@@ -270,29 +347,40 @@ export default function DonorLayout() {
           <Link
             to="/donor/settings"
             className={`donor-nav-link ${isActive('/donor/settings') ? 'active' : ''}`}
-            data-tooltip="Settings"
+            data-tooltip={t('donorLayout.settings')}
           >
             <span className="nav-icon" aria-hidden>
               <Settings size={18} className="lucide" />
             </span>
-            Settings
+            {t('donorLayout.settings')}
           </Link>
           <Link
             to="/donor/help"
             className={`donor-nav-link ${isActive('/donor/help') ? 'active' : ''}`}
-            data-tooltip="Help"
+            data-tooltip={t('donorLayout.help')}
           >
             <span className="nav-icon" aria-hidden>
               <HelpCircle size={18} className="lucide" />
             </span>
-            Help
+            {t('donorLayout.help')}
           </Link>
         </div>
 
         <div className="donor-sidebar-footer donor-user" ref={menuRef}>
           <div className="account-row">
             <button className="user-profile-pic" type="button">
-              <div className="account-avatar"></div>
+              <div
+                className="account-avatar"
+                style={
+                  profilePhotoUrl
+                    ? {
+                        backgroundImage: `url(${profilePhotoUrl})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                      }
+                    : undefined
+                }
+              ></div>
               <div className="account-text">
                 <span className="account-name">
                   {organizationName || 'Donor'}
@@ -317,7 +405,7 @@ export default function DonorLayout() {
                 onClick={handleLogout}
               >
                 <LogOut size={16} className="lucide" />
-                Logout
+                {t('donorLayout.logout')}
               </button>
             </div>
           )}

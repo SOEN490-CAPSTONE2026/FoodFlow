@@ -221,7 +221,12 @@ describe('ReceiverRegistration', () => {
     );
     await user.click(screen.getByRole('button', { name: /next/i }));
 
-    await screen.findByText(/an account with this email already exists/i);
+    await waitFor(() => {
+      const errorMessages = screen.getAllByText(
+        /an account with this email already exists/i
+      );
+      expect(errorMessages.length).toBeGreaterThan(0);
+    });
 
     // Should still be on step 1
     expect(screen.getByLabelText(/^email address$/i)).toBeInTheDocument();
@@ -311,9 +316,10 @@ describe('ReceiverRegistration', () => {
     // Try to go to next step - should be blocked
     await user.click(screen.getByRole('button', { name: /next/i }));
 
-    await screen.findByText(
+    const errorMessages = await screen.findAllByText(
       /an account with this phone number already exists/i
     );
+    expect(errorMessages.length).toBeGreaterThan(0);
 
     // Should still be on step 4
     expect(screen.getByLabelText(/contact person/i)).toBeInTheDocument();

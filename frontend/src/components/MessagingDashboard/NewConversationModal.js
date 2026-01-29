@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import api from '../../services/api';
 import './NewConversationModal.css';
 
 const NewConversationModal = ({ onClose, onConversationCreated }) => {
+  const { t } = useTranslation();
   const [recipientEmail, setRecipientEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -11,7 +13,7 @@ const NewConversationModal = ({ onClose, onConversationCreated }) => {
     e.preventDefault();
 
     if (!recipientEmail.trim()) {
-      setError('Please enter an email address');
+      setError(t('messaging.emailRequired'));
       return;
     }
 
@@ -27,9 +29,9 @@ const NewConversationModal = ({ onClose, onConversationCreated }) => {
     } catch (err) {
       console.error('Error starting conversation:', err);
       if (err.response?.status === 400) {
-        setError('User not found or invalid email');
+        setError(t('messaging.userNotFound'));
       } else {
-        setError('Failed to start conversation. Please try again.');
+        setError(t('messaging.conversationFailed'));
       }
     } finally {
       setLoading(false);
@@ -46,7 +48,7 @@ const NewConversationModal = ({ onClose, onConversationCreated }) => {
     <div className="modal-backdrop" onClick={handleBackdropClick}>
       <div className="modal-content">
         <div className="modal-header">
-          <h2>Start New Conversation</h2>
+          <h2>{t('messaging.newConversationTitle')}</h2>
           <button className="close-button" onClick={onClose}>
             ×
           </button>
@@ -54,20 +56,20 @@ const NewConversationModal = ({ onClose, onConversationCreated }) => {
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="recipient-email">Recipient Email Address</label>
+            <label htmlFor="recipient-email">
+              {t('messaging.recipientEmailLabel')}
+            </label>
             <input
               id="recipient-email"
               type="email"
               className="form-input"
-              placeholder="Enter email address"
+              placeholder={t('messaging.recipientEmailPlaceholder')}
               value={recipientEmail}
               onChange={e => setRecipientEmail(e.target.value)}
               disabled={loading}
               autoFocus
             />
-            <p className="form-hint">
-              Enter the email address of the user you want to message
-            </p>
+            <p className="form-hint">{t('messaging.recipientEmailHint')}</p>
           </div>
 
           {error && <div className="error-message">{error}</div>}
@@ -79,14 +81,16 @@ const NewConversationModal = ({ onClose, onConversationCreated }) => {
               onClick={onClose}
               disabled={loading}
             >
-              Cancel
+              {t('messaging.cancel')}
             </button>
             <button
               type="submit"
               className="submit-button"
               disabled={loading || !recipientEmail.trim()}
             >
-              {loading ? 'Starting...' : 'Start Conversation'}
+              {loading
+                ? t('messaging.starting')
+                : t('messaging.startConversation')}
             </button>
           </div>
         </form>

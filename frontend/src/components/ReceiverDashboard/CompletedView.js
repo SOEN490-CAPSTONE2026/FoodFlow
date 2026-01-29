@@ -85,7 +85,7 @@ const CompletedView = ({
     }
   };
 
-  const donorInfo = post?.donor || {
+  const donorInfo = {
     id: post?.donorId,
     name: post?.donorName || 'Donor',
   };

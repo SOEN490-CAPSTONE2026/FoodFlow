@@ -1,3 +1,17 @@
+.receiver-stats-box .rating-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 6px;
+  margin-left: 38px;
+  margin-top: 0px;
+}
+.receiver-stats-box .rating-star {
+  color: #f59e0b;
+  font-size: 18px;
+  margin-right: 4px;
+  vertical-align: middle;
+}
 /* Receiver Stats Box */
 .receiver-stats-box {
   background: #f9fafb;
@@ -32,14 +46,53 @@
   font-weight: 600;
   color: #1b4965;
   display: flex;
-  align-items: baseline;
+  align-items: center;
+  gap: 8px;
+}
+
+.receiver-stats-box .rating-vertical-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  position: relative;
+}
+
+.receiver-stats-box .rating-main {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1b4965;
+  display: flex;
+  align-items: center;
   gap: 4px;
 }
 
+.receiver-stats-box .rating-count-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  margin-left: 38px;
+  margin-top: 0px;
+}
+
+.receiver-stats-box .rating-number {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1b4965;
+  margin-left: 2px;
+  position: relative;
+}
+
 .receiver-stats-box .rating-count {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   color: #f59e0b;
+  margin-left: 0;
+  margin-top: 2px;
+  display: block;
+  text-align: right;
+  white-space: nowrap;
+  position: relative;
+  top: 0.1em;
 }
 
 .receiver-stats-box .no-rating {

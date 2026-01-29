@@ -153,7 +153,7 @@ describe('DonorRegistration', () => {
       expect(screen.getByLabelText(/contact person/i)).toHaveValue('Jane Doe');
       expect(screen.getByLabelText(/phone number/i)).toHaveValue('1234567890');
     });
-  }, 10000);
+  });
 
   it('password mismatch shows error and blocks submit', async () => {
     const user = userEvent.setup({ delay: null });
@@ -345,7 +345,12 @@ describe('DonorRegistration', () => {
     );
     await user.click(screen.getByRole('button', { name: /next/i }));
 
-    await screen.findByText(/an account with this email already exists/i);
+    await waitFor(() => {
+      const errorMessages = screen.getAllByText(
+        /an account with this email already exists/i
+      );
+      expect(errorMessages.length).toBeGreaterThan(0);
+    });
 
     // Should still be on step 1
     expect(screen.getByLabelText(/^email address$/i)).toBeInTheDocument();

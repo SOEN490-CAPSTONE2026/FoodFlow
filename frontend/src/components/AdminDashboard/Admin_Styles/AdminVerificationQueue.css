@@ -403,6 +403,10 @@
   color: #92400e;
 }
 
+.pill-email-pending {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
 .waiting-time {
   display: flex;
   align-items: center;
@@ -587,6 +591,32 @@
   align-items: center;
   gap: 6px;
   transition: all 0.2s;
+}
+
+.btn-verify-small {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+  background: #2563eb;
+  color: white;
+}
+
+.btn-verify-small:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+}
+
+.btn-verify-small svg {
+  width: 16px;
+  height: 16px;
 }
 
 .btn-approve-small {

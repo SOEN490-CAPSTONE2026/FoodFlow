@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FaPlus, FaMinus } from 'react-icons/fa';
 import '../LandingPage/style/FAQ.css';
 
 const FAQ = () => {
+  const { t } = useTranslation();
   const [activeIndices, setActiveIndices] = useState([]);
   const containerRef = useRef(null);
   const leftRef = useRef(null);
@@ -11,24 +13,20 @@ const FAQ = () => {
 
   const faqData = [
     {
-      question: 'How can I use FoodFlow to donate my surplus food?',
-      answer:
-        'Donating surplus food through FoodFlow is simple! First, create an account on our platform. Once logged in, you can quickly post available surplus food by providing details like food type, quantity, pickup location, and time window. Nearby charities and community organizations will be instantly notified and can claim the donation.',
+      question: t('landing.faq.q1.question'),
+      answer: t('landing.faq.q1.answer'),
     },
     {
-      question: 'What kind of organizations can receive food through FoodFlow?',
-      answer:
-        'FoodFlow works with verified charitable organizations including food banks, homeless shelters, community kitchens, schools, and non-profits serving vulnerable populations. All receiving organizations undergo a verification process to ensure they can properly handle and distribute food according to safety standards.',
+      question: t('landing.faq.q2.question'),
+      answer: t('landing.faq.q2.answer'),
     },
     {
-      question: 'Is there any cost to use FoodFlow?',
-      answer:
-        "FoodFlow is completely free for both food donors and receiving organizations. Our mission is to reduce food waste and help communities, so we've designed the platform to be accessible to everyone.",
+      question: t('landing.faq.q3.question'),
+      answer: t('landing.faq.q3.answer'),
     },
     {
-      question: 'How does FoodFlow ensure food safety?',
-      answer:
-        'Food safety is our top priority. Our platform includes built-in safety guidelines and tracking features. Donors provide information about storage conditions, preparation time, and expiration dates. We also provide temperature logging for perishable items and ensure all pickups happen within safe time windows.',
+      question: t('landing.faq.q4.question'),
+      answer: t('landing.faq.q4.answer'),
     },
   ];
 
@@ -85,7 +83,7 @@ const FAQ = () => {
   return (
     <div ref={containerRef} className="faq-container">
       <div ref={leftRef} className="faq-left">
-        <h1>Frequently Asked Questions</h1>
+        <h1>{t('landing.faq.title')}</h1>
       </div>
 
       <div ref={rightRef} className="faq-right">

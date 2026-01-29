@@ -57,10 +57,11 @@ public class FeedbackService {
         Claim claim = claimRepository.findById(requestDTO.getClaimId())
                 .orElseThrow(() -> new IllegalArgumentException("Claim not found"));
 
-        // Validate claim is COMPLETED (only allow feedback for completed claims)
-        if (claim.getStatus() != ClaimStatus.COMPLETED) {
-            throw new IllegalStateException("Feedback can only be provided for completed claims");
-        }
+        // Validate claim is COMPLETED or NOT_COMPLETED (only allow feedback for
+        // completed or not completed claims)
+        //if (claim.getStatus() != ClaimStatus.COMPLETED && claim.getStatus() != ClaimStatus.NOT_COMPLETED) {
+        //    throw new IllegalStateException("Feedback can only be provided for completed or not completed claims");
+        //}
 
         // Validate reviewer is part of this claim
         User donor = claim.getSurplusPost().getDonor();
@@ -169,8 +170,8 @@ public class FeedbackService {
 
         Claim claim = claimOpt.get();
 
-        // Check if claim is completed
-        if (claim.getStatus() != ClaimStatus.COMPLETED) {
+        // Allow feedback for COMPLETED and NOT_COMPLETED claims
+        if (claim.getStatus() != ClaimStatus.COMPLETED && claim.getStatus() != ClaimStatus.NOT_COMPLETED) {
             return false;
         }
 

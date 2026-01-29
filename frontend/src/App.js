@@ -1,10 +1,12 @@
 import React from 'react';
+import { useEffect } from 'react';
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
 } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import LandingPage from './components/LandingPage/LandingPage';
 import RegisterType from './components/RegisterType';
 import DonorRegistration from './components/DonorRegistration';
@@ -29,9 +31,23 @@ import './App.css';
 
 import { useLocation } from 'react-router-dom';
 
+import './locales/i18n';
+
 function AppContent() {
   useAnalytics();
   const location = useLocation();
+  const { i18n } = useTranslation();
+
+  // Set document direction and lang attribute based on current language
+  useEffect(() => {
+    const rtlLanguages = ['ar'];
+    const isRTL = rtlLanguages.includes(i18n.language);
+    const dir = isRTL ? 'rtl' : 'ltr';
+
+    document.documentElement.setAttribute('dir', dir);
+    document.documentElement.setAttribute('lang', i18n.language);
+    document.body.style.direction = dir;
+  }, [i18n.language]);
 
   // Top navbar only shown on public pages (landing, login, registration)
   // Dashboard routes (/donor, /admin, /receiver) have their own internal layouts

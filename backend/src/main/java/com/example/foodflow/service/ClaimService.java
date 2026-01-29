@@ -1,5 +1,7 @@
 package com.example.foodflow.service;
 
+import com.example.foodflow.exception.BusinessException;
+import com.example.foodflow.exception.ResourceNotFoundException;
 import com.example.foodflow.model.dto.ClaimRequest;
 import com.example.foodflow.model.dto.ClaimResponse;
 import com.example.foodflow.model.entity.Claim;
@@ -58,7 +60,7 @@ public class ClaimService {
         Timer.Sample sample = businessMetricsService.startTimer();
         // Fetch and lock the surplus post to prevent concurrent claims
         SurplusPost surplusPost = surplusPostRepository.findById(request.getSurplusPostId())
-            .orElseThrow(() -> new RuntimeException("Surplus post not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("error.resource.not_found"));
 
         // Check if post has expired
         if (surplusPost.getExpiryDate() != null &&
@@ -73,18 +75,18 @@ public class ClaimService {
 
         if (surplusPost.getStatus() != PostStatus.AVAILABLE &&
             surplusPost.getStatus() != PostStatus.READY_FOR_PICKUP) {
-            throw new RuntimeException("This post is no longer available for claiming");
+            throw new BusinessException("error.claim.not_available");
         }
 
         // Check if already claimed (race condition prevention)
         if (claimRepository.existsBySurplusPostIdAndStatus(
                 surplusPost.getId(), ClaimStatus.ACTIVE)) {
-            throw new RuntimeException("This post has already been claimed");
+            throw new BusinessException("error.claim.already_claimed");
         }
 
         // Prevent donor from claiming their own post
         if (surplusPost.getDonor().getId().equals(receiver.getId())) {
-            throw new RuntimeException("You cannot claim your own surplus post");
+            throw new BusinessException("error.claim.own_post");
         }
 
         // Create the claim
@@ -238,7 +240,14 @@ public class ClaimService {
     @Timed(value = "claim.service.getReceiverClaims", description = "Time taken to get receiver claims")
     public List<ClaimResponse> getReceiverClaims(User receiver) {
         return claimRepository.findReceiverClaimsWithDetails(
-            receiver.getId(), ClaimStatus.ACTIVE)
+            receiver.getId(),
+            java.util.List.of(
+                ClaimStatus.ACTIVE,
+                ClaimStatus.COMPLETED,
+                ClaimStatus.NOT_COMPLETED,
+                ClaimStatus.EXPIRED
+            )
+        )
             .stream()
             .map(ClaimResponse::new)
             .collect(Collectors.toList());
@@ -257,11 +266,11 @@ public class ClaimService {
     public void cancelClaim(Long claimId, User receiver) {
         Timer.Sample sample = businessMetricsService.startTimer();
         Claim claim = claimRepository.findById(claimId)
-            .orElseThrow(() -> new RuntimeException("Claim not found"));
-        
+            .orElseThrow(() -> new ResourceNotFoundException("error.resource.not_found"));
+
         // Verify receiver owns this claim
         if (!claim.getReceiver().getId().equals(receiver.getId())) {
-            throw new RuntimeException("You can only cancel your own claims");
+            throw new BusinessException("error.claim.unauthorized_cancel");
         }
         
         // Cancel the claim

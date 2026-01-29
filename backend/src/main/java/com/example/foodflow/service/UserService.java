@@ -4,6 +4,7 @@ import com.example.foodflow.model.dto.UpdateNotificationPreferencesRequest;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.UserRole;
 import com.example.foodflow.repository.UserRepository;
+import com.example.foodflow.model.dto.UserDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -31,6 +32,11 @@ public class UserService {
         this.notificationPreferenceService = notificationPreferenceService;
     }
     
+    public void updateLanguagePreference(User user, String languagePreference) {
+        user.setLanguagePreference(languagePreference);
+        userRepository.save(user);
+    }
+
     @Transactional
     public User updateNotificationPreferences(Long userId, UpdateNotificationPreferencesRequest request) {
         User user = userRepository.findById(userId)
@@ -103,6 +109,12 @@ public class UserService {
     public User getUserById(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+    }
+
+    public UserDTO getProfile(User currentUser) {
+        User u = userRepository.findById(currentUser.getId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return UserDTO.toDTO(u);
     }
     
     @SuppressWarnings("unchecked")

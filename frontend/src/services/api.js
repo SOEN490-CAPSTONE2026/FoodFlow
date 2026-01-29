@@ -86,7 +86,6 @@ export const authAPI = {
 
 export const surplusAPI = {
   list: () => api.get('/surplus'), // Just /surplus, not /api/surplus
-  myPosts: () => api.get('/surplus/my-posts'),
   getMyPosts: () => api.get('/surplus/my-posts'),
   getPost: id => api.get(`/surplus/${id}`),
   create: data => api.post('/surplus', data),
@@ -500,6 +499,13 @@ export const adminVerificationAPI = {
    * @returns {Promise} Updated user data
    */
   approveUser: userId => api.post(`/admin/approve/${userId}`),
+
+  /**
+   * Manually verify a user's email
+   * @param {number} userId - User ID to mark email verified
+   * @returns {Promise} Response data
+   */
+  verifyEmail: userId => api.post(`/admin/verify-email/${userId}`),
 
   /**
    * Reject a pending user registration

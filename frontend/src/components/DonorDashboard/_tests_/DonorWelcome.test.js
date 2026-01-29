@@ -7,13 +7,6 @@ import DonorWelcome from '../DonorWelcome';
 import { AuthContext } from '../../../contexts/AuthContext';
 import { surplusAPI } from '../../../services/api';
 
-// Mock API
-jest.mock('../../../services/api', () => ({
-  surplusAPI: {
-    getMyPosts: jest.fn(),
-  },
-}));
-
 // Mock CSS
 jest.mock('../Donor_Styles/DonorWelcome.css', () => ({}), { virtual: true });
 

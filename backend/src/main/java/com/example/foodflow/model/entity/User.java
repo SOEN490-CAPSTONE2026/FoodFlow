@@ -18,13 +18,13 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Email
-    @NotBlank
+    @Email(message = "{validation.email.invalid}")
+    @NotBlank(message = "{validation.email.required}")
     @Column(unique = true)
     private String email;
 
-    @NotBlank
-    @Size(min = 8)
+    @NotBlank(message = "{validation.password.required}")
+    @Size(min = 8, message = "{validation.password.minLength}")
     private String password;
 
     @Enumerated(EnumType.STRING)
@@ -85,6 +85,9 @@ public class User {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
+    @Column(length = 5)
+    private String languagePreference = "en";
+
     // Constructors, getters, setters
     public User() {}
 
@@ -116,6 +119,9 @@ public class User {
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
     
+    public String getLanguagePreference() { return languagePreference; }
+    public void setLanguagePreference(String languagePreference) { this.languagePreference = languagePreference; }
+
     public AccountStatus getAccountStatus() { return accountStatus; }
     public void setAccountStatus(AccountStatus accountStatus) { this.accountStatus = accountStatus; }
     

@@ -1,8 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FaCheckCircle, FaBell, FaLightbulb } from 'react-icons/fa';
 import '../LandingPage/style/AboutUs.css';
 
 export default function AboutUs() {
+  const { t } = useTranslation();
   const titleRef = useRef(null);
   const subtitleRef = useRef(null);
   const missionRef = useRef(null);
@@ -12,21 +14,18 @@ export default function AboutUs() {
   const cards = [
     {
       icon: <FaCheckCircle />,
-      title: 'Verified Organizations',
-      content:
-        'All our partner organizations undergo thorough verification and background checks to ensure safety, legitimacy, and compliance with food safety standards.',
+      title: t('landing.about.verifiedOrgs.title'),
+      content: t('landing.about.verifiedOrgs.content'),
     },
     {
       icon: <FaBell />,
-      title: 'Real-Time Notifications',
-      content:
-        'Instant alerts when food donations become available. Our system tracks temperature, pickup times, and compliance automatically for complete transparency.',
+      title: t('landing.about.realTimeNotifications.title'),
+      content: t('landing.about.realTimeNotifications.content'),
     },
     {
       icon: <FaLightbulb />,
-      title: 'Smart Matching',
-      content:
-        'Our intelligent algorithm matches food type, quantity, and location with the most suitable nearby organization to maximize efficiency and impact.',
+      title: t('landing.about.smartMatching.title'),
+      content: t('landing.about.smartMatching.content'),
     },
   ];
 
@@ -85,12 +84,10 @@ export default function AboutUs() {
     <div className="about-container">
       <div className="about-hero">
         <h1 ref={titleRef} className="about-title">
-          About FoodFlow
+          {t('landing.about.title')}
         </h1>
         <p ref={subtitleRef} className="about-subtitle">
-          Our platform connects food donors with verified organizations to
-          reduce waste and fight hunger through smart technology and community
-          collaboration.
+          {t('landing.about.subtitle')}
         </p>
       </div>
 
