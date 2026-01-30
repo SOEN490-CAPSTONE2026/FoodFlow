@@ -390,14 +390,14 @@ public class RecommendationService {
         if (daysUntilExpiry >= 7) {
             reasons.add("Fresh - expires in " + daysUntilExpiry + " days");
             return 10;
-        } else if (daysUntilExpiry >= 3) {
+        } else if (daysUntilExpiry >= 4) {
             reasons.add("Good freshness - " + daysUntilExpiry + " days left");
             return 8;
-        } else if (daysUntilExpiry >= 1) {
+        } else if (daysUntilExpiry >= 2) {
             reasons.add("Use within " + daysUntilExpiry + " days");
-            return 5;
-        } else if (daysUntilExpiry == 0) {
-            return 2;
+            return 6;
+        } else if (daysUntilExpiry >= 0) {
+            return 4;
         } else {
             return 0;
         }
