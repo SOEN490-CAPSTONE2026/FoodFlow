@@ -226,9 +226,9 @@ class ConversationControllerTest {
     }
     
     @Test
-    void getUserConversations_Unauthenticated_ShouldReturn403() throws Exception {
+    void getUserConversations_Unauthenticated_ShouldReturn401() throws Exception {
         // When & Then
         mockMvc.perform(get("/api/conversations"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 }

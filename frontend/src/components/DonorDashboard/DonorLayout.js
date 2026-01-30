@@ -11,8 +11,6 @@ import {
   Home,
   LayoutGrid,
   Heart,
-  Calendar as CalendarIcon,
-  FileText,
   Mail,
   ChevronRight,
   ChevronLeft,
@@ -54,10 +52,6 @@ export default function DonorLayout() {
         return t('donorLayout.pageTitles.donorDashboard');
       case '/donor/list':
         return t('donorLayout.pageTitles.donateNow');
-      case '/donor/requests':
-        return t('donorLayout.pageTitles.requestsClaims');
-      case '/donor/search':
-        return t('donorLayout.pageTitles.pickupSchedule');
       case '/donor/messages':
         return t('donorLayout.pageTitles.messages');
       case '/donor/settings':
@@ -76,10 +70,6 @@ export default function DonorLayout() {
         return t('donorLayout.pageDescriptions.donorDashboard');
       case '/donor/list':
         return t('donorLayout.pageDescriptions.donateNow');
-      case '/donor/requests':
-        return t('donorLayout.pageDescriptions.requestsClaims');
-      case '/donor/search':
-        return t('donorLayout.pageDescriptions.pickupSchedule');
       case '/donor/messages':
         return t('donorLayout.pageDescriptions.messages');
       case '/donor/settings':
@@ -307,28 +297,6 @@ export default function DonorLayout() {
               <Heart size={18} className="lucide" />
             </span>
             {t('donorLayout.donateNow')}
-          </Link>
-
-          <Link
-            to="/donor/requests"
-            className={`donor-nav-link ${isActive('/donor/requests') ? 'active' : ''}`}
-            data-tooltip={t('donorLayout.requestsClaims')}
-          >
-            <span className="nav-icon" aria-hidden>
-              <CalendarIcon size={18} className="lucide" />
-            </span>
-            {t('donorLayout.requestsClaims')}
-          </Link>
-
-          <Link
-            to="/donor/search"
-            className={`donor-nav-link ${isActive('/donor/search') ? 'active' : ''}`}
-            data-tooltip={t('donorLayout.pickupSchedule')}
-          >
-            <span className="nav-icon" aria-hidden>
-              <FileText size={18} className="lucide" />
-            </span>
-            {t('donorLayout.pickupSchedule')}
           </Link>
 
           <Link

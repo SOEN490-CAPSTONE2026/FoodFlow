@@ -498,6 +498,24 @@
   background: #d1d5db;
 }
 
+.donation-action-button.report-receiver {
+  background: #fff4ee;
+  color: #7f1d1d;
+  border: 1px solid rgba(185, 28, 28, 0.2);
+  box-shadow: 0 6px 14px rgba(185, 28, 28, 0.12);
+}
+
+.donation-action-button.report-receiver:hover {
+  background: #fee2e2;
+  border-color: rgba(185, 28, 28, 0.35);
+  transform: translateY(-1px);
+}
+
+.donation-action-button.report-receiver:focus-visible {
+  outline: 2px solid rgba(185, 28, 28, 0.35);
+  outline-offset: 3px;
+}
+
 .donation-link:focus-visible,
 .donation-address:focus-visible,
 .donor-add-button:focus-visible,

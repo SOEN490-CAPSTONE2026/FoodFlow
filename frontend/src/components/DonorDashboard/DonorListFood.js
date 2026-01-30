@@ -511,18 +511,35 @@ export default function DonorListFood() {
     handleCloseRescheduleModal();
   };
 
-  const handleOpenReport = item => {
-    setReportTargetUser({
-      id: item.receiverId,
-      name: item.receiverName || item.receiverEmail,
-    });
-    setCompletedDonationId(item.id);
-    setShowReportModal(true);
+  const handleOpenReport = async item => {
+    try {
+      const { data: claims } = await claimsAPI.getClaimForSurplusPost(item.id);
+
+      if (claims && claims.length > 0) {
+        const claim = claims[0];
+        if (claim.receiverId) {
+          setReportTargetUser({
+            id: claim.receiverId,
+            name: claim.receiverName || claim.receiverEmail,
+            email: claim.receiverEmail,
+          });
+          setCompletedDonationId(item.id);
+          setShowReportModal(true);
+        } else {
+          alert('Unable to load receiver information. Please try again.');
+        }
+      } else {
+        alert('No claims found for this donation. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error fetching claim details for report:', error);
+      alert('Failed to open report modal. Please try again.');
+    }
   };
 
   const handleReportSubmit = async reportData => {
     try {
-      await reportAPI.submitReport(reportData);
+      await reportAPI.createReport(reportData);
       alert('Report submitted successfully');
       setShowReportModal(false);
       setReportTargetUser(null);
@@ -1055,6 +1072,12 @@ export default function DonorListFood() {
                       </button>
                     )}
                     <button
+                      className="donation-action-button report-receiver"
+                      onClick={() => handleOpenReport(item)}
+                    >
+                      REPORT RECEIVER
+                    </button>
+                    <button
                       className="donation-action-button secondary"
                       onClick={() => handleOpenFeedback(item)}
                     >
@@ -1078,6 +1101,12 @@ export default function DonorListFood() {
                           disabled
                         >
                           THANK YOU
+                        </button>
+                        <button
+                          className="donation-action-button report-receiver"
+                          onClick={() => handleOpenReport(item)}
+                        >
+                          REPORT RECEIVER
                         </button>
                         <button
                           className="donation-action-button secondary"
@@ -1216,6 +1245,14 @@ export default function DonorListFood() {
         targetUser={feedbackTargetUser}
         isOpen={showFeedbackModal}
         onClose={() => setShowFeedbackModal(false)}
+      />
+
+      <ReportUserModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        reportedUser={reportTargetUser}
+        donationId={completedDonationId}
+        onSubmit={handleReportSubmit}
       />
     </div>
   );

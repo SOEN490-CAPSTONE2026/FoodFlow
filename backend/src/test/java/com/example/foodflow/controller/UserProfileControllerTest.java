@@ -189,14 +189,14 @@ class UserProfileControllerTest {
     }
     
     @Test
-    void getProfile_Unauthenticated_ShouldReturn403() throws Exception {
+    void getProfile_Unauthenticated_ShouldReturn401() throws Exception {
         // When & Then
         mockMvc.perform(get("/api/profile"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
     
     @Test
-    void updateProfile_Unauthenticated_ShouldReturn403() throws Exception {
+    void updateProfile_Unauthenticated_ShouldReturn401() throws Exception {
         // Given
         UpdateProfileRequest request = new UpdateProfileRequest();
         
@@ -204,18 +204,18 @@ class UserProfileControllerTest {
         mockMvc.perform(put("/api/profile")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
     
     @Test
-    void getRegionSettings_Unauthenticated_ShouldReturn403() throws Exception {
+    void getRegionSettings_Unauthenticated_ShouldReturn401() throws Exception {
         // When & Then
         mockMvc.perform(get("/api/profile/region"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
     
     @Test
-    void updateRegionSettings_Unauthenticated_ShouldReturn403() throws Exception {
+    void updateRegionSettings_Unauthenticated_ShouldReturn401() throws Exception {
         // Given
         UpdateRegionRequest request = new UpdateRegionRequest();
         
@@ -223,6 +223,6 @@ class UserProfileControllerTest {
         mockMvc.perform(put("/api/profile/region")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 }

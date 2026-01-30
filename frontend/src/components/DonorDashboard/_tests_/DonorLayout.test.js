@@ -56,8 +56,6 @@ function renderWithRouter(initialPath = '/donor/dashboard') {
               <Route index element={<div>Donor Home</div>} />
               <Route path="dashboard" element={<div>Dashboard Page</div>} />
               <Route path="list" element={<div>List Page</div>} />
-              <Route path="requests" element={<div>Requests Page</div>} />
-              <Route path="search" element={<div>Search Page</div>} />
               <Route path="messages" element={<div>Messages Page</div>} />
             </Route>
             <Route path="/" element={<div>Landing</div>} />

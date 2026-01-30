@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const PrivacyPolicy = () => {
+  const navigate = useNavigate();
   const [fadeIn, setFadeIn] = useState(false);
   const [hover, setHover] = useState(false);
 
@@ -213,7 +215,7 @@ const PrivacyPolicy = () => {
             }
             onMouseEnter={() => setHover(true)}
             onMouseLeave={() => setHover(false)}
-            onClick={() => (window.location.href = '/')}
+            onClick={() => navigate('/')}
           >
             Back to Home
           </button>

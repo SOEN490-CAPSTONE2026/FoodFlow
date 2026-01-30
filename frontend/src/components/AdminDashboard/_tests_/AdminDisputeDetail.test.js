@@ -174,7 +174,9 @@ describe('AdminDisputeDetail', () => {
 
       await waitFor(() => {
         // Date format is locale-specific, so we check if any date-like text is present
-        expect(screen.getAllByText(/2024-01-15/)[0]).toBeInTheDocument();
+        expect(
+          screen.getAllByText(/(?:2024-01-15|1\/15\/2024)/)[0]
+        ).toBeInTheDocument();
       });
     });
 
@@ -540,7 +542,9 @@ describe('AdminDisputeDetail', () => {
       renderComponent();
 
       await waitFor(() => {
-        expect(screen.getAllByText(/2024-03-15/)[0]).toBeInTheDocument();
+        expect(
+          screen.getAllByText(/(?:2024-03-15|3\/15\/2024)/)[0]
+        ).toBeInTheDocument();
       });
     });
   });
