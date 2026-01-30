@@ -85,10 +85,10 @@ class UserControllerTest {
     }
     
     @Test
-    void getNotificationPreferences_Unauthenticated_ShouldReturn403() throws Exception {
+    void getNotificationPreferences_Unauthenticated_ShouldReturn401() throws Exception {
         // When & Then
         mockMvc.perform(get("/api/user/notifications/preferences"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
     
     @Test
@@ -160,7 +160,7 @@ class UserControllerTest {
     }
     
     @Test
-    void updateNotificationPreferences_Unauthenticated_ShouldReturn403() throws Exception {
+    void updateNotificationPreferences_Unauthenticated_ShouldReturn401() throws Exception {
         // Given
         UpdateNotificationPreferencesRequest request = new UpdateNotificationPreferencesRequest();
         request.setEmailNotificationsEnabled(true);
@@ -169,7 +169,7 @@ class UserControllerTest {
         mockMvc.perform(put("/api/user/notifications/preferences")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
     
     @Test

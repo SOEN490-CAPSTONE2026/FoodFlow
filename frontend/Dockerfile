@@ -14,7 +14,7 @@ ENV REACT_APP_WS_URL=${REACT_APP_WS_URL}
 
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm ci
 
 COPY . .
 RUN npm run build

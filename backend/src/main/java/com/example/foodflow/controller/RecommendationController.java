@@ -58,13 +58,22 @@ public class RecommendationController {
      * Frontend usage: /api/recommendations/top?minScore=70
      */
     @GetMapping("/top")
-    public ResponseEntity<List<RecommendationDTO>> getTopRecommendations(
+    public ResponseEntity<Map<String, RecommendationDTO>> getTopRecommendations(
+            @RequestParam List<Long> postIds,
             @RequestParam(defaultValue = "50") int minScore,
             @AuthenticationPrincipal User currentUser) {
         
-        List<RecommendationDTO> recommendations = 
-            recommendationService.getRecommendedPosts(currentUser, minScore);
-        return ResponseEntity.ok(recommendations);
+        Map<Long, RecommendationDTO> recommendations = 
+            recommendationService.getRecommendedPosts(currentUser, postIds, minScore);
+
+        // Convert Long keys to String for frontend compatibility
+        Map<String, RecommendationDTO> stringKeyMap = recommendations.entrySet().stream()
+            .collect(java.util.stream.Collectors.toMap(
+                entry -> entry.getKey().toString(),
+                Map.Entry::getValue
+            ));
+
+        return ResponseEntity.ok(stringKeyMap);
     }
 
     /**

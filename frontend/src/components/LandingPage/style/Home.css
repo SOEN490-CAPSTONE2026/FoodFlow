@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
 * {
-    font-family: 'Poppins', sans-serif; 
+  font-family: 'Poppins', sans-serif;
 }
 
 .home-container {
@@ -11,7 +11,7 @@
   justify-content: center;
   align-items: center;
   padding: 0 10%;
-  background-color:#1B4965;
+  background-color: #1b4965;
   position: relative;
   overflow: hidden;
 }
@@ -23,9 +23,8 @@
   height: 100%;
   object-fit: cover;
   z-index: 0;
-  opacity: 0.6; 
+  opacity: 0.6;
 }
-
 
 .home-content {
   position: relative;
@@ -48,15 +47,23 @@
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.1) 1px,
+    transparent 1px
+  );
   background-size: 50px 50px;
   animation: float 20s infinite linear;
   z-index: 0;
 }
 
 @keyframes float {
-  0% { transform: translate(0, 0) rotate(0deg); }
-  100% { transform: translate(-50px, -50px) rotate(360deg); }
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50px, -50px) rotate(360deg);
+  }
 }
 
 .typewriter-text {
@@ -68,70 +75,114 @@
 /* Donor title animations */
 .typewriter-line-1 {
   width: 0;
-  animation: 
+  animation:
     typing-sequential-line1 8s steps(25, end) infinite,
     blink-caret 1s ease-in-out infinite;
 }
 
 .typewriter-line-2 {
   width: 0;
-  animation: 
+  animation:
     typing-sequential-line2 8s steps(18, end) infinite,
     blink-caret 1s ease-in-out infinite;
 }
 
-
-
 /* Receiver title animations */
 .typewriter-line-3 {
   width: 0;
-  animation: 
+  animation:
     typing-sequential-line3 8s steps(25, end) infinite,
     blink-caret 1s ease-in-out infinite;
 }
 
 .typewriter-line-4 {
   width: 0;
-  animation: 
+  animation:
     typing-sequential-line4 8s steps(22, end) infinite,
     blink-caret 1s ease-in-out infinite;
 }
 
 @keyframes typing-sequential-line1 {
-  0% { width: 0; }       
-  25% { width: 100%; }    
-  75% { width: 100%; }    
-  100% { width: 0; }     
+  0% {
+    width: 0;
+  }
+  25% {
+    width: 100%;
+  }
+  75% {
+    width: 100%;
+  }
+  100% {
+    width: 0;
+  }
 }
 
 @keyframes typing-sequential-line2 {
-  0% { width: 0; }        
-  25% { width: 0; }      
-  50% { width: 100%; }    
-  62.5% { width: 100%; }  
-  75% { width: 0; }       
-  100% { width: 0; }      
+  0% {
+    width: 0;
+  }
+  25% {
+    width: 0;
+  }
+  50% {
+    width: 100%;
+  }
+  62.5% {
+    width: 100%;
+  }
+  75% {
+    width: 0;
+  }
+  100% {
+    width: 0;
+  }
 }
 
 @keyframes typing-sequential-line3 {
-  0% { width: 0; }       
-  25% { width: 100%; }    
-  75% { width: 100%; }    
-  100% { width: 0; }     
+  0% {
+    width: 0;
+  }
+  25% {
+    width: 100%;
+  }
+  75% {
+    width: 100%;
+  }
+  100% {
+    width: 0;
+  }
 }
 
 @keyframes typing-sequential-line4 {
-  0% { width: 0; }        
-  25% { width: 0; }      
-  50% { width: 100%; }    
-  62.5% { width: 100%; }  
-  75% { width: 0; }       
-  100% { width: 0; }      
+  0% {
+    width: 0;
+  }
+  25% {
+    width: 0;
+  }
+  50% {
+    width: 100%;
+  }
+  62.5% {
+    width: 100%;
+  }
+  75% {
+    width: 0;
+  }
+  100% {
+    width: 0;
+  }
 }
 
 @keyframes blink-caret {
-  0%, 50% { border-color: #62B6CB; }
-  51%, 100% { border-color: transparent; }
+  0%,
+  50% {
+    border-color: #62b6cb;
+  }
+  51%,
+  100% {
+    border-color: transparent;
+  }
 }
 
 .home-title {
@@ -155,16 +206,16 @@
   color: white;
   margin: 0;
   line-height: 1.2;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
   width: 100%;
 }
 
 .gradient-text {
   font-size: 4rem;
   font-weight: 400;
-  color: #62B6CB;
+  color: #62b6cb;
   display: block;
-  background: linear-gradient(45deg, #113b55, #62B6CB);
+  background: linear-gradient(45deg, #113b55, #62b6cb);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -174,8 +225,12 @@
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% center; }
-  100% { background-position: 200% center; }
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
 }
 
 .home-description {
@@ -195,11 +250,11 @@
   line-height: 1.5;
   text-align: left;
   margin-bottom: 4rem;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .home-description button {
-  background: linear-gradient(45deg, #547f95, #62B6CB);
+  background: linear-gradient(45deg, #547f95, #62b6cb);
   border: none;
   padding: 1.5rem 5rem;
   font-size: 1.5rem;
@@ -221,7 +276,12 @@
   left: -100%;
   width: 150%;
   height: 130%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
   transition: left 0.5s;
 }
 
@@ -239,9 +299,15 @@
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* Main fade-in animation */
@@ -288,7 +354,8 @@
 }
 
 @keyframes floatElement {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px) rotate(0deg);
   }
   33% {
@@ -304,11 +371,11 @@
   .home-container {
     padding: 5%;
   }
-  
+
   .home-content {
     max-width: 100%;
   }
-  
+
   .home-title h1,
   .gradient-text {
     font-size: 3rem;
@@ -319,17 +386,17 @@
   .home-container {
     padding: 0 5%;
   }
-  
+
   .home-title h1,
   .gradient-text {
     font-size: 2.5rem;
   }
-  
+
   .home-description p {
     font-size: 1rem;
     line-height: 1.6;
   }
-  
+
   .home-description button {
     padding: 1rem 2rem;
     font-size: 1rem;
@@ -341,15 +408,15 @@
   .gradient-text {
     font-size: 2rem;
   }
-  
+
   .home-description {
     max-width: 100%;
   }
-  
+
   .home-description p {
     font-size: 0.95rem;
   }
-  
+
   .home-description button {
     padding: 0.9rem 1.8rem;
     font-size: 0.95rem;

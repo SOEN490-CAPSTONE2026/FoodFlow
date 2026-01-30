@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import {
   Outlet,
   useLocation,
@@ -19,17 +19,15 @@ import {
   ChevronLeft,
   ChevronDown,
   Settings,
-  HelpCircle,
-  MoreVertical,
   LogOut,
   Menu,
   X,
-  AlertTriangle
-} from "lucide-react";
+  AlertTriangle,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import Logo from "../../assets/Logo_White.png";
-import { AuthContext } from "../../contexts/AuthContext";
-import "./Admin_Styles/AdminLayout.css";
+import Logo from '../../assets/Logo_White.png';
+import { AuthContext } from '../../contexts/AuthContext';
+import './Admin_Styles/AdminLayout.css';
 
 export default function AdminLayout() {
   const { t } = useTranslation();
@@ -37,12 +35,10 @@ export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const navType = useNavigationType();
-  const [open, setOpen] = useState(false);
   const [messagesOpen, setMessagesOpen] = useState(false);
   const [screenHeight, setScreenHeight] = useState(window.innerHeight);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const menuRef = useRef(null);
 
   const contacts = [
     { name: 'Olive Nacelle', online: true },
@@ -73,22 +69,22 @@ export default function AdminLayout() {
 
   const pageTitle = (() => {
     switch (location.pathname) {
-      case "/admin":
-      case "/admin/dashboard":
+      case '/admin':
+      case '/admin/dashboard':
         return t('admin.dashboard');
-      case "/admin/users":
-        return "User Management";
-      case "/admin/verification-queue":
-        return "Verification Queue";
-      case "/admin/analytics":
+      case '/admin/users':
+        return 'User Management';
+      case '/admin/verification-queue':
+        return 'Verification Queue';
+      case '/admin/analytics':
         return t('admin.analytics');
-      case "/admin/calendar":
+      case '/admin/calendar':
         return t('admin.calendar');
-      case "/admin/messages":
+      case '/admin/messages':
         return t('admin.messages');
-      case "/admin/disputes":
-        return "Disputes & Reports";
-      case "/admin/help":
+      case '/admin/disputes':
+        return 'Disputes & Reports';
+      case '/admin/help':
         return t('admin.help');
       default:
         return t('admin.dashboard');
@@ -97,37 +93,27 @@ export default function AdminLayout() {
 
   const pageDesc = (() => {
     switch (location.pathname) {
-      case "/admin":
-      case "/admin/dashboard":
+      case '/admin':
+      case '/admin/dashboard':
         return t('admin.overview');
-      case "/admin/verification-queue":
-        return "Review and approve pending user registrations";
-      case "/admin/users":
-        return "Manage and monitor all platform users";
-      case "/admin/analytics":
+      case '/admin/verification-queue':
+        return 'Review and approve pending user registrations';
+      case '/admin/users':
+        return 'Manage and monitor all platform users';
+      case '/admin/analytics':
         return t('admin.metrics');
-      case "/admin/calendar":
+      case '/admin/calendar':
         return t('admin.events');
-      case "/admin/messages":
+      case '/admin/messages':
         return t('admin.communications');
-      case "/admin/disputes":
-        return "Track, review, and resolve reported issues";
-      case "/admin/help":
+      case '/admin/disputes':
+        return 'Track, review, and resolve reported issues';
+      case '/admin/help':
         return t('admin.guides');
       default:
         return t('admin.administration');
     }
   })();
-
-  useEffect(() => {
-    const onDocClick = e => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', onDocClick);
-    return () => document.removeEventListener('mousedown', onDocClick);
-  }, []);
 
   useEffect(() => {
     if (navType === 'POP' && !location.pathname.startsWith('/admin')) {
@@ -137,7 +123,6 @@ export default function AdminLayout() {
 
   const handleLogout = () => {
     logout(); // Use AuthContext logout to clear all auth state
-    setOpen(false);
     navigate('/', { replace: true, state: { scrollTo: 'home' } });
   };
 
@@ -306,12 +291,6 @@ export default function AdminLayout() {
             </span>
             Settings
           </Link>
-          <div className="admin-nav-link disabled" data-tooltip="Help">
-            <span className="nav-icon" aria-hidden>
-              <HelpCircle size={18} className="lucide" />
-            </span>
-            Help
-          </div>
           <button
             onClick={handleLogout}
             className="admin-nav-link logout-btn"
@@ -324,7 +303,7 @@ export default function AdminLayout() {
           </button>
         </div>
 
-        <div className="admin-sidebar-footer admin-user" ref={menuRef}>
+        <div className="admin-sidebar-footer admin-user">
           <div className="account-row">
             <button className="user-profile-pic" type="button">
               <div className="account-avatar"></div>
@@ -332,13 +311,6 @@ export default function AdminLayout() {
                 <span className="account-name">Evian</span>
                 <span className="account-role">admin</span>
               </div>
-            </button>
-            <button
-              className="account-dotted-menu"
-              onClick={() => setOpen(s => !s)}
-              aria-label="Menu"
-            >
-              <MoreVertical size={18} className="lucide" />
             </button>
           </div>
         </div>

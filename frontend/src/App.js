@@ -1,6 +1,11 @@
 import React from 'react';
 import { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import LandingPage from './components/LandingPage/LandingPage';
 import RegisterType from './components/RegisterType';
@@ -14,6 +19,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { TimezoneProvider } from './contexts/TimezoneContext';
 import { useAnalytics } from './hooks/useAnalytics';
 import PrivateRoutes from './components/PrivateRoutes';
+import NavigationHandler from './components/NavigationHandler';
 
 /* Dashboards */
 import AdminDashboard from './components/AdminDashboard/AdminDashboard';
@@ -26,7 +32,7 @@ import './App.css';
 
 import { useLocation } from 'react-router-dom';
 
-import "./locales/i18n"; 
+import './locales/i18n';
 
 function AppContent() {
   useAnalytics();
@@ -35,12 +41,12 @@ function AppContent() {
 
   // Set document direction and lang attribute based on current language
   useEffect(() => {
-    const rtlLanguages = ["ar"];
+    const rtlLanguages = ['ar'];
     const isRTL = rtlLanguages.includes(i18n.language);
-    const dir = isRTL ? "rtl" : "ltr";
-    
-    document.documentElement.setAttribute("dir", dir);
-    document.documentElement.setAttribute("lang", i18n.language);
+    const dir = isRTL ? 'rtl' : 'ltr';
+
+    document.documentElement.setAttribute('dir', dir);
+    document.documentElement.setAttribute('lang', i18n.language);
     document.body.style.direction = dir;
   }, [i18n.language]);
 
@@ -58,6 +64,7 @@ function AppContent() {
 
   return (
     <div className="App">
+      <NavigationHandler />
       {!hideNavbar && <NavigationBar />}
       <Routes>
         {/* Public */}

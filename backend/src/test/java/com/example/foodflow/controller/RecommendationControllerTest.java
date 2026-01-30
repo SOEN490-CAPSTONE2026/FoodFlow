@@ -202,67 +202,70 @@ class RecommendationControllerTest {
         @DisplayName("Should return top recommendations with default minimum score")
         void shouldReturnTopRecommendationsWithDefaultMinScore() {
             // Given
-            List<RecommendationDTO> topRecommendations = Arrays.asList(
-                new RecommendationDTO(1L, 90, Arrays.asList("Excellent match!")),
-                new RecommendationDTO(2L, 80, Arrays.asList("Very good match!"))
+            List<Long> postIds = Arrays.asList(1L, 2L);
+            Map<Long,RecommendationDTO> topRecommendations = Map.of(
+                1L, new RecommendationDTO(1L, 90, Arrays.asList("Excellent match!")),
+                2L, new RecommendationDTO(2L, 80, Arrays.asList("Very good match!"))
             );
-            when(recommendationService.getRecommendedPosts(testUser, 50))
+            when(recommendationService.getRecommendedPosts(testUser, postIds, 50))
                 .thenReturn(topRecommendations);
 
             // When
-            ResponseEntity<List<RecommendationDTO>> response = 
-                recommendationController.getTopRecommendations(50, testUser);
+            ResponseEntity<Map<String,RecommendationDTO>> response = 
+                recommendationController.getTopRecommendations(postIds, 50, testUser);
 
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertNotNull(response.getBody());
             assertEquals(2, response.getBody().size());
-            assertEquals(1L, response.getBody().get(0).getPostId());
-            assertEquals(90, response.getBody().get(0).getScore());
-            assertEquals(2L, response.getBody().get(1).getPostId());
-            assertEquals(80, response.getBody().get(1).getScore());
+            assertEquals(1L, response.getBody().get("1").getPostId());
+            assertEquals(90, response.getBody().get("1").getScore());
+            assertEquals(2L, response.getBody().get("2").getPostId());
+            assertEquals(80, response.getBody().get("2").getScore());
 
-            verify(recommendationService).getRecommendedPosts(testUser, 50);
+            verify(recommendationService).getRecommendedPosts(testUser, postIds, 50);
         }
 
         @Test
         @DisplayName("Should return top recommendations with custom minimum score")
         void shouldReturnTopRecommendationsWithCustomMinScore() {
             // Given
-            List<RecommendationDTO> topRecommendations = Arrays.asList(
-                new RecommendationDTO(1L, 95, Arrays.asList("Perfect match!"))
+            List<Long> postIds = Arrays.asList(1L);
+            Map<Long,RecommendationDTO> topRecommendations = Map.of(
+                1L, new RecommendationDTO(1L, 95, Arrays.asList("Perfect match!"))
             );
-            when(recommendationService.getRecommendedPosts(testUser, 80))
+            when(recommendationService.getRecommendedPosts(testUser, postIds, 80))
                 .thenReturn(topRecommendations);
 
             // When
-            ResponseEntity<List<RecommendationDTO>> response = 
-                recommendationController.getTopRecommendations(80, testUser);
+            ResponseEntity<Map<String, RecommendationDTO>> response = 
+                recommendationController.getTopRecommendations(postIds, 80, testUser);
 
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertEquals(1, response.getBody().size());
-            assertEquals(95, response.getBody().get(0).getScore());
+            assertEquals(95, response.getBody().get("1").getScore());
 
-            verify(recommendationService).getRecommendedPosts(testUser, 80);
+            verify(recommendationService).getRecommendedPosts(testUser, postIds, 80);
         }
 
         @Test
         @DisplayName("Should return empty list when no recommendations meet threshold")
         void shouldReturnEmptyListWhenNoRecommendationsMeetThreshold() {
             // Given
-            when(recommendationService.getRecommendedPosts(testUser, 90))
-                .thenReturn(Collections.emptyList());
+            List<Long> postIds = Arrays.asList();
+            when(recommendationService.getRecommendedPosts(testUser, postIds, 90))
+                .thenReturn(Map.of());
 
             // When
-            ResponseEntity<List<RecommendationDTO>> response = 
-                recommendationController.getTopRecommendations(90, testUser);
+            ResponseEntity<Map<String, RecommendationDTO>> response = 
+                recommendationController.getTopRecommendations(postIds, 90, testUser);
 
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertTrue(response.getBody().isEmpty());
 
-            verify(recommendationService).getRecommendedPosts(testUser, 90);
+            verify(recommendationService).getRecommendedPosts(testUser, postIds, 90);
         }
     }
 

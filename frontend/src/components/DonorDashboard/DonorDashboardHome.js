@@ -34,8 +34,7 @@ export default function DonorDashboardHome({ stats, chartData }) {
         <h1>{t('donorDashboardHome.dashboard')}</h1>
         <p className="subtitle">{t('donorDashboardHome.subtitle')}</p>
         <div className="empty-state">
-          <Inbox className="lucide" size={20} aria-hidden />
-          {" "}
+          <Inbox className="lucide" size={20} aria-hidden />{' '}
           {t('donorDashboardHome.noData')}
         </div>
       </div>
@@ -64,19 +63,27 @@ export default function DonorDashboardHome({ stats, chartData }) {
       <div className="donor-metrics-overview">
         <div className="metric-card">
           <div className="metric-value">{stats.totalListed ?? 0}</div>
-          <div className="metric-label">{t('donorDashboardHome.metrics.totalListedItems')}</div>
+          <div className="metric-label">
+            {t('donorDashboardHome.metrics.totalListedItems')}
+          </div>
         </div>
         <div className="metric-card green">
           <div className="metric-value">{stats.completed ?? 0}</div>
-          <div className="metric-label">{t('donorDashboardHome.metrics.completedRequests')}</div>
+          <div className="metric-label">
+            {t('donorDashboardHome.metrics.completedRequests')}
+          </div>
         </div>
         <div className="metric-card navy">
           <div className="metric-value">{stats.newRequests ?? 0}</div>
-          <div className="metric-label">{t('donorDashboardHome.metrics.pendingRequests')}</div>
+          <div className="metric-label">
+            {t('donorDashboardHome.metrics.pendingRequests')}
+          </div>
         </div>
         <div className="metric-card mint">
           <div className="metric-value">{stats.rejected ?? 0}</div>
-          <div className="metric-label">{t('donorDashboardHome.metrics.rejectedRequests')}</div>
+          <div className="metric-label">
+            {t('donorDashboardHome.metrics.rejectedRequests')}
+          </div>
         </div>
       </div>
 
@@ -122,7 +129,7 @@ export default function DonorDashboardHome({ stats, chartData }) {
           {/* Bar Chart */}
           <div className="donor-chart-card">
             <h3>
-              <BarChart3 className="lucide" size={16} aria-hidden />{" "}
+              <BarChart3 className="lucide" size={16} aria-hidden />{' '}
               {t('donorDashboardHome.charts.monthlyDonationActivity')}
             </h3>
             <div className="css-bar-chart">
@@ -143,7 +150,7 @@ export default function DonorDashboardHome({ stats, chartData }) {
           {/* Doughnut Chart - Request Status */}
           <div className="donor-chart-card">
             <h3>
-              <PieChart className="lucide" size={16} aria-hidden />{" "}
+              <PieChart className="lucide" size={16} aria-hidden />{' '}
               {t('donorDashboardHome.charts.requestStatusDistribution')}
             </h3>
             <div className="css-doughnut">
@@ -164,7 +171,9 @@ export default function DonorDashboardHome({ stats, chartData }) {
               </svg>
               <div className="doughnut-center">
                 <div className="doughnut-total">{statusDoughnut.total}</div>
-                <div className="doughnut-label">{t('donorDashboardHome.charts.total')}</div>
+                <div className="doughnut-label">
+                  {t('donorDashboardHome.charts.total')}
+                </div>
               </div>
             </div>
             <div className="doughnut-legend">
@@ -183,7 +192,7 @@ export default function DonorDashboardHome({ stats, chartData }) {
           {/* Line Chart */}
           <div className="donor-chart-card">
             <h3>
-              <TrendingUp className="lucide" size={16} aria-hidden />{" "}
+              <TrendingUp className="lucide" size={16} aria-hidden />{' '}
               {t('donorDashboardHome.charts.requestTrends')}
             </h3>
             <div className="css-line-chart">
@@ -263,7 +272,7 @@ export default function DonorDashboardHome({ stats, chartData }) {
           {/* Doughnut Chart - Food Categories */}
           <div className="donor-chart-card">
             <h3>
-              <Utensils className="lucide" size={16} aria-hidden />{" "}
+              <Utensils className="lucide" size={16} aria-hidden />{' '}
               {t('donorDashboardHome.charts.foodCategories')}
             </h3>
             <div className="css-doughnut">
@@ -284,7 +293,9 @@ export default function DonorDashboardHome({ stats, chartData }) {
               </svg>
               <div className="doughnut-center">
                 <div className="doughnut-total">100%</div>
-                <div className="doughnut-label">{t('donorDashboardHome.charts.distribution')}</div>
+                <div className="doughnut-label">
+                  {t('donorDashboardHome.charts.distribution')}
+                </div>
               </div>
             </div>
             <div className="doughnut-legend">

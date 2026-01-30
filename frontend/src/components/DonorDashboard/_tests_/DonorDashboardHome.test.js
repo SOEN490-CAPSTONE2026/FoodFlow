@@ -47,7 +47,9 @@ describe('DonorDashboardHome', () => {
     render(<DonorDashboardHome stats={stats} chartData={chartData} />);
 
     // Header
-    expect(screen.getByRole("heading", { name: /dashboard/i, level: 1 })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /dashboard/i, level: 1 })
+    ).toBeInTheDocument();
     expect(screen.getByText(/analytics & insights/i)).toBeInTheDocument();
 
     // Metrics (scoped to avoid collisions with tiles)

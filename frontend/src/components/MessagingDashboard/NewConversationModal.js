@@ -9,9 +9,9 @@ const NewConversationModal = ({ onClose, onConversationCreated }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
-    
+
     if (!recipientEmail.trim()) {
       setError(t('messaging.emailRequired'));
       return;
@@ -20,11 +20,11 @@ const NewConversationModal = ({ onClose, onConversationCreated }) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await api.post('/conversations', {
-        recipientEmail: recipientEmail.trim()
+        recipientEmail: recipientEmail.trim(),
       });
-      
+
       onConversationCreated(response.data);
     } catch (err) {
       console.error('Error starting conversation:', err);
@@ -38,7 +38,7 @@ const NewConversationModal = ({ onClose, onConversationCreated }) => {
     }
   };
 
-  const handleBackdropClick = (e) => {
+  const handleBackdropClick = e => {
     if (e.target === e.currentTarget) {
       onClose();
     }
@@ -65,20 +65,14 @@ const NewConversationModal = ({ onClose, onConversationCreated }) => {
               className="form-input"
               placeholder={t('messaging.recipientEmailPlaceholder')}
               value={recipientEmail}
-              onChange={(e) => setRecipientEmail(e.target.value)}
+              onChange={e => setRecipientEmail(e.target.value)}
               disabled={loading}
               autoFocus
             />
-            <p className="form-hint">
-              {t('messaging.recipientEmailHint')}
-            </p>
+            <p className="form-hint">{t('messaging.recipientEmailHint')}</p>
           </div>
 
-          {error && (
-            <div className="error-message">
-              {error}
-            </div>
-          )}
+          {error && <div className="error-message">{error}</div>}
 
           <div className="modal-actions">
             <button
@@ -94,7 +88,9 @@ const NewConversationModal = ({ onClose, onConversationCreated }) => {
               className="submit-button"
               disabled={loading || !recipientEmail.trim()}
             >
-              {loading ? t('messaging.starting') : t('messaging.startConversation')}
+              {loading
+                ? t('messaging.starting')
+                : t('messaging.startConversation')}
             </button>
           </div>
         </form>

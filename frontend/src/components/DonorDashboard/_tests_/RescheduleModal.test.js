@@ -9,7 +9,12 @@ import { useTimezone } from '../../../contexts/TimezoneContext';
 jest.mock('../../../services/api');
 jest.mock('../../../contexts/TimezoneContext');
 jest.mock('react-datepicker', () => {
-  const MockDatePicker = ({ selected, onChange, placeholderText, ...props }) => (
+  const MockDatePicker = ({
+    selected,
+    onChange,
+    placeholderText,
+    ...props
+  }) => (
     <input
       type="text"
       data-testid={placeholderText || 'datepicker'}
@@ -75,7 +80,9 @@ describe('RescheduleModal', () => {
         />
       );
       expect(screen.getByText('Reschedule Pickup')).toBeInTheDocument();
-      expect(screen.getByText(/Choose new pickup slots for/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Choose new pickup slots for/)
+      ).toBeInTheDocument();
       expect(screen.getByText('Fresh Vegetables')).toBeInTheDocument();
     });
 
@@ -128,7 +135,9 @@ describe('RescheduleModal', () => {
           onSuccess={mockOnSuccess}
         />
       );
-      const closeButton = screen.getAllByRole('button').find(btn => btn.className.includes('reschedule-close'));
+      const closeButton = screen
+        .getAllByRole('button')
+        .find(btn => btn.className.includes('reschedule-close'));
       fireEvent.click(closeButton);
       expect(mockOnClose).toHaveBeenCalledTimes(1);
     });
@@ -142,7 +151,9 @@ describe('RescheduleModal', () => {
           onSuccess={mockOnSuccess}
         />
       );
-      const overlay = screen.getByText('Reschedule Pickup').closest('.reschedule-overlay');
+      const overlay = screen
+        .getByText('Reschedule Pickup')
+        .closest('.reschedule-overlay');
       fireEvent.click(overlay);
       expect(mockOnClose).toHaveBeenCalledTimes(1);
     });
@@ -156,7 +167,9 @@ describe('RescheduleModal', () => {
           onSuccess={mockOnSuccess}
         />
       );
-      const modalContent = screen.getByText('Reschedule Pickup').closest('.reschedule-modal');
+      const modalContent = screen
+        .getByText('Reschedule Pickup')
+        .closest('.reschedule-modal');
       fireEvent.click(modalContent);
       expect(mockOnClose).not.toHaveBeenCalled();
     });
@@ -202,13 +215,17 @@ describe('RescheduleModal', () => {
           onSuccess={mockOnSuccess}
         />
       );
-      
+
       fireEvent.click(screen.getByText('Add Another Slot'));
       expect(screen.getByText('Slot 2')).toBeInTheDocument();
 
-      const removeButtons = screen.getAllByRole('button').filter(btn => 
-        btn.querySelector('svg') && btn.className.includes('btn-remove-slot')
-      );
+      const removeButtons = screen
+        .getAllByRole('button')
+        .filter(
+          btn =>
+            btn.querySelector('svg') &&
+            btn.className.includes('btn-remove-slot')
+        );
       fireEvent.click(removeButtons[0]);
 
       expect(screen.queryByText('Slot 2')).not.toBeInTheDocument();
@@ -223,10 +240,10 @@ describe('RescheduleModal', () => {
           onSuccess={mockOnSuccess}
         />
       );
-      
-      const removeButtons = screen.queryAllByRole('button').filter(btn => 
-        btn.className.includes('btn-remove-slot')
-      );
+
+      const removeButtons = screen
+        .queryAllByRole('button')
+        .filter(btn => btn.className.includes('btn-remove-slot'));
       expect(removeButtons.length).toBe(0);
     });
 
@@ -239,10 +256,12 @@ describe('RescheduleModal', () => {
           onSuccess={mockOnSuccess}
         />
       );
-      
+
       const dateInput = screen.getByPlaceholderText('Select date');
-      fireEvent.change(dateInput, { target: { value: '2025-02-01T00:00:00Z' } });
-      
+      fireEvent.change(dateInput, {
+        target: { value: '2025-02-01T00:00:00Z' },
+      });
+
       expect(dateInput.value).toBe('2025-02-01T00:00:00.000Z');
     });
 
@@ -255,10 +274,12 @@ describe('RescheduleModal', () => {
           onSuccess={mockOnSuccess}
         />
       );
-      
+
       const startTimeInput = screen.getByPlaceholderText('Start');
-      fireEvent.change(startTimeInput, { target: { value: '2025-01-27T09:00:00Z' } });
-      
+      fireEvent.change(startTimeInput, {
+        target: { value: '2025-01-27T09:00:00Z' },
+      });
+
       expect(startTimeInput.value).toBe('2025-01-27T09:00:00.000Z');
     });
 
@@ -271,10 +292,12 @@ describe('RescheduleModal', () => {
           onSuccess={mockOnSuccess}
         />
       );
-      
+
       const endTimeInput = screen.getByPlaceholderText('End');
-      fireEvent.change(endTimeInput, { target: { value: '2025-01-27T17:00:00Z' } });
-      
+      fireEvent.change(endTimeInput, {
+        target: { value: '2025-01-27T17:00:00Z' },
+      });
+
       expect(endTimeInput.value).toBe('2025-01-27T17:00:00.000Z');
     });
 
@@ -287,10 +310,12 @@ describe('RescheduleModal', () => {
           onSuccess={mockOnSuccess}
         />
       );
-      
+
       const notesInput = screen.getByPlaceholderText(/Use back entrance/);
-      fireEvent.change(notesInput, { target: { value: 'Call before arrival' } });
-      
+      fireEvent.change(notesInput, {
+        target: { value: 'Call before arrival' },
+      });
+
       expect(notesInput.value).toBe('Call before arrival');
     });
   });
@@ -305,11 +330,13 @@ describe('RescheduleModal', () => {
           onSuccess={mockOnSuccess}
         />
       );
-      
+
       fireEvent.click(screen.getByText('Create New Donation'));
-      
+
       await waitFor(() => {
-        expect(screen.getByText('Invalid donation. Please try again.')).toBeInTheDocument();
+        expect(
+          screen.getByText('Invalid donation. Please try again.')
+        ).toBeInTheDocument();
       });
     });
 
@@ -323,16 +350,23 @@ describe('RescheduleModal', () => {
           onSuccess={mockOnSuccess}
         />
       );
-      
+
       fireEvent.click(screen.getByText('Create New Donation'));
-      
+
       await waitFor(() => {
-        expect(screen.getByText('This donation has no expiry date and cannot be rescheduled.')).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            'This donation has no expiry date and cannot be rescheduled.'
+          )
+        ).toBeInTheDocument();
       });
     });
 
     it('should show error when expiry date is in the past', async () => {
-      const itemWithPastExpiry = { ...mockDonationItem, expiryDate: '2025-01-15' };
+      const itemWithPastExpiry = {
+        ...mockDonationItem,
+        expiryDate: '2025-01-15',
+      };
       render(
         <RescheduleModal
           isOpen={true}
@@ -341,11 +375,15 @@ describe('RescheduleModal', () => {
           onSuccess={mockOnSuccess}
         />
       );
-      
+
       fireEvent.click(screen.getByText('Create New Donation'));
-      
+
       await waitFor(() => {
-        expect(screen.getByText('This donation is expired and cannot be rescheduled.')).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            'This donation is expired and cannot be rescheduled.'
+          )
+        ).toBeInTheDocument();
       });
     });
 
@@ -358,11 +396,13 @@ describe('RescheduleModal', () => {
           onSuccess={mockOnSuccess}
         />
       );
-      
+
       fireEvent.click(screen.getByText('Create New Donation'));
-      
+
       await waitFor(() => {
-        expect(screen.getByText('Please fill out all pickup slot fields.')).toBeInTheDocument();
+        expect(
+          screen.getByText('Please fill out all pickup slot fields.')
+        ).toBeInTheDocument();
       });
     });
 
@@ -375,20 +415,28 @@ describe('RescheduleModal', () => {
           onSuccess={mockOnSuccess}
         />
       );
-      
+
       const dateInput = screen.getByPlaceholderText('Select date');
-      fireEvent.change(dateInput, { target: { value: '2025-01-20T00:00:00Z' } });
-      
+      fireEvent.change(dateInput, {
+        target: { value: '2025-01-20T00:00:00Z' },
+      });
+
       const startTimeInput = screen.getByPlaceholderText('Start');
-      fireEvent.change(startTimeInput, { target: { value: '2025-01-27T09:00:00Z' } });
-      
+      fireEvent.change(startTimeInput, {
+        target: { value: '2025-01-27T09:00:00Z' },
+      });
+
       const endTimeInput = screen.getByPlaceholderText('End');
-      fireEvent.change(endTimeInput, { target: { value: '2025-01-27T17:00:00Z' } });
-      
+      fireEvent.change(endTimeInput, {
+        target: { value: '2025-01-27T17:00:00Z' },
+      });
+
       fireEvent.click(screen.getByText('Create New Donation'));
-      
+
       await waitFor(() => {
-        expect(screen.getByText('Pickup dates must be today or later.')).toBeInTheDocument();
+        expect(
+          screen.getByText('Pickup dates must be today or later.')
+        ).toBeInTheDocument();
       });
     });
 
@@ -401,20 +449,28 @@ describe('RescheduleModal', () => {
           onSuccess={mockOnSuccess}
         />
       );
-      
+
       const dateInput = screen.getByPlaceholderText('Select date');
-      fireEvent.change(dateInput, { target: { value: '2025-02-20T00:00:00Z' } });
-      
+      fireEvent.change(dateInput, {
+        target: { value: '2025-02-20T00:00:00Z' },
+      });
+
       const startTimeInput = screen.getByPlaceholderText('Start');
-      fireEvent.change(startTimeInput, { target: { value: '2025-01-27T09:00:00Z' } });
-      
+      fireEvent.change(startTimeInput, {
+        target: { value: '2025-01-27T09:00:00Z' },
+      });
+
       const endTimeInput = screen.getByPlaceholderText('End');
-      fireEvent.change(endTimeInput, { target: { value: '2025-01-27T17:00:00Z' } });
-      
+      fireEvent.change(endTimeInput, {
+        target: { value: '2025-01-27T17:00:00Z' },
+      });
+
       fireEvent.click(screen.getByText('Create New Donation'));
-      
+
       await waitFor(() => {
-        expect(screen.getByText('Pickup dates must be on or before the expiry date.')).toBeInTheDocument();
+        expect(
+          screen.getByText('Pickup dates must be on or before the expiry date.')
+        ).toBeInTheDocument();
       });
     });
 
@@ -427,26 +483,34 @@ describe('RescheduleModal', () => {
           onSuccess={mockOnSuccess}
         />
       );
-      
+
       const dateInput = screen.getByPlaceholderText('Select date');
-      fireEvent.change(dateInput, { target: { value: '2025-02-01T00:00:00Z' } });
-      
+      fireEvent.change(dateInput, {
+        target: { value: '2025-02-01T00:00:00Z' },
+      });
+
       const startTimeInput = screen.getByPlaceholderText('Start');
-      fireEvent.change(startTimeInput, { target: { value: '2025-01-27T17:00:00Z' } });
-      
+      fireEvent.change(startTimeInput, {
+        target: { value: '2025-01-27T17:00:00Z' },
+      });
+
       const endTimeInput = screen.getByPlaceholderText('End');
-      fireEvent.change(endTimeInput, { target: { value: '2025-01-27T17:00:00Z' } });
-      
+      fireEvent.change(endTimeInput, {
+        target: { value: '2025-01-27T17:00:00Z' },
+      });
+
       fireEvent.click(screen.getByText('Create New Donation'));
-      
+
       await waitFor(() => {
-        expect(screen.getByText('End time must be after start time.')).toBeInTheDocument();
+        expect(
+          screen.getByText('End time must be after start time.')
+        ).toBeInTheDocument();
       });
     });
 
     it('should show error when pickup end time is in the past for today', async () => {
       jest.setSystemTime(new Date('2025-01-27T15:00:00Z'));
-      
+
       render(
         <RescheduleModal
           isOpen={true}
@@ -455,28 +519,36 @@ describe('RescheduleModal', () => {
           onSuccess={mockOnSuccess}
         />
       );
-      
+
       const today = new Date();
       const dateInput = screen.getByPlaceholderText('Select date');
       fireEvent.change(dateInput, { target: { value: today.toISOString() } });
-      
+
       // Set start time to 2 hours ago and end time to 1 hour ago (both in the past)
       const startTime = new Date();
       startTime.setHours(startTime.getHours() - 2);
-      
+
       const endTime = new Date();
       endTime.setHours(endTime.getHours() - 1);
-      
+
       const startTimeInput = screen.getByPlaceholderText('Start');
-      fireEvent.change(startTimeInput, { target: { value: startTime.toISOString() } });
-      
+      fireEvent.change(startTimeInput, {
+        target: { value: startTime.toISOString() },
+      });
+
       const endTimeInput = screen.getByPlaceholderText('End');
-      fireEvent.change(endTimeInput, { target: { value: endTime.toISOString() } });
-      
+      fireEvent.change(endTimeInput, {
+        target: { value: endTime.toISOString() },
+      });
+
       fireEvent.click(screen.getByText('Create New Donation'));
-      
+
       await waitFor(() => {
-        expect(screen.getByText(/Pickup dates must be today or later|Pickup end time must be in the future/)).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            /Pickup dates must be today or later|Pickup end time must be in the future/
+          )
+        ).toBeInTheDocument();
       });
     });
   });
@@ -484,7 +556,7 @@ describe('RescheduleModal', () => {
   describe('Form Submission', () => {
     it('should successfully submit valid form data', async () => {
       surplusAPI.create.mockResolvedValue({ data: { id: 'new-123' } });
-      
+
       render(
         <RescheduleModal
           isOpen={true}
@@ -493,25 +565,33 @@ describe('RescheduleModal', () => {
           onSuccess={mockOnSuccess}
         />
       );
-      
+
       const dateInput = screen.getByPlaceholderText('Select date');
-      fireEvent.change(dateInput, { target: { value: '2025-02-01T00:00:00.000Z' } });
-      
+      fireEvent.change(dateInput, {
+        target: { value: '2025-02-01T00:00:00.000Z' },
+      });
+
       // Create dates in local timezone for times (9 AM and 5 PM)
       const startTime = new Date(2025, 0, 27, 9, 0, 0);
       const endTime = new Date(2025, 0, 27, 17, 0, 0);
-      
+
       const startTimeInput = screen.getByPlaceholderText('Start');
-      fireEvent.change(startTimeInput, { target: { value: startTime.toISOString() } });
-      
+      fireEvent.change(startTimeInput, {
+        target: { value: startTime.toISOString() },
+      });
+
       const endTimeInput = screen.getByPlaceholderText('End');
-      fireEvent.change(endTimeInput, { target: { value: endTime.toISOString() } });
-      
+      fireEvent.change(endTimeInput, {
+        target: { value: endTime.toISOString() },
+      });
+
       const notesInput = screen.getByPlaceholderText(/Use back entrance/);
-      fireEvent.change(notesInput, { target: { value: 'Call before arrival' } });
-      
+      fireEvent.change(notesInput, {
+        target: { value: 'Call before arrival' },
+      });
+
       fireEvent.click(screen.getByText('Create New Donation'));
-      
+
       await waitFor(() => {
         expect(surplusAPI.create).toHaveBeenCalledWith({
           title: 'Fresh Vegetables',
@@ -543,7 +623,7 @@ describe('RescheduleModal', () => {
 
     it('should handle submission with multiple slots', async () => {
       surplusAPI.create.mockResolvedValue({ data: { id: 'new-123' } });
-      
+
       render(
         <RescheduleModal
           isOpen={true}
@@ -552,36 +632,48 @@ describe('RescheduleModal', () => {
           onSuccess={mockOnSuccess}
         />
       );
-      
+
       // Add second slot
       fireEvent.click(screen.getByText('Add Another Slot'));
-      
+
       // Fill first slot
       const dateInputs = screen.getAllByPlaceholderText('Select date');
-      fireEvent.change(dateInputs[0], { target: { value: '2025-02-01T00:00:00.000Z' } });
-      
+      fireEvent.change(dateInputs[0], {
+        target: { value: '2025-02-01T00:00:00.000Z' },
+      });
+
       // Create dates in local timezone for slot 1 (9 AM - 5 PM)
       const startTime1 = new Date(2025, 0, 27, 9, 0, 0);
       const endTime1 = new Date(2025, 0, 27, 17, 0, 0);
-      
+
       const startTimeInputs = screen.getAllByPlaceholderText('Start');
-      fireEvent.change(startTimeInputs[0], { target: { value: startTime1.toISOString() } });
-      
+      fireEvent.change(startTimeInputs[0], {
+        target: { value: startTime1.toISOString() },
+      });
+
       const endTimeInputs = screen.getAllByPlaceholderText('End');
-      fireEvent.change(endTimeInputs[0], { target: { value: endTime1.toISOString() } });
-      
+      fireEvent.change(endTimeInputs[0], {
+        target: { value: endTime1.toISOString() },
+      });
+
       // Fill second slot
-      fireEvent.change(dateInputs[1], { target: { value: '2025-02-02T00:00:00.000Z' } });
-      
+      fireEvent.change(dateInputs[1], {
+        target: { value: '2025-02-02T00:00:00.000Z' },
+      });
+
       // Create dates in local timezone for slot 2 (10 AM - 6 PM)
       const startTime2 = new Date(2025, 0, 27, 10, 0, 0);
       const endTime2 = new Date(2025, 0, 27, 18, 0, 0);
-      
-      fireEvent.change(startTimeInputs[1], { target: { value: startTime2.toISOString() } });
-      fireEvent.change(endTimeInputs[1], { target: { value: endTime2.toISOString() } });
-      
+
+      fireEvent.change(startTimeInputs[1], {
+        target: { value: startTime2.toISOString() },
+      });
+      fireEvent.change(endTimeInputs[1], {
+        target: { value: endTime2.toISOString() },
+      });
+
       fireEvent.click(screen.getByText('Create New Donation'));
-      
+
       await waitFor(() => {
         expect(surplusAPI.create).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -606,7 +698,7 @@ describe('RescheduleModal', () => {
 
     it('should handle submission with null notes', async () => {
       surplusAPI.create.mockResolvedValue({ data: { id: 'new-123' } });
-      
+
       render(
         <RescheduleModal
           isOpen={true}
@@ -615,18 +707,24 @@ describe('RescheduleModal', () => {
           onSuccess={mockOnSuccess}
         />
       );
-      
+
       const dateInput = screen.getByPlaceholderText('Select date');
-      fireEvent.change(dateInput, { target: { value: '2025-02-01T00:00:00Z' } });
-      
+      fireEvent.change(dateInput, {
+        target: { value: '2025-02-01T00:00:00Z' },
+      });
+
       const startTimeInput = screen.getByPlaceholderText('Start');
-      fireEvent.change(startTimeInput, { target: { value: '2025-01-27T09:00:00Z' } });
-      
+      fireEvent.change(startTimeInput, {
+        target: { value: '2025-01-27T09:00:00Z' },
+      });
+
       const endTimeInput = screen.getByPlaceholderText('End');
-      fireEvent.change(endTimeInput, { target: { value: '2025-01-27T17:00:00Z' } });
-      
+      fireEvent.change(endTimeInput, {
+        target: { value: '2025-01-27T17:00:00Z' },
+      });
+
       fireEvent.click(screen.getByText('Create New Donation'));
-      
+
       await waitFor(() => {
         expect(surplusAPI.create).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -644,7 +742,7 @@ describe('RescheduleModal', () => {
       surplusAPI.create.mockRejectedValue({
         response: { data: { message: 'Server error occurred' } },
       });
-      
+
       render(
         <RescheduleModal
           isOpen={true}
@@ -653,22 +751,28 @@ describe('RescheduleModal', () => {
           onSuccess={mockOnSuccess}
         />
       );
-      
+
       const dateInput = screen.getByPlaceholderText('Select date');
-      fireEvent.change(dateInput, { target: { value: '2025-02-01T00:00:00Z' } });
-      
+      fireEvent.change(dateInput, {
+        target: { value: '2025-02-01T00:00:00Z' },
+      });
+
       const startTimeInput = screen.getByPlaceholderText('Start');
-      fireEvent.change(startTimeInput, { target: { value: '2025-01-27T09:00:00Z' } });
-      
+      fireEvent.change(startTimeInput, {
+        target: { value: '2025-01-27T09:00:00Z' },
+      });
+
       const endTimeInput = screen.getByPlaceholderText('End');
-      fireEvent.change(endTimeInput, { target: { value: '2025-01-27T17:00:00Z' } });
-      
+      fireEvent.change(endTimeInput, {
+        target: { value: '2025-01-27T17:00:00Z' },
+      });
+
       fireEvent.click(screen.getByText('Create New Donation'));
-      
+
       await waitFor(() => {
         expect(screen.getByText('Server error occurred')).toBeInTheDocument();
       });
-      
+
       expect(mockOnSuccess).not.toHaveBeenCalled();
       expect(mockOnClose).not.toHaveBeenCalled();
     });
@@ -677,7 +781,7 @@ describe('RescheduleModal', () => {
       surplusAPI.create.mockRejectedValue({
         message: 'Network error',
       });
-      
+
       render(
         <RescheduleModal
           isOpen={true}
@@ -686,18 +790,24 @@ describe('RescheduleModal', () => {
           onSuccess={mockOnSuccess}
         />
       );
-      
+
       const dateInput = screen.getByPlaceholderText('Select date');
-      fireEvent.change(dateInput, { target: { value: '2025-02-01T00:00:00Z' } });
-      
+      fireEvent.change(dateInput, {
+        target: { value: '2025-02-01T00:00:00Z' },
+      });
+
       const startTimeInput = screen.getByPlaceholderText('Start');
-      fireEvent.change(startTimeInput, { target: { value: '2025-01-27T09:00:00Z' } });
-      
+      fireEvent.change(startTimeInput, {
+        target: { value: '2025-01-27T09:00:00Z' },
+      });
+
       const endTimeInput = screen.getByPlaceholderText('End');
-      fireEvent.change(endTimeInput, { target: { value: '2025-01-27T17:00:00Z' } });
-      
+      fireEvent.change(endTimeInput, {
+        target: { value: '2025-01-27T17:00:00Z' },
+      });
+
       fireEvent.click(screen.getByText('Create New Donation'));
-      
+
       await waitFor(() => {
         expect(screen.getByText('Network error')).toBeInTheDocument();
       });
@@ -705,7 +815,7 @@ describe('RescheduleModal', () => {
 
     it('should handle API error with default message', async () => {
       surplusAPI.create.mockRejectedValue({});
-      
+
       render(
         <RescheduleModal
           isOpen={true}
@@ -714,26 +824,36 @@ describe('RescheduleModal', () => {
           onSuccess={mockOnSuccess}
         />
       );
-      
+
       const dateInput = screen.getByPlaceholderText('Select date');
-      fireEvent.change(dateInput, { target: { value: '2025-02-01T00:00:00Z' } });
-      
+      fireEvent.change(dateInput, {
+        target: { value: '2025-02-01T00:00:00Z' },
+      });
+
       const startTimeInput = screen.getByPlaceholderText('Start');
-      fireEvent.change(startTimeInput, { target: { value: '2025-01-27T09:00:00Z' } });
-      
+      fireEvent.change(startTimeInput, {
+        target: { value: '2025-01-27T09:00:00Z' },
+      });
+
       const endTimeInput = screen.getByPlaceholderText('End');
-      fireEvent.change(endTimeInput, { target: { value: '2025-01-27T17:00:00Z' } });
-      
+      fireEvent.change(endTimeInput, {
+        target: { value: '2025-01-27T17:00:00Z' },
+      });
+
       fireEvent.click(screen.getByText('Create New Donation'));
-      
+
       await waitFor(() => {
-        expect(screen.getByText('Failed to reschedule donation.')).toBeInTheDocument();
+        expect(
+          screen.getByText('Failed to reschedule donation.')
+        ).toBeInTheDocument();
       });
     });
 
     it('should disable buttons while submitting', async () => {
-      surplusAPI.create.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
-      
+      surplusAPI.create.mockImplementation(
+        () => new Promise(resolve => setTimeout(resolve, 100))
+      );
+
       render(
         <RescheduleModal
           isOpen={true}
@@ -742,22 +862,28 @@ describe('RescheduleModal', () => {
           onSuccess={mockOnSuccess}
         />
       );
-      
+
       const dateInput = screen.getByPlaceholderText('Select date');
-      fireEvent.change(dateInput, { target: { value: '2025-02-01T00:00:00Z' } });
-      
+      fireEvent.change(dateInput, {
+        target: { value: '2025-02-01T00:00:00Z' },
+      });
+
       const startTimeInput = screen.getByPlaceholderText('Start');
-      fireEvent.change(startTimeInput, { target: { value: '2025-01-27T09:00:00Z' } });
-      
+      fireEvent.change(startTimeInput, {
+        target: { value: '2025-01-27T09:00:00Z' },
+      });
+
       const endTimeInput = screen.getByPlaceholderText('End');
-      fireEvent.change(endTimeInput, { target: { value: '2025-01-27T17:00:00Z' } });
-      
+      fireEvent.change(endTimeInput, {
+        target: { value: '2025-01-27T17:00:00Z' },
+      });
+
       fireEvent.click(screen.getByText('Create New Donation'));
-      
+
       expect(screen.getByText('Rescheduling...')).toBeInTheDocument();
       expect(screen.getByText('Cancel')).toBeDisabled();
       expect(screen.getByText('Rescheduling...')).toBeDisabled();
-      
+
       await waitFor(() => {
         expect(mockOnClose).toHaveBeenCalled();
       });
@@ -765,7 +891,7 @@ describe('RescheduleModal', () => {
 
     it('should handle submission without onSuccess callback', async () => {
       surplusAPI.create.mockResolvedValue({ data: { id: 'new-123' } });
-      
+
       render(
         <RescheduleModal
           isOpen={true}
@@ -774,18 +900,24 @@ describe('RescheduleModal', () => {
           onSuccess={null}
         />
       );
-      
+
       const dateInput = screen.getByPlaceholderText('Select date');
-      fireEvent.change(dateInput, { target: { value: '2025-02-01T00:00:00Z' } });
-      
+      fireEvent.change(dateInput, {
+        target: { value: '2025-02-01T00:00:00Z' },
+      });
+
       const startTimeInput = screen.getByPlaceholderText('Start');
-      fireEvent.change(startTimeInput, { target: { value: '2025-01-27T09:00:00Z' } });
-      
+      fireEvent.change(startTimeInput, {
+        target: { value: '2025-01-27T09:00:00Z' },
+      });
+
       const endTimeInput = screen.getByPlaceholderText('End');
-      fireEvent.change(endTimeInput, { target: { value: '2025-01-27T17:00:00Z' } });
-      
+      fireEvent.change(endTimeInput, {
+        target: { value: '2025-01-27T17:00:00Z' },
+      });
+
       fireEvent.click(screen.getByText('Create New Donation'));
-      
+
       await waitFor(() => {
         expect(mockOnClose).toHaveBeenCalled();
       });
@@ -802,11 +934,11 @@ describe('RescheduleModal', () => {
           onSuccess={mockOnSuccess}
         />
       );
-      
+
       // Add a second slot
       fireEvent.click(screen.getByText('Add Another Slot'));
       expect(screen.getByText('Slot 2')).toBeInTheDocument();
-      
+
       // Close modal
       rerender(
         <RescheduleModal
@@ -816,7 +948,7 @@ describe('RescheduleModal', () => {
           onSuccess={mockOnSuccess}
         />
       );
-      
+
       // Reopen modal
       rerender(
         <RescheduleModal
@@ -826,7 +958,7 @@ describe('RescheduleModal', () => {
           onSuccess={mockOnSuccess}
         />
       );
-      
+
       // Should only have one slot
       expect(screen.getByText('Slot 1')).toBeInTheDocument();
       expect(screen.queryByText('Slot 2')).not.toBeInTheDocument();
@@ -842,9 +974,9 @@ describe('RescheduleModal', () => {
         expiryDate: '2025-02-15',
         pickupLocation: 'Test Location',
       };
-      
+
       surplusAPI.create.mockResolvedValue({ data: { id: 'new-123' } });
-      
+
       render(
         <RescheduleModal
           isOpen={true}
@@ -853,18 +985,24 @@ describe('RescheduleModal', () => {
           onSuccess={mockOnSuccess}
         />
       );
-      
+
       const dateInput = screen.getByPlaceholderText('Select date');
-      fireEvent.change(dateInput, { target: { value: '2025-02-01T00:00:00Z' } });
-      
+      fireEvent.change(dateInput, {
+        target: { value: '2025-02-01T00:00:00Z' },
+      });
+
       const startTimeInput = screen.getByPlaceholderText('Start');
-      fireEvent.change(startTimeInput, { target: { value: '2025-01-27T09:00:00Z' } });
-      
+      fireEvent.change(startTimeInput, {
+        target: { value: '2025-01-27T09:00:00Z' },
+      });
+
       const endTimeInput = screen.getByPlaceholderText('End');
-      fireEvent.change(endTimeInput, { target: { value: '2025-01-27T17:00:00Z' } });
-      
+      fireEvent.change(endTimeInput, {
+        target: { value: '2025-01-27T17:00:00Z' },
+      });
+
       fireEvent.click(screen.getByText('Create New Donation'));
-      
+
       await waitFor(() => {
         expect(surplusAPI.create).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -880,7 +1018,10 @@ describe('RescheduleModal', () => {
     });
 
     it('should handle invalid date string in parseLocalDate', () => {
-      const itemWithInvalidDate = { ...mockDonationItem, expiryDate: 'invalid-date' };
+      const itemWithInvalidDate = {
+        ...mockDonationItem,
+        expiryDate: 'invalid-date',
+      };
       render(
         <RescheduleModal
           isOpen={true}
@@ -889,7 +1030,7 @@ describe('RescheduleModal', () => {
           onSuccess={mockOnSuccess}
         />
       );
-      
+
       // Should render without crashing
       expect(screen.getByText('Reschedule Pickup')).toBeInTheDocument();
     });
@@ -904,7 +1045,7 @@ describe('RescheduleModal', () => {
           onSuccess={mockOnSuccess}
         />
       );
-      
+
       expect(screen.getByText('Reschedule Pickup')).toBeInTheDocument();
     });
 
@@ -918,14 +1059,14 @@ describe('RescheduleModal', () => {
           onSuccess={mockOnSuccess}
         />
       );
-      
+
       expect(screen.getByText('Reschedule Pickup')).toBeInTheDocument();
     });
 
     it('should handle UTC timezone when userTimezone is not available', async () => {
       useTimezone.mockReturnValue({ userTimezone: null });
       surplusAPI.create.mockResolvedValue({ data: { id: 'new-123' } });
-      
+
       render(
         <RescheduleModal
           isOpen={true}
@@ -934,18 +1075,24 @@ describe('RescheduleModal', () => {
           onSuccess={mockOnSuccess}
         />
       );
-      
+
       const dateInput = screen.getByPlaceholderText('Select date');
-      fireEvent.change(dateInput, { target: { value: '2025-02-01T00:00:00Z' } });
-      
+      fireEvent.change(dateInput, {
+        target: { value: '2025-02-01T00:00:00Z' },
+      });
+
       const startTimeInput = screen.getByPlaceholderText('Start');
-      fireEvent.change(startTimeInput, { target: { value: '2025-01-27T09:00:00Z' } });
-      
+      fireEvent.change(startTimeInput, {
+        target: { value: '2025-01-27T09:00:00Z' },
+      });
+
       const endTimeInput = screen.getByPlaceholderText('End');
-      fireEvent.change(endTimeInput, { target: { value: '2025-01-27T17:00:00Z' } });
-      
+      fireEvent.change(endTimeInput, {
+        target: { value: '2025-01-27T17:00:00Z' },
+      });
+
       fireEvent.click(screen.getByText('Create New Donation'));
-      
+
       await waitFor(() => {
         expect(surplusAPI.create).toHaveBeenCalledWith(
           expect.objectContaining({

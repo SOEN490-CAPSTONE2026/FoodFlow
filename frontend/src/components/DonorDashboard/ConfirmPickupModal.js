@@ -76,7 +76,10 @@ const ConfirmPickupModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
         onSuccess();
       }
     } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || t('confirmPickup.verifyFailed');
+      const errorMessage =
+        err.response?.data?.message ||
+        err.message ||
+        t('confirmPickup.verifyFailed');
       setError(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -96,9 +99,7 @@ const ConfirmPickupModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
         </button>
 
         <h2 className="confirm-pickup-title">{t('confirmPickup.title')}</h2>
-        <p className="confirm-pickup-subtitle">
-          {t('confirmPickup.subtitle')}
-        </p>
+        <p className="confirm-pickup-subtitle">{t('confirmPickup.subtitle')}</p>
 
         <div className="confirm-pickup-code-inputs">
           {code.map((digit, index) => (
@@ -122,10 +123,7 @@ const ConfirmPickupModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
 
         <p className="confirm-pickup-info">
           {t('confirmPickup.info')}{' '}
-          <button 
-            className="confirm-pickup-link" 
-            onClick={handleMyClaimsClick}
-          >
+          <button className="confirm-pickup-link" onClick={handleMyClaimsClick}>
             {t('confirmPickup.myClaims')}
           </button>
         </p>
@@ -135,11 +133,21 @@ const ConfirmPickupModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
         </p>
 
         <div className="confirm-pickup-actions">
-          <button className="confirm-pickup-button secondary" onClick={onClose} disabled={isSubmitting}>
+          <button
+            className="confirm-pickup-button secondary"
+            onClick={onClose}
+            disabled={isSubmitting}
+          >
             {t('confirmPickup.cancel')}
           </button>
-          <button className="confirm-pickup-button primary" onClick={handleConfirm} disabled={isSubmitting}>
-            {isSubmitting ? t('confirmPickup.verifying') : t('confirmPickup.confirm')}
+          <button
+            className="confirm-pickup-button primary"
+            onClick={handleConfirm}
+            disabled={isSubmitting}
+          >
+            {isSubmitting
+              ? t('confirmPickup.verifying')
+              : t('confirmPickup.confirm')}
           </button>
         </div>
       </div>

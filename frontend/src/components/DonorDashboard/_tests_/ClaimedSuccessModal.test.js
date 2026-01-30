@@ -24,7 +24,9 @@ describe('ClaimedSuccessModal', () => {
       render(<ClaimedSuccessModal isOpen={true} onClose={mockOnClose} />);
 
       expect(screen.getByText('claimedSuccessModal.title')).toBeInTheDocument();
-      expect(screen.getByText('claimedSuccessModal.subtitle')).toBeInTheDocument();
+      expect(
+        screen.getByText('claimedSuccessModal.subtitle')
+      ).toBeInTheDocument();
     });
 
     it('should render the success title', () => {
@@ -169,11 +171,11 @@ describe('ClaimedSuccessModal', () => {
 
   describe('Props validation', () => {
     it('should handle missing onClose prop gracefully', () => {
-      const { container } = render(
-        <ClaimedSuccessModal isOpen={true} />
-      );
+      const { container } = render(<ClaimedSuccessModal isOpen={true} />);
 
-      expect(container.querySelector('.claimed-success-overlay')).toBeInTheDocument();
+      expect(
+        container.querySelector('.claimed-success-overlay')
+      ).toBeInTheDocument();
     });
 
     it('should re-render when isOpen prop changes from false to true', () => {
@@ -181,7 +183,9 @@ describe('ClaimedSuccessModal', () => {
         <ClaimedSuccessModal isOpen={false} onClose={mockOnClose} />
       );
 
-      expect(screen.queryByText('claimedSuccessModal.title')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('claimedSuccessModal.title')
+      ).not.toBeInTheDocument();
 
       rerender(<ClaimedSuccessModal isOpen={true} onClose={mockOnClose} />);
 
@@ -203,7 +207,7 @@ describe('ClaimedSuccessModal', () => {
     it('should accept a different onClose function', async () => {
       const newOnClose = jest.fn();
       const user = userEvent.setup();
-      
+
       const { container } = render(
         <ClaimedSuccessModal isOpen={true} onClose={newOnClose} />
       );
