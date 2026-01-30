@@ -19,6 +19,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { TimezoneProvider } from './contexts/TimezoneContext';
 import { useAnalytics } from './hooks/useAnalytics';
 import PrivateRoutes from './components/PrivateRoutes';
+import NavigationHandler from './components/NavigationHandler';
 
 /* Dashboards */
 import AdminDashboard from './components/AdminDashboard/AdminDashboard';
@@ -63,6 +64,7 @@ function AppContent() {
 
   return (
     <div className="App">
+      <NavigationHandler />
       {!hideNavbar && <NavigationBar />}
       <Routes>
         {/* Public */}
