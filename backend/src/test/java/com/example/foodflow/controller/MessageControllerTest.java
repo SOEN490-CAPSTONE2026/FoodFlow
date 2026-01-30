@@ -187,7 +187,7 @@ class MessageControllerTest {
     }
     
     @Test
-    void sendMessage_Unauthenticated_ShouldReturn403() throws Exception {
+    void sendMessage_Unauthenticated_ShouldReturn401() throws Exception {
         // Given
         MessageRequest request = new MessageRequest();
         
@@ -195,6 +195,6 @@ class MessageControllerTest {
         mockMvc.perform(post("/api/messages")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 }

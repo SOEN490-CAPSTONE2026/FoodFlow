@@ -5,6 +5,7 @@ import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.UserRole;
 import com.example.foodflow.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -252,7 +253,7 @@ class UserServiceTest {
         when(notificationPreferenceService.validateNotificationTypes(donor, notificationTypes))
                 .thenReturn(Collections.emptyList());
         when(objectMapper.writeValueAsString(notificationTypes))
-                .thenThrow(new JsonProcessingException("Test exception") {});
+                .thenThrow(new JsonParseException(null, "Test exception"));
 
         // When & Then
         assertThatThrownBy(() -> userService.updateNotificationPreferences(1L, request))
@@ -506,18 +507,14 @@ class UserServiceTest {
     }
 
     @Test
-    void testGetNotificationTypePreferences_JsonProcessingException_ThrowsException() {
+    void testGetNotificationTypePreferences_JsonProcessingException_ThrowsException() throws JsonProcessingException {
         // Given
         String invalidJson = "{invalid json}";
         donor.setNotificationTypePreferences(invalidJson);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(donor));
-        try {
-            when(objectMapper.readValue(eq(invalidJson), eq(Map.class)))
-                    .thenThrow(new JsonProcessingException("Test exception") {});
-        } catch (JsonProcessingException e) {
-            // This should not happen in test setup
-        }
+        when(objectMapper.readValue(eq(invalidJson), eq(Map.class)))
+                .thenThrow(new JsonParseException(null, "Test exception"));
 
         // When & Then
         assertThatThrownBy(() -> userService.getNotificationTypePreferences(1L))
@@ -537,7 +534,7 @@ class UserServiceTest {
     }
 
     @Test
-    void testGetNotificationTypePreferences_ComplexPreferences_Success() {
+    void testGetNotificationTypePreferences_ComplexPreferences_Success() throws JsonProcessingException {
         // Given
         String jsonPreferences = "{\"NEW_POST\":true,\"CLAIM_ACCEPTED\":false,\"PICKUP_REMINDER\":true,\"MESSAGE_RECEIVED\":false}";
         receiver.setNotificationTypePreferences(jsonPreferences);
@@ -549,11 +546,7 @@ class UserServiceTest {
         expectedMap.put("MESSAGE_RECEIVED", false);
 
         when(userRepository.findById(2L)).thenReturn(Optional.of(receiver));
-        try {
-            when(objectMapper.readValue(eq(jsonPreferences), eq(Map.class))).thenReturn(expectedMap);
-        } catch (JsonProcessingException e) {
-            // This should not happen in test setup
-        }
+        when(objectMapper.readValue(eq(jsonPreferences), eq(Map.class))).thenReturn(expectedMap);
 
         // When
         Map<String, Boolean> result = userService.getNotificationTypePreferences(2L);
@@ -566,7 +559,7 @@ class UserServiceTest {
     }
 
     @Test
-    void testGetNotificationTypePreferences_EmptyJsonObject_ReturnsEmptyMap() {
+    void testGetNotificationTypePreferences_EmptyJsonObject_ReturnsEmptyMap() throws JsonProcessingException {
         // Given
         String emptyJson = "{}";
         donor.setNotificationTypePreferences(emptyJson);
@@ -574,11 +567,7 @@ class UserServiceTest {
         Map<String, Boolean> emptyMap = new HashMap<>();
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(donor));
-        try {
-            when(objectMapper.readValue(eq(emptyJson), eq(Map.class))).thenReturn(emptyMap);
-        } catch (JsonProcessingException e) {
-            // This should not happen in test setup
-        }
+        when(objectMapper.readValue(eq(emptyJson), eq(Map.class))).thenReturn(emptyMap);
 
         // When
         Map<String, Boolean> result = userService.getNotificationTypePreferences(1L);

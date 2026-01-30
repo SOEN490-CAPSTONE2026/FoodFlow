@@ -235,9 +235,9 @@ class ReceiverPreferencesControllerTest {
     }
     
     @Test
-    void getPreferences_Unauthenticated_ShouldReturn403() throws Exception {
+    void getPreferences_Unauthenticated_ShouldReturn401() throws Exception {
         // When & Then
         mockMvc.perform(get("/api/receiver/preferences"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 }
