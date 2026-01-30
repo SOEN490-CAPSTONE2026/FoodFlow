@@ -85,12 +85,7 @@ describe('DonorDashboard', () => {
   });
 
   test('all routes render within DonorLayout', () => {
-    const routes = [
-      '/',
-      '/dashboard',
-      '/list',
-      '/messages',
-    ];
+    const routes = ['/', '/dashboard', '/list', '/messages'];
 
     routes.forEach(route => {
       const { unmount } = renderWithRouter(route);
