@@ -16,6 +16,16 @@ jest.mock('firebase/auth', () => ({
   RecaptchaVerifier: jest.fn().mockImplementation(() => ({})),
 }));
 
+const mockNavigate = jest.fn();
+
+jest.mock('react-router-dom', () => {
+  const actual = jest.requireActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
+
 const renderWithRouter = ui => render(<BrowserRouter>{ui}</BrowserRouter>);
 
 describe('ForgotPassword - Method Selection', () => {
@@ -537,9 +547,6 @@ describe('ForgotPassword - Password Reset', () => {
       .fn()
       .mockResolvedValue({ data: { message: 'Password reset successful' } });
 
-    delete window.location;
-    window.location = { href: jest.fn() };
-
     renderWithRouter(<ForgotPassword />);
     const user = userEvent.setup({ delay: null });
 
@@ -585,7 +592,7 @@ describe('ForgotPassword - Password Reset', () => {
     });
 
     await waitFor(() => {
-      expect(window.location.href).toBe('/login');
+      expect(mockNavigate).toHaveBeenCalledWith('/login', { replace: true });
     });
 
     jest.useRealTimers();

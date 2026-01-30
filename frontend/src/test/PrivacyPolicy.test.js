@@ -4,9 +4,15 @@ import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import PrivacyPolicy from '../components/PrivacyPolicy';
 
-// Mock window.location.href
-delete window.location;
-window.location = { href: jest.fn() };
+const mockNavigate = jest.fn();
+
+jest.mock('react-router-dom', () => {
+  const actual = jest.requireActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
 
 describe('PrivacyPolicy', () => {
   beforeEach(() => {

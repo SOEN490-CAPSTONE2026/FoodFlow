@@ -293,6 +293,50 @@ describe('FeedbackModal', () => {
         ).toBeInTheDocument();
       });
     });
+
+    test('should reset form fields when switching to a new claim', async () => {
+      const user = userEvent.setup();
+      const { rerender } = renderModal();
+
+      await waitFor(() => {
+        expect(feedbackAPI.getFeedbackForClaim).toHaveBeenCalledWith(
+          mockClaimId
+        );
+      });
+
+      const starButtons = screen
+        .getAllByRole('button')
+        .filter(btn => btn.className.includes('star-btn'));
+      await user.click(starButtons[3]);
+
+      const textarea = screen.getByPlaceholderText('Optional short review');
+      await user.type(textarea, 'Previous feedback');
+
+      expect(textarea).toHaveValue('Previous feedback');
+      expect(screen.getByText('Submit Feedback')).not.toBeDisabled();
+
+      feedbackAPI.getFeedbackForClaim.mockResolvedValue({ data: [] });
+      rerender(
+        <AuthContext.Provider value={{ userId: mockUserId }}>
+          <FeedbackModal
+            isOpen={true}
+            onClose={mockOnClose}
+            claimId={456}
+            targetUser={mockTargetUser}
+            onSubmitted={mockOnSubmitted}
+          />
+        </AuthContext.Provider>
+      );
+
+      await waitFor(() => {
+        expect(feedbackAPI.getFeedbackForClaim).toHaveBeenCalledWith(456);
+      });
+
+      expect(screen.getByPlaceholderText('Optional short review')).toHaveValue(
+        ''
+      );
+      expect(screen.getByText('Submit Feedback')).toBeDisabled();
+    });
   });
 
   describe('Star Rating Interaction', () => {

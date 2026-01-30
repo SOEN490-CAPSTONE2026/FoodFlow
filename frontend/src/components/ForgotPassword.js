@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Mail,
   ArrowLeft,
@@ -17,6 +17,7 @@ import PhoneInput from './PhoneInput';
 import '../style/ForgotPassword.css';
 
 export default function ForgotPassword() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -594,7 +595,7 @@ export default function ForgotPassword() {
                           setResetSuccess(true);
                           // Redirect after 3 seconds
                           setTimeout(() => {
-                            window.location.href = '/login';
+                            navigate('/login', { replace: true });
                           }, 3000);
                         } catch (err) {
                           setPasswordError(
