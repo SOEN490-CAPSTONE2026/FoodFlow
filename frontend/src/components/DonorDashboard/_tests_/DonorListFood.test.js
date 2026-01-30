@@ -910,7 +910,7 @@ describe('DonorListFood', () => {
       });
     });
 
-    test('should show THANK YOU and LEAVE FEEDBACK buttons for COMPLETED status', async () => {
+    test('should show THANK YOU, REPORT RECEIVER, and LEAVE FEEDBACK buttons for COMPLETED status', async () => {
       const completedItem = {
         ...mockItems[0],
         status: 'COMPLETED',
@@ -921,6 +921,7 @@ describe('DonorListFood', () => {
 
       await waitFor(() => {
         expect(screen.getByText(/thank you/i)).toBeInTheDocument();
+        expect(screen.getByText(/report receiver/i)).toBeInTheDocument();
         expect(screen.getByText(/leave feedback/i)).toBeInTheDocument();
       });
     });
