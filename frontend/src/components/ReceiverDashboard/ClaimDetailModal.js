@@ -408,7 +408,9 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
             <div className="claimed-modal-actions">
               {(getDisplayStatus() === t('claimDetail.status.claimed') ||
                 getDisplayStatus() === t('claimDetail.status.readyForPickup') ||
-                getDisplayStatus() === t('claimDetail.status.completed')) && (
+                getDisplayStatus() === t('claimDetail.status.completed') ||
+                getDisplayStatus() ===
+                  t('claimDetail.status.notCompleted')) && (
                 <>
                   <button
                     className="claimed-modal-btn-secondary"
