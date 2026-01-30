@@ -253,11 +253,16 @@ export const recommendationAPI = {
    * @param {number} minScore - Minimum recommendation score (default: 50)
    * @returns {Promise<Array>} - Array of highly recommended posts
    */
-  getTopRecommendations: async (minScore = 50) => {
+  getTopRecommendations: async (postIds, minScore = 50) => {
     try {
+      if (!postIds || postIds.length === 0) {
+        return {};
+      }
+
       const response = await api.get('/recommendations/top', {
-        params: { minScore },
+        params: { postIds: postIds.join(','), minScore },
       });
+
       return response.data;
     } catch (error) {
       console.error('Error fetching top recommendations:', error);
