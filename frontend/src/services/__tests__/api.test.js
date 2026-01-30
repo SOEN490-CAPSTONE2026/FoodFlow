@@ -628,10 +628,13 @@ describe('API service', () => {
     mockGet.mockResolvedValue({ data: [{ id: 1 }, { id: 2 }] });
     const { recommendationAPI } = require('../api');
 
-    const result = await recommendationAPI.getTopRecommendations();
+    const result = await recommendationAPI.getTopRecommendations([1, 2, 3]);
 
     expect(mockGet).toHaveBeenCalledWith('/recommendations/top', {
-      params: { minScore: 50 },
+      params: {
+        minScore: 50,
+        postIds: '1,2,3',
+      },
     });
     expect(result).toEqual([{ id: 1 }, { id: 2 }]);
   });
@@ -640,10 +643,13 @@ describe('API service', () => {
     mockGet.mockResolvedValue({ data: [] });
     const { recommendationAPI } = require('../api');
 
-    const result = await recommendationAPI.getTopRecommendations(75);
+    const result = await recommendationAPI.getTopRecommendations([1, 2, 3], 75);
 
     expect(mockGet).toHaveBeenCalledWith('/recommendations/top', {
-      params: { minScore: 75 },
+      params: {
+        minScore: 75,
+        postIds: '1,2,3',
+      },
     });
     expect(result).toEqual([]);
   });

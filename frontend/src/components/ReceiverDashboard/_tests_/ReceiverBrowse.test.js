@@ -218,7 +218,7 @@ describe('ReceiverBrowse Component', () => {
       });
 
       // Mock recommendations for the recommended item
-      recommendationAPI.getBrowseRecommendations.mockResolvedValue({
+      recommendationAPI.getTopRecommendations.mockResolvedValue({
         100: { score: 95, reasons: ['Great match!'], isRecommended: true },
       });
 
@@ -248,7 +248,7 @@ describe('ReceiverBrowse Component', () => {
       const recommendedPost = createMockDonation({ id: 123 });
       surplusAPI.list.mockResolvedValue({ data: [recommendedPost] });
 
-      recommendationAPI.getBrowseRecommendations.mockResolvedValue({
+      recommendationAPI.getTopRecommendations.mockResolvedValue({
         123: { score: 90, reasons: ['Perfect match!'], isRecommended: true },
       });
 
@@ -267,7 +267,7 @@ describe('ReceiverBrowse Component', () => {
       surplusAPI.list.mockResolvedValue({ data: [realPost] });
 
       // Mock recommendation response
-      recommendationAPI.getBrowseRecommendations.mockResolvedValue({
+      recommendationAPI.getTopRecommendations.mockResolvedValue({
         123: { score: 85, reasons: ['Great match!'], isRecommended: true },
       });
 
@@ -276,8 +276,9 @@ describe('ReceiverBrowse Component', () => {
       });
 
       await waitFor(() => {
-        expect(recommendationAPI.getBrowseRecommendations).toHaveBeenCalledWith(
-          [123]
+        expect(recommendationAPI.getTopRecommendations).toHaveBeenCalledWith(
+          [123],
+          80
         );
       });
     });
@@ -286,7 +287,7 @@ describe('ReceiverBrowse Component', () => {
       const recommendedPost = createMockDonation({ id: 456 });
       surplusAPI.list.mockResolvedValue({ data: [recommendedPost] });
 
-      recommendationAPI.getBrowseRecommendations.mockResolvedValue({
+      recommendationAPI.getTopRecommendations.mockResolvedValue({
         456: {
           score: 88,
           reasons: ['Close to your location'],
