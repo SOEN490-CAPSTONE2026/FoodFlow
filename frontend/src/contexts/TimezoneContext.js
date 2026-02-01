@@ -21,6 +21,21 @@ export const TimezoneProvider = ({ children }) => {
 
   const fetchUserTimezone = async () => {
     console.log('[TimezoneContext] Fetching user timezone...');
+
+    // Check if user is logged in before making API call
+    const token =
+      localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
+
+    if (!token) {
+      console.log('[TimezoneContext] No token, using browser timezone');
+      const browserTz =
+        Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+      console.log('[TimezoneContext] Browser timezone:', browserTz);
+      setUserTimezone(browserTz);
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const response = await api.get('/profile/region');
       console.log('[TimezoneContext] API response:', response.data);
