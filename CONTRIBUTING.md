@@ -9,15 +9,11 @@ Thank you for your interest in contributing to FoodFlow! This document provides 
 All pull requests must maintain or improve code coverage. The project enforces minimum coverage thresholds:
 
 #### Backend Coverage (JaCoCo)
-- **Line Coverage:** 80% minimum
-- **Branch Coverage:** 75% minimum
+- **Statement Coverage (Instructions):** 80% minimum
 - Excludes: DTOs, configuration classes, and application entry point
 
 #### Frontend Coverage (Jest)
-- **Statements:** 80% minimum
-- **Branches:** 80% minimum
-- **Functions:** 80% minimum
-- **Lines:** 80% minimum
+- **Statement Coverage:** 80% minimum
 - Excludes: test files, index.js, reportWebVitals.js
 
 ### Running Coverage Locally
