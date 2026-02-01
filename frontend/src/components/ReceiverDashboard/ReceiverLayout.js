@@ -293,13 +293,6 @@ function ReceiverLayoutContent() {
           </Link>
 
           <Link
-            to="/receiver/achievements"
-            className={`receiver-nav-link ${isActive('/receiver/achievements') ? 'active' : ''}`}
-          >
-            {t('receiverLayout.achievements', 'Achievements')}
-          </Link>
-
-          <Link
             to="/receiver/welcome"
             className={`receiver-nav-link ${location.pathname === '/receiver/welcome' ? 'active' : ''}`}
           >
