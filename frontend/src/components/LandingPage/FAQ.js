@@ -81,28 +81,31 @@ const FAQ = () => {
   };
 
   return (
-    <div ref={containerRef} className="faq-container">
-      <div ref={leftRef} className="faq-left">
+    <div ref={containerRef} className="landing-faq-container">
+      <div ref={leftRef} className="landing-faq-left">
         <h1>{t('landing.faq.title')}</h1>
       </div>
 
-      <div ref={rightRef} className="faq-right">
+      <div ref={rightRef} className="landing-faq-right">
         {faqData.map((item, index) => (
           <div
             key={index}
             ref={el => addToItemRefs(el, index)}
-            className={`faq-item ${isActive(index) ? 'active' : ''}`}
+            className={`landing-faq-item ${isActive(index) ? 'landing-active' : ''}`}
           >
-            <div className="faq-question" onClick={() => toggleFAQ(index)}>
+            <div
+              className="landing-faq-question"
+              onClick={() => toggleFAQ(index)}
+            >
               <span>{item.question}</span>
               {isActive(index) ? (
-                <FaMinus className="faq-icon" />
+                <FaMinus className="landing-faq-icon" />
               ) : (
-                <FaPlus className="faq-icon" />
+                <FaPlus className="landing-faq-icon" />
               )}
             </div>
-            <div className="faq-answer">
-              <div className="faq-answer-content">{item.answer}</div>
+            <div className="landing-faq-answer">
+              <div className="landing-faq-answer-content">{item.answer}</div>
             </div>
           </div>
         ))}

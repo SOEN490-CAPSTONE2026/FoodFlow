@@ -8,7 +8,7 @@
 }
 
 /* Container Style */
-.faq-container {
+.landing-faq-container {
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -17,86 +17,86 @@
   background-color: #f9fafb;
 }
 
-.faq-left {
+.landing-faq-left {
   flex: 1;
   max-width: 500px;
 }
 
-.faq-left h1 {
+.landing-faq-left h1 {
   font-size: 2.8rem;
   font-weight: 700;
   color: #1b4965;
   line-height: 1.5;
 }
 
-.faq-right {
+.landing-faq-right {
   flex: 1;
   max-width: 600px;
 }
 
-.faq-item {
+.landing-faq-item {
   margin-bottom: 0;
   background: transparent;
   border-bottom: 2px solid #e2e8f0;
   transition: border-color 0.3s ease;
 }
 
-.faq-item:hover {
+.landing-faq-item:hover {
   border-bottom-color: #62b6cb;
 }
 
 /* === ENTRANCE ANIMATIONS === */
-.faq-left {
+.landing-faq-left {
   opacity: 0;
   transform: translateY(40px);
   transition: all 0.7s ease;
 }
 
-.faq-left.animate-in {
+.landing-faq-left.animate-in {
   opacity: 1;
   transform: translateY(0);
 }
 
-.faq-right {
+.landing-faq-right {
   opacity: 0;
   transform: translateY(40px);
   transition: all 0.8s ease 0.2s;
 }
 
-.faq-right.animate-in {
+.landing-faq-right.animate-in {
   opacity: 1;
   transform: translateY(0);
 }
 
-.faq-item {
+.landing-faq-item {
   opacity: 0;
   transform: translateY(30px);
   transition: all 0.6s ease;
 }
 
-.faq-right.animate-in .faq-item {
+.landing-faq-right.animate-in .landing-faq-item {
   opacity: 1;
   transform: translateY(0);
 }
 
-.faq-right.animate-in .faq-item:nth-child(1) {
+.landing-faq-right.animate-in .landing-faq-item:nth-child(1) {
   transition-delay: 0.3s;
 }
-.faq-right.animate-in .faq-item:nth-child(2) {
+.landing-faq-right.animate-in .landing-faq-item:nth-child(2) {
   transition-delay: 0.4s;
 }
-.faq-right.animate-in .faq-item:nth-child(3) {
+.landing-faq-right.animate-in .landing-faq-item:nth-child(3) {
   transition-delay: 0.5s;
 }
-.faq-right.animate-in .faq-item:nth-child(4) {
+.landing-faq-right.animate-in .landing-faq-item:nth-child(4) {
   transition-delay: 0.6s;
 }
 
-.faq-item.active {
+.landing-faq-item.landing-active {
   border-bottom-color: #62b6cb;
 }
 
-.faq-question {
+.landing-faq-question {
   background: transparent;
   color: #1b4965;
   padding: 25px 0;
@@ -110,11 +110,11 @@
   border: none;
 }
 
-.faq-question:hover {
+.landing-faq-question:hover {
   color: #0e262b;
 }
 
-.faq-icon {
+.landing-landing-faq-icon {
   font-size: 1rem;
   color: #1b4965;
   transition: all 0.3s ease;
@@ -126,19 +126,19 @@
   justify-content: center;
 }
 
-.faq-question:hover .faq-icon {
+.landing-faq-question:hover .landing-faq-icon {
   color: #0e262b;
 }
 
 /* Answer Style with expand animation */
-.faq-answer {
+.landing-faq-answer {
   background-color: transparent;
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.4s ease;
 }
 
-.faq-answer-content {
+.landing-faq-answer-content {
   padding: 0;
   line-height: 1.7;
   color: #6b7280;
@@ -150,12 +150,12 @@
   font-size: 1rem;
 }
 
-.faq-item.active .faq-answer {
+.landing-faq-item.landing-active .landing-faq-answer {
   max-height: 300px;
   animation: fadeInUp 0.4s ease-out;
 }
 
-.faq-item.active .faq-answer-content {
+.landing-faq-item.landing-active .landing-faq-answer-content {
   opacity: 1;
   transform: translateY(0);
   padding: 0 0 25px 0;
@@ -186,44 +186,44 @@
 
 /* Responsiveness */
 @media (max-width: 900px) {
-  .faq-container {
+  .landing-faq-container {
     flex-direction: column;
     padding: 50px 5%;
     gap: 30px;
   }
 
-  .faq-left {
+  .landing-faq-left {
     max-width: 100%;
     text-align: center;
   }
 
-  .faq-left h1 {
+  .landing-landing-faq-left h1 {
     font-size: 2.4rem;
     margin-bottom: 20px;
   }
 
-  .faq-right {
+  .landing-faq-right {
     max-width: 100%;
     width: 100%;
   }
 }
 
 @media (max-width: 480px) {
-  .faq-container {
+  .landing-faq-container {
     padding: 30px 4%;
     gap: 25px;
   }
 
-  .faq-left h1 {
+  .landing-faq-left h1 {
     font-size: 1.8rem;
   }
 
-  .faq-question {
+  .landing-faq-question {
     font-size: 1rem;
     padding: 18px 0;
   }
 
-  .faq-answer-content {
+  .landing-faq-answer-content {
     font-size: 0.9rem;
   }
 }

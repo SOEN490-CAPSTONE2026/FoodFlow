@@ -167,14 +167,14 @@
   transform: translateX(5px);
 }
 
-.contact-icon {
+.contact-icon-landing {
   color: #62b6cb;
   font-size: 1.1rem;
   min-width: 20px;
   transition: color 0.3s ease;
 }
 
-.contact-item:hover .contact-icon {
+.contact-item:hover .contact-icon-landing {
   color: #1b4965;
 }
 

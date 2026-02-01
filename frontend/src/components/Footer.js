@@ -40,7 +40,7 @@ const Footer = () => {
               <h3 className="column-title">{t('footer.contact')}</h3>
               <div className="contact-info">
                 <div className="contact-item">
-                  <FaEnvelope className="contact-icon" />
+                  <FaEnvelope className="contact-icon-landing" />
                   <a
                     href="mailto:foodflow.group@gmail.com"
                     className="contact-email"
@@ -49,7 +49,7 @@ const Footer = () => {
                   </a>
                 </div>
                 <div className="contact-item">
-                  <FaPhone className="contact-icon" />
+                  <FaPhone className="contact-icon-landing" />
                   <a href="tel:18001224567" className="contact-phone">
                     {t('footer.phone')}
                   </a>
