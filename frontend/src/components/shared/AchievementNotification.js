@@ -9,7 +9,9 @@ const AchievementNotification = ({ achievement, onClose }) => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    if (!achievement) return;
+    if (!achievement) {
+      return;
+    }
 
     // Trigger entrance animation
     setTimeout(() => setIsVisible(true), 10);
@@ -27,7 +29,9 @@ const AchievementNotification = ({ achievement, onClose }) => {
     setTimeout(() => onClose(), 300); // Wait for exit animation
   };
 
-  if (!achievement) return null;
+  if (!achievement) {
+    return null;
+  }
 
   return (
     <div className={`achievement-notification ${isVisible ? 'visible' : ''}`}>
