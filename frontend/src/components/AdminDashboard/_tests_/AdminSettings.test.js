@@ -43,7 +43,9 @@ jest.mock('../../RegionSelector', () => {
 
 jest.mock('../../ChangePasswordModal', () => {
   return function ChangePasswordModal({ isOpen, onClose }) {
-    if (!isOpen) return null;
+    if (!isOpen) {
+      return null;
+    }
     return (
       <div data-testid="change-password-modal">
         Change Password Modal

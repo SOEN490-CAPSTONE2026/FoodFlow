@@ -1,5 +1,6 @@
 package com.example.foodflow.service;
 
+import com.example.foodflow.model.dto.AchievementNotificationDTO;
 import com.example.foodflow.model.dto.AchievementProgress;
 import com.example.foodflow.model.dto.AchievementResponse;
 import com.example.foodflow.model.dto.GamificationStatsResponse;
@@ -18,6 +19,7 @@ import com.example.foodflow.repository.UserAchievementRepository;
 import com.example.foodflow.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +44,7 @@ public class GamificationService {
     private final ClaimRepository claimRepository;
     private final MessageRepository messageRepository;
     private final ConversationRepository conversationRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     public GamificationService(UserRepository userRepository,
                               AchievementRepository achievementRepository,
@@ -49,7 +52,8 @@ public class GamificationService {
                               SurplusPostRepository surplusPostRepository,
                               ClaimRepository claimRepository,
                               MessageRepository messageRepository,
-                              ConversationRepository conversationRepository) {
+                              ConversationRepository conversationRepository,
+                              SimpMessagingTemplate messagingTemplate) {
         this.userRepository = userRepository;
         this.achievementRepository = achievementRepository;
         this.userAchievementRepository = userAchievementRepository;
@@ -57,6 +61,7 @@ public class GamificationService {
         this.claimRepository = claimRepository;
         this.messageRepository = messageRepository;
         this.conversationRepository = conversationRepository;
+        this.messagingTemplate = messagingTemplate;
     }
 
     /**
@@ -119,7 +124,14 @@ public class GamificationService {
                 user.setTotalPoints(currentPoints + achievement.getPointsValue());
                 userRepository.save(user);
 
-                logger.info("User {} unlocked achievement: {} (+{} points)", 
+                // Send WebSocket notification
+                sendAchievementNotification(user, userAchievement);
+
+                // Mark as notified
+                userAchievement.setNotified(true);
+                userAchievementRepository.save(userAchievement);
+
+                logger.info("User {} unlocked achievement: {} (+{} points)",
                     userId, achievement.getName(), achievement.getPointsValue());
             }
         }
@@ -269,10 +281,10 @@ public class GamificationService {
 
             case PICKUP_COUNT:
                 // Count completed claims - receiver claims with COMPLETED status
-                return (int) claimRepository.findAll().stream()
-                    .filter(claim -> claim.getReceiver().getId().equals(user.getId()) && 
-                                   claim.getStatus() == ClaimStatus.COMPLETED)
-                    .count();
+                return (int) claimRepository.findReceiverClaimsWithDetails(
+                    user.getId(),
+                    java.util.List.of(ClaimStatus.COMPLETED)
+                ).size();
 
             case MESSAGE_COUNT:
                 // Count messages sent by user
@@ -280,9 +292,50 @@ public class GamificationService {
                     .filter(message -> message.getSender().getId().equals(user.getId()))
                     .count();
 
+            case UNIQUE_PARTNER_COUNT:
+                // Count unique conversation partners the user has interacted with
+                return (int) conversationRepository.findByUserId(user.getId()).stream()
+                    .map(conversation -> conversation.getOtherParticipant(user.getId()).getId())
+                    .distinct()
+                    .count();
+
             default:
                 logger.warn("Unsupported criteria type for achievement checking: {}", criteriaType);
                 return 0;
+        }
+    }
+
+    /**
+     * Send WebSocket notification when achievement is unlocked.
+     *
+     * @param user User who unlocked the achievement
+     * @param userAchievement The unlocked achievement
+     */
+    private void sendAchievementNotification(User user, UserAchievement userAchievement) {
+        try {
+            Achievement achievement = userAchievement.getAchievement();
+
+            AchievementNotificationDTO notification = new AchievementNotificationDTO(
+                achievement.getId(),
+                achievement.getName(),
+                achievement.getDescription(),
+                achievement.getIconName(), // Achievement entity uses 'iconName' field
+                achievement.getPointsValue(),
+                achievement.getCategory() != null ? achievement.getCategory().toString() : null,
+                userAchievement.getEarnedAt()
+            );
+
+            messagingTemplate.convertAndSendToUser(
+                user.getId().toString(),
+                "/queue/achievements",
+                notification
+            );
+
+            logger.info("Sent achievement notification to userId={} for achievement: {}",
+                user.getId(), achievement.getName());
+        } catch (Exception e) {
+            logger.error("Failed to send achievement notification to userId={}: {}",
+                user.getId(), e.getMessage());
         }
     }
 }

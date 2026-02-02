@@ -206,7 +206,7 @@ class GamificationServiceTest {
 
         // Then
         assertThat(result).hasSize(1);
-        verify(userAchievementRepository).save(any(UserAchievement.class));
+        verify(userAchievementRepository, times(2)).save(any(UserAchievement.class));
         verify(userRepository, times(1)).save(any(User.class));
     }
 
@@ -274,7 +274,7 @@ class GamificationServiceTest {
 
         // Then
         assertThat(result).hasSize(2);
-        verify(userAchievementRepository, times(2)).save(any(UserAchievement.class));
+        verify(userAchievementRepository, times(4)).save(any(UserAchievement.class));
     }
 
     @Test
@@ -554,6 +554,9 @@ class GamificationServiceTest {
         when(userAchievementRepository.findByUserIdOrderByEarnedAtDesc(2L))
                 .thenReturn(Collections.emptyList());
         when(claimRepository.countByReceiverId(2L)).thenReturn(5L);
+        when(userAchievementRepository.save(any(UserAchievement.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(userRepository.save(any(User.class))).thenReturn(receiver);
 
         // When
         List<UserAchievement> result = gamificationService.checkAndUnlockAchievements(2L);
@@ -561,6 +564,7 @@ class GamificationServiceTest {
         // Then
         assertThat(result).hasSize(1); // Achievement unlocked because 5 >= 1
         verify(claimRepository).countByReceiverId(2L);
+        verify(userAchievementRepository, times(2)).save(any(UserAchievement.class));
     }
 
     @Test
@@ -583,9 +587,12 @@ class GamificationServiceTest {
                 .thenReturn(Arrays.asList(pickupAchievement));
         when(userAchievementRepository.findByUserIdOrderByEarnedAtDesc(2L))
                 .thenReturn(Collections.emptyList());
-        when(claimRepository.findAll()).thenReturn(Arrays.asList(completedClaim));
+        when(claimRepository.findReceiverClaimsWithDetails(
+                eq(2L),
+                eq(List.of(ClaimStatus.COMPLETED))
+        )).thenReturn(Arrays.asList(completedClaim));
         when(userAchievementRepository.save(any(UserAchievement.class)))
-                .thenReturn(new UserAchievement(receiver, pickupAchievement));
+                .thenAnswer(invocation -> invocation.getArgument(0));
         when(userRepository.save(any(User.class))).thenReturn(receiver);
 
         // When
@@ -593,6 +600,7 @@ class GamificationServiceTest {
 
         // Then
         assertThat(result).hasSize(1);
+        verify(userAchievementRepository, times(2)).save(any(UserAchievement.class));
     }
 
     @Test
@@ -657,6 +665,6 @@ class GamificationServiceTest {
 
         // Then
         assertThat(result).hasSize(1);
-        verify(userAchievementRepository).save(any(UserAchievement.class));
+        verify(userAchievementRepository, times(2)).save(any(UserAchievement.class));
     }
 }

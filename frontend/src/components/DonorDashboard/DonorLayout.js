@@ -25,6 +25,7 @@ import { AuthContext } from '../../contexts/AuthContext';
 import Logo from '../../assets/Logo_White.png';
 import './Donor_Styles/DonorLayout.css';
 import MessageNotification from '../MessagingDashboard/MessageNotification';
+import AchievementNotification from '../shared/AchievementNotification';
 import EmailVerificationRequired from '../EmailVerificationRequired';
 import AdminApprovalBanner from '../AdminApprovalBanner';
 import { connectToUserQueue, disconnect } from '../../services/socket';
@@ -43,6 +44,7 @@ export default function DonorLayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const menuRef = useRef(null);
   const [notification, setNotification] = useState(null);
+  const [achievementNotification, setAchievementNotification] = useState(null);
   const [profilePhotoUrl, setProfilePhotoUrl] = useState(null);
 
   const pageTitle = (() => {
@@ -183,7 +185,19 @@ export default function DonorLayout() {
       });
     };
 
-    connectToUserQueue(onMessage, onClaimNotification, onClaimCancelled);
+    const onAchievementUnlocked = payload => {
+      // Handle achievement unlock notifications
+      console.log('DONOR: Achievement unlocked:', payload);
+      setAchievementNotification(payload);
+    };
+
+    connectToUserQueue(
+      onMessage,
+      onClaimNotification,
+      onClaimCancelled,
+      null, // no new post notifications for donors
+      onAchievementUnlocked
+    );
     return () => {
       try {
         disconnect();
@@ -410,6 +424,13 @@ export default function DonorLayout() {
                 <MessageNotification
                   notification={notification}
                   onClose={() => setNotification(null)}
+                />
+              )}
+
+              {achievementNotification && (
+                <AchievementNotification
+                  achievement={achievementNotification}
+                  onClose={() => setAchievementNotification(null)}
                 />
               )}
             </section>

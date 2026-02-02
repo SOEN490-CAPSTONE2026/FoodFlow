@@ -812,6 +812,14 @@ public class SurplusService {
         post.setStatus(PostStatus.COMPLETED);
         SurplusPost updatedPost = surplusPostRepository.save(post);
 
+        // Also complete the related claim so pickup achievements are updated
+        claimRepository.findBySurplusPost(post)
+                .ifPresent(claim -> {
+                    if (claim.getStatus() != ClaimStatus.COMPLETED) {
+                        claimService.completeClaim(claim.getId());
+                    }
+                });
+
         businessMetricsService.incrementSurplusPostCompleted();
         businessMetricsService.recordTimer(sample, "surplus.service.complete", "status", "complete");
 
