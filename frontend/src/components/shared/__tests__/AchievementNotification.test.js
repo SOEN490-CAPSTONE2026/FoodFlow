@@ -59,7 +59,7 @@ describe('AchievementNotification', () => {
     expect(screen.getByText('Achievement Unlocked!')).toBeInTheDocument();
   });
 
-  test('auto-dismisses after 5 seconds', () => {
+  test('auto-dismisses after 5 seconds', async () => {
     render(
       <AchievementNotification
         achievement={mockAchievement}
@@ -77,12 +77,12 @@ describe('AchievementNotification', () => {
       jest.advanceTimersByTime(300);
     });
 
-    waitFor(() => {
+    await waitFor(() => {
       expect(mockOnClose).toHaveBeenCalledTimes(1);
     });
   });
 
-  test('closes when close button clicked', () => {
+  test('closes when close button clicked', async () => {
     render(
       <AchievementNotification
         achievement={mockAchievement}
@@ -99,7 +99,7 @@ describe('AchievementNotification', () => {
       jest.advanceTimersByTime(300);
     });
 
-    waitFor(() => {
+    await waitFor(() => {
       expect(mockOnClose).toHaveBeenCalledTimes(1);
     });
   });
