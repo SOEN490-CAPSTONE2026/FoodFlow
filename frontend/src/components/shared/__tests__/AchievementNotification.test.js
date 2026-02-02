@@ -1,6 +1,12 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import AchievementNotification from '../AchievementNotification';
+
+jest.mock('../BadgeIcon', () => {
+  return function BadgeIconMock() {
+    return <div data-testid="badge-icon" />;
+  };
+});
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -27,7 +33,9 @@ describe('AchievementNotification', () => {
   });
 
   afterEach(() => {
-    jest.runOnlyPendingTimers();
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
     jest.useRealTimers();
   });
 
@@ -55,7 +63,13 @@ describe('AchievementNotification', () => {
 
     expect(mockOnClose).not.toHaveBeenCalled();
 
-    jest.advanceTimersByTime(5000);
+    act(() => {
+      jest.advanceTimersByTime(5000);
+    });
+
+    act(() => {
+      jest.advanceTimersByTime(300);
+    });
 
     waitFor(() => {
       expect(mockOnClose).toHaveBeenCalledTimes(1);
@@ -71,7 +85,13 @@ describe('AchievementNotification', () => {
     );
 
     const closeButton = screen.getByLabelText('Close notification');
-    fireEvent.click(closeButton);
+    act(() => {
+      fireEvent.click(closeButton);
+    });
+
+    act(() => {
+      jest.advanceTimersByTime(300);
+    });
 
     waitFor(() => {
       expect(mockOnClose).toHaveBeenCalledTimes(1);

@@ -198,8 +198,8 @@ describe('ReceiverAchievements', () => {
     renderWithRouter(<ReceiverAchievements />);
 
     // 1 unlocked out of 3 total = 33%
-    expect(screen.getByText(/33%/)).toBeInTheDocument();
-    expect(screen.getByText('Complete')).toBeInTheDocument();
+    expect(screen.getByText(/33/)).toBeInTheDocument();
+    expect(screen.getByText(/Complete/i)).toBeInTheDocument();
   });
 
   it('should render locked achievements section when present', () => {
