@@ -16,6 +16,7 @@ import {
   useNotification,
 } from '../../contexts/NotificationContext';
 import MessageNotification from '../MessagingDashboard/MessageNotification';
+import AchievementNotification from '../shared/AchievementNotification';
 import ReceiverPreferences from './ReceiverPreferences';
 import EmailVerificationRequired from '../EmailVerificationRequired';
 import AdminApprovalBanner from '../AdminApprovalBanner';
@@ -46,6 +47,7 @@ function ReceiverLayoutContent() {
   const [showPreferences, setShowPreferences] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [profilePhotoUrl, setProfilePhotoUrl] = useState(null);
+  const [achievementNotification, setAchievementNotification] = useState(null);
   const dropdownRef = useRef(null);
   const isActive = path => location.pathname === path;
   const { notification, showNotification, clearNotification } =
@@ -100,16 +102,16 @@ function ReceiverLayoutContent() {
 
   const getPageTitle = () => {
     switch (location.pathname) {
-      case "/receiver":
-      case "/receiver/dashboard":
+      case '/receiver':
+      case '/receiver/dashboard':
         return t('receiverLayout.pageTitles.receiverDashboard');
-      case "/receiver/welcome":
+      case '/receiver/welcome':
         return t('receiverLayout.pageTitles.welcome');
-      case "/receiver/browse":
+      case '/receiver/browse':
         return t('receiverLayout.pageTitles.browse');
-      case "/receiver/messages":
+      case '/receiver/messages':
         return t('receiverLayout.pageTitles.messages');
-      case "/receiver/settings":
+      case '/receiver/settings':
         return t('receiverLayout.pageTitles.settings');
       default:
         return t('receiverLayout.pageTitles.default');
@@ -118,16 +120,16 @@ function ReceiverLayoutContent() {
 
   const getPageDescription = () => {
     switch (location.pathname) {
-      case "/receiver":
-      case "/receiver/dashboard":
+      case '/receiver':
+      case '/receiver/dashboard':
         return t('receiverLayout.pageDescriptions.receiverDashboard');
-      case "/receiver/welcome":
+      case '/receiver/welcome':
         return t('receiverLayout.pageDescriptions.welcome');
-      case "/receiver/browse":
+      case '/receiver/browse':
         return t('receiverLayout.pageDescriptions.browse');
-      case "/receiver/messages":
+      case '/receiver/messages':
         return t('receiverLayout.pageDescriptions.messages');
-      case "/receiver/settings":
+      case '/receiver/settings':
         return t('receiverLayout.pageDescriptions.settings');
       default:
         return t('receiverLayout.pageDescriptions.default');
@@ -187,7 +189,10 @@ function ReceiverLayoutContent() {
       const foodTitle = payload.surplusPostTitle || 'a food item';
       const donorName = payload.surplusPost?.donorEmail || 'a donor';
       const status = payload.status || '';
-      let message = t('notifications.successfullyClaimed', { foodTitle, donorName });
+      let message = t('notifications.successfullyClaimed', {
+        foodTitle,
+        donorName,
+      });
 
       if (status === 'READY_FOR_PICKUP' || status === 'Ready for Pickup') {
         message = t('notifications.readyForPickup', { foodTitle });
@@ -215,11 +220,18 @@ function ReceiverLayoutContent() {
       showNotification('🔔 New Donation Available', message);
     };
 
+    const onAchievementUnlocked = payload => {
+      // Handle achievement unlock notifications
+      console.log('RECEIVER: Achievement unlocked:', payload);
+      setAchievementNotification(payload);
+    };
+
     connectToUserQueue(
       onMessage,
       onClaimNotification,
       onClaimCancelled,
-      onNewPostNotification
+      onNewPostNotification,
+      onAchievementUnlocked
     );
     return () => {
       try {
@@ -290,6 +302,13 @@ function ReceiverLayoutContent() {
           </Link>
 
           <Link
+            to="/receiver/achievements"
+            className={`receiver-nav-link ${isActive('/receiver/achievements') ? 'active' : ''}`}
+          >
+            {t('receiverLayout.achievements', 'Achievements')}
+          </Link>
+
+          <Link
             to="/receiver/welcome"
             className={`receiver-nav-link ${location.pathname === '/receiver/welcome' ? 'active' : ''}`}
           >
@@ -325,7 +344,9 @@ function ReceiverLayoutContent() {
           {showDropdown && (
             <div className="dropdown-menu dropdown-menu--card">
               <div className="dropdown-header">
-                {t('receiverLayout.hello', { name: organizationName || t('receiverLayout.user') })}
+                {t('receiverLayout.hello', {
+                  name: organizationName || t('receiverLayout.user'),
+                })}
               </div>
               <div className="dropdown-divider"></div>
 
@@ -404,6 +425,12 @@ function ReceiverLayoutContent() {
                 notification={notification}
                 onClose={clearNotification}
               />
+              {achievementNotification && (
+                <AchievementNotification
+                  achievement={achievementNotification}
+                  onClose={() => setAchievementNotification(null)}
+                />
+              )}
             </div>
           </>
         )}

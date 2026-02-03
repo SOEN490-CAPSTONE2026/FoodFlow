@@ -1,12 +1,16 @@
-import React, { useEffect, useRef, useState, useContext } from "react";
-import { Outlet, useLocation, useNavigate, Link, useNavigationType } from "react-router-dom";
+import React, { useEffect, useRef, useState, useContext } from 'react';
+import {
+  Outlet,
+  useLocation,
+  useNavigate,
+  Link,
+  useNavigationType,
+} from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Home,
   LayoutGrid,
   Heart,
-  Calendar as CalendarIcon,
-  FileText,
   Mail,
   ChevronRight,
   ChevronLeft,
@@ -21,6 +25,7 @@ import { AuthContext } from '../../contexts/AuthContext';
 import Logo from '../../assets/Logo_White.png';
 import './Donor_Styles/DonorLayout.css';
 import MessageNotification from '../MessagingDashboard/MessageNotification';
+import AchievementNotification from '../shared/AchievementNotification';
 import EmailVerificationRequired from '../EmailVerificationRequired';
 import AdminApprovalBanner from '../AdminApprovalBanner';
 import { connectToUserQueue, disconnect } from '../../services/socket';
@@ -39,24 +44,21 @@ export default function DonorLayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const menuRef = useRef(null);
   const [notification, setNotification] = useState(null);
+  const [achievementNotification, setAchievementNotification] = useState(null);
   const [profilePhotoUrl, setProfilePhotoUrl] = useState(null);
 
   const pageTitle = (() => {
     switch (location.pathname) {
-      case "/donor":
-      case "/donor/dashboard":
+      case '/donor':
+      case '/donor/dashboard':
         return t('donorLayout.pageTitles.donorDashboard');
-      case "/donor/list":
+      case '/donor/list':
         return t('donorLayout.pageTitles.donateNow');
-      case "/donor/requests":
-        return t('donorLayout.pageTitles.requestsClaims');
-      case "/donor/search":
-        return t('donorLayout.pageTitles.pickupSchedule');
-      case "/donor/messages":
+      case '/donor/messages':
         return t('donorLayout.pageTitles.messages');
-      case "/donor/settings":
+      case '/donor/settings':
         return t('donorLayout.pageTitles.settings');
-      case "/donor/help":
+      case '/donor/help':
         return t('donorLayout.pageTitles.help');
       default:
         return t('donorLayout.pageTitles.donor');
@@ -65,20 +67,16 @@ export default function DonorLayout() {
 
   const pageDesc = (() => {
     switch (location.pathname) {
-      case "/donor":
-      case "/donor/dashboard":
+      case '/donor':
+      case '/donor/dashboard':
         return t('donorLayout.pageDescriptions.donorDashboard');
-      case "/donor/list":
+      case '/donor/list':
         return t('donorLayout.pageDescriptions.donateNow');
-      case "/donor/requests":
-        return t('donorLayout.pageDescriptions.requestsClaims');
-      case "/donor/search":
-        return t('donorLayout.pageDescriptions.pickupSchedule');
-      case "/donor/messages":
+      case '/donor/messages':
         return t('donorLayout.pageDescriptions.messages');
-      case "/donor/settings":
+      case '/donor/settings':
         return t('donorLayout.pageDescriptions.settings');
-      case "/donor/help":
+      case '/donor/help':
         return t('donorLayout.pageDescriptions.help');
       default:
         return t('donorLayout.pageDescriptions.donorPortal');
@@ -160,11 +158,14 @@ export default function DonorLayout() {
       console.log('DONOR: Claim notification received:', payload);
       const receiverName = payload.receiverEmail || 'A receiver';
       const foodTitle = payload.surplusPostTitle || 'your food item';
-      const message = t('donorLayout.notifications.hasClaimed', { receiverName, foodTitle });
+      const message = t('donorLayout.notifications.hasClaimed', {
+        receiverName,
+        foodTitle,
+      });
       console.log('DONOR: Setting notification with message:', message);
       setNotification({
         senderName: t('donorLayout.notifications.newClaim'),
-        message
+        message,
       });
     };
 
@@ -173,15 +174,30 @@ export default function DonorLayout() {
       console.log('DONOR: Claim cancellation received:', payload);
       const receiverName = payload.receiverEmail || 'A receiver';
       const foodTitle = payload.surplusPostTitle || 'your food item';
-      const message = t('donorLayout.notifications.cancelledClaim', { receiverName, foodTitle });
+      const message = t('donorLayout.notifications.cancelledClaim', {
+        receiverName,
+        foodTitle,
+      });
       console.log('DONOR: Setting notification with message:', message);
       setNotification({
         senderName: t('donorLayout.notifications.claimCancelled'),
-        message
+        message,
       });
     };
 
-    connectToUserQueue(onMessage, onClaimNotification, onClaimCancelled);
+    const onAchievementUnlocked = payload => {
+      // Handle achievement unlock notifications
+      console.log('DONOR: Achievement unlocked:', payload);
+      setAchievementNotification(payload);
+    };
+
+    connectToUserQueue(
+      onMessage,
+      onClaimNotification,
+      onClaimCancelled,
+      null, // no new post notifications for donors
+      onAchievementUnlocked
+    );
     return () => {
       try {
         disconnect();
@@ -266,7 +282,7 @@ export default function DonorLayout() {
         <nav className="donor-nav-links">
           <Link
             to="/donor"
-            className={`donor-nav-link ${isActive("/donor") ? "active" : ""}`}
+            className={`donor-nav-link ${isActive('/donor') ? 'active' : ''}`}
             data-tooltip={t('donorLayout.home')}
           >
             <span className="nav-icon" aria-hidden>
@@ -277,7 +293,7 @@ export default function DonorLayout() {
 
           <Link
             to="/donor/dashboard"
-            className={`donor-nav-link ${isActive("/donor/dashboard") ? "active" : ""}`}
+            className={`donor-nav-link ${isActive('/donor/dashboard') ? 'active' : ''}`}
             data-tooltip={t('donorLayout.dashboard')}
           >
             <span className="nav-icon" aria-hidden>
@@ -288,7 +304,7 @@ export default function DonorLayout() {
 
           <Link
             to="/donor/list"
-            className={`donor-nav-link ${isActive("/donor/list") ? "active" : ""}`}
+            className={`donor-nav-link ${isActive('/donor/list') ? 'active' : ''}`}
             data-tooltip={t('donorLayout.donateNow')}
           >
             <span className="nav-icon" aria-hidden>
@@ -298,30 +314,8 @@ export default function DonorLayout() {
           </Link>
 
           <Link
-            to="/donor/requests"
-            className={`donor-nav-link ${isActive("/donor/requests") ? "active" : ""}`}
-            data-tooltip={t('donorLayout.requestsClaims')}
-          >
-            <span className="nav-icon" aria-hidden>
-              <CalendarIcon size={18} className="lucide" />
-            </span>
-            {t('donorLayout.requestsClaims')}
-          </Link>
-
-          <Link
-            to="/donor/search"
-            className={`donor-nav-link ${isActive("/donor/search") ? "active" : ""}`}
-            data-tooltip={t('donorLayout.pickupSchedule')}
-          >
-            <span className="nav-icon" aria-hidden>
-              <FileText size={18} className="lucide" />
-            </span>
-            {t('donorLayout.pickupSchedule')}
-          </Link>
-
-          <Link
             to="/donor/messages"
-            className={`donor-nav-link ${isActive("/donor/messages") ? "active" : ""}`}
+            className={`donor-nav-link ${isActive('/donor/messages') ? 'active' : ''}`}
             data-tooltip={t('donorLayout.messages')}
           >
             <span className="nav-icon" aria-hidden>
@@ -334,7 +328,7 @@ export default function DonorLayout() {
         <div className="donor-nav-bottom">
           <Link
             to="/donor/settings"
-            className={`donor-nav-link ${isActive("/donor/settings") ? "active" : ""}`}
+            className={`donor-nav-link ${isActive('/donor/settings') ? 'active' : ''}`}
             data-tooltip={t('donorLayout.settings')}
           >
             <span className="nav-icon" aria-hidden>
@@ -430,6 +424,13 @@ export default function DonorLayout() {
                 <MessageNotification
                   notification={notification}
                   onClose={() => setNotification(null)}
+                />
+              )}
+
+              {achievementNotification && (
+                <AchievementNotification
+                  achievement={achievementNotification}
+                  onClose={() => setAchievementNotification(null)}
                 />
               )}
             </section>

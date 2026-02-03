@@ -1,54 +1,62 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
+import { onUnauthorized } from '../services/authEvents';
 
 export const AuthContext = createContext();
 
 const AuthStorage = {
-  getItem: (key) => {
+  getItem: key => {
     return localStorage.getItem(key) || sessionStorage.getItem(key);
   },
 
   setItem: (key, value, useSession = false) => {
     const storage = useSession ? sessionStorage : localStorage;
     const otherStorage = useSession ? localStorage : sessionStorage;
-    
+
     if (value !== null && value !== undefined) {
       storage.setItem(key, value);
       otherStorage.removeItem(key);
     }
   },
 
-  removeItem: (key) => {
+  removeItem: key => {
     localStorage.removeItem(key);
     sessionStorage.removeItem(key);
   },
 
   clearAll: () => {
-    const keys = ["jwtToken", "userRole", "userId", "organizationName", "organizationVerificationStatus"];
+    const keys = [
+      'jwtToken',
+      'userRole',
+      'userId',
+      'organizationName',
+      'organizationVerificationStatus',
+    ];
     keys.forEach(key => AuthStorage.removeItem(key));
   },
 };
 
 export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    return Boolean(AuthStorage.getItem("jwtToken"));
+    return Boolean(AuthStorage.getItem('jwtToken'));
   });
 
   const [role, setRole] = useState(() => {
-    return AuthStorage.getItem("userRole") || null;
+    return AuthStorage.getItem('userRole') || null;
   });
 
   const [userId, setUserId] = useState(() => {
-    return AuthStorage.getItem("userId") || null;
+    return AuthStorage.getItem('userId') || null;
   });
 
   const [organizationName, setOrganizationName] = useState(() => {
-    return AuthStorage.getItem("organizationName") || null;
+    return AuthStorage.getItem('organizationName') || null;
   });
 
-  const [organizationVerificationStatus, setOrganizationVerificationStatus] = useState(() => {
-    return AuthStorage.getItem("organizationVerificationStatus") || null;
-  });
+  const [organizationVerificationStatus, setOrganizationVerificationStatus] =
+    useState(() => {
+      return AuthStorage.getItem('organizationVerificationStatus') || null;
+    });
 
   const [accountStatus, setAccountStatus] = useState(() => {
     return (
@@ -91,8 +99,8 @@ export const AuthProvider = ({ children }) => {
           null
       );
     };
-    window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
   const login = (
@@ -140,9 +148,9 @@ export const AuthProvider = ({ children }) => {
     storage.setItem('userId', userId);
 
     if (orgName !== undefined && orgName !== null) {
-      AuthStorage.setItem("organizationName", orgName, useSession);
+      AuthStorage.setItem('organizationName', orgName, useSession);
     } else {
-      AuthStorage.removeItem("organizationName");
+      AuthStorage.removeItem('organizationName');
     }
 
     if (orgVerificationStatus !== undefined && orgVerificationStatus !== null) {
@@ -169,7 +177,7 @@ export const AuthProvider = ({ children }) => {
     setAccountStatus(accStatus);
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem('jwtToken');
     sessionStorage.removeItem('jwtToken');
     localStorage.removeItem('userRole');
@@ -188,7 +196,14 @@ export const AuthProvider = ({ children }) => {
     setOrganizationName(null);
     setOrganizationVerificationStatus(null);
     setAccountStatus(null);
-  };
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = onUnauthorized(() => {
+      logout();
+    });
+    return unsubscribe;
+  }, [logout]);
 
   return (
     <AuthContext.Provider

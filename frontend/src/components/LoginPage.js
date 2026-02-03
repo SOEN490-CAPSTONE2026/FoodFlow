@@ -153,18 +153,42 @@ const LoginPage = () => {
 
               <form onSubmit={handleLogin} noValidate>
                 <div className="form-field">
-                  <label htmlFor="email" className="form-label">{t('login.emailLabel')}</label>
-                  <input id="email" type="email" className="form-input" placeholder={t('login.emailPlaceholder')} value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required />
+                  <label htmlFor="email" className="form-label">
+                    {t('login.emailLabel')}
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    className="form-input"
+                    placeholder={t('login.emailPlaceholder')}
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    autoComplete="email"
+                    required
+                  />
                 </div>
 
                 <div className="form-field">
-                  <label htmlFor="password" className="form-label">{t('login.passwordLabel')}</label>
+                  <label htmlFor="password" className="form-label">
+                    {t('login.passwordLabel')}
+                  </label>
                   <div className="password-wrapper">
-                    <input id="password" type={showPassword ? 'text' : 'password'} className="form-input" placeholder={t('login.passwordPlaceholder')} value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" required />
+                    <input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      className="form-input"
+                      placeholder={t('login.passwordPlaceholder')}
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      autoComplete="current-password"
+                      required
+                    />
                     <button
                       type="button"
                       className="password-toggle"
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      aria-label={
+                        showPassword ? 'Hide password' : 'Show password'
+                      }
                       onClick={() => setShowPassword(prev => !prev)}
                     >
                       {showPassword ? (
@@ -175,7 +199,9 @@ const LoginPage = () => {
                     </button>
                   </div>
                   <div className="forgot-link">
-                    <Link to="/forgot-password">{t('login.forgotPassword')}</Link>
+                    <Link to="/forgot-password">
+                      {t('login.forgotPassword')}
+                    </Link>
                   </div>
                 </div>
 
@@ -193,7 +219,12 @@ const LoginPage = () => {
                   {loading ? t('login.loggingIn') : t('login.logIn')}
                 </button>
 
-                <p className="form-footer">{t('login.dontHaveAccount')} <Link to="/register" className="link-button">{t('login.signUp')}</Link></p>
+                <p className="form-footer">
+                  {t('login.dontHaveAccount')}{' '}
+                  <Link to="/register" className="link-button">
+                    {t('login.signUp')}
+                  </Link>
+                </p>
               </form>
             </div>
           </div>

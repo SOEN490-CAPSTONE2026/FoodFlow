@@ -99,7 +99,7 @@ class ClaimControllerTest {
         mockMvc.perform(post("/api/claims")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(claimRequest)))
-            .andExpect(status().isForbidden());
+            .andExpect(status().isUnauthorized());
 
         verify(claimService, never()).claimSurplusPost(any(), any());
     }
@@ -207,7 +207,7 @@ class ClaimControllerTest {
     void getClaimsForPost_Unauthenticated_Unauthorized() throws Exception {
         // When & Then
         mockMvc.perform(get("/api/claims/post/1"))
-            .andExpect(status().isForbidden());
+            .andExpect(status().isUnauthorized());
 
         verify(claimService, never()).getClaimsForSurplusPost(any());
     }

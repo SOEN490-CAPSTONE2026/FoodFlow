@@ -1,8 +1,12 @@
 // Unmock the global socket mock from setupTests.js so we can test the real implementation
-jest.unmock('./socket');
-
 // Import the socket service after unmocking
 import * as socketService from './socket';
+
+// Import mocked modules after they're set up
+import SockJS from 'sockjs-client';
+import * as stompModule from '@stomp/stompjs';
+
+jest.unmock('./socket');
 
 jest.mock('sockjs-client', () => {
   const mockCtor = jest.fn(function mockSock(url) {
@@ -44,10 +48,6 @@ jest.mock('@stomp/stompjs', () => {
   };
 });
 
-// Import mocked modules after they're set up
-import SockJS from 'sockjs-client';
-import * as stompModule from '@stomp/stompjs';
-
 describe('socket service', () => {
   const OLD_ENV = process.env;
 
@@ -81,8 +81,15 @@ describe('socket service', () => {
     const onClaim = jest.fn();
     const onCancel = jest.fn();
     const onNewPost = jest.fn();
+    const onAchievement = jest.fn();
 
-    socketService.connectToUserQueue(onMessage, onClaim, onCancel, onNewPost);
+    socketService.connectToUserQueue(
+      onMessage,
+      onClaim,
+      onCancel,
+      onNewPost,
+      onAchievement
+    );
 
     const client = stompModule.__getLastClient();
     expect(client).toBeTruthy();
@@ -100,6 +107,7 @@ describe('socket service', () => {
         '/user/queue/claims',
         '/user/queue/claims/cancelled',
         '/user/queue/notifications',
+        '/user/queue/achievements',
       ].sort()
     );
 
@@ -115,11 +123,15 @@ describe('socket service', () => {
     subs
       .find(s => s.destination === '/user/queue/notifications')
       .cb({ body: JSON.stringify({ type: 'NEW_POST', postId: 123 }) });
+    subs
+      .find(s => s.destination === '/user/queue/achievements')
+      .cb({ body: JSON.stringify({ achievementId: 99 }) });
 
     expect(onMessage).toHaveBeenCalledWith({ a: 1 });
     expect(onClaim).toHaveBeenCalledWith({ claim: true });
     expect(onCancel).toHaveBeenCalledWith({ cancelled: 1 });
     expect(onNewPost).toHaveBeenCalledWith({ type: 'NEW_POST', postId: 123 });
+    expect(onAchievement).toHaveBeenCalledWith({ achievementId: 99 });
   });
 
   test('ignores messages without a body', () => {

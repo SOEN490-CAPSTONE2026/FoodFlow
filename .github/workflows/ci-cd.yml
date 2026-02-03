@@ -44,10 +44,22 @@ jobs:
       - run: npm install
         working-directory: ./frontend
 
-      - name: Run frontend tests
-        run: npm test
+      - name: Run frontend linting and formatting
+        run: npm run validate
         working-directory: ./frontend
 
+      - name: Run frontend tests with coverage
+        run: npm run test:coverage
+        working-directory: ./frontend
+
+      - name: Upload frontend coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage-report
+          path: frontend/coverage/
+          retention-days: 30
+      
   backend:
     needs: setup
     runs-on: ubuntu-latest
@@ -62,9 +74,17 @@ jobs:
           java-version: '17'
           cache: 'maven'
 
-      - name: Run backend tests
-        run: mvn clean test
+      - name: Run backend tests with coverage
+        run: mvn clean verify
         working-directory: ./backend
+
+      - name: Upload backend coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage-report
+          path: backend/target/site/jacoco/
+          retention-days: 30
 
   prometheus_grafana:
     runs-on: ubuntu-latest

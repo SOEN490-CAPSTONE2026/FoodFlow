@@ -49,9 +49,7 @@ describe('RegionSelector', () => {
     // Mock Intl.DateTimeFormat
     global.Intl.DateTimeFormat = jest.fn(() => ({
       resolvedOptions: () => ({ timeZone: 'America/Toronto' }),
-      formatToParts: () => [
-        { type: 'timeZoneName', value: 'EST' },
-      ],
+      formatToParts: () => [{ type: 'timeZoneName', value: 'EST' }],
     }));
   });
 
@@ -61,7 +59,7 @@ describe('RegionSelector', () => {
 
   test('renders loading state initially', () => {
     render(<RegionSelector value={{}} onChange={mockOnChange} />);
-    
+
     expect(screen.getByText('Loading countries...')).toBeInTheDocument();
   });
 
@@ -75,7 +73,9 @@ describe('RegionSelector', () => {
     });
 
     await waitFor(() => {
-      expect(screen.queryByText('Loading countries...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Loading countries...')
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -83,13 +83,17 @@ describe('RegionSelector', () => {
     render(<RegionSelector value={{}} onChange={mockOnChange} />);
 
     await waitFor(() => {
-      expect(screen.queryByText('Loading countries...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Loading countries...')
+      ).not.toBeInTheDocument();
     });
 
     const countrySelect = screen.getByText('Select your country...');
     fireEvent.click(countrySelect);
 
-    expect(screen.getByPlaceholderText('Search countries...')).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText('Search countries...')
+    ).toBeInTheDocument();
     expect(screen.getByText('Canada')).toBeInTheDocument();
     expect(screen.getByText('United States')).toBeInTheDocument();
     expect(screen.getByText('United Kingdom')).toBeInTheDocument();
@@ -99,7 +103,9 @@ describe('RegionSelector', () => {
     render(<RegionSelector value={{}} onChange={mockOnChange} />);
 
     await waitFor(() => {
-      expect(screen.queryByText('Loading countries...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Loading countries...')
+      ).not.toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByText('Select your country...'));
@@ -116,21 +122,27 @@ describe('RegionSelector', () => {
     render(<RegionSelector value={{}} onChange={mockOnChange} />);
 
     await waitFor(() => {
-      expect(screen.queryByText('Loading countries...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Loading countries...')
+      ).not.toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByText('Select your country...'));
     fireEvent.click(screen.getByText('Canada'));
 
     expect(screen.getByText('Canada')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Enter your city...')).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText('Enter your city...')
+    ).toBeInTheDocument();
   });
 
   test('displays timezones after country selection', async () => {
     render(<RegionSelector value={{}} onChange={mockOnChange} />);
 
     await waitFor(() => {
-      expect(screen.queryByText('Loading countries...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Loading countries...')
+      ).not.toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByText('Select your country...'));
@@ -145,7 +157,9 @@ describe('RegionSelector', () => {
     render(<RegionSelector value={{}} onChange={mockOnChange} />);
 
     await waitFor(() => {
-      expect(screen.queryByText('Loading countries...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Loading countries...')
+      ).not.toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByText('Select your country...'));
@@ -160,7 +174,9 @@ describe('RegionSelector', () => {
     render(<RegionSelector value={{}} onChange={mockOnChange} />);
 
     await waitFor(() => {
-      expect(screen.queryByText('Loading countries...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Loading countries...')
+      ).not.toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByText('Select your country...'));
@@ -172,9 +188,9 @@ describe('RegionSelector', () => {
 
     // Select timezone
     await waitFor(() => {
-      const timezoneSelect = screen.getAllByRole('generic').find(el => 
-        el.textContent.includes('Toronto')
-      );
+      const timezoneSelect = screen
+        .getAllByRole('generic')
+        .find(el => el.textContent.includes('Toronto'));
       if (timezoneSelect) {
         fireEvent.click(timezoneSelect);
       }
@@ -194,7 +210,9 @@ describe('RegionSelector', () => {
     render(<RegionSelector value={{}} onChange={mockOnChange} />);
 
     await waitFor(() => {
-      expect(screen.queryByText('Loading countries...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Loading countries...')
+      ).not.toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByText('Select your country...'));
@@ -246,7 +264,9 @@ describe('RegionSelector', () => {
     render(<RegionSelector value={{}} onChange={mockOnChange} />);
 
     await waitFor(() => {
-      expect(screen.queryByText('Loading countries...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Loading countries...')
+      ).not.toBeInTheDocument();
     });
 
     const autoDetectButton = screen.getByText('Auto-detect my location');
@@ -261,15 +281,17 @@ describe('RegionSelector', () => {
 
   test('handles geolocation error gracefully', async () => {
     const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
-    
-    mockGeolocation.getCurrentPosition.mockImplementationOnce((success, error) =>
-      error({ code: 1, message: 'User denied geolocation' })
+
+    mockGeolocation.getCurrentPosition.mockImplementationOnce(
+      (success, error) => error({ code: 1, message: 'User denied geolocation' })
     );
 
     render(<RegionSelector value={{}} onChange={mockOnChange} />);
 
     await waitFor(() => {
-      expect(screen.queryByText('Loading countries...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Loading countries...')
+      ).not.toBeInTheDocument();
     });
 
     const autoDetectButton = screen.getByText('Auto-detect my location');
@@ -300,23 +322,31 @@ describe('RegionSelector', () => {
     render(<RegionSelector value={{}} onChange={mockOnChange} />);
 
     await waitFor(() => {
-      expect(screen.queryByText('Loading countries...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Loading countries...')
+      ).not.toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByText('Select your country...'));
-    expect(screen.getByPlaceholderText('Search countries...')).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText('Search countries...')
+    ).toBeInTheDocument();
 
     // Click outside
     fireEvent.mouseDown(document.body);
 
     await waitFor(() => {
-      expect(screen.queryByPlaceholderText('Search countries...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByPlaceholderText('Search countries...')
+      ).not.toBeInTheDocument();
     });
   });
 
   test('handles country API fetch error', async () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+
     fetch.mockRejectedValueOnce(new Error('Network error'));
 
     render(<RegionSelector value={{}} onChange={mockOnChange} />);
@@ -335,11 +365,13 @@ describe('RegionSelector', () => {
     render(<RegionSelector value={{}} onChange={mockOnChange} />);
 
     await waitFor(() => {
-      expect(screen.queryByText('Loading countries...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Loading countries...')
+      ).not.toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByText('Select your country...'));
-    
+
     const searchInput = screen.getByPlaceholderText('Search countries...');
     fireEvent.change(searchInput, { target: { value: 'can' } });
 
@@ -363,7 +395,9 @@ describe('RegionSelector', () => {
     render(<RegionSelector value={{}} onChange={mockOnChange} />);
 
     await waitFor(() => {
-      expect(screen.queryByText('Loading countries...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Loading countries...')
+      ).not.toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByText('Select your country...'));
@@ -374,7 +408,7 @@ describe('RegionSelector', () => {
 
     // Find the Canada option in the dropdown (not the selected trigger text)
     const dropdownOptions = document.querySelectorAll('.dropdown-option');
-    const canadaOption = Array.from(dropdownOptions).find(opt => 
+    const canadaOption = Array.from(dropdownOptions).find(opt =>
       opt.textContent.includes('Canada')
     );
     expect(canadaOption).toHaveClass('selected');
@@ -384,7 +418,9 @@ describe('RegionSelector', () => {
     render(<RegionSelector value={{}} onChange={mockOnChange} />);
 
     await waitFor(() => {
-      expect(screen.queryByText('Loading countries...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Loading countries...')
+      ).not.toBeInTheDocument();
     });
 
     // Select Canada
@@ -413,13 +449,17 @@ describe('RegionSelector', () => {
     render(<RegionSelector value={{}} onChange={mockOnChange} />);
 
     await waitFor(() => {
-      expect(screen.queryByText('Loading countries...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Loading countries...')
+      ).not.toBeInTheDocument();
     });
 
     const autoDetectButton = screen.getByText('Auto-detect my location');
     fireEvent.click(autoDetectButton);
 
-    expect(alertSpy).toHaveBeenCalledWith('Geolocation is not supported by your browser');
+    expect(alertSpy).toHaveBeenCalledWith(
+      'Geolocation is not supported by your browser'
+    );
 
     global.navigator.geolocation = originalGeolocation;
     alertSpy.mockRestore();
@@ -457,7 +497,9 @@ describe('RegionSelector', () => {
     render(<RegionSelector value={{}} onChange={mockOnChange} />);
 
     await waitFor(() => {
-      expect(screen.queryByText('Loading countries...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Loading countries...')
+      ).not.toBeInTheDocument();
     });
 
     const autoDetectButton = screen.getByText('Auto-detect my location');
@@ -476,7 +518,9 @@ describe('RegionSelector', () => {
 
   test('handles reverse geocoding API error', async () => {
     const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
 
     const mockPosition = {
       coords: {
@@ -502,7 +546,9 @@ describe('RegionSelector', () => {
     render(<RegionSelector value={{}} onChange={mockOnChange} />);
 
     await waitFor(() => {
-      expect(screen.queryByText('Loading countries...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Loading countries...')
+      ).not.toBeInTheDocument();
     });
 
     const autoDetectButton = screen.getByText('Auto-detect my location');
@@ -522,7 +568,9 @@ describe('RegionSelector', () => {
     render(<RegionSelector value={{}} onChange={mockOnChange} />);
 
     await waitFor(() => {
-      expect(screen.queryByText('Loading countries...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Loading countries...')
+      ).not.toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByText('Select your country...'));
@@ -557,7 +605,9 @@ describe('RegionSelector', () => {
     render(<RegionSelector value={{}} onChange={mockOnChange} />);
 
     await waitFor(() => {
-      expect(screen.queryByText('Loading countries...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Loading countries...')
+      ).not.toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByText('Select your country...'));
@@ -590,7 +640,9 @@ describe('RegionSelector', () => {
     render(<RegionSelector value={{}} onChange={mockOnChange} />);
 
     await waitFor(() => {
-      expect(screen.queryByText('Loading countries...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Loading countries...')
+      ).not.toBeInTheDocument();
     });
 
     // Select country
@@ -629,7 +681,9 @@ describe('RegionSelector', () => {
     render(<RegionSelector value={{}} onChange={mockOnChange} />);
 
     await waitFor(() => {
-      expect(screen.queryByText('Loading countries...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Loading countries...')
+      ).not.toBeInTheDocument();
     });
 
     // Select country but don't enter city
@@ -659,7 +713,9 @@ describe('RegionSelector', () => {
     render(<RegionSelector value={{}} onChange={mockOnChange} />);
 
     await waitFor(() => {
-      expect(screen.queryByText('Loading countries...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Loading countries...')
+      ).not.toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByText('Select your country...'));
@@ -682,7 +738,9 @@ describe('RegionSelector', () => {
     render(<RegionSelector value={{}} onChange={mockOnChange} />);
 
     await waitFor(() => {
-      expect(screen.queryByText('Loading countries...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Loading countries...')
+      ).not.toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByText('Select your country...'));
@@ -704,15 +762,15 @@ describe('RegionSelector', () => {
     // Mock browser timezone to match one of Canada's timezones
     global.Intl.DateTimeFormat = jest.fn(() => ({
       resolvedOptions: () => ({ timeZone: 'America/Vancouver' }),
-      formatToParts: () => [
-        { type: 'timeZoneName', value: 'PST' },
-      ],
+      formatToParts: () => [{ type: 'timeZoneName', value: 'PST' }],
     }));
 
     render(<RegionSelector value={{}} onChange={mockOnChange} />);
 
     await waitFor(() => {
-      expect(screen.queryByText('Loading countries...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Loading countries...')
+      ).not.toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByText('Select your country...'));

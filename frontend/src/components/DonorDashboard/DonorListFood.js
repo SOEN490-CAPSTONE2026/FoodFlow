@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
 import {
   Calendar,
   Clock,
@@ -281,7 +281,9 @@ export default function DonorListFood() {
       ).catch(err => console.error('Error loading evidence photos:', err));
     } catch (err) {
       const errorMessage =
-        err.response?.data?.message || err.message || t('donorListFood.failedToFetch');
+        err.response?.data?.message ||
+        err.message ||
+        t('donorListFood.failedToFetch');
       setError(`Error: ${errorMessage}`);
       setLoading(false);
     }
@@ -441,27 +443,25 @@ export default function DonorListFood() {
     setIsSortDropdownOpen(false);
   };
 
- async function requestDelete(id) {
-  console.log("DELETE CLICKED for ID =", id); 
-  const confirmDelete = window.confirm(
-    t('donorListFood.confirmDelete')
-  );
-  if (!confirmDelete) return;
+  async function requestDelete(id) {
+    console.log('DELETE CLICKED for ID =', id);
+    const confirmDelete = window.confirm(t('donorListFood.confirmDelete'));
+    if (!confirmDelete) {
+      return;
+    }
 
     try {
       await surplusAPI.deletePost(id);
       setItems(prev => prev.filter(item => item.id !== id));
 
-    alert(t('donorListFood.postDeletedSuccess'));
-  } catch (err) {
-    alert(err.response?.data?.message || t('donorListFood.postDeleteFailed'));
+      alert(t('donorListFood.postDeletedSuccess'));
+    } catch (err) {
+      alert(err.response?.data?.message || t('donorListFood.postDeleteFailed'));
+    }
   }
-}
 
   function openEdit(item) {
-    alert(
-      t('donorListFood.editFunctionality', { title: item.title })
-    );
+    alert(t('donorListFood.editFunctionality', { title: item.title }));
     setEditPostId(item.id);
     setIsEditMode(true);
     setIsModalOpen(true);
@@ -511,18 +511,35 @@ export default function DonorListFood() {
     handleCloseRescheduleModal();
   };
 
-  const handleOpenReport = item => {
-    setReportTargetUser({
-      id: item.receiverId,
-      name: item.receiverName || item.receiverEmail,
-    });
-    setCompletedDonationId(item.id);
-    setShowReportModal(true);
+  const handleOpenReport = async item => {
+    try {
+      const { data: claims } = await claimsAPI.getClaimForSurplusPost(item.id);
+
+      if (claims && claims.length > 0) {
+        const claim = claims[0];
+        if (claim.receiverId) {
+          setReportTargetUser({
+            id: claim.receiverId,
+            name: claim.receiverName || claim.receiverEmail,
+            email: claim.receiverEmail,
+          });
+          setCompletedDonationId(item.id);
+          setShowReportModal(true);
+        } else {
+          alert('Unable to load receiver information. Please try again.');
+        }
+      } else {
+        alert('No claims found for this donation. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error fetching claim details for report:', error);
+      alert('Failed to open report modal. Please try again.');
+    }
   };
 
   const handleReportSubmit = async reportData => {
     try {
-      await reportAPI.submitReport(reportData);
+      await reportAPI.createReport(reportData);
       alert('Report submitted successfully');
       setShowReportModal(false);
       setReportTargetUser(null);
@@ -722,7 +739,9 @@ export default function DonorListFood() {
               onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
             >
               <span className="sort-label">
-                {sortBy === "date" ? t('donorListFood.sortByDate') : t('donorListFood.sortByStatus')}
+                {sortBy === 'date'
+                  ? t('donorListFood.sortByDate')
+                  : t('donorListFood.sortByStatus')}
               </span>
               <ChevronDown
                 size={18}
@@ -772,7 +791,9 @@ export default function DonorListFood() {
       {items.length === 0 ? (
         <div className="empty-state">
           <Package className="empty-state-icon" size={64} />
-          <h3 className="empty-state-title">{t('donorListFood.emptyStateTitle')}</h3>
+          <h3 className="empty-state-title">
+            {t('donorListFood.emptyStateTitle')}
+          </h3>
           <p className="empty-state-description">
             {t('donorListFood.emptyStateDescription')}
           </p>
@@ -1051,6 +1072,12 @@ export default function DonorListFood() {
                       </button>
                     )}
                     <button
+                      className="donation-action-button report-receiver"
+                      onClick={() => handleOpenReport(item)}
+                    >
+                      REPORT RECEIVER
+                    </button>
+                    <button
                       className="donation-action-button secondary"
                       onClick={() => handleOpenFeedback(item)}
                     >
@@ -1074,6 +1101,12 @@ export default function DonorListFood() {
                           disabled
                         >
                           THANK YOU
+                        </button>
+                        <button
+                          className="donation-action-button report-receiver"
+                          onClick={() => handleOpenReport(item)}
+                        >
+                          REPORT RECEIVER
                         </button>
                         <button
                           className="donation-action-button secondary"
@@ -1212,6 +1245,14 @@ export default function DonorListFood() {
         targetUser={feedbackTargetUser}
         isOpen={showFeedbackModal}
         onClose={() => setShowFeedbackModal(false)}
+      />
+
+      <ReportUserModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        reportedUser={reportTargetUser}
+        donationId={completedDonationId}
+        onSubmit={handleReportSubmit}
       />
     </div>
   );

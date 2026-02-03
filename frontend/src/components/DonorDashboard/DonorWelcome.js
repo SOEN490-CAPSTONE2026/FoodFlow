@@ -1,10 +1,19 @@
-import React, { useState, useEffect, useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Package2, UtensilsCrossed, Sprout, ArrowRight, BarChart3, PlusCircle, Sparkles, Star } from "lucide-react";
-import { surplusAPI, feedbackAPI } from "../../services/api";
-import { AuthContext } from "../../contexts/AuthContext";
-import "./Donor_Styles/DonorWelcome.css";
+import {
+  Package2,
+  UtensilsCrossed,
+  Sprout,
+  ArrowRight,
+  BarChart3,
+  PlusCircle,
+  Sparkles,
+  Star,
+} from 'lucide-react';
+import { surplusAPI, feedbackAPI } from '../../services/api';
+import { AuthContext } from '../../contexts/AuthContext';
+import './Donor_Styles/DonorWelcome.css';
 
 export default function DonorWelcome() {
   const navigate = useNavigate();
@@ -93,21 +102,29 @@ export default function DonorWelcome() {
               id: donation.id,
             });
 
-            const recipient = donation.claimant?.organizationName || 
-                            donation.claimant?.name || 
-                            t('donorWelcome.noNameYet');
+            const recipient =
+              donation.claimant?.organizationName ||
+              donation.claimant?.name ||
+              t('donorWelcome.noNameYet');
 
             // Items is just the title
             const items = donation.title || t('donorWelcome.foodDonation');
 
             // Map status to display text
             let status = t('donorWelcome.status.available');
-            if (donation.status === "COMPLETED") status = t('donorWelcome.status.completed');
-            else if (donation.status === "CLAIMED") status = t('donorWelcome.status.claimed');
-            else if (donation.status === "READY_FOR_PICKUP") status = t('donorWelcome.status.readyForPickup');
-            else if (donation.status === "NOT_COMPLETED") status = t('donorWelcome.status.notCompleted');
-            else if (donation.status === "EXPIRED") status = t('donorWelcome.status.expired');
-            else if (donation.status === "AVAILABLE") status = t('donorWelcome.status.available');
+            if (donation.status === 'COMPLETED') {
+              status = t('donorWelcome.status.completed');
+            } else if (donation.status === 'CLAIMED') {
+              status = t('donorWelcome.status.claimed');
+            } else if (donation.status === 'READY_FOR_PICKUP') {
+              status = t('donorWelcome.status.readyForPickup');
+            } else if (donation.status === 'NOT_COMPLETED') {
+              status = t('donorWelcome.status.notCompleted');
+            } else if (donation.status === 'EXPIRED') {
+              status = t('donorWelcome.status.expired');
+            } else if (donation.status === 'AVAILABLE') {
+              status = t('donorWelcome.status.available');
+            }
 
             return {
               date: dateStr,
@@ -255,8 +272,14 @@ export default function DonorWelcome() {
 
         {recentDonations.length === 0 ? (
           <div className="empty-state">
-            <Package2 size={48} strokeWidth={1.5} style={{ color: '#9CA3AF', marginBottom: '12px' }} />
-            <p style={{ color: '#6B7280', margin: 0 }}>{t('donorWelcome.noDonationsYet')}</p>
+            <Package2
+              size={48}
+              strokeWidth={1.5}
+              style={{ color: '#9CA3AF', marginBottom: '12px' }}
+            />
+            <p style={{ color: '#6B7280', margin: 0 }}>
+              {t('donorWelcome.noDonationsYet')}
+            </p>
           </div>
         ) : (
           <div className="donations-table">
@@ -265,14 +288,26 @@ export default function DonorWelcome() {
                 <div className="donation-date">{donation.date}</div>
                 <div className="donation-recipient">{donation.recipient}</div>
                 <div className="donation-items">{donation.items}</div>
-                <div className={`donation-status ${
-                  donation.status === t('donorWelcome.status.completed') ? "completed" : 
-                  donation.status === t('donorWelcome.status.claimed') ? "claimed" :
-                  donation.status === t('donorWelcome.status.readyForPickup') ? "pending" :
-                  donation.status === t('donorWelcome.status.available') ? "available" :
-                  donation.status === t('donorWelcome.status.expired') || donation.status === t('donorWelcome.status.notCompleted') ? "expired" : 
-                  "pending"
-                }`}>
+                <div
+                  className={`donation-status ${
+                    donation.status === t('donorWelcome.status.completed')
+                      ? 'completed'
+                      : donation.status === t('donorWelcome.status.claimed')
+                        ? 'claimed'
+                        : donation.status ===
+                            t('donorWelcome.status.readyForPickup')
+                          ? 'pending'
+                          : donation.status ===
+                              t('donorWelcome.status.available')
+                            ? 'available'
+                            : donation.status ===
+                                  t('donorWelcome.status.expired') ||
+                                donation.status ===
+                                  t('donorWelcome.status.notCompleted')
+                              ? 'expired'
+                              : 'pending'
+                  }`}
+                >
                   {donation.status}
                 </div>
               </div>

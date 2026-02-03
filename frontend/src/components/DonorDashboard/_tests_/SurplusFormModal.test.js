@@ -1,8 +1,8 @@
-import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import SurplusFormModal from "../SurplusFormModal";
-import { TimezoneProvider } from "../../../contexts/TimezoneContext";
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import SurplusFormModal from '../SurplusFormModal';
+import { TimezoneProvider } from '../../../contexts/TimezoneContext';
 
 // Mock react-i18next
 jest.mock('react-i18next', () => ({
@@ -16,22 +16,28 @@ jest.mock('react-i18next', () => ({
         'surplusForm.foodCategoriesLabel': 'Food Categories',
         'surplusForm.foodCategoriesPlaceholder': 'Select categories',
         'surplusForm.temperatureCategoryLabel': 'Temperature Category',
-        'surplusForm.temperatureCategoryPlaceholder': 'Select temperature category',
-        'surplusForm.temperatureCategoryHelp': 'Select the storage temperature for food safety verification',
+        'surplusForm.temperatureCategoryPlaceholder':
+          'Select temperature category',
+        'surplusForm.temperatureCategoryHelp':
+          'Select the storage temperature for food safety verification',
         'surplusForm.packagingTypeLabel': 'Packaging Type',
         'surplusForm.packagingTypePlaceholder': 'Select packaging type',
-        'surplusForm.packagingTypeHelp': 'Specify how the food is packaged for safety compliance',
+        'surplusForm.packagingTypeHelp':
+          'Specify how the food is packaged for safety compliance',
         'surplusForm.quantityLabel': 'Quantity',
         'surplusForm.quantityPlaceholder': '0',
         'surplusForm.unitLabel': 'Unit',
         'surplusForm.unitPlaceholder': 'Select unit',
         'surplusForm.fabricationDateLabel': 'Fabrication/Production Date',
         'surplusForm.fabricationDatePlaceholder': 'When was it made?',
-        'surplusForm.fabricationDateHelp': 'System will auto-calculate expiry date based on food type',
+        'surplusForm.fabricationDateHelp':
+          'System will auto-calculate expiry date based on food type',
         'surplusForm.expiryDateLabel': 'Expiry Date',
         'surplusForm.expiryDatePlaceholder': 'Select expiry date',
-        'surplusForm.expiryDateAutoCalculated': '(Auto-calculated, you can edit)',
-        'surplusForm.expiryDateSuggestion': 'Suggested expiry: {{date}} (based on food category)',
+        'surplusForm.expiryDateAutoCalculated':
+          '(Auto-calculated, you can edit)',
+        'surplusForm.expiryDateSuggestion':
+          'Suggested expiry: {{date}} (based on food category)',
         'surplusForm.pickupTimeSlotsLabel': 'Pickup Time Slots',
         'surplusForm.addAnotherSlot': 'Add Another Slot',
         'surplusForm.slot': 'Slot',
@@ -42,18 +48,22 @@ jest.mock('react-i18next', () => ({
         'surplusForm.endTimeLabel': 'End Time',
         'surplusForm.endTimePlaceholder': 'End',
         'surplusForm.notesLabel': 'Notes',
-        'surplusForm.notesPlaceholder': 'e.g., Use back entrance, Ask for manager',
+        'surplusForm.notesPlaceholder':
+          'e.g., Use back entrance, Ask for manager',
         'surplusForm.pickupLocationLabel': 'Pickup Location',
         'surplusForm.pickupLocationPlaceholder': 'Start typing address...',
         'surplusForm.descriptionLabel': 'Description',
-        'surplusForm.descriptionPlaceholder': 'Describe the food (ingredients, freshness, etc.)',
+        'surplusForm.descriptionPlaceholder':
+          'Describe the food (ingredients, freshness, etc.)',
         'surplusForm.previous': 'Previous',
         'surplusForm.next': 'Next',
         'surplusForm.createDonation': 'Create Donation',
         'surplusForm.updateDonation': 'Update Donation',
         'surplusForm.cancelConfirm': 'Cancel donation creation?',
-        'surplusForm.cancelEditConfirm': 'Cancel editing? Your changes will be lost.',
-        'surplusForm.validationError': 'Please complete all required fields before continuing.',
+        'surplusForm.cancelEditConfirm':
+          'Cancel editing? Your changes will be lost.',
+        'surplusForm.validationError':
+          'Please complete all required fields before continuing.',
         'surplusForm.loadingDetails': 'Loading donation details...',
         'surplusForm.successCreated': 'Success! Post created with ID: {{id}}',
         'surplusForm.successUpdated': 'Success! Donation updated successfully.',
@@ -77,7 +87,7 @@ jest.mock('react-i18next', () => ({
 }));
 
 // Mock the surplusAPI directly
-jest.mock("../../../services/api", () => ({
+jest.mock('../../../services/api', () => ({
   surplusAPI: {
     create: jest.fn(),
     update: jest.fn(),
@@ -87,7 +97,7 @@ jest.mock("../../../services/api", () => ({
 
 // Import the mocked module after the mock is set up
 // eslint-disable-next-line import/first
-import { surplusAPI as mockSurplusAPI } from "../../../services/api";
+import { surplusAPI as mockSurplusAPI } from '../../../services/api';
 
 // Helper function to render with required providers
 const renderWithProviders = (ui, options = {}) => {
@@ -282,14 +292,14 @@ describe('SurplusFormModal', () => {
   const fillStep2 = async () => {
     // Wait for step 2 to be visible first
     await waitFor(() => {
-      expect(screen.getByText("Quantity & Dates")).toBeInTheDocument();
+      expect(screen.getByText('Quantity & Dates')).toBeInTheDocument();
     });
-    
+
     // Find quantity input by placeholder text (from setupTests.js mock)
-    const quantityInput = screen.getByPlaceholderText("0");
-    await userEvent.type(quantityInput, "10");
-    
-    const datePickers = screen.getAllByTestId("date-picker");
+    const quantityInput = screen.getByPlaceholderText('0');
+    await userEvent.type(quantityInput, '10');
+
+    const datePickers = screen.getAllByTestId('date-picker');
     fireEvent.click(datePickers[0]); // Fabrication date
     fireEvent.click(datePickers[1]); // Expiry date
   };
@@ -407,7 +417,7 @@ describe('SurplusFormModal', () => {
   test('submits form with valid data through all steps', async () => {
     const mockResponse = { data: { id: 123 } };
     mockSurplusAPI.create.mockResolvedValue(mockResponse);
-    
+
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     // Complete all steps
@@ -432,11 +442,11 @@ describe('SurplusFormModal', () => {
 
     const apiCall = mockSurplusAPI.create.mock.calls[0];
     expect(apiCall[0]).toMatchObject({
-      title: "Test Food",
-      quantity: { value: 10, unit: "KILOGRAM" },
-      temperatureCategory: "REFRIGERATED",
-      packagingType: "SEALED",
-      description: "Test description",
+      title: 'Test Food',
+      quantity: { value: 10, unit: 'KILOGRAM' },
+      temperatureCategory: 'REFRIGERATED',
+      packagingType: 'SEALED',
+      description: 'Test description',
     });
   });
 
@@ -489,8 +499,8 @@ describe('SurplusFormModal', () => {
   });
 
   // API error handling
-  test("handles API errors correctly", async () => {
-    const errorMessage = "Network Error";
+  test('handles API errors correctly', async () => {
+    const errorMessage = 'Network Error';
     mockSurplusAPI.create.mockRejectedValue({
       response: { data: { message: errorMessage } },
     });
@@ -537,7 +547,7 @@ describe('SurplusFormModal', () => {
   test('shows success message after successful submission', async () => {
     const mockResponse = { data: { id: 123 } };
     mockSurplusAPI.create.mockResolvedValue(mockResponse);
-    
+
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     await fillStep1();
@@ -566,7 +576,7 @@ describe('SurplusFormModal', () => {
   test('calls the correct API endpoint on form submission', async () => {
     const mockResponse = { data: { id: 123 } };
     mockSurplusAPI.create.mockResolvedValue(mockResponse);
-    
+
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     // Fill all required fields through all steps
@@ -623,8 +633,8 @@ describe('SurplusFormModal', () => {
     await screen.findByText('Quantity & Dates');
 
     const quantityInput = document.querySelector('input[name="quantityValue"]');
-    await userEvent.type(quantityInput, "5");
-    expect(quantityInput.value).toBe("5");
+    await userEvent.type(quantityInput, '5');
+    expect(quantityInput.value).toBe('5');
 
     // Navigate to Step 4 for description
     const datePickers = screen.getAllByTestId('date-picker');
@@ -655,7 +665,7 @@ describe('SurplusFormModal', () => {
   test('closes modal after successful submission', async () => {
     const mockResponse = { data: { id: 123 } };
     mockSurplusAPI.create.mockResolvedValue(mockResponse);
-    
+
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     // Fill all required fields through all steps
@@ -918,7 +928,7 @@ describe('SurplusFormModal', () => {
   test('submits form with multiple pickup slots', async () => {
     const mockResponse = { data: { id: 456 } };
     mockSurplusAPI.create.mockResolvedValue(mockResponse);
-    
+
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     await fillStep1();
@@ -974,7 +984,7 @@ describe('SurplusFormModal', () => {
     await waitFor(() => {
       expect(mockSurplusAPI.create).toHaveBeenCalled();
     });
-    
+
     const apiCall = mockSurplusAPI.create.mock.calls[0];
     expect(apiCall[0].pickupSlots).toHaveLength(2);
   });
@@ -988,15 +998,15 @@ describe('SurplusFormModal', () => {
     fireEvent.click(screen.getByText('Next'));
     await screen.findByText('Quantity & Dates');
 
-    const quantityInput = screen.getByPlaceholderText("0");
-    await userEvent.type(quantityInput, "5.5");
-    expect(quantityInput.value).toBe("5.5");
+    const quantityInput = screen.getByPlaceholderText('0');
+    await userEvent.type(quantityInput, '5.5');
+    expect(quantityInput.value).toBe('5.5');
   });
 
   // API error without response message
-  test("handles API error without response message", async () => {
+  test('handles API error without response message', async () => {
     mockSurplusAPI.create.mockRejectedValue({});
-    
+
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     await fillStep1();

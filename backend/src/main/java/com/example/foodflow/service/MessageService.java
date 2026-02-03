@@ -47,6 +47,9 @@ public class MessageService {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private GamificationService gamificationService;
+
     private final BusinessMetricsService businessMetricsService;
     
     public MessageService(BusinessMetricsService businessMetricsService) {
@@ -131,6 +134,13 @@ public class MessageService {
         
         businessMetricsService.incrementMessagesSent();
         businessMetricsService.recordTimer(sample, "message.service.send", "conversationId", conversation.getId().toString());
+
+        // Trigger achievement checks for message-based achievements
+        try {
+            gamificationService.checkAndUnlockAchievements(sender.getId());
+        } catch (Exception e) {
+            logger.error("Failed to check message achievements for userId={}: {}", sender.getId(), e.getMessage());
+        }
 
         return response;
     }

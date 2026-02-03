@@ -1,30 +1,52 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import {Calendar, MapPin, Clock, Package2, Bookmark, ChevronDown, ChevronUp, Package, User, Target, ArrowUpDown, Star} from "lucide-react";
-import { useLoadScript } from "@react-google-maps/api";
-import { surplusAPI, recommendationAPI } from "../../services/api";
-import { getFoodCategoryDisplays, getPrimaryFoodCategory, getFoodImageClass, foodTypeImages, getUnitLabel, getTemperatureCategoryLabel, getTemperatureCategoryIcon, getPackagingTypeLabel } from "../../constants/foodConstants";
-import { useTimezone } from "../../contexts/TimezoneContext";
-import FiltersPanel from "./FiltersPanel";
-import "./ReceiverBrowseModal.css";
-import "./ReceiverBrowse.css";
+import {
+  Calendar,
+  MapPin,
+  Clock,
+  Package2,
+  Bookmark,
+  ChevronDown,
+  ChevronUp,
+  Package,
+  User,
+  Target,
+  ArrowUpDown,
+  Star,
+} from 'lucide-react';
+import { useLoadScript } from '@react-google-maps/api';
+import { surplusAPI, recommendationAPI } from '../../services/api';
+import {
+  getFoodCategoryDisplays,
+  getPrimaryFoodCategory,
+  getFoodImageClass,
+  foodTypeImages,
+  getUnitLabel,
+  getTemperatureCategoryLabel,
+  getTemperatureCategoryIcon,
+  getPackagingTypeLabel,
+} from '../../constants/foodConstants';
+import { useTimezone } from '../../contexts/TimezoneContext';
+import FiltersPanel from './FiltersPanel';
+import './ReceiverBrowseModal.css';
+import './ReceiverBrowse.css';
 
-const libraries = ["places"];
+const libraries = ['places'];
 
 export default function ReceiverBrowse() {
   const { t } = useTranslation();
   const { isLoaded } = useLoadScript({
-    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY || "",
+    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY || '',
     libraries: libraries,
   });
-  
+
   const { userTimezone } = useTimezone();
 
   const [filters, setFilters] = useState({
     foodType: [],
     expiryBefore: null,
     distance: 10,
-    location: "",
+    location: '',
     locationCoords: null,
   });
 
@@ -32,7 +54,7 @@ export default function ReceiverBrowse() {
     foodType: [],
     expiryBefore: null,
     distance: 10,
-    location: "",
+    location: '',
     locationCoords: null,
   });
 
@@ -50,64 +72,68 @@ export default function ReceiverBrowse() {
   const [hoveredRecommended, setHoveredRecommended] = useState(null);
   const [recommendations, setRecommendations] = useState({});
 
-
-  const getRecommendationData = (item) => {
+  const getRecommendationData = item => {
     // Mock logic to determine if item is recommended
     return recommendations[item.id.toString()] || null;
   };
 
-  const fetchRecommendations = useCallback(async (items) => {
-     const postIds = items.map(item => item.id).filter(id => id > 0);
-     const recommendationData = await recommendationAPI.getBrowseRecommendations(postIds);
-     setRecommendations(recommendationData);
-   }, []);
+  const fetchRecommendations = useCallback(async items => {
+    const postIds = items.map(item => item.id).filter(id => id > 0);
+    const recommendationData = await recommendationAPI.getTopRecommendations(
+      postIds,
+      80
+    );
+    setRecommendations(recommendationData);
+  }, []);
 
   const fetchDonations = useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await surplusAPI.list();
       const availableItems = Array.isArray(data) ? data : [];
-      
+
       // Add mock data for testing recommended tags
-      
-      
+
       // Combine mock data with real data
       setItems([...availableItems]);
       setError(null);
     } catch (e) {
-      console.error("Error fetching donations:", e);
+      console.error('Error fetching donations:', e);
       setError(t('receiverBrowse.failedToLoad'));
     } finally {
       setLoading(false);
     }
   }, [t]);
 
-  const fetchFilteredDonations = useCallback(async (filterCriteria) => {
-    setLoading(true);
-    try {
-      const hasActiveFilters =
-        (filterCriteria.foodType && filterCriteria.foodType.length > 0) ||
-        filterCriteria.expiryBefore ||
-        (filterCriteria.locationCoords && filterCriteria.distance);
+  const fetchFilteredDonations = useCallback(
+    async filterCriteria => {
+      setLoading(true);
+      try {
+        const hasActiveFilters =
+          (filterCriteria.foodType && filterCriteria.foodType.length > 0) ||
+          filterCriteria.expiryBefore ||
+          (filterCriteria.locationCoords && filterCriteria.distance);
 
-      let data;
-      if (hasActiveFilters) {
-        const response = await surplusAPI.search(filterCriteria);
-        data = response.data;
-      } else {
-        const response = await surplusAPI.list();
-        data = response.data;
+        let data;
+        if (hasActiveFilters) {
+          const response = await surplusAPI.search(filterCriteria);
+          data = response.data;
+        } else {
+          const response = await surplusAPI.list();
+          data = response.data;
+        }
+
+        setItems(Array.isArray(data) ? data : []);
+        setError(null);
+      } catch (e) {
+        setError(t('receiverBrowse.failedToLoadFiltered'));
+        console.error('Error fetching filtered donations:', e);
+      } finally {
+        setLoading(false);
       }
-
-      setItems(Array.isArray(data) ? data : []);
-      setError(null);
-    } catch (e) {
-      setError(t('receiverBrowse.failedToLoadFiltered'));
-      console.error("Error fetching filtered donations:", e);
-    } finally {
-      setLoading(false);
-    }
-  }, [t]);
+    },
+    [t]
+  );
 
   useEffect(() => {
     fetchDonations();
@@ -120,7 +146,7 @@ export default function ReceiverBrowse() {
   }, [items, fetchRecommendations]);
 
   const handleFiltersChange = useCallback((filterType, value) => {
-    setFilters((prev) => ({
+    setFilters(prev => ({
       ...prev,
       [filterType]: value,
     }));
@@ -136,7 +162,7 @@ export default function ReceiverBrowse() {
       foodType: [],
       expiryBefore: null,
       distance: 10,
-      location: "",
+      location: '',
       locationCoords: null,
     };
     setFilters(clearedFilters);
@@ -148,13 +174,13 @@ export default function ReceiverBrowse() {
     setIsFiltersVisible(false);
   }, []);
 
-  const handleMoreClick = useCallback((item) => {
-    setExpandedCardId((prev) => (prev === item.id ? null : item.id));
+  const handleMoreClick = useCallback(item => {
+    setExpandedCardId(prev => (prev === item.id ? null : item.id));
   }, []);
 
   const handleBookmark = useCallback((item, e) => {
     e.stopPropagation();
-    setBookmarkedItems((prev) => {
+    setBookmarkedItems(prev => {
       const newBookmarks = new Set(prev);
       if (newBookmarks.has(item.id)) {
         newBookmarks.delete(item.id);
@@ -165,160 +191,194 @@ export default function ReceiverBrowse() {
     });
   }, []);
 
-  const confirmClaim = useCallback(async (item, slot) => {
-    setClaiming(true);
-    try {
-      await surplusAPI.claim(item.id, slot);
-      setItems((prev) => prev.filter((post) => post.id !== item.id));
-      setClaimModalOpen(false);
-      setClaimTargetItem(null);
-    } catch (error) {
-      console.error("Error claiming post:", error);
-      alert(
-        error.response?.data?.message ||
-        t('receiverBrowse.failedToClaim')
-      );
-    } finally {
-      setClaiming(false);
+  const confirmClaim = useCallback(
+    async (item, slot) => {
+      setClaiming(true);
+      try {
+        await surplusAPI.claim(item.id, slot);
+        setItems(prev => prev.filter(post => post.id !== item.id));
+        setClaimModalOpen(false);
+        setClaimTargetItem(null);
+      } catch (error) {
+        console.error('Error claiming post:', error);
+        alert(
+          error.response?.data?.message || t('receiverBrowse.failedToClaim')
+        );
+      } finally {
+        setClaiming(false);
+      }
+    },
+    [t]
+  );
+
+  const handleClaimDonation = useCallback(
+    item => {
+      if (
+        item.pickupSlots &&
+        Array.isArray(item.pickupSlots) &&
+        item.pickupSlots.length > 0
+      ) {
+        setClaimTargetItem(item);
+        setSelectedSlotIndex(0);
+        setClaimModalOpen(true);
+        return;
+      }
+
+      if (!window.confirm(t('receiverBrowse.confirmClaim'))) {
+        return;
+      }
+
+      const legacySlot =
+        item.pickupDate && item.pickupFrom && item.pickupTo
+          ? {
+              pickupDate: item.pickupDate,
+              startTime: item.pickupFrom,
+              endTime: item.pickupTo,
+            }
+          : null;
+
+      confirmClaim(item, legacySlot);
+    },
+    [confirmClaim, t]
+  );
+
+  const formatExpiryDate = useCallback(dateString => {
+    if (!dateString) {
+      return '—';
     }
-  }, [t]);
-
-  const handleClaimDonation = useCallback((item) => {
-    if (item.pickupSlots && Array.isArray(item.pickupSlots) && item.pickupSlots.length > 0) {
-      setClaimTargetItem(item);
-      setSelectedSlotIndex(0);
-      setClaimModalOpen(true);
-      return;
-    }
-
-    if (!window.confirm(t('receiverBrowse.confirmClaim'))) {
-      return;
-    }
-
-    const legacySlot = (item.pickupDate && item.pickupFrom && item.pickupTo) ? {
-      pickupDate: item.pickupDate,
-      startTime: item.pickupFrom,
-      endTime: item.pickupTo
-    } : null;
-
-    confirmClaim(item, legacySlot);
-  }, [confirmClaim, t]);
-
-  const formatExpiryDate = useCallback((dateString) => {
-    if (!dateString) return "—";
     try {
       // Parse as local date to avoid timezone conversion issues
       const [year, month, day] = dateString.split('-').map(Number);
       const date = new Date(year, month - 1, day);
-      return date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
       });
     } catch {
-      return "—";
+      return '—';
     }
   }, []);
 
   const formatPickupTime = useCallback((pickupDate, pickupFrom, pickupTo) => {
-    if (!pickupDate || !pickupFrom || !pickupTo) return "—";
+    if (!pickupDate || !pickupFrom || !pickupTo) {
+      return '—';
+    }
     try {
       const fromDate = new Date(`${pickupDate}T${pickupFrom}`);
-      const dateStr = fromDate.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
+      const dateStr = fromDate.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
       });
-      const fromTime = fromDate.toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
+      const fromTime = fromDate.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
         hour12: true,
       });
-      const [hours, minutes] = pickupTo.split(":");
+      const [hours, minutes] = pickupTo.split(':');
       const hour = parseInt(hours, 10);
       const isPM = hour >= 12;
       const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-      const toTime = `${displayHour}:${minutes} ${isPM ? "PM" : "AM"}`;
+      const toTime = `${displayHour}:${minutes} ${isPM ? 'PM' : 'AM'}`;
       return `${dateStr} ${fromTime}-${toTime}`;
     } catch {
-      return "—";
+      return '—';
     }
   }, []);
 
-  const formatPostedTime = useCallback((dateString) => {
-    if (!dateString) return "";
-    try {
-      const now = new Date();
-      const posted = new Date(dateString);
-      const diffInHours = Math.floor((now - posted) / (1000 * 60 * 60));
-      if (diffInHours < 1) return t('receiverBrowse.justNow');
-      if (diffInHours === 1) return t('receiverBrowse.hourAgo');
-      if (diffInHours < 24) return t('receiverBrowse.hoursAgo', { hours: diffInHours });
-      const diffInDays = Math.floor(diffInHours / 24);
-      if (diffInDays === 1) return t('receiverBrowse.dayAgo');
-      return t('receiverBrowse.daysAgo', { days: diffInDays });
-    } catch {
-      return "";
-    }
-  }, [t]);
+  const formatPostedTime = useCallback(
+    dateString => {
+      if (!dateString) {
+        return '';
+      }
+      try {
+        const now = new Date();
+        const posted = new Date(dateString);
+        const diffInHours = Math.floor((now - posted) / (1000 * 60 * 60));
+        if (diffInHours < 1) {
+          return t('receiverBrowse.justNow');
+        }
+        if (diffInHours === 1) {
+          return t('receiverBrowse.hourAgo');
+        }
+        if (diffInHours < 24) {
+          return t('receiverBrowse.hoursAgo', { hours: diffInHours });
+        }
+        const diffInDays = Math.floor(diffInHours / 24);
+        if (diffInDays === 1) {
+          return t('receiverBrowse.dayAgo');
+        }
+        return t('receiverBrowse.daysAgo', { days: diffInDays });
+      } catch {
+        return '';
+      }
+    },
+    [t]
+  );
 
-  const formatStatus = useCallback((status) => {
-    switch (status) {
-      case "AVAILABLE":
-        return t('receiverBrowse.status.available');
-      case "READY_FOR_PICKUP":
-        return t('receiverBrowse.status.readyForPickup');
-      case "CLAIMED":
-        return t('receiverBrowse.status.claimed');
-      case "COMPLETED":
-        return t('receiverBrowse.status.completed');
-      case "NOT_COMPLETED":
-        return t('receiverBrowse.status.notCompleted');
-      case "EXPIRED":
-        return t('receiverBrowse.status.expired');
-      default:
-        return status || t('receiverBrowse.status.available');
-    }
-  }, [t]);
+  const formatStatus = useCallback(
+    status => {
+      switch (status) {
+        case 'AVAILABLE':
+          return t('receiverBrowse.status.available');
+        case 'READY_FOR_PICKUP':
+          return t('receiverBrowse.status.readyForPickup');
+        case 'CLAIMED':
+          return t('receiverBrowse.status.claimed');
+        case 'COMPLETED':
+          return t('receiverBrowse.status.completed');
+        case 'NOT_COMPLETED':
+          return t('receiverBrowse.status.notCompleted');
+        case 'EXPIRED':
+          return t('receiverBrowse.status.expired');
+        default:
+          return status || t('receiverBrowse.status.available');
+      }
+    },
+    [t]
+  );
 
-  const getStatusClass = useCallback((status) => {
+  const getStatusClass = useCallback(status => {
     switch (status) {
-      case "AVAILABLE":
-        return "status-available";
-      case "READY_FOR_PICKUP":
-        return "status-ready";
-      case "CLAIMED":
-        return "status-claimed";
-      case "COMPLETED":
-        return "status-completed";
-      case "NOT_COMPLETED":
-        return "status-not-completed";
-      case "EXPIRED":
-        return "status-expired";
+      case 'AVAILABLE':
+        return 'status-available';
+      case 'READY_FOR_PICKUP':
+        return 'status-ready';
+      case 'CLAIMED':
+        return 'status-claimed';
+      case 'COMPLETED':
+        return 'status-completed';
+      case 'NOT_COMPLETED':
+        return 'status-not-completed';
+      case 'EXPIRED':
+        return 'status-expired';
       default:
-        return "status-available";
+        return 'status-available';
     }
   }, []);
 
   return (
     <div className="receiver-browse-container">
       <div className="receiver-browse-header">
-        <h1 className="receiver-section-title-browse">{t('receiverBrowse.title')}</h1>
-        
+        <h1 className="receiver-section-title-browse">
+          {t('receiverBrowse.title')}
+        </h1>
+
         <div className="sort-controls">
           <span className="sort-label">
             <ArrowUpDown size={16} />
             {t('receiverBrowse.sortBy')}
           </span>
           <div className="sort-buttons">
-            <button 
+            <button
               className={`sort-button ${sortBy === 'relevance' ? 'active' : ''}`}
               onClick={() => setSortBy('relevance')}
             >
               <Target size={16} />
               {t('receiverBrowse.relevance')}
             </button>
-            <button 
+            <button
               className={`sort-button ${sortBy === 'date' ? 'active' : ''}`}
               onClick={() => setSortBy('date')}
             >
@@ -328,7 +388,7 @@ export default function ReceiverBrowse() {
           </div>
         </div>
       </div>
-      
+
       {/* Only render FiltersPanel when Google Maps is loaded */}
       {isLoaded && (
         <FiltersPanel
@@ -341,7 +401,7 @@ export default function ReceiverBrowse() {
           onClose={handleCloseFilters}
         />
       )}
-      
+
       {error && (
         <div role="alert" className="receiver-error-message">
           {error}
@@ -362,330 +422,419 @@ export default function ReceiverBrowse() {
         </div>
       )}
 
-      {!loading && !error && items.length > 0 && (() => {
-        // Filter and sort items based on selected sort option
-        let filteredItems = [...items];
-        
-        if (sortBy === 'relevance') {
-          // Sort by recommendation score (recommended items first, then non-recommended)
-          filteredItems.sort((a, b) => {
-            const scoreA = getRecommendationData(a)?.score || 0;
-            const scoreB = getRecommendationData(b)?.score || 0;
-            
-            // If both have recommendations, sort by score (highest first)
-            if (scoreA > 0 && scoreB > 0) {
-              return scoreB - scoreA;
-            }
-            // If only one has recommendations, prioritize it
-            if (scoreA > 0 && scoreB === 0) return -1;
-            if (scoreA === 0 && scoreB > 0) return 1;
-            
-            // If neither has recommendations, sort by date (newest first)
-            const dateA = new Date(a.createdAt || a.pickupDate);
-            const dateB = new Date(b.createdAt || b.pickupDate);
-            return dateB.getTime() - dateA.getTime();
-          });
-        } else {
-          // Sort by creation date (newest first) for date filter
-          filteredItems.sort((a, b) => {
-            const dateA = new Date(a.createdAt || a.pickupDate);
-            const dateB = new Date(b.createdAt || b.pickupDate);
-            return dateB.getTime() - dateA.getTime();
-          });
-        }
-        
-        return (
-          <div className="receiver-donations-list">
-            {filteredItems.map((item) => {
-            const categoryDisplays = getFoodCategoryDisplays(item.foodCategories);
-            const primaryFoodCategory = getPrimaryFoodCategory(item.foodCategories);
+      {!loading &&
+        !error &&
+        items.length > 0 &&
+        (() => {
+          // Filter and sort items based on selected sort option
+          const filteredItems = [...items];
 
-            return (
-              <div
-                key={item.id}
-                className={`receiver-donation-card ${
-                  expandedCardId === item.id ? "expanded" : ""
-                }`}
-              >
-                {/* Corner Recommended Badge */}
-                {getRecommendationData(item) && (
-                  <div 
-                    className="recommended-badge"
-                    onMouseEnter={() => setHoveredRecommended(item.id)}
-                    onMouseLeave={() => setHoveredRecommended(null)}
+          if (sortBy === 'relevance') {
+            // Sort by recommendation score (recommended items first, then non-recommended)
+            filteredItems.sort((a, b) => {
+              const scoreA = getRecommendationData(a)?.score || 0;
+              const scoreB = getRecommendationData(b)?.score || 0;
+
+              // If both have recommendations, sort by score (highest first)
+              if (scoreA > 0 && scoreB > 0) {
+                return scoreB - scoreA;
+              }
+              // If only one has recommendations, prioritize it
+              if (scoreA > 0 && scoreB === 0) {
+                return -1;
+              }
+              if (scoreA === 0 && scoreB > 0) {
+                return 1;
+              }
+
+              // If neither has recommendations, sort by date (newest first)
+              const dateA = new Date(a.createdAt || a.pickupDate);
+              const dateB = new Date(b.createdAt || b.pickupDate);
+              return dateB.getTime() - dateA.getTime();
+            });
+          } else {
+            // Sort by creation date (newest first) for date filter
+            filteredItems.sort((a, b) => {
+              const dateA = new Date(a.createdAt || a.pickupDate);
+              const dateB = new Date(b.createdAt || b.pickupDate);
+              return dateB.getTime() - dateA.getTime();
+            });
+          }
+
+          return (
+            <div className="receiver-donations-list">
+              {filteredItems.map(item => {
+                const categoryDisplays = getFoodCategoryDisplays(
+                  item.foodCategories
+                );
+                const primaryFoodCategory = getPrimaryFoodCategory(
+                  item.foodCategories
+                );
+
+                return (
+                  <div
+                    key={item.id}
+                    className={`receiver-donation-card ${
+                      expandedCardId === item.id ? 'expanded' : ''
+                    }`}
                   >
-                    <Star size={14} fill="#ffffff" color="#ffffff" />
-                    
-                    {/* Tooltip */}
-                    {hoveredRecommended === item.id && (
-                      <div className="recommendation-tooltip">
-                        <div className="tooltip-header">
-                          <span className="match-label">Match Score</span>                          
-                          <span className="match-score">{getRecommendationData(item).score}%</span>
+                    {/* Corner Recommended Badge */}
+                    {getRecommendationData(item) && (
+                      <div
+                        className="recommended-badge"
+                        onMouseEnter={() => setHoveredRecommended(item.id)}
+                        onMouseLeave={() => setHoveredRecommended(null)}
+                      >
+                        <Star size={14} fill="#ffffff" color="#ffffff" />
 
-                        </div>
-                        <div className="tooltip-reasons">
-                          {getRecommendationData(item).reasons.map((reason, index) => (
-                            <div key={index} className="reason-item">
-                              <span className="reason-check">✓</span>
-                              <span>{reason}</span>
+                        {/* Tooltip */}
+                        {hoveredRecommended === item.id && (
+                          <div className="recommendation-tooltip">
+                            <div className="tooltip-header">
+                              <span className="match-label">Match Score</span>
+                              <span className="match-score">
+                                {getRecommendationData(item).score}%
+                              </span>
                             </div>
-                          ))}
-                        </div>
+                            <div className="tooltip-reasons">
+                              {getRecommendationData(item).reasons.map(
+                                (reason, index) => (
+                                  <div key={index} className="reason-item">
+                                    <span className="reason-check">✓</span>
+                                    <span>{reason}</span>
+                                  </div>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
-                  </div>
-                )}
-                
-                <div
-                  className={`receiver-donation-image ${getFoodImageClass(
-                    primaryFoodCategory
-                  )}`}
-                >
-                  <img
-                    src={foodTypeImages[primaryFoodCategory] || foodTypeImages['Prepared Meals']}
-                    alt={primaryFoodCategory || "Food donation"}
-                    className="receiver-food-type-image"
-                    onError={(e) => {
-                      e.target.style.display = "none";
-                      e.target.parentElement.classList.add("food-image-default");
-                    }}
-                  />
-                </div>
 
-                <div className="receiver-donation-content">
-                  <div className="receiver-donation-header">
-                    <h3 className="receiver-donation-title">{item.title}</h3>
-                    <div className="receiver-header-actions">
-                      <button
-                        className="receiver-bookmark-button"
-                        onClick={(e) => handleBookmark(item, e)}
-                        aria-label="Bookmark"
-                      >
-                        <Bookmark
-                          size={16}
-                          style={{
-                            display: "block",
-                            margin: "0 auto",
-                            color: bookmarkedItems.has(item.id) ? "#1B4965" : "#90A1B9",
-                            fill: bookmarkedItems.has(item.id) ? "#1B4965" : "transparent",
-                          }}
-                        />
-                      </button>
-                      <span className={`receiver-status-badge ${getStatusClass(item.status)}`}>
-                        <span className="receiver-status-icon">✓</span>
-                        {formatStatus(item.status)}
-                      </span>
+                    <div
+                      className={`receiver-donation-image ${getFoodImageClass(
+                        primaryFoodCategory
+                      )}`}
+                    >
+                      <img
+                        src={
+                          foodTypeImages[primaryFoodCategory] ||
+                          foodTypeImages['Prepared Meals']
+                        }
+                        alt={primaryFoodCategory || 'Food donation'}
+                        className="receiver-food-type-image"
+                        onError={e => {
+                          e.target.style.display = 'none';
+                          e.target.parentElement.classList.add(
+                            'food-image-default'
+                          );
+                        }}
+                      />
                     </div>
-                  </div>
 
-                  <div className="receiver-donation-info">
-                    <div className="receiver-info-item">
-                      <Calendar size={16} className="receiver-info-icon-expiry-icon" />
-                      <span>{t('receiverBrowse.expires')}: {formatExpiryDate(item.expiryDate)}</span>
-                    </div>
-                    <div className="receiver-info-item">
-                      <MapPin size={16} className="receiver-info-icon-location-icon" />
-                      <span>
-                        {item.pickupLocation?.address || t('receiverBrowse.locationNotSpecified')}
-                      </span>
-                    </div>
-                    <div className="receiver-info-item">
-                      <Clock size={16} className="receiver-info-icon-time-icon" />
-                      {item.pickupSlots && item.pickupSlots.length > 0 ? (
-                        <div className="pickup-slots-list">
-                          {item.pickupSlots.map((slot, idx) => (
-                            <div key={idx} className="pickup-slot-time">
-                              {formatPickupTime(
-                                slot.pickupDate || slot.date,
-                                slot.startTime || slot.pickupFrom,
-                                slot.endTime || slot.pickupTo
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <span>
-                          {formatPickupTime(
-                            item.pickupDate,
-                            item.pickupFrom,
-                            item.pickupTo
-                          )}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="receiver-donation-meta">
-                    <div className="receiver-category-tags">
-                      {categoryDisplays.map((category, index) => (
-                        <span key={index} className="receiver-category-tag">
-                          {category}
-                        </span>
-                      ))}
-                    </div>
-                    <div className="receiver-donor-info">
-                      <User size={16} />
-                      <span>{t('receiverBrowse.donatedBy', { donorName: item.donorName || t('receiverBrowse.localBusiness') })}</span>
-                    </div>
-                  </div>
-
-                  {expandedCardId === item.id && (
-                    <div className="receiver-donation-details">
-                      <div className="receiver-details-grid">
-                        <div className="receiver-details-section">
-                          <div className="receiver-detail-item">
-                            <span className="receiver-detail-label">{t('receiverBrowse.quantity')}</span>
-                            <div className="receiver-detail-value">
-                              <span className="receiver-quantity-icon-detail">
-                                <Package2 size={14} />
-                              </span>
-                              {item.quantity?.value || 0} {getUnitLabel(item.quantity?.unit) || t('receiverBrowse.items')}
-                            </div>
-                          </div>
-                          <div className="receiver-detail-item">
-                            <span className="receiver-detail-label">
-                              {t('receiverBrowse.pickupTime')}{item.pickupSlots && item.pickupSlots.length > 1 ? 's' : ''}
-                            </span>
-                            <div className="receiver-detail-value">
-                              <span className="receiver-time-icon-detail">
-                                <Clock size={14} />
-                              </span>
-                              {item.pickupSlots && item.pickupSlots.length > 0 ? (
-                                <div className="pickup-slots-list">
-                                  {item.pickupSlots.map((slot, idx) => (
-                                    <div key={idx} className="pickup-slot-time" style={{ color: '#314158' }}>
-                                      {formatPickupTime(
-                                        slot.pickupDate || slot.date,
-                                        slot.startTime || slot.pickupFrom,
-                                        slot.endTime || slot.pickupTo
-                                      )}
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : (
-                                <span style={{ color: '#314158' }}>
-                                  {formatPickupTime(
-                                    item.pickupDate,
-                                    item.pickupFrom,
-                                    item.pickupTo
-                                  )}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="receiver-details-section">
-                          <div className="receiver-detail-item">
-                            <span className="receiver-detail-label">{t('receiverBrowse.expires')}</span>
-                            <div className="receiver-detail-value">
-                              <span className="receiver-expiry-icon-detail">
-                                <Calendar size={14} />
-                              </span>
-                              {formatExpiryDate(item.expiryDate)}
-                            </div>
-                          </div>
-                          <div className="receiver-detail-item">
-                            <span className="receiver-detail-label">{t('common.location', 'Location')}</span>
-                            <div className="receiver-detail-value">
-                              <span className="receiver-location-icon-detail">
-                                <MapPin size={14} />
-                              </span>
-                              {item.pickupLocation?.address || t('receiverBrowse.locationNotSpecified')}
-                            </div>
-                          </div>
+                    <div className="receiver-donation-content">
+                      <div className="receiver-donation-header">
+                        <h3 className="receiver-donation-title">
+                          {item.title}
+                        </h3>
+                        <div className="receiver-header-actions">
+                          <button
+                            className="receiver-bookmark-button"
+                            onClick={e => handleBookmark(item, e)}
+                            aria-label="Bookmark"
+                          >
+                            <Bookmark
+                              size={16}
+                              style={{
+                                display: 'block',
+                                margin: '0 auto',
+                                color: bookmarkedItems.has(item.id)
+                                  ? '#1B4965'
+                                  : '#90A1B9',
+                                fill: bookmarkedItems.has(item.id)
+                                  ? '#1B4965'
+                                  : 'transparent',
+                              }}
+                            />
+                          </button>
+                          <span
+                            className={`receiver-status-badge ${getStatusClass(item.status)}`}
+                          >
+                            <span className="receiver-status-icon">✓</span>
+                            {formatStatus(item.status)}
+                          </span>
                         </div>
                       </div>
 
-                      {/* Food Compliance Section */}
-                      {(item.temperatureCategory || item.packagingType) && (
-                        <>
+                      <div className="receiver-donation-info">
+                        <div className="receiver-info-item">
+                          <Calendar
+                            size={16}
+                            className="receiver-info-icon-expiry-icon"
+                          />
+                          <span>
+                            {t('receiverBrowse.expires')}:{' '}
+                            {formatExpiryDate(item.expiryDate)}
+                          </span>
+                        </div>
+                        <div className="receiver-info-item">
+                          <MapPin
+                            size={16}
+                            className="receiver-info-icon-location-icon"
+                          />
+                          <span>
+                            {item.pickupLocation?.address ||
+                              t('receiverBrowse.locationNotSpecified')}
+                          </span>
+                        </div>
+                        <div className="receiver-info-item">
+                          <Clock
+                            size={16}
+                            className="receiver-info-icon-time-icon"
+                          />
+                          {item.pickupSlots && item.pickupSlots.length > 0 ? (
+                            <div className="pickup-slots-list">
+                              {item.pickupSlots.map((slot, idx) => (
+                                <div key={idx} className="pickup-slot-time">
+                                  {formatPickupTime(
+                                    slot.pickupDate || slot.date,
+                                    slot.startTime || slot.pickupFrom,
+                                    slot.endTime || slot.pickupTo
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <span>
+                              {formatPickupTime(
+                                item.pickupDate,
+                                item.pickupFrom,
+                                item.pickupTo
+                              )}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="receiver-donation-meta">
+                        <div className="receiver-category-tags">
+                          {categoryDisplays.map((category, index) => (
+                            <span key={index} className="receiver-category-tag">
+                              {category}
+                            </span>
+                          ))}
+                        </div>
+                        <div className="receiver-donor-info">
+                          <User size={16} />
+                          <span>
+                            {t('receiverBrowse.donatedBy', {
+                              donorName:
+                                item.donorName ||
+                                t('receiverBrowse.localBusiness'),
+                            })}
+                          </span>
+                        </div>
+                      </div>
+
+                      {expandedCardId === item.id && (
+                        <div className="receiver-donation-details">
                           <div className="receiver-details-grid">
                             <div className="receiver-details-section">
-                              {item.temperatureCategory && (
-                                <div className="receiver-detail-item">
-                                  <span className="receiver-detail-label">Temperature</span>
-                                  <div className="receiver-detail-value">
-                                    <span className="receiver-compliance-icon-bg">
-                                      {getTemperatureCategoryIcon(item.temperatureCategory)}
-                                    </span>
-                                    {getTemperatureCategoryLabel(item.temperatureCategory)}
-                                  </div>
+                              <div className="receiver-detail-item">
+                                <span className="receiver-detail-label">
+                                  {t('receiverBrowse.quantity')}
+                                </span>
+                                <div className="receiver-detail-value">
+                                  <span className="receiver-quantity-icon-detail">
+                                    <Package2 size={14} />
+                                  </span>
+                                  {item.quantity?.value || 0}{' '}
+                                  {getUnitLabel(item.quantity?.unit) ||
+                                    t('receiverBrowse.items')}
                                 </div>
-                              )}
+                              </div>
+                              <div className="receiver-detail-item">
+                                <span className="receiver-detail-label">
+                                  {t('receiverBrowse.pickupTime')}
+                                  {item.pickupSlots &&
+                                  item.pickupSlots.length > 1
+                                    ? 's'
+                                    : ''}
+                                </span>
+                                <div className="receiver-detail-value">
+                                  <span className="receiver-time-icon-detail">
+                                    <Clock size={14} />
+                                  </span>
+                                  {item.pickupSlots &&
+                                  item.pickupSlots.length > 0 ? (
+                                    <div className="pickup-slots-list">
+                                      {item.pickupSlots.map((slot, idx) => (
+                                        <div
+                                          key={idx}
+                                          className="pickup-slot-time"
+                                          style={{ color: '#314158' }}
+                                        >
+                                          {formatPickupTime(
+                                            slot.pickupDate || slot.date,
+                                            slot.startTime || slot.pickupFrom,
+                                            slot.endTime || slot.pickupTo
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <span style={{ color: '#314158' }}>
+                                      {formatPickupTime(
+                                        item.pickupDate,
+                                        item.pickupFrom,
+                                        item.pickupTo
+                                      )}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
                             </div>
+
                             <div className="receiver-details-section">
-                              {item.packagingType && (
-                                <div className="receiver-detail-item">
-                                  <span className="receiver-detail-label">Packaging</span>
-                                  <div className="receiver-detail-value">
-                                    <span className="receiver-compliance-icon-bg">
-                                      <Package size={14} />
-                                    </span>
-                                    {getPackagingTypeLabel(item.packagingType)}
-                                  </div>
+                              <div className="receiver-detail-item">
+                                <span className="receiver-detail-label">
+                                  {t('receiverBrowse.expires')}
+                                </span>
+                                <div className="receiver-detail-value">
+                                  <span className="receiver-expiry-icon-detail">
+                                    <Calendar size={14} />
+                                  </span>
+                                  {formatExpiryDate(item.expiryDate)}
                                 </div>
-                              )}
+                              </div>
+                              <div className="receiver-detail-item">
+                                <span className="receiver-detail-label">
+                                  {t('common.location', 'Location')}
+                                </span>
+                                <div className="receiver-detail-value">
+                                  <span className="receiver-location-icon-detail">
+                                    <MapPin size={14} />
+                                  </span>
+                                  {item.pickupLocation?.address ||
+                                    t('receiverBrowse.locationNotSpecified')}
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        </>
-                      )}
 
-                      {item.description && (
-                        <div className="receiver-donor-note">
-                          <div className="receiver-note-label">{t('receiverBrowse.donorsNote')}</div>
-                          <div className="receiver-note-content">{item.description}</div>
+                          {/* Food Compliance Section */}
+                          {(item.temperatureCategory || item.packagingType) && (
+                            <>
+                              <div className="receiver-details-grid">
+                                <div className="receiver-details-section">
+                                  {item.temperatureCategory && (
+                                    <div className="receiver-detail-item">
+                                      <span className="receiver-detail-label">
+                                        Temperature
+                                      </span>
+                                      <div className="receiver-detail-value">
+                                        <span className="receiver-compliance-icon-bg">
+                                          {getTemperatureCategoryIcon(
+                                            item.temperatureCategory
+                                          )}
+                                        </span>
+                                        {getTemperatureCategoryLabel(
+                                          item.temperatureCategory
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="receiver-details-section">
+                                  {item.packagingType && (
+                                    <div className="receiver-detail-item">
+                                      <span className="receiver-detail-label">
+                                        Packaging
+                                      </span>
+                                      <div className="receiver-detail-value">
+                                        <span className="receiver-compliance-icon-bg">
+                                          <Package size={14} />
+                                        </span>
+                                        {getPackagingTypeLabel(
+                                          item.packagingType
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </>
+                          )}
+
+                          {item.description && (
+                            <div className="receiver-donor-note">
+                              <div className="receiver-note-label">
+                                {t('receiverBrowse.donorsNote')}
+                              </div>
+                              <div className="receiver-note-content">
+                                {item.description}
+                              </div>
+                            </div>
+                          )}
+
+                          {item.createdAt && (
+                            <div className="receiver-posted-time">
+                              {t('receiverBrowse.posted')}{' '}
+                              {formatPostedTime(item.createdAt)}
+                            </div>
+                          )}
                         </div>
                       )}
 
-                      {item.createdAt && (
-                        <div className="receiver-posted-time">
-                          {t('receiverBrowse.posted')} {formatPostedTime(item.createdAt)}
-                        </div>
-                      )}
+                      <div className="receiver-donation-actions">
+                        <button
+                          onClick={() => handleClaimDonation(item)}
+                          className="receiver-claim-button"
+                          disabled={claiming}
+                        >
+                          {claiming && claimTargetItem?.id === item.id
+                            ? t('receiverBrowse.claiming')
+                            : t('receiverBrowse.claimDonation')}
+                        </button>
+                        <button
+                          onClick={() => handleMoreClick(item)}
+                          className={`receiver-more-button ${
+                            expandedCardId === item.id ? 'expanded' : ''
+                          }`}
+                        >
+                          {expandedCardId === item.id
+                            ? t('receiverBrowse.less')
+                            : t('receiverBrowse.more')}
+                          {expandedCardId === item.id ? (
+                            <ChevronUp
+                              size={14}
+                              className="receiver-dropdown-icon"
+                            />
+                          ) : (
+                            <ChevronDown
+                              size={14}
+                              className="receiver-dropdown-icon"
+                            />
+                          )}
+                        </button>
+                      </div>
                     </div>
-                  )}
-
-                  <div className="receiver-donation-actions">
-                    <button
-                      onClick={() => handleClaimDonation(item)}
-                      className="receiver-claim-button"
-                      disabled={claiming}
-                    >
-                      {claiming && claimTargetItem?.id === item.id ? t('receiverBrowse.claiming') : t('receiverBrowse.claimDonation')}
-                    </button>
-                    <button
-                      onClick={() => handleMoreClick(item)}
-                      className={`receiver-more-button ${
-                        expandedCardId === item.id ? "expanded" : ""
-                      }`}
-                    >
-                      {expandedCardId === item.id ? t('receiverBrowse.less') : t('receiverBrowse.more')}
-                      {expandedCardId === item.id ? (
-                        <ChevronUp size={14} className="receiver-dropdown-icon" />
-                      ) : (
-                        <ChevronDown size={14} className="receiver-dropdown-icon" />
-                      )}
-                    </button>
                   </div>
-                </div>
-              </div>
-            );
-            })}
-          </div>
-        );
-      })()}
+                );
+              })}
+            </div>
+          );
+        })()}
 
       <ClaimModal
         open={claimModalOpen}
         item={claimTargetItem}
         selectedIndex={selectedSlotIndex}
-        onSelectIndex={(idx) => setSelectedSlotIndex(idx)}
-        onConfirm={(slot) => confirmClaim(claimTargetItem, slot)}
-        onClose={() => { 
-          setClaimModalOpen(false); 
-          setClaimTargetItem(null); 
+        onSelectIndex={idx => setSelectedSlotIndex(idx)}
+        onConfirm={slot => confirmClaim(claimTargetItem, slot)}
+        onClose={() => {
+          setClaimModalOpen(false);
+          setClaimTargetItem(null);
         }}
         loading={claiming}
         formatFn={formatPickupTime}
@@ -694,9 +843,20 @@ export default function ReceiverBrowse() {
   );
 }
 
-function ClaimModal({ open, item, selectedIndex, onSelectIndex, onConfirm, onClose, loading, formatFn }) {
+function ClaimModal({
+  open,
+  item,
+  selectedIndex,
+  onSelectIndex,
+  onConfirm,
+  onClose,
+  loading,
+  formatFn,
+}) {
   const { t } = useTranslation();
-  if (!open || !item) return null;
+  if (!open || !item) {
+    return null;
+  }
 
   const slots = Array.isArray(item.pickupSlots) ? item.pickupSlots : [];
 
@@ -714,7 +874,10 @@ function ClaimModal({ open, item, selectedIndex, onSelectIndex, onConfirm, onClo
             const to = slot.endTime || slot.pickupTo || slot.to || '';
             const display = formatFn ? formatFn(date, from, to) : '';
             return (
-              <label key={idx} className={`claim-slot-item ${selectedIndex === idx ? 'selected' : ''}`}>
+              <label
+                key={idx}
+                className={`claim-slot-item ${selectedIndex === idx ? 'selected' : ''}`}
+              >
                 <input
                   type="radio"
                   name="pickupSlot"
@@ -723,7 +886,9 @@ function ClaimModal({ open, item, selectedIndex, onSelectIndex, onConfirm, onClo
                 />
                 <div className="claim-slot-content">
                   <div className="claim-slot-time">{display}</div>
-                  {slot.notes && <div className="claim-slot-notes">{slot.notes}</div>}
+                  {slot.notes && (
+                    <div className="claim-slot-notes">{slot.notes}</div>
+                  )}
                 </div>
               </label>
             );
@@ -731,25 +896,34 @@ function ClaimModal({ open, item, selectedIndex, onSelectIndex, onConfirm, onClo
         </div>
 
         <div className="claim-modal-actions">
-          <button className="btn btn-cancel" onClick={onClose} disabled={loading}>
+          <button
+            className="btn btn-cancel"
+            onClick={onClose}
+            disabled={loading}
+          >
             {t('common.cancel')}
           </button>
           <button
             className="btn btn-create"
             onClick={() => {
               const selectedSlot = slots[selectedIndex];
-              const normalized = selectedSlot ? {
-                pickupDate: selectedSlot.pickupDate || selectedSlot.date,
-                startTime: selectedSlot.startTime || selectedSlot.pickupFrom,
-                endTime: selectedSlot.endTime || selectedSlot.pickupTo,
-                notes: selectedSlot.notes || null,
-                id: selectedSlot.id || undefined,
-              } : null;
+              const normalized = selectedSlot
+                ? {
+                    pickupDate: selectedSlot.pickupDate || selectedSlot.date,
+                    startTime:
+                      selectedSlot.startTime || selectedSlot.pickupFrom,
+                    endTime: selectedSlot.endTime || selectedSlot.pickupTo,
+                    notes: selectedSlot.notes || null,
+                    id: selectedSlot.id || undefined,
+                  }
+                : null;
               onConfirm(normalized);
             }}
             disabled={loading || slots.length === 0}
           >
-            {loading ? t('receiverBrowse.confirming') : t('receiverBrowse.confirmAndClaim')}
+            {loading
+              ? t('receiverBrowse.confirming')
+              : t('receiverBrowse.confirmAndClaim')}
           </button>
         </div>
       </div>

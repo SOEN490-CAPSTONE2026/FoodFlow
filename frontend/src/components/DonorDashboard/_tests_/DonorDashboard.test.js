@@ -34,18 +34,6 @@ jest.mock('../DonorListFood', () => {
   };
 });
 
-jest.mock('../DonorRequests', () => {
-  return function MockDonorRequests() {
-    return <div data-testid="donor-requests">Donor Requests</div>;
-  };
-});
-
-jest.mock('../DonorSearch', () => {
-  return function MockDonorSearch() {
-    return <div data-testid="donor-search">Donor Search</div>;
-  };
-});
-
 jest.mock('../../MessagingDashboard/MessagingDashboard', () => {
   return function MockMessagingDashboard() {
     return <div data-testid="messaging-dashboard">Messaging Dashboard</div>;
@@ -81,16 +69,6 @@ describe('DonorDashboard', () => {
     expect(screen.getByTestId('donor-list-food')).toBeInTheDocument();
   });
 
-  test('renders DonorRequests at /requests route', () => {
-    renderWithRouter('/requests');
-    expect(screen.getByTestId('donor-requests')).toBeInTheDocument();
-  });
-
-  test('renders DonorSearch at /search route', () => {
-    renderWithRouter('/search');
-    expect(screen.getByTestId('donor-search')).toBeInTheDocument();
-  });
-
   test('renders MessagingDashboard at /messages route', () => {
     renderWithRouter('/messages');
     expect(screen.getByTestId('messaging-dashboard')).toBeInTheDocument();
@@ -107,8 +85,8 @@ describe('DonorDashboard', () => {
   });
 
   test('all routes render within DonorLayout', () => {
-    const routes = ['/', '/dashboard', '/list', '/requests', '/search', '/messages'];
-    
+    const routes = ['/', '/dashboard', '/list', '/messages'];
+
     routes.forEach(route => {
       const { unmount } = renderWithRouter(route);
       expect(screen.getByTestId('donor-layout')).toBeInTheDocument();

@@ -6,7 +6,7 @@ import MessageNotification from '../MessageNotification';
 describe('MessageNotification', () => {
   const mockNotification = {
     senderName: 'Centroide',
-    message: 'See you tomorrow at 9 AM'
+    message: 'See you tomorrow at 9 AM',
   };
 
   const mockOnClose = jest.fn();
@@ -23,9 +23,9 @@ describe('MessageNotification', () => {
 
   it('renders notification with sender name and message', () => {
     render(
-      <MessageNotification 
-        notification={mockNotification} 
-        onClose={mockOnClose} 
+      <MessageNotification
+        notification={mockNotification}
+        onClose={mockOnClose}
       />
     );
 
@@ -35,9 +35,9 @@ describe('MessageNotification', () => {
 
   it('displays sender name in bold', () => {
     render(
-      <MessageNotification 
-        notification={mockNotification} 
-        onClose={mockOnClose} 
+      <MessageNotification
+        notification={mockNotification}
+        onClose={mockOnClose}
       />
     );
 
@@ -48,11 +48,11 @@ describe('MessageNotification', () => {
 
   it('calls onClose when close button is clicked', async () => {
     const user = userEvent.setup({ delay: null });
-    
+
     render(
-      <MessageNotification 
-        notification={mockNotification} 
-        onClose={mockOnClose} 
+      <MessageNotification
+        notification={mockNotification}
+        onClose={mockOnClose}
       />
     );
 
@@ -64,9 +64,9 @@ describe('MessageNotification', () => {
 
   it('auto-dismisses after 5 seconds', () => {
     render(
-      <MessageNotification 
-        notification={mockNotification} 
-        onClose={mockOnClose} 
+      <MessageNotification
+        notification={mockNotification}
+        onClose={mockOnClose}
       />
     );
 
@@ -80,10 +80,7 @@ describe('MessageNotification', () => {
 
   it('does not render when notification is null', () => {
     const { container } = render(
-      <MessageNotification 
-        notification={null} 
-        onClose={mockOnClose} 
-      />
+      <MessageNotification notification={null} onClose={mockOnClose} />
     );
 
     expect(container).toBeEmptyDOMElement();
@@ -91,10 +88,7 @@ describe('MessageNotification', () => {
 
   it('does not render when notification is undefined', () => {
     const { container } = render(
-      <MessageNotification 
-        notification={undefined} 
-        onClose={mockOnClose} 
-      />
+      <MessageNotification notification={undefined} onClose={mockOnClose} />
     );
 
     expect(container).toBeEmptyDOMElement();
@@ -102,9 +96,9 @@ describe('MessageNotification', () => {
 
   it('renders with correct CSS classes', () => {
     render(
-      <MessageNotification 
-        notification={mockNotification} 
-        onClose={mockOnClose} 
+      <MessageNotification
+        notification={mockNotification}
+        onClose={mockOnClose}
       />
     );
 
@@ -115,9 +109,9 @@ describe('MessageNotification', () => {
 
   it('resets timer when notification changes', () => {
     const { rerender } = render(
-      <MessageNotification 
-        notification={mockNotification} 
-        onClose={mockOnClose} 
+      <MessageNotification
+        notification={mockNotification}
+        onClose={mockOnClose}
       />
     );
 
@@ -128,13 +122,13 @@ describe('MessageNotification', () => {
     // Change notification
     const newNotification = {
       senderName: 'John Doe',
-      message: 'New message'
+      message: 'New message',
     };
 
     rerender(
-      <MessageNotification 
-        notification={newNotification} 
-        onClose={mockOnClose} 
+      <MessageNotification
+        notification={newNotification}
+        onClose={mockOnClose}
       />
     );
 
@@ -150,24 +144,27 @@ describe('MessageNotification', () => {
   it('handles long messages correctly', () => {
     const longNotification = {
       senderName: 'Jane Smith',
-      message: 'This is a very long message that should be displayed correctly in the notification box without breaking the layout or causing any issues with the design.'
+      message:
+        'This is a very long message that should be displayed correctly in the notification box without breaking the layout or causing any issues with the design.',
     };
 
     render(
-      <MessageNotification 
-        notification={longNotification} 
-        onClose={mockOnClose} 
+      <MessageNotification
+        notification={longNotification}
+        onClose={mockOnClose}
       />
     );
 
-    expect(screen.getByText(/This is a very long message/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/This is a very long message/i)
+    ).toBeInTheDocument();
   });
 
   it('cleans up timer on unmount', () => {
     const { unmount } = render(
-      <MessageNotification 
-        notification={mockNotification} 
-        onClose={mockOnClose} 
+      <MessageNotification
+        notification={mockNotification}
+        onClose={mockOnClose}
       />
     );
 

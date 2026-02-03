@@ -87,10 +87,10 @@ class GamificationControllerTest {
     }
     
     @Test
-    void getUserStats_Unauthenticated_ShouldReturn403() throws Exception {
+    void getUserStats_Unauthenticated_ShouldReturn401() throws Exception {
         // When & Then
         mockMvc.perform(get("/api/gamification/users/1/stats"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
     
     @Test

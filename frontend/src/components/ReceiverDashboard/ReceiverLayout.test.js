@@ -5,11 +5,18 @@ import { AuthContext } from '../../contexts/AuthContext';
 
 // Mock non-JS assets and heavy modules before importing the component so Jest doesn't try to
 // parse ESM node_modules (axios) or CSS/images during the test run.
-jest.mock('../../services/api', () => ({ get: jest.fn(() => Promise.resolve({ data: [] })) }));
-jest.mock('../../services/socket', () => ({ connectToUserQueue: jest.fn(), disconnect: jest.fn() }));
+jest.mock('../../services/api', () => ({
+  get: jest.fn(() => Promise.resolve({ data: [] })),
+}));
+jest.mock('../../services/socket', () => ({
+  connectToUserQueue: jest.fn(),
+  disconnect: jest.fn(),
+}));
 jest.mock('../MessagingDashboard/MessageNotification', () => () => null);
 jest.mock('./ReceiverPreferences', () => () => null);
-jest.mock('./Receiver_Styles/ReceiverLayout.css', () => ({}), { virtual: true });
+jest.mock('./Receiver_Styles/ReceiverLayout.css', () => ({}), {
+  virtual: true,
+});
 jest.mock('../../assets/Logo.png', () => 'logo.png');
 jest.mock('./pfp.png', () => 'pfp.png');
 
