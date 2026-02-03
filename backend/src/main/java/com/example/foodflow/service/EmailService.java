@@ -225,6 +225,40 @@ public class EmailService {
     }
     
     /**
+     * Send notification email for review received
+     */
+    public void sendReviewReceivedNotification(String toEmail, String userName, Map<String, Object> reviewData) {
+        log.info("Sending review received notification email to: {}", toEmail);
+        
+        try {
+            ApiClient defaultClient = Configuration.getDefaultApiClient();
+            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
+            apiKey.setApiKey(brevoApiKey);
+            
+            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+            SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+            
+            SendSmtpEmailSender sender = new SendSmtpEmailSender();
+            sender.setEmail(fromEmail);
+            sender.setName(fromName);
+            sendSmtpEmail.setSender(sender);
+            
+            SendSmtpEmailTo recipient = new SendSmtpEmailTo();
+            recipient.setEmail(toEmail);
+            sendSmtpEmail.setTo(Collections.singletonList(recipient));
+            
+            sendSmtpEmail.setSubject("New Review Received - FoodFlow");
+            sendSmtpEmail.setHtmlContent(buildReviewReceivedEmailBody(userName, reviewData));
+            
+            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            log.info("Review received notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
+        } catch (ApiException ex) {
+            log.error("Error sending review received notification to: {}", toEmail, ex);
+            // Don't throw - email is secondary to websocket notification
+        }
+    }
+    
+    /**
      * Build HTML email body for password reset
      */
     private String buildPasswordResetEmailBody(String resetCode) {
@@ -518,6 +552,90 @@ public class EmailService {
             </body>
             </html>
             """.formatted(userName, title, reason);
+    }
+    
+    /**
+     * Build HTML email body for review received notification
+     */
+    private String buildReviewReceivedEmailBody(String userName, Map<String, Object> reviewData) {
+        String reviewerName = (String) reviewData.getOrDefault("reviewerName", "A user");
+        Integer rating = (Integer) reviewData.getOrDefault("rating", 0);
+        String reviewText = (String) reviewData.getOrDefault("reviewText", "");
+        Boolean isDonorReview = (Boolean) reviewData.getOrDefault("isDonorReview", false);
+        
+        // Generate star rating display
+        String stars = "⭐".repeat(Math.max(0, Math.min(5, rating)));
+        String emptyStars = "☆".repeat(Math.max(0, 5 - rating));
+        String starDisplay = stars + emptyStars;
+        
+        // Determine review context
+        String reviewContext = isDonorReview ? "a donor" : "a receiver";
+        
+        // Determine correct settings URL based on role
+        // If isDonorReview is true, reviewee is a receiver (donor reviewed them)
+        // If isDonorReview is false, reviewee is a donor (receiver reviewed them)
+        String settingsUrl = isDonorReview ? "http://localhost:3000/receiver/settings" : "http://localhost:3000/donor/settings";
+        
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                    .header { background-color: #224d68; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+                    .content { background-color: #f9f9f9; padding: 30px; border-radius: 0 0 5px 5px; }
+                    .review-box { background-color: white; border-left: 4px solid #fbbf24; padding: 20px; margin: 20px 0; border-radius: 5px; }
+                    .stars { font-size: 24px; color: #fbbf24; margin: 15px 0; }
+                    .review-text { background-color: #f3f4f6; padding: 15px; border-radius: 5px; margin: 15px 0; font-style: italic; }
+                    .detail { margin: 10px 0; }
+                    .label { font-weight: bold; color: #224d68; }
+                    .button { display: inline-block; background-color: #224d68; color: white !important; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 20px; }
+                    a.button:visited { color: white !important; }
+                    a.button:hover { color: white !important; }
+                    a.button:active { color: white !important; }
+                    .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>⭐ New Review Received</h1>
+                    </div>
+                    <div class="content">
+                        <p>Hi %s,</p>
+                        <p>You've received a new review from %s!</p>
+                        <div class="review-box">
+                            <div class="detail"><span class="label">From:</span> %s (%s)</div>
+                            <div class="stars">%s</div>
+                            <div class="detail"><span class="label">Rating:</span> %d/5 stars</div>
+                            %s
+                        </div>
+                        <p>Your feedback helps build trust in the FoodFlow community. Keep up the great work!</p>
+                        <p style="text-align: center;">
+                            <a href="%s" class="button" style="color: white !important; text-decoration: none;">View Your Profile</a>
+                        </p>
+                    </div>
+                    <div class="footer">
+                        <p>© 2026 FoodFlow. All rights reserved.</p>
+                        <p>You're receiving this email because you have review notifications enabled in your preferences.</p>
+                        <p>To manage your notification settings, visit Settings in your FoodFlow account.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(
+                userName, 
+                reviewerName,
+                reviewerName, 
+                reviewContext,
+                starDisplay,
+                rating,
+                reviewText != null && !reviewText.isEmpty() 
+                    ? "<div class=\"review-text\">\"" + reviewText + "\"</div>" 
+                    : "",
+                settingsUrl
+            );
     }
     
     /**
