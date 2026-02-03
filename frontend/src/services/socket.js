@@ -10,13 +10,15 @@ let stompClient = null;
  * @param {Function} onClaimCancelled - Called with parsed cancellation from /user/queue/claims/cancelled
  * @param {Function} onNewPostNotification - Called with parsed new post notification from /user/queue/notifications
  * @param {Function} onAchievementUnlocked - Called with parsed achievement notification from /user/queue/achievements
+ * @param {Function} onReviewReceived - Called with parsed review notification from /user/queue/reviews
  */
 export function connectToUserQueue(
   onMessage,
   onClaimNotification,
   onClaimCancelled,
   onNewPostNotification,
-  onAchievementUnlocked
+  onAchievementUnlocked,
+  onReviewReceived
 ) {
   console.log('connectToUserQueue called');
 
@@ -139,6 +141,24 @@ export function connectToUserQueue(
           console.log('Subscribed to /user/queue/achievements');
         } catch (e) {
           console.error('Failed to subscribe to achievement notifications', e);
+        }
+
+        // Subscribe to review notifications
+        try {
+          stompClient.subscribe('/user/queue/reviews', msg => {
+            if (msg.body) {
+              try {
+                const payload = JSON.parse(msg.body);
+                console.log('Received review notification:', payload);
+                onReviewReceived && onReviewReceived(payload);
+              } catch (e) {
+                console.error('Failed to parse review notification', e);
+              }
+            }
+          });
+          console.log('Subscribed to /user/queue/reviews');
+        } catch (e) {
+          console.error('Failed to subscribe to review notifications', e);
         }
       },
       onStompError: frame => {

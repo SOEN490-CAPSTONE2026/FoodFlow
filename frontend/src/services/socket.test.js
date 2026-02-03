@@ -82,13 +82,15 @@ describe('socket service', () => {
     const onCancel = jest.fn();
     const onNewPost = jest.fn();
     const onAchievement = jest.fn();
+    const onReview = jest.fn();
 
     socketService.connectToUserQueue(
       onMessage,
       onClaim,
       onCancel,
       onNewPost,
-      onAchievement
+      onAchievement,
+      onReview
     );
 
     const client = stompModule.__getLastClient();
@@ -140,7 +142,7 @@ describe('socket service', () => {
     const onCancel = jest.fn();
     const onNewPost = jest.fn();
 
-    socketService.connectToUserQueue(onMessage, onClaim, onCancel, onNewPost);
+    socketService.connectToUserQueue(onMessage, onClaim, onCancel, onNewPost, null, null);
     const client = triggerConnect();
     client.__getSubscriptions().forEach(s => s.cb({}));
 
@@ -154,7 +156,7 @@ describe('socket service', () => {
     localStorage.setItem('jwtToken', 'abc.def.ghi');
     process.env.REACT_APP_WS_URL = 'https://api.example.com/ws';
 
-    socketService.connectToUserQueue(jest.fn(), jest.fn(), jest.fn());
+    socketService.connectToUserQueue(jest.fn(), jest.fn(), jest.fn(), null, null, null);
 
     const client = stompModule.__getLastClient();
 
@@ -198,7 +200,7 @@ describe('socket service', () => {
   test('disconnect deactivates and resets so a new client is created next time', () => {
     const baseLen = stompModule.__getAllClients().length;
 
-    socketService.connectToUserQueue(jest.fn(), jest.fn(), jest.fn());
+    socketService.connectToUserQueue(jest.fn(), jest.fn(), jest.fn(), null, null, null);
     const first = stompModule.__getLastClient();
     const lenAfterFirst = stompModule.__getAllClients().length;
     expect(lenAfterFirst).toBe(baseLen + 1);
@@ -207,7 +209,7 @@ describe('socket service', () => {
     socketService.disconnect();
     expect(first.deactivate).toHaveBeenCalledTimes(1);
 
-    socketService.connectToUserQueue(jest.fn(), jest.fn(), jest.fn());
+    socketService.connectToUserQueue(jest.fn(), jest.fn(), jest.fn(), null, null, null);
     const second = stompModule.__getLastClient();
     const lenAfterSecond = stompModule.__getAllClients().length;
 

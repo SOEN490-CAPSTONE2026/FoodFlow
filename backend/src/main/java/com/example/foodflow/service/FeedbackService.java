@@ -7,9 +7,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +37,8 @@ import com.example.foodflow.service.AlertService;
 @Transactional
 public class FeedbackService {
 
+    private static final Logger logger = LoggerFactory.getLogger(FeedbackService.class);
+
     @Autowired
     private FeedbackRepository feedbackRepository;
 
@@ -42,6 +47,15 @@ public class FeedbackService {
 
     @Autowired(required = false) // Optional dependency
     private AlertService alertService;
+
+    @Autowired(required = false) // Optional dependency for websocket notifications
+    private SimpMessagingTemplate messagingTemplate;
+
+    @Autowired(required = false) // Optional dependency for notification preferences
+    private NotificationPreferenceService notificationPreferenceService;
+
+    @Autowired(required = false) // Optional dependency for email notifications
+    private EmailService emailService;
 
     @Value("${app.rating.low-threshold:2.0}")
     private Double lowRatingThreshold;
@@ -85,6 +99,9 @@ public class FeedbackService {
 
         // Check if this triggers a low rating alert for the reviewee
         checkAndTriggerLowRatingAlert(reviewee);
+
+        // Send websocket notification to the reviewee
+        sendReviewNotification(feedback, reviewer, reviewee);
 
         return convertToResponseDTO(feedback);
     }
@@ -321,6 +338,93 @@ public class FeedbackService {
 
             triggerLowRatingAlert(user, rating);
         }
+    }
+
+    /**
+     * Send websocket notification to the reviewee when they receive a review
+     */
+    private void sendReviewNotification(Feedback feedback, User reviewer, User reviewee) {
+        if (messagingTemplate == null) {
+            logger.warn("SimpMessagingTemplate not available, skipping review notification");
+            return;
+        }
+
+        // Determine notification type based on who is receiving the notification
+        String notificationType;
+        boolean isDonorBeingReviewed = reviewee.getId().equals(feedback.getClaim().getSurplusPost().getDonor().getId());
+        
+        if (isDonorBeingReviewed) {
+            // Donor is being reviewed (by receiver), so check donor's "receiverReview" preference
+            notificationType = "receiverReview";
+        } else {
+            // Receiver is being reviewed (by donor), so check receiver's "donorReview" preference
+            notificationType = "donorReview";
+        }
+
+        // Check if user has this notification type enabled
+        if (notificationPreferenceService != null && 
+            !notificationPreferenceService.shouldSendNotification(reviewee, notificationType, "websocket")) {
+            logger.info("Skipping review notification to userId={} - notification type {} disabled", 
+                reviewee.getId(), notificationType);
+            return;
+        }
+
+        try {
+            Map<String, Object> notification = new HashMap<>();
+            notification.put("type", "REVIEW_RECEIVED");
+            notification.put("feedbackId", feedback.getId());
+            notification.put("claimId", feedback.getClaim().getId());
+            notification.put("reviewerId", reviewer.getId());
+            notification.put("reviewerName", getReviewerDisplayName(reviewer));
+            notification.put("rating", feedback.getRating());
+            notification.put("reviewText", feedback.getReviewText());
+            notification.put("timestamp", System.currentTimeMillis());
+            notification.put("isDonorReview", !isDonorBeingReviewed); // If donor is being reviewed, then reviewer is receiver
+            
+            messagingTemplate.convertAndSendToUser(
+                reviewee.getId().toString(),
+                "/queue/reviews",
+                notification
+            );
+            
+            logger.info("Sent review notification to userId={} for feedbackId={} (type: {})", 
+                reviewee.getId(), feedback.getId(), notificationType);
+        } catch (Exception e) {
+            logger.error("Failed to send review notification to userId={}: {}", 
+                reviewee.getId(), e.getMessage(), e);
+            // Don't fail the whole operation if notification fails
+        }
+        
+        // Send email notification if user has email notifications enabled
+        if (notificationPreferenceService != null && emailService != null &&
+            notificationPreferenceService.shouldSendNotification(reviewee, notificationType, "email")) {
+            try {
+                String userName = getUserDisplayName(reviewee);
+                Map<String, Object> emailData = new HashMap<>();
+                emailData.put("reviewerName", getReviewerDisplayName(reviewer));
+                emailData.put("rating", feedback.getRating());
+                emailData.put("reviewText", feedback.getReviewText());
+                emailData.put("isDonorReview", !isDonorBeingReviewed);
+                
+                emailService.sendReviewReceivedNotification(reviewee.getEmail(), userName, emailData);
+                logger.info("Sent email review notification to userId={} for feedbackId={}", 
+                    reviewee.getId(), feedback.getId());
+            } catch (Exception e) {
+                logger.error("Failed to send email review notification to userId={}: {}", 
+                    reviewee.getId(), e.getMessage());
+                // Don't fail the whole operation if email fails
+            }
+        }
+    }
+
+    /**
+     * Get display name for reviewer
+     */
+    private String getReviewerDisplayName(User user) {
+        if (user.getOrganization() != null && user.getOrganization().getName() != null) {
+            return user.getOrganization().getName();
+        }
+        return user.getEmail();
     }
 
     /**

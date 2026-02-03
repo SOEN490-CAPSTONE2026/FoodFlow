@@ -226,12 +226,25 @@ function ReceiverLayoutContent() {
       setAchievementNotification(payload);
     };
 
+    const onReviewReceived = payload => {
+      console.log('RECEIVER: Review received:', payload);
+      // Show a notification to the receiver that they received a review
+      if (payload.rating) {
+        const stars = '⭐'.repeat(payload.rating);
+        showNotification(
+          payload.reviewerName || 'Donor',
+          `left you a ${payload.rating}-star review ${stars}`
+        );
+      }
+    };
+
     connectToUserQueue(
       onMessage,
       onClaimNotification,
       onClaimCancelled,
       onNewPostNotification,
-      onAchievementUnlocked
+      onAchievementUnlocked,
+      onReviewReceived
     );
     return () => {
       try {

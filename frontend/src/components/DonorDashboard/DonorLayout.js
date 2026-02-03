@@ -191,12 +191,25 @@ export default function DonorLayout() {
       setAchievementNotification(payload);
     };
 
+    const onReviewReceived = payload => {
+      console.log('DONOR: Review received:', payload);
+      // Show a notification to the donor that they received a review
+      if (payload.rating) {
+        const stars = '⭐'.repeat(payload.rating);
+        setNotification({
+          senderName: payload.reviewerName || 'Receiver',
+          message: `left you a ${payload.rating}-star review ${stars}`,
+        });
+      }
+    };
+
     connectToUserQueue(
       onMessage,
       onClaimNotification,
       onClaimCancelled,
       null, // no new post notifications for donors
-      onAchievementUnlocked
+      onAchievementUnlocked,
+      onReviewReceived
     );
     return () => {
       try {
