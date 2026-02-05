@@ -17,7 +17,7 @@
       "description": "Users who share surplus food with the community",
       "primary_actions": ["Create donations", "Manage active donations", "Communicate with receivers", "Verify pickup codes at pickup", "Rate receivers"],
       "dashboard_sections": ["Create Donation", "My Active Donations", "Donation History", "Messages", "Profile Settings"],
-      "common_questions": ["How do I post food?", "Where is my pickup code?", "How to message receivers?", "How to cancel a donation?"],
+      "common_questions": ["How do I post food?", "How do I verify the pickup code?", "How to message receivers?", "How to cancel a donation?"],
       "permissions": ["create_donations", "manage_own_donations", "message_receivers", "verify_pickup_codes"]
     },
     "RECEIVER": {
@@ -51,13 +51,13 @@
         "Post food donation with details (type, quantity, location, expiry)",
         "Wait for receivers to claim the donation",
         "Communicate with receiver via in-app messaging",
-        "Verify pickup code provided by receiver at pickup",
+        "Enter the pickup code shown by the receiver in the app to confirm pickup",
         "Mark donation as completed after successful pickup"
       ],
       "key_features": [
         "Upload photos of food items",
         "Set pickup time windows",
-        "Coordinate pickup timing and verify receiver's pickup code",
+        "Coordinate pickup timing and enter the receiver's pickup code to confirm pickup",
         "Rate receivers after successful donations"
       ]
     },
@@ -69,7 +69,7 @@
         "Claim desired food donations",
         "Message donor to coordinate pickup details",
         "Arrive at pickup location at agreed time",
-        "Provide pickup code to donor for verification",
+        "Show pickup code to donor for verification (donor enters it in the app)",
         "Collect food and mark as received"
       ],
       "key_features": [
@@ -104,7 +104,9 @@
       "usage": "Receivers show this OTP to donors during food pickup for verification",
       "security": "Ensures legitimate pickups and prevents unauthorized collection",
       "visibility": "Only visible to receivers during active pickup windows",
-      "location": "Displayed in receiver's claim details (pickup steps) when the pickup window is open"
+      "location": "Displayed in receiver's claim details (pickup steps) when the pickup window is open",
+      "donor_access": "Donors do not generate or view OTPs; they only verify the code shown by the receiver",
+      "donor_action": "Donors confirm pickup by entering the receiver's OTP in the app"
     }
   },
 
@@ -139,7 +141,8 @@
       "providing_pickup_code": "RECEIVERS: Show OTP to donor in person during pickup for verification",
       "pickup_locations": "Set by donors, can be home address or public meeting point",
       "timing": "Coordinate pickup times via messaging, OTP becomes active during agreed window",
-      "verification_process": "Receiver shows OTP → Donor verifies → Food handoff completed"
+      "verification_process": "Receiver shows OTP → Donor enters OTP in app → Food handoff completed",
+      "donor_confirmation": "DONORS: You confirm pickup by entering the receiver's OTP in the app. You never generate or display the OTP."
     }
   },
 
@@ -160,7 +163,7 @@
     "claiming_issues": {
       "claim_failed": "Donation may have just been claimed by another user. Try refreshing the page and browsing for other available options.",
       "cannot_find_claimed_donation": "Check 'My Claims' section in your dashboard. Look for claim confirmation email. Ensure you're logged into the correct account.",
-      "pickup_coordination_problems": "Use the messaging system to contact the donor. Be specific about your availability and location questions. Provide pickup code when requested."
+      "pickup_coordination_problems": "Use the messaging system to contact the donor. Be specific about your availability and location questions. Receivers should provide the pickup code when requested."
     },
     "messaging_issues": {
       "cannot_send_message": "Messaging is only available after a claim is made and approved by the donor. Check that your claim status is 'APPROVED'.",
@@ -169,9 +172,10 @@
     },
     "pickup_code_issues": {
       "missing_pickup_code": "RECEIVERS: OTP appears in claim details during active pickup window. Check claim status and pickup time.",
-      "pickup_code_not_working": "Ensure pickup window is active. OTP is only valid during scheduled pickup time. Contact donor if issues persist.",
+      "pickup_code_not_working": "RECEIVERS: Ensure pickup window is active. OTP is only valid during scheduled pickup time. Contact the donor if issues persist.",
       "where_to_find_pickup_code": "Receivers: Go to 'My Claims' → Select your claim → Pickup steps → OTP appears when pickup window is active",
-      "pickup_window_not_active": "Coordinate with donor via messages to confirm pickup time. OTP only appears during agreed pickup window."
+      "pickup_window_not_active": "Coordinate with donor via messages to confirm pickup time. OTP only appears during agreed pickup window.",
+      "donor_no_code": "DONORS: You will not see the OTP. Ask the receiver to show it at pickup and enter it in the Confirm Pickup screen."
     },
     "technical_issues": {
       "app_not_loading": "Check internet connection. Try different browser. Clear cache and cookies. Disable browser extensions temporarily.",

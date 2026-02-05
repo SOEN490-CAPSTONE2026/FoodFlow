@@ -143,6 +143,8 @@ public class ContextualSupportService {
             if ("DONOR".equals(userRole)) {
                 context.append("- Can create and manage food donations\n");
                 context.append("- Can verify pickup codes shown by receivers during pickup\n");
+                context.append("- Cannot generate or view pickup codes\n");
+                context.append("- Confirms pickup by entering the receiver's OTP in the app\n");
                 context.append("- Can message receivers who claim their donations\n");
                 context.append("- Can rate receivers after successful pickups\n");
             } else if ("RECEIVER".equals(userRole)) {
@@ -179,6 +181,8 @@ public class ContextualSupportService {
                         8. Keep responses concise but complete (2-5 sentences for simple questions, more for complex workflows)
                         9. If multiple solutions exist, mention the most common/easiest first
                         10. Always be aware of what the user CAN and CANNOT do based on their role
+                        11. Pickup codes are only visible to receivers; donors never generate or view them (they only verify).
+                        12. If explaining donor pickup steps, state that the receiver shows the OTP and the donor enters it in the app to confirm pickup.
 
                         SPECIAL HANDLING - CONTACT SUPPORT QUESTIONS:
                         When users ask about "contact support" or "reach support team":
@@ -189,7 +193,7 @@ public class ContextualSupportService {
                         - Action buttons will be automatically provided for direct contact
 
                         ROLE-SPECIFIC GUIDANCE:
-                        - For DONORS: Focus on donation creation, management, messaging receivers, pickup codes
+                        - For DONORS: Focus on donation creation, management, messaging receivers, and verifying pickup codes by entering the receiver's OTP
                         - For RECEIVERS: Focus on finding/claiming food, messaging donors, pickup process
                         - For ADMINS: Focus on moderation, user management, system features
 
