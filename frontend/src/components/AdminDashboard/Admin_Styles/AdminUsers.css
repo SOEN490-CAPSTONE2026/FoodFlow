@@ -1194,7 +1194,7 @@
 
 /* User Detail Modal */
 .modal-user-detail {
-  max-width: 1000px;
+  max-width: 90vw;
   width: 95%;
   max-height: 90vh;
   overflow-y: auto;
