@@ -67,6 +67,12 @@ public class SurplusService {
     @Value("${pickup.tolerance.late-minutes:15}")
     private int lateToleranceMinutes;
 
+    @Value("${distance.filter.default-radius-km:10}")
+    private double defaultRadiusKm;
+
+    @Value("${distance.filter.max-radius-km:25}")
+    private double maxRadiusKm;
+
     public SurplusService(SurplusPostRepository surplusPostRepository,
             ClaimRepository claimRepository,
             PickupSlotValidationService pickupSlotValidationService,
@@ -732,23 +738,65 @@ public class SurplusService {
 
     /**
      * Search surplus posts for a receiver with times converted to their timezone.
+     * If location is provided, calculates distances and includes them in responses.
+     * Applies distance filtering and sorting.
      * 
-     * @param filterRequest Filter criteria
+     * @param filterRequest Filter criteria (may include location and radius)
      * @param receiver      The receiver user (for timezone conversion)
-     * @return List of surplus posts with times in receiver's timezone
+     * @return List of surplus posts with times in receiver's timezone, sorted by distance if location provided
      */
     public List<SurplusResponse> searchSurplusPostsForReceiver(SurplusFilterRequest filterRequest, User receiver) {
+        // Validate and apply max radius limit
+        if (filterRequest.getMaxDistanceKm() != null && filterRequest.getMaxDistanceKm() > maxRadiusKm) {
+            throw new IllegalArgumentException(
+                "Distance radius cannot exceed " + maxRadiusKm + " km. Requested: " + filterRequest.getMaxDistanceKm() + " km");
+        }
+        
+        // Build specification for database filtering
         Specification<SurplusPost> specification = buildSpecificationFromFilter(filterRequest);
-
         List<SurplusPost> posts = surplusPostRepository.findAll(specification);
 
         String receiverTimezone = receiver != null && receiver.getTimezone() != null
                 ? receiver.getTimezone()
                 : "UTC";
 
-        return posts.stream()
+        // Convert posts to responses with timezone conversion
+        List<SurplusResponse> responses = posts.stream()
                 .map(post -> convertToResponseForReceiver(post, receiverTimezone))
                 .collect(Collectors.toList());
+
+        // If location filtering is requested, calculate distances and apply additional filtering
+        if (filterRequest.hasLocationFilter()) {
+            com.example.foodflow.model.types.Location receiverLocation = filterRequest.getUserLocation();
+            double radiusKm = filterRequest.getMaxDistanceKm();
+
+            // Calculate distance for each post and filter by radius
+            responses = responses.stream()
+                    .map(response -> {
+                        if (response.getPickupLocation() != null &&
+                                response.getPickupLocation().getLatitude() != null &&
+                                response.getPickupLocation().getLongitude() != null) {
+                            // Calculate distance using Haversine formula
+                            double distance = receiverLocation.distanceTo(response.getPickupLocation());
+                            response.setDistanceKm(Math.round(distance * 10.0) / 10.0); // Round to 1 decimal place
+                        }
+                        return response;
+                    })
+                    .filter(response -> response.getDistanceKm() == null || response.getDistanceKm() <= radiusKm)
+                    .sorted((r1, r2) -> {
+                        // Sort by distance (null distances go last)
+                        if (r1.getDistanceKm() == null && r2.getDistanceKm() == null) return 0;
+                        if (r1.getDistanceKm() == null) return 1;
+                        if (r2.getDistanceKm() == null) return -1;
+                        return Double.compare(r1.getDistanceKm(), r2.getDistanceKm());
+                    })
+                    .collect(Collectors.toList());
+
+            // Track distance calculation metric
+            businessMetricsService.incrementDistanceCalculations();
+        }
+
+        return responses;
     }
 
     /**

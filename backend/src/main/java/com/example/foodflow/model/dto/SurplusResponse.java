@@ -50,6 +50,9 @@ public class SurplusResponse {
     private String receiverEmail;
     private String receiverOrganization;
 
+    // Distance from receiver location (computed dynamically, in kilometers)
+    private Double distanceKm;
+
     // Constructors
     public SurplusResponse() {
     }
@@ -310,5 +313,13 @@ public class SurplusResponse {
 
     public void setReceiverOrganization(String receiverOrganization) {
         this.receiverOrganization = receiverOrganization;
+    }
+
+    public Double getDistanceKm() {
+        return distanceKm;
+    }
+
+    public void setDistanceKm(Double distanceKm) {
+        this.distanceKm = distanceKm;
     }
 }

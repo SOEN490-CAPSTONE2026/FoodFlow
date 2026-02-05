@@ -103,6 +103,7 @@ public class SurplusController {
      * Alternative GET endpoint for basic filtering via query parameters.
      * Useful for simple filters without complex objects like Location.
      * Times are converted to receiver's timezone.
+     * Supports distance-based filtering with receiverLat, receiverLng, and radiusKm.
      */
     @GetMapping("/search")
     @PreAuthorize("hasAuthority('RECEIVER')")
@@ -110,29 +111,52 @@ public class SurplusController {
             @RequestParam(required = false) List<String> foodCategories,
             @RequestParam(required = false) String expiryBefore,
             @RequestParam(required = false) String status,
+            @RequestParam(required = false) Double receiverLat,
+            @RequestParam(required = false) Double receiverLng,
+            @RequestParam(required = false) Double radiusKm,
             @AuthenticationPrincipal User receiver) {
-
 
         // Create filter request from query parameters
         SurplusFilterRequest filterRequest = new SurplusFilterRequest();
         filterRequest.setFoodCategories(foodCategories);
         filterRequest.setStatus(status != null ? status : "AVAILABLE");
 
+        // Parse expiry date if provided
         if (expiryBefore != null && !expiryBefore.trim().isEmpty()) {
-
             try {
-
                 filterRequest.setExpiryBefore(java.time.LocalDate.parse(expiryBefore));
-
             } catch (Exception e) {
                 // Log the error and continue without expiry filter
                 System.err.println("Invalid expiryBefore format: " + expiryBefore);
             }
-
         }
+
+        // Handle location-based filtering
+        if (receiverLat != null && receiverLng != null) {
+            // Validate coordinates
+            if (receiverLat < -90 || receiverLat > 90) {
+                return ResponseEntity.badRequest().build();
+            }
+            if (receiverLng < -180 || receiverLng > 180) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            com.example.foodflow.model.types.Location location = 
+                new com.example.foodflow.model.types.Location(receiverLat, receiverLng, null);
+            filterRequest.setUserLocation(location);
+            
+            // Use provided radius or default from receiver's preferences or system default
+            if (radiusKm != null && radiusKm > 0) {
+                filterRequest.setMaxDistanceKm(radiusKm);
+            } else {
+                // Could potentially get from receiver preferences here
+                // For now, use a sensible default if not specified
+                filterRequest.setMaxDistanceKm(10.0); // Default 10km
+            }
+        }
+
         List<SurplusResponse> filteredPosts = surplusService.searchSurplusPostsForReceiver(filterRequest, receiver);
         return ResponseEntity.ok(filteredPosts);
-
     }
 
 
