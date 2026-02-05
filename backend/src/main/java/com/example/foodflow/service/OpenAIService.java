@@ -16,13 +16,12 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Service for making OpenAI API calls with enhanced security and monitoring.
- * Handles communication with OpenAI's Chat Completions API using gpt-4o-mini
- * model.
+ * Handles communication with OpenAI's Chat Completions API using gpt-4o-mini model.
  * Includes input validation and usage logging for cost control.
  */
 @Service
 public class OpenAIService {
-
+    
     private static final Logger logger = LoggerFactory.getLogger(OpenAIService.class);
 
     @Value("${app.openai.api-key}")
@@ -41,7 +40,7 @@ public class OpenAIService {
     private final ObjectMapper objectMapper;
 
     private static final String OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
-
+    
     // Security limits
     private static final int MAX_MESSAGE_LENGTH = 2000; // Limit user input length
     private static final int MAX_CONTEXT_LENGTH = 5000; // Limit context size
@@ -124,20 +123,7 @@ public class OpenAIService {
                 helpMessage.put("content", "Help pack information: " + content);
                 messagesArray.add(helpMessage);
             }
-                helpMessage.put("role", "system");
-                helpMessage.put("content", "Help pack information: " + helpPackContent);
-                messagesArray.add(helpMessage);
-            }
 
-            // User message
-            var userMsg = objectMapper.createObjectNode();
-            userMsg.put("role", "user");
-            userMsg.put("content", userMessage);
-            messagesArray.add(userMsg);
-
-            requestBody.set("messages", messagesArray);
-
-            // Create request
             // User message (sanitized)
             var userMsg = objectMapper.createObjectNode();
             userMsg.put("role", "user");
@@ -187,14 +173,11 @@ public class OpenAIService {
                 return getEscalationMessage(userLanguage);
             }
 
-        }catch(
-
-    Exception e)
-    {
-        long duration = System.currentTimeMillis() - startTime;
-        logger.error("OpenAI API request failed after {}ms", duration, e);
-        return getEscalationMessage(userLanguage);
-    }
+        } catch (Exception e) {
+            long duration = System.currentTimeMillis() - startTime;
+            logger.error("OpenAI API request failed after {}ms", duration, e);
+            return getEscalationMessage(userLanguage);
+        }
     }
 
     /**
@@ -205,60 +188,60 @@ public class OpenAIService {
         if (userMessage == null || userMessage.trim().isEmpty()) {
             return false;
         }
-
+        
         if (userMessage.length() > MAX_MESSAGE_LENGTH) {
             logger.warn("User message exceeds maximum length: {} characters", userMessage.length());
             return false;
         }
-
+        
         // Check for suspicious patterns
         if (containsSuspiciousPatterns(userMessage)) {
             return false;
         }
-
+        
         // Check help pack content size
         if (helpPackContent != null && helpPackContent.length() > MAX_CONTEXT_LENGTH * 2) {
             logger.warn("Help pack content exceeds maximum length");
             return false;
         }
-
+        
         // Check support context size
         if (supportContext != null && supportContext.toString().length() > MAX_CONTEXT_LENGTH * 2) {
             logger.warn("Support context exceeds maximum length");
             return false;
         }
-
+        
         return true;
     }
-
+    
     /**
      * Check for suspicious patterns that might indicate abuse
      */
     private boolean containsSuspiciousPatterns(String input) {
         String lowercaseInput = input.toLowerCase();
-
+        
         // Check for potential prompt injection attempts
         String[] suspiciousPatterns = {
-                "ignore previous", "forget everything", "new instruction", "system:",
-                "assistant:", "role:", "behave like", "pretend to be", "act as",
-                "\\n\\n", "---", "###", "```"
+            "ignore previous", "forget everything", "new instruction", "system:",
+            "assistant:", "role:", "behave like", "pretend to be", "act as",
+            "\\n\\n", "---", "###", "```"
         };
-
+        
         for (String pattern : suspiciousPatterns) {
             if (lowercaseInput.contains(pattern)) {
                 logger.warn("Suspicious pattern detected in user input: {}", pattern);
                 return true;
             }
         }
-
+        
         // Check for excessive repetition (potential spam)
         if (hasExcessiveRepetition(input)) {
             return true;
         }
-
+        
         return false;
     }
-
+    
     /**
      * Check for excessive character/word repetition
      */
@@ -278,10 +261,10 @@ public class OpenAIService {
                 return true;
             }
         }
-
+        
         return false;
     }
-
+    
     /**
      * Sanitize user input to remove potentially harmful content
      */
@@ -289,18 +272,16 @@ public class OpenAIService {
         if (input == null) {
             return "";
         }
-
+        
         // Remove excessive whitespace and normalize
         String sanitized = input.trim().replaceAll("\\s+", " ");
-
+        
         // Limit length
         if (sanitized.length() > MAX_MESSAGE_LENGTH) {
             sanitized = sanitized.substring(0, MAX_MESSAGE_LENGTH) + "...";
         }
-
+        
         return sanitized;
-    }
-
     }
 
     /**

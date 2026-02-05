@@ -143,5 +143,4 @@ public class SupportController {
         RateLimitingService.RateLimitStats stats = rateLimitingService.getStats();
         return ResponseEntity.ok(stats);
     }
-    }
 }
