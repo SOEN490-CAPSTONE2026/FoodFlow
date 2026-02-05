@@ -1,0 +1,254 @@
+{
+  "app_overview": {
+    "name": "FoodFlow",
+    "purpose": "A platform for sharing surplus food to reduce food waste",
+    "user_roles": ["DONOR", "RECEIVER", "ADMIN"],
+    "main_features": [
+      "Create and manage food donations",
+      "Claim available food donations", 
+      "Real-time messaging between donors and receivers",
+      "Profile and account management",
+      "Multi-language support (EN/FR/ES/PT/AR/ZH)"
+    ]
+  },
+  
+  "user_account_types": {
+    "DONOR": {
+      "description": "Users who share surplus food with the community",
+      "primary_actions": ["Create donations", "Manage active donations", "Communicate with receivers", "Generate pickup codes", "Rate receivers"],
+      "dashboard_sections": ["Create Donation", "My Active Donations", "Donation History", "Messages", "Profile Settings"],
+      "common_questions": ["How do I post food?", "Where is my pickup code?", "How to message receivers?", "How to cancel a donation?"],
+      "permissions": ["create_donations", "manage_own_donations", "message_receivers", "generate_pickup_codes"]
+    },
+    "RECEIVER": {
+      "description": "Users who claim and collect shared food from the community",
+      "primary_actions": ["Browse available food", "Claim donations", "Communicate with donors", "Provide pickup codes", "Rate donors"],
+      "dashboard_sections": ["Browse Food", "My Claims", "Claim History", "Messages", "Profile Settings"],
+      "common_questions": ["How do I find food?", "Where is my pickup code?", "How to message donors?", "How to cancel a claim?"],
+      "permissions": ["browse_donations", "claim_donations", "message_donors", "use_pickup_codes"]
+    },
+    "ADMIN": {
+      "description": "Platform administrators who manage users and content",
+      "primary_actions": ["Moderate content", "Manage users", "Handle disputes", "Review reports", "System administration"],
+      "dashboard_sections": ["User Management", "Content Moderation", "Reports", "Analytics", "System Settings"],
+      "common_questions": ["How to moderate content?", "How to handle user reports?", "How to manage disputes?"],
+      "permissions": ["moderate_content", "manage_users", "handle_reports", "system_admin"]
+    }
+  },
+
+  "user_preferences": {
+    "language_options": ["en", "fr", "es", "pt", "ar", "zh"],
+    "notification_settings": ["email_notifications", "push_notifications", "sms_notifications"],
+    "privacy_settings": ["profile_visibility", "location_sharing", "contact_preferences"],
+    "accessibility_options": ["screen_reader_support", "high_contrast_mode", "large_text"]
+  },
+
+  "user_workflows": {
+    "donor_workflow": {
+      "description": "How donors share surplus food",
+      "steps": [
+        "Create account with donor role",
+        "Post food donation with details (type, quantity, location, expiry)",
+        "Wait for receivers to claim the donation",
+        "Communicate with receiver via in-app messaging",
+        "Provide pickup code when receiver arrives",
+        "Mark donation as completed after successful pickup"
+      ],
+      "key_features": [
+        "Upload photos of food items",
+        "Set pickup time windows",
+        "Generate and share pickup codes",
+        "Rate receivers after successful donations"
+      ]
+    },
+    "receiver_workflow": {
+      "description": "How receivers claim and collect food",
+      "steps": [
+        "Create account with receiver role",
+        "Browse available donations in their area",
+        "Claim desired food donations",
+        "Message donor to coordinate pickup details",
+        "Arrive at pickup location at agreed time",
+        "Provide pickup code to donor for verification",
+        "Collect food and mark as received"
+      ],
+      "key_features": [
+        "Filter donations by location, food type, availability",
+        "View donation details and photos",
+        "Communicate with donors via messaging",
+        "Rate donors after successful pickups"
+      ]
+    }
+  },
+
+  "key_concepts": {
+    "donations": {
+      "description": "Food items shared by donors",
+      "statuses": ["AVAILABLE", "CLAIMED", "COMPLETED", "CANCELLED"],
+      "required_info": ["food_type", "quantity", "expiry_date", "pickup_location"],
+      "optional_info": ["photos", "description", "dietary_restrictions"]
+    },
+    "claims": {
+      "description": "Receiver requests for specific donations",
+      "process": "Receiver claims → Donor approves → Coordinate pickup → Exchange food",
+      "verification": "Pickup codes ensure security and proper handoff"
+    },
+    "messaging": {
+      "description": "Built-in chat system for donors and receivers",
+      "purpose": "Coordinate pickup details, ask questions about food items",
+      "access": "Available after a claim is made"
+    },
+    "pickup_codes": {
+      "description": "Security codes (OTP) generated for receivers during pickup windows",
+      "generation": "Automatically generated when pickup window becomes active",
+      "usage": "Receivers show this OTP to donors during food pickup for verification",
+      "security": "Ensures legitimate pickups and prevents unauthorized collection",
+      "visibility": "Only visible to receivers during active pickup windows",
+      "location": "Displayed in receiver's claim details when pickup window is open"
+    }
+  },
+
+  "common_user_questions": {
+    "getting_started": {
+      "account_creation": "Users can register as donors, receivers, or both. Email verification required. Choose role based on primary use.",
+      "profile_setup": "Add personal info, location (for distance calculations), language preference, profile photo, and notification settings",
+      "language_change": "Available in Settings → Language preference. Supports EN/FR/ES/PT/AR/ZH with immediate interface updates",
+      "role_switching": "Users can have both donor and receiver capabilities. Set primary role in profile settings."
+    },
+    "donations": {
+      "how_to_donate": "Go to Create Donation → Fill details → Add photos → Post",
+      "edit_donations": "Manage Donations → Select item → Edit details",
+      "donation_visibility": "Visible to receivers within your set radius",
+      "cancelling": "Available until someone claims the donation"
+    },
+    "claiming": {
+      "how_to_claim": "Browse donations → Select item → Click Claim",
+      "multiple_claims": "Receivers can claim multiple donations simultaneously",
+      "claim_limits": "No strict limits, but consider what you can actually collect"
+    },
+    "communication": {
+      "messaging_system": "Built-in chat available between donors and receivers after claim is made and approved",
+      "messaging_donors": "Receivers can message donors after successful claim. Access via Messages tab or claim details page",
+      "messaging_receivers": "Donors can message receivers after claim approval. Access via Messages tab or donation details page",
+      "coordinating_pickup": "Discuss timing, exact location, special instructions, dietary questions, quantity adjustments",
+      "message_etiquette": "Be respectful, respond promptly, confirm pickup details, notify of changes or delays",
+      "blocked_users": "Users can block inappropriate contacts. Reported users may be suspended by admins"
+    },
+    "pickup_process": {
+      "getting_pickup_code": "RECEIVERS: OTP automatically appears in claim details during active pickup window",
+      "providing_pickup_code": "RECEIVERS: Show OTP to donor in person during pickup for verification",
+      "pickup_locations": "Set by donors, can be home address or public meeting point",
+      "timing": "Coordinate pickup times via messaging, OTP becomes active during agreed window",
+      "verification_process": "Receiver shows OTP → Donor verifies → Food handoff completed"
+    }
+  },
+
+  "troubleshooting": {
+    "account_issues": {
+      "email_verification": "Check spam folder first. Click 'Resend verification' on login page. Email should arrive within 5 minutes. Contact support if still missing after 15 minutes.",
+      "password_reset": "Use 'Forgot Password' link on login page. Check email (including spam). Reset link expires in 24 hours. If no email arrives, ensure you're using the correct email address.",
+      "profile_updates_not_saving": "Changes save automatically after clicking 'Save'. If changes don't appear, refresh page. Clear browser cache if problem persists.",
+      "language_not_changing": "Go to Settings → Language → Select preferred option → Click 'Save Changes'. Interface should update immediately. Refresh page if needed.",
+      "account_locked": "Account may be temporarily suspended. Check email for notification. Contact support if you believe this is an error."
+    },
+    "donation_issues": {
+      "donation_not_showing": "Check if donation is still active. Verify location radius covers your area. Ensure donation hasn't expired or been claimed by someone else.",
+      "cannot_edit_donation": "Once claimed by a receiver, donations can only be cancelled, not edited. Contact the receiver via Messages to discuss changes.",
+      "no_claims_on_donation": "Try: Adding more photos and detailed description, adjusting pickup radius to wider area, checking expiry date isn't too soon, posting during peak hours (evening/weekends).",
+      "donation_disappeared": "Donation may have expired, been claimed, or removed by admin. Check 'My Donations' history for status updates."
+    },
+    "claiming_issues": {
+      "claim_failed": "Donation may have just been claimed by another user. Try refreshing the page and browsing for other available options.",
+      "cannot_find_claimed_donation": "Check 'My Claims' section in your dashboard. Look for claim confirmation email. Ensure you're logged into the correct account.",
+      "pickup_coordination_problems": "Use the messaging system to contact the donor. Be specific about your availability and location questions. Provide pickup code when requested."
+    },
+    "messaging_issues": {
+      "cannot_send_message": "Messaging is only available after a claim is made and approved by the donor. Check that your claim status is 'APPROVED'.",
+      "messages_not_loading": "Check internet connection. Refresh page. Clear browser cache. Try logging out and back in.",
+      "inappropriate_messages": "Report users via their profile page. Block users to stop receiving messages. Admins review all reports within 24 hours."
+    },
+    "pickup_code_issues": {
+      "missing_pickup_code": "RECEIVERS: OTP appears in claim details during active pickup window. Check claim status and pickup time.",
+      "pickup_code_not_working": "Ensure pickup window is active. OTP is only valid during scheduled pickup time. Contact donor if issues persist.",
+      "where_to_find_pickup_code": "Receivers: Go to 'My Claims' → Select your claim → OTP appears when pickup window is active",
+      "pickup_window_not_active": "Coordinate with donor via messages to confirm pickup time. OTP only appears during agreed pickup window."
+    },
+    "technical_issues": {
+      "app_not_loading": "Check internet connection. Try different browser. Clear cache and cookies. Disable browser extensions temporarily.",
+      "photos_not_uploading": "Ensure image is under 5MB. Use JPG, PNG formats. Check camera permissions in browser. Try different browser if problem persists.",
+      "location_not_working": "Enable location permissions in browser settings. Try manual address entry if GPS fails. Check that location services are enabled on device."
+    }
+  },
+
+  "policies_and_rules": {
+    "food_safety": [
+      "Only donate food that you would eat yourself",
+      "Respect expiry dates and food freshness",
+      "Be honest about food condition and any allergens"
+    ],
+    "community_guidelines": [
+      "Be respectful in all communications",
+      "Honor pickup commitments once made",
+      "Report inappropriate behavior or safety concerns"
+    ],
+    "platform_rules": [
+      "One account per person",
+      "Accurate location and contact information required",
+      "No commercial selling - only genuine surplus sharing"
+    ]
+  },
+
+  "technical_support": {
+    "app_features": [
+      "Real-time notifications for claims and messages",
+      "Photo upload for donation listings",
+      "Location-based donation discovery",
+      "Multi-language interface support"
+    ],
+    "browser_support": "Works on all modern browsers (Chrome, Firefox, Safari, Edge)",
+    "mobile_support": "Responsive design works on phones and tablets",
+    "accessibility": "Screen reader compatible, keyboard navigation supported"
+  },
+
+  "contact_information": {
+    "support_email": "support@foodflow.com",
+    "support_hours": "Monday-Friday 9AM-6PM EST",
+    "response_time": "Usually responds within 24 hours",
+    "contact_methods": [
+      {
+        "type": "email",
+        "label": "Email Support",
+        "value": "support@foodflow.com",
+        "description": "Best for detailed questions, account issues, and bug reports"
+      },
+      {
+        "type": "help",
+        "label": "Browse Help Articles",
+        "value": "Role-specific: /donor/help, /receiver/help, or /admin/help",
+        "description": "Find answers to common questions instantly"
+      }
+    ],
+    "escalation_triggers": [
+      "Safety concerns or inappropriate behavior",
+      "Technical bugs that prevent app usage",
+      "Account issues that can't be resolved through normal flows",
+      "Disputes between users that need mediation"
+    ],
+    "contact_guidance": {
+      "when_to_contact": [
+        "Account login or access issues",
+        "Payment or billing questions", 
+        "Safety concerns or reporting inappropriate behavior",
+        "Technical bugs or app not working properly",
+        "Disputes between users requiring mediation"
+      ],
+      "what_to_include": [
+        "Your account email address",
+        "Detailed description of the issue",
+        "Steps you've already tried",
+        "Screenshots if applicable (for bugs)",
+        "Specific error messages you're seeing"
+      ]
+    }
+  }
+}
