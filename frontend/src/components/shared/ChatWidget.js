@@ -213,7 +213,7 @@ const ChatWidget = () => {
     }
   };
 
-  const handleKeyPress = e => {
+  const handleKeyDown = e => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
@@ -451,7 +451,7 @@ const ChatWidget = () => {
                 ref={inputRef}
                 value={inputMessage}
                 onChange={e => setInputMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
+                onKeyDown={handleKeyDown}
                 placeholder={
                   chatEnded
                     ? user?.languagePreference === 'fr'

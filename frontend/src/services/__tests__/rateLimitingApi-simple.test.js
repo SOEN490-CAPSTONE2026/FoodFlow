@@ -11,12 +11,12 @@ jest.mock('../api', () => ({
   post: jest.fn(),
   get: jest.fn(),
   supportChatAPI: {
-    sendMessage: jest.fn()
+    sendMessage: jest.fn(),
   },
   rateLimitAPI: {
     getStats: jest.fn(),
-    getUserStatus: jest.fn()
-  }
+    getUserStatus: jest.fn(),
+  },
 }));
 
 const api = require('../api');
@@ -37,22 +37,22 @@ describe('API Service - Rate Limiting Integration (Simplified)', () => {
             {
               type: 'navigate',
               label: 'Go to Registration',
-              value: '/register'
-            }
+              value: '/register',
+            },
           ],
-          requiresEscalation: false
+          requiresEscalation: false,
         },
         headers: {
           'x-ratelimit-limit': '10',
-          'x-ratelimit-remaining': '9'
-        }
+          'x-ratelimit-remaining': '9',
+        },
       };
 
       mockApi.post.mockResolvedValue(mockResponse);
 
       const result = await mockApi.post('/support/chat', {
         message: 'How do I create an account?',
-        pageContext: '/register'
+        pageContext: '/register',
       });
 
       expect(result.data.reply).toBe('Thank you for your question');
@@ -72,17 +72,17 @@ describe('API Service - Rate Limiting Integration (Simplified)', () => {
               {
                 type: 'contact',
                 label: 'Contact Support',
-                value: 'support@foodflow.com'
-              }
+                value: 'support@foodflow.com',
+              },
             ],
-            requiresEscalation: false
+            requiresEscalation: false,
           },
           headers: {
             'x-ratelimit-limit': '10',
             'x-ratelimit-remaining': '0',
-            'retry-after': '60'
-          }
-        }
+            'retry-after': '60',
+          },
+        },
       };
 
       mockApi.post.mockRejectedValue(mockError);
@@ -90,7 +90,7 @@ describe('API Service - Rate Limiting Integration (Simplified)', () => {
       try {
         await mockApi.post('/support/chat', {
           message: 'Test message',
-          pageContext: '/'
+          pageContext: '/',
         });
       } catch (error) {
         expect(error.response.status).toBe(429);
@@ -107,8 +107,8 @@ describe('API Service - Rate Limiting Integration (Simplified)', () => {
           activeUserLimiters: 5,
           activeIpLimiters: 12,
           openAiRequestsToday: 234,
-          enabled: true
-        }
+          enabled: true,
+        },
       };
 
       mockApi.get.mockResolvedValue(mockResponse);
@@ -125,8 +125,8 @@ describe('API Service - Rate Limiting Integration (Simplified)', () => {
           userId: 1,
           limit: 10,
           remaining: 7,
-          resetTime: '2024-01-01T13:00:00Z'
-        }
+          resetTime: '2024-01-01T13:00:00Z',
+        },
       };
 
       mockApi.get.mockResolvedValue(mockResponse);
@@ -142,7 +142,7 @@ describe('API Service - Rate Limiting Integration (Simplified)', () => {
     test('should validate required fields before sending', () => {
       const requestData = {
         message: 'Test message',
-        pageContext: '/register'
+        pageContext: '/register',
       };
 
       expect(requestData.message).toBeDefined();
