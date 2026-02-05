@@ -1,5 +1,7 @@
 import axios from 'axios';
 import { getFoodTypeValue } from '../constants/foodConstants';
+import { emitUnauthorized } from './authEvents';
+import { getNavigationLocation, navigateTo } from './navigation';
 
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
@@ -27,9 +29,35 @@ api.interceptors.response.use(
   response => response,
   error => {
     if (error.response && error.response.status === 401) {
-      localStorage.removeItem('jwtToken');
-      sessionStorage.removeItem('jwtToken');
-      window.location.href = '/login';
+      const authKeys = [
+        'jwtToken',
+        'userRole',
+        'userId',
+        'organizationName',
+        'organizationVerificationStatus',
+        'accountStatus',
+      ];
+      authKeys.forEach(key => {
+        localStorage.removeItem(key);
+        sessionStorage.removeItem(key);
+      });
+
+      emitUnauthorized();
+
+      const location = getNavigationLocation();
+      const currentPath = location?.pathname || window.location.pathname;
+      if (currentPath !== '/login') {
+        navigateTo('/login', {
+          replace: true,
+          state: {
+            from: location || {
+              pathname: currentPath,
+              search: window.location.search,
+              hash: window.location.hash,
+            },
+          },
+        });
+      }
     }
     return Promise.reject(error);
   }
@@ -253,11 +281,16 @@ export const recommendationAPI = {
    * @param {number} minScore - Minimum recommendation score (default: 50)
    * @returns {Promise<Array>} - Array of highly recommended posts
    */
-  getTopRecommendations: async (minScore = 50) => {
+  getTopRecommendations: async (postIds, minScore = 50) => {
     try {
+      if (!postIds || postIds.length === 0) {
+        return {};
+      }
+
       const response = await api.get('/recommendations/top', {
-        params: { minScore },
+        params: { postIds: postIds.join(','), minScore },
       });
+
       return response.data;
     } catch (error) {
       console.error('Error fetching top recommendations:', error);

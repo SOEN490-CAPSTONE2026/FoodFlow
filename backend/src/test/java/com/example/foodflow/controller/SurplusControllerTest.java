@@ -330,15 +330,15 @@ class SurplusControllerTest {
     }
 
     @Test
-    void testCompleteSurplusPost_Unauthenticated_Forbidden() throws Exception {
+    void testCompleteSurplusPost_Unauthenticated_Unauthorized() throws Exception {
         // Given - No authentication
         CompleteSurplusRequest completionRequest = new CompleteSurplusRequest("123456");
 
-        // When & Then - Should be forbidden (403) per Spring Security configuration
+        // When & Then - Unauthenticated should return 401
         mockMvc.perform(patch("/api/surplus/1/complete")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(completionRequest)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     // ==================== Tests for getMyPosts ====================
@@ -587,18 +587,18 @@ class SurplusControllerTest {
     // }
 
     @Test
-    void testConfirmPickup_Unauthenticated_Forbidden() throws Exception {
+    void testConfirmPickup_Unauthenticated_Unauthorized() throws Exception {
         // Given - No authentication
         com.example.foodflow.model.dto.ConfirmPickupRequest confirmRequest = 
             new com.example.foodflow.model.dto.ConfirmPickupRequest();
         confirmRequest.setPostId(1L);
         confirmRequest.setOtpCode("123456");
 
-        // When & Then - Should be forbidden (403)
+        // When & Then - Unauthenticated should return 401
         mockMvc.perform(post("/api/surplus/pickup/confirm")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(confirmRequest)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     // ==================== Timeline Endpoint Tests ====================
@@ -682,10 +682,10 @@ class SurplusControllerTest {
     }
 
     @Test
-    void testGetTimeline_Unauthenticated_Forbidden() throws Exception {
-        // When & Then - No authentication, should be forbidden
+    void testGetTimeline_Unauthenticated_Unauthorized() throws Exception {
+        // When & Then - No authentication, should return 401
         mockMvc.perform(get("/api/surplus/1/timeline"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
 
         verify(surplusService, never()).getTimelineForPost(anyLong(), any(User.class));
     }
@@ -838,10 +838,10 @@ class SurplusControllerTest {
     }
 
     @Test
-    void testGetSurplusPostById_Unauthenticated_Forbidden() throws Exception {
-        // When & Then - Unauthenticated users cannot access
+    void testGetSurplusPostById_Unauthenticated_Unauthorized() throws Exception {
+        // When & Then - Unauthenticated should return 401
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/surplus/1"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     // ==================== Tests for updateSurplusPost (Edit Functionality) ====================
@@ -1029,12 +1029,12 @@ class SurplusControllerTest {
     }
 
     @Test
-    void testUpdateSurplusPost_Unauthenticated_Forbidden() throws Exception {
-        // When & Then - Unauthenticated users cannot update
+    void testUpdateSurplusPost_Unauthenticated_Unauthorized() throws Exception {
+        // When & Then - Unauthenticated should return 401
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/surplus/1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test

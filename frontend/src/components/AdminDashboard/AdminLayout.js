@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import {
   Outlet,
   useLocation,
@@ -21,6 +21,7 @@ import {
   HelpCircle,
   MoreVertical,
   Settings,
+  
   LogOut,
   Menu,
   X,
@@ -37,12 +38,10 @@ export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const navType = useNavigationType();
-  const [open, setOpen] = useState(false);
   const [messagesOpen, setMessagesOpen] = useState(false);
   const [screenHeight, setScreenHeight] = useState(window.innerHeight);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const menuRef = useRef(null);
 
   const contacts = [
     { name: 'Olive Nacelle', online: true },
@@ -120,16 +119,6 @@ export default function AdminLayout() {
   })();
 
   useEffect(() => {
-    const onDocClick = e => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', onDocClick);
-    return () => document.removeEventListener('mousedown', onDocClick);
-  }, []);
-
-  useEffect(() => {
     if (navType === 'POP' && !location.pathname.startsWith('/admin')) {
       navigate('/admin/dashboard', { replace: true });
     }
@@ -137,7 +126,6 @@ export default function AdminLayout() {
 
   const handleLogout = () => {
     logout(); // Use AuthContext logout to clear all auth state
-    setOpen(false);
     navigate('/', { replace: true, state: { scrollTo: 'home' } });
   };
 
@@ -324,7 +312,7 @@ export default function AdminLayout() {
           </button>
         </div>
 
-        <div className="admin-sidebar-footer admin-user" ref={menuRef}>
+        <div className="admin-sidebar-footer admin-user">
           <div className="account-row">
             <button className="user-profile-pic" type="button">
               <div className="account-avatar"></div>

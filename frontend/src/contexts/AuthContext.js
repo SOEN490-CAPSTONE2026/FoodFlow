@@ -1,5 +1,6 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
+import { onUnauthorized } from '../services/authEvents';
 
 export const AuthContext = createContext();
 
@@ -176,7 +177,7 @@ export const AuthProvider = ({ children }) => {
     setAccountStatus(accStatus);
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem('jwtToken');
     sessionStorage.removeItem('jwtToken');
     localStorage.removeItem('userRole');
@@ -195,7 +196,14 @@ export const AuthProvider = ({ children }) => {
     setOrganizationName(null);
     setOrganizationVerificationStatus(null);
     setAccountStatus(null);
-  };
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = onUnauthorized(() => {
+      logout();
+    });
+    return unsubscribe;
+  }, [logout]);
 
   return (
     <AuthContext.Provider

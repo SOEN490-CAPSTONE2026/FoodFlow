@@ -21,9 +21,19 @@ const FeedbackModal = ({
   useEffect(() => {
     if (!isOpen || !claimId || !userId) {
       // Reset state if modal closes or claimId/userId is missing
+      setRating(0);
+      setHover(0);
+      setReview('');
+      setIsSubmitting(false);
       setAlreadySubmitted(false);
       return;
     }
+    // Reset form state when opening a new claim
+    setRating(0);
+    setHover(0);
+    setReview('');
+    setIsSubmitting(false);
+    setAlreadySubmitted(false);
     // Check if current user has already provided feedback for this claim
     const check = async () => {
       try {

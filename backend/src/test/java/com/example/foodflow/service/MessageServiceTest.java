@@ -51,6 +51,12 @@ class MessageServiceTest {
     @MockBean
     private BusinessMetricsService businessMetricsService;
 
+    @MockBean
+    private NotificationPreferenceService notificationPreferenceService;
+
+    @MockBean
+    private GamificationService gamificationService;
+
     private User sender;
     private User recipient;
     private Conversation conversation;
@@ -91,6 +97,9 @@ class MessageServiceTest {
         when(conversationService.getConversation(1L, sender)).thenReturn(conversation);
         when(messageRepository.save(any(Message.class))).thenReturn(savedMessage);
         when(conversationRepository.save(any(Conversation.class))).thenReturn(conversation);
+        when(notificationPreferenceService.shouldSendNotification(any(User.class), any(), eq("websocket")))
+                .thenReturn(true);
+        when(gamificationService.checkAndUnlockAchievements(sender.getId())).thenReturn(Collections.emptyList());
 
         // When
         MessageResponse response = messageService.sendMessage(request, sender);

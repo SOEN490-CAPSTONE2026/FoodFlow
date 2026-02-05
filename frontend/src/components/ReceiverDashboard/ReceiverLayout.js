@@ -16,6 +16,7 @@ import {
   useNotification,
 } from '../../contexts/NotificationContext';
 import MessageNotification from '../MessagingDashboard/MessageNotification';
+import AchievementNotification from '../shared/AchievementNotification';
 import ReceiverPreferences from './ReceiverPreferences';
 import EmailVerificationRequired from '../EmailVerificationRequired';
 import AdminApprovalBanner from '../AdminApprovalBanner';
@@ -46,6 +47,7 @@ function ReceiverLayoutContent() {
   const [showPreferences, setShowPreferences] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [profilePhotoUrl, setProfilePhotoUrl] = useState(null);
+  const [achievementNotification, setAchievementNotification] = useState(null);
   const dropdownRef = useRef(null);
   const isActive = path => location.pathname === path;
   const { notification, showNotification, clearNotification } =
@@ -218,11 +220,18 @@ function ReceiverLayoutContent() {
       showNotification('🔔 New Donation Available', message);
     };
 
+    const onAchievementUnlocked = payload => {
+      // Handle achievement unlock notifications
+      console.log('RECEIVER: Achievement unlocked:', payload);
+      setAchievementNotification(payload);
+    };
+
     connectToUserQueue(
       onMessage,
       onClaimNotification,
       onClaimCancelled,
-      onNewPostNotification
+      onNewPostNotification,
+      onAchievementUnlocked
     );
     return () => {
       try {
@@ -290,6 +299,13 @@ function ReceiverLayoutContent() {
             className={`receiver-nav-link ${isActive('/receiver/my-claims') || isActive('/receiver/dashboard') ? 'active' : ''}`}
           >
             {t('receiverLayout.myClaims')}
+          </Link>
+
+          <Link
+            to="/receiver/achievements"
+            className={`receiver-nav-link ${isActive('/receiver/achievements') ? 'active' : ''}`}
+          >
+            {t('receiverLayout.achievements', 'Achievements')}
           </Link>
 
           <Link
@@ -409,6 +425,12 @@ function ReceiverLayoutContent() {
                 notification={notification}
                 onClose={clearNotification}
               />
+              {achievementNotification && (
+                <AchievementNotification
+                  achievement={achievementNotification}
+                  onClose={() => setAchievementNotification(null)}
+                />
+              )}
             </div>
           </>
         )}

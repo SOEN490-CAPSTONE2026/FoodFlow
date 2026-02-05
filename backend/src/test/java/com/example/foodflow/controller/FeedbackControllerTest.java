@@ -504,7 +504,7 @@ class FeedbackControllerTest {
     }
     
     @Test
-    void submitFeedback_Unauthenticated_ShouldReturn403() throws Exception {
+    void submitFeedback_Unauthenticated_ShouldReturn401() throws Exception {
         // Given
         FeedbackRequestDTO request = new FeedbackRequestDTO();
         request.setClaimId(100L);
@@ -514,6 +514,6 @@ class FeedbackControllerTest {
         mockMvc.perform(post("/api/feedback")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 }

@@ -106,41 +106,6 @@ describe('AdminLayout', () => {
     expect(nav).toBeInTheDocument();
   });
 
-  it('toggles the user dropdown via kebab and logs out', () => {
-    const mockLogout = jest.fn();
-    render(
-      <AuthContext.Provider value={{ logout: mockLogout }}>
-        <MemoryRouter initialEntries={['/admin/messages']}>
-          <Routes>
-            <Route path="/admin/*" element={<AdminLayout />}>
-              <Route
-                path="messages"
-                element={<Stub label="Messages Content" />}
-              />
-            </Route>
-          </Routes>
-        </MemoryRouter>
-      </AuthContext.Provider>
-    );
-    const kebab = screen.getByRole('button', { name: /^menu$/i });
-    fireEvent.click(kebab);
-    const logoutBtn = screen.getByRole('button', { name: /logout/i });
-    expect(logoutBtn).toBeInTheDocument();
-    fireEvent.click(logoutBtn);
-    expect(mockLogout).toHaveBeenCalled();
-  });
-
-  it('closes the dropdown when clicking outside (document mousedown handler)', () => {
-    renderWithRoutes('/admin');
-    const kebab = screen.getByRole('button', { name: /^menu$/i });
-    fireEvent.click(kebab);
-    // The dropdown should be open, but logout is now always visible in nav
-    // Check that clicking outside closes the dropdown (kebab menu should close)
-    fireEvent.mouseDown(document.body);
-    // The logout button in nav should still be visible
-    expect(screen.getByRole('button', { name: /logout/i })).toBeInTheDocument();
-  });
-
   it('mobile menu opens via hamburger and closes via overlay', () => {
     const { container } = renderWithRoutes('/admin');
     const hamburger = screen.getByRole('button', { name: /toggle menu/i });

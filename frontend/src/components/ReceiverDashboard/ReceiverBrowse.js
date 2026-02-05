@@ -79,8 +79,10 @@ export default function ReceiverBrowse() {
 
   const fetchRecommendations = useCallback(async items => {
     const postIds = items.map(item => item.id).filter(id => id > 0);
-    const recommendationData =
-      await recommendationAPI.getBrowseRecommendations(postIds);
+    const recommendationData = await recommendationAPI.getTopRecommendations(
+      postIds,
+      80
+    );
     setRecommendations(recommendationData);
   }, []);
 

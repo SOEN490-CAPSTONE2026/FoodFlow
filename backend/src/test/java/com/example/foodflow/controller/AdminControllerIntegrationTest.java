@@ -366,10 +366,10 @@ class AdminControllerIntegrationTest {
     }
     
     @Test
-    void getAllUsers_Unauthenticated_ShouldReturn403() throws Exception {
+    void getAllUsers_Unauthenticated_ShouldReturn401() throws Exception {
         // When & Then
         mockMvc.perform(get("/api/admin/users"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
     
     @Test
