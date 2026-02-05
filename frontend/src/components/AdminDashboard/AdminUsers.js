@@ -324,8 +324,11 @@ const AdminUsers = () => {
       console.log('Backend user data:', response.data);
       console.log('Address:', response.data.address);
       console.log('BusinessLicense:', response.data.businessLicense);
-      console.log('CharityRegistrationNumber:', response.data.charityRegistrationNumber);
-      
+      console.log(
+        'CharityRegistrationNumber:',
+        response.data.charityRegistrationNumber
+      );
+
       // Set the detailed user data
       setSelectedUserForView(response.data);
       setShowUserDetailModal(true);
@@ -1147,48 +1150,6 @@ const AdminUsers = () => {
                         selectedUserForView.charityRegistrationNumber ||
                         selectedUserForView.licenseNumber ||
                         'N/A'}
-                    </span>
-                  </div>
-                  <div className="info-item">
-                    <span className="info-label">Status</span>
-                    <span className="info-value">
-                      <span
-                        className={`pill pill-status-${selectedUserForView.accountStatus.toLowerCase()}`}
-                      >
-                        {selectedUserForView.accountStatus === 'ACTIVE'
-                          ? 'Active'
-                          : 'Deactivated'}
-                      </span>
-                    </span>
-                  </div>
-                  <div className="info-item">
-                    <span className="info-label">
-                      <User size={16} /> Role
-                    </span>
-                    <span className="info-value">
-                      <span
-                        className={`pill pill-${selectedUserForView.role.toLowerCase()}`}
-                      >
-                        {selectedUserForView.role === 'DONOR'
-                          ? 'Donor'
-                          : selectedUserForView.role === 'RECEIVER'
-                            ? 'Receiver'
-                            : 'Admin'}
-                      </span>
-                    </span>
-                  </div>
-                  <div className="info-item">
-                    <span className="info-label">Verification</span>
-                    <span className="info-value">
-                      {selectedUserForView.verificationStatus && (
-                        <span
-                          className={`pill pill-${selectedUserForView.verificationStatus.toLowerCase()}`}
-                        >
-                          {selectedUserForView.verificationStatus === 'VERIFIED'
-                            ? 'Verified'
-                            : 'Pending'}
-                        </span>
-                      )}
                     </span>
                   </div>
                 </div>
