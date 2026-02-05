@@ -1,12 +1,38 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
-import { AuthContext } from '../../contexts/AuthContext';
-import ChatWidget from '../shared/ChatWidget';
-import api from '../../services/api';
+import { AuthContext } from '../../../contexts/AuthContext';
+import ChatWidget from '../ChatWidget';
 
 // Mock the API
-jest.mock('../../services/api');
+jest.mock('../../../services/api', () => ({
+  __esModule: true,
+  default: {
+    post: jest.fn(),
+    get: jest.fn(),
+    put: jest.fn(),
+    delete: jest.fn(),
+    patch: jest.fn(),
+    interceptors: {
+      request: { use: jest.fn() },
+      response: { use: jest.fn() }
+    }
+  },
+  post: jest.fn(),
+  get: jest.fn(),
+  put: jest.fn(),
+  del: jest.fn(),
+  patch: jest.fn(),
+  supportChatAPI: {
+    sendMessage: jest.fn()
+  },
+  rateLimitAPI: {
+    getStats: jest.fn(),
+    getUserStatus: jest.fn()
+  }
+}));
+
+import api from '../../../services/api';
 const mockApi = api;
 
 // Mock react-router-dom hooks
@@ -46,7 +72,9 @@ describe('ChatWidget', () => {
 
   beforeEach(() => {
     mockNavigate.mockClear();
-    mockApi.post.mockClear();
+    if (mockApi.post && typeof mockApi.post.mockClear === 'function') {
+      mockApi.post.mockClear();
+    }
     jest.clearAllMocks();
   });
 
