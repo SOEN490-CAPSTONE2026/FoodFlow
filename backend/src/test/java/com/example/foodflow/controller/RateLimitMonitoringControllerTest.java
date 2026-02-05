@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(RateLimitMonitoringController.class)
-@Import(com.example.foodflow.config.TestMetricsConfig.class)
+@Import({com.example.foodflow.config.TestMetricsConfig.class, com.example.foodflow.config.TestSecurityConfig.class})
 class RateLimitMonitoringControllerTest {
 
     @Autowired

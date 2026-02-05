@@ -35,7 +35,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(SupportController.class)
-@Import({com.example.foodflow.config.TestMetricsConfig.class, com.example.foodflow.config.SecurityConfig.class})
+@Import({com.example.foodflow.config.TestMetricsConfig.class, com.example.foodflow.config.TestSecurityConfig.class})
 class SupportControllerTest {
 
     @Autowired
