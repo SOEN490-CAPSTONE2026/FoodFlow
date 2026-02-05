@@ -142,13 +142,13 @@ public class ContextualSupportService {
             context.append("\nUser Capabilities based on role ").append(userRole).append(":\n");
             if ("DONOR".equals(userRole)) {
                 context.append("- Can create and manage food donations\n");
-                context.append("- Can generate pickup codes for receivers\n");
+                context.append("- Can verify pickup codes shown by receivers during pickup\n");
                 context.append("- Can message receivers who claim their donations\n");
                 context.append("- Can rate receivers after successful pickups\n");
             } else if ("RECEIVER".equals(userRole)) {
                 context.append("- Can browse and claim available food donations\n");
                 context.append("- Can message donors after claiming\n");
-                context.append("- Needs pickup codes from donors to collect food\n");
+                context.append("- Sees pickup code in claim pickup steps during the active pickup window\n");
                 context.append("- Can rate donors after successful pickups\n");
             } else if ("ADMIN".equals(userRole)) {
                 context.append("- Can moderate all content and users\n");

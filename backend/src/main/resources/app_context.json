@@ -15,17 +15,17 @@
   "user_account_types": {
     "DONOR": {
       "description": "Users who share surplus food with the community",
-      "primary_actions": ["Create donations", "Manage active donations", "Communicate with receivers", "Generate pickup codes", "Rate receivers"],
+      "primary_actions": ["Create donations", "Manage active donations", "Communicate with receivers", "Verify pickup codes at pickup", "Rate receivers"],
       "dashboard_sections": ["Create Donation", "My Active Donations", "Donation History", "Messages", "Profile Settings"],
       "common_questions": ["How do I post food?", "Where is my pickup code?", "How to message receivers?", "How to cancel a donation?"],
-      "permissions": ["create_donations", "manage_own_donations", "message_receivers", "generate_pickup_codes"]
+      "permissions": ["create_donations", "manage_own_donations", "message_receivers", "verify_pickup_codes"]
     },
     "RECEIVER": {
       "description": "Users who claim and collect shared food from the community",
-      "primary_actions": ["Browse available food", "Claim donations", "Communicate with donors", "Provide pickup codes", "Rate donors"],
+      "primary_actions": ["Browse available food", "Claim donations", "Communicate with donors", "View pickup codes", "Rate donors"],
       "dashboard_sections": ["Browse Food", "My Claims", "Claim History", "Messages", "Profile Settings"],
       "common_questions": ["How do I find food?", "Where is my pickup code?", "How to message donors?", "How to cancel a claim?"],
-      "permissions": ["browse_donations", "claim_donations", "message_donors", "use_pickup_codes"]
+      "permissions": ["browse_donations", "claim_donations", "message_donors", "view_pickup_codes"]
     },
     "ADMIN": {
       "description": "Platform administrators who manage users and content",
@@ -51,13 +51,13 @@
         "Post food donation with details (type, quantity, location, expiry)",
         "Wait for receivers to claim the donation",
         "Communicate with receiver via in-app messaging",
-        "Provide pickup code when receiver arrives",
+        "Verify pickup code provided by receiver at pickup",
         "Mark donation as completed after successful pickup"
       ],
       "key_features": [
         "Upload photos of food items",
         "Set pickup time windows",
-        "Generate and share pickup codes",
+        "Coordinate pickup timing and verify receiver's pickup code",
         "Rate receivers after successful donations"
       ]
     },
@@ -90,7 +90,7 @@
     },
     "claims": {
       "description": "Receiver requests for specific donations",
-      "process": "Receiver claims → Donor approves → Coordinate pickup → Exchange food",
+      "process": "Receiver claims → Donor approves → Coordinate pickup → Receiver shows pickup code → Exchange food",
       "verification": "Pickup codes ensure security and proper handoff"
     },
     "messaging": {
@@ -99,12 +99,12 @@
       "access": "Available after a claim is made"
     },
     "pickup_codes": {
-      "description": "Security codes (OTP) generated for receivers during pickup windows",
-      "generation": "Automatically generated when pickup window becomes active",
+      "description": "Security codes (OTP) shown to receivers during pickup windows",
+      "generation": "Automatically shown when the pickup window becomes active",
       "usage": "Receivers show this OTP to donors during food pickup for verification",
       "security": "Ensures legitimate pickups and prevents unauthorized collection",
       "visibility": "Only visible to receivers during active pickup windows",
-      "location": "Displayed in receiver's claim details when pickup window is open"
+      "location": "Displayed in receiver's claim details (pickup steps) when the pickup window is open"
     }
   },
 
@@ -135,7 +135,7 @@
       "blocked_users": "Users can block inappropriate contacts. Reported users may be suspended by admins"
     },
     "pickup_process": {
-      "getting_pickup_code": "RECEIVERS: OTP automatically appears in claim details during active pickup window",
+      "getting_pickup_code": "RECEIVERS: OTP appears in claim details during the pickup steps when the pickup window is active",
       "providing_pickup_code": "RECEIVERS: Show OTP to donor in person during pickup for verification",
       "pickup_locations": "Set by donors, can be home address or public meeting point",
       "timing": "Coordinate pickup times via messaging, OTP becomes active during agreed window",
@@ -170,7 +170,7 @@
     "pickup_code_issues": {
       "missing_pickup_code": "RECEIVERS: OTP appears in claim details during active pickup window. Check claim status and pickup time.",
       "pickup_code_not_working": "Ensure pickup window is active. OTP is only valid during scheduled pickup time. Contact donor if issues persist.",
-      "where_to_find_pickup_code": "Receivers: Go to 'My Claims' → Select your claim → OTP appears when pickup window is active",
+      "where_to_find_pickup_code": "Receivers: Go to 'My Claims' → Select your claim → Pickup steps → OTP appears when pickup window is active",
       "pickup_window_not_active": "Coordinate with donor via messages to confirm pickup time. OTP only appears during agreed pickup window."
     },
     "technical_issues": {
