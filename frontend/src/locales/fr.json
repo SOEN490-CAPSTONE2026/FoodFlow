@@ -648,6 +648,40 @@
     "sendMessage": "Envoyer le message",
     "failedToSend": "Échec de l'envoi du message"
   },
+  "supportChat": {
+    "title": "Support FoodFlow",
+    "welcome": "👋 Bonjour ! Je suis l'assistant de support FoodFlow. Comment puis-je vous aider aujourd'hui ?",
+    "endMessage": "Chat terminé. Merci d'avoir utilisé le support FoodFlow ! Si vous avez d'autres questions, n'hésitez pas à recommencer une nouvelle conversation.",
+    "errorMessage": "Désolé, je ne peux pas répondre en ce moment. Veuillez contacter notre équipe de support directement.",
+    "aria": {
+      "open": "Ouvrir le chat de support",
+      "close": "Fermer le chat de support"
+    },
+    "buttons": {
+      "endChat": "Terminer",
+      "newChat": "Nouveau chat"
+    },
+    "titles": {
+      "endChat": "Terminer le chat",
+      "newChat": "Nouveau chat"
+    },
+    "placeholders": {
+      "ended": "Chat terminé. Cliquez sur \"Nouveau chat\" pour recommencer.",
+      "input": "Tapez votre question..."
+    },
+    "actions": {
+      "createDonation": "Créer un don",
+      "myMessages": "Mes messages",
+      "settings": "Paramètres",
+      "browseFood": "Parcourir les aliments",
+      "myClaims": "Mes réclamations",
+      "myDonations": "Mes dons",
+      "helpCenter": "Centre d'aide",
+      "emailSupport": "Support par e-mail",
+      "contactSupport": "Contacter le support",
+      "dashboard": "Tableau de bord"
+    }
+  },
   "messaging": {
     "failedToLoad": "Échec du chargement des conversations",
     "messages": "Messages",

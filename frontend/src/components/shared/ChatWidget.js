@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   MessageCircle,
   X,
@@ -8,7 +9,6 @@ import {
   Mail,
   ExternalLink,
 } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
 import './ChatWidget.css';
 
@@ -23,10 +23,64 @@ const ChatWidget = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [error, setError] = useState('');
   const [chatEnded, setChatEnded] = useState(false);
-  const { user } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  const tSupport = (key, fallback) =>
+    t(`supportChat.${key}`, { defaultValue: fallback });
+
+  const getActionLabel = action => {
+    if (!action) {
+      return '';
+    }
+
+    const label = action.label || '';
+    const value = action.value || '';
+
+    const labelKeyMap = {
+      'Create Donation': 'actions.createDonation',
+      'My Messages': 'actions.myMessages',
+      Settings: 'actions.settings',
+      'Browse Food': 'actions.browseFood',
+      'My Claims': 'actions.myClaims',
+      'My Donations': 'actions.myDonations',
+      'Help Center': 'actions.helpCenter',
+      'Email Support': 'actions.emailSupport',
+      'Contact Support': 'actions.contactSupport',
+      Dashboard: 'actions.dashboard',
+    };
+
+    if (labelKeyMap[label]) {
+      return tSupport(labelKeyMap[label], label);
+    }
+
+    const valueKeyMap = {
+      '/donor/list': 'actions.createDonation',
+      '/donor/messages': 'actions.myMessages',
+      '/receiver/messages': 'actions.myMessages',
+      '/donor/settings': 'actions.settings',
+      '/receiver/settings': 'actions.settings',
+      '/admin/settings': 'actions.settings',
+      '/receiver/browse': 'actions.browseFood',
+      '/receiver/my-claims': 'actions.myClaims',
+      '/admin': 'actions.dashboard',
+      '/donor/help': 'actions.helpCenter',
+      '/receiver/help': 'actions.helpCenter',
+      '/admin/help': 'actions.helpCenter',
+    };
+
+    if (valueKeyMap[value]) {
+      return tSupport(valueKeyMap[value], label || value);
+    }
+
+    if (action.type === 'contact' && value.includes('@')) {
+      return tSupport('actions.contactSupport', label || 'Contact Support');
+    }
+
+    return label;
+  };
 
   // Get current page context for better assistance
   const getPageContext = () => {
@@ -62,10 +116,10 @@ const ChatWidget = () => {
 
     // Add welcome message on first open (if chat hasn't ended)
     if (!isOpen && messages.length === 0 && !chatEnded) {
-      const welcomeMessage =
-        user?.languagePreference === 'fr'
-          ? "👋 Bonjour ! Je suis l'assistant de support FoodFlow. Comment puis-je vous aider aujourd'hui ?"
-          : "👋 Hi! I'm the FoodFlow support assistant. How can I help you today?";
+      const welcomeMessage = tSupport(
+        'welcome',
+        "👋 Hi! I'm the FoodFlow support assistant. How can I help you today?"
+      );
 
       setMessages([
         {
@@ -79,10 +133,10 @@ const ChatWidget = () => {
   };
 
   const endChat = () => {
-    const endMessage =
-      user?.languagePreference === 'fr'
-        ? "Chat terminé. Merci d'avoir utilisé le support FoodFlow ! Si vous avez d'autres questions, n'hésitez pas à recommencer une nouvelle conversation."
-        : 'Chat ended. Thank you for using FoodFlow support! If you have more questions, feel free to start a new conversation.';
+    const endMessage = tSupport(
+      'endMessage',
+      'Chat ended. Thank you for using FoodFlow support! If you have more questions, feel free to start a new conversation.'
+    );
 
     setMessages(prev => [
       ...prev,
@@ -104,10 +158,10 @@ const ChatWidget = () => {
     setChatEnded(false);
     setError('');
 
-    const welcomeMessage =
-      user?.languagePreference === 'fr'
-        ? "👋 Bonjour ! Je suis l'assistant de support FoodFlow. Comment puis-je vous aider aujourd'hui ?"
-        : "👋 Hi! I'm the FoodFlow support assistant. How can I help you today?";
+    const welcomeMessage = tSupport(
+      'welcome',
+      "👋 Hi! I'm the FoodFlow support assistant. How can I help you today?"
+    );
 
     setMessages([
       {
@@ -155,10 +209,10 @@ const ChatWidget = () => {
       console.error('Support chat error:', error);
 
       // Create a more helpful error message with support contact
-      const errorMessage =
-        user?.languagePreference === 'fr'
-          ? 'Désolé, je ne peux pas répondre en ce moment. Veuillez contacter notre équipe de support directement.'
-          : 'Sorry, I cannot respond right now. Please contact our support team directly.';
+      const errorMessage = tSupport(
+        'errorMessage',
+        'Sorry, I cannot respond right now. Please contact our support team directly.'
+      );
 
       const errorResponse = {
         id: Date.now() + 1,
@@ -167,10 +221,7 @@ const ChatWidget = () => {
         actions: [
           {
             type: 'contact',
-            label:
-              user?.languagePreference === 'fr'
-                ? 'Contacter le support'
-                : 'Contact Support',
+            label: tSupport('actions.contactSupport', 'Contact Support'),
             value: 'support@foodflow.com',
           },
         ],
@@ -362,7 +413,7 @@ const ChatWidget = () => {
                   <Phone size={14} />
                 )}
                 {action.type === 'link' && <ExternalLink size={14} />}
-                {action.label}
+                {getActionLabel(action)}
               </button>
             ))}
           </div>
@@ -377,7 +428,11 @@ const ChatWidget = () => {
       <button
         className={`chat-toggle ${isOpen ? 'open' : ''}`}
         onClick={toggleWidget}
-        aria-label={isOpen ? 'Close support chat' : 'Open support chat'}
+        aria-label={
+          isOpen
+            ? tSupport('aria.close', 'Close support chat')
+            : tSupport('aria.open', 'Open support chat')
+        }
       >
         {isOpen ? <X size={20} /> : <MessageCircle size={20} />}
       </button>
@@ -388,37 +443,25 @@ const ChatWidget = () => {
           <div className="chat-header">
             <div className="header-content">
               <MessageCircle size={18} />
-              <span>
-                {user?.languagePreference === 'fr'
-                  ? 'Support FoodFlow'
-                  : 'FoodFlow Support'}
-              </span>
+              <span>{tSupport('title', 'FoodFlow Support')}</span>
             </div>
             <div className="header-actions">
               {!chatEnded && messages.length > 1 && (
                 <button
                   className="end-chat-btn"
                   onClick={endChat}
-                  title={
-                    user?.languagePreference === 'fr'
-                      ? 'Terminer le chat'
-                      : 'End chat'
-                  }
+                  title={tSupport('titles.endChat', 'End chat')}
                 >
-                  {user?.languagePreference === 'fr' ? 'Terminer' : 'End Chat'}
+                  {tSupport('buttons.endChat', 'End Chat')}
                 </button>
               )}
               {chatEnded && (
                 <button
                   className="new-chat-btn"
                   onClick={startNewChat}
-                  title={
-                    user?.languagePreference === 'fr'
-                      ? 'Nouveau chat'
-                      : 'New chat'
-                  }
+                  title={tSupport('titles.newChat', 'New chat')}
                 >
-                  {user?.languagePreference === 'fr' ? 'Nouveau' : 'New Chat'}
+                  {tSupport('buttons.newChat', 'New Chat')}
                 </button>
               )}
               <button className="close-btn" onClick={toggleWidget}>
@@ -454,12 +497,11 @@ const ChatWidget = () => {
                 onKeyDown={handleKeyDown}
                 placeholder={
                   chatEnded
-                    ? user?.languagePreference === 'fr'
-                      ? 'Chat terminé. Cliquez sur "Nouveau" pour recommencer.'
-                      : 'Chat ended. Click "New Chat" to start over.'
-                    : user?.languagePreference === 'fr'
-                      ? 'Tapez votre question...'
-                      : 'Type your question...'
+                    ? tSupport(
+                        'placeholders.ended',
+                        'Chat ended. Click "New Chat" to start over.'
+                      )
+                    : tSupport('placeholders.input', 'Type your question...')
                 }
                 rows={1}
                 disabled={isLoading || chatEnded}
