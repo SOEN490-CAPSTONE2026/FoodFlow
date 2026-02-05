@@ -2,6 +2,8 @@ package com.example.foodflow.controller;
 
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.UserRole;
+import com.example.foodflow.repository.UserRepository;
+import com.example.foodflow.security.JwtTokenProvider;
 import com.example.foodflow.service.RateLimitingService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,15 +11,22 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(RateLimitMonitoringController.class)
+@Import(com.example.foodflow.config.TestMetricsConfig.class)
 class RateLimitMonitoringControllerTest {
 
     @Autowired
@@ -25,6 +34,12 @@ class RateLimitMonitoringControllerTest {
 
     @MockBean
     private RateLimitingService rateLimitingService;
+
+    @MockBean
+    private JwtTokenProvider jwtTokenProvider;
+
+    @MockBean
+    private UserRepository userRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -36,12 +51,12 @@ class RateLimitMonitoringControllerTest {
     void setUp() {
         adminUser = new User();
         adminUser.setId(1L);
-        adminUser.setUsername("admin");
+        adminUser.setEmail("admin@example.com");
         adminUser.setRole(UserRole.ADMIN);
 
         regularUser = new User();
         regularUser.setId(2L);
-        regularUser.setUsername("user");
+        regularUser.setEmail("user@example.com");
         regularUser.setRole(UserRole.RECEIVER);
     }
 
@@ -54,7 +69,7 @@ class RateLimitMonitoringControllerTest {
 
         // When & Then
         mockMvc.perform(get("/api/admin/rate-limit-stats")
-                .with(user("admin@example.com").roles("ADMIN")))
+                .with(authenticateUser(adminUser, "ADMIN")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.activeUserLimiters").value(5))
                 .andExpect(jsonPath("$.activeIpLimiters").value(10))
@@ -68,7 +83,7 @@ class RateLimitMonitoringControllerTest {
     void getRateLimitStats_NonAdminUser_ShouldReturnForbidden() throws Exception {
         // When & Then
         mockMvc.perform(get("/api/admin/rate-limit-stats")
-                .with(user("user@example.com").roles("RECEIVER")))
+                .with(authenticateUser(regularUser, "RECEIVER")))
                 .andExpect(status().isForbidden());
     }
 
@@ -83,7 +98,7 @@ class RateLimitMonitoringControllerTest {
     void getRateLimitStats_NullUser_ShouldReturnForbidden() throws Exception {
         // When & Then
         mockMvc.perform(get("/api/admin/rate-limit-stats")
-                .with(user((User) null)))
+                .with(authenticateUser(null, "ADMIN")))
                 .andExpect(status().isForbidden());
     }
 
@@ -94,7 +109,7 @@ class RateLimitMonitoringControllerTest {
 
         // When & Then
         mockMvc.perform(get("/api/admin/my-rate-limit")
-                .with(user("user@example.com").roles("RECEIVER")))
+                .with(authenticateUser(regularUser, "RECEIVER")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(2))
                 .andExpect(jsonPath("$.limitPerMinute").value(10))
@@ -109,7 +124,7 @@ class RateLimitMonitoringControllerTest {
 
         // When & Then
         mockMvc.perform(get("/api/admin/my-rate-limit")
-                .with(user("admin@example.com").roles("ADMIN")))
+                .with(authenticateUser(adminUser, "ADMIN")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(1))
                 .andExpect(jsonPath("$.limitPerMinute").value(10))
@@ -128,7 +143,7 @@ class RateLimitMonitoringControllerTest {
     void getUserRateLimit_NullUser_ShouldReturnUnauthorized() throws Exception {
         // When & Then
         mockMvc.perform(get("/api/admin/my-rate-limit")
-                .with(user((User) null)))
+                .with(authenticateUser(null, "RECEIVER")))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -143,5 +158,13 @@ class RateLimitMonitoringControllerTest {
         assertThat(status.limitPerMinute).isEqualTo(10);
         assertThat(status.remaining).isEqualTo(5);
         assertThat(status.enabled).isTrue();
+    }
+
+    private RequestPostProcessor authenticateUser(User user, String... authorities) {
+        return authentication(new UsernamePasswordAuthenticationToken(
+                user,
+                "password",
+                Arrays.stream(authorities).map(SimpleGrantedAuthority::new).toList()
+        ));
     }
 }

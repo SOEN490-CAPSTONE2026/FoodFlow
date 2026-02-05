@@ -5,34 +5,37 @@ import com.example.foodflow.model.dto.SupportChatRequest;
 import com.example.foodflow.model.dto.SupportChatResponse;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.UserRole;
+import com.example.foodflow.repository.UserRepository;
+import com.example.foodflow.security.JwtTokenProvider;
 import com.example.foodflow.service.RateLimitingService;
 import com.example.foodflow.service.SupportService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(SupportController.class)
+@Import({com.example.foodflow.config.TestMetricsConfig.class, com.example.foodflow.config.SecurityConfig.class})
 class SupportControllerTest {
 
     @Autowired
@@ -43,6 +46,12 @@ class SupportControllerTest {
 
     @MockBean
     private RateLimitingService rateLimitingService;
+
+    @MockBean
+    private JwtTokenProvider jwtTokenProvider;
+
+    @MockBean
+    private UserRepository userRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -55,7 +64,7 @@ class SupportControllerTest {
     void setUp() {
         testUser = new User();
         testUser.setId(1L);
-        testUser.setUsername("testuser");
+        testUser.setEmail("test@example.com");
         testUser.setRole(UserRole.RECEIVER);
         testUser.setLanguagePreference("en");
 
@@ -82,7 +91,7 @@ class SupportControllerTest {
 
         // When & Then
         MvcResult result = mockMvc.perform(post("/api/support/chat")
-                .with(user("test@example.com").roles("RECEIVER"))
+                .with(authenticateUser(testUser, "RECEIVER"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(validRequest)))
                 .andExpect(status().isOk())
@@ -90,7 +99,7 @@ class SupportControllerTest {
                 .andExpect(header().string("X-RateLimit-Remaining", "9"))
                 .andExpect(jsonPath("$.reply").value("To create an account, please..."))
                 .andExpect(jsonPath("$.intent").value("ACCOUNT_CREATE"))
-                .andExpect(jsonPath("$.requiresEscalation").value(false))
+                .andExpect(jsonPath("$.escalate").value(false))
                 .andReturn();
 
         String responseBody = result.getResponse().getContentAsString();
@@ -108,14 +117,14 @@ class SupportControllerTest {
 
         // When & Then
         mockMvc.perform(post("/api/support/chat")
-                .with(user("test@example.com").roles("RECEIVER"))
+                .with(authenticateUser(testUser, "RECEIVER"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(validRequest)))
                 .andExpect(status().isTooManyRequests())
                 .andExpect(header().string("X-RateLimit-Limit", "10"))
                 .andExpect(header().string("X-RateLimit-Remaining", "0"))
                 .andExpect(header().string("Retry-After", "60"))
-                .andExpected(jsonPath("$.reply").value("Too many requests. Please wait before trying again."))
+                .andExpect(jsonPath("$.reply").value("Too many requests. Please wait before trying again."))
                 .andExpect(jsonPath("$.intent").value("RATE_LIMITED"));
     }
 
@@ -129,10 +138,10 @@ class SupportControllerTest {
 
         // When & Then
         mockMvc.perform(post("/api/support/chat")
-                .with(user("test@example.com").roles("RECEIVER"))
+                .with(authenticateUser(testUser, "RECEIVER"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(validRequest)))
-                .andExpected(status().isTooManyRequests())
+                .andExpect(status().isTooManyRequests())
                 .andExpect(jsonPath("$.reply").value("Trop de demandes. Veuillez attendre avant de réessayer."));
     }
 
@@ -146,7 +155,7 @@ class SupportControllerTest {
 
         // When & Then
         mockMvc.perform(post("/api/support/chat")
-                .with(user("test@example.com").roles("RECEIVER"))
+                .with(authenticateUser(testUser, "RECEIVER"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(validRequest)))
                 .andExpect(status().isTooManyRequests())
@@ -164,13 +173,13 @@ class SupportControllerTest {
 
         // When & Then
         mockMvc.perform(post("/api/support/chat")
-                .with(user("test@example.com").roles("RECEIVER"))
+                .with(authenticateUser(testUser, "RECEIVER"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(validRequest)))
                 .andExpect(status().isOk()) // Controller catches exceptions and returns 200 with error message
                 .andExpect(jsonPath("$.reply").value("An error occurred. Please contact support."))
                 .andExpect(jsonPath("$.intent").value("ERROR"))
-                .andExpect(jsonPath("$.requiresEscalation").value(true));
+                .andExpect(jsonPath("$.escalate").value(true));
     }
 
     @Test
@@ -184,7 +193,7 @@ class SupportControllerTest {
 
         // When & Then
         mockMvc.perform(post("/api/support/chat")
-                .with(user("test@example.com").roles("RECEIVER"))
+                .with(authenticateUser(testUser, "RECEIVER"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(validRequest)))
                 .andExpect(status().isOk())
@@ -199,7 +208,7 @@ class SupportControllerTest {
 
         // When & Then
         mockMvc.perform(post("/api/support/chat")
-                .with(user("test@example.com").roles("RECEIVER"))
+                .with(authenticateUser(testUser, "RECEIVER"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest());
@@ -215,11 +224,11 @@ class SupportControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
     void getRateLimitStats_AdminUser_ShouldReturnStats() throws Exception {
         // Given
         User adminUser = new User();
         adminUser.setId(2L);
+        adminUser.setEmail("admin@example.com");
         adminUser.setRole(UserRole.ADMIN);
 
         RateLimitingService.RateLimitStats stats = new RateLimitingService.RateLimitStats(
@@ -228,7 +237,7 @@ class SupportControllerTest {
 
         // When & Then
         mockMvc.perform(get("/api/support/rate-limit-stats")
-                .with(user(adminUser)))
+                .with(authenticateUser(adminUser, "ADMIN")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.activeUserLimiters").value(5))
                 .andExpect(jsonPath("$.activeIpLimiters").value(10))
@@ -242,7 +251,7 @@ class SupportControllerTest {
     void getRateLimitStats_NonAdminUser_ShouldReturnForbidden() throws Exception {
         // When & Then
         mockMvc.perform(get("/api/support/rate-limit-stats")
-                .with(user("test@example.com").roles("RECEIVER"))) // Regular user, not admin
+                .with(authenticateUser(testUser, "RECEIVER"))) // Regular user, not admin
                 .andExpect(status().isForbidden());
     }
 
@@ -251,5 +260,13 @@ class SupportControllerTest {
         // When & Then
         mockMvc.perform(get("/api/support/rate-limit-stats"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    private RequestPostProcessor authenticateUser(User user, String... authorities) {
+        return authentication(new UsernamePasswordAuthenticationToken(
+                user,
+                "password",
+                Arrays.stream(authorities).map(SimpleGrantedAuthority::new).toList()
+        ));
     }
 }
