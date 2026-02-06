@@ -20,6 +20,7 @@ import {
   LogOut,
   Menu,
   X,
+  BarChart3,
 } from 'lucide-react';
 import { AuthContext } from '../../contexts/AuthContext';
 import Logo from '../../assets/Logo_White.png';
@@ -54,6 +55,8 @@ export default function DonorLayout() {
         return t('donorLayout.pageTitles.donorDashboard');
       case '/donor/list':
         return t('donorLayout.pageTitles.donateNow');
+      case '/donor/impact':
+        return t('donorLayout.pageTitles.impact', 'Impact Dashboard');
       case '/donor/messages':
         return t('donorLayout.pageTitles.messages');
       case '/donor/settings':
@@ -72,6 +75,8 @@ export default function DonorLayout() {
         return t('donorLayout.pageDescriptions.donorDashboard');
       case '/donor/list':
         return t('donorLayout.pageDescriptions.donateNow');
+      case '/donor/impact':
+        return t('donorLayout.pageDescriptions.impact', 'View your environmental and social impact');
       case '/donor/messages':
         return t('donorLayout.pageDescriptions.messages');
       case '/donor/settings':
@@ -322,6 +327,17 @@ export default function DonorLayout() {
               <Mail size={18} className="lucide" />
             </span>
             {t('donorLayout.messages')}
+          </Link>
+
+          <Link
+            to="/donor/impact"
+            className={`donor-nav-link ${isActive('/donor/impact') ? 'active' : ''}`}
+            data-tooltip={t('donorLayout.impact', 'Impact Dashboard')}
+          >
+            <span className="nav-icon" aria-hidden>
+              <BarChart3 size={18} className="lucide" />
+            </span>
+            {t('donorLayout.impact', 'Impact')}
           </Link>
         </nav>
 

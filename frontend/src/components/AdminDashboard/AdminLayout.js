@@ -23,6 +23,7 @@ import {
   Menu,
   X,
   AlertTriangle,
+  BarChart3,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Logo from '../../assets/Logo_White.png';
@@ -78,6 +79,8 @@ export default function AdminLayout() {
         return 'Verification Queue';
       case '/admin/analytics':
         return t('admin.analytics');
+      case '/admin/impact':
+        return 'Impact Dashboard';
       case '/admin/calendar':
         return t('admin.calendar');
       case '/admin/messages':
@@ -102,6 +105,8 @@ export default function AdminLayout() {
         return 'Manage and monitor all platform users';
       case '/admin/analytics':
         return t('admin.metrics');
+      case '/admin/impact':
+        return 'Platform-wide environmental and social impact metrics';
       case '/admin/calendar':
         return t('admin.events');
       case '/admin/messages':
@@ -226,6 +231,17 @@ export default function AdminLayout() {
               <Heart size={18} className="lucide" />
             </span>
             Donations
+          </Link>
+
+          <Link
+            to="/admin/impact"
+            className={`admin-nav-link ${isActive('/admin/impact') ? 'active' : ''}`}
+            data-tooltip="Impact Dashboard"
+          >
+            <span className="nav-icon" aria-hidden>
+              <BarChart3 size={18} className="lucide" />
+            </span>
+            Impact
           </Link>
 
           <Link

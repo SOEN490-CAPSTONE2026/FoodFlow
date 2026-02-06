@@ -585,4 +585,28 @@ export const gamificationAPI = {
   getAllAchievements: () => api.get('/gamification/achievements'),
 };
 
+// Impact Dashboard API
+export const impactDashboardAPI = {
+  /**
+   * Get impact metrics for current user based on their role
+   * @param {string} dateRange - Date range filter: 'WEEKLY', 'MONTHLY', 'ALL_TIME'
+   * @returns {Promise} Impact metrics including food weight, meals, CO2, water saved
+   */
+  getMetrics: (dateRange = 'ALL_TIME') =>
+    api.get('/impact-dashboard/metrics', {
+      params: { dateRange },
+    }),
+
+  /**
+   * Export impact metrics as CSV
+   * @param {string} dateRange - Date range filter: 'WEEKLY', 'MONTHLY', 'ALL_TIME'
+   * @returns {Promise} CSV file download
+   */
+  exportMetrics: (dateRange = 'ALL_TIME') =>
+    api.get('/impact-dashboard/export', {
+      params: { dateRange },
+      responseType: 'blob',
+    }),
+};
+
 export default api;

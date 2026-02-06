@@ -1,0 +1,315 @@
+import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { impactDashboardAPI } from '../../services/api';
+import {
+  TrendingUp,
+  Leaf,
+  Droplets,
+  Users,
+  Package,
+  Award,
+  Download,
+  Calendar,
+  UserCheck,
+  Repeat,
+} from 'lucide-react';
+import '../DonorDashboard/DonorImpactDashboard.css';
+import './AdminImpactDashboard.css';
+
+export default function AdminImpactDashboard() {
+  const { t } = useTranslation();
+  const [metrics, setMetrics] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [dateRange, setDateRange] = useState('ALL_TIME');
+
+  useEffect(() => {
+    fetchMetrics();
+  }, [dateRange]);
+
+  const fetchMetrics = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await impactDashboardAPI.getMetrics(dateRange);
+      setMetrics(response.data);
+    } catch (err) {
+      console.error('Error fetching impact metrics:', err);
+      setError(t('impactDashboard.errorLoading', 'Failed to load metrics'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleExport = async () => {
+    try {
+      const response = await impactDashboardAPI.exportMetrics(dateRange);
+      const blob = new Blob([response.data], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `platform-impact-metrics-${dateRange.toLowerCase()}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Error exporting metrics:', err);
+      alert(t('impactDashboard.exportError', 'Failed to export metrics'));
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="impact-dashboard admin-dashboard">
+        <div className="loading-container">
+          <div className="spinner"></div>
+          <p>{t('common.loading', 'Loading...')}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="impact-dashboard admin-dashboard">
+        <div className="error-container">
+          <p className="error-message">{error}</p>
+          <button onClick={fetchMetrics} className="retry-button">
+            {t('common.retry', 'Retry')}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="impact-dashboard admin-dashboard">
+      <div className="dashboard-header">
+        <div className="header-content">
+          <h1>
+            <TrendingUp size={32} />
+            {t('impactDashboard.platformTitle', 'Platform Impact Dashboard')}
+          </h1>
+          <p className="subtitle">
+            {t(
+              'impactDashboard.adminSubtitle',
+              'Platform-wide environmental and social impact metrics'
+            )}
+          </p>
+        </div>
+
+        <div className="header-controls">
+          <div className="date-range-selector">
+            <Calendar size={18} />
+            <select
+              value={dateRange}
+              onChange={e => setDateRange(e.target.value)}
+              className="date-range-dropdown"
+            >
+              <option value="WEEKLY">
+                {t('impactDashboard.weekly', 'Last 7 Days')}
+              </option>
+              <option value="MONTHLY">
+                {t('impactDashboard.monthly', 'Last 30 Days')}
+              </option>
+              <option value="ALL_TIME">
+                {t('impactDashboard.allTime', 'All Time')}
+              </option>
+            </select>
+          </div>
+
+          <button onClick={handleExport} className="export-button">
+            <Download size={18} />
+            {t('impactDashboard.export', 'Export CSV')}
+          </button>
+        </div>
+      </div>
+
+      <div className="metrics-grid">
+        {/* Food Weight Card */}
+        <div className="metric-card primary">
+          <div className="metric-icon">
+            <Package size={28} />
+          </div>
+          <div className="metric-content">
+            <h3>
+              {t('impactDashboard.totalFoodSaved', 'Total Food Saved')}
+            </h3>
+            <p className="metric-value">
+              {metrics?.totalFoodWeightKg?.toFixed(2) || '0.00'}
+              <span className="metric-unit"> kg</span>
+            </p>
+          </div>
+        </div>
+
+        {/* Meals Provided Card */}
+        <div className="metric-card success">
+          <div className="metric-icon">
+            <Users size={28} />
+          </div>
+          <div className="metric-content">
+            <h3>{t('impactDashboard.mealsProvided', 'Meals Provided')}</h3>
+            <p className="metric-value">
+              {metrics?.estimatedMealsProvided || 0}
+              <span className="metric-unit"> meals</span>
+            </p>
+            <p className="metric-subtext">
+              ~{metrics?.peopleFedEstimate || 0}{' '}
+              {t('impactDashboard.peopleFed', 'people fed')}
+            </p>
+          </div>
+        </div>
+
+        {/* CO2 Saved Card */}
+        <div className="metric-card eco">
+          <div className="metric-icon">
+            <Leaf size={28} />
+          </div>
+          <div className="metric-content">
+            <h3>{t('impactDashboard.co2Avoided', 'CO₂ Emissions Avoided')}</h3>
+            <p className="metric-value">
+              {metrics?.co2EmissionsAvoidedKg?.toFixed(2) || '0.00'}
+              <span className="metric-unit"> kg</span>
+            </p>
+          </div>
+        </div>
+
+        {/* Water Saved Card */}
+        <div className="metric-card water">
+          <div className="metric-icon">
+            <Droplets size={28} />
+          </div>
+          <div className="metric-content">
+            <h3>{t('impactDashboard.waterSaved', 'Water Saved')}</h3>
+            <p className="metric-value">
+              {metrics?.waterSavedLiters?.toFixed(0) || '0'}
+              <span className="metric-unit"> liters</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Activity Statistics */}
+      <div className="activity-section">
+        <h2>
+          <Award size={24} />
+          {t('impactDashboard.platformActivity', 'Platform Activity')}
+        </h2>
+        <div className="activity-grid">
+          <div className="stat-item">
+            <span className="stat-label">
+              {t('impactDashboard.totalPosts', 'Total Posts Created')}
+            </span>
+            <span className="stat-value">
+              {metrics?.totalPostsCreated || 0}
+            </span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-label">
+              {t('impactDashboard.completed', 'Donations Completed')}
+            </span>
+            <span className="stat-value">
+              {metrics?.totalDonationsCompleted || 0}
+            </span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-label">
+              {t('impactDashboard.totalClaims', 'Total Claims Made')}
+            </span>
+            <span className="stat-value">
+              {metrics?.totalClaimsMade || 0}
+            </span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-label">
+              {t('impactDashboard.completionRate', 'Completion Rate')}
+            </span>
+            <span className="stat-value">
+              {metrics?.donationCompletionRate?.toFixed(1) || '0.0'}%
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* User Engagement Statistics */}
+      <div className="engagement-section">
+        <h2>
+          <UserCheck size={24} />
+          {t('impactDashboard.userEngagement', 'User Engagement')}
+        </h2>
+        <div className="engagement-grid">
+          <div className="engagement-card">
+            <div className="engagement-icon donors">
+              <Users size={24} />
+            </div>
+            <div className="engagement-content">
+              <h3>{t('impactDashboard.activeDonors', 'Active Donors')}</h3>
+              <p className="engagement-value">
+                {metrics?.activeDonors || 0}
+              </p>
+            </div>
+          </div>
+
+          <div className="engagement-card">
+            <div className="engagement-icon receivers">
+              <Users size={24} />
+            </div>
+            <div className="engagement-content">
+              <h3>
+                {t('impactDashboard.activeReceivers', 'Active Receivers')}
+              </h3>
+              <p className="engagement-value">
+                {metrics?.activeReceivers || 0}
+              </p>
+            </div>
+          </div>
+
+          <div className="engagement-card">
+            <div className="engagement-icon repeat">
+              <Repeat size={24} />
+            </div>
+            <div className="engagement-content">
+              <h3>{t('impactDashboard.repeatDonors', 'Repeat Donors')}</h3>
+              <p className="engagement-value">
+                {metrics?.repeatDonors || 0}
+              </p>
+            </div>
+          </div>
+
+          <div className="engagement-card">
+            <div className="engagement-icon repeat">
+              <Repeat size={24} />
+            </div>
+            <div className="engagement-content">
+              <h3>
+                {t('impactDashboard.repeatReceivers', 'Repeat Receivers')}
+              </h3>
+              <p className="engagement-value">
+                {metrics?.repeatReceivers || 0}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Impact Message */}
+      <div className="impact-message admin-message">
+        <div className="message-content">
+          <h3>
+            {t(
+              'impactDashboard.platformSuccess',
+              'Platform Impact Summary 📊'
+            )}
+          </h3>
+          <p>
+            {t(
+              'impactDashboard.adminMessage',
+              'FoodFlow is making a real difference in reducing food waste and supporting communities. These metrics represent the collective impact of all our donors and receivers.'
+            )}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
