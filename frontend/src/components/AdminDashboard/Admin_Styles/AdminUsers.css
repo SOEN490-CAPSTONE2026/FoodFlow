@@ -264,24 +264,19 @@
 
 /* Users Table */
 .users-table-container {
-  overflow-x: hidden;
+  overflow-x: auto;
   border-radius: 0 0 12px 12px;
   border: none;
   margin-top: 0;
   background: white;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.users-table-container::-webkit-scrollbar {
-  display: none;
+  width: 100%;
 }
 
 .users-table {
   width: 100%;
   border-collapse: collapse;
   background: white;
-  table-layout: fixed;
+  table-layout: auto;
   min-width: 100%;
 }
 
@@ -291,42 +286,43 @@
 }
 
 .users-table th {
-  padding: 12px 8px;
-  text-align: center;
+  padding: 16px 12px;
+  text-align: left;
   font-weight: 600;
-  font-size: 11px;
+  font-size: 12px;
   color: #6b7280;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   border-bottom: 1px solid #e5e7eb;
   background: white;
   vertical-align: middle;
-  box-sizing: border-box;
-  white-space: normal;
-  word-wrap: break-word;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .users-table td {
-  padding: 12px 8px;
+  padding: 16px 12px;
   border-bottom: 1px solid #f3f4f6;
-  font-size: 13px;
+  font-size: 14px;
   color: #374151;
   vertical-align: middle;
   background: white;
-  box-sizing: border-box;
-  white-space: normal;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  text-align: center;
+  text-align: left;
 }
 
 .users-table tbody tr {
   background: white;
-  transition: background 0.15s;
+  transition: background-color 0.2s;
+  cursor: pointer;
 }
 
 .users-table tbody tr:hover {
   background: #f9fafb;
+}
+
+.users-table tbody tr.expanded {
+  background: #f3f4f6;
 }
 
 .users-table tbody tr:last-child td {
@@ -338,9 +334,7 @@
 .users-table th:nth-child(1),
 .users-table td:nth-child(1) {
   width: 3%;
-  min-width: 35px;
-  padding-left: 6px;
-  padding-right: 6px;
+  min-width: 40px;
   text-align: center;
 }
 
@@ -348,51 +342,49 @@
 .users-table th:nth-child(2),
 .users-table td:nth-child(2) {
   width: 5%;
-  min-width: 50px;
+  min-width: 60px;
 }
 
 /* Name column */
 .users-table th:nth-child(3),
 .users-table td:nth-child(3) {
-  width: 18%;
-  min-width: 140px;
+  width: 20%;
+  min-width: 160px;
 }
 
 /* Role column */
 .users-table th:nth-child(4),
 .users-table td:nth-child(4) {
   width: 10%;
-  min-width: 90px;
+  min-width: 100px;
 }
 
 /* Status column */
 .users-table th:nth-child(5),
 .users-table td:nth-child(5) {
   width: 10%;
-  min-width: 90px;
+  min-width: 100px;
 }
 
 /* Email column */
 .users-table th:nth-child(6),
 .users-table td:nth-child(6) {
-  width: 22%;
-  min-width: 150px;
+  width: 24%;
+  min-width: 200px;
 }
 
 /* Activity column */
 .users-table th:nth-child(7),
 .users-table td:nth-child(7) {
-  width: 10%;
+  width: 8%;
   min-width: 80px;
 }
 
 /* Actions column */
 .users-table th:nth-child(8),
 .users-table td:nth-child(8) {
-  width: 12%;
-  min-width: 100px;
-  padding-left: 8px;
-  padding-right: 8px;
+  width: 6%;
+  min-width: 80px;
   text-align: center;
 }
 
@@ -455,8 +447,10 @@
 }
 
 .id-cell {
+  font-family: 'Courier New', monospace;
   font-weight: 500;
   color: #6b7280;
+  font-size: 13px;
 }
 
 .activity-cell {

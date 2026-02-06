@@ -681,7 +681,7 @@ const AdminUsers = () => {
                   {/* Expanded details row */}
                   {expandedRows.has(user.id) && (
                     <TableRow className="details-row">
-                      <TableCell colSpan="9">
+                      <TableCell colSpan="8">
                         <div className="user-details-expanded">
                           <div className="details-grid">
                             <div className="details-section">
