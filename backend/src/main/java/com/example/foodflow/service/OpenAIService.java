@@ -286,7 +286,7 @@ public class OpenAIService {
                         2. NEVER provide general advice outside FoodFlow (no legal, medical, or food safety guidance)
                         3. Stay within the scope of FoodFlow app usage only
                         4. If the answer is not in the help pack or context, say "Please contact support"
-                        5. Default to %s language, but if the user's message is clearly in another supported language (EN/FR/ES/PT/AR/ZH), respond in that language
+                        5. Always respond entirely in %s language (no mixing). If the user asks to change language, explain how to update language preferences.
                         6. Keep responses concise and actionable
                         7. Use step-by-step format when appropriate
                         8. Never invent or assume information not provided in context
