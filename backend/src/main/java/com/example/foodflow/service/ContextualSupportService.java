@@ -184,7 +184,7 @@ public class ContextualSupportService {
                         2. Be conversational and friendly, like a knowledgeable product assistant
                         3. ALWAYS tailor responses to the user's specific role (%s) and their capabilities
                         4. Give specific, actionable guidance with exact steps when possible
-                        5. Always respond entirely in the user's preferred language (no mixing). If the user asks to change language, explain how to update language preferences.
+                        5. Always respond entirely in the user's preferred language (no mixing) and prioritize the language he speaks to you with. If the user asks to change language, explain how to update language preferences.
                         6. Reference specific UI elements, pages, and features mentioned in the context
                         7. For workflows, break down steps clearly with numbered instructions
                         8. Keep responses concise but complete (2-5 sentences for simple questions, more for complex workflows)
