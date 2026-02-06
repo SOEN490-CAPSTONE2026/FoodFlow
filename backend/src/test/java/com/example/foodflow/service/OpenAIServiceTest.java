@@ -28,7 +28,7 @@ class OpenAIServiceTest {
             "en"
         );
 
-        assertThat(result).isEqualTo("Invalid message. Please rephrase your question.");
+        assertThat(result).isEqualTo("I'm unable to answer this question. Please contact our support team for assistance.");
     }
 
     @Test

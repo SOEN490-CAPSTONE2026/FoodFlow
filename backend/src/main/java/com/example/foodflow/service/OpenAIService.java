@@ -42,8 +42,8 @@ public class OpenAIService {
     private static final String OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
     
     // Security limits
-    private static final int MAX_MESSAGE_LENGTH = 2000; // Limit user input length
-    private static final int MAX_CONTEXT_LENGTH = 5000; // Limit context size
+    private static final int MAX_MESSAGE_LENGTH = 2000; // Limit user input length (no longer enforced)
+    private static final int MAX_CONTEXT_LENGTH = 20000; // Limit context size
 
     public OpenAIService() {
         this.httpClient = new OkHttpClient.Builder()
@@ -72,9 +72,7 @@ public class OpenAIService {
             // Input validation to prevent abuse
             if (!validateInput(userMessage, helpPackContent, supportContext)) {
                 logger.warn("OpenAI request blocked due to invalid input");
-                return userLanguage.equals("fr") 
-                    ? "Message invalide. Veuillez reformuler votre question."
-                    : "Invalid message. Please rephrase your question.";
+                return getEscalationMessage(userLanguage);
             }
             
             // Log the request for monitoring
@@ -186,29 +184,25 @@ public class OpenAIService {
     private boolean validateInput(String userMessage, String helpPackContent, JsonNode supportContext) {
         // Check user message
         if (userMessage == null || userMessage.trim().isEmpty()) {
+            logger.warn("OpenAI request blocked: user message is empty");
             return false;
         }
         
-        if (userMessage.length() > MAX_MESSAGE_LENGTH) {
-            logger.warn("User message exceeds maximum length: {} characters", userMessage.length());
-            return false;
-        }
+        // No hard length limit; allow full user input to pass through.
         
-        // Check for suspicious patterns
+        // Check for suspicious patterns (log only; allow to avoid false positives)
         if (containsSuspiciousPatterns(userMessage)) {
-            return false;
+            logger.warn("Suspicious pattern detected in user input; allowing request to proceed");
         }
         
-        // Check help pack content size
+        // Help pack and support context can be large; they will be truncated later.
+        // Don't block the request here just because context is oversized.
         if (helpPackContent != null && helpPackContent.length() > MAX_CONTEXT_LENGTH * 2) {
-            logger.warn("Help pack content exceeds maximum length");
-            return false;
+            logger.warn("Help pack content exceeds maximum length; will be truncated");
         }
         
-        // Check support context size
         if (supportContext != null && supportContext.toString().length() > MAX_CONTEXT_LENGTH * 2) {
-            logger.warn("Support context exceeds maximum length");
-            return false;
+            logger.warn("Support context exceeds maximum length; will be truncated");
         }
         
         return true;
@@ -276,11 +270,6 @@ public class OpenAIService {
         // Remove excessive whitespace and normalize
         String sanitized = input.trim().replaceAll("\\s+", " ");
         
-        // Limit length
-        if (sanitized.length() > MAX_MESSAGE_LENGTH) {
-            sanitized = sanitized.substring(0, MAX_MESSAGE_LENGTH) + "...";
-        }
-        
         return sanitized;
     }
 
@@ -297,7 +286,7 @@ public class OpenAIService {
                         2. NEVER provide general advice outside FoodFlow (no legal, medical, or food safety guidance)
                         3. Stay within the scope of FoodFlow app usage only
                         4. If the answer is not in the help pack or context, say "Please contact support"
-                        5. Always respond in %s language
+                        5. Default to %s language, but if the user's message is clearly in another supported language (EN/FR/ES/PT/AR/ZH), respond in that language
                         6. Keep responses concise and actionable
                         7. Use step-by-step format when appropriate
                         8. Never invent or assume information not provided in context

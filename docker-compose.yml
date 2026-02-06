@@ -44,6 +44,7 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - SUPPORT_EMAIL=${SUPPORT_EMAIL}
       - SUPPORT_PHONE=${SUPPORT_PHONE}
+      - RATE_LIMIT_ENABLED=${RATE_LIMIT_ENABLED:-false}
     ports:
       - "${SERVER_PORT}:8080"
     volumes:

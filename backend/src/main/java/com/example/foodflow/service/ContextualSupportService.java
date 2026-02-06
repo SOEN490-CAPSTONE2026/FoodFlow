@@ -67,8 +67,17 @@ public class ContextualSupportService {
             // Parse response and add contextual actions
             Map<String, Object> response = new HashMap<>();
             response.put("reply", aiResponse);
-            response.put("actions", generateContextualActions(userMessage, userRole));
-            response.put("escalate", shouldEscalate(userMessage, aiResponse));
+
+            boolean escalationResponse = isEscalationResponse(aiResponse);
+            if (escalationResponse) {
+                List<Map<String, Object>> actions = new ArrayList<>();
+                actions.add(createAction("contact", "Contact Support", "support@foodflow.com"));
+                response.put("actions", actions);
+            } else {
+                response.put("actions", generateContextualActions(userMessage, userRole));
+            }
+
+            response.put("escalate", escalationResponse || shouldEscalate(userMessage, aiResponse));
 
             return response;
 
@@ -175,7 +184,7 @@ public class ContextualSupportService {
                         2. Be conversational and friendly, like a knowledgeable product assistant
                         3. ALWAYS tailor responses to the user's specific role (%s) and their capabilities
                         4. Give specific, actionable guidance with exact steps when possible
-                        5. Use the user's preferred language if applicable
+                        5. Default to the user's preferred language, but if the user's message is clearly in another supported language (EN/FR/ES/PT/AR/ZH), respond in that language
                         6. Reference specific UI elements, pages, and features mentioned in the context
                         7. For workflows, break down steps clearly with numbered instructions
                         8. Keep responses concise but complete (2-5 sentences for simple questions, more for complex workflows)
@@ -327,12 +336,30 @@ public class ContextualSupportService {
 
         // Only escalate if AI explicitly says it cannot help
         if (lowerResponse.contains("i cannot") || lowerResponse.contains("unable to assist") ||
+                lowerResponse.contains("unable to answer") ||
                 lowerResponse.contains("contact support immediately")) {
             return true;
         }
 
         // Default: Keep conversation open for further questions
         return false;
+    }
+
+    /**
+     * Detect escalation-style responses to attach contact actions.
+     */
+    private boolean isEscalationResponse(String aiResponse) {
+        if (aiResponse == null || aiResponse.isBlank()) {
+            return false;
+        }
+
+        String lower = aiResponse.toLowerCase();
+        // Only treat explicit "unable to answer" escalation messages as escalation responses.
+        return lower.contains("unable to answer") ||
+                lower.contains("unable to assist") ||
+                lower.contains("i cannot") ||
+                lower.contains("je ne peux pas répondre") ||
+                lower.contains("je ne peux pas repondre");
     }
 
     /**
