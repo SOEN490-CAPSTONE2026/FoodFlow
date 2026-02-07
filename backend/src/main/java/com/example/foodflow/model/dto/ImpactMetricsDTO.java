@@ -10,6 +10,8 @@ public class ImpactMetricsDTO {
     // Basic metrics
     private Double totalFoodWeightKg;
     private Integer estimatedMealsProvided;
+    private Integer minMealsProvided; // Bounded estimate
+    private Integer maxMealsProvided; // Bounded estimate
     private Double co2EmissionsAvoidedKg;
     private Double waterSavedLiters;
     private Integer peopleFedEstimate;
@@ -19,6 +21,21 @@ public class ImpactMetricsDTO {
     private Integer totalClaimsMade;
     private Integer totalPostsCreated;
     private Double donationCompletionRate;
+
+    // Waste efficiency metrics
+    private Double wasteDiversionEfficiencyPercent;
+
+    // Time & logistics metrics
+    private Double medianClaimTimeHours;
+    private Double p75ClaimTimeHours;
+    private Double pickupTimelinessRate;
+
+    // Engagement metrics
+    private Integer activeDonationDays; // Days with donation activity
+
+    // Factor metadata for transparency
+    private String factorVersion;
+    private String factorDisclosure;
 
     // User engagement metrics
     private Integer activeDonors;
@@ -91,4 +108,31 @@ public class ImpactMetricsDTO {
 
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }
+
+    public Integer getMinMealsProvided() { return minMealsProvided; }
+    public void setMinMealsProvided(Integer minMealsProvided) { this.minMealsProvided = minMealsProvided; }
+
+    public Integer getMaxMealsProvided() { return maxMealsProvided; }
+    public void setMaxMealsProvided(Integer maxMealsProvided) { this.maxMealsProvided = maxMealsProvided; }
+
+    public Double getWasteDiversionEfficiencyPercent() { return wasteDiversionEfficiencyPercent; }
+    public void setWasteDiversionEfficiencyPercent(Double wasteDiversionEfficiencyPercent) { this.wasteDiversionEfficiencyPercent = wasteDiversionEfficiencyPercent; }
+
+    public Double getMedianClaimTimeHours() { return medianClaimTimeHours; }
+    public void setMedianClaimTimeHours(Double medianClaimTimeHours) { this.medianClaimTimeHours = medianClaimTimeHours; }
+
+    public Double getP75ClaimTimeHours() { return p75ClaimTimeHours; }
+    public void setP75ClaimTimeHours(Double p75ClaimTimeHours) { this.p75ClaimTimeHours = p75ClaimTimeHours; }
+
+    public Double getPickupTimelinessRate() { return pickupTimelinessRate; }
+    public void setPickupTimelinessRate(Double pickupTimelinessRate) { this.pickupTimelinessRate = pickupTimelinessRate; }
+
+    public Integer getActiveDonationDays() { return activeDonationDays; }
+    public void setActiveDonationDays(Integer activeDonationDays) { this.activeDonationDays = activeDonationDays; }
+
+    public String getFactorVersion() { return factorVersion; }
+    public void setFactorVersion(String factorVersion) { this.factorVersion = factorVersion; }
+
+    public String getFactorDisclosure() { return factorDisclosure; }
+    public void setFactorDisclosure(String factorDisclosure) { this.factorDisclosure = factorDisclosure; }
 }

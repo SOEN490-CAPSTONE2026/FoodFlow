@@ -129,8 +129,15 @@ public class ImpactDashboardController {
         writer.println("Environmental Impact");
         writer.println("Total Food Weight (kg)," + (metrics.getTotalFoodWeightKg() != null ?
                 String.format("%.2f", metrics.getTotalFoodWeightKg()) : "0.00"));
-        writer.println("Estimated Meals Provided," + (metrics.getEstimatedMealsProvided() != null ?
+
+        // Bounded meal estimates
+        if (metrics.getMinMealsProvided() != null && metrics.getMaxMealsProvided() != null) {
+            writer.println("Estimated Meals Provided (Range)," +
+                    metrics.getMinMealsProvided() + "-" + metrics.getMaxMealsProvided());
+        }
+        writer.println("Estimated Meals Provided (Midpoint)," + (metrics.getEstimatedMealsProvided() != null ?
                 metrics.getEstimatedMealsProvided() : "0"));
+
         writer.println("CO2 Emissions Avoided (kg)," + (metrics.getCo2EmissionsAvoidedKg() != null ?
                 String.format("%.2f", metrics.getCo2EmissionsAvoidedKg()) : "0.00"));
         writer.println("Water Saved (liters)," + (metrics.getWaterSavedLiters() != null ?
@@ -139,7 +146,7 @@ public class ImpactDashboardController {
                 metrics.getPeopleFedEstimate() : "0"));
         writer.println();
 
-        writer.println("Activity Metrics");
+        writer.println("Operational Efficiency");
         if (metrics.getTotalPostsCreated() != null) {
             writer.println("Total Posts Created," + metrics.getTotalPostsCreated());
         }
@@ -152,6 +159,31 @@ public class ImpactDashboardController {
         if (metrics.getDonationCompletionRate() != null) {
             writer.println("Donation Completion Rate (%)," +
                     String.format("%.1f", metrics.getDonationCompletionRate()));
+        }
+        if (metrics.getWasteDiversionEfficiencyPercent() != null) {
+            writer.println("Waste Diversion Efficiency (%)," +
+                    String.format("%.1f", metrics.getWasteDiversionEfficiencyPercent()));
+        }
+        writer.println();
+
+        writer.println("Time & Logistics");
+        if (metrics.getMedianClaimTimeHours() != null) {
+            writer.println("Median Time to Claim (hours)," +
+                    String.format("%.1f", metrics.getMedianClaimTimeHours()));
+        }
+        if (metrics.getP75ClaimTimeHours() != null) {
+            writer.println("75th Percentile Time to Claim (hours)," +
+                    String.format("%.1f", metrics.getP75ClaimTimeHours()));
+        }
+        if (metrics.getPickupTimelinessRate() != null) {
+            writer.println("Pickup Timeliness Rate (%)," +
+                    String.format("%.1f", metrics.getPickupTimelinessRate()));
+        }
+        writer.println();
+
+        writer.println("Engagement");
+        if (metrics.getActiveDonationDays() != null) {
+            writer.println("Active Days with Donations," + metrics.getActiveDonationDays());
         }
 
         // Admin-only metrics
@@ -167,6 +199,14 @@ public class ImpactDashboardController {
             writer.println("Repeat Receivers," + (metrics.getRepeatReceivers() != null ?
                     metrics.getRepeatReceivers() : "0"));
         }
+
+        // Factor metadata for transparency
+        writer.println();
+        writer.println("Calculation Metadata");
+        writer.println("Factor Version," + (metrics.getFactorVersion() != null ?
+                metrics.getFactorVersion() : "N/A"));
+        writer.println("Disclosure,\"" + (metrics.getFactorDisclosure() != null ?
+                metrics.getFactorDisclosure() : "N/A") + "\"");
 
         writer.flush();
         return outputStream.toByteArray();

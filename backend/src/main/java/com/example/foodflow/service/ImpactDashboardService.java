@@ -16,8 +16,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,23 +32,20 @@ public class ImpactDashboardService {
 
     private static final Logger logger = LoggerFactory.getLogger(ImpactDashboardService.class);
 
-    // Environmental impact conversion factors
-    private static final double KG_TO_MEALS = 2.5; // 1 kg food = ~2.5 meals
-    private static final double KG_TO_CO2 = 2.5; // 1 kg food saved = ~2.5 kg CO2 avoided
-    private static final double KG_TO_WATER = 500; // 1 kg food saved = ~500 liters water saved
-    private static final double MEAL_SIZE_KG = 0.4; // Average meal size
-
     private final SurplusPostRepository surplusPostRepository;
     private final ClaimRepository claimRepository;
     private final UserRepository userRepository;
+    private final ImpactCalculationService calculationService;
 
     public ImpactDashboardService(
             SurplusPostRepository surplusPostRepository,
             ClaimRepository claimRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            ImpactCalculationService calculationService) {
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;
         this.userRepository = userRepository;
+        this.calculationService = calculationService;
     }
 
     /**
@@ -70,6 +70,12 @@ public class ImpactDashboardService {
                 .filter(post -> post.getStatus() == PostStatus.COMPLETED)
                 .collect(Collectors.toList());
 
+        // Get expired posts (for waste efficiency calculation)
+        List<SurplusPost> expiredPosts = allPosts.stream()
+                .filter(post -> post.getExpiryDate() != null && post.getExpiryDate().isBefore(LocalDate.now()))
+                .filter(post -> post.getStatus() != PostStatus.COMPLETED)
+                .collect(Collectors.toList());
+
         ImpactMetricsDTO metrics = new ImpactMetricsDTO();
         metrics.setUserId(donorId);
         metrics.setRole("DONOR");
@@ -77,30 +83,58 @@ public class ImpactDashboardService {
         metrics.setStartDate(startDate);
         metrics.setEndDate(endDate);
 
-        // Calculate food weight saved
+        // Calculate food weight saved using enhanced conversion
         double totalWeightKg = calculateTotalWeightKg(completedPosts);
         metrics.setTotalFoodWeightKg(totalWeightKg);
 
-        // Calculate environmental impact
-        metrics.setEstimatedMealsProvided((int) (totalWeightKg * KG_TO_MEALS));
-        metrics.setCo2EmissionsAvoidedKg(totalWeightKg * KG_TO_CO2);
-        metrics.setWaterSavedLiters(totalWeightKg * KG_TO_WATER);
+        // Calculate category-weighted environmental impact
+        double co2Avoided = calculateCategoryWeightedCO2(completedPosts);
+        double waterSaved = calculateCategoryWeightedWater(completedPosts);
+        metrics.setCo2EmissionsAvoidedKg(co2Avoided);
+        metrics.setWaterSavedLiters(waterSaved);
+
+        // Calculate bounded meal estimates
+        int[] mealRange = calculationService.calculateMealRange(totalWeightKg);
+        metrics.setMinMealsProvided(mealRange[0]);
+        metrics.setMaxMealsProvided(mealRange[1]);
+        metrics.setEstimatedMealsProvided((mealRange[0] + mealRange[1]) / 2);
         metrics.setPeopleFedEstimate(metrics.getEstimatedMealsProvided() / 3); // 3 meals per person per day
 
         // Activity metrics
         metrics.setTotalPostsCreated(allPosts.size());
         metrics.setTotalDonationsCompleted(completedPosts.size());
 
-        // Calculate completion rate
-        if (!allPosts.isEmpty()) {
+        // Calculate completion rate (weight-based efficiency)
+        double totalPostedWeight = calculateTotalWeightKg(allPosts);
+        double expiredWeight = calculateTotalWeightKg(expiredPosts);
+        if (totalPostedWeight > 0) {
             double completionRate = (double) completedPosts.size() / allPosts.size() * 100;
             metrics.setDonationCompletionRate(Math.round(completionRate * 10.0) / 10.0);
+
+            // Waste diversion efficiency
+            double wasteDiversion = (1.0 - (expiredWeight / totalPostedWeight)) * 100;
+            metrics.setWasteDiversionEfficiencyPercent(Math.max(0, Math.round(wasteDiversion * 10.0) / 10.0));
         } else {
             metrics.setDonationCompletionRate(0.0);
+            metrics.setWasteDiversionEfficiencyPercent(0.0);
         }
 
-        logger.info("Donor metrics calculated: totalWeight={} kg, meals={}, CO2={} kg",
-                totalWeightKg, metrics.getEstimatedMealsProvided(), metrics.getCo2EmissionsAvoidedKg());
+        // Calculate active donation days
+        long activeDays = allPosts.stream()
+                .map(post -> post.getCreatedAt().toLocalDate())
+                .distinct()
+                .count();
+        metrics.setActiveDonationDays((int) activeDays);
+
+        // Time-based metrics (for completed donations with claims)
+        calculateTimeMetrics(completedPosts, metrics);
+
+        // Add factor metadata
+        metrics.setFactorVersion(calculationService.getCurrentVersion());
+        metrics.setFactorDisclosure(calculationService.getDisclosureText());
+
+        logger.info("Donor metrics calculated: totalWeight={} kg, meals={}-{}, CO2={} kg",
+                totalWeightKg, mealRange[0], mealRange[1], co2Avoided);
 
         return metrics;
     }
@@ -144,18 +178,39 @@ public class ImpactDashboardService {
         double totalWeightKg = calculateTotalWeightKg(claimedPosts);
         metrics.setTotalFoodWeightKg(totalWeightKg);
 
-        // Calculate environmental impact
-        metrics.setEstimatedMealsProvided((int) (totalWeightKg * KG_TO_MEALS));
-        metrics.setCo2EmissionsAvoidedKg(totalWeightKg * KG_TO_CO2);
-        metrics.setWaterSavedLiters(totalWeightKg * KG_TO_WATER);
+        // Calculate category-weighted environmental impact
+        double co2Avoided = calculateCategoryWeightedCO2(claimedPosts);
+        double waterSaved = calculateCategoryWeightedWater(claimedPosts);
+        metrics.setCo2EmissionsAvoidedKg(co2Avoided);
+        metrics.setWaterSavedLiters(waterSaved);
+
+        // Calculate bounded meal estimates
+        int[] mealRange = calculationService.calculateMealRange(totalWeightKg);
+        metrics.setMinMealsProvided(mealRange[0]);
+        metrics.setMaxMealsProvided(mealRange[1]);
+        metrics.setEstimatedMealsProvided((mealRange[0] + mealRange[1]) / 2);
         metrics.setPeopleFedEstimate(metrics.getEstimatedMealsProvided() / 3);
 
         // Activity metrics
         metrics.setTotalClaimsMade(allClaims.size());
         metrics.setTotalDonationsCompleted(completedClaims.size());
 
-        logger.info("Receiver metrics calculated: totalWeight={} kg, meals={}, claims={}",
-                totalWeightKg, metrics.getEstimatedMealsProvided(), allClaims.size());
+        // Calculate active claim days
+        long activeDays = allClaims.stream()
+                .map(claim -> claim.getClaimedAt().toLocalDate())
+                .distinct()
+                .count();
+        metrics.setActiveDonationDays((int) activeDays);
+
+        // Time-based metrics
+        calculateTimeMetricsFromClaims(completedClaims, metrics);
+
+        // Add factor metadata
+        metrics.setFactorVersion(calculationService.getCurrentVersion());
+        metrics.setFactorDisclosure(calculationService.getDisclosureText());
+
+        logger.info("Receiver metrics calculated: totalWeight={} kg, meals={}-{}, claims={}",
+                totalWeightKg, mealRange[0], mealRange[1], allClaims.size());
 
         return metrics;
     }
@@ -181,6 +236,11 @@ public class ImpactDashboardService {
                 .filter(post -> post.getStatus() == PostStatus.COMPLETED)
                 .collect(Collectors.toList());
 
+        List<SurplusPost> expiredPosts = allPosts.stream()
+                .filter(post -> post.getExpiryDate() != null && post.getExpiryDate().isBefore(LocalDate.now()))
+                .filter(post -> post.getStatus() != PostStatus.COMPLETED)
+                .collect(Collectors.toList());
+
         // Get all claims within date range
         List<Claim> allClaims = claimRepository.findAll().stream()
                 .filter(claim -> isWithinDateRange(claim.getClaimedAt(), startDate, endDate))
@@ -200,10 +260,17 @@ public class ImpactDashboardService {
         double totalWeightKg = calculateTotalWeightKg(completedPosts);
         metrics.setTotalFoodWeightKg(totalWeightKg);
 
-        // Calculate environmental impact
-        metrics.setEstimatedMealsProvided((int) (totalWeightKg * KG_TO_MEALS));
-        metrics.setCo2EmissionsAvoidedKg(totalWeightKg * KG_TO_CO2);
-        metrics.setWaterSavedLiters(totalWeightKg * KG_TO_WATER);
+        // Calculate category-weighted environmental impact
+        double co2Avoided = calculateCategoryWeightedCO2(completedPosts);
+        double waterSaved = calculateCategoryWeightedWater(completedPosts);
+        metrics.setCo2EmissionsAvoidedKg(co2Avoided);
+        metrics.setWaterSavedLiters(waterSaved);
+
+        // Calculate bounded meal estimates
+        int[] mealRange = calculationService.calculateMealRange(totalWeightKg);
+        metrics.setMinMealsProvided(mealRange[0]);
+        metrics.setMaxMealsProvided(mealRange[1]);
+        metrics.setEstimatedMealsProvided((mealRange[0] + mealRange[1]) / 2);
         metrics.setPeopleFedEstimate(metrics.getEstimatedMealsProvided() / 3);
 
         // Activity metrics
@@ -211,12 +278,20 @@ public class ImpactDashboardService {
         metrics.setTotalDonationsCompleted(completedPosts.size());
         metrics.setTotalClaimsMade(allClaims.size());
 
-        // Calculate completion rate
+        // Calculate completion rate and waste diversion
+        double totalPostedWeight = calculateTotalWeightKg(allPosts);
+        double expiredWeight = calculateTotalWeightKg(expiredPosts);
         if (!allPosts.isEmpty()) {
             double completionRate = (double) completedPosts.size() / allPosts.size() * 100;
             metrics.setDonationCompletionRate(Math.round(completionRate * 10.0) / 10.0);
+
+            if (totalPostedWeight > 0) {
+                double wasteDiversion = (1.0 - (expiredWeight / totalPostedWeight)) * 100;
+                metrics.setWasteDiversionEfficiencyPercent(Math.max(0, Math.round(wasteDiversion * 10.0) / 10.0));
+            }
         } else {
             metrics.setDonationCompletionRate(0.0);
+            metrics.setWasteDiversionEfficiencyPercent(0.0);
         }
 
         // User engagement metrics
@@ -247,8 +322,15 @@ public class ImpactDashboardService {
                 .count();
         metrics.setRepeatReceivers((int) repeatReceivers);
 
-        logger.info("Admin metrics calculated: totalWeight={} kg, meals={}, activeDonors={}, activeReceivers={}",
-                totalWeightKg, metrics.getEstimatedMealsProvided(), activeDonors, activeReceivers);
+        // Time-based metrics
+        calculateTimeMetricsFromClaims(completedClaims, metrics);
+
+        // Add factor metadata
+        metrics.setFactorVersion(calculationService.getCurrentVersion());
+        metrics.setFactorDisclosure(calculationService.getDisclosureText());
+
+        logger.info("Admin metrics calculated: totalWeight={} kg, meals={}-{}, activeDonors={}, activeReceivers={}",
+                totalWeightKg, mealRange[0], mealRange[1], activeDonors, activeReceivers);
 
         return metrics;
     }
@@ -260,58 +342,95 @@ public class ImpactDashboardService {
         return posts.stream()
                 .map(SurplusPost::getQuantity)
                 .filter(quantity -> quantity != null)
-                .mapToDouble(this::convertToKg)
+                .mapToDouble(calculationService::convertToKg)
                 .sum();
     }
 
     /**
-     * Convert any quantity to kg
+     * Calculate category-weighted CO2 emissions avoided
      */
-    private double convertToKg(Quantity quantity) {
-        if (quantity == null || quantity.getValue() == null) {
-            return 0.0;
-        }
-
-        double value = quantity.getValue();
-        Quantity.Unit unit = quantity.getUnit();
-
-        switch (unit) {
-            case KILOGRAM:
-                return value;
-            case GRAM:
-                return value / 1000.0;
-            case POUND:
-                return value * 0.453592;
-            case OUNCE:
-                return value * 0.0283495;
-            case TON:
-                return value * 1000.0;
-            case LITER:
-                return value; // Approximate: 1L ≈ 1kg for food
-            case MILLILITER:
-                return value / 1000.0;
-            case GALLON:
-                return value * 3.78541;
-            // For count-based units, estimate based on average meal size
-            case PIECE:
-            case ITEM:
-            case UNIT:
-            case SERVING:
-            case PORTION:
-                return value * MEAL_SIZE_KG;
-            case BOX:
-            case PACKAGE:
-            case BAG:
-            case CONTAINER:
-                return value * 2.0; // Estimate 2kg per container
-            case CASE:
-            case CARTON:
-                return value * 10.0; // Estimate 10kg per case
-            default:
-                return value * MEAL_SIZE_KG; // Default estimate
-        }
+    private double calculateCategoryWeightedCO2(List<SurplusPost> posts) {
+        return posts.stream()
+                .mapToDouble(post -> {
+                    double weightKg = calculationService.convertToKg(post.getQuantity());
+                    return calculationService.calculateCO2Avoided(post, weightKg);
+                })
+                .sum();
     }
 
+    /**
+     * Calculate category-weighted water saved
+     */
+    private double calculateCategoryWeightedWater(List<SurplusPost> posts) {
+        return posts.stream()
+                .mapToDouble(post -> {
+                    double weightKg = calculationService.convertToKg(post.getQuantity());
+                    return calculationService.calculateWaterSaved(post, weightKg);
+                })
+                .sum();
+    }
+
+    /**
+     * Calculate time-based metrics for completed donations with claims
+     */
+    private void calculateTimeMetrics(List<SurplusPost> completedPosts, ImpactMetricsDTO metrics) {
+        List<Double> claimTimeHours = new ArrayList<>();
+        int onTimePickups = 0;
+        int totalPickups = 0;
+
+        for (SurplusPost post : completedPosts) {
+            // Find associated claim
+            claimRepository.findBySurplusPost(post).ifPresent(claim -> {
+                // Calculate time to claim (post creation to claim time)
+                if (claim.getClaimedAt() != null) {
+                    long hoursToClaim = ChronoUnit.HOURS.between(post.getCreatedAt(), claim.getClaimedAt());
+                    claimTimeHours.add((double) hoursToClaim);
+                }
+            });
+        }
+
+        // Calculate percentiles for time to claim
+        if (!claimTimeHours.isEmpty()) {
+            Collections.sort(claimTimeHours);
+            int p50Index = claimTimeHours.size() / 2;
+            int p75Index = (int) (claimTimeHours.size() * 0.75);
+
+            metrics.setMedianClaimTimeHours(claimTimeHours.get(p50Index));
+            metrics.setP75ClaimTimeHours(claimTimeHours.get(p75Index));
+        }
+
+        // Calculate pickup timeliness (placeholder - requires pickup time data)
+        metrics.setPickupTimelinessRate(0.0); // Will be enhanced when pickup time tracking is added
+    }
+
+    /**
+     * Calculate time-based metrics from claims directly
+     */
+    private void calculateTimeMetricsFromClaims(List<Claim> completedClaims, ImpactMetricsDTO metrics) {
+        List<Double> claimTimeHours = new ArrayList<>();
+
+        for (Claim claim : completedClaims) {
+            if (claim.getClaimedAt() != null && claim.getSurplusPost() != null) {
+                long hoursToClaim = ChronoUnit.HOURS.between(
+                    claim.getSurplusPost().getCreatedAt(),
+                    claim.getClaimedAt()
+                );
+                claimTimeHours.add((double) hoursToClaim);
+            }
+        }
+
+        // Calculate percentiles
+        if (!claimTimeHours.isEmpty()) {
+            Collections.sort(claimTimeHours);
+            int p50Index = claimTimeHours.size() / 2;
+            int p75Index = (int) (claimTimeHours.size() * 0.75);
+
+            metrics.setMedianClaimTimeHours(claimTimeHours.get(p50Index));
+            metrics.setP75ClaimTimeHours(claimTimeHours.get(p75Index));
+        }
+
+        metrics.setPickupTimelinessRate(0.0); // Placeholder
+    }
     /**
      * Calculate date range boundaries based on range type
      */
