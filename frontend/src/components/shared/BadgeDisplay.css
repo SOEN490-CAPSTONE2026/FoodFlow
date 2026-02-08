@@ -61,6 +61,28 @@
   line-height: 1;
 }
 
+/* Sidebar-specific white text styling */
+.donor-sidebar .points-label,
+.receiver-sidebar .points-label {
+  color: #fff !important;
+}
+
+.donor-sidebar .points-value,
+.receiver-sidebar .points-value {
+  color: #fff !important;
+}
+
+.donor-sidebar .points-icon,
+.receiver-sidebar .points-icon {
+  color: #fff !important;
+}
+
+.donor-sidebar .points-icon svg,
+.receiver-sidebar .points-icon svg {
+  color: #fff !important;
+  stroke: #fff !important;
+}
+
 /* Points Loading State */
 .points-display.loading {
   background: rgba(255, 255, 255, 0.05);
