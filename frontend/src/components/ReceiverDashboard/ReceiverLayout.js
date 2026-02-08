@@ -248,6 +248,16 @@ function ReceiverLayoutContent() {
       );
     };
 
+    const onDonationReadyForPickup = payload => {
+      console.log('RECEIVER: Donation ready for pickup:', payload);
+      // Show a notification to the receiver that their donation is ready for pickup
+      showNotification(
+        t('receiverLayout.notifications.donationReadyForPickup'),
+        payload.message ||
+          t('receiverLayout.notifications.donationReadyForPickupDesc')
+      );
+    };
+
     connectToUserQueue(
       onMessage,
       onClaimNotification,
@@ -255,7 +265,8 @@ function ReceiverLayoutContent() {
       onNewPostNotification,
       onAchievementUnlocked,
       onReviewReceived,
-      onDonationCompleted
+      onDonationCompleted,
+      onDonationReadyForPickup
     );
     return () => {
       try {

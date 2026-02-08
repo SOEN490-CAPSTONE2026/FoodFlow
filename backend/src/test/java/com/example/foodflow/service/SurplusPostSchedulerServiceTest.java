@@ -50,6 +50,15 @@ class SurplusPostSchedulerServiceTest {
     @Mock
     private TimelineService timelineService;
 
+    @Mock
+    private NotificationPreferenceService notificationPreferenceService;
+
+    @Mock
+    private EmailService emailService;
+
+    @Mock
+    private org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
+
     @InjectMocks
     private SurplusPostSchedulerService schedulerService;
 
@@ -525,7 +534,8 @@ class SurplusPostSchedulerServiceTest {
     void testToleranceConfiguration_DefaultValues() {
         // Given - New scheduler service instance with default tolerance values
         SurplusPostSchedulerService freshService = new SurplusPostSchedulerService(
-                surplusPostRepository, claimRepository, timelineService);
+                surplusPostRepository, claimRepository, timelineService,
+                notificationPreferenceService, emailService, messagingTemplate);
 
         // When - Set tolerance values to test the configuration is properly used
         try {

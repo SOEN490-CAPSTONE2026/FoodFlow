@@ -830,7 +830,9 @@
       "hasClaimed": "{{receiverName}} has claimed your \"{{foodTitle}}\"",
       "cancelledClaim": "{{receiverName}} cancelled their claim on \"{{foodTitle}}\"",
       "donationPickedUp": "Donation Picked Up",
-      "donationPickedUpDesc": "Your donation has been picked up!"
+      "donationPickedUpDesc": "Your donation has been picked up!",
+      "donationReadyForPickup": "Donation Ready for Pickup",
+      "donationReadyForPickupDesc": "Your donation is ready for pickup!"
     }
   },
   "donorListFood": {
@@ -919,7 +921,11 @@
     "account": "Account",
     "notifications": {
       "donationCompleted": "Donation Completed",
-      "donationCompletedDesc": "Your donation has been completed!"
+      "donationCompletedDesc": "Your donation has been completed!",
+      "donationReadyForPickup": "Donation Ready for Pickup",
+      "donationReadyForPickupDesc": "Your claimed donation is ready for pickup! Don't forget your pickup code.",
+      "pickupReminder": "Pickup Reminder",
+      "pickupReminderDesc": "Your donation pickup starts in about 1 hour. Be ready!"
     },
     "pageTitles": {
       "receiverDashboard": "Receiver Dashboard",

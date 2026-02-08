@@ -1161,5 +1161,100 @@ public class EmailService {
             </html>
             """.formatted(userName, donorName, donationTitle, quantity, donorName);
     }
-}
 
+    /**
+     * Send notification email for ready for pickup (to receiver)
+     */
+    public void sendReadyForPickupNotification(String toEmail, String userName, Map<String, Object> donationData) {
+        log.info("Sending ready for pickup notification email to: {}", toEmail);
+        
+        try {
+            ApiClient defaultClient = Configuration.getDefaultApiClient();
+            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
+            apiKey.setApiKey(brevoApiKey);
+            
+            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+            SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+            
+            SendSmtpEmailSender sender = new SendSmtpEmailSender();
+            sender.setEmail(fromEmail);
+            sender.setName(fromName);
+            sendSmtpEmail.setSender(sender);
+            
+            SendSmtpEmailTo recipient = new SendSmtpEmailTo();
+            recipient.setEmail(toEmail);
+            sendSmtpEmail.setTo(Collections.singletonList(recipient));
+            
+            sendSmtpEmail.setSubject("Your Donation Is Ready for Pickup - FoodFlow");
+            sendSmtpEmail.setHtmlContent(buildReadyForPickupEmailBody(userName, donationData));
+            
+            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            log.info("Ready for pickup notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
+        } catch (ApiException ex) {
+            log.error("Error sending ready for pickup notification to: {}", toEmail, ex);
+            // Don't throw - email is secondary to websocket notification
+        }
+    }
+
+    /**
+     * Build HTML email body for ready for pickup notification
+     */
+    private String buildReadyForPickupEmailBody(String userName, Map<String, Object> donationData) {
+        String donationTitle = (String) donationData.getOrDefault("donationTitle", "A Donation");
+        String quantity = String.valueOf(donationData.getOrDefault("quantity", "N/A"));
+        String pickupDate = (String) donationData.getOrDefault("pickupDate", "Soon");
+        String pickupTime = (String) donationData.getOrDefault("pickupTime", "Check your app");
+        
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                    .header { background-color: #f59e0b; color: white; padding: 30px; text-align: center; border-radius: 5px 5px 0 0; }
+                    .content { background-color: #f9f9f9; padding: 30px; border-radius: 0 0 5px 5px; }
+                    .alert-box { background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; margin: 20px 0; border-radius: 5px; }
+                    .info-box { background-color: white; border-left: 4px solid #3b82f6; padding: 20px; margin: 20px 0; border-radius: 5px; }
+                    .detail { margin: 10px 0; }
+                    .label { font-weight: bold; color: #224d68; }
+                    .button { display: inline-block; background-color: #f59e0b; color: white !important; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 20px; }
+                    a.button:visited { color: white !important; }
+                    a.button:hover { background-color: #d97706; color: white !important; }
+                    a.button:active { color: white !important; }
+                    .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>🚨 Ready for Pickup!</h1>
+                    </div>
+                    <div class="content">
+                        <p>Hi %s,</p>
+                        <div class="alert-box">
+                            <p><strong>Great news!</strong> Your claimed donation is now ready for pickup. Don't miss it!</p>
+                        </div>
+                        <p>Here are the details of your donation:</p>
+                        <div class="info-box">
+                            <div class="detail"><span class="label">Donation Item:</span> %s</div>
+                            <div class="detail"><span class="label">Quantity:</span> %s</div>
+                            <div class="detail"><span class="label">Pickup Date:</span> %s</div>
+                            <div class="detail"><span class="label">Pickup Time:</span> %s</div>
+                        </div>
+                        <p><strong>Don't forget to bring your pickup code!</strong> You'll need it to confirm the pickup.</p>
+                        <p style="text-align: center;">
+                            <a href="http://localhost:3000/receiver/dashboard" class="button" style="color: white !important; text-decoration: none;">View Pickup Details</a>
+                        </p>
+                    </div>
+                    <div class="footer">
+                        <p>© 2026 FoodFlow. All rights reserved.</p>
+                        <p>You're receiving this email because you have email notifications enabled in your preferences.</p>
+                        <p>To manage your notification settings, visit Settings in your FoodFlow account.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(userName, donationTitle, quantity, pickupDate, pickupTime);
+    }
+}

@@ -2,12 +2,14 @@ package com.example.foodflow.service;
 
 import com.example.foodflow.model.entity.Claim;
 import com.example.foodflow.model.entity.SurplusPost;
+import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.repository.ClaimRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +20,9 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -31,6 +35,9 @@ public class SurplusPostSchedulerService {
     private final SurplusPostRepository surplusPostRepository;
     private final ClaimRepository claimRepository;
     private final TimelineService timelineService;
+    private final NotificationPreferenceService notificationPreferenceService;
+    private final EmailService emailService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Value("${foodflow.expiry.enable-auto-flagging:true}")
     private boolean enableAutoFlagging;
@@ -40,12 +47,19 @@ public class SurplusPostSchedulerService {
 
     @Value("${pickup.tolerance.late-minutes:15}")
     private int lateToleranceMinutes;
+
     public SurplusPostSchedulerService(SurplusPostRepository surplusPostRepository,
             ClaimRepository claimRepository,
-            TimelineService timelineService) {
+            TimelineService timelineService,
+            NotificationPreferenceService notificationPreferenceService,
+            EmailService emailService,
+            SimpMessagingTemplate messagingTemplate) {
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;
         this.timelineService = timelineService;
+        this.notificationPreferenceService = notificationPreferenceService;
+        this.emailService = emailService;
+        this.messagingTemplate = messagingTemplate;
     }
 
     private String generateOtpCode() {
@@ -144,6 +158,75 @@ public class SurplusPostSchedulerService {
                     PostStatus.READY_FOR_PICKUP,
                     "Pickup time arrived - OTP generated automatically",
                     true);
+
+            // Send WebSocket and Email notifications to receiver
+            try {
+                Optional<Claim> claimOpt = claimRepository.findBySurplusPost(post);
+                if (claimOpt.isPresent()) {
+                    Claim claim = claimOpt.get();
+                    com.example.foodflow.model.entity.User receiver = claim.getReceiver();
+                    String receiverName = receiver.getOrganization() != null && receiver.getOrganization().getName() != null
+                        ? receiver.getOrganization().getName()
+                        : receiver.getFullName();
+                    
+                    // Send WebSocket notification if preference allows
+                    try {
+                        logger.info("Checking websocket preference for receiver userId={} for donationReadyForPickup notification", receiver.getId());
+                        
+                        if (notificationPreferenceService.shouldSendNotification(receiver, "donationReadyForPickup", "websocket")) {
+                            logger.info("Receiver {} has websocket notifications enabled for donationReadyForPickup, sending notification", receiver.getId());
+                            
+                            Map<String, Object> receiverNotification = new HashMap<>();
+                            receiverNotification.put("type", "DONATION_READY_FOR_PICKUP");
+                            receiverNotification.put("donationId", post.getId());
+                            receiverNotification.put("title", post.getTitle());
+                            receiverNotification.put("message", "Your donation is ready for pickup!");
+                            receiverNotification.put("pickupCode", post.getOtpCode());
+                            receiverNotification.put("timestamp", System.currentTimeMillis());
+                            
+                            messagingTemplate.convertAndSendToUser(
+                                receiver.getId().toString(),
+                                "/queue/donations/ready-for-pickup",
+                                receiverNotification
+                            );
+                            logger.info("Successfully sent ready for pickup websocket notification to receiver userId={} for postId={}", receiver.getId(), post.getId());
+                        } else {
+                            logger.info("Receiver {} has websocket notifications disabled for donationReadyForPickup", receiver.getId());
+                        }
+                    } catch (Exception e) {
+                        logger.error("Failed to send ready for pickup websocket notification to receiver: {}", e.getMessage(), e);
+                    }
+                    
+                    // Send Email notification if preference allows
+                    try {
+                        logger.info("Checking email preference for receiver userId={} for donationReadyForPickup notification", receiver.getId());
+                        
+                        if (notificationPreferenceService.shouldSendNotification(receiver, "donationReadyForPickup", "email")) {
+                            logger.info("Receiver {} has email notifications enabled for donationReadyForPickup, sending email", receiver.getId());
+                            
+                            Map<String, Object> donationData = new HashMap<>();
+                            donationData.put("donationTitle", post.getTitle());
+                            donationData.put("quantity", post.getQuantity().getValue() + " " + post.getQuantity().getUnit().getLabel());
+                            donationData.put("pickupDate", post.getPickupDate() != null ? post.getPickupDate().toString() : "Check your app");
+                            donationData.put("pickupTime", post.getPickupFrom() != null ? post.getPickupFrom().toString() : "Check your app");
+                            
+                            emailService.sendReadyForPickupNotification(
+                                receiver.getEmail(),
+                                receiverName,
+                                donationData
+                            );
+                            
+                            logger.info("Successfully sent ready for pickup email to receiver userId={} email={}", receiver.getId(), receiver.getEmail());
+                        } else {
+                            logger.info("Receiver {} has email notifications disabled for donationReadyForPickup or email globally disabled", receiver.getId());
+                        }
+                    } catch (Exception e) {
+                        logger.error("Failed to send ready for pickup email notification to receiver: {}", e.getMessage(), e);
+                    }
+                }
+            } catch (Exception e) {
+                logger.error("Error sending ready for pickup notifications for post ID {}: {}", post.getId(), e.getMessage(), e);
+            }
 
             logger.info("Post ID {} updated to READY_FOR_PICKUP", post.getId());
         }

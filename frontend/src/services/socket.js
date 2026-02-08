@@ -12,6 +12,7 @@ let stompClient = null;
  * @param {Function} onAchievementUnlocked - Called with parsed achievement notification from /user/queue/achievements
  * @param {Function} onReviewReceived - Called with parsed review notification from /user/queue/reviews
  * @param {Function} onDonationCompleted - Called with parsed donation completion notification from /user/queue/donations/completed
+ * @param {Function} onDonationReadyForPickup - Called with parsed ready for pickup notification from /user/queue/donations/ready-for-pickup
  */
 export function connectToUserQueue(
   onMessage,
@@ -20,7 +21,8 @@ export function connectToUserQueue(
   onNewPostNotification,
   onAchievementUnlocked,
   onReviewReceived,
-  onDonationCompleted
+  onDonationCompleted,
+  onDonationReadyForPickup
 ) {
   console.log('connectToUserQueue called');
 
@@ -186,6 +188,36 @@ export function connectToUserQueue(
         } catch (e) {
           console.error(
             'Failed to subscribe to donation completion notifications',
+            e
+          );
+        }
+
+        // Subscribe to donation ready for pickup notifications
+        try {
+          stompClient.subscribe(
+            '/user/queue/donations/ready-for-pickup',
+            msg => {
+              if (msg.body) {
+                try {
+                  const payload = JSON.parse(msg.body);
+                  console.log(
+                    'Received donation ready for pickup notification:',
+                    payload
+                  );
+                  onDonationReadyForPickup && onDonationReadyForPickup(payload);
+                } catch (e) {
+                  console.error(
+                    'Failed to parse donation ready for pickup notification',
+                    e
+                  );
+                }
+              }
+            }
+          );
+          console.log('Subscribed to /user/queue/donations/ready-for-pickup');
+        } catch (e) {
+          console.error(
+            'Failed to subscribe to donation ready for pickup notifications',
             e
           );
         }
