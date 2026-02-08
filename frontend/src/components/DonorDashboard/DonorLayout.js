@@ -11,6 +11,7 @@ import {
   Home,
   LayoutGrid,
   Heart,
+  Award,
   Mail,
   ChevronRight,
   ChevronLeft,
@@ -54,6 +55,8 @@ export default function DonorLayout() {
         return t('donorLayout.pageTitles.donorDashboard');
       case '/donor/list':
         return t('donorLayout.pageTitles.donateNow');
+      case '/donor/achievements':
+        return t('donorLayout.pageTitles.achievements', 'Achievements');
       case '/donor/messages':
         return t('donorLayout.pageTitles.messages');
       case '/donor/settings':
@@ -72,6 +75,11 @@ export default function DonorLayout() {
         return t('donorLayout.pageDescriptions.donorDashboard');
       case '/donor/list':
         return t('donorLayout.pageDescriptions.donateNow');
+      case '/donor/achievements':
+        return t(
+          'donorLayout.pageDescriptions.achievements',
+          'View your achievements and badges'
+        );
       case '/donor/messages':
         return t('donorLayout.pageDescriptions.messages');
       case '/donor/settings':
@@ -311,6 +319,17 @@ export default function DonorLayout() {
               <Heart size={18} className="lucide" />
             </span>
             {t('donorLayout.donateNow')}
+          </Link>
+
+          <Link
+            to="/donor/achievements"
+            className={`donor-nav-link ${isActive('/donor/achievements') ? 'active' : ''}`}
+            data-tooltip={t('donorLayout.achievements', 'Achievements')}
+          >
+            <span className="nav-icon" aria-hidden>
+              <Award size={18} className="lucide" />
+            </span>
+            {t('donorLayout.achievements', 'Achievements')}
           </Link>
 
           <Link
