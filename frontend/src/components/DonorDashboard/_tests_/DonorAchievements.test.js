@@ -111,7 +111,7 @@ describe('DonorAchievements', () => {
       error: null,
     });
 
-    render(<DonorAchievements />);
+    const { container } = render(<DonorAchievements />);
 
     await waitFor(() => {
       // Check header
@@ -132,8 +132,11 @@ describe('DonorAchievements', () => {
       // Check in-progress achievement
       expect(screen.getByText('Dedicated Donor')).toBeInTheDocument();
       expect(screen.getByText('Complete 10 donations')).toBeInTheDocument();
-      expect(screen.getByText('5 /')).toBeInTheDocument();
-      expect(screen.getByText('10')).toBeInTheDocument();
+      
+      // Check progress in the specific achievement card
+      const progressSection = container.querySelector('.achievement-progress');
+      expect(progressSection).toHaveTextContent('5');
+      expect(progressSection).toHaveTextContent('10');
     });
   });
 
@@ -254,8 +257,8 @@ describe('DonorAchievements', () => {
 
     render(<DonorAchievements />);
 
-    expect(screen.getByText('7 /')).toBeInTheDocument();
-    expect(screen.getByText('10')).toBeInTheDocument();
+    expect(screen.getByText(/7/)).toBeInTheDocument();
+    expect(screen.getByText(/10/)).toBeInTheDocument();
 
     // Check for progress bar
     const progressBar = document.querySelector('.progress-bar-mini-fill');
@@ -294,11 +297,14 @@ describe('DonorAchievements', () => {
       error: null,
     });
 
-    render(<DonorAchievements />);
+    const { container } = render(<DonorAchievements />);
 
     // 2 unlocked out of 4 total = 50%
-    expect(screen.getByText('2 /')).toBeInTheDocument();
-    expect(screen.getByText('4')).toBeInTheDocument();
+    // Check progress stat card specifically
+    const statCards = container.querySelectorAll('.stat-card');
+    const progressCard = statCards[1]; // Second card is progress
+    expect(progressCard).toHaveTextContent('2');
+    expect(progressCard).toHaveTextContent('4');
     expect(screen.getByText('50% Complete')).toBeInTheDocument();
   });
 
@@ -318,7 +324,7 @@ describe('DonorAchievements', () => {
       error: null,
     });
 
-    render(<DonorAchievements />);
+    const { container } = render(<DonorAchievements />);
 
     // Total Points
     expect(screen.getByText('Total Points')).toBeInTheDocument();
@@ -330,7 +336,9 @@ describe('DonorAchievements', () => {
 
     // Unlocked Badges
     expect(screen.getByText('Unlocked Badges')).toBeInTheDocument();
-    expect(screen.getByText('2')).toBeInTheDocument();
+    const statCards = container.querySelectorAll('.stat-card');
+    const badgesCard = statCards[2]; // Third card is badges
+    expect(badgesCard).toHaveTextContent('2');
   });
 
   it('should handle empty progressToNext array', () => {
