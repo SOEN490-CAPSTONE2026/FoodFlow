@@ -41,13 +41,20 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class SurplusService {
+
+    private static final Logger logger = LoggerFactory.getLogger(SurplusService.class);
 
     private final SurplusPostRepository surplusPostRepository;
     private final ClaimRepository claimRepository;
@@ -60,6 +67,9 @@ public class SurplusService {
     private final FileStorageService fileStorageService;
     private final GamificationService gamificationService;
     private final ClaimService claimService;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final EmailService emailService;
+    private final NotificationPreferenceService notificationPreferenceService;
 
     @Value("${pickup.tolerance.early-minutes:15}")
     private int earlyToleranceMinutes;
@@ -77,7 +87,10 @@ public class SurplusService {
             DonationTimelineRepository timelineRepository,
             FileStorageService fileStorageService,
             GamificationService gamificationService,
-            ClaimService claimService) {
+            ClaimService claimService,
+            SimpMessagingTemplate messagingTemplate,
+            EmailService emailService,
+            NotificationPreferenceService notificationPreferenceService) {
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;
         this.pickupSlotValidationService = pickupSlotValidationService;
@@ -89,6 +102,9 @@ public class SurplusService {
         this.fileStorageService = fileStorageService;
         this.gamificationService = gamificationService;
         this.claimService = claimService;
+        this.messagingTemplate = messagingTemplate;
+        this.emailService = emailService;
+        this.notificationPreferenceService = notificationPreferenceService;
     }
 
     /**
@@ -813,12 +829,115 @@ public class SurplusService {
         SurplusPost updatedPost = surplusPostRepository.save(post);
 
         // Also complete the related claim so pickup achievements are updated
+        logger.info("Looking for claim associated with postId={}", post.getId());
         claimRepository.findBySurplusPost(post)
-                .ifPresent(claim -> {
-                    if (claim.getStatus() != ClaimStatus.COMPLETED) {
-                        claimService.completeClaim(claim.getId());
-                    }
-                });
+                .ifPresentOrElse(
+                    claim -> {
+                        logger.info("Found claim claimId={} with status={} for postId={}", claim.getId(), claim.getStatus(), post.getId());
+                        if (claim.getStatus() != ClaimStatus.COMPLETED) {
+                            claimService.completeClaim(claim.getId());
+                            
+                            User receiver = claim.getReceiver();
+                            String receiverName = receiver.getOrganization() != null && receiver.getOrganization().getName() != null
+                                ? receiver.getOrganization().getName()
+                                : receiver.getFullName();
+                            
+                            // Send WebSocket notification to receiver that donation was completed (if preference allows)
+                            try {
+                                logger.info("Checking websocket preference for receiver userId={} for donationCompleted notification", receiver.getId());
+                                
+                                if (notificationPreferenceService.shouldSendNotification(receiver, "donationCompleted", "websocket")) {
+                                    logger.info("Receiver {} has websocket notifications enabled for donationCompleted, sending websocket notification", receiver.getId());
+                                    
+                                    Map<String, Object> receiverNotification = new HashMap<>();
+                                    receiverNotification.put("type", "DONATION_COMPLETED");
+                                    receiverNotification.put("donationId", post.getId());
+                                    receiverNotification.put("title", post.getTitle());
+                                    receiverNotification.put("message", "Donation Completed");
+                                    receiverNotification.put("timestamp", System.currentTimeMillis());
+                                    
+                                    messagingTemplate.convertAndSendToUser(
+                                        receiver.getId().toString(),
+                                        "/queue/donations/completed",
+                                        receiverNotification
+                                    );
+                                    logger.info("Successfully sent donation completed websocket notification to receiver userId={} for postId={}", receiver.getId(), post.getId());
+                                } else {
+                                    logger.info("Receiver {} has websocket notifications disabled for donationCompleted, skipping websocket notification", receiver.getId());
+                                }
+                            } catch (Exception e) {
+                                logger.error("Failed to send donation completed websocket notification to receiver: {}", e.getMessage(), e);
+                            }
+                            
+                            // Send email notification to receiver that donation was completed (if preference allows)
+                            try {
+                                logger.info("Checking email preference for receiver userId={} for donationCompleted notification", receiver.getId());
+                                
+                                if (notificationPreferenceService.shouldSendNotification(receiver, "donationCompleted", "email")) {
+                                    logger.info("Receiver {} has email notifications enabled for donationCompleted, sending email", receiver.getId());
+                                    
+                                    String donorName = donor.getOrganization() != null && donor.getOrganization().getName() != null 
+                                        ? donor.getOrganization().getName() 
+                                        : donor.getFullName();
+                                    
+                                    Map<String, Object> donationData = new HashMap<>();
+                                    donationData.put("donationTitle", post.getTitle());
+                                    donationData.put("quantity", post.getQuantity().getValue() + " " + post.getQuantity().getUnit().getLabel());
+                                    donationData.put("donorName", donorName);
+                                    
+                                    emailService.sendDonationCompletedNotification(
+                                        receiver.getEmail(),
+                                        receiverName,
+                                        donationData
+                                    );
+                                    
+                                    logger.info("Successfully sent donation completed email to receiver userId={} email={}", receiver.getId(), receiver.getEmail());
+                                } else {
+                                    logger.info("Receiver {} has email notifications disabled for donationCompleted or email globally disabled, skipping email", receiver.getId());
+                                }
+                            } catch (Exception e) {
+                                logger.error("Failed to send donation completed email notification to receiver: {}", e.getMessage(), e);
+                                // Don't throw - email is secondary to main functionality
+                            }
+                            
+                            // Send email notification to donor that donation was picked up (with preference checking)
+                            try {
+                                logger.info("Checking email preference for donor userId={} for donationPickedUp notification", donor.getId());
+                                
+                                if (notificationPreferenceService.shouldSendNotification(donor, "donationPickedUp", "email")) {
+                                    logger.info("Donor {} has email notifications enabled for donationPickedUp, sending email", donor.getId());
+                                    
+                                    // Prepare notification data
+                                    String donorName = donor.getOrganization() != null && donor.getOrganization().getName() != null 
+                                        ? donor.getOrganization().getName() 
+                                        : donor.getFullName();
+                                    
+                                    Map<String, Object> donationData = new HashMap<>();
+                                    donationData.put("donationTitle", post.getTitle());
+                                    donationData.put("quantity", post.getQuantity().getValue() + " " + post.getQuantity().getUnit().getLabel());
+                                    donationData.put("receiverName", receiverName);
+                                    
+                                    emailService.sendDonationPickedUpNotification(
+                                        donor.getEmail(),
+                                        donorName,
+                                        donationData
+                                    );
+                                    
+                                    logger.info("Successfully sent donation picked up email to donor userId={} email={}", donor.getId(), donor.getEmail());
+                                } else {
+                                    logger.info("Donor {} has email notifications disabled for donationPickedUp or email globally disabled, skipping email", donor.getId());
+                                }
+                            } catch (Exception e) {
+                                logger.error("Failed to send donation picked up email notification to donor: {}", e.getMessage(), e);
+                            }
+                        } else {
+                            logger.info("Claim claimId={} already completed, skipping notification", claim.getId());
+                        }
+                    },
+                    () -> logger.warn("No claim found for postId={}, skipping receiver notification", post.getId())
+                );
+
+
 
         businessMetricsService.incrementSurplusPostCompleted();
         businessMetricsService.recordTimer(sample, "surplus.service.complete", "status", "complete");

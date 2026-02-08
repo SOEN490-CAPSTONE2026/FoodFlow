@@ -11,6 +11,7 @@ let stompClient = null;
  * @param {Function} onNewPostNotification - Called with parsed new post notification from /user/queue/notifications
  * @param {Function} onAchievementUnlocked - Called with parsed achievement notification from /user/queue/achievements
  * @param {Function} onReviewReceived - Called with parsed review notification from /user/queue/reviews
+ * @param {Function} onDonationCompleted - Called with parsed donation completion notification from /user/queue/donations/completed
  */
 export function connectToUserQueue(
   onMessage,
@@ -18,7 +19,8 @@ export function connectToUserQueue(
   onClaimCancelled,
   onNewPostNotification,
   onAchievementUnlocked,
-  onReviewReceived
+  onReviewReceived,
+  onDonationCompleted
 ) {
   console.log('connectToUserQueue called');
 
@@ -159,6 +161,33 @@ export function connectToUserQueue(
           console.log('Subscribed to /user/queue/reviews');
         } catch (e) {
           console.error('Failed to subscribe to review notifications', e);
+        }
+
+        // Subscribe to donation completion notifications
+        try {
+          stompClient.subscribe('/user/queue/donations/completed', msg => {
+            if (msg.body) {
+              try {
+                const payload = JSON.parse(msg.body);
+                console.log(
+                  'Received donation completion notification:',
+                  payload
+                );
+                onDonationCompleted && onDonationCompleted(payload);
+              } catch (e) {
+                console.error(
+                  'Failed to parse donation completion notification',
+                  e
+                );
+              }
+            }
+          });
+          console.log('Subscribed to /user/queue/donations/completed');
+        } catch (e) {
+          console.error(
+            'Failed to subscribe to donation completion notifications',
+            e
+          );
         }
       },
       onStompError: frame => {

@@ -828,7 +828,9 @@
       "newClaim": "New Claim",
       "claimCancelled": "Claim Cancelled",
       "hasClaimed": "{{receiverName}} has claimed your \"{{foodTitle}}\"",
-      "cancelledClaim": "{{receiverName}} cancelled their claim on \"{{foodTitle}}\""
+      "cancelledClaim": "{{receiverName}} cancelled their claim on \"{{foodTitle}}\"",
+      "donationPickedUp": "Donation Picked Up",
+      "donationPickedUpDesc": "Your donation has been picked up!"
     }
   },
   "donorListFood": {
@@ -915,6 +917,10 @@
     "hello": "Hello {{name}}!",
     "user": "User",
     "account": "Account",
+    "notifications": {
+      "donationCompleted": "Donation Completed",
+      "donationCompletedDesc": "Your donation has been completed!"
+    },
     "pageTitles": {
       "receiverDashboard": "Receiver Dashboard",
       "welcome": "Welcome",

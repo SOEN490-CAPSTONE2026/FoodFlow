@@ -238,13 +238,24 @@ function ReceiverLayoutContent() {
       }
     };
 
+    const onDonationCompleted = payload => {
+      console.log('RECEIVER: Donation completed:', payload);
+      // Show a notification to the receiver that their donation was completed
+      showNotification(
+        t('receiverLayout.notifications.donationCompleted'),
+        payload.message ||
+          t('receiverLayout.notifications.donationCompletedDesc')
+      );
+    };
+
     connectToUserQueue(
       onMessage,
       onClaimNotification,
       onClaimCancelled,
       onNewPostNotification,
       onAchievementUnlocked,
-      onReviewReceived
+      onReviewReceived,
+      onDonationCompleted
     );
     return () => {
       try {

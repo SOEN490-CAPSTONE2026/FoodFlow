@@ -209,7 +209,8 @@ export default function DonorLayout() {
       onClaimCancelled,
       null, // no new post notifications for donors
       onAchievementUnlocked,
-      onReviewReceived
+      onReviewReceived,
+      null // no donation completion notifications for donors
     );
     return () => {
       try {
