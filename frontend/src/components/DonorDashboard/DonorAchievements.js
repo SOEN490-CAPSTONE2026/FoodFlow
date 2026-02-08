@@ -4,6 +4,7 @@ import { Award, TrendingUp, Target } from 'lucide-react';
 import useGamification from '../../hooks/useGamification';
 import PointsDisplay from '../shared/PointsDisplay';
 import BadgeIcon from '../shared/BadgeIcon';
+import Leaderboard from '../shared/Leaderboard';
 import './Donor_Styles/DonorAchievements.css';
 
 /**
@@ -292,6 +293,9 @@ const DonorAchievements = () => {
           </div>
         </div>
       )}
+
+      {/* Leaderboard Section */}
+      <Leaderboard role="DONOR" />
 
       {/* Empty State */}
       {allAchievements.length === 0 && (

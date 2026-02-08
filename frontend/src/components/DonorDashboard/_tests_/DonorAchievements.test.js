@@ -132,7 +132,7 @@ describe('DonorAchievements', () => {
       // Check in-progress achievement
       expect(screen.getByText('Dedicated Donor')).toBeInTheDocument();
       expect(screen.getByText('Complete 10 donations')).toBeInTheDocument();
-      
+
       // Check progress in the specific achievement card
       const progressSection = container.querySelector('.achievement-progress');
       expect(progressSection).toHaveTextContent('5');
