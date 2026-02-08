@@ -43,13 +43,13 @@ const LeaderboardEntry = ({ entry, showMedals = true }) => {
 
       <div className="entry-avatar">
         <div className="avatar-placeholder">
-          {entry.displayName.charAt(0).toUpperCase()}
+          {(entry.userName || entry.displayName || 'U').charAt(0).toUpperCase()}
         </div>
       </div>
 
       <div className="entry-info">
         <div className="entry-name">
-          {entry.displayName}
+          {entry.userName || entry.displayName}
           {entry.isCurrentUser && (
             <span className="you-badge">{t('leaderboard.you', 'You')}</span>
           )}

@@ -7,6 +7,13 @@ import useGamification from '../../../hooks/useGamification';
 // Mock the useGamification hook
 jest.mock('../../../hooks/useGamification');
 
+// Mock the Leaderboard component
+jest.mock('../../shared/Leaderboard', () => {
+  return function MockLeaderboard() {
+    return <div data-testid="leaderboard-mock">Leaderboard</div>;
+  };
+});
+
 // Mock i18next
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
