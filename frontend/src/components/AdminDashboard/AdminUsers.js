@@ -12,6 +12,16 @@ import {
   Gift,
   Sparkles,
   Handshake,
+  Eye,
+  Info,
+  User,
+  Building2,
+  Phone as PhoneIcon,
+  Mail,
+  FileText,
+  Calendar,
+  Clock,
+  Download,
 } from 'lucide-react';
 import { feedbackAPI } from '../../services/api';
 import './Admin_Styles/AdminUsers.css';
@@ -68,6 +78,10 @@ const AdminUsers = () => {
   // User ratings
   const [userRatings, setUserRatings] = useState({});
 
+  // User detail modal
+  const [showUserDetailModal, setShowUserDetailModal] = useState(false);
+  const [selectedUserForView, setSelectedUserForView] = useState(null);
+
   // Fetch users from API
   const fetchUsers = async () => {
     setLoading(true);
@@ -123,7 +137,8 @@ const AdminUsers = () => {
       setLoading(false);
     } catch (err) {
       console.error('Error fetching users:', err);
-      setError('Failed to load users. Please try again.');
+      setError('Failed to load users. Please try again later.');
+      setUsers([]);
       setLoading(false);
     }
   };
@@ -291,6 +306,48 @@ const AdminUsers = () => {
     setAlertMessage('');
     setAlertType('');
     setSelectedUser(null);
+  };
+
+  // Open user detail modal
+  const openUserDetailModal = async user => {
+    try {
+      // Fetch detailed user information from backend
+      const token =
+        localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_BASE_URL}/admin/users/${user.id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      console.log('Backend user data:', response.data);
+      console.log('Address:', response.data.address);
+      console.log('BusinessLicense:', response.data.businessLicense);
+      console.log(
+        'CharityRegistrationNumber:',
+        response.data.charityRegistrationNumber
+      );
+
+      // Set the detailed user data
+      setSelectedUserForView(response.data);
+      setShowUserDetailModal(true);
+
+      // Fetch rating if not already loaded
+      if (!userRatings[user.id]) {
+        await fetchUserRating(user.id);
+      }
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+      // Fallback to using the user object from the table if API fails
+      setSelectedUserForView(user);
+      setShowUserDetailModal(true);
+
+      // Still try to fetch rating
+      if (!userRatings[user.id]) {
+        await fetchUserRating(user.id);
+      }
+    }
   };
 
   // Reset filters
@@ -497,10 +554,8 @@ const AdminUsers = () => {
               <TableHead>ID</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Role</TableHead>
-              <TableHead>Verification</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>Phone</TableHead>
               <TableHead>Activity</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -508,7 +563,7 @@ const AdminUsers = () => {
           <TableBody>
             {filteredUsers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan="10" className="no-users">
+                <TableCell colSpan="8" className="no-users">
                   No users found
                 </TableCell>
               </TableRow>
@@ -561,17 +616,6 @@ const AdminUsers = () => {
                       </span>
                     </TableCell>
                     <TableCell>
-                      {user.verificationStatus && (
-                        <span
-                          className={`pill pill-${user.verificationStatus.toLowerCase()}`}
-                        >
-                          {user.verificationStatus === 'VERIFIED'
-                            ? 'Verified'
-                            : 'Pending'}
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell>
                       <span
                         className={`pill pill-status-${user.accountStatus.toLowerCase()}`}
                       >
@@ -581,7 +625,6 @@ const AdminUsers = () => {
                       </span>
                     </TableCell>
                     <TableCell className="email-cell">{user.email}</TableCell>
-                    <TableCell>{user.phone || 'N/A'}</TableCell>
                     <TableCell className="activity-cell">
                       {user.role === 'DONOR' && (user.donationCount || 0)}
                       {user.role === 'RECEIVER' && (user.claimCount || 0)}
@@ -589,6 +632,13 @@ const AdminUsers = () => {
                     </TableCell>
                     <TableCell>
                       <div className="action-buttons">
+                        <button
+                          className="action-btn"
+                          onClick={() => openUserDetailModal(user)}
+                          title="View Details"
+                        >
+                          <Eye size={16} />
+                        </button>
                         {user.accountStatus === 'ACTIVE' &&
                           user.role !== 'ADMIN' && (
                             <button
@@ -631,7 +681,7 @@ const AdminUsers = () => {
                   {/* Expanded details row */}
                   {expandedRows.has(user.id) && (
                     <TableRow className="details-row">
-                      <TableCell colSpan="10">
+                      <TableCell colSpan="8">
                         <div className="user-details-expanded">
                           <div className="details-grid">
                             <div className="details-section">
@@ -992,6 +1042,201 @@ const AdminUsers = () => {
               >
                 OK
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* User Detail Modal */}
+      {showUserDetailModal && selectedUserForView && (
+        <div
+          className="modal-overlay"
+          onClick={() => setShowUserDetailModal(false)}
+        >
+          <div
+            className="modal-content modal-user-detail"
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              className="modal-close"
+              onClick={() => setShowUserDetailModal(false)}
+            >
+              ×
+            </button>
+
+            <div className="modal-header">
+              <h2>User Details</h2>
+            </div>
+
+            <div className="modal-body">
+              {/* Basic Information Card */}
+              <div className="info-card">
+                <div className="info-card-header">
+                  <Info size={20} />
+                  <h3>Basic Information</h3>
+                </div>
+                <div className="info-grid">
+                  <div className="info-item">
+                    <span className="info-label">
+                      <User size={16} /> ID
+                    </span>
+                    <span className="info-value">{selectedUserForView.id}</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">
+                      <User size={16} /> Name
+                    </span>
+                    <span className="info-value">
+                      {selectedUserForView.contactPerson ||
+                        selectedUserForView.fullName ||
+                        'N/A'}
+                    </span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">
+                      <Building2 size={16} /> Organization
+                    </span>
+                    <span className="info-value">
+                      {selectedUserForView.organizationName || 'N/A'}
+                    </span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">
+                      <Mail size={16} /> Email
+                    </span>
+                    <span className="info-value">
+                      {selectedUserForView.email}
+                    </span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">
+                      <PhoneIcon size={16} /> Phone
+                    </span>
+                    <span className="info-value">
+                      {selectedUserForView.phone || 'N/A'}
+                    </span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">
+                      <FileText size={16} /> License Document
+                    </span>
+                    <span className="info-value">
+                      {selectedUserForView.licenseDocument ||
+                      selectedUserForView.businessLicense ||
+                      selectedUserForView.charityRegistrationNumber ? (
+                        <a
+                          href={
+                            selectedUserForView.licenseDocument ||
+                            `${process.env.REACT_APP_API_BASE_URL}/uploads/licenses/${selectedUserForView.businessLicense || selectedUserForView.charityRegistrationNumber}`
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="license-document-link"
+                        >
+                          <Download size={16} />
+                          View License Document
+                        </a>
+                      ) : (
+                        'No document uploaded'
+                      )}
+                    </span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">
+                      <FileText size={16} /> Registration Number
+                    </span>
+                    <span className="info-value">
+                      {selectedUserForView.businessLicense ||
+                        selectedUserForView.charityRegistrationNumber ||
+                        selectedUserForView.licenseNumber ||
+                        'N/A'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Activity & Statistics Card */}
+              <div className="info-card">
+                <div className="info-card-header">
+                  <Sparkles size={20} />
+                  <h3>Activity & Statistics</h3>
+                </div>
+                <div className="info-grid">
+                  <div className="info-item">
+                    <span className="info-label">
+                      <Calendar size={16} /> Registration Date
+                    </span>
+                    <span className="info-value">
+                      {selectedUserForView.createdAt
+                        ? new Date(
+                            selectedUserForView.createdAt
+                          ).toLocaleDateString()
+                        : 'N/A'}
+                    </span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">
+                      <Clock size={16} /> Last Active
+                    </span>
+                    <span className="info-value">
+                      {selectedUserForView.lastActive
+                        ? new Date(
+                            selectedUserForView.lastActive
+                          ).toLocaleDateString()
+                        : 'N/A'}
+                    </span>
+                  </div>
+                  {selectedUserForView.role === 'DONOR' && (
+                    <div className="info-item">
+                      <span className="info-label">
+                        <Gift size={16} /> Total Donations
+                      </span>
+                      <span className="info-value">
+                        {selectedUserForView.donationCount || 0}
+                      </span>
+                    </div>
+                  )}
+                  {selectedUserForView.role === 'RECEIVER' && (
+                    <div className="info-item">
+                      <span className="info-label">
+                        <Handshake size={16} /> Total Claims
+                      </span>
+                      <span className="info-value">
+                        {selectedUserForView.claimCount || 0}
+                      </span>
+                    </div>
+                  )}
+                  <div className="info-item">
+                    <span className="info-label">Rating</span>
+                    <span className="info-value">
+                      {userRatings[selectedUserForView.id] !== undefined &&
+                      userRatings[selectedUserForView.id].averageRating
+                        ? `${userRatings[selectedUserForView.id].averageRating.toFixed(1)} ⭐ (${userRatings[selectedUserForView.id].totalReviews} reviews)`
+                        : 'No ratings yet'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Address Information Card */}
+              {selectedUserForView.address && (
+                <div className="info-card">
+                  <div className="info-card-header">
+                    <Building2 size={20} />
+                    <h3>Address Information</h3>
+                  </div>
+                  <div className="info-grid">
+                    <div className="info-item" style={{ gridColumn: '1 / -1' }}>
+                      <span className="info-label">Address</span>
+                      <span className="info-value">
+                        {typeof selectedUserForView.address === 'string'
+                          ? selectedUserForView.address
+                          : `${selectedUserForView.address.street || ''}, ${selectedUserForView.address.city || ''}, ${selectedUserForView.address.province || ''} ${selectedUserForView.address.postalCode || ''}, ${selectedUserForView.address.country || ''}`}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

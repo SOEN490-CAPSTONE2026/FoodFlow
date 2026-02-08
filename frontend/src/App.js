@@ -15,6 +15,7 @@ import LoginPage from './components/LoginPage';
 import ForgotPassword from './components/ForgotPassword';
 import EmailVerification from './components/EmailVerification';
 import NavigationBar from './components/NavigationBar';
+import ChatWidget from './components/shared/ChatWidget';
 import { AuthProvider } from './contexts/AuthContext';
 import { TimezoneProvider } from './contexts/TimezoneContext';
 import { useAnalytics } from './hooks/useAnalytics';
@@ -31,6 +32,7 @@ import PrivacyPolicy from './components/PrivacyPolicy';
 import './App.css';
 
 import { useLocation } from 'react-router-dom';
+import { useAuth } from './contexts/AuthContext';
 
 import './locales/i18n';
 
@@ -38,6 +40,7 @@ function AppContent() {
   useAnalytics();
   const location = useLocation();
   const { i18n } = useTranslation();
+  const { user } = useAuth();
 
   // Set document direction and lang attribute based on current language
   useEffect(() => {
@@ -61,6 +64,9 @@ function AppContent() {
     location.pathname.startsWith('/donor') ||
     location.pathname.startsWith('/admin') ||
     location.pathname.startsWith('/receiver');
+
+  // Show chat widget only for authenticated users
+  const showChatWidget = user != null;
 
   return (
     <div className="App">
@@ -113,6 +119,9 @@ function AppContent() {
         <Route path="/surplus/create" element={<SurplusForm />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       </Routes>
+
+      {/* Support chat widget - shown only for authenticated users */}
+      {showChatWidget && <ChatWidget />}
     </div>
   );
 }

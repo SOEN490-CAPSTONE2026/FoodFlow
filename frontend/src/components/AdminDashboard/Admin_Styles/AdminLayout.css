@@ -77,6 +77,12 @@ body {
   z-index: 1000;
   overflow-y: auto;
   overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.admin-sidebar::-webkit-scrollbar {
+  display: none;
 }
 
 .admin-sidebar-header {
@@ -115,6 +121,14 @@ body {
 
 .admin-sidebar.collapsed {
   width: 70px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.admin-sidebar.collapsed::-webkit-scrollbar {
+  display: none;
 }
 
 .admin-sidebar.collapsed .admin-logo {
@@ -544,6 +558,12 @@ body {
   overflow-y: auto;
   overflow-x: hidden;
   scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.admin-content::-webkit-scrollbar {
+  display: none;
 }
 
 .admin-nav-bottom {

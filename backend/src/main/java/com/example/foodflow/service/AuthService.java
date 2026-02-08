@@ -164,10 +164,12 @@ public class AuthService {
         log.info("Donor registration successful: email={}, organization={}, type={}",
             savedUser.getEmail(), request.getOrganizationName(), request.getOrganizationType());
 
-        return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), 
+        AuthResponse response = new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), 
             "Donor registered successfully", savedUser.getId(), request.getOrganizationName(), 
             organization.getVerificationStatus() != null ? organization.getVerificationStatus().toString() : null,
             savedUser.getAccountStatus() != null ? savedUser.getAccountStatus().toString() : null);
+        response.setLanguagePreference(savedUser.getLanguagePreference());
+        return response;
     }
 
     @Transactional
@@ -243,10 +245,12 @@ public class AuthService {
         metricsService.incrementReceiverRegistration();
         metricsService.incrementUserRegistration();
 
-        return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), 
+        AuthResponse response = new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), 
             "Receiver registered successfully", savedUser.getId(), request.getOrganizationName(), 
             organization.getVerificationStatus() != null ? organization.getVerificationStatus().toString() : null,
             savedUser.getAccountStatus() != null ? savedUser.getAccountStatus().toString() : null);
+        response.setLanguagePreference(savedUser.getLanguagePreference());
+        return response;
     }
 
     @Transactional(readOnly = true)
@@ -285,8 +289,10 @@ public class AuthService {
 
             log.info("Login successful: email={}, role={}, accountStatus={}, organizationName={}, verificationStatus={}", 
                 user.getEmail(), user.getRole(), accountStatus, organizationName, verificationStatus);
-            return new AuthResponse(token, user.getEmail(), user.getRole().toString(),
+            AuthResponse response = new AuthResponse(token, user.getEmail(), user.getRole().toString(),
                        "Account logged in successfully.", user.getId(), organizationName, verificationStatus, accountStatus);
+            response.setLanguagePreference(user.getLanguagePreference());
+            return response;
         } catch (RuntimeException e) {
             // Already logged failure metrics above
             throw e;
@@ -714,6 +720,5 @@ public class AuthService {
         }
     }
 }
-
 
 
