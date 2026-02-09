@@ -12,6 +12,7 @@ import com.example.foodflow.model.types.ClaimStatus;
 import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.repository.ClaimRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
+import com.example.foodflow.util.TimezoneResolver;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.Timer;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -92,49 +94,130 @@ public class ClaimService {
         // Create the claim
         Claim claim = new Claim(surplusPost, receiver);
         
+        // Get receiver's timezone for conversion (default to UTC if not set)
+        String receiverTimezone = receiver.getTimezone() != null ? receiver.getTimezone() : "UTC";
+        // Get donor's timezone for verification
+        String donorTimezone = surplusPost.getDonor().getTimezone() != null ? surplusPost.getDonor().getTimezone() : "UTC";
+        
+        logger.info("=== CLAIM CREATION DEBUG ===");
+        logger.info("Post ID: {}, Receiver: {}, ReceiverTZ: {}, DonorTZ: {}", 
+            surplusPost.getId(), receiver.getEmail(), receiverTimezone, donorTimezone);
+        logger.info("Request has pickupSlot: {}, pickupSlotId: {}", 
+            request.getPickupSlot() != null, request.getPickupSlotId());
+        
         // Store the confirmed pickup slot that the receiver selected
+        // CRITICAL: ALL times MUST be converted to UTC for storage to work with the scheduler
         if (request.getPickupSlot() != null) {
-            // Inline pickup slot data provided
-            claim.setConfirmedPickupDate(request.getPickupSlot().getPickupDate());
-            claim.setConfirmedPickupStartTime(request.getPickupSlot().getStartTime());
-            claim.setConfirmedPickupEndTime(request.getPickupSlot().getEndTime());
+            // SCENARIO 1: Inline pickup slot data provided (times in receiver's timezone)
+            logger.info("SCENARIO 1: Inline slot data - Converting from receiver TZ ({}) to UTC", receiverTimezone);
+            logger.info("Received times - Date: {}, Start: {}, End: {}", 
+                request.getPickupSlot().getPickupDate(), 
+                request.getPickupSlot().getStartTime(), 
+                request.getPickupSlot().getEndTime());
+            
+            LocalDateTime startTimeUTC = TimezoneResolver.convertDateTime(
+                request.getPickupSlot().getPickupDate(),
+                request.getPickupSlot().getStartTime(),
+                receiverTimezone,
+                "UTC"
+            );
+            LocalDateTime endTimeUTC = TimezoneResolver.convertDateTime(
+                request.getPickupSlot().getPickupDate(),
+                request.getPickupSlot().getEndTime(),
+                receiverTimezone,
+                "UTC"
+            );
+            
+            claim.setConfirmedPickupDate(startTimeUTC != null ? startTimeUTC.toLocalDate() : request.getPickupSlot().getPickupDate());
+            claim.setConfirmedPickupStartTime(startTimeUTC != null ? startTimeUTC.toLocalTime() : request.getPickupSlot().getStartTime());
+            claim.setConfirmedPickupEndTime(endTimeUTC != null ? endTimeUTC.toLocalTime() : request.getPickupSlot().getEndTime());
+            
+            logger.info("✓ Stored in UTC - Date: {}, Start: {}, End: {}", 
+                claim.getConfirmedPickupDate(), claim.getConfirmedPickupStartTime(), claim.getConfirmedPickupEndTime());
+                
         } else if (request.getPickupSlotId() != null) {
-            // Reference to existing pickup slot - find it and copy the data
+            // SCENARIO 2: Reference to existing pickup slot by ID
+            // These times SHOULD already be in UTC from when the donor created the post
+            // BUT we need to verify this and handle edge cases
+            logger.info("SCENARIO 2: Slot ID reference - Looking up slot ID {}", request.getPickupSlotId());
+            
             PickupSlot selectedSlot = surplusPost.getPickupSlots().stream()
                 .filter(slot -> slot.getId().equals(request.getPickupSlotId()))
                 .findFirst()
                 .orElse(null);
             
             if (selectedSlot != null) {
+                logger.info("Found slot - Date: {}, Start: {}, End: {}", 
+                    selectedSlot.getPickupDate(), selectedSlot.getStartTime(), selectedSlot.getEndTime());
+                
+                // DEFENSIVE: These times should already be in UTC, but let's verify
+                // by checking if they make sense (end time should be after start time)
+                java.time.LocalDateTime slotStart = java.time.LocalDateTime.of(
+                    selectedSlot.getPickupDate(), selectedSlot.getStartTime());
+                java.time.LocalDateTime slotEnd = java.time.LocalDateTime.of(
+                    selectedSlot.getPickupDate(), selectedSlot.getEndTime());
+                
+                if (slotEnd.isBefore(slotStart)) {
+                    logger.warn("⚠ SUSPICIOUS: Slot end time is before start time! This might indicate timezone issues.");
+                    logger.warn("Start: {}, End: {}", slotStart, slotEnd);
+                }
+                
+                // Copy the times directly (they should be UTC from post creation)
                 claim.setConfirmedPickupDate(selectedSlot.getPickupDate());
                 claim.setConfirmedPickupStartTime(selectedSlot.getStartTime());
                 claim.setConfirmedPickupEndTime(selectedSlot.getEndTime());
+                
+                logger.info("✓ Copied from slot (assumed UTC) - Date: {}, Start: {}, End: {}", 
+                    claim.getConfirmedPickupDate(), claim.getConfirmedPickupStartTime(), claim.getConfirmedPickupEndTime());
+            } else {
+                logger.error("✗ Slot ID {} not found in post's pickup slots!", request.getPickupSlotId());
             }
         }
-        // If no slot provided, fallback to using the post's default pickup time
+        
+        // SCENARIO 3: Fallback to post's default pickup time
         if (claim.getConfirmedPickupDate() == null && surplusPost.getPickupDate() != null) {
+            logger.info("SCENARIO 3: Using post defaults (assumed UTC)");
+            logger.info("Post default times - Date: {}, From: {}, To: {}", 
+                surplusPost.getPickupDate(), surplusPost.getPickupFrom(), surplusPost.getPickupTo());
+            
             claim.setConfirmedPickupDate(surplusPost.getPickupDate());
             claim.setConfirmedPickupStartTime(surplusPost.getPickupFrom());
             claim.setConfirmedPickupEndTime(surplusPost.getPickupTo());
+            
+            logger.info("✓ Stored from defaults - Date: {}, Start: {}, End: {}", 
+                claim.getConfirmedPickupDate(), claim.getConfirmedPickupStartTime(), claim.getConfirmedPickupEndTime());
         }
         
         claim = claimRepository.save(claim);
 
-        // Check if the CONFIRMED pickup time has already started (not the first slot!)
-        java.time.LocalDateTime now = java.time.LocalDateTime.now();
-        java.time.LocalDate today = now.toLocalDate();
-        java.time.LocalTime currentTime = now.toLocalTime();
+        // Check if the CONFIRMED pickup time has already started
+        // CRITICAL: Use UTC for comparison since confirmed pickup times MUST be in UTC
+        java.time.ZonedDateTime nowUtc = java.time.ZonedDateTime.now(java.time.ZoneId.of("UTC"));
+        java.time.LocalDate today = nowUtc.toLocalDate();
+        java.time.LocalTime currentTime = nowUtc.toLocalTime();
 
         boolean pickupTimeStarted = false;
         
-        // Use the CONFIRMED pickup slot that receiver selected, not the first slot
+        logger.info("=== PICKUP TIME EVALUATION ===");
+        logger.info("Current UTC: {} {}", today, currentTime);
+        logger.info("Confirmed pickup (UTC): {} {} to {}", 
+            claim.getConfirmedPickupDate(), claim.getConfirmedPickupStartTime(), claim.getConfirmedPickupEndTime());
+        
+        // Use the CONFIRMED pickup slot that receiver selected (must be in UTC)
         if (claim.getConfirmedPickupDate() != null && claim.getConfirmedPickupStartTime() != null) {
           if (claim.getConfirmedPickupDate().isBefore(today)) {
               pickupTimeStarted = true;
+              logger.info("✓ Pickup date is in the past - marking as started");
           } else if (claim.getConfirmedPickupDate().isEqual(today)) {
               pickupTimeStarted = !currentTime.isBefore(claim.getConfirmedPickupStartTime());
+              logger.info("{} Pickup is today - current: {}, start: {}, started: {}", 
+                  pickupTimeStarted ? "✓" : "✗", currentTime, claim.getConfirmedPickupStartTime(), pickupTimeStarted);
+          } else {
+              logger.info("✗ Pickup date is in the future - not started yet");
           }
         }
+        
+        logger.info("=== END CLAIM DEBUG ===");
          
         // Update surplus post status
         if (pickupTimeStarted) {
