@@ -1189,7 +1189,6 @@
     margin-bottom: 20px;
   }
 
-  
   .admin-donations-container .stat-card {
     padding: 10px 16px !important;
     min-height: auto !important;
@@ -1217,7 +1216,6 @@
     font-size: 11px !important;
   }
 
-  
   .donations-section {
     padding: 16px 12px;
     border-radius: 12px 12px 0 0;
@@ -1229,7 +1227,6 @@
     gap: 4px;
   }
 
-  
   .search-bar-container {
     flex-direction: column;
     gap: 10px;
@@ -1261,7 +1258,6 @@
     text-align: center;
   }
 
-  
   .donations-table-container {
     overflow-x: visible;
     border-radius: 0 0 12px 12px;
@@ -1276,12 +1272,10 @@
     display: block;
   }
 
-  
   .donations-table thead {
     display: none;
   }
 
-  
   .donations-table tbody tr {
     background: #fff;
     border: 1px solid #e5e7eb;
@@ -1338,14 +1332,12 @@
     display: none;
   }
 
- 
   .donations-table td:last-child {
     order: 98;
     flex: 1 1 auto;
     width: auto !important;
   }
 
-  
   .mobile-action-label,
   .mobile-expand-label {
     display: inline !important;
@@ -1375,7 +1367,6 @@
     min-width: unset !important;
   }
 
-
   .donations-table tbody tr.details-row {
     border-radius: 0 0 10px 10px;
     border-top: 1px dashed #e5e7eb;
@@ -1402,7 +1393,6 @@
     gap: 16px;
   }
 
-  
   .donations-table-container + div,
   .donations-table-container ~ div {
     flex-wrap: wrap;

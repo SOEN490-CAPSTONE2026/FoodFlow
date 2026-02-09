@@ -392,7 +392,6 @@
   }
 }
 
-
 @media (max-width: 768px) {
   .admin-disputes-container {
     padding: 16px 10px !important;
@@ -447,7 +446,6 @@
     font-size: 16px;
   }
 
-
   .disputes-controls {
     flex-direction: column;
     align-items: stretch;
@@ -478,7 +476,6 @@
     width: 100%;
   }
 
- 
   .disputes-table-container {
     overflow-x: visible !important;
   }
@@ -518,7 +515,6 @@
     background-color: #f9fafb;
   }
 
-  
   .disputes-table td {
     padding: 6px 0 !important;
     border-bottom: none !important;

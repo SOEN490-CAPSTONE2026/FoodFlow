@@ -1339,7 +1339,6 @@
   display: none;
 }
 
-
 /* ========== Mobile Responsive: Users Page ========== */
 @media (max-width: 768px) {
   .admin-users-container {
@@ -1380,7 +1379,6 @@
     font-size: 11px !important;
   }
 
-
   .users-section {
     padding: 16px 12px;
     border-radius: 12px 12px 0 0;
@@ -1392,7 +1390,6 @@
     gap: 4px;
   }
 
-  
   .search-bar-container {
     flex-direction: column;
     gap: 10px;
@@ -1423,7 +1420,6 @@
     width: 100%;
     text-align: center;
   }
-
 
   .users-table-container {
     overflow-x: visible;
@@ -1465,7 +1461,6 @@
     margin-bottom: 0;
   }
 
-  
   .users-table td {
     padding: 6px 0 !important;
     border-bottom: none !important;
@@ -1490,7 +1485,6 @@
     margin-right: 12px;
   }
 
-
   .users-table td:first-child {
     order: 99;
     width: auto !important;
@@ -1503,14 +1497,12 @@
     display: none;
   }
 
-
   .users-table td:last-child {
     order: 98;
     flex: 1 1 auto;
     width: auto !important;
   }
 
-  
   .mobile-action-label,
   .mobile-expand-label {
     display: inline !important;
@@ -1531,11 +1523,9 @@
     min-width: unset !important;
   }
 
-
   .user-name-info {
     align-items: flex-end;
   }
-
 
   .users-table tbody tr.details-row {
     border-radius: 0 0 10px 10px;
@@ -1566,7 +1556,6 @@
   .user-details-expanded {
     gap: 16px;
   }
-
 
   .modal-content {
     padding: 24px;
@@ -1605,7 +1594,6 @@
     font-size: 22px;
   }
 
-
   .action-buttons {
     flex-wrap: nowrap;
     gap: 6px;
@@ -1629,7 +1617,6 @@
     height: 14px;
   }
 
-  
   .action-btn-power {
     color: #ef4444 !important;
   }
