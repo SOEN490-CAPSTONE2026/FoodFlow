@@ -300,8 +300,10 @@ const AdminDisputes = () => {
               <tbody>
                 {filteredDisputes.map(dispute => (
                   <tr key={dispute.id}>
-                    <td className="case-id">{dispute.caseId}</td>
-                    <td>
+                    <td data-label="Case ID" className="case-id">
+                      {dispute.caseId}
+                    </td>
+                    <td data-label="Reporter">
                       <div className="user-cell">
                         <div className="user-name">{dispute.reporterName}</div>
                         <div className="user-type">
@@ -311,12 +313,12 @@ const AdminDisputes = () => {
                         </div>
                       </div>
                     </td>
-                    <td>
+                    <td data-label="Reported User">
                       <div className="reported-user-name">
                         {dispute.reportedUserName}
                       </div>
                     </td>
-                    <td>
+                    <td data-label="Donation ID">
                       {dispute.donationId ? (
                         <span className="donation-id">
                           DON-2024-{String(dispute.donationId).padStart(4, '0')}
@@ -325,7 +327,7 @@ const AdminDisputes = () => {
                         <span className="no-donation">—</span>
                       )}
                     </td>
-                    <td>
+                    <td data-label="Created">
                       <div className="date-cell">
                         <div className="date-main">
                           {formatDate(dispute.createdAt)}
@@ -335,12 +337,12 @@ const AdminDisputes = () => {
                         </div>
                       </div>
                     </td>
-                    <td>
+                    <td data-label="Status">
                       <span className={getStatusBadgeClass(dispute.status)}>
                         {formatStatus(dispute.status)}
                       </span>
                     </td>
-                    <td>
+                    <td data-label="Action">
                       <button
                         className="view-btn"
                         onClick={() =>

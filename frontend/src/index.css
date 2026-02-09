@@ -14,3 +14,6 @@ code {
 
 /* Import RTL support */
 @import './style/rtl.css';
+
+/* Import Responsive Utilities */
+@import './style/responsive-utilities.css';
