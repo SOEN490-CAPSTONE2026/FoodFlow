@@ -203,6 +203,15 @@ export default function DonorLayout() {
       }
     };
 
+    const onDonationExpired = payload => {
+      console.log('DONOR: Donation expired:', payload);
+      const message = `Your donation "${payload.title}" has expired and been removed from listings.`;
+      setNotification({
+        senderName: t('donorLayout.notifications.donationExpired'),
+        message,
+      });
+    };
+
     connectToUserQueue(
       onMessage,
       onClaimNotification,
@@ -210,7 +219,9 @@ export default function DonorLayout() {
       null, // no new post notifications for donors
       onAchievementUnlocked,
       onReviewReceived,
-      null // no donation completion notifications for donors
+      null, // no donation completion notifications for donors
+      null, // no donation ready for pickup for donors
+      onDonationExpired
     );
     return () => {
       try {

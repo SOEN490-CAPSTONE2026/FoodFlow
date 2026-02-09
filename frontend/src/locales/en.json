@@ -832,7 +832,9 @@
       "donationPickedUp": "Donation Picked Up",
       "donationPickedUpDesc": "Your donation has been picked up!",
       "donationReadyForPickup": "Donation Ready for Pickup",
-      "donationReadyForPickupDesc": "Your donation is ready for pickup!"
+      "donationReadyForPickupDesc": "Your donation is ready for pickup!",
+      "donationExpired": "Donation Expired",
+      "donationExpiredDesc": "Your donation has expired and been removed from listings."
     }
   },
   "donorListFood": {

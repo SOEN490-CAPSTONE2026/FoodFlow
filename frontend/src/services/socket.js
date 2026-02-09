@@ -13,6 +13,7 @@ let stompClient = null;
  * @param {Function} onReviewReceived - Called with parsed review notification from /user/queue/reviews
  * @param {Function} onDonationCompleted - Called with parsed donation completion notification from /user/queue/donations/completed
  * @param {Function} onDonationReadyForPickup - Called with parsed ready for pickup notification from /user/queue/donations/ready-for-pickup
+ * @param {Function} onDonationExpired - Called with parsed expired donation notification from /user/queue/donations/expired
  */
 export function connectToUserQueue(
   onMessage,
@@ -22,7 +23,8 @@ export function connectToUserQueue(
   onAchievementUnlocked,
   onReviewReceived,
   onDonationCompleted,
-  onDonationReadyForPickup
+  onDonationReadyForPickup,
+  onDonationExpired
 ) {
   console.log('connectToUserQueue called');
 
@@ -218,6 +220,33 @@ export function connectToUserQueue(
         } catch (e) {
           console.error(
             'Failed to subscribe to donation ready for pickup notifications',
+            e
+          );
+        }
+
+        // Subscribe to donation expired notifications
+        try {
+          stompClient.subscribe(
+            '/user/queue/donations/expired',
+            msg => {
+              if (msg.body) {
+                try {
+                  const payload = JSON.parse(msg.body);
+                  console.log('Received donation expired notification:', payload);
+                  onDonationExpired && onDonationExpired(payload);
+                } catch (e) {
+                  console.error(
+                    'Failed to parse donation expired notification',
+                    e
+                  );
+                }
+              }
+            }
+          );
+          console.log('Subscribed to /user/queue/donations/expired');
+        } catch (e) {
+          console.error(
+            'Failed to subscribe to donation expired notifications',
             e
           );
         }

@@ -1257,4 +1257,99 @@ public class EmailService {
             </html>
             """.formatted(userName, donationTitle, quantity, pickupDate, pickupTime);
     }
+
+    /**
+     * Sends a donation expired notification email to a donor
+     */
+    public void sendDonationExpiredNotification(String toEmail, String donorName, Map<String, Object> donationData) {
+        try {
+            ApiClient defaultClient = Configuration.getDefaultApiClient();
+            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
+            apiKey.setApiKey(brevoApiKey);
+
+            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+
+            SendSmtpEmailSender sender = new SendSmtpEmailSender();
+            sender.setEmail(fromEmail);
+            sender.setName(fromName);
+
+            SendSmtpEmailTo recipient = new SendSmtpEmailTo();
+            recipient.setEmail(toEmail);
+            recipient.setName(donorName);
+
+            SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+            sendSmtpEmail.setSender(sender);
+            sendSmtpEmail.setTo(Collections.singletonList(recipient));
+            sendSmtpEmail.setSubject("Donation Expired - FoodFlow");
+            sendSmtpEmail.setHtmlContent(buildDonationExpiredEmailBody(donorName, donationData));
+
+            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            log.info("Donation expired email sent successfully to {} - Message ID: {}", toEmail, result.getMessageId());
+        } catch (ApiException e) {
+            log.error("Failed to send donation expired email to {}: {}", toEmail, e.getMessage(), e);
+        }
+    }
+
+    private String buildDonationExpiredEmailBody(String donorName, Map<String, Object> donationData) {
+        String donationTitle = (String) donationData.get("donationTitle");
+        String quantity = (String) donationData.get("quantity");
+        String expiryDate = (String) donationData.get("expiryDate");
+
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+                    .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden; }
+                    .header { background: linear-gradient(135deg, #ef4444 0%%, #dc2626 100%%); color: white; padding: 30px; text-align: center; }
+                    .header h1 { margin: 0; font-size: 28px; }
+                    .content { padding: 30px; }
+                    .alert { background-color: #fee2e2; border-left: 4px solid #ef4444; padding: 15px; margin: 20px 0; border-radius: 4px; }
+                    .alert-title { color: #991b1b; font-weight: bold; margin: 0 0 10px 0; }
+                    .alert-text { color: #7f1d1d; margin: 0; }
+                    .details { background-color: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0; }
+                    .detail { padding: 10px 0; border-bottom: 1px solid #e5e7eb; }
+                    .detail:last-child { border-bottom: none; }
+                    .label { font-weight: bold; color: #374151; }
+                    .button { display: inline-block; background: linear-gradient(135deg, #ef4444 0%%, #dc2626 100%%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }
+                    .footer { background-color: #f9fafb; padding: 20px; text-align: center; font-size: 12px; color: #6b7280; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>🚨 Donation Expired</h1>
+                    </div>
+                    <div class="content">
+                        <p>Hello %s,</p>
+                        <div class="alert">
+                            <p class="alert-title">Your donation has expired</p>
+                            <p class="alert-text">The expiry date for this donation has passed. The donation has been automatically marked as expired and removed from available listings.</p>
+                        </div>
+                        <div class="details">
+                            <div class="detail"><span class="label">Donation Item:</span> %s</div>
+                            <div class="detail"><span class="label">Quantity:</span> %s</div>
+                            <div class="detail"><span class="label">Expiry Date:</span> %s</div>
+                        </div>
+                        <p><strong>What happens next?</strong></p>
+                        <ul>
+                            <li>The donation is no longer visible to receivers</li>
+                            <li>If the donation was claimed, the receiver will be notified</li>
+                            <li>You can create a new donation if you still have food available</li>
+                        </ul>
+                        <p style="text-align: center;">
+                            <a href="http://localhost:3000/donor/dashboard" class="button" style="color: white !important; text-decoration: none;">View Dashboard</a>
+                        </p>
+                    </div>
+                    <div class="footer">
+                        <p>© 2026 FoodFlow. All rights reserved.</p>
+                        <p>You're receiving this email because you have email notifications enabled in your preferences.</p>
+                        <p>To manage your notification settings, visit Settings in your FoodFlow account.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(donorName, donationTitle, quantity, expiryDate);
+    }
 }

@@ -372,8 +372,65 @@ public class SurplusPostSchedulerService {
                     true);
 
             logger.info("Post ID {} marked as EXPIRED (expiry date: {})", post.getId(), post.getExpiryDate());
+            
+            // Send notification to donor
+            User donor = post.getDonor();
+            sendExpiredNotificationToDonor(post, donor);
         }
 
         logger.info("Marked {} posts as EXPIRED", expiredPosts.size());
+    }
+
+    private void sendExpiredNotificationToDonor(SurplusPost post, User donor) {
+        try {
+            logger.info("Checking email preference for donor userId={} for donationExpired notification", donor.getId());
+            
+            if (notificationPreferenceService.shouldSendNotification(donor, "donationExpired", "email")) {
+                logger.info("Donor {} has email notifications enabled for donationExpired, sending email", donor.getId());
+                
+                Map<String, Object> donationData = new HashMap<>();
+                donationData.put("donationTitle", post.getTitle());
+                donationData.put("quantity", post.getQuantity().getValue() + " " + post.getQuantity().getUnit().getLabel());
+                donationData.put("expiryDate", post.getExpiryDate() != null ? post.getExpiryDate().toString() : "Unknown");
+                
+                String donorName = donor.getOrganization() != null ? 
+                    donor.getOrganization().getName() : donor.getFullName();
+                
+                emailService.sendDonationExpiredNotification(donor.getEmail(), donorName, donationData);
+                logger.info("Successfully sent donation expired email to donor userId={} for postId={}", donor.getId(), post.getId());
+            } else {
+                logger.info("Donor {} has email notifications disabled for donationExpired", donor.getId());
+            }
+        } catch (Exception e) {
+            logger.error("Failed to send donation expired email to donor: {}", e.getMessage(), e);
+        }
+        
+        // Send WebSocket notification
+        try {
+            logger.info("Checking websocket preference for donor userId={} for donationExpired notification", donor.getId());
+            
+            if (notificationPreferenceService.shouldSendNotification(donor, "donationExpired", "websocket")) {
+                logger.info("Donor {} has websocket notifications enabled for donationExpired, sending notification", donor.getId());
+                
+                Map<String, Object> notification = new HashMap<>();
+                notification.put("type", "DONATION_EXPIRED");
+                notification.put("donationId", post.getId());
+                notification.put("title", post.getTitle());
+                notification.put("message", "Your donation '" + post.getTitle() + "' has expired and been removed from listings.");
+                notification.put("expiryDate", post.getExpiryDate().toString());
+                notification.put("timestamp", ZonedDateTime.now(ZoneId.of("UTC")).toString());
+                
+                messagingTemplate.convertAndSendToUser(
+                    donor.getId().toString(),
+                    "/queue/donations/expired",
+                    notification
+                );
+                logger.info("Successfully sent donation expired websocket notification to donor userId={} for postId={}", donor.getId(), post.getId());
+            } else {
+                logger.info("Donor {} has websocket notifications disabled for donationExpired", donor.getId());
+            }
+        } catch (Exception e) {
+            logger.error("Failed to send donation expired websocket notification to donor: {}", e.getMessage(), e);
+        }
     }
 }
