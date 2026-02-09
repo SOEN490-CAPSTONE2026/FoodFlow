@@ -110,6 +110,13 @@ describe('socket service', () => {
         '/user/queue/claims/cancelled',
         '/user/queue/notifications',
         '/user/queue/achievements',
+        '/user/queue/donations/completed',
+        '/user/queue/donations/expired',
+        '/user/queue/donations/ready-for-pickup',
+        '/user/queue/donations/status-changed',
+        '/user/queue/donations/status-updated',
+        '/user/queue/reviews',
+        '/user/queue/verification/approved',
       ].sort()
     );
 
