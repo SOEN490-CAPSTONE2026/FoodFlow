@@ -602,6 +602,13 @@ export const gamificationAPI = {
    * @returns {Promise} List of all achievements
    */
   getAllAchievements: () => api.get('/gamification/achievements'),
+
+  /**
+   * Get leaderboard for a specific role
+   * @param {string} role - User role (DONOR or RECEIVER)
+   * @returns {Promise} Leaderboard with top 10 users and current user's position
+   */
+  getLeaderboard: role => api.get(`/gamification/leaderboard/${role}`),
 };
 
 // Support chat API for rate limiting integration
