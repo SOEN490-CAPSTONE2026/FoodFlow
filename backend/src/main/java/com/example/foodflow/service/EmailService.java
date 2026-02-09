@@ -1456,4 +1456,176 @@ public class EmailService {
             </html>
             """.formatted(userName, userType.equals("donor") ? "donation" : "claim", donationTitle, oldStatus, newStatus, reason, userType);
     }
+
+    /**
+     * Send account deactivation notification email
+     */
+    public void sendAccountDeactivationEmail(String toEmail, String userName) throws ApiException {
+        log.info("Sending account deactivation email to: {}", toEmail);
+        
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
+        apiKey.setApiKey(brevoApiKey);
+        
+        TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+        
+        SendSmtpEmailSender sender = new SendSmtpEmailSender();
+        sender.setEmail(fromEmail);
+        sender.setName(fromName);
+        sendSmtpEmail.setSender(sender);
+        
+        SendSmtpEmailTo recipient = new SendSmtpEmailTo();
+        recipient.setEmail(toEmail);
+        sendSmtpEmail.setTo(Collections.singletonList(recipient));
+        
+        sendSmtpEmail.setSubject("Account Deactivated - FoodFlow");
+        sendSmtpEmail.setTextContent("Your FoodFlow account has been deactivated by an administrator.");
+        sendSmtpEmail.setHtmlContent(buildAccountDeactivationEmailBody(userName));
+        
+        try {
+            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            log.info("Account deactivation email sent successfully. Message ID: {}", result.getMessageId());
+        } catch (ApiException e) {
+            log.error("Failed to send account deactivation email: {}", e.getResponseBody(), e);
+            throw e;
+        }
+    }
+
+    private String buildAccountDeactivationEmailBody(String userName) {
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            </head>
+            <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f3f4f6;">
+                <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+                    <div style="background: linear-gradient(135deg, #ef4444 0%%, #dc2626 100%%); padding: 40px 20px; text-align: center;">
+                        <h1 style="color: #ffffff; margin: 0; font-size: 28px;">Account Deactivated</h1>
+                    </div>
+                    
+                    <div style="padding: 40px 30px;">
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">Hi %s,</p>
+                        
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">
+                            Your FoodFlow account has been deactivated by an administrator.
+                        </p>
+                        
+                        <div style="background-color: #fee2e2; border-left: 4px solid #ef4444; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                            <p style="color: #991b1b; margin: 0; font-size: 14px;">
+                                <strong>What this means:</strong><br>
+                                You will no longer be able to access your FoodFlow account or use any platform features.
+                            </p>
+                        </div>
+                        
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">
+                            If you believe this is a mistake or would like to appeal this decision, please contact our support team.
+                        </p>
+                        
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">
+                            Best regards,<br>
+                            <strong>The FoodFlow Team</strong>
+                        </p>
+                    </div>
+                    
+                    <div style="background-color: #f9fafb; padding: 20px 30px; text-align: center; font-size: 12px; color: #6b7280; border-top: 1px solid #e5e7eb;">
+                        <p>© 2026 FoodFlow. All rights reserved.</p>
+                        <p>You're receiving this email because administrative action was taken on your account.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(userName);
+    }
+
+    /**
+     * Send account reactivation notification email
+     */
+    public void sendAccountReactivationEmail(String toEmail, String userName) throws ApiException {
+        log.info("Sending account reactivation email to: {}", toEmail);
+        
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
+        apiKey.setApiKey(brevoApiKey);
+        
+        TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+        
+        SendSmtpEmailSender sender = new SendSmtpEmailSender();
+        sender.setEmail(fromEmail);
+        sender.setName(fromName);
+        sendSmtpEmail.setSender(sender);
+        
+        SendSmtpEmailTo recipient = new SendSmtpEmailTo();
+        recipient.setEmail(toEmail);
+        sendSmtpEmail.setTo(Collections.singletonList(recipient));
+        
+        sendSmtpEmail.setSubject("Account Reactivated - FoodFlow");
+        sendSmtpEmail.setTextContent("Your FoodFlow account has been reactivated by an administrator.");
+        sendSmtpEmail.setHtmlContent(buildAccountReactivationEmailBody(userName));
+        
+        try {
+            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            log.info("Account reactivation email sent successfully. Message ID: {}", result.getMessageId());
+        } catch (ApiException e) {
+            log.error("Failed to send account reactivation email: {}", e.getResponseBody(), e);
+            throw e;
+        }
+    }
+
+    private String buildAccountReactivationEmailBody(String userName) {
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            </head>
+            <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f3f4f6;">
+                <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+                    <div style="background: linear-gradient(135deg, #10b981 0%%, #059669 100%%); padding: 40px 20px; text-align: center;">
+                        <h1 style="color: #ffffff; margin: 0; font-size: 28px;">Account Reactivated</h1>
+                    </div>
+                    
+                    <div style="padding: 40px 30px;">
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">Hi %s,</p>
+                        
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">
+                            Great news! Your FoodFlow account has been reactivated by an administrator.
+                        </p>
+                        
+                        <div style="background-color: #d1fae5; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                            <p style="color: #065f46; margin: 0; font-size: 14px;">
+                                <strong>What this means:</strong><br>
+                                You now have full access to your FoodFlow account and can resume using all platform features.
+                            </p>
+                        </div>
+                        
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">
+                            You can log in to your account and continue connecting donors with receivers to reduce food waste.
+                        </p>
+                        
+                        <div style="text-align: center; margin: 30px 0;">
+                            <a href="https://foodflow.com/login" style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #10b981 0%%, #059669 100%%); color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+                                Log In to Your Account
+                            </a>
+                        </div>
+                        
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">
+                            Welcome back,<br>
+                            <strong>The FoodFlow Team</strong>
+                        </p>
+                    </div>
+                    
+                    <div style="background-color: #f9fafb; padding: 20px 30px; text-align: center; font-size: 12px; color: #6b7280; border-top: 1px solid #e5e7eb;">
+                        <p>© 2026 FoodFlow. All rights reserved.</p>
+                        <p>You're receiving this email because administrative action was taken on your account.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(userName);
+    }
 }

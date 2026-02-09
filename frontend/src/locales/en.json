@@ -836,7 +836,9 @@
       "donationExpired": "Donation Expired",
       "donationExpiredDesc": "Your donation has expired and been removed from listings.",
       "donationStatusUpdated": "Status Updated by Admin",
-      "donationStatusUpdatedDesc": "An administrator has updated your donation status"
+      "donationStatusUpdatedDesc": "An administrator has updated your donation status",
+      "verificationApproved": "Account Approved",
+      "verificationApprovedDesc": "Your account has been approved by an administrator"
     }
   },
   "donorListFood": {
@@ -931,7 +933,9 @@
       "pickupReminder": "Pickup Reminder",
       "pickupReminderDesc": "Your donation pickup starts in about 1 hour. Be ready!",
       "donationStatusChanged": "Status Changed by Admin",
-      "donationStatusChangedDesc": "An administrator has updated the donation status"
+      "donationStatusChangedDesc": "An administrator has updated the donation status",
+      "verificationApproved": "Account Approved",
+      "verificationApprovedDesc": "Your account has been approved by an administrator"
     },
     "pageTitles": {
       "receiverDashboard": "Receiver Dashboard",

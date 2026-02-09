@@ -267,6 +267,15 @@ function ReceiverLayoutContent() {
       );
     };
 
+    const onVerificationApproved = payload => {
+      console.log('RECEIVER: Verification approved:', payload);
+      showNotification(
+        t('receiverLayout.notifications.verificationApproved'),
+        payload.message ||
+          t('receiverLayout.notifications.verificationApprovedDesc')
+      );
+    };
+
     connectToUserQueue(
       onMessage,
       onClaimNotification,
@@ -278,7 +287,8 @@ function ReceiverLayoutContent() {
       onDonationReadyForPickup,
       null, // no donation expired for receivers
       null, // no donation status updated for receivers
-      onDonationStatusChanged
+      onDonationStatusChanged,
+      onVerificationApproved
     );
     return () => {
       try {

@@ -220,6 +220,14 @@ export default function DonorLayout() {
       });
     };
 
+    const onVerificationApproved = payload => {
+      console.log('DONOR: Verification approved:', payload);
+      setNotification({
+        senderName: t('donorLayout.notifications.verificationApproved'),
+        message: payload.message,
+      });
+    };
+
     connectToUserQueue(
       onMessage,
       onClaimNotification,
@@ -230,7 +238,9 @@ export default function DonorLayout() {
       null, // no donation completion notifications for donors
       null, // no donation ready for pickup for donors
       onDonationExpired,
-      onDonationStatusUpdated
+      onDonationStatusUpdated,
+      null, // no donation status changed for donors
+      onVerificationApproved
     );
     return () => {
       try {

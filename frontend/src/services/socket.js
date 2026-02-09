@@ -16,6 +16,7 @@ let stompClient = null;
  * @param {Function} onDonationExpired - Called with parsed expired donation notification from /user/queue/donations/expired
  * @param {Function} onDonationStatusUpdated - Called with parsed status updated notification from /user/queue/donations/status-updated
  * @param {Function} onDonationStatusChanged - Called with parsed status changed notification from /user/queue/donations/status-changed
+ * @param {Function} onVerificationApproved - Called with parsed verification approved notification from /user/queue/verification/approved
  */
 export function connectToUserQueue(
   onMessage,
@@ -28,7 +29,8 @@ export function connectToUserQueue(
   onDonationReadyForPickup,
   onDonationExpired,
   onDonationStatusUpdated,
-  onDonationStatusChanged
+  onDonationStatusChanged,
+  onVerificationApproved
 ) {
   console.log('connectToUserQueue called');
 
@@ -311,6 +313,36 @@ export function connectToUserQueue(
         } catch (e) {
           console.error(
             'Failed to subscribe to donation status changed notifications',
+            e
+          );
+        }
+
+        // Subscribe to verification approved notifications
+        try {
+          stompClient.subscribe(
+            '/user/queue/verification/approved',
+            msg => {
+              if (msg.body) {
+                try {
+                  const payload = JSON.parse(msg.body);
+                  console.log(
+                    'Received verification approved notification:',
+                    payload
+                  );
+                  onVerificationApproved && onVerificationApproved(payload);
+                } catch (e) {
+                  console.error(
+                    'Failed to parse verification approved notification',
+                    e
+                  );
+                }
+              }
+            }
+          );
+          console.log('Subscribed to /user/queue/verification/approved');
+        } catch (e) {
+          console.error(
+            'Failed to subscribe to verification approved notifications',
             e
           );
         }
