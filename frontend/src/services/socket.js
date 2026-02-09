@@ -14,6 +14,8 @@ let stompClient = null;
  * @param {Function} onDonationCompleted - Called with parsed donation completion notification from /user/queue/donations/completed
  * @param {Function} onDonationReadyForPickup - Called with parsed ready for pickup notification from /user/queue/donations/ready-for-pickup
  * @param {Function} onDonationExpired - Called with parsed expired donation notification from /user/queue/donations/expired
+ * @param {Function} onDonationStatusUpdated - Called with parsed status updated notification from /user/queue/donations/status-updated
+ * @param {Function} onDonationStatusChanged - Called with parsed status changed notification from /user/queue/donations/status-changed
  */
 export function connectToUserQueue(
   onMessage,
@@ -24,7 +26,9 @@ export function connectToUserQueue(
   onReviewReceived,
   onDonationCompleted,
   onDonationReadyForPickup,
-  onDonationExpired
+  onDonationExpired,
+  onDonationStatusUpdated,
+  onDonationStatusChanged
 ) {
   console.log('connectToUserQueue called');
 
@@ -247,6 +251,66 @@ export function connectToUserQueue(
         } catch (e) {
           console.error(
             'Failed to subscribe to donation expired notifications',
+            e
+          );
+        }
+
+        // Subscribe to donation status updated notifications (for donors)
+        try {
+          stompClient.subscribe(
+            '/user/queue/donations/status-updated',
+            msg => {
+              if (msg.body) {
+                try {
+                  const payload = JSON.parse(msg.body);
+                  console.log(
+                    'Received donation status updated notification:',
+                    payload
+                  );
+                  onDonationStatusUpdated && onDonationStatusUpdated(payload);
+                } catch (e) {
+                  console.error(
+                    'Failed to parse donation status updated notification',
+                    e
+                  );
+                }
+              }
+            }
+          );
+          console.log('Subscribed to /user/queue/donations/status-updated');
+        } catch (e) {
+          console.error(
+            'Failed to subscribe to donation status updated notifications',
+            e
+          );
+        }
+
+        // Subscribe to donation status changed notifications (for receivers)
+        try {
+          stompClient.subscribe(
+            '/user/queue/donations/status-changed',
+            msg => {
+              if (msg.body) {
+                try {
+                  const payload = JSON.parse(msg.body);
+                  console.log(
+                    'Received donation status changed notification:',
+                    payload
+                  );
+                  onDonationStatusChanged && onDonationStatusChanged(payload);
+                } catch (e) {
+                  console.error(
+                    'Failed to parse donation status changed notification',
+                    e
+                  );
+                }
+              }
+            }
+          );
+          console.log('Subscribed to /user/queue/donations/status-changed');
+        } catch (e) {
+          console.error(
+            'Failed to subscribe to donation status changed notifications',
             e
           );
         }

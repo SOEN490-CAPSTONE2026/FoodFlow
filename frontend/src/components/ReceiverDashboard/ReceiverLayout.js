@@ -258,6 +258,15 @@ function ReceiverLayoutContent() {
       );
     };
 
+    const onDonationStatusChanged = payload => {
+      console.log('RECEIVER: Donation status changed by admin:', payload);
+      showNotification(
+        t('receiverLayout.notifications.donationStatusChanged'),
+        payload.message ||
+          t('receiverLayout.notifications.donationStatusChangedDesc')
+      );
+    };
+
     connectToUserQueue(
       onMessage,
       onClaimNotification,
@@ -266,7 +275,10 @@ function ReceiverLayoutContent() {
       onAchievementUnlocked,
       onReviewReceived,
       onDonationCompleted,
-      onDonationReadyForPickup
+      onDonationReadyForPickup,
+      null, // no donation expired for receivers
+      null, // no donation status updated for receivers
+      onDonationStatusChanged
     );
     return () => {
       try {

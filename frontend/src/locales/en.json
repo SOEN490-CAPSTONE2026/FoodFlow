@@ -834,7 +834,9 @@
       "donationReadyForPickup": "Donation Ready for Pickup",
       "donationReadyForPickupDesc": "Your donation is ready for pickup!",
       "donationExpired": "Donation Expired",
-      "donationExpiredDesc": "Your donation has expired and been removed from listings."
+      "donationExpiredDesc": "Your donation has expired and been removed from listings.",
+      "donationStatusUpdated": "Status Updated by Admin",
+      "donationStatusUpdatedDesc": "An administrator has updated your donation status"
     }
   },
   "donorListFood": {
@@ -927,7 +929,9 @@
       "donationReadyForPickup": "Donation Ready for Pickup",
       "donationReadyForPickupDesc": "Your claimed donation is ready for pickup! Don't forget your pickup code.",
       "pickupReminder": "Pickup Reminder",
-      "pickupReminderDesc": "Your donation pickup starts in about 1 hour. Be ready!"
+      "pickupReminderDesc": "Your donation pickup starts in about 1 hour. Be ready!",
+      "donationStatusChanged": "Status Changed by Admin",
+      "donationStatusChangedDesc": "An administrator has updated the donation status"
     },
     "pageTitles": {
       "receiverDashboard": "Receiver Dashboard",

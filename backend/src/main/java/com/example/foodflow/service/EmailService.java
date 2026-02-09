@@ -1352,4 +1352,108 @@ public class EmailService {
             </html>
             """.formatted(donorName, donationTitle, quantity, expiryDate);
     }
+
+    /**
+     * Sends a donation status update notification email
+     */
+    public void sendDonationStatusUpdateNotification(String toEmail, String userName, Map<String, Object> statusData) {
+        try {
+            ApiClient defaultClient = Configuration.getDefaultApiClient();
+            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
+            apiKey.setApiKey(brevoApiKey);
+
+            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+
+            SendSmtpEmailSender sender = new SendSmtpEmailSender();
+            sender.setEmail(fromEmail);
+            sender.setName(fromName);
+
+            SendSmtpEmailTo recipient = new SendSmtpEmailTo();
+            recipient.setEmail(toEmail);
+            recipient.setName(userName);
+
+            SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+            sendSmtpEmail.setSender(sender);
+            sendSmtpEmail.setTo(Collections.singletonList(recipient));
+            sendSmtpEmail.setSubject("Donation Status Updated by Admin - FoodFlow");
+            sendSmtpEmail.setHtmlContent(buildDonationStatusUpdateEmailBody(userName, statusData));
+
+            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            log.info("Donation status update email sent successfully to {} - Message ID: {}", toEmail, result.getMessageId());
+        } catch (ApiException e) {
+            log.error("Failed to send donation status update email to {}: {}", toEmail, e.getMessage(), e);
+        }
+    }
+
+    private String buildDonationStatusUpdateEmailBody(String userName, Map<String, Object> statusData) {
+        String donationTitle = (String) statusData.get("donationTitle");
+        String oldStatus = (String) statusData.get("oldStatus");
+        String newStatus = (String) statusData.get("newStatus");
+        String reason = (String) statusData.get("reason");
+        String userType = (String) statusData.get("userType");
+
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+                    .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden; }
+                    .header { background: linear-gradient(135deg, #a855f7 0%%, #9333ea 100%%); color: white; padding: 30px; text-align: center; }
+                    .header h1 { margin: 0; font-size: 28px; }
+                    .content { padding: 30px; }
+                    .alert { background-color: #f3e5f5; border-left: 4px solid #a855f7; padding: 15px; margin: 20px 0; border-radius: 4px; }
+                    .alert-title { color: #6b21a8; font-weight: bold; margin: 0 0 10px 0; }
+                    .alert-text { color: #7e22ce; margin: 0; }
+                    .details { background-color: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0; }
+                    .detail { padding: 10px 0; border-bottom: 1px solid #e5e7eb; }
+                    .detail:last-child { border-bottom: none; }
+                    .label { font-weight: bold; color: #374151; }
+                    .status-change { display: flex; align-items: center; gap: 10px; font-size: 16px; margin: 15px 0; }
+                    .old-status { background-color: #fee2e2; color: #991b1b; padding: 8px 16px; border-radius: 6px; font-weight: 600; }
+                    .new-status { background-color: #d1fae5; color: #065f46; padding: 8px 16px; border-radius: 6px; font-weight: 600; }
+                    .arrow { color: #9ca3af; font-size: 24px; }
+                    .button { display: inline-block; background: linear-gradient(135deg, #a855f7 0%%, #9333ea 100%%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }
+                    .footer { background-color: #f9fafb; padding: 20px; text-align: center; font-size: 12px; color: #6b7280; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>🔔 Status Updated by Admin</h1>
+                    </div>
+                    <div class="content">
+                        <p>Hello %s,</p>
+                        <div class="alert">
+                            <p class="alert-title">Admin Status Update</p>
+                            <p class="alert-text">An administrator has updated the status of your %s.</p>
+                        </div>
+                        <div class="details">
+                            <div class="detail"><span class="label">Donation:</span> %s</div>
+                            <div class="detail">
+                                <span class="label">Status Change:</span>
+                                <div class="status-change">
+                                    <span class="old-status">%s</span>
+                                    <span class="arrow">→</span>
+                                    <span class="new-status">%s</span>
+                                </div>
+                            </div>
+                            <div class="detail"><span class="label">Admin Reason:</span> %s</div>
+                        </div>
+                        <p><strong>What does this mean?</strong></p>
+                        <p>An administrator has manually updated the status of this donation. This may have been done to resolve an issue, correct an error, or manage the donation lifecycle.</p>
+                        <p style="text-align: center;">
+                            <a href="http://localhost:3000/%s/dashboard" class="button" style="color: white !important; text-decoration: none;">View Dashboard</a>
+                        </p>
+                    </div>
+                    <div class="footer">
+                        <p>© 2026 FoodFlow. All rights reserved.</p>
+                        <p>You're receiving this email because you have email notifications enabled in your preferences.</p>
+                        <p>To manage your notification settings, visit Settings in your FoodFlow account.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(userName, userType.equals("donor") ? "donation" : "claim", donationTitle, oldStatus, newStatus, reason, userType);
+    }
 }

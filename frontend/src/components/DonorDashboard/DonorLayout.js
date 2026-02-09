@@ -212,6 +212,14 @@ export default function DonorLayout() {
       });
     };
 
+    const onDonationStatusUpdated = payload => {
+      console.log('DONOR: Donation status updated by admin:', payload);
+      setNotification({
+        senderName: t('donorLayout.notifications.donationStatusUpdated'),
+        message: payload.message,
+      });
+    };
+
     connectToUserQueue(
       onMessage,
       onClaimNotification,
@@ -221,7 +229,8 @@ export default function DonorLayout() {
       onReviewReceived,
       null, // no donation completion notifications for donors
       null, // no donation ready for pickup for donors
-      onDonationExpired
+      onDonationExpired,
+      onDonationStatusUpdated
     );
     return () => {
       try {
