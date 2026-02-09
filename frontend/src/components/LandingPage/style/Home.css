@@ -14,6 +14,8 @@
   background-color: #1b4965;
   position: relative;
   overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
 }
 .background-video {
   position: absolute;
@@ -37,6 +39,7 @@
   align-items: flex-start;
   text-align: left;
   padding: 3rem;
+  box-sizing: border-box;
 }
 
 /*  Floating Background elements */
@@ -70,6 +73,8 @@
   display: inline-block;
   overflow: hidden;
   white-space: nowrap;
+  max-width: 100%;
+  word-wrap: break-word;
 }
 
 /* Donor title animations */
@@ -208,6 +213,9 @@
   line-height: 1.2;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
   width: 100%;
+  max-width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .gradient-text {
@@ -222,6 +230,10 @@
   animation: shimmer 3s infinite;
   animation-delay: 4.5s;
   text-shadow: none;
+  width: 100%;
+  max-width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 @keyframes shimmer {
@@ -237,11 +249,11 @@
   position: relative;
   z-index: 2;
   max-width: 900px;
+  width: 100%;
   opacity: 0;
   transform: translateY(30px);
   animation: fadeInUp 1s ease-out 1s forwards;
   text-align: center;
-  width: 100%;
 }
 
 .home-description p {
@@ -251,6 +263,8 @@
   text-align: left;
   margin-bottom: 4rem;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 100%;
 }
 
 .home-description button {
@@ -369,32 +383,76 @@
 /* Responsive Styles */
 @media (max-width: 968px) {
   .home-container {
-    padding: 5%;
+    padding: 0 5%;
   }
 
   .home-content {
     max-width: 100%;
+    padding: 2.5rem 2rem;
   }
 
   .home-title h1,
   .gradient-text {
     font-size: 3rem;
+    line-height: 1.3;
+    width: 100%;
+    max-width: 100%;
   }
 }
 
 @media (max-width: 768px) {
   .home-container {
-    padding: 0 5%;
+    padding: 0 4%;
+  }
+
+  .home-content {
+    padding: 2rem 1rem;
+    max-width: 100%;
+    align-items: center;
+    text-align: center;
+  }
+
+  .home-title {
+    width: 100%;
+    text-align: center;
   }
 
   .home-title h1,
   .gradient-text {
     font-size: 2.5rem;
+    line-height: 1.3;
+    width: 100%;
+  }
+
+  /* Disable typewriter effect on mobile - allow text to wrap */
+  .typewriter-text {
+    white-space: normal !important;
+    overflow: visible !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    display: block !important;
+    animation: none !important;
+  }
+
+  .typewriter-line-1,
+  .typewriter-line-2,
+  .typewriter-line-3,
+  .typewriter-line-4 {
+    animation: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .home-description {
+    width: 100%;
+    max-width: 100%;
   }
 
   .home-description p {
     font-size: 1rem;
     line-height: 1.6;
+    text-align: center;
+    width: 100%;
   }
 
   .home-description button {
@@ -404,21 +462,113 @@
 }
 
 @media (max-width: 480px) {
+  .home-container {
+    padding: 0 3%;
+  }
+
+  .home-content {
+    padding: 1.5rem 0.75rem;
+    max-width: 100%;
+  }
+
+  .home-title {
+    width: 100%;
+  }
+
   .home-title h1,
   .gradient-text {
-    font-size: 2rem;
+    font-size: 1.75rem;
+    line-height: 1.4;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Ensure text wraps properly on very small screens */
+  .typewriter-text {
+    white-space: normal !important;
+    overflow: visible !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    display: block !important;
+    animation: none !important;
   }
 
   .home-description {
     max-width: 100%;
+    width: 100%;
   }
 
   .home-description p {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    text-align: center;
+    margin-bottom: 2rem;
+    width: 100%;
   }
 
   .home-description button {
     padding: 0.9rem 1.8rem;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
+    width: 100%;
+    max-width: 280px;
   }
 }
+
+@media (max-width: 375px) {
+  .home-container {
+    padding: 0 2%;
+  }
+
+  .home-content {
+    padding: 1.25rem 0.5rem;
+  }
+
+  .home-title h1,
+  .gradient-text {
+    font-size: 1.5rem;
+    line-height: 1.4;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .home-description p {
+    font-size: 0.85rem;
+    width: 100%;
+  }
+
+  .home-description button {
+    padding: 0.85rem 1.5rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 320px) {
+  .home-container {
+    padding: 0 1%;
+  }
+
+  .home-content {
+    padding: 1rem 0.5rem;
+  }
+
+  .home-title h1,
+  .gradient-text {
+    font-size: 1.3rem;
+    line-height: 1.5;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .home-description p {
+    font-size: 0.8rem;
+    width: 100%;
+  }
+
+  .home-description button {
+    padding: 0.8rem 1.2rem;
+    font-size: 0.8rem;
+  }
+}
+

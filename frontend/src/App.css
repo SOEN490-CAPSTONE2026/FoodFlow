@@ -1,5 +1,8 @@
 .App {
   text-align: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 :root {
@@ -9,10 +12,59 @@
   --ff-sky: #62b6cb;
   --ff-navy: #1b4965;
   --ff-bg: #f7fcfd;
+  
+  /* Responsive spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  
+  /* Responsive font sizes */
+  --font-xs: 0.75rem;
+  --font-sm: 0.875rem;
+  --font-base: 1rem;
+  --font-lg: 1.125rem;
+  --font-xl: 1.25rem;
+  --font-2xl: 1.5rem;
+  --font-3xl: 1.875rem;
+  --font-4xl: 2.25rem;
 }
+
 body {
   background: var(--ff-bg);
   color: #0b1f2a;
+  overflow-x: hidden;
+}
+
+/* Ensure proper box-sizing */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Improve image rendering */
+img,
+svg {
+  max-width: 100%;
+  height: auto;
+  vertical-align: middle;
+}
+
+/* Better button defaults */
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* Improve form defaults on mobile */
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: inherit;
 }
 
 .App-logo {
@@ -49,3 +101,51 @@ body {
     transform: rotate(360deg);
   }
 }
+
+/* ===== Mobile-specific improvements ===== */
+@media (max-width: 768px) {
+  :root {
+    --font-2xl: 1.375rem;
+    --font-3xl: 1.75rem;
+    --font-4xl: 2rem;
+    --spacing-lg: 1.25rem;
+    --spacing-xl: 1.75rem;
+    --spacing-2xl: 2.5rem;
+  }
+
+  /* Prevent text inflation on iOS */
+  body {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* Improve tap targets */
+  a,
+  button {
+    -webkit-tap-highlight-color: rgba(27, 73, 101, 0.1);
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --font-base: 0.9375rem;
+    --font-2xl: 1.25rem;
+    --font-3xl: 1.5rem;
+    --font-4xl: 1.875rem;
+    --spacing-lg: 1rem;
+    --spacing-xl: 1.5rem;
+    --spacing-2xl: 2rem;
+  }
+}
+
+/* Landscape mode adjustments for mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .App {
+    min-height: 100%;
+  }
+
+  body {
+    overflow-y: auto;
+  }
+}
+
