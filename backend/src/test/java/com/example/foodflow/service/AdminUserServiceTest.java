@@ -43,6 +43,9 @@ class AdminUserServiceTest {
     @Mock
     private SimpMessagingTemplate messagingTemplate;
 
+    @Mock
+    private NotificationPreferenceService notificationPreferenceService;
+
     @InjectMocks
     private AdminUserService adminUserService;
 
@@ -157,6 +160,7 @@ class AdminUserServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testDonor));
         when(userRepository.save(any(User.class))).thenReturn(testDonor);
         when(surplusPostRepository.countByDonorId(1L)).thenReturn(5L);
+        when(notificationPreferenceService.shouldSendNotification(any(User.class), anyString(), anyString())).thenReturn(true);
 
         AdminUserResponse result = adminUserService.deactivateUser(1L, "Test deactivation", 3L);
 
@@ -196,6 +200,7 @@ class AdminUserServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testDonor));
         when(userRepository.save(any(User.class))).thenReturn(testDonor);
         when(surplusPostRepository.countByDonorId(1L)).thenReturn(5L);
+        when(notificationPreferenceService.shouldSendNotification(any(User.class), anyString(), anyString())).thenReturn(true);
 
         AdminUserResponse result = adminUserService.reactivateUser(1L);
 

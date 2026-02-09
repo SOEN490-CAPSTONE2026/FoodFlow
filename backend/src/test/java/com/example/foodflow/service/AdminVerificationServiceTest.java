@@ -40,6 +40,9 @@ class AdminVerificationServiceTest {
     @Mock
     private EmailVerificationTokenRepository verificationTokenRepository;
 
+    @Mock
+    private NotificationPreferenceService notificationPreferenceService;
+
     @InjectMocks
     private AdminVerificationService adminVerificationService;
 
@@ -227,6 +230,7 @@ class AdminVerificationServiceTest {
             // Arrange
             when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
             when(userRepository.save(any(User.class))).thenReturn(testUser);
+            when(notificationPreferenceService.shouldSendNotification(any(User.class), anyString(), anyString())).thenReturn(true);
 
             // Act
             ApprovalResponse response = adminVerificationService.approveUser(1L);
