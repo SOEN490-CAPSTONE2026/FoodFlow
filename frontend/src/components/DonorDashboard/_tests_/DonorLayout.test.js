@@ -28,10 +28,24 @@ jest.mock('../../MessagingDashboard/MessageNotification', () => {
 
 // Keep the handlers inside the mock AND spy on connectToUserQueue calls
 jest.mock('../../../services/socket', () => {
-  const handlers = { onMessage: null, onClaim: null, onCancel: null, onNewPost: null, onAchievement: null, onReview: null };
+  const handlers = {
+    onMessage: null,
+    onClaim: null,
+    onCancel: null,
+    onNewPost: null,
+    onAchievement: null,
+    onReview: null,
+  };
   return {
     connectToUserQueue: jest.fn(
-      (onMessage, onClaimNotification, onClaimCancelled, onNewPost, onAchievement, onReview) => {
+      (
+        onMessage,
+        onClaimNotification,
+        onClaimCancelled,
+        onNewPost,
+        onAchievement,
+        onReview
+      ) => {
         handlers.onMessage = onMessage;
         handlers.onClaim = onClaimNotification;
         handlers.onCancel = onClaimCancelled;
@@ -76,7 +90,8 @@ async function getSocketHandlers() {
     expect(socketModule.connectToUserQueue).toHaveBeenCalled();
   });
   const lastCall = socketModule.connectToUserQueue.mock.calls.at(-1);
-  const [onMessage, onClaim, onCancel, onNewPost, onAchievement, onReview] = lastCall;
+  const [onMessage, onClaim, onCancel, onNewPost, onAchievement, onReview] =
+    lastCall;
   return { onMessage, onClaim, onCancel, onNewPost, onAchievement, onReview };
 }
 
