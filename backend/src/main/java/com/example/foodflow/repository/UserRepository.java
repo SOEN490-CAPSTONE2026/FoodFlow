@@ -37,6 +37,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     long countByAccountStatus(AccountStatus accountStatus);
 
+    // Count users with more points (for leaderboard ranking)
+    long countByRoleAndTotalPointsGreaterThan(UserRole role, Integer totalPoints);
+
     // Custom query for admin verification queue with search
     @Query("SELECT u FROM User u LEFT JOIN u.organization o WHERE u.accountStatus IN :statuses " +
             "AND (:role IS NULL OR u.role = :role) " +

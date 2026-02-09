@@ -667,4 +667,284 @@ class GamificationServiceTest {
         assertThat(result).hasSize(1);
         verify(userAchievementRepository, times(2)).save(any(UserAchievement.class));
     }
+
+    // ==================== Tests for getLeaderboard ====================
+
+    @Test
+    void testGetLeaderboard_DonorRole_ReturnsTop10() {
+        // Given
+        List<User> topDonors = createMockUsers(UserRole.DONOR, 10);
+        org.springframework.data.domain.Page<User> page = 
+            new org.springframework.data.domain.PageImpl<>(topDonors);
+        
+        when(userRepository.findByRole(eq(UserRole.DONOR), any()))
+                .thenReturn(page);
+        when(userRepository.countByRole(UserRole.DONOR)).thenReturn(10L);
+        // Don't stub findById - user is in top 10 so it won't be called
+
+        // When
+        com.example.foodflow.model.dto.LeaderboardResponse result = 
+            gamificationService.getLeaderboard(UserRole.DONOR, 1L);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getTopUsers()).hasSize(10);
+        assertThat(result.getTotalUsers()).isEqualTo(10);
+        assertThat(result.getTopUsers().get(0).getRank()).isEqualTo(1);
+        assertThat(result.getTopUsers().get(0).getIsCurrentUser()).isTrue();
+        assertThat(result.getCurrentUserEntry()).isNull(); // User is in top 10
+    }
+
+    @Test
+    void testGetLeaderboard_ReceiverRole_ReturnsTop10() {
+        // Given
+        List<User> topReceivers = createMockUsers(UserRole.RECEIVER, 10);
+        org.springframework.data.domain.Page<User> page = 
+            new org.springframework.data.domain.PageImpl<>(topReceivers);
+        
+        when(userRepository.findByRole(eq(UserRole.RECEIVER), any()))
+                .thenReturn(page);
+        when(userRepository.countByRole(UserRole.RECEIVER)).thenReturn(10L);
+        // Don't stub findById - user is in top 10 so it won't be called
+
+        // When
+        com.example.foodflow.model.dto.LeaderboardResponse result = 
+            gamificationService.getLeaderboard(UserRole.RECEIVER, 1L);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getTopUsers()).hasSize(10);
+        assertThat(result.getTotalUsers()).isEqualTo(10);
+        assertThat(result.getTopUsers().get(0).getRank()).isEqualTo(1);
+    }
+
+    @Test
+    void testGetLeaderboard_CurrentUserOutsideTop10_IncludesUserEntry() {
+        // Given
+        List<User> topDonors = createMockUsers(UserRole.DONOR, 10);
+        org.springframework.data.domain.Page<User> page = 
+            new org.springframework.data.domain.PageImpl<>(topDonors);
+        
+        User currentUser = new User();
+        currentUser.setId(99L);
+        currentUser.setEmail("outside@test.com");
+        currentUser.setRole(UserRole.DONOR);
+        currentUser.setTotalPoints(50);
+        
+        when(userRepository.findByRole(eq(UserRole.DONOR), any()))
+                .thenReturn(page);
+        when(userRepository.countByRole(UserRole.DONOR)).thenReturn(20L);
+        when(userRepository.findById(99L)).thenReturn(Optional.of(currentUser));
+        when(userRepository.countByRoleAndTotalPointsGreaterThan(UserRole.DONOR, 50))
+                .thenReturn(10L); // 10 users have more points, so user is rank 11
+
+        // When
+        com.example.foodflow.model.dto.LeaderboardResponse result = 
+            gamificationService.getLeaderboard(UserRole.DONOR, 99L);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getTopUsers()).hasSize(10);
+        assertThat(result.getCurrentUserEntry()).isNotNull();
+        assertThat(result.getCurrentUserEntry().getRank()).isEqualTo(11);
+        assertThat(result.getCurrentUserEntry().getUserId()).isEqualTo(99L);
+        assertThat(result.getCurrentUserEntry().getIsCurrentUser()).isTrue();
+        assertThat(result.getCurrentUserEntry().getTotalPoints()).isEqualTo(50);
+    }
+
+    @Test
+    void testGetLeaderboard_EmptyLeaderboard_ReturnsEmptyList() {
+        // Given
+        org.springframework.data.domain.Page<User> page = 
+            new org.springframework.data.domain.PageImpl<>(Collections.emptyList());
+        
+        when(userRepository.findByRole(eq(UserRole.DONOR), any()))
+                .thenReturn(page);
+        when(userRepository.countByRole(UserRole.DONOR)).thenReturn(0L);
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+
+        // When
+        com.example.foodflow.model.dto.LeaderboardResponse result = 
+            gamificationService.getLeaderboard(UserRole.DONOR, 1L);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getTopUsers()).isEmpty();
+        assertThat(result.getTotalUsers()).isEqualTo(0);
+        assertThat(result.getCurrentUserEntry()).isNull();
+    }
+
+    @Test
+    void testGetLeaderboard_DisplayNameLogic_UsesOrganizationName() {
+        // Given - User with organization
+        User userWithOrg = new User();
+        userWithOrg.setId(1L);
+        userWithOrg.setEmail("user@test.com");
+        userWithOrg.setFullName("John Doe");
+        userWithOrg.setRole(UserRole.DONOR);
+        userWithOrg.setTotalPoints(1000);
+        
+        Organization org = new Organization();
+        org.setName("Test Organization");
+        userWithOrg.setOrganization(org);
+        
+        org.springframework.data.domain.Page<User> page = 
+            new org.springframework.data.domain.PageImpl<>(Arrays.asList(userWithOrg));
+        
+        when(userRepository.findByRole(eq(UserRole.DONOR), any()))
+                .thenReturn(page);
+        when(userRepository.countByRole(UserRole.DONOR)).thenReturn(1L);
+        // Don't stub findById - user is in top list
+
+        // When
+        com.example.foodflow.model.dto.LeaderboardResponse result = 
+            gamificationService.getLeaderboard(UserRole.DONOR, 1L);
+
+        // Then
+        assertThat(result.getTopUsers().get(0).getDisplayName())
+                .isEqualTo("Test Organization");
+    }
+
+    @Test
+    void testGetLeaderboard_DisplayNameLogic_UsesFullNameIfNoOrg() {
+        // Given - User with full name but no organization
+        User userWithName = new User();
+        userWithName.setId(1L);
+        userWithName.setEmail("user@test.com");
+        userWithName.setFullName("Jane Smith");
+        userWithName.setRole(UserRole.RECEIVER);
+        userWithName.setTotalPoints(500);
+        
+        org.springframework.data.domain.Page<User> page = 
+            new org.springframework.data.domain.PageImpl<>(Arrays.asList(userWithName));
+        
+        when(userRepository.findByRole(eq(UserRole.RECEIVER), any()))
+                .thenReturn(page);
+        when(userRepository.countByRole(UserRole.RECEIVER)).thenReturn(1L);
+        // Don't stub findById - user is in top list
+
+        // When
+        com.example.foodflow.model.dto.LeaderboardResponse result = 
+            gamificationService.getLeaderboard(UserRole.RECEIVER, 1L);
+
+        // Then
+        assertThat(result.getTopUsers().get(0).getDisplayName())
+                .isEqualTo("Jane Smith");
+    }
+
+    @Test
+    void testGetLeaderboard_DisplayNameLogic_UsesEmailAsFallback() {
+        // Given - User with only email
+        User userWithEmail = new User();
+        userWithEmail.setId(1L);
+        userWithEmail.setEmail("fallback@test.com");
+        userWithEmail.setRole(UserRole.DONOR);
+        userWithEmail.setTotalPoints(250);
+        
+        org.springframework.data.domain.Page<User> page = 
+            new org.springframework.data.domain.PageImpl<>(Arrays.asList(userWithEmail));
+        
+        when(userRepository.findByRole(eq(UserRole.DONOR), any()))
+                .thenReturn(page);
+        when(userRepository.countByRole(UserRole.DONOR)).thenReturn(1L);
+        // Don't stub findById - user is in top list
+
+        // When
+        com.example.foodflow.model.dto.LeaderboardResponse result = 
+            gamificationService.getLeaderboard(UserRole.DONOR, 1L);
+
+        // Then
+        assertThat(result.getTopUsers().get(0).getDisplayName())
+                .isEqualTo("fallback@test.com");
+    }
+
+    @Test
+    void testGetLeaderboard_NullPoints_TreatsAsZero() {
+        // Given
+        User userWithNullPoints = new User();
+        userWithNullPoints.setId(1L);
+        userWithNullPoints.setEmail("nopoints@test.com");
+        userWithNullPoints.setRole(UserRole.DONOR);
+        userWithNullPoints.setTotalPoints(null);
+        
+        org.springframework.data.domain.Page<User> page = 
+            new org.springframework.data.domain.PageImpl<>(Arrays.asList(userWithNullPoints));
+        
+        when(userRepository.findByRole(eq(UserRole.DONOR), any()))
+                .thenReturn(page);
+        when(userRepository.countByRole(UserRole.DONOR)).thenReturn(1L);
+        // Don't stub findById - user is in top list
+
+        // When
+        com.example.foodflow.model.dto.LeaderboardResponse result = 
+            gamificationService.getLeaderboard(UserRole.DONOR, 1L);
+
+        // Then
+        assertThat(result.getTopUsers().get(0).getTotalPoints()).isEqualTo(0);
+    }
+
+    @Test
+    void testGetLeaderboard_RankingIsCorrect() {
+        // Given
+        List<User> topDonors = createMockUsers(UserRole.DONOR, 5);
+        org.springframework.data.domain.Page<User> page = 
+            new org.springframework.data.domain.PageImpl<>(topDonors);
+        
+        when(userRepository.findByRole(eq(UserRole.DONOR), any()))
+                .thenReturn(page);
+        when(userRepository.countByRole(UserRole.DONOR)).thenReturn(5L);
+        // Don't stub findById - user is in top list
+
+        // When
+        com.example.foodflow.model.dto.LeaderboardResponse result = 
+            gamificationService.getLeaderboard(UserRole.DONOR, 1L);
+
+        // Then
+        assertThat(result.getTopUsers()).hasSize(5);
+        for (int i = 0; i < 5; i++) {
+            assertThat(result.getTopUsers().get(i).getRank()).isEqualTo(i + 1);
+        }
+    }
+
+    @Test
+    void testGetLeaderboard_CurrentUserDifferentRole_NoCurrentEntry() {
+        // Given
+        List<User> topDonors = createMockUsers(UserRole.DONOR, 10);
+        org.springframework.data.domain.Page<User> page = 
+            new org.springframework.data.domain.PageImpl<>(topDonors);
+        
+        User receiverUser = new User();
+        receiverUser.setId(99L);
+        receiverUser.setEmail("receiver@test.com");
+        receiverUser.setRole(UserRole.RECEIVER); // Different role
+        receiverUser.setTotalPoints(500);
+        
+        when(userRepository.findByRole(eq(UserRole.DONOR), any()))
+                .thenReturn(page);
+        when(userRepository.countByRole(UserRole.DONOR)).thenReturn(10L);
+        when(userRepository.findById(99L)).thenReturn(Optional.of(receiverUser));
+
+        // When
+        com.example.foodflow.model.dto.LeaderboardResponse result = 
+            gamificationService.getLeaderboard(UserRole.DONOR, 99L);
+
+        // Then - Current user entry should be null since they're a different role
+        assertThat(result.getTopUsers()).hasSize(10);
+        assertThat(result.getCurrentUserEntry()).isNull();
+    }
+
+    // Helper method to create mock users
+    private List<User> createMockUsers(UserRole role, int count) {
+        List<User> users = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            User user = new User();
+            user.setId((long) (i + 1));
+            user.setEmail("user" + (i + 1) + "@test.com");
+            user.setFullName("User " + (i + 1));
+            user.setRole(role);
+            user.setTotalPoints(1000 - (i * 10)); // Descending points
+            users.add(user);
+        }
+        return users;
+    }
 }

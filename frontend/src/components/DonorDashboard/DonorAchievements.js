@@ -5,20 +5,20 @@ import useGamification from '../../hooks/useGamification';
 import PointsDisplay from '../shared/PointsDisplay';
 import BadgeIcon from '../shared/BadgeIcon';
 import Leaderboard from '../shared/Leaderboard';
-import './Receiver_Styles/ReceiverAchievements.css';
+import './Donor_Styles/DonorAchievements.css';
 
 /**
- * ReceiverAchievements - Full-page achievements display for receivers
- * Shows all badges, points, and progress with receiver blue theming
+ * DonorAchievements - Full-page achievements display for donors
+ * Shows all badges, points, and progress with donor green theming
  */
-const ReceiverAchievements = () => {
+const DonorAchievements = () => {
   const { t } = useTranslation();
   const { stats, loading, error } = useGamification();
 
   if (loading) {
     return (
-      <div className="receiver-achievements-container">
-        <div className="receiver-achievements-loading">
+      <div className="donor-achievements-container">
+        <div className="donor-achievements-loading">
           <div className="loading-spinner"></div>
           <p>{t('achievements.loading', 'Loading your achievements...')}</p>
         </div>
@@ -28,8 +28,8 @@ const ReceiverAchievements = () => {
 
   if (error) {
     return (
-      <div className="receiver-achievements-container">
-        <div className="receiver-achievements-error">
+      <div className="donor-achievements-container">
+        <div className="donor-achievements-error">
           <Award size={48} />
           <h3>{t('achievements.error', 'Unable to load achievements')}</h3>
           <p>
@@ -43,14 +43,14 @@ const ReceiverAchievements = () => {
   // Handle case where stats is null or empty
   if (!stats) {
     return (
-      <div className="receiver-achievements-container">
-        <div className="receiver-achievements-empty">
+      <div className="donor-achievements-container">
+        <div className="donor-achievements-empty">
           <Award size={64} />
           <h2>{t('achievements.noAchievements', 'No Achievements Yet')}</h2>
           <p>
             {t(
-              'achievements.startClaiming',
-              'Start claiming donations to earn badges and points!'
+              'achievements.startDonating',
+              'Start donating food to earn badges and points!'
             )}
           </p>
         </div>
@@ -105,9 +105,9 @@ const ReceiverAchievements = () => {
       : 0;
 
   return (
-    <div className="receiver-achievements-container">
+    <div className="donor-achievements-container">
       {/* Header Section */}
-      <div className="receiver-achievements-header">
+      <div className="donor-achievements-header">
         <div className="header-content">
           <div className="header-icon">
             <Award size={48} />
@@ -125,7 +125,7 @@ const ReceiverAchievements = () => {
       </div>
 
       {/* Stats Overview */}
-      <div className="receiver-stats-overview">
+      <div className="donor-stats-overview">
         {/* Total Points Card */}
         <div className="stat-card stat-card-primary">
           <div className="stat-icon">
@@ -295,17 +295,17 @@ const ReceiverAchievements = () => {
       )}
 
       {/* Leaderboard Section */}
-      <Leaderboard role="RECEIVER" />
+      <Leaderboard role="DONOR" />
 
       {/* Empty State */}
       {allAchievements.length === 0 && (
-        <div className="receiver-achievements-empty">
+        <div className="donor-achievements-empty">
           <Award size={64} />
           <h2>{t('achievements.noAchievements', 'No Achievements Yet')}</h2>
           <p>
             {t(
-              'achievements.startClaiming',
-              'Start claiming donations to earn badges and points!'
+              'achievements.startDonating',
+              'Start donating food to earn badges and points!'
             )}
           </p>
         </div>
@@ -314,4 +314,4 @@ const ReceiverAchievements = () => {
   );
 };
 
-export default ReceiverAchievements;
+export default DonorAchievements;
