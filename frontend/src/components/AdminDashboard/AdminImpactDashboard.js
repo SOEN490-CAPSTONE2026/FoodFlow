@@ -13,7 +13,6 @@ import {
   UserCheck,
   Repeat,
 } from 'lucide-react';
-import '../DonorDashboard/DonorImpactDashboard.css';
 import './AdminImpactDashboard.css';
 
 export default function AdminImpactDashboard() {

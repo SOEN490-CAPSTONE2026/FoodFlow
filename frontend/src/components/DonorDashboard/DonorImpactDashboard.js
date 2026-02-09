@@ -14,7 +14,7 @@ import {
   TrendingUp,
   TrendingDown,
 } from 'lucide-react';
-import './DonorImpactDashboard.css';
+import './Donor_Styles/DonorImpactDashboard.css';
 
 export default function DonorImpactDashboard() {
   const { t } = useTranslation();
