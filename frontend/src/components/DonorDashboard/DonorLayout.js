@@ -76,7 +76,10 @@ export default function DonorLayout() {
       case '/donor/list':
         return t('donorLayout.pageDescriptions.donateNow');
       case '/donor/impact':
-        return t('donorLayout.pageDescriptions.impact', 'View your environmental and social impact');
+        return t(
+          'donorLayout.pageDescriptions.impact',
+          'View your environmental and social impact'
+        );
       case '/donor/messages':
         return t('donorLayout.pageDescriptions.messages');
       case '/donor/settings':

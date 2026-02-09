@@ -133,9 +133,7 @@ export default function AdminImpactDashboard() {
             <Package size={28} />
           </div>
           <div className="metric-content">
-            <h3>
-              {t('impactDashboard.totalFoodSaved', 'Total Food Saved')}
-            </h3>
+            <h3>{t('impactDashboard.totalFoodSaved', 'Total Food Saved')}</h3>
             <p className="metric-value">
               {metrics?.totalFoodWeightKg?.toFixed(2) || '0.00'}
               <span className="metric-unit"> kg</span>
@@ -217,9 +215,7 @@ export default function AdminImpactDashboard() {
             <span className="stat-label">
               {t('impactDashboard.totalClaims', 'Total Claims Made')}
             </span>
-            <span className="stat-value">
-              {metrics?.totalClaimsMade || 0}
-            </span>
+            <span className="stat-value">{metrics?.totalClaimsMade || 0}</span>
           </div>
           <div className="stat-item">
             <span className="stat-label">
@@ -245,9 +241,7 @@ export default function AdminImpactDashboard() {
             </div>
             <div className="engagement-content">
               <h3>{t('impactDashboard.activeDonors', 'Active Donors')}</h3>
-              <p className="engagement-value">
-                {metrics?.activeDonors || 0}
-              </p>
+              <p className="engagement-value">{metrics?.activeDonors || 0}</p>
             </div>
           </div>
 
@@ -271,9 +265,7 @@ export default function AdminImpactDashboard() {
             </div>
             <div className="engagement-content">
               <h3>{t('impactDashboard.repeatDonors', 'Repeat Donors')}</h3>
-              <p className="engagement-value">
-                {metrics?.repeatDonors || 0}
-              </p>
+              <p className="engagement-value">{metrics?.repeatDonors || 0}</p>
             </div>
           </div>
 
@@ -297,10 +289,7 @@ export default function AdminImpactDashboard() {
       <div className="impact-message admin-message">
         <div className="message-content">
           <h3>
-            {t(
-              'impactDashboard.platformSuccess',
-              'Platform Impact Summary 📊'
-            )}
+            {t('impactDashboard.platformSuccess', 'Platform Impact Summary 📊')}
           </h3>
           <p>
             {t(

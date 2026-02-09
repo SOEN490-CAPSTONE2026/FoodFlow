@@ -196,9 +196,7 @@ export default function ReceiverImpactDashboard() {
             <span className="stat-label">
               {t('impactDashboard.totalClaims', 'Total Claims Made')}
             </span>
-            <span className="stat-value">
-              {metrics?.totalClaimsMade || 0}
-            </span>
+            <span className="stat-value">{metrics?.totalClaimsMade || 0}</span>
           </div>
           <div className="stat-item">
             <span className="stat-label">
