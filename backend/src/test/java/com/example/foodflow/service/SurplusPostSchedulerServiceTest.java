@@ -90,6 +90,7 @@ class SurplusPostSchedulerServiceTest {
         receiver = new User();
         receiver.setId(2L);
         receiver.setEmail("receiver@test.com");
+        receiver.setFullName("Test Receiver");
         receiver.setRole(UserRole.RECEIVER);
         
         Organization receiverOrg = new Organization();
@@ -581,20 +582,22 @@ class SurplusPostSchedulerServiceTest {
     void testUpdatePostsToReadyForPickup_SendsEmailWhenEnabled() {
         // Given
         setToleranceValues(15, 15);
-        LocalDate today = LocalDate.now();
+        LocalDate yesterday = LocalDate.now().minusDays(1);
         LocalTime startTime = LocalTime.of(8, 0);
         
-        claimedPost.setPickupDate(today);
+        claimedPost.setPickupDate(yesterday);
         claimedPost.setPickupFrom(startTime);
         claimedPost.setPickupTo(LocalTime.of(14, 0));
         setCreatedAt(claimedPost, LocalDateTime.now().minusHours(1));
         
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
                 .thenReturn(Collections.singletonList(claimedPost));
-        mockClaimForPost(claimedPost, today, startTime, LocalTime.of(14, 0));
+        mockClaimForPost(claimedPost, yesterday, startTime, LocalTime.of(14, 0));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
         when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("donationReadyForPickup"), eq("email")))
                 .thenReturn(true);
+        when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("donationReadyForPickup"), eq("websocket")))
+                .thenReturn(false);
 
         // When
         schedulerService.updatePostsToReadyForPickup();
@@ -607,20 +610,19 @@ class SurplusPostSchedulerServiceTest {
     void testUpdatePostsToReadyForPickup_DoesNotSendEmailWhenDisabled() {
         // Given
         setToleranceValues(15, 15);
-        LocalDate today = LocalDate.now();
+        LocalDate yesterday = LocalDate.now().minusDays(1);
         LocalTime startTime = LocalTime.of(8, 0);
         
-        claimedPost.setPickupDate(today);
+        claimedPost.setPickupDate(yesterday);
         claimedPost.setPickupFrom(startTime);
         claimedPost.setPickupTo(LocalTime.of(14, 0));
         setCreatedAt(claimedPost, LocalDateTime.now().minusHours(1));
         
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
                 .thenReturn(Collections.singletonList(claimedPost));
-        mockClaimForPost(claimedPost, today, startTime, LocalTime.of(14, 0));
+        mockClaimForPost(claimedPost, yesterday, startTime, LocalTime.of(14, 0));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
-        when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("donationReadyForPickup"), eq("email")))
-                .thenReturn(false);
+        // Email and websocket notifications default to false (no stubbing needed)
 
         // When
         schedulerService.updatePostsToReadyForPickup();
@@ -633,20 +635,22 @@ class SurplusPostSchedulerServiceTest {
     void testUpdatePostsToReadyForPickup_SendsWebsocketWhenEnabled() {
         // Given
         setToleranceValues(15, 15);
-        LocalDate today = LocalDate.now();
+        LocalDate yesterday = LocalDate.now().minusDays(1);
         LocalTime startTime = LocalTime.of(8, 0);
         
-        claimedPost.setPickupDate(today);
+        claimedPost.setPickupDate(yesterday);
         claimedPost.setPickupFrom(startTime);
         claimedPost.setPickupTo(LocalTime.of(14, 0));
         setCreatedAt(claimedPost, LocalDateTime.now().minusHours(1));
         
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
                 .thenReturn(Collections.singletonList(claimedPost));
-        mockClaimForPost(claimedPost, today, startTime, LocalTime.of(14, 0));
+        mockClaimForPost(claimedPost, yesterday, startTime, LocalTime.of(14, 0));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
         when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("donationReadyForPickup"), eq("websocket")))
                 .thenReturn(true);
+        when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("donationReadyForPickup"), eq("email")))
+                .thenReturn(false);
 
         // When
         schedulerService.updatePostsToReadyForPickup();
@@ -659,20 +663,19 @@ class SurplusPostSchedulerServiceTest {
     void testUpdatePostsToReadyForPickup_DoesNotSendWebsocketWhenDisabled() {
         // Given
         setToleranceValues(15, 15);
-        LocalDate today = LocalDate.now();
+        LocalDate yesterday = LocalDate.now().minusDays(1);
         LocalTime startTime = LocalTime.of(8, 0);
         
-        claimedPost.setPickupDate(today);
+        claimedPost.setPickupDate(yesterday);
         claimedPost.setPickupFrom(startTime);
         claimedPost.setPickupTo(LocalTime.of(14, 0));
         setCreatedAt(claimedPost, LocalDateTime.now().minusHours(1));
         
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
                 .thenReturn(Collections.singletonList(claimedPost));
-        mockClaimForPost(claimedPost, today, startTime, LocalTime.of(14, 0));
+        mockClaimForPost(claimedPost, yesterday, startTime, LocalTime.of(14, 0));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
-        when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("donationReadyForPickup"), eq("websocket")))
-                .thenReturn(false);
+        // Email and websocket notifications default to false (no stubbing needed)
 
         // When
         schedulerService.updatePostsToReadyForPickup();
