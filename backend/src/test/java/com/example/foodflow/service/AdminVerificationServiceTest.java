@@ -1,5 +1,6 @@
 package com.example.foodflow.service;
 
+import brevo.ApiException;
 import com.example.foodflow.model.dto.ApprovalResponse;
 import com.example.foodflow.model.dto.RejectionResponse;
 import com.example.foodflow.model.dto.UserVerificationPageResponse;
@@ -472,7 +473,7 @@ class AdminVerificationServiceTest {
 
         @Test
         @DisplayName("Should send only websocket when email is disabled")
-        void approveUser_EmailDisabledWebSocketEnabled_SendsOnlyWebSocket() {
+        void approveUser_EmailDisabledWebSocketEnabled_SendsOnlyWebSocket() throws Exception {
             // Arrange
             when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
             when(userRepository.save(any(User.class))).thenReturn(testUser);
@@ -510,7 +511,7 @@ class AdminVerificationServiceTest {
 
         @Test
         @DisplayName("Should not send any notifications when both are disabled")
-        void approveUser_BothDisabled_SendsNeither() {
+        void approveUser_BothDisabled_SendsNeither() throws Exception {
             // Arrange
             when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
             when(userRepository.save(any(User.class))).thenReturn(testUser);

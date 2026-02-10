@@ -45,6 +45,15 @@ class AdminDonationServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private NotificationPreferenceService notificationPreferenceService;
+
+    @Mock
+    private EmailService emailService;
+
+    @Mock
+    private org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
+
     @InjectMocks
     private AdminDonationService adminDonationService;
 

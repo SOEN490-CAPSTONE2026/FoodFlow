@@ -532,4 +532,193 @@ class ClaimServiceTest {
         SurplusPost savedPost = postCaptor.getValue();
         assertThat(savedPost.getStatus()).isEqualTo(PostStatus.CLAIMED);
     }
+
+    // Notification Tests
+
+    @Test
+    void claimSurplusPost_WithEmailNotificationsEnabled_SendsEmailToDonor() {
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
+
+        Claim savedClaim = new Claim(surplusPost, receiver);
+        savedClaim.setId(1L);
+        when(claimRepository.save(any(Claim.class))).thenReturn(savedClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("donationClaimed"), eq("email")))
+                .thenReturn(true);
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("donationClaimed"), eq("websocket")))
+                .thenReturn(true);
+
+        claimService.claimSurplusPost(claimRequest, receiver);
+
+        verify(notificationPreferenceService).shouldSendNotification(eq(donor), eq("donationClaimed"), eq("email"));
+        verify(notificationPreferenceService).shouldSendNotification(eq(donor), eq("donationClaimed"), eq("websocket"));
+    }
+
+    @Test
+    void claimSurplusPost_WithEmailNotificationsDisabled_DoesNotSendEmail() {
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
+
+        Claim savedClaim = new Claim(surplusPost, receiver);
+        savedClaim.setId(1L);
+        when(claimRepository.save(any(Claim.class))).thenReturn(savedClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("donationClaimed"), eq("email")))
+                .thenReturn(false);
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("donationClaimed"), eq("websocket")))
+                .thenReturn(true);
+
+        claimService.claimSurplusPost(claimRequest, receiver);
+
+        verify(notificationPreferenceService).shouldSendNotification(eq(donor), eq("donationClaimed"), eq("email"));
+        verify(messagingTemplate).convertAndSendToUser(eq("1"), eq("/queue/claims"), any());
+        verify(messagingTemplate).convertAndSendToUser(eq("2"), eq("/queue/claims"), any());
+    }
+
+    @Test
+    void claimSurplusPost_WithWebSocketNotificationsDisabled_DoesNotSendWebSocket() {
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
+
+        Claim savedClaim = new Claim(surplusPost, receiver);
+        savedClaim.setId(1L);
+        when(claimRepository.save(any(Claim.class))).thenReturn(savedClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("donationClaimed"), eq("websocket")))
+                .thenReturn(false);
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("donationClaimed"), eq("email")))
+                .thenReturn(true);
+
+        claimService.claimSurplusPost(claimRequest, receiver);
+
+        verify(notificationPreferenceService).shouldSendNotification(eq(donor), eq("donationClaimed"), eq("websocket"));
+        // Should still send to receiver (notification always sent to claim creator)
+        verify(messagingTemplate).convertAndSendToUser(eq("2"), eq("/queue/claims"), any());
+    }
+
+    @Test
+    void claimSurplusPost_WithAllNotificationsDisabled_DoesNotSendToDonor() {
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
+
+        Claim savedClaim = new Claim(surplusPost, receiver);
+        savedClaim.setId(1L);
+        when(claimRepository.save(any(Claim.class))).thenReturn(savedClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("donationClaimed"), anyString()))
+                .thenReturn(false);
+
+        claimService.claimSurplusPost(claimRequest, receiver);
+
+        verify(notificationPreferenceService, times(2)).shouldSendNotification(eq(donor), eq("donationClaimed"), anyString());
+        // Should still send to receiver
+        verify(messagingTemplate).convertAndSendToUser(eq("2"), eq("/queue/claims"), any());
+    }
+
+    @Test
+    void cancelClaim_WithEmailNotificationsEnabled_SendsEmailToDonor() {
+        Claim activeClaim = new Claim(surplusPost, receiver);
+        activeClaim.setId(1L);
+        activeClaim.setStatus(ClaimStatus.ACTIVE);
+
+        when(claimRepository.findById(1L)).thenReturn(Optional.of(activeClaim));
+        when(claimRepository.save(any(Claim.class))).thenReturn(activeClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("claimCanceled"), eq("email")))
+                .thenReturn(true);
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("claimCanceled"), eq("websocket")))
+                .thenReturn(true);
+
+        claimService.cancelClaim(1L, receiver);
+
+        verify(notificationPreferenceService).shouldSendNotification(eq(donor), eq("claimCanceled"), eq("email"));
+        verify(notificationPreferenceService).shouldSendNotification(eq(donor), eq("claimCanceled"), eq("websocket"));
+    }
+
+    @Test
+    void cancelClaim_WithEmailNotificationsDisabled_DoesNotSendEmail() {
+        Claim activeClaim = new Claim(surplusPost, receiver);
+        activeClaim.setId(1L);
+        activeClaim.setStatus(ClaimStatus.ACTIVE);
+
+        when(claimRepository.findById(1L)).thenReturn(Optional.of(activeClaim));
+        when(claimRepository.save(any(Claim.class))).thenReturn(activeClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("claimCanceled"), eq("email")))
+                .thenReturn(false);
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("claimCanceled"), eq("websocket")))
+                .thenReturn(true);
+
+        claimService.cancelClaim(1L, receiver);
+
+        verify(notificationPreferenceService).shouldSendNotification(eq(donor), eq("claimCanceled"), eq("email"));
+        verify(messagingTemplate).convertAndSendToUser(eq("1"), eq("/queue/claims/cancelled"), any());
+    }
+
+    @Test
+    void cancelClaim_WithWebSocketNotificationsDisabled_DoesNotSendWebSocket() {
+        Claim activeClaim = new Claim(surplusPost, receiver);
+        activeClaim.setId(1L);
+        activeClaim.setStatus(ClaimStatus.ACTIVE);
+
+        when(claimRepository.findById(1L)).thenReturn(Optional.of(activeClaim));
+        when(claimRepository.save(any(Claim.class))).thenReturn(activeClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("claimCanceled"), eq("websocket")))
+                .thenReturn(false);
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("claimCanceled"), eq("email")))
+                .thenReturn(true);
+
+        claimService.cancelClaim(1L, receiver);
+
+        verify(notificationPreferenceService).shouldSendNotification(eq(donor), eq("claimCanceled"), eq("websocket"));
+        verify(messagingTemplate, never()).convertAndSendToUser(anyString(), eq("/queue/claims/cancelled"), any());
+    }
+
+    @Test
+    void cancelClaim_WithAllNotificationsDisabled_DoesNotSendToDonor() {
+        Claim activeClaim = new Claim(surplusPost, receiver);
+        activeClaim.setId(1L);
+        activeClaim.setStatus(ClaimStatus.ACTIVE);
+
+        when(claimRepository.findById(1L)).thenReturn(Optional.of(activeClaim));
+        when(claimRepository.save(any(Claim.class))).thenReturn(activeClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("claimCanceled"), anyString()))
+                .thenReturn(false);
+
+        claimService.cancelClaim(1L, receiver);
+
+        verify(notificationPreferenceService, times(2)).shouldSendNotification(eq(donor), eq("claimCanceled"), anyString());
+        verify(messagingTemplate, never()).convertAndSendToUser(anyString(), eq("/queue/claims/cancelled"), any());
+    }
+
+    @Test
+    void claimSurplusPost_VerifiesCorrectNotificationChannelsChecked() {
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
+
+        Claim savedClaim = new Claim(surplusPost, receiver);
+        savedClaim.setId(1L);
+        when(claimRepository.save(any(Claim.class))).thenReturn(savedClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        when(notificationPreferenceService.shouldSendNotification(any(User.class), anyString(), anyString()))
+                .thenReturn(true);
+
+        claimService.claimSurplusPost(claimRequest, receiver);
+
+        // Verify both websocket and email channels are checked for donor
+        verify(notificationPreferenceService).shouldSendNotification(donor, "donationClaimed", "websocket");
+        verify(notificationPreferenceService).shouldSendNotification(donor, "donationClaimed", "email");
+    }
 }
