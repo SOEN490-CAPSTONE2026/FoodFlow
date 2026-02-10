@@ -13,7 +13,6 @@ body {
   overflow: hidden;
 }
 
-/* Mobile Header */
 .mobile-header {
   display: none;
   background: #1b4965;
@@ -76,6 +75,23 @@ body {
   top: 0;
   z-index: 1000;
   overflow: visible;
+}
+
+.donor-sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.donor-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.donor-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+}
+
+.donor-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .donor-sidebar.collapsed {
@@ -154,7 +170,6 @@ body {
   margin-left: 70px;
 }
 
-/* Tooltips for collapsed sidebar */
 .donor-sidebar.collapsed .donor-nav-link {
   position: relative;
 }
@@ -256,6 +271,7 @@ body {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
+  min-height: 0;
 }
 
 .donor-nav-links::-webkit-scrollbar {
@@ -450,12 +466,12 @@ body {
 .account-menu {
   position: absolute;
   left: calc(100% + 12px);
-  bottom: 0;
+  bottom: 4px;
   min-width: 200px;
-  background: #1b4965;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
   overflow: hidden;
   z-index: 10000;
   animation: popIn 0.15s ease;
@@ -474,7 +490,7 @@ body {
 
 .donor-sidebar.collapsed .account-menu {
   left: calc(100% + 12px);
-  bottom: 0;
+  bottom: 4px;
   animation: popIn 0.15s ease;
 }
 
@@ -487,23 +503,23 @@ body {
   border: none;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  color: #fff;
+  color: #333;
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
 .account-menu-item:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .account-menu-item.logout {
-  color: #fff;
+  color: #d9534f;
   font-weight: 600;
 }
 
 .account-menu-item.logout:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(217, 83, 79, 0.08);
 }
 
 .account-menu-divider {
@@ -519,6 +535,7 @@ body {
   padding: 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   flex-shrink: 0;
+  margin-top: auto;
 }
 
 .donor-sidebar-footer {
@@ -605,23 +622,12 @@ body {
   background: #94a3b8;
 }
 
-/* Remove padding for messaging page to allow full-screen messaging */
 .donor-content.messages-page {
   padding: 0;
   overflow: hidden;
   position: relative;
 }
 
-.donor-nav-bottom {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  flex-shrink: 0;
-}
-
-/* Responsive adjustments for mobile */
 @media (max-width: 768px) {
   .mobile-header {
     display: flex;
@@ -692,8 +698,7 @@ body {
   .account-menu {
     position: absolute;
     left: calc(100% + 12px);
-    bottom: 0;
-    transform: none;
+    bottom: 4px;
   }
 
   .donor-topbar {
@@ -724,8 +729,6 @@ body {
     height: 32px;
   }
 }
-
-/* Remove old absolute positioning - no longer needed */
 
 @media (max-width: 1440px) {
   .donor-content {

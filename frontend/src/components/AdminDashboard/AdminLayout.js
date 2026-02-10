@@ -185,7 +185,7 @@ export default function AdminLayout() {
           </button>
         </div>
 
-        <nav className="admin-nav-links" style={{ flex: '0 1 auto' }}>
+        <nav className="admin-nav-links">
           <Link
             to="/admin/welcome"
             className={`admin-nav-link ${isActive('/admin/welcome') ? 'active' : ''}`}
@@ -281,7 +281,6 @@ export default function AdminLayout() {
           )}
         </nav>
 
-        <div style={{ flex: 1 }} />
         <div className="admin-nav-bottom">
           <div className="admin-nav-link disabled" data-tooltip="Help">
             <span className="nav-icon" aria-hidden>

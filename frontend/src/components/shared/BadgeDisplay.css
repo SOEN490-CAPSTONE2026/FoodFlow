@@ -1,7 +1,10 @@
 /* Badge Display Container */
 .badge-display-container {
-  padding: 1rem 0.75rem;
+  padding: 0.75rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+  max-height: 40vh;
+  overflow: visible;
 }
 
 .badge-display-error {
@@ -14,12 +17,12 @@
 /* Points Display */
 .points-display {
   background: linear-gradient(135deg, #16a34a 0%, #059669 100%);
-  border-radius: 12px;
-  padding: 1rem;
+  border-radius: 10px;
+  padding: 0.625rem 0.75rem;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1.25rem;
+  gap: 0.625rem;
+  margin-bottom: 0.5rem;
   box-shadow: 0 2px 8px rgba(22, 163, 74, 0.2);
   transition: transform 0.2s ease;
 }
@@ -33,10 +36,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
+  width: 36px;
+  height: 36px;
   background: rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
+  border-radius: 8px;
   color: #fff;
 }
 
@@ -55,7 +58,7 @@
 }
 
 .points-value {
-  font-size: 1.75rem;
+  font-size: 1.35rem;
   font-weight: 700;
   color: #fff;
   line-height: 1;
@@ -112,7 +115,33 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0;
+  padding: 0.375rem 0;
+  background: none;
+  border: none;
+  width: 100%;
+  color: inherit;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.badges-header:hover {
+  opacity: 0.85;
+}
+
+.badges-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.badges-toggle-icon {
+  color: rgba(255, 255, 255, 0.6);
+  transition: transform 0.2s ease;
+}
+
+.badges-toggle-icon.expanded {
+  transform: rotate(180deg);
 }
 
 .badges-header h4 {
@@ -133,9 +162,11 @@
 /* Badges Grid */
 .badges-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  grid-template-columns: repeat(3, 56px);
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+  margin-bottom: 0.4rem;
+  justify-content: center;
 }
 
 .badges-grid.loading {
@@ -149,6 +180,8 @@
   align-items: center;
   justify-content: center;
   aspect-ratio: 1;
+  max-width: 56px;
+  max-height: 56px;
   cursor: pointer;
   transition: transform 0.2s ease;
 }
@@ -164,8 +197,8 @@
   width: 100%;
   height: 100%;
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
   transition: all 0.2s ease;
 }
 
@@ -200,7 +233,7 @@
   min-width: 220px;
   max-width: 280px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-  z-index: 1000;
+  z-index: 10000;
   pointer-events: none;
   animation: fadeIn 0.2s ease;
 }
@@ -339,18 +372,18 @@
 /* View All Button */
 .view-all-btn {
   width: 100%;
-  padding: 0.625rem;
+  padding: 0.5rem;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   color: rgba(255, 255, 255, 0.8);
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.375rem;
   transition: all 0.2s ease;
 }
 
@@ -396,16 +429,21 @@
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .badge-display-container {
-    padding: 1rem;
+    padding: 0.75rem;
   }
 
   .points-display {
-    padding: 0.875rem;
+    padding: 0.5rem 0.625rem;
   }
 
   .badges-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.625rem;
+    grid-template-columns: repeat(3, 52px);
+    gap: 0.375rem;
+  }
+
+  .badge-icon {
+    max-width: 52px;
+    max-height: 52px;
   }
 
   .badge-tooltip {
@@ -417,6 +455,12 @@
 
 @media (max-width: 480px) {
   .badges-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 48px);
+    gap: 0.3rem;
+  }
+
+  .badge-icon {
+    max-width: 48px;
+    max-height: 48px;
   }
 }

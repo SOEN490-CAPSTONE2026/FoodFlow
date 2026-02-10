@@ -468,7 +468,11 @@
   text-transform: uppercase;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  text-align: center;
   gap: 6px;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .donation-action-button.primary {
@@ -578,6 +582,15 @@
   }
   .donation-card {
     padding: 22px;
+  }
+  .donation-actions {
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+  }
+  .donation-action-button {
+    padding: 6px 12px;
+    font-size: 10px;
   }
   .empty-state {
     padding: 60px 20px;

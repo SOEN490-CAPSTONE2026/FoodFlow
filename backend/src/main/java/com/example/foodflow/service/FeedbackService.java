@@ -241,8 +241,6 @@ public class FeedbackService {
         return feedbackCount >= 2; // Both donor and receiver have provided feedback
     }
 
-    // ====== NEW ADMIN METHODS FOR THE STORY ======
-
     /**
      * ADMIN: Get all feedback for a user (both given and received)
      */

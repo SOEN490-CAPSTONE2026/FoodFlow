@@ -29,6 +29,8 @@ import {
   Inbox as IconInbox,
   CheckCircle,
   User as IconUser,
+  Menu as IconMenu,
+  X as IconX,
 } from 'lucide-react';
 
 function ReceiverLayoutContent() {
@@ -45,6 +47,7 @@ function ReceiverLayoutContent() {
   } = React.useContext(AuthContext);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [profilePhotoUrl, setProfilePhotoUrl] = useState(null);
   const [achievementNotification, setAchievementNotification] = useState(null);
@@ -343,10 +346,11 @@ function ReceiverLayoutContent() {
           </Link>
         </div>
 
-        <div className="receiver-nav-links">
+        <div className={`receiver-nav-links ${isMenuOpen ? 'active' : ''}`}>
           <Link
             to="/receiver"
             className={`receiver-nav-link ${location.pathname === '/receiver' || location.pathname === '/receiver/browse' ? 'active' : ''}`}
+            onClick={() => setIsMenuOpen(false)}
           >
             {t('receiverLayout.donations')}
           </Link>
@@ -354,6 +358,7 @@ function ReceiverLayoutContent() {
           <Link
             to="/receiver/my-claims"
             className={`receiver-nav-link ${isActive('/receiver/my-claims') || isActive('/receiver/dashboard') ? 'active' : ''}`}
+            onClick={() => setIsMenuOpen(false)}
           >
             {t('receiverLayout.myClaims')}
           </Link>
@@ -361,6 +366,7 @@ function ReceiverLayoutContent() {
           <Link
             to="/receiver/achievements"
             className={`receiver-nav-link ${isActive('/receiver/achievements') ? 'active' : ''}`}
+            onClick={() => setIsMenuOpen(false)}
           >
             {t('receiverLayout.achievements', 'Achievements')}
           </Link>
@@ -368,6 +374,7 @@ function ReceiverLayoutContent() {
           <Link
             to="/receiver/welcome"
             className={`receiver-nav-link ${location.pathname === '/receiver/welcome' ? 'active' : ''}`}
+            onClick={() => setIsMenuOpen(false)}
           >
             {t('receiverLayout.savedDonations')}
           </Link>
@@ -375,6 +382,15 @@ function ReceiverLayoutContent() {
 
         <div className="receiver-user-info" ref={dropdownRef}>
           <div className="user-actions">
+            <button
+              className="receiver-menu-toggle"
+              type="button"
+              aria-label="Toggle menu"
+              onClick={() => setIsMenuOpen(o => !o)}
+            >
+              {isMenuOpen ? <IconX size={28} /> : <IconMenu size={28} />}
+            </button>
+
             <button
               className="inbox-btn"
               type="button"
