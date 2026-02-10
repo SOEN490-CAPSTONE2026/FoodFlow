@@ -19,7 +19,9 @@ const LeaderboardEntry = ({ entry, showMedals = true }) => {
 
   // Get medal for top 3 positions
   const getMedalIcon = rank => {
-    if (!showMedals) return null;
+    if (!showMedals) {
+      return null;
+    }
 
     switch (rank) {
       case 1:

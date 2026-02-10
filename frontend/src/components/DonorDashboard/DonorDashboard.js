@@ -4,6 +4,7 @@ import DonorLayout from './DonorLayout';
 import DonorWelcome from './DonorWelcome';
 import DonorDashboardHome from './DonorDashboardHome';
 import DonorListFood from './DonorListFood';
+import DonorImpactDashboard from './DonorImpactDashboard';
 import DonorAchievements from './DonorAchievements';
 import MessagingDashboard from '../MessagingDashboard/MessagingDashboard';
 import Settings from '../Settings';
@@ -16,6 +17,7 @@ export default function DonorDashboard() {
         <Route index element={<DonorWelcome />} />
         <Route path="dashboard" element={<DonorDashboardHome />} />
         <Route path="list" element={<DonorListFood />} />
+        <Route path="impact" element={<DonorImpactDashboard />} />
         <Route path="achievements" element={<DonorAchievements />} />
         <Route path="messages" element={<MessagingDashboard />} />
         <Route path="settings" element={<Settings />} />
