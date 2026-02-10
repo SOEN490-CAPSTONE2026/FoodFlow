@@ -9,7 +9,7 @@ import { Eye, EyeOff } from 'lucide-react';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const location = useLocation();
   const { login } = useContext(AuthContext);
   const [email, setEmail] = useState('');
@@ -44,9 +44,15 @@ const LoginPage = () => {
       const organizationName = response?.data?.organizationName;
       const verificationStatus = response?.data?.verificationStatus;
       const accountStatus = response?.data?.accountStatus;
+      const languagePreference = response?.data?.languagePreference;
 
       if (!token || !userRole || !userId) {
         throw new Error('Invalid server response');
+      }
+
+      if (languagePreference) {
+        localStorage.setItem('languagePreference', languagePreference);
+        i18n.changeLanguage(languagePreference);
       }
 
       login(

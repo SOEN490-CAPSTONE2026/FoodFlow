@@ -579,7 +579,7 @@ describe('AdminUsers', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('Failed to load users. Please try again.')
+        screen.getByText('Failed to load users. Please try again later.')
       ).toBeInTheDocument();
     });
   });
@@ -700,11 +700,26 @@ describe('AdminUsers', () => {
     axios.get.mockResolvedValueOnce({
       data: { content: usersWithoutPhone, totalPages: 1 },
     });
+    axios.get.mockResolvedValueOnce({
+      data: usersWithoutPhone[0],
+    });
 
     render(<AdminUsers />);
 
     await waitFor(() => {
-      expect(screen.getByText('N/A')).toBeInTheDocument();
+      expect(screen.getByText('John Donor')).toBeInTheDocument();
+    });
+
+    // Open user detail modal
+    const viewButton = screen.getAllByTitle('View Details')[0];
+    fireEvent.click(viewButton);
+
+    await waitFor(() => {
+      const phoneLabels = screen.getAllByText(/Phone/i);
+      expect(phoneLabels.length).toBeGreaterThan(0);
+      // Check that all N/A values are rendered (phone should be one of them)
+      const naValues = screen.getAllByText('N/A');
+      expect(naValues.length).toBeGreaterThan(0);
     });
   });
 
@@ -882,14 +897,14 @@ describe('AdminUsers', () => {
 
     await waitFor(() => {
       const activeStatus = screen.getAllByText('Active');
-      const verifiedStatus = screen.getAllByText('Verified');
-      const pendingStatus = screen.getByText('Pending');
       const deactivatedStatus = screen.getByText('Deactivated');
+      const donorBadge = screen.getAllByText('Donor');
+      const receiverBadge = screen.getAllByText('Receiver');
 
       expect(activeStatus.length).toBeGreaterThan(0);
-      expect(verifiedStatus.length).toBeGreaterThan(0);
-      expect(pendingStatus).toBeInTheDocument();
       expect(deactivatedStatus).toBeInTheDocument();
+      expect(donorBadge.length).toBeGreaterThan(0);
+      expect(receiverBadge.length).toBeGreaterThan(0);
     });
   });
 

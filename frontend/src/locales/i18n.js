@@ -13,6 +13,11 @@ i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
+    detection: {
+      order: ['localStorage', 'navigator'],
+      lookupLocalStorage: 'languagePreference',
+      caches: ['localStorage'],
+    },
     resources: {
       en: { translation: en },
       fr: { translation: fr },

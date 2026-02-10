@@ -26,8 +26,27 @@ api.interceptors.request.use(
 );
 
 api.interceptors.response.use(
-  response => response,
+  response => {
+    // Add rate limit info to response if available
+    if (response.headers['x-ratelimit-limit']) {
+      response.data.rateLimitInfo = {
+        limit: parseInt(response.headers['x-ratelimit-limit']),
+        remaining: parseInt(response.headers['x-ratelimit-remaining']),
+        retryAfter: response.headers['retry-after']
+          ? parseInt(response.headers['retry-after'])
+          : null,
+      };
+    }
+    return response;
+  },
   error => {
+    // Handle rate limiting errors
+    if (error.response?.status === 429) {
+      const retryAfter = error.response.headers['retry-after'] || 60;
+      error.rateLimited = true;
+      error.retryAfter = retryAfter;
+    }
+
     if (error.response && error.response.status === 401) {
       const authKeys = [
         'jwtToken',
@@ -583,6 +602,34 @@ export const gamificationAPI = {
    * @returns {Promise} List of all achievements
    */
   getAllAchievements: () => api.get('/gamification/achievements'),
+
+  /**
+   * Get leaderboard for a specific role
+   * @param {string} role - User role (DONOR or RECEIVER)
+   * @returns {Promise} Leaderboard with top 10 users and current user's position
+   */
+  getLeaderboard: role => api.get(`/gamification/leaderboard/${role}`),
+};
+
+// Support chat API for rate limiting integration
+export const supportChatAPI = {
+  sendMessage: (message, pageContext) => {
+    return api.post('/support/chat', {
+      message,
+      pageContext,
+    });
+  },
+};
+
+// Rate limit monitoring API
+export const rateLimitAPI = {
+  getStats: () => {
+    return api.get('/admin/rate-limit-stats');
+  },
+
+  getUserStatus: () => {
+    return api.get('/admin/my-rate-limit');
+  },
 };
 
 // Impact Dashboard API
@@ -608,5 +655,27 @@ export const impactDashboardAPI = {
       responseType: 'blob',
     }),
 };
+// Export the core axios instance for backward compatibility
+// Safely bind methods with fallbacks for testing
+export const post =
+  api && typeof api.post === 'function'
+    ? api.post.bind(api)
+    : () => Promise.resolve();
+export const get =
+  api && typeof api.get === 'function'
+    ? api.get.bind(api)
+    : () => Promise.resolve();
+export const put =
+  api && typeof api.put === 'function'
+    ? api.put.bind(api)
+    : () => Promise.resolve();
+export const del =
+  api && typeof api.delete === 'function'
+    ? api.delete.bind(api)
+    : () => Promise.resolve();
+export const patch =
+  api && typeof api.patch === 'function'
+    ? api.patch.bind(api)
+    : () => Promise.resolve();
 
 export default api;

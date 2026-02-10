@@ -293,4 +293,143 @@ class GamificationControllerTest {
                 .andExpect(jsonPath("$.totalPoints").value(750))
                 .andExpect(jsonPath("$.achievementCount").value(7));
     }
+    
+    // ==================== Tests for getLeaderboard ====================
+    
+    @Test
+    void getLeaderboard_DonorRole_ShouldReturn200() throws Exception {
+        // Given
+        com.example.foodflow.model.dto.LeaderboardResponse leaderboardResponse = 
+            new com.example.foodflow.model.dto.LeaderboardResponse();
+        
+        List<com.example.foodflow.model.dto.LeaderboardEntryDTO> topUsers = new ArrayList<>();
+        com.example.foodflow.model.dto.LeaderboardEntryDTO entry1 = 
+            new com.example.foodflow.model.dto.LeaderboardEntryDTO(1, 1L, "Top Donor", 1000, true);
+        com.example.foodflow.model.dto.LeaderboardEntryDTO entry2 = 
+            new com.example.foodflow.model.dto.LeaderboardEntryDTO(2, 2L, "Second Donor", 900, false);
+        topUsers.add(entry1);
+        topUsers.add(entry2);
+        
+        leaderboardResponse.setTopUsers(topUsers);
+        leaderboardResponse.setCurrentUserEntry(null);
+        leaderboardResponse.setTotalUsers(2);
+        
+        when(gamificationService.getLeaderboard(UserRole.DONOR, 1L)).thenReturn(leaderboardResponse);
+        
+        // When & Then
+        mockMvc.perform(get("/api/gamification/leaderboard/DONOR")
+                .with(authentication(authentication)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.topUsers").isArray())
+                .andExpect(jsonPath("$.topUsers.length()").value(2))
+                .andExpect(jsonPath("$.topUsers[0].rank").value(1))
+                .andExpect(jsonPath("$.topUsers[0].displayName").value("Top Donor"))
+                .andExpect(jsonPath("$.topUsers[0].totalPoints").value(1000))
+                .andExpect(jsonPath("$.topUsers[0].isCurrentUser").value(true))
+                .andExpect(jsonPath("$.totalUsers").value(2));
+    }
+    
+    @Test
+    void getLeaderboard_ReceiverRole_ShouldReturn200() throws Exception {
+        // Given
+        com.example.foodflow.model.dto.LeaderboardResponse leaderboardResponse = 
+            new com.example.foodflow.model.dto.LeaderboardResponse();
+        
+        List<com.example.foodflow.model.dto.LeaderboardEntryDTO> topUsers = new ArrayList<>();
+        com.example.foodflow.model.dto.LeaderboardEntryDTO entry1 = 
+            new com.example.foodflow.model.dto.LeaderboardEntryDTO(1, 2L, "Top Receiver", 500, true);
+        topUsers.add(entry1);
+        
+        leaderboardResponse.setTopUsers(topUsers);
+        leaderboardResponse.setCurrentUserEntry(null);
+        leaderboardResponse.setTotalUsers(1);
+        
+        when(gamificationService.getLeaderboard(UserRole.RECEIVER, 2L)).thenReturn(leaderboardResponse);
+        
+        // When & Then
+        mockMvc.perform(get("/api/gamification/leaderboard/RECEIVER")
+                .with(authentication(otherAuthentication)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.topUsers").isArray())
+                .andExpect(jsonPath("$.topUsers.length()").value(1))
+                .andExpect(jsonPath("$.topUsers[0].rank").value(1))
+                .andExpect(jsonPath("$.topUsers[0].displayName").value("Top Receiver"))
+                .andExpect(jsonPath("$.totalUsers").value(1));
+    }
+    
+    @Test
+    void getLeaderboard_WithCurrentUserOutsideTop10_ShouldIncludeCurrentEntry() throws Exception {
+        // Given
+        com.example.foodflow.model.dto.LeaderboardResponse leaderboardResponse = 
+            new com.example.foodflow.model.dto.LeaderboardResponse();
+        
+        List<com.example.foodflow.model.dto.LeaderboardEntryDTO> topUsers = new ArrayList<>();
+        for (int i = 1; i <= 10; i++) {
+            topUsers.add(new com.example.foodflow.model.dto.LeaderboardEntryDTO(
+                i, (long) i, "User " + i, 1000 - (i * 10), false));
+        }
+        
+        com.example.foodflow.model.dto.LeaderboardEntryDTO currentEntry = 
+            new com.example.foodflow.model.dto.LeaderboardEntryDTO(15, 1L, "Current User", 500, true);
+        
+        leaderboardResponse.setTopUsers(topUsers);
+        leaderboardResponse.setCurrentUserEntry(currentEntry);
+        leaderboardResponse.setTotalUsers(20);
+        
+        when(gamificationService.getLeaderboard(UserRole.DONOR, 1L)).thenReturn(leaderboardResponse);
+        
+        // When & Then
+        mockMvc.perform(get("/api/gamification/leaderboard/DONOR")
+                .with(authentication(authentication)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.topUsers.length()").value(10))
+                .andExpect(jsonPath("$.currentUserEntry").exists())
+                .andExpect(jsonPath("$.currentUserEntry.rank").value(15))
+                .andExpect(jsonPath("$.currentUserEntry.isCurrentUser").value(true))
+                .andExpect(jsonPath("$.totalUsers").value(20));
+    }
+    
+    @Test
+    void getLeaderboard_EmptyLeaderboard_ShouldReturn200() throws Exception {
+        // Given
+        com.example.foodflow.model.dto.LeaderboardResponse leaderboardResponse = 
+            new com.example.foodflow.model.dto.LeaderboardResponse();
+        
+        leaderboardResponse.setTopUsers(new ArrayList<>());
+        leaderboardResponse.setCurrentUserEntry(null);
+        leaderboardResponse.setTotalUsers(0);
+        
+        when(gamificationService.getLeaderboard(UserRole.DONOR, 1L)).thenReturn(leaderboardResponse);
+        
+        // When & Then
+        mockMvc.perform(get("/api/gamification/leaderboard/DONOR")
+                .with(authentication(authentication)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.topUsers").isArray())
+                .andExpect(jsonPath("$.topUsers.length()").value(0))
+                .andExpect(jsonPath("$.totalUsers").value(0));
+    }
+    
+    @Test
+    void getLeaderboard_Unauthenticated_ShouldReturn401() throws Exception {
+        // When & Then
+        mockMvc.perform(get("/api/gamification/leaderboard/DONOR"))
+                .andExpect(status().isUnauthorized());
+    }
+    
+    @Test
+    void getLeaderboard_InvalidRole_ShouldReturn400() throws Exception {
+        // When & Then
+        mockMvc.perform(get("/api/gamification/leaderboard/INVALID_ROLE")
+                .with(authentication(authentication)))
+                .andExpect(status().isBadRequest());
+    }
+    
+    @Test
+    void getLeaderboard_MissingRoleParameter_ShouldReturn500() throws Exception {
+        // When & Then - Without role in path, causes internal error
+        mockMvc.perform(get("/api/gamification/leaderboard")
+                .with(authentication(authentication)))
+                .andExpect(status().isInternalServerError());
+    }
 }

@@ -898,6 +898,14 @@ jest.mock('./services/api', () => ({
     myClaims: jest.fn(() => Promise.resolve({ data: [] })),
     cancel: jest.fn(() => Promise.resolve({})),
   },
+  getLeaderboard: jest.fn(() =>
+    Promise.resolve({
+      data: {
+        topUsers: [],
+        currentUserRank: null,
+      },
+    })
+  ),
 }));
 
 // Mock Firebase
@@ -933,4 +941,42 @@ jest.mock('./services/socket', () => ({
   connectToUserQueue: jest.fn(),
   disconnectWebSocket: jest.fn(),
   getStompClient: jest.fn(() => null),
+}));
+
+// Mock @tanstack/react-query
+jest.mock('@tanstack/react-query', () => ({
+  QueryClient: jest.fn().mockImplementation(() => ({
+    defaultQueryOptions: jest.fn(),
+    mount: jest.fn(),
+    unmount: jest.fn(),
+    isFetching: jest.fn(() => 0),
+    isMutating: jest.fn(() => 0),
+    getQueryData: jest.fn(),
+    setQueryData: jest.fn(),
+    invalidateQueries: jest.fn(),
+    refetchQueries: jest.fn(),
+    cancelQueries: jest.fn(),
+    removeQueries: jest.fn(),
+    resetQueries: jest.fn(),
+    clear: jest.fn(),
+  })),
+  QueryClientProvider: ({ children }) => children,
+  useQuery: jest.fn(() => ({
+    data: null,
+    isLoading: false,
+    isError: false,
+    error: null,
+    refetch: jest.fn(),
+  })),
+  useQueryClient: jest.fn(() => ({
+    invalidateQueries: jest.fn(),
+    refetchQueries: jest.fn(),
+  })),
+  useMutation: jest.fn(() => ({
+    mutate: jest.fn(),
+    mutateAsync: jest.fn(),
+    isLoading: false,
+    isError: false,
+    error: null,
+  })),
 }));

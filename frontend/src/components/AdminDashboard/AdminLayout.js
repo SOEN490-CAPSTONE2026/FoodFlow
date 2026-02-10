@@ -18,6 +18,8 @@ import {
   ChevronRight,
   ChevronLeft,
   ChevronDown,
+  HelpCircle,
+  MoreVertical,
   Settings,
   LogOut,
   Menu,
@@ -188,7 +190,7 @@ export default function AdminLayout() {
           </button>
         </div>
 
-        <nav className="admin-nav-links" style={{ flex: '0 1 auto' }}>
+        <nav className="admin-nav-links">
           <Link
             to="/admin/welcome"
             className={`admin-nav-link ${isActive('/admin/welcome') ? 'active' : ''}`}
@@ -295,8 +297,13 @@ export default function AdminLayout() {
           )}
         </nav>
 
-        <div style={{ flex: 1 }} />
         <div className="admin-nav-bottom">
+          <div className="admin-nav-link disabled" data-tooltip="Help">
+            <span className="nav-icon" aria-hidden>
+              <HelpCircle size={18} className="lucide" />
+            </span>
+            Help
+          </div>
           <Link
             to="/admin/settings"
             className={`admin-nav-link ${isActive('/admin/settings') ? 'active' : ''}`}

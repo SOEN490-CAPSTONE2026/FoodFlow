@@ -98,23 +98,19 @@ public class SurplusPostSchedulerService {
                         return false;
                     }
 
-                    // Skip if confirmed pickup date is in the future
-                    if (confirmedPickupDate.isAfter(today)) {
-                        return false;
-                    }
-
-                    // If confirmed pickup date is today, check if start time has arrived
-                    // Apply early tolerance - allow READY_FOR_PICKUP status before window starts
-                    if (confirmedPickupDate.isEqual(today)) {
-                        LocalTime adjustedStartTime = confirmedPickupStartTime.minusMinutes(earlyToleranceMinutes);
-                        boolean started = !currentTime.isBefore(adjustedStartTime);
-                        logger.debug("Post ID {} - confirmedStart={}, adjustedStart={}, currentTime={}, started={}",
-                                post.getId(), confirmedPickupStartTime, adjustedStartTime, currentTime, started);
-                        return started;
-                    }
-
-                    // Confirmed pickup date in the past → should be ready
-                    return true;
+                    // Combine date and time for proper comparison (handles midnight crossing)
+                    LocalDateTime confirmedStart = LocalDateTime.of(confirmedPickupDate, confirmedPickupStartTime);
+                    LocalDateTime nowDateTime = nowUtc.toLocalDateTime();
+                    
+                    // Apply early tolerance
+                    LocalDateTime adjustedStart = confirmedStart.minusMinutes(earlyToleranceMinutes);
+                    
+                    boolean started = !nowDateTime.isBefore(adjustedStart);
+                    
+                    logger.debug("Post ID {} - confirmedStart={}, adjustedStart={}, now={}, started={}",
+                            post.getId(), confirmedStart, adjustedStart, nowDateTime, started);
+                    
+                    return started;
                 })
                 .toList();
 
@@ -193,22 +189,28 @@ public class SurplusPostSchedulerService {
                         return false;
                     }
 
-                    // Confirmed pickup date before today → definitely missed
-                    if (confirmedPickupDate.isBefore(today)) {
-                        return true;
+                    // Combine date and time for proper comparison
+                    // CRITICAL: This handles the case where pickup windows cross midnight in UTC
+                    LocalTime confirmedPickupStartTime = claim.getConfirmedPickupStartTime();
+                    LocalDateTime confirmedEnd = LocalDateTime.of(confirmedPickupDate, confirmedPickupEndTime);
+                    LocalDateTime nowDateTime = nowUtc.toLocalDateTime();
+                    
+                    // Handle midnight crossing: if end time is before start time, it crosses to next day
+                    if (confirmedPickupStartTime != null && confirmedPickupEndTime.isBefore(confirmedPickupStartTime)) {
+                        confirmedEnd = confirmedEnd.plusDays(1);
+                        logger.debug("Post ID {} - Detected midnight crossing, adjusted end to: {}", 
+                                post.getId(), confirmedEnd);
                     }
-
-                    // Confirmed pickup date is today and window ended
-                    // Apply late tolerance - only mark as NOT_COMPLETED after tolerance period
-                    if (confirmedPickupDate.isEqual(today)) {
-                        LocalTime adjustedEndTime = confirmedPickupEndTime.plusMinutes(lateToleranceMinutes);
-                        boolean ended = currentTime.isAfter(adjustedEndTime);
-                        logger.debug("Post ID {} - confirmedEnd={}, adjustedEnd={}, currentTime={}, ended={}",
-                                post.getId(), confirmedPickupEndTime, adjustedEndTime, currentTime, ended);
-                        return ended;
-                    }
-
-                    return false;
+                    
+                    // Apply late tolerance
+                    LocalDateTime adjustedEnd = confirmedEnd.plusMinutes(lateToleranceMinutes);
+                    
+                    boolean ended = nowDateTime.isAfter(adjustedEnd);
+                    
+                    logger.debug("Post ID {} - confirmedEnd={}, adjustedEnd={}, now={}, ended={}",
+                            post.getId(), confirmedEnd, adjustedEnd, nowDateTime, ended);
+                    
+                    return ended;
                 })
                 .toList();
 

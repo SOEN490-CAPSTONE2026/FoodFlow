@@ -196,7 +196,7 @@
   },
   "landing": {
     "home": {
-      "title1": "Connect surplus with",
+      "title1": "Connect surplus food with",
       "title2": "those in need",
       "title3": "Receive quality food",
       "title4": "for your community",
@@ -647,6 +647,40 @@
     "typeMessage": "Type your message here...",
     "sendMessage": "Send message",
     "failedToSend": "Failed to send message"
+  },
+  "supportChat": {
+    "title": "FoodFlow Support",
+    "welcome": "👋 Hi! I'm the FoodFlow support assistant. How can I help you today?",
+    "endMessage": "Chat ended. Thank you for using FoodFlow support! If you have more questions, feel free to start a new conversation.",
+    "errorMessage": "Sorry, I cannot respond right now. Please contact our support team directly.",
+    "aria": {
+      "open": "Open support chat",
+      "close": "Close support chat"
+    },
+    "buttons": {
+      "endChat": "End Chat",
+      "newChat": "New Chat"
+    },
+    "titles": {
+      "endChat": "End chat",
+      "newChat": "New chat"
+    },
+    "placeholders": {
+      "ended": "Chat ended. Click \"New Chat\" to start over.",
+      "input": "Type your question..."
+    },
+    "actions": {
+      "createDonation": "Create Donation",
+      "myMessages": "My Messages",
+      "settings": "Settings",
+      "browseFood": "Browse Food",
+      "myClaims": "My Claims",
+      "myDonations": "My Donations",
+      "helpCenter": "Help Center",
+      "emailSupport": "Email Support",
+      "contactSupport": "Contact Support",
+      "dashboard": "Dashboard"
+    }
   },
   "messaging": {
     "failedToLoad": "Failed to load conversations",
