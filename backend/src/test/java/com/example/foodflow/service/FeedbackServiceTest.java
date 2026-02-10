@@ -43,6 +43,15 @@ class FeedbackServiceTest {
     @Mock
     private AlertService alertService;
 
+    @Mock
+    private org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
+
+    @Mock
+    private NotificationPreferenceService notificationPreferenceService;
+
+    @Mock
+    private EmailService emailService;
+
     @InjectMocks
     private FeedbackService feedbackService;
 

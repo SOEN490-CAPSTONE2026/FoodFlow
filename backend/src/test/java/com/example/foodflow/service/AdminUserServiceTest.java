@@ -46,6 +46,9 @@ class AdminUserServiceTest {
     @Mock
     private NotificationPreferenceService notificationPreferenceService;
 
+    @Mock
+    private EmailService emailService;
+
     @InjectMocks
     private AdminUserService adminUserService;
 
@@ -268,5 +271,133 @@ class AdminUserServiceTest {
         assertEquals(0L, result.getDonationCount());
         assertEquals(7L, result.getClaimCount());
         verify(claimRepository).countByReceiverId(2L);
+    }
+
+    // Notification-related tests
+
+    @Test
+    void deactivateUser_WithEmailNotificationsDisabled_DoesNotSendEmail() throws Exception {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testDonor));
+        when(userRepository.save(any(User.class))).thenReturn(testDonor);
+        when(surplusPostRepository.countByDonorId(1L)).thenReturn(5L);
+        when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("email"))).thenReturn(false);
+        when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("websocket"))).thenReturn(true);
+
+        adminUserService.deactivateUser(1L, "Test deactivation", 3L);
+
+        verify(emailService, never()).sendAccountDeactivationEmail(anyString(), anyString());
+        verify(messagingTemplate).convertAndSendToUser(anyString(), anyString(), anyMap());
+    }
+
+    @Test
+    void deactivateUser_WithWebSocketNotificationsDisabled_DoesNotSendWebSocket() throws Exception {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testDonor));
+        when(userRepository.save(any(User.class))).thenReturn(testDonor);
+        when(surplusPostRepository.countByDonorId(1L)).thenReturn(5L);
+        when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("email"))).thenReturn(true);
+        when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("websocket"))).thenReturn(false);
+
+        adminUserService.deactivateUser(1L, "Test deactivation", 3L);
+
+        verify(emailService).sendAccountDeactivationEmail(eq("donor@test.com"), anyString());
+        verify(messagingTemplate, never()).convertAndSendToUser(anyString(), anyString(), anyMap());
+    }
+
+    @Test
+    void deactivateUser_WithBothNotificationsEnabled_SendsBoth() throws Exception {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testDonor));
+        when(userRepository.save(any(User.class))).thenReturn(testDonor);
+        when(surplusPostRepository.countByDonorId(1L)).thenReturn(5L);
+        when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("email"))).thenReturn(true);
+        when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("websocket"))).thenReturn(true);
+
+        adminUserService.deactivateUser(1L, "Test deactivation", 3L);
+
+        verify(emailService).sendAccountDeactivationEmail(eq("donor@test.com"), anyString());
+        verify(messagingTemplate).convertAndSendToUser(eq("1"), eq("/queue/verification/approved"), anyMap());
+    }
+
+    @Test
+    void deactivateUser_WithBothNotificationsDisabled_SendsNeither() throws Exception {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testDonor));
+        when(userRepository.save(any(User.class))).thenReturn(testDonor);
+        when(surplusPostRepository.countByDonorId(1L)).thenReturn(5L);
+        when(notificationPreferenceService.shouldSendNotification(any(User.class), anyString(), anyString())).thenReturn(false);
+
+        adminUserService.deactivateUser(1L, "Test deactivation", 3L);
+
+        verify(emailService, never()).sendAccountDeactivationEmail(anyString(), anyString());
+        verify(messagingTemplate, never()).convertAndSendToUser(anyString(), anyString(), anyMap());
+    }
+
+    @Test
+    void reactivateUser_WithEmailNotificationsEnabled_SendsEmail() throws Exception {
+        testDonor.setAccountStatus(AccountStatus.DEACTIVATED);
+        testDonor.setDeactivatedAt(LocalDateTime.now());
+        testDonor.setDeactivatedBy(3L);
+        
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testDonor));
+        when(userRepository.save(any(User.class))).thenReturn(testDonor);
+        when(surplusPostRepository.countByDonorId(1L)).thenReturn(5L);
+        when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("email"))).thenReturn(true);
+        when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("websocket"))).thenReturn(false);
+
+        adminUserService.reactivateUser(1L);
+
+        verify(emailService).sendAccountReactivationEmail(eq("donor@test.com"), anyString());
+        verify(messagingTemplate, never()).convertAndSendToUser(anyString(), anyString(), anyMap());
+    }
+
+    @Test
+    void reactivateUser_WithWebSocketNotificationsEnabled_SendsWebSocket() throws Exception {
+        testDonor.setAccountStatus(AccountStatus.DEACTIVATED);
+        testDonor.setDeactivatedAt(LocalDateTime.now());
+        testDonor.setDeactivatedBy(3L);
+        
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testDonor));
+        when(userRepository.save(any(User.class))).thenReturn(testDonor);
+        when(surplusPostRepository.countByDonorId(1L)).thenReturn(5L);
+        when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("email"))).thenReturn(false);
+        when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("websocket"))).thenReturn(true);
+
+        adminUserService.reactivateUser(1L);
+
+        verify(emailService, never()).sendAccountReactivationEmail(anyString(), anyString());
+        verify(messagingTemplate).convertAndSendToUser(eq("1"), eq("/queue/verification/approved"), anyMap());
+    }
+
+    @Test
+    void reactivateUser_WithBothNotificationsEnabled_SendsBoth() throws Exception {
+        testDonor.setAccountStatus(AccountStatus.DEACTIVATED);
+        testDonor.setDeactivatedAt(LocalDateTime.now());
+        testDonor.setDeactivatedBy(3L);
+        
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testDonor));
+        when(userRepository.save(any(User.class))).thenReturn(testDonor);
+        when(surplusPostRepository.countByDonorId(1L)).thenReturn(5L);
+        when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("email"))).thenReturn(true);
+        when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("websocket"))).thenReturn(true);
+
+        adminUserService.reactivateUser(1L);
+
+        verify(emailService).sendAccountReactivationEmail(eq("donor@test.com"), anyString());
+        verify(messagingTemplate).convertAndSendToUser(eq("1"), eq("/queue/verification/approved"), anyMap());
+    }
+
+    @Test
+    void reactivateUser_WithAllNotificationsDisabled_SendsNeither() throws Exception {
+        testDonor.setAccountStatus(AccountStatus.DEACTIVATED);
+        testDonor.setDeactivatedAt(LocalDateTime.now());
+        testDonor.setDeactivatedBy(3L);
+        
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testDonor));
+        when(userRepository.save(any(User.class))).thenReturn(testDonor);
+        when(surplusPostRepository.countByDonorId(1L)).thenReturn(5L);
+        when(notificationPreferenceService.shouldSendNotification(any(User.class), anyString(), anyString())).thenReturn(false);
+
+        adminUserService.reactivateUser(1L);
+
+        verify(emailService, never()).sendAccountReactivationEmail(anyString(), anyString());
+        verify(messagingTemplate, never()).convertAndSendToUser(anyString(), anyString(), anyMap());
     }
 }
