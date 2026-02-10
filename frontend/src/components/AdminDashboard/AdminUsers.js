@@ -573,7 +573,7 @@ const AdminUsers = () => {
                   <TableRow
                     className={expandedRows.has(user.id) ? 'expanded' : ''}
                   >
-                    <TableCell>
+                    <TableCell data-label="">
                       <button
                         className="expand-btn"
                         onClick={() => {
@@ -593,10 +593,13 @@ const AdminUsers = () => {
                         ) : (
                           <ChevronRight size={18} />
                         )}
+                        <span className="mobile-expand-label">More/Less</span>
                       </button>
                     </TableCell>
-                    <TableCell className="id-cell">{user.id}</TableCell>
-                    <TableCell>
+                    <TableCell data-label="ID" className="id-cell">
+                      {user.id}
+                    </TableCell>
+                    <TableCell data-label="Name">
                       <div className="user-name-info">
                         <div className="user-name">
                           {user.contactPerson || 'N/A'}
@@ -606,7 +609,7 @@ const AdminUsers = () => {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label="Role">
                       <span className={`pill pill-${user.role.toLowerCase()}`}>
                         {user.role === 'DONOR'
                           ? 'Donor'
@@ -615,7 +618,7 @@ const AdminUsers = () => {
                             : 'Admin'}
                       </span>
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label="Status">
                       <span
                         className={`pill pill-status-${user.accountStatus.toLowerCase()}`}
                       >
@@ -624,13 +627,15 @@ const AdminUsers = () => {
                           : 'Deactivated'}
                       </span>
                     </TableCell>
-                    <TableCell className="email-cell">{user.email}</TableCell>
-                    <TableCell className="activity-cell">
+                    <TableCell data-label="Email" className="email-cell">
+                      {user.email}
+                    </TableCell>
+                    <TableCell data-label="Activity" className="activity-cell">
                       {user.role === 'DONOR' && (user.donationCount || 0)}
                       {user.role === 'RECEIVER' && (user.claimCount || 0)}
                       {user.role === 'ADMIN' && '-'}
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label="Actions">
                       <div className="action-buttons">
                         <button
                           className="action-btn"
@@ -638,6 +643,9 @@ const AdminUsers = () => {
                           title="View Details"
                         >
                           <Eye size={16} />
+                          <span className="mobile-action-label">
+                            View Details
+                          </span>
                         </button>
                         {user.accountStatus === 'ACTIVE' &&
                           user.role !== 'ADMIN' && (

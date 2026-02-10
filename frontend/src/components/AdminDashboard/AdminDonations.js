@@ -542,7 +542,7 @@ const AdminDonations = () => {
                         expandedRows.has(donation.id) ? 'expanded' : ''
                       }
                     >
-                      <TableCell>
+                      <TableCell data-label="">
                         <button
                           className="expand-btn"
                           onClick={() => toggleExpandRow(donation)}
@@ -552,20 +552,29 @@ const AdminDonations = () => {
                           ) : (
                             <ChevronRight size={18} />
                           )}
+                          <span className="mobile-expand-label">
+                            {expandedRows.has(donation.id) ? 'Less' : 'More'}
+                          </span>
                         </button>
                       </TableCell>
-                      <TableCell className="id-cell">{donation.id}</TableCell>
-                      <TableCell>{donation.title}</TableCell>
-                      <TableCell>
+                      <TableCell data-label="ID" className="id-cell">
+                        {donation.id}
+                      </TableCell>
+                      <TableCell data-label="Title">{donation.title}</TableCell>
+                      <TableCell data-label="Status">
                         <span
                           className={`pill pill-status-${donation.status?.toLowerCase()}`}
                         >
                           {donation.status}
                         </span>
                       </TableCell>
-                      <TableCell>{donation.donorName || 'N/A'}</TableCell>
-                      <TableCell>{donation.receiverName || 'N/A'}</TableCell>
-                      <TableCell>
+                      <TableCell data-label="Donor">
+                        {donation.donorName || 'N/A'}
+                      </TableCell>
+                      <TableCell data-label="Receiver">
+                        {donation.receiverName || 'N/A'}
+                      </TableCell>
+                      <TableCell data-label="Rating">
                         {!donation.claimId ? (
                           <span className="table-muted">—</span>
                         ) : (
@@ -586,7 +595,7 @@ const AdminDonations = () => {
                           })()
                         )}
                       </TableCell>
-                      <TableCell>
+                      <TableCell data-label="Flagged">
                         {donation.flagged ? (
                           <div
                             className="flagged-cell"
@@ -606,15 +615,22 @@ const AdminDonations = () => {
                           <span className="table-muted">—</span>
                         )}
                       </TableCell>
-                      <TableCell>{formatDate(donation.createdAt)}</TableCell>
-                      <TableCell>{formatDate(donation.updatedAt)}</TableCell>
-                      <TableCell>
+                      <TableCell data-label="Created">
+                        {formatDate(donation.createdAt)}
+                      </TableCell>
+                      <TableCell data-label="Updated">
+                        {formatDate(donation.updatedAt)}
+                      </TableCell>
+                      <TableCell data-label="Actions">
                         <button
                           className="action-btn"
                           onClick={() => openDetailModal(donation)}
                           title="View Details"
                         >
                           <Eye size={16} />
+                          <span className="mobile-action-label">
+                            View Details
+                          </span>
                         </button>
                       </TableCell>
                     </TableRow>
