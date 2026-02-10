@@ -82,6 +82,7 @@ export default function DonorLayout() {
         return t(
           'donorLayout.pageDescriptions.impact',
           'View your environmental and social impact'
+        );
       case '/donor/achievements':
         return t(
           'donorLayout.pageDescriptions.achievements',
