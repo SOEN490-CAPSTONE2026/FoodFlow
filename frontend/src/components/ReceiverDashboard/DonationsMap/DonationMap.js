@@ -126,6 +126,11 @@ const DonationMap = ({
     setSelectedDonation(null);
   };
 
+  const onDonationClaimClick = donation => {
+    onClaimClick(donation);
+    setSelectedDonation(null);
+  };
+
   // Check if Google Maps is available
   if (!isLoaded) {
     return (
@@ -250,7 +255,7 @@ const DonationMap = ({
             <DonationMapCard
               donation={selectedDonation}
               userLocation={userLocation}
-              onClaimClick={onClaimClick}
+              onClaimClick={onDonationClaimClick}
             />
           </InfoWindow>
         )}
