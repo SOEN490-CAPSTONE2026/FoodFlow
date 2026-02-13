@@ -899,7 +899,6 @@ export default function ReceiverBrowse() {
         onClaimClick={donation => {
           setClaimTargetItem(donation);
           setClaimModalOpen(true);
-          setMapViewOpen(false);
         }}
         isLoaded={isLoaded}
         savedLocation={userLocation}

@@ -468,3 +468,47 @@
     max-width: none;
   }
 }
+
+
+/********************************************************/
+
+/* List card claim button */
+.list-card-claim-btn {
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px 16px;
+  background: #1B4965;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.list-card-claim-btn:hover {
+  background: #2C5F7D;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(27, 73, 101, 0.2);
+}
+
+.list-card-claim-btn:active {
+  transform: translateY(0);
+}
+
+/* Update list-donation-card to not have click cursor */
+.list-donation-card {
+  padding: 16px;
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  transition: all 0.2s;
+  cursor: default; /* Changed from pointer */
+}
+
+.list-donation-card:hover {
+  border-color: #1B4965;
+  box-shadow: 0 4px 12px rgba(27, 73, 101, 0.1);
+  transform: translateY(-2px);
+}

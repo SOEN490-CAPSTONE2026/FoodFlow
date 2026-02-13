@@ -132,6 +132,13 @@ const MapViewModal = ({
     onClose();
   };
 
+  const handleClaimClick = donation => {
+    // Call the claim handler but DON'T close the modal
+    if (onClaimClick) {
+      onClaimClick(donation);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -228,7 +235,7 @@ const MapViewModal = ({
               donations={filteredDonations}
               userLocation={userLocation}
               distanceRadius={localDistance}
-              onClaimClick={onClaimClick}
+              onClaimClick={handleClaimClick}
               isLoaded={isLoaded}
             />
           ) : (
@@ -260,11 +267,7 @@ const MapViewModal = ({
               ) : (
                 <div className="donations-list">
                   {filteredDonations.map(donation => (
-                    <div
-                      key={donation.id}
-                      className="list-donation-card"
-                      onClick={() => onClaimClick && onClaimClick(donation)}
-                    >
+                    <div key={donation.id} className="list-donation-card">
                       <h4>{donation.title}</h4>
                       <p>{donation.pickupLocation?.address}</p>
                       <span className="distance-text">
@@ -276,6 +279,12 @@ const MapViewModal = ({
                         ).toFixed(1)}
                         km away
                       </span>
+                      <button
+                        className="list-card-claim-btn"
+                        onClick={() => handleClaimClick(donation)}
+                      >
+                        Claim Donation
+                      </button>
                     </div>
                   ))}
                 </div>

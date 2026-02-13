@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Package, Clock, Calendar } from 'lucide-react';
+import { MapPin, Package, Calendar } from 'lucide-react';
 import {
   getPrimaryFoodCategory,
   getFoodImageClass,
@@ -46,8 +46,6 @@ const DonationMapCard = ({ donation, userLocation, onClaimClick }) => {
     return (value * Math.PI) / 180;
   };
 
-  const primaryCategory = getPrimaryFoodCategory(donation.foodCategories);
-  const imageClass = getFoodImageClass(primaryCategory);
   const distance = calculateDistance();
 
   const formatDate = dateString => {
@@ -58,19 +56,17 @@ const DonationMapCard = ({ donation, userLocation, onClaimClick }) => {
 
   return (
     <div className="donation-map-card">
-      {/* Image */}
-      <div className={`map-card-image ${imageClass}`}>
-        {distance && (
-          <div className="distance-badge">
-            <MapPin size={12} />
-            {distance}
-          </div>
-        )}
-      </div>
-
-      {/* Content */}
+      {/* Content - NO IMAGE */}
       <div className="map-card-content">
-        <h4 className="map-card-title">{donation.title}</h4>
+        <div className="map-card-header">
+          <h4 className="map-card-title">{donation.title}</h4>
+          {distance && (
+            <span className="distance-badge-inline">
+              <MapPin size={12} />
+              {distance}
+            </span>
+          )}
+        </div>
 
         <div className="map-card-details">
           <div className="map-card-detail">
