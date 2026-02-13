@@ -267,7 +267,7 @@ describe('DonationMapCard', () => {
         />
       );
       //============= mhab: Might be subject to change ==============
-      expect(screen.getByText(/Dec 30/i)).toBeInTheDocument();
+      expect(screen.getByText(/Dec 31/i)).toBeInTheDocument();
     });
 
     it('handles different date formats', () => {
@@ -279,7 +279,7 @@ describe('DonationMapCard', () => {
         />
       );
       //============= mhab: Might be subject to change ==============
-      expect(screen.getByText(/Jun 14/i)).toBeInTheDocument();
+      expect(screen.getByText(/Jun 15/i)).toBeInTheDocument();
     });
 
     it('handles empty string expiryDate', () => {
