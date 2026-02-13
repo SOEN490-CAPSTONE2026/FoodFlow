@@ -126,7 +126,14 @@ const MapViewModal = ({
         onFiltersChange('locationCoords', {
           lat: userLocation.latitude,
           lng: userLocation.longitude,
+          address: userLocation.address,
         });
+
+        onFiltersChange(
+          'location',
+          userLocation.address ||
+            `${userLocation.latitude}, ${userLocation.longitude}`
+        );
       }
     }
     onClose();
