@@ -1,0 +1,87 @@
+.map-view-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #1B4965 0%, #2C5F7D 100%);
+  border-radius: 12px;
+  margin-bottom: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(27, 73, 101, 0.15);
+}
+
+.map-view-banner:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(27, 73, 101, 0.25);
+  background: linear-gradient(135deg, #2C5F7D 0%, #1B4965 100%);
+}
+
+.banner-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.banner-content {
+  flex: 1;
+  color: white;
+}
+
+.banner-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.inline-icon {
+  vertical-align: middle;
+}
+
+.banner-subtitle {
+  font-size: 14px;
+  margin: 0;
+  opacity: 0.9;
+  font-weight: 400;
+}
+
+.banner-arrow {
+  flex-shrink: 0;
+  color: white;
+  opacity: 0.7;
+  transition: transform 0.3s ease;
+}
+
+.map-view-banner:hover .banner-arrow {
+  transform: translateX(4px);
+  opacity: 1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .map-view-banner {
+    padding: 12px 16px;
+  }
+  
+  .banner-icon {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .banner-title {
+    font-size: 14px;
+  }
+  
+  .banner-subtitle {
+    font-size: 12px;
+  }
+}
