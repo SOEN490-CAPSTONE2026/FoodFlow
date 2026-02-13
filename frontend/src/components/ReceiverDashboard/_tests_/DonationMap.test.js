@@ -40,7 +40,7 @@ describe('DonationMap', () => {
       id: 1,
       title: 'Fresh Vegetables',
       pickupLocation: {
-        latitude: 45.5017,
+        latitude: 45.5018,
         longitude: -73.5673,
       },
     },
@@ -95,6 +95,7 @@ describe('DonationMap', () => {
           distanceRadius={10}
         />
       );
+      expect(screen.getByTestId('marker-45.5017--73.5673')).toBeInTheDocument();
       expect(screen.getByTestId('marker-45.5087--73.554')).toBeInTheDocument();
     });
 
