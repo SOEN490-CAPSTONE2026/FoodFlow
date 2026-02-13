@@ -26,6 +26,7 @@
   width: 100%;
   max-width: 1200px;
   max-height: 90vh;
+  height: 90vh; /* ADDED - Give modal explicit height */
   display: flex;
   flex-direction: column;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -50,6 +51,7 @@
   align-items: flex-start;
   padding: 24px;
   border-bottom: 1px solid #E5E7EB;
+  flex-shrink: 0; /* Don't shrink */
 }
 
 .header-left {
@@ -98,6 +100,7 @@
   border-bottom: 1px solid #E5E7EB;
   flex-wrap: wrap;
   align-items: center;
+  flex-shrink: 0; /* Don't shrink */
 }
 
 .view-toggle {
@@ -176,11 +179,12 @@
   background: #2C5F7D;
 }
 
-/* Content */
+/* Content - CRITICAL FIX HERE */
 .map-view-content {
   flex: 1;
   overflow: hidden;
   position: relative;
+  min-height: 0; /* Allow flexbox to shrink if needed */
 }
 
 /* List View */
@@ -278,6 +282,7 @@
   gap: 12px;
   padding: 16px 24px;
   border-top: 1px solid #E5E7EB;
+  flex-shrink: 0; /* Don't shrink */
 }
 
 .cancel-btn,
@@ -316,6 +321,7 @@
 @media (max-width: 768px) {
   .map-view-modal {
     max-height: 95vh;
+    height: 95vh;
     border-radius: 16px 16px 0 0;
     margin-top: auto;
   }

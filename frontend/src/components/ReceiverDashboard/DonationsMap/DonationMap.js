@@ -70,36 +70,42 @@ const DonationMap = ({
       setMap(map);
 
       // Fit bounds to show all markers + user location
-      const bounds = new window.google.maps.LatLngBounds();
-      let hasPoints = false;
+      if (
+        typeof window !== 'undefined' &&
+        window.google &&
+        window.google.maps
+      ) {
+        const bounds = new window.google.maps.LatLngBounds();
+        let hasPoints = false;
 
-      if (userLocation) {
-        bounds.extend({
-          lat: userLocation.latitude,
-          lng: userLocation.longitude,
-        });
-        hasPoints = true;
-      }
-
-      donations.forEach(donation => {
-        if (donation.pickupLocation) {
+        if (userLocation) {
           bounds.extend({
-            lat: donation.pickupLocation.latitude,
-            lng: donation.pickupLocation.longitude,
+            lat: userLocation.latitude,
+            lng: userLocation.longitude,
           });
           hasPoints = true;
         }
-      });
 
-      if (hasPoints) {
-        map.fitBounds(bounds);
-
-        // Add padding and limit max zoom
-        setTimeout(() => {
-          if (map.getZoom() > 15) {
-            map.setZoom(15);
+        donations.forEach(donation => {
+          if (donation.pickupLocation) {
+            bounds.extend({
+              lat: donation.pickupLocation.latitude,
+              lng: donation.pickupLocation.longitude,
+            });
+            hasPoints = true;
           }
-        }, 100);
+        });
+
+        if (hasPoints) {
+          map.fitBounds(bounds);
+
+          // Add padding and limit max zoom
+          setTimeout(() => {
+            if (map.getZoom() > 15) {
+              map.setZoom(15);
+            }
+          }, 100);
+        }
       }
     },
     [donations, userLocation]
@@ -119,6 +125,26 @@ const DonationMap = ({
   const handleInfoWindowClose = () => {
     setSelectedDonation(null);
   };
+
+  // Check if Google Maps is available
+  if (!isLoaded) {
+    return (
+      <div className="map-loading">
+        <div className="loading-spinner"></div>
+        <p>Loading Google Maps...</p>
+      </div>
+    );
+  }
+
+  // Check if window.google exists
+  if (typeof window === 'undefined' || !window.google || !window.google.maps) {
+    return (
+      <div className="map-loading">
+        <div className="loading-spinner"></div>
+        <p>Initializing Google Maps...</p>
+      </div>
+    );
+  }
 
   // Custom marker icon for donations
   const getDonationMarkerIcon = (donation, isHovered) => {
@@ -152,15 +178,6 @@ const DonationMap = ({
     fillColor: '#62B6CB',
     fillOpacity: 0.1,
   };
-
-  if (!isLoaded) {
-    return (
-      <div className="map-loading">
-        <div className="loading-spinner"></div>
-        <p>Loading map...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="donation-map-container">

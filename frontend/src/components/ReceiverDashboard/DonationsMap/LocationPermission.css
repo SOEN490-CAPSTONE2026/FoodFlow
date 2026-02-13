@@ -8,7 +8,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 10000; /* Very high to be above everything */
   padding: 20px;
 }
 
@@ -21,6 +21,7 @@
   position: relative;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: slideUp 0.3s ease;
+  z-index: 10001; /* Higher than overlay */
 }
 
 @keyframes slideUp {
@@ -182,6 +183,8 @@
 .manual-location-input {
   margin-top: 8px;
   width: 100%;
+  position: relative;
+  z-index: 10002; /* Ensure autocomplete dropdown appears above dialog */
 }
 
 .location-search-input {
@@ -191,6 +194,16 @@
   border-radius: 8px;
   font-size: 14px;
   transition: all 0.2s;
+  position: relative;
+  z-index: 10003;
+}
+
+/* Google autocomplete dropdown styling */
+.pac-container {
+  z-index: 10004 !important; /* Force above everything */
+  border-radius: 8px;
+  margin-top: 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 .location-search-input:focus {
