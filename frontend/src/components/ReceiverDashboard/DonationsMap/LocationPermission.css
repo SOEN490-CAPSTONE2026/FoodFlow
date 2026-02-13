@@ -60,7 +60,7 @@
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1B4965 0%, #2C5F7D 100%);
+  background: linear-gradient(135deg, #1b4965 0%, #2c5f7d 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -72,7 +72,7 @@
   text-align: center;
   margin: 0 0 12px 0;
   font-size: 24px;
-  color: #1B4965;
+  color: #1b4965;
 }
 
 .permission-description {
@@ -88,10 +88,10 @@
   align-items: flex-start;
   gap: 8px;
   padding: 12px;
-  background: #FEE;
-  border: 1px solid #FCC;
+  background: #fee;
+  border: 1px solid #fcc;
   border-radius: 8px;
-  color: #C33;
+  color: #c33;
   font-size: 14px;
   margin-bottom: 20px;
   line-height: 1.5;
@@ -123,14 +123,14 @@
 }
 
 .permission-option.primary {
-  background: #1B4965;
+  background: #1b4965;
   color: white;
-  border-color: #1B4965;
+  border-color: #1b4965;
 }
 
 .permission-option.primary:hover:not(:disabled) {
-  background: #2C5F7D;
-  border-color: #2C5F7D;
+  background: #2c5f7d;
+  border-color: #2c5f7d;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(27, 73, 101, 0.3);
 }
@@ -138,12 +138,12 @@
 .permission-option.secondary {
   background: white;
   color: #333;
-  border-color: #DDD;
+  border-color: #ddd;
 }
 
 .permission-option.secondary:hover:not(:disabled) {
-  border-color: #1B4965;
-  background: #F8FAFB;
+  border-color: #1b4965;
+  background: #f8fafb;
 }
 
 .permission-option.manual-option {
@@ -190,7 +190,7 @@
 .location-search-input {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid #DDD;
+  border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 14px;
   transition: all 0.2s;
@@ -208,17 +208,17 @@
 
 .location-search-input:focus {
   outline: none;
-  border-color: #1B4965;
+  border-color: #1b4965;
   box-shadow: 0 0 0 3px rgba(27, 73, 101, 0.1);
 }
 
 .location-search-input:disabled {
-  background: #F5F5F5;
+  background: #f5f5f5;
   cursor: not-allowed;
 }
 
 .permission-help {
-  background: #F8FAFB;
+  background: #f8fafb;
   border-radius: 8px;
   padding: 16px;
   margin-top: 20px;
@@ -228,7 +228,7 @@
   font-weight: 600;
   margin: 0 0 12px 0;
   font-size: 14px;
-  color: #1B4965;
+  color: #1b4965;
 }
 
 .permission-help ol {
