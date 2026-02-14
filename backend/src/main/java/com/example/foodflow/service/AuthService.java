@@ -663,6 +663,11 @@ public class AuthService {
         // Verify the user - transition to PENDING_ADMIN_APPROVAL
         User user = tokenEntity.getUser();
         user.setAccountStatus(AccountStatus.PENDING_ADMIN_APPROVAL);
+        
+        // Automatically enable email notifications upon email verification
+        user.setEmailNotificationsEnabled(true);
+        log.info("Email notifications automatically enabled for user: {}", user.getEmail());
+        
         userRepository.save(user);
         
         // Mark token as verified

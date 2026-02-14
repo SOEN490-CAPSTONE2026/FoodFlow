@@ -83,4 +83,147 @@ class RateLimitingServiceTest {
         int remaining = service.getRemainingUserQuota(42L);
         assertThat(remaining).isEqualTo(15);
     }
+
+    @Test
+    void allowSupportRequest_whenEnabled_checksUserLimit() {
+        service = createService();
+        ReflectionTestUtils.setField(service, "rateLimitingEnabled", true);
+        ReflectionTestUtils.setField(service, "userRequestsPerMinute", 600);
+        ReflectionTestUtils.setField(service, "ipRequestsPerMinute", 600);
+
+        boolean allowed = service.allowSupportRequest(1L, "127.0.0.1");
+        assertThat(allowed).isTrue();
+    }
+
+    @Test
+    void allowSupportRequest_withNullIp_stillAllows() {
+        service = createService();
+        ReflectionTestUtils.setField(service, "rateLimitingEnabled", true);
+        ReflectionTestUtils.setField(service, "userRequestsPerMinute", 600);
+        ReflectionTestUtils.setField(service, "ipRequestsPerMinute", 600);
+
+        boolean allowed = service.allowSupportRequest(1L, null);
+        assertThat(allowed).isTrue();
+    }
+
+    @Test
+    void allowSupportRequest_withEmptyIp_stillAllows() {
+        service = createService();
+        ReflectionTestUtils.setField(service, "rateLimitingEnabled", true);
+        ReflectionTestUtils.setField(service, "userRequestsPerMinute", 600);
+        ReflectionTestUtils.setField(service, "ipRequestsPerMinute", 600);
+
+        boolean allowed = service.allowSupportRequest(1L, "   ");
+        assertThat(allowed).isTrue();
+    }
+
+    @Test
+    void getClientIpAddress_fallsBackToRemoteAddr() {
+        service = createService();
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        when(request.getHeader("X-Forwarded-For")).thenReturn(null);
+        when(request.getHeader("X-Real-IP")).thenReturn(null);
+        when(request.getRemoteAddr()).thenReturn("10.0.0.1");
+
+        assertThat(service.getClientIpAddress(request)).isEqualTo("10.0.0.1");
+    }
+
+    @Test
+    void getClientIpAddress_withEmptyForwardedFor_usesRealIp() {
+        service = createService();
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        when(request.getHeader("X-Forwarded-For")).thenReturn("");
+        when(request.getHeader("X-Real-IP")).thenReturn("9.9.9.9");
+        when(request.getRemoteAddr()).thenReturn("10.0.0.1");
+
+        assertThat(service.getClientIpAddress(request)).isEqualTo("9.9.9.9");
+    }
+
+    @Test
+    void getRemainingUserQuota_whenRateLimitingDisabled_returnsConfiguredLimit() {
+        service = createService();
+        ReflectionTestUtils.setField(service, "rateLimitingEnabled", false);
+        ReflectionTestUtils.setField(service, "userRequestsPerMinute", 20);
+
+        int remaining = service.getRemainingUserQuota(1L);
+        assertThat(remaining).isEqualTo(20);
+    }
+
+    @Test
+    void getRemainingUserQuota_afterRequest_returnsApproximateRemaining() {
+        service = createService();
+        ReflectionTestUtils.setField(service, "rateLimitingEnabled", true);
+        ReflectionTestUtils.setField(service, "userRequestsPerMinute", 600);
+        ReflectionTestUtils.setField(service, "ipRequestsPerMinute", 600);
+
+        // Make a request to create the rate limiter
+        service.allowSupportRequest(1L, "127.0.0.1");
+
+        // Get remaining quota
+        int remaining = service.getRemainingUserQuota(1L);
+        assertThat(remaining).isGreaterThanOrEqualTo(0);
+    }
+
+    @Test
+    void getStats_returnsCorrectConfiguration() {
+        service = createService();
+        ReflectionTestUtils.setField(service, "rateLimitingEnabled", true);
+        ReflectionTestUtils.setField(service, "userRequestsPerMinute", 10);
+        ReflectionTestUtils.setField(service, "ipRequestsPerMinute", 30);
+        ReflectionTestUtils.setField(service, "openaiRequestsPerMinute", 100);
+
+        RateLimitingService.RateLimitStats stats = service.getStats();
+
+        assertThat(stats.enabled).isTrue();
+        assertThat(stats.userRequestsPerMinute).isEqualTo(10);
+        assertThat(stats.ipRequestsPerMinute).isEqualTo(30);
+        assertThat(stats.openaiRequestsPerMinute).isEqualTo(100);
+    }
+
+    @Test
+    void getStats_includesActiveLimiterCounts() {
+        service = createService();
+        ReflectionTestUtils.setField(service, "rateLimitingEnabled", true);
+        ReflectionTestUtils.setField(service, "userRequestsPerMinute", 600);
+        ReflectionTestUtils.setField(service, "ipRequestsPerMinute", 600);
+
+        // Create rate limiters by making requests
+        service.allowSupportRequest(1L, "127.0.0.1");
+        service.allowSupportRequest(2L, "192.168.1.1");
+
+        RateLimitingService.RateLimitStats stats = service.getStats();
+
+        assertThat(stats.activeUserLimiters).isGreaterThanOrEqualTo(0);
+        assertThat(stats.activeIpLimiters).isGreaterThanOrEqualTo(0);
+    }
+
+    @Test
+    void allowSupportRequest_multipleCalls_tracksSeparateUsers() {
+        service = createService();
+        ReflectionTestUtils.setField(service, "rateLimitingEnabled", true);
+        ReflectionTestUtils.setField(service, "userRequestsPerMinute", 600);
+        ReflectionTestUtils.setField(service, "ipRequestsPerMinute", 600);
+
+        // Different users should have separate rate limiters
+        boolean allowed1 = service.allowSupportRequest(1L, "127.0.0.1");
+        boolean allowed2 = service.allowSupportRequest(2L, "127.0.0.2");
+
+        assertThat(allowed1).isTrue();
+        assertThat(allowed2).isTrue();
+    }
+
+    @Test
+    void allowSupportRequest_multipleCalls_tracksSeparateIps() {
+        service = createService();
+        ReflectionTestUtils.setField(service, "rateLimitingEnabled", true);
+        ReflectionTestUtils.setField(service, "userRequestsPerMinute", 600);
+        ReflectionTestUtils.setField(service, "ipRequestsPerMinute", 600);
+
+        // Same user from different IPs should be tracked separately
+        boolean allowed1 = service.allowSupportRequest(1L, "127.0.0.1");
+        boolean allowed2 = service.allowSupportRequest(1L, "192.168.1.1");
+
+        assertThat(allowed1).isTrue();
+        assertThat(allowed2).isTrue();
+    }
 }

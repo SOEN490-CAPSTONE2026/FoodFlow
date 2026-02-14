@@ -10,13 +10,27 @@ let stompClient = null;
  * @param {Function} onClaimCancelled - Called with parsed cancellation from /user/queue/claims/cancelled
  * @param {Function} onNewPostNotification - Called with parsed new post notification from /user/queue/notifications
  * @param {Function} onAchievementUnlocked - Called with parsed achievement notification from /user/queue/achievements
+ * @param {Function} onReviewReceived - Called with parsed review notification from /user/queue/reviews
+ * @param {Function} onDonationCompleted - Called with parsed donation completion notification from /user/queue/donations/completed
+ * @param {Function} onDonationReadyForPickup - Called with parsed ready for pickup notification from /user/queue/donations/ready-for-pickup
+ * @param {Function} onDonationExpired - Called with parsed expired donation notification from /user/queue/donations/expired
+ * @param {Function} onDonationStatusUpdated - Called with parsed status updated notification from /user/queue/donations/status-updated
+ * @param {Function} onDonationStatusChanged - Called with parsed status changed notification from /user/queue/donations/status-changed
+ * @param {Function} onVerificationApproved - Called with parsed verification approved notification from /user/queue/verification/approved
  */
 export function connectToUserQueue(
   onMessage,
   onClaimNotification,
   onClaimCancelled,
   onNewPostNotification,
-  onAchievementUnlocked
+  onAchievementUnlocked,
+  onReviewReceived,
+  onDonationCompleted,
+  onDonationReadyForPickup,
+  onDonationExpired,
+  onDonationStatusUpdated,
+  onDonationStatusChanged,
+  onVerificationApproved
 ) {
   console.log('connectToUserQueue called');
 
@@ -139,6 +153,186 @@ export function connectToUserQueue(
           console.log('Subscribed to /user/queue/achievements');
         } catch (e) {
           console.error('Failed to subscribe to achievement notifications', e);
+        }
+
+        // Subscribe to review notifications
+        try {
+          stompClient.subscribe('/user/queue/reviews', msg => {
+            if (msg.body) {
+              try {
+                const payload = JSON.parse(msg.body);
+                console.log('Received review notification:', payload);
+                onReviewReceived && onReviewReceived(payload);
+              } catch (e) {
+                console.error('Failed to parse review notification', e);
+              }
+            }
+          });
+          console.log('Subscribed to /user/queue/reviews');
+        } catch (e) {
+          console.error('Failed to subscribe to review notifications', e);
+        }
+
+        // Subscribe to donation completion notifications
+        try {
+          stompClient.subscribe('/user/queue/donations/completed', msg => {
+            if (msg.body) {
+              try {
+                const payload = JSON.parse(msg.body);
+                console.log(
+                  'Received donation completion notification:',
+                  payload
+                );
+                onDonationCompleted && onDonationCompleted(payload);
+              } catch (e) {
+                console.error(
+                  'Failed to parse donation completion notification',
+                  e
+                );
+              }
+            }
+          });
+          console.log('Subscribed to /user/queue/donations/completed');
+        } catch (e) {
+          console.error(
+            'Failed to subscribe to donation completion notifications',
+            e
+          );
+        }
+
+        // Subscribe to donation ready for pickup notifications
+        try {
+          stompClient.subscribe(
+            '/user/queue/donations/ready-for-pickup',
+            msg => {
+              if (msg.body) {
+                try {
+                  const payload = JSON.parse(msg.body);
+                  console.log(
+                    'Received donation ready for pickup notification:',
+                    payload
+                  );
+                  onDonationReadyForPickup && onDonationReadyForPickup(payload);
+                } catch (e) {
+                  console.error(
+                    'Failed to parse donation ready for pickup notification',
+                    e
+                  );
+                }
+              }
+            }
+          );
+          console.log('Subscribed to /user/queue/donations/ready-for-pickup');
+        } catch (e) {
+          console.error(
+            'Failed to subscribe to donation ready for pickup notifications',
+            e
+          );
+        }
+
+        // Subscribe to donation expired notifications
+        try {
+          stompClient.subscribe('/user/queue/donations/expired', msg => {
+            if (msg.body) {
+              try {
+                const payload = JSON.parse(msg.body);
+                console.log('Received donation expired notification:', payload);
+                onDonationExpired && onDonationExpired(payload);
+              } catch (e) {
+                console.error(
+                  'Failed to parse donation expired notification',
+                  e
+                );
+              }
+            }
+          });
+          console.log('Subscribed to /user/queue/donations/expired');
+        } catch (e) {
+          console.error(
+            'Failed to subscribe to donation expired notifications',
+            e
+          );
+        }
+
+        // Subscribe to donation status updated notifications (for donors)
+        try {
+          stompClient.subscribe('/user/queue/donations/status-updated', msg => {
+            if (msg.body) {
+              try {
+                const payload = JSON.parse(msg.body);
+                console.log(
+                  'Received donation status updated notification:',
+                  payload
+                );
+                onDonationStatusUpdated && onDonationStatusUpdated(payload);
+              } catch (e) {
+                console.error(
+                  'Failed to parse donation status updated notification',
+                  e
+                );
+              }
+            }
+          });
+          console.log('Subscribed to /user/queue/donations/status-updated');
+        } catch (e) {
+          console.error(
+            'Failed to subscribe to donation status updated notifications',
+            e
+          );
+        }
+
+        // Subscribe to donation status changed notifications (for receivers)
+        try {
+          stompClient.subscribe('/user/queue/donations/status-changed', msg => {
+            if (msg.body) {
+              try {
+                const payload = JSON.parse(msg.body);
+                console.log(
+                  'Received donation status changed notification:',
+                  payload
+                );
+                onDonationStatusChanged && onDonationStatusChanged(payload);
+              } catch (e) {
+                console.error(
+                  'Failed to parse donation status changed notification',
+                  e
+                );
+              }
+            }
+          });
+          console.log('Subscribed to /user/queue/donations/status-changed');
+        } catch (e) {
+          console.error(
+            'Failed to subscribe to donation status changed notifications',
+            e
+          );
+        }
+
+        // Subscribe to verification approved notifications
+        try {
+          stompClient.subscribe('/user/queue/verification/approved', msg => {
+            if (msg.body) {
+              try {
+                const payload = JSON.parse(msg.body);
+                console.log(
+                  'Received verification approved notification:',
+                  payload
+                );
+                onVerificationApproved && onVerificationApproved(payload);
+              } catch (e) {
+                console.error(
+                  'Failed to parse verification approved notification',
+                  e
+                );
+              }
+            }
+          });
+          console.log('Subscribed to /user/queue/verification/approved');
+        } catch (e) {
+          console.error(
+            'Failed to subscribe to verification approved notifications',
+            e
+          );
         }
       },
       onStompError: frame => {

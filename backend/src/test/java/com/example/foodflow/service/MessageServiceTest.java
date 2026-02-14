@@ -320,4 +320,184 @@ class MessageServiceTest {
             messageService.markConversationAsRead(1L, recipient);
         });
     }
+
+    // Notification Tests
+
+    @Test
+    void testSendMessage_WithEmailNotificationsEnabled_SendsEmailToRecipient() {
+        // Given
+        MessageRequest request = new MessageRequest();
+        request.setConversationId(1L);
+        request.setMessageBody("Test message");
+
+        Message savedMessage = new Message(conversation, sender, "Test message");
+        savedMessage.setId(1L);
+
+        when(conversationService.getConversation(1L, sender)).thenReturn(conversation);
+        when(messageRepository.save(any(Message.class))).thenReturn(savedMessage);
+        when(conversationRepository.save(any(Conversation.class))).thenReturn(conversation);
+        when(notificationPreferenceService.shouldSendNotification(eq(recipient), eq("newMessageFromDonor"), eq("websocket")))
+                .thenReturn(true);
+        when(notificationPreferenceService.shouldSendNotification(eq(recipient), eq("newMessageFromDonor"), eq("email")))
+                .thenReturn(true);
+
+        // When
+        messageService.sendMessage(request, sender);
+
+        // Then
+        verify(notificationPreferenceService).shouldSendNotification(recipient, "newMessageFromDonor", "email");
+        verify(notificationPreferenceService).shouldSendNotification(recipient, "newMessageFromDonor", "websocket");
+    }
+
+    @Test
+    void testSendMessage_WithEmailNotificationsDisabled_DoesNotSendEmail() {
+        // Given
+        MessageRequest request = new MessageRequest();
+        request.setConversationId(1L);
+        request.setMessageBody("Test message");
+
+        Message savedMessage = new Message(conversation, sender, "Test message");
+        savedMessage.setId(1L);
+
+        when(conversationService.getConversation(1L, sender)).thenReturn(conversation);
+        when(messageRepository.save(any(Message.class))).thenReturn(savedMessage);
+        when(conversationRepository.save(any(Conversation.class))).thenReturn(conversation);
+        when(notificationPreferenceService.shouldSendNotification(eq(recipient), eq("newMessageFromDonor"), eq("email")))
+                .thenReturn(false);
+        when(notificationPreferenceService.shouldSendNotification(eq(recipient), eq("newMessageFromDonor"), eq("websocket")))
+                .thenReturn(true);
+
+        // When
+        messageService.sendMessage(request, sender);
+
+        // Then
+        verify(notificationPreferenceService).shouldSendNotification(recipient, "newMessageFromDonor", "email");
+        verify(messagingTemplate).convertAndSendToUser(eq("2"), eq("/queue/messages"), any());
+    }
+
+    @Test
+    void testSendMessage_WithWebSocketNotificationsDisabled_DoesNotSendWebSocket() {
+        // Given
+        MessageRequest request = new MessageRequest();
+        request.setConversationId(1L);
+        request.setMessageBody("Test message");
+
+        Message savedMessage = new Message(conversation, sender, "Test message");
+        savedMessage.setId(1L);
+
+        when(conversationService.getConversation(1L, sender)).thenReturn(conversation);
+        when(messageRepository.save(any(Message.class))).thenReturn(savedMessage);
+        when(conversationRepository.save(any(Conversation.class))).thenReturn(conversation);
+        when(notificationPreferenceService.shouldSendNotification(eq(recipient), eq("newMessageFromDonor"), eq("websocket")))
+                .thenReturn(false);
+        when(notificationPreferenceService.shouldSendNotification(eq(recipient), eq("newMessageFromDonor"), eq("email")))
+                .thenReturn(true);
+
+        // When
+        messageService.sendMessage(request, sender);
+
+        // Then
+        verify(notificationPreferenceService).shouldSendNotification(recipient, "newMessageFromDonor", "websocket");
+        verify(messagingTemplate, never()).convertAndSendToUser(anyString(), eq("/queue/messages"), any());
+    }
+
+    @Test
+    void testSendMessage_WithAllNotificationsDisabled_DoesNotSendAny() {
+        // Given
+        MessageRequest request = new MessageRequest();
+        request.setConversationId(1L);
+        request.setMessageBody("Test message");
+
+        Message savedMessage = new Message(conversation, sender, "Test message");
+        savedMessage.setId(1L);
+
+        when(conversationService.getConversation(1L, sender)).thenReturn(conversation);
+        when(messageRepository.save(any(Message.class))).thenReturn(savedMessage);
+        when(conversationRepository.save(any(Conversation.class))).thenReturn(conversation);
+        when(notificationPreferenceService.shouldSendNotification(eq(recipient), anyString(), anyString()))
+                .thenReturn(false);
+
+        // When
+        messageService.sendMessage(request, sender);
+
+        // Then
+        verify(notificationPreferenceService, times(2)).shouldSendNotification(eq(recipient), anyString(), anyString());
+        verify(messagingTemplate, never()).convertAndSendToUser(anyString(), eq("/queue/messages"), any());
+    }
+
+    @Test
+    void testSendMessage_FromReceiver_UsesCorrectNotificationType() {
+        // Given
+        MessageRequest request = new MessageRequest();
+        request.setConversationId(1L);
+        request.setMessageBody("Test message from receiver");
+
+        Message savedMessage = new Message(conversation, recipient, "Test message from receiver");
+        savedMessage.setId(1L);
+
+        when(conversationService.getConversation(1L, recipient)).thenReturn(conversation);
+        when(messageRepository.save(any(Message.class))).thenReturn(savedMessage);
+        when(conversationRepository.save(any(Conversation.class))).thenReturn(conversation);
+        when(notificationPreferenceService.shouldSendNotification(any(User.class), anyString(), anyString()))
+                .thenReturn(true);
+
+        // When
+        messageService.sendMessage(request, recipient);
+
+        // Then - should use "newMessageFromReceiver" notification type for donor
+        verify(notificationPreferenceService).shouldSendNotification(sender, "newMessageFromReceiver", "websocket");
+        verify(notificationPreferenceService).shouldSendNotification(sender, "newMessageFromReceiver", "email");
+    }
+
+    @Test
+    void testSendMessage_ChecksBothEmailAndWebSocketPreferences() {
+        // Given
+        MessageRequest request = new MessageRequest();
+        request.setConversationId(1L);
+        request.setMessageBody("Test message");
+
+        Message savedMessage = new Message(conversation, sender, "Test message");
+        savedMessage.setId(1L);
+
+        when(conversationService.getConversation(1L, sender)).thenReturn(conversation);
+        when(messageRepository.save(any(Message.class))).thenReturn(savedMessage);
+        when(conversationRepository.save(any(Conversation.class))).thenReturn(conversation);
+        when(notificationPreferenceService.shouldSendNotification(any(User.class), anyString(), anyString()))
+                .thenReturn(true);
+
+        // When
+        messageService.sendMessage(request, sender);
+
+        // Then - verify both channels are checked
+        verify(notificationPreferenceService).shouldSendNotification(recipient, "newMessageFromDonor", "websocket");
+        verify(notificationPreferenceService).shouldSendNotification(recipient, "newMessageFromDonor", "email");
+        verify(notificationPreferenceService, times(2)).shouldSendNotification(any(User.class), anyString(), anyString());
+    }
+
+    @Test
+    void testSendMessage_WithMixedPreferences_SendsOnlyEnabledChannels() {
+        // Given
+        MessageRequest request = new MessageRequest();
+        request.setConversationId(1L);
+        request.setMessageBody("Test message");
+
+        Message savedMessage = new Message(conversation, sender, "Test message");
+        savedMessage.setId(1L);
+
+        when(conversationService.getConversation(1L, sender)).thenReturn(conversation);
+        when(messageRepository.save(any(Message.class))).thenReturn(savedMessage);
+        when(conversationRepository.save(any(Conversation.class))).thenReturn(conversation);
+        when(notificationPreferenceService.shouldSendNotification(eq(recipient), eq("newMessageFromDonor"), eq("websocket")))
+                .thenReturn(true);
+        when(notificationPreferenceService.shouldSendNotification(eq(recipient), eq("newMessageFromDonor"), eq("email")))
+                .thenReturn(false);
+
+        // When
+        messageService.sendMessage(request, sender);
+
+        // Then - only websocket should be sent
+        verify(messagingTemplate).convertAndSendToUser(eq("2"), eq("/queue/messages"), any());
+        verify(notificationPreferenceService, times(2)).shouldSendNotification(eq(recipient), eq("newMessageFromDonor"), anyString());
+    }
 }
+

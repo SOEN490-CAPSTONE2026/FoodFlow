@@ -828,7 +828,17 @@
       "newClaim": "New Claim",
       "claimCancelled": "Claim Cancelled",
       "hasClaimed": "{{receiverName}} has claimed your \"{{foodTitle}}\"",
-      "cancelledClaim": "{{receiverName}} cancelled their claim on \"{{foodTitle}}\""
+      "cancelledClaim": "{{receiverName}} cancelled their claim on \"{{foodTitle}}\"",
+      "donationPickedUp": "Donation Picked Up",
+      "donationPickedUpDesc": "Your donation has been picked up!",
+      "donationReadyForPickup": "Donation Ready for Pickup",
+      "donationReadyForPickupDesc": "Your donation is ready for pickup!",
+      "donationExpired": "Donation Expired",
+      "donationExpiredDesc": "Your donation has expired and been removed from listings.",
+      "donationStatusUpdated": "Status Updated by Admin",
+      "donationStatusUpdatedDesc": "An administrator has updated your donation status",
+      "verificationApproved": "Account Approved",
+      "verificationApprovedDesc": "Your account has been approved by an administrator"
     }
   },
   "donorListFood": {
@@ -915,6 +925,18 @@
     "hello": "Hello {{name}}!",
     "user": "User",
     "account": "Account",
+    "notifications": {
+      "donationCompleted": "Donation Completed",
+      "donationCompletedDesc": "Your donation has been completed!",
+      "donationReadyForPickup": "Donation Ready for Pickup",
+      "donationReadyForPickupDesc": "Your claimed donation is ready for pickup! Don't forget your pickup code.",
+      "pickupReminder": "Pickup Reminder",
+      "pickupReminderDesc": "Your donation pickup starts in about 1 hour. Be ready!",
+      "donationStatusChanged": "Status Changed by Admin",
+      "donationStatusChangedDesc": "An administrator has updated the donation status",
+      "verificationApproved": "Account Approved",
+      "verificationApprovedDesc": "Your account has been approved by an administrator"
+    },
     "pageTitles": {
       "receiverDashboard": "Receiver Dashboard",
       "welcome": "Welcome",

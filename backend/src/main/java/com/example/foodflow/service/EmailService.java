@@ -225,6 +225,74 @@ public class EmailService {
     }
     
     /**
+     * Send notification email for review received
+     */
+    public void sendReviewReceivedNotification(String toEmail, String userName, Map<String, Object> reviewData) {
+        log.info("Sending review received notification email to: {}", toEmail);
+        
+        try {
+            ApiClient defaultClient = Configuration.getDefaultApiClient();
+            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
+            apiKey.setApiKey(brevoApiKey);
+            
+            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+            SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+            
+            SendSmtpEmailSender sender = new SendSmtpEmailSender();
+            sender.setEmail(fromEmail);
+            sender.setName(fromName);
+            sendSmtpEmail.setSender(sender);
+            
+            SendSmtpEmailTo recipient = new SendSmtpEmailTo();
+            recipient.setEmail(toEmail);
+            sendSmtpEmail.setTo(Collections.singletonList(recipient));
+            
+            sendSmtpEmail.setSubject("New Review Received - FoodFlow");
+            sendSmtpEmail.setHtmlContent(buildReviewReceivedEmailBody(userName, reviewData));
+            
+            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            log.info("Review received notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
+        } catch (ApiException ex) {
+            log.error("Error sending review received notification to: {}", toEmail, ex);
+            // Don't throw - email is secondary to websocket notification
+        }
+    }
+
+    /**
+     * Send notification email for donation picked up
+     */
+    public void sendDonationPickedUpNotification(String toEmail, String userName, Map<String, Object> donationData) {
+        log.info("Sending donation picked up notification email to: {}", toEmail);
+        
+        try {
+            ApiClient defaultClient = Configuration.getDefaultApiClient();
+            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
+            apiKey.setApiKey(brevoApiKey);
+            
+            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+            SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+            
+            SendSmtpEmailSender sender = new SendSmtpEmailSender();
+            sender.setEmail(fromEmail);
+            sender.setName(fromName);
+            sendSmtpEmail.setSender(sender);
+            
+            SendSmtpEmailTo recipient = new SendSmtpEmailTo();
+            recipient.setEmail(toEmail);
+            sendSmtpEmail.setTo(Collections.singletonList(recipient));
+            
+            sendSmtpEmail.setSubject("Your Donation Has Been Picked Up - FoodFlow");
+            sendSmtpEmail.setHtmlContent(buildDonationPickedUpEmailBody(userName, donationData));
+            
+            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            log.info("Donation picked up notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
+        } catch (ApiException ex) {
+            log.error("Error sending donation picked up notification to: {}", toEmail, ex);
+            // Don't throw - email is secondary to websocket notification
+        }
+    }
+    
+    /**
      * Build HTML email body for password reset
      */
     private String buildPasswordResetEmailBody(String resetCode) {
@@ -396,7 +464,7 @@ public class EmailService {
                         </div>
                         <p>Log in to FoodFlow to view details and claim this donation!</p>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/receiver-dashboard" class="button" style="color: white !important; text-decoration: none;">View Donation</a>
+                            <a href="http://localhost:3000/receiver/dashboard" class="button" style="color: white !important; text-decoration: none;">View Donation</a>
                         </p>
                     </div>
                     <div class="footer">
@@ -452,7 +520,7 @@ public class EmailService {
                         </div>
                         <p>The receiver will coordinate pickup details with you. Please check your messages in FoodFlow.</p>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/donor-dashboard" class="button" style="color: white !important; text-decoration: none;">View Claim Details</a>
+                            <a href="http://localhost:3000/donor/dashboard" class="button" style="color: white !important; text-decoration: none;">View Claim Details</a>
                         </p>
                     </div>
                     <div class="footer">
@@ -506,7 +574,7 @@ public class EmailService {
                         </div>
                         <p>Your donation is now available again for other receivers to claim.</p>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/donor-dashboard" class="button" style="color: white !important; text-decoration: none;">View Your Donations</a>
+                            <a href="http://localhost:3000/donor/dashboard" class="button" style="color: white !important; text-decoration: none;">View Your Donations</a>
                         </p>
                     </div>
                     <div class="footer">
@@ -520,6 +588,129 @@ public class EmailService {
             """.formatted(userName, title, reason);
     }
     
+    /**
+     * Build HTML email body for review received notification
+     */
+    private String buildReviewReceivedEmailBody(String userName, Map<String, Object> reviewData) {
+        String reviewerName = (String) reviewData.getOrDefault("reviewerName", "A user");
+        Integer rating = (Integer) reviewData.getOrDefault("rating", 0);
+        String reviewText = (String) reviewData.getOrDefault("reviewText", "");
+        Boolean isDonorReview = (Boolean) reviewData.getOrDefault("isDonorReview", false);
+        
+        // Generate star rating display
+        String stars = "⭐".repeat(Math.max(0, Math.min(5, rating)));
+        String emptyStars = "☆".repeat(Math.max(0, 5 - rating));
+        String starDisplay = stars + emptyStars;
+        
+        // Determine review context
+        String reviewContext = isDonorReview ? "a donor" : "a receiver";
+        
+        // Determine correct settings URL based on role
+        // If isDonorReview is true, reviewee is a receiver (donor reviewed them)
+        // If isDonorReview is false, reviewee is a donor (receiver reviewed them)
+        String settingsUrl = isDonorReview ? "http://localhost:3000/receiver/settings" : "http://localhost:3000/donor/settings";
+        
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                    .header { background-color: #224d68; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+                    .content { background-color: #f9f9f9; padding: 30px; border-radius: 0 0 5px 5px; }
+                    .review-box { background-color: white; border-left: 4px solid #fbbf24; padding: 20px; margin: 20px 0; border-radius: 5px; }
+                    .stars { font-size: 24px; color: #fbbf24; margin: 15px 0; }
+                    .review-text { background-color: #f3f4f6; padding: 15px; border-radius: 5px; margin: 15px 0; font-style: italic; }
+                    .detail { margin: 10px 0; }
+                    .label { font-weight: bold; color: #224d68; }
+                    .button { display: inline-block; background-color: #224d68; color: white !important; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 20px; }
+                    a.button:visited { color: white !important; }
+                    a.button:hover { color: white !important; }
+                    a.button:active { color: white !important; }
+                    .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>⭐ New Review Received</h1>
+                    </div>
+                    <div class="content">
+                        <p>Hi %s,</p>
+                        <p>You've received a new review from %s!</p>
+                        <div class="review-box">
+                            <div class="detail"><span class="label">From:</span> %s (%s)</div>
+                            <div class="stars">%s</div>
+                            <div class="detail"><span class="label">Rating:</span> %d/5 stars</div>
+                            %s
+                        </div>
+                        <p>Your feedback helps build trust in the FoodFlow community. Keep up the great work!</p>
+                        <p style="text-align: center;">
+                            <a href="%s" class="button" style="color: white !important; text-decoration: none;">View Your Profile</a>
+                        </p>
+                    </div>
+                    <div class="footer">
+                        <p>© 2026 FoodFlow. All rights reserved.</p>
+                        <p>You're receiving this email because you have review notifications enabled in your preferences.</p>
+                        <p>To manage your notification settings, visit Settings in your FoodFlow account.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(
+                userName, 
+                reviewerName,
+                reviewerName, 
+                reviewContext,
+                starDisplay,
+                rating,
+                reviewText != null && !reviewText.isEmpty() 
+                    ? "<div class=\"review-text\">\"" + reviewText + "\"</div>" 
+                    : "",
+                settingsUrl
+            );
+    }
+    
+    /**
+     * Send notification email for new message received
+     * Generalized method that works for both donors and receivers
+     * @param toEmail recipient email address
+     * @param recipientName recipient's name or organization name
+     * @param senderName sender's name or organization name
+     * @param messagePreview preview of the message content
+     */
+    public void sendNewMessageNotification(String toEmail, String recipientName, String senderName, String messagePreview) {
+        log.info("Sending new message notification email to: {}", toEmail);
+        
+        try {
+            ApiClient defaultClient = Configuration.getDefaultApiClient();
+            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
+            apiKey.setApiKey(brevoApiKey);
+            
+            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+            SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+            
+            SendSmtpEmailSender sender = new SendSmtpEmailSender();
+            sender.setEmail(fromEmail);
+            sender.setName(fromName);
+            sendSmtpEmail.setSender(sender);
+            
+            SendSmtpEmailTo recipient = new SendSmtpEmailTo();
+            recipient.setEmail(toEmail);
+            sendSmtpEmail.setTo(Collections.singletonList(recipient));
+            
+            sendSmtpEmail.setSubject("New Message from " + senderName + " - FoodFlow");
+            sendSmtpEmail.setHtmlContent(buildNewMessageEmailBody(recipientName, senderName, messagePreview));
+            
+            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            log.info("New message notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
+        } catch (ApiException ex) {
+            log.error("Error sending new message notification to: {}", toEmail, ex);
+            // Don't throw - email is secondary to websocket notification
+        }
+    }
+
     /**
      * Send account approval email to user
      * @param toEmail recipient email address
@@ -627,6 +818,63 @@ public class EmailService {
         };
     }
     
+    /**
+     * Build HTML email body for new message notification
+     */
+    private String buildNewMessageEmailBody(String recipientName, String senderName, String messagePreview) {
+        // Limit message preview to 150 characters
+        String preview = messagePreview;
+        if (preview.length() > 150) {
+            preview = preview.substring(0, 147) + "...";
+        }
+        
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                    .header { background-color: #224d68; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+                    .content { background-color: #f9f9f9; padding: 30px; border-radius: 0 0 5px 5px; }
+                    .message-box { background-color: white; border-left: 4px solid #224d68; padding: 20px; margin: 20px 0; border-radius: 5px; }
+                    .sender-name { font-weight: bold; color: #224d68; font-size: 18px; margin-bottom: 10px; }
+                    .message-preview { color: #555; font-style: italic; background-color: #f3f4f6; padding: 15px; border-radius: 5px; margin: 15px 0; }
+                    .button { display: inline-block; background-color: #224d68; color: white !important; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 20px; }
+                    a.button:visited { color: white !important; }
+                    a.button:hover { background-color: #1a3a4f; color: white !important; }
+                    a.button:active { color: white !important; }
+                    .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>💬 New Message Received</h1>
+                    </div>
+                    <div class="content">
+                        <p>Hi %s,</p>
+                        <p>You have received a new message on FoodFlow:</p>
+                        <div class="message-box">
+                            <div class="sender-name">From: %s</div>
+                            <div class="message-preview">"%s"</div>
+                        </div>
+                        <p>Log in to FoodFlow to view the full message and reply!</p>
+                        <p style="text-align: center;">
+                            <a href="%s/donor/messages" class="button" style="color: white !important; text-decoration: none;">View Message</a>
+                        </p>
+                    </div>
+                    <div class="footer">
+                        <p>© 2026 FoodFlow. All rights reserved.</p>
+                        <p>You're receiving this email because you have email notifications enabled in your preferences.</p>
+                        <p>To manage your notification settings, visit Settings in your FoodFlow account.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(recipientName, senderName, preview, frontendUrl);
+    }
+
     /**
      * Build HTML email body for account approval
      */
@@ -759,5 +1007,625 @@ public class EmailService {
             </html>
             """.formatted(userName, reasonText, messageSection, frontendUrl);
     }
-}
 
+    /**
+     * Build HTML email body for donation picked up notification
+     */
+    private String buildDonationPickedUpEmailBody(String userName, Map<String, Object> donationData) {
+        String donationTitle = (String) donationData.getOrDefault("donationTitle", "Your Donation");
+        String quantity = String.valueOf(donationData.getOrDefault("quantity", "N/A"));
+        String receiverName = (String) donationData.getOrDefault("receiverName", "A receiver");
+        
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                    .header { background-color: #10b981; color: white; padding: 30px; text-align: center; border-radius: 5px 5px 0 0; }
+                    .content { background-color: #f9f9f9; padding: 30px; border-radius: 0 0 5px 5px; }
+                    .success-box { background-color: #d1fae5; border-left: 4px solid #10b981; padding: 20px; margin: 20px 0; border-radius: 5px; }
+                    .info-box { background-color: white; border-left: 4px solid #3b82f6; padding: 20px; margin: 20px 0; border-radius: 5px; }
+                    .detail { margin: 10px 0; }
+                    .label { font-weight: bold; color: #224d68; }
+                    .button { display: inline-block; background-color: #10b981; color: white !important; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 20px; }
+                    a.button:visited { color: white !important; }
+                    a.button:hover { background-color: #059669; color: white !important; }
+                    a.button:active { color: white !important; }
+                    .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>✓ Donation Picked Up</h1>
+                    </div>
+                    <div class="content">
+                        <p>Hi %s,</p>
+                        <div class="success-box">
+                            <p><strong>Great news!</strong> Your donation has been successfully picked up by %s.</p>
+                        </div>
+                        <p>Here are the details of your donation:</p>
+                        <div class="info-box">
+                            <div class="detail"><span class="label">Donation Item:</span> %s</div>
+                            <div class="detail"><span class="label">Quantity:</span> %s</div>
+                            <div class="detail"><span class="label">Picked Up By:</span> %s</div>
+                        </div>
+                        <p>Thank you for making a difference in your community! Your donation will help someone in need.</p>
+                        <p style="text-align: center;">
+                            <a href="http://localhost:3000/donor/dashboard" class="button" style="color: white !important; text-decoration: none;">View Your Dashboard</a>
+                        </p>
+                    </div>
+                    <div class="footer">
+                        <p>© 2026 FoodFlow. All rights reserved.</p>
+                        <p>You're receiving this email because you have email notifications enabled in your preferences.</p>
+                        <p>To manage your notification settings, visit Settings in your FoodFlow account.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(userName, receiverName, donationTitle, quantity, receiverName);
+    }
+
+    /**
+     * Send notification email for donation completed (to receiver)
+     */
+    public void sendDonationCompletedNotification(String toEmail, String userName, Map<String, Object> donationData) {
+        log.info("Sending donation completed notification email to: {}", toEmail);
+        
+        try {
+            ApiClient defaultClient = Configuration.getDefaultApiClient();
+            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
+            apiKey.setApiKey(brevoApiKey);
+            
+            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+            SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+            
+            SendSmtpEmailSender sender = new SendSmtpEmailSender();
+            sender.setEmail(fromEmail);
+            sender.setName(fromName);
+            sendSmtpEmail.setSender(sender);
+            
+            SendSmtpEmailTo recipient = new SendSmtpEmailTo();
+            recipient.setEmail(toEmail);
+            sendSmtpEmail.setTo(Collections.singletonList(recipient));
+            
+            sendSmtpEmail.setSubject("Your Donation Has Been Completed - FoodFlow");
+            sendSmtpEmail.setHtmlContent(buildDonationCompletedEmailBody(userName, donationData));
+            
+            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            log.info("Donation completed notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
+        } catch (ApiException ex) {
+            log.error("Error sending donation completed notification to: {}", toEmail, ex);
+            // Don't throw - email is secondary to websocket notification
+        }
+    }
+
+    /**
+     * Build HTML email body for donation completed notification
+     */
+    private String buildDonationCompletedEmailBody(String userName, Map<String, Object> donationData) {
+        String donationTitle = (String) donationData.getOrDefault("donationTitle", "A Donation");
+        String quantity = String.valueOf(donationData.getOrDefault("quantity", "N/A"));
+        String donorName = (String) donationData.getOrDefault("donorName", "A donor");
+        
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                    .header { background-color: #3b82f6; color: white; padding: 30px; text-align: center; border-radius: 5px 5px 0 0; }
+                    .content { background-color: #f9f9f9; padding: 30px; border-radius: 0 0 5px 5px; }
+                    .success-box { background-color: #dbeafe; border-left: 4px solid #3b82f6; padding: 20px; margin: 20px 0; border-radius: 5px; }
+                    .info-box { background-color: white; border-left: 4px solid #10b981; padding: 20px; margin: 20px 0; border-radius: 5px; }
+                    .detail { margin: 10px 0; }
+                    .label { font-weight: bold; color: #224d68; }
+                    .button { display: inline-block; background-color: #3b82f6; color: white !important; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 20px; }
+                    a.button:visited { color: white !important; }
+                    a.button:hover { background-color: #2563eb; color: white !important; }
+                    a.button:active { color: white !important; }
+                    .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>✓ Donation Completed</h1>
+                    </div>
+                    <div class="content">
+                        <p>Hi %s,</p>
+                        <div class="success-box">
+                            <p><strong>Excellent news!</strong> Your donation from %s has been successfully completed. Thank you for helping those in need!</p>
+                        </div>
+                        <p>Here are the details of your donation:</p>
+                        <div class="info-box">
+                            <div class="detail"><span class="label">Donation Item:</span> %s</div>
+                            <div class="detail"><span class="label">Quantity Received:</span> %s</div>
+                            <div class="detail"><span class="label">From:</span> %s</div>
+                        </div>
+                        <p>This donation will make a real difference in your community. Your support is deeply appreciated!</p>
+                        <p style="text-align: center;">
+                            <a href="http://localhost:3000/receiver/dashboard" class="button" style="color: white !important; text-decoration: none;">View Your Dashboard</a>
+                        </p>
+                    </div>
+                    <div class="footer">
+                        <p>© 2026 FoodFlow. All rights reserved.</p>
+                        <p>You're receiving this email because you have email notifications enabled in your preferences.</p>
+                        <p>To manage your notification settings, visit Settings in your FoodFlow account.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(userName, donorName, donationTitle, quantity, donorName);
+    }
+
+    /**
+     * Send notification email for ready for pickup (to receiver)
+     */
+    public void sendReadyForPickupNotification(String toEmail, String userName, Map<String, Object> donationData) {
+        log.info("Sending ready for pickup notification email to: {}", toEmail);
+        
+        try {
+            ApiClient defaultClient = Configuration.getDefaultApiClient();
+            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
+            apiKey.setApiKey(brevoApiKey);
+            
+            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+            SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+            
+            SendSmtpEmailSender sender = new SendSmtpEmailSender();
+            sender.setEmail(fromEmail);
+            sender.setName(fromName);
+            sendSmtpEmail.setSender(sender);
+            
+            SendSmtpEmailTo recipient = new SendSmtpEmailTo();
+            recipient.setEmail(toEmail);
+            sendSmtpEmail.setTo(Collections.singletonList(recipient));
+            
+            sendSmtpEmail.setSubject("Your Donation Is Ready for Pickup - FoodFlow");
+            sendSmtpEmail.setHtmlContent(buildReadyForPickupEmailBody(userName, donationData));
+            
+            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            log.info("Ready for pickup notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
+        } catch (ApiException ex) {
+            log.error("Error sending ready for pickup notification to: {}", toEmail, ex);
+            // Don't throw - email is secondary to websocket notification
+        }
+    }
+
+    /**
+     * Build HTML email body for ready for pickup notification
+     */
+    private String buildReadyForPickupEmailBody(String userName, Map<String, Object> donationData) {
+        String donationTitle = (String) donationData.getOrDefault("donationTitle", "A Donation");
+        String quantity = String.valueOf(donationData.getOrDefault("quantity", "N/A"));
+        String pickupDate = (String) donationData.getOrDefault("pickupDate", "Soon");
+        String pickupTime = (String) donationData.getOrDefault("pickupTime", "Check your app");
+        
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                    .header { background-color: #f59e0b; color: white; padding: 30px; text-align: center; border-radius: 5px 5px 0 0; }
+                    .content { background-color: #f9f9f9; padding: 30px; border-radius: 0 0 5px 5px; }
+                    .alert-box { background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; margin: 20px 0; border-radius: 5px; }
+                    .info-box { background-color: white; border-left: 4px solid #3b82f6; padding: 20px; margin: 20px 0; border-radius: 5px; }
+                    .detail { margin: 10px 0; }
+                    .label { font-weight: bold; color: #224d68; }
+                    .button { display: inline-block; background-color: #f59e0b; color: white !important; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 20px; }
+                    a.button:visited { color: white !important; }
+                    a.button:hover { background-color: #d97706; color: white !important; }
+                    a.button:active { color: white !important; }
+                    .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>🚨 Ready for Pickup!</h1>
+                    </div>
+                    <div class="content">
+                        <p>Hi %s,</p>
+                        <div class="alert-box">
+                            <p><strong>Great news!</strong> Your claimed donation is now ready for pickup. Don't miss it!</p>
+                        </div>
+                        <p>Here are the details of your donation:</p>
+                        <div class="info-box">
+                            <div class="detail"><span class="label">Donation Item:</span> %s</div>
+                            <div class="detail"><span class="label">Quantity:</span> %s</div>
+                            <div class="detail"><span class="label">Pickup Date:</span> %s</div>
+                            <div class="detail"><span class="label">Pickup Time:</span> %s</div>
+                        </div>
+                        <p><strong>Don't forget to bring your pickup code!</strong> You'll need it to confirm the pickup.</p>
+                        <p style="text-align: center;">
+                            <a href="http://localhost:3000/receiver/dashboard" class="button" style="color: white !important; text-decoration: none;">View Pickup Details</a>
+                        </p>
+                    </div>
+                    <div class="footer">
+                        <p>© 2026 FoodFlow. All rights reserved.</p>
+                        <p>You're receiving this email because you have email notifications enabled in your preferences.</p>
+                        <p>To manage your notification settings, visit Settings in your FoodFlow account.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(userName, donationTitle, quantity, pickupDate, pickupTime);
+    }
+
+    /**
+     * Sends a donation expired notification email to a donor
+     */
+    public void sendDonationExpiredNotification(String toEmail, String donorName, Map<String, Object> donationData) {
+        try {
+            ApiClient defaultClient = Configuration.getDefaultApiClient();
+            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
+            apiKey.setApiKey(brevoApiKey);
+
+            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+
+            SendSmtpEmailSender sender = new SendSmtpEmailSender();
+            sender.setEmail(fromEmail);
+            sender.setName(fromName);
+
+            SendSmtpEmailTo recipient = new SendSmtpEmailTo();
+            recipient.setEmail(toEmail);
+            recipient.setName(donorName);
+
+            SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+            sendSmtpEmail.setSender(sender);
+            sendSmtpEmail.setTo(Collections.singletonList(recipient));
+            sendSmtpEmail.setSubject("Donation Expired - FoodFlow");
+            sendSmtpEmail.setHtmlContent(buildDonationExpiredEmailBody(donorName, donationData));
+
+            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            log.info("Donation expired email sent successfully to {} - Message ID: {}", toEmail, result.getMessageId());
+        } catch (ApiException e) {
+            log.error("Failed to send donation expired email to {}: {}", toEmail, e.getMessage(), e);
+        }
+    }
+
+    private String buildDonationExpiredEmailBody(String donorName, Map<String, Object> donationData) {
+        String donationTitle = (String) donationData.get("donationTitle");
+        String quantity = (String) donationData.get("quantity");
+        String expiryDate = (String) donationData.get("expiryDate");
+
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+                    .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden; }
+                    .header { background: linear-gradient(135deg, #ef4444 0%%, #dc2626 100%%); color: white; padding: 30px; text-align: center; }
+                    .header h1 { margin: 0; font-size: 28px; }
+                    .content { padding: 30px; }
+                    .alert { background-color: #fee2e2; border-left: 4px solid #ef4444; padding: 15px; margin: 20px 0; border-radius: 4px; }
+                    .alert-title { color: #991b1b; font-weight: bold; margin: 0 0 10px 0; }
+                    .alert-text { color: #7f1d1d; margin: 0; }
+                    .details { background-color: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0; }
+                    .detail { padding: 10px 0; border-bottom: 1px solid #e5e7eb; }
+                    .detail:last-child { border-bottom: none; }
+                    .label { font-weight: bold; color: #374151; }
+                    .button { display: inline-block; background: linear-gradient(135deg, #ef4444 0%%, #dc2626 100%%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }
+                    .footer { background-color: #f9fafb; padding: 20px; text-align: center; font-size: 12px; color: #6b7280; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>🚨 Donation Expired</h1>
+                    </div>
+                    <div class="content">
+                        <p>Hello %s,</p>
+                        <div class="alert">
+                            <p class="alert-title">Your donation has expired</p>
+                            <p class="alert-text">The expiry date for this donation has passed. The donation has been automatically marked as expired and removed from available listings.</p>
+                        </div>
+                        <div class="details">
+                            <div class="detail"><span class="label">Donation Item:</span> %s</div>
+                            <div class="detail"><span class="label">Quantity:</span> %s</div>
+                            <div class="detail"><span class="label">Expiry Date:</span> %s</div>
+                        </div>
+                        <p><strong>What happens next?</strong></p>
+                        <ul>
+                            <li>The donation is no longer visible to receivers</li>
+                            <li>If the donation was claimed, the receiver will be notified</li>
+                            <li>You can create a new donation if you still have food available</li>
+                        </ul>
+                        <p style="text-align: center;">
+                            <a href="http://localhost:3000/donor/dashboard" class="button" style="color: white !important; text-decoration: none;">View Dashboard</a>
+                        </p>
+                    </div>
+                    <div class="footer">
+                        <p>© 2026 FoodFlow. All rights reserved.</p>
+                        <p>You're receiving this email because you have email notifications enabled in your preferences.</p>
+                        <p>To manage your notification settings, visit Settings in your FoodFlow account.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(donorName, donationTitle, quantity, expiryDate);
+    }
+
+    /**
+     * Sends a donation status update notification email
+     */
+    public void sendDonationStatusUpdateNotification(String toEmail, String userName, Map<String, Object> statusData) {
+        try {
+            ApiClient defaultClient = Configuration.getDefaultApiClient();
+            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
+            apiKey.setApiKey(brevoApiKey);
+
+            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+
+            SendSmtpEmailSender sender = new SendSmtpEmailSender();
+            sender.setEmail(fromEmail);
+            sender.setName(fromName);
+
+            SendSmtpEmailTo recipient = new SendSmtpEmailTo();
+            recipient.setEmail(toEmail);
+            recipient.setName(userName);
+
+            SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+            sendSmtpEmail.setSender(sender);
+            sendSmtpEmail.setTo(Collections.singletonList(recipient));
+            sendSmtpEmail.setSubject("Donation Status Updated by Admin - FoodFlow");
+            sendSmtpEmail.setHtmlContent(buildDonationStatusUpdateEmailBody(userName, statusData));
+
+            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            log.info("Donation status update email sent successfully to {} - Message ID: {}", toEmail, result.getMessageId());
+        } catch (ApiException e) {
+            log.error("Failed to send donation status update email to {}: {}", toEmail, e.getMessage(), e);
+        }
+    }
+
+    private String buildDonationStatusUpdateEmailBody(String userName, Map<String, Object> statusData) {
+        String donationTitle = (String) statusData.get("donationTitle");
+        String oldStatus = (String) statusData.get("oldStatus");
+        String newStatus = (String) statusData.get("newStatus");
+        String reason = (String) statusData.get("reason");
+        String userType = (String) statusData.get("userType");
+
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+                    .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden; }
+                    .header { background: linear-gradient(135deg, #a855f7 0%%, #9333ea 100%%); color: white; padding: 30px; text-align: center; }
+                    .header h1 { margin: 0; font-size: 28px; }
+                    .content { padding: 30px; }
+                    .alert { background-color: #f3e5f5; border-left: 4px solid #a855f7; padding: 15px; margin: 20px 0; border-radius: 4px; }
+                    .alert-title { color: #6b21a8; font-weight: bold; margin: 0 0 10px 0; }
+                    .alert-text { color: #7e22ce; margin: 0; }
+                    .details { background-color: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0; }
+                    .detail { padding: 10px 0; border-bottom: 1px solid #e5e7eb; }
+                    .detail:last-child { border-bottom: none; }
+                    .label { font-weight: bold; color: #374151; }
+                    .status-change { display: flex; align-items: center; gap: 10px; font-size: 16px; margin: 15px 0; }
+                    .old-status { background-color: #fee2e2; color: #991b1b; padding: 8px 16px; border-radius: 6px; font-weight: 600; }
+                    .new-status { background-color: #d1fae5; color: #065f46; padding: 8px 16px; border-radius: 6px; font-weight: 600; }
+                    .arrow { color: #9ca3af; font-size: 24px; }
+                    .button { display: inline-block; background: linear-gradient(135deg, #a855f7 0%%, #9333ea 100%%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }
+                    .footer { background-color: #f9fafb; padding: 20px; text-align: center; font-size: 12px; color: #6b7280; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>🔔 Status Updated by Admin</h1>
+                    </div>
+                    <div class="content">
+                        <p>Hello %s,</p>
+                        <div class="alert">
+                            <p class="alert-title">Admin Status Update</p>
+                            <p class="alert-text">An administrator has updated the status of your %s.</p>
+                        </div>
+                        <div class="details">
+                            <div class="detail"><span class="label">Donation:</span> %s</div>
+                            <div class="detail">
+                                <span class="label">Status Change:</span>
+                                <div class="status-change">
+                                    <span class="old-status">%s</span>
+                                    <span class="arrow">→</span>
+                                    <span class="new-status">%s</span>
+                                </div>
+                            </div>
+                            <div class="detail"><span class="label">Admin Reason:</span> %s</div>
+                        </div>
+                        <p><strong>What does this mean?</strong></p>
+                        <p>An administrator has manually updated the status of this donation. This may have been done to resolve an issue, correct an error, or manage the donation lifecycle.</p>
+                        <p style="text-align: center;">
+                            <a href="http://localhost:3000/%s/dashboard" class="button" style="color: white !important; text-decoration: none;">View Dashboard</a>
+                        </p>
+                    </div>
+                    <div class="footer">
+                        <p>© 2026 FoodFlow. All rights reserved.</p>
+                        <p>You're receiving this email because you have email notifications enabled in your preferences.</p>
+                        <p>To manage your notification settings, visit Settings in your FoodFlow account.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(userName, userType.equals("donor") ? "donation" : "claim", donationTitle, oldStatus, newStatus, reason, userType);
+    }
+
+    /**
+     * Send account deactivation notification email
+     */
+    public void sendAccountDeactivationEmail(String toEmail, String userName) throws ApiException {
+        log.info("Sending account deactivation email to: {}", toEmail);
+        
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
+        apiKey.setApiKey(brevoApiKey);
+        
+        TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+        
+        SendSmtpEmailSender sender = new SendSmtpEmailSender();
+        sender.setEmail(fromEmail);
+        sender.setName(fromName);
+        sendSmtpEmail.setSender(sender);
+        
+        SendSmtpEmailTo recipient = new SendSmtpEmailTo();
+        recipient.setEmail(toEmail);
+        sendSmtpEmail.setTo(Collections.singletonList(recipient));
+        
+        sendSmtpEmail.setSubject("Account Deactivated - FoodFlow");
+        sendSmtpEmail.setTextContent("Your FoodFlow account has been deactivated by an administrator.");
+        sendSmtpEmail.setHtmlContent(buildAccountDeactivationEmailBody(userName));
+        
+        try {
+            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            log.info("Account deactivation email sent successfully. Message ID: {}", result.getMessageId());
+        } catch (ApiException e) {
+            log.error("Failed to send account deactivation email: {}", e.getResponseBody(), e);
+            throw e;
+        }
+    }
+
+    private String buildAccountDeactivationEmailBody(String userName) {
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            </head>
+            <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f3f4f6;">
+                <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+                    <div style="background: linear-gradient(135deg, #ef4444 0%%, #dc2626 100%%); padding: 40px 20px; text-align: center;">
+                        <h1 style="color: #ffffff; margin: 0; font-size: 28px;">Account Deactivated</h1>
+                    </div>
+                    
+                    <div style="padding: 40px 30px;">
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">Hi %s,</p>
+                        
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">
+                            Your FoodFlow account has been deactivated by an administrator.
+                        </p>
+                        
+                        <div style="background-color: #fee2e2; border-left: 4px solid #ef4444; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                            <p style="color: #991b1b; margin: 0; font-size: 14px;">
+                                <strong>What this means:</strong><br>
+                                You will no longer be able to access your FoodFlow account or use any platform features.
+                            </p>
+                        </div>
+                        
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">
+                            If you believe this is a mistake or would like to appeal this decision, please contact our support team.
+                        </p>
+                        
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">
+                            Best regards,<br>
+                            <strong>The FoodFlow Team</strong>
+                        </p>
+                    </div>
+                    
+                    <div style="background-color: #f9fafb; padding: 20px 30px; text-align: center; font-size: 12px; color: #6b7280; border-top: 1px solid #e5e7eb;">
+                        <p>© 2026 FoodFlow. All rights reserved.</p>
+                        <p>You're receiving this email because administrative action was taken on your account.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(userName);
+    }
+
+    /**
+     * Send account reactivation notification email
+     */
+    public void sendAccountReactivationEmail(String toEmail, String userName) throws ApiException {
+        log.info("Sending account reactivation email to: {}", toEmail);
+        
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
+        apiKey.setApiKey(brevoApiKey);
+        
+        TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+        
+        SendSmtpEmailSender sender = new SendSmtpEmailSender();
+        sender.setEmail(fromEmail);
+        sender.setName(fromName);
+        sendSmtpEmail.setSender(sender);
+        
+        SendSmtpEmailTo recipient = new SendSmtpEmailTo();
+        recipient.setEmail(toEmail);
+        sendSmtpEmail.setTo(Collections.singletonList(recipient));
+        
+        sendSmtpEmail.setSubject("Account Reactivated - FoodFlow");
+        sendSmtpEmail.setTextContent("Your FoodFlow account has been reactivated by an administrator.");
+        sendSmtpEmail.setHtmlContent(buildAccountReactivationEmailBody(userName));
+        
+        try {
+            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            log.info("Account reactivation email sent successfully. Message ID: {}", result.getMessageId());
+        } catch (ApiException e) {
+            log.error("Failed to send account reactivation email: {}", e.getResponseBody(), e);
+            throw e;
+        }
+    }
+
+    private String buildAccountReactivationEmailBody(String userName) {
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            </head>
+            <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f3f4f6;">
+                <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+                    <div style="background: linear-gradient(135deg, #10b981 0%%, #059669 100%%); padding: 40px 20px; text-align: center;">
+                        <h1 style="color: #ffffff; margin: 0; font-size: 28px;">Account Reactivated</h1>
+                    </div>
+                    
+                    <div style="padding: 40px 30px;">
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">Hi %s,</p>
+                        
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">
+                            Great news! Your FoodFlow account has been reactivated by an administrator.
+                        </p>
+                        
+                        <div style="background-color: #d1fae5; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                            <p style="color: #065f46; margin: 0; font-size: 14px;">
+                                <strong>What this means:</strong><br>
+                                You now have full access to your FoodFlow account and can resume using all platform features.
+                            </p>
+                        </div>
+                        
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">
+                            You can log in to your account and continue connecting donors with receivers to reduce food waste.
+                        </p>
+                        
+                        <div style="text-align: center; margin: 30px 0;">
+                            <a href="http://localhost:3000/login" style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #10b981 0%%, #059669 100%%); color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+                                Log In to Your Account
+                            </a>
+                        </div>
+                        
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">
+                            Welcome back,<br>
+                            <strong>The FoodFlow Team</strong>
+                        </p>
+                    </div>
+                    
+                    <div style="background-color: #f9fafb; padding: 20px 30px; text-align: center; font-size: 12px; color: #6b7280; border-top: 1px solid #e5e7eb;">
+                        <p>© 2026 FoodFlow. All rights reserved.</p>
+                        <p>You're receiving this email because administrative action was taken on your account.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(userName);
+    }
+}
