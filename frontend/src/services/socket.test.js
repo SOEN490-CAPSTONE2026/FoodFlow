@@ -357,14 +357,7 @@ describe('socket service', () => {
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
     const onReview = jest.fn();
 
-    socketService.connectToUserQueue(
-      null,
-      null,
-      null,
-      null,
-      null,
-      onReview
-    );
+    socketService.connectToUserQueue(null, null, null, null, null, onReview);
     const client = triggerConnect();
 
     const reviewSub = client
@@ -712,7 +705,8 @@ describe('socket service', () => {
     socketService.connectToUserQueue(jest.fn());
     const client = stompModule.__getLastClient();
 
-    client.options.debug('STOMP connection established');
+    const debugFn = client.options.debug;
+    debugFn('STOMP connection established');
 
     expect(consoleLogSpy).toHaveBeenCalledWith(
       '[STOMP]',
@@ -1078,14 +1072,12 @@ describe('socket service', () => {
   test('throws error when Client creation or activation fails', () => {
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
 
-    // Save original Client
-    const OriginalClient = stompModule.Client;
-
-    // Mock Client to throw during construction
+    // Mock Client constructor to throw
     const constructorError = new Error('Client creation failed');
-    stompModule.Client = function () {
+    const mockClientConstructor = jest.fn(() => {
       throw constructorError;
-    };
+    });
+    jest.spyOn(stompModule, 'Client').mockImplementation(mockClientConstructor);
 
     expect(() => {
       socketService.connectToUserQueue(jest.fn());
@@ -1096,8 +1088,6 @@ describe('socket service', () => {
       constructorError
     );
 
-    // Restore
-    stompModule.Client = OriginalClient;
     consoleErrorSpy.mockRestore();
   });
 
@@ -1127,15 +1117,11 @@ describe('socket service', () => {
     const subs = client.__getSubscriptions();
 
     // Send messages without body
-    subs
-      .find(s => s.destination === '/user/queue/donations/completed')
-      .cb({});
+    subs.find(s => s.destination === '/user/queue/donations/completed').cb({});
     subs
       .find(s => s.destination === '/user/queue/donations/ready-for-pickup')
       .cb({});
-    subs
-      .find(s => s.destination === '/user/queue/donations/expired')
-      .cb({});
+    subs.find(s => s.destination === '/user/queue/donations/expired').cb({});
     subs
       .find(s => s.destination === '/user/queue/donations/status-updated')
       .cb({});
@@ -1186,9 +1172,12 @@ describe('socket service', () => {
     subs
       .find(s => s.destination === '/user/queue/reviews')
       .cb({ body: JSON.stringify({ reviewId: 1 }) });
-    expect(consoleLogSpy).toHaveBeenCalledWith('Received review notification:', {
-      reviewId: 1,
-    });
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      'Received review notification:',
+      {
+        reviewId: 1,
+      }
+    );
 
     subs
       .find(s => s.destination === '/user/queue/donations/completed')
