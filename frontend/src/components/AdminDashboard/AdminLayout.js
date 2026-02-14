@@ -192,8 +192,8 @@ export default function AdminLayout() {
 
         <nav className="admin-nav-links">
           <Link
-            to="/admin/welcome"
-            className={`admin-nav-link ${isActive('/admin/welcome') ? 'active' : ''}`}
+            to="/admin"
+            className={`admin-nav-link ${isActive('/admin') ? 'active' : ''}`}
             data-tooltip="Home"
           >
             <span className="nav-icon" aria-hidden>
