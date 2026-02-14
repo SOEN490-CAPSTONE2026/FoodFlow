@@ -632,6 +632,29 @@ export const rateLimitAPI = {
   },
 };
 
+// Impact Dashboard API
+export const impactDashboardAPI = {
+  /**
+   * Get impact metrics for current user based on their role
+   * @param {string} dateRange - Date range filter: 'WEEKLY', 'MONTHLY', 'ALL_TIME'
+   * @returns {Promise} Impact metrics including food weight, meals, CO2, water saved
+   */
+  getMetrics: (dateRange = 'ALL_TIME') =>
+    api.get('/impact-dashboard/metrics', {
+      params: { dateRange },
+    }),
+
+  /**
+   * Export impact metrics as CSV
+   * @param {string} dateRange - Date range filter: 'WEEKLY', 'MONTHLY', 'ALL_TIME'
+   * @returns {Promise} CSV file download
+   */
+  exportMetrics: (dateRange = 'ALL_TIME') =>
+    api.get('/impact-dashboard/export', {
+      params: { dateRange },
+      responseType: 'blob',
+    }),
+};
 // Export the core axios instance for backward compatibility
 // Safely bind methods with fallbacks for testing
 export const post =

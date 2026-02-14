@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import AdminLayout from './AdminLayout';
 import AdminHome from './AdminHome';
 import AdminAnalytics from './AdminAnalytics';
+import AdminImpactDashboard from './AdminImpactDashboard';
 import AdminCalendar from './AdminCalendar';
 import AdminMessages from './AdminMessages.js';
 import AdminHelp from './AdminHelp';
@@ -25,6 +26,7 @@ export default function AdminDashboard() {
         <Route path="users" element={<AdminUsers />} />
         <Route path="verification-queue" element={<AdminVerificationQueue />} />
         <Route path="analytics" element={<AdminAnalytics />} />
+        <Route path="impact" element={<AdminImpactDashboard />} />
         <Route path="donations" element={<AdminDonations />} />
         <Route path="calendar" element={<AdminCalendar />} />
         <Route path="messages" element={<AdminMessages />} />

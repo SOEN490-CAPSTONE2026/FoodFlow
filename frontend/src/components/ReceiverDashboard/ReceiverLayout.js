@@ -372,6 +372,13 @@ function ReceiverLayoutContent() {
           </Link>
 
           <Link
+            to="/receiver/impact"
+            className={`receiver-nav-link ${isActive('/receiver/impact') ? 'active' : ''}`}
+          >
+            {t('receiverLayout.impact', 'Impact Dashboard')}
+          </Link>
+
+          <Link
             to="/receiver/welcome"
             className={`receiver-nav-link ${location.pathname === '/receiver/welcome' ? 'active' : ''}`}
             onClick={() => setIsMenuOpen(false)}
