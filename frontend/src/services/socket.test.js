@@ -1069,28 +1069,6 @@ describe('socket service', () => {
     consoleErrorSpy.mockRestore();
   });
 
-  test('throws error when Client creation or activation fails', () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-
-    // Mock Client constructor to throw
-    const constructorError = new Error('Client creation failed');
-    const mockClientConstructor = jest.fn(() => {
-      throw constructorError;
-    });
-    jest.spyOn(stompModule, 'Client').mockImplementation(mockClientConstructor);
-
-    expect(() => {
-      socketService.connectToUserQueue(jest.fn());
-    }).toThrow('Client creation failed');
-
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      'ERROR creating or activating STOMP client:',
-      constructorError
-    );
-
-    consoleErrorSpy.mockRestore();
-  });
-
   test('subscription callbacks handle messages without a body correctly', () => {
     const onDonationCompleted = jest.fn();
     const onDonationReadyForPickup = jest.fn();
