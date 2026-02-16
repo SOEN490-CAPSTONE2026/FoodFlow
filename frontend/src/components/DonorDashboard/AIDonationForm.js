@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { useLoadScript } from '@react-google-maps/api';
 import api from '../../services/api';
 import AIImageUpload from './AIImageUpload';
 import AIExtractionReview from './AIExtractionReview';
 import './Donor_Styles/AIDonation.css';
+
+// Define libraries for Google Maps
+const libraries = ['places'];
 
 /**
  * Main component for AI-powered donation creation.
@@ -12,6 +16,10 @@ import './Donor_Styles/AIDonation.css';
  */
 export default function AIDonationForm() {
   const navigate = useNavigate();
+  const { isLoaded } = useLoadScript({
+    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
+    libraries: libraries,
+  });
   const [step, setStep] = useState('upload'); // upload, processing, review
   const [selectedImage, setSelectedImage] = useState(null);
   const [extractedData, setExtractedData] = useState(null);
@@ -120,6 +128,14 @@ export default function AIDonationForm() {
         );
 
       case 'review':
+        if (!isLoaded) {
+          return (
+            <div className="ai-processing-container">
+              <div className="ai-spinner"></div>
+              <h3>Loading maps...</h3>
+            </div>
+          );
+        }
         return (
           <AIExtractionReview
             data={extractedData}
