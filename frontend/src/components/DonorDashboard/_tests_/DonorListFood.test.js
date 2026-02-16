@@ -107,6 +107,7 @@ jest.mock('lucide-react', () => ({
   Upload: () => <span>UploadIcon</span>,
   Star: () => <span>StarIcon</span>,
   MessageCircle: () => <span>MessageCircleIcon</span>,
+  Sparkles: () => <span>SparklesIcon</span>,
 }));
 
 jest.mock('../../shared/DonationTimeline', () => {
@@ -1480,7 +1481,9 @@ describe('DonorListFood', () => {
       setup();
 
       await waitFor(() => {
-        expect(screen.getByText(/edit/i)).toBeInTheDocument();
+        // Check for edit button using getAllByText since there are multiple "Edit" texts (button + icon)
+        const editElements = screen.getAllByText(/edit/i);
+        expect(editElements.length).toBeGreaterThan(0);
       });
     });
   });
