@@ -16,6 +16,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,8 +24,12 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Subquery;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -38,18 +43,27 @@ public class AdminDonationService {
     private final DonationTimelineRepository timelineRepository;
     private final UserRepository userRepository;
     private final TimelineService timelineService;
+    private final NotificationPreferenceService notificationPreferenceService;
+    private final EmailService emailService;
+    private final SimpMessagingTemplate messagingTemplate;
     
     public AdminDonationService(
             SurplusPostRepository surplusPostRepository,
             ClaimRepository claimRepository,
             DonationTimelineRepository timelineRepository,
             UserRepository userRepository,
-            TimelineService timelineService) {
+            TimelineService timelineService,
+            NotificationPreferenceService notificationPreferenceService,
+            EmailService emailService,
+            SimpMessagingTemplate messagingTemplate) {
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;
         this.timelineRepository = timelineRepository;
         this.userRepository = userRepository;
         this.timelineService = timelineService;
+        this.notificationPreferenceService = notificationPreferenceService;
+        this.emailService = emailService;
+        this.messagingTemplate = messagingTemplate;
     }
     
     /**
@@ -128,6 +142,17 @@ public class AdminDonationService {
         timelineRepository.save(timelineEvent);
         
         log.info("Status override completed: {} -> {}", oldStatus, newStatus);
+        
+        // Send notifications to donor
+        User donor = post.getDonor();
+        sendStatusUpdateNotificationToDonor(post, donor, oldStatus, newStatus, reason);
+        
+        // Send notifications to receiver (if donation is claimed)
+        Optional<Claim> claimOpt = claimRepository.findBySurplusPostIdAndStatus(donationId, ClaimStatus.ACTIVE);
+        if (claimOpt.isPresent()) {
+            User receiver = claimOpt.get().getReceiver();
+            sendStatusUpdateNotificationToReceiver(post, receiver, oldStatus, newStatus, reason);
+        }
         
         return mapToAdminResponse(post);
     }
@@ -320,5 +345,119 @@ public class AdminDonationService {
         dto.setPackagingCondition(timeline.getPackagingCondition());
         dto.setPickupEvidenceUrl(timeline.getPickupEvidenceUrl());
         return dto;
+    }
+
+    private void sendStatusUpdateNotificationToDonor(SurplusPost post, User donor, PostStatus oldStatus, PostStatus newStatus, String reason) {
+        try {
+            log.info("Checking email preference for donor userId={} for donationStatusUpdated notification", donor.getId());
+            
+            if (notificationPreferenceService.shouldSendNotification(donor, "donationStatusUpdated", "email")) {
+                log.info("Donor {} has email notifications enabled for donationStatusUpdated, sending email", donor.getId());
+                
+                Map<String, Object> statusData = new HashMap<>();
+                statusData.put("donationTitle", post.getTitle());
+                statusData.put("oldStatus", oldStatus.name());
+                statusData.put("newStatus", newStatus.name());
+                statusData.put("reason", reason != null ? reason : "Admin manual override");
+                statusData.put("userType", "donor");
+                
+                String donorName = donor.getOrganization() != null ? 
+                    donor.getOrganization().getName() : donor.getFullName();
+                
+                emailService.sendDonationStatusUpdateNotification(donor.getEmail(), donorName, statusData);
+                log.info("Successfully sent donation status update email to donor userId={} for postId={}", donor.getId(), post.getId());
+            } else {
+                log.info("Donor {} has email notifications disabled for donationStatusUpdated", donor.getId());
+            }
+        } catch (Exception e) {
+            log.error("Failed to send donation status update email to donor: {}", e.getMessage(), e);
+        }
+        
+        // Send WebSocket notification
+        try {
+            log.info("Checking websocket preference for donor userId={} for donationStatusUpdated notification", donor.getId());
+            
+            if (notificationPreferenceService.shouldSendNotification(donor, "donationStatusUpdated", "websocket")) {
+                log.info("Donor {} has websocket notifications enabled for donationStatusUpdated, sending notification", donor.getId());
+                
+                Map<String, Object> notification = new HashMap<>();
+                notification.put("type", "STATUS_UPDATED");
+                notification.put("donationId", post.getId());
+                notification.put("title", post.getTitle());
+                notification.put("message", "Admin updated your donation status from " + oldStatus + " to " + newStatus);
+                notification.put("oldStatus", oldStatus.name());
+                notification.put("newStatus", newStatus.name());
+                notification.put("reason", reason != null ? reason : "Admin manual override");
+                notification.put("timestamp", ZonedDateTime.now(ZoneId.of("UTC")).toString());
+                
+                messagingTemplate.convertAndSendToUser(
+                    donor.getId().toString(),
+                    "/queue/donations/status-updated",
+                    notification
+                );
+                log.info("Successfully sent donation status update websocket notification to donor userId={} for postId={}", donor.getId(), post.getId());
+            } else {
+                log.info("Donor {} has websocket notifications disabled for donationStatusUpdated", donor.getId());
+            }
+        } catch (Exception e) {
+            log.error("Failed to send donation status update websocket notification to donor: {}", e.getMessage(), e);
+        }
+    }
+
+    private void sendStatusUpdateNotificationToReceiver(SurplusPost post, User receiver, PostStatus oldStatus, PostStatus newStatus, String reason) {
+        try {
+            log.info("Checking email preference for receiver userId={} for donationStatusChanged notification", receiver.getId());
+            
+            if (notificationPreferenceService.shouldSendNotification(receiver, "donationStatusChanged", "email")) {
+                log.info("Receiver {} has email notifications enabled for donationStatusChanged, sending email", receiver.getId());
+                
+                Map<String, Object> statusData = new HashMap<>();
+                statusData.put("donationTitle", post.getTitle());
+                statusData.put("oldStatus", oldStatus.name());
+                statusData.put("newStatus", newStatus.name());
+                statusData.put("reason", reason != null ? reason : "Admin manual override");
+                statusData.put("userType", "receiver");
+                
+                String receiverName = receiver.getOrganization() != null ? 
+                    receiver.getOrganization().getName() : receiver.getFullName();
+                
+                emailService.sendDonationStatusUpdateNotification(receiver.getEmail(), receiverName, statusData);
+                log.info("Successfully sent donation status update email to receiver userId={} for postId={}", receiver.getId(), post.getId());
+            } else {
+                log.info("Receiver {} has email notifications disabled for donationStatusChanged", receiver.getId());
+            }
+        } catch (Exception e) {
+            log.error("Failed to send donation status update email to receiver: {}", e.getMessage(), e);
+        }
+        
+        // Send WebSocket notification
+        try {
+            log.info("Checking websocket preference for receiver userId={} for donationStatusChanged notification", receiver.getId());
+            
+            if (notificationPreferenceService.shouldSendNotification(receiver, "donationStatusChanged", "websocket")) {
+                log.info("Receiver {} has websocket notifications enabled for donationStatusChanged, sending notification", receiver.getId());
+                
+                Map<String, Object> notification = new HashMap<>();
+                notification.put("type", "STATUS_CHANGED");
+                notification.put("donationId", post.getId());
+                notification.put("title", post.getTitle());
+                notification.put("message", "Admin updated the donation status from " + oldStatus + " to " + newStatus);
+                notification.put("oldStatus", oldStatus.name());
+                notification.put("newStatus", newStatus.name());
+                notification.put("reason", reason != null ? reason : "Admin manual override");
+                notification.put("timestamp", ZonedDateTime.now(ZoneId.of("UTC")).toString());
+                
+                messagingTemplate.convertAndSendToUser(
+                    receiver.getId().toString(),
+                    "/queue/donations/status-changed",
+                    notification
+                );
+                log.info("Successfully sent donation status update websocket notification to receiver userId={} for postId={}", receiver.getId(), post.getId());
+            } else {
+                log.info("Receiver {} has websocket notifications disabled for donationStatusChanged", receiver.getId());
+            }
+        } catch (Exception e) {
+            log.error("Failed to send donation status update websocket notification to receiver: {}", e.getMessage(), e);
+        }
     }
 }

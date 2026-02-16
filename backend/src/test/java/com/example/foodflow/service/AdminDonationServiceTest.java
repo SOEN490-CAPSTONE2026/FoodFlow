@@ -45,6 +45,18 @@ class AdminDonationServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private TimelineService timelineService;
+
+    @Mock
+    private NotificationPreferenceService notificationPreferenceService;
+
+    @Mock
+    private EmailService emailService;
+
+    @Mock
+    private org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
+
     @InjectMocks
     private AdminDonationService adminDonationService;
 
@@ -1003,4 +1015,335 @@ class AdminDonationServiceTest {
         assertNotNull(result.getConfirmedPickupEndTime());
         assertEquals(1L, result.getClaimId());
     }
+
+    @Test
+    void overrideStatus_SendsNotificationsToDonor_WhenEmailEnabled() {
+        // Arrange
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(testPost));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(testPost);
+        when(timelineRepository.save(any(DonationTimeline.class))).thenReturn(testTimeline);
+        when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
+            .thenReturn(Optional.empty());
+        when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
+            .thenReturn(Arrays.asList(testTimeline));
+        when(notificationPreferenceService.shouldSendNotification(testDonor, "donationStatusUpdated", "email"))
+            .thenReturn(true);
+        when(notificationPreferenceService.shouldSendNotification(testDonor, "donationStatusUpdated", "websocket"))
+            .thenReturn(false);
+
+        // Act
+        adminDonationService.overrideStatus(1L, "COMPLETED", "Admin approval", 999L);
+
+        // Assert
+        verify(emailService).sendDonationStatusUpdateNotification(
+            eq("donor@test.com"),
+            eq("Test Donor Organization"),
+            any(Map.class)
+        );
+    }
+
+    @Test
+    void overrideStatus_SendsNotificationsToDonor_WhenWebsocketEnabled() {
+        // Arrange
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(testPost));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(testPost);
+        when(timelineRepository.save(any(DonationTimeline.class))).thenReturn(testTimeline);
+        when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
+            .thenReturn(Optional.empty());
+        when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
+            .thenReturn(Arrays.asList(testTimeline));
+        when(notificationPreferenceService.shouldSendNotification(testDonor, "donationStatusUpdated", "email"))
+            .thenReturn(false);
+        when(notificationPreferenceService.shouldSendNotification(testDonor, "donationStatusUpdated", "websocket"))
+            .thenReturn(true);
+
+        // Act
+        adminDonationService.overrideStatus(1L, "COMPLETED", "Admin approval", 999L);
+
+        // Assert
+        verify(messagingTemplate).convertAndSendToUser(
+            eq("1"),
+            eq("/queue/donations/status-updated"),
+            any(Map.class)
+        );
+    }
+
+    @Test
+    void overrideStatus_SendsNotificationsToReceiver_WhenClaimExists() {
+        // Arrange
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(testPost));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(testPost);
+        when(timelineRepository.save(any(DonationTimeline.class))).thenReturn(testTimeline);
+        when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
+            .thenReturn(Optional.of(testClaim));
+        when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
+            .thenReturn(Arrays.asList(testTimeline));
+        when(notificationPreferenceService.shouldSendNotification(testDonor, "donationStatusUpdated", "email"))
+            .thenReturn(false);
+        when(notificationPreferenceService.shouldSendNotification(testDonor, "donationStatusUpdated", "websocket"))
+            .thenReturn(false);
+        when(notificationPreferenceService.shouldSendNotification(testReceiver, "donationStatusChanged", "email"))
+            .thenReturn(true);
+        when(notificationPreferenceService.shouldSendNotification(testReceiver, "donationStatusChanged", "websocket"))
+            .thenReturn(true);
+
+        // Act
+        adminDonationService.overrideStatus(1L, "COMPLETED", "Admin approval", 999L);
+
+        // Assert
+        verify(emailService).sendDonationStatusUpdateNotification(
+            eq("receiver@test.com"),
+            eq("Test Receiver Organization"),
+            any(Map.class)
+        );
+        verify(messagingTemplate).convertAndSendToUser(
+            eq("2"),
+            eq("/queue/donations/status-changed"),
+            any(Map.class)
+        );
+    }
+
+    @Test
+    void overrideStatus_HandlesEmailError_Gracefully() {
+        // Arrange
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(testPost));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(testPost);
+        when(timelineRepository.save(any(DonationTimeline.class))).thenReturn(testTimeline);
+        when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
+            .thenReturn(Optional.empty());
+        when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
+            .thenReturn(Arrays.asList(testTimeline));
+        when(notificationPreferenceService.shouldSendNotification(testDonor, "donationStatusUpdated", "email"))
+            .thenReturn(true);
+        doThrow(new RuntimeException("Email service error"))
+            .when(emailService).sendDonationStatusUpdateNotification(anyString(), anyString(), any(Map.class));
+
+        // Act & Assert - should not throw exception
+        assertDoesNotThrow(() -> {
+            adminDonationService.overrideStatus(1L, "COMPLETED", "Admin approval", 999L);
+        });
+    }
+
+    @Test
+    void overrideStatus_HandlesWebSocketError_Gracefully() {
+        // Arrange
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(testPost));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(testPost);
+        when(timelineRepository.save(any(DonationTimeline.class))).thenReturn(testTimeline);
+        when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
+            .thenReturn(Optional.empty());
+        when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
+            .thenReturn(Arrays.asList(testTimeline));
+        when(notificationPreferenceService.shouldSendNotification(testDonor, "donationStatusUpdated", "websocket"))
+            .thenReturn(true);
+        doThrow(new RuntimeException("WebSocket error"))
+            .when(messagingTemplate).convertAndSendToUser(anyString(), anyString(), any(Map.class));
+
+        // Act & Assert - should not throw exception
+        assertDoesNotThrow(() -> {
+            adminDonationService.overrideStatus(1L, "COMPLETED", "Admin approval", 999L);
+        });
+    }
+
+    @Test
+    void getDonationById_WithNoClaim_ReturnsResponseWithoutClaimInfo() {
+        // Arrange
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(testPost));
+        when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
+            .thenReturn(Optional.empty());
+        when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
+            .thenReturn(Arrays.asList(testTimeline));
+
+        // Act
+        AdminDonationResponse result = adminDonationService.getDonationById(1L);
+
+        // Assert
+        assertNotNull(result);
+        assertNull(result.getClaimId());
+        assertNull(result.getReceiverId());
+        assertNull(result.getReceiverName());
+        assertNull(result.getReceiverEmail());
+    }
+
+    @Test
+    void getDonationById_WithDonorWithoutOrganization_UsesDonorEmail() {
+        // Arrange
+        User donorWithoutOrg = new User();
+        donorWithoutOrg.setId(1L);
+        donorWithoutOrg.setEmail("individual@test.com");
+        donorWithoutOrg.setOrganization(null);
+        
+        testPost.setDonor(donorWithoutOrg);
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(testPost));
+        when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
+            .thenReturn(Optional.empty());
+        when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
+            .thenReturn(Arrays.asList(testTimeline));
+
+        // Act
+        AdminDonationResponse result = adminDonationService.getDonationById(1L);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("individual@test.com", result.getDonorName());
+        assertNull(result.getDonorOrganization());
+    }
+
+    @Test
+    void getDonationById_WithReceiverWithoutOrganization_UsesReceiverEmail() {
+        // Arrange
+        User receiverWithoutOrg = new User();
+        receiverWithoutOrg.setId(2L);
+        receiverWithoutOrg.setEmail("individual-receiver@test.com");
+        receiverWithoutOrg.setOrganization(null);
+        
+        testClaim.setReceiver(receiverWithoutOrg);
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(testPost));
+        when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
+            .thenReturn(Optional.of(testClaim));
+        when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
+            .thenReturn(Arrays.asList(testTimeline));
+
+        // Act
+        AdminDonationResponse result = adminDonationService.getDonationById(1L);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("individual-receiver@test.com", result.getReceiverName());
+        assertNull(result.getReceiverOrganization());
+    }
+
+    @Test
+    void getAllDonations_WithNumericSearch_SearchesById() {
+        // Arrange
+        List<SurplusPost> posts = Arrays.asList(testPost);
+        Page<SurplusPost> postPage = new PageImpl<>(posts);
+        
+        when(surplusPostRepository.findAll(any(Specification.class), any(Pageable.class)))
+            .thenReturn(postPage);
+        when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
+            .thenReturn(Optional.of(testClaim));
+        when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
+            .thenReturn(Arrays.asList(testTimeline));
+
+        // Act
+        Page<AdminDonationResponse> result = adminDonationService.getAllDonations(
+            null, null, null, null, null, null, "1", 0, 20
+        );
+
+        // Assert
+        assertNotNull(result);
+        verify(surplusPostRepository).findAll(any(Specification.class), any(Pageable.class));
+    }
+
+    @Test
+    void getAllDonations_WithInvalidStatus_IgnoresStatusFilter() {
+        // Arrange
+        List<SurplusPost> posts = Arrays.asList(testPost);
+        Page<SurplusPost> postPage = new PageImpl<>(posts);
+        
+        when(surplusPostRepository.findAll(any(Specification.class), any(Pageable.class)))
+            .thenReturn(postPage);
+        when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
+            .thenReturn(Optional.of(testClaim));
+        when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
+            .thenReturn(Arrays.asList(testTimeline));
+
+        // Act
+        Page<AdminDonationResponse> result = adminDonationService.getAllDonations(
+            "INVALID_STATUS", null, null, null, null, null, null, 0, 20
+        );
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+        verify(surplusPostRepository).findAll(any(Specification.class), any(Pageable.class));
+    }
+
+    @Test
+    void getAllDonations_WithDateRange_FiltersCorrectly() {
+        // Arrange
+        List<SurplusPost> posts = Arrays.asList(testPost);
+        Page<SurplusPost> postPage = new PageImpl<>(posts);
+        LocalDate fromDate = LocalDate.now().minusDays(7);
+        LocalDate toDate = LocalDate.now();
+        
+        when(surplusPostRepository.findAll(any(Specification.class), any(Pageable.class)))
+            .thenReturn(postPage);
+        when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
+            .thenReturn(Optional.of(testClaim));
+        when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
+            .thenReturn(Arrays.asList(testTimeline));
+
+        // Act
+        Page<AdminDonationResponse> result = adminDonationService.getAllDonations(
+            null, null, null, null, fromDate, toDate, null, 0, 20
+        );
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+        verify(surplusPostRepository).findAll(any(Specification.class), any(Pageable.class));
+    }
+
+    @Test
+    void overrideStatus_WithNullReason_UsesDefaultReason() {
+        // Arrange
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(testPost));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(testPost);
+        when(timelineRepository.save(any(DonationTimeline.class))).thenReturn(testTimeline);
+        when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
+            .thenReturn(Optional.empty());
+        when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
+            .thenReturn(Arrays.asList(testTimeline));
+
+        // Act
+        adminDonationService.overrideStatus(1L, "COMPLETED", null, 999L);
+
+        // Assert
+        ArgumentCaptor<DonationTimeline> captor = ArgumentCaptor.forClass(DonationTimeline.class);
+        verify(timelineRepository).save(captor.capture());
+        DonationTimeline saved = captor.getValue();
+        assertEquals("Admin manual override", saved.getDetails());
+    }
+
+    @Test
+    void getDonationById_WithDetailedTimeline_MapsTemperatureAndEvidence() {
+        // Arrange
+        DonationTimeline detailedTimeline = new DonationTimeline();
+        detailedTimeline.setId(1L);
+        detailedTimeline.setSurplusPost(testPost);
+        detailedTimeline.setEventType("PICKUP_CONFIRMED");
+        detailedTimeline.setTimestamp(LocalDateTime.now());
+        detailedTimeline.setActor("receiver");
+        detailedTimeline.setActorUserId(2L);
+        detailedTimeline.setOldStatus("CLAIMED");
+        detailedTimeline.setNewStatus("READY_FOR_PICKUP");
+        detailedTimeline.setDetails("Receiver confirmed pickup");
+        detailedTimeline.setVisibleToUsers(true);
+        detailedTimeline.setTemperature(4.5);
+        detailedTimeline.setPackagingCondition("Good");
+        detailedTimeline.setPickupEvidenceUrl("https://example.com/evidence.jpg");
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(testPost));
+        when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
+            .thenReturn(Optional.of(testClaim));
+        when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
+            .thenReturn(Arrays.asList(detailedTimeline));
+
+        // Act
+        AdminDonationResponse result = adminDonationService.getDonationById(1L);
+
+        // Assert
+        assertNotNull(result);
+        assertNotNull(result.getTimeline());
+        assertEquals(1, result.getTimeline().size());
+        assertEquals("PICKUP_CONFIRMED", result.getTimeline().get(0).getEventType());
+        assertEquals(4.5, result.getTimeline().get(0).getTemperature());
+        assertEquals("Good", result.getTimeline().get(0).getPackagingCondition());
+        assertEquals("https://example.com/evidence.jpg", result.getTimeline().get(0).getPickupEvidenceUrl());
+    }
 }
+

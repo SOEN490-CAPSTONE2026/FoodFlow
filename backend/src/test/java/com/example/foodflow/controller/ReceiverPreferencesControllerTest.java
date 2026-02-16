@@ -240,4 +240,124 @@ class ReceiverPreferencesControllerTest {
         mockMvc.perform(get("/api/receiver/preferences"))
                 .andExpect(status().isUnauthorized());
     }
+
+    @Test
+    void createPreferences_ServiceError_ShouldReturn500() throws Exception {
+        // Given - valid request that passes validation
+        ReceiverPreferencesRequest request = new ReceiverPreferencesRequest();
+        request.setMaxCapacity(100);
+        request.setMinQuantity(0);
+        request.setMaxQuantity(50);
+        request.setAcceptRefrigerated(true);
+        request.setAcceptFrozen(true);
+        
+        when(preferencesService.hasPreferences(any(User.class))).thenReturn(false);
+        when(preferencesService.savePreferences(any(User.class), any(ReceiverPreferencesRequest.class)))
+            .thenThrow(new RuntimeException("Database error"));
+        
+        // When & Then
+        mockMvc.perform(post("/api/receiver/preferences")
+                .with(authentication(auth))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().is5xxServerError());
+    }
+
+    @Test
+    void updatePreferences_ServiceError_ShouldReturn500() throws Exception {
+        // Given - valid request that passes validation
+        ReceiverPreferencesRequest request = new ReceiverPreferencesRequest();
+        request.setMaxCapacity(100);
+        request.setMinQuantity(0);
+        request.setMaxQuantity(50);
+        request.setAcceptRefrigerated(true);
+        request.setAcceptFrozen(true);
+        
+        when(preferencesService.savePreferences(any(User.class), any(ReceiverPreferencesRequest.class)))
+            .thenThrow(new RuntimeException("Database error"));
+        
+        // When & Then
+        mockMvc.perform(put("/api/receiver/preferences")
+                .with(authentication(auth))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().is5xxServerError());
+    }
+
+    @Test
+    void hasPreferences_ServiceError_ShouldReturn500() throws Exception {
+        // Given
+        when(preferencesService.hasPreferences(any(User.class)))
+            .thenThrow(new RuntimeException("Database error"));
+        
+        // When & Then
+        mockMvc.perform(get("/api/receiver/preferences/exists")
+                .with(authentication(auth)))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void createPreferences_WhenPreferencesAlreadyExist_ShouldReturn409() throws Exception {
+        // Given
+        ReceiverPreferencesRequest request = new ReceiverPreferencesRequest();
+        request.setMaxCapacity(100);
+        request.setMinQuantity(0);
+        request.setMaxQuantity(50);
+        request.setAcceptRefrigerated(true);
+        request.setAcceptFrozen(true);
+        
+        when(preferencesService.hasPreferences(any(User.class))).thenReturn(true);
+        
+        // When & Then
+        mockMvc.perform(post("/api/receiver/preferences")
+                .with(authentication(auth))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void updatePreferences_WithValidData_ShouldReturn200() throws Exception {
+        // Given
+        ReceiverPreferencesRequest request = new ReceiverPreferencesRequest();
+        request.setMaxCapacity(100);
+        request.setMinQuantity(0);
+        request.setMaxQuantity(50);
+        request.setAcceptRefrigerated(true);
+        request.setAcceptFrozen(true);
+        
+        when(preferencesService.savePreferences(any(User.class), any(ReceiverPreferencesRequest.class)))
+            .thenReturn(testResponse);
+        
+        // When & Then
+        mockMvc.perform(put("/api/receiver/preferences")
+                .with(authentication(auth))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1));
+    }
+
+    @Test
+    void createPreferences_WithValidData_ShouldReturn201() throws Exception {
+        // Given
+        ReceiverPreferencesRequest request = new ReceiverPreferencesRequest();
+        request.setMaxCapacity(100);
+        request.setMinQuantity(0);
+        request.setMaxQuantity(50);
+        request.setAcceptRefrigerated(true);
+        request.setAcceptFrozen(true);
+        
+        when(preferencesService.hasPreferences(any(User.class))).thenReturn(false);
+        when(preferencesService.savePreferences(any(User.class), any(ReceiverPreferencesRequest.class)))
+            .thenReturn(testResponse);
+        
+        // When & Then
+        mockMvc.perform(post("/api/receiver/preferences")
+                .with(authentication(auth))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(1));
+    }
 }

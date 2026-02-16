@@ -229,12 +229,69 @@ function ReceiverLayoutContent() {
       setAchievementNotification(payload);
     };
 
+    const onReviewReceived = payload => {
+      console.log('RECEIVER: Review received:', payload);
+      // Show a notification to the receiver that they received a review
+      if (payload.rating) {
+        const stars = '⭐'.repeat(payload.rating);
+        showNotification(
+          payload.reviewerName || 'Donor',
+          `left you a ${payload.rating}-star review ${stars}`
+        );
+      }
+    };
+
+    const onDonationCompleted = payload => {
+      console.log('RECEIVER: Donation completed:', payload);
+      // Show a notification to the receiver that their donation was completed
+      showNotification(
+        t('receiverLayout.notifications.donationCompleted'),
+        payload.message ||
+          t('receiverLayout.notifications.donationCompletedDesc')
+      );
+    };
+
+    const onDonationReadyForPickup = payload => {
+      console.log('RECEIVER: Donation ready for pickup:', payload);
+      // Show a notification to the receiver that their donation is ready for pickup
+      showNotification(
+        t('receiverLayout.notifications.donationReadyForPickup'),
+        payload.message ||
+          t('receiverLayout.notifications.donationReadyForPickupDesc')
+      );
+    };
+
+    const onDonationStatusChanged = payload => {
+      console.log('RECEIVER: Donation status changed by admin:', payload);
+      showNotification(
+        t('receiverLayout.notifications.donationStatusChanged'),
+        payload.message ||
+          t('receiverLayout.notifications.donationStatusChangedDesc')
+      );
+    };
+
+    const onVerificationApproved = payload => {
+      console.log('RECEIVER: Verification approved:', payload);
+      showNotification(
+        t('receiverLayout.notifications.verificationApproved'),
+        payload.message ||
+          t('receiverLayout.notifications.verificationApprovedDesc')
+      );
+    };
+
     connectToUserQueue(
       onMessage,
       onClaimNotification,
       onClaimCancelled,
       onNewPostNotification,
-      onAchievementUnlocked
+      onAchievementUnlocked,
+      onReviewReceived,
+      onDonationCompleted,
+      onDonationReadyForPickup,
+      null, // no donation expired for receivers
+      null, // no donation status updated for receivers
+      onDonationStatusChanged,
+      onVerificationApproved
     );
     return () => {
       try {
