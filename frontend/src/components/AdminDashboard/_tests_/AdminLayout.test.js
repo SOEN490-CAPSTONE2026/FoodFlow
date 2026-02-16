@@ -68,10 +68,10 @@ describe('AdminLayout', () => {
     expect(
       screen.getAllByRole('img', { name: /foodflow/i }).length
     ).toBeGreaterThan(0);
+    // Topbar is hidden on /admin route, so no heading should be present
     expect(
-      screen.getByRole('heading', { name: /admin dashboard/i })
-    ).toBeInTheDocument();
-    expect(screen.getByText(/overview and quick actions/i)).toBeInTheDocument();
+      screen.queryByRole('heading', { name: /admin dashboard/i })
+    ).not.toBeInTheDocument();
     expect(screen.getByTestId('stub-outlet')).toHaveTextContent(
       'Dashboard Content'
     );
