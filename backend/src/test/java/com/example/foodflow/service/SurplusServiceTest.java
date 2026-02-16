@@ -75,6 +75,15 @@ class SurplusServiceTest {
     @Mock
     private ClaimService claimService;
 
+    @Mock
+    private org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
+
+    @Mock
+    private EmailService emailService;
+
+    @Mock
+    private NotificationPreferenceService notificationPreferenceService;
+
     @InjectMocks
     private SurplusService surplusService;
 
@@ -2107,3 +2116,4 @@ class SurplusServiceTest {
     }
 
 }
+

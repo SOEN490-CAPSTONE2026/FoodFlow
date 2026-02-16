@@ -19,10 +19,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -38,6 +43,12 @@ public class AdminVerificationService {
 
     @Autowired
     private EmailVerificationTokenRepository verificationTokenRepository;
+
+    @Autowired
+    private NotificationPreferenceService notificationPreferenceService;
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
     /**
      * Get paginated list of users pending admin approval
@@ -101,19 +112,48 @@ public class AdminVerificationService {
         user.setAccountStatus(AccountStatus.ACTIVE);
         userRepository.save(user);
 
-        // Send approval email
-        try {
-            String userName = user.getOrganization() != null 
-                ? user.getOrganization().getName() 
-                : user.getEmail();
-            log.info("Sending approval email to user: {} ({})", user.getEmail(), userName);
-            emailService.sendAccountApprovalEmail(user.getEmail(), userName);
-            log.info("Approval email sent successfully to: {}", user.getEmail());
-        } catch (ApiException e) {
-            log.error("Failed to send approval email to {}: {}", user.getEmail(), e.getMessage(), e);
-            // Don't fail the approval if email fails
-        } catch (Exception e) {
-            log.error("Unexpected error sending approval email to {}: {}", user.getEmail(), e.getMessage(), e);
+        String userName = user.getOrganization() != null 
+            ? user.getOrganization().getName() 
+            : user.getEmail();
+
+        // Send email notification if preference allows
+        if (notificationPreferenceService.shouldSendNotification(user, "verificationStatusChanged", "email")) {
+            try {
+                log.info("Sending approval email to user: {} ({})", user.getEmail(), userName);
+                emailService.sendAccountApprovalEmail(user.getEmail(), userName);
+                log.info("Approval email sent successfully to: {}", user.getEmail());
+            } catch (ApiException e) {
+                log.error("Failed to send approval email to {}: {}", user.getEmail(), e.getMessage(), e);
+                // Don't fail the approval if email fails
+            } catch (Exception e) {
+                log.error("Unexpected error sending approval email to {}: {}", user.getEmail(), e.getMessage(), e);
+            }
+        } else {
+            log.info("Email notification skipped for user {} - preference disabled", user.getEmail());
+        }
+
+        // Send WebSocket notification if preference allows
+        if (notificationPreferenceService.shouldSendNotification(user, "verificationStatusChanged", "websocket")) {
+            try {
+                Map<String, Object> notification = new HashMap<>();
+                notification.put("type", "VERIFICATION_APPROVED");
+                notification.put("message", "Your account has been approved! You now have full access to FoodFlow.");
+                notification.put("organizationName", userName);
+                notification.put("timestamp", ZonedDateTime.now(ZoneId.of("UTC")).toString());
+
+                log.info("Sending WebSocket approval notification to user ID: {}", user.getId());
+                messagingTemplate.convertAndSendToUser(
+                    user.getId().toString(),
+                    "/queue/verification/approved",
+                    notification
+                );
+                log.info("WebSocket approval notification sent to user ID: {}", user.getId());
+            } catch (Exception e) {
+                log.error("Failed to send WebSocket approval notification to user {}: {}", user.getId(), e.getMessage(), e);
+                // Don't fail the approval if WebSocket fails
+            }
+        } else {
+            log.info("WebSocket notification skipped for user ID {} - preference disabled", user.getId());
         }
 
         return new ApprovalResponse(true, "User approved successfully");
@@ -133,6 +173,11 @@ public class AdminVerificationService {
         }
 
         user.setAccountStatus(AccountStatus.PENDING_ADMIN_APPROVAL);
+        
+        // Automatically enable email notifications upon email verification
+        user.setEmailNotificationsEnabled(true);
+        log.info("Email notifications automatically enabled for user: {} during manual verification", user.getEmail());
+        
         userRepository.save(user);
 
         verificationTokenRepository.findTopByUserIdOrderByCreatedAtDesc(userId)
