@@ -33,9 +33,9 @@ class ValidPasswordValidatorTest {
 
     @BeforeEach
     void setUp() {
-        when(context.buildConstraintViolationWithTemplate(any()))
-            .thenReturn(violationBuilder);
-        when(violationBuilder.addConstraintViolation()).thenReturn(context);
+        lenient().when(context.buildConstraintViolationWithTemplate(any()))
+                .thenReturn(violationBuilder);
+        lenient().when(violationBuilder.addConstraintViolation()).thenReturn(context);
     }
 
     @Test
@@ -53,7 +53,7 @@ class ValidPasswordValidatorTest {
         // Given
         String password = "SecurePass123!";
         when(passwordValidator.validatePassword(password))
-            .thenReturn(Collections.emptyList());
+                .thenReturn(Collections.emptyList());
 
         // When
         boolean result = validPasswordValidator.isValid(password, context);
@@ -69,10 +69,9 @@ class ValidPasswordValidatorTest {
         // Given
         String password = "weak";
         when(passwordValidator.validatePassword(password))
-            .thenReturn(Arrays.asList(
-                "Password must be at least 10 characters long",
-                "Password must contain at least one uppercase letter"
-            ));
+                .thenReturn(Arrays.asList(
+                        "Password must be at least 10 characters long",
+                        "Password must contain at least one uppercase letter"));
 
         // When
         boolean result = validPasswordValidator.isValid(password, context);
@@ -82,8 +81,7 @@ class ValidPasswordValidatorTest {
         verify(passwordValidator).validatePassword(password);
         verify(context).disableDefaultConstraintViolation();
         verify(context).buildConstraintViolationWithTemplate(
-            "Password must be at least 10 characters long; Password must contain at least one uppercase letter"
-        );
+                "Password must be at least 10 characters long; Password must contain at least one uppercase letter");
     }
 
     @Test
@@ -91,10 +89,9 @@ class ValidPasswordValidatorTest {
         // Given - The actual password the user tried
         String password = "receiver1234";
         when(passwordValidator.validatePassword(password))
-            .thenReturn(Arrays.asList(
-                "Password must contain at least one uppercase letter",
-                "Password must contain at least one special character (!@#$%^&*()_+-=[]{}|;:,.<>?)"
-            ));
+                .thenReturn(Arrays.asList(
+                        "Password must contain at least one uppercase letter",
+                        "Password must contain at least one special character (!@#$%^&*()_+-=[]{}|;:,.<>?)"));
 
         // When
         boolean result = validPasswordValidator.isValid(password, context);
@@ -105,4 +102,3 @@ class ValidPasswordValidatorTest {
         verify(context).disableDefaultConstraintViolation();
     }
 }
-

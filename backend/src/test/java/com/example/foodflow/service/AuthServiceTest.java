@@ -470,13 +470,13 @@ class AuthServiceTest {
         user.setPassword("encoded-old-password");
 
         when(passwordEncoder.matches("oldPassword123", "encoded-old-password")).thenReturn(true);
-        when(passwordEncoder.matches("reusedPassword123!", "encoded-old-password")).thenReturn(false);
-        when(passwordValidator.validatePassword("reusedPassword123!")).thenReturn(java.util.Collections.emptyList());
-        when(passwordValidator.isPasswordInHistory(user, "reusedPassword123!")).thenReturn(true);
+        when(passwordEncoder.matches("reusedTestSecure123!", "encoded-old-password")).thenReturn(false);
+        when(passwordValidator.validatePassword("reusedTestSecure123!")).thenReturn(java.util.Collections.emptyList());
+        when(passwordValidator.isPasswordInHistory(user, "reusedTestSecure123!")).thenReturn(true);
 
         // When & Then
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> authService.changePassword(user, "oldPassword123", "reusedPassword123!", "reusedPassword123!"));
+                () -> authService.changePassword(user, "oldPassword123", "reusedTestSecure123!", "reusedTestSecure123!"));
 
         assertTrue(ex.getMessage().contains("cannot reuse a recent password"));
         verify(userRepository, never()).save(any(User.class));

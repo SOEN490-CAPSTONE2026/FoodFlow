@@ -122,7 +122,7 @@ class PasswordValidatorTest {
     @Test
     void validatePassword_CommonPassword_ReturnsError() {
         // Given
-        String commonPassword = "Password123!";
+        String commonPassword = "password123!";
 
         // When
         List<String> errors = passwordValidator.validatePassword(commonPassword);
@@ -184,7 +184,7 @@ class PasswordValidatorTest {
         history.add(entry2);
 
         when(passwordHistoryRepository.findTopNByUserIdOrderByCreatedAtDesc(1L, 3))
-            .thenReturn(history);
+                .thenReturn(history);
         when(passwordEncoder.matches(newPassword, "oldHash1")).thenReturn(false);
         when(passwordEncoder.matches(newPassword, "oldHash2")).thenReturn(false);
 
@@ -210,7 +210,7 @@ class PasswordValidatorTest {
         history.add(entry2);
 
         when(passwordHistoryRepository.findTopNByUserIdOrderByCreatedAtDesc(1L, 3))
-            .thenReturn(history);
+                .thenReturn(history);
         when(passwordEncoder.matches(reusedPassword, "oldHash1")).thenReturn(false);
         when(passwordEncoder.matches(reusedPassword, "reusedHash")).thenReturn(true);
 
@@ -230,9 +230,9 @@ class PasswordValidatorTest {
         String passwordHash = "hashedPassword123";
 
         when(passwordHistoryRepository.save(any(PasswordHistory.class)))
-            .thenReturn(new PasswordHistory(user, passwordHash));
+                .thenReturn(new PasswordHistory(user, passwordHash));
         when(passwordHistoryRepository.findByUserIdOrderByCreatedAtDesc(1L))
-            .thenReturn(new ArrayList<>());
+                .thenReturn(new ArrayList<>());
 
         // When
         passwordValidator.savePasswordToHistory(user, passwordHash);
@@ -255,9 +255,9 @@ class PasswordValidatorTest {
         }
 
         when(passwordHistoryRepository.save(any(PasswordHistory.class)))
-            .thenReturn(new PasswordHistory(user, passwordHash));
+                .thenReturn(new PasswordHistory(user, passwordHash));
         when(passwordHistoryRepository.findByUserIdOrderByCreatedAtDesc(1L))
-            .thenReturn(allHistory);
+                .thenReturn(allHistory);
 
         // When
         passwordValidator.savePasswordToHistory(user, passwordHash);
@@ -282,4 +282,3 @@ class PasswordValidatorTest {
         assertTrue(description.contains("3 passwords"));
     }
 }
-

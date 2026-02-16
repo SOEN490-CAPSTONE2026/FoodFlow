@@ -17,9 +17,7 @@ public class RegisterReceiverRequest {
     @ValidPassword
     private String password;
 
-    @NotBlank(message = "{validation.organizationName.required}")
-    @NotBlank
-    @Size(min = 8)
+    @NotBlank(message = "Password confirmation is required")
     private String confirmPassword;
 
     @NotBlank

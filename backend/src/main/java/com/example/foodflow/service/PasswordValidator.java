@@ -43,6 +43,7 @@ public class PasswordValidator {
     private final PasswordEncoder passwordEncoder;
 
     // Common weak passwords list (top 100 most common)
+    // Note: All passwords are stored in lowercase for case-insensitive comparison
     private static final Set<String> COMMON_PASSWORDS = new HashSet<>(Arrays.asList(
         "password", "123456", "12345678", "qwerty", "abc123", "monkey", "1234567", "letmein",
         "trustno1", "dragon", "baseball", "111111", "iloveyou", "master", "sunshine", "ashley",
@@ -55,7 +56,8 @@ public class PasswordValidator {
         "admin123", "qwertyuiop", "1234567890", "abcdefgh", "password12", "computer", "maverick",
         "phoenix", "12345", "cheese", "ranger", "flower", "password!", "p@ssw0rd", "changeme",
         "hello", "access", "hello123", "password1!", "123qwe", "abc12345", "temp123", "default",
-        "letmein123", "admin1", "welcome123", "test1234", "guest", "demo", "user", "root"
+        "letmein123", "admin1", "welcome123", "test1234", "guest", "demo", "user", "root",
+        "password123!", "password@123", "pass123", "pass@123"
     ));
 
     public PasswordValidator(PasswordHistoryRepository passwordHistoryRepository,
