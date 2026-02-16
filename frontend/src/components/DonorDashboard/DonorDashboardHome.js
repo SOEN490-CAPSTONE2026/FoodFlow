@@ -68,24 +68,6 @@ export default function DonorDashboardHome({ stats, chartData }) {
       <h1>{t('donorDashboardHome.dashboard')}</h1>
       <p className="subtitle">{t('donorDashboardHome.subtitle')}</p>
 
-      {/* AI Donation Quick Action */}
-      <div className="ai-quick-action">
-        <button
-          className="ai-donation-cta"
-          onClick={() => navigate('/donor/ai-donation')}
-        >
-          <Sparkles className="ai-icon" size={24} />
-          <div className="cta-content">
-            <h3>Create Donation with AI</h3>
-            <p>
-              Upload a food label photo and let AI fill out the details
-              automatically
-            </p>
-          </div>
-          <span className="cta-arrow">→</span>
-        </button>
-      </div>
-
       {/* Quick Metrics Overview */}
       <div className="donor-metrics-overview">
         <div className="metric-card">

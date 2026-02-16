@@ -18,6 +18,7 @@ import {
   ChevronRight,
   Upload,
   Star,
+  Sparkles,
 } from 'lucide-react';
 import { useLoadScript } from '@react-google-maps/api';
 import { surplusAPI, claimsAPI, reportAPI } from '../../services/api';
@@ -768,16 +769,25 @@ export default function DonorListFood() {
           </div>
         </div>
 
-        <button
-          className="donor-add-button"
-          onClick={() => {
-            setIsEditMode(false);
-            setEditPostId(null);
-            setIsModalOpen(true);
-          }}
-        >
-          + {t('donorListFood.donateMore')}
-        </button>
+        <div className="header-actions">
+          <button
+            className="donor-ai-button"
+            onClick={() => navigate('/donor/ai-donation')}
+          >
+            <Sparkles size={18} />
+            Create with AI
+          </button>
+          <button
+            className="donor-add-button"
+            onClick={() => {
+              setIsEditMode(false);
+              setEditPostId(null);
+              setIsModalOpen(true);
+            }}
+          >
+            + {t('donorListFood.donateMore')}
+          </button>
+        </div>
         {isLoaded && (
           <SurplusFormModal
             isOpen={isModalOpen}
