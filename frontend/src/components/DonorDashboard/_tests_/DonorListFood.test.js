@@ -24,13 +24,6 @@ jest.mock('@react-google-maps/api', () => ({
   }),
 }));
 
-jest.mock('../../../constants/foodConstants', () => ({
-  getFoodTypeLabel: value => value || '',
-  getUnitLabel: value => value || '',
-  getTemperatureCategoryLabel: value => value || '',
-  getTemperatureCategoryIcon: () => null,
-  getPackagingTypeLabel: value => value || '',
-}));
 jest.mock('../SurplusFormModal', () => {
   return function MockSurplusFormModal({ isOpen, onClose }) {
     return isOpen ? (
@@ -91,25 +84,29 @@ jest.mock('../../../constants/foodConstants', () => ({
     };
     return mapping[value] || value;
   },
+  getTemperatureCategoryLabel: value => value || '',
+  getTemperatureCategoryIcon: () => null,
+  getPackagingTypeLabel: value => value || '',
 }));
 
 jest.mock('lucide-react', () => ({
-  Calendar: () => 'CalendarIcon',
-  Clock: () => 'ClockIcon',
-  MapPin: () => 'MapPinIcon',
-  Edit: () => 'EditIcon',
-  Trash2: () => 'TrashIcon',
-  AlertTriangle: () => 'AlertIcon',
-  X: () => 'XIcon',
-  Package: () => 'PackageIcon',
-  ChevronDown: () => 'ChevronDownIcon',
-  Filter: () => 'FilterIcon',
-  Camera: () => 'CameraIcon',
-  Image: () => 'ImageIcon',
-  ChevronLeft: () => 'ChevronLeftIcon',
-  ChevronRight: () => 'ChevronRightIcon',
-  Upload: () => 'UploadIcon',
-  Star: () => 'StarIcon',
+  Calendar: () => <span>CalendarIcon</span>,
+  Clock: () => <span>ClockIcon</span>,
+  MapPin: () => <span>MapPinIcon</span>,
+  Edit: () => <span>EditIcon</span>,
+  Trash2: () => <span>TrashIcon</span>,
+  AlertTriangle: () => <span>AlertIcon</span>,
+  X: () => <span>XIcon</span>,
+  Package: () => <span>PackageIcon</span>,
+  ChevronDown: () => <span>ChevronDownIcon</span>,
+  Filter: () => <span>FilterIcon</span>,
+  Camera: () => <span>CameraIcon</span>,
+  Image: () => <span>ImageIcon</span>,
+  ChevronLeft: () => <span>ChevronLeftIcon</span>,
+  ChevronRight: () => <span>ChevronRightIcon</span>,
+  Upload: () => <span>UploadIcon</span>,
+  Star: () => <span>StarIcon</span>,
+  MessageCircle: () => <span>MessageCircleIcon</span>,
 }));
 
 jest.mock('../../shared/DonationTimeline', () => {
