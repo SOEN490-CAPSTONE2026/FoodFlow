@@ -10,215 +10,227 @@ jest.mock('../../services/api');
 
 // Mock react-i18next
 jest.mock('react-i18next', () => ({
-    useTranslation: () => ({
-        t: (key) => key,
-    }),
+  useTranslation: () => ({
+    t: key => key,
+  }),
 }));
 
 const mockLogin = jest.fn();
 const mockNavigate = jest.fn();
 
 jest.mock('react-router-dom', () => ({
-    ...jest.requireActual('react-router-dom'),
-    useNavigate: () => mockNavigate,
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockNavigate,
 }));
 
-const renderWithContext = (component) => {
-    return render(
-        <AuthContext.Provider value={{ login: mockLogin }}>
-            <BrowserRouter>
-                {component}
-            </BrowserRouter>
-        </AuthContext.Provider>
-    );
+const renderWithContext = component => {
+  return render(
+    <AuthContext.Provider value={{ login: mockLogin }}>
+      <BrowserRouter>{component}</BrowserRouter>
+    </AuthContext.Provider>
+  );
 };
 
 describe('ReceiverRegistration - Password Validation', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-        authAPI.checkEmailExists = jest.fn().mockResolvedValue({ data: { exists: false } });
-        authAPI.checkPhoneExists = jest.fn().mockResolvedValue({ data: { exists: false } });
+  beforeEach(() => {
+    jest.clearAllMocks();
+    authAPI.checkEmailExists = jest
+      .fn()
+      .mockResolvedValue({ data: { exists: false } });
+    authAPI.checkPhoneExists = jest
+      .fn()
+      .mockResolvedValue({ data: { exists: false } });
+  });
+
+  test('should show error for password shorter than 10 characters', async () => {
+    renderWithContext(<ReceiverRegistration />);
+
+    const passwordInput = screen.getByPlaceholderText('Enter your password');
+    fireEvent.change(passwordInput, { target: { value: 'Short1!' } });
+    fireEvent.blur(passwordInput);
+
+    await waitFor(() => {
+      expect(screen.getByText(/at least 10 characters/i)).toBeInTheDocument();
+    });
+  });
+
+  test('should show error for password without uppercase letter', async () => {
+    renderWithContext(<ReceiverRegistration />);
+
+    const passwordInput = screen.getByPlaceholderText('Enter your password');
+    fireEvent.change(passwordInput, { target: { value: 'lowercase123!' } });
+    fireEvent.blur(passwordInput);
+
+    await waitFor(() => {
+      expect(screen.getByText(/uppercase letter/i)).toBeInTheDocument();
+    });
+  });
+
+  test('should show error for password without lowercase letter', async () => {
+    renderWithContext(<ReceiverRegistration />);
+
+    const passwordInput = screen.getByPlaceholderText('Enter your password');
+    fireEvent.change(passwordInput, { target: { value: 'UPPERCASE123!' } });
+    fireEvent.blur(passwordInput);
+
+    await waitFor(() => {
+      expect(screen.getByText(/lowercase letter/i)).toBeInTheDocument();
+    });
+  });
+
+  test('should show error for password without digit', async () => {
+    renderWithContext(<ReceiverRegistration />);
+
+    const passwordInput = screen.getByPlaceholderText('Enter your password');
+    fireEvent.change(passwordInput, { target: { value: 'NoDigitsHere!' } });
+    fireEvent.blur(passwordInput);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/contain at least one digit/i)
+      ).toBeInTheDocument();
+    });
+  });
+
+  test('should show error for password without special character', async () => {
+    renderWithContext(<ReceiverRegistration />);
+
+    const passwordInput = screen.getByPlaceholderText('Enter your password');
+    fireEvent.change(passwordInput, { target: { value: 'NoSpecial123' } });
+    fireEvent.blur(passwordInput);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/contain at least one special character/i)
+      ).toBeInTheDocument();
+    });
+  });
+
+  test('should show error for common password', async () => {
+    renderWithContext(<ReceiverRegistration />);
+
+    const passwordInput = screen.getByPlaceholderText('Enter your password');
+    fireEvent.change(passwordInput, { target: { value: 'password' } });
+    fireEvent.blur(passwordInput);
+
+    await waitFor(() => {
+      expect(screen.getByText(/too common/i)).toBeInTheDocument();
+    });
+  });
+
+  test('should accept valid password', async () => {
+    renderWithContext(<ReceiverRegistration />);
+
+    const passwordInput = screen.getByPlaceholderText('Enter your password');
+    fireEvent.change(passwordInput, { target: { value: 'SecurePass123!' } });
+    fireEvent.blur(passwordInput);
+
+    await waitFor(() => {
+      const errorElements = screen.queryAllByText(/password must/i);
+      expect(errorElements.length).toBe(0);
+    });
+  });
+
+  test('should show error when passwords do not match', async () => {
+    renderWithContext(<ReceiverRegistration />);
+
+    const passwordInput = screen.getByPlaceholderText('Enter your password');
+    const confirmPasswordInput = screen.getByPlaceholderText(
+      'Re-enter your password'
+    );
+
+    fireEvent.change(passwordInput, { target: { value: 'SecurePass123!' } });
+    fireEvent.change(confirmPasswordInput, {
+      target: { value: 'DifferentPass456!' },
+    });
+    fireEvent.blur(confirmPasswordInput);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/receiverRegistration.passwordMismatch/i)
+      ).toBeInTheDocument();
+    });
+  });
+
+  test('should display password policy hint', () => {
+    renderWithContext(<ReceiverRegistration />);
+
+    expect(screen.getByText(/minimum 10 characters/i)).toBeInTheDocument();
+    expect(screen.getByText(/uppercase/i)).toBeInTheDocument();
+    expect(screen.getByText(/lowercase/i)).toBeInTheDocument();
+    expect(screen.getByText(/digit/i)).toBeInTheDocument();
+    expect(screen.getByText(/special character/i)).toBeInTheDocument();
+  });
+
+  test('should prevent form submission with weak password', async () => {
+    authAPI.registerReceiver = jest.fn();
+    renderWithContext(<ReceiverRegistration />);
+
+    // Fill in all required fields
+    fireEvent.change(screen.getByPlaceholderText('Enter your email address'), {
+      target: { value: 'test@example.com' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('Enter your password'), {
+      target: { value: 'weak' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('Re-enter your password'), {
+      target: { value: 'weak' },
     });
 
-    test('should show error for password shorter than 10 characters', async () => {
-        renderWithContext(<ReceiverRegistration />);
+    // Try to proceed to next step
+    const nextButton = screen.getByText(/next/i);
+    fireEvent.click(nextButton);
 
-        const passwordInput = screen.getByPlaceholderText('Enter your password');
-        fireEvent.change(passwordInput, { target: { value: 'Short1!' } });
-        fireEvent.blur(passwordInput);
+    await waitFor(() => {
+      expect(authAPI.registerReceiver).not.toHaveBeenCalled();
+    });
+  });
 
-        await waitFor(() => {
-            expect(screen.getByText(/at least 10 characters/i)).toBeInTheDocument();
-        });
+  test('should allow form submission with strong password', async () => {
+    authAPI.registerReceiver = jest.fn().mockResolvedValue({
+      data: {
+        token: 'test-token',
+        role: 'RECEIVER',
+        userId: 1,
+        organizationName: 'Test Org',
+        verificationStatus: 'pending_verification',
+        accountStatus: 'PENDING_VERIFICATION',
+      },
     });
 
-    test('should show error for password without uppercase letter', async () => {
-        renderWithContext(<ReceiverRegistration />);
+    renderWithContext(<ReceiverRegistration />);
 
-        const passwordInput = screen.getByPlaceholderText('Enter your password');
-        fireEvent.change(passwordInput, { target: { value: 'lowercase123!' } });
-        fireEvent.blur(passwordInput);
-
-        await waitFor(() => {
-            expect(screen.getByText(/uppercase letter/i)).toBeInTheDocument();
-        });
+    // Fill in step 1 - Account Credentials
+    fireEvent.change(screen.getByPlaceholderText('Enter your email address'), {
+      target: { value: 'test@example.com' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('Enter your password'), {
+      target: { value: 'SecurePass123!' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('Re-enter your password'), {
+      target: { value: 'SecurePass123!' },
     });
 
-    test('should show error for password without lowercase letter', async () => {
-        renderWithContext(<ReceiverRegistration />);
+    // Click next
+    const nextButton = screen.getByText(/next/i);
+    fireEvent.click(nextButton);
 
-        const passwordInput = screen.getByPlaceholderText('Enter your password');
-        fireEvent.change(passwordInput, { target: { value: 'UPPERCASE123!' } });
-        fireEvent.blur(passwordInput);
-
-        await waitFor(() => {
-            expect(screen.getByText(/lowercase letter/i)).toBeInTheDocument();
-        });
+    await waitFor(() => {
+      expect(authAPI.checkEmailExists).toHaveBeenCalledWith('test@example.com');
     });
+  });
 
-    test('should show error for password without digit', async () => {
-        renderWithContext(<ReceiverRegistration />);
+  test('should reject password "receiver1234" as weak', async () => {
+    renderWithContext(<ReceiverRegistration />);
 
-        const passwordInput = screen.getByPlaceholderText('Enter your password');
-        fireEvent.change(passwordInput, { target: { value: 'NoDigitsHere!' } });
-        fireEvent.blur(passwordInput);
+    const passwordInput = screen.getByPlaceholderText('Enter your password');
+    fireEvent.change(passwordInput, { target: { value: 'receiver1234' } });
+    fireEvent.blur(passwordInput);
 
-        await waitFor(() => {
-            expect(screen.getByText(/contain at least one digit/i)).toBeInTheDocument();
-        });
+    await waitFor(() => {
+      // Should have multiple errors
+      const errors = screen.getAllByText(/password must/i);
+      expect(errors.length).toBeGreaterThan(0);
     });
-
-    test('should show error for password without special character', async () => {
-        renderWithContext(<ReceiverRegistration />);
-
-        const passwordInput = screen.getByPlaceholderText('Enter your password');
-        fireEvent.change(passwordInput, { target: { value: 'NoSpecial123' } });
-        fireEvent.blur(passwordInput);
-
-        await waitFor(() => {
-            expect(screen.getByText(/contain at least one special character/i)).toBeInTheDocument();
-        });
-    });
-
-    test('should show error for common password', async () => {
-        renderWithContext(<ReceiverRegistration />);
-
-        const passwordInput = screen.getByPlaceholderText('Enter your password');
-        fireEvent.change(passwordInput, { target: { value: 'password' } });
-        fireEvent.blur(passwordInput);
-
-        await waitFor(() => {
-            expect(screen.getByText(/too common/i)).toBeInTheDocument();
-        });
-    });
-
-    test('should accept valid password', async () => {
-        renderWithContext(<ReceiverRegistration />);
-
-        const passwordInput = screen.getByPlaceholderText('Enter your password');
-        fireEvent.change(passwordInput, { target: { value: 'SecurePass123!' } });
-        fireEvent.blur(passwordInput);
-
-        await waitFor(() => {
-            const errorElements = screen.queryAllByText(/password must/i);
-            expect(errorElements.length).toBe(0);
-        });
-    });
-
-    test('should show error when passwords do not match', async () => {
-        renderWithContext(<ReceiverRegistration />);
-
-        const passwordInput = screen.getByPlaceholderText('Enter your password');
-        const confirmPasswordInput = screen.getByPlaceholderText('Re-enter your password');
-
-        fireEvent.change(passwordInput, { target: { value: 'SecurePass123!' } });
-        fireEvent.change(confirmPasswordInput, { target: { value: 'DifferentPass456!' } });
-        fireEvent.blur(confirmPasswordInput);
-
-        await waitFor(() => {
-            expect(screen.getByText(/receiverRegistration.passwordMismatch/i)).toBeInTheDocument();
-        });
-    });
-
-    test('should display password policy hint', () => {
-        renderWithContext(<ReceiverRegistration />);
-
-        expect(screen.getByText(/minimum 10 characters/i)).toBeInTheDocument();
-        expect(screen.getByText(/uppercase/i)).toBeInTheDocument();
-        expect(screen.getByText(/lowercase/i)).toBeInTheDocument();
-        expect(screen.getByText(/digit/i)).toBeInTheDocument();
-        expect(screen.getByText(/special character/i)).toBeInTheDocument();
-    });
-
-    test('should prevent form submission with weak password', async () => {
-        authAPI.registerReceiver = jest.fn();
-        renderWithContext(<ReceiverRegistration />);
-
-        // Fill in all required fields
-        fireEvent.change(screen.getByPlaceholderText('Enter your email address'), {
-            target: { value: 'test@example.com' }
-        });
-        fireEvent.change(screen.getByPlaceholderText('Enter your password'), {
-            target: { value: 'weak' }
-        });
-        fireEvent.change(screen.getByPlaceholderText('Re-enter your password'), {
-            target: { value: 'weak' }
-        });
-
-        // Try to proceed to next step
-        const nextButton = screen.getByText(/next/i);
-        fireEvent.click(nextButton);
-
-        await waitFor(() => {
-            expect(authAPI.registerReceiver).not.toHaveBeenCalled();
-        });
-    });
-
-    test('should allow form submission with strong password', async () => {
-        authAPI.registerReceiver = jest.fn().mockResolvedValue({
-            data: {
-                token: 'test-token',
-                role: 'RECEIVER',
-                userId: 1,
-                organizationName: 'Test Org',
-                verificationStatus: 'pending_verification',
-                accountStatus: 'PENDING_VERIFICATION'
-            }
-        });
-
-        renderWithContext(<ReceiverRegistration />);
-
-        // Fill in step 1 - Account Credentials
-        fireEvent.change(screen.getByPlaceholderText('Enter your email address'), {
-            target: { value: 'test@example.com' }
-        });
-        fireEvent.change(screen.getByPlaceholderText('Enter your password'), {
-            target: { value: 'SecurePass123!' }
-        });
-        fireEvent.change(screen.getByPlaceholderText('Re-enter your password'), {
-            target: { value: 'SecurePass123!' }
-        });
-
-        // Click next
-        const nextButton = screen.getByText(/next/i);
-        fireEvent.click(nextButton);
-
-        await waitFor(() => {
-            expect(authAPI.checkEmailExists).toHaveBeenCalledWith('test@example.com');
-        });
-    });
-
-    test('should reject password "receiver1234" as weak', async () => {
-        renderWithContext(<ReceiverRegistration />);
-
-        const passwordInput = screen.getByPlaceholderText('Enter your password');
-        fireEvent.change(passwordInput, { target: { value: 'receiver1234' } });
-        fireEvent.blur(passwordInput);
-
-        await waitFor(() => {
-            // Should have multiple errors
-            const errors = screen.getAllByText(/password must/i);
-            expect(errors.length).toBeGreaterThan(0);
-        });
-    });
+  });
 });

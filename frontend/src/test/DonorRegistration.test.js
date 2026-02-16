@@ -58,7 +58,10 @@ const fillAllFields = async user => {
     'donor@example.com'
   );
   await user.type(screen.getByLabelText(/^password$/i), 'SecurePass123!');
-  await user.type(screen.getByLabelText(/^confirm password$/i), 'SecurePass123!');
+  await user.type(
+    screen.getByLabelText(/^confirm password$/i),
+    'SecurePass123!'
+  );
   await user.click(screen.getByRole('button', { name: /next/i }));
 
   // Step 2: Organization Info
