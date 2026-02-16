@@ -1,0 +1,269 @@
+.location-permission-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000; /* Very high to be above everything */
+  padding: 20px;
+}
+
+.location-permission-dialog {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 520px;
+  width: 100%;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+  z-index: 10001; /* Higher than overlay */
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.permission-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1b4965 0%, #2c5f7d 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+  color: white;
+}
+
+.location-permission-dialog h2 {
+  text-align: center;
+  margin: 0 0 12px 0;
+  font-size: 24px;
+  color: #1b4965;
+}
+
+.permission-description {
+  text-align: center;
+  color: #666;
+  margin: 0 0 24px 0;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.error-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  background: #fee;
+  border: 1px solid #fcc;
+  border-radius: 8px;
+  color: #c33;
+  font-size: 14px;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.permission-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.permission-option {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.permission-option:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.permission-option.primary {
+  background: #1b4965;
+  color: white;
+  border-color: #1b4965;
+}
+
+.permission-option.primary:hover:not(:disabled) {
+  background: #2c5f7d;
+  border-color: #2c5f7d;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(27, 73, 101, 0.3);
+}
+
+.permission-option.secondary {
+  background: white;
+  color: #333;
+  border-color: #ddd;
+}
+
+.permission-option.secondary:hover:not(:disabled) {
+  border-color: #1b4965;
+  background: #f8fafb;
+}
+
+.permission-option.manual-option {
+  cursor: default;
+  align-items: flex-start;
+}
+
+.permission-option.manual-option:hover {
+  transform: none;
+}
+
+.option-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.option-content.full-width {
+  width: 100%;
+}
+
+.option-title {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.option-subtitle {
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.permission-option.secondary .option-subtitle {
+  color: #666;
+}
+
+.manual-location-input {
+  margin-top: 8px;
+  width: 100%;
+  position: relative;
+  z-index: 10002; /* Ensure autocomplete dropdown appears above dialog */
+}
+
+.location-search-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s;
+  position: relative;
+  z-index: 10003;
+}
+
+/* Google autocomplete dropdown styling */
+.pac-container {
+  z-index: 10004 !important; /* Force above everything */
+  border-radius: 8px;
+  margin-top: 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.location-search-input:focus {
+  outline: none;
+  border-color: #1b4965;
+  box-shadow: 0 0 0 3px rgba(27, 73, 101, 0.1);
+}
+
+.location-search-input:disabled {
+  background: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.permission-help {
+  background: #f8fafb;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 20px;
+}
+
+.help-title {
+  font-weight: 600;
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: #1b4965;
+}
+
+.permission-help ol {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 13px;
+  color: #666;
+  line-height: 1.8;
+}
+
+.permission-help li {
+  margin-bottom: 4px;
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+  .location-permission-dialog {
+    padding: 24px;
+    max-width: 100%;
+  }
+
+  .permission-icon {
+    width: 64px;
+    height: 64px;
+  }
+
+  .location-permission-dialog h2 {
+    font-size: 20px;
+  }
+
+  .permission-description {
+    font-size: 14px;
+  }
+
+  .permission-option {
+    padding: 12px;
+  }
+}

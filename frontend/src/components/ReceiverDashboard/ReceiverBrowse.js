@@ -28,6 +28,8 @@ import {
 } from '../../constants/foodConstants';
 import { useTimezone } from '../../contexts/TimezoneContext';
 import FiltersPanel from './FiltersPanel';
+import MapViewBanner from './DonationsMap/MapViewBanner';
+import MapViewModal from './DonationsMap/MapViewModal';
 import './ReceiverBrowseModal.css';
 import './ReceiverBrowse.css';
 
@@ -71,6 +73,8 @@ export default function ReceiverBrowse() {
   const [sortBy, setSortBy] = useState('relevance');
   const [hoveredRecommended, setHoveredRecommended] = useState(null);
   const [recommendations, setRecommendations] = useState({});
+  const [mapViewOpen, setMapViewOpen] = useState(false);
+  const [userLocation, setUserLocation] = useState(null);
 
   const getRecommendationData = item => {
     // Mock logic to determine if item is recommended
@@ -210,6 +214,43 @@ export default function ReceiverBrowse() {
     },
     [t]
   );
+
+  //======================================
+  // Donations Map Helpers
+  //======================================
+  const getNearbyCount = useCallback(() => {
+    if (!filters.locationCoords) return items.length;
+
+    return items.filter(item => {
+      if (!item.pickupLocation) return false;
+
+      const distance = calculateDistance(
+        filters.locationCoords.lat,
+        filters.locationCoords.lng,
+        item.pickupLocation.latitude,
+        item.pickupLocation.longitude
+      );
+
+      return distance <= (filters.distance || 10);
+    }).length;
+  }, [items, filters]);
+
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  //=================================================
+  //=================================================
 
   const handleClaimDonation = useCallback(
     item => {
@@ -399,6 +440,15 @@ export default function ReceiverBrowse() {
           onClearFilters={handleClearFilters}
           isVisible={isFiltersVisible}
           onClose={handleCloseFilters}
+        />
+      )}
+
+      {isLoaded && (
+        <MapViewBanner
+          onOpenMap={() => setMapViewOpen(true)}
+          nearbyCount={getNearbyCount()}
+          distanceRadius={filters.distance || 10}
+          hasLocation={!!filters.locationCoords}
         />
       )}
 
@@ -838,6 +888,20 @@ export default function ReceiverBrowse() {
         }}
         loading={claiming}
         formatFn={formatPickupTime}
+      />
+
+      <MapViewModal
+        isOpen={mapViewOpen}
+        onClose={() => setMapViewOpen(false)}
+        donations={items}
+        filters={filters}
+        onFiltersChange={handleFiltersChange}
+        onClaimClick={donation => {
+          setClaimTargetItem(donation);
+          setClaimModalOpen(true);
+        }}
+        isLoaded={isLoaded}
+        savedLocation={userLocation}
       />
     </div>
   );
