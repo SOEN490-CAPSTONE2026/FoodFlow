@@ -1,6 +1,7 @@
 package com.example.foodflow.model.dto;
 
 import com.example.foodflow.model.entity.OrganizationType;
+import com.example.foodflow.validation.ValidPassword;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -11,7 +12,7 @@ public class RegisterDonorRequest {
     private String email;
 
     @NotBlank(message = "{validation.password.required}")
-    @Size(min = 8, message = "{validation.password.minLength}")
+    @ValidPassword
     private String password;
 
     @NotBlank(message = "{validation.organizationName.required}")
