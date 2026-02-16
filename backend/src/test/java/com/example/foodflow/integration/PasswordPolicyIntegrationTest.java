@@ -16,7 +16,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Integration tests for password policy enforcement across registration and password management flows
+ * Integration tests for password policy enforcement across registration and
+ * password management flows
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -56,8 +57,8 @@ class PasswordPolicyIntegrationTest {
         // Given - Registration with common password
         RegisterDonorRequest request = new RegisterDonorRequest();
         request.setEmail("commonpass@test.com");
-        request.setPassword("Password123!");
-        request.setConfirmPassword("Password123!");
+        request.setPassword("password123!");
+        request.setConfirmPassword("password123!");
         request.setOrganizationName("Test Restaurant");
         request.setContactPerson("John Doe");
         request.setPhone("123-456-7890");
@@ -69,7 +70,8 @@ class PasswordPolicyIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("too common")));
+                .andExpect(jsonPath("$.fieldErrors[?(@.field=='password')].message").value(
+                        org.hamcrest.Matchers.hasItem(org.hamcrest.Matchers.containsString("too common"))));
     }
 
     @Test
@@ -90,7 +92,8 @@ class PasswordPolicyIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("uppercase")));
+                .andExpect(jsonPath("$.fieldErrors[?(@.field=='password')].message").value(
+                        org.hamcrest.Matchers.hasItem(org.hamcrest.Matchers.containsString("uppercase"))));
     }
 
     @Test
@@ -111,7 +114,8 @@ class PasswordPolicyIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("special character")));
+                .andExpect(jsonPath("$.fieldErrors[?(@.field=='password')].message").value(
+                        org.hamcrest.Matchers.hasItem(org.hamcrest.Matchers.containsString("special character"))));
     }
 
     @Test
@@ -156,11 +160,8 @@ class PasswordPolicyIntegrationTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.fieldErrors").exists())
                 .andExpect(jsonPath("$.fieldErrors[?(@.field=='password')].message").value(
-                    org.hamcrest.Matchers.hasItem(org.hamcrest.Matchers.anyOf(
-                        org.hamcrest.Matchers.containsString("uppercase"),
-                        org.hamcrest.Matchers.containsString("special character")
-                    ))
-                ));
+                        org.hamcrest.Matchers.hasItem(org.hamcrest.Matchers.anyOf(
+                                org.hamcrest.Matchers.containsString("uppercase"),
+                                org.hamcrest.Matchers.containsString("special character")))));
     }
 }
-
