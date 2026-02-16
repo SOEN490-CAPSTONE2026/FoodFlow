@@ -340,12 +340,15 @@ export default function AdminLayout() {
       </aside>
 
       <main className="admin-main">
-        <header className="admin-topbar">
-          <div className="admin-topbar-left">
-            <h1>{pageTitle}</h1>
-            <p>{pageDesc}</p>
-          </div>
-        </header>
+        {location.pathname !== '/admin' &&
+          location.pathname !== '/admin/dashboard' && (
+            <header className="admin-topbar">
+              <div className="admin-topbar-left">
+                <h1>{pageTitle}</h1>
+                <p>{pageDesc}</p>
+              </div>
+            </header>
+          )}
 
         <section className="admin-content">
           <Outlet />
