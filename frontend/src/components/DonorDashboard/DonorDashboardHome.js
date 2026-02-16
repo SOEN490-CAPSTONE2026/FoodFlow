@@ -1,7 +1,15 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import './Donor_Styles/Dashboards.css';
-import { BarChart3, PieChart, TrendingUp, Utensils, Inbox } from 'lucide-react';
+import {
+  BarChart3,
+  PieChart,
+  TrendingUp,
+  Utensils,
+  Inbox,
+  Sparkles,
+} from 'lucide-react';
 
 // Helper function to calculate doughnut chart values
 const calculateDoughnut = (data = []) => {
@@ -26,6 +34,7 @@ const calculateDoughnut = (data = []) => {
 };
 
 export default function DonorDashboardHome({ stats, chartData }) {
+  const navigate = useNavigate();
   const { t } = useTranslation();
   // Guard if no data provided
   if (!chartData || !stats) {
@@ -58,6 +67,24 @@ export default function DonorDashboardHome({ stats, chartData }) {
     <div className="donor-dashboard-home">
       <h1>{t('donorDashboardHome.dashboard')}</h1>
       <p className="subtitle">{t('donorDashboardHome.subtitle')}</p>
+
+      {/* AI Donation Quick Action */}
+      <div className="ai-quick-action">
+        <button
+          className="ai-donation-cta"
+          onClick={() => navigate('/donor/ai-donation')}
+        >
+          <Sparkles className="ai-icon" size={24} />
+          <div className="cta-content">
+            <h3>Create Donation with AI</h3>
+            <p>
+              Upload a food label photo and let AI fill out the details
+              automatically
+            </p>
+          </div>
+          <span className="cta-arrow">→</span>
+        </button>
+      </div>
 
       {/* Quick Metrics Overview */}
       <div className="donor-metrics-overview">
