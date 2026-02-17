@@ -502,4 +502,174 @@ describe('AIExtractionReview', () => {
     renderComponent({ data: dataWithInvalidDates });
     expect(screen.getByText(/review ai-extracted information/i)).toBeInTheDocument();
   });
+
+  // Additional Coverage Tests
+  test('renders MEDIUM confidence badge correctly', () => {
+    const mediumConfidenceData = {
+      ...mockData,
+      confidenceScores: {
+        foodName: 0.65, // MEDIUM confidence (50-79%)
+      },
+    };
+    renderComponent({ data: mediumConfidenceData });
+    expect(screen.getByText(/65%/i)).toBeInTheDocument();
+  });
+
+  test('renders LOW confidence badge correctly', () => {
+    const lowConfidenceData = {
+      ...mockData,
+      confidenceScores: {
+        foodName: 0.3, // LOW confidence (<50%)
+      },
+    };
+    renderComponent({ data: lowConfidenceData });
+    expect(screen.getByText(/30%/i)).toBeInTheDocument();
+  });
+
+  test('handles data without confidence scores', () => {
+    const dataWithoutScores = {
+      ...mockData,
+      confidenceScores: null,
+    };
+    renderComponent({ data: dataWithoutScores });
+    expect(screen.getByText(/review ai-extracted information/i)).toBeInTheDocument();
+  });
+
+  test('maps food categories correctly', () => {
+    const dataWithMultipleCategories = {
+      ...mockData,
+      foodCategories: ['FRUITS_VEGETABLES', 'DAIRY_COLD'],
+    };
+    renderComponent({ data: dataWithMultipleCategories });
+    expect(screen.getByText(/review ai-extracted information/i)).toBeInTheDocument();
+  });
+
+  test('handles empty food categories array', () => {
+    const dataWithEmptyCategories = {
+      ...mockData,
+      foodCategories: [],
+    };
+    renderComponent({ data: dataWithEmptyCategories });
+    expect(screen.getByText(/review ai-extracted information/i)).toBeInTheDocument();
+  });
+
+  test('handles null food categories', () => {
+    const dataWithNullCategories = {
+      ...mockData,
+      foodCategories: null,
+    };
+    renderComponent({ data: dataWithNullCategories });
+    expect(screen.getByText(/review ai-extracted information/i)).toBeInTheDocument();
+  });
+
+  test('handles data without fabrication date', () => {
+    const dataWithoutFabDate = {
+      ...mockData,
+      fabricationDate: null,
+    };
+    renderComponent({ data: dataWithoutFabDate });
+    expect(screen.getByText(/review ai-extracted information/i)).toBeInTheDocument();
+  });
+
+  test('renders autocomplete component', () => {
+    renderComponent();
+    const autocomplete = screen.getByTestId('autocomplete');
+    expect(autocomplete).toBeInTheDocument();
+  });
+
+  test('allows entering pickup location manually', async () => {
+    const user = userEvent.setup();
+    renderComponent();
+    
+    const locationInput = screen.getByPlaceholderText(/enter pickup address/i);
+    await user.type(locationInput, '456 Main St');
+    
+    expect(screen.getByDisplayValue('456 Main St')).toBeInTheDocument();
+  });
+
+  test('displays allergen warning note', () => {
+    const dataWithAllergens = {
+      ...mockData,
+      allergens: ['Peanuts'],
+    };
+    renderComponent({ data: dataWithAllergens });
+    expect(screen.getByText(/please verify and include allergen information/i)).toBeInTheDocument();
+  });
+
+  test('renders all date picker fields', () => {
+    renderComponent();
+    const datePickers = document.querySelectorAll('input[data-testid^="date-picker"]');
+    expect(datePickers.length).toBeGreaterThan(0);
+  });
+
+  test('form element exists and is properly structured', () => {
+    renderComponent();
+    const form = document.querySelector('form');
+    expect(form).toBeInTheDocument();
+    expect(form).toHaveClass('review-form');
+    expect(form.querySelector('.form-section')).toBeInTheDocument();
+  });
+
+  test('handles data with all AI confidence scores', () => {
+    const fullConfidenceData = {
+      ...mockData,
+      confidenceScores: {
+        foodName: 0.95,
+        foodCategories: 0.88,
+        quantityValue: 0.92,
+        temperatureCategory: 0.85,
+        packagingType: 0.90,
+        description: 0.80,
+        expiryDate: 0.75,
+        fabricationDate: 0.70,
+      },
+    };
+    renderComponent({ data: fullConfidenceData });
+    const aiBadges = screen.getAllByText(/ai/i);
+    expect(aiBadges.length).toBeGreaterThanOrEqual(6);
+  });
+
+  test('renders with minimum required data', () => {
+    const minimalData = {
+      foodName: 'Test Food',
+      foodCategories: ['FRUITS_VEGETABLES'],
+      quantityValue: 1,
+      quantityUnit: 'ITEM',
+      expiryDate: '2025-12-31',
+      description: 'Test',
+      temperatureCategory: 'ROOM_TEMPERATURE',
+      packagingType: 'SEALED',
+    };
+    renderComponent({ data: minimalData });
+    expect(screen.getByDisplayValue('Test Food')).toBeInTheDocument();
+  });
+
+  test('displays all required field labels', () => {
+    renderComponent();
+    expect(screen.getByText(/food name \*/i)).toBeInTheDocument();
+    expect(screen.getByText(/food categories \*/i)).toBeInTheDocument();
+    expect(screen.getByText(/temperature category \*/i)).toBeInTheDocument();
+    expect(screen.getByText(/packaging type \*/i)).toBeInTheDocument();
+    expect(screen.getByText(/quantity \*/i)).toBeInTheDocument();
+    expect(screen.getByText(/unit \*/i)).toBeInTheDocument();
+    expect(screen.getByText(/expiry date \*/i)).toBeInTheDocument();
+  });
+
+  test('renders with data that has no allergen info', () => {
+    const dataWithoutAllergens = {
+      ...mockData,
+      allergens: undefined,
+    };
+    renderComponent({ data: dataWithoutAllergens });
+    expect(screen.queryByText(/detected allergens/i)).not.toBeInTheDocument();
+  });
+
+  test('renders with empty allergens array', () => {
+    const dataWithEmptyAllergens = {
+      ...mockData,
+      allergens: [],
+    };
+    renderComponent({ data: dataWithEmptyAllergens });
+    expect(screen.queryByText(/detected allergens/i)).not.toBeInTheDocument();
+  });
 });
