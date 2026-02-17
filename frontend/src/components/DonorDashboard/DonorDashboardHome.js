@@ -1,7 +1,15 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import './Donor_Styles/Dashboards.css';
-import { BarChart3, PieChart, TrendingUp, Utensils, Inbox } from 'lucide-react';
+import {
+  BarChart3,
+  PieChart,
+  TrendingUp,
+  Utensils,
+  Inbox,
+  Sparkles,
+} from 'lucide-react';
 
 // Helper function to calculate doughnut chart values
 const calculateDoughnut = (data = []) => {
@@ -26,6 +34,7 @@ const calculateDoughnut = (data = []) => {
 };
 
 export default function DonorDashboardHome({ stats, chartData }) {
+  const navigate = useNavigate();
   const { t } = useTranslation();
   // Guard if no data provided
   if (!chartData || !stats) {

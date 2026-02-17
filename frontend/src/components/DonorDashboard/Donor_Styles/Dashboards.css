@@ -547,3 +547,106 @@ body {
     padding: 6px 8px;
   }
 }
+
+/* AI Donation CTA Button */
+.ai-quick-action {
+  margin: 1.5rem 0 2rem;
+}
+
+.ai-donation-cta {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.ai-donation-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.ai-icon {
+  flex-shrink: 0;
+  color: white;
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+@keyframes sparkle {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+.cta-content {
+  flex: 1;
+  text-align: left;
+}
+
+.cta-content h3 {
+  margin: 0 0 0.25rem 0;
+  color: white;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.cta-content p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.875rem;
+}
+
+.cta-arrow {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 300;
+  opacity: 0.8;
+  transition: transform 0.3s ease;
+}
+
+.ai-donation-cta:hover .cta-arrow {
+  transform: translateX(4px);
+}
+
+@media (max-width: 768px) {
+  .ai-donation-cta {
+    padding: 1.25rem;
+    gap: 0.75rem;
+  }
+
+  .cta-content h3 {
+    font-size: 1rem;
+  }
+
+  .cta-content p {
+    font-size: 0.8125rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .ai-donation-cta {
+    flex-direction: column;
+    text-align: center;
+    padding: 1rem;
+  }
+
+  .cta-content {
+    text-align: center;
+  }
+
+  .cta-arrow {
+    display: none;
+  }
+}
