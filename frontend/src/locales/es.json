@@ -723,7 +723,8 @@
     "events": "Eventos y horarios",
     "communications": "Comunicaciones entrantes",
     "guides": "Guías y soporte",
-    "administration": "Administración"
+    "administration": "Administración",
+    "welcomeBack": "Bienvenido de nuevo, {{name}}"
   },
   "claimedView": {
     "claimed": "Reclamado",

@@ -723,7 +723,8 @@
     "events": "活动和日程",
     "communications": "收到的通信",
     "guides": "指南和支持",
-    "administration": "管理"
+    "administration": "管理",
+    "welcomeBack": "欢迎回来，{{name}}"
   },
   "claimedView": {
     "claimed": "已认领",

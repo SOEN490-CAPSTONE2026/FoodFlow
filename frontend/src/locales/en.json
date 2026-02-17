@@ -743,7 +743,8 @@
     "events": "Events and schedules",
     "communications": "Incoming communications",
     "guides": "Guides and support",
-    "administration": "Administration"
+    "administration": "Administration",
+    "welcomeBack": "Welcome back, {{name}}"
   },
   "claimedView": {
     "claimed": "Claimed",
