@@ -34,7 +34,7 @@ public class AIExtractionService {
     
     private static final Logger log = LoggerFactory.getLogger(AIExtractionService.class);
     
-    @Value("${OPENAI_API_KEY}")
+    @Value("${app.openai.api-key}")
     private String openaiApiKey;
     
     private static final String VISION_API_URL = "https://api.openai.com/v1/chat/completions";
