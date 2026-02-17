@@ -162,6 +162,8 @@ describe('AdminHome', () => {
       { timeout: 3000 }
     );
     // Verify component rendered successfully
-    expect(screen.getByRole('heading', { name: /welcome back, evian/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /welcome back, evian/i })
+    ).toBeInTheDocument();
   });
 });
