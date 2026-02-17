@@ -723,7 +723,8 @@
     "events": "الفعاليات والجداول",
     "communications": "الاتصالات الواردة",
     "guides": "الأدلة والدعم",
-    "administration": "الإدارة"
+    "administration": "الإدارة",
+    "welcomeBack": "مرحباً بعودتك، {{name}}"
   },
   "claimedView": {
     "claimed": "تم المطالبة به",
