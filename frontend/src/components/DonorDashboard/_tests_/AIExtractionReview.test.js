@@ -64,12 +64,25 @@ jest.mock('react-select', () => {
 
 jest.mock('react-datepicker', () => {
   return function MockDatePicker({ selected, onChange, placeholder }) {
+    const getValue = () => {
+      if (!selected) return '';
+      if (selected instanceof Date) {
+        // Check if date is valid
+        if (isNaN(selected.getTime())) return '';
+        return selected.toISOString();
+      }
+      return selected;
+    };
+
     return (
       <input
         data-testid={`date-picker-${placeholder}`}
         type="text"
-        value={selected instanceof Date ? selected.toISOString() : selected || ''}
-        onChange={e => onChange(new Date(e.target.value))}
+        value={getValue()}
+        onChange={e => {
+          const date = new Date(e.target.value);
+          onChange(date);
+        }}
         placeholder={placeholder}
       />
     );
@@ -317,5 +330,176 @@ describe('AIExtractionReview', () => {
     expect(screen.getByText(/pickup date/i)).toBeInTheDocument();
     expect(screen.getByText(/start time/i)).toBeInTheDocument();
     expect(screen.getByText(/end time/i)).toBeInTheDocument();
+  });
+
+  // Form Validation Tests
+  test('shows error when submitting without food name', async () => {
+    const { toast } = require('react-toastify');
+    const dataWithoutName = { ...mockData, foodName: '' };
+    renderComponent({ data: dataWithoutName });
+
+    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Please enter a food name/title');
+    });
+  });
+
+  test('shows error when submitting without food categories', async () => {
+    const { toast } = require('react-toastify');
+    const dataWithoutCategories = { ...mockData, foodCategories: [] };
+    renderComponent({ data: dataWithoutCategories });
+
+    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Please select at least one food category');
+    });
+  });
+
+  test('shows error when submitting without temperature category', async () => {
+    const { toast } = require('react-toastify');
+    const dataWithoutTemp = { ...mockData, temperatureCategory: '' };
+    renderComponent({ data: dataWithoutTemp });
+
+    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Please select a temperature category');
+    });
+  });
+
+  test('shows error when submitting without packaging type', async () => {
+    const { toast } = require('react-toastify');
+    const dataWithoutPackaging = { ...mockData, packagingType: '' };
+    renderComponent({ data: dataWithoutPackaging });
+
+    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Please select a packaging type');
+    });
+  });
+
+  test('shows error when submitting without quantity', async () => {
+    const { toast } = require('react-toastify');
+    const dataWithoutQuantity = { ...mockData, quantityValue: 0 };
+    renderComponent({ data: dataWithoutQuantity });
+
+    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Please enter a valid quantity');
+    });
+  });
+
+  test('shows error when submitting without expiry date', async () => {
+    const { toast } = require('react-toastify');
+    const dataWithoutExpiry = { ...mockData, expiryDate: null };
+    renderComponent({ data: dataWithoutExpiry });
+
+    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Please enter an expiry date');
+    });
+  });
+
+  test('shows error when submitting without pickup information', async () => {
+    const { toast } = require('react-toastify');
+    renderComponent();
+
+    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Please fill in pickup date and time');
+    });
+  });
+
+  test('shows error when submitting without description', async () => {
+    const { toast } = require('react-toastify');
+    const dataWithoutDesc = { ...mockData, description: '' };
+    renderComponent({ data: dataWithoutDesc });
+
+    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalled();
+    });
+  });
+
+  // Form Submission Tests
+  test('shows error when submitting without pickup location', async () => {
+    const { toast } = require('react-toastify');
+    renderComponent();
+
+    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalled();
+    });
+  });
+
+  test('validates all required fields before submission', async () => {
+    const { toast } = require('react-toastify');
+    renderComponent();
+
+    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    fireEvent.click(submitButton);
+
+    // Should show validation error
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalled();
+      expect(surplusAPI.create).not.toHaveBeenCalled();
+    });
+  });
+
+  test('form has proper structure for submission', () => {
+    renderComponent();
+    
+    const form = document.querySelector('form');
+    expect(form).toBeInTheDocument();
+    expect(form).toHaveClass('review-form');
+  });
+
+  // Select Component Interactions
+  test('allows selecting unit', () => {
+    renderComponent();
+    expect(screen.getByText(/select unit/i)).toBeInTheDocument();
+  });
+
+  test('renders fabrication date field', () => {
+    renderComponent();
+    expect(screen.getByText(/fabrication date/i)).toBeInTheDocument();
+  });
+
+  test('shows AI badge for all AI-populated fields', () => {
+    renderComponent();
+    const aiBadges = screen.getAllByText(/ai/i);
+    expect(aiBadges.length).toBeGreaterThanOrEqual(5);
+  });
+
+  test('displays confidence scores correctly', () => {
+    renderComponent();
+    // foodName has HIGH confidence (95%)
+    expect(screen.getByText(/95%/i)).toBeInTheDocument();
+  });
+
+  test('handles invalid date formatting gracefully', () => {
+    const dataWithInvalidDates = {
+      ...mockData,
+      expiryDate: 'invalid-date',
+    };
+    renderComponent({ data: dataWithInvalidDates });
+    expect(screen.getByText(/review ai-extracted information/i)).toBeInTheDocument();
   });
 });
