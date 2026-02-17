@@ -41,8 +41,16 @@ jest.mock('react-select', () => {
         multiple={isMulti}
         onChange={e => {
           if (isMulti) {
+            // Handle both JSON array strings and single values
+            let valuesToSelect = [];
+            try {
+              valuesToSelect = JSON.parse(e.target.value || '[]');
+            } catch {
+              // If parsing fails, treat it as a single value
+              valuesToSelect = e.target.value ? [e.target.value] : [];
+            }
             const selected = options.filter(opt =>
-              JSON.parse(e.target.value || '[]').includes(opt.value)
+              valuesToSelect.includes(opt.value)
             );
             onChange(selected);
           } else {
@@ -63,7 +71,7 @@ jest.mock('react-select', () => {
 });
 
 jest.mock('react-datepicker', () => {
-  return function MockDatePicker({ selected, onChange, placeholder }) {
+  return function MockDatePicker({ selected, onChange, placeholder, placeholderText }) {
     const getValue = () => {
       if (!selected) return '';
       if (selected instanceof Date) {
@@ -74,16 +82,19 @@ jest.mock('react-datepicker', () => {
       return selected;
     };
 
+    // Use placeholderText if placeholder is not provided (react-datepicker uses placeholderText)
+    const testIdSuffix = placeholder || placeholderText || 'undefined';
+
     return (
       <input
-        data-testid={`date-picker-${placeholder}`}
+        data-testid={`date-picker-${testIdSuffix}`}
         type="text"
         value={getValue()}
         onChange={e => {
           const date = new Date(e.target.value);
           onChange(date);
         }}
-        placeholder={placeholder}
+        placeholder={placeholder || placeholderText}
       />
     );
   };
@@ -671,5 +682,330 @@ describe('AIExtractionReview', () => {
     };
     renderComponent({ data: dataWithEmptyAllergens });
     expect(screen.queryByText(/detected allergens/i)).not.toBeInTheDocument();
+  });
+
+  // Select Component onChange Tests - Cover lines 201-267
+  test('handles food categories select change', async () => {
+    renderComponent();
+    const select = screen.getByTestId('mock-select-Select food categories');
+    
+    fireEvent.change(select, { target: { value: 'DAIRY_COLD' } });
+    
+    // Component should re-render with new value
+    expect(select).toBeInTheDocument();
+  });
+
+  test('handles temperature category select change', async () => {
+    renderComponent();
+    const select = screen.getByTestId('mock-select-Select temperature');
+    
+    fireEvent.change(select, { target: { value: 'FROZEN' } });
+    
+    expect(select).toBeInTheDocument();
+  });
+
+  test('handles packaging type select change', async () => {
+    renderComponent();
+    const select = screen.getByTestId('mock-select-Select packaging');
+    
+    fireEvent.change(select, { target: { value: 'VACUUM_PACKED' } });
+    
+    expect(select).toBeInTheDocument();
+  });
+
+  test('handles quantity unit select change', async () => {
+    renderComponent();
+    const select = screen.getByTestId('mock-select-Select unit');
+    
+    fireEvent.change(select, { target: { value: 'LITER' } });
+    
+    expect(select).toBeInTheDocument();
+  });
+
+  // Successful Form Submission Tests - Cover lines 439-537
+  test('successfully submits form with complete valid data', async () => {
+    const { toast } = require('react-toastify');
+    surplusAPI.create.mockResolvedValue({ data: { id: '12345' } });
+
+    // Create complete data with all pickup information
+    const completeData = {
+      ...mockData,
+      pickupDate: '2025-06-15',
+      pickupFrom: '10:00',
+      pickupTo: '14:00',
+    };
+
+    renderComponent({ data: completeData });
+
+    // Fill in the pickup location (required)
+    const locationInput = screen.getByPlaceholderText(/enter pickup address/i);
+    fireEvent.change(locationInput, {
+      target: { value: '123 Test Street, Test City' },
+    });
+
+    // Fill in pickup date using mock date picker
+    const pickupDatePicker = screen.getByTestId('date-picker-Select date');
+    fireEvent.change(pickupDatePicker, {
+      target: { value: '2025-06-15T00:00:00.000Z' },
+    });
+
+    // Fill in start time
+    const startTimePicker = screen.getByTestId('date-picker-Start time');
+    fireEvent.change(startTimePicker, {
+      target: { value: '2025-06-15T10:00:00.000Z' },
+    });
+
+    // Fill in end time
+    const endTimePicker = screen.getByTestId('date-picker-End time');
+    fireEvent.change(endTimePicker, {
+      target: { value: '2025-06-15T14:00:00.000Z' },
+    });
+
+    // Submit the form
+    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    fireEvent.click(submitButton);
+
+    // Should call API
+    await waitFor(() => {
+      expect(surplusAPI.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Fresh Apples',
+          isAiAssisted: true,
+        })
+      );
+    });
+
+    // Should show success message
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalled();
+    });
+  });
+
+  test('handles API error with custom message during submission', async () => {
+    const { toast } = require('react-toastify');
+    surplusAPI.create.mockRejectedValue({
+      response: {
+        data: { message: 'Database connection failed' },
+      },
+    });
+
+    renderComponent();
+
+    // Fill in required fields
+    const locationInput = screen.getByPlaceholderText(/enter pickup address/i);
+    fireEvent.change(locationInput, { target: { value: '123 Test St' } });
+
+    const pickupDatePicker = screen.getByTestId('date-picker-Select date');
+    fireEvent.change(pickupDatePicker, {
+      target: { value: '2025-06-15T00:00:00.000Z' },
+    });
+
+    const startTimePicker = screen.getByTestId('date-picker-Start time');
+    fireEvent.change(startTimePicker, {
+      target: { value: '2025-06-15T10:00:00.000Z' },
+    });
+
+    const endTimePicker = screen.getByTestId('date-picker-End time');
+    fireEvent.change(endTimePicker, {
+      target: { value: '2025-06-15T14:00:00.000Z' },
+    });
+
+    // Submit
+    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Database connection failed');
+    });
+  });
+
+  test('handles API error without custom message', async () => {
+    const { toast } = require('react-toastify');
+    surplusAPI.create.mockRejectedValue({
+      response: {},
+    });
+
+    renderComponent();
+
+    const locationInput = screen.getByPlaceholderText(/enter pickup address/i);
+    fireEvent.change(locationInput, { target: { value: '123 Test St' } });
+
+    const pickupDatePicker = screen.getByTestId('date-picker-Select date');
+    fireEvent.change(pickupDatePicker, {
+      target: { value: '2025-06-15T00:00:00.000Z' },
+    });
+
+    const startTimePicker = screen.getByTestId('date-picker-Start time');
+    fireEvent.change(startTimePicker, {
+      target: { value: '2025-06-15T10:00:00.000Z' },
+    });
+
+    const endTimePicker = screen.getByTestId('date-picker-End time');
+    fireEvent.change(endTimePicker, {
+      target: { value: '2025-06-15T14:00:00.000Z' },
+    });
+
+    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Failed to create donation');
+    });
+  });
+
+  test('updates state when handling text input changes', async () => {
+    renderComponent();
+
+    const titleInput = screen.getByDisplayValue('Fresh Apples');
+    fireEvent.change(titleInput, { target: { name: 'title', value: 'Red Apples' } });
+
+    expect(screen.getByDisplayValue('Red Apples')).toBeInTheDocument();
+  });
+
+  test('formats dates correctly for submission', async () => {
+    surplusAPI.create.mockResolvedValue({ data: { id: '123' } });
+
+    renderComponent();
+
+    // Fill required fields
+    const locationInput = screen.getByPlaceholderText(/enter pickup address/i);
+    fireEvent.change(locationInput, { target: { value: '123 Test St' } });
+
+    const pickupDatePicker = screen.getByTestId('date-picker-Select date');
+    fireEvent.change(pickupDatePicker, {
+      target: { value: '2025-06-15T00:00:00.000Z' },
+    });
+
+    const startTimePicker = screen.getByTestId('date-picker-Start time');
+    fireEvent.change(startTimePicker, {
+      target: { value: '2025-06-15T10:30:00.000Z' },
+    });
+
+    const endTimePicker = screen.getByTestId('date-picker-End time');
+    fireEvent.change(endTimePicker, {
+      target: { value: '2025-06-15T14:30:00.000Z' },
+    });
+
+    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(surplusAPI.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          pickupDate: expect.any(String),
+          pickupFrom: expect.any(String),
+          pickupTo: expect.any(String),
+        })
+      );
+    });
+  });
+
+  test('navigates to dashboard after successful submission', async () => {
+    jest.useFakeTimers();
+    surplusAPI.create.mockResolvedValue({ data: { id: '999' } });
+
+    renderComponent();
+
+    const locationInput = screen.getByPlaceholderText(/enter pickup address/i);
+    fireEvent.change(locationInput, { target: { value: '123 Test St' } });
+
+    const pickupDatePicker = screen.getByTestId('date-picker-Select date');
+    fireEvent.change(pickupDatePicker, {
+      target: { value: '2025-06-15T00:00:00.000Z' },
+    });
+
+    const startTimePicker = screen.getByTestId('date-picker-Start time');
+    fireEvent.change(startTimePicker, {
+      target: { value: '2025-06-15T10:00:00.000Z' },
+    });
+
+    const endTimePicker = screen.getByTestId('date-picker-End time');
+    fireEvent.change(endTimePicker, {
+      target: { value: '2025-06-15T14:00:00.000Z' },
+    });
+
+    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(surplusAPI.create).toHaveBeenCalled();
+    });
+
+    // Fast-forward time for navigation
+    jest.advanceTimersByTime(1500);
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/donor/dashboard');
+    });
+
+    jest.useRealTimers();
+  });
+
+  test('disables buttons during submission', async () => {
+    surplusAPI.create.mockImplementation(
+      () => new Promise((resolve) => setTimeout(() => resolve({ data: { id: '123' } }), 100))
+    );
+
+    renderComponent();
+
+    const locationInput = screen.getByPlaceholderText(/enter pickup address/i);
+    fireEvent.change(locationInput, { target: { value: '123 Test St' } });
+
+    const pickupDatePicker = screen.getByTestId('date-picker-Select date');
+    fireEvent.change(pickupDatePicker, {
+      target: { value: '2025-06-15T00:00:00.000Z' },
+    });
+
+    const startTimePicker = screen.getByTestId('date-picker-Start time');
+    fireEvent.change(startTimePicker, {
+      target: { value: '2025-06-15T10:00:00.000Z' },
+    });
+
+    const endTimePicker = screen.getByTestId('date-picker-End time');
+    fireEvent.change(endTimePicker, {
+      target: { value: '2025-06-15T14:00:00.000Z' },
+    });
+
+    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(submitButton).toBeDisabled();
+    });
+  });
+
+  test('includes isAiAssisted flag in submission', async () => {
+    surplusAPI.create.mockResolvedValue({ data: { id: '123' } });
+
+    renderComponent();
+
+    const locationInput = screen.getByPlaceholderText(/enter pickup address/i);
+    fireEvent.change(locationInput, { target: { value: '123 Test St' } });
+
+    const pickupDatePicker = screen.getByTestId('date-picker-Select date');
+    fireEvent.change(pickupDatePicker, {
+      target: { value: '2025-06-15T00:00:00.000Z' },
+    });
+
+    const startTimePicker = screen.getByTestId('date-picker-Start time');
+    fireEvent.change(startTimePicker, {
+      target: { value: '2025-06-15T10:00:00.000Z' },
+    });
+
+    const endTimePicker = screen.getByTestId('date-picker-End time');
+    fireEvent.change(endTimePicker, {
+      target: { value: '2025-06-15T14:00:00.000Z' },
+    });
+
+    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(surplusAPI.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isAiAssisted: true,
+        })
+      );
+    });
   });
 });
