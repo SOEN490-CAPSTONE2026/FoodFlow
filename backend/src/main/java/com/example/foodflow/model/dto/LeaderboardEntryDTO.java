@@ -37,4 +37,9 @@ public class LeaderboardEntryDTO {
      * Flag indicating if this entry represents the currently authenticated user
      */
     private Boolean isCurrentUser;
+    
+    /**
+     * User's profile photo (base64 string or URL)
+     */
+    private String profilePhoto;
 }
