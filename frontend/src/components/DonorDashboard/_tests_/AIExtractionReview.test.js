@@ -10,7 +10,7 @@ import { surplusAPI } from '../../../services/api';
 // Mock dependencies
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key) => key,
+    t: key => key,
     i18n: { language: 'en' },
   }),
 }));
@@ -29,11 +29,19 @@ jest.mock('react-toastify', () => ({
 }));
 
 jest.mock('@react-google-maps/api', () => ({
-  Autocomplete: ({ children }) => <div data-testid="autocomplete">{children}</div>,
+  Autocomplete: ({ children }) => (
+    <div data-testid="autocomplete">{children}</div>
+  ),
 }));
 
 jest.mock('react-select', () => {
-  return function MockSelect({ value, onChange, options, placeholder, isMulti }) {
+  return function MockSelect({
+    value,
+    onChange,
+    options,
+    placeholder,
+    isMulti,
+  }) {
     return (
       <select
         data-testid={`mock-select-${placeholder}`}
@@ -71,7 +79,12 @@ jest.mock('react-select', () => {
 });
 
 jest.mock('react-datepicker', () => {
-  return function MockDatePicker({ selected, onChange, placeholder, placeholderText }) {
+  return function MockDatePicker({
+    selected,
+    onChange,
+    placeholder,
+    placeholderText,
+  }) {
     const getValue = () => {
       if (!selected) return '';
       if (selected instanceof Date) {
@@ -132,7 +145,7 @@ describe('AIExtractionReview', () => {
       foodCategories: 0.88,
       quantityValue: 0.92,
       temperatureCategory: 0.85,
-      packagingType: 0.90,
+      packagingType: 0.9,
     },
   };
 
@@ -164,19 +177,25 @@ describe('AIExtractionReview', () => {
 
   test('renders review header', () => {
     renderComponent();
-    expect(screen.getByText(/review ai-extracted information/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/review ai-extracted information/i)
+    ).toBeInTheDocument();
   });
 
   test('renders re-upload button', () => {
     renderComponent();
-    const reUploadButton = screen.getByRole('button', { name: /re-upload image/i });
+    const reUploadButton = screen.getByRole('button', {
+      name: /re-upload image/i,
+    });
     expect(reUploadButton).toBeInTheDocument();
   });
 
   test('calls onReUpload when re-upload button is clicked', async () => {
     const user = userEvent.setup();
     renderComponent();
-    const reUploadButton = screen.getByRole('button', { name: /re-upload image/i });
+    const reUploadButton = screen.getByRole('button', {
+      name: /re-upload image/i,
+    });
     await user.click(reUploadButton);
     expect(mockOnReUpload).toHaveBeenCalledTimes(1);
   });
@@ -197,7 +216,9 @@ describe('AIExtractionReview', () => {
 
   test('renders submit button', () => {
     renderComponent();
-    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    const submitButton = screen.getByRole('button', {
+      name: /create donation/i,
+    });
     expect(submitButton).toBeInTheDocument();
   });
 
@@ -222,7 +243,9 @@ describe('AIExtractionReview', () => {
 
   test('renders without image file gracefully', () => {
     renderComponent({ imageFile: null });
-    expect(screen.getByText(/review ai-extracted information/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/review ai-extracted information/i)
+    ).toBeInTheDocument();
     expect(screen.queryByAltText(/uploaded label/i)).not.toBeInTheDocument();
   });
 
@@ -261,7 +284,9 @@ describe('AIExtractionReview', () => {
     const descriptionInput = screen.getByDisplayValue('Organic red apples');
     await user.clear(descriptionInput);
     await user.type(descriptionInput, 'Fresh organic apples');
-    expect(screen.getByDisplayValue('Fresh organic apples')).toBeInTheDocument();
+    expect(
+      screen.getByDisplayValue('Fresh organic apples')
+    ).toBeInTheDocument();
   });
 
   test('renders all form sections', () => {
@@ -276,7 +301,7 @@ describe('AIExtractionReview', () => {
   test('renders required field indicators', () => {
     renderComponent();
     const requiredLabels = document.querySelectorAll('.field-label');
-    const requiredCount = Array.from(requiredLabels).filter(label => 
+    const requiredCount = Array.from(requiredLabels).filter(label =>
       label.textContent.includes('*')
     ).length;
     expect(requiredCount).toBeGreaterThan(0);
@@ -284,7 +309,9 @@ describe('AIExtractionReview', () => {
 
   test('submit button is enabled by default', () => {
     renderComponent();
-    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    const submitButton = screen.getByRole('button', {
+      name: /create donation/i,
+    });
     expect(submitButton).not.toBeDisabled();
   });
 
@@ -303,7 +330,9 @@ describe('AIExtractionReview', () => {
       },
     };
     renderComponent({ data: lowConfidenceData });
-    expect(screen.getByText(/review ai-extracted information/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/review ai-extracted information/i)
+    ).toBeInTheDocument();
   });
 
   test('renders food categories field', () => {
@@ -349,11 +378,15 @@ describe('AIExtractionReview', () => {
     const dataWithoutName = { ...mockData, foodName: '' };
     renderComponent({ data: dataWithoutName });
 
-    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    const submitButton = screen.getByRole('button', {
+      name: /create donation/i,
+    });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith('Please enter a food name/title');
+      expect(toast.error).toHaveBeenCalledWith(
+        'Please enter a food name/title'
+      );
     });
   });
 
@@ -362,11 +395,15 @@ describe('AIExtractionReview', () => {
     const dataWithoutCategories = { ...mockData, foodCategories: [] };
     renderComponent({ data: dataWithoutCategories });
 
-    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    const submitButton = screen.getByRole('button', {
+      name: /create donation/i,
+    });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith('Please select at least one food category');
+      expect(toast.error).toHaveBeenCalledWith(
+        'Please select at least one food category'
+      );
     });
   });
 
@@ -375,11 +412,15 @@ describe('AIExtractionReview', () => {
     const dataWithoutTemp = { ...mockData, temperatureCategory: '' };
     renderComponent({ data: dataWithoutTemp });
 
-    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    const submitButton = screen.getByRole('button', {
+      name: /create donation/i,
+    });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith('Please select a temperature category');
+      expect(toast.error).toHaveBeenCalledWith(
+        'Please select a temperature category'
+      );
     });
   });
 
@@ -388,11 +429,15 @@ describe('AIExtractionReview', () => {
     const dataWithoutPackaging = { ...mockData, packagingType: '' };
     renderComponent({ data: dataWithoutPackaging });
 
-    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    const submitButton = screen.getByRole('button', {
+      name: /create donation/i,
+    });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith('Please select a packaging type');
+      expect(toast.error).toHaveBeenCalledWith(
+        'Please select a packaging type'
+      );
     });
   });
 
@@ -401,7 +446,9 @@ describe('AIExtractionReview', () => {
     const dataWithoutQuantity = { ...mockData, quantityValue: 0 };
     renderComponent({ data: dataWithoutQuantity });
 
-    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    const submitButton = screen.getByRole('button', {
+      name: /create donation/i,
+    });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
@@ -414,7 +461,9 @@ describe('AIExtractionReview', () => {
     const dataWithoutExpiry = { ...mockData, expiryDate: null };
     renderComponent({ data: dataWithoutExpiry });
 
-    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    const submitButton = screen.getByRole('button', {
+      name: /create donation/i,
+    });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
@@ -426,11 +475,15 @@ describe('AIExtractionReview', () => {
     const { toast } = require('react-toastify');
     renderComponent();
 
-    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    const submitButton = screen.getByRole('button', {
+      name: /create donation/i,
+    });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith('Please fill in pickup date and time');
+      expect(toast.error).toHaveBeenCalledWith(
+        'Please fill in pickup date and time'
+      );
     });
   });
 
@@ -439,7 +492,9 @@ describe('AIExtractionReview', () => {
     const dataWithoutDesc = { ...mockData, description: '' };
     renderComponent({ data: dataWithoutDesc });
 
-    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    const submitButton = screen.getByRole('button', {
+      name: /create donation/i,
+    });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
@@ -452,7 +507,9 @@ describe('AIExtractionReview', () => {
     const { toast } = require('react-toastify');
     renderComponent();
 
-    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    const submitButton = screen.getByRole('button', {
+      name: /create donation/i,
+    });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
@@ -464,7 +521,9 @@ describe('AIExtractionReview', () => {
     const { toast } = require('react-toastify');
     renderComponent();
 
-    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    const submitButton = screen.getByRole('button', {
+      name: /create donation/i,
+    });
     fireEvent.click(submitButton);
 
     // Should show validation error
@@ -476,7 +535,7 @@ describe('AIExtractionReview', () => {
 
   test('form has proper structure for submission', () => {
     renderComponent();
-    
+
     const form = document.querySelector('form');
     expect(form).toBeInTheDocument();
     expect(form).toHaveClass('review-form');
@@ -511,7 +570,9 @@ describe('AIExtractionReview', () => {
       expiryDate: 'invalid-date',
     };
     renderComponent({ data: dataWithInvalidDates });
-    expect(screen.getByText(/review ai-extracted information/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/review ai-extracted information/i)
+    ).toBeInTheDocument();
   });
 
   // Additional Coverage Tests
@@ -543,7 +604,9 @@ describe('AIExtractionReview', () => {
       confidenceScores: null,
     };
     renderComponent({ data: dataWithoutScores });
-    expect(screen.getByText(/review ai-extracted information/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/review ai-extracted information/i)
+    ).toBeInTheDocument();
   });
 
   test('maps food categories correctly', () => {
@@ -552,7 +615,9 @@ describe('AIExtractionReview', () => {
       foodCategories: ['FRUITS_VEGETABLES', 'DAIRY_COLD'],
     };
     renderComponent({ data: dataWithMultipleCategories });
-    expect(screen.getByText(/review ai-extracted information/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/review ai-extracted information/i)
+    ).toBeInTheDocument();
   });
 
   test('handles empty food categories array', () => {
@@ -561,7 +626,9 @@ describe('AIExtractionReview', () => {
       foodCategories: [],
     };
     renderComponent({ data: dataWithEmptyCategories });
-    expect(screen.getByText(/review ai-extracted information/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/review ai-extracted information/i)
+    ).toBeInTheDocument();
   });
 
   test('handles null food categories', () => {
@@ -570,7 +637,9 @@ describe('AIExtractionReview', () => {
       foodCategories: null,
     };
     renderComponent({ data: dataWithNullCategories });
-    expect(screen.getByText(/review ai-extracted information/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/review ai-extracted information/i)
+    ).toBeInTheDocument();
   });
 
   test('handles data without fabrication date', () => {
@@ -579,7 +648,9 @@ describe('AIExtractionReview', () => {
       fabricationDate: null,
     };
     renderComponent({ data: dataWithoutFabDate });
-    expect(screen.getByText(/review ai-extracted information/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/review ai-extracted information/i)
+    ).toBeInTheDocument();
   });
 
   test('renders autocomplete component', () => {
@@ -591,10 +662,10 @@ describe('AIExtractionReview', () => {
   test('allows entering pickup location manually', async () => {
     const user = userEvent.setup();
     renderComponent();
-    
+
     const locationInput = screen.getByPlaceholderText(/enter pickup address/i);
     await user.type(locationInput, '456 Main St');
-    
+
     expect(screen.getByDisplayValue('456 Main St')).toBeInTheDocument();
   });
 
@@ -604,12 +675,16 @@ describe('AIExtractionReview', () => {
       allergens: ['Peanuts'],
     };
     renderComponent({ data: dataWithAllergens });
-    expect(screen.getByText(/please verify and include allergen information/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/please verify and include allergen information/i)
+    ).toBeInTheDocument();
   });
 
   test('renders all date picker fields', () => {
     renderComponent();
-    const datePickers = document.querySelectorAll('input[data-testid^="date-picker"]');
+    const datePickers = document.querySelectorAll(
+      'input[data-testid^="date-picker"]'
+    );
     expect(datePickers.length).toBeGreaterThan(0);
   });
 
@@ -629,10 +704,10 @@ describe('AIExtractionReview', () => {
         foodCategories: 0.88,
         quantityValue: 0.92,
         temperatureCategory: 0.85,
-        packagingType: 0.90,
-        description: 0.80,
+        packagingType: 0.9,
+        description: 0.8,
         expiryDate: 0.75,
-        fabricationDate: 0.70,
+        fabricationDate: 0.7,
       },
     };
     renderComponent({ data: fullConfidenceData });
@@ -688,9 +763,9 @@ describe('AIExtractionReview', () => {
   test('handles food categories select change', async () => {
     renderComponent();
     const select = screen.getByTestId('mock-select-Select food categories');
-    
+
     fireEvent.change(select, { target: { value: 'DAIRY_COLD' } });
-    
+
     // Component should re-render with new value
     expect(select).toBeInTheDocument();
   });
@@ -698,27 +773,27 @@ describe('AIExtractionReview', () => {
   test('handles temperature category select change', async () => {
     renderComponent();
     const select = screen.getByTestId('mock-select-Select temperature');
-    
+
     fireEvent.change(select, { target: { value: 'FROZEN' } });
-    
+
     expect(select).toBeInTheDocument();
   });
 
   test('handles packaging type select change', async () => {
     renderComponent();
     const select = screen.getByTestId('mock-select-Select packaging');
-    
+
     fireEvent.change(select, { target: { value: 'VACUUM_PACKED' } });
-    
+
     expect(select).toBeInTheDocument();
   });
 
   test('handles quantity unit select change', async () => {
     renderComponent();
     const select = screen.getByTestId('mock-select-Select unit');
-    
+
     fireEvent.change(select, { target: { value: 'LITER' } });
-    
+
     expect(select).toBeInTheDocument();
   });
 
@@ -762,7 +837,9 @@ describe('AIExtractionReview', () => {
     });
 
     // Submit the form
-    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    const submitButton = screen.getByRole('button', {
+      name: /create donation/i,
+    });
     fireEvent.click(submitButton);
 
     // Should call API
@@ -811,7 +888,9 @@ describe('AIExtractionReview', () => {
     });
 
     // Submit
-    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    const submitButton = screen.getByRole('button', {
+      name: /create donation/i,
+    });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
@@ -845,7 +924,9 @@ describe('AIExtractionReview', () => {
       target: { value: '2025-06-15T14:00:00.000Z' },
     });
 
-    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    const submitButton = screen.getByRole('button', {
+      name: /create donation/i,
+    });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
@@ -857,7 +938,9 @@ describe('AIExtractionReview', () => {
     renderComponent();
 
     const titleInput = screen.getByDisplayValue('Fresh Apples');
-    fireEvent.change(titleInput, { target: { name: 'title', value: 'Red Apples' } });
+    fireEvent.change(titleInput, {
+      target: { name: 'title', value: 'Red Apples' },
+    });
 
     expect(screen.getByDisplayValue('Red Apples')).toBeInTheDocument();
   });
@@ -886,7 +969,9 @@ describe('AIExtractionReview', () => {
       target: { value: '2025-06-15T14:30:00.000Z' },
     });
 
-    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    const submitButton = screen.getByRole('button', {
+      name: /create donation/i,
+    });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
@@ -924,7 +1009,9 @@ describe('AIExtractionReview', () => {
       target: { value: '2025-06-15T14:00:00.000Z' },
     });
 
-    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    const submitButton = screen.getByRole('button', {
+      name: /create donation/i,
+    });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
@@ -943,7 +1030,10 @@ describe('AIExtractionReview', () => {
 
   test('disables buttons during submission', async () => {
     surplusAPI.create.mockImplementation(
-      () => new Promise((resolve) => setTimeout(() => resolve({ data: { id: '123' } }), 100))
+      () =>
+        new Promise(resolve =>
+          setTimeout(() => resolve({ data: { id: '123' } }), 100)
+        )
     );
 
     renderComponent();
@@ -966,7 +1056,9 @@ describe('AIExtractionReview', () => {
       target: { value: '2025-06-15T14:00:00.000Z' },
     });
 
-    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    const submitButton = screen.getByRole('button', {
+      name: /create donation/i,
+    });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
@@ -997,7 +1089,9 @@ describe('AIExtractionReview', () => {
       target: { value: '2025-06-15T14:00:00.000Z' },
     });
 
-    const submitButton = screen.getByRole('button', { name: /create donation/i });
+    const submitButton = screen.getByRole('button', {
+      name: /create donation/i,
+    });
     fireEvent.click(submitButton);
 
     await waitFor(() => {

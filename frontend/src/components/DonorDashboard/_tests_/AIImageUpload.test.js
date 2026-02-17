@@ -50,7 +50,10 @@ describe('AIImageUpload', () => {
 
     const fileInput = document.querySelector('input[type="file"]');
     expect(fileInput).toBeInTheDocument();
-    expect(fileInput).toHaveAttribute('accept', 'image/jpeg,image/jpg,image/png,image/heic');
+    expect(fileInput).toHaveAttribute(
+      'accept',
+      'image/jpeg,image/jpg,image/png,image/heic'
+    );
   });
 
   test('renders dropzone', () => {
@@ -71,7 +74,9 @@ describe('AIImageUpload', () => {
   test('renders manual entry button', () => {
     renderComponent();
 
-    const manualButton = screen.getByRole('button', { name: /use manual entry instead/i });
+    const manualButton = screen.getByRole('button', {
+      name: /use manual entry instead/i,
+    });
     expect(manualButton).toBeInTheDocument();
   });
 
@@ -79,7 +84,9 @@ describe('AIImageUpload', () => {
     const user = userEvent.setup();
     renderComponent();
 
-    const manualButton = screen.getByRole('button', { name: /use manual entry instead/i });
+    const manualButton = screen.getByRole('button', {
+      name: /use manual entry instead/i,
+    });
     await user.click(manualButton);
 
     expect(mockOnManualEntry).toHaveBeenCalledTimes(1);
@@ -103,7 +110,9 @@ describe('AIImageUpload', () => {
   test('renders drag and drop text', () => {
     renderComponent();
 
-    expect(screen.getByText(/drag & drop your food label image here/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/drag & drop your food label image here/i)
+    ).toBeInTheDocument();
   });
 
   test('handles valid file upload', async () => {
@@ -174,7 +183,9 @@ describe('AIImageUpload', () => {
     fireEvent.change(fileInput, { target: { files: [file] } });
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /remove/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /remove/i })
+      ).toBeInTheDocument();
     });
   });
 
@@ -188,7 +199,9 @@ describe('AIImageUpload', () => {
     fireEvent.change(fileInput, { target: { files: [file] } });
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /remove/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /remove/i })
+      ).toBeInTheDocument();
     });
 
     const removeButton = screen.getByRole('button', { name: /remove/i });
@@ -230,7 +243,9 @@ describe('AIImageUpload', () => {
       ).toBeInTheDocument();
     });
 
-    const analyzeButton = screen.getByRole('button', { name: /analyze with ai/i });
+    const analyzeButton = screen.getByRole('button', {
+      name: /analyze with ai/i,
+    });
     await user.click(analyzeButton);
 
     expect(mockOnImageSelect).toHaveBeenCalledTimes(1);

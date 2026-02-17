@@ -10,7 +10,7 @@ import { TimezoneProvider } from '../../../contexts/TimezoneContext';
 // Mock dependencies
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key) => key,
+    t: key => key,
     i18n: { language: 'en' },
   }),
 }));
@@ -88,13 +88,17 @@ describe('AIDonationForm', () => {
 
     expect(screen.getByText(/create donation with ai/i)).toBeInTheDocument();
     expect(screen.getByText(/upload food label photo/i)).toBeInTheDocument();
-    expect(screen.getByText(/drag & drop your food label image here/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/drag & drop your food label image here/i)
+    ).toBeInTheDocument();
   });
 
   test('renders back button', () => {
     renderComponent();
 
-    const backButton = screen.getByRole('button', { name: /back to dashboard/i });
+    const backButton = screen.getByRole('button', {
+      name: /back to dashboard/i,
+    });
     expect(backButton).toBeInTheDocument();
   });
 
@@ -102,7 +106,9 @@ describe('AIDonationForm', () => {
     const user = userEvent.setup();
     renderComponent();
 
-    const backButton = screen.getByRole('button', { name: /back to dashboard/i });
+    const backButton = screen.getByRole('button', {
+      name: /back to dashboard/i,
+    });
     await user.click(backButton);
 
     expect(mockNavigate).toHaveBeenCalledWith('/donor/dashboard');
@@ -113,7 +119,7 @@ describe('AIDonationForm', () => {
 
     const stepIndicator = document.querySelector('.ai-step-indicator');
     expect(stepIndicator).toBeInTheDocument();
-    
+
     const steps = stepIndicator.querySelectorAll('.step');
     expect(steps.length).toBe(3);
   });
@@ -123,13 +129,18 @@ describe('AIDonationForm', () => {
 
     const fileInput = document.querySelector('input[type="file"]');
     expect(fileInput).toBeInTheDocument();
-    expect(fileInput).toHaveAttribute('accept', 'image/jpeg,image/jpg,image/png,image/heic');
+    expect(fileInput).toHaveAttribute(
+      'accept',
+      'image/jpeg,image/jpg,image/png,image/heic'
+    );
   });
 
   test('renders manual entry button', () => {
     renderComponent();
 
-    const manualButton = screen.getByRole('button', { name: /use manual entry instead/i });
+    const manualButton = screen.getByRole('button', {
+      name: /use manual entry instead/i,
+    });
     expect(manualButton).toBeInTheDocument();
   });
 
@@ -137,7 +148,9 @@ describe('AIDonationForm', () => {
     const user = userEvent.setup();
     renderComponent();
 
-    const manualButton = screen.getByRole('button', { name: /use manual entry instead/i });
+    const manualButton = screen.getByRole('button', {
+      name: /use manual entry instead/i,
+    });
     await user.click(manualButton);
 
     expect(mockNavigate).toHaveBeenCalledWith('/donor/list');
@@ -157,7 +170,9 @@ describe('AIDonationForm', () => {
 
     expect(screen.getByText(/tips for best results/i)).toBeInTheDocument();
     expect(screen.getByText(/ensure good lighting/i)).toBeInTheDocument();
-    expect(screen.getByText(/keep the label flat and in focus/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/keep the label flat and in focus/i)
+    ).toBeInTheDocument();
   });
 
   test('renders file requirements', () => {
@@ -185,7 +200,10 @@ describe('AIDonationForm', () => {
 
   test('shows processing state after file upload', async () => {
     api.post.mockImplementation(
-      () => new Promise(resolve => setTimeout(() => resolve({ data: { success: true } }), 100))
+      () =>
+        new Promise(resolve =>
+          setTimeout(() => resolve({ data: { success: true } }), 100)
+        )
     );
 
     renderComponent();
@@ -199,11 +217,15 @@ describe('AIDonationForm', () => {
       expect(screen.getByText(/selected image/i)).toBeInTheDocument();
     });
 
-    const analyzeButton = screen.getByRole('button', { name: /analyze with ai/i });
+    const analyzeButton = screen.getByRole('button', {
+      name: /analyze with ai/i,
+    });
     fireEvent.click(analyzeButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/ai is analyzing your image/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/ai is analyzing your image/i)
+      ).toBeInTheDocument();
     });
   });
 
@@ -228,7 +250,9 @@ describe('AIDonationForm', () => {
       expect(screen.getByText(/selected image/i)).toBeInTheDocument();
     });
 
-    const analyzeButton = screen.getByRole('button', { name: /analyze with ai/i });
+    const analyzeButton = screen.getByRole('button', {
+      name: /analyze with ai/i,
+    });
     fireEvent.click(analyzeButton);
 
     await waitFor(() => {
@@ -271,11 +295,15 @@ describe('AIDonationForm', () => {
       expect(screen.getByText(/selected image/i)).toBeInTheDocument();
     });
 
-    const analyzeButton = screen.getByRole('button', { name: /analyze with ai/i });
+    const analyzeButton = screen.getByRole('button', {
+      name: /analyze with ai/i,
+    });
     fireEvent.click(analyzeButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/review ai-extracted information/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/review ai-extracted information/i)
+      ).toBeInTheDocument();
     });
   });
 
@@ -298,7 +326,9 @@ describe('AIDonationForm', () => {
       expect(screen.getByText(/selected image/i)).toBeInTheDocument();
     });
 
-    const analyzeButton = screen.getByRole('button', { name: /analyze with ai/i });
+    const analyzeButton = screen.getByRole('button', {
+      name: /analyze with ai/i,
+    });
     fireEvent.click(analyzeButton);
 
     await waitFor(() => {
@@ -308,7 +338,10 @@ describe('AIDonationForm', () => {
 
   test('disables back button during processing', async () => {
     api.post.mockImplementation(
-      () => new Promise(resolve => setTimeout(() => resolve({ data: { success: true } }), 200))
+      () =>
+        new Promise(resolve =>
+          setTimeout(() => resolve({ data: { success: true } }), 200)
+        )
     );
 
     renderComponent();
@@ -322,18 +355,25 @@ describe('AIDonationForm', () => {
       expect(screen.getByText(/selected image/i)).toBeInTheDocument();
     });
 
-    const analyzeButton = screen.getByRole('button', { name: /analyze with ai/i });
+    const analyzeButton = screen.getByRole('button', {
+      name: /analyze with ai/i,
+    });
     fireEvent.click(analyzeButton);
 
     await waitFor(() => {
-      const backButton = screen.getByRole('button', { name: /back to dashboard/i });
+      const backButton = screen.getByRole('button', {
+        name: /back to dashboard/i,
+      });
       expect(backButton).toBeDisabled();
     });
   });
 
   test('shows processing steps during AI analysis', async () => {
     api.post.mockImplementation(
-      () => new Promise(resolve => setTimeout(() => resolve({ data: { success: true } }), 100))
+      () =>
+        new Promise(resolve =>
+          setTimeout(() => resolve({ data: { success: true } }), 100)
+        )
     );
 
     renderComponent();
@@ -347,7 +387,9 @@ describe('AIDonationForm', () => {
       expect(screen.getByText(/selected image/i)).toBeInTheDocument();
     });
 
-    const analyzeButton = screen.getByRole('button', { name: /analyze with ai/i });
+    const analyzeButton = screen.getByRole('button', {
+      name: /analyze with ai/i,
+    });
     fireEvent.click(analyzeButton);
 
     await waitFor(() => {
