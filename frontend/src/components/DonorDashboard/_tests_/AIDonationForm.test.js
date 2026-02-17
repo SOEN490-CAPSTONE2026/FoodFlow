@@ -1,9 +1,11 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
 import AIDonationForm from '../AIDonationForm';
+import api from '../../../services/api';
+import { TimezoneProvider } from '../../../contexts/TimezoneContext';
 
 // Mock dependencies
 jest.mock('react-i18next', () => ({
@@ -14,8 +16,16 @@ jest.mock('react-i18next', () => ({
 }));
 
 jest.mock('../../../services/api', () => ({
-  surplusAPI: {
-    createPost: jest.fn(),
+  __esModule: true,
+  default: {
+    post: jest.fn(),
+  },
+}));
+
+jest.mock('react-toastify', () => ({
+  toast: {
+    success: jest.fn(),
+    error: jest.fn(),
   },
 }));
 
@@ -26,7 +36,20 @@ jest.mock('@react-google-maps/api', () => ({
   }),
   GoogleMap: ({ children }) => <div data-testid="google-map">{children}</div>,
   Marker: () => <div data-testid="marker" />,
+  Autocomplete: ({ children }) => <div>{children}</div>,
 }));
+
+jest.mock('react-select', () => {
+  return function MockSelect() {
+    return <select data-testid="mock-select" />;
+  };
+});
+
+jest.mock('react-datepicker', () => {
+  return function MockDatePicker() {
+    return <input data-testid="mock-datepicker" />;
+  };
+});
 
 jest.mock('lucide-react', () => ({
   ArrowLeft: () => <span>ArrowLeftIcon</span>,
@@ -38,17 +61,26 @@ jest.mock('lucide-react', () => ({
   AlertCircle: () => <span>AlertCircleIcon</span>,
 }));
 
+const mockNavigate = jest.fn();
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockNavigate,
+}));
+
 describe('AIDonationForm', () => {
   const renderComponent = (props = {}) => {
     return render(
       <MemoryRouter>
-        <AIDonationForm {...props} />
+        <TimezoneProvider>
+          <AIDonationForm {...props} />
+        </TimezoneProvider>
       </MemoryRouter>
     );
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
+    URL.createObjectURL = jest.fn(() => 'mock-url');
   });
 
   test('renders upload interface initially', () => {
@@ -64,6 +96,16 @@ describe('AIDonationForm', () => {
 
     const backButton = screen.getByRole('button', { name: /back to dashboard/i });
     expect(backButton).toBeInTheDocument();
+  });
+
+  test('navigates back to dashboard when back button is clicked', async () => {
+    const user = userEvent.setup();
+    renderComponent();
+
+    const backButton = screen.getByRole('button', { name: /back to dashboard/i });
+    await user.click(backButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith('/donor/dashboard');
   });
 
   test('renders step indicator', () => {
@@ -89,6 +131,16 @@ describe('AIDonationForm', () => {
 
     const manualButton = screen.getByRole('button', { name: /use manual entry instead/i });
     expect(manualButton).toBeInTheDocument();
+  });
+
+  test('navigates to manual entry when button is clicked', async () => {
+    const user = userEvent.setup();
+    renderComponent();
+
+    const manualButton = screen.getByRole('button', { name: /use manual entry instead/i });
+    await user.click(manualButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith('/donor/list');
   });
 
   test('renders upload instructions', () => {
@@ -129,5 +181,179 @@ describe('AIDonationForm', () => {
 
     const chooseFileLabel = screen.getByText(/choose file/i);
     expect(chooseFileLabel).toBeInTheDocument();
+  });
+
+  test('shows processing state after file upload', async () => {
+    api.post.mockImplementation(
+      () => new Promise(resolve => setTimeout(() => resolve({ data: { success: true } }), 100))
+    );
+
+    renderComponent();
+
+    const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
+    const fileInput = document.querySelector('#image-upload');
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(screen.getByText(/selected image/i)).toBeInTheDocument();
+    });
+
+    const analyzeButton = screen.getByRole('button', { name: /analyze with ai/i });
+    fireEvent.click(analyzeButton);
+
+    await waitFor(() => {
+      expect(screen.getByText(/ai is analyzing your image/i)).toBeInTheDocument();
+    });
+  });
+
+  test('calls API when image is submitted', async () => {
+    api.post.mockResolvedValue({
+      data: {
+        success: true,
+        foodName: 'Test Food',
+        quantityValue: 5,
+        quantityUnit: 'KILOGRAM',
+      },
+    });
+
+    renderComponent();
+
+    const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
+    const fileInput = document.querySelector('#image-upload');
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(screen.getByText(/selected image/i)).toBeInTheDocument();
+    });
+
+    const analyzeButton = screen.getByRole('button', { name: /analyze with ai/i });
+    fireEvent.click(analyzeButton);
+
+    await waitFor(() => {
+      expect(api.post).toHaveBeenCalledWith(
+        '/ai/extract-donation',
+        expect.any(FormData),
+        expect.objectContaining({
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+          timeout: 35000,
+        })
+      );
+    });
+  });
+
+  test('shows review step after successful AI extraction', async () => {
+    api.post.mockResolvedValue({
+      data: {
+        success: true,
+        foodName: 'Test Food',
+        foodCategories: ['FRUITS_VEGETABLES'],
+        quantityValue: 5,
+        quantityUnit: 'KILOGRAM',
+        temperatureCategory: 'REFRIGERATED',
+        packagingType: 'SEALED',
+        description: 'Test description',
+        confidenceScores: {},
+      },
+    });
+
+    renderComponent();
+
+    const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
+    const fileInput = document.querySelector('#image-upload');
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(screen.getByText(/selected image/i)).toBeInTheDocument();
+    });
+
+    const analyzeButton = screen.getByRole('button', { name: /analyze with ai/i });
+    fireEvent.click(analyzeButton);
+
+    await waitFor(() => {
+      expect(screen.getByText(/review ai-extracted information/i)).toBeInTheDocument();
+    });
+  });
+
+  test('handles API error gracefully', async () => {
+    const { toast } = require('react-toastify');
+    api.post.mockRejectedValue({
+      response: {
+        data: { errorMessage: 'Failed to analyze image' },
+      },
+    });
+
+    renderComponent();
+
+    const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
+    const fileInput = document.querySelector('#image-upload');
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(screen.getByText(/selected image/i)).toBeInTheDocument();
+    });
+
+    const analyzeButton = screen.getByRole('button', { name: /analyze with ai/i });
+    fireEvent.click(analyzeButton);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalled();
+    });
+  });
+
+  test('disables back button during processing', async () => {
+    api.post.mockImplementation(
+      () => new Promise(resolve => setTimeout(() => resolve({ data: { success: true } }), 200))
+    );
+
+    renderComponent();
+
+    const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
+    const fileInput = document.querySelector('#image-upload');
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(screen.getByText(/selected image/i)).toBeInTheDocument();
+    });
+
+    const analyzeButton = screen.getByRole('button', { name: /analyze with ai/i });
+    fireEvent.click(analyzeButton);
+
+    await waitFor(() => {
+      const backButton = screen.getByRole('button', { name: /back to dashboard/i });
+      expect(backButton).toBeDisabled();
+    });
+  });
+
+  test('shows processing steps during AI analysis', async () => {
+    api.post.mockImplementation(
+      () => new Promise(resolve => setTimeout(() => resolve({ data: { success: true } }), 100))
+    );
+
+    renderComponent();
+
+    const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
+    const fileInput = document.querySelector('#image-upload');
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(screen.getByText(/selected image/i)).toBeInTheDocument();
+    });
+
+    const analyzeButton = screen.getByRole('button', { name: /analyze with ai/i });
+    fireEvent.click(analyzeButton);
+
+    await waitFor(() => {
+      expect(screen.getByText(/reading label/i)).toBeInTheDocument();
+      expect(screen.getByText(/extracting data/i)).toBeInTheDocument();
+      expect(screen.getByText(/preparing results/i)).toBeInTheDocument();
+    });
   });
 });

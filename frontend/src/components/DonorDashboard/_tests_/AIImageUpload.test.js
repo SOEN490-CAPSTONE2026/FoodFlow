@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import AIImageUpload from '../AIImageUpload';
@@ -13,11 +13,13 @@ jest.mock('lucide-react', () => ({
 }));
 
 describe('AIImageUpload', () => {
-  const mockOnImageSelected = jest.fn();
+  const mockOnImageSelect = jest.fn();
+  const mockOnManualEntry = jest.fn();
 
   const renderComponent = (props = {}) => {
     const defaultProps = {
-      onImageSelected: mockOnImageSelected,
+      onImageSelect: mockOnImageSelect,
+      onManualEntry: mockOnManualEntry,
     };
 
     return render(<AIImageUpload {...defaultProps} {...props} />);
@@ -73,6 +75,16 @@ describe('AIImageUpload', () => {
     expect(manualButton).toBeInTheDocument();
   });
 
+  test('calls onManualEntry when manual entry button is clicked', async () => {
+    const user = userEvent.setup();
+    renderComponent();
+
+    const manualButton = screen.getByRole('button', { name: /use manual entry instead/i });
+    await user.click(manualButton);
+
+    expect(mockOnManualEntry).toHaveBeenCalledTimes(1);
+  });
+
   test('renders product label requirements', () => {
     renderComponent();
 
@@ -92,6 +104,178 @@ describe('AIImageUpload', () => {
     renderComponent();
 
     expect(screen.getByText(/drag & drop your food label image here/i)).toBeInTheDocument();
+  });
+
+  test('handles valid file upload', async () => {
+    renderComponent();
+
+    const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
+    const fileInput = document.querySelector('#image-upload');
+
+    await waitFor(() => {
+      fireEvent.change(fileInput, { target: { files: [file] } });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/selected image/i)).toBeInTheDocument();
+      expect(screen.getByAltText(/food label preview/i)).toBeInTheDocument();
+    });
+  });
+
+  test('shows error for invalid file type', async () => {
+    renderComponent();
+
+    const file = new File(['test'], 'test.txt', { type: 'text/plain' });
+    const fileInput = document.querySelector('#image-upload');
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(screen.getByText(/invalid file type/i)).toBeInTheDocument();
+    });
+  });
+
+  test('shows error for oversized file', async () => {
+    renderComponent();
+
+    // Create a 6MB file (over 5MB limit)
+    const largeFile = new File(['a'.repeat(6 * 1024 * 1024)], 'large.jpg', {
+      type: 'image/jpeg',
+    });
+    const fileInput = document.querySelector('#image-upload');
+
+    fireEvent.change(fileInput, { target: { files: [largeFile] } });
+
+    await waitFor(() => {
+      expect(screen.getByText(/exceeds 5mb limit/i)).toBeInTheDocument();
+    });
+  });
+
+  test('displays file preview with name and size', async () => {
+    renderComponent();
+
+    const file = new File(['test'], 'my-image.jpg', { type: 'image/jpeg' });
+    const fileInput = document.querySelector('#image-upload');
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(screen.getByText('my-image.jpg')).toBeInTheDocument();
+      expect(screen.getByText(/MB/i)).toBeInTheDocument();
+    });
+  });
+
+  test('shows remove button after file selection', async () => {
+    renderComponent();
+
+    const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
+    const fileInput = document.querySelector('#image-upload');
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /remove/i })).toBeInTheDocument();
+    });
+  });
+
+  test('clears preview when remove button is clicked', async () => {
+    const user = userEvent.setup();
+    renderComponent();
+
+    const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
+    const fileInput = document.querySelector('#image-upload');
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /remove/i })).toBeInTheDocument();
+    });
+
+    const removeButton = screen.getByRole('button', { name: /remove/i });
+    await user.click(removeButton);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/selected image/i)).not.toBeInTheDocument();
+      expect(screen.getByText(/drag & drop/i)).toBeInTheDocument();
+    });
+  });
+
+  test('shows analyze button after file selection', async () => {
+    renderComponent();
+
+    const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
+    const fileInput = document.querySelector('#image-upload');
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', { name: /analyze with ai/i })
+      ).toBeInTheDocument();
+    });
+  });
+
+  test('calls onImageSelect when analyze button is clicked', async () => {
+    const user = userEvent.setup();
+    renderComponent();
+
+    const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
+    const fileInput = document.querySelector('#image-upload');
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', { name: /analyze with ai/i })
+      ).toBeInTheDocument();
+    });
+
+    const analyzeButton = screen.getByRole('button', { name: /analyze with ai/i });
+    await user.click(analyzeButton);
+
+    expect(mockOnImageSelect).toHaveBeenCalledTimes(1);
+    expect(mockOnImageSelect).toHaveBeenCalledWith(file);
+  });
+
+  test('handles drag enter event', () => {
+    renderComponent();
+
+    const dropzone = document.querySelector('.dropzone');
+    fireEvent.dragEnter(dropzone, {
+      dataTransfer: { files: [] },
+    });
+
+    expect(dropzone).toHaveClass('dragging');
+  });
+
+  test('handles drag leave event', () => {
+    renderComponent();
+
+    const dropzone = document.querySelector('.dropzone');
+    fireEvent.dragEnter(dropzone, {
+      dataTransfer: { files: [] },
+    });
+    expect(dropzone).toHaveClass('dragging');
+
+    fireEvent.dragLeave(dropzone, {
+      dataTransfer: { files: [] },
+    });
+    expect(dropzone).not.toHaveClass('dragging');
+  });
+
+  test('handles file drop', async () => {
+    renderComponent();
+
+    const file = new File(['test'], 'dropped.jpg', { type: 'image/jpeg' });
+    const dropzone = document.querySelector('.dropzone');
+
+    fireEvent.drop(dropzone, {
+      dataTransfer: { files: [file] },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('dropped.jpg')).toBeInTheDocument();
+    });
   });
 
   test('has accessible file input', () => {
