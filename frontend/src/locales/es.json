@@ -580,6 +580,10 @@
     "fabricationDateHelp": "El sistema calculará automáticamente la fecha de vencimiento basada en el tipo de alimento",
     "expiryDateAutoCalculated": "(Calculada automáticamente, puedes editar)",
     "expiryDateSuggestion": "Fecha de vencimiento sugerida: {{date}} (basada en categoría de alimento)",
+    "expiryDateSuggestionRule": "Fecha de vencimiento sugerida: {{date}} (basada en {{foodType}} + {{temperature}})",
+    "eligibilityEligible": "Apto",
+    "eligibilityNotEligible": "No apto",
+    "confirmSafetyOverride": "Confirmo que este artículo es seguro para donar",
     "loadingDetails": "Cargando detalles de la donación...",
     "validationError": "Por favor completa todos los campos requeridos antes de continuar.",
     "cancel": "Cancelar",
@@ -613,6 +617,55 @@
       "quantityDates": "Cantidad y fechas",
       "pickupInfo": "Información de recogida",
       "description": "Descripción"
+    },
+    "dietaryTagsLabel": "Etiquetas dietéticas",
+    "dietaryTagsOptional": "(opcional)",
+    "maxDietaryTags": "Máximo 10 etiquetas dietéticas permitidas",
+    "foodTypeValues": {
+      "PREPARED": "Comidas preparadas",
+      "PRODUCE": "Productos frescos",
+      "BAKERY": "Panadería y pastelería",
+      "DAIRY_EGGS": "Lácteos y huevos",
+      "MEAT_POULTRY": "Carne y aves",
+      "SEAFOOD": "Mariscos",
+      "PANTRY": "Artículos empaquetados / despensa",
+      "BEVERAGES": "Bebidas"
+    },
+    "dietaryTagValues": {
+      "HALAL": "Halal",
+      "KOSHER": "Casher",
+      "VEGETARIAN": "Vegetariano",
+      "VEGAN": "Vegano",
+      "GLUTEN_FREE": "Sin gluten",
+      "DAIRY_FREE": "Sin lácteos",
+      "NUT_FREE": "Sin frutos secos",
+      "EGG_FREE": "Sin huevo",
+      "SOY_FREE": "Sin soja"
+    },
+    "temperatureCategoryValues": {
+      "FROZEN": "Congelado (por debajo de 0°C)",
+      "REFRIGERATED": "Refrigerado (0–4°C)",
+      "ROOM_TEMPERATURE": "Temperatura ambiente",
+      "HOT_COOKED": "Caliente / Cocido"
+    },
+    "packagingTypeValues": {
+      "SEALED": "Sellado",
+      "LOOSE": "Suelto",
+      "REFRIGERATED_CONTAINER": "Contenedor refrigerado",
+      "FROZEN_CONTAINER": "Contenedor congelado",
+      "VACUUM_PACKED": "Envasado al vacío",
+      "BOXED": "En caja",
+      "WRAPPED": "Envuelto",
+      "BULK": "A granel",
+      "OTHER": "Otro"
+    },
+    "expiryWarnings": {
+      "Packaging suggests cold storage, confirm temperature": "El empaque sugiere almacenamiento en frío, confirma la temperatura",
+      "Packaging suggests frozen storage, confirm temperature": "El empaque sugiere almacenamiento congelado, confirma la temperatura",
+      "Hot food must be cooled and refrigerated to be eligible for donation": "La comida caliente debe enfriarse y refrigerarse para ser apta para donación",
+      "Produce is usually not hot/cooked": "Los productos frescos normalmente no están calientes/cocinados",
+      "Pantry items are usually stored at room temperature": "Los artículos de despensa normalmente se almacenan a temperatura ambiente",
+      "Hot beverages are same-day donations": "Las bebidas calientes son donaciones para el mismo día"
     }
   },
   "chat": {

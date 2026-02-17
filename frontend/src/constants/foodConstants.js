@@ -11,13 +11,72 @@ import PreparedMealsImage from '../assets/foodtypes/PreparedFood.jpg';
 
 // Food type options for dropdowns and forms
 export const foodTypeOptions = [
-  { value: 'PREPARED_MEALS', label: 'Prepared Meals' },
-  { value: 'BAKERY_PASTRY', label: 'Bakery & Pastry' },
-  { value: 'FRUITS_VEGETABLES', label: 'Fruits & Vegetables' },
-  { value: 'PACKAGED_PANTRY', label: 'Packaged / Pantry Items' },
-  { value: 'DAIRY_COLD', label: 'Dairy & Cold Items' },
-  { value: 'FROZEN', label: 'Frozen Food' },
+  { value: 'PREPARED', label: 'Prepared Meals' },
+  { value: 'PRODUCE', label: 'Produce' },
+  { value: 'BAKERY', label: 'Bakery & Pastry' },
+  { value: 'DAIRY_EGGS', label: 'Dairy & Eggs' },
+  { value: 'MEAT_POULTRY', label: 'Meat & Poultry' },
+  { value: 'SEAFOOD', label: 'Seafood' },
+  { value: 'PANTRY', label: 'Packaged / Pantry Items' },
+  { value: 'BEVERAGES', label: 'Beverages' },
 ];
+
+// Dietary tags options for dropdowns and filters
+export const dietaryTagOptions = [
+  { value: 'HALAL', label: 'Halal' },
+  { value: 'KOSHER', label: 'Kosher' },
+  { value: 'VEGETARIAN', label: 'Vegetarian' },
+  { value: 'VEGAN', label: 'Vegan' },
+  { value: 'GLUTEN_FREE', label: 'Gluten Free' },
+  { value: 'DAIRY_FREE', label: 'Dairy Free' },
+  { value: 'NUT_FREE', label: 'Nut Free' },
+  { value: 'EGG_FREE', label: 'Egg Free' },
+  { value: 'SOY_FREE', label: 'Soy Free' },
+];
+
+const legacyFoodCategoryToFoodType = {
+  PREPARED_MEALS: 'PREPARED',
+  READY_TO_EAT: 'PREPARED',
+  SALADS: 'PREPARED',
+  SOUPS: 'PREPARED',
+  STEWS: 'PREPARED',
+  CASSEROLES: 'PREPARED',
+  LEFTOVERS: 'PREPARED',
+  FRUITS_VEGETABLES: 'PRODUCE',
+  LEAFY_GREENS: 'PRODUCE',
+  ROOT_VEGETABLES: 'PRODUCE',
+  BERRIES: 'PRODUCE',
+  CITRUS_FRUITS: 'PRODUCE',
+  TROPICAL_FRUITS: 'PRODUCE',
+  BAKERY_PASTRY: 'BAKERY',
+  BREAD: 'BAKERY',
+  BAKED_GOODS: 'BAKERY',
+  BAKERY_ITEMS: 'BAKERY',
+  DAIRY_COLD: 'DAIRY_EGGS',
+  DAIRY: 'DAIRY_EGGS',
+  EGGS: 'DAIRY_EGGS',
+  FRESH_MEAT: 'MEAT_POULTRY',
+  GROUND_MEAT: 'MEAT_POULTRY',
+  POULTRY: 'MEAT_POULTRY',
+  FISH: 'SEAFOOD',
+  SEAFOOD: 'SEAFOOD',
+  PACKAGED_PANTRY: 'PANTRY',
+  CANNED_SOUP: 'PANTRY',
+  CANNED_VEGETABLES: 'PANTRY',
+  CANNED_FRUITS: 'PANTRY',
+  BEVERAGES: 'BEVERAGES',
+};
+
+const foodTypeToLegacyFoodCategory = {
+  PREPARED: 'PREPARED_MEALS',
+  PRODUCE: 'FRUITS_VEGETABLES',
+  BAKERY: 'BAKERY_PASTRY',
+  DAIRY_EGGS: 'DAIRY_COLD',
+  MEAT_POULTRY: 'FRESH_MEAT',
+  SEAFOOD: 'SEAFOOD',
+  PANTRY: 'PACKAGED_PANTRY',
+  BEVERAGES: 'BEVERAGES',
+};
 
 // Unit options for quantity selection
 export const unitOptions = [
@@ -51,7 +110,13 @@ export const packagingTypeOptions = [
 
 // Helper function to get label from value
 export const getFoodTypeLabel = value => {
-  const option = foodTypeOptions.find(opt => opt.value === value);
+  const normalizedValue = legacyFoodCategoryToFoodType[value] || value;
+  const option = foodTypeOptions.find(opt => opt.value === normalizedValue);
+  return option ? option.label : value;
+};
+
+export const getDietaryTagLabel = value => {
+  const option = dietaryTagOptions.find(opt => opt.value === value);
   return option ? option.label : value;
 };
 
@@ -86,23 +151,35 @@ export const getFoodTypeValue = label => {
   return option ? option.value : label;
 };
 
+export const mapFoodTypeToLegacyCategory = foodTypeValue => {
+  return foodTypeToLegacyFoodCategory[foodTypeValue] || foodTypeValue;
+};
+
+export const mapLegacyCategoryToFoodType = categoryValue => {
+  return legacyFoodCategoryToFoodType[categoryValue] || categoryValue;
+};
+
 // Food type image mappings (direct image imports)
 export const foodTypeImages = {
   'Bakery & Pastry': BakeryPastryImage,
-  'Fruits & Vegetables': FruitsVeggiesImage,
+  Produce: FruitsVeggiesImage,
   'Packaged / Pantry Items': PackagedPantryImage,
-  'Dairy & Cold Items': DairyColdImage,
-  'Frozen Food': FrozenFoodImage,
+  'Dairy & Eggs': DairyColdImage,
+  'Meat & Poultry': FrozenFoodImage,
+  Seafood: FrozenFoodImage,
+  Beverages: FrozenFoodImage,
   'Prepared Meals': PreparedMealsImage,
 };
 
 // Food type CSS class mappings
 export const foodTypeClasses = {
   'Bakery & Pastry': 'food-image-bakery',
-  'Fruits & Vegetables': 'food-image-fruits-veg',
+  Produce: 'food-image-fruits-veg',
   'Packaged / Pantry Items': 'food-image-packaged',
-  'Dairy & Cold Items': 'food-image-dairy',
-  'Frozen Food': 'food-image-frozen',
+  'Dairy & Eggs': 'food-image-dairy',
+  'Meat & Poultry': 'food-image-frozen',
+  Seafood: 'food-image-frozen',
+  Beverages: 'food-image-packaged',
   'Prepared Meals': 'food-image-prepared',
 };
 

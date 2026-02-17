@@ -12,6 +12,7 @@ import com.example.foodflow.model.types.Quantity;
 import com.example.foodflow.repository.ClaimRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
 import com.example.foodflow.repository.UserRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -49,6 +50,15 @@ class ImpactDashboardServiceTest {
 
     @Mock
     private ImpactCalculationService calculationService;
+
+    @Mock
+    private FoodTypeImpactService foodTypeImpactService;
+
+    @Mock
+    private ImpactMetricsEngine impactMetricsEngine;
+
+    @Mock
+    private ObjectMapper objectMapper;
 
     @InjectMocks
     private ImpactDashboardService service;
@@ -184,8 +194,37 @@ class ImpactDashboardServiceTest {
                 return new int[]{min, max};
             });
 
-        when(calculationService.getCurrentVersion()).thenReturn("1.0-test");
+        when(foodTypeImpactService.getFactorVersion()).thenReturn("impact_v1");
         when(calculationService.getDisclosureText()).thenReturn("Test disclosure text");
+        try {
+            lenient().doReturn("{}").when(objectMapper).writeValueAsString(any());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        lenient().when(impactMetricsEngine.computeImpactMetrics(anyList(), any(), any(), any(), any()))
+                .thenAnswer(invocation -> {
+                    @SuppressWarnings("unchecked")
+                    List<ImpactMetricsEngine.DonationImpactRecord> records = invocation.getArgument(0);
+                    LocalDateTime currentStart = invocation.getArgument(1, LocalDateTime.class);
+                    LocalDateTime currentEnd = invocation.getArgument(2, LocalDateTime.class);
+                    double totalWeight = records.stream()
+                            .filter(record -> record.eventTime() != null)
+                            .filter(record -> !record.eventTime().isBefore(currentStart) && !record.eventTime().isAfter(currentEnd))
+                            .filter(record -> "picked_up".equalsIgnoreCase(record.status()))
+                            .filter(record -> record.weightKg() > 0d)
+                            .mapToDouble(ImpactMetricsEngine.DonationImpactRecord::weightKg)
+                            .sum();
+                    int meals = (int) Math.round(totalWeight / 0.544d);
+                    return new ImpactMetricsEngine.ImpactComputationResult(
+                            new ImpactMetricsEngine.ImpactTotals(totalWeight, totalWeight * 0.8d, meals, totalWeight * 800d, List.of()),
+                            new ImpactMetricsEngine.ImpactTotals(0d, 0d, 0, 0d, List.of()),
+                            new ImpactMetricsEngine.ImpactDelta(totalWeight, totalWeight * 0.8d, meals, totalWeight * 800d, null, null, null, null),
+                            new ImpactMetricsEngine.ImpactAudit(
+                                    List.of(),
+                                    List.of(),
+                                    new ImpactMetricsEngine.FactorSet(Map.of(), Map.of(), 0.544d)));
+                });
     }
 
     @Nested
@@ -235,7 +274,7 @@ class ImpactDashboardServiceTest {
             assertEquals(50.0, metrics.getDonationCompletionRate());
 
             // Should have factor metadata
-            assertEquals("1.0-test", metrics.getFactorVersion());
+            assertEquals("impact_v1", metrics.getFactorVersion());
             assertEquals("Test disclosure text", metrics.getFactorDisclosure());
         }
 
@@ -800,4 +839,3 @@ class ImpactDashboardServiceTest {
         }
     }
 }
-

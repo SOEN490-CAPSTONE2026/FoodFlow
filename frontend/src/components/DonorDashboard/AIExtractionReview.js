@@ -7,6 +7,8 @@ import DatePicker from 'react-datepicker';
 import { surplusAPI } from '../../services/api';
 import {
   foodTypeOptions,
+  mapFoodTypeToLegacyCategory,
+  mapLegacyCategoryToFoodType,
   unitOptions,
   temperatureCategoryOptions,
   packagingTypeOptions,
@@ -59,7 +61,9 @@ export default function AIExtractionReview({
     if (!categories || categories.length === 0) return [];
 
     return categories.map(cat => {
-      const option = foodTypeOptions.find(opt => opt.value === cat);
+      const option = foodTypeOptions.find(
+        opt => opt.value === mapLegacyCategoryToFoodType(cat)
+      );
       return option || { value: cat, label: cat };
     });
   }
@@ -237,7 +241,11 @@ export default function AIExtractionReview({
           value: parseFloat(formData.quantityValue),
           unit: formData.quantityUnit,
         },
-        foodCategories: formData.foodCategories.map(fc => fc.value),
+        foodCategories: formData.foodCategories.map(fc =>
+          mapFoodTypeToLegacyCategory(fc.value)
+        ),
+        foodType: formData.foodCategories[0]?.value || null,
+        dietaryTags: [],
         fabricationDate: formatDate(formData.fabricationDate) || null,
         expiryDate: formatDate(formData.expiryDate),
         pickupSlots: formattedSlots,

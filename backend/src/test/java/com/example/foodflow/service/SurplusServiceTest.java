@@ -18,7 +18,9 @@ import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.model.types.Quantity;
 import com.example.foodflow.repository.ClaimRepository;
 import com.example.foodflow.repository.DonationTimelineRepository;
+import com.example.foodflow.repository.ExpiryAuditLogRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -61,6 +63,18 @@ class SurplusServiceTest {
     private ExpiryCalculationService expiryCalculationService;
 
     @Mock
+    private ExpiryPredictionService expiryPredictionService;
+
+    @Mock
+    private ExpirySuggestionService expirySuggestionService;
+
+    @Mock
+    private ExpiryAuditLogRepository expiryAuditLogRepository;
+
+    @Mock
+    private ObjectMapper objectMapper;
+
+    @Mock
     private TimelineService timelineService;
 
     @Mock
@@ -83,6 +97,9 @@ class SurplusServiceTest {
 
     @Mock
     private NotificationPreferenceService notificationPreferenceService;
+
+    @Mock
+    private FoodTypeImpactService foodTypeImpactService;
 
     @InjectMocks
     private SurplusService surplusService;
@@ -133,6 +150,24 @@ class SurplusServiceTest {
         slot.setNotes("Test slot");
         slots.add(slot);
         request.setPickupSlots(slots);
+
+        try {
+            lenient().when(objectMapper.writeValueAsString(any())).thenReturn("{}");
+        } catch (Exception ignored) {
+        }
+        lenient().when(expiryPredictionService.predict(any(SurplusPost.class))).thenReturn(
+                new ExpiryPredictionService.PredictionResult(
+                        java.time.Instant.now().plus(java.time.Duration.ofDays(2)),
+                        0.75d,
+                        "rules_v1",
+                        Map.of("foodType", "PREPARED")));
+        lenient().when(expirySuggestionService.computeSuggestedExpiry(any(), any(), any(), any())).thenReturn(
+                new ExpirySuggestionService.SuggestionResult(
+                        LocalDate.now().plusDays(2),
+                        2,
+                        true,
+                        List.of(),
+                        "Suggested expiry: " + LocalDate.now().plusDays(2)));
     }
 
     @Test
@@ -169,6 +204,76 @@ class SurplusServiceTest {
 
         verify(pickupSlotValidationService, times(1)).validateSlots(any());
         verify(surplusPostRepository, times(1)).save(any(SurplusPost.class));
+    }
+
+    @Test
+    void testCreateSurplusPost_ComputesExpirySuggestionSnapshot() {
+        SurplusPost savedPost = new SurplusPost();
+        savedPost.setId(101L);
+        savedPost.setDonor(donor);
+        savedPost.setTitle(request.getTitle());
+        savedPost.setFoodCategories(request.getFoodCategories());
+        savedPost.setQuantity(request.getQuantity());
+        savedPost.setPickupLocation(request.getPickupLocation());
+        savedPost.setExpiryDate(request.getExpiryDate());
+        savedPost.setPickupDate(request.getPickupDate());
+        savedPost.setPickupFrom(request.getPickupFrom());
+        savedPost.setPickupTo(request.getPickupTo());
+        savedPost.setDescription(request.getDescription());
+
+        when(expirySuggestionService.computeSuggestedExpiry(any(), any(), any(), any())).thenReturn(
+                new ExpirySuggestionService.SuggestionResult(
+                        LocalDate.of(2026, 2, 20),
+                        3,
+                        true,
+                        List.of("Packaging suggests cold storage, confirm temperature"),
+                        "Suggested expiry: 2026-02-20"));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
+
+        surplusService.createSurplusPost(request, donor);
+
+        ArgumentCaptor<SurplusPost> captor = ArgumentCaptor.forClass(SurplusPost.class);
+        verify(surplusPostRepository).save(captor.capture());
+        SurplusPost created = captor.getValue();
+
+        assertThat(created.getSuggestedExpiryDate()).isEqualTo(LocalDate.of(2026, 2, 20));
+        assertThat(created.getEligibleAtSubmission()).isTrue();
+        assertThat(created.getWarningsAtSubmission()).isEqualTo("{}");
+    }
+
+    @Test
+    void testCreateSurplusPost_NotEligibleMarksForReview() {
+        SurplusPost savedPost = new SurplusPost();
+        savedPost.setId(102L);
+        savedPost.setDonor(donor);
+        savedPost.setTitle(request.getTitle());
+        savedPost.setFoodCategories(request.getFoodCategories());
+        savedPost.setQuantity(request.getQuantity());
+        savedPost.setPickupLocation(request.getPickupLocation());
+        savedPost.setExpiryDate(request.getExpiryDate());
+        savedPost.setPickupDate(request.getPickupDate());
+        savedPost.setPickupFrom(request.getPickupFrom());
+        savedPost.setPickupTo(request.getPickupTo());
+        savedPost.setDescription(request.getDescription());
+
+        when(expirySuggestionService.computeSuggestedExpiry(any(), any(), any(), any())).thenReturn(
+                new ExpirySuggestionService.SuggestionResult(
+                        LocalDate.of(2026, 2, 17),
+                        0,
+                        false,
+                        List.of("Hot food must be cooled and refrigerated to be eligible for donation"),
+                        "Suggested expiry: 2026-02-17"));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
+
+        surplusService.createSurplusPost(request, donor);
+
+        ArgumentCaptor<SurplusPost> captor = ArgumentCaptor.forClass(SurplusPost.class);
+        verify(surplusPostRepository).save(captor.capture());
+        SurplusPost created = captor.getValue();
+
+        assertThat(created.getEligibleAtSubmission()).isFalse();
+        assertThat(created.getFlagged()).isTrue();
+        assertThat(created.getFlagReason()).contains("requires_review");
     }
 
     @Test
@@ -1041,7 +1146,6 @@ class SurplusServiceTest {
 
         doNothing().when(pickupSlotValidationService).validateSlots(any());
         when(expiryCalculationService.isValidFabricationDate(any())).thenReturn(true);
-        when(expiryCalculationService.calculateExpiryDate(any(), any())).thenReturn(LocalDate.now().plusDays(2));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
 
         // When
@@ -1050,14 +1154,15 @@ class SurplusServiceTest {
         // Then
         assertThat(response).isNotNull();
         verify(expiryCalculationService).isValidFabricationDate(LocalDate.now().minusDays(1));
-        verify(expiryCalculationService).calculateExpiryDate(eq(LocalDate.now().minusDays(1)), any());
+        verify(expiryPredictionService).predict(any(SurplusPost.class));
 
         ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
         verify(surplusPostRepository).save(postCaptor.capture());
 
         SurplusPost capturedPost = postCaptor.getValue();
         assertThat(capturedPost.getFabricationDate()).isEqualTo(LocalDate.now().minusDays(1));
-        assertThat(capturedPost.getExpiryDate()).isNotNull();
+        assertThat(capturedPost.getExpiryDatePredicted()).isNotNull();
+        assertThat(capturedPost.getExpiryDateEffective()).isNotNull();
     }
 
     @Test
@@ -1221,7 +1326,7 @@ class SurplusServiceTest {
     }
 
     @Test
-    void testCreateSurplusPost_WithoutFabricationOrExpiry_ThrowsException() {
+    void testCreateSurplusPost_WithoutFabricationOrExpiry_UsesPrediction() {
         // Given
         CreateSurplusRequest requestWithoutDates = new CreateSurplusRequest();
         requestWithoutDates.setTitle("No Dates Meal");
@@ -1241,10 +1346,24 @@ class SurplusServiceTest {
         slots.add(slot);
         requestWithoutDates.setPickupSlots(slots);
 
-        // When & Then
-        assertThatThrownBy(() -> surplusService.createSurplusPost(requestWithoutDates, donor))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Expiry date is required");
+        SurplusPost savedPost = new SurplusPost();
+        savedPost.setId(1L);
+        savedPost.setDonor(donor);
+        savedPost.setTitle(requestWithoutDates.getTitle());
+        savedPost.setFoodCategories(requestWithoutDates.getFoodCategories());
+        savedPost.setQuantity(requestWithoutDates.getQuantity());
+        savedPost.setPickupLocation(requestWithoutDates.getPickupLocation());
+
+        doNothing().when(pickupSlotValidationService).validateSlots(any());
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
+
+        // When
+        SurplusResponse response = surplusService.createSurplusPost(requestWithoutDates, donor);
+
+        // Then
+        assertThat(response).isNotNull();
+        verify(expiryPredictionService).predict(any(SurplusPost.class));
+        verify(surplusPostRepository).save(any(SurplusPost.class));
     }
 
     @Test
@@ -1282,7 +1401,6 @@ class SurplusServiceTest {
 
         doNothing().when(pickupSlotValidationService).validateSlots(any());
         when(expiryCalculationService.isValidFabricationDate(any())).thenReturn(true);
-        when(expiryCalculationService.calculateExpiryDate(any(), any())).thenReturn(LocalDate.now().plusDays(3));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
 
         // When
@@ -1290,13 +1408,14 @@ class SurplusServiceTest {
 
         // Then
         assertThat(response).isNotNull();
-        verify(expiryCalculationService).calculateExpiryDate(eq(LocalDate.now()), any());
+        verify(expiryPredictionService).predict(any(SurplusPost.class));
 
         ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
         verify(surplusPostRepository).save(postCaptor.capture());
 
         SurplusPost capturedPost = postCaptor.getValue();
-        assertThat(capturedPost.getExpiryDate()).isNotNull();
+        assertThat(capturedPost.getExpiryDatePredicted()).isNotNull();
+        assertThat(capturedPost.getExpiryDateEffective()).isNotNull();
     }
 
     @Test
@@ -1333,7 +1452,6 @@ class SurplusServiceTest {
 
         doNothing().when(pickupSlotValidationService).validateSlots(any());
         when(expiryCalculationService.isValidFabricationDate(any())).thenReturn(true);
-        when(expiryCalculationService.calculateExpiryDate(any(), any())).thenReturn(LocalDate.now().plusDays(30));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
 
         // When
@@ -1341,13 +1459,14 @@ class SurplusServiceTest {
 
         // Then
         assertThat(response).isNotNull();
-        verify(expiryCalculationService).calculateExpiryDate(eq(LocalDate.now()), any());
+        verify(expiryPredictionService).predict(any(SurplusPost.class));
 
         ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
         verify(surplusPostRepository).save(postCaptor.capture());
 
         SurplusPost capturedPost = postCaptor.getValue();
-        assertThat(capturedPost.getExpiryDate()).isNotNull();
+        assertThat(capturedPost.getExpiryDatePredicted()).isNotNull();
+        assertThat(capturedPost.getExpiryDateEffective()).isNotNull();
     }
 
     // ==================== Tests for Timeline Feature ====================

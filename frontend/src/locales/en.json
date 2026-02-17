@@ -600,6 +600,10 @@
     "fabricationDateHelp": "System will auto-calculate expiry date based on food type",
     "expiryDateAutoCalculated": "(Auto-calculated, you can edit)",
     "expiryDateSuggestion": "Suggested expiry: {{date}} (based on food category)",
+    "expiryDateSuggestionRule": "Suggested expiry: {{date}} (based on {{foodType}} + {{temperature}})",
+    "eligibilityEligible": "Eligible",
+    "eligibilityNotEligible": "Not eligible",
+    "confirmSafetyOverride": "I confirm this item is safe to donate",
     "loadingDetails": "Loading donation details...",
     "validationError": "Please complete all required fields before continuing.",
     "cancel": "Cancel",
@@ -633,6 +637,55 @@
       "quantityDates": "Quantity & Dates",
       "pickupInfo": "Pickup Info",
       "description": "Description"
+    },
+    "dietaryTagsLabel": "Dietary Tags",
+    "dietaryTagsOptional": "(optional)",
+    "maxDietaryTags": "Maximum 10 dietary tags allowed",
+    "foodTypeValues": {
+      "PREPARED": "Prepared Meals",
+      "PRODUCE": "Produce",
+      "BAKERY": "Bakery & Pastry",
+      "DAIRY_EGGS": "Dairy & Eggs",
+      "MEAT_POULTRY": "Meat & Poultry",
+      "SEAFOOD": "Seafood",
+      "PANTRY": "Packaged / Pantry Items",
+      "BEVERAGES": "Beverages"
+    },
+    "dietaryTagValues": {
+      "HALAL": "Halal",
+      "KOSHER": "Kosher",
+      "VEGETARIAN": "Vegetarian",
+      "VEGAN": "Vegan",
+      "GLUTEN_FREE": "Gluten Free",
+      "DAIRY_FREE": "Dairy Free",
+      "NUT_FREE": "Nut Free",
+      "EGG_FREE": "Egg Free",
+      "SOY_FREE": "Soy Free"
+    },
+    "temperatureCategoryValues": {
+      "FROZEN": "Frozen (below 0°C)",
+      "REFRIGERATED": "Refrigerated (0–4°C)",
+      "ROOM_TEMPERATURE": "Room Temperature",
+      "HOT_COOKED": "Hot / Cooked"
+    },
+    "packagingTypeValues": {
+      "SEALED": "Sealed",
+      "LOOSE": "Loose",
+      "REFRIGERATED_CONTAINER": "Refrigerated Container",
+      "FROZEN_CONTAINER": "Frozen Container",
+      "VACUUM_PACKED": "Vacuum Packed",
+      "BOXED": "Boxed",
+      "WRAPPED": "Wrapped",
+      "BULK": "Bulk",
+      "OTHER": "Other"
+    },
+    "expiryWarnings": {
+      "Packaging suggests cold storage, confirm temperature": "Packaging suggests cold storage, confirm temperature",
+      "Packaging suggests frozen storage, confirm temperature": "Packaging suggests frozen storage, confirm temperature",
+      "Hot food must be cooled and refrigerated to be eligible for donation": "Hot food must be cooled and refrigerated to be eligible for donation",
+      "Produce is usually not hot/cooked": "Produce is usually not hot/cooked",
+      "Pantry items are usually stored at room temperature": "Pantry items are usually stored at room temperature",
+      "Hot beverages are same-day donations": "Hot beverages are same-day donations"
     }
   },
   "chat": {

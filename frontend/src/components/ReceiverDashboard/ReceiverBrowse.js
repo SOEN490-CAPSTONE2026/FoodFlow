@@ -17,14 +17,17 @@ import {
 import { useLoadScript } from '@react-google-maps/api';
 import { surplusAPI, recommendationAPI } from '../../services/api';
 import {
+  getDietaryTagLabel,
   getFoodCategoryDisplays,
   getPrimaryFoodCategory,
   getFoodImageClass,
+  getFoodTypeLabel,
   foodTypeImages,
   getUnitLabel,
   getTemperatureCategoryLabel,
   getTemperatureCategoryIcon,
   getPackagingTypeLabel,
+  mapLegacyCategoryToFoodType,
 } from '../../constants/foodConstants';
 import { useTimezone } from '../../contexts/TimezoneContext';
 import FiltersPanel from './FiltersPanel';
@@ -301,6 +304,24 @@ export default function ReceiverBrowse() {
     }
   }, []);
 
+  const formatBestBeforeDate = useCallback(dateValue => {
+    if (!dateValue) {
+      return '—';
+    }
+    try {
+      const date = new Date(dateValue);
+      return date.toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+      });
+    } catch {
+      return '—';
+    }
+  }, []);
+
   const formatPickupTime = useCallback((pickupDate, pickupFrom, pickupTo) => {
     if (!pickupDate || !pickupFrom || !pickupTo) {
       return '—';
@@ -520,6 +541,16 @@ export default function ReceiverBrowse() {
                 const primaryFoodCategory = getPrimaryFoodCategory(
                   item.foodCategories
                 );
+                const resolvedFoodType =
+                  item.foodType || item.foodCategories?.[0];
+                const normalizedFoodType = resolvedFoodType
+                  ? mapLegacyCategoryToFoodType(resolvedFoodType)
+                  : null;
+                const dietaryTags = Array.isArray(item.dietaryTags)
+                  ? item.dietaryTags
+                  : [];
+                const visibleDietaryTags = dietaryTags.slice(0, 4);
+                const hiddenDietaryCount = Math.max(dietaryTags.length - 4, 0);
 
                 return (
                   <div
@@ -613,6 +644,21 @@ export default function ReceiverBrowse() {
                             <span className="receiver-status-icon">✓</span>
                             {formatStatus(item.status)}
                           </span>
+                          {item.expiringSoon && (
+                            <span className="receiver-expiring-soon-badge">
+                              {t(
+                                'receiverBrowse.expiringSoon',
+                                'Expiring soon'
+                              )}
+                            </span>
+                          )}
+                          {!item.expiryDateActual &&
+                            item.expiryDatePredicted &&
+                            !item.expiryOverridden && (
+                              <span className="receiver-predicted-badge">
+                                {t('receiverBrowse.predicted', 'predicted')}
+                              </span>
+                            )}
                         </div>
                       </div>
 
@@ -624,7 +670,9 @@ export default function ReceiverBrowse() {
                           />
                           <span>
                             {t('receiverBrowse.expires')}:{' '}
-                            {formatExpiryDate(item.expiryDate)}
+                            {formatBestBeforeDate(
+                              item.expiryDateEffective || item.expiryDate
+                            )}
                           </span>
                         </div>
                         <div className="receiver-info-item">
@@ -667,6 +715,37 @@ export default function ReceiverBrowse() {
                       </div>
 
                       <div className="receiver-donation-meta">
+                        {resolvedFoodType && (
+                          <div className="receiver-food-type-row">
+                            <span className="receiver-food-type-chip">
+                              {t('surplusForm.foodCategoriesLabel')}:{' '}
+                              {t(
+                                `surplusForm.foodTypeValues.${normalizedFoodType}`,
+                                getFoodTypeLabel(resolvedFoodType)
+                              )}
+                            </span>
+                          </div>
+                        )}
+                        {dietaryTags.length > 0 && (
+                          <div className="receiver-dietary-tags">
+                            {visibleDietaryTags.map(tag => (
+                              <span
+                                key={`${item.id}-${tag}`}
+                                className="receiver-dietary-tag"
+                              >
+                                {t(
+                                  `surplusForm.dietaryTagValues.${tag}`,
+                                  getDietaryTagLabel(tag)
+                                )}
+                              </span>
+                            ))}
+                            {hiddenDietaryCount > 0 && (
+                              <span className="receiver-dietary-tag overflow">
+                                +{hiddenDietaryCount}
+                              </span>
+                            )}
+                          </div>
+                        )}
                         <div className="receiver-category-tags">
                           {categoryDisplays.map((category, index) => (
                             <span key={index} className="receiver-category-tag">
@@ -754,7 +833,9 @@ export default function ReceiverBrowse() {
                                   <span className="receiver-expiry-icon-detail">
                                     <Calendar size={14} />
                                   </span>
-                                  {formatExpiryDate(item.expiryDate)}
+                                  {formatBestBeforeDate(
+                                    item.expiryDateEffective || item.expiryDate
+                                  )}
                                 </div>
                               </div>
                               <div className="receiver-detail-item">
@@ -780,7 +861,9 @@ export default function ReceiverBrowse() {
                                   {item.temperatureCategory && (
                                     <div className="receiver-detail-item">
                                       <span className="receiver-detail-label">
-                                        Temperature
+                                        {t(
+                                          'surplusForm.temperatureCategoryLabel'
+                                        )}
                                       </span>
                                       <div className="receiver-detail-value">
                                         <span className="receiver-compliance-icon-bg">
@@ -788,8 +871,11 @@ export default function ReceiverBrowse() {
                                             item.temperatureCategory
                                           )}
                                         </span>
-                                        {getTemperatureCategoryLabel(
-                                          item.temperatureCategory
+                                        {t(
+                                          `surplusForm.temperatureCategoryValues.${item.temperatureCategory}`,
+                                          getTemperatureCategoryLabel(
+                                            item.temperatureCategory
+                                          )
                                         )}
                                       </div>
                                     </div>
@@ -799,14 +885,17 @@ export default function ReceiverBrowse() {
                                   {item.packagingType && (
                                     <div className="receiver-detail-item">
                                       <span className="receiver-detail-label">
-                                        Packaging
+                                        {t('surplusForm.packagingTypeLabel')}
                                       </span>
                                       <div className="receiver-detail-value">
                                         <span className="receiver-compliance-icon-bg">
                                           <Package size={14} />
                                         </span>
-                                        {getPackagingTypeLabel(
-                                          item.packagingType
+                                        {t(
+                                          `surplusForm.packagingTypeValues.${item.packagingType}`,
+                                          getPackagingTypeLabel(
+                                            item.packagingType
+                                          )
                                         )}
                                       </div>
                                     </div>

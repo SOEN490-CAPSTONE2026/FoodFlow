@@ -67,9 +67,13 @@ public class ClaimService {
         SurplusPost surplusPost = surplusPostRepository.findById(request.getSurplusPostId())
             .orElseThrow(() -> new ResourceNotFoundException("error.resource.not_found"));
 
-        // Check if post has expired
-        if (surplusPost.getExpiryDate() != null &&
-            surplusPost.getExpiryDate().isBefore(java.time.LocalDate.now())) {
+        // Check if post has expired based on effective expiry first, fallback to legacy expiry date.
+        LocalDateTime effectiveExpiry = surplusPost.getExpiryDateEffective();
+        if (effectiveExpiry == null && surplusPost.getExpiryDate() != null) {
+            effectiveExpiry = surplusPost.getExpiryDate().atTime(23, 59, 59);
+        }
+        if (effectiveExpiry != null &&
+                !LocalDateTime.now(java.time.ZoneOffset.UTC).isBefore(effectiveExpiry)) {
             throw new RuntimeException("This donation has expired and cannot be claimed");
         }
 

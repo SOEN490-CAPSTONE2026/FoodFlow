@@ -279,7 +279,7 @@ describe('SurplusFormModal', () => {
     );
 
     const categoriesSelect = screen.getByTestId('mock-select-default');
-    await userEvent.selectOptions(categoriesSelect, ['PREPARED_MEALS']);
+    await userEvent.selectOptions(categoriesSelect, ['PREPARED']);
 
     const tempSelect = screen.getByTestId('mock-select-temperatureCategory');
     fireEvent.change(tempSelect, { target: { value: 'REFRIGERATED' } });
@@ -460,7 +460,7 @@ describe('SurplusFormModal', () => {
     );
 
     const categoriesSelect = screen.getByTestId('mock-select-default');
-    await userEvent.selectOptions(categoriesSelect, ['PREPARED_MEALS']);
+    await userEvent.selectOptions(categoriesSelect, ['PREPARED']);
 
     const packagingSelect = screen.getByTestId('mock-select-packagingType');
     fireEvent.change(packagingSelect, { target: { value: 'SEALED' } });
@@ -484,7 +484,7 @@ describe('SurplusFormModal', () => {
     );
 
     const categoriesSelect = screen.getByTestId('mock-select-default');
-    await userEvent.selectOptions(categoriesSelect, ['PREPARED_MEALS']);
+    await userEvent.selectOptions(categoriesSelect, ['PREPARED']);
 
     const tempSelect = screen.getByTestId('mock-select-temperatureCategory');
     fireEvent.change(tempSelect, { target: { value: 'REFRIGERATED' } });
@@ -624,7 +624,7 @@ describe('SurplusFormModal', () => {
 
     // Navigate to Step 2 for quantity
     const categoriesSelect = screen.getByTestId('mock-select-default');
-    await userEvent.selectOptions(categoriesSelect, ['PREPARED_MEALS']);
+    await userEvent.selectOptions(categoriesSelect, ['PREPARED']);
     const tempSelect = screen.getByTestId('mock-select-temperatureCategory');
     fireEvent.change(tempSelect, { target: { value: 'REFRIGERATED' } });
     const packagingSelect = screen.getByTestId('mock-select-packagingType');
@@ -707,11 +707,11 @@ describe('SurplusFormModal', () => {
 
     // Simulate selecting multiple options using userEvent
     await userEvent.selectOptions(categoriesSelect, [
-      'PREPARED_MEALS',
+      'PREPARED',
       'BAKERY_PASTRY',
     ]);
     expect(categoriesSelect).toBeInTheDocument();
-    expect(categoriesSelect.value).toContain('PREPARED_MEALS');
+    expect(categoriesSelect.value).toContain('PREPARED');
   });
 
   // Unit selection change
