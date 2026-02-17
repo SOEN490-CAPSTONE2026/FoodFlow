@@ -149,8 +149,8 @@ export default function ForgotPassword() {
       } else {
         setError(
           err.response?.data?.message ||
-            err.message ||
-            'Failed to send verification code. Please try again.'
+          err.message ||
+          'Failed to send verification code. Please try again.'
         );
       }
     } finally {
@@ -207,7 +207,7 @@ export default function ForgotPassword() {
 
     // Re-submit to resend the verification code
     setTimeout(async () => {
-      await handleSubmit({ preventDefault: () => {} });
+      await handleSubmit({ preventDefault: () => { } });
     }, 100);
   };
 
@@ -567,9 +567,33 @@ export default function ForgotPassword() {
                           setPasswordError('Passwords do not match');
                           return;
                         }
-                        if (newPassword.length < 8) {
+                        if (newPassword.length < 10) {
                           setPasswordError(
-                            'Password must be at least 8 characters'
+                            'Password must be at least 10 characters'
+                          );
+                          return;
+                        }
+                        if (!/[A-Z]/.test(newPassword)) {
+                          setPasswordError(
+                            'Password must contain at least one uppercase letter'
+                          );
+                          return;
+                        }
+                        if (!/[a-z]/.test(newPassword)) {
+                          setPasswordError(
+                            'Password must contain at least one lowercase letter'
+                          );
+                          return;
+                        }
+                        if (!/[0-9]/.test(newPassword)) {
+                          setPasswordError(
+                            'Password must contain at least one digit'
+                          );
+                          return;
+                        }
+                        if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(newPassword)) {
+                          setPasswordError(
+                            'Password must contain at least one special character (!@#$%^&*()_+-=[]{}|;:,.<>?)'
                           );
                           return;
                         }
@@ -580,15 +604,15 @@ export default function ForgotPassword() {
                           const resetData =
                             selectedMethod === 'sms'
                               ? {
-                                  phone: phone,
-                                  code: verificationCode.join(''),
-                                  newPassword: newPassword,
-                                }
+                                phone: phone,
+                                code: verificationCode.join(''),
+                                newPassword: newPassword,
+                              }
                               : {
-                                  email: email,
-                                  code: verificationCode.join(''),
-                                  newPassword: newPassword,
-                                };
+                                email: email,
+                                code: verificationCode.join(''),
+                                newPassword: newPassword,
+                              };
 
                           await authAPI.resetPassword(resetData);
 
@@ -598,9 +622,12 @@ export default function ForgotPassword() {
                             navigate('/login', { replace: true });
                           }, 3000);
                         } catch (err) {
+                          const data = err.response?.data;
+                          const fieldErrorMsg = data?.fieldErrors?.[0]?.message;
                           setPasswordError(
-                            err.response?.data?.message ||
-                              'Failed to reset password. Please try again.'
+                            fieldErrorMsg ||
+                            data?.message ||
+                            'Failed to reset password. Please try again.'
                           );
                         } finally {
                           setIsLoading(false);
@@ -717,9 +744,9 @@ export default function ForgotPassword() {
                           fontSize: 16,
                           opacity:
                             isLoading ||
-                            !!passwordError ||
-                            !newPassword ||
-                            !confirmPassword
+                              !!passwordError ||
+                              !newPassword ||
+                              !confirmPassword
                               ? 0.5
                               : 1,
                         }}
