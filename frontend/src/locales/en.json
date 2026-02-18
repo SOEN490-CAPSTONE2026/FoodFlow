@@ -540,7 +540,8 @@
       "readyForPickup": "Ready for Pickup",
       "notCompleted": "Not Completed",
       "expired": "Expired"
-    }
+    },
+    "yourRating": "Your Rating"
   },
   "receiverWelcome": {
     "title": "Find Food Near You",
@@ -600,6 +601,10 @@
     "fabricationDateHelp": "System will auto-calculate expiry date based on food type",
     "expiryDateAutoCalculated": "(Auto-calculated, you can edit)",
     "expiryDateSuggestion": "Suggested expiry: {{date}} (based on food category)",
+    "expiryDateSuggestionRule": "Suggested expiry: {{date}} (based on {{foodType}} + {{temperature}})",
+    "eligibilityEligible": "Eligible",
+    "eligibilityNotEligible": "Not eligible",
+    "confirmSafetyOverride": "I confirm this item is safe to donate",
     "loadingDetails": "Loading donation details...",
     "validationError": "Please complete all required fields before continuing.",
     "cancel": "Cancel",
@@ -633,6 +638,55 @@
       "quantityDates": "Quantity & Dates",
       "pickupInfo": "Pickup Info",
       "description": "Description"
+    },
+    "dietaryTagsLabel": "Dietary Tags",
+    "dietaryTagsOptional": "(optional)",
+    "maxDietaryTags": "Maximum 10 dietary tags allowed",
+    "foodTypeValues": {
+      "PREPARED": "Prepared Meals",
+      "PRODUCE": "Produce",
+      "BAKERY": "Bakery & Pastry",
+      "DAIRY_EGGS": "Dairy & Eggs",
+      "MEAT_POULTRY": "Meat & Poultry",
+      "SEAFOOD": "Seafood",
+      "PANTRY": "Packaged / Pantry Items",
+      "BEVERAGES": "Beverages"
+    },
+    "dietaryTagValues": {
+      "HALAL": "Halal",
+      "KOSHER": "Kosher",
+      "VEGETARIAN": "Vegetarian",
+      "VEGAN": "Vegan",
+      "GLUTEN_FREE": "Gluten Free",
+      "DAIRY_FREE": "Dairy Free",
+      "NUT_FREE": "Nut Free",
+      "EGG_FREE": "Egg Free",
+      "SOY_FREE": "Soy Free"
+    },
+    "temperatureCategoryValues": {
+      "FROZEN": "Frozen (below 0°C)",
+      "REFRIGERATED": "Refrigerated (0–4°C)",
+      "ROOM_TEMPERATURE": "Room Temperature",
+      "HOT_COOKED": "Hot / Cooked"
+    },
+    "packagingTypeValues": {
+      "SEALED": "Sealed",
+      "LOOSE": "Loose",
+      "REFRIGERATED_CONTAINER": "Refrigerated Container",
+      "FROZEN_CONTAINER": "Frozen Container",
+      "VACUUM_PACKED": "Vacuum Packed",
+      "BOXED": "Boxed",
+      "WRAPPED": "Wrapped",
+      "BULK": "Bulk",
+      "OTHER": "Other"
+    },
+    "expiryWarnings": {
+      "Packaging suggests cold storage, confirm temperature": "Packaging suggests cold storage, confirm temperature",
+      "Packaging suggests frozen storage, confirm temperature": "Packaging suggests frozen storage, confirm temperature",
+      "Hot food must be cooled and refrigerated to be eligible for donation": "Hot food must be cooled and refrigerated to be eligible for donation",
+      "Produce is usually not hot/cooked": "Produce is usually not hot/cooked",
+      "Pantry items are usually stored at room temperature": "Pantry items are usually stored at room temperature",
+      "Hot beverages are same-day donations": "Hot beverages are same-day donations"
     }
   },
   "chat": {
@@ -1003,7 +1057,9 @@
     "choosePickupSlot": "Choose a pickup slot",
     "noProposedSlots": "No proposed slots available.",
     "confirming": "Confirming...",
-    "confirmAndClaim": "Confirm & Claim"
+    "confirmAndClaim": "Confirm & Claim",
+    "expiringSoon": "Expiring soon",
+    "predicted": "Predicted"
   },
   "receiverMyClaims": {
     "readyForPickup": "Ready for Pickup",
@@ -1281,12 +1337,16 @@
     "adminSubtitle": "Platform-wide environmental and social impact metrics",
     "weekly": "Last 7 Days",
     "monthly": "Last 30 Days",
+    "days7": "7 Days",
+    "days30": "30 Days",
     "allTime": "All Time",
     "export": "Export CSV",
     "errorLoading": "Failed to load metrics",
+    "loadError": "Failed to load impact metrics",
     "exportError": "Failed to export metrics",
     "foodWeight": "Food Weight Saved",
     "foodReceived": "Food Received",
+    "foodClaimed": "Food Claimed",
     "totalFoodSaved": "Total Food Saved",
     "mealsProvided": "Meals Provided",
     "mealsServed": "Meals Served",
@@ -1294,21 +1354,40 @@
     "co2Avoided": "CO₂ Emissions Avoided",
     "waterSaved": "Water Saved",
     "activityStats": "Activity Statistics",
+    "activitySummary": "Activity Summary",
     "platformActivity": "Platform Activity",
     "totalPosts": "Total Posts Created",
     "completed": "Donations Completed",
     "completedClaims": "Claims Completed",
+    "claimsCompleted": "Claims Completed",
     "totalClaims": "Total Claims Made",
     "completionRate": "Completion Rate",
     "userEngagement": "User Engagement",
     "activeDonors": "Active Donors",
     "activeReceivers": "Active Receivers",
+    "activeDays": "Active Days",
+    "pendingPickups": "Pending Pickups",
+    "avgResponseTime": "Avg Response Time",
+    "cancelledDonations": "Cancelled Donations",
+    "impactScore": "Total Impact Score",
     "repeatDonors": "Repeat Donors",
     "repeatReceivers": "Repeat Receivers",
+    "foodSavedOverTime": "Food Saved Over Time",
+    "claimsByDay": "Claims by Day",
+    "claimsByWeek": "Claims by Week",
+    "claimsByMonth": "Claims by Month",
+    "noChartData": "No data for selected period",
+    "noPreviousData": "No previous-period data",
+    "vsPrevious": "vs previous period",
+    "customizeMetrics": "Customize Metrics",
+    "selectMetrics": "Select which metrics to display on your dashboard",
     "thankYou": "Thank you for making a difference! 🎉",
     "donorMessage": "Your donations have helped reduce food waste and support your community. Every contribution counts!",
     "receiverMessage": "By claiming food donations, you are helping reduce food waste and supporting your community. Together we make an impact!",
     "platformSuccess": "Platform Impact Summary 📊",
-    "adminMessage": "FoodFlow is making a real difference in reducing food waste and supporting communities. These metrics represent the collective impact of all our donors and receivers."
+    "adminMessage": "FoodFlow is making a real difference in reducing food waste and supporting communities. These metrics represent the collective impact of all our donors and receivers.",
+    "selectAll": "Select All",
+    "clearAll": "Clear All",
+    "done": "Done"
   }
 }

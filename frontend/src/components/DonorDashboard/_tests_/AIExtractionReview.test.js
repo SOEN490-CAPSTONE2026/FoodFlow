@@ -4,8 +4,17 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
 import AIExtractionReview from '../AIExtractionReview';
-import { TimezoneProvider } from '../../../contexts/TimezoneContext';
 import { surplusAPI } from '../../../services/api';
+
+jest.mock('../../../contexts/TimezoneContext', () => ({
+  TimezoneProvider: ({ children }) => children,
+  useTimezone: () => ({
+    userTimezone: 'America/Toronto',
+    isLoading: false,
+    updateTimezone: jest.fn(),
+    refreshTimezone: jest.fn(),
+  }),
+}));
 
 // Mock dependencies
 jest.mock('react-i18next', () => ({
@@ -45,18 +54,19 @@ jest.mock('react-select', () => {
     return (
       <select
         data-testid={`mock-select-${placeholder}`}
-        value={isMulti ? JSON.stringify(value) : value?.value || ''}
+        value={
+          isMulti
+            ? Array.isArray(value)
+              ? value.map(v => v.value)
+              : []
+            : value?.value || ''
+        }
         multiple={isMulti}
         onChange={e => {
           if (isMulti) {
-            // Handle both JSON array strings and single values
-            let valuesToSelect = [];
-            try {
-              valuesToSelect = JSON.parse(e.target.value || '[]');
-            } catch {
-              // If parsing fails, treat it as a single value
-              valuesToSelect = e.target.value ? [e.target.value] : [];
-            }
+            const valuesToSelect = Array.from(e.target.selectedOptions).map(
+              option => option.value
+            );
             const selected = options.filter(opt =>
               valuesToSelect.includes(opt.value)
             );
@@ -163,9 +173,7 @@ describe('AIExtractionReview', () => {
 
     return render(
       <MemoryRouter>
-        <TimezoneProvider>
-          <AIExtractionReview {...defaultProps} {...props} />
-        </TimezoneProvider>
+        <AIExtractionReview {...defaultProps} {...props} />
       </MemoryRouter>
     );
   };
@@ -458,8 +466,22 @@ describe('AIExtractionReview', () => {
 
   test('shows error when submitting without expiry date', async () => {
     const { toast } = require('react-toastify');
-    const dataWithoutExpiry = { ...mockData, expiryDate: null };
+    const dataWithoutExpiry = {
+      ...mockData,
+      fabricationDate: null,
+      expiryDate: null,
+    };
     renderComponent({ data: dataWithoutExpiry });
+
+    fireEvent.change(screen.getByTestId('date-picker-Select date'), {
+      target: { value: '2025-06-15T00:00:00.000Z' },
+    });
+    fireEvent.change(screen.getByTestId('date-picker-Start time'), {
+      target: { value: '2025-06-15T10:00:00.000Z' },
+    });
+    fireEvent.change(screen.getByTestId('date-picker-End time'), {
+      target: { value: '2025-06-15T14:00:00.000Z' },
+    });
 
     const submitButton = screen.getByRole('button', {
       name: /create donation/i,

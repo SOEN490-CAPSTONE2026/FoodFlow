@@ -248,8 +248,7 @@ describe('ReceiverMyClaims Component', () => {
       { enum: 'FRUITS_VEGETABLES', image: 'fruits.jpg' },
       { enum: 'BAKERY_PASTRY', image: 'bakery.jpg' },
       { enum: 'PACKAGED_PANTRY', image: 'packaged.jpg' },
-      // DAIRY is not recognized by getPrimaryFoodCategory, defaults to prepared.jpg
-      { enum: 'DAIRY', image: 'prepared.jpg' },
+      { enum: 'DAIRY', image: 'dairy.jpg' },
       { enum: 'FROZEN', image: 'frozen.jpg' },
       { enum: 'PREPARED_MEALS', image: 'prepared.jpg' },
     ];

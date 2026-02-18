@@ -315,6 +315,42 @@
   gap: 6px;
   margin-top: 2px;
 }
+
+.food-type-row,
+.dietary-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.food-type-chip {
+  background: #ecfeff;
+  color: #155e75;
+  border: 1px solid #a5f3fc;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.dietary-tag-chip {
+  background: #eef2ff;
+  color: #3730a3;
+  border: 1px solid #c7d2fe;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.dietary-tag-chip.overflow {
+  background: #f1f5f9;
+  color: #334155;
+  border-color: #cbd5e1;
+}
+
 .donation-tag {
   background: #f5f6f7;
   color: #008236;
@@ -324,6 +360,12 @@
   font-size: 12px;
   font-weight: 500;
   line-height: 1.3;
+}
+
+.donation-tag--dietary {
+  background: #f4f4ff;
+  color: #4338ca;
+  border-color: #c7d2fe;
 }
 
 /* Compliance badges for temperature and packaging */

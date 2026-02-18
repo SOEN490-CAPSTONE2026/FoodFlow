@@ -49,7 +49,9 @@
       "!src/index.js",
       "!src/reportWebVitals.js",
       "!src/**/*.test.{js,jsx}",
-      "!src/setupTests.js"
+      "!src/setupTests.js",
+      "!src/components/DonorDashboard/AIDonationForm 2.js",
+      "!src/components/DonorDashboard/AIImageUpload 2.js"
     ],
     "coverageThreshold": {
       "global": {

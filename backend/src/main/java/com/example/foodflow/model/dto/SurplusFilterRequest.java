@@ -1,6 +1,9 @@
 package com.example.foodflow.model.dto;
 
 import com.example.foodflow.model.types.Location;
+import com.example.foodflow.model.types.DietaryMatchMode;
+import com.example.foodflow.model.types.DietaryTag;
+import com.example.foodflow.model.types.FoodType;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
@@ -42,6 +45,26 @@ public class SurplusFilterRequest {
      * Specific status to filter by (default: AVAILABLE)
      */
     private String status;
+
+    /**
+     * Food type filter list (matches any).
+     */
+    private List<FoodType> foodTypes;
+
+    /**
+     * Dietary tag filter list.
+     */
+    private List<DietaryTag> dietaryTags;
+
+    /**
+     * Dietary matching mode: ANY or ALL.
+     */
+    private DietaryMatchMode dietaryMatch = DietaryMatchMode.ANY;
+
+    /**
+     * Sort mode: expiry_asc or expiry_desc.
+     */
+    private String sort;
 
     // Default constructor
     public SurplusFilterRequest() {
@@ -107,6 +130,38 @@ public class SurplusFilterRequest {
         this.status = status;
     }
 
+    public List<FoodType> getFoodTypes() {
+        return foodTypes;
+    }
+
+    public void setFoodTypes(List<FoodType> foodTypes) {
+        this.foodTypes = foodTypes;
+    }
+
+    public List<DietaryTag> getDietaryTags() {
+        return dietaryTags;
+    }
+
+    public void setDietaryTags(List<DietaryTag> dietaryTags) {
+        this.dietaryTags = dietaryTags;
+    }
+
+    public DietaryMatchMode getDietaryMatch() {
+        return dietaryMatch;
+    }
+
+    public void setDietaryMatch(DietaryMatchMode dietaryMatch) {
+        this.dietaryMatch = dietaryMatch;
+    }
+
+    public String getSort() {
+        return sort;
+    }
+
+    public void setSort(String sort) {
+        this.sort = sort;
+    }
+
     // Utility methods
     public boolean hasFoodCategories() {
         return foodCategories != null && !foodCategories.isEmpty();
@@ -130,6 +185,14 @@ public class SurplusFilterRequest {
 
     public boolean hasStatus() {
         return status != null && !status.trim().isEmpty();
+    }
+
+    public boolean hasFoodTypes() {
+        return foodTypes != null && !foodTypes.isEmpty();
+    }
+
+    public boolean hasDietaryTags() {
+        return dietaryTags != null && !dietaryTags.isEmpty();
     }
 
     @Override

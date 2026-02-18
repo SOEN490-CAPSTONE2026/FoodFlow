@@ -3,6 +3,7 @@ package com.example.foodflow.exception;
 import com.example.foodflow.model.dto.AuthResponse;
 import com.example.foodflow.model.entity.OrganizationType;
 import com.example.foodflow.model.entity.VerificationStatus;
+import com.example.foodflow.model.types.FoodTaxonomyContract;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -46,6 +47,10 @@ public class RestExceptionHandler {
                         java.util.Arrays.stream(VerificationStatus.values()).map(Enum::name).collect(Collectors.toList())
                 );
                 message += ". Allowed values: [" + allowed + "]";
+            } else if ("FoodType".equals(targetType)) {
+                message += ". Allowed values: [" + FoodTaxonomyContract.allowedFoodTypes() + "]";
+            } else if ("DietaryTag".equals(targetType)) {
+                message += ". Allowed values: [" + FoodTaxonomyContract.allowedDietaryTags() + "]";
             }
 
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new AuthResponse(null, null, null, message));

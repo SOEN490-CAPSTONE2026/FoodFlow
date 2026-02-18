@@ -14,6 +14,9 @@ import com.example.foodflow.model.types.Quantity;
 import com.example.foodflow.model.types.Location;
 import com.example.foodflow.model.types.TemperatureCategory;
 import com.example.foodflow.model.types.PackagingType;
+import com.example.foodflow.model.types.FoodType;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "surplus_posts")
@@ -44,8 +47,65 @@ public class SurplusPost {
     @Column(name = "fabrication_date")
     private LocalDate fabricationDate;
 
-    @Column(nullable = false)
+    @Column
     private LocalDate expiryDate;
+
+    @Column(name = "expiry_date_predicted")
+    private LocalDateTime expiryDatePredicted;
+
+    @Column(name = "expiry_date_effective")
+    private LocalDateTime expiryDateEffective;
+
+    @Column(name = "expiry_prediction_confidence")
+    private Double expiryPredictionConfidence;
+
+    @Column(name = "expiry_prediction_version", length = 64)
+    private String expiryPredictionVersion;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "expiry_prediction_inputs")
+    private String expiryPredictionInputs;
+
+    @Column(name = "expiry_overridden", nullable = false)
+    private Boolean expiryOverridden = false;
+
+    @Column(name = "expiry_override_reason", length = 255)
+    private String expiryOverrideReason;
+
+    @Column(name = "expiry_overridden_at")
+    private LocalDateTime expiryOverriddenAt;
+
+    @Column(name = "expiry_overridden_by")
+    private Long expiryOverriddenBy;
+
+    @Column(name = "user_provided_expiry_date")
+    private LocalDate userProvidedExpiryDate;
+
+    @Column(name = "suggested_expiry_date")
+    private LocalDate suggestedExpiryDate;
+
+    @Column(name = "eligible_at_submission")
+    private Boolean eligibleAtSubmission;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "warnings_at_submission")
+    private String warningsAtSubmission;
+
+    @Column(name = "impact_co2e_kg")
+    private Double impactCo2eKg;
+
+    @Column(name = "impact_water_l")
+    private Double impactWaterL;
+
+    @Column(name = "impact_factor_version", length = 64)
+    private String impactFactorVersion;
+
+    @Column(name = "impact_computed_at")
+    private LocalDateTime impactComputedAt;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "impact_inputs")
+    private String impactInputs;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
@@ -74,6 +134,14 @@ public class SurplusPost {
     @Column(name = "packaging_type")
     private PackagingType packagingType;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "food_type")
+    private FoodType foodType;
+
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "dietary_tags", nullable = false)
+    private String[] dietaryTags = new String[0];
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "donor_id", nullable = false)
     private User donor;
@@ -100,12 +168,30 @@ public class SurplusPost {
     
     @PrePersist
     protected void onCreate() {
+        if (foodType == null) {
+            foodType = FoodType.PANTRY;
+        }
+        if (dietaryTags == null) {
+            dietaryTags = new String[0];
+        }
+        if (expiryOverridden == null) {
+            expiryOverridden = false;
+        }
         createdAt = LocalDateTime.now();
         updatedAt = createdAt;
     }
     
     @PreUpdate
     protected void onUpdate() {
+        if (foodType == null) {
+            foodType = FoodType.PANTRY;
+        }
+        if (dietaryTags == null) {
+            dietaryTags = new String[0];
+        }
+        if (expiryOverridden == null) {
+            expiryOverridden = false;
+        }
         updatedAt = LocalDateTime.now();
     }
     
@@ -133,6 +219,60 @@ public class SurplusPost {
 
     public LocalDate getExpiryDate() { return expiryDate; }
     public void setExpiryDate(LocalDate expiryDate) { this.expiryDate = expiryDate; }
+
+    public LocalDateTime getExpiryDatePredicted() { return expiryDatePredicted; }
+    public void setExpiryDatePredicted(LocalDateTime expiryDatePredicted) { this.expiryDatePredicted = expiryDatePredicted; }
+
+    public LocalDateTime getExpiryDateEffective() { return expiryDateEffective; }
+    public void setExpiryDateEffective(LocalDateTime expiryDateEffective) { this.expiryDateEffective = expiryDateEffective; }
+
+    public Double getExpiryPredictionConfidence() { return expiryPredictionConfidence; }
+    public void setExpiryPredictionConfidence(Double expiryPredictionConfidence) { this.expiryPredictionConfidence = expiryPredictionConfidence; }
+
+    public String getExpiryPredictionVersion() { return expiryPredictionVersion; }
+    public void setExpiryPredictionVersion(String expiryPredictionVersion) { this.expiryPredictionVersion = expiryPredictionVersion; }
+
+    public String getExpiryPredictionInputs() { return expiryPredictionInputs; }
+    public void setExpiryPredictionInputs(String expiryPredictionInputs) { this.expiryPredictionInputs = expiryPredictionInputs; }
+
+    public Boolean getExpiryOverridden() { return expiryOverridden; }
+    public void setExpiryOverridden(Boolean expiryOverridden) { this.expiryOverridden = expiryOverridden; }
+
+    public String getExpiryOverrideReason() { return expiryOverrideReason; }
+    public void setExpiryOverrideReason(String expiryOverrideReason) { this.expiryOverrideReason = expiryOverrideReason; }
+
+    public LocalDateTime getExpiryOverriddenAt() { return expiryOverriddenAt; }
+    public void setExpiryOverriddenAt(LocalDateTime expiryOverriddenAt) { this.expiryOverriddenAt = expiryOverriddenAt; }
+
+    public Long getExpiryOverriddenBy() { return expiryOverriddenBy; }
+    public void setExpiryOverriddenBy(Long expiryOverriddenBy) { this.expiryOverriddenBy = expiryOverriddenBy; }
+
+    public LocalDate getUserProvidedExpiryDate() { return userProvidedExpiryDate; }
+    public void setUserProvidedExpiryDate(LocalDate userProvidedExpiryDate) { this.userProvidedExpiryDate = userProvidedExpiryDate; }
+
+    public LocalDate getSuggestedExpiryDate() { return suggestedExpiryDate; }
+    public void setSuggestedExpiryDate(LocalDate suggestedExpiryDate) { this.suggestedExpiryDate = suggestedExpiryDate; }
+
+    public Boolean getEligibleAtSubmission() { return eligibleAtSubmission; }
+    public void setEligibleAtSubmission(Boolean eligibleAtSubmission) { this.eligibleAtSubmission = eligibleAtSubmission; }
+
+    public String getWarningsAtSubmission() { return warningsAtSubmission; }
+    public void setWarningsAtSubmission(String warningsAtSubmission) { this.warningsAtSubmission = warningsAtSubmission; }
+
+    public Double getImpactCo2eKg() { return impactCo2eKg; }
+    public void setImpactCo2eKg(Double impactCo2eKg) { this.impactCo2eKg = impactCo2eKg; }
+
+    public Double getImpactWaterL() { return impactWaterL; }
+    public void setImpactWaterL(Double impactWaterL) { this.impactWaterL = impactWaterL; }
+
+    public String getImpactFactorVersion() { return impactFactorVersion; }
+    public void setImpactFactorVersion(String impactFactorVersion) { this.impactFactorVersion = impactFactorVersion; }
+
+    public LocalDateTime getImpactComputedAt() { return impactComputedAt; }
+    public void setImpactComputedAt(LocalDateTime impactComputedAt) { this.impactComputedAt = impactComputedAt; }
+
+    public String getImpactInputs() { return impactInputs; }
+    public void setImpactInputs(String impactInputs) { this.impactInputs = impactInputs; }
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
@@ -175,6 +315,12 @@ public class SurplusPost {
 
     public PackagingType getPackagingType() { return packagingType; }
     public void setPackagingType(PackagingType packagingType) { this.packagingType = packagingType; }
+
+    public FoodType getFoodType() { return foodType; }
+    public void setFoodType(FoodType foodType) { this.foodType = foodType; }
+
+    public String[] getDietaryTags() { return dietaryTags; }
+    public void setDietaryTags(String[] dietaryTags) { this.dietaryTags = dietaryTags; }
 
 
     public boolean isClaimed() { return status==PostStatus.CLAIMED; }

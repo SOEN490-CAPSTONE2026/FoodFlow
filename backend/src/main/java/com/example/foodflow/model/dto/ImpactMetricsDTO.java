@@ -1,6 +1,8 @@
 package com.example.foodflow.model.dto;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * DTO for impact metrics dashboard
@@ -36,6 +38,16 @@ public class ImpactMetricsDTO {
     // Factor metadata for transparency
     private String factorVersion;
     private String factorDisclosure;
+    private Double weightVsPreviousPct;
+    private Double co2VsPreviousPct;
+    private Double mealsVsPreviousPct;
+    private Double waterVsPreviousPct;
+    private Double weightVsPreviousAbs;
+    private Double co2VsPreviousAbs;
+    private Integer mealsVsPreviousAbs;
+    private Double waterVsPreviousAbs;
+    private String impactAuditJson;
+    private List<TimeSeriesPointDTO> foodSavedTimeSeries = new ArrayList<>();
 
     // User engagement metrics
     private Integer activeDonors;
@@ -135,4 +147,54 @@ public class ImpactMetricsDTO {
 
     public String getFactorDisclosure() { return factorDisclosure; }
     public void setFactorDisclosure(String factorDisclosure) { this.factorDisclosure = factorDisclosure; }
+
+    public Double getWeightVsPreviousPct() { return weightVsPreviousPct; }
+    public void setWeightVsPreviousPct(Double weightVsPreviousPct) { this.weightVsPreviousPct = weightVsPreviousPct; }
+
+    public Double getCo2VsPreviousPct() { return co2VsPreviousPct; }
+    public void setCo2VsPreviousPct(Double co2VsPreviousPct) { this.co2VsPreviousPct = co2VsPreviousPct; }
+
+    public Double getMealsVsPreviousPct() { return mealsVsPreviousPct; }
+    public void setMealsVsPreviousPct(Double mealsVsPreviousPct) { this.mealsVsPreviousPct = mealsVsPreviousPct; }
+
+    public Double getWaterVsPreviousPct() { return waterVsPreviousPct; }
+    public void setWaterVsPreviousPct(Double waterVsPreviousPct) { this.waterVsPreviousPct = waterVsPreviousPct; }
+
+    public Double getWeightVsPreviousAbs() { return weightVsPreviousAbs; }
+    public void setWeightVsPreviousAbs(Double weightVsPreviousAbs) { this.weightVsPreviousAbs = weightVsPreviousAbs; }
+
+    public Double getCo2VsPreviousAbs() { return co2VsPreviousAbs; }
+    public void setCo2VsPreviousAbs(Double co2VsPreviousAbs) { this.co2VsPreviousAbs = co2VsPreviousAbs; }
+
+    public Integer getMealsVsPreviousAbs() { return mealsVsPreviousAbs; }
+    public void setMealsVsPreviousAbs(Integer mealsVsPreviousAbs) { this.mealsVsPreviousAbs = mealsVsPreviousAbs; }
+
+    public Double getWaterVsPreviousAbs() { return waterVsPreviousAbs; }
+    public void setWaterVsPreviousAbs(Double waterVsPreviousAbs) { this.waterVsPreviousAbs = waterVsPreviousAbs; }
+
+    public String getImpactAuditJson() { return impactAuditJson; }
+    public void setImpactAuditJson(String impactAuditJson) { this.impactAuditJson = impactAuditJson; }
+
+    public List<TimeSeriesPointDTO> getFoodSavedTimeSeries() { return foodSavedTimeSeries; }
+    public void setFoodSavedTimeSeries(List<TimeSeriesPointDTO> foodSavedTimeSeries) {
+        this.foodSavedTimeSeries = foodSavedTimeSeries != null ? foodSavedTimeSeries : new ArrayList<>();
+    }
+
+    public static class TimeSeriesPointDTO {
+        private String label;
+        private Double foodWeightKg;
+
+        public TimeSeriesPointDTO() {}
+
+        public TimeSeriesPointDTO(String label, Double foodWeightKg) {
+            this.label = label;
+            this.foodWeightKg = foodWeightKg;
+        }
+
+        public String getLabel() { return label; }
+        public void setLabel(String label) { this.label = label; }
+
+        public Double getFoodWeightKg() { return foodWeightKg; }
+        public void setFoodWeightKg(Double foodWeightKg) { this.foodWeightKg = foodWeightKg; }
+    }
 }

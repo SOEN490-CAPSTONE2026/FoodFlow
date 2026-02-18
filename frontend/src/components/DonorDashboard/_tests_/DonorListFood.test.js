@@ -61,6 +61,19 @@ jest.mock('../../../services/api', () => ({
 }));
 
 jest.mock('../../../constants/foodConstants', () => ({
+  mapLegacyCategoryToFoodType: value => {
+    const mapping = {
+      FRUITS_VEGETABLES: 'PRODUCE',
+      BAKERY_PASTRY: 'BAKERY',
+      BAKERY_ITEMS: 'BAKERY',
+      PREPARED_MEALS: 'PREPARED',
+      DAIRY_COLD: 'DAIRY_EGGS',
+      FRESH_MEAT: 'MEAT_POULTRY',
+      FISH: 'SEAFOOD',
+      PACKAGED_PANTRY: 'PANTRY',
+    };
+    return mapping[value] || value;
+  },
   getFoodTypeLabel: value => {
     const mapping = {
       FRUITS_VEGETABLES: 'Fruits & Vegetables',

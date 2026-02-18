@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { Autocomplete } from '@react-google-maps/api';
@@ -7,10 +7,13 @@ import DatePicker from 'react-datepicker';
 import { surplusAPI } from '../../services/api';
 import {
   foodTypeOptions,
+  mapFoodTypeToLegacyCategory,
+  mapLegacyCategoryToFoodType,
   unitOptions,
   temperatureCategoryOptions,
   packagingTypeOptions,
 } from '../../constants/foodConstants';
+import { computeSuggestedExpiry } from '../../utils/expiryRules';
 import { useTimezone } from '../../contexts/TimezoneContext';
 import './Donor_Styles/AIDonation.css';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -28,6 +31,7 @@ export default function AIExtractionReview({
   const { userTimezone } = useTimezone();
   const autocompleteRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [expiryTouched, setExpiryTouched] = useState(false);
 
   // Parse AI-extracted data into form state
   const [formData, setFormData] = useState({
@@ -42,6 +46,41 @@ export default function AIExtractionReview({
     temperatureCategory: data.temperatureCategory || '',
     packagingType: data.packagingType || '',
   });
+
+  const selectedFoodType = formData.foodCategories?.[0]?.value || '';
+  const expirySuggestion = useMemo(
+    () =>
+      computeSuggestedExpiry({
+        foodType: selectedFoodType,
+        temperatureCategory: formData.temperatureCategory,
+        packagingType: formData.packagingType,
+        fabricationDate: formData.fabricationDate,
+      }),
+    [
+      selectedFoodType,
+      formData.temperatureCategory,
+      formData.packagingType,
+      formData.fabricationDate,
+    ]
+  );
+
+  useEffect(() => {
+    if (
+      expiryTouched ||
+      formData.expiryDate ||
+      !expirySuggestion.suggestedExpiryDate
+    ) {
+      return;
+    }
+    const suggestedDate = new Date(expirySuggestion.suggestedExpiryDate);
+    if (!Number.isNaN(suggestedDate.getTime())) {
+      setFormData(prev => ({ ...prev, expiryDate: suggestedDate }));
+    }
+  }, [
+    expirySuggestion.suggestedExpiryDate,
+    expiryTouched,
+    formData.expiryDate,
+  ]);
 
   const [pickupSlots, setPickupSlots] = useState([
     {
@@ -59,7 +98,9 @@ export default function AIExtractionReview({
     if (!categories || categories.length === 0) return [];
 
     return categories.map(cat => {
-      const option = foodTypeOptions.find(opt => opt.value === cat);
+      const option = foodTypeOptions.find(
+        opt => opt.value === mapLegacyCategoryToFoodType(cat)
+      );
       return option || { value: cat, label: cat };
     });
   }
@@ -184,7 +225,7 @@ export default function AIExtractionReview({
       return false;
     }
 
-    if (!formData.expiryDate) {
+    if (!formData.expiryDate && !expirySuggestion.suggestedExpiryDate) {
       toast.error('Please enter an expiry date');
       return false;
     }
@@ -231,15 +272,23 @@ export default function AIExtractionReview({
         notes: slot.notes || null,
       }));
 
+      const expiryDateToSubmit = formData.expiryDate
+        ? formatDate(formData.expiryDate)
+        : expirySuggestion.suggestedExpiryDate;
+
       const submissionData = {
         title: formData.title,
         quantity: {
           value: parseFloat(formData.quantityValue),
           unit: formData.quantityUnit,
         },
-        foodCategories: formData.foodCategories.map(fc => fc.value),
+        foodCategories: formData.foodCategories.map(fc =>
+          mapFoodTypeToLegacyCategory(fc.value)
+        ),
+        foodType: formData.foodCategories[0]?.value || null,
+        dietaryTags: [],
         fabricationDate: formatDate(formData.fabricationDate) || null,
-        expiryDate: formatDate(formData.expiryDate),
+        expiryDate: expiryDateToSubmit,
         pickupSlots: formattedSlots,
         pickupDate: formattedSlots[0].pickupDate,
         pickupFrom: formattedSlots[0].startTime,
@@ -483,15 +532,21 @@ export default function AIExtractionReview({
               </label>
               <DatePicker
                 selected={formData.expiryDate}
-                onChange={date =>
-                  setFormData(prev => ({ ...prev, expiryDate: date }))
-                }
+                onChange={date => {
+                  setExpiryTouched(true);
+                  setFormData(prev => ({ ...prev, expiryDate: date }));
+                }}
                 minDate={formData.fabricationDate || new Date()}
                 dateFormat="yyyy-MM-dd"
                 className="input-field"
                 placeholderText="Select expiry date"
                 required
               />
+              {!expiryTouched && expirySuggestion.suggestedExpiryDate && (
+                <p className="field-help-text">
+                  Suggested expiry: {expirySuggestion.suggestedExpiryDate}
+                </p>
+              )}
             </div>
           </div>
         </div>

@@ -1,51 +1,51 @@
 import React, { useState, useCallback } from 'react';
+import {
+  AlertCircle,
+  Camera,
+  ChevronRight,
+  Check,
+  FileImage,
+  FileUp,
+  HardDrive,
+  PencilLine,
+  Trash2,
+} from 'lucide-react';
 import './Donor_Styles/AIDonation.css';
 
-/**
- * Component for uploading food label images
- * Supports drag-and-drop and file selection
- */
 export default function AIImageUpload({ onImageSelect, onManualEntry }) {
   const [preview, setPreview] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
 
-  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  const MAX_FILE_SIZE = 5 * 1024 * 1024;
   const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/heic'];
 
-  /**
-   * Validate image file
-   */
   const validateFile = file => {
     setError(null);
 
     if (!file) {
-      setError('Please select a file');
+      setError('Select an image file to continue.');
       return false;
     }
 
     if (!ALLOWED_TYPES.includes(file.type.toLowerCase())) {
-      setError('Invalid file type. Please upload JPG, PNG, or HEIC images.');
+      setError('Unsupported file type. Use JPG, PNG, or HEIC.');
       return false;
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      setError('File size exceeds 5MB limit. Please choose a smaller image.');
+      setError('File size exceeds 5 MB. Select a smaller image.');
       return false;
     }
 
     return true;
   };
 
-  /**
-   * Handle file selection
-   */
   const handleFileSelect = file => {
     if (validateFile(file)) {
       setSelectedFile(file);
 
-      // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result);
@@ -54,9 +54,6 @@ export default function AIImageUpload({ onImageSelect, onManualEntry }) {
     }
   };
 
-  /**
-   * Handle file input change
-   */
   const handleInputChange = e => {
     const file = e.target.files[0];
     if (file) {
@@ -64,9 +61,6 @@ export default function AIImageUpload({ onImageSelect, onManualEntry }) {
     }
   };
 
-  /**
-   * Handle drag events
-   */
   const handleDragEnter = useCallback(e => {
     e.preventDefault();
     e.stopPropagation();
@@ -95,18 +89,12 @@ export default function AIImageUpload({ onImageSelect, onManualEntry }) {
     }
   }, []);
 
-  /**
-   * Handle proceed with selected image
-   */
   const handleProceed = () => {
     if (selectedFile) {
       onImageSelect(selectedFile);
     }
   };
 
-  /**
-   * Handle clear/reset
-   */
   const handleClear = () => {
     setPreview(null);
     setSelectedFile(null);
@@ -117,24 +105,33 @@ export default function AIImageUpload({ onImageSelect, onManualEntry }) {
     <div className="ai-image-upload-container">
       <div className="upload-section">
         <div className="upload-instructions">
-          <h3>📸 Upload Food Label Photo</h3>
-          <p>Take a clear photo of the food product label showing:</p>
+          <h3>Upload label image</h3>
+          <p>Upload a clear image that includes:</p>
           <ul>
-            <li>✓ Product name</li>
-            <li>✓ Nutrition facts</li>
-            <li>✓ Ingredients list</li>
-            <li>✓ Expiry/Best before date</li>
-            <li>✓ Allergen information</li>
+            <li>Product name</li>
+            <li>Nutrition facts</li>
+            <li>Ingredients list</li>
+            <li>Expiry or best-before date</li>
+            <li>Allergen information</li>
           </ul>
         </div>
 
         {!preview ? (
           <div
             className={`dropzone ${isDragging ? 'dragging' : ''}`}
+            role="button"
+            tabIndex={0}
+            aria-label="Upload label image"
             onDragEnter={handleDragEnter}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
+            onKeyDown={event => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                document.getElementById('image-upload')?.click();
+              }
+            }}
           >
             <input
               type="file"
@@ -145,31 +142,41 @@ export default function AIImageUpload({ onImageSelect, onManualEntry }) {
             />
 
             <div className="dropzone-content">
-              <div className="upload-icon">📤</div>
-              <p className="dropzone-text">
-                Drag & drop your food label image here
-              </p>
+              <div className="upload-icon" aria-hidden="true">
+                <FileUp size={20} />
+              </div>
+              <p className="dropzone-text">Drag and drop a label image</p>
               <p className="dropzone-or">or</p>
               <label htmlFor="image-upload" className="upload-button">
-                Choose File
+                Choose file
               </label>
-              <p className="file-requirements">JPG, PNG, HEIC • Max 5MB</p>
+              <div className="constraint-pills">
+                <span className="constraint-pill">
+                  <FileImage size={12} />
+                  JPG, PNG, HEIC
+                </span>
+                <span className="constraint-pill">
+                  <HardDrive size={12} />
+                  Max 5 MB
+                </span>
+              </div>
             </div>
           </div>
         ) : (
           <div className="preview-container">
             <div className="preview-header">
-              <h4>Selected Image</h4>
+              <h4>Selected file</h4>
               <button
                 className="clear-button"
                 onClick={handleClear}
                 type="button"
               >
-                ✕ Remove
+                <Trash2 size={16} />
+                <span>Remove</span>
               </button>
             </div>
             <div className="image-preview">
-              <img src={preview} alt="Food label preview" />
+              <img src={preview} alt="Label preview" />
             </div>
             <div className="preview-info">
               <p className="file-name">{selectedFile?.name}</p>
@@ -182,14 +189,16 @@ export default function AIImageUpload({ onImageSelect, onManualEntry }) {
               onClick={handleProceed}
               type="button"
             >
-              Analyze with AI →
+              Continue to review
             </button>
           </div>
         )}
 
         {error && (
           <div className="error-message">
-            <span className="error-icon">⚠️</span>
+            <span className="error-icon">
+              <AlertCircle size={16} />
+            </span>
             {error}
           </div>
         )}
@@ -197,29 +206,39 @@ export default function AIImageUpload({ onImageSelect, onManualEntry }) {
 
       <div className="alternative-section">
         <div className="divider">
-          <span>OR</span>
+          <span>Alternative</span>
         </div>
         <button
           className="manual-entry-button"
           onClick={onManualEntry}
           type="button"
         >
-          <span className="manual-icon">✏️</span>
-          Use Manual Entry Instead
+          <PencilLine size={16} />
+          <span>Continue with manual entry</span>
+          <ChevronRight size={16} />
         </button>
-        <p className="manual-hint">
-          Prefer to fill out the form yourself? No problem!
-        </p>
       </div>
 
       <div className="tips-section">
-        <h4>💡 Tips for Best Results</h4>
+        <h4>
+          <Camera size={16} />
+          <span>Image guidelines</span>
+        </h4>
         <ul className="tips-list">
-          <li>Ensure good lighting and avoid shadows</li>
-          <li>Keep the label flat and in focus</li>
-          <li>Include the entire label in the frame</li>
-          <li>Avoid glare or reflections on plastic packaging</li>
+          {[
+            'Good lighting',
+            'No glare',
+            'Label fully visible',
+            'Keep text in focus',
+            'Include expiry/best-before when available',
+          ].map(item => (
+            <li key={item}>
+              <Check size={14} />
+              <span>{item}</span>
+            </li>
+          ))}
         </ul>
+        <p className="manual-hint">Clear images improve extraction accuracy.</p>
       </div>
     </div>
   );

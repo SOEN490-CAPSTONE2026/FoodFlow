@@ -7,6 +7,9 @@ import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.UserRole;
 import com.example.foodflow.model.types.FoodCategory;
+import com.example.foodflow.model.types.FoodType;
+import com.example.foodflow.model.types.DietaryTag;
+import com.example.foodflow.model.types.DietaryMatchMode;
 import com.example.foodflow.model.types.Location;
 import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.model.types.Quantity;
@@ -121,6 +124,8 @@ class SurplusFilterIntegrationTest {
         post1.setPickupFrom(LocalTime.of(9, 0));
         post1.setPickupTo(LocalTime.of(17, 0));
         post1.setStatus(PostStatus.AVAILABLE);
+        post1.setFoodType(FoodType.PRODUCE);
+        post1.setDietaryTags(new String[]{DietaryTag.VEGAN.name(), DietaryTag.GLUTEN_FREE.name()});
         post1.setDonor(testDonor);
         posts.add(post1);
 
@@ -136,6 +141,8 @@ class SurplusFilterIntegrationTest {
         post2.setPickupFrom(LocalTime.of(16, 0));
         post2.setPickupTo(LocalTime.of(19, 0));
         post2.setStatus(PostStatus.READY_FOR_PICKUP);
+        post2.setFoodType(FoodType.BAKERY);
+        post2.setDietaryTags(new String[]{DietaryTag.VEGETARIAN.name()});
         post2.setOtpCode("123456");
         post2.setDonor(testDonor);
         posts.add(post2);
@@ -152,6 +159,8 @@ class SurplusFilterIntegrationTest {
         post3.setPickupFrom(LocalTime.of(10, 0));
         post3.setPickupTo(LocalTime.of(15, 0));
         post3.setStatus(PostStatus.AVAILABLE);
+        post3.setFoodType(FoodType.DAIRY_EGGS);
+        post3.setDietaryTags(new String[]{DietaryTag.KOSHER.name(), DietaryTag.HALAL.name()});
         post3.setDonor(testDonor);
         posts.add(post3);
 
@@ -211,6 +220,44 @@ class SurplusFilterIntegrationTest {
             assertTrue(results.stream().allMatch(r -> 
                 r.getFoodCategories().contains(FoodCategory.FRUITS_VEGETABLES) &&
                 r.getStatus() == PostStatus.AVAILABLE));
+        }
+
+        @Test
+        @DisplayName("Should filter by food type using service")
+        void shouldFilterByFoodTypeUsingService() {
+            SurplusFilterRequest filter = new SurplusFilterRequest();
+            filter.setFoodTypes(List.of(FoodType.BAKERY));
+            filter.setStatus(null);
+
+            List<SurplusResponse> results = surplusService.searchSurplusPosts(filter);
+
+            assertEquals(1, results.size());
+            assertEquals(FoodType.BAKERY, results.get(0).getFoodType());
+        }
+
+        @Test
+        @DisplayName("Should filter by dietary tags with ANY matching")
+        void shouldFilterByDietaryTagsAnyUsingService() {
+            SurplusFilterRequest filter = new SurplusFilterRequest();
+            filter.setDietaryTags(List.of(DietaryTag.VEGAN, DietaryTag.KOSHER));
+            filter.setDietaryMatch(DietaryMatchMode.ANY);
+
+            List<SurplusResponse> results = surplusService.searchSurplusPosts(filter);
+
+            assertEquals(2, results.size());
+        }
+
+        @Test
+        @DisplayName("Should filter by dietary tags with ALL matching")
+        void shouldFilterByDietaryTagsAllUsingService() {
+            SurplusFilterRequest filter = new SurplusFilterRequest();
+            filter.setDietaryTags(List.of(DietaryTag.KOSHER, DietaryTag.HALAL));
+            filter.setDietaryMatch(DietaryMatchMode.ALL);
+
+            List<SurplusResponse> results = surplusService.searchSurplusPosts(filter);
+
+            assertEquals(1, results.size());
+            assertTrue(results.get(0).getDietaryTags().containsAll(List.of(DietaryTag.KOSHER, DietaryTag.HALAL)));
         }
     }
 

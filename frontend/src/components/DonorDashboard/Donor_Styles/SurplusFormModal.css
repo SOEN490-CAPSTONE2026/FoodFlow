@@ -831,6 +831,64 @@
   font-style: italic;
 }
 
+.eligibility-badge {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.eligibility-badge.eligible {
+  background: #e7f7ef;
+  color: #0f6e4a;
+}
+
+.eligibility-badge.not-eligible {
+  background: #fff1f1;
+  color: #9f2d00;
+}
+
+.expiry-warning-list {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: #9f2d00;
+  font-size: 0.8rem;
+}
+
+.safety-acknowledgement {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: #9f2d00;
+  font-weight: 500;
+}
+
+.dietary-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dietary-chip {
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #1e293b;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.dietary-chip.active {
+  border-color: #1d4ed8;
+  background: #dbeafe;
+  color: #1e3a8a;
+}
+
 /* Progress Steps */
 .progress-steps {
   display: flex;
