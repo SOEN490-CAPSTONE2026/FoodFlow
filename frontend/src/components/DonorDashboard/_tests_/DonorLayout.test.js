@@ -114,9 +114,9 @@ describe('DonorLayout', () => {
     expect(screen.getByText('Dashboard Page')).toBeInTheDocument();
   });
 
-  test('highlights active nav link', () => {
-    renderWithRouter('/donor/dashboard');
-    const active = screen.getByRole('link', { name: /dashboard/i });
+  test('highlights active nav link on donate now route', () => {
+    renderWithRouter('/donor/list');
+    const active = screen.getByRole('link', { name: /donate now/i });
     expect(active).toHaveClass('active');
   });
 

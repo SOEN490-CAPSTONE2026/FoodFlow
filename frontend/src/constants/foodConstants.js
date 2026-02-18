@@ -65,6 +65,7 @@ const legacyFoodCategoryToFoodType = {
   CANNED_VEGETABLES: 'PANTRY',
   CANNED_FRUITS: 'PANTRY',
   BEVERAGES: 'BEVERAGES',
+  FROZEN: 'MEAT_POULTRY',
 };
 
 const foodTypeToLegacyFoodCategory = {
@@ -169,6 +170,7 @@ export const foodTypeImages = {
   Seafood: FrozenFoodImage,
   Beverages: FrozenFoodImage,
   'Prepared Meals': PreparedMealsImage,
+  FROZEN: FrozenFoodImage,
 };
 
 // Food type CSS class mappings
@@ -181,6 +183,7 @@ export const foodTypeClasses = {
   Seafood: 'food-image-frozen',
   Beverages: 'food-image-packaged',
   'Prepared Meals': 'food-image-prepared',
+  FROZEN: 'food-image-frozen',
 };
 
 // Utility function to get all category display labels from enum values

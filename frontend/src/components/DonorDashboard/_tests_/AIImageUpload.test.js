@@ -6,10 +6,15 @@ import AIImageUpload from '../AIImageUpload';
 
 // Mock dependencies
 jest.mock('lucide-react', () => ({
-  Upload: () => <span>UploadIcon</span>,
-  X: () => <span>XIcon</span>,
+  AlertCircle: () => <span>AlertCircleIcon</span>,
   Camera: () => <span>CameraIcon</span>,
-  Image: () => <span>ImageIcon</span>,
+  ChevronRight: () => <span>ChevronRightIcon</span>,
+  Check: () => <span>CheckIcon</span>,
+  FileImage: () => <span>FileImageIcon</span>,
+  FileUp: () => <span>FileUpIcon</span>,
+  HardDrive: () => <span>HardDriveIcon</span>,
+  PencilLine: () => <span>PencilLineIcon</span>,
+  Trash2: () => <span>Trash2Icon</span>,
 }));
 
 describe('AIImageUpload', () => {
@@ -34,15 +39,15 @@ describe('AIImageUpload', () => {
   test('renders upload instructions', () => {
     renderComponent();
 
-    expect(screen.getByText(/upload food label photo/i)).toBeInTheDocument();
-    expect(screen.getByText(/take a clear photo/i)).toBeInTheDocument();
+    expect(screen.getByText(/upload label image/i)).toBeInTheDocument();
+    expect(screen.getByText(/upload a clear image that includes/i)).toBeInTheDocument();
   });
 
   test('renders file requirements', () => {
     renderComponent();
 
     expect(screen.getByText(/jpg, png, heic/i)).toBeInTheDocument();
-    expect(screen.getByText(/max 5mb/i)).toBeInTheDocument();
+    expect(screen.getByText(/max 5 mb/i)).toBeInTheDocument();
   });
 
   test('renders file input', () => {
@@ -66,16 +71,16 @@ describe('AIImageUpload', () => {
   test('renders upload tips', () => {
     renderComponent();
 
-    expect(screen.getByText(/tips for best results/i)).toBeInTheDocument();
-    expect(screen.getByText(/ensure good lighting/i)).toBeInTheDocument();
-    expect(screen.getByText(/keep the label flat/i)).toBeInTheDocument();
+    expect(screen.getByText(/product name/i)).toBeInTheDocument();
+    expect(screen.getByText(/nutrition facts/i)).toBeInTheDocument();
+    expect(screen.getByText(/allergen information/i)).toBeInTheDocument();
   });
 
   test('renders manual entry button', () => {
     renderComponent();
 
     const manualButton = screen.getByRole('button', {
-      name: /use manual entry instead/i,
+      name: /continue with manual entry/i,
     });
     expect(manualButton).toBeInTheDocument();
   });
@@ -85,7 +90,7 @@ describe('AIImageUpload', () => {
     renderComponent();
 
     const manualButton = screen.getByRole('button', {
-      name: /use manual entry instead/i,
+      name: /continue with manual entry/i,
     });
     await user.click(manualButton);
 
@@ -98,7 +103,7 @@ describe('AIImageUpload', () => {
     expect(screen.getByText(/product name/i)).toBeInTheDocument();
     expect(screen.getByText(/nutrition facts/i)).toBeInTheDocument();
     expect(screen.getByText(/ingredients list/i)).toBeInTheDocument();
-    expect(screen.getByText(/expiry\/best before date/i)).toBeInTheDocument();
+    expect(screen.getByText(/expiry or best-before date/i)).toBeInTheDocument();
   });
 
   test('renders choose file label', () => {
@@ -110,9 +115,7 @@ describe('AIImageUpload', () => {
   test('renders drag and drop text', () => {
     renderComponent();
 
-    expect(
-      screen.getByText(/drag & drop your food label image here/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/drag and drop a label image/i)).toBeInTheDocument();
   });
 
   test('handles valid file upload', async () => {
@@ -126,8 +129,8 @@ describe('AIImageUpload', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText(/selected image/i)).toBeInTheDocument();
-      expect(screen.getByAltText(/food label preview/i)).toBeInTheDocument();
+      expect(screen.getByText(/selected file/i)).toBeInTheDocument();
+      expect(screen.getByAltText(/label preview/i)).toBeInTheDocument();
     });
   });
 
@@ -140,7 +143,9 @@ describe('AIImageUpload', () => {
     fireEvent.change(fileInput, { target: { files: [file] } });
 
     await waitFor(() => {
-      expect(screen.getByText(/invalid file type/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/unsupported file type\. use jpg, png, or heic\./i)
+      ).toBeInTheDocument();
     });
   });
 
@@ -156,7 +161,9 @@ describe('AIImageUpload', () => {
     fireEvent.change(fileInput, { target: { files: [largeFile] } });
 
     await waitFor(() => {
-      expect(screen.getByText(/exceeds 5mb limit/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/file size exceeds 5 mb\. select a smaller image\./i)
+      ).toBeInTheDocument();
     });
   });
 
@@ -208,8 +215,8 @@ describe('AIImageUpload', () => {
     await user.click(removeButton);
 
     await waitFor(() => {
-      expect(screen.queryByText(/selected image/i)).not.toBeInTheDocument();
-      expect(screen.getByText(/drag & drop/i)).toBeInTheDocument();
+      expect(screen.queryByText(/selected file/i)).not.toBeInTheDocument();
+      expect(screen.getByText(/drag and drop/i)).toBeInTheDocument();
     });
   });
 
@@ -223,7 +230,7 @@ describe('AIImageUpload', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByRole('button', { name: /analyze with ai/i })
+        screen.getByRole('button', { name: /continue to review/i })
       ).toBeInTheDocument();
     });
   });
@@ -239,12 +246,12 @@ describe('AIImageUpload', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByRole('button', { name: /analyze with ai/i })
+        screen.getByRole('button', { name: /continue to review/i })
       ).toBeInTheDocument();
     });
 
     const analyzeButton = screen.getByRole('button', {
-      name: /analyze with ai/i,
+      name: /continue to review/i,
     });
     await user.click(analyzeButton);
 

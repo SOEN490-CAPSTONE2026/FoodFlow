@@ -2,7 +2,16 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import SurplusFormModal from '../SurplusFormModal';
-import { TimezoneProvider } from '../../../contexts/TimezoneContext';
+
+jest.mock('../../../contexts/TimezoneContext', () => ({
+  TimezoneProvider: ({ children }) => children,
+  useTimezone: () => ({
+    userTimezone: 'America/Toronto',
+    isLoading: false,
+    updateTimezone: jest.fn(),
+    refreshTimezone: jest.fn(),
+  }),
+}));
 
 // Mock react-i18next
 jest.mock('react-i18next', () => ({
@@ -25,7 +34,7 @@ jest.mock('react-i18next', () => ({
         'surplusForm.packagingTypeHelp':
           'Specify how the food is packaged for safety compliance',
         'surplusForm.quantityLabel': 'Quantity',
-        'surplusForm.quantityPlaceholder': '0',
+        'surplusForm.quantityPlaceholder': 'Enter quantity',
         'surplusForm.unitLabel': 'Unit',
         'surplusForm.unitPlaceholder': 'Select unit',
         'surplusForm.fabricationDateLabel': 'Fabrication/Production Date',
@@ -88,6 +97,10 @@ jest.mock('react-i18next', () => ({
 
 // Mock the surplusAPI directly
 jest.mock('../../../services/api', () => ({
+  __esModule: true,
+  default: {
+    get: jest.fn().mockResolvedValue({ data: { timezone: 'America/Toronto' } }),
+  },
   surplusAPI: {
     create: jest.fn(),
     update: jest.fn(),
@@ -101,14 +114,7 @@ import { surplusAPI as mockSurplusAPI } from '../../../services/api';
 
 // Helper function to render with required providers
 const renderWithProviders = (ui, options = {}) => {
-  const mockTimezoneContext = {
-    userTimezone: 'America/Toronto',
-    userRegion: 'CA',
-  };
-  return render(
-    <TimezoneProvider value={mockTimezoneContext}>{ui}</TimezoneProvider>,
-    options
-  );
+  return render(ui, options);
 };
 
 // Mock @react-google-maps/api with autocomplete simulation
@@ -277,6 +283,12 @@ describe('SurplusFormModal', () => {
       screen.getByPlaceholderText('e.g., Vegetable Lasagna'),
       'Test Food'
     );
+    await userEvent.type(
+      screen.getByPlaceholderText(
+        'Describe the food (ingredients, freshness, etc.)'
+      ),
+      'Test description'
+    );
 
     const categoriesSelect = screen.getByTestId('mock-select-default');
     await userEvent.selectOptions(categoriesSelect, ['PREPARED']);
@@ -295,8 +307,7 @@ describe('SurplusFormModal', () => {
       expect(screen.getByText('Quantity & Dates')).toBeInTheDocument();
     });
 
-    // Find quantity input by placeholder text (from setupTests.js mock)
-    const quantityInput = screen.getByPlaceholderText('0');
+    const quantityInput = document.querySelector('input[name="quantityValue"]');
     await userEvent.type(quantityInput, '10');
 
     const datePickers = screen.getAllByTestId('date-picker');
@@ -316,16 +327,6 @@ describe('SurplusFormModal', () => {
     const addressInput = screen.getByPlaceholderText('Start typing address...');
     await userEvent.type(addressInput, 'Test Location');
     fireEvent.blur(addressInput);
-  };
-
-  // Helper function to fill Step 4 (Description)
-  const fillStep4 = async () => {
-    await userEvent.type(
-      screen.getByPlaceholderText(
-        'Describe the food (ingredients, freshness, etc.)'
-      ),
-      'Test description'
-    );
   };
 
   // Component renders when isOpen is true
@@ -367,15 +368,6 @@ describe('SurplusFormModal', () => {
     await waitFor(() => {
       expect(screen.getByText('Pickup Info')).toBeInTheDocument();
     });
-    await fillStep3();
-    fireEvent.click(screen.getByText('Next'));
-
-    // Step 4
-    await waitFor(() => {
-      expect(screen.getByText('Description')).toBeInTheDocument();
-    });
-    await fillStep4();
-
     expect(screen.getByText('Create Donation')).toBeInTheDocument();
   });
 
@@ -430,10 +422,6 @@ describe('SurplusFormModal', () => {
 
     await screen.findByText('Pickup Info');
     await fillStep3();
-    fireEvent.click(screen.getByText('Next'));
-
-    await screen.findByText('Description');
-    await fillStep4();
     fireEvent.click(screen.getByText('Create Donation'));
 
     await waitFor(() => {
@@ -516,10 +504,6 @@ describe('SurplusFormModal', () => {
     await screen.findByText('Pickup Info');
 
     await fillStep3();
-    fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Description');
-
-    await fillStep4();
     fireEvent.click(screen.getByText('Create Donation'));
 
     await waitFor(() => {
@@ -539,7 +523,6 @@ describe('SurplusFormModal', () => {
     const closeButton = screen.getByTestId('x-icon').closest('button');
     fireEvent.click(closeButton);
 
-    expect(window.confirm).toHaveBeenCalledWith('Cancel donation creation?');
     expect(mockOnClose).toHaveBeenCalled();
   });
 
@@ -559,10 +542,6 @@ describe('SurplusFormModal', () => {
     await screen.findByText('Pickup Info');
 
     await fillStep3();
-    fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Description');
-
-    await fillStep4();
     fireEvent.click(screen.getByText('Create Donation'));
 
     await waitFor(() => {
@@ -589,10 +568,6 @@ describe('SurplusFormModal', () => {
     await screen.findByText('Pickup Info');
 
     await fillStep3();
-    fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Description');
-
-    await fillStep4();
     fireEvent.click(screen.getByText('Create Donation'));
 
     await waitFor(() => {
@@ -600,17 +575,11 @@ describe('SurplusFormModal', () => {
     });
   });
 
-  // Cancel confirmation when user declines
-  test('does not close modal when cancel is declined', () => {
-    mockConfirm.mockReturnValue(false);
-
+  test('closes modal when close button is clicked', () => {
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
-
     const closeButton = screen.getByTestId('x-icon').closest('button');
     fireEvent.click(closeButton);
-
-    expect(window.confirm).toHaveBeenCalled();
-    expect(mockOnClose).not.toHaveBeenCalled();
+    expect(mockOnClose).toHaveBeenCalled();
   });
 
   // Input field changes update form state
@@ -629,6 +598,14 @@ describe('SurplusFormModal', () => {
     fireEvent.change(tempSelect, { target: { value: 'REFRIGERATED' } });
     const packagingSelect = screen.getByTestId('mock-select-packagingType');
     fireEvent.change(packagingSelect, { target: { value: 'SEALED' } });
+
+    const descriptionInput = screen.getByPlaceholderText(
+      'Describe the food (ingredients, freshness, etc.)'
+    );
+    await userEvent.clear(descriptionInput);
+    await userEvent.type(descriptionInput, 'Fresh banana bread');
+    expect(descriptionInput.value).toBe('Fresh banana bread');
+
     fireEvent.click(screen.getByText('Next'));
     await screen.findByText('Quantity & Dates');
 
@@ -636,7 +613,6 @@ describe('SurplusFormModal', () => {
     await userEvent.type(quantityInput, '5');
     expect(quantityInput.value).toBe('5');
 
-    // Navigate to Step 4 for description
     const datePickers = screen.getAllByTestId('date-picker');
     fireEvent.click(datePickers[0]); // Fabrication date
     fireEvent.click(datePickers[1]); // Expiry date
@@ -651,14 +627,6 @@ describe('SurplusFormModal', () => {
     const addressInput = screen.getByPlaceholderText('Start typing address...');
     await userEvent.type(addressInput, 'Test Location');
     fireEvent.blur(addressInput);
-    fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Description');
-
-    const notesInput = screen.getByPlaceholderText(
-      'Describe the food (ingredients, freshness, etc.)'
-    );
-    await userEvent.type(notesInput, 'Fresh banana bread');
-    expect(notesInput.value).toBe('Fresh banana bread');
   });
 
   // Modal closes after successful submission
@@ -678,10 +646,6 @@ describe('SurplusFormModal', () => {
     await screen.findByText('Pickup Info');
 
     await fillStep3();
-    fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Description');
-
-    await fillStep4();
     fireEvent.click(screen.getByText('Create Donation'));
 
     await waitFor(() => {
@@ -708,7 +672,7 @@ describe('SurplusFormModal', () => {
     // Simulate selecting multiple options using userEvent
     await userEvent.selectOptions(categoriesSelect, [
       'PREPARED',
-      'BAKERY_PASTRY',
+      'BAKERY',
     ]);
     expect(categoriesSelect).toBeInTheDocument();
     expect(categoriesSelect.value).toContain('PREPARED');
@@ -975,10 +939,6 @@ describe('SurplusFormModal', () => {
     await userEvent.type(notesInputs[0], 'First slot notes');
     await userEvent.type(notesInputs[1], 'Second slot notes');
 
-    fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Description');
-
-    await fillStep4();
     fireEvent.click(screen.getByText('Create Donation'));
 
     await waitFor(() => {
@@ -998,7 +958,7 @@ describe('SurplusFormModal', () => {
     fireEvent.click(screen.getByText('Next'));
     await screen.findByText('Quantity & Dates');
 
-    const quantityInput = screen.getByPlaceholderText('0');
+    const quantityInput = document.querySelector('input[name="quantityValue"]');
     await userEvent.type(quantityInput, '5.5');
     expect(quantityInput.value).toBe('5.5');
   });
@@ -1018,10 +978,6 @@ describe('SurplusFormModal', () => {
     await screen.findByText('Pickup Info');
 
     await fillStep3();
-    fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Description');
-
-    await fillStep4();
     fireEvent.click(screen.getByText('Create Donation'));
 
     await waitFor(() => {

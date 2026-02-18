@@ -61,7 +61,7 @@ describe('API service', () => {
     expect(mockPost).toHaveBeenCalledWith(
       '/surplus/search',
       expect.objectContaining({
-        foodCategories: ['FRUITS_VEGETABLES', 'FROZEN'],
+        foodTypes: ['Fruits & Vegetables', 'Frozen Food'],
         expiryBefore: '2025-12-01',
         userLocation: { latitude: 45, longitude: -73, address: '123 Main St' },
         maxDistanceKm: 10,
@@ -106,7 +106,7 @@ describe('API service', () => {
     };
     const resp = await surplusAPI.searchBasic(filters);
     expect(mockGet).toHaveBeenCalledWith(
-      expect.stringMatching(/\/surplus\/search\?.*foodCategories=BAKERY_PASTRY/)
+      expect.stringMatching(/\/surplus\/search\?.*foodType=BAKERY/)
     );
     expect(resp).toEqual({ data: { items: [] } });
   });
@@ -351,7 +351,14 @@ describe('API service', () => {
     const data = { title: 'Food', quantity: 10 };
     const resp = await surplusAPI.create(data);
 
-    expect(mockPost).toHaveBeenCalledWith('/surplus', data);
+    expect(mockPost).toHaveBeenCalledWith(
+      '/surplus',
+      expect.objectContaining({
+        title: 'Food',
+        quantity: 10,
+        dietaryTags: [],
+      })
+    );
     expect(resp).toEqual({ data: { id: 1 } });
   });
 
@@ -377,7 +384,13 @@ describe('API service', () => {
     const data = { title: 'Updated' };
     const resp = await surplusAPI.update(1, data);
 
-    expect(mockPut).toHaveBeenCalledWith('/surplus/1', data);
+    expect(mockPut).toHaveBeenCalledWith(
+      '/surplus/1',
+      expect.objectContaining({
+        title: 'Updated',
+        dietaryTags: [],
+      })
+    );
     expect(resp).toEqual({ data: { id: 1 } });
   });
 
@@ -447,7 +460,7 @@ describe('API service', () => {
     const resp = await surplusAPI.search(filters);
 
     expect(mockPost).toHaveBeenCalledWith('/surplus/search', {
-      foodCategories: ['DAIRY_COLD'],
+      foodTypes: ['Dairy & Cold Items'],
       status: 'AVAILABLE',
     });
     expect(resp).toEqual({ data: [] });
