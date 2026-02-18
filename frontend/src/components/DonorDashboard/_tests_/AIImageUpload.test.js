@@ -40,7 +40,9 @@ describe('AIImageUpload', () => {
     renderComponent();
 
     expect(screen.getByText(/upload label image/i)).toBeInTheDocument();
-    expect(screen.getByText(/upload a clear image that includes/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/upload a clear image that includes/i)
+    ).toBeInTheDocument();
   });
 
   test('renders file requirements', () => {
@@ -115,7 +117,9 @@ describe('AIImageUpload', () => {
   test('renders drag and drop text', () => {
     renderComponent();
 
-    expect(screen.getByText(/drag and drop a label image/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/drag and drop a label image/i)
+    ).toBeInTheDocument();
   });
 
   test('handles valid file upload', async () => {

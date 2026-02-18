@@ -670,10 +670,7 @@ describe('SurplusFormModal', () => {
     const categoriesSelect = screen.getByTestId('mock-select-default');
 
     // Simulate selecting multiple options using userEvent
-    await userEvent.selectOptions(categoriesSelect, [
-      'PREPARED',
-      'BAKERY',
-    ]);
+    await userEvent.selectOptions(categoriesSelect, ['PREPARED', 'BAKERY']);
     expect(categoriesSelect).toBeInTheDocument();
     expect(categoriesSelect.value).toContain('PREPARED');
   });

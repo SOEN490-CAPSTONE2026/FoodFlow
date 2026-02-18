@@ -834,16 +834,28 @@ public class SurplusService {
             builder.and((root, query, cb) -> root.get("foodType").in(filterRequest.getFoodTypes()));
         }
 
-        // Filter by expiry date (before) - FIXED
+        // Filter by expiry date (before), with fallback to legacy expiryDate.
         if (filterRequest.hasExpiryBefore()) {
             LocalDateTime expiryBeforeEndOfDay = filterRequest.getExpiryBefore().atTime(23, 59, 59);
-            builder.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("expiryDateEffective"), expiryBeforeEndOfDay));
+            builder.and((root, query, cb) -> cb.or(
+                    cb.and(
+                            cb.isNotNull(root.get("expiryDateEffective")),
+                            cb.lessThanOrEqualTo(root.get("expiryDateEffective"), expiryBeforeEndOfDay)),
+                    cb.and(
+                            cb.isNull(root.get("expiryDateEffective")),
+                            cb.lessThanOrEqualTo(root.get("expiryDate"), filterRequest.getExpiryBefore()))));
         }
 
-        // Filter by expiry date (after)
+        // Filter by expiry date (after), with fallback to legacy expiryDate.
         if (filterRequest.hasExpiryAfter()) {
             LocalDateTime expiryAfterStartOfDay = filterRequest.getExpiryAfter().atStartOfDay();
-            builder.and((root, query, cb) -> cb.greaterThanOrEqualTo(root.get("expiryDateEffective"), expiryAfterStartOfDay));
+            builder.and((root, query, cb) -> cb.or(
+                    cb.and(
+                            cb.isNotNull(root.get("expiryDateEffective")),
+                            cb.greaterThanOrEqualTo(root.get("expiryDateEffective"), expiryAfterStartOfDay)),
+                    cb.and(
+                            cb.isNull(root.get("expiryDateEffective")),
+                            cb.greaterThanOrEqualTo(root.get("expiryDate"), filterRequest.getExpiryAfter()))));
         }
 
         // Filter by location

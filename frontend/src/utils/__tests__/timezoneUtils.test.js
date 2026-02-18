@@ -70,7 +70,9 @@ describe('timezoneUtils', () => {
   });
 
   it('uses fallback branch when formatter throws', () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
 
     const toLocaleSpy = jest
       .spyOn(Date.prototype, 'toLocaleTimeString')
@@ -79,7 +81,9 @@ describe('timezoneUtils', () => {
       })
       .mockImplementation(() => '12:00 PM');
 
-    expect(formatTimeInTimezone('2026-02-18T12:00:00Z', 'UTC')).toBe('12:00 PM');
+    expect(formatTimeInTimezone('2026-02-18T12:00:00Z', 'UTC')).toBe(
+      '12:00 PM'
+    );
     expect(consoleErrorSpy).toHaveBeenCalled();
 
     toLocaleSpy.mockRestore();

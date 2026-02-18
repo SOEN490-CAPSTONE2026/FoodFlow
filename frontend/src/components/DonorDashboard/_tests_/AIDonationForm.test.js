@@ -110,7 +110,9 @@ describe('AIDonationForm', () => {
     expect(screen.getByText('Upload')).toBeInTheDocument();
     expect(screen.getByText('Review')).toBeInTheDocument();
     expect(screen.getByText('Submit')).toBeInTheDocument();
-    expect(document.querySelectorAll('.ai-step-indicator .step').length).toBe(3);
+    expect(document.querySelectorAll('.ai-step-indicator .step').length).toBe(
+      3
+    );
   });
 
   test('calls extraction API and moves to review step', async () => {

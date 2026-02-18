@@ -139,7 +139,7 @@ public class SurplusPost {
     private FoodType foodType;
 
     @JdbcTypeCode(SqlTypes.ARRAY)
-    @Column(name = "dietary_tags", nullable = false, columnDefinition = "text[]")
+    @Column(name = "dietary_tags", nullable = false)
     private String[] dietaryTags = new String[0];
 
     @ManyToOne(fetch = FetchType.LAZY)
