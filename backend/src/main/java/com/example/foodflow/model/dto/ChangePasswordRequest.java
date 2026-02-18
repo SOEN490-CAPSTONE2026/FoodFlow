@@ -1,5 +1,6 @@
 package com.example.foodflow.model.dto;
 
+import com.example.foodflow.validation.ValidPassword;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -9,7 +10,7 @@ public class ChangePasswordRequest {
     private String currentPassword;
     
     @NotBlank(message = "New password is required")
-    @Size(min = 8, message = "Password must be at least 8 characters")
+    @ValidPassword
     private String newPassword;
     
     @NotBlank(message = "Password confirmation is required")

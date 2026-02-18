@@ -567,9 +567,37 @@ export default function ForgotPassword() {
                           setPasswordError('Passwords do not match');
                           return;
                         }
-                        if (newPassword.length < 8) {
+                        if (newPassword.length < 10) {
                           setPasswordError(
-                            'Password must be at least 8 characters'
+                            'Password must be at least 10 characters'
+                          );
+                          return;
+                        }
+                        if (!/[A-Z]/.test(newPassword)) {
+                          setPasswordError(
+                            'Password must contain at least one uppercase letter'
+                          );
+                          return;
+                        }
+                        if (!/[a-z]/.test(newPassword)) {
+                          setPasswordError(
+                            'Password must contain at least one lowercase letter'
+                          );
+                          return;
+                        }
+                        if (!/[0-9]/.test(newPassword)) {
+                          setPasswordError(
+                            'Password must contain at least one digit'
+                          );
+                          return;
+                        }
+                        if (
+                          !/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(
+                            newPassword
+                          )
+                        ) {
+                          setPasswordError(
+                            'Password must contain at least one special character (!@#$%^&*()_+-=[]{}|;:,.<>?)'
                           );
                           return;
                         }
@@ -598,8 +626,11 @@ export default function ForgotPassword() {
                             navigate('/login', { replace: true });
                           }, 3000);
                         } catch (err) {
+                          const data = err.response?.data;
+                          const fieldErrorMsg = data?.fieldErrors?.[0]?.message;
                           setPasswordError(
-                            err.response?.data?.message ||
+                            fieldErrorMsg ||
+                              data?.message ||
                               'Failed to reset password. Please try again.'
                           );
                         } finally {
