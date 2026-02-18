@@ -17,9 +17,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -107,6 +110,7 @@ public class ImpactDashboardService {
                 previousRangeBounds[1]);
 
         applyImpactMetrics(metrics, impactResult);
+        metrics.setFoodSavedTimeSeries(buildFoodSavedTimeSeries(records, startDate, endDate, dateRange));
 
         int[] mealRange = calculationService.calculateMealRange(metrics.getTotalFoodWeightKg());
         metrics.setMinMealsProvided(mealRange[0]);
@@ -203,6 +207,7 @@ public class ImpactDashboardService {
                 previousRangeBounds[1]);
 
         applyImpactMetrics(metrics, impactResult);
+        metrics.setFoodSavedTimeSeries(buildFoodSavedTimeSeries(records, startDate, endDate, dateRange));
 
         int[] mealRange = calculationService.calculateMealRange(metrics.getTotalFoodWeightKg());
         metrics.setMinMealsProvided(mealRange[0]);
@@ -289,6 +294,7 @@ public class ImpactDashboardService {
                 previousRangeBounds[1]);
 
         applyImpactMetrics(metrics, impactResult);
+        metrics.setFoodSavedTimeSeries(buildFoodSavedTimeSeries(records, startDate, endDate, dateRange));
 
         int[] mealRange = calculationService.calculateMealRange(metrics.getTotalFoodWeightKg());
         metrics.setMinMealsProvided(mealRange[0]);
@@ -544,9 +550,13 @@ public class ImpactDashboardService {
 
         switch (dateRange.toUpperCase()) {
             case "WEEKLY":
+            case "DAYS_7":
+            case "7_DAYS":
                 startDate = endDate.minus(7, ChronoUnit.DAYS);
                 break;
             case "MONTHLY":
+            case "DAYS_30":
+            case "30_DAYS":
                 startDate = endDate.minus(30, ChronoUnit.DAYS);
                 break;
             case "ALL_TIME":
@@ -564,6 +574,86 @@ public class ImpactDashboardService {
             return new LocalDateTime[]{currentStart.minusDays(1), currentStart};
         }
         return new LocalDateTime[]{currentStart.minusSeconds(seconds), currentStart};
+    }
+
+    private List<ImpactMetricsDTO.TimeSeriesPointDTO> buildFoodSavedTimeSeries(
+            List<ImpactMetricsEngine.DonationImpactRecord> records,
+            LocalDateTime startDate,
+            LocalDateTime endDate,
+            String dateRange) {
+
+        if (records == null || records.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        if ("ALL_TIME".equalsIgnoreCase(dateRange)) {
+            return buildMonthlyFoodSavedTimeSeries(records, startDate, endDate);
+        }
+        return buildDailyFoodSavedTimeSeries(records, startDate, endDate);
+    }
+
+    private List<ImpactMetricsDTO.TimeSeriesPointDTO> buildDailyFoodSavedTimeSeries(
+            List<ImpactMetricsEngine.DonationImpactRecord> records,
+            LocalDateTime startDate,
+            LocalDateTime endDate) {
+
+        Map<LocalDate, Double> buckets = new LinkedHashMap<>();
+        LocalDate cursor = startDate.toLocalDate();
+        LocalDate end = endDate.toLocalDate();
+        while (!cursor.isAfter(end)) {
+            buckets.put(cursor, 0d);
+            cursor = cursor.plusDays(1);
+        }
+
+        for (ImpactMetricsEngine.DonationImpactRecord record : records) {
+            if (record.eventTime() == null) {
+                continue;
+            }
+            if (record.eventTime().isBefore(startDate) || record.eventTime().isAfter(endDate)) {
+                continue;
+            }
+            if (!impactMetricsEngine.isEligibleForImpact(record)) {
+                continue;
+            }
+            LocalDate bucketDate = record.eventTime().toLocalDate();
+            buckets.computeIfPresent(bucketDate, (key, value) -> value + record.weightKg());
+        }
+
+        return buckets.entrySet().stream()
+                .map(entry -> new ImpactMetricsDTO.TimeSeriesPointDTO(entry.getKey().toString(), entry.getValue()))
+                .toList();
+    }
+
+    private List<ImpactMetricsDTO.TimeSeriesPointDTO> buildMonthlyFoodSavedTimeSeries(
+            List<ImpactMetricsEngine.DonationImpactRecord> records,
+            LocalDateTime startDate,
+            LocalDateTime endDate) {
+
+        Map<YearMonth, Double> buckets = new LinkedHashMap<>();
+        YearMonth cursor = YearMonth.from(startDate);
+        YearMonth end = YearMonth.from(endDate);
+        while (!cursor.isAfter(end)) {
+            buckets.put(cursor, 0d);
+            cursor = cursor.plusMonths(1);
+        }
+
+        for (ImpactMetricsEngine.DonationImpactRecord record : records) {
+            if (record.eventTime() == null) {
+                continue;
+            }
+            if (record.eventTime().isBefore(startDate) || record.eventTime().isAfter(endDate)) {
+                continue;
+            }
+            if (!impactMetricsEngine.isEligibleForImpact(record)) {
+                continue;
+            }
+            YearMonth bucketMonth = YearMonth.from(record.eventTime());
+            buckets.computeIfPresent(bucketMonth, (key, value) -> value + record.weightKg());
+        }
+
+        return buckets.entrySet().stream()
+                .map(entry -> new ImpactMetricsDTO.TimeSeriesPointDTO(entry.getKey().toString(), entry.getValue()))
+                .toList();
     }
 
     /**

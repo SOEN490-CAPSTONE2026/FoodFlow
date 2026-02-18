@@ -1,6 +1,8 @@
 package com.example.foodflow.model.dto;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * DTO for impact metrics dashboard
@@ -45,6 +47,7 @@ public class ImpactMetricsDTO {
     private Integer mealsVsPreviousAbs;
     private Double waterVsPreviousAbs;
     private String impactAuditJson;
+    private List<TimeSeriesPointDTO> foodSavedTimeSeries = new ArrayList<>();
 
     // User engagement metrics
     private Integer activeDonors;
@@ -171,4 +174,27 @@ public class ImpactMetricsDTO {
 
     public String getImpactAuditJson() { return impactAuditJson; }
     public void setImpactAuditJson(String impactAuditJson) { this.impactAuditJson = impactAuditJson; }
+
+    public List<TimeSeriesPointDTO> getFoodSavedTimeSeries() { return foodSavedTimeSeries; }
+    public void setFoodSavedTimeSeries(List<TimeSeriesPointDTO> foodSavedTimeSeries) {
+        this.foodSavedTimeSeries = foodSavedTimeSeries != null ? foodSavedTimeSeries : new ArrayList<>();
+    }
+
+    public static class TimeSeriesPointDTO {
+        private String label;
+        private Double foodWeightKg;
+
+        public TimeSeriesPointDTO() {}
+
+        public TimeSeriesPointDTO(String label, Double foodWeightKg) {
+            this.label = label;
+            this.foodWeightKg = foodWeightKg;
+        }
+
+        public String getLabel() { return label; }
+        public void setLabel(String label) { this.label = label; }
+
+        public Double getFoodWeightKg() { return foodWeightKg; }
+        public void setFoodWeightKg(Double foodWeightKg) { this.foodWeightKg = foodWeightKg; }
+    }
 }

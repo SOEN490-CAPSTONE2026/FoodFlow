@@ -276,6 +276,8 @@ class ImpactDashboardServiceTest {
             // Should have factor metadata
             assertEquals("impact_v1", metrics.getFactorVersion());
             assertEquals("Test disclosure text", metrics.getFactorDisclosure());
+            assertNotNull(metrics.getFoodSavedTimeSeries());
+            assertFalse(metrics.getFoodSavedTimeSeries().isEmpty());
         }
 
         @Test

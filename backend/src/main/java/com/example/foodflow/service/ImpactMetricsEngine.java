@@ -134,6 +134,10 @@ public class ImpactMetricsEngine {
         return null;
     }
 
+    public boolean isEligibleForImpact(DonationImpactRecord record) {
+        return getExclusionReason(record) == null;
+    }
+
     private boolean isWithinRange(LocalDateTime value, LocalDateTime start, LocalDateTime end) {
         if (value == null || start == null || end == null) {
             return false;

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Package,
@@ -22,7 +22,7 @@ export default function DonorImpactDashboard() {
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [dateRange, setDateRange] = useState('MONTHLY');
+  const [dateRange, setDateRange] = useState('DAYS_30');
   const [showCustomizeModal, setShowCustomizeModal] = useState(false);
   const [visibleMetrics, setVisibleMetrics] = useState({
     foodSaved: true,
@@ -34,6 +34,19 @@ export default function DonorImpactDashboard() {
     completionRate: true,
     activeDays: true,
   });
+  const metricLabels = useMemo(
+    () => ({
+      foodSaved: t('impactDashboard.foodWeight', 'Food Saved'),
+      co2Reduced: t('impactDashboard.co2Avoided', 'CO2 Reduced'),
+      mealsDonated: t('impactDashboard.mealsProvided', 'Meals Donated'),
+      waterSaved: t('impactDashboard.waterSaved', 'Water Saved'),
+      peopleFed: t('impactDashboard.peopleFed', 'People Fed'),
+      completedDonations: t('impactDashboard.completed', 'Completed Donations'),
+      completionRate: t('impactDashboard.completionRate', 'Completion Rate'),
+      activeDays: t('impactDashboard.activeDays', 'Active Days'),
+    }),
+    [t]
+  );
 
   useEffect(() => {
     const fetchMetrics = async () => {
@@ -151,6 +164,50 @@ export default function DonorImpactDashboard() {
   };
 
   const displayedMetrics = getDisplayedMetrics();
+  const chartSeries = useMemo(() => {
+    const rawSeries = Array.isArray(metrics?.foodSavedTimeSeries)
+      ? metrics.foodSavedTimeSeries
+      : [];
+    return rawSeries.map((point, index) => ({
+      label: point?.label || `${index + 1}`,
+      value: Number(point?.foodWeightKg) || 0,
+    }));
+  }, [metrics?.foodSavedTimeSeries]);
+
+  const chartGeometry = useMemo(() => {
+    if (!chartSeries.length) {
+      return null;
+    }
+
+    const width = 1000;
+    const height = 300;
+    const horizontalPadding = 30;
+    const verticalPadding = 30;
+    const maxValue = Math.max(...chartSeries.map(point => point.value), 0);
+    const range = maxValue > 0 ? maxValue : 1;
+    const usableWidth = width - horizontalPadding * 2;
+    const usableHeight = height - verticalPadding * 2;
+
+    const points = chartSeries.map((point, index) => {
+      const x =
+        chartSeries.length === 1
+          ? width / 2
+          : horizontalPadding +
+            (index * usableWidth) / (chartSeries.length - 1);
+      const y =
+        verticalPadding + ((range - point.value) / range) * usableHeight;
+      return { ...point, x, y };
+    });
+
+    const linePoints = points.map(point => `${point.x},${point.y}`).join(' ');
+    const areaPoints = [
+      `${points[0].x},${height - verticalPadding}`,
+      linePoints,
+      `${points[points.length - 1].x},${height - verticalPadding}`,
+    ].join(' ');
+
+    return { points, linePoints, areaPoints };
+  }, [chartSeries]);
 
   if (loading) {
     return (
@@ -197,11 +254,11 @@ export default function DonorImpactDashboard() {
             value={dateRange}
             onChange={e => setDateRange(e.target.value)}
           >
-            <option value="WEEKLY">
-              {t('impactDashboard.weekly', 'This Week')}
+            <option value="DAYS_7">
+              {t('impactDashboard.days7', '7 Days')}
             </option>
-            <option value="MONTHLY">
-              {t('impactDashboard.monthly', 'This Month')}
+            <option value="DAYS_30">
+              {t('impactDashboard.days30', '30 Days')}
             </option>
             <option value="ALL_TIME">
               {t('impactDashboard.allTime', 'All Time')}
@@ -364,30 +421,36 @@ export default function DonorImpactDashboard() {
           {t('impactDashboard.foodSavedOverTime', 'Food Saved Over Time')}
         </h2>
         <div className="chart-container">
-          <svg viewBox="0 0 1000 300" className="line-chart">
-            <defs>
-              <linearGradient
-                id="chartGradient"
-                x1="0%"
-                y1="0%"
-                x2="0%"
-                y2="100%"
-              >
-                <stop offset="0%" stopColor="rgba(52, 152, 219, 0.4)" />
-                <stop offset="100%" stopColor="rgba(52, 152, 219, 0.0)" />
-              </linearGradient>
-            </defs>
-            <polyline
-              fill="none"
-              stroke="#3498db"
-              strokeWidth="3"
-              points="0,250 125,180 250,200 375,120 500,140 625,80 750,100 875,60 1000,90"
-            />
-            <polygon
-              fill="url(#chartGradient)"
-              points="0,300 0,250 125,180 250,200 375,120 500,140 625,80 750,100 875,60 1000,90 1000,300"
-            />
-          </svg>
+          {chartGeometry ? (
+            <svg viewBox="0 0 1000 300" className="line-chart">
+              <defs>
+                <linearGradient
+                  id="chartGradient"
+                  x1="0%"
+                  y1="0%"
+                  x2="0%"
+                  y2="100%"
+                >
+                  <stop offset="0%" stopColor="rgba(52, 152, 219, 0.4)" />
+                  <stop offset="100%" stopColor="rgba(52, 152, 219, 0.0)" />
+                </linearGradient>
+              </defs>
+              <polyline
+                fill="none"
+                stroke="#3498db"
+                strokeWidth="3"
+                points={chartGeometry.linePoints}
+              />
+              <polygon
+                fill="url(#chartGradient)"
+                points={chartGeometry.areaPoints}
+              />
+            </svg>
+          ) : (
+            <div className="empty-chart-message">
+              {t('impactDashboard.noChartData', 'No data for selected period')}
+            </div>
+          )}
         </div>
       </div>
 
@@ -483,27 +546,23 @@ export default function DonorImpactDashboard() {
                         onChange={() => toggleMetric(key)}
                         disabled={isDisabled}
                       />
-                      <span>
-                        {key
-                          .replace(/([A-Z])/g, ' $1')
-                          .replace(/^./, str => str.toUpperCase())}
-                      </span>
+                      <span>{metricLabels[key] || key}</span>
                     </label>
                   );
                 })}
               </div>
               <div className="modal-actions">
                 <button onClick={selectAllMetrics} className="btn-secondary">
-                  {t('common.selectAll', 'Select All')}
+                  {t('impactDashboard.selectAll', 'Select All')}
                 </button>
                 <button onClick={clearAllMetrics} className="btn-secondary">
-                  {t('common.clearAll', 'Clear All')}
+                  {t('impactDashboard.clearAll', 'Clear All')}
                 </button>
                 <button
                   onClick={() => setShowCustomizeModal(false)}
                   className="btn-primary"
                 >
-                  {t('common.done', 'Done')}
+                  {t('impactDashboard.done', 'Done')}
                 </button>
               </div>
             </div>
