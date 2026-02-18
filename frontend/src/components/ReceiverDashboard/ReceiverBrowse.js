@@ -18,7 +18,6 @@ import { useLoadScript } from '@react-google-maps/api';
 import { surplusAPI, recommendationAPI } from '../../services/api';
 import {
   getDietaryTagLabel,
-  getFoodCategoryDisplays,
   getPrimaryFoodCategory,
   getFoodImageClass,
   getFoodTypeLabel,
@@ -535,17 +534,27 @@ export default function ReceiverBrowse() {
           return (
             <div className="receiver-donations-list">
               {filteredItems.map(item => {
-                const categoryDisplays = getFoodCategoryDisplays(
-                  item.foodCategories
-                );
+                const rawCategories =
+                  Array.isArray(item.foodCategories) &&
+                  item.foodCategories.length > 0
+                    ? item.foodCategories
+                    : item.foodType
+                      ? [item.foodType]
+                      : [];
+                const categoryDisplays =
+                  rawCategories.length > 0
+                    ? rawCategories.map(category => {
+                        const normalizedCategory =
+                          mapLegacyCategoryToFoodType(category);
+                        return t(
+                          `surplusForm.foodTypeValues.${normalizedCategory}`,
+                          getFoodTypeLabel(category)
+                        );
+                      })
+                    : ['Other'];
                 const primaryFoodCategory = getPrimaryFoodCategory(
                   item.foodCategories
                 );
-                const resolvedFoodType =
-                  item.foodType || item.foodCategories?.[0];
-                const normalizedFoodType = resolvedFoodType
-                  ? mapLegacyCategoryToFoodType(resolvedFoodType)
-                  : null;
                 const dietaryTags = Array.isArray(item.dietaryTags)
                   ? item.dietaryTags
                   : [];
@@ -715,17 +724,6 @@ export default function ReceiverBrowse() {
                       </div>
 
                       <div className="receiver-donation-meta">
-                        {resolvedFoodType && (
-                          <div className="receiver-food-type-row">
-                            <span className="receiver-food-type-chip">
-                              {t('surplusForm.foodCategoriesLabel')}:{' '}
-                              {t(
-                                `surplusForm.foodTypeValues.${normalizedFoodType}`,
-                                getFoodTypeLabel(resolvedFoodType)
-                              )}
-                            </span>
-                          </div>
-                        )}
                         {dietaryTags.length > 0 && (
                           <div className="receiver-dietary-tags">
                             {visibleDietaryTags.map(tag => (

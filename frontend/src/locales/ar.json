@@ -520,7 +520,8 @@
       "readyForPickup": "جاهز للاستلام",
       "notCompleted": "غير مكتمل",
       "expired": "منتهي الصلاحية"
-    }
+    },
+    "yourRating": "تقييمك"
   },
   "receiverWelcome": {
     "title": "ابحث عن طعام بالقرب منك",
@@ -1013,7 +1014,9 @@
     "choosePickupSlot": "اختر موعد استلام",
     "noProposedSlots": "لا توجد مواعيد مقترحة متاحة.",
     "confirming": "جارٍ التأكيد...",
-    "confirmAndClaim": "تأكيد والمطالبة"
+    "confirmAndClaim": "تأكيد والمطالبة",
+    "expiringSoon": "ينتهي قريبًا",
+    "predicted": "متوقع"
   },
   "receiverMyClaims": {
     "readyForPickup": "جاهز للاستلام",

@@ -520,7 +520,8 @@
       "readyForPickup": "Pronto para retirada",
       "notCompleted": "Não concluído",
       "expired": "Expirado"
-    }
+    },
+    "yourRating": "Sua avaliação"
   },
   "receiverWelcome": {
     "title": "Encontre alimentos perto de você",
@@ -1013,7 +1014,9 @@
     "choosePickupSlot": "Escolha um horário de coleta",
     "noProposedSlots": "Nenhum horário proposto disponível.",
     "confirming": "Confirmando...",
-    "confirmAndClaim": "Confirmar e reivindicar"
+    "confirmAndClaim": "Confirmar e reivindicar",
+    "expiringSoon": "Expira em breve",
+    "predicted": "Estimado"
   },
   "receiverMyClaims": {
     "readyForPickup": "Pronto para coleta",

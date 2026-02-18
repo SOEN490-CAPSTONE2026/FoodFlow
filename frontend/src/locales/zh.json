@@ -520,7 +520,8 @@
       "readyForPickup": "准备取货",
       "notCompleted": "未完成",
       "expired": "已过期"
-    }
+    },
+    "yourRating": "您的评分"
   },
   "receiverWelcome": {
     "title": "在您附近寻找食物",
@@ -1013,7 +1014,9 @@
     "choosePickupSlot": "选择取货时间段",
     "noProposedSlots": "没有可用的建议时间段。",
     "confirming": "正在确认...",
-    "confirmAndClaim": "确认并认领"
+    "confirmAndClaim": "确认并认领",
+    "expiringSoon": "即将到期",
+    "predicted": "预测"
   },
   "receiverMyClaims": {
     "readyForPickup": "准备取货",

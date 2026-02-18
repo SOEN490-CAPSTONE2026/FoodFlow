@@ -540,7 +540,8 @@
       "readyForPickup": "Prêt pour la collecte",
       "notCompleted": "Non complété",
       "expired": "Expiré"
-    }
+    },
+    "yourRating": "Votre note"
   },
   "receiverWelcome": {
     "title": "Trouver des aliments près de chez vous",
@@ -1033,7 +1034,9 @@
     "choosePickupSlot": "Choisissez un créneau de collecte",
     "noProposedSlots": "Aucun créneau proposé disponible.",
     "confirming": "Confirmation en cours...",
-    "confirmAndClaim": "Confirmer et réclamer"
+    "confirmAndClaim": "Confirmer et réclamer",
+    "expiringSoon": "Expire bientôt",
+    "predicted": "Prédit"
   },
   "receiverMyClaims": {
     "readyForPickup": "Prêt pour la collecte",

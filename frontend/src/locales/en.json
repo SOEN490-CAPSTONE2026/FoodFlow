@@ -540,7 +540,8 @@
       "readyForPickup": "Ready for Pickup",
       "notCompleted": "Not Completed",
       "expired": "Expired"
-    }
+    },
+    "yourRating": "Your Rating"
   },
   "receiverWelcome": {
     "title": "Find Food Near You",
@@ -1055,7 +1056,9 @@
     "choosePickupSlot": "Choose a pickup slot",
     "noProposedSlots": "No proposed slots available.",
     "confirming": "Confirming...",
-    "confirmAndClaim": "Confirm & Claim"
+    "confirmAndClaim": "Confirm & Claim",
+    "expiringSoon": "Expiring soon",
+    "predicted": "Predicted"
   },
   "receiverMyClaims": {
     "readyForPickup": "Ready for Pickup",
