@@ -69,7 +69,7 @@ describe('ReceiverImpactDashboard', () => {
 
   test('displays loading spinner when fetching data', () => {
     impactDashboardAPI.getMetrics.mockImplementation(
-      () => new Promise(() => { })
+      () => new Promise(() => {})
     );
     render(<ReceiverImpactDashboard />);
     expect(screen.getByText('Loading...')).toBeInTheDocument();
@@ -140,7 +140,7 @@ describe('ReceiverImpactDashboard', () => {
   test('exports CSV file via API', async () => {
     const clickSpy = jest
       .spyOn(HTMLAnchorElement.prototype, 'click')
-      .mockImplementation(() => { });
+      .mockImplementation(() => {});
 
     await renderLoadedDashboard();
     fireEvent.click(screen.getByText('Export CSV'));
@@ -329,15 +329,9 @@ describe('ReceiverImpactDashboard', () => {
     const negativeTrends = document.querySelectorAll('.metric-trend.negative');
     expect(negativeTrends.length).toBeGreaterThan(0);
 
-    expect(
-      screen.getByText('+15.0% vs previous period')
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText('+2.0% vs previous period')
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText('-4.0% vs previous period')
-    ).toBeInTheDocument();
+    expect(screen.getByText('+15.0% vs previous period')).toBeInTheDocument();
+    expect(screen.getByText('+2.0% vs previous period')).toBeInTheDocument();
+    expect(screen.getByText('-4.0% vs previous period')).toBeInTheDocument();
   });
 
   test('displays correct metric units', async () => {
