@@ -119,6 +119,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/profile/**")
                         .hasAnyAuthority("RECEIVER", "DONOR", "ADMIN")
 
+                        //Save endpoints
+                        .requestMatchers("/api/receiver/saved/**").hasAuthority("RECEIVER")
+
+
                         // All other requests require authentication
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

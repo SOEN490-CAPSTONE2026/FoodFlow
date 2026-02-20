@@ -615,7 +615,7 @@ public class SurplusService {
      * to receiver's timezone.
      * All UTC times from database are converted to the receiver's local timezone.
      */
-    private SurplusResponse convertToResponseForReceiver(SurplusPost post, String receiverTimezone) {
+    public SurplusResponse convertToResponseForReceiver(SurplusPost post, String receiverTimezone) {
         // Get the base response (in UTC)
         SurplusResponse response = convertToResponse(post);
 
