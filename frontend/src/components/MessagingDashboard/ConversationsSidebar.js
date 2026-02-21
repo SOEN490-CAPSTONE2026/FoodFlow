@@ -148,6 +148,12 @@ const ConversationsSidebar = ({
                   </span>
                 </div>
 
+                {conversation.donationTitle && (
+                  <p className="conversation-donation-context">
+                    {conversation.donationTitle}
+                  </p>
+                )}
+
                 <div className="conversation-preview-row">
                   <p className="conversation-preview">
                     {conversation.lastMessagePreview}
