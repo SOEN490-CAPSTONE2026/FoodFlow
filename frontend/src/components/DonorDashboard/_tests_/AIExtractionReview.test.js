@@ -19,7 +19,7 @@ jest.mock('../../../contexts/TimezoneContext', () => ({
 // Mock dependencies
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: key => key,
+    t: (key, options) => options?.defaultValue || key,
     i18n: { language: 'en' },
   }),
 }));

@@ -27,6 +27,7 @@ import '../DonorDashboard/Donor_Styles/DonorImpactDashboard.css';
 
 export default function ReceiverImpactDashboard() {
   const { t } = useTranslation();
+  const vsPrevious = t('impactDashboard.vsPrevious', 'vs previous period');
   const [metrics] = useState({
     foodClaimed: 5873,
     co2Avoided: 52481,
@@ -263,7 +264,7 @@ export default function ReceiverImpactDashboard() {
               </div>
               <div className="metric-trend positive">
                 <TrendingUp size={14} />
-                +15% vs previous period
+                {`+15% ${vsPrevious}`}
               </div>
             </div>
           </div>
@@ -285,7 +286,7 @@ export default function ReceiverImpactDashboard() {
               </div>
               <div className="metric-trend positive">
                 <TrendingUp size={14} />
-                +2% vs previous period
+                {`+2% ${vsPrevious}`}
               </div>
             </div>
           </div>
@@ -306,7 +307,7 @@ export default function ReceiverImpactDashboard() {
               </div>
               <div className="metric-trend negative">
                 <TrendingDown size={14} />
-                -4% vs previous period
+                {`-4% ${vsPrevious}`}
               </div>
             </div>
           </div>
@@ -328,7 +329,7 @@ export default function ReceiverImpactDashboard() {
               </div>
               <div className="metric-trend positive">
                 <TrendingUp size={14} />
-                +12% vs previous period
+                {`+12% ${vsPrevious}`}
               </div>
             </div>
           </div>
@@ -349,7 +350,7 @@ export default function ReceiverImpactDashboard() {
               </div>
               <div className="metric-trend positive">
                 <TrendingUp size={14} />
-                +8% vs previous period
+                {`+8% ${vsPrevious}`}
               </div>
             </div>
           </div>
@@ -372,7 +373,7 @@ export default function ReceiverImpactDashboard() {
               </div>
               <div className="metric-trend positive">
                 <TrendingUp size={14} />
-                +5% vs previous period
+                {`+5% ${vsPrevious}`}
               </div>
             </div>
           </div>
@@ -391,7 +392,7 @@ export default function ReceiverImpactDashboard() {
               <div className="metric-value-large">{metrics.totalClaims}</div>
               <div className="metric-trend positive">
                 <TrendingUp size={14} />
-                +5% vs previous period
+                {`+5% ${vsPrevious}`}
               </div>
             </div>
           </div>

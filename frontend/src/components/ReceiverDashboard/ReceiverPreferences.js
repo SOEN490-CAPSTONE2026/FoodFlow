@@ -1,25 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
-import { foodTypeOptions } from '../../constants/foodConstants';
+import { getTranslatedFoodTypeOptions } from '../../constants/foodConstants';
 import api from '../../services/api';
 import './Receiver_Styles/ReceiverPreferences.css';
 
 const PICKUP_WINDOWS = ['MORNING', 'AFTERNOON', 'EVENING'];
 
-const PICKUP_WINDOW_META = {
-  MORNING: { label: 'Morning', time: '8:00 AM – 12:00 PM' },
-  AFTERNOON: { label: 'Afternoon', time: '12:00 PM – 7:00 PM' },
-  EVENING: { label: 'Evening', time: '7:00 PM – 12:00 AM' },
-};
-
 const DONATION_SIZES = ['SMALL', 'MEDIUM', 'LARGE', 'BULK'];
-
-const DONATION_SIZE_META = {
-  SMALL: { label: 'Small donations', tooltip: '1–5 small portions OR <3kg' },
-  MEDIUM: { label: 'Medium donations', tooltip: '5–20 portions OR 3–10kg' },
-  LARGE: { label: 'Large donations', tooltip: '20–50 portions OR 10–25kg' },
-  BULK: { label: 'Bulk donations', tooltip: '50+ portions OR >25kg' },
-};
 
 // Custom Tooltip component
 function Tooltip({ children, text }) {
@@ -56,6 +44,7 @@ function Tooltip({ children, text }) {
 }
 
 const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
+  const { t } = useTranslation();
   const [preferences, setPreferences] = useState({
     preferredCategories: [],
     preferredDonationSizes: [],
@@ -70,6 +59,61 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
   const [success, setSuccess] = useState(false);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const dropdownRef = useRef(null);
+  const translatedFoodTypeOptions = getTranslatedFoodTypeOptions(t);
+  const pickupWindowMeta = {
+    MORNING: {
+      label: t('receiverPreferences.morning', { defaultValue: 'Morning' }),
+      time: t('receiverPreferences.morningTime', {
+        defaultValue: '8:00 AM – 12:00 PM',
+      }),
+    },
+    AFTERNOON: {
+      label: t('receiverPreferences.afternoon', { defaultValue: 'Afternoon' }),
+      time: t('receiverPreferences.afternoonTime', {
+        defaultValue: '12:00 PM – 7:00 PM',
+      }),
+    },
+    EVENING: {
+      label: t('receiverPreferences.evening', { defaultValue: 'Evening' }),
+      time: t('receiverPreferences.eveningTime', {
+        defaultValue: '7:00 PM – 12:00 AM',
+      }),
+    },
+  };
+  const donationSizeMeta = {
+    SMALL: {
+      label: t('receiverPreferences.donationSize.small', {
+        defaultValue: 'Small donations',
+      }),
+      tooltip: t('receiverPreferences.donationSize.smallTooltip', {
+        defaultValue: '1–5 small portions OR <3kg',
+      }),
+    },
+    MEDIUM: {
+      label: t('receiverPreferences.donationSize.medium', {
+        defaultValue: 'Medium donations',
+      }),
+      tooltip: t('receiverPreferences.donationSize.mediumTooltip', {
+        defaultValue: '5–20 portions OR 3–10kg',
+      }),
+    },
+    LARGE: {
+      label: t('receiverPreferences.donationSize.large', {
+        defaultValue: 'Large donations',
+      }),
+      tooltip: t('receiverPreferences.donationSize.largeTooltip', {
+        defaultValue: '20–50 portions OR 10–25kg',
+      }),
+    },
+    BULK: {
+      label: t('receiverPreferences.donationSize.bulk', {
+        defaultValue: 'Bulk donations',
+      }),
+      tooltip: t('receiverPreferences.donationSize.bulkTooltip', {
+        defaultValue: '50+ portions OR >25kg',
+      }),
+    },
+  };
 
   // Load existing preferences when modal opens
   useEffect(() => {
@@ -86,7 +130,7 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
         setPreferences({
           preferredCategories: (response.data.preferredFoodTypes || []).map(
             type =>
-              foodTypeOptions.find(cat => cat.value === type) || {
+              translatedFoodTypeOptions.find(cat => cat.value === type) || {
                 value: type,
                 label: type,
               }
@@ -113,7 +157,11 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
       }
     } catch (err) {
       console.error('Error loading preferences:', err);
-      setError('Failed to load preferences');
+      setError(
+        t('receiverPreferences.loadFailed', {
+          defaultValue: 'Failed to load preferences',
+        })
+      );
     } finally {
       setLoading(false);
     }
@@ -169,7 +217,7 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
       return {
         ...prev,
         noStrictPreferences: newValue,
-        preferredCategories: newValue ? [...foodTypeOptions] : [],
+        preferredCategories: newValue ? [...translatedFoodTypeOptions] : [],
       };
     });
   };
@@ -246,7 +294,12 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
       }, 1500);
     } catch (err) {
       console.error('Error saving preferences:', err);
-      setError(err.response?.data?.message || 'Failed to save preferences');
+      setError(
+        err.response?.data?.message ||
+          t('receiverPreferences.saveFailed', {
+            defaultValue: 'Failed to save preferences',
+          })
+      );
     } finally {
       setLoading(false);
     }
@@ -266,13 +319,24 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
       <div className="preferences-panel" onClick={e => e.stopPropagation()}>
         <div className="preferences-header">
           <div>
-            <h2>Receiver Preferences</h2>
-            <p>Set your organization's needs to improve food matching.</p>
+            <h2>
+              {t('receiverPreferences.title', {
+                defaultValue: 'Receiver Preferences',
+              })}
+            </h2>
+            <p>
+              {t('receiverPreferences.subtitle', {
+                defaultValue:
+                  "Set your organization's needs to improve food matching.",
+              })}
+            </p>
           </div>
           <button
             className="close-btn"
             onClick={handleCancel}
-            aria-label="Close"
+            aria-label={t('receiverPreferences.close', {
+              defaultValue: 'Close',
+            })}
           >
             <X size={24} />
           </button>
@@ -282,13 +346,19 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
           {error && <div className="error-message">{error}</div>}
           {success && (
             <div className="success-message">
-              Preferences saved successfully!
+              {t('receiverPreferences.saveSuccess', {
+                defaultValue: 'Preferences saved successfully!',
+              })}
             </div>
           )}
 
           {/* Preferred Food Categories */}
           <div className="preference-field" ref={dropdownRef}>
-            <label>Preferred Food Categories</label>
+            <label>
+              {t('receiverPreferences.preferredCategories', {
+                defaultValue: 'Preferred Food Categories',
+              })}
+            </label>
             <div
               className="category-select"
               onClick={() => {
@@ -300,12 +370,21 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
                 readOnly
                 value={
                   preferences.noStrictPreferences
-                    ? 'All food categories selected'
+                    ? t('receiverPreferences.allCategoriesSelected', {
+                        defaultValue: 'All food categories selected',
+                      })
                     : preferences.preferredCategories.length > 0
-                      ? `${preferences.preferredCategories.length} categories selected`
-                      : 'Select food categories...'
+                      ? t('receiverPreferences.categoriesSelected', {
+                          defaultValue: '{{count}} categories selected',
+                          count: preferences.preferredCategories.length,
+                        })
+                      : t('receiverPreferences.selectCategories', {
+                          defaultValue: 'Select food categories...',
+                        })
                 }
-                placeholder="Select food categories..."
+                placeholder={t('receiverPreferences.selectCategories', {
+                  defaultValue: 'Select food categories...',
+                })}
               />
               <span className="dropdown-arrow">▼</span>
             </div>
@@ -319,14 +398,17 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
                   onChange={handleNoPreferencesToggle}
                 />
                 <span className="checkbox-text">
-                  No strict preferences (allow all food types)
+                  {t('receiverPreferences.noStrictPreferencesLabel', {
+                    defaultValue:
+                      'No strict preferences (allow all food types)',
+                  })}
                 </span>
               </div>
             </div>
 
             {showCategoryDropdown && !preferences.noStrictPreferences && (
               <div className="category-dropdown">
-                {foodTypeOptions.map(category => (
+                {translatedFoodTypeOptions.map(category => (
                   <label key={category.value} className="category-option">
                     <input
                       type="checkbox"
@@ -358,10 +440,14 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
 
           {/* Preferred Donation Size */}
           <div className="preference-field">
-            <label>Preferred Donation Size (choose all that apply)</label>
+            <label>
+              {t('receiverPreferences.preferredDonationSize', {
+                defaultValue: 'Preferred Donation Size (choose all that apply)',
+              })}
+            </label>
             <div className="donation-sizes">
               {DONATION_SIZES.map(size => {
-                const meta = DONATION_SIZE_META[size];
+                const meta = donationSizeMeta[size];
                 const isSelected =
                   preferences.preferredDonationSizes.includes(size);
                 return (
@@ -381,12 +467,16 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
 
           {/* Pickup Availability */}
           <div className="preference-field">
-            <label>Pickup Availability (select multiple)</label>
+            <label>
+              {t('receiverPreferences.pickupAvailability', {
+                defaultValue: 'Pickup Availability (select multiple)',
+              })}
+            </label>
             <div className="pickup-availability">
               {PICKUP_WINDOWS.map(window => {
                 const isActive =
                   preferences.pickupAvailability.includes(window);
-                const meta = PICKUP_WINDOW_META[window];
+                const meta = pickupWindowMeta[window];
 
                 return (
                   <button
@@ -405,7 +495,11 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
 
           {/* Food Handling Requirements */}
           <div className="preference-field">
-            <label>Food Handling Requirements</label>
+            <label>
+              {t('receiverPreferences.foodHandling', {
+                defaultValue: 'Food Handling Requirements',
+              })}
+            </label>
             <div className="food-handling">
               <label className="checkbox-label">
                 <input
@@ -415,7 +509,11 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
                     handleFoodHandlingToggle('acceptsRefrigerated')
                   }
                 />
-                <span>Accepts Refrigerated Items</span>
+                <span>
+                  {t('receiverPreferences.acceptsRefrigerated', {
+                    defaultValue: 'Accepts Refrigerated Items',
+                  })}
+                </span>
               </label>
               <label className="checkbox-label">
                 <input
@@ -423,7 +521,11 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
                   checked={preferences.acceptsFrozen}
                   onChange={() => handleFoodHandlingToggle('acceptsFrozen')}
                 />
-                <span>Accepts Frozen Items</span>
+                <span>
+                  {t('receiverPreferences.acceptsFrozen', {
+                    defaultValue: 'Accepts Frozen Items',
+                  })}
+                </span>
               </label>
             </div>
           </div>
@@ -442,7 +544,10 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
                 }
               />
               <span>
-                Smart Notifications - Only notify me about matching donations
+                {t('receiverPreferences.smartNotifications', {
+                  defaultValue:
+                    'Smart Notifications - Only notify me about matching donations',
+                })}
               </span>
             </label>
             <small
@@ -453,8 +558,10 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
                 marginTop: '4px',
               }}
             >
-              When enabled, you'll only receive notifications for donations that
-              match your preferences and fit within your capacity.
+              {t('receiverPreferences.smartNotificationsHelp', {
+                defaultValue:
+                  "When enabled, you'll only receive notifications for donations that match your preferences and fit within your capacity.",
+              })}
             </small>
           </div>
 
@@ -467,10 +574,12 @@ const ReceiverPreferences = ({ isOpen, onClose, onSave }) => {
             onClick={handleCancel}
             disabled={loading}
           >
-            Cancel
+            {t('receiverPreferences.cancel', { defaultValue: 'Cancel' })}
           </button>
           <button className="btn-save" onClick={handleSave} disabled={loading}>
-            {loading ? 'Saving...' : 'Save'}
+            {loading
+              ? t('receiverPreferences.saving', { defaultValue: 'Saving...' })
+              : t('receiverPreferences.save', { defaultValue: 'Save' })}
           </button>
         </div>
       </div>

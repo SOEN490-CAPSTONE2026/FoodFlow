@@ -116,10 +116,30 @@ export const getFoodTypeLabel = value => {
   return option ? option.label : value;
 };
 
+export const getTranslatedFoodTypeOptions = t =>
+  foodTypeOptions.map(option => ({
+    ...option,
+    label: t
+      ? t(`surplusForm.foodTypeValues.${option.value}`, {
+          defaultValue: option.label,
+        })
+      : option.label,
+  }));
+
 export const getDietaryTagLabel = value => {
   const option = dietaryTagOptions.find(opt => opt.value === value);
   return option ? option.label : value;
 };
+
+export const getTranslatedDietaryTagOptions = t =>
+  dietaryTagOptions.map(option => ({
+    ...option,
+    label: t
+      ? t(`surplusForm.dietaryTagValues.${option.value}`, {
+          defaultValue: option.label,
+        })
+      : option.label,
+  }));
 
 // Helper function to get unit label from value
 export const getUnitLabel = value => {
@@ -127,11 +147,31 @@ export const getUnitLabel = value => {
   return option ? option.label : value;
 };
 
+export const getTranslatedUnitOptions = t =>
+  unitOptions.map(option => ({
+    ...option,
+    label: t
+      ? t(`surplusForm.unitValues.${option.value}`, {
+          defaultValue: option.label,
+        })
+      : option.label,
+  }));
+
 // Helper function to get temperature category label from value
 export const getTemperatureCategoryLabel = value => {
   const option = temperatureCategoryOptions.find(opt => opt.value === value);
   return option ? option.label : value;
 };
+
+export const getTranslatedTemperatureCategoryOptions = t =>
+  temperatureCategoryOptions.map(option => ({
+    ...option,
+    label: t
+      ? t(`surplusForm.temperatureCategoryValues.${option.value}`, {
+          defaultValue: option.label,
+        })
+      : option.label,
+  }));
 
 // Helper function to get temperature category icon from value
 export const getTemperatureCategoryIcon = value => {
@@ -145,6 +185,16 @@ export const getPackagingTypeLabel = value => {
   const option = packagingTypeOptions.find(opt => opt.value === value);
   return option ? option.label : value;
 };
+
+export const getTranslatedPackagingTypeOptions = t =>
+  packagingTypeOptions.map(option => ({
+    ...option,
+    label: t
+      ? t(`surplusForm.packagingTypeValues.${option.value}`, {
+          defaultValue: option.label,
+        })
+      : option.label,
+  }));
 
 // Helper function to get value from label (reverse mapping)
 export const getFoodTypeValue = label => {

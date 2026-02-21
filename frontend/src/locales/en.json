@@ -633,6 +633,13 @@
       "pound": "lbs",
       "box": "boxes"
     },
+    "unitValues": {
+      "KILOGRAM": "kg",
+      "ITEM": "items",
+      "LITER": "liters",
+      "POUND": "lbs",
+      "BOX": "boxes"
+    },
     "steps": {
       "foodDetails": "Food Details",
       "quantityDates": "Quantity & Dates",
@@ -1121,8 +1128,69 @@
     "saveSuccess": "Preferences saved successfully!",
     "saveFailed": "Failed to save preferences",
     "loadFailed": "Failed to load preferences",
+    "allCategoriesSelected": "All food categories selected",
+    "noStrictPreferencesLabel": "No strict preferences (allow all food types)",
+    "preferredDonationSize": "Preferred Donation Size (choose all that apply)",
+    "morningTime": "8:00 AM – 12:00 PM",
+    "afternoonTime": "12:00 PM – 7:00 PM",
+    "eveningTime": "7:00 PM – 12:00 AM",
+    "smartNotifications": "Smart Notifications - Only notify me about matching donations",
+    "smartNotificationsHelp": "When enabled, you'll only receive notifications for donations that match your preferences and fit within your capacity.",
+    "donationSize": {
+      "small": "Small donations",
+      "smallTooltip": "1–5 small portions OR <3kg",
+      "medium": "Medium donations",
+      "mediumTooltip": "5–20 portions OR 3–10kg",
+      "large": "Large donations",
+      "largeTooltip": "20–50 portions OR 10–25kg",
+      "bulk": "Bulk donations",
+      "bulkTooltip": "50+ portions OR >25kg"
+    },
     "minGreaterThanMax": "Minimum quantity cannot be greater than maximum quantity",
     "saving": "Saving..."
+  },
+  "aiExtractionReview": {
+    "title": "Review AI-Extracted Information",
+    "subtitle": "Please verify and complete the fields below. Fields marked with",
+    "autoFilled": "were auto-filled.",
+    "reUploadImage": "📸 Re-upload Image",
+    "uploadedLabelAlt": "Uploaded label",
+    "foodName": "Food Name",
+    "enterFoodName": "Enter food name",
+    "selectTemperature": "Select temperature",
+    "selectPackaging": "Select packaging",
+    "enterQuantity": "Enter quantity",
+    "pickupDate": "Pickup Date",
+    "enterPickupAddress": "Enter pickup address",
+    "descriptionPlaceholder": "Provide additional details about the food",
+    "detectedAllergens": "⚠️ Detected Allergens:",
+    "allergenNote": "Please verify and include allergen information in the description",
+    "creatingDonation": "Creating Donation...",
+    "successCreated": "Donation created successfully! ID: {{id}}",
+    "failedToCreate": "Failed to create donation",
+    "unknownId": "unknown",
+    "confidence": {
+      "high": "HIGH",
+      "medium": "MEDIUM",
+      "low": "LOW"
+    },
+    "sections": {
+      "basicInformation": "📝 Basic Information",
+      "quantityDates": "📊 Quantity & Dates",
+      "pickupInformation": "📍 Pickup Information",
+      "description": "📄 Description"
+    },
+    "validation": {
+      "foodTitleRequired": "Please enter a food name/title",
+      "foodCategoryRequired": "Please select at least one food category",
+      "temperatureCategoryRequired": "Please select a temperature category",
+      "packagingTypeRequired": "Please select a packaging type",
+      "quantityRequired": "Please enter a valid quantity",
+      "expiryDateRequired": "Please enter an expiry date",
+      "pickupDateTimeRequired": "Please fill in pickup date and time",
+      "pickupLocationRequired": "Please enter a pickup location",
+      "descriptionRequired": "Please enter a description"
+    }
   },
   "claimDetailModal": {
     "donationDetails": "Donation Details",

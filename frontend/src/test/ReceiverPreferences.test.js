@@ -11,6 +11,10 @@ jest.mock('../constants/foodConstants', () => ({
     { value: 'PREPARED_MEALS', label: 'Prepared Meals' },
     { value: 'DAIRY', label: 'Dairy' },
   ],
+  getTranslatedFoodTypeOptions: () => [
+    { value: 'PREPARED_MEALS', label: 'Prepared Meals' },
+    { value: 'DAIRY', label: 'Dairy' },
+  ],
 }));
 
 // Mock the api module to prevent axios import issues

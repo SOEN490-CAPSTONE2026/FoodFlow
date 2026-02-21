@@ -1,17 +1,18 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { Autocomplete } from '@react-google-maps/api';
 import Select from 'react-select';
 import DatePicker from 'react-datepicker';
 import { surplusAPI } from '../../services/api';
 import {
-  foodTypeOptions,
+  getTranslatedFoodTypeOptions,
+  getTranslatedPackagingTypeOptions,
+  getTranslatedTemperatureCategoryOptions,
+  getTranslatedUnitOptions,
   mapFoodTypeToLegacyCategory,
   mapLegacyCategoryToFoodType,
-  unitOptions,
-  temperatureCategoryOptions,
-  packagingTypeOptions,
 } from '../../constants/foodConstants';
 import { computeSuggestedExpiry } from '../../utils/expiryRules';
 import { useTimezone } from '../../contexts/TimezoneContext';
@@ -28,10 +29,24 @@ export default function AIExtractionReview({
   onCancel,
 }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { userTimezone } = useTimezone();
   const autocompleteRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [expiryTouched, setExpiryTouched] = useState(false);
+  const translatedFoodTypeOptions = useMemo(
+    () => getTranslatedFoodTypeOptions(t),
+    [t]
+  );
+  const translatedUnitOptions = useMemo(() => getTranslatedUnitOptions(t), [t]);
+  const translatedTemperatureCategoryOptions = useMemo(
+    () => getTranslatedTemperatureCategoryOptions(t),
+    [t]
+  );
+  const translatedPackagingTypeOptions = useMemo(
+    () => getTranslatedPackagingTypeOptions(t),
+    [t]
+  );
 
   // Parse AI-extracted data into form state
   const [formData, setFormData] = useState({
@@ -98,7 +113,7 @@ export default function AIExtractionReview({
     if (!categories || categories.length === 0) return [];
 
     return categories.map(cat => {
-      const option = foodTypeOptions.find(
+      const option = translatedFoodTypeOptions.find(
         opt => opt.value === mapLegacyCategoryToFoodType(cat)
       );
       return option || { value: cat, label: cat };
@@ -114,15 +129,21 @@ export default function AIExtractionReview({
 
     let level, color, icon;
     if (score >= 0.8) {
-      level = 'HIGH';
+      level = t('aiExtractionReview.confidence.high', {
+        defaultValue: 'HIGH',
+      });
       color = '#10b981';
       icon = '✓';
     } else if (score >= 0.5) {
-      level = 'MEDIUM';
+      level = t('aiExtractionReview.confidence.medium', {
+        defaultValue: 'MEDIUM',
+      });
       color = '#f59e0b';
       icon = '⚠';
     } else {
-      level = 'LOW';
+      level = t('aiExtractionReview.confidence.low', {
+        defaultValue: 'LOW',
+      });
       color = '#ef4444';
       icon = '!';
     }
@@ -201,32 +222,56 @@ export default function AIExtractionReview({
    */
   const validateForm = () => {
     if (!formData.title.trim()) {
-      toast.error('Please enter a food name/title');
+      toast.error(
+        t('aiExtractionReview.validation.foodTitleRequired', {
+          defaultValue: 'Please enter a food name/title',
+        })
+      );
       return false;
     }
 
     if (formData.foodCategories.length === 0) {
-      toast.error('Please select at least one food category');
+      toast.error(
+        t('aiExtractionReview.validation.foodCategoryRequired', {
+          defaultValue: 'Please select at least one food category',
+        })
+      );
       return false;
     }
 
     if (!formData.temperatureCategory) {
-      toast.error('Please select a temperature category');
+      toast.error(
+        t('aiExtractionReview.validation.temperatureCategoryRequired', {
+          defaultValue: 'Please select a temperature category',
+        })
+      );
       return false;
     }
 
     if (!formData.packagingType) {
-      toast.error('Please select a packaging type');
+      toast.error(
+        t('aiExtractionReview.validation.packagingTypeRequired', {
+          defaultValue: 'Please select a packaging type',
+        })
+      );
       return false;
     }
 
     if (!formData.quantityValue || parseFloat(formData.quantityValue) <= 0) {
-      toast.error('Please enter a valid quantity');
+      toast.error(
+        t('aiExtractionReview.validation.quantityRequired', {
+          defaultValue: 'Please enter a valid quantity',
+        })
+      );
       return false;
     }
 
     if (!formData.expiryDate && !expirySuggestion.suggestedExpiryDate) {
-      toast.error('Please enter an expiry date');
+      toast.error(
+        t('aiExtractionReview.validation.expiryDateRequired', {
+          defaultValue: 'Please enter an expiry date',
+        })
+      );
       return false;
     }
 
@@ -235,17 +280,29 @@ export default function AIExtractionReview({
       !pickupSlots[0].startTime ||
       !pickupSlots[0].endTime
     ) {
-      toast.error('Please fill in pickup date and time');
+      toast.error(
+        t('aiExtractionReview.validation.pickupDateTimeRequired', {
+          defaultValue: 'Please fill in pickup date and time',
+        })
+      );
       return false;
     }
 
     if (!formData.pickupLocation.address.trim()) {
-      toast.error('Please enter a pickup location');
+      toast.error(
+        t('aiExtractionReview.validation.pickupLocationRequired', {
+          defaultValue: 'Please enter a pickup location',
+        })
+      );
       return false;
     }
 
     if (!formData.description.trim()) {
-      toast.error('Please enter a description');
+      toast.error(
+        t('aiExtractionReview.validation.descriptionRequired', {
+          defaultValue: 'Please enter a description',
+        })
+      );
       return false;
     }
 
@@ -302,16 +359,30 @@ export default function AIExtractionReview({
       };
 
       const response = await surplusAPI.create(submissionData);
-      const createdPostId = response?.data?.id || 'unknown';
+      const createdPostId =
+        response?.data?.id ||
+        t('aiExtractionReview.unknownId', {
+          defaultValue: 'unknown',
+        });
 
-      toast.success(`Donation created successfully! ID: ${createdPostId}`);
+      toast.success(
+        t('aiExtractionReview.successCreated', {
+          defaultValue: 'Donation created successfully! ID: {{id}}',
+          id: createdPostId,
+        })
+      );
 
       setTimeout(() => {
         navigate('/donor/dashboard');
       }, 1500);
     } catch (err) {
       console.error('Error creating donation:', err);
-      toast.error(err.response?.data?.message || 'Failed to create donation');
+      toast.error(
+        err.response?.data?.message ||
+          t('aiExtractionReview.failedToCreate', {
+            defaultValue: 'Failed to create donation',
+          })
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -322,16 +393,28 @@ export default function AIExtractionReview({
       {/* Header with image preview */}
       <div className="review-header">
         <div className="header-content">
-          <h3>Review AI-Extracted Information</h3>
+          <h3>
+            {t('aiExtractionReview.title', {
+              defaultValue: 'Review AI-Extracted Information',
+            })}
+          </h3>
           <p className="header-subtitle">
-            Please verify and complete the fields below. Fields marked with{' '}
-            <span className="ai-badge-inline">AI</span> were auto-filled.
+            {t('aiExtractionReview.subtitle', {
+              defaultValue:
+                'Please verify and complete the fields below. Fields marked with',
+            })}{' '}
+            <span className="ai-badge-inline">AI</span>{' '}
+            {t('aiExtractionReview.autoFilled', {
+              defaultValue: 'were auto-filled.',
+            })}
           </p>
         </div>
 
         <div className="header-actions">
           <button className="btn-reupload" onClick={onReUpload} type="button">
-            📸 Re-upload Image
+            {t('aiExtractionReview.reUploadImage', {
+              defaultValue: '📸 Re-upload Image',
+            })}
           </button>
         </div>
       </div>
@@ -339,18 +422,28 @@ export default function AIExtractionReview({
       {/* Image preview thumbnail */}
       {imageFile && (
         <div className="image-thumbnail">
-          <img src={URL.createObjectURL(imageFile)} alt="Uploaded label" />
+          <img
+            src={URL.createObjectURL(imageFile)}
+            alt={t('aiExtractionReview.uploadedLabelAlt', {
+              defaultValue: 'Uploaded label',
+            })}
+          />
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="review-form">
         {/* Basic Information */}
         <div className="form-section">
-          <h4 className="section-title">📝 Basic Information</h4>
+          <h4 className="section-title">
+            {t('aiExtractionReview.sections.basicInformation', {
+              defaultValue: '📝 Basic Information',
+            })}
+          </h4>
 
           <div className="form-field">
             <label className="field-label">
-              Food Name *
+              {t('aiExtractionReview.foodName', { defaultValue: 'Food Name' })}{' '}
+              *
               {wasAIPopulated('foodName') && (
                 <>
                   <span className="ai-badge-inline">AI</span>
@@ -364,14 +457,19 @@ export default function AIExtractionReview({
               value={formData.title}
               onChange={handleChange}
               className="input-field"
-              placeholder="Enter food name"
+              placeholder={t('aiExtractionReview.enterFoodName', {
+                defaultValue: 'Enter food name',
+              })}
               required
             />
           </div>
 
           <div className="form-field">
             <label className="field-label">
-              Food Categories *
+              {t('surplusForm.foodCategoriesLabel', {
+                defaultValue: 'Food Categories',
+              })}{' '}
+              *
               {wasAIPopulated('foodCategories') && (
                 <>
                   <span className="ai-badge-inline">AI</span>
@@ -381,13 +479,15 @@ export default function AIExtractionReview({
             </label>
             <Select
               isMulti
-              options={foodTypeOptions}
+              options={translatedFoodTypeOptions}
               value={formData.foodCategories}
               onChange={selected =>
                 setFormData(prev => ({ ...prev, foodCategories: selected }))
               }
               classNamePrefix="react-select"
-              placeholder="Select food categories"
+              placeholder={t('surplusForm.foodCategoriesPlaceholder', {
+                defaultValue: 'Select food categories',
+              })}
               required
             />
           </div>
@@ -395,7 +495,10 @@ export default function AIExtractionReview({
           <div className="form-row">
             <div className="form-field half-width">
               <label className="field-label">
-                Temperature Category *
+                {t('surplusForm.temperatureCategoryLabel', {
+                  defaultValue: 'Temperature Category',
+                })}{' '}
+                *
                 {wasAIPopulated('temperatureCategory') && (
                   <>
                     <span className="ai-badge-inline">AI</span>
@@ -404,8 +507,8 @@ export default function AIExtractionReview({
                 )}
               </label>
               <Select
-                options={temperatureCategoryOptions}
-                value={temperatureCategoryOptions.find(
+                options={translatedTemperatureCategoryOptions}
+                value={translatedTemperatureCategoryOptions.find(
                   opt => opt.value === formData.temperatureCategory
                 )}
                 onChange={selected =>
@@ -415,14 +518,19 @@ export default function AIExtractionReview({
                   }))
                 }
                 classNamePrefix="react-select"
-                placeholder="Select temperature"
+                placeholder={t('aiExtractionReview.selectTemperature', {
+                  defaultValue: 'Select temperature',
+                })}
                 required
               />
             </div>
 
             <div className="form-field half-width">
               <label className="field-label">
-                Packaging Type *
+                {t('surplusForm.packagingTypeLabel', {
+                  defaultValue: 'Packaging Type',
+                })}{' '}
+                *
                 {wasAIPopulated('packagingType') && (
                   <>
                     <span className="ai-badge-inline">AI</span>
@@ -431,8 +539,8 @@ export default function AIExtractionReview({
                 )}
               </label>
               <Select
-                options={packagingTypeOptions}
-                value={packagingTypeOptions.find(
+                options={translatedPackagingTypeOptions}
+                value={translatedPackagingTypeOptions.find(
                   opt => opt.value === formData.packagingType
                 )}
                 onChange={selected =>
@@ -442,7 +550,9 @@ export default function AIExtractionReview({
                   }))
                 }
                 classNamePrefix="react-select"
-                placeholder="Select packaging"
+                placeholder={t('aiExtractionReview.selectPackaging', {
+                  defaultValue: 'Select packaging',
+                })}
                 required
               />
             </div>
@@ -451,12 +561,16 @@ export default function AIExtractionReview({
 
         {/* Quantity & Dates */}
         <div className="form-section">
-          <h4 className="section-title">📊 Quantity & Dates</h4>
+          <h4 className="section-title">
+            {t('aiExtractionReview.sections.quantityDates', {
+              defaultValue: '📊 Quantity & Dates',
+            })}
+          </h4>
 
           <div className="form-row">
             <div className="form-field half-width">
               <label className="field-label">
-                Quantity *
+                {t('surplusForm.quantityLabel', { defaultValue: 'Quantity' })} *
                 {wasAIPopulated('quantity') && (
                   <>
                     <span className="ai-badge-inline">AI</span>
@@ -470,7 +584,9 @@ export default function AIExtractionReview({
                 value={formData.quantityValue}
                 onChange={handleChange}
                 className="input-field"
-                placeholder="Enter quantity"
+                placeholder={t('aiExtractionReview.enterQuantity', {
+                  defaultValue: 'Enter quantity',
+                })}
                 min="0"
                 step="0.1"
                 required
@@ -478,10 +594,12 @@ export default function AIExtractionReview({
             </div>
 
             <div className="form-field half-width">
-              <label className="field-label">Unit *</label>
+              <label className="field-label">
+                {t('surplusForm.unitLabel', { defaultValue: 'Unit' })} *
+              </label>
               <Select
-                options={unitOptions}
-                value={unitOptions.find(
+                options={translatedUnitOptions}
+                value={translatedUnitOptions.find(
                   opt => opt.value === formData.quantityUnit
                 )}
                 onChange={selected =>
@@ -491,7 +609,9 @@ export default function AIExtractionReview({
                   }))
                 }
                 classNamePrefix="react-select"
-                placeholder="Select unit"
+                placeholder={t('surplusForm.unitPlaceholder', {
+                  defaultValue: 'Select unit',
+                })}
                 required
               />
             </div>
@@ -500,7 +620,9 @@ export default function AIExtractionReview({
           <div className="form-row">
             <div className="form-field half-width">
               <label className="field-label">
-                Fabrication Date
+                {t('surplusForm.fabricationDateLabel', {
+                  defaultValue: 'Fabrication Date',
+                })}
                 {wasAIPopulated('fabricationDate') && (
                   <>
                     <span className="ai-badge-inline">AI</span>
@@ -516,13 +638,18 @@ export default function AIExtractionReview({
                 maxDate={new Date()}
                 dateFormat="yyyy-MM-dd"
                 className="input-field"
-                placeholderText="Select fabrication date"
+                placeholderText={t('surplusForm.fabricationDatePlaceholder', {
+                  defaultValue: 'Select fabrication date',
+                })}
               />
             </div>
 
             <div className="form-field half-width">
               <label className="field-label">
-                Expiry Date *
+                {t('surplusForm.expiryDateLabel', {
+                  defaultValue: 'Expiry Date',
+                })}{' '}
+                *
                 {wasAIPopulated('expiryDate') && (
                   <>
                     <span className="ai-badge-inline">AI</span>
@@ -539,12 +666,18 @@ export default function AIExtractionReview({
                 minDate={formData.fabricationDate || new Date()}
                 dateFormat="yyyy-MM-dd"
                 className="input-field"
-                placeholderText="Select expiry date"
+                placeholderText={t('surplusForm.expiryDatePlaceholder', {
+                  defaultValue: 'Select expiry date',
+                })}
                 required
               />
               {!expiryTouched && expirySuggestion.suggestedExpiryDate && (
                 <p className="field-help-text">
-                  Suggested expiry: {expirySuggestion.suggestedExpiryDate}
+                  {t('surplusForm.expiryDateSuggestion', {
+                    defaultValue:
+                      'Suggested expiry: {{date}} (based on food category)',
+                    date: expirySuggestion.suggestedExpiryDate,
+                  })}
                 </p>
               )}
             </div>
@@ -553,57 +686,84 @@ export default function AIExtractionReview({
 
         {/* Pickup Information */}
         <div className="form-section">
-          <h4 className="section-title">📍 Pickup Information</h4>
+          <h4 className="section-title">
+            {t('aiExtractionReview.sections.pickupInformation', {
+              defaultValue: '📍 Pickup Information',
+            })}
+          </h4>
 
           <div className="form-row">
             <div className="form-field third-width">
-              <label className="field-label">Pickup Date *</label>
+              <label className="field-label">
+                {t('aiExtractionReview.pickupDate', {
+                  defaultValue: 'Pickup Date',
+                })}{' '}
+                *
+              </label>
               <DatePicker
                 selected={pickupSlots[0].pickupDate}
                 onChange={date => updatePickupSlot(0, 'pickupDate', date)}
                 minDate={new Date()}
                 dateFormat="yyyy-MM-dd"
                 className="input-field"
-                placeholderText="Select date"
+                placeholderText={t('surplusForm.datePlaceholder', {
+                  defaultValue: 'Select date',
+                })}
                 required
               />
             </div>
 
             <div className="form-field third-width">
-              <label className="field-label">Start Time *</label>
+              <label className="field-label">
+                {t('surplusForm.startTimeLabel', {
+                  defaultValue: 'Start Time',
+                })}{' '}
+                *
+              </label>
               <DatePicker
                 selected={pickupSlots[0].startTime}
                 onChange={date => updatePickupSlot(0, 'startTime', date)}
                 showTimeSelect
                 showTimeSelectOnly
                 timeIntervals={15}
-                timeCaption="Time"
+                timeCaption={t('common.time', { defaultValue: 'Time' })}
                 dateFormat="HH:mm"
                 className="input-field"
-                placeholderText="Start time"
+                placeholderText={t('surplusForm.startTimePlaceholder', {
+                  defaultValue: 'Start',
+                })}
                 required
               />
             </div>
 
             <div className="form-field third-width">
-              <label className="field-label">End Time *</label>
+              <label className="field-label">
+                {t('surplusForm.endTimeLabel', { defaultValue: 'End Time' })} *
+              </label>
               <DatePicker
                 selected={pickupSlots[0].endTime}
                 onChange={date => updatePickupSlot(0, 'endTime', date)}
                 showTimeSelect
                 showTimeSelectOnly
                 timeIntervals={15}
-                timeCaption="Time"
+                timeCaption={t('common.time', { defaultValue: 'Time' })}
                 dateFormat="HH:mm"
                 className="input-field"
-                placeholderText="End time"
+                placeholderText={t('surplusForm.endTimePlaceholder', {
+                  defaultValue: 'End',
+                })}
                 required
               />
             </div>
           </div>
 
           <div className="form-field">
-            <label className="field-label">Pickup Location *</label>
+            <label className="field-label">
+              {t('surplusForm.pickupLocationLabel', {
+                defaultValue: 'Pickup Location',
+              })}{' '}
+              *
+            </label>
             <Autocomplete
               onLoad={onLoadAutocomplete}
               onPlaceChanged={onPlaceChanged}
@@ -621,7 +781,9 @@ export default function AIExtractionReview({
                   }))
                 }
                 className="input-field"
-                placeholder="Enter pickup address"
+                placeholder={t('aiExtractionReview.enterPickupAddress', {
+                  defaultValue: 'Enter pickup address',
+                })}
                 required
               />
             </Autocomplete>
@@ -630,11 +792,18 @@ export default function AIExtractionReview({
 
         {/* Description & Additional Info */}
         <div className="form-section">
-          <h4 className="section-title">📄 Description</h4>
+          <h4 className="section-title">
+            {t('aiExtractionReview.sections.description', {
+              defaultValue: '📄 Description',
+            })}
+          </h4>
 
           <div className="form-field">
             <label className="field-label">
-              Description *
+              {t('surplusForm.descriptionLabel', {
+                defaultValue: 'Description',
+              })}{' '}
+              *
               {wasAIPopulated('description') && (
                 <>
                   <span className="ai-badge-inline">AI</span>
@@ -647,7 +816,9 @@ export default function AIExtractionReview({
               value={formData.description}
               onChange={handleChange}
               className="input-field textarea"
-              placeholder="Provide additional details about the food"
+              placeholder={t('aiExtractionReview.descriptionPlaceholder', {
+                defaultValue: 'Provide additional details about the food',
+              })}
               rows="4"
               required
             />
@@ -656,7 +827,11 @@ export default function AIExtractionReview({
           {/* Show allergens if detected */}
           {data.allergens && data.allergens.length > 0 && (
             <div className="allergen-info">
-              <h5>⚠️ Detected Allergens:</h5>
+              <h5>
+                {t('aiExtractionReview.detectedAllergens', {
+                  defaultValue: '⚠️ Detected Allergens:',
+                })}
+              </h5>
               <div className="allergen-tags">
                 {data.allergens.map((allergen, index) => (
                   <span key={index} className="allergen-tag">
@@ -665,8 +840,10 @@ export default function AIExtractionReview({
                 ))}
               </div>
               <p className="allergen-note">
-                Please verify and include allergen information in the
-                description
+                {t('aiExtractionReview.allergenNote', {
+                  defaultValue:
+                    'Please verify and include allergen information in the description',
+                })}
               </p>
             </div>
           )}
@@ -680,10 +857,16 @@ export default function AIExtractionReview({
             onClick={onCancel}
             disabled={isSubmitting}
           >
-            Cancel
+            {t('common.cancel', { defaultValue: 'Cancel' })}
           </button>
           <button type="submit" className="btn-submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Creating Donation...' : 'Create Donation →'}
+            {isSubmitting
+              ? t('aiExtractionReview.creatingDonation', {
+                  defaultValue: 'Creating Donation...',
+                })
+              : t('surplusForm.createDonation', {
+                  defaultValue: 'Create Donation',
+                })}
           </button>
         </div>
       </form>
