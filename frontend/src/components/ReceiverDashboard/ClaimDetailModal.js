@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -18,7 +18,12 @@ import CompletedView from './CompletedView';
 import ReadyForPickUpView from './ReadyForPickUpView';
 import DonationTimeline from '../shared/DonationTimeline';
 import FeedbackModal from '../FeedbackModal/FeedbackModal';
-import { surplusAPI, claimsAPI, reportAPI } from '../../services/api';
+import {
+  surplusAPI,
+  claimsAPI,
+  reportAPI,
+  conversationAPI,
+} from '../../services/api';
 import {
   getPrimaryFoodCategory,
   foodTypeImages,
@@ -38,6 +43,7 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
   const [timeline, setTimeline] = useState([]);
   const [loadingTimeline, setLoadingTimeline] = useState(false);
   const [expandedTimeline, setExpandedTimeline] = useState(false);
+  const [expressingInterest, setExpressingInterest] = useState(false);
   const navigate = useNavigate();
   const { userTimezone } = useTimezone();
 
@@ -150,6 +156,27 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
   const handleBackToDetails = () => {
     setShowPickupSteps(false);
   };
+
+  const handleExpressInterest = useCallback(async () => {
+    if (!post?.id) return;
+
+    try {
+      setExpressingInterest(true);
+      const response = await conversationAPI.expressInterest(post.id);
+      const conversation = response.data;
+      navigate(`/receiver/messages?conversationId=${conversation.id}`);
+    } catch (err) {
+      console.error('Error expressing interest:', err);
+      alert(
+        t(
+          'claimDetail.failedToExpressInterest',
+          "Couldn't start conversation. Please try again."
+        )
+      );
+    } finally {
+      setExpressingInterest(false);
+    }
+  }, [post?.id, navigate, t]);
 
   if (!isOpen || !claim) {
     return null;
@@ -412,6 +439,15 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                 getDisplayStatus() ===
                   t('claimDetail.status.notCompleted')) && (
                 <>
+                  <button
+                    className="claimed-modal-btn-interest"
+                    onClick={handleExpressInterest}
+                    disabled={expressingInterest}
+                  >
+                    {expressingInterest
+                      ? t('claimDetail.connecting', 'Connecting...')
+                      : t('claimDetail.imInterested', "I'm Interested")}
+                  </button>
                   <button
                     className="claimed-modal-btn-secondary"
                     onClick={onClose}
