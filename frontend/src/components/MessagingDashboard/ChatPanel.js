@@ -210,18 +210,39 @@ const ChatPanel = ({
         </button>
         <div className="chat-header-left">
           <div className="chat-header-info">
-            <h3>{conversation.postTitle || conversation.otherUserName}</h3>
+            <h3>{conversation.donationTitle || conversation.otherUserName}</h3>
             <p className="chat-header-subtitle">
               {t('chat.with')} {conversation.otherUserName}
             </p>
           </div>
         </div>
         <div className="chat-header-actions">
-          <span className="status-badge claimed">{t('chat.claimed')}</span>
-          <button className="view-post-btn">{t('chat.viewPost')}</button>
-          <button className="menu-btn">⋮</button>
+          {conversation.donationId && (
+            <span className="status-badge active">
+              {conversation.status || 'ACTIVE'}
+            </span>
+          )}
+          <button className="menu-btn">&#8942;</button>
         </div>
       </div>
+
+      {conversation.donationTitle && (
+        <div className="donation-banner">
+          <div className="donation-banner-info">
+            <span className="donation-banner-label">
+              {t('chat.donationContext', 'Donation')}
+            </span>
+            <span className="donation-banner-title">
+              {conversation.donationTitle}
+            </span>
+          </div>
+          {conversation.donationDescription && (
+            <p className="donation-banner-description">
+              {conversation.donationDescription}
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="messages-container">
         {messages.length === 0
@@ -246,18 +267,13 @@ const ChatPanel = ({
                     </span>
                   </div>
                 )}
-                <div
-                  className={`message ${
-                    message.senderId.toString() === currentUserId
-                      ? 'sent'
-                      : 'received'
-                  }`}
-                >
-                  {message.senderId.toString() !== currentUserId && (
-                    <div className="message-avatar">
-                      {conversation.otherUserName.charAt(0).toUpperCase()}
-                    </div>
-                  )}
+                {message.messageType === 'SYSTEM' ? (
+                  <div className="system-message">
+                    <span className="system-message-text">
+                      {message.messageBody}
+                    </span>
+                  </div>
+                ) : (
                   <div
                     className={`message ${
                       message.senderId.toString() === currentUserId
@@ -287,7 +303,7 @@ const ChatPanel = ({
                       </span>
                     </div>
                   </div>
-                </div>
+                )}
               </React.Fragment>
             ))}
         <div ref={messagesEndRef} />
