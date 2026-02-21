@@ -15,7 +15,12 @@ import {
   Star,
 } from 'lucide-react';
 import { useLoadScript } from '@react-google-maps/api';
-import { surplusAPI, recommendationAPI } from '../../services/api';
+import { useNavigate } from 'react-router-dom';
+import {
+  surplusAPI,
+  recommendationAPI,
+  conversationAPI,
+} from '../../services/api';
 import {
   getFoodCategoryDisplays,
   getPrimaryFoodCategory,
@@ -43,6 +48,7 @@ export default function ReceiverBrowse() {
   });
 
   const { userTimezone } = useTimezone();
+  const navigate = useNavigate();
 
   const [filters, setFilters] = useState({
     foodType: [],
@@ -75,6 +81,7 @@ export default function ReceiverBrowse() {
   const [recommendations, setRecommendations] = useState({});
   const [mapViewOpen, setMapViewOpen] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
+  const [expressingInterest, setExpressingInterest] = useState(null);
 
   const getRecommendationData = item => {
     // Mock logic to determine if item is recommended
@@ -219,10 +226,14 @@ export default function ReceiverBrowse() {
   // Donations Map Helpers
   //======================================
   const getNearbyCount = useCallback(() => {
-    if (!filters.locationCoords) return items.length;
+    if (!filters.locationCoords) {
+      return items.length;
+    }
 
     return items.filter(item => {
-      if (!item.pickupLocation) return false;
+      if (!item.pickupLocation) {
+        return false;
+      }
 
       const distance = calculateDistance(
         filters.locationCoords.lat,
@@ -281,6 +292,28 @@ export default function ReceiverBrowse() {
       confirmClaim(item, legacySlot);
     },
     [confirmClaim, t]
+  );
+
+  const handleExpressInterest = useCallback(
+    async item => {
+      try {
+        setExpressingInterest(item.id);
+        const response = await conversationAPI.expressInterest(item.id);
+        const conversation = response.data;
+        navigate(`/receiver/messages?conversationId=${conversation.id}`);
+      } catch (err) {
+        console.error('Error expressing interest:', err);
+        alert(
+          t(
+            'receiverBrowse.failedToExpressInterest',
+            "Couldn't start conversation. Please try again."
+          )
+        );
+      } finally {
+        setExpressingInterest(null);
+      }
+    },
+    [navigate, t]
   );
 
   const formatExpiryDate = useCallback(dateString => {

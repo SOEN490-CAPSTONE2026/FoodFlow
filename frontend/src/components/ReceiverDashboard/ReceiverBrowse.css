@@ -761,6 +761,27 @@
   margin-left: auto;
 }
 
+.receiver-interest-button {
+  padding: 10px 20px;
+  background: #38a169;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.receiver-interest-button:hover {
+  background: #2f855a;
+}
+
+.receiver-interest-button:disabled {
+  background: #a0aec0;
+  cursor: not-allowed;
+}
+
 .receiver-claim-button {
   padding: 10px 20px;
   background: #1b4965;
@@ -923,6 +944,7 @@
     width: 100%;
   }
 
+  .receiver-interest-button,
   .receiver-claim-button,
   .receiver-more-button {
     width: auto;
