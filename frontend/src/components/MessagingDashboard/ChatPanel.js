@@ -26,8 +26,6 @@ const ChatPanel = ({
   const currentUserId = localStorage.getItem('userId');
   const { userTimezone } = useTimezone();
   const { t, i18n } = useTranslation();
-  // Debug: log timezone
-  console.log('ChatPanel using timezone:', userTimezone);
 
   const getProfilePhotoUrl = photoUrl => {
     if (!photoUrl) {
@@ -187,6 +185,28 @@ const ChatPanel = ({
     return currentDate.getTime() !== previousDate.getTime();
   };
 
+  const getStatusInfo = () => {
+    const rawStatus = (conversation?.status || 'ACTIVE')
+      .toString()
+      .toUpperCase();
+    const normalized = rawStatus.replace(/\s+/g, '_');
+
+    const classByStatus = {
+      ACTIVE: 'active',
+      AVAILABLE: 'available',
+      CLAIMED: 'claimed',
+      READY_FOR_PICKUP: 'ready-for-pickup',
+      COMPLETED: 'completed',
+      NOT_COMPLETED: 'not-completed',
+      EXPIRED: 'expired',
+    };
+
+    return {
+      label: normalized.replace(/_/g, ' '),
+      className: classByStatus[normalized] || 'active',
+    };
+  };
+
   if (!conversation) {
     return (
       <div
@@ -199,6 +219,8 @@ const ChatPanel = ({
       </div>
     );
   }
+
+  const statusInfo = getStatusInfo();
 
   return (
     <div
@@ -218,8 +240,8 @@ const ChatPanel = ({
         </div>
         <div className="chat-header-actions">
           {conversation.donationId && (
-            <span className="status-badge active">
-              {conversation.status || 'ACTIVE'}
+            <span className={`status-badge ${statusInfo.className}`}>
+              {statusInfo.label}
             </span>
           )}
           <button className="menu-btn">&#8942;</button>

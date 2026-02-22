@@ -136,6 +136,31 @@
   color: white;
 }
 
+.status-badge.available {
+  background-color: #2f855a;
+  color: white;
+}
+
+.status-badge.ready-for-pickup {
+  background-color: #2b6cb0;
+  color: white;
+}
+
+.status-badge.completed {
+  background-color: #4a5568;
+  color: white;
+}
+
+.status-badge.not-completed {
+  background-color: #c05621;
+  color: white;
+}
+
+.status-badge.expired {
+  background-color: #718096;
+  color: white;
+}
+
 .donation-banner {
   padding: 12px 24px;
   background-color: #f0faf4;

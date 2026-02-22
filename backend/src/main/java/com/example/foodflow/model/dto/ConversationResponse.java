@@ -49,10 +49,14 @@ public class ConversationResponse {
 
         this.alreadyExists = conversationAlreadyExists;
 
-        // Populate donation-anchored fields if present
+        // Populate donation-anchored fields if present.
+        // Prefer live surplus post status so chat header reflects real donation state.
         this.status = conversation.getStatus();
         if (conversation.getSurplusPost() != null) {
             this.donationId = conversation.getSurplusPost().getId();
+            if (conversation.getSurplusPost().getStatus() != null) {
+                this.status = conversation.getSurplusPost().getStatus().name();
+            }
         }
         if (conversation.getDonor() != null) {
             this.donorId = conversation.getDonor().getId();
