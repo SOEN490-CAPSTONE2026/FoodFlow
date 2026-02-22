@@ -1,13 +1,16 @@
 package com.example.foodflow.service;
 
 import com.example.foodflow.model.entity.Claim;
+import com.example.foodflow.model.entity.ExpiryNotificationLog;
 import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.repository.ClaimRepository;
+import com.example.foodflow.repository.ExpiryNotificationLogRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -19,11 +22,14 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class SurplusPostSchedulerService {
@@ -37,6 +43,7 @@ public class SurplusPostSchedulerService {
 
     private final SurplusPostRepository surplusPostRepository;
     private final ClaimRepository claimRepository;
+    private final ExpiryNotificationLogRepository expiryNotificationLogRepository;
     private final TimelineService timelineService;
     private final NotificationPreferenceService notificationPreferenceService;
     private final EmailService emailService;
@@ -51,9 +58,14 @@ public class SurplusPostSchedulerService {
 
     @Value("${pickup.tolerance.late-minutes:15}")
     private int lateToleranceMinutes;
+
+    @Value("${foodflow.expiry.notification.threshold-hours:48,24}")
+    private String expiryNotificationThresholdHours;
     
+    @Autowired
     public SurplusPostSchedulerService(SurplusPostRepository surplusPostRepository,
             ClaimRepository claimRepository,
+            ExpiryNotificationLogRepository expiryNotificationLogRepository,
             TimelineService timelineService,
             NotificationPreferenceService notificationPreferenceService,
             EmailService emailService,
@@ -61,11 +73,24 @@ public class SurplusPostSchedulerService {
             SimpMessagingTemplate messagingTemplate) {
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;
+        this.expiryNotificationLogRepository = expiryNotificationLogRepository;
         this.timelineService = timelineService;
         this.notificationPreferenceService = notificationPreferenceService;
         this.emailService = emailService;
         this.smsService = smsService;
         this.messagingTemplate = messagingTemplate;
+    }
+
+    // Backward-compatible constructor for existing tests.
+    public SurplusPostSchedulerService(SurplusPostRepository surplusPostRepository,
+            ClaimRepository claimRepository,
+            TimelineService timelineService,
+            NotificationPreferenceService notificationPreferenceService,
+            EmailService emailService,
+            SmsService smsService,
+            SimpMessagingTemplate messagingTemplate) {
+        this(surplusPostRepository, claimRepository, null, timelineService, notificationPreferenceService, emailService, smsService,
+                messagingTemplate);
     }
 
     private String generateOtpCode() {
@@ -346,7 +371,7 @@ public class SurplusPostSchedulerService {
             return;
         }
 
-        LocalDate today = LocalDate.now();
+        LocalDateTime nowUtc = LocalDateTime.now(ZoneOffset.UTC);
         logger.info("===== markExpiredPosts running at {} =====", LocalDateTime.now());
 
         // Find posts that are AVAILABLE or CLAIMED but have expired
@@ -355,7 +380,10 @@ public class SurplusPostSchedulerService {
         logger.info("Found {} active posts to check for expiry", activePosts.size());
 
         List<SurplusPost> expiredPosts = activePosts.stream()
-                .filter(post -> post.getExpiryDate() != null && post.getExpiryDate().isBefore(today))
+                .filter(post -> {
+                    LocalDateTime effectiveExpiry = getEffectiveExpiry(post);
+                    return effectiveExpiry != null && !effectiveExpiry.isAfter(nowUtc);
+                })
                 .toList();
 
         if (expiredPosts.isEmpty()) {
@@ -376,10 +404,10 @@ public class SurplusPostSchedulerService {
                     null,
                     oldStatus,
                     PostStatus.EXPIRED,
-                    "Expired automatically (expiry date: " + post.getExpiryDate() + ")",
+                    "Expired automatically (effective expiry: " + getEffectiveExpiry(post) + ")",
                     true);
 
-            logger.info("Post ID {} marked as EXPIRED (expiry date: {})", post.getId(), post.getExpiryDate());
+            logger.info("Post ID {} marked as EXPIRED (effective expiry: {})", post.getId(), getEffectiveExpiry(post));
             
             // Send notification to donor
             User donor = post.getDonor();
@@ -387,6 +415,39 @@ public class SurplusPostSchedulerService {
         }
 
         logger.info("Marked {} posts as EXPIRED", expiredPosts.size());
+    }
+
+    /**
+     * Every 30 minutes: send expiring soon notifications at configured thresholds
+     * (default 48h and 24h), deduped by post+threshold+channel.
+     * Only AVAILABLE posts are considered.
+     */
+    @Scheduled(fixedRate = 1800000)
+    @Transactional
+    public void sendExpiringSoonNotifications() {
+        if (expiryNotificationLogRepository == null) {
+            return;
+        }
+        LocalDateTime nowUtc = LocalDateTime.now(ZoneOffset.UTC);
+        List<Integer> thresholds = parseThresholdHours();
+        if (thresholds.isEmpty()) {
+            return;
+        }
+
+        List<SurplusPost> availablePosts = surplusPostRepository.findByStatus(PostStatus.AVAILABLE);
+        for (SurplusPost post : availablePosts) {
+            LocalDateTime effectiveExpiry = getEffectiveExpiry(post);
+            if (effectiveExpiry == null || !effectiveExpiry.isAfter(nowUtc)) {
+                continue;
+            }
+
+            long hoursRemaining = java.time.Duration.between(nowUtc, effectiveExpiry).toHours();
+            for (Integer threshold : thresholds) {
+                if (hoursRemaining <= threshold && hoursRemaining >= threshold - 1) {
+                    sendThresholdNotification(post, threshold, effectiveExpiry);
+                }
+            }
+        }
     }
     
     /**
@@ -530,7 +591,94 @@ public class SurplusPostSchedulerService {
         return phone.matches("^\\+[1-9]\\d{1,14}$");
     }
 
+    private LocalDateTime getEffectiveExpiry(SurplusPost post) {
+        if (post.getExpiryDateEffective() != null) {
+            return post.getExpiryDateEffective();
+        }
+        if (post.getExpiryDate() != null) {
+            return post.getExpiryDate().atTime(23, 59, 59);
+        }
+        return post.getExpiryDatePredicted();
+    }
+
+    private List<Integer> parseThresholdHours() {
+        if (expiryNotificationThresholdHours == null || expiryNotificationThresholdHours.isBlank()) {
+            return List.of(48, 24);
+        }
+
+        return Arrays.stream(expiryNotificationThresholdHours.split(","))
+                .map(String::trim)
+                .filter(value -> !value.isEmpty())
+                .map(value -> {
+                    try {
+                        return Integer.parseInt(value);
+                    } catch (NumberFormatException ex) {
+                        return null;
+                    }
+                })
+                .filter(value -> value != null && value > 0)
+                .sorted(java.util.Collections.reverseOrder())
+                .collect(Collectors.toList());
+    }
+
+    private void sendThresholdNotification(SurplusPost post, int thresholdHours, LocalDateTime effectiveExpiry) {
+        User donor = post.getDonor();
+        String dedupeEmail = buildDedupeKey(post.getId(), thresholdHours, "email");
+        String dedupeWebsocket = buildDedupeKey(post.getId(), thresholdHours, "websocket");
+
+        if (notificationPreferenceService.shouldSendNotification(donor, "donationExpiringSoon", "email")
+                && !expiryNotificationLogRepository.existsByDedupeKey(dedupeEmail)) {
+            try {
+                Map<String, Object> payload = new HashMap<>();
+                payload.put("donationTitle", post.getTitle());
+                payload.put("effectiveExpiry", effectiveExpiry.toString());
+                payload.put("thresholdHours", thresholdHours);
+                String donorName = donor.getOrganization() != null ? donor.getOrganization().getName() : donor.getFullName();
+                emailService.sendDonationExpiredNotification(donor.getEmail(), donorName, payload);
+                saveNotificationLog(post, thresholdHours, "email", dedupeEmail);
+            } catch (Exception e) {
+                logger.error("Failed sending expiring-soon email for postId={}: {}", post.getId(), e.getMessage());
+            }
+        }
+
+        if (notificationPreferenceService.shouldSendNotification(donor, "donationExpiringSoon", "websocket")
+                && !expiryNotificationLogRepository.existsByDedupeKey(dedupeWebsocket)) {
+            try {
+                Map<String, Object> notification = new HashMap<>();
+                notification.put("type", "DONATION_EXPIRING_SOON");
+                notification.put("donationId", post.getId());
+                notification.put("title", post.getTitle());
+                notification.put("effectiveExpiry", effectiveExpiry.toString());
+                notification.put("thresholdHours", thresholdHours);
+                notification.put("message", "Donation expiring soon");
+                notification.put("timestamp", ZonedDateTime.now(ZoneId.of("UTC")).toString());
+                messagingTemplate.convertAndSendToUser(
+                        donor.getId().toString(),
+                        "/queue/donations/expired",
+                        notification
+                );
+                saveNotificationLog(post, thresholdHours, "websocket", dedupeWebsocket);
+            } catch (Exception e) {
+                logger.error("Failed sending expiring-soon websocket for postId={}: {}", post.getId(), e.getMessage());
+            }
+        }
+    }
+
+    private String buildDedupeKey(Long postId, int thresholdHours, String channel) {
+        return "expiring:" + postId + ":" + thresholdHours + ":" + channel;
+    }
+
+    private void saveNotificationLog(SurplusPost post, int thresholdHours, String channel, String dedupeKey) {
+        ExpiryNotificationLog log = new ExpiryNotificationLog();
+        log.setSurplusPost(post);
+        log.setThresholdHours(thresholdHours);
+        log.setChannel(channel);
+        log.setDedupeKey(dedupeKey);
+        expiryNotificationLogRepository.save(log);
+    }
+
     private void sendExpiredNotificationToDonor(SurplusPost post, User donor) {
+        LocalDateTime effectiveExpiry = getEffectiveExpiry(post);
         try {
             logger.info("Checking email preference for donor userId={} for donationExpired notification", donor.getId());
             
@@ -540,7 +688,7 @@ public class SurplusPostSchedulerService {
                 Map<String, Object> donationData = new HashMap<>();
                 donationData.put("donationTitle", post.getTitle());
                 donationData.put("quantity", post.getQuantity().getValue() + " " + post.getQuantity().getUnit().getLabel());
-                donationData.put("expiryDate", post.getExpiryDate() != null ? post.getExpiryDate().toString() : "Unknown");
+                donationData.put("expiryDate", effectiveExpiry != null ? effectiveExpiry.toString() : "Unknown");
                 
                 String donorName = donor.getOrganization() != null ? 
                     donor.getOrganization().getName() : donor.getFullName();
@@ -566,7 +714,7 @@ public class SurplusPostSchedulerService {
                 notification.put("donationId", post.getId());
                 notification.put("title", post.getTitle());
                 notification.put("message", "Your donation '" + post.getTitle() + "' has expired and been removed from listings.");
-                notification.put("expiryDate", post.getExpiryDate().toString());
+                notification.put("expiryDate", effectiveExpiry != null ? effectiveExpiry.toString() : null);
                 notification.put("timestamp", ZonedDateTime.now(ZoneId.of("UTC")).toString());
                 
                 messagingTemplate.convertAndSendToUser(

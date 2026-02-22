@@ -245,8 +245,8 @@ export default function AdminLayout() {
 
         <nav className="admin-nav-links">
           <Link
-            to="/admin/welcome"
-            className={`admin-nav-link ${isActive('/admin/welcome') ? 'active' : ''}`}
+            to="/admin"
+            className={`admin-nav-link ${isActive('/admin') ? 'active' : ''}`}
             data-tooltip="Home"
           >
             <span className="nav-icon" aria-hidden>
@@ -380,14 +380,15 @@ export default function AdminLayout() {
       </aside>
 
       <main className="admin-main">
-        {!isMessagesPage && (
-          <header className="admin-topbar">
-            <div className="admin-topbar-left">
-              <h1>{pageTitle}</h1>
-              <p>{pageDesc}</p>
-            </div>
-          </header>
-        )}
+        {location.pathname !== '/admin' &&
+          location.pathname !== '/admin/dashboard' && (
+            <header className="admin-topbar">
+              <div className="admin-topbar-left">
+                <h1>{pageTitle}</h1>
+                <p>{pageDesc}</p>
+              </div>
+            </header>
+          )}
 
         <section
           className={`admin-content ${isMessagesPage ? 'messages-page' : ''}`}

@@ -135,8 +135,16 @@ export const surplusAPI = {
   list: () => api.get('/surplus'), // Just /surplus, not /api/surplus
   getMyPosts: () => api.get('/surplus/my-posts'),
   getPost: id => api.get(`/surplus/${id}`),
-  create: data => api.post('/surplus', data),
-  update: (id, data) => api.put(`/surplus/${id}`, data),
+  create: data =>
+    api.post('/surplus', {
+      ...data,
+      dietaryTags: Array.isArray(data?.dietaryTags) ? data.dietaryTags : [],
+    }),
+  update: (id, data) =>
+    api.put(`/surplus/${id}`, {
+      ...data,
+      dietaryTags: Array.isArray(data?.dietaryTags) ? data.dietaryTags : [],
+    }),
   // claim now accepts an optional `slot` parameter. If `slot` has an `id` we send `pickupSlotId`,
   // otherwise we include the slot object as `pickupSlot` so the backend can interpret it.
   deletePost: id => api.delete(`/surplus/${id}/delete`),
@@ -175,9 +183,18 @@ export const surplusAPI = {
 
     // Only add fields if they have actual values
     if (filters.foodType && filters.foodType.length > 0) {
-      filterRequest.foodCategories = filters.foodType.map(
+      filterRequest.foodTypes = filters.foodType.map(
         mapFrontendCategoryToBackend
       );
+    }
+
+    if (filters.dietaryTags && filters.dietaryTags.length > 0) {
+      filterRequest.dietaryTags = filters.dietaryTags;
+      filterRequest.dietaryMatch = filters.dietaryMatch || 'ANY';
+    }
+
+    if (filters.sort) {
+      filterRequest.sort = filters.sort;
     }
 
     if (filters.expiryBefore) {
@@ -207,9 +224,19 @@ export const surplusAPI = {
     const params = new URLSearchParams();
 
     if (filters.foodType && filters.foodType.length > 0) {
-      filters.foodType.forEach(category => {
-        params.append('foodCategories', mapFrontendCategoryToBackend(category));
-      });
+      const mappedFoodTypes = filters.foodType
+        .map(category => mapFrontendCategoryToBackend(category))
+        .join(',');
+      params.append('foodType', mappedFoodTypes);
+    }
+
+    if (filters.dietaryTags && filters.dietaryTags.length > 0) {
+      params.append('dietaryTags', filters.dietaryTags.join(','));
+      params.append('dietaryMatch', filters.dietaryMatch || 'ANY');
+    }
+
+    if (filters.sort) {
+      params.append('sort', filters.sort);
     }
 
     if (filters.expiryBefore) {

@@ -24,13 +24,6 @@ jest.mock('@react-google-maps/api', () => ({
   }),
 }));
 
-jest.mock('../../../constants/foodConstants', () => ({
-  getFoodTypeLabel: value => value || '',
-  getUnitLabel: value => value || '',
-  getTemperatureCategoryLabel: value => value || '',
-  getTemperatureCategoryIcon: () => null,
-  getPackagingTypeLabel: value => value || '',
-}));
 jest.mock('../SurplusFormModal', () => {
   return function MockSurplusFormModal({ isOpen, onClose }) {
     return isOpen ? (
@@ -68,6 +61,19 @@ jest.mock('../../../services/api', () => ({
 }));
 
 jest.mock('../../../constants/foodConstants', () => ({
+  mapLegacyCategoryToFoodType: value => {
+    const mapping = {
+      FRUITS_VEGETABLES: 'PRODUCE',
+      BAKERY_PASTRY: 'BAKERY',
+      BAKERY_ITEMS: 'BAKERY',
+      PREPARED_MEALS: 'PREPARED',
+      DAIRY_COLD: 'DAIRY_EGGS',
+      FRESH_MEAT: 'MEAT_POULTRY',
+      FISH: 'SEAFOOD',
+      PACKAGED_PANTRY: 'PANTRY',
+    };
+    return mapping[value] || value;
+  },
   getFoodTypeLabel: value => {
     const mapping = {
       FRUITS_VEGETABLES: 'Fruits & Vegetables',
@@ -91,25 +97,30 @@ jest.mock('../../../constants/foodConstants', () => ({
     };
     return mapping[value] || value;
   },
+  getTemperatureCategoryLabel: value => value || '',
+  getTemperatureCategoryIcon: () => null,
+  getPackagingTypeLabel: value => value || '',
 }));
 
 jest.mock('lucide-react', () => ({
-  Calendar: () => 'CalendarIcon',
-  Clock: () => 'ClockIcon',
-  MapPin: () => 'MapPinIcon',
-  Edit: () => 'EditIcon',
-  Trash2: () => 'TrashIcon',
-  AlertTriangle: () => 'AlertIcon',
-  X: () => 'XIcon',
-  Package: () => 'PackageIcon',
-  ChevronDown: () => 'ChevronDownIcon',
-  Filter: () => 'FilterIcon',
-  Camera: () => 'CameraIcon',
-  Image: () => 'ImageIcon',
-  ChevronLeft: () => 'ChevronLeftIcon',
-  ChevronRight: () => 'ChevronRightIcon',
-  Upload: () => 'UploadIcon',
-  Star: () => 'StarIcon',
+  Calendar: () => <span>CalendarIcon</span>,
+  Clock: () => <span>ClockIcon</span>,
+  MapPin: () => <span>MapPinIcon</span>,
+  Edit: () => <span>EditIcon</span>,
+  Trash2: () => <span>TrashIcon</span>,
+  AlertTriangle: () => <span>AlertIcon</span>,
+  X: () => <span>XIcon</span>,
+  Package: () => <span>PackageIcon</span>,
+  ChevronDown: () => <span>ChevronDownIcon</span>,
+  Filter: () => <span>FilterIcon</span>,
+  Camera: () => <span>CameraIcon</span>,
+  Image: () => <span>ImageIcon</span>,
+  ChevronLeft: () => <span>ChevronLeftIcon</span>,
+  ChevronRight: () => <span>ChevronRightIcon</span>,
+  Upload: () => <span>UploadIcon</span>,
+  Star: () => <span>StarIcon</span>,
+  MessageCircle: () => <span>MessageCircleIcon</span>,
+  Sparkles: () => <span>SparklesIcon</span>,
 }));
 
 jest.mock('../../shared/DonationTimeline', () => {
@@ -1483,7 +1494,9 @@ describe('DonorListFood', () => {
       setup();
 
       await waitFor(() => {
-        expect(screen.getByText(/edit/i)).toBeInTheDocument();
+        // Check for edit button using getAllByText since there are multiple "Edit" texts (button + icon)
+        const editElements = screen.getAllByText(/edit/i);
+        expect(editElements.length).toBeGreaterThan(0);
       });
     });
   });

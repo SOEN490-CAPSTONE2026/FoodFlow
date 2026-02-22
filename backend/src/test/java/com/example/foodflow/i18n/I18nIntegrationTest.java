@@ -78,7 +78,7 @@ class I18nIntegrationTest {
                                 .andExpect(jsonPath("$.fieldErrors[?(@.field == 'email')].message",
                                                 hasItem(containsString("Invalid email format"))))
                                 .andExpect(jsonPath("$.fieldErrors[?(@.field == 'password')].message",
-                                                hasItem(containsString("at least 8 characters"))));
+                                                hasItem(containsString("at least 10 characters"))));
         }
 
         @Test
@@ -101,8 +101,8 @@ class I18nIntegrationTest {
         void testEmailExists_English() throws Exception {
                 RegisterDonorRequest request = new RegisterDonorRequest();
                 request.setEmail(TEST_EMAIL); // Already exists
-                request.setPassword("password123");
-                request.setConfirmPassword("password123");
+                request.setPassword("TestSecure123!");
+                request.setConfirmPassword("TestSecure123!");
                 request.setOrganizationName("Test Org");
                 request.setContactPerson("John Doe");
                 request.setPhone("1234567890");
@@ -135,7 +135,7 @@ class I18nIntegrationTest {
                                 .andExpect(jsonPath("$.fieldErrors[?(@.field == 'email')].message",
                                                 hasItem(containsString("Format d'adresse e-mail invalide"))))
                                 .andExpect(jsonPath("$.fieldErrors[?(@.field == 'password')].message",
-                                                hasItem(containsString("au moins 8 caractères"))));
+                                                hasItem(containsString("at least 10 characters"))));
         }
 
         @Test
@@ -158,8 +158,8 @@ class I18nIntegrationTest {
         void testEmailExists_French() throws Exception {
                 RegisterDonorRequest request = new RegisterDonorRequest();
                 request.setEmail(TEST_EMAIL);
-                request.setPassword("password123");
-                request.setConfirmPassword("password123");
+                request.setPassword("TestSecure123!");
+                request.setConfirmPassword("TestSecure123!");
                 request.setOrganizationName("Test Org");
                 request.setContactPerson("John Doe");
                 request.setPhone("1234567890");
@@ -192,7 +192,7 @@ class I18nIntegrationTest {
                                 .andExpect(jsonPath("$.fieldErrors[?(@.field == 'email')].message",
                                                 hasItem(containsString("Formato de correo electrónico inválido"))))
                                 .andExpect(jsonPath("$.fieldErrors[?(@.field == 'password')].message",
-                                                hasItem(containsString("al menos 8 caracteres"))));
+                                                hasItem(containsString("at least 10 characters"))));
         }
 
         @Test
@@ -230,7 +230,7 @@ class I18nIntegrationTest {
                                                                 hasItem(containsString("无效的电子邮件格式"))))
                                 .andExpect(
                                                 jsonPath("$.fieldErrors[?(@.field == 'password')].message",
-                                                                hasItem(containsString("密码长度至少为 8 个字符"))));
+                                                                hasItem(containsString("at least 10 characters"))));
         }
 
         @Test
@@ -266,7 +266,7 @@ class I18nIntegrationTest {
                                 .andExpect(jsonPath("$.fieldErrors[?(@.field == 'email')].message",
                                                 hasItem(containsString("تنسيق البريد الإلكتروني غير صحيح"))))
                                 .andExpect(jsonPath("$.fieldErrors[?(@.field == 'password')].message",
-                                                hasItem(containsString("8"))));
+                                                hasItem(containsString("10"))));
         }
 
         @Test
@@ -302,7 +302,7 @@ class I18nIntegrationTest {
                                 .andExpect(jsonPath("$.fieldErrors[?(@.field == 'email')].message",
                                                 hasItem(containsString("Formato de e-mail inválido"))))
                                 .andExpect(jsonPath("$.fieldErrors[?(@.field == 'password')].message",
-                                                hasItem(containsString("pelo menos 8 caracteres"))));
+                                                hasItem(containsString("at least 10 characters"))));
         }
 
         @Test

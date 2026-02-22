@@ -540,7 +540,8 @@
       "readyForPickup": "Prêt pour la collecte",
       "notCompleted": "Non complété",
       "expired": "Expiré"
-    }
+    },
+    "yourRating": "Votre note"
   },
   "receiverWelcome": {
     "title": "Trouver des aliments près de chez vous",
@@ -600,6 +601,10 @@
     "fabricationDateHelp": "Le système calculera automatiquement la date d'expiration en fonction du type d'aliment",
     "expiryDateAutoCalculated": "(Calculée automatiquement, vous pouvez l'éditer)",
     "expiryDateSuggestion": "Date d'expiration suggérée: {{date}} (basée sur la catégorie d'aliment)",
+    "expiryDateSuggestionRule": "Date d'expiration suggérée: {{date}} (basée sur {{foodType}} + {{temperature}})",
+    "eligibilityEligible": "Éligible",
+    "eligibilityNotEligible": "Non éligible",
+    "confirmSafetyOverride": "Je confirme que cet article est sûr à donner",
     "loadingDetails": "Chargement des détails du don...",
     "validationError": "Veuillez compléter tous les champs obligatoires avant de continuer.",
     "cancel": "Annuler",
@@ -633,6 +638,55 @@
       "quantityDates": "Quantité & Dates",
       "pickupInfo": "Informations de collecte",
       "description": "Description"
+    },
+    "dietaryTagsLabel": "Étiquettes alimentaires",
+    "dietaryTagsOptional": "(optionnel)",
+    "maxDietaryTags": "Maximum 10 étiquettes alimentaires autorisées",
+    "foodTypeValues": {
+      "PREPARED": "Repas préparés",
+      "PRODUCE": "Produits frais",
+      "BAKERY": "Boulangerie et pâtisserie",
+      "DAIRY_EGGS": "Produits laitiers et œufs",
+      "MEAT_POULTRY": "Viande et volaille",
+      "SEAFOOD": "Fruits de mer",
+      "PANTRY": "Produits emballés / garde-manger",
+      "BEVERAGES": "Boissons"
+    },
+    "dietaryTagValues": {
+      "HALAL": "Halal",
+      "KOSHER": "Casher",
+      "VEGETARIAN": "Végétarien",
+      "VEGAN": "Végane",
+      "GLUTEN_FREE": "Sans gluten",
+      "DAIRY_FREE": "Sans produits laitiers",
+      "NUT_FREE": "Sans noix",
+      "EGG_FREE": "Sans œufs",
+      "SOY_FREE": "Sans soja"
+    },
+    "temperatureCategoryValues": {
+      "FROZEN": "Congelé (en dessous de 0°C)",
+      "REFRIGERATED": "Réfrigéré (0–4°C)",
+      "ROOM_TEMPERATURE": "Température ambiante",
+      "HOT_COOKED": "Chaud / Cuit"
+    },
+    "packagingTypeValues": {
+      "SEALED": "Scellé",
+      "LOOSE": "En vrac",
+      "REFRIGERATED_CONTAINER": "Contenant réfrigéré",
+      "FROZEN_CONTAINER": "Contenant congelé",
+      "VACUUM_PACKED": "Sous vide",
+      "BOXED": "En boîte",
+      "WRAPPED": "Emballé",
+      "BULK": "Grand volume",
+      "OTHER": "Autre"
+    },
+    "expiryWarnings": {
+      "Packaging suggests cold storage, confirm temperature": "L'emballage suggère un stockage au froid, confirmez la température",
+      "Packaging suggests frozen storage, confirm temperature": "L'emballage suggère un stockage congelé, confirmez la température",
+      "Hot food must be cooled and refrigerated to be eligible for donation": "Les aliments chauds doivent être refroidis et réfrigérés pour être éligibles au don",
+      "Produce is usually not hot/cooked": "Les produits frais ne sont généralement pas chauds/cuits",
+      "Pantry items are usually stored at room temperature": "Les articles de garde-manger sont généralement stockés à température ambiante",
+      "Hot beverages are same-day donations": "Les boissons chaudes sont des dons à consommer le jour même"
     }
   },
   "chat": {
@@ -743,7 +797,8 @@
     "events": "Événements et horaires",
     "communications": "Communications entrantes",
     "guides": "Guides et support",
-    "administration": "Administration"
+    "administration": "Administration",
+    "welcomeBack": "Bienvenue, {{name}}"
   },
   "claimedView": {
     "claimed": "Réclamé",
@@ -980,7 +1035,9 @@
     "choosePickupSlot": "Choisissez un créneau de collecte",
     "noProposedSlots": "Aucun créneau proposé disponible.",
     "confirming": "Confirmation en cours...",
-    "confirmAndClaim": "Confirmer et réclamer"
+    "confirmAndClaim": "Confirmer et réclamer",
+    "expiringSoon": "Expire bientôt",
+    "predicted": "Prédit"
   },
   "receiverMyClaims": {
     "readyForPickup": "Prêt pour la collecte",
@@ -1249,5 +1306,66 @@
     "hideTimeline": "Masquer le calendrier de la donation",
     "backToDetails": "Retour aux détails",
     "viewPickupSteps": "Voir les étapes de collecte"
+  },
+  "impactDashboard": {
+    "title": "Votre tableau de bord d'impact",
+    "subtitle": "Consultez l'impact environnemental et social de vos dons",
+    "receiverSubtitle": "Consultez l'impact environnemental et social des aliments que vous avez reçus",
+    "platformTitle": "Tableau de bord d'impact de la plateforme",
+    "adminSubtitle": "Indicateurs d'impact environnemental et social à l'échelle de la plateforme",
+    "weekly": "7 derniers jours",
+    "monthly": "30 derniers jours",
+    "days7": "7 jours",
+    "days30": "30 jours",
+    "allTime": "Depuis le début",
+    "export": "Exporter CSV",
+    "errorLoading": "Échec du chargement des indicateurs",
+    "loadError": "Impossible de charger les indicateurs d'impact",
+    "exportError": "Impossible d'exporter les indicateurs",
+    "foodWeight": "Poids d'aliments sauvés",
+    "foodReceived": "Aliments reçus",
+    "foodClaimed": "Aliments récupérés",
+    "totalFoodSaved": "Total d'aliments sauvés",
+    "mealsProvided": "Repas fournis",
+    "mealsServed": "Repas servis",
+    "peopleFed": "personnes nourries",
+    "co2Avoided": "Émissions de CO₂ évitées",
+    "waterSaved": "Eau économisée",
+    "activityStats": "Statistiques d'activité",
+    "activitySummary": "Résumé de l'activité",
+    "platformActivity": "Activité de la plateforme",
+    "totalPosts": "Total des dons créés",
+    "completed": "Dons complétés",
+    "completedClaims": "Réclamations complétées",
+    "claimsCompleted": "Réclamations complétées",
+    "totalClaims": "Total des réclamations",
+    "completionRate": "Taux de complétion",
+    "userEngagement": "Engagement des utilisateurs",
+    "activeDonors": "Donateurs actifs",
+    "activeReceivers": "Bénéficiaires actifs",
+    "activeDays": "Jours actifs",
+    "pendingPickups": "Collectes en attente",
+    "avgResponseTime": "Temps de réponse moyen",
+    "cancelledDonations": "Dons annulés",
+    "impactScore": "Score d'impact total",
+    "repeatDonors": "Donateurs récurrents",
+    "repeatReceivers": "Bénéficiaires récurrents",
+    "foodSavedOverTime": "Aliments sauvés dans le temps",
+    "claimsByDay": "Réclamations par jour",
+    "claimsByWeek": "Réclamations par semaine",
+    "claimsByMonth": "Réclamations par mois",
+    "noChartData": "Aucune donnée pour la période sélectionnée",
+    "noPreviousData": "Aucune donnée sur la période précédente",
+    "vsPrevious": "vs période précédente",
+    "customizeMetrics": "Personnaliser les indicateurs",
+    "selectMetrics": "Sélectionnez les indicateurs à afficher sur votre tableau de bord",
+    "thankYou": "Merci de faire la différence",
+    "donorMessage": "Vos dons ont contribué à réduire le gaspillage alimentaire et à soutenir votre communauté.",
+    "receiverMessage": "En récupérant des dons alimentaires, vous contribuez à réduire le gaspillage et à soutenir votre communauté.",
+    "platformSuccess": "Résumé d'impact de la plateforme",
+    "adminMessage": "FoodFlow génère un impact concret dans la réduction du gaspillage alimentaire et le soutien des communautés.",
+    "selectAll": "Tout sélectionner",
+    "clearAll": "Tout effacer",
+    "done": "Terminé"
   }
 }

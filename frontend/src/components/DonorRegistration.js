@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { authAPI } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
 import DonorIllustration from '../assets/illustrations/donor-illustration.jpg';
+import { validatePassword } from '../utils/passwordValidation';
 import '../style/Registration.css';
 
 // Phone number formatting utility
@@ -171,8 +172,11 @@ const DonorRegistration = () => {
       case 'password':
         if (!value) {
           errorMsg = t('donorRegistration.passwordRequired');
-        } else if (value.length < 8) {
-          errorMsg = t('donorRegistration.passwordMinLength');
+        } else {
+          const passwordErrors = validatePassword(value);
+          if (passwordErrors.length > 0) {
+            errorMsg = passwordErrors.join('; ');
+          }
         }
         break;
       case 'confirmPassword':
@@ -215,8 +219,11 @@ const DonorRegistration = () => {
 
         if (!formData.password) {
           errors.password = t('donorRegistration.passwordRequired');
-        } else if (formData.password.length < 8) {
-          errors.password = t('donorRegistration.passwordMinLength');
+        } else {
+          const passwordErrors = validatePassword(formData.password);
+          if (passwordErrors.length > 0) {
+            errors.password = passwordErrors.join('; ');
+          }
         }
 
         if (!formData.confirmPassword) {
@@ -598,7 +605,10 @@ const DonorRegistration = () => {
                   {showPassword ? 'Hide' : 'Show'}
                 </button>
               </div>
-              <small>Minimum 8 characters</small>
+              <small>
+                Minimum 10 characters, must include uppercase, lowercase, digit,
+                and special character
+              </small>
               {fieldErrors.password && (
                 <span className="error-text">{fieldErrors.password}</span>
               )}

@@ -520,7 +520,8 @@
       "readyForPickup": "准备取货",
       "notCompleted": "未完成",
       "expired": "已过期"
-    }
+    },
+    "yourRating": "您的评分"
   },
   "receiverWelcome": {
     "title": "在您附近寻找食物",
@@ -580,6 +581,10 @@
     "fabricationDateHelp": "系统将根据食物类型自动计算保质期",
     "expiryDateAutoCalculated": "(自动计算，您可以编辑)",
     "expiryDateSuggestion": "建议保质期：{{date}} (基于食物类别)",
+    "expiryDateSuggestionRule": "建议保质期：{{date}}（基于 {{foodType}} + {{temperature}}）",
+    "eligibilityEligible": "可捐赠",
+    "eligibilityNotEligible": "不建议捐赠",
+    "confirmSafetyOverride": "我确认该食品可安全捐赠",
     "loadingDetails": "正在加载捐赠详情...",
     "validationError": "请在继续之前完成所有必填字段。",
     "cancel": "取消",
@@ -613,6 +618,55 @@
       "quantityDates": "数量和日期",
       "pickupInfo": "取货信息",
       "description": "描述"
+    },
+    "dietaryTagsLabel": "膳食标签",
+    "dietaryTagsOptional": "（可选）",
+    "maxDietaryTags": "最多可选择10个膳食标签",
+    "foodTypeValues": {
+      "PREPARED": "预制餐食",
+      "PRODUCE": "生鲜蔬果",
+      "BAKERY": "烘焙糕点",
+      "DAIRY_EGGS": "乳制品与鸡蛋",
+      "MEAT_POULTRY": "肉类与禽类",
+      "SEAFOOD": "海鲜",
+      "PANTRY": "包装/储藏食品",
+      "BEVERAGES": "饮品"
+    },
+    "dietaryTagValues": {
+      "HALAL": "清真",
+      "KOSHER": "犹太洁食",
+      "VEGETARIAN": "素食",
+      "VEGAN": "纯素",
+      "GLUTEN_FREE": "无麸质",
+      "DAIRY_FREE": "无乳制品",
+      "NUT_FREE": "无坚果",
+      "EGG_FREE": "无蛋",
+      "SOY_FREE": "无大豆"
+    },
+    "temperatureCategoryValues": {
+      "FROZEN": "冷冻（低于0°C）",
+      "REFRIGERATED": "冷藏（0–4°C）",
+      "ROOM_TEMPERATURE": "常温",
+      "HOT_COOKED": "热食 / 熟食"
+    },
+    "packagingTypeValues": {
+      "SEALED": "密封",
+      "LOOSE": "散装",
+      "REFRIGERATED_CONTAINER": "冷藏容器",
+      "FROZEN_CONTAINER": "冷冻容器",
+      "VACUUM_PACKED": "真空包装",
+      "BOXED": "盒装",
+      "WRAPPED": "包裹",
+      "BULK": "大宗",
+      "OTHER": "其他"
+    },
+    "expiryWarnings": {
+      "Packaging suggests cold storage, confirm temperature": "包装方式提示需要冷藏，请确认温度",
+      "Packaging suggests frozen storage, confirm temperature": "包装方式提示需要冷冻，请确认温度",
+      "Hot food must be cooled and refrigerated to be eligible for donation": "热食需先冷却并冷藏后才适合捐赠",
+      "Produce is usually not hot/cooked": "生鲜通常不应为热食/熟食状态",
+      "Pantry items are usually stored at room temperature": "储藏类食品通常应在常温保存",
+      "Hot beverages are same-day donations": "热饮应当天捐赠"
     }
   },
   "chat": {
@@ -723,7 +777,8 @@
     "events": "活动和日程",
     "communications": "收到的通信",
     "guides": "指南和支持",
-    "administration": "管理"
+    "administration": "管理",
+    "welcomeBack": "欢迎回来，{{name}}"
   },
   "claimedView": {
     "claimed": "已认领",
@@ -960,7 +1015,9 @@
     "choosePickupSlot": "选择取货时间段",
     "noProposedSlots": "没有可用的建议时间段。",
     "confirming": "正在确认...",
-    "confirmAndClaim": "确认并认领"
+    "confirmAndClaim": "确认并认领",
+    "expiringSoon": "即将到期",
+    "predicted": "预测"
   },
   "receiverMyClaims": {
     "readyForPickup": "准备取货",
@@ -1249,5 +1306,66 @@
     "hideTimeline": "隐藏捐赠时间线",
     "backToDetails": "返回详情",
     "viewPickupSteps": "查看取货步骤"
+  },
+  "impactDashboard": {
+    "title": "您的影响力仪表板",
+    "subtitle": "查看您的捐赠带来的环境与社会影响",
+    "receiverSubtitle": "查看您领取食物带来的环境与社会影响",
+    "platformTitle": "平台影响力仪表板",
+    "adminSubtitle": "整个平台的环境与社会影响指标",
+    "weekly": "最近 7 天",
+    "monthly": "最近 30 天",
+    "days7": "7 天",
+    "days30": "30 天",
+    "allTime": "全部时间",
+    "export": "导出 CSV",
+    "errorLoading": "加载指标失败",
+    "loadError": "加载影响力指标失败",
+    "exportError": "导出指标失败",
+    "foodWeight": "已挽救食物重量",
+    "foodReceived": "已接收食物",
+    "foodClaimed": "已领取食物",
+    "totalFoodSaved": "挽救食物总量",
+    "mealsProvided": "提供餐食数",
+    "mealsServed": "已供应餐食",
+    "peopleFed": "受益人数",
+    "co2Avoided": "减少的 CO₂ 排放",
+    "waterSaved": "节约用水",
+    "activityStats": "活动统计",
+    "activitySummary": "活动摘要",
+    "platformActivity": "平台活动",
+    "totalPosts": "发布捐赠总数",
+    "completed": "已完成捐赠",
+    "completedClaims": "已完成领取",
+    "claimsCompleted": "已完成领取",
+    "totalClaims": "领取总数",
+    "completionRate": "完成率",
+    "userEngagement": "用户参与度",
+    "activeDonors": "活跃捐赠者",
+    "activeReceivers": "活跃接收方",
+    "activeDays": "活跃天数",
+    "pendingPickups": "待取货",
+    "avgResponseTime": "平均响应时间",
+    "cancelledDonations": "已取消捐赠",
+    "impactScore": "总影响力分数",
+    "repeatDonors": "重复捐赠者",
+    "repeatReceivers": "重复接收方",
+    "foodSavedOverTime": "食物挽救趋势",
+    "claimsByDay": "按天领取",
+    "claimsByWeek": "按周领取",
+    "claimsByMonth": "按月领取",
+    "noChartData": "所选时间段暂无数据",
+    "noPreviousData": "无上一周期数据",
+    "vsPrevious": "较上一周期",
+    "customizeMetrics": "自定义指标",
+    "selectMetrics": "选择要在仪表板中显示的指标",
+    "thankYou": "感谢您做出的贡献",
+    "donorMessage": "您的捐赠正在帮助减少食物浪费并支持社区。",
+    "receiverMessage": "通过领取食物捐赠，您正在帮助减少浪费并支持社区。",
+    "platformSuccess": "平台影响力摘要",
+    "adminMessage": "FoodFlow 正在切实减少食物浪费并支持社区发展。",
+    "selectAll": "全选",
+    "clearAll": "清除全部",
+    "done": "完成"
   }
 }

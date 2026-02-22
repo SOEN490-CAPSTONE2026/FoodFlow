@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Package,
@@ -14,29 +14,15 @@ import {
   TrendingUp,
   TrendingDown,
 } from 'lucide-react';
+import { impactDashboardAPI } from '../../services/api';
 import './Donor_Styles/DonorImpactDashboard.css';
 
 export default function DonorImpactDashboard() {
   const { t } = useTranslation();
-  const [metrics] = useState({
-    totalFoodWeightKg: 20.0,
-    co2EmissionsAvoidedKg: 16.0,
-    estimatedMealsProvided: 41,
-    waterSavedLiters: 16000,
-    peopleFedEstimate: 25,
-    totalDonationsCompleted: 12,
-    donationCompletionRate: 85.0,
-    activeDonationDays: 8,
-    totalPostsCreated: 2,
-    pendingPickups: 0,
-    activeReceivers: 0,
-    avgResponseTime: 0,
-    cancelledDonations: 0,
-    impactScore: 0,
-  });
-  const [loading] = useState(false);
-  const [error] = useState(null);
-  const [dateRange, setDateRange] = useState('MONTHLY');
+  const [metrics, setMetrics] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [dateRange, setDateRange] = useState('DAYS_30');
   const [showCustomizeModal, setShowCustomizeModal] = useState(false);
   const [visibleMetrics, setVisibleMetrics] = useState({
     foodSaved: true,
@@ -48,19 +34,63 @@ export default function DonorImpactDashboard() {
     completionRate: true,
     activeDays: true,
   });
+  const metricLabels = useMemo(
+    () => ({
+      foodSaved: t('impactDashboard.foodWeight', 'Food Saved'),
+      co2Reduced: t('impactDashboard.co2Avoided', 'CO2 Reduced'),
+      mealsDonated: t('impactDashboard.mealsProvided', 'Meals Donated'),
+      waterSaved: t('impactDashboard.waterSaved', 'Water Saved'),
+      peopleFed: t('impactDashboard.peopleFed', 'People Fed'),
+      completedDonations: t('impactDashboard.completed', 'Completed Donations'),
+      completionRate: t('impactDashboard.completionRate', 'Completion Rate'),
+      activeDays: t('impactDashboard.activeDays', 'Active Days'),
+    }),
+    [t]
+  );
+
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await impactDashboardAPI.getMetrics(dateRange);
+        setMetrics(response?.data || null);
+      } catch (err) {
+        setError(
+          t(
+            'impactDashboard.loadError',
+            'Unable to load impact metrics. Please try again.'
+          )
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMetrics();
+  }, [dateRange, t]);
 
   const handleExport = () => {
-    // Mock CSV export
-    const csvContent = `Metric,Value\nFood Saved,${metrics.totalFoodWeightKg} kg\nCO2 Reduced,${metrics.co2EmissionsAvoidedKg} kg\nMeals Donated,${metrics.estimatedMealsProvided}\nWater Saved,${metrics.waterSavedLiters} L`;
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `impact-metrics-${dateRange.toLowerCase()}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
+    impactDashboardAPI
+      .exportMetrics(dateRange)
+      .then(response => {
+        const blob = new Blob([response.data], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `impact-metrics-${dateRange.toLowerCase()}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      })
+      .catch(() => {
+        setError(
+          t(
+            'impactDashboard.exportError',
+            'Unable to export metrics right now.'
+          )
+        );
+      });
   };
 
   const toggleMetric = metric => {
@@ -104,8 +134,23 @@ export default function DonorImpactDashboard() {
     });
   };
 
-  const getTrend = () => {
-    return Math.floor(Math.random() * 30) - 10;
+  const renderTrend = pctValue => {
+    if (pctValue === null || pctValue === undefined) {
+      return (
+        <div className="metric-trend neutral">
+          {t('impactDashboard.noPreviousData', 'No previous-period data')}
+        </div>
+      );
+    }
+    const positive = pctValue >= 0;
+    return (
+      <div className={`metric-trend ${positive ? 'positive' : 'negative'}`}>
+        {positive ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+        {positive ? '+' : ''}
+        {pctValue.toFixed(1)}%{' '}
+        {t('impactDashboard.vsPrevious', 'vs previous period')}
+      </div>
+    );
   };
 
   // Get only the first 4 visible metrics
@@ -119,6 +164,50 @@ export default function DonorImpactDashboard() {
   };
 
   const displayedMetrics = getDisplayedMetrics();
+  const chartSeries = useMemo(() => {
+    const rawSeries = Array.isArray(metrics?.foodSavedTimeSeries)
+      ? metrics.foodSavedTimeSeries
+      : [];
+    return rawSeries.map((point, index) => ({
+      label: point?.label || `${index + 1}`,
+      value: Number(point?.foodWeightKg) || 0,
+    }));
+  }, [metrics?.foodSavedTimeSeries]);
+
+  const chartGeometry = useMemo(() => {
+    if (!chartSeries.length) {
+      return null;
+    }
+
+    const width = 1000;
+    const height = 300;
+    const horizontalPadding = 30;
+    const verticalPadding = 30;
+    const maxValue = Math.max(...chartSeries.map(point => point.value), 0);
+    const range = maxValue > 0 ? maxValue : 1;
+    const usableWidth = width - horizontalPadding * 2;
+    const usableHeight = height - verticalPadding * 2;
+
+    const points = chartSeries.map((point, index) => {
+      const x =
+        chartSeries.length === 1
+          ? width / 2
+          : horizontalPadding +
+            (index * usableWidth) / (chartSeries.length - 1);
+      const y =
+        verticalPadding + ((range - point.value) / range) * usableHeight;
+      return { ...point, x, y };
+    });
+
+    const linePoints = points.map(point => `${point.x},${point.y}`).join(' ');
+    const areaPoints = [
+      `${points[0].x},${height - verticalPadding}`,
+      linePoints,
+      `${points[points.length - 1].x},${height - verticalPadding}`,
+    ].join(' ');
+
+    return { points, linePoints, areaPoints };
+  }, [chartSeries]);
 
   if (loading) {
     return (
@@ -165,14 +254,11 @@ export default function DonorImpactDashboard() {
             value={dateRange}
             onChange={e => setDateRange(e.target.value)}
           >
-            <option value="WEEKLY">
-              {t('impactDashboard.weekly', 'This Week')}
+            <option value="DAYS_7">
+              {t('impactDashboard.days7', '7 Days')}
             </option>
-            <option value="MONTHLY">
-              {t('impactDashboard.monthly', 'This Month')}
-            </option>
-            <option value="QUARTERLY">
-              {t('impactDashboard.quarterly', 'This Quarter')}
+            <option value="DAYS_30">
+              {t('impactDashboard.days30', '30 Days')}
             </option>
             <option value="ALL_TIME">
               {t('impactDashboard.allTime', 'All Time')}
@@ -201,17 +287,7 @@ export default function DonorImpactDashboard() {
                 {metrics?.totalFoodWeightKg?.toFixed(2) || '0.00'}
                 <span className="metric-unit">kg</span>
               </div>
-              <div
-                className={`metric-trend ${getTrend() >= 0 ? 'positive' : 'negative'}`}
-              >
-                {getTrend() >= 0 ? (
-                  <TrendingUp size={14} />
-                ) : (
-                  <TrendingDown size={14} />
-                )}
-                {getTrend() >= 0 ? '+' : ''}
-                {getTrend()}% vs previous period
-              </div>
+              {renderTrend(metrics?.weightVsPreviousPct)}
             </div>
           </div>
         )}
@@ -229,9 +305,7 @@ export default function DonorImpactDashboard() {
                 {metrics?.co2EmissionsAvoidedKg?.toFixed(2) || '0.00'}
                 <span className="metric-unit">kg</span>
               </div>
-              <div className="metric-trend positive">
-                <TrendingUp size={14} /> +{getTrend()}% vs previous period
-              </div>
+              {renderTrend(metrics?.co2VsPreviousPct)}
             </div>
           </div>
         )}
@@ -248,9 +322,7 @@ export default function DonorImpactDashboard() {
               <div className="metric-value-large">
                 {metrics?.estimatedMealsProvided || 0}
               </div>
-              <div className="metric-trend positive">
-                <TrendingUp size={14} /> +{getTrend()}% vs previous period
-              </div>
+              {renderTrend(metrics?.mealsVsPreviousPct)}
             </div>
           </div>
         )}
@@ -268,9 +340,7 @@ export default function DonorImpactDashboard() {
                 {metrics?.waterSavedLiters?.toFixed(0) || '0'}
                 <span className="metric-unit">L</span>
               </div>
-              <div className="metric-trend positive">
-                <TrendingUp size={14} /> +{getTrend()}% vs previous period
-              </div>
+              {renderTrend(metrics?.waterVsPreviousPct)}
             </div>
           </div>
         )}
@@ -287,9 +357,7 @@ export default function DonorImpactDashboard() {
               <div className="metric-value-large">
                 {metrics?.peopleFedEstimate || 0}
               </div>
-              <div className="metric-trend positive">
-                <TrendingUp size={14} /> +{getTrend()}% vs previous period
-              </div>
+              {renderTrend(metrics?.mealsVsPreviousPct)}
             </div>
           </div>
         )}
@@ -306,9 +374,7 @@ export default function DonorImpactDashboard() {
               <div className="metric-value-large">
                 {metrics?.totalDonationsCompleted || 0}
               </div>
-              <div className="metric-trend positive">
-                <TrendingUp size={14} /> +{getTrend()}% vs previous period
-              </div>
+              {renderTrend(metrics?.weightVsPreviousPct)}
             </div>
           </div>
         )}
@@ -326,9 +392,7 @@ export default function DonorImpactDashboard() {
                 {metrics?.donationCompletionRate?.toFixed(1) || '0.0'}
                 <span className="metric-unit">%</span>
               </div>
-              <div className="metric-trend positive">
-                <TrendingUp size={14} /> +{getTrend()}% vs previous period
-              </div>
+              {renderTrend(metrics?.weightVsPreviousPct)}
             </div>
           </div>
         )}
@@ -343,11 +407,9 @@ export default function DonorImpactDashboard() {
             </div>
             <div className="metric-content">
               <div className="metric-value-large">
-                {metrics?.activeDays || 0}
+                {metrics?.activeDonationDays || 0}
               </div>
-              <div className="metric-trend positive">
-                <TrendingUp size={14} /> +{getTrend()}% vs previous period
-              </div>
+              {renderTrend(metrics?.weightVsPreviousPct)}
             </div>
           </div>
         )}
@@ -359,30 +421,36 @@ export default function DonorImpactDashboard() {
           {t('impactDashboard.foodSavedOverTime', 'Food Saved Over Time')}
         </h2>
         <div className="chart-container">
-          <svg viewBox="0 0 1000 300" className="line-chart">
-            <defs>
-              <linearGradient
-                id="chartGradient"
-                x1="0%"
-                y1="0%"
-                x2="0%"
-                y2="100%"
-              >
-                <stop offset="0%" stopColor="rgba(52, 152, 219, 0.4)" />
-                <stop offset="100%" stopColor="rgba(52, 152, 219, 0.0)" />
-              </linearGradient>
-            </defs>
-            <polyline
-              fill="none"
-              stroke="#3498db"
-              strokeWidth="3"
-              points="0,250 125,180 250,200 375,120 500,140 625,80 750,100 875,60 1000,90"
-            />
-            <polygon
-              fill="url(#chartGradient)"
-              points="0,300 0,250 125,180 250,200 375,120 500,140 625,80 750,100 875,60 1000,90 1000,300"
-            />
-          </svg>
+          {chartGeometry ? (
+            <svg viewBox="0 0 1000 300" className="line-chart">
+              <defs>
+                <linearGradient
+                  id="chartGradient"
+                  x1="0%"
+                  y1="0%"
+                  x2="0%"
+                  y2="100%"
+                >
+                  <stop offset="0%" stopColor="rgba(52, 152, 219, 0.4)" />
+                  <stop offset="100%" stopColor="rgba(52, 152, 219, 0.0)" />
+                </linearGradient>
+              </defs>
+              <polyline
+                fill="none"
+                stroke="#3498db"
+                strokeWidth="3"
+                points={chartGeometry.linePoints}
+              />
+              <polygon
+                fill="url(#chartGradient)"
+                points={chartGeometry.areaPoints}
+              />
+            </svg>
+          ) : (
+            <div className="empty-chart-message">
+              {t('impactDashboard.noChartData', 'No data for selected period')}
+            </div>
+          )}
         </div>
       </div>
 
@@ -478,27 +546,23 @@ export default function DonorImpactDashboard() {
                         onChange={() => toggleMetric(key)}
                         disabled={isDisabled}
                       />
-                      <span>
-                        {key
-                          .replace(/([A-Z])/g, ' $1')
-                          .replace(/^./, str => str.toUpperCase())}
-                      </span>
+                      <span>{metricLabels[key] || key}</span>
                     </label>
                   );
                 })}
               </div>
               <div className="modal-actions">
                 <button onClick={selectAllMetrics} className="btn-secondary">
-                  {t('common.selectAll', 'Select All')}
+                  {t('impactDashboard.selectAll', 'Select All')}
                 </button>
                 <button onClick={clearAllMetrics} className="btn-secondary">
-                  {t('common.clearAll', 'Clear All')}
+                  {t('impactDashboard.clearAll', 'Clear All')}
                 </button>
                 <button
                   onClick={() => setShowCustomizeModal(false)}
                   className="btn-primary"
                 >
-                  {t('common.done', 'Done')}
+                  {t('impactDashboard.done', 'Done')}
                 </button>
               </div>
             </div>

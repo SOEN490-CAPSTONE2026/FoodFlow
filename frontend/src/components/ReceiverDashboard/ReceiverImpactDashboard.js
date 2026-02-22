@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   TrendingUp,
@@ -23,22 +23,15 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+import { impactDashboardAPI } from '../../services/api';
 import '../DonorDashboard/Donor_Styles/DonorImpactDashboard.css';
 
 export default function ReceiverImpactDashboard() {
   const { t } = useTranslation();
-  const [metrics] = useState({
-    foodClaimed: 5873,
-    co2Avoided: 52481,
-    mealsProvided: 14683,
-    waterSaved: 5873332,
-    peopleFed: 7342,
-    claimsCompleted: 171,
-    totalClaims: 171,
-  });
-  const [loading] = useState(false);
-  const [error] = useState(null);
-  const [dateRange, setDateRange] = useState('WEEKLY');
+  const [metrics, setMetrics] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [dateRange, setDateRange] = useState('DAYS_30');
   const [showCustomizeModal, setShowCustomizeModal] = useState(false);
   const [visibleMetrics, setVisibleMetrics] = useState({
     foodWeight: true,
@@ -49,83 +42,62 @@ export default function ReceiverImpactDashboard() {
     claimsCompleted: false,
     totalClaims: false,
   });
+  const metricLabels = useMemo(
+    () => ({
+      foodWeight: t('impactDashboard.foodWeight', 'Food Claimed'),
+      co2Avoided: t('impactDashboard.co2Avoided', 'CO₂ Avoided'),
+      mealsProvided: t('impactDashboard.mealsProvided', 'Meals Provided'),
+      waterSaved: t('impactDashboard.waterSaved', 'Water Saved'),
+      peopleFed: t('impactDashboard.peopleFed', 'People Fed'),
+      claimsCompleted: t('impactDashboard.claimsCompleted', 'Claims Completed'),
+      totalClaims: t('impactDashboard.totalClaims', 'Total Claims'),
+    }),
+    [t]
+  );
 
-  // Dynamic chart data based on date range
-  const getChartData = () => {
-    const today = new Date();
-    const monthNames = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-
-    if (dateRange === 'WEEKLY') {
-      // Last 7 days with actual dates
-      return Array.from({ length: 7 }, (_, i) => {
-        const date = new Date(today);
-        date.setDate(today.getDate() - (6 - i));
-        return {
-          month: `${monthNames[date.getMonth()]} ${date.getDate()} ${date.getFullYear()}`,
-          claims: Math.floor(Math.random() * 6) + 3, // Random 3-8
-        };
-      });
-    } else if (dateRange === 'MONTHLY') {
-      // Last 30 days grouped by week (4 weeks)
-      return Array.from({ length: 4 }, (_, i) => {
-        const weekEnd = new Date(today);
-        weekEnd.setDate(today.getDate() - i * 7);
-        const weekStart = new Date(weekEnd);
-        weekStart.setDate(weekEnd.getDate() - 6);
-        return {
-          month: `${monthNames[weekStart.getMonth()]} ${weekStart.getDate()}-${monthNames[weekEnd.getMonth()]} ${weekEnd.getDate()} ${weekEnd.getFullYear()}`,
-          claims: Math.floor(Math.random() * 20) + 25, // Random 25-44
-        };
-      }).reverse();
-    } else {
-      // Last 6 months
-      return Array.from({ length: 6 }, (_, i) => {
-        const date = new Date(today);
-        date.setMonth(today.getMonth() - (5 - i));
-        return {
-          month: `${monthNames[date.getMonth()]} ${date.getDate()} ${date.getFullYear()}`,
-          claims: Math.floor(Math.random() * 20) + 20, // Random 20-39
-        };
-      });
-    }
-  };
-
-  const chartData = getChartData();
-
-  const getChartTitle = () => {
-    if (dateRange === 'WEEKLY') {
-      return t('impactDashboard.claimsByDay', 'Claims by Day');
-    } else if (dateRange === 'MONTHLY') {
-      return t('impactDashboard.claimsByWeek', 'Claims by Week');
-    } else {
-      return t('impactDashboard.claimsByMonth', 'Claims by Month');
-    }
-  };
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await impactDashboardAPI.getMetrics(dateRange);
+        setMetrics(response?.data || null);
+      } catch (err) {
+        setError(
+          t(
+            'impactDashboard.loadError',
+            'Unable to load impact metrics. Please try again.'
+          )
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMetrics();
+  }, [dateRange, t]);
 
   const handleExport = () => {
-    const csvContent = `Metric,Value\nFood Claimed,${metrics.foodClaimed} kg\nCO2 Avoided,${metrics.co2Avoided} kg\nMeals Provided,${metrics.mealsProvided}\nClaims Completed,${metrics.claimsCompleted}`;
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `receiver-dashboard-${dateRange.toLowerCase()}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
+    impactDashboardAPI
+      .exportMetrics(dateRange)
+      .then(response => {
+        const blob = new Blob([response.data], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `receiver-impact-metrics-${dateRange.toLowerCase()}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      })
+      .catch(() => {
+        setError(
+          t(
+            'impactDashboard.exportError',
+            'Unable to export metrics right now.'
+          )
+        );
+      });
   };
 
   const toggleMetric = metric => {
@@ -167,6 +139,25 @@ export default function ReceiverImpactDashboard() {
     });
   };
 
+  const renderTrend = pctValue => {
+    if (pctValue === null || pctValue === undefined) {
+      return (
+        <div className="metric-trend neutral">
+          {t('impactDashboard.noPreviousData', 'No previous-period data')}
+        </div>
+      );
+    }
+    const positive = pctValue >= 0;
+    return (
+      <div className={`metric-trend ${positive ? 'positive' : 'negative'}`}>
+        {positive ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+        {positive ? '+' : ''}
+        {pctValue.toFixed(1)}%{' '}
+        {t('impactDashboard.vsPrevious', 'vs previous period')}
+      </div>
+    );
+  };
+
   // Get only the first 4 visible metrics
   const getDisplayedMetrics = () => {
     const visibleKeys = Object.entries(visibleMetrics)
@@ -178,6 +169,27 @@ export default function ReceiverImpactDashboard() {
   };
 
   const displayedMetrics = getDisplayedMetrics();
+
+  // Build chart data from time series
+  const chartData = useMemo(() => {
+    const rawSeries = Array.isArray(metrics?.foodSavedTimeSeries)
+      ? metrics.foodSavedTimeSeries
+      : [];
+    return rawSeries.map((point, index) => ({
+      month: point?.label || `${index + 1}`,
+      claims: Number(point?.foodWeightKg) || 0,
+    }));
+  }, [metrics?.foodSavedTimeSeries]);
+
+  const getChartTitle = () => {
+    if (dateRange === 'DAYS_7') {
+      return t('impactDashboard.foodSavedByDay', 'Food Saved by Day');
+    } else if (dateRange === 'DAYS_30') {
+      return t('impactDashboard.foodSavedByWeek', 'Food Saved by Week');
+    } else {
+      return t('impactDashboard.foodSavedByMonth', 'Food Saved by Month');
+    }
+  };
 
   if (loading) {
     return (
@@ -216,9 +228,6 @@ export default function ReceiverImpactDashboard() {
         >
           <Settings size={18} />
           {t('impactDashboard.customizeMetrics', 'Customize Metrics')}
-          <span className="badge-count">
-            {Object.values(visibleMetrics).filter(Boolean).length}
-          </span>
         </button>
 
         <div className="controls-right">
@@ -227,11 +236,11 @@ export default function ReceiverImpactDashboard() {
             value={dateRange}
             onChange={e => setDateRange(e.target.value)}
           >
-            <option value="WEEKLY">
-              {t('impactDashboard.weekly', 'Last 7 days')}
+            <option value="DAYS_7">
+              {t('impactDashboard.days7', '7 Days')}
             </option>
-            <option value="MONTHLY">
-              {t('impactDashboard.monthly', 'Last 30 days')}
+            <option value="DAYS_30">
+              {t('impactDashboard.days30', '30 Days')}
             </option>
             <option value="ALL_TIME">
               {t('impactDashboard.allTime', 'All Time')}
@@ -258,13 +267,10 @@ export default function ReceiverImpactDashboard() {
             </div>
             <div className="metric-content">
               <div className="metric-value-large">
-                {metrics.foodClaimed.toLocaleString()}
-                <span className="metric-unit"> kg</span>
+                {metrics?.totalFoodWeightKg?.toFixed(2) || '0.00'}
+                <span className="metric-unit">kg</span>
               </div>
-              <div className="metric-trend positive">
-                <TrendingUp size={14} />
-                +15% vs previous period
-              </div>
+              {renderTrend(metrics?.weightVsPreviousPct)}
             </div>
           </div>
         )}
@@ -280,13 +286,10 @@ export default function ReceiverImpactDashboard() {
             </div>
             <div className="metric-content">
               <div className="metric-value-large">
-                {metrics.co2Avoided.toLocaleString()}
-                <span className="metric-unit"> kg</span>
+                {metrics?.co2EmissionsAvoidedKg?.toFixed(2) || '0.00'}
+                <span className="metric-unit">kg</span>
               </div>
-              <div className="metric-trend positive">
-                <TrendingUp size={14} />
-                +2% vs previous period
-              </div>
+              {renderTrend(metrics?.co2VsPreviousPct)}
             </div>
           </div>
         )}
@@ -302,12 +305,9 @@ export default function ReceiverImpactDashboard() {
             </div>
             <div className="metric-content">
               <div className="metric-value-large">
-                {metrics.mealsProvided.toLocaleString()}
+                {metrics?.estimatedMealsProvided || 0}
               </div>
-              <div className="metric-trend negative">
-                <TrendingDown size={14} />
-                -4% vs previous period
-              </div>
+              {renderTrend(metrics?.mealsVsPreviousPct)}
             </div>
           </div>
         )}
@@ -323,13 +323,10 @@ export default function ReceiverImpactDashboard() {
             </div>
             <div className="metric-content">
               <div className="metric-value-large">
-                {metrics.waterSaved.toLocaleString()}
-                <span className="metric-unit"> L</span>
+                {metrics?.waterSavedLiters?.toFixed(0) || '0'}
+                <span className="metric-unit">L</span>
               </div>
-              <div className="metric-trend positive">
-                <TrendingUp size={14} />
-                +12% vs previous period
-              </div>
+              {renderTrend(metrics?.waterVsPreviousPct)}
             </div>
           </div>
         )}
@@ -345,12 +342,9 @@ export default function ReceiverImpactDashboard() {
             </div>
             <div className="metric-content">
               <div className="metric-value-large">
-                {metrics.peopleFed.toLocaleString()}
+                {metrics?.peopleFedEstimate || 0}
               </div>
-              <div className="metric-trend positive">
-                <TrendingUp size={14} />
-                +8% vs previous period
-              </div>
+              {renderTrend(metrics?.mealsVsPreviousPct)}
             </div>
           </div>
         )}
@@ -368,12 +362,9 @@ export default function ReceiverImpactDashboard() {
             </div>
             <div className="metric-content">
               <div className="metric-value-large">
-                {metrics.claimsCompleted}
+                {metrics?.totalDonationsCompleted || 0}
               </div>
-              <div className="metric-trend positive">
-                <TrendingUp size={14} />
-                +5% vs previous period
-              </div>
+              {renderTrend(metrics?.weightVsPreviousPct)}
             </div>
           </div>
         )}
@@ -388,37 +379,42 @@ export default function ReceiverImpactDashboard() {
               <h3>{t('impactDashboard.totalClaims', 'Total Claims')}</h3>
             </div>
             <div className="metric-content">
-              <div className="metric-value-large">{metrics.totalClaims}</div>
-              <div className="metric-trend positive">
-                <TrendingUp size={14} />
-                +5% vs previous period
+              <div className="metric-value-large">
+                {metrics?.totalClaimsMade || 0}
               </div>
+              {renderTrend(metrics?.weightVsPreviousPct)}
             </div>
           </div>
         )}
       </div>
 
-      {/* Claims by Month Chart */}
+      {/* Chart Section */}
       <div className="chart-section">
         <h2>{getChartTitle()}</h2>
         <div className="chart-container">
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="month" stroke="#64748b" />
-              <YAxis stroke="#64748b" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                  border: '1px solid #e0e0e0',
-                  borderRadius: '8px',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                }}
-                cursor={{ fill: 'transparent' }}
-              />
-              <Bar dataKey="claims" fill="#5eb3b7" radius={[8, 8, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          {chartData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="month" stroke="#64748b" />
+                <YAxis stroke="#64748b" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    border: '1px solid #e0e0e0',
+                    borderRadius: '8px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                  }}
+                  cursor={{ fill: 'transparent' }}
+                />
+                <Bar dataKey="claims" fill="#5eb3b7" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="empty-chart-message">
+              {t('impactDashboard.noChartData', 'No data for selected period')}
+            </div>
+          )}
         </div>
       </div>
 
@@ -430,14 +426,16 @@ export default function ReceiverImpactDashboard() {
             <span className="summary-label">
               {t('impactDashboard.totalClaims', 'Total Claims')}
             </span>
-            <span className="summary-value">{metrics.totalClaims}</span>
+            <span className="summary-value">
+              {metrics?.totalClaimsMade || 0}
+            </span>
           </div>
           <div className="summary-item">
             <span className="summary-label">
               {t('impactDashboard.peopleFed', 'People Fed (estimate)')}
             </span>
             <span className="summary-value">
-              {metrics.peopleFed.toLocaleString()}
+              {metrics?.peopleFedEstimate || 0}
             </span>
           </div>
           <div className="summary-item">
@@ -445,7 +443,7 @@ export default function ReceiverImpactDashboard() {
               {t('impactDashboard.co2Avoided', 'CO₂ Avoided')}
             </span>
             <span className="summary-value">
-              {metrics.co2Avoided.toLocaleString()} kg
+              {metrics?.co2EmissionsAvoidedKg?.toFixed(2) || '0.00'} kg
             </span>
           </div>
           <div className="summary-item">
@@ -453,7 +451,7 @@ export default function ReceiverImpactDashboard() {
               {t('impactDashboard.waterSaved', 'Water Saved')}
             </span>
             <span className="summary-value">
-              {metrics.waterSaved.toLocaleString()} L
+              {metrics?.waterSavedLiters?.toFixed(0) || '0'} L
             </span>
           </div>
         </div>
@@ -485,111 +483,36 @@ export default function ReceiverImpactDashboard() {
                 )}
               </p>
               <div className="metrics-checkboxes">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={visibleMetrics.foodWeight}
-                    onChange={() => toggleMetric('foodWeight')}
-                    disabled={
-                      !visibleMetrics.foodWeight &&
-                      Object.values(visibleMetrics).filter(Boolean).length >= 4
-                    }
-                  />
-                  <span>
-                    {t('impactDashboard.foodWeight', 'Food Weight Saved')}
-                  </span>
-                </label>
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={visibleMetrics.mealsProvided}
-                    onChange={() => toggleMetric('mealsProvided')}
-                    disabled={
-                      !visibleMetrics.mealsProvided &&
-                      Object.values(visibleMetrics).filter(Boolean).length >= 4
-                    }
-                  />
-                  <span>
-                    {t('impactDashboard.mealsProvided', 'Meals Provided')}
-                  </span>
-                </label>
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={visibleMetrics.co2Avoided}
-                    onChange={() => toggleMetric('co2Avoided')}
-                    disabled={
-                      !visibleMetrics.co2Avoided &&
-                      Object.values(visibleMetrics).filter(Boolean).length >= 4
-                    }
-                  />
-                  <span>{t('impactDashboard.co2Avoided', 'CO₂ Avoided')}</span>
-                </label>
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={visibleMetrics.waterSaved}
-                    onChange={() => toggleMetric('waterSaved')}
-                    disabled={
-                      !visibleMetrics.waterSaved &&
-                      Object.values(visibleMetrics).filter(Boolean).length >= 4
-                    }
-                  />
-                  <span>{t('impactDashboard.waterSaved', 'Water Saved')}</span>
-                </label>
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={visibleMetrics.peopleFed}
-                    onChange={() => toggleMetric('peopleFed')}
-                    disabled={
-                      !visibleMetrics.peopleFed &&
-                      Object.values(visibleMetrics).filter(Boolean).length >= 4
-                    }
-                  />
-                  <span>{t('impactDashboard.peopleFed', 'People Fed')}</span>
-                </label>
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={visibleMetrics.claimsCompleted}
-                    onChange={() => toggleMetric('claimsCompleted')}
-                    disabled={
-                      !visibleMetrics.claimsCompleted &&
-                      Object.values(visibleMetrics).filter(Boolean).length >= 4
-                    }
-                  />
-                  <span>
-                    {t('impactDashboard.claimsCompleted', 'Claims Completed')}
-                  </span>
-                </label>
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={visibleMetrics.totalClaims}
-                    onChange={() => toggleMetric('totalClaims')}
-                    disabled={
-                      !visibleMetrics.totalClaims &&
-                      Object.values(visibleMetrics).filter(Boolean).length >= 4
-                    }
-                  />
-                  <span>
-                    {t('impactDashboard.totalClaims', 'Total Claims')}
-                  </span>
-                </label>
+                {Object.entries(visibleMetrics).map(([key, value]) => {
+                  const selectedCount =
+                    Object.values(visibleMetrics).filter(Boolean).length;
+                  const isDisabled = !value && selectedCount >= 4;
+
+                  return (
+                    <label key={key} className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={value}
+                        onChange={() => toggleMetric(key)}
+                        disabled={isDisabled}
+                      />
+                      <span>{metricLabels[key] || key}</span>
+                    </label>
+                  );
+                })}
               </div>
               <div className="modal-actions">
                 <button onClick={selectAllMetrics} className="btn-secondary">
-                  {t('common.selectAll', 'Select All')}
+                  {t('impactDashboard.selectAll', 'Select All')}
                 </button>
                 <button onClick={clearAllMetrics} className="btn-secondary">
-                  {t('common.clearAll', 'Clear All')}
+                  {t('impactDashboard.clearAll', 'Clear All')}
                 </button>
                 <button
                   onClick={() => setShowCustomizeModal(false)}
                   className="btn-primary"
                 >
-                  {t('common.done', 'Done')}
+                  {t('impactDashboard.done', 'Done')}
                 </button>
               </div>
             </div>

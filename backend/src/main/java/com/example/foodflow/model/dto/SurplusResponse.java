@@ -6,11 +6,14 @@ import com.example.foodflow.model.types.Location;
 import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.model.types.TemperatureCategory;
 import com.example.foodflow.model.types.PackagingType;
+import com.example.foodflow.model.types.FoodType;
+import com.example.foodflow.model.types.DietaryTag;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -27,6 +30,22 @@ public class SurplusResponse {
     private Location pickupLocation;
     private LocalDate fabricationDate;
     private LocalDate expiryDate;
+    private LocalDate userProvidedExpiryDate;
+    private LocalDate suggestedExpiryDate;
+    private Boolean eligibleAtSubmission;
+    private List<String> warningsAtSubmission = new ArrayList<>();
+    private LocalDateTime expiryDateActual;
+    private LocalDateTime expiryDatePredicted;
+    private LocalDateTime expiryDateEffective;
+    private Double predictionConfidence;
+    private String predictionVersion;
+    private Boolean expiryOverridden;
+    private Boolean expiringSoon;
+    private Boolean expired;
+    private Double impactCo2eKg;
+    private Double impactWaterL;
+    private String impactFactorVersion;
+    private LocalDateTime impactComputedAt;
 
     // Changed fields
     private LocalDate pickupDate;
@@ -44,6 +63,8 @@ public class SurplusResponse {
     private PickupSlotResponse confirmedPickupSlot;
     private TemperatureCategory temperatureCategory;
     private PackagingType packagingType;
+    private FoodType foodType;
+    private List<DietaryTag> dietaryTags = new ArrayList<>();
 
     // Receiver/Claimant information (if claimed)
     private String receiverName;
@@ -88,6 +109,21 @@ public class SurplusResponse {
         this.pickupLocation = surplusPost.getPickupLocation();
         this.fabricationDate = surplusPost.getFabricationDate();
         this.expiryDate = surplusPost.getExpiryDate();
+        this.userProvidedExpiryDate = surplusPost.getUserProvidedExpiryDate();
+        this.suggestedExpiryDate = surplusPost.getSuggestedExpiryDate();
+        this.eligibleAtSubmission = surplusPost.getEligibleAtSubmission();
+        this.expiryDateActual = surplusPost.getExpiryDate() != null
+                ? surplusPost.getExpiryDate().atTime(23, 59, 59)
+                : null;
+        this.expiryDatePredicted = surplusPost.getExpiryDatePredicted();
+        this.expiryDateEffective = surplusPost.getExpiryDateEffective();
+        this.predictionConfidence = surplusPost.getExpiryPredictionConfidence();
+        this.predictionVersion = surplusPost.getExpiryPredictionVersion();
+        this.expiryOverridden = surplusPost.getExpiryOverridden();
+        this.impactCo2eKg = surplusPost.getImpactCo2eKg();
+        this.impactWaterL = surplusPost.getImpactWaterL();
+        this.impactFactorVersion = surplusPost.getImpactFactorVersion();
+        this.impactComputedAt = surplusPost.getImpactComputedAt();
         this.pickupDate = surplusPost.getPickupDate();
         this.pickupFrom = surplusPost.getPickupFrom();
         this.pickupTo = surplusPost.getPickupTo();
@@ -102,6 +138,20 @@ public class SurplusResponse {
         this.updatedAt = surplusPost.getUpdatedAt();
         this.temperatureCategory = surplusPost.getTemperatureCategory();
         this.packagingType = surplusPost.getPackagingType();
+        this.foodType = surplusPost.getFoodType();
+        if (surplusPost.getDietaryTags() != null) {
+            this.dietaryTags = Arrays.stream(surplusPost.getDietaryTags())
+                    .filter(tag -> tag != null && !tag.isBlank())
+                    .map(tag -> {
+                        try {
+                            return DietaryTag.valueOf(tag);
+                        } catch (IllegalArgumentException ex) {
+                            return null;
+                        }
+                    })
+                    .filter(tag -> tag != null)
+                    .collect(Collectors.toList());
+        }
 
         // Convert pickup slots
         if (surplusPost.getPickupSlots() != null) {
@@ -174,6 +224,134 @@ public class SurplusResponse {
 
     public void setExpiryDate(LocalDate expiryDate) {
         this.expiryDate = expiryDate;
+    }
+
+    public LocalDateTime getExpiryDateActual() {
+        return expiryDateActual;
+    }
+
+    public void setExpiryDateActual(LocalDateTime expiryDateActual) {
+        this.expiryDateActual = expiryDateActual;
+    }
+
+    public LocalDate getUserProvidedExpiryDate() {
+        return userProvidedExpiryDate;
+    }
+
+    public void setUserProvidedExpiryDate(LocalDate userProvidedExpiryDate) {
+        this.userProvidedExpiryDate = userProvidedExpiryDate;
+    }
+
+    public LocalDate getSuggestedExpiryDate() {
+        return suggestedExpiryDate;
+    }
+
+    public void setSuggestedExpiryDate(LocalDate suggestedExpiryDate) {
+        this.suggestedExpiryDate = suggestedExpiryDate;
+    }
+
+    public Boolean getEligibleAtSubmission() {
+        return eligibleAtSubmission;
+    }
+
+    public void setEligibleAtSubmission(Boolean eligibleAtSubmission) {
+        this.eligibleAtSubmission = eligibleAtSubmission;
+    }
+
+    public List<String> getWarningsAtSubmission() {
+        return warningsAtSubmission;
+    }
+
+    public void setWarningsAtSubmission(List<String> warningsAtSubmission) {
+        this.warningsAtSubmission = warningsAtSubmission != null ? warningsAtSubmission : new ArrayList<>();
+    }
+
+    public LocalDateTime getExpiryDatePredicted() {
+        return expiryDatePredicted;
+    }
+
+    public void setExpiryDatePredicted(LocalDateTime expiryDatePredicted) {
+        this.expiryDatePredicted = expiryDatePredicted;
+    }
+
+    public LocalDateTime getExpiryDateEffective() {
+        return expiryDateEffective;
+    }
+
+    public void setExpiryDateEffective(LocalDateTime expiryDateEffective) {
+        this.expiryDateEffective = expiryDateEffective;
+    }
+
+    public Double getPredictionConfidence() {
+        return predictionConfidence;
+    }
+
+    public void setPredictionConfidence(Double predictionConfidence) {
+        this.predictionConfidence = predictionConfidence;
+    }
+
+    public String getPredictionVersion() {
+        return predictionVersion;
+    }
+
+    public void setPredictionVersion(String predictionVersion) {
+        this.predictionVersion = predictionVersion;
+    }
+
+    public Boolean getExpiryOverridden() {
+        return expiryOverridden;
+    }
+
+    public void setExpiryOverridden(Boolean expiryOverridden) {
+        this.expiryOverridden = expiryOverridden;
+    }
+
+    public Boolean getExpiringSoon() {
+        return expiringSoon;
+    }
+
+    public void setExpiringSoon(Boolean expiringSoon) {
+        this.expiringSoon = expiringSoon;
+    }
+
+    public Boolean getExpired() {
+        return expired;
+    }
+
+    public void setExpired(Boolean expired) {
+        this.expired = expired;
+    }
+
+    public Double getImpactCo2eKg() {
+        return impactCo2eKg;
+    }
+
+    public void setImpactCo2eKg(Double impactCo2eKg) {
+        this.impactCo2eKg = impactCo2eKg;
+    }
+
+    public Double getImpactWaterL() {
+        return impactWaterL;
+    }
+
+    public void setImpactWaterL(Double impactWaterL) {
+        this.impactWaterL = impactWaterL;
+    }
+
+    public String getImpactFactorVersion() {
+        return impactFactorVersion;
+    }
+
+    public void setImpactFactorVersion(String impactFactorVersion) {
+        this.impactFactorVersion = impactFactorVersion;
+    }
+
+    public LocalDateTime getImpactComputedAt() {
+        return impactComputedAt;
+    }
+
+    public void setImpactComputedAt(LocalDateTime impactComputedAt) {
+        this.impactComputedAt = impactComputedAt;
     }
 
     public LocalDate getPickupDate() {
@@ -286,6 +464,22 @@ public class SurplusResponse {
 
     public void setPackagingType(PackagingType packagingType) {
         this.packagingType = packagingType;
+    }
+
+    public FoodType getFoodType() {
+        return foodType;
+    }
+
+    public void setFoodType(FoodType foodType) {
+        this.foodType = foodType;
+    }
+
+    public List<DietaryTag> getDietaryTags() {
+        return dietaryTags;
+    }
+
+    public void setDietaryTags(List<DietaryTag> dietaryTags) {
+        this.dietaryTags = dietaryTags;
     }
 
     public String getReceiverName() {

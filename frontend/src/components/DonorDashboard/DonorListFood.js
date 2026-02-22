@@ -18,6 +18,7 @@ import {
   ChevronRight,
   Upload,
   Star,
+  Sparkles,
 } from 'lucide-react';
 import { useLoadScript } from '@react-google-maps/api';
 import { surplusAPI, claimsAPI, reportAPI } from '../../services/api';
@@ -29,11 +30,13 @@ import ReportUserModal from '../ReportUserModal';
 import FeedbackModal from '../FeedbackModal/FeedbackModal';
 import DonationTimeline from '../shared/DonationTimeline';
 import {
+  getDietaryTagLabel,
   getFoodTypeLabel,
   getUnitLabel,
   getTemperatureCategoryLabel,
   getTemperatureCategoryIcon,
   getPackagingTypeLabel,
+  mapLegacyCategoryToFoodType,
 } from '../../constants/foodConstants';
 import '../DonorDashboard/Donor_Styles/DonorListFood.css';
 
@@ -461,7 +464,6 @@ export default function DonorListFood() {
   }
 
   function openEdit(item) {
-    alert(t('donorListFood.editFunctionality', { title: item.title }));
     setEditPostId(item.id);
     setIsEditMode(true);
     setIsModalOpen(true);
@@ -768,16 +770,25 @@ export default function DonorListFood() {
           </div>
         </div>
 
-        <button
-          className="donor-add-button"
-          onClick={() => {
-            setIsEditMode(false);
-            setEditPostId(null);
-            setIsModalOpen(true);
-          }}
-        >
-          + {t('donorListFood.donateMore')}
-        </button>
+        <div className="header-actions">
+          <button
+            className="donor-ai-button"
+            onClick={() => navigate('/donor/ai-donation')}
+          >
+            <Sparkles size={18} />
+            Create with AI
+          </button>
+          <button
+            className="donor-add-button"
+            onClick={() => {
+              setIsEditMode(false);
+              setEditPostId(null);
+              setIsModalOpen(true);
+            }}
+          >
+            + {t('donorListFood.donateMore')}
+          </button>
+        </div>
         {isLoaded && (
           <SurplusFormModal
             isOpen={isModalOpen}
@@ -802,6 +813,58 @@ export default function DonorListFood() {
         <section className="donor-list-grid" aria-label="Donations list">
           {items.map(item => {
             const normalizedStatus = normalizeStatus(item.status);
+            const resolvedFoodType = item.foodType || item.foodCategories?.[0];
+            const normalizedFoodType = resolvedFoodType
+              ? mapLegacyCategoryToFoodType(resolvedFoodType)
+              : null;
+            const dietaryTags = Array.isArray(item.dietaryTags)
+              ? item.dietaryTags
+              : [];
+            const translatedTags = [];
+
+            if (normalizedFoodType) {
+              translatedTags.push({
+                label: t(
+                  `surplusForm.foodTypeValues.${normalizedFoodType}`,
+                  getFoodTypeLabel(resolvedFoodType)
+                ),
+                type: 'food',
+              });
+            }
+
+            dietaryTags.forEach(tag => {
+              translatedTags.push({
+                label: t(
+                  `surplusForm.dietaryTagValues.${tag}`,
+                  getDietaryTagLabel(tag)
+                ),
+                type: 'dietary',
+              });
+            });
+
+            if (item.foodCategories && item.foodCategories.length > 0) {
+              item.foodCategories.forEach(category => {
+                const categoryValue = category.name || category;
+                const mappedCategory =
+                  mapLegacyCategoryToFoodType(categoryValue);
+                translatedTags.push({
+                  label: t(
+                    `surplusForm.foodTypeValues.${mappedCategory}`,
+                    getFoodTypeLabel(categoryValue)
+                  ),
+                  type: 'food',
+                });
+              });
+            }
+
+            const uniqueTags = translatedTags.filter(
+              (tag, index, self) =>
+                index ===
+                self.findIndex(
+                  candidate =>
+                    candidate.label === tag.label && candidate.type === tag.type
+                )
+            );
             return (
               <article
                 key={item.id}
@@ -827,20 +890,18 @@ export default function DonorListFood() {
                   </span>
                 </div>
 
-                {item.foodCategories && item.foodCategories.length > 0 && (
-                  <div className="donation-tags">
-                    {item.foodCategories.map((category, index) => {
-                      // Get the category value (handle both object and string formats)
-                      const categoryValue = category.name || category;
-                      // Map to display label using centralized helper function
-                      const displayLabel = getFoodTypeLabel(categoryValue);
-
-                      return (
-                        <span key={index} className="donation-tag">
-                          {displayLabel}
-                        </span>
-                      );
-                    })}
+                {uniqueTags.length > 0 && (
+                  <div className="dietary-tags-row">
+                    {uniqueTags.map((tag, index) => (
+                      <span
+                        key={`${item.id}-tag-${index}`}
+                        className={`donation-tag ${
+                          tag.type === 'dietary' ? 'donation-tag--dietary' : ''
+                        }`}
+                      >
+                        {tag.label}
+                      </span>
+                    ))}
                   </div>
                 )}
 
@@ -853,8 +914,11 @@ export default function DonorListFood() {
                           {getTemperatureCategoryIcon(item.temperatureCategory)}
                         </span>
                         <span className="badge-label">
-                          {getTemperatureCategoryLabel(
-                            item.temperatureCategory
+                          {t(
+                            `surplusForm.temperatureCategoryValues.${item.temperatureCategory}`,
+                            getTemperatureCategoryLabel(
+                              item.temperatureCategory
+                            )
                           )}
                         </span>
                       </span>
@@ -863,7 +927,10 @@ export default function DonorListFood() {
                       <span className="compliance-badge packaging">
                         <Package size={14} />
                         <span className="badge-label">
-                          {getPackagingTypeLabel(item.packagingType)}
+                          {t(
+                            `surplusForm.packagingTypeValues.${item.packagingType}`,
+                            getPackagingTypeLabel(item.packagingType)
+                          )}
                         </span>
                       </span>
                     )}

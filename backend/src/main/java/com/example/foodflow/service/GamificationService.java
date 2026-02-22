@@ -357,7 +357,8 @@ public class GamificationService {
                 user.getId(),
                 displayName,
                 user.getTotalPoints() != null ? user.getTotalPoints() : 0,
-                isCurrentUser
+                isCurrentUser,
+                user.getProfilePhoto() // Add profile photo
             );
             topEntries.add(entry);
         }
@@ -386,7 +387,8 @@ public class GamificationService {
                     currentUser.getId(),
                     displayName,
                     userPoints,
-                    true
+                    true,
+                    currentUser.getProfilePhoto() // Add profile photo
                 );
             }
         }

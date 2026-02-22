@@ -9,7 +9,6 @@ import {
 import { useTranslation } from 'react-i18next';
 import {
   Home,
-  LayoutGrid,
   Heart,
   Award,
   Mail,
@@ -349,17 +348,6 @@ export default function DonorLayout() {
               <Home size={18} className="lucide" />
             </span>
             {t('donorLayout.home')}
-          </Link>
-
-          <Link
-            to="/donor/dashboard"
-            className={`donor-nav-link ${isActive('/donor/dashboard') ? 'active' : ''}`}
-            data-tooltip={t('donorLayout.dashboard')}
-          >
-            <span className="nav-icon" aria-hidden>
-              <LayoutGrid size={18} className="lucide" />
-            </span>
-            {t('donorLayout.dashboard')}
           </Link>
 
           <Link
