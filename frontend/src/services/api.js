@@ -246,10 +246,18 @@ export const surplusAPI = {
 };
 
 export const claimsAPI = {
-  myClaims: () => api.get('/claims/my-claims'), // ✅ No /api prefix
+  myClaims: () => api.get('/claims/my-claims'),
   claim: postId => api.post('/claims', { surplusPostId: postId }),
   cancel: claimId => api.delete(`/claims/${claimId}`),
   getClaimForSurplusPost: postId => api.get(`/claims/post/${postId}`),
+};
+
+export const conversationAPI = {
+  expressInterest: postId => api.post(`/conversations/interested/${postId}`),
+  getConversations: () => api.get('/conversations'),
+  getConversation: convId => api.get(`/conversations/${convId}`),
+  getMessages: convId => api.get(`/conversations/${convId}/messages`),
+  markAsRead: convId => api.put(`/conversations/${convId}/read`),
 };
 
 /**

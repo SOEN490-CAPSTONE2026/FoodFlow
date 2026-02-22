@@ -15,8 +15,14 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
     /**
      * Find all conversations where the user is either user1 or user2
      * Ordered by last message time (most recent first), falling back to creation date for new conversations
+     * Uses LEFT JOIN FETCH to eagerly load related entities and avoid N+1 queries
      */
-    @Query("SELECT c FROM Conversation c " +
+    @Query("SELECT DISTINCT c FROM Conversation c " +
+           "LEFT JOIN FETCH c.user1 " +
+           "LEFT JOIN FETCH c.user2 " +
+           "LEFT JOIN FETCH c.donor " +
+           "LEFT JOIN FETCH c.receiver " +
+           "LEFT JOIN FETCH c.surplusPost " +
            "WHERE c.user1.id = :userId OR c.user2.id = :userId " +
            "ORDER BY COALESCE(c.lastMessageAt, c.createdAt) DESC")
     List<Conversation> findByUserId(@Param("userId") Long userId);
@@ -39,8 +45,14 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
 
         /**
      * Find conversation by surplus post ID where user is a participant
+     * Uses LEFT JOIN FETCH to eagerly load related entities
      */
     @Query("SELECT c FROM Conversation c " +
+           "LEFT JOIN FETCH c.user1 " +
+           "LEFT JOIN FETCH c.user2 " +
+           "LEFT JOIN FETCH c.donor " +
+           "LEFT JOIN FETCH c.receiver " +
+           "LEFT JOIN FETCH c.surplusPost " +
            "WHERE c.surplusPost.id = :postId " +
            "AND (c.user1.id = :userId OR c.user2.id = :userId)")
     Optional<Conversation> findByPostIdAndUserId(@Param("postId") Long postId, @Param("userId") Long userId);
@@ -53,4 +65,18 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
            "WHERE c.surplusPost.id = :postId " +
            "ORDER BY COALESCE(c.lastMessageAt, c.createdAt) DESC")
     List<Conversation> findByPostId(@Param("postId") Long postId);
+
+    /**
+     * Find conversation by donation (surplus post) ID and receiver ID.
+     * Used for donation-anchored threads where (donation_id, receiver_id) is the unique key.
+     * Uses LEFT JOIN FETCH to eagerly load related entities
+     */
+    @Query("SELECT c FROM Conversation c " +
+           "LEFT JOIN FETCH c.user1 " +
+           "LEFT JOIN FETCH c.user2 " +
+           "LEFT JOIN FETCH c.donor " +
+           "LEFT JOIN FETCH c.receiver " +
+           "LEFT JOIN FETCH c.surplusPost " +
+           "WHERE c.surplusPost.id = :postId AND c.receiver.id = :receiverId")
+    Optional<Conversation> findByPostIdAndReceiverId(@Param("postId") Long postId, @Param("receiverId") Long receiverId);
 }

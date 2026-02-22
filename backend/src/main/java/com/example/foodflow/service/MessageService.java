@@ -73,8 +73,13 @@ public class MessageService {
         Message message = new Message(conversation, sender, request.getMessageBody());
         message = messageRepository.save(message);
         
-        // Update conversation's last message timestamp
+        // Update conversation's last message timestamp and preview
         conversation.setLastMessageAt(LocalDateTime.now());
+        String preview = request.getMessageBody();
+        if (preview != null && preview.length() > 100) {
+            preview = preview.substring(0, 100) + "...";
+        }
+        conversation.setLastMessagePreview(preview);
         conversationRepository.save(conversation);
         
         // Convert to response
