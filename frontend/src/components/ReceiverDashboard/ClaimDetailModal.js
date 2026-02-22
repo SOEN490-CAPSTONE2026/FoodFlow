@@ -227,10 +227,7 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                 className="claimed-modal-chat-link"
                 onClick={e => {
                   e.preventDefault();
-                  // Navigate to chat with donor
-                  navigate(
-                    `/receiver/messages?recipientEmail=${encodeURIComponent(post?.donorEmail)}`
-                  );
+                  handleExpressInterest();
                 }}
                 title={t('claimDetail.chatWithDonor', {
                   name: post?.donorName || t('claimDetail.donor'),

@@ -208,12 +208,21 @@ public class ConversationService {
         if (currentUser.getId().equals(otherUserId)) {
             throw new IllegalArgumentException("Cannot create conversation with yourself");
         }
-        
-        // Check if conversation already exists for this post
-        Conversation conversation = conversationRepository.findByPostIdAndUserId(postId, currentUser.getId())
+
+        // Enforce donation-thread model: one conversation per (postId, receiverId).
+        User donor = post.getDonor();
+        User receiver;
+        if (currentUser.getId().equals(donor.getId())) {
+            receiver = otherUser;
+        } else if (otherUser.getId().equals(donor.getId())) {
+            receiver = currentUser;
+        } else {
+            throw new IllegalArgumentException("Conversation participants must include the donation donor");
+        }
+
+        Conversation conversation = conversationRepository.findByPostIdAndReceiverId(postId, receiver.getId())
             .orElseGet(() -> {
-                // Create new conversation linked to post
-                Conversation newConv = new Conversation(currentUser, otherUser, post);
+                Conversation newConv = Conversation.createDonationThread(donor, receiver, post);
                 return conversationRepository.save(newConv);
             });
         

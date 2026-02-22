@@ -281,6 +281,8 @@ export const claimsAPI = {
 
 export const conversationAPI = {
   expressInterest: postId => api.post(`/conversations/interested/${postId}`),
+  createOrGetPostConversation: (postId, otherUserId) =>
+    api.post(`/conversations/post/${postId}`, { otherUserId }),
   getConversations: () => api.get('/conversations'),
   getConversation: convId => api.get(`/conversations/${convId}`),
   getMessages: convId => api.get(`/conversations/${convId}/messages`),

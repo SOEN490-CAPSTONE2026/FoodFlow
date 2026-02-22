@@ -134,7 +134,7 @@ const ConversationsSidebar = ({
                     className="conversation-avatar-image"
                   />
                 ) : (
-                  conversation.otherUserName.charAt(0).toUpperCase()
+                  (conversation.otherUserName || '?').charAt(0).toUpperCase()
                 )}
               </div>
 

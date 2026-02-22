@@ -21,7 +21,12 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { useLoadScript } from '@react-google-maps/api';
-import { surplusAPI, claimsAPI, reportAPI } from '../../services/api';
+import {
+  surplusAPI,
+  claimsAPI,
+  reportAPI,
+  conversationAPI,
+} from '../../services/api';
 import SurplusFormModal from '../DonorDashboard/SurplusFormModal';
 import ConfirmPickupModal from '../DonorDashboard/ConfirmPickupModal';
 import ClaimedSuccessModal from '../DonorDashboard/ClaimedSuccessModal';
@@ -338,7 +343,7 @@ export default function DonorListFood() {
     }
   };
 
-  const getRecipientEmailForClaimedPost = async item => {
+  const getClaimedReceiverForPost = async item => {
     try {
       setError(null);
       const { data: claims } = await claimsAPI.getClaimForSurplusPost(item.id);
@@ -350,14 +355,23 @@ export default function DonorListFood() {
         return null;
       }
 
-      return claims[0].receiverEmail;
+      const activeClaim = claims[0];
+      if (!activeClaim.receiverId) {
+        setError(`Receiver ID missing for post "${item.title}"`);
+        return null;
+      }
+
+      return {
+        id: activeClaim.receiverId,
+        email: activeClaim.receiverEmail,
+      };
     } catch (err) {
-      console.error('Error fetching recipient email:', err);
+      console.error('Error fetching receiver details:', err);
 
       if (err.response?.status === 400) {
         setError('Receiver not found or invalid email');
       } else {
-        setError('Failed to fetch recipient email. Please try again.');
+        setError('Failed to fetch receiver details. Please try again.');
       }
 
       return null;
@@ -365,14 +379,21 @@ export default function DonorListFood() {
   };
 
   const contactReceiver = async item => {
-    const recipientEmail = await getRecipientEmailForClaimedPost(item);
-
-    if (!recipientEmail) {
+    const receiver = await getClaimedReceiverForPost(item);
+    if (!receiver) {
       return;
     }
-    navigate(
-      `/donor/messages?recipientEmail=${encodeURIComponent(recipientEmail)}`
-    );
+
+    try {
+      const response = await conversationAPI.createOrGetPostConversation(
+        item.id,
+        receiver.id
+      );
+      navigate(`/donor/messages?conversationId=${response.data.id}`);
+    } catch (err) {
+      console.error('Error opening donation conversation:', err);
+      setError('Failed to open donation chat. Please try again.');
+    }
   };
 
   const handleOpenFeedback = async item => {
