@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Package, User, ArrowRight, Filter, Clock, Star } from 'lucide-react';
 import Select from 'react-select';
 import { claimsAPI, feedbackAPI } from '../../services/api';
@@ -15,6 +16,8 @@ import './Receiver_Styles/ReceiverMyClaims.css';
 
 export default function ReceiverMyClaims() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { showNotification } = useNotification();
   const { userTimezone } = useTimezone();
   const hasSetInitialFilter = useRef(false);
@@ -34,6 +37,7 @@ export default function ReceiverMyClaims() {
     postTitle: '',
   });
   const [rating, setRating] = useState({ averageRating: 0, totalReviews: 0 });
+  const [focusedDonationId, setFocusedDonationId] = useState(null);
 
   const sortOptions = [
     { value: 'date', label: t('receiverMyClaims.sortByDate') },
@@ -69,6 +73,20 @@ export default function ReceiverMyClaims() {
     return 'Claimed';
   };
 
+  const getClaimDonationId = claim =>
+    Number(claim?.surplusPost?.id ?? claim?.surplusPostId ?? 0);
+
+  // Deep-link mode: keep All filter so focused donation card is reachable immediately.
+  useEffect(() => {
+    if (!location.state?.focusDonationId) {
+      return;
+    }
+    hasSetInitialFilter.current = true;
+    if (activeFilter !== 'All') {
+      setActiveFilter('All');
+    }
+  }, [activeFilter, location.state]);
+
   useEffect(() => {
     fetchMyClaims();
     fetchMyRating();
@@ -83,6 +101,10 @@ export default function ReceiverMyClaims() {
 
   // Set initial filter based on priority: Ready > Claimed > Completed (only once on first load)
   useEffect(() => {
+    if (location.state?.focusDonationId) {
+      return;
+    }
+
     if (claims.length === 0 || hasSetInitialFilter.current) {
       return;
     }
@@ -124,7 +146,7 @@ export default function ReceiverMyClaims() {
     // Otherwise show All
     setActiveFilter('All');
     hasSetInitialFilter.current = true;
-  }, [claims]);
+  }, [claims, location.state]);
 
   const fetchMyClaims = async () => {
     setLoading(true);
@@ -382,6 +404,46 @@ export default function ReceiverMyClaims() {
     return 0;
   });
 
+  useEffect(() => {
+    const targetId = location.state?.focusDonationId;
+    if (!targetId || !claims.length) {
+      return;
+    }
+
+    const normalizedTargetId = Number(targetId);
+    const targetClaim = claims.find(
+      claim => getClaimDonationId(claim) === normalizedTargetId
+    );
+
+    if (!targetClaim) {
+      navigate(location.pathname, { replace: true, state: {} });
+      return;
+    }
+
+    if (activeFilter !== 'All') {
+      setActiveFilter('All');
+      return;
+    }
+
+    const targetCard = document.getElementById(
+      `claim-card-${normalizedTargetId}`
+    );
+    if (!targetCard) {
+      return;
+    }
+
+    setFocusedDonationId(normalizedTargetId);
+    targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    const clearHighlightTimer = setTimeout(() => {
+      setFocusedDonationId(null);
+    }, 2200);
+
+    navigate(location.pathname, { replace: true, state: {} });
+
+    return () => clearTimeout(clearHighlightTimer);
+  }, [activeFilter, claims, location.pathname, location.state, navigate]);
+
   if (loading && claims.length === 0) {
     return (
       <div className="claimed-page claimed-donations-container">
@@ -469,7 +531,15 @@ export default function ReceiverMyClaims() {
           );
 
           return (
-            <div key={claim.id} className="claimed-page donation-card">
+            <div
+              key={claim.id}
+              id={`claim-card-${getClaimDonationId(claim) || claim.id}`}
+              className={`claimed-page donation-card ${
+                focusedDonationId === getClaimDonationId(claim)
+                  ? 'donation-card--focused'
+                  : ''
+              }`}
+            >
               {/* Image */}
               <div className="claimed-page card-image">
                 <img

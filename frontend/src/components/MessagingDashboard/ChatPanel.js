@@ -1,8 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Send, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { useTimezone } from '../../contexts/TimezoneContext';
+import {
+  foodTypeImages,
+  getFoodTypeLabel,
+} from '../../constants/foodConstants';
 import {
   formatTimeInTimezone,
   getDateSeparatorInTimezone,
@@ -24,8 +29,12 @@ const ChatPanel = ({
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
   const currentUserId = localStorage.getItem('userId');
+  const currentUserRole = (
+    localStorage.getItem('userRole') || ''
+  ).toUpperCase();
   const { userTimezone } = useTimezone();
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
 
   const getProfilePhotoUrl = photoUrl => {
     if (!photoUrl) {
@@ -207,6 +216,57 @@ const ChatPanel = ({
     };
   };
 
+  const getOtherParticipantRoleLabel = () => {
+    if (!conversation?.donationId) {
+      return 'participant';
+    }
+
+    if (
+      conversation.donorId &&
+      currentUserId &&
+      conversation.donorId.toString() === currentUserId.toString()
+    ) {
+      return 'receiver';
+    }
+
+    return 'donor';
+  };
+
+  const handleViewDonation = () => {
+    if (!conversation?.donationId) {
+      return;
+    }
+
+    if (currentUserRole === 'DONOR') {
+      navigate('/donor/list', {
+        state: { focusDonationId: conversation.donationId },
+      });
+      return;
+    }
+
+    if (currentUserRole === 'RECEIVER') {
+      navigate('/receiver/my-claims', {
+        state: { focusDonationId: conversation.donationId },
+      });
+      return;
+    }
+
+    navigate('/receiver/browse', {
+      state: { focusDonationId: conversation.donationId },
+    });
+  };
+
+  const getConversationAvatarUrl = () => {
+    if (conversation?.donationPhoto) {
+      const categoryLabel = getFoodTypeLabel(conversation.donationPhoto);
+      return foodTypeImages[categoryLabel] || foodTypeImages['Prepared Meals'];
+    }
+    if (conversation?.otherUserProfilePhoto) {
+      return getProfilePhotoUrl(conversation.otherUserProfilePhoto);
+    }
+    return null;
+  };
+
   if (!conversation) {
     return (
       <div
@@ -221,6 +281,7 @@ const ChatPanel = ({
   }
 
   const statusInfo = getStatusInfo();
+  const conversationAvatarUrl = getConversationAvatarUrl();
 
   return (
     <div
@@ -234,11 +295,17 @@ const ChatPanel = ({
           <div className="chat-header-info">
             <h3>{conversation.donationTitle || conversation.otherUserName}</h3>
             <p className="chat-header-subtitle">
-              {t('chat.with')} {conversation.otherUserName}
+              {t('chat.with')} {getOtherParticipantRoleLabel()}:{' '}
+              {conversation.otherUserName}
             </p>
           </div>
         </div>
         <div className="chat-header-actions">
+          {conversation.donationId && (
+            <button className="view-post-btn" onClick={handleViewDonation}>
+              View donation
+            </button>
+          )}
           {conversation.donationId && (
             <span className={`status-badge ${statusInfo.className}`}>
               {statusInfo.label}
@@ -305,12 +372,13 @@ const ChatPanel = ({
                   >
                     {message.senderId.toString() !== currentUserId && (
                       <div className="message-avatar">
-                        {conversation.otherUserProfilePhoto ? (
+                        {conversationAvatarUrl ? (
                           <img
-                            src={getProfilePhotoUrl(
-                              conversation.otherUserProfilePhoto
-                            )}
-                            alt={conversation.otherUserName}
+                            src={conversationAvatarUrl}
+                            alt={
+                              conversation.donationTitle ||
+                              conversation.otherUserName
+                            }
                             className="message-avatar-image"
                           />
                         ) : (

@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import {
+  foodTypeImages,
+  getFoodTypeLabel,
+} from '../../constants/foodConstants';
 import './ConversationsSidebar.css';
 
 const ConversationsSidebar = ({
@@ -73,6 +77,14 @@ const ConversationsSidebar = ({
   // Count unread conversations
   const unreadCount = conversations.filter(conv => conv.unreadCount > 0).length;
 
+  const getDonationAvatarUrl = conversation => {
+    if (!conversation?.donationPhoto) {
+      return null;
+    }
+    const categoryLabel = getFoodTypeLabel(conversation.donationPhoto);
+    return foodTypeImages[categoryLabel] || foodTypeImages['Prepared Meals'];
+  };
+
   return (
     <div
       className={`conversations-sidebar ${showOnMobile ? 'show-mobile' : 'hide-mobile'}`}
@@ -127,7 +139,15 @@ const ConversationsSidebar = ({
               onClick={() => onSelectConversation(conversation)}
             >
               <div className="conversation-avatar">
-                {conversation.otherUserProfilePhoto ? (
+                {getDonationAvatarUrl(conversation) ? (
+                  <img
+                    src={getDonationAvatarUrl(conversation)}
+                    alt={
+                      conversation.donationTitle || conversation.otherUserName
+                    }
+                    className="conversation-avatar-image"
+                  />
+                ) : conversation.otherUserProfilePhoto ? (
                   <img
                     src={getProfilePhotoUrl(conversation.otherUserProfilePhoto)}
                     alt={conversation.otherUserName}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Calendar,
   Clock,
@@ -242,6 +242,7 @@ export default function DonorListFood() {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState({}); // { donationId: index }
   const [uploadingPhotos, setUploadingPhotos] = useState({}); // { donationId: true/false }
   const [uploadError, setUploadError] = useState({}); // { donationId: error message }
+  const [focusedDonationId, setFocusedDonationId] = useState(null);
 
   // Timeline states
   const [expandedTimeline, setExpandedTimeline] = useState({}); // { donationId: true/false }
@@ -251,6 +252,7 @@ export default function DonorListFood() {
   useEffect(() => {
     fetchMyPosts();
   }, []);
+  const location = useLocation();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -573,6 +575,30 @@ export default function DonorListFood() {
     }
   };
 
+  useEffect(() => {
+    const targetId = location.state?.focusDonationId;
+    if (!targetId || !items.length) {
+      return;
+    }
+
+    const targetCard = document.getElementById(`donation-card-${targetId}`);
+    if (!targetCard) {
+      return;
+    }
+
+    setFocusedDonationId(Number(targetId));
+    targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    const clearHighlightTimer = setTimeout(() => {
+      setFocusedDonationId(null);
+    }, 2200);
+
+    // Clear focus state so it does not retrigger on every rerender.
+    navigate(location.pathname, { replace: true, state: {} });
+
+    return () => clearTimeout(clearHighlightTimer);
+  }, [items, location.pathname, location.state, navigate]);
+
   // Photo upload handlers
   const handlePhotoUpload = async (donationId, event) => {
     const files = Array.from(event.target.files);
@@ -889,7 +915,10 @@ export default function DonorListFood() {
             return (
               <article
                 key={item.id}
-                className="donation-card"
+                id={`donation-card-${item.id}`}
+                className={`donation-card ${
+                  focusedDonationId === item.id ? 'donation-card--focused' : ''
+                }`}
                 aria-label={item.title}
               >
                 <div className="donation-header">

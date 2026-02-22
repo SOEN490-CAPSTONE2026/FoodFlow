@@ -15,7 +15,7 @@ import {
   Star,
 } from 'lucide-react';
 import { useLoadScript } from '@react-google-maps/api';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   surplusAPI,
   recommendationAPI,
@@ -51,6 +51,7 @@ export default function ReceiverBrowse() {
 
   const { userTimezone } = useTimezone();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [filters, setFilters] = useState({
     foodType: [],
@@ -84,6 +85,7 @@ export default function ReceiverBrowse() {
   const [mapViewOpen, setMapViewOpen] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
   const [expressingInterest, setExpressingInterest] = useState(null);
+  const [focusedDonationId, setFocusedDonationId] = useState(null);
 
   const getRecommendationData = item => {
     // Mock logic to determine if item is recommended
@@ -157,6 +159,50 @@ export default function ReceiverBrowse() {
       fetchRecommendations(items);
     }
   }, [items, fetchRecommendations]);
+
+  useEffect(() => {
+    const targetId = location.state?.focusDonationId;
+    if (!targetId || !items.length) {
+      return;
+    }
+
+    const normalizedTargetId = Number(targetId);
+    const targetItem = items.find(
+      item => Number(item.id) === normalizedTargetId
+    );
+
+    if (!targetItem) {
+      if (location.state?.fallbackToClaims) {
+        navigate('/receiver/my-claims', {
+          state: {
+            focusDonationId: normalizedTargetId,
+            fromBrowseFallback: true,
+          },
+        });
+        return;
+      }
+      navigate(location.pathname, { replace: true, state: {} });
+      return;
+    }
+
+    setExpandedCardId(normalizedTargetId);
+    setFocusedDonationId(normalizedTargetId);
+
+    const targetCard = document.getElementById(
+      `receiver-browse-card-${normalizedTargetId}`
+    );
+    if (targetCard) {
+      targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    const clearHighlightTimer = setTimeout(() => {
+      setFocusedDonationId(null);
+    }, 2200);
+
+    navigate(location.pathname, { replace: true, state: {} });
+
+    return () => clearTimeout(clearHighlightTimer);
+  }, [items, location.pathname, location.state, navigate]);
 
   const handleFiltersChange = useCallback((filterType, value) => {
     setFilters(prev => ({
@@ -597,8 +643,13 @@ export default function ReceiverBrowse() {
                 return (
                   <div
                     key={item.id}
+                    id={`receiver-browse-card-${item.id}`}
                     className={`receiver-donation-card ${
                       expandedCardId === item.id ? 'expanded' : ''
+                    } ${
+                      focusedDonationId === Number(item.id)
+                        ? 'receiver-donation-card--focused'
+                        : ''
                     }`}
                   >
                     {/* Corner Recommended Badge */}
