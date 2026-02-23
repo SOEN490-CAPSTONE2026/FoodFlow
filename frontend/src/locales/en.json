@@ -1378,37 +1378,99 @@
       "UNIQUE_PARTNER_COUNT": "Successfully interact with {{count}} different organizations"
     },
     "catalog": {
-      "community_champion": { "name": "Community Champion" },
-      "century_donor": { "name": "Century Donor" },
-      "unstoppable_force": { "name": "Unstoppable Force" },
-      "donation_master": { "name": "Donation Master" },
-      "elite_contributor": { "name": "Elite Contributor" },
-      "legendary_donor": { "name": "Legendary Donor" },
-      "donation_titan": { "name": "Donation Titan" },
-      "thousand_strong": { "name": "Thousand Strong" },
-      "ultimate_benefactor": { "name": "Ultimate Benefactor" },
-      "steady_start": { "name": "Steady Start" },
-      "monthly_commitment": { "name": "Monthly Commitment" },
-      "two_month_streak": { "name": "Two Month Streak" },
-      "quarterly_dedication": { "name": "Quarterly Dedication" },
-      "half_year_hero": { "name": "Half Year Hero" },
-      "year_round_giver": { "name": "Year-Round Giver" },
-      "two_year_legend": { "name": "Two Year Legend" },
-      "chatty_starter": { "name": "Chatty Starter" },
-      "conversationalist": { "name": "Conversationalist" },
-      "active_communicator": { "name": "Active Communicator" },
-      "communication_expert": { "name": "Communication Expert" },
-      "message_master": { "name": "Message Master" },
-      "communication_guru": { "name": "Communication Guru" },
-      "ultimate_networker": { "name": "Ultimate Networker" },
-      "making_connections": { "name": "Making Connections" },
-      "community_builder": { "name": "Community Builder" },
-      "network_grower": { "name": "Network Grower" },
-      "relationship_expert": { "name": "Relationship Expert" },
-      "community_leader": { "name": "Community Leader" },
-      "connection_master": { "name": "Connection Master" },
-      "network_titan": { "name": "Network Titan" },
-      "ultimate_connector": { "name": "Ultimate Connector" }
+      "community_champion": {
+        "name": "Community Champion"
+      },
+      "century_donor": {
+        "name": "Century Donor"
+      },
+      "unstoppable_force": {
+        "name": "Unstoppable Force"
+      },
+      "donation_master": {
+        "name": "Donation Master"
+      },
+      "elite_contributor": {
+        "name": "Elite Contributor"
+      },
+      "legendary_donor": {
+        "name": "Legendary Donor"
+      },
+      "donation_titan": {
+        "name": "Donation Titan"
+      },
+      "thousand_strong": {
+        "name": "Thousand Strong"
+      },
+      "ultimate_benefactor": {
+        "name": "Ultimate Benefactor"
+      },
+      "steady_start": {
+        "name": "Steady Start"
+      },
+      "monthly_commitment": {
+        "name": "Monthly Commitment"
+      },
+      "two_month_streak": {
+        "name": "Two Month Streak"
+      },
+      "quarterly_dedication": {
+        "name": "Quarterly Dedication"
+      },
+      "half_year_hero": {
+        "name": "Half Year Hero"
+      },
+      "year_round_giver": {
+        "name": "Year-Round Giver"
+      },
+      "two_year_legend": {
+        "name": "Two Year Legend"
+      },
+      "chatty_starter": {
+        "name": "Chatty Starter"
+      },
+      "conversationalist": {
+        "name": "Conversationalist"
+      },
+      "active_communicator": {
+        "name": "Active Communicator"
+      },
+      "communication_expert": {
+        "name": "Communication Expert"
+      },
+      "message_master": {
+        "name": "Message Master"
+      },
+      "communication_guru": {
+        "name": "Communication Guru"
+      },
+      "ultimate_networker": {
+        "name": "Ultimate Networker"
+      },
+      "making_connections": {
+        "name": "Making Connections"
+      },
+      "community_builder": {
+        "name": "Community Builder"
+      },
+      "network_grower": {
+        "name": "Network Grower"
+      },
+      "relationship_expert": {
+        "name": "Relationship Expert"
+      },
+      "community_leader": {
+        "name": "Community Leader"
+      },
+      "connection_master": {
+        "name": "Connection Master"
+      },
+      "network_titan": {
+        "name": "Network Titan"
+      },
+      "ultimate_connector": {
+        "name": "Ultimate Connector"
+      }
     }
   },
   "leaderboard": {
@@ -1525,5 +1587,159 @@
     "selectAll": "Select All",
     "clearAll": "Clear All",
     "done": "Done"
+  },
+  "donorHelp": {
+    "gettingStarted": {
+      "title": "Getting Started",
+      "intro": "Welcome to FoodFlow! Follow these steps to start making a difference by donating your surplus food to those in need.",
+      "steps": {
+        "step1": {
+          "title": "Create Your First Donation",
+          "description": "Click \"Donate Now\" in the sidebar and fill out the donation form with your surplus food details including food type, quantity, and description."
+        },
+        "step2": {
+          "title": "Set Pickup Times",
+          "description": "Choose available time slots when receivers can pick up the food from your location. You can add multiple slots for flexibility."
+        },
+        "step3": {
+          "title": "Wait for Claims",
+          "description": "Verified receivers will see your donation and can claim it. You'll be notified instantly when someone claims your listing."
+        },
+        "step4": {
+          "title": "Confirm Pickup with OTP",
+          "description": "When the receiver arrives during the pickup window, they'll provide an OTP code. Enter it to confirm the successful handoff."
+        }
+      }
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "items": {
+        "q1": {
+          "question": "How do I create a donation?",
+          "answer": "Navigate to 'Donate Now' from the sidebar, click 'Add Donation', fill in the food details including title, food type, quantity, expiry date, and pickup time slots. Click 'Submit' to publish your donation. Your listing will be visible to verified receivers in your area."
+        },
+        "q2": {
+          "question": "How does pickup confirmation work?",
+          "answer": "When a receiver claims your donation and arrives at the pickup location during the scheduled time, you'll need to confirm the handoff. An OTP (One-Time Password) is generated for each claimed donation. The receiver will provide this code - enter it in the app to mark the donation as successfully completed."
+        },
+        "q3": {
+          "question": "What is an OTP code?",
+          "answer": "OTP stands for One-Time Password. It's a unique 6-digit code automatically generated when your donation status changes to 'Ready for Pickup'. This code ensures secure verification that the correct receiver has picked up the food. Share this code only with the receiver who claimed your donation."
+        },
+        "q4": {
+          "question": "Can I edit or delete a donation?",
+          "answer": "Yes, you can edit or delete donations that haven't been claimed yet. Navigate to 'Donate Now' to view your active listings. Click on a listing to see edit and delete options. Important: Once a donation is claimed by a receiver, it cannot be modified or deleted to ensure commitment to the receiver."
+        },
+        "q5": {
+          "question": "How do I message a receiver?",
+          "answer": "Click 'Messages' in the sidebar to access your conversations. You can communicate with receivers who have claimed your donations to coordinate pickup details, clarify food information, or handle any issues. Messages are sent in real-time and you'll receive notifications for new messages."
+        },
+        "q6": {
+          "question": "What food types can I donate?",
+          "answer": "FoodFlow supports various food categories: Prepared Food (cooked meals), Packaged Items (canned goods, sealed products), Fruits & Vegetables (fresh produce), Dairy & Cold items (requires refrigeration), Pastry & Bakery (breads, pastries), and Frozen Food. Select all applicable categories when creating your listing for better matching with receivers."
+        },
+        "q7": {
+          "question": "How do I set pickup time slots?",
+          "answer": "When creating a donation, you can add multiple pickup time slots to give receivers flexibility. Specify the date, start time, and end time for each slot. Receivers will select one of your available slots when claiming the donation. Make sure the times are when you or your staff will be available to hand over the food."
+        },
+        "q8": {
+          "question": "What happens if a receiver doesn't show up?",
+          "answer": "If a receiver fails to pick up the claimed donation within the scheduled time window, you can wait for a reasonable period and then the claim may expire. The donation will become available again for other receivers to claim. You can also contact the receiver through messages to check on their status."
+        },
+        "q9": {
+          "question": "How is my organization verified?",
+          "answer": "When you register, your organization details are submitted for verification. Our admin team reviews your business license, address, and other details. You'll see your verification status in your profile. Verified organizations build trust with receivers and may have access to additional features."
+        },
+        "q10": {
+          "question": "Can I see who claimed my donation?",
+          "answer": "Yes, once a receiver claims your donation, you can see their organization name and contact information. This helps you prepare for the pickup and coordinate if needed. Receiver organizations are also verified to ensure food goes to legitimate charitable causes."
+        }
+      }
+    },
+    "support": {
+      "title": "Need More Help?",
+      "intro": "Can't find what you're looking for? Our support team is here to help you.",
+      "emailLabel": "Email Support",
+      "emailResponseTime": "Response within 24 hours",
+      "phoneLabel": "Phone Support",
+      "phoneAvailability": "Mon-Fri, 9AM-6PM EST"
+    }
+  },
+  "receiverHelp": {
+    "gettingStarted": {
+      "title": "Getting Started",
+      "intro": "Welcome to FoodFlow! As a receiver, you can claim surplus food donations from local businesses and organizations. Here's how to get started.",
+      "steps": {
+        "step1": {
+          "title": "Browse Available Donations",
+          "description": "Explore the Donations page to find surplus food listings near you. Use filters to find food that matches your organization's needs."
+        },
+        "step2": {
+          "title": "Claim & Schedule Pickup",
+          "description": "Click 'Claim' on a donation and select a pickup time from the available slots. The donation will be reserved for your organization."
+        },
+        "step3": {
+          "title": "Pickup with OTP",
+          "description": "Arrive at the scheduled time and provide your OTP code to the donor. They'll confirm the handoff, completing the donation process."
+        },
+        "step4": {
+          "title": "Set Your Preferences",
+          "description": "Update your food preferences in your profile to get better matches and help donors understand your organization's needs."
+        }
+      }
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "items": {
+        "q1": {
+          "question": "How do I claim a donation?",
+          "answer": "Browse available donations on the main page. When you find a listing you want, click 'Claim' on the donation card. Select a pickup time slot from the available options provided by the donor. Once confirmed, the donation is reserved for your organization. You'll receive notifications about the pickup status."
+        },
+        "q2": {
+          "question": "How do I confirm pickup?",
+          "answer": "When you arrive at the donor's location during your scheduled pickup time, you'll need to provide an OTP (One-Time Password) code to the donor. This code is visible in your 'My Claims' section under the donation details. The donor enters this code to confirm the successful handoff, completing the transaction."
+        },
+        "q3": {
+          "question": "What is the OTP code?",
+          "answer": "The OTP (One-Time Password) is a unique 6-digit verification code assigned to each claimed donation. It appears in your claim details once the donation status changes to 'Ready for Pickup'. You'll need to show or tell this code to the donor when collecting the food. This ensures secure verification of the pickup."
+        },
+        "q4": {
+          "question": "What are food preferences?",
+          "answer": "Food preferences allow you to customize what types of donations you're interested in receiving. You can set preferences for food categories (prepared food, produce, dairy, etc.), donation sizes (small, medium, large), and dietary requirements (vegetarian, halal, kosher, etc.). Donors may be able to see your preferences to better match donations to your needs."
+        },
+        "q5": {
+          "question": "How do I set my food preferences?",
+          "answer": "Click on your profile avatar in the top right corner and select 'Preferences' from the dropdown menu. You can select your preferred food types, specify dietary restrictions, set your pickup capacity, and indicate your operating hours. These preferences help match you with suitable donations."
+        },
+        "q6": {
+          "question": "How do I message a donor?",
+          "answer": "Click 'Messages' in the navigation bar to access your conversations. You can send messages to donors whose donations you've claimed to coordinate pickup details, ask questions about the food, or handle any issues. Messages are delivered in real-time and you'll receive notifications for new messages."
+        },
+        "q7": {
+          "question": "What do the donation statuses mean?",
+          "answer": "Donations go through several statuses: 'Available' means the food is open for claims. 'Claimed' means someone has reserved it. 'Ready for Pickup' indicates it's time to collect the food - you'll see your OTP code at this stage. 'Completed' means the pickup was successful. 'Cancelled' means the claim was cancelled."
+        },
+        "q8": {
+          "question": "Can I cancel a claim?",
+          "answer": "Yes, you can cancel a claim that hasn't been picked up yet. Go to 'My Claims', find the donation, and click the cancel option. Please try to cancel as early as possible so the food can be made available to other receivers. Frequent cancellations may affect your organization's reputation on the platform."
+        },
+        "q9": {
+          "question": "How do I find donations near me?",
+          "answer": "The Donations page shows available food listings in your area. You can browse all listings or use the filters to narrow down by food type, distance, or pickup time. The map view helps you visualize locations. Your organization's registered address is used to calculate distances to donations."
+        },
+        "q10": {
+          "question": "How is my organization verified?",
+          "answer": "When you register, your organization details are submitted for verification. Our admin team reviews your charitable status, registration documents, and contact information. You'll see your verification status in your profile. Some features may be limited until verification is complete."
+        }
+      }
+    },
+    "support": {
+      "title": "Need More Help?",
+      "intro": "Can't find what you're looking for? Our support team is here to help you.",
+      "emailLabel": "Email Support",
+      "emailResponseTime": "Response within 24 hours",
+      "phoneLabel": "Phone Support",
+      "phoneAvailability": "Mon-Fri, 9AM-6PM EST"
+    }
   }
 }

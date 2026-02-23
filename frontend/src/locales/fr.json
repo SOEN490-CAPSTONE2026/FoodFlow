@@ -1354,37 +1354,99 @@
       "UNIQUE_PARTNER_COUNT": "Interagir avec succès avec {{count}} organisations différentes"
     },
     "catalog": {
-      "community_champion": { "name": "Champion communautaire" },
-      "century_donor": { "name": "Donateur du siècle" },
-      "unstoppable_force": { "name": "Force inarrêtable" },
-      "donation_master": { "name": "Maître des dons" },
-      "elite_contributor": { "name": "Contributeur d'élite" },
-      "legendary_donor": { "name": "Donateur légendaire" },
-      "donation_titan": { "name": "Titan du don" },
-      "thousand_strong": { "name": "Cap des mille" },
-      "ultimate_benefactor": { "name": "Bienfaiteur ultime" },
-      "steady_start": { "name": "Bon départ" },
-      "monthly_commitment": { "name": "Engagement mensuel" },
-      "two_month_streak": { "name": "Série de deux mois" },
-      "quarterly_dedication": { "name": "Engagement trimestriel" },
-      "half_year_hero": { "name": "Héros semestriel" },
-      "year_round_giver": { "name": "Donateur toute l'année" },
-      "two_year_legend": { "name": "Légende sur deux ans" },
-      "chatty_starter": { "name": "Début bavard" },
-      "conversationalist": { "name": "Conversationniste" },
-      "active_communicator": { "name": "Communicateur actif" },
-      "communication_expert": { "name": "Expert en communication" },
-      "message_master": { "name": "Maître des messages" },
-      "communication_guru": { "name": "Gourou de la communication" },
-      "ultimate_networker": { "name": "Réseauteur ultime" },
-      "making_connections": { "name": "Créer des liens" },
-      "community_builder": { "name": "Bâtisseur de communauté" },
-      "network_grower": { "name": "Développeur de réseau" },
-      "relationship_expert": { "name": "Expert des relations" },
-      "community_leader": { "name": "Leader communautaire" },
-      "connection_master": { "name": "Maître des connexions" },
-      "network_titan": { "name": "Titan du réseau" },
-      "ultimate_connector": { "name": "Connecteur ultime" }
+      "community_champion": {
+        "name": "Champion communautaire"
+      },
+      "century_donor": {
+        "name": "Donateur du siècle"
+      },
+      "unstoppable_force": {
+        "name": "Force inarrêtable"
+      },
+      "donation_master": {
+        "name": "Maître des dons"
+      },
+      "elite_contributor": {
+        "name": "Contributeur d'élite"
+      },
+      "legendary_donor": {
+        "name": "Donateur légendaire"
+      },
+      "donation_titan": {
+        "name": "Titan du don"
+      },
+      "thousand_strong": {
+        "name": "Cap des mille"
+      },
+      "ultimate_benefactor": {
+        "name": "Bienfaiteur ultime"
+      },
+      "steady_start": {
+        "name": "Bon départ"
+      },
+      "monthly_commitment": {
+        "name": "Engagement mensuel"
+      },
+      "two_month_streak": {
+        "name": "Série de deux mois"
+      },
+      "quarterly_dedication": {
+        "name": "Engagement trimestriel"
+      },
+      "half_year_hero": {
+        "name": "Héros semestriel"
+      },
+      "year_round_giver": {
+        "name": "Donateur toute l'année"
+      },
+      "two_year_legend": {
+        "name": "Légende sur deux ans"
+      },
+      "chatty_starter": {
+        "name": "Début bavard"
+      },
+      "conversationalist": {
+        "name": "Conversationniste"
+      },
+      "active_communicator": {
+        "name": "Communicateur actif"
+      },
+      "communication_expert": {
+        "name": "Expert en communication"
+      },
+      "message_master": {
+        "name": "Maître des messages"
+      },
+      "communication_guru": {
+        "name": "Gourou de la communication"
+      },
+      "ultimate_networker": {
+        "name": "Réseauteur ultime"
+      },
+      "making_connections": {
+        "name": "Créer des liens"
+      },
+      "community_builder": {
+        "name": "Bâtisseur de communauté"
+      },
+      "network_grower": {
+        "name": "Développeur de réseau"
+      },
+      "relationship_expert": {
+        "name": "Expert des relations"
+      },
+      "community_leader": {
+        "name": "Leader communautaire"
+      },
+      "connection_master": {
+        "name": "Maître des connexions"
+      },
+      "network_titan": {
+        "name": "Titan du réseau"
+      },
+      "ultimate_connector": {
+        "name": "Connecteur ultime"
+      }
     }
   },
   "leaderboard": {
@@ -1501,5 +1563,159 @@
     "selectAll": "Tout sélectionner",
     "clearAll": "Tout effacer",
     "done": "Terminé"
+  },
+  "donorHelp": {
+    "gettingStarted": {
+      "title": "Premiers pas",
+      "intro": "Bienvenue sur FoodFlow ! Suivez ces étapes pour commencer à faire la différence en donnant vos surplus alimentaires à ceux qui en ont besoin.",
+      "steps": {
+        "step1": {
+          "title": "Créez votre premier don",
+          "description": "Cliquez sur \"Faire un don\" dans la barre latérale et remplissez le formulaire avec les détails de vos surplus alimentaires, y compris le type d'aliment, la quantité et la description."
+        },
+        "step2": {
+          "title": "Définissez les horaires de collecte",
+          "description": "Choisissez les créneaux disponibles pour que les bénéficiaires puissent récupérer la nourriture à votre emplacement. Vous pouvez ajouter plusieurs créneaux."
+        },
+        "step3": {
+          "title": "Attendez les réclamations",
+          "description": "Les bénéficiaires vérifiés verront votre don et pourront le réclamer. Vous serez averti immédiatement lorsqu'une personne le réclame."
+        },
+        "step4": {
+          "title": "Confirmez la collecte avec OTP",
+          "description": "Lorsque le bénéficiaire arrive pendant le créneau de collecte, il fournit un code OTP. Saisissez-le pour confirmer la remise réussie."
+        }
+      }
+    },
+    "faq": {
+      "title": "Foire aux questions",
+      "items": {
+        "q1": {
+          "question": "Comment créer un don ?",
+          "answer": "Allez dans « Faire un don » dans la barre latérale, cliquez sur « Ajouter un don », puis remplissez les détails (titre, type d'aliment, quantité, date d'expiration et créneaux de collecte). Cliquez sur « Soumettre » pour publier votre don. Votre annonce sera visible pour les bénéficiaires vérifiés de votre zone."
+        },
+        "q2": {
+          "question": "Comment fonctionne la confirmation de collecte ?",
+          "answer": "Quand un bénéficiaire réclame votre don et arrive au lieu de collecte pendant le créneau prévu, vous devez confirmer la remise. Un OTP (mot de passe à usage unique) est généré pour chaque don réclamé. Le bénéficiaire vous donne ce code : saisissez-le dans l'application pour marquer le don comme complété."
+        },
+        "q3": {
+          "question": "Qu'est-ce qu'un code OTP ?",
+          "answer": "OTP signifie mot de passe à usage unique. C'est un code unique à 6 chiffres généré automatiquement lorsque votre don passe à l'état « Prêt pour la collecte ». Ce code garantit que le bon bénéficiaire récupère la nourriture. Partagez ce code uniquement avec le bénéficiaire concerné."
+        },
+        "q4": {
+          "question": "Puis-je modifier ou supprimer un don ?",
+          "answer": "Oui, vous pouvez modifier ou supprimer les dons qui ne sont pas encore réclamés. Allez dans « Faire un don » pour voir vos annonces actives. Cliquez sur une annonce pour voir les options de modification et de suppression. Important : une fois réclamé, un don ne peut plus être modifié ni supprimé."
+        },
+        "q5": {
+          "question": "Comment envoyer un message à un bénéficiaire ?",
+          "answer": "Cliquez sur « Messages » dans la barre latérale pour accéder à vos conversations. Vous pouvez communiquer avec les bénéficiaires qui ont réclamé vos dons pour organiser la collecte ou clarifier des informations. Les messages sont envoyés en temps réel."
+        },
+        "q6": {
+          "question": "Quels types d'aliments puis-je donner ?",
+          "answer": "FoodFlow prend en charge différentes catégories : repas préparés, produits emballés, fruits et légumes, produits laitiers/réfrigérés, boulangerie-pâtisserie et aliments surgelés. Sélectionnez toutes les catégories applicables pour mieux correspondre aux besoins des bénéficiaires."
+        },
+        "q7": {
+          "question": "Comment définir les créneaux de collecte ?",
+          "answer": "Lors de la création d'un don, vous pouvez ajouter plusieurs créneaux de collecte pour plus de flexibilité. Indiquez la date, l'heure de début et l'heure de fin de chaque créneau. Le bénéficiaire choisira un créneau disponible au moment de la réclamation."
+        },
+        "q8": {
+          "question": "Que se passe-t-il si un bénéficiaire ne se présente pas ?",
+          "answer": "Si un bénéficiaire ne récupère pas le don dans le créneau prévu, vous pouvez attendre un délai raisonnable puis la réclamation peut expirer. Le don redevient alors disponible pour d'autres bénéficiaires. Vous pouvez aussi contacter le bénéficiaire via les messages."
+        },
+        "q9": {
+          "question": "Comment mon organisation est-elle vérifiée ?",
+          "answer": "Lors de l'inscription, les informations de votre organisation sont envoyées pour vérification. Notre équipe admin examine votre licence d'activité, votre adresse et d'autres éléments. Vous verrez l'état de vérification dans votre profil."
+        },
+        "q10": {
+          "question": "Puis-je voir qui a réclamé mon don ?",
+          "answer": "Oui. Une fois votre don réclamé, vous pouvez voir le nom de l'organisation bénéficiaire et ses coordonnées. Cela facilite la préparation de la collecte et la coordination."
+        }
+      }
+    },
+    "support": {
+      "title": "Besoin de plus d'aide ?",
+      "intro": "Vous ne trouvez pas ce que vous cherchez ? Notre équipe de support est là pour vous aider.",
+      "emailLabel": "Support e-mail",
+      "emailResponseTime": "Réponse sous 24 heures",
+      "phoneLabel": "Support téléphonique",
+      "phoneAvailability": "Lun-Ven, 9h-18h EST"
+    }
+  },
+  "receiverHelp": {
+    "gettingStarted": {
+      "title": "Premiers pas",
+      "intro": "Bienvenue sur FoodFlow ! En tant que bénéficiaire, vous pouvez réclamer des dons alimentaires de commerces et d'organisations locales. Voici comment commencer.",
+      "steps": {
+        "step1": {
+          "title": "Parcourez les dons disponibles",
+          "description": "Explorez la page Dons pour trouver des surplus alimentaires près de vous. Utilisez les filtres pour trouver des dons adaptés à vos besoins."
+        },
+        "step2": {
+          "title": "Réclamez et planifiez la collecte",
+          "description": "Cliquez sur « Réclamer » sur un don et choisissez un créneau de collecte parmi les options disponibles. Le don sera réservé pour votre organisation."
+        },
+        "step3": {
+          "title": "Collecte avec OTP",
+          "description": "Arrivez à l'heure prévue et fournissez votre code OTP au donateur. Il confirmera la remise pour finaliser le don."
+        },
+        "step4": {
+          "title": "Définissez vos préférences",
+          "description": "Mettez à jour vos préférences alimentaires dans votre profil pour obtenir de meilleures correspondances."
+        }
+      }
+    },
+    "faq": {
+      "title": "Foire aux questions",
+      "items": {
+        "q1": {
+          "question": "Comment réclamer un don ?",
+          "answer": "Parcourez les dons disponibles sur la page principale. Quand vous trouvez une annonce qui vous convient, cliquez sur « Réclamer ». Sélectionnez un créneau de collecte proposé par le donateur. Une fois confirmé, le don est réservé pour votre organisation."
+        },
+        "q2": {
+          "question": "Comment confirmer la collecte ?",
+          "answer": "Quand vous arrivez chez le donateur à l'heure prévue, vous devez fournir un code OTP (mot de passe à usage unique). Ce code apparaît dans « Mes réclamations » dans les détails du don. Le donateur le saisit pour confirmer la remise."
+        },
+        "q3": {
+          "question": "Qu'est-ce que le code OTP ?",
+          "answer": "Le code OTP est un code de vérification unique à 6 chiffres attribué à chaque don réclamé. Il apparaît dans vos détails lorsque le don passe à l'état « Prêt pour la collecte »."
+        },
+        "q4": {
+          "question": "Que sont les préférences alimentaires ?",
+          "answer": "Les préférences alimentaires vous permettent d'indiquer les types de dons qui vous intéressent : catégories d'aliments, taille de dons et contraintes alimentaires (végétarien, halal, kasher, etc.)."
+        },
+        "q5": {
+          "question": "Comment définir mes préférences alimentaires ?",
+          "answer": "Cliquez sur votre avatar en haut à droite puis sur « Préférences ». Vous pouvez sélectionner vos types d'aliments préférés, vos restrictions et vos capacités de collecte."
+        },
+        "q6": {
+          "question": "Comment envoyer un message à un donateur ?",
+          "answer": "Cliquez sur « Messages » dans la navigation pour accéder à vos conversations. Vous pouvez écrire aux donateurs dont vous avez réclamé les dons pour coordonner la collecte."
+        },
+        "q7": {
+          "question": "Que signifient les statuts des dons ?",
+          "answer": "Les dons passent par plusieurs statuts : « Disponible », « Réclamé », « Prêt pour la collecte », « Complété » et « Annulé ». Votre code OTP apparaît à l'étape « Prêt pour la collecte »."
+        },
+        "q8": {
+          "question": "Puis-je annuler une réclamation ?",
+          "answer": "Oui, vous pouvez annuler une réclamation tant que la collecte n'a pas eu lieu. Allez dans « Mes réclamations », trouvez le don et cliquez sur l'option d'annulation."
+        },
+        "q9": {
+          "question": "Comment trouver des dons près de moi ?",
+          "answer": "La page Dons affiche les annonces disponibles autour de vous. Utilisez les filtres (type d'aliment, distance, heure de collecte) et la vue carte pour mieux cibler."
+        },
+        "q10": {
+          "question": "Comment mon organisation est-elle vérifiée ?",
+          "answer": "Lors de l'inscription, les informations de votre organisation sont soumises à vérification. Notre équipe admin vérifie vos documents et coordonnées."
+        }
+      }
+    },
+    "support": {
+      "title": "Besoin de plus d'aide ?",
+      "intro": "Vous ne trouvez pas ce que vous cherchez ? Notre équipe de support est là pour vous aider.",
+      "emailLabel": "Support e-mail",
+      "emailResponseTime": "Réponse sous 24 heures",
+      "phoneLabel": "Support téléphonique",
+      "phoneAvailability": "Lun-Ven, 9h-18h EST"
+    }
   }
 }

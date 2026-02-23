@@ -1354,37 +1354,99 @@
       "UNIQUE_PARTNER_COUNT": "成功与 {{count}} 个不同组织互动"
     },
     "catalog": {
-      "community_champion": { "name": "社区冠军" },
-      "century_donor": { "name": "百次捐赠者" },
-      "unstoppable_force": { "name": "势不可挡" },
-      "donation_master": { "name": "捐赠大师" },
-      "elite_contributor": { "name": "精英贡献者" },
-      "legendary_donor": { "name": "传奇捐赠者" },
-      "donation_titan": { "name": "捐赠巨擘" },
-      "thousand_strong": { "name": "千次坚守" },
-      "ultimate_benefactor": { "name": "终极慈善家" },
-      "steady_start": { "name": "稳健起步" },
-      "monthly_commitment": { "name": "月度承诺" },
-      "two_month_streak": { "name": "两月连胜" },
-      "quarterly_dedication": { "name": "季度奉献" },
-      "half_year_hero": { "name": "半年英雄" },
-      "year_round_giver": { "name": "全年捐赠者" },
-      "two_year_legend": { "name": "两年传奇" },
-      "chatty_starter": { "name": "聊天新手" },
-      "conversationalist": { "name": "对话达人" },
-      "active_communicator": { "name": "活跃沟通者" },
-      "communication_expert": { "name": "沟通专家" },
-      "message_master": { "name": "消息大师" },
-      "communication_guru": { "name": "沟通宗师" },
-      "ultimate_networker": { "name": "终极联络者" },
-      "making_connections": { "name": "建立连接" },
-      "community_builder": { "name": "社区建设者" },
-      "network_grower": { "name": "网络拓展者" },
-      "relationship_expert": { "name": "关系专家" },
-      "community_leader": { "name": "社区领袖" },
-      "connection_master": { "name": "连接大师" },
-      "network_titan": { "name": "网络巨擘" },
-      "ultimate_connector": { "name": "终极连接者" }
+      "community_champion": {
+        "name": "社区冠军"
+      },
+      "century_donor": {
+        "name": "百次捐赠者"
+      },
+      "unstoppable_force": {
+        "name": "势不可挡"
+      },
+      "donation_master": {
+        "name": "捐赠大师"
+      },
+      "elite_contributor": {
+        "name": "精英贡献者"
+      },
+      "legendary_donor": {
+        "name": "传奇捐赠者"
+      },
+      "donation_titan": {
+        "name": "捐赠巨擘"
+      },
+      "thousand_strong": {
+        "name": "千次坚守"
+      },
+      "ultimate_benefactor": {
+        "name": "终极慈善家"
+      },
+      "steady_start": {
+        "name": "稳健起步"
+      },
+      "monthly_commitment": {
+        "name": "月度承诺"
+      },
+      "two_month_streak": {
+        "name": "两月连胜"
+      },
+      "quarterly_dedication": {
+        "name": "季度奉献"
+      },
+      "half_year_hero": {
+        "name": "半年英雄"
+      },
+      "year_round_giver": {
+        "name": "全年捐赠者"
+      },
+      "two_year_legend": {
+        "name": "两年传奇"
+      },
+      "chatty_starter": {
+        "name": "聊天新手"
+      },
+      "conversationalist": {
+        "name": "对话达人"
+      },
+      "active_communicator": {
+        "name": "活跃沟通者"
+      },
+      "communication_expert": {
+        "name": "沟通专家"
+      },
+      "message_master": {
+        "name": "消息大师"
+      },
+      "communication_guru": {
+        "name": "沟通宗师"
+      },
+      "ultimate_networker": {
+        "name": "终极联络者"
+      },
+      "making_connections": {
+        "name": "建立连接"
+      },
+      "community_builder": {
+        "name": "社区建设者"
+      },
+      "network_grower": {
+        "name": "网络拓展者"
+      },
+      "relationship_expert": {
+        "name": "关系专家"
+      },
+      "community_leader": {
+        "name": "社区领袖"
+      },
+      "connection_master": {
+        "name": "连接大师"
+      },
+      "network_titan": {
+        "name": "网络巨擘"
+      },
+      "ultimate_connector": {
+        "name": "终极连接者"
+      }
     }
   },
   "leaderboard": {
@@ -1501,5 +1563,159 @@
     "selectAll": "全选",
     "clearAll": "清除全部",
     "done": "完成"
+  },
+  "donorHelp": {
+    "gettingStarted": {
+      "title": "快速开始",
+      "intro": "欢迎使用 FoodFlow！按照以下步骤开始捐赠剩余食物，帮助有需要的人。",
+      "steps": {
+        "step1": {
+          "title": "创建您的第一条捐赠",
+          "description": "点击侧边栏中的“立即捐赠”，填写食物类型、数量和描述等信息。"
+        },
+        "step2": {
+          "title": "设置取货时间",
+          "description": "选择受助方可到您地点取货的时间段，您可以添加多个时间段。"
+        },
+        "step3": {
+          "title": "等待认领",
+          "description": "已验证的受助方会看到您的捐赠并进行认领，认领后您会立即收到通知。"
+        },
+        "step4": {
+          "title": "使用 OTP 确认交接",
+          "description": "受助方在取货时间到达后会提供 OTP 代码，输入后即可确认交接成功。"
+        }
+      }
+    },
+    "faq": {
+      "title": "常见问题",
+      "items": {
+        "q1": {
+          "question": "如何创建捐赠？",
+          "answer": "在侧边栏进入“立即捐赠”，点击“添加捐赠”，填写标题、食物类型、数量、到期时间和取货时段，然后提交发布。"
+        },
+        "q2": {
+          "question": "取货确认是如何工作的？",
+          "answer": "当受助方认领并在预约时间到达后，您需要输入其提供的 OTP 代码来确认交接完成。"
+        },
+        "q3": {
+          "question": "什么是 OTP 代码？",
+          "answer": "OTP 是一次性密码，为 6 位数字，在捐赠变为“准备取货”时自动生成。"
+        },
+        "q4": {
+          "question": "我可以编辑或删除捐赠吗？",
+          "answer": "可以，前提是捐赠尚未被认领。认领后不可修改或删除。"
+        },
+        "q5": {
+          "question": "如何给受助方发消息？",
+          "answer": "点击侧边栏“消息”进入会话，与认领您捐赠的受助方沟通取货细节。"
+        },
+        "q6": {
+          "question": "可以捐赠哪些食物类型？",
+          "answer": "支持熟食、包装食品、果蔬、乳制品/冷藏品、烘焙食品和冷冻食品等类别。"
+        },
+        "q7": {
+          "question": "如何设置取货时段？",
+          "answer": "创建捐赠时可添加多个时段，并填写日期、开始时间和结束时间。"
+        },
+        "q8": {
+          "question": "如果受助方未到场怎么办？",
+          "answer": "在合理等待后，该认领可能过期，捐赠将重新开放给其他受助方。"
+        },
+        "q9": {
+          "question": "我的机构如何被验证？",
+          "answer": "注册后，管理员会审核您的机构信息、资质和地址等内容。"
+        },
+        "q10": {
+          "question": "我能看到是谁认领了我的捐赠吗？",
+          "answer": "可以，认领后您可查看受助机构名称和联系方式以便协调取货。"
+        }
+      }
+    },
+    "support": {
+      "title": "需要更多帮助？",
+      "intro": "没找到您需要的内容？我们的支持团队随时为您提供帮助。",
+      "emailLabel": "邮件支持",
+      "emailResponseTime": "24 小时内回复",
+      "phoneLabel": "电话支持",
+      "phoneAvailability": "周一至周五，上午9点至下午6点（EST）"
+    }
+  },
+  "receiverHelp": {
+    "gettingStarted": {
+      "title": "快速开始",
+      "intro": "欢迎使用 FoodFlow！作为受助方，您可以认领来自本地商家和机构的剩余食物捐赠。",
+      "steps": {
+        "step1": {
+          "title": "浏览可用捐赠",
+          "description": "在捐赠页面查找附近的食物列表，并使用筛选条件匹配您的需求。"
+        },
+        "step2": {
+          "title": "认领并安排取货",
+          "description": "点击“认领”并从可用时段中选择取货时间，捐赠将为您的机构保留。"
+        },
+        "step3": {
+          "title": "使用 OTP 取货",
+          "description": "按预约时间到达并向捐赠方提供 OTP 代码，对方确认后流程完成。"
+        },
+        "step4": {
+          "title": "设置偏好",
+          "description": "在个人资料中更新食物偏好，以获得更精准的匹配。"
+        }
+      }
+    },
+    "faq": {
+      "title": "常见问题",
+      "items": {
+        "q1": {
+          "question": "如何认领捐赠？",
+          "answer": "浏览可用捐赠，找到合适项后点击“认领”，并选择取货时间段。"
+        },
+        "q2": {
+          "question": "如何确认取货？",
+          "answer": "到达捐赠方地点后提供 OTP 代码，捐赠方输入后即可确认交接。"
+        },
+        "q3": {
+          "question": "什么是 OTP 代码？",
+          "answer": "它是每笔认领对应的 6 位一次性验证码。"
+        },
+        "q4": {
+          "question": "什么是食物偏好？",
+          "answer": "可设置食物类别、捐赠规模和饮食限制，以便匹配更合适的捐赠。"
+        },
+        "q5": {
+          "question": "如何设置食物偏好？",
+          "answer": "点击右上角头像，进入“偏好”即可设置食物类型和限制条件。"
+        },
+        "q6": {
+          "question": "如何给捐赠方发消息？",
+          "answer": "点击“消息”进入会话，与捐赠方沟通取货安排和问题。"
+        },
+        "q7": {
+          "question": "捐赠状态分别是什么意思？",
+          "answer": "状态包括：可用、已认领、准备取货、已完成、已取消。"
+        },
+        "q8": {
+          "question": "我可以取消认领吗？",
+          "answer": "可以，在“我的认领”中找到对应捐赠并在取货前取消。"
+        },
+        "q9": {
+          "question": "如何找到附近捐赠？",
+          "answer": "在捐赠页面使用类型、距离和取货时间筛选，快速定位附近资源。"
+        },
+        "q10": {
+          "question": "我的机构如何验证？",
+          "answer": "注册后管理员会审核机构资质、注册文件和联系信息。"
+        }
+      }
+    },
+    "support": {
+      "title": "需要更多帮助？",
+      "intro": "没找到您需要的内容？我们的支持团队随时为您提供帮助。",
+      "emailLabel": "邮件支持",
+      "emailResponseTime": "24 小时内回复",
+      "phoneLabel": "电话支持",
+      "phoneAvailability": "周一至周五，上午9点至下午6点（EST）"
+    }
   }
 }

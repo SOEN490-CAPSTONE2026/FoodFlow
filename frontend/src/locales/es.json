@@ -1354,37 +1354,99 @@
       "UNIQUE_PARTNER_COUNT": "Interactúa exitosamente con {{count}} organizaciones diferentes"
     },
     "catalog": {
-      "community_champion": { "name": "Campeón comunitario" },
-      "century_donor": { "name": "Donante centenario" },
-      "unstoppable_force": { "name": "Fuerza imparable" },
-      "donation_master": { "name": "Maestro de donaciones" },
-      "elite_contributor": { "name": "Contribuidor de élite" },
-      "legendary_donor": { "name": "Donante legendario" },
-      "donation_titan": { "name": "Titán de donaciones" },
-      "thousand_strong": { "name": "Mil en fuerza" },
-      "ultimate_benefactor": { "name": "Benefactor supremo" },
-      "steady_start": { "name": "Inicio constante" },
-      "monthly_commitment": { "name": "Compromiso mensual" },
-      "two_month_streak": { "name": "Racha de dos meses" },
-      "quarterly_dedication": { "name": "Dedicación trimestral" },
-      "half_year_hero": { "name": "Héroe de medio año" },
-      "year_round_giver": { "name": "Donante de todo el año" },
-      "two_year_legend": { "name": "Leyenda de dos años" },
-      "chatty_starter": { "name": "Iniciador parlanchín" },
-      "conversationalist": { "name": "Conversador" },
-      "active_communicator": { "name": "Comunicador activo" },
-      "communication_expert": { "name": "Experto en comunicación" },
-      "message_master": { "name": "Maestro de mensajes" },
-      "communication_guru": { "name": "Gurú de la comunicación" },
-      "ultimate_networker": { "name": "Conector supremo" },
-      "making_connections": { "name": "Creando conexiones" },
-      "community_builder": { "name": "Constructor de comunidad" },
-      "network_grower": { "name": "Expansor de red" },
-      "relationship_expert": { "name": "Experto en relaciones" },
-      "community_leader": { "name": "Líder comunitario" },
-      "connection_master": { "name": "Maestro de conexiones" },
-      "network_titan": { "name": "Titán de la red" },
-      "ultimate_connector": { "name": "Conector definitivo" }
+      "community_champion": {
+        "name": "Campeón comunitario"
+      },
+      "century_donor": {
+        "name": "Donante centenario"
+      },
+      "unstoppable_force": {
+        "name": "Fuerza imparable"
+      },
+      "donation_master": {
+        "name": "Maestro de donaciones"
+      },
+      "elite_contributor": {
+        "name": "Contribuidor de élite"
+      },
+      "legendary_donor": {
+        "name": "Donante legendario"
+      },
+      "donation_titan": {
+        "name": "Titán de donaciones"
+      },
+      "thousand_strong": {
+        "name": "Mil en fuerza"
+      },
+      "ultimate_benefactor": {
+        "name": "Benefactor supremo"
+      },
+      "steady_start": {
+        "name": "Inicio constante"
+      },
+      "monthly_commitment": {
+        "name": "Compromiso mensual"
+      },
+      "two_month_streak": {
+        "name": "Racha de dos meses"
+      },
+      "quarterly_dedication": {
+        "name": "Dedicación trimestral"
+      },
+      "half_year_hero": {
+        "name": "Héroe de medio año"
+      },
+      "year_round_giver": {
+        "name": "Donante de todo el año"
+      },
+      "two_year_legend": {
+        "name": "Leyenda de dos años"
+      },
+      "chatty_starter": {
+        "name": "Iniciador parlanchín"
+      },
+      "conversationalist": {
+        "name": "Conversador"
+      },
+      "active_communicator": {
+        "name": "Comunicador activo"
+      },
+      "communication_expert": {
+        "name": "Experto en comunicación"
+      },
+      "message_master": {
+        "name": "Maestro de mensajes"
+      },
+      "communication_guru": {
+        "name": "Gurú de la comunicación"
+      },
+      "ultimate_networker": {
+        "name": "Conector supremo"
+      },
+      "making_connections": {
+        "name": "Creando conexiones"
+      },
+      "community_builder": {
+        "name": "Constructor de comunidad"
+      },
+      "network_grower": {
+        "name": "Expansor de red"
+      },
+      "relationship_expert": {
+        "name": "Experto en relaciones"
+      },
+      "community_leader": {
+        "name": "Líder comunitario"
+      },
+      "connection_master": {
+        "name": "Maestro de conexiones"
+      },
+      "network_titan": {
+        "name": "Titán de la red"
+      },
+      "ultimate_connector": {
+        "name": "Conector definitivo"
+      }
     }
   },
   "leaderboard": {
@@ -1501,5 +1563,159 @@
     "selectAll": "Seleccionar todo",
     "clearAll": "Borrar todo",
     "done": "Listo"
+  },
+  "donorHelp": {
+    "gettingStarted": {
+      "title": "Primeros pasos",
+      "intro": "¡Bienvenido a FoodFlow! Sigue estos pasos para comenzar a marcar la diferencia donando tu excedente de comida a quienes lo necesitan.",
+      "steps": {
+        "step1": {
+          "title": "Crea tu primera donación",
+          "description": "Haz clic en \"Donar ahora\" en la barra lateral y completa el formulario con tipo de comida, cantidad y descripción."
+        },
+        "step2": {
+          "title": "Define horarios de recogida",
+          "description": "Elige horarios disponibles para que los receptores recojan la comida en tu ubicación."
+        },
+        "step3": {
+          "title": "Espera reclamaciones",
+          "description": "Los receptores verificados verán tu donación y podrán reclamarla. Recibirás una notificación al instante."
+        },
+        "step4": {
+          "title": "Confirma la recogida con OTP",
+          "description": "Cuando el receptor llegue durante el horario, te dará un código OTP. Introdúcelo para confirmar la entrega."
+        }
+      }
+    },
+    "faq": {
+      "title": "Preguntas frecuentes",
+      "items": {
+        "q1": {
+          "question": "¿Cómo creo una donación?",
+          "answer": "Ve a \"Donar ahora\", haz clic en \"Agregar donación\" y completa los datos (título, tipo de comida, cantidad, fecha de vencimiento y horarios de recogida)."
+        },
+        "q2": {
+          "question": "¿Cómo funciona la confirmación de recogida?",
+          "answer": "Cuando un receptor reclama tu donación y llega al lugar en el horario acordado, debes confirmar la entrega con el código OTP."
+        },
+        "q3": {
+          "question": "¿Qué es un código OTP?",
+          "answer": "Es un código único de 6 dígitos que se genera cuando tu donación pasa a \"Listo para recogida\"."
+        },
+        "q4": {
+          "question": "¿Puedo editar o eliminar una donación?",
+          "answer": "Sí, mientras no haya sido reclamada. Una vez reclamada, no se puede modificar ni eliminar."
+        },
+        "q5": {
+          "question": "¿Cómo envío un mensaje a un receptor?",
+          "answer": "Haz clic en \"Mensajes\" en la barra lateral para acceder a tus conversaciones."
+        },
+        "q6": {
+          "question": "¿Qué tipos de comida puedo donar?",
+          "answer": "FoodFlow admite varias categorías: comidas preparadas, productos envasados, frutas y verduras, lácteos/fríos, panadería/pastelería y congelados."
+        },
+        "q7": {
+          "question": "¿Cómo configuro horarios de recogida?",
+          "answer": "Al crear una donación puedes agregar varios horarios con fecha, hora de inicio y hora de fin."
+        },
+        "q8": {
+          "question": "¿Qué pasa si un receptor no se presenta?",
+          "answer": "Si no recoge dentro de la franja, la reclamación puede expirar y la donación volverá a estar disponible."
+        },
+        "q9": {
+          "question": "¿Cómo se verifica mi organización?",
+          "answer": "Al registrarte, el equipo administrador revisa los datos de tu organización para verificarla."
+        },
+        "q10": {
+          "question": "¿Puedo ver quién reclamó mi donación?",
+          "answer": "Sí. Después de reclamar, verás el nombre de la organización receptora y datos de contacto."
+        }
+      }
+    },
+    "support": {
+      "title": "¿Necesitas más ayuda?",
+      "intro": "¿No encuentras lo que buscas? Nuestro equipo de soporte está aquí para ayudarte.",
+      "emailLabel": "Soporte por correo",
+      "emailResponseTime": "Respuesta en 24 horas",
+      "phoneLabel": "Soporte telefónico",
+      "phoneAvailability": "Lun-Vie, 9AM-6PM EST"
+    }
+  },
+  "receiverHelp": {
+    "gettingStarted": {
+      "title": "Primeros pasos",
+      "intro": "¡Bienvenido a FoodFlow! Como receptor, puedes reclamar donaciones de comida excedente de negocios y organizaciones locales.",
+      "steps": {
+        "step1": {
+          "title": "Explora donaciones disponibles",
+          "description": "Explora la página de donaciones para encontrar publicaciones cercanas. Usa filtros según las necesidades de tu organización."
+        },
+        "step2": {
+          "title": "Reclama y programa recogida",
+          "description": "Haz clic en \"Reclamar\" y selecciona un horario de recogida de las opciones disponibles."
+        },
+        "step3": {
+          "title": "Recoge con OTP",
+          "description": "Llega en el horario programado y proporciona tu código OTP al donante para confirmar la entrega."
+        },
+        "step4": {
+          "title": "Configura tus preferencias",
+          "description": "Actualiza tus preferencias alimentarias en tu perfil para recibir mejores coincidencias."
+        }
+      }
+    },
+    "faq": {
+      "title": "Preguntas frecuentes",
+      "items": {
+        "q1": {
+          "question": "¿Cómo reclamo una donación?",
+          "answer": "Busca donaciones disponibles, pulsa \"Reclamar\" y elige un horario de recogida."
+        },
+        "q2": {
+          "question": "¿Cómo confirmo la recogida?",
+          "answer": "Cuando llegues al donante, proporciona tu código OTP para que confirme la entrega."
+        },
+        "q3": {
+          "question": "¿Qué es el código OTP?",
+          "answer": "Es un código de verificación único de 6 dígitos para cada donación reclamada."
+        },
+        "q4": {
+          "question": "¿Qué son las preferencias alimentarias?",
+          "answer": "Permiten definir tipos de comida, tamaños de donación y requisitos dietéticos para recibir mejores coincidencias."
+        },
+        "q5": {
+          "question": "¿Cómo configuro mis preferencias?",
+          "answer": "Haz clic en tu avatar y entra en \"Preferencias\" para ajustar tipos de comida y restricciones."
+        },
+        "q6": {
+          "question": "¿Cómo envío un mensaje a un donante?",
+          "answer": "Haz clic en \"Mensajes\" para acceder a conversaciones y coordinar detalles de recogida."
+        },
+        "q7": {
+          "question": "¿Qué significan los estados de donación?",
+          "answer": "Los estados son: Disponible, Reclamado, Listo para recogida, Completado y Cancelado."
+        },
+        "q8": {
+          "question": "¿Puedo cancelar una reclamación?",
+          "answer": "Sí. Entra en \"Mis reclamaciones\", busca la donación y cancela antes de la recogida."
+        },
+        "q9": {
+          "question": "¿Cómo encuentro donaciones cerca de mí?",
+          "answer": "Usa la página de donaciones y los filtros por tipo, distancia y horario para encontrar opciones cercanas."
+        },
+        "q10": {
+          "question": "¿Cómo se verifica mi organización?",
+          "answer": "Al registrarte, el equipo administrador verifica documentos e información de contacto."
+        }
+      }
+    },
+    "support": {
+      "title": "¿Necesitas más ayuda?",
+      "intro": "¿No encuentras lo que buscas? Nuestro equipo de soporte está aquí para ayudarte.",
+      "emailLabel": "Soporte por correo",
+      "emailResponseTime": "Respuesta en 24 horas",
+      "phoneLabel": "Soporte telefónico",
+      "phoneAvailability": "Lun-Vie, 9AM-6PM EST"
+    }
   }
 }

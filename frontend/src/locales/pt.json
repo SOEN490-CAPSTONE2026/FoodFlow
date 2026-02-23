@@ -1354,37 +1354,99 @@
       "UNIQUE_PARTNER_COUNT": "Interaja com sucesso com {{count}} organizações diferentes"
     },
     "catalog": {
-      "community_champion": { "name": "Campeão da comunidade" },
-      "century_donor": { "name": "Doador centenário" },
-      "unstoppable_force": { "name": "Força imparável" },
-      "donation_master": { "name": "Mestre das doações" },
-      "elite_contributor": { "name": "Contribuidor de elite" },
-      "legendary_donor": { "name": "Doador lendário" },
-      "donation_titan": { "name": "Titã das doações" },
-      "thousand_strong": { "name": "Mil em força" },
-      "ultimate_benefactor": { "name": "Benfeitor supremo" },
-      "steady_start": { "name": "Início constante" },
-      "monthly_commitment": { "name": "Compromisso mensal" },
-      "two_month_streak": { "name": "Sequência de dois meses" },
-      "quarterly_dedication": { "name": "Dedicação trimestral" },
-      "half_year_hero": { "name": "Herói de meio ano" },
-      "year_round_giver": { "name": "Doador do ano inteiro" },
-      "two_year_legend": { "name": "Lenda de dois anos" },
-      "chatty_starter": { "name": "Iniciante comunicativo" },
-      "conversationalist": { "name": "Conversador" },
-      "active_communicator": { "name": "Comunicador ativo" },
-      "communication_expert": { "name": "Especialista em comunicação" },
-      "message_master": { "name": "Mestre das mensagens" },
-      "communication_guru": { "name": "Guru da comunicação" },
-      "ultimate_networker": { "name": "Conector supremo" },
-      "making_connections": { "name": "Criando conexões" },
-      "community_builder": { "name": "Construtor da comunidade" },
-      "network_grower": { "name": "Expansor de rede" },
-      "relationship_expert": { "name": "Especialista em relacionamentos" },
-      "community_leader": { "name": "Líder comunitário" },
-      "connection_master": { "name": "Mestre das conexões" },
-      "network_titan": { "name": "Titã da rede" },
-      "ultimate_connector": { "name": "Conector supremo" }
+      "community_champion": {
+        "name": "Campeão da comunidade"
+      },
+      "century_donor": {
+        "name": "Doador centenário"
+      },
+      "unstoppable_force": {
+        "name": "Força imparável"
+      },
+      "donation_master": {
+        "name": "Mestre das doações"
+      },
+      "elite_contributor": {
+        "name": "Contribuidor de elite"
+      },
+      "legendary_donor": {
+        "name": "Doador lendário"
+      },
+      "donation_titan": {
+        "name": "Titã das doações"
+      },
+      "thousand_strong": {
+        "name": "Mil em força"
+      },
+      "ultimate_benefactor": {
+        "name": "Benfeitor supremo"
+      },
+      "steady_start": {
+        "name": "Início constante"
+      },
+      "monthly_commitment": {
+        "name": "Compromisso mensal"
+      },
+      "two_month_streak": {
+        "name": "Sequência de dois meses"
+      },
+      "quarterly_dedication": {
+        "name": "Dedicação trimestral"
+      },
+      "half_year_hero": {
+        "name": "Herói de meio ano"
+      },
+      "year_round_giver": {
+        "name": "Doador do ano inteiro"
+      },
+      "two_year_legend": {
+        "name": "Lenda de dois anos"
+      },
+      "chatty_starter": {
+        "name": "Iniciante comunicativo"
+      },
+      "conversationalist": {
+        "name": "Conversador"
+      },
+      "active_communicator": {
+        "name": "Comunicador ativo"
+      },
+      "communication_expert": {
+        "name": "Especialista em comunicação"
+      },
+      "message_master": {
+        "name": "Mestre das mensagens"
+      },
+      "communication_guru": {
+        "name": "Guru da comunicação"
+      },
+      "ultimate_networker": {
+        "name": "Conector supremo"
+      },
+      "making_connections": {
+        "name": "Criando conexões"
+      },
+      "community_builder": {
+        "name": "Construtor da comunidade"
+      },
+      "network_grower": {
+        "name": "Expansor de rede"
+      },
+      "relationship_expert": {
+        "name": "Especialista em relacionamentos"
+      },
+      "community_leader": {
+        "name": "Líder comunitário"
+      },
+      "connection_master": {
+        "name": "Mestre das conexões"
+      },
+      "network_titan": {
+        "name": "Titã da rede"
+      },
+      "ultimate_connector": {
+        "name": "Conector supremo"
+      }
     }
   },
   "leaderboard": {
@@ -1501,5 +1563,159 @@
     "selectAll": "Selecionar tudo",
     "clearAll": "Limpar tudo",
     "done": "Concluir"
+  },
+  "donorHelp": {
+    "gettingStarted": {
+      "title": "Primeiros passos",
+      "intro": "Bem-vindo ao FoodFlow! Siga estas etapas para começar a fazer a diferença doando seu excedente de alimentos para quem precisa.",
+      "steps": {
+        "step1": {
+          "title": "Crie sua primeira doação",
+          "description": "Clique em \"Doar agora\" na barra lateral e preencha o formulário com os detalhes do excedente, incluindo tipo de alimento, quantidade e descrição."
+        },
+        "step2": {
+          "title": "Defina horários de retirada",
+          "description": "Escolha os horários disponíveis para os receptores retirarem os alimentos no seu local. Você pode adicionar vários horários."
+        },
+        "step3": {
+          "title": "Aguarde as reivindicações",
+          "description": "Receptores verificados verão sua doação e poderão reivindicá-la. Você será notificado imediatamente quando alguém reivindicar."
+        },
+        "step4": {
+          "title": "Confirme a retirada com OTP",
+          "description": "Quando o receptor chegar no período de retirada, ele fornecerá um código OTP. Insira o código para confirmar a entrega com sucesso."
+        }
+      }
+    },
+    "faq": {
+      "title": "Perguntas frequentes",
+      "items": {
+        "q1": {
+          "question": "Como crio uma doação?",
+          "answer": "Vá em \"Doar agora\" na barra lateral, clique em \"Adicionar doação\" e preencha os detalhes (título, tipo de alimento, quantidade, validade e horários de retirada). Clique em \"Enviar\" para publicar sua doação."
+        },
+        "q2": {
+          "question": "Como funciona a confirmação de retirada?",
+          "answer": "Quando um receptor reivindica sua doação e chega ao local no horário agendado, você precisa confirmar a entrega. Um OTP (código de uso único) é gerado para cada doação reivindicada."
+        },
+        "q3": {
+          "question": "O que é um código OTP?",
+          "answer": "OTP significa senha de uso único. É um código exclusivo de 6 dígitos gerado automaticamente quando a doação muda para \"Pronto para coleta\"."
+        },
+        "q4": {
+          "question": "Posso editar ou excluir uma doação?",
+          "answer": "Sim, você pode editar ou excluir doações que ainda não foram reivindicadas. Depois que uma doação é reivindicada, ela não pode mais ser alterada ou removida."
+        },
+        "q5": {
+          "question": "Como envio mensagem para um receptor?",
+          "answer": "Clique em \"Mensagens\" na barra lateral para acessar suas conversas e coordenar detalhes de retirada com receptores."
+        },
+        "q6": {
+          "question": "Quais tipos de alimentos posso doar?",
+          "answer": "O FoodFlow suporta várias categorias: refeições preparadas, itens embalados, frutas e vegetais, laticínios/refrigerados, padaria/confeitaria e alimentos congelados."
+        },
+        "q7": {
+          "question": "Como defino os horários de retirada?",
+          "answer": "Ao criar uma doação, você pode adicionar vários horários de retirada com data, hora de início e hora de término para dar mais flexibilidade."
+        },
+        "q8": {
+          "question": "O que acontece se o receptor não aparecer?",
+          "answer": "Se o receptor não retirar no período combinado, a reivindicação pode expirar após um tempo razoável e a doação ficará disponível novamente."
+        },
+        "q9": {
+          "question": "Como minha organização é verificada?",
+          "answer": "No cadastro, os dados da organização são enviados para verificação. A equipe administrativa analisa licença, endereço e outros detalhes."
+        },
+        "q10": {
+          "question": "Posso ver quem reivindicou minha doação?",
+          "answer": "Sim. Quando um receptor reivindica a doação, você pode ver o nome da organização e informações de contato para coordenar a retirada."
+        }
+      }
+    },
+    "support": {
+      "title": "Precisa de mais ajuda?",
+      "intro": "Não encontrou o que procura? Nossa equipe de suporte está aqui para ajudar.",
+      "emailLabel": "Suporte por e-mail",
+      "emailResponseTime": "Resposta em até 24 horas",
+      "phoneLabel": "Suporte por telefone",
+      "phoneAvailability": "Seg-Sex, 9h-18h EST"
+    }
+  },
+  "receiverHelp": {
+    "gettingStarted": {
+      "title": "Primeiros passos",
+      "intro": "Bem-vindo ao FoodFlow! Como receptor, você pode reivindicar doações de alimentos excedentes de empresas e organizações locais.",
+      "steps": {
+        "step1": {
+          "title": "Explore doações disponíveis",
+          "description": "Acesse a página de doações para encontrar alimentos próximos. Use filtros para achar o que combina com as necessidades da sua organização."
+        },
+        "step2": {
+          "title": "Reivindique e agende a retirada",
+          "description": "Clique em \"Reivindicar\" na doação e selecione um horário de retirada. A doação ficará reservada para sua organização."
+        },
+        "step3": {
+          "title": "Retire com OTP",
+          "description": "Chegue no horário agendado e informe seu código OTP ao doador. Ele confirmará a entrega e concluirá o processo."
+        },
+        "step4": {
+          "title": "Defina suas preferências",
+          "description": "Atualize as preferências alimentares no perfil para receber correspondências melhores."
+        }
+      }
+    },
+    "faq": {
+      "title": "Perguntas frequentes",
+      "items": {
+        "q1": {
+          "question": "Como reivindico uma doação?",
+          "answer": "Navegue pelas doações disponíveis. Ao encontrar uma que deseja, clique em \"Reivindicar\" e escolha um horário de retirada."
+        },
+        "q2": {
+          "question": "Como confirmo a retirada?",
+          "answer": "Ao chegar ao local do doador no horário agendado, forneça seu código OTP. O doador inserirá o código para confirmar a entrega."
+        },
+        "q3": {
+          "question": "O que é o código OTP?",
+          "answer": "É um código único de verificação com 6 dígitos atribuído a cada doação reivindicada."
+        },
+        "q4": {
+          "question": "O que são preferências alimentares?",
+          "answer": "As preferências permitem definir categorias de alimentos, tamanhos de doação e restrições alimentares para melhorar as correspondências."
+        },
+        "q5": {
+          "question": "Como defino minhas preferências alimentares?",
+          "answer": "Clique no avatar do perfil no canto superior direito e selecione \"Preferências\" para configurar tipos de alimento e restrições."
+        },
+        "q6": {
+          "question": "Como envio mensagem para um doador?",
+          "answer": "Clique em \"Mensagens\" na navegação para acessar conversas com doadores e coordenar a retirada."
+        },
+        "q7": {
+          "question": "O que significam os status da doação?",
+          "answer": "Os status incluem: \"Disponível\", \"Reivindicado\", \"Pronto para coleta\", \"Concluído\" e \"Cancelado\"."
+        },
+        "q8": {
+          "question": "Posso cancelar uma reivindicação?",
+          "answer": "Sim. Vá em \"Minhas reivindicações\", encontre a doação e cancele antes da retirada."
+        },
+        "q9": {
+          "question": "Como encontro doações perto de mim?",
+          "answer": "A página de doações mostra anúncios da sua região. Use filtros de tipo de alimento, distância e horário de retirada."
+        },
+        "q10": {
+          "question": "Como minha organização é verificada?",
+          "answer": "No cadastro, os dados da organização são enviados para verificação da equipe administrativa."
+        }
+      }
+    },
+    "support": {
+      "title": "Precisa de mais ajuda?",
+      "intro": "Não encontrou o que procura? Nossa equipe de suporte está aqui para ajudar.",
+      "emailLabel": "Suporte por e-mail",
+      "emailResponseTime": "Resposta em até 24 horas",
+      "phoneLabel": "Suporte por telefone",
+      "phoneAvailability": "Seg-Sex, 9h-18h EST"
+    }
   }
 }
