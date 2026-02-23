@@ -31,7 +31,7 @@ jest.mock('../../../services/api', () => ({
     get: jest.fn(() => Promise.resolve({ data: {} })),
   },
   savedDonationAPI: {
-    getSavedCount: jest.fn(() => Promise.resolve({ data: 0 })),
+    getSavedDonations: jest.fn(() => Promise.resolve({ data: [] })),
   },
 }));
 

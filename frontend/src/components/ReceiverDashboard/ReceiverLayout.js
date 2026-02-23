@@ -181,9 +181,12 @@ function ReceiverLayoutContent() {
   useEffect(() => {
     const fetchSavedCount = async () => {
       try {
-        const response = await savedDonationAPI.getSavedCount();
-        const count = Number(response?.data);
-        setSavedDonationsCount(Number.isNaN(count) ? 0 : count);
+        const response = await savedDonationAPI.getSavedDonations();
+        const savedItems = Array.isArray(response?.data) ? response.data : [];
+        const availableSavedItems = savedItems.filter(
+          item => item?.status === 'AVAILABLE'
+        );
+        setSavedDonationsCount(availableSavedItems.length);
       } catch (err) {
         console.error('Error fetching saved donations count:', err);
       }

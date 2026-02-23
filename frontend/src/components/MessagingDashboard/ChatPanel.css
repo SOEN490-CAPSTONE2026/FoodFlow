@@ -56,6 +56,25 @@
   min-width: 0;
 }
 
+.chat-back-button {
+  display: none;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: transparent;
+  color: #1b4965;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 8px;
+  margin-right: 6px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.chat-back-button:hover {
+  background: #f0f9ff;
+}
+
 .chat-header-info h3 {
   margin: 0 0 4px 0;
   font-size: 24px;
@@ -256,11 +275,21 @@
   overflow: hidden;
 }
 
+.message-avatar.admin-support {
+  background-color: transparent;
+  border-radius: 8px;
+  overflow: visible;
+}
+
 .message-avatar-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.message-avatar-image.admin-support {
+  object-fit: contain;
 }
 
 .message-content {
@@ -429,6 +458,11 @@
     position: sticky !important;
     top: 0 !important;
     z-index: 10 !important;
+  }
+
+  .chat-back-button {
+    display: inline-flex;
+    flex-shrink: 0;
   }
 
 

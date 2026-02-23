@@ -539,6 +539,15 @@ export default function ReceiverMyClaims() {
                   ? 'donation-card--focused'
                   : ''
               }`}
+              onClick={() => handleViewDetails(claim)}
+              onKeyDown={event => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  handleViewDetails(claim);
+                }
+              }}
+              role="button"
+              tabIndex={0}
             >
               {/* Image */}
               <div className="claimed-page card-image">
@@ -605,8 +614,12 @@ export default function ReceiverMyClaims() {
                   {/* Only show Cancel button when status is CLAIMED */}
                   {getNormalizedStatus(claim) === 'CLAIMED' && (
                     <button
-                      onClick={() => handleCancelClick(claim.id)}
+                      onClick={event => {
+                        event.stopPropagation();
+                        handleCancelClick(claim.id);
+                      }}
                       className="claimed-page cancel-claim-btn"
+                      type="button"
                     >
                       {t('receiverMyClaims.cancel')}
                     </button>
@@ -614,10 +627,16 @@ export default function ReceiverMyClaims() {
 
                   <div
                     className="claimed-page view-details-container"
-                    onClick={() => handleViewDetails(claim)}
+                    onClick={event => {
+                      event.stopPropagation();
+                      handleViewDetails(claim);
+                    }}
                   >
                     <span>{t('receiverMyClaims.viewDetails')}</span>
-                    <button className="claimed-page view-details-btn">
+                    <button
+                      className="claimed-page view-details-btn"
+                      type="button"
+                    >
                       <ArrowRight
                         size={16}
                         className="claimed-page arrow-icon"

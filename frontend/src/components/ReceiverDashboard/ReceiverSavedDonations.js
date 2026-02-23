@@ -25,8 +25,11 @@ export default function ReceiverSavedDonations() {
     try {
       const response = await savedDonationAPI.getSavedDonations();
       const savedItems = Array.isArray(response.data) ? response.data : [];
-      setItems(savedItems);
-      setBookmarkedItems(new Set(savedItems.map(item => item.id)));
+      const availableSavedItems = savedItems.filter(
+        item => item?.status === 'AVAILABLE'
+      );
+      setItems(availableSavedItems);
+      setBookmarkedItems(new Set(availableSavedItems.map(item => item.id)));
       setError(null);
     } catch (fetchError) {
       console.error('Error fetching saved donations:', fetchError);
