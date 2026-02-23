@@ -21,6 +21,7 @@ public class AdminUserResponse {
     private String address;
     private String businessLicense;
     private String charityRegistrationNumber;
+    private String supportingDocumentUrl;
 
     // Constructors
     public AdminUserResponse() {}
@@ -92,4 +93,7 @@ public class AdminUserResponse {
     
     public String getCharityRegistrationNumber() { return charityRegistrationNumber; }
     public void setCharityRegistrationNumber(String charityRegistrationNumber) { this.charityRegistrationNumber = charityRegistrationNumber; }
+    
+    public String getSupportingDocumentUrl() { return supportingDocumentUrl; }
+    public void setSupportingDocumentUrl(String supportingDocumentUrl) { this.supportingDocumentUrl = supportingDocumentUrl; }
 }

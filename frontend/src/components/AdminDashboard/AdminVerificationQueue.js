@@ -567,11 +567,19 @@ const AdminVerificationQueue = () => {
   };
 
   // Handle document view
-  const handleViewDocument = documentName => {
-    // In a real app, this would open the document
-    alert(
-      `Viewing document: ${documentName}\n\nIn production, this would open the uploaded document for review.`
-    );
+  const handleViewDocument = documentUrl => {
+    // If it's a URL (contains http), open in a new tab; otherwise show alert
+    if (documentUrl && documentUrl.startsWith('http')) {
+      window.open(documentUrl, '_blank');
+    } else if (documentUrl) {
+      // Fallback for document names - construct URL
+      window.open(
+        `${process.env.REACT_APP_API_BASE_URL}/api/files/licenses/${documentUrl}`,
+        '_blank'
+      );
+    } else {
+      alert('No document available');
+    }
   };
 
   // User type filter options

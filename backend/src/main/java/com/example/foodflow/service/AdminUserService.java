@@ -203,6 +203,7 @@ public class AdminUserService {
             response.setAddress(user.getOrganization().getAddress());
             response.setBusinessLicense(user.getOrganization().getBusinessLicense());
             response.setCharityRegistrationNumber(user.getOrganization().getCharityRegistrationNumber());
+            response.setSupportingDocumentUrl(user.getOrganization().getSupportingDocumentUrl());
             response.setVerificationStatus(
                 user.getOrganization().getVerificationStatus() != null 
                     ? user.getOrganization().getVerificationStatus().toString() 
@@ -225,6 +226,25 @@ public class AdminUserService {
         }
 
         return response;
+    }
+
+    /**
+     * Update a user's supporting document URL
+     */
+    @Transactional
+    public AdminUserResponse updateSupportingDocument(Long userId, String documentUrl) {
+        log.info("Updating supporting document for user: {}, documentUrl: {}", userId, documentUrl);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+        
+        if (user.getOrganization() != null) {
+            user.getOrganization().setSupportingDocumentUrl(documentUrl);
+            log.info("Supporting document updated successfully for user: {}", userId);
+        } else {
+            throw new RuntimeException("Organization not found for user: " + userId);
+        }
+        
+        return convertToAdminUserResponse(user);
     }
 
 }
