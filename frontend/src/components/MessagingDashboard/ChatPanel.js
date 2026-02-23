@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Send, ArrowLeft } from 'lucide-react';
+import { Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { useTimezone } from '../../contexts/TimezoneContext';
@@ -288,9 +288,6 @@ const ChatPanel = ({
       className={`chat-panel ${showOnMobile ? 'show-mobile' : 'hide-mobile'}`}
     >
       <div className="chat-header">
-        <button className="back-button" onClick={onBack}>
-          <ArrowLeft size={20} />
-        </button>
         <div className="chat-header-left">
           <div className="chat-header-info">
             <h3>{conversation.donationTitle || conversation.otherUserName}</h3>
@@ -311,27 +308,8 @@ const ChatPanel = ({
               {statusInfo.label}
             </span>
           )}
-          <button className="menu-btn">&#8942;</button>
         </div>
       </div>
-
-      {conversation.donationTitle && (
-        <div className="donation-banner">
-          <div className="donation-banner-info">
-            <span className="donation-banner-label">
-              {t('chat.donationContext', 'Donation')}
-            </span>
-            <span className="donation-banner-title">
-              {conversation.donationTitle}
-            </span>
-          </div>
-          {conversation.donationDescription && (
-            <p className="donation-banner-description">
-              {conversation.donationDescription}
-            </p>
-          )}
-        </div>
-      )}
 
       <div className="messages-container">
         {messages.length === 0
