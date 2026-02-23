@@ -88,6 +88,7 @@ export default function ReceiverBrowse() {
   const [userLocation, setUserLocation] = useState(null);
   const [expressingInterest, setExpressingInterest] = useState(null);
   const [focusedDonationId, setFocusedDonationId] = useState(null);
+  const [savedNotification, setSavedNotification] = useState('');
 
   const getRecommendationData = item => {
     // Mock logic to determine if item is recommended
@@ -172,6 +173,18 @@ export default function ReceiverBrowse() {
       fetchRecommendations(items);
     }
   }, [items, fetchRecommendations]);
+
+  useEffect(() => {
+    if (!savedNotification) {
+      return undefined;
+    }
+
+    const timer = setTimeout(() => {
+      setSavedNotification('');
+    }, 2200);
+
+    return () => clearTimeout(timer);
+  }, [savedNotification]);
 
   useEffect(() => {
     const targetId = location.state?.focusDonationId;
@@ -276,6 +289,9 @@ export default function ReceiverBrowse() {
           await savedDonationAPI.unsave(item.id);
         } else {
           await savedDonationAPI.save(item.id);
+          setSavedNotification(
+            t('receiverBrowse.addedToSaved', 'Added to saved donations')
+          );
         }
       } catch (error) {
         setBookmarkedItems(prev => {
@@ -556,6 +572,12 @@ export default function ReceiverBrowse() {
 
   return (
     <div className="receiver-browse-container">
+      {savedNotification && (
+        <div role="alert" className="receiver-saved-notification">
+          {savedNotification}
+        </div>
+      )}
+
       <div className="receiver-browse-header">
         <h1 className="receiver-section-title-browse">
           {t('receiverBrowse.title')}

@@ -1017,7 +1017,8 @@
     "confirming": "正在确认...",
     "confirmAndClaim": "确认并认领",
     "expiringSoon": "即将到期",
-    "predicted": "预测"
+    "predicted": "预测",
+    "addedToSaved": "已添加到已保存捐赠"
   },
   "receiverMyClaims": {
     "readyForPickup": "准备取货",

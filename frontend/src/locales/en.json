@@ -1061,7 +1061,8 @@
     "confirming": "Confirming...",
     "confirmAndClaim": "Confirm & Claim",
     "expiringSoon": "Expiring soon",
-    "predicted": "Predicted"
+    "predicted": "Predicted",
+    "addedToSaved": "Added to saved donations"
   },
   "receiverMyClaims": {
     "readyForPickup": "Ready for Pickup",

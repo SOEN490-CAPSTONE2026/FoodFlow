@@ -1017,7 +1017,8 @@
     "confirming": "جارٍ التأكيد...",
     "confirmAndClaim": "تأكيد والمطالبة",
     "expiringSoon": "ينتهي قريبًا",
-    "predicted": "متوقع"
+    "predicted": "متوقع",
+    "addedToSaved": "تمت الإضافة إلى التبرعات المحفوظة"
   },
   "receiverMyClaims": {
     "readyForPickup": "جاهز للاستلام",

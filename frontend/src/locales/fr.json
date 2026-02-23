@@ -1037,7 +1037,8 @@
     "confirming": "Confirmation en cours...",
     "confirmAndClaim": "Confirmer et réclamer",
     "expiringSoon": "Expire bientôt",
-    "predicted": "Prédit"
+    "predicted": "Prédit",
+    "addedToSaved": "Ajouté aux dons sauvegardés"
   },
   "receiverMyClaims": {
     "readyForPickup": "Prêt pour la collecte",
