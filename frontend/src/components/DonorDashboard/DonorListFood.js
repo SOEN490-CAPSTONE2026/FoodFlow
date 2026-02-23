@@ -80,21 +80,21 @@ function addressLabel(full) {
   return `${parts[0]}, ${parts[1]}…`;
 }
 
-function formatExpiryDate(dateString) {
+function formatExpiryDate(dateString, locale, notSpecifiedLabel) {
   if (!dateString) {
-    return 'Not specified';
+    return notSpecifiedLabel;
   }
   try {
     // Parse as local date to avoid timezone conversion issues
     const [year, month, day] = dateString.split('-').map(Number);
     const date = new Date(year, month - 1, day);
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString(locale || 'en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
     });
   } catch {
-    return 'Not specified';
+    return notSpecifiedLabel;
   }
 }
 
@@ -121,9 +121,15 @@ function isExpired(dateString) {
 }
 
 // Format the pickup time range
-function formatPickupTime(pickupDate, pickupFrom, pickupTo) {
+function formatPickupTime(
+  pickupDate,
+  pickupFrom,
+  pickupTo,
+  locale,
+  flexibleLabel
+) {
   if (!pickupDate) {
-    return 'Flexible';
+    return flexibleLabel;
   }
 
   try {
@@ -131,7 +137,7 @@ function formatPickupTime(pickupDate, pickupFrom, pickupTo) {
     const [year, month, day] = pickupDate.split('-').map(Number);
     const date = new Date(year, month - 1, day);
 
-    const dateStr = date.toLocaleDateString('en-US', {
+    const dateStr = date.toLocaleDateString(locale || 'en-US', {
       month: 'short',
       day: 'numeric',
     });
@@ -140,7 +146,7 @@ function formatPickupTime(pickupDate, pickupFrom, pickupTo) {
       // Create a proper local time for 'from'
       const [fromHours, fromMinutes] = pickupFrom.split(':').map(Number);
       const fromDate = new Date(year, month - 1, day, fromHours, fromMinutes);
-      const fromTime = fromDate.toLocaleTimeString('en-US', {
+      const fromTime = fromDate.toLocaleTimeString(locale || 'en-US', {
         hour: 'numeric',
         minute: '2-digit',
         hour12: true,
@@ -149,7 +155,7 @@ function formatPickupTime(pickupDate, pickupFrom, pickupTo) {
       // Create a proper local time for 'to'
       const [toHours, toMinutes] = pickupTo.split(':').map(Number);
       const toDate = new Date(year, month - 1, day, toHours, toMinutes);
-      const toTime = toDate.toLocaleTimeString('en-US', {
+      const toTime = toDate.toLocaleTimeString(locale || 'en-US', {
         hour: 'numeric',
         minute: '2-digit',
         hour12: true,
@@ -161,7 +167,7 @@ function formatPickupTime(pickupDate, pickupFrom, pickupTo) {
     return `${dateStr}`;
   } catch (error) {
     console.error('Error formatting pickup time:', error);
-    return 'Flexible';
+    return flexibleLabel;
   }
 }
 
@@ -208,7 +214,8 @@ const getEvidenceImageUrl = url => {
 };
 
 export default function DonorListFood() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.resolvedLanguage || i18n.language || 'en-US';
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
     libraries: libraries,
@@ -352,14 +359,14 @@ export default function DonorListFood() {
 
       if (!claims || claims.length === 0) {
         setError(
-          `Failed to fetch the recipient email for post "${item.title}"`
+          t('donorListFood.failedFetchRecipientEmail', { title: item.title })
         );
         return null;
       }
 
       const activeClaim = claims[0];
       if (!activeClaim.receiverId) {
-        setError(`Receiver ID missing for post "${item.title}"`);
+        setError(t('donorListFood.receiverIdMissing', { title: item.title }));
         return null;
       }
 
@@ -371,9 +378,9 @@ export default function DonorListFood() {
       console.error('Error fetching receiver details:', err);
 
       if (err.response?.status === 400) {
-        setError('Receiver not found or invalid email');
+        setError(t('donorListFood.receiverNotFoundOrInvalidEmail'));
       } else {
-        setError('Failed to fetch receiver details. Please try again.');
+        setError(t('donorListFood.failedFetchReceiverDetails'));
       }
 
       return null;
@@ -394,7 +401,7 @@ export default function DonorListFood() {
       navigate(`/donor/messages?conversationId=${response.data.id}`);
     } catch (err) {
       console.error('Error opening donation conversation:', err);
-      setError('Failed to open donation chat. Please try again.');
+      setError(t('donorListFood.failedOpenDonationChat'));
     }
   };
 
@@ -420,15 +427,15 @@ export default function DonorListFood() {
           console.log('Feedback modal state set to true');
         } else {
           console.log('No receiver ID found in claim');
-          alert('Unable to load receiver information. Please try again.');
+          alert(t('donorListFood.unableLoadReceiverInfo'));
         }
       } else {
         console.log('No claims found for this post');
-        alert('No claims found for this donation. Please try again.');
+        alert(t('donorListFood.noClaimsFoundForDonation'));
       }
     } catch (error) {
       console.error('Error fetching claim details for feedback:', error);
-      alert('Failed to open feedback modal. Please try again.');
+      alert(t('donorListFood.failedOpenFeedbackModal'));
     }
   };
 
@@ -551,27 +558,27 @@ export default function DonorListFood() {
           setCompletedDonationId(item.id);
           setShowReportModal(true);
         } else {
-          alert('Unable to load receiver information. Please try again.');
+          alert(t('donorListFood.unableLoadReceiverInfo'));
         }
       } else {
-        alert('No claims found for this donation. Please try again.');
+        alert(t('donorListFood.noClaimsFoundForDonation'));
       }
     } catch (error) {
       console.error('Error fetching claim details for report:', error);
-      alert('Failed to open report modal. Please try again.');
+      alert(t('donorListFood.failedOpenReportModal'));
     }
   };
 
   const handleReportSubmit = async reportData => {
     try {
       await reportAPI.createReport(reportData);
-      alert('Report submitted successfully');
+      alert(t('donorListFood.reportSubmittedSuccessfully'));
       setShowReportModal(false);
       setReportTargetUser(null);
       setCompletedDonationId(null);
     } catch (err) {
       console.error('Failed to submit report', err);
-      alert('Failed to submit report. Please try again.');
+      alert(t('donorListFood.failedSubmitReport'));
     }
   };
 
@@ -616,18 +623,20 @@ export default function DonorListFood() {
       for (const file of files) {
         // Validate file type
         if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
-          throw new Error('Only JPEG and PNG images are allowed');
+          throw new Error(t('donorListFood.onlyJpegPngAllowed'));
         }
         // Validate file size (5MB)
         if (file.size > 5 * 1024 * 1024) {
-          throw new Error('File size must be less than 5MB');
+          throw new Error(t('donorListFood.fileSizeMustBeLessThan5Mb'));
         }
 
         const response = await surplusAPI.uploadEvidence(donationId, file);
         if (response.data.success) {
           uploadedUrls.push(response.data.url);
         } else {
-          throw new Error(response.data.message || 'Upload failed');
+          throw new Error(
+            response.data.message || t('donorListFood.uploadFailed')
+          );
         }
       }
 
@@ -656,7 +665,7 @@ export default function DonorListFood() {
       const errorMessage =
         err.response?.data?.message ||
         err.message ||
-        'Failed to upload photo. Please try again.';
+        t('donorListFood.failedUploadPhoto');
       setUploadError(prev => ({ ...prev, [donationId]: errorMessage }));
     } finally {
       setUploadingPhotos(prev => ({ ...prev, [donationId]: false }));
@@ -924,18 +933,18 @@ export default function DonorListFood() {
                 <div className="donation-header">
                   <h3 className="donation-title">{item.title}</h3>
                   <span className={statusClass(item.status)}>
-                    {item.status === 'AVAILABLE'
-                      ? 'Available'
-                      : item.status === 'READY_FOR_PICKUP'
-                        ? 'Ready for Pickup'
-                        : item.status === 'CLAIMED'
-                          ? 'Claimed'
-                          : item.status === 'NOT_COMPLETED'
-                            ? 'Not Completed'
-                            : item.status === 'COMPLETED'
-                              ? 'Completed'
-                              : item.status === 'EXPIRED'
-                                ? 'Expired'
+                    {normalizedStatus === 'AVAILABLE'
+                      ? t('donorListFood.status.available')
+                      : normalizedStatus === 'READY_FOR_PICKUP'
+                        ? t('donorListFood.status.readyForPickup')
+                        : normalizedStatus === 'CLAIMED'
+                          ? t('donorListFood.status.claimed')
+                          : normalizedStatus === 'NOT_COMPLETED'
+                            ? t('donorListFood.status.notCompleted')
+                            : normalizedStatus === 'COMPLETED'
+                              ? t('donorListFood.status.completed')
+                              : normalizedStatus === 'EXPIRED'
+                                ? t('donorListFood.status.expired')
                                 : item.status}
                   </span>
                 </div>
@@ -994,19 +1003,30 @@ export default function DonorListFood() {
                 <ul className="donation-meta" aria-label="details">
                   <li>
                     <Calendar size={16} className="calendar-icon" />
-                    <span>Expires: {formatExpiryDate(item.expiryDate)}</span>
+                    <span>
+                      {t('donorListFood.expires')}:&nbsp;
+                      {formatExpiryDate(
+                        item.expiryDate,
+                        locale,
+                        t('donorListFood.notSpecified')
+                      )}
+                    </span>
                   </li>
                   <li>
                     <Clock size={16} className="time-icon" />
                     <div className="pickup-times-container">
-                      <span className="pickup-label">Pickup:</span>
+                      <span className="pickup-label">
+                        {t('donorListFood.pickup')}:
+                      </span>
                       {/* Show only confirmed pickup slot if it exists, otherwise show all slots */}
                       {item.confirmedPickupSlot ? (
                         <span className="pickup-time-item">
                           {formatPickupTime(
                             item.confirmedPickupSlot.pickupDate,
                             item.confirmedPickupSlot.startTime,
-                            item.confirmedPickupSlot.endTime
+                            item.confirmedPickupSlot.endTime,
+                            locale,
+                            t('donorListFood.flexible')
                           )}
                         </span>
                       ) : item.pickupSlots && item.pickupSlots.length > 0 ? (
@@ -1017,7 +1037,9 @@ export default function DonorListFood() {
                                 {formatPickupTime(
                                   slot.pickupDate || slot.date,
                                   slot.startTime || slot.pickupFrom,
-                                  slot.endTime || slot.pickupTo
+                                  slot.endTime || slot.pickupTo,
+                                  locale,
+                                  t('donorListFood.flexible')
                                 )}
                               </span>
                               {idx < item.pickupSlots.length - 1 && (
@@ -1031,7 +1053,9 @@ export default function DonorListFood() {
                           {formatPickupTime(
                             item.pickupDate,
                             item.pickupFrom,
-                            item.pickupTo
+                            item.pickupTo,
+                            locale,
+                            t('donorListFood.flexible')
                           )}
                         </span>
                       )}
@@ -1053,7 +1077,7 @@ export default function DonorListFood() {
                       </a>
                     ) : (
                       <span className="donation-address">
-                        Address not specified
+                        {t('donorListFood.addressNotSpecified')}
                       </span>
                     )}
                   </li>
@@ -1103,15 +1127,21 @@ export default function DonorListFood() {
                         {uploadingPhotos[item.id] ? (
                           <>
                             <span className="upload-spinner"></span>
-                            <span>Uploading...</span>
+                            <span>{t('donorListFood.uploading')}</span>
                           </>
                         ) : (
                           <>
                             <Camera size={14} />
                             <span>
                               {donationPhotos[item.id]?.length > 0
-                                ? `${donationPhotos[item.id].length} photo${donationPhotos[item.id].length > 1 ? 's' : ''} uploaded`
-                                : 'Upload photo of donation'}
+                                ? donationPhotos[item.id].length > 1
+                                  ? t('donorListFood.photosUploadedPlural', {
+                                      count: donationPhotos[item.id].length,
+                                    })
+                                  : t('donorListFood.photosUploadedSingular', {
+                                      count: donationPhotos[item.id].length,
+                                    })
+                                : t('donorListFood.uploadDonationPhoto')}
                             </span>
                           </>
                         )}
@@ -1124,8 +1154,13 @@ export default function DonorListFood() {
                         onClick={() => toggleViewPhotos(item.id)}
                       >
                         <ImageIcon size={14} />
-                        View {donationPhotos[item.id].length} photo
-                        {donationPhotos[item.id].length > 1 ? 's' : ''}
+                        {donationPhotos[item.id].length > 1
+                          ? t('donorListFood.viewPhotosPlural', {
+                              count: donationPhotos[item.id].length,
+                            })
+                          : t('donorListFood.viewPhotosSingular', {
+                              count: donationPhotos[item.id].length,
+                            })}
                       </button>
                     )}
                   </div>
@@ -1143,8 +1178,9 @@ export default function DonorListFood() {
                     >
                       <Clock size={16} />
                       <span>
-                        {expandedTimeline[item.id] ? 'Hide' : 'View'} Donation
-                        Timeline
+                        {expandedTimeline[item.id]
+                          ? t('donorListFood.hideDonationTimeline')
+                          : t('donorListFood.viewDonationTimeline')}
                       </span>
                       <ChevronDown
                         size={16}
@@ -1169,13 +1205,13 @@ export default function DonorListFood() {
                       className="donation-link"
                       onClick={() => openEdit(item)}
                     >
-                      <Edit className="icon" /> Edit
+                      <Edit className="icon" /> {t('donorListFood.edit')}
                     </button>
                     <button
                       className="donation-link danger"
                       onClick={() => requestDelete(item.id)}
                     >
-                      <Trash2 className="icon" /> Delete
+                      <Trash2 className="icon" /> {t('donorListFood.delete')}
                     </button>
                   </div>
                 ) : item.status === 'NOT_COMPLETED' ? (
@@ -1185,20 +1221,21 @@ export default function DonorListFood() {
                         className="donation-action-button primary"
                         onClick={() => handleOpenRescheduleModal(item)}
                       >
-                        RESCHEDULE
+                        {t('donorListFood.reschedule')}
                       </button>
                     )}
                     <button
                       className="donation-action-button report-receiver"
                       onClick={() => handleOpenReport(item)}
                     >
-                      REPORT RECEIVER
+                      {t('donorListFood.reportReceiver')}
                     </button>
                     <button
                       className="donation-action-button secondary"
                       onClick={() => handleOpenFeedback(item)}
                     >
-                      <Star className="icon" /> LEAVE FEEDBACK
+                      <Star className="icon" />{' '}
+                      {t('donorListFood.leaveFeedback')}
                     </button>
                   </div>
                 ) : (
@@ -1208,7 +1245,7 @@ export default function DonorListFood() {
                         className="donation-action-button primary"
                         onClick={() => handleOpenPickupModal(item)}
                       >
-                        ENTER PICKUP CODE
+                        {t('donorListFood.enterPickupCode')}
                       </button>
                     )}
                     {item.status === 'COMPLETED' && (
@@ -1217,19 +1254,20 @@ export default function DonorListFood() {
                           className="donation-action-button secondary"
                           disabled
                         >
-                          THANK YOU
+                          {t('donorListFood.thankYou')}
                         </button>
                         <button
                           className="donation-action-button report-receiver"
                           onClick={() => handleOpenReport(item)}
                         >
-                          REPORT RECEIVER
+                          {t('donorListFood.reportReceiver')}
                         </button>
                         <button
                           className="donation-action-button secondary"
                           onClick={() => handleOpenFeedback(item)}
                         >
-                          <Star className="icon" /> LEAVE FEEDBACK
+                          <Star className="icon" />{' '}
+                          {t('donorListFood.leaveFeedback')}
                         </button>
                       </>
                     )}
@@ -1238,7 +1276,7 @@ export default function DonorListFood() {
                         className="donation-action-button primary"
                         onClick={() => contactReceiver(item)}
                       >
-                        OPEN CHAT
+                        {t('donorListFood.openChat')}
                       </button>
                     )}
                   </div>
