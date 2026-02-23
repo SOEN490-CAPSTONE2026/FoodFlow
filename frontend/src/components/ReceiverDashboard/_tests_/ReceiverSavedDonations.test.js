@@ -73,7 +73,9 @@ describe('ReceiverSavedDonations', () => {
   });
 
   test('renders saved donation card and unsaves on bookmark click', async () => {
-    savedDonationAPI.getSavedDonations.mockResolvedValue({ data: [mockDonation] });
+    savedDonationAPI.getSavedDonations.mockResolvedValue({
+      data: [mockDonation],
+    });
     savedDonationAPI.unsave.mockResolvedValue({});
 
     render(<ReceiverSavedDonations />);
@@ -93,7 +95,9 @@ describe('ReceiverSavedDonations', () => {
   });
 
   test('restores donation when unsave fails', async () => {
-    savedDonationAPI.getSavedDonations.mockResolvedValue({ data: [mockDonation] });
+    savedDonationAPI.getSavedDonations.mockResolvedValue({
+      data: [mockDonation],
+    });
     savedDonationAPI.unsave.mockRejectedValue(new Error('cannot unsave'));
 
     render(<ReceiverSavedDonations />);
@@ -110,7 +114,9 @@ describe('ReceiverSavedDonations', () => {
   });
 
   test('claims donation with legacy slot when confirmed', async () => {
-    savedDonationAPI.getSavedDonations.mockResolvedValue({ data: [mockDonation] });
+    savedDonationAPI.getSavedDonations.mockResolvedValue({
+      data: [mockDonation],
+    });
     savedDonationAPI.unsave.mockResolvedValue({});
     surplusAPI.claim.mockResolvedValue({});
     global.confirm = jest.fn(() => true);
@@ -131,7 +137,9 @@ describe('ReceiverSavedDonations', () => {
   });
 
   test('does not claim donation when confirmation is cancelled', async () => {
-    savedDonationAPI.getSavedDonations.mockResolvedValue({ data: [mockDonation] });
+    savedDonationAPI.getSavedDonations.mockResolvedValue({
+      data: [mockDonation],
+    });
     global.confirm = jest.fn(() => false);
 
     render(<ReceiverSavedDonations />);
@@ -161,7 +169,9 @@ describe('ReceiverSavedDonations', () => {
       ],
     };
 
-    savedDonationAPI.getSavedDonations.mockResolvedValue({ data: [slotDonation] });
+    savedDonationAPI.getSavedDonations.mockResolvedValue({
+      data: [slotDonation],
+    });
     surplusAPI.claim.mockResolvedValue({});
     savedDonationAPI.unsave.mockResolvedValue({});
 

@@ -45,7 +45,8 @@ const t = (key, fallbackOrVars) => {
   if (key === 'receiverBrowse.donorsNote') return "Donor's Note";
   if (key === 'receiverBrowse.posted') return 'Posted';
   if (key === 'receiverBrowse.localBusiness') return 'Local Business';
-  if (key === 'receiverBrowse.locationNotSpecified') return 'Location not specified';
+  if (key === 'receiverBrowse.locationNotSpecified')
+    return 'Location not specified';
   if (key === 'receiverBrowse.donatedBy')
     return `Donated by ${fallbackOrVars?.donorName || ''}`;
   if (key.startsWith('surplusForm.')) return key;
