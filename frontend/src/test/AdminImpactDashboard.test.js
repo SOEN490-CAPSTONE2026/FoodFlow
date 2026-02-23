@@ -28,6 +28,24 @@ jest.mock('lucide-react', () => ({
   Calendar: () => <div>Calendar Icon</div>,
   UserCheck: () => <div>UserCheck Icon</div>,
   Repeat: () => <div>Repeat Icon</div>,
+  Settings: () => <div>Settings Icon</div>,
+  X: () => <div>X Icon</div>,
+  Utensils: () => <div>Utensils Icon</div>,
+  CheckCircle: () => <div>CheckCircle Icon</div>,
+}));
+
+// Mock recharts
+jest.mock('recharts', () => ({
+  AreaChart: ({ children }) => <div data-testid="area-chart">{children}</div>,
+  Area: () => <div data-testid="area" />,
+  BarChart: ({ children }) => <div data-testid="bar-chart">{children}</div>,
+  Bar: () => <div data-testid="bar" />,
+  XAxis: () => <div data-testid="x-axis" />,
+  YAxis: () => <div data-testid="y-axis" />,
+  CartesianGrid: () => <div data-testid="cartesian-grid" />,
+  Tooltip: () => <div data-testid="tooltip" />,
+  ResponsiveContainer: ({ children }) => <div>{children}</div>,
+  Legend: () => <div data-testid="legend" />,
 }));
 
 // Mock the API
@@ -53,6 +71,11 @@ describe('AdminImpactDashboard', () => {
     activeReceivers: 98,
     repeatDonors: 67,
     repeatReceivers: 54,
+    foodSavedTimeSeries: [
+      { label: '2024-01-01', foodWeightKg: 100 },
+      { label: '2024-01-02', foodWeightKg: 150 },
+      { label: '2024-01-03', foodWeightKg: 200 },
+    ],
   };
 
   beforeEach(() => {
@@ -92,7 +115,9 @@ describe('AdminImpactDashboard', () => {
       render(<AdminImpactDashboard />);
 
       await waitFor(() => {
-        expect(screen.getByText('Failed to load metrics')).toBeInTheDocument();
+        expect(
+          screen.getByText('Unable to load impact metrics. Please try again.')
+        ).toBeInTheDocument();
       });
 
       expect(screen.getByText('Retry')).toBeInTheDocument();
@@ -106,7 +131,9 @@ describe('AdminImpactDashboard', () => {
       render(<AdminImpactDashboard />);
 
       await waitFor(() => {
-        expect(screen.getByText('Failed to load metrics')).toBeInTheDocument();
+        expect(
+          screen.getByText('Unable to load impact metrics. Please try again.')
+        ).toBeInTheDocument();
       });
 
       impactDashboardAPI.getMetrics.mockResolvedValueOnce({
@@ -127,31 +154,27 @@ describe('AdminImpactDashboard', () => {
       impactDashboardAPI.getMetrics.mockResolvedValue({ data: mockMetrics });
     });
 
-    test('renders dashboard with metrics after successful fetch', async () => {
+    test('renders dashboard with controls after successful fetch', async () => {
       render(<AdminImpactDashboard />);
 
       await waitFor(() => {
-        expect(
-          screen.getByText('Platform Impact Dashboard')
-        ).toBeInTheDocument();
+        expect(screen.getByText('Customize Metrics')).toBeInTheDocument();
       });
 
-      expect(screen.getByText('Total Food Saved')).toBeInTheDocument();
-      expect(screen.getByText('Meals Provided')).toBeInTheDocument();
-      expect(screen.getByText('CO₂ Emissions Avoided')).toBeInTheDocument();
-      expect(screen.getByText('Water Saved')).toBeInTheDocument();
+      expect(screen.getByText('Export CSV')).toBeInTheDocument();
     });
 
-    test('displays correct metric values', async () => {
+    test('displays correct metric values in cards', async () => {
       render(<AdminImpactDashboard />);
 
       await waitFor(() => {
-        expect(screen.getByText('1500.50')).toBeInTheDocument(); // Food weight
+        expect(screen.getByText('125')).toBeInTheDocument(); // Active donors
       });
 
-      expect(screen.getByText('3500')).toBeInTheDocument(); // Meals
-      expect(screen.getByText('1200.75')).toBeInTheDocument(); // CO2
-      expect(screen.getByText('150000')).toBeInTheDocument(); // Water
+      // These values appear in the default visible metrics
+      expect(screen.getByText('98')).toBeInTheDocument(); // Active receivers
+      expect(screen.getByText('380')).toBeInTheDocument(); // Completed donations
+      expect(screen.getByText('84.4')).toBeInTheDocument(); // Completion rate
     });
 
     test('renders activity statistics section', async () => {
@@ -162,48 +185,21 @@ describe('AdminImpactDashboard', () => {
       });
 
       expect(screen.getByText('Total Posts Created')).toBeInTheDocument();
-      expect(screen.getByText('Donations Completed')).toBeInTheDocument();
       expect(screen.getByText('Total Claims Made')).toBeInTheDocument();
-      expect(screen.getByText('Completion Rate')).toBeInTheDocument();
-    });
-
-    test('renders user engagement section', async () => {
-      render(<AdminImpactDashboard />);
-
-      await waitFor(() => {
-        expect(screen.getByText('User Engagement')).toBeInTheDocument();
-      });
-
-      expect(screen.getByText('Active Donors')).toBeInTheDocument();
-      expect(screen.getByText('Active Receivers')).toBeInTheDocument();
       expect(screen.getByText('Repeat Donors')).toBeInTheDocument();
       expect(screen.getByText('Repeat Receivers')).toBeInTheDocument();
     });
 
-    test('displays engagement metric values', async () => {
+    test('renders charts when data is available', async () => {
       render(<AdminImpactDashboard />);
 
       await waitFor(() => {
-        expect(screen.getByText('125')).toBeInTheDocument(); // Active donors
+        expect(screen.getByText('Food Saved Over Time')).toBeInTheDocument();
       });
 
-      expect(screen.getByText('98')).toBeInTheDocument(); // Active receivers
-      expect(screen.getByText('67')).toBeInTheDocument(); // Repeat donors
-      expect(screen.getByText('54')).toBeInTheDocument(); // Repeat receivers
-    });
-
-    test('renders platform impact message', async () => {
-      render(<AdminImpactDashboard />);
-
-      await waitFor(() => {
-        expect(
-          screen.getByText('Platform Impact Summary 📊')
-        ).toBeInTheDocument();
-      });
-
-      expect(
-        screen.getByText(/FoodFlow is making a real difference/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText('Impact Overview')).toBeInTheDocument();
+      expect(screen.getByTestId('area-chart')).toBeInTheDocument();
+      expect(screen.getByTestId('bar-chart')).toBeInTheDocument();
     });
   });
 
@@ -216,9 +212,7 @@ describe('AdminImpactDashboard', () => {
       render(<AdminImpactDashboard />);
 
       await waitFor(() => {
-        expect(
-          screen.getByText('Platform Impact Dashboard')
-        ).toBeInTheDocument();
+        expect(screen.getByText('Customize Metrics')).toBeInTheDocument();
       });
 
       const dateSelector = screen.getByRole('combobox');
@@ -233,9 +227,7 @@ describe('AdminImpactDashboard', () => {
       render(<AdminImpactDashboard />);
 
       await waitFor(() => {
-        expect(
-          screen.getByText('Platform Impact Dashboard')
-        ).toBeInTheDocument();
+        expect(screen.getByText('Customize Metrics')).toBeInTheDocument();
       });
 
       const dateSelector = screen.getByRole('combobox');
@@ -274,9 +266,7 @@ describe('AdminImpactDashboard', () => {
       render(<AdminImpactDashboard />);
 
       await waitFor(() => {
-        expect(
-          screen.getByText('Platform Impact Dashboard')
-        ).toBeInTheDocument();
+        expect(screen.getByText('Customize Metrics')).toBeInTheDocument();
       });
 
       // Store original Blob
@@ -338,7 +328,7 @@ describe('AdminImpactDashboard', () => {
       global.Blob = OriginalBlob;
     });
 
-    test('shows error alert when export fails', async () => {
+    test('shows error message when export fails', async () => {
       impactDashboardAPI.exportMetrics.mockRejectedValueOnce(
         new Error('Export failed')
       );
@@ -346,16 +336,16 @@ describe('AdminImpactDashboard', () => {
       render(<AdminImpactDashboard />);
 
       await waitFor(() => {
-        expect(
-          screen.getByText('Platform Impact Dashboard')
-        ).toBeInTheDocument();
+        expect(screen.getByText('Customize Metrics')).toBeInTheDocument();
       });
 
       const exportButton = screen.getByText('Export CSV').closest('button');
       fireEvent.click(exportButton);
 
       await waitFor(() => {
-        expect(global.alert).toHaveBeenCalledWith('Failed to export metrics');
+        expect(
+          screen.getByText('Unable to export metrics right now.')
+        ).toBeInTheDocument();
       });
     });
 
@@ -363,9 +353,7 @@ describe('AdminImpactDashboard', () => {
       render(<AdminImpactDashboard />);
 
       await waitFor(() => {
-        expect(
-          screen.getByText('Platform Impact Dashboard')
-        ).toBeInTheDocument();
+        expect(screen.getByText('Customize Metrics')).toBeInTheDocument();
       });
 
       // Store original Blob
@@ -431,43 +419,28 @@ describe('AdminImpactDashboard', () => {
       impactDashboardAPI.getMetrics.mockResolvedValue({ data: mockMetrics });
     });
 
-    test('displays correct units for all metrics', async () => {
+    test('displays correct units for metrics', async () => {
       render(<AdminImpactDashboard />);
 
       await waitFor(() => {
-        expect(
-          screen.getByText('Platform Impact Dashboard')
-        ).toBeInTheDocument();
+        expect(screen.getByText('Customize Metrics')).toBeInTheDocument();
       });
 
-      // Use text matcher function to handle whitespace
-      const kgUnits = screen.getAllByText((content, element) => {
-        return element?.className === 'metric-unit' && content.trim() === 'kg';
+      // Check for percentage unit (completion rate)
+      const percentUnits = screen.getAllByText((content, element) => {
+        return element?.className === 'metric-unit' && content.trim() === '%';
       });
-      expect(kgUnits.length).toBeGreaterThanOrEqual(2); // Food and CO2
-
-      expect(
-        screen.getByText((content, element) => {
-          return (
-            element?.className === 'metric-unit' && content.trim() === 'liters'
-          );
-        })
-      ).toBeInTheDocument(); // Water
-
-      expect(
-        screen.getByText((content, element) => {
-          return (
-            element?.className === 'metric-unit' && content.trim() === 'meals'
-          );
-        })
-      ).toBeInTheDocument(); // Meals
+      expect(percentUnits.length).toBeGreaterThanOrEqual(1);
     });
   });
 
   describe('Component Lifecycle', () => {
-    test('fetches metrics on mount', async () => {
+    beforeEach(() => {
+      impactDashboardAPI.getMetrics.mockClear();
       impactDashboardAPI.getMetrics.mockResolvedValue({ data: mockMetrics });
+    });
 
+    test('fetches metrics on mount', async () => {
       render(<AdminImpactDashboard />);
 
       await waitFor(() => {
@@ -476,19 +449,17 @@ describe('AdminImpactDashboard', () => {
     });
 
     test('refetches metrics when date range changes', async () => {
-      impactDashboardAPI.getMetrics.mockResolvedValue({ data: mockMetrics });
-
       render(<AdminImpactDashboard />);
 
       await waitFor(() => {
-        expect(impactDashboardAPI.getMetrics).toHaveBeenCalledTimes(1);
+        expect(impactDashboardAPI.getMetrics).toHaveBeenCalledWith('ALL_TIME');
       });
 
       const dateSelector = screen.getByRole('combobox');
       fireEvent.change(dateSelector, { target: { value: 'WEEKLY' } });
 
       await waitFor(() => {
-        expect(impactDashboardAPI.getMetrics).toHaveBeenCalledTimes(2);
+        expect(impactDashboardAPI.getMetrics).toHaveBeenCalledWith('WEEKLY');
       });
     });
   });
@@ -501,35 +472,84 @@ describe('AdminImpactDashboard', () => {
           co2EmissionsAvoidedKg: null,
           estimatedMealsProvided: null,
           waterSavedLiters: null,
+          foodSavedTimeSeries: [],
         },
       });
 
       render(<AdminImpactDashboard />);
 
       await waitFor(() => {
-        expect(
-          screen.getByText('Platform Impact Dashboard')
-        ).toBeInTheDocument();
+        expect(screen.getByText('Customize Metrics')).toBeInTheDocument();
       });
 
-      // Should display default values (0.00 or 0) - use getAllByText since there are multiple
-      const zeroDecimalValues = screen.getAllByText('0.00');
-      expect(zeroDecimalValues.length).toBeGreaterThan(0);
+      // Should display default values (0 for counts, 0.0% for rate)
+      const zeroValues = screen.getAllByText('0');
+      expect(zeroValues.length).toBeGreaterThan(0);
+      expect(screen.getByText('0.0')).toBeInTheDocument(); // Completion rate
     });
 
     test('displays 0 for undefined metrics', async () => {
-      impactDashboardAPI.getMetrics.mockResolvedValue({ data: {} });
+      impactDashboardAPI.getMetrics.mockResolvedValue({ 
+        data: {
+          foodSavedTimeSeries: [],
+        }
+      });
 
       render(<AdminImpactDashboard />);
 
       await waitFor(() => {
-        expect(
-          screen.getByText('Platform Impact Dashboard')
-        ).toBeInTheDocument();
+        expect(screen.getByText('Customize Metrics')).toBeInTheDocument();
       });
 
       const zeroValues = screen.getAllByText('0');
       expect(zeroValues.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Customize Metrics Modal', () => {
+    beforeEach(() => {
+      impactDashboardAPI.getMetrics.mockResolvedValue({ data: mockMetrics });
+    });
+
+    test('opens customize modal when button clicked', async () => {
+      render(<AdminImpactDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Customize Metrics')).toBeInTheDocument();
+      });
+
+      const customizeButton = screen.getByText('Customize Metrics').closest('button');
+      fireEvent.click(customizeButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('Select which metrics you want to display on your dashboard (maximum 4):')).toBeInTheDocument();
+      });
+
+      expect(screen.getByText('Select All')).toBeInTheDocument();
+      expect(screen.getByText('Clear All')).toBeInTheDocument();
+      expect(screen.getByText('Done')).toBeInTheDocument();
+    });
+
+    test('closes modal when done button clicked', async () => {
+      render(<AdminImpactDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Customize Metrics')).toBeInTheDocument();
+      });
+
+      const customizeButton = screen.getByText('Customize Metrics').closest('button');
+      fireEvent.click(customizeButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('Done')).toBeInTheDocument();
+      });
+
+      const doneButton = screen.getByText('Done').closest('button');
+      fireEvent.click(doneButton);
+
+      await waitFor(() => {
+        expect(screen.queryByText('Select All')).not.toBeInTheDocument();
+      });
     });
   });
 });
