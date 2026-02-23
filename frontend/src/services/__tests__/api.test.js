@@ -495,6 +495,26 @@ describe('API service', () => {
     expect(resp).toEqual({ data: [] });
   });
 
+  test('surplusAPI.search with dietary tags and sort', async () => {
+    mockPost.mockResolvedValue({ data: [] });
+    const { surplusAPI } = require('../api');
+
+    const filters = {
+      dietaryTags: ['VEGAN', 'HALAL'],
+      dietaryMatch: 'ALL',
+      sort: 'newest',
+    };
+    const resp = await surplusAPI.search(filters);
+
+    expect(mockPost).toHaveBeenCalledWith('/surplus/search', {
+      dietaryTags: ['VEGAN', 'HALAL'],
+      dietaryMatch: 'ALL',
+      sort: 'newest',
+      status: 'AVAILABLE',
+    });
+    expect(resp).toEqual({ data: [] });
+  });
+
   test('surplusAPI.uploadEvidence', async () => {
     mockPost.mockResolvedValue({
       data: { url: 'http://example.com/evidence.jpg' },
@@ -523,6 +543,61 @@ describe('API service', () => {
       expect.stringContaining('status=AVAILABLE')
     );
     expect(resp).toEqual({ data: [] });
+  });
+
+  test('surplusAPI.searchBasic with dietary tags and sort', async () => {
+    mockGet.mockResolvedValue({ data: [] });
+    const { surplusAPI } = require('../api');
+
+    const filters = {
+      dietaryTags: ['VEGETARIAN', 'NUT_FREE'],
+      dietaryMatch: 'ALL',
+      sort: 'closest',
+    };
+    const resp = await surplusAPI.searchBasic(filters);
+
+    expect(mockGet).toHaveBeenCalledWith(
+      expect.stringContaining('dietaryTags=VEGETARIAN%2CNUT_FREE')
+    );
+    expect(mockGet).toHaveBeenCalledWith(
+      expect.stringContaining('dietaryMatch=ALL')
+    );
+    expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('sort=closest'));
+    expect(resp).toEqual({ data: [] });
+  });
+
+  // conversationAPI tests
+  test('conversationAPI express/get endpoints', async () => {
+    mockPost
+      .mockResolvedValueOnce({ data: { id: 11 } })
+      .mockResolvedValueOnce({ data: { id: 22 } });
+    mockGet
+      .mockResolvedValueOnce({ data: [{ id: 1 }] })
+      .mockResolvedValueOnce({ data: { id: 7 } })
+      .mockResolvedValueOnce({ data: [{ id: 9, content: 'hi' }] });
+    const { conversationAPI } = require('../api');
+
+    const interestResp = await conversationAPI.expressInterest(99);
+    const createResp = await conversationAPI.createOrGetPostConversation(99, 7);
+    const allResp = await conversationAPI.getConversations();
+    const oneResp = await conversationAPI.getConversation(7);
+    const msgsResp = await conversationAPI.getMessages(7);
+
+    expect(mockPost).toHaveBeenNthCalledWith(
+      1,
+      '/conversations/interested/99'
+    );
+    expect(mockPost).toHaveBeenNthCalledWith(2, '/conversations/post/99', {
+      otherUserId: 7,
+    });
+    expect(mockGet).toHaveBeenNthCalledWith(1, '/conversations');
+    expect(mockGet).toHaveBeenNthCalledWith(2, '/conversations/7');
+    expect(mockGet).toHaveBeenNthCalledWith(3, '/conversations/7/messages');
+    expect(interestResp).toEqual({ data: { id: 11 } });
+    expect(createResp).toEqual({ data: { id: 22 } });
+    expect(allResp).toEqual({ data: [{ id: 1 }] });
+    expect(oneResp).toEqual({ data: { id: 7 } });
+    expect(msgsResp).toEqual({ data: [{ id: 9, content: 'hi' }] });
   });
 
   // claimsAPI tests
@@ -731,6 +806,15 @@ describe('API service', () => {
     );
     expect(result).toEqual([]);
     consoleSpy.mockRestore();
+  });
+
+  test('recommendationAPI.getTopRecommendations with empty postIds', async () => {
+    const { recommendationAPI } = require('../api');
+
+    const result = await recommendationAPI.getTopRecommendations([]);
+
+    expect(mockGet).not.toHaveBeenCalled();
+    expect(result).toEqual({});
   });
 
   // userAPI tests
@@ -1164,6 +1248,30 @@ describe('API service', () => {
       reason: 'Invalid documents',
       message: 'Please resubmit',
     });
+    expect(resp).toEqual({ data: { success: true } });
+  });
+
+  test('conversationAPI.markAsRead', async () => {
+    const mockPut = jest.fn().mockResolvedValue({ data: { success: true } });
+    jest.doMock('axios', () => ({
+      create: jest.fn(() => ({
+        interceptors: {
+          request: { use: jest.fn() },
+          response: { use: jest.fn() },
+        },
+        post: mockPost,
+        get: mockGet,
+        put: mockPut,
+        patch: mockPatch,
+        delete: mockDelete,
+      })),
+    }));
+
+    jest.resetModules();
+    const { conversationAPI } = require('../api');
+    const resp = await conversationAPI.markAsRead(91);
+
+    expect(mockPut).toHaveBeenCalledWith('/conversations/91/read');
     expect(resp).toEqual({ data: { success: true } });
   });
 
