@@ -275,7 +275,9 @@ describe('ReceiverSavedDonations', () => {
     fireEvent.click(screen.getByText('Claim Donation'));
 
     await waitFor(() => {
-      expect(global.alert).toHaveBeenCalledWith('Unable to claim this donation');
+      expect(global.alert).toHaveBeenCalledWith(
+        'Unable to claim this donation'
+      );
     });
   });
 
