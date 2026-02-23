@@ -279,6 +279,38 @@ export const claimsAPI = {
   getClaimForSurplusPost: postId => api.get(`/claims/post/${postId}`),
 };
 
+/**
+ * Saved Donations API functions
+ */
+export const savedDonationAPI = {
+  /**
+   * Get all saved donations for the current user
+   * @returns {Promise} List of saved donations
+   */
+  getSavedDonations: () => api.get('/saved-donations'),
+
+  /**
+   * Save a donation
+   * @param {number} donationId - Donation ID to save
+   * @returns {Promise} Response data
+   */
+  save: donationId => api.post(`/saved-donations/${donationId}`),
+
+  /**
+   * Unsave a donation
+   * @param {number} donationId - Donation ID to unsave
+   * @returns {Promise} Response data
+   */
+  unsave: donationId => api.delete(`/saved-donations/${donationId}`),
+
+  /**
+   * Check if a donation is saved
+   * @param {number} donationId - Donation ID to check
+   * @returns {Promise} Boolean indicating if saved
+   */
+  isSaved: donationId => api.get(`/saved-donations/${donationId}/status`),
+};
+
 export const conversationAPI = {
   expressInterest: postId => api.post(`/conversations/interested/${postId}`),
   createOrGetPostConversation: (postId, otherUserId) =>
