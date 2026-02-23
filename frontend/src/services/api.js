@@ -279,6 +279,14 @@ export const claimsAPI = {
   getClaimForSurplusPost: postId => api.get(`/claims/post/${postId}`),
 };
 
+export const savedDonationAPI = {
+  save: donationId => api.post(`/receiver/saved/${donationId}`),
+  unsave: donationId => api.delete(`/receiver/saved/${donationId}`),
+  getSavedDonations: () => api.get('/receiver/saved'),
+  isSaved: donationId => api.get(`/receiver/saved/check/${donationId}`),
+  getSavedCount: () => api.get('/receiver/saved/count'),
+};
+
 /**
  * Recommendation API functions
  */
