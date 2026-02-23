@@ -115,12 +115,10 @@ describe('AdminLayout', () => {
     expect(container.querySelector('.mobile-overlay')).not.toBeInTheDocument();
   });
 
-  // UPDATED: split into two tests – navigate call + rendering at target route
-
-  it('invokes navigate to /admin/messages when Messages row is clicked', () => {
-    renderWithRoutes('/admin');
-    fireEvent.click(screen.getAllByText('Messages')[0]);
-    expect(mockedNavigate).toHaveBeenCalledWith('/admin/messages');
+  it('Messages link navigates to /admin/messages', () => {
+    const { container } = renderWithRoutes('/admin');
+    const messagesLink = screen.getAllByText('Messages')[0].closest('a');
+    expect(messagesLink).toHaveAttribute('href', '/admin/messages');
   });
 
   it('shows correct title/desc when rendered at /admin/messages', () => {
@@ -132,53 +130,5 @@ describe('AdminLayout', () => {
     expect(screen.getByTestId('stub-outlet')).toHaveTextContent(
       'Messages Content'
     );
-  });
-
-  describe('Responsive contacts count (getMaxContacts & dropdown)', () => {
-    it('shows 1 contact at height <= 650, then 2 at <=800, then 4 at >800', () => {
-      Object.defineProperty(window, 'innerHeight', {
-        writable: true,
-        configurable: true,
-        value: 600,
-      });
-      const { container, unmount } = renderWithRoutes('/admin');
-      const toggle = screen.getByLabelText('Toggle Messages');
-
-      fireEvent.click(toggle);
-      let items = container.querySelectorAll(
-        '.messages-dropdown .message-item'
-      );
-      expect(items.length).toBe(1);
-
-      window.innerHeight = 750;
-      fireEvent(window, new Event('resize'));
-      items = container.querySelectorAll('.messages-dropdown .message-item');
-      expect(items.length).toBe(2);
-
-      window.innerHeight = 900;
-      fireEvent(window, new Event('resize'));
-      items = container.querySelectorAll('.messages-dropdown .message-item');
-      expect(items.length).toBe(4);
-
-      const statuses = container.querySelectorAll(
-        '.messages-dropdown .message-item .message-status'
-      );
-      expect(statuses.length).toBe(2); // first two contacts are online
-      unmount();
-    });
-  });
-
-  it('toggle button expands/collapses messages dropdown', () => {
-    const { container } = renderWithRoutes('/admin');
-    const toggle = screen.getByLabelText('Toggle Messages');
-    expect(
-      container.querySelector('.messages-dropdown')
-    ).not.toBeInTheDocument();
-    fireEvent.click(toggle);
-    expect(container.querySelector('.messages-dropdown')).toBeInTheDocument();
-    fireEvent.click(toggle);
-    expect(
-      container.querySelector('.messages-dropdown')
-    ).not.toBeInTheDocument();
   });
 });

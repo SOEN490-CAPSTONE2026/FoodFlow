@@ -7,6 +7,7 @@ import {
   act,
 } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { MemoryRouter } from 'react-router-dom';
 import ReceiverMyClaims from '../ReceiverMyClaims';
 import { surplusAPI, claimsAPI } from '../../../services/api';
 import { NotificationProvider } from '../../../contexts/NotificationContext';
@@ -43,9 +44,11 @@ global.confirm = jest.fn();
 
 // Wrapper component to provide both contexts
 const Wrapper = ({ children }) => (
-  <TimezoneProvider>
-    <NotificationProvider>{children}</NotificationProvider>
-  </TimezoneProvider>
+  <MemoryRouter>
+    <TimezoneProvider>
+      <NotificationProvider>{children}</NotificationProvider>
+    </TimezoneProvider>
+  </MemoryRouter>
 );
 
 const createMockClaim = (overrides = {}) => ({

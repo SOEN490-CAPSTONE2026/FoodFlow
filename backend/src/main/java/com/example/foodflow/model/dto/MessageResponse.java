@@ -12,10 +12,11 @@ public class MessageResponse {
     private String messageBody;
     private LocalDateTime createdAt;
     private Boolean readStatus;
-    
+    private String messageType;
+
     // Constructors
     public MessageResponse() {}
-    
+
     public MessageResponse(Message message) {
         this.id = message.getId();
         this.conversationId = message.getConversation().getId();
@@ -26,6 +27,7 @@ public class MessageResponse {
         this.messageBody = message.getMessageBody();
         this.createdAt = message.getCreatedAt();
         this.readStatus = message.getReadStatus();
+        this.messageType = message.getMessageType() != null ? message.getMessageType() : "USER";
     }
     
     // Getters and Setters
@@ -83,5 +85,13 @@ public class MessageResponse {
     
     public void setReadStatus(Boolean readStatus) {
         this.readStatus = readStatus;
+    }
+
+    public String getMessageType() {
+        return messageType;
+    }
+
+    public void setMessageType(String messageType) {
+        this.messageType = messageType;
     }
 }

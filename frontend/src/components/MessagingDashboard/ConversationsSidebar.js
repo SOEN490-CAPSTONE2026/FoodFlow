@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import FoodFlowLogo from '../../assets/Logo.png';
+import {
+  foodTypeImages,
+  getFoodTypeLabel,
+} from '../../constants/foodConstants';
 import './ConversationsSidebar.css';
 
 const ConversationsSidebar = ({
@@ -73,6 +78,58 @@ const ConversationsSidebar = ({
   // Count unread conversations
   const unreadCount = conversations.filter(conv => conv.unreadCount > 0).length;
 
+  const getDonationAvatarUrl = conversation => {
+    const rawName = conversation?.otherUserName || '';
+    const rawEmail = conversation?.otherUserEmail || '';
+    const role = (conversation?.otherUserRole || '').toUpperCase();
+    const lookup = `${rawName} ${rawEmail}`.toLowerCase();
+    const isAdminSupport =
+      role === 'ADMIN' ||
+      lookup.includes('admin@foodflow.com') ||
+      lookup === 'admin';
+
+    if (isAdminSupport) {
+      return FoodFlowLogo;
+    }
+
+    if (!conversation?.donationPhoto) {
+      return null;
+    }
+    const categoryLabel = getFoodTypeLabel(conversation.donationPhoto);
+    return foodTypeImages[categoryLabel] || foodTypeImages['Prepared Meals'];
+  };
+
+  const isAdminSupportConversation = conversation => {
+    const rawName = conversation?.otherUserName || '';
+    const rawEmail = conversation?.otherUserEmail || '';
+    const role = (conversation?.otherUserRole || '').toUpperCase();
+    const lookup = `${rawName} ${rawEmail}`.toLowerCase();
+
+    return (
+      role === 'ADMIN' ||
+      lookup.includes('admin@foodflow.com') ||
+      lookup === 'admin'
+    );
+  };
+
+  const getOtherParticipantDisplayName = conversation => {
+    const rawName = conversation?.otherUserName || '';
+    const rawEmail = conversation?.otherUserEmail || '';
+    const role = (conversation?.otherUserRole || '').toUpperCase();
+    const lookup = `${rawName} ${rawEmail}`.toLowerCase();
+
+    const isAdminSupport =
+      role === 'ADMIN' ||
+      lookup.includes('admin@foodflow.com') ||
+      lookup === 'admin';
+
+    if (isAdminSupport) {
+      return t('messaging.customerSupport', 'Customer Support');
+    }
+
+    return rawName || rawEmail || t('messaging.participant', 'Participant');
+  };
+
   return (
     <div
       className={`conversations-sidebar ${showOnMobile ? 'show-mobile' : 'hide-mobile'}`}
@@ -80,17 +137,7 @@ const ConversationsSidebar = ({
       <div className="sidebar-header">
         <div className="header-content">
           <h2>{t('messaging.messages')}</h2>
-          <p className="sidebar-subtitle">
-            {t('messaging.connectAndCoordinate')}
-          </p>
         </div>
-        <button
-          className="new-conversation-btn"
-          onClick={onNewConversation}
-          title={t('messaging.startNewConversation')}
-        >
-          +
-        </button>
       </div>
 
       <div className="filter-tabs">
@@ -118,49 +165,63 @@ const ConversationsSidebar = ({
             <p className="hint">{t('messaging.clickToStart')}</p>
           </div>
         ) : (
-          filteredConversations.map(conversation => (
-            <div
-              key={conversation.id}
-              className={`conversation-item ${
-                selectedConversation?.id === conversation.id ? 'active' : ''
-              }`}
-              onClick={() => onSelectConversation(conversation)}
-            >
-              <div className="conversation-avatar">
-                {conversation.otherUserProfilePhoto ? (
-                  <img
-                    src={getProfilePhotoUrl(conversation.otherUserProfilePhoto)}
-                    alt={conversation.otherUserName}
-                    className="conversation-avatar-image"
-                  />
-                ) : (
-                  conversation.otherUserName.charAt(0).toUpperCase()
-                )}
-              </div>
+          filteredConversations.map(conversation => {
+            const displayName = getOtherParticipantDisplayName(conversation);
+            const isAdminSupport = isAdminSupportConversation(conversation);
 
-              <div className="conversation-info">
-                <div className="conversation-header-row">
-                  <h3 className="conversation-name">
-                    {conversation.otherUserName}
-                  </h3>
-                  <span className="conversation-time">
-                    {formatTimestamp(conversation.lastMessageAt)}
-                  </span>
+            return (
+              <div
+                key={conversation.id}
+                className={`conversation-item ${
+                  selectedConversation?.id === conversation.id ? 'active' : ''
+                }`}
+                onClick={() => onSelectConversation(conversation)}
+              >
+                <div
+                  className={`conversation-avatar ${isAdminSupport ? 'admin-support' : ''}`}
+                >
+                  {getDonationAvatarUrl(conversation) ? (
+                    <img
+                      src={getDonationAvatarUrl(conversation)}
+                      alt={conversation.donationTitle || displayName}
+                      className={`conversation-avatar-image ${isAdminSupport ? 'admin-support' : ''}`}
+                    />
+                  ) : conversation.otherUserProfilePhoto ? (
+                    <img
+                      src={getProfilePhotoUrl(
+                        conversation.otherUserProfilePhoto
+                      )}
+                      alt={displayName}
+                      className={`conversation-avatar-image ${isAdminSupport ? 'admin-support' : ''}`}
+                    />
+                  ) : (
+                    (displayName || '?').charAt(0).toUpperCase()
+                  )}
                 </div>
 
-                <div className="conversation-preview-row">
-                  <p className="conversation-preview">
-                    {conversation.lastMessagePreview}
-                  </p>
+                <div className="conversation-info">
+                  <div className="conversation-header-row">
+                    <h3 className="conversation-name">
+                      {conversation.donationTitle || displayName}
+                    </h3>
+                    <span className="conversation-time">
+                      {formatTimestamp(conversation.lastMessageAt)}
+                    </span>
+                  </div>
+
+                  <div className="conversation-inline-text">
+                    {displayName} · {conversation.lastMessagePreview}
+                  </div>
+
                   {conversation.unreadCount > 0 && (
-                    <span className="unread-badge">
+                    <span className="unread-badge-inline">
                       {conversation.unreadCount}
                     </span>
                   )}
                 </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>

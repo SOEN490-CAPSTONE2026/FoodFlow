@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Calendar,
   Clock,
@@ -21,7 +21,12 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { useLoadScript } from '@react-google-maps/api';
-import { surplusAPI, claimsAPI, reportAPI } from '../../services/api';
+import {
+  surplusAPI,
+  claimsAPI,
+  reportAPI,
+  conversationAPI,
+} from '../../services/api';
 import SurplusFormModal from '../DonorDashboard/SurplusFormModal';
 import ConfirmPickupModal from '../DonorDashboard/ConfirmPickupModal';
 import ClaimedSuccessModal from '../DonorDashboard/ClaimedSuccessModal';
@@ -237,6 +242,7 @@ export default function DonorListFood() {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState({}); // { donationId: index }
   const [uploadingPhotos, setUploadingPhotos] = useState({}); // { donationId: true/false }
   const [uploadError, setUploadError] = useState({}); // { donationId: error message }
+  const [focusedDonationId, setFocusedDonationId] = useState(null);
 
   // Timeline states
   const [expandedTimeline, setExpandedTimeline] = useState({}); // { donationId: true/false }
@@ -246,6 +252,7 @@ export default function DonorListFood() {
   useEffect(() => {
     fetchMyPosts();
   }, []);
+  const location = useLocation();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -338,7 +345,7 @@ export default function DonorListFood() {
     }
   };
 
-  const getRecipientEmailForClaimedPost = async item => {
+  const getClaimedReceiverForPost = async item => {
     try {
       setError(null);
       const { data: claims } = await claimsAPI.getClaimForSurplusPost(item.id);
@@ -350,14 +357,23 @@ export default function DonorListFood() {
         return null;
       }
 
-      return claims[0].receiverEmail;
+      const activeClaim = claims[0];
+      if (!activeClaim.receiverId) {
+        setError(`Receiver ID missing for post "${item.title}"`);
+        return null;
+      }
+
+      return {
+        id: activeClaim.receiverId,
+        email: activeClaim.receiverEmail,
+      };
     } catch (err) {
-      console.error('Error fetching recipient email:', err);
+      console.error('Error fetching receiver details:', err);
 
       if (err.response?.status === 400) {
         setError('Receiver not found or invalid email');
       } else {
-        setError('Failed to fetch recipient email. Please try again.');
+        setError('Failed to fetch receiver details. Please try again.');
       }
 
       return null;
@@ -365,14 +381,21 @@ export default function DonorListFood() {
   };
 
   const contactReceiver = async item => {
-    const recipientEmail = await getRecipientEmailForClaimedPost(item);
-
-    if (!recipientEmail) {
+    const receiver = await getClaimedReceiverForPost(item);
+    if (!receiver) {
       return;
     }
-    navigate(
-      `/donor/messages?recipientEmail=${encodeURIComponent(recipientEmail)}`
-    );
+
+    try {
+      const response = await conversationAPI.createOrGetPostConversation(
+        item.id,
+        receiver.id
+      );
+      navigate(`/donor/messages?conversationId=${response.data.id}`);
+    } catch (err) {
+      console.error('Error opening donation conversation:', err);
+      setError('Failed to open donation chat. Please try again.');
+    }
   };
 
   const handleOpenFeedback = async item => {
@@ -551,6 +574,30 @@ export default function DonorListFood() {
       alert('Failed to submit report. Please try again.');
     }
   };
+
+  useEffect(() => {
+    const targetId = location.state?.focusDonationId;
+    if (!targetId || !items.length) {
+      return;
+    }
+
+    const targetCard = document.getElementById(`donation-card-${targetId}`);
+    if (!targetCard) {
+      return;
+    }
+
+    setFocusedDonationId(Number(targetId));
+    targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    const clearHighlightTimer = setTimeout(() => {
+      setFocusedDonationId(null);
+    }, 2200);
+
+    // Clear focus state so it does not retrigger on every rerender.
+    navigate(location.pathname, { replace: true, state: {} });
+
+    return () => clearTimeout(clearHighlightTimer);
+  }, [items, location.pathname, location.state, navigate]);
 
   // Photo upload handlers
   const handlePhotoUpload = async (donationId, event) => {
@@ -868,7 +915,10 @@ export default function DonorListFood() {
             return (
               <article
                 key={item.id}
-                className="donation-card"
+                id={`donation-card-${item.id}`}
+                className={`donation-card ${
+                  focusedDonationId === item.id ? 'donation-card--focused' : ''
+                }`}
                 aria-label={item.title}
               >
                 <div className="donation-header">

@@ -1037,7 +1037,8 @@
     "confirming": "Confirmation en cours...",
     "confirmAndClaim": "Confirmer et réclamer",
     "expiringSoon": "Expire bientôt",
-    "predicted": "Prédit"
+    "predicted": "Prédit",
+    "addedToSaved": "Ajouté aux dons sauvegardés"
   },
   "receiverMyClaims": {
     "readyForPickup": "Prêt pour la collecte",
@@ -1328,7 +1329,7 @@
     "totalFoodSaved": "Total d'aliments sauvés",
     "mealsProvided": "Repas fournis",
     "mealsServed": "Repas servis",
-    "peopleFed": "personnes nourries",
+    "peopleFed": "Personnes Nourries",
     "co2Avoided": "Émissions de CO₂ évitées",
     "waterSaved": "Eau économisée",
     "activityStats": "Statistiques d'activité",

@@ -203,6 +203,13 @@
   outline-offset: 2px;
 }
 
+.donation-card--focused {
+  border-color: #14b8a6;
+  box-shadow:
+    0 0 0 3px rgba(20, 184, 166, 0.2),
+    0 8px 24px rgba(15, 23, 42, 0.12);
+}
+
 .donation-header {
   display: flex;
   align-items: flex-start;

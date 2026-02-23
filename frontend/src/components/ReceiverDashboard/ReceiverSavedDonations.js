@@ -25,8 +25,11 @@ export default function ReceiverSavedDonations() {
     try {
       const response = await savedDonationAPI.getSavedDonations();
       const savedItems = Array.isArray(response.data) ? response.data : [];
-      setItems(savedItems);
-      setBookmarkedItems(new Set(savedItems.map(item => item.id)));
+      const availableSavedItems = savedItems.filter(
+        item => item?.status === 'AVAILABLE'
+      );
+      setItems(availableSavedItems);
+      setBookmarkedItems(new Set(availableSavedItems.map(item => item.id)));
       setError(null);
     } catch (fetchError) {
       console.error('Error fetching saved donations:', fetchError);
@@ -67,6 +70,7 @@ export default function ReceiverSavedDonations() {
 
     try {
       await savedDonationAPI.unsave(item.id);
+      window.dispatchEvent(new Event('saved-donations-updated'));
     } catch (unsaveError) {
       console.error('Error removing saved donation:', unsaveError);
       setBookmarkedItems(prev => {
@@ -90,6 +94,7 @@ export default function ReceiverSavedDonations() {
       try {
         await surplusAPI.claim(item.id, slot);
         await savedDonationAPI.unsave(item.id).catch(() => {});
+        window.dispatchEvent(new Event('saved-donations-updated'));
         setItems(prev => prev.filter(post => post.id !== item.id));
         setBookmarkedItems(prev => {
           const next = new Set(prev);

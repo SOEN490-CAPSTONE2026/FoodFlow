@@ -27,6 +27,9 @@ public class Message {
     
     @Column(name = "read_status", nullable = false)
     private Boolean readStatus = false;
+
+    @Column(name = "message_type", length = 20)
+    private String messageType = "USER";
     
     @PrePersist
     protected void onCreate() {
@@ -84,7 +87,15 @@ public class Message {
         return readStatus; 
     }
     
-    public void setReadStatus(Boolean readStatus) { 
-        this.readStatus = readStatus; 
+    public void setReadStatus(Boolean readStatus) {
+        this.readStatus = readStatus;
+    }
+
+    public String getMessageType() {
+        return messageType;
+    }
+
+    public void setMessageType(String messageType) {
+        this.messageType = messageType;
     }
 }

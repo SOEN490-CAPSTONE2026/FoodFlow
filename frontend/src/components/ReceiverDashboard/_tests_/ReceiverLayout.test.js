@@ -22,13 +22,16 @@ jest.mock('react-router-dom', () => ({
 jest.mock('../../../services/api', () => ({
   __esModule: true,
   default: {
-    get: jest.fn(),
+    get: jest.fn(() => Promise.resolve({ data: [] })),
     post: jest.fn(),
     put: jest.fn(),
     delete: jest.fn(),
   },
   profileAPI: {
     get: jest.fn(() => Promise.resolve({ data: {} })),
+  },
+  savedDonationAPI: {
+    getSavedDonations: jest.fn(() => Promise.resolve({ data: [] })),
   },
 }));
 

@@ -1,8 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Send, ArrowLeft } from 'lucide-react';
+import { ChevronLeft, Send } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
+import FoodFlowLogo from '../../assets/Logo.png';
 import { useTimezone } from '../../contexts/TimezoneContext';
+import {
+  foodTypeImages,
+  getFoodTypeLabel,
+} from '../../constants/foodConstants';
 import {
   formatTimeInTimezone,
   getDateSeparatorInTimezone,
@@ -24,10 +30,12 @@ const ChatPanel = ({
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
   const currentUserId = localStorage.getItem('userId');
+  const currentUserRole = (
+    localStorage.getItem('userRole') || ''
+  ).toUpperCase();
   const { userTimezone } = useTimezone();
   const { t, i18n } = useTranslation();
-  // Debug: log timezone
-  console.log('ChatPanel using timezone:', userTimezone);
+  const navigate = useNavigate();
 
   const getProfilePhotoUrl = photoUrl => {
     if (!photoUrl) {
@@ -187,6 +195,114 @@ const ChatPanel = ({
     return currentDate.getTime() !== previousDate.getTime();
   };
 
+  const getStatusInfo = () => {
+    const rawStatus = (conversation?.status || 'ACTIVE')
+      .toString()
+      .toUpperCase();
+    const normalized = rawStatus.replace(/\s+/g, '_');
+
+    const classByStatus = {
+      ACTIVE: 'active',
+      AVAILABLE: 'available',
+      CLAIMED: 'claimed',
+      READY_FOR_PICKUP: 'ready-for-pickup',
+      COMPLETED: 'completed',
+      NOT_COMPLETED: 'not-completed',
+      EXPIRED: 'expired',
+    };
+
+    return {
+      label: normalized.replace(/_/g, ' '),
+      className: classByStatus[normalized] || 'active',
+    };
+  };
+
+  const getOtherParticipantRoleLabel = () => {
+    if (!conversation?.donationId) {
+      return 'participant';
+    }
+
+    if (
+      conversation.donorId &&
+      currentUserId &&
+      conversation.donorId.toString() === currentUserId.toString()
+    ) {
+      return 'receiver';
+    }
+
+    return 'donor';
+  };
+
+  const getOtherParticipantDisplayName = () => {
+    const rawName = conversation?.otherUserName || '';
+    const rawEmail = conversation?.otherUserEmail || '';
+    const role = (conversation?.otherUserRole || '').toUpperCase();
+    const lookup = `${rawName} ${rawEmail}`.toLowerCase();
+
+    const isAdminSupport =
+      role === 'ADMIN' ||
+      lookup.includes('admin@foodflow.com') ||
+      lookup === 'admin';
+
+    if (isAdminSupport) {
+      return t('messaging.customerSupport', 'Customer Support');
+    }
+
+    return rawName || rawEmail || t('messaging.participant', 'Participant');
+  };
+
+  const isAdminSupportParticipant = () => {
+    const rawName = conversation?.otherUserName || '';
+    const rawEmail = conversation?.otherUserEmail || '';
+    const role = (conversation?.otherUserRole || '').toUpperCase();
+    const lookup = `${rawName} ${rawEmail}`.toLowerCase();
+
+    return (
+      role === 'ADMIN' ||
+      lookup.includes('admin@foodflow.com') ||
+      lookup === 'admin'
+    );
+  };
+
+  const handleViewDonation = () => {
+    if (!conversation?.donationId) {
+      return;
+    }
+
+    if (currentUserRole === 'DONOR') {
+      navigate('/donor/list', {
+        state: { focusDonationId: conversation.donationId },
+      });
+      return;
+    }
+
+    if (currentUserRole === 'RECEIVER') {
+      navigate('/receiver/my-claims', {
+        state: { focusDonationId: conversation.donationId },
+      });
+      return;
+    }
+
+    navigate('/receiver/browse', {
+      state: { focusDonationId: conversation.donationId },
+    });
+  };
+
+  const getConversationAvatarUrl = () => {
+    if (isAdminSupportParticipant()) {
+      return FoodFlowLogo;
+    }
+
+    if (conversation?.donationPhoto) {
+      const categoryLabel = getFoodTypeLabel(conversation.donationPhoto);
+      return foodTypeImages[categoryLabel] || foodTypeImages['Prepared Meals'];
+    }
+    if (conversation?.otherUserProfilePhoto) {
+      return getProfilePhotoUrl(conversation.otherUserProfilePhoto);
+    }
+    return null;
+  };
+
   if (!conversation) {
     return (
       <div
@@ -200,26 +316,48 @@ const ChatPanel = ({
     );
   }
 
+  const statusInfo = getStatusInfo();
+  const conversationAvatarUrl = getConversationAvatarUrl();
+  const otherParticipantDisplayName = getOtherParticipantDisplayName();
+  const isAdminSupport = isAdminSupportParticipant();
+
   return (
     <div
       className={`chat-panel ${showOnMobile ? 'show-mobile' : 'hide-mobile'}`}
     >
       <div className="chat-header">
-        <button className="back-button" onClick={onBack}>
-          <ArrowLeft size={20} />
+        <button
+          type="button"
+          className="chat-back-button"
+          onClick={onBack}
+          aria-label={t('common.back', 'Back')}
+        >
+          <ChevronLeft size={18} />
+          <span>{t('common.back', 'Back')}</span>
         </button>
+
         <div className="chat-header-left">
           <div className="chat-header-info">
-            <h3>{conversation.postTitle || conversation.otherUserName}</h3>
-            <p className="chat-header-subtitle">
-              {t('chat.with')} {conversation.otherUserName}
-            </p>
+            <h3>{conversation.donationTitle || otherParticipantDisplayName}</h3>
+            {!isAdminSupport && (
+              <p className="chat-header-subtitle">
+                {t('chat.with')} {getOtherParticipantRoleLabel()}:{' '}
+                {otherParticipantDisplayName}
+              </p>
+            )}
           </div>
         </div>
         <div className="chat-header-actions">
-          <span className="status-badge claimed">{t('chat.claimed')}</span>
-          <button className="view-post-btn">{t('chat.viewPost')}</button>
-          <button className="menu-btn">⋮</button>
+          {conversation.donationId && (
+            <button className="view-post-btn" onClick={handleViewDonation}>
+              View donation
+            </button>
+          )}
+          {conversation.donationId && (
+            <span className={`status-badge ${statusInfo.className}`}>
+              {statusInfo.label}
+            </span>
+          )}
         </div>
       </div>
 
@@ -246,18 +384,13 @@ const ChatPanel = ({
                     </span>
                   </div>
                 )}
-                <div
-                  className={`message ${
-                    message.senderId.toString() === currentUserId
-                      ? 'sent'
-                      : 'received'
-                  }`}
-                >
-                  {message.senderId.toString() !== currentUserId && (
-                    <div className="message-avatar">
-                      {conversation.otherUserName.charAt(0).toUpperCase()}
-                    </div>
-                  )}
+                {message.messageType === 'SYSTEM' ? (
+                  <div className="system-message">
+                    <span className="system-message-text">
+                      {message.messageBody}
+                    </span>
+                  </div>
+                ) : (
                   <div
                     className={`message ${
                       message.senderId.toString() === currentUserId
@@ -266,17 +399,20 @@ const ChatPanel = ({
                     }`}
                   >
                     {message.senderId.toString() !== currentUserId && (
-                      <div className="message-avatar">
-                        {conversation.otherUserProfilePhoto ? (
+                      <div
+                        className={`message-avatar ${isAdminSupport ? 'admin-support' : ''}`}
+                      >
+                        {conversationAvatarUrl ? (
                           <img
-                            src={getProfilePhotoUrl(
-                              conversation.otherUserProfilePhoto
-                            )}
-                            alt={conversation.otherUserName}
-                            className="message-avatar-image"
+                            src={conversationAvatarUrl}
+                            alt={
+                              conversation.donationTitle ||
+                              otherParticipantDisplayName
+                            }
+                            className={`message-avatar-image ${isAdminSupport ? 'admin-support' : ''}`}
                           />
                         ) : (
-                          conversation.otherUserName.charAt(0).toUpperCase()
+                          otherParticipantDisplayName.charAt(0).toUpperCase()
                         )}
                       </div>
                     )}
@@ -287,7 +423,7 @@ const ChatPanel = ({
                       </span>
                     </div>
                   </div>
-                </div>
+                )}
               </React.Fragment>
             ))}
         <div ref={messagesEndRef} />

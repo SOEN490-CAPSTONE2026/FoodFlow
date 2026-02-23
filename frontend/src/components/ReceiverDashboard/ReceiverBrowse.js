@@ -15,9 +15,11 @@ import {
   Star,
 } from 'lucide-react';
 import { useLoadScript } from '@react-google-maps/api';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   surplusAPI,
   recommendationAPI,
+  conversationAPI,
   savedDonationAPI,
 } from '../../services/api';
 import {
@@ -49,6 +51,8 @@ export default function ReceiverBrowse() {
   });
 
   const { userTimezone } = useTimezone();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const [filters, setFilters] = useState({
     foodType: [],
@@ -82,6 +86,9 @@ export default function ReceiverBrowse() {
   const [recommendations, setRecommendations] = useState({});
   const [mapViewOpen, setMapViewOpen] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
+  const [expressingInterest, setExpressingInterest] = useState(null);
+  const [focusedDonationId, setFocusedDonationId] = useState(null);
+  const [savedNotification, setSavedNotification] = useState('');
 
   const getRecommendationData = item => {
     // Mock logic to determine if item is recommended
@@ -120,7 +127,12 @@ export default function ReceiverBrowse() {
     try {
       const response = await savedDonationAPI.getSavedDonations();
       const savedDonations = Array.isArray(response.data) ? response.data : [];
-      setBookmarkedItems(new Set(savedDonations.map(donation => donation.id)));
+      const availableSavedDonations = savedDonations.filter(
+        donation => donation?.status === 'AVAILABLE'
+      );
+      setBookmarkedItems(
+        new Set(availableSavedDonations.map(donation => donation.id))
+      );
     } catch (e) {
       console.error('Error fetching saved donations:', e);
     }
@@ -166,6 +178,62 @@ export default function ReceiverBrowse() {
       fetchRecommendations(items);
     }
   }, [items, fetchRecommendations]);
+
+  useEffect(() => {
+    if (!savedNotification) {
+      return undefined;
+    }
+
+    const timer = setTimeout(() => {
+      setSavedNotification('');
+    }, 2200);
+
+    return () => clearTimeout(timer);
+  }, [savedNotification]);
+
+  useEffect(() => {
+    const targetId = location.state?.focusDonationId;
+    if (!targetId || !items.length) {
+      return;
+    }
+
+    const normalizedTargetId = Number(targetId);
+    const targetItem = items.find(
+      item => Number(item.id) === normalizedTargetId
+    );
+
+    if (!targetItem) {
+      if (location.state?.fallbackToClaims) {
+        navigate('/receiver/my-claims', {
+          state: {
+            focusDonationId: normalizedTargetId,
+            fromBrowseFallback: true,
+          },
+        });
+        return;
+      }
+      navigate(location.pathname, { replace: true, state: {} });
+      return;
+    }
+
+    setExpandedCardId(normalizedTargetId);
+    setFocusedDonationId(normalizedTargetId);
+
+    const targetCard = document.getElementById(
+      `receiver-browse-card-${normalizedTargetId}`
+    );
+    if (targetCard) {
+      targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    const clearHighlightTimer = setTimeout(() => {
+      setFocusedDonationId(null);
+    }, 2200);
+
+    navigate(location.pathname, { replace: true, state: {} });
+
+    return () => clearTimeout(clearHighlightTimer);
+  }, [items, location.pathname, location.state, navigate]);
 
   const handleFiltersChange = useCallback((filterType, value) => {
     setFilters(prev => ({
@@ -224,8 +292,13 @@ export default function ReceiverBrowse() {
       try {
         if (isSaved) {
           await savedDonationAPI.unsave(item.id);
+          window.dispatchEvent(new Event('saved-donations-updated'));
         } else {
           await savedDonationAPI.save(item.id);
+          window.dispatchEvent(new Event('saved-donations-updated'));
+          setSavedNotification(
+            t('receiverBrowse.addedToSaved', 'Added to saved donations')
+          );
         }
       } catch (error) {
         setBookmarkedItems(prev => {
@@ -280,10 +353,14 @@ export default function ReceiverBrowse() {
   // Donations Map Helpers
   //======================================
   const getNearbyCount = useCallback(() => {
-    if (!filters.locationCoords) return items.length;
+    if (!filters.locationCoords) {
+      return items.length;
+    }
 
     return items.filter(item => {
-      if (!item.pickupLocation) return false;
+      if (!item.pickupLocation) {
+        return false;
+      }
 
       const distance = calculateDistance(
         filters.locationCoords.lat,
@@ -342,6 +419,28 @@ export default function ReceiverBrowse() {
       confirmClaim(item, legacySlot);
     },
     [confirmClaim, t]
+  );
+
+  const handleExpressInterest = useCallback(
+    async item => {
+      try {
+        setExpressingInterest(item.id);
+        const response = await conversationAPI.expressInterest(item.id);
+        const conversation = response.data;
+        navigate(`/receiver/messages?conversationId=${conversation.id}`);
+      } catch (err) {
+        console.error('Error expressing interest:', err);
+        alert(
+          t(
+            'receiverBrowse.failedToExpressInterest',
+            "Couldn't start conversation. Please try again."
+          )
+        );
+      } finally {
+        setExpressingInterest(null);
+      }
+    },
+    [navigate, t]
   );
 
   const formatExpiryDate = useCallback(dateString => {
@@ -480,6 +579,12 @@ export default function ReceiverBrowse() {
 
   return (
     <div className="receiver-browse-container">
+      {savedNotification && (
+        <div role="alert" className="receiver-saved-notification">
+          {savedNotification}
+        </div>
+      )}
+
       <div className="receiver-browse-header">
         <h1 className="receiver-section-title-browse">
           {t('receiverBrowse.title')}
@@ -623,8 +728,13 @@ export default function ReceiverBrowse() {
                 return (
                   <div
                     key={item.id}
+                    id={`receiver-browse-card-${item.id}`}
                     className={`receiver-donation-card ${
                       expandedCardId === item.id ? 'expanded' : ''
+                    } ${
+                      focusedDonationId === Number(item.id)
+                        ? 'receiver-donation-card--focused'
+                        : ''
                     }`}
                   >
                     {/* Corner Recommended Badge */}
