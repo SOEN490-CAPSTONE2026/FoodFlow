@@ -995,6 +995,7 @@
     "pageTitles": {
       "receiverDashboard": "Receiver Dashboard",
       "welcome": "Welcome",
+      "savedDonations": "Saved Donations",
       "browse": "Browse Available Food",
       "messages": "Messages",
       "settings": "Settings",
@@ -1003,6 +1004,7 @@
     "pageDescriptions": {
       "receiverDashboard": "Overview of nearby food and your activity",
       "welcome": "Start here: search the map or browse nearby food",
+      "savedDonations": "Review and manage your saved donations",
       "browse": "Browse available food listings",
       "messages": "Communicate with donors and other users",
       "settings": "Manage your preferences and account settings",
@@ -1059,7 +1061,8 @@
     "confirming": "Confirming...",
     "confirmAndClaim": "Confirm & Claim",
     "expiringSoon": "Expiring soon",
-    "predicted": "Predicted"
+    "predicted": "Predicted",
+    "addedToSaved": "Added to saved donations"
   },
   "receiverMyClaims": {
     "readyForPickup": "Ready for Pickup",
@@ -1373,6 +1376,7 @@
     "repeatDonors": "Repeat Donors",
     "repeatReceivers": "Repeat Receivers",
     "foodSavedOverTime": "Food Saved Over Time",
+    "impactOverview": "Impact Overview",
     "claimsByDay": "Claims by Day",
     "claimsByWeek": "Claims by Week",
     "claimsByMonth": "Claims by Month",

@@ -17,7 +17,9 @@ import './DonationMapCard.css';
 const DonationMapCard = ({ donation, userLocation, onClaimClick }) => {
   // Calculate distance
   const calculateDistance = () => {
-    if (!userLocation || !donation.pickupLocation) return null;
+    if (!userLocation || !donation.pickupLocation) {
+      return null;
+    }
 
     const R = 6371; // Earth's radius in km
     const dLat = toRad(
@@ -49,7 +51,9 @@ const DonationMapCard = ({ donation, userLocation, onClaimClick }) => {
   const distance = calculateDistance();
 
   const formatDate = dateString => {
-    if (!dateString) return '';
+    if (!dateString) {
+      return '';
+    }
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };

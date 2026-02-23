@@ -563,6 +563,12 @@ body {
   display: none;
 }
 
+.admin-content.messages-page {
+  padding: 0;
+  overflow: hidden;
+  position: relative;
+}
+
 @media (max-width: 768px) {
   .mobile-header {
     display: flex;
@@ -681,6 +687,11 @@ body {
   .admin-layout .admin-content {
     height: calc(100vh - 60px - 80px);
     padding: 16px;
+  }
+
+  .admin-layout .admin-content.messages-page {
+    height: calc(100vh - 60px);
+    padding: 0;
   }
 
   .admin-layout .admin-topbar {

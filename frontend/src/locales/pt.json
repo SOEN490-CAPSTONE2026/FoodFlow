@@ -1017,7 +1017,8 @@
     "confirming": "Confirmando...",
     "confirmAndClaim": "Confirmar e reivindicar",
     "expiringSoon": "Expira em breve",
-    "predicted": "Estimado"
+    "predicted": "Estimado",
+    "addedToSaved": "Adicionado às doações salvas"
   },
   "receiverMyClaims": {
     "readyForPickup": "Pronto para coleta",
@@ -1351,6 +1352,7 @@
     "repeatDonors": "Doadores recorrentes",
     "repeatReceivers": "Receptores recorrentes",
     "foodSavedOverTime": "Alimentos salvos ao longo do tempo",
+    "impactOverview": "Visão geral do impacto",
     "claimsByDay": "Resgates por dia",
     "claimsByWeek": "Resgates por semana",
     "claimsByMonth": "Resgates por mês",

@@ -1017,7 +1017,8 @@
     "confirming": "جارٍ التأكيد...",
     "confirmAndClaim": "تأكيد والمطالبة",
     "expiringSoon": "ينتهي قريبًا",
-    "predicted": "متوقع"
+    "predicted": "متوقع",
+    "addedToSaved": "تمت الإضافة إلى التبرعات المحفوظة"
   },
   "receiverMyClaims": {
     "readyForPickup": "جاهز للاستلام",
@@ -1351,6 +1352,7 @@
     "repeatDonors": "المتبرعون المتكررون",
     "repeatReceivers": "المستلمون المتكررون",
     "foodSavedOverTime": "الطعام المُنقذ بمرور الوقت",
+    "impactOverview": "نظرة عامة على التأثير",
     "claimsByDay": "الاستلامات حسب اليوم",
     "claimsByWeek": "الاستلامات حسب الأسبوع",
     "claimsByMonth": "الاستلامات حسب الشهر",

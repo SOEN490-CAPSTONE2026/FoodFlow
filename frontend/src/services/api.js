@@ -273,10 +273,58 @@ export const surplusAPI = {
 };
 
 export const claimsAPI = {
-  myClaims: () => api.get('/claims/my-claims'), // ✅ No /api prefix
+  myClaims: () => api.get('/claims/my-claims'),
   claim: postId => api.post('/claims', { surplusPostId: postId }),
   cancel: claimId => api.delete(`/claims/${claimId}`),
   getClaimForSurplusPost: postId => api.get(`/claims/post/${postId}`),
+};
+
+/**
+ * Saved Donations API functions
+ */
+export const savedDonationAPI = {
+  /**
+   * Get all saved donations for the current user
+   * @returns {Promise} List of saved donations
+   */
+  getSavedDonations: () => api.get('/receiver/saved'),
+
+  /**
+   * Save a donation
+   * @param {number} donationId - Donation ID to save
+   * @returns {Promise} Response data
+   */
+  save: donationId => api.post(`/receiver/saved/${donationId}`),
+
+  /**
+   * Unsave a donation
+   * @param {number} donationId - Donation ID to unsave
+   * @returns {Promise} Response data
+   */
+  unsave: donationId => api.delete(`/receiver/saved/${donationId}`),
+
+  /**
+   * Check if a donation is saved
+   * @param {number} donationId - Donation ID to check
+   * @returns {Promise} Boolean indicating if saved
+   */
+  isSaved: donationId => api.get(`/receiver/saved/check/${donationId}`),
+
+  /**
+   * Get total number of saved donations for current user
+   * @returns {Promise} Count of saved donations
+   */
+  getSavedCount: () => api.get('/receiver/saved/count'),
+};
+
+export const conversationAPI = {
+  expressInterest: postId => api.post(`/conversations/interested/${postId}`),
+  createOrGetPostConversation: (postId, otherUserId) =>
+    api.post(`/conversations/post/${postId}`, { otherUserId }),
+  getConversations: () => api.get('/conversations'),
+  getConversation: convId => api.get(`/conversations/${convId}`),
+  getMessages: convId => api.get(`/conversations/${convId}/messages`),
+  markAsRead: convId => api.put(`/conversations/${convId}/read`),
 };
 
 /**

@@ -1,5 +1,5 @@
 # Multi-stage build for React
-FROM node:20-alpine as build
+FROM node:20-alpine AS build
 
 ARG REACT_APP_GOOGLE_MAPS_API_KEY
 ARG REACT_APP_API_BASE_URL
@@ -8,7 +8,7 @@ ENV REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL}
 
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci
+RUN npm install --no-audit --no-fund
 
 COPY . .
 RUN npm run build

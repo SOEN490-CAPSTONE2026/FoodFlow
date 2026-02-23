@@ -130,5 +130,19 @@ public class ConversationController {
         }
     }
 
-
+    /**
+     * Express interest in a donation - creates/returns a donation-anchored conversation thread.
+     * No request body needed - receiver is the authenticated user, donor comes from the post.
+     */
+    @PostMapping("/interested/{postId}")
+    public ResponseEntity<ConversationResponse> expressInterest(
+            @PathVariable Long postId,
+            @AuthenticationPrincipal User currentUser) {
+        try {
+            ConversationResponse conversation = conversationService.expressInterestInDonation(postId, currentUser);
+            return ResponseEntity.status(HttpStatus.CREATED).body(conversation);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
 }

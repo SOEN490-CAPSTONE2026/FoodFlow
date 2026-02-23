@@ -95,7 +95,9 @@ export default function AIExtractionReview({
    * Map backend food categories to react-select format
    */
   function mapFoodCategories(categories) {
-    if (!categories || categories.length === 0) return [];
+    if (!categories || categories.length === 0) {
+      return [];
+    }
 
     return categories.map(cat => {
       const option = foodTypeOptions.find(
@@ -110,7 +112,9 @@ export default function AIExtractionReview({
    */
   const getConfidenceBadge = fieldName => {
     const score = data.confidenceScores?.[fieldName];
-    if (!score) return null;
+    if (!score) {
+      return null;
+    }
 
     let level, color, icon;
     if (score >= 0.8) {
@@ -173,7 +177,9 @@ export default function AIExtractionReview({
   };
 
   const formatDate = date => {
-    if (!date) return '';
+    if (!date) {
+      return '';
+    }
     try {
       const dateObj = date instanceof Date ? date : new Date(date);
       return dateObj.toISOString().split('T')[0];
@@ -184,7 +190,9 @@ export default function AIExtractionReview({
   };
 
   const formatTime = date => {
-    if (!date) return '';
+    if (!date) {
+      return '';
+    }
     try {
       const dateObj = date instanceof Date ? date : new Date(date);
       const hours = String(dateObj.getHours()).padStart(2, '0');

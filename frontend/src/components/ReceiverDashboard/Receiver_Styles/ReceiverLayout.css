@@ -72,6 +72,27 @@ body {
   white-space: nowrap;
 }
 
+.receiver-nav-link--with-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.receiver-nav-count-badge {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  line-height: 20px;
+  font-weight: 700;
+  background: rgba(27, 73, 101, 0.12);
+  color: #1b4965;
+}
+
 .receiver-nav-link:hover {
   background: #f0f9ff;
   color: #62b6cb;
@@ -81,6 +102,11 @@ body {
   background: #1b4965;
   color: #fff;
   font-weight: 600;
+}
+
+.receiver-nav-link.active .receiver-nav-count-badge {
+  background: rgba(255, 255, 255, 0.28);
+  color: #fff;
 }
 
 .receiver-main {

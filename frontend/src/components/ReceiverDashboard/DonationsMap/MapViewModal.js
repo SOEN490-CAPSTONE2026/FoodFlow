@@ -78,10 +78,14 @@ const MapViewModal = ({
 
   // Filter donations by distance
   const filteredDonations = useMemo(() => {
-    if (!userLocation) return donations;
+    if (!userLocation) {
+      return donations;
+    }
 
     return donations.filter(donation => {
-      if (!donation.pickupLocation) return false;
+      if (!donation.pickupLocation) {
+        return false;
+      }
 
       const distance = calculateDistance(
         userLocation.latitude,
@@ -146,7 +150,9 @@ const MapViewModal = ({
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   return (
     <div className="map-view-modal-overlay">

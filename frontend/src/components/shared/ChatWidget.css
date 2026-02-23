@@ -3,7 +3,7 @@
 /* Chat Widget Styles */
 .chat-widget {
   position: fixed;
-  bottom: calc(20px + env(safe-area-inset-bottom));
+  bottom: calc(80px + env(safe-area-inset-bottom));
   right: calc(20px + env(safe-area-inset-right));
   z-index: 2000;
   font-family: 'Poppins', 'Inter', sans-serif;
@@ -553,7 +553,7 @@
 
 @media (max-width: 480px) {
   .chat-widget {
-    bottom: calc(16px + env(safe-area-inset-bottom));
+    bottom: calc(76px + env(safe-area-inset-bottom));
     right: calc(16px + env(safe-area-inset-right));
   }
 

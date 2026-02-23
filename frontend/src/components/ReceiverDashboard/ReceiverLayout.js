@@ -21,7 +21,7 @@ import ReceiverPreferences from './ReceiverPreferences';
 import EmailVerificationRequired from '../EmailVerificationRequired';
 import AdminApprovalBanner from '../AdminApprovalBanner';
 import { connectToUserQueue, disconnect } from '../../services/socket';
-import api, { profileAPI } from '../../services/api';
+import api, { profileAPI, savedDonationAPI } from '../../services/api';
 import {
   Settings as IconSettings,
   HelpCircle as IconHelpCircle,
@@ -49,6 +49,7 @@ function ReceiverLayoutContent() {
   const [showPreferences, setShowPreferences] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
+  const [savedDonationsCount, setSavedDonationsCount] = useState(0);
   const [profilePhotoUrl, setProfilePhotoUrl] = useState(null);
   const [achievementNotification, setAchievementNotification] = useState(null);
   const dropdownRef = useRef(null);
@@ -110,6 +111,8 @@ function ReceiverLayoutContent() {
         return t('receiverLayout.pageTitles.receiverDashboard');
       case '/receiver/welcome':
         return t('receiverLayout.pageTitles.welcome');
+      case '/receiver/saved-donations':
+        return t('receiverLayout.pageTitles.savedDonations', 'Saved Donations');
       case '/receiver/browse':
         return t('receiverLayout.pageTitles.browse');
       case '/receiver/messages':
@@ -128,6 +131,11 @@ function ReceiverLayoutContent() {
         return t('receiverLayout.pageDescriptions.receiverDashboard');
       case '/receiver/welcome':
         return t('receiverLayout.pageDescriptions.welcome');
+      case '/receiver/saved-donations':
+        return t(
+          'receiverLayout.pageDescriptions.savedDonations',
+          'Review and manage your saved donations'
+        );
       case '/receiver/browse':
         return t('receiverLayout.pageDescriptions.browse');
       case '/receiver/messages':
@@ -168,6 +176,37 @@ function ReceiverLayoutContent() {
     // Refresh unread count every 30 seconds
     const interval = setInterval(fetchUnreadCount, 30000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const fetchSavedCount = async () => {
+      try {
+        const response = await savedDonationAPI.getSavedDonations();
+        const savedItems = Array.isArray(response?.data) ? response.data : [];
+        const availableSavedItems = savedItems.filter(
+          item => item?.status === 'AVAILABLE'
+        );
+        setSavedDonationsCount(availableSavedItems.length);
+      } catch (err) {
+        console.error('Error fetching saved donations count:', err);
+      }
+    };
+
+    fetchSavedCount();
+    const interval = setInterval(fetchSavedCount, 30000);
+    const handleSavedDonationUpdate = () => fetchSavedCount();
+    window.addEventListener(
+      'saved-donations-updated',
+      handleSavedDonationUpdate
+    );
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener(
+        'saved-donations-updated',
+        handleSavedDonationUpdate
+      );
+    };
   }, []);
 
   // Connect to websocket for user-specific notifications (receiver)
@@ -379,11 +418,14 @@ function ReceiverLayoutContent() {
           </Link>
 
           <Link
-            to="/receiver/welcome"
-            className={`receiver-nav-link ${location.pathname === '/receiver/welcome' ? 'active' : ''}`}
+            to="/receiver/saved-donations"
+            className={`receiver-nav-link receiver-nav-link--with-badge ${location.pathname === '/receiver/saved-donations' ? 'active' : ''}`}
             onClick={() => setIsMenuOpen(false)}
           >
             {t('receiverLayout.savedDonations')}
+            <span className="receiver-nav-count-badge">
+              {savedDonationsCount}
+            </span>
           </Link>
         </div>
 

@@ -221,7 +221,9 @@ const DonationMap = ({
 
         {/* Donation markers */}
         {donations.map(donation => {
-          if (!donation.pickupLocation) return null;
+          if (!donation.pickupLocation) {
+            return null;
+          }
 
           return (
             <Marker
