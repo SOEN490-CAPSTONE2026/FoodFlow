@@ -14,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.LocalDate;
@@ -181,11 +180,6 @@ public class ImpactDashboardService {
         // Get completed claims only
         List<Claim> completedClaims = allClaims.stream()
                 .filter(claim -> claim.getStatus() == ClaimStatus.COMPLETED)
-                .toList();
-
-        // Extract surplus posts from completed claims
-        List<SurplusPost> claimedPosts = completedClaims.stream()
-                .map(Claim::getSurplusPost)
                 .toList();
 
         ImpactMetricsDTO metrics = new ImpactMetricsDTO();
@@ -485,9 +479,7 @@ public class ImpactDashboardService {
      */
     private void calculateTimeMetrics(List<SurplusPost> completedPosts, ImpactMetricsDTO metrics) {
         List<Double> claimTimeHours = new ArrayList<>();
-        int onTimePickups = 0;
-        int totalPickups = 0;
-
+        
         for (SurplusPost post : completedPosts) {
             // Find associated claim
             claimRepository.findBySurplusPost(post).ifPresent(claim -> {

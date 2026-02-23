@@ -3,7 +3,6 @@ package com.example.foodflow.service;
 import com.example.foodflow.model.types.ClaimStatus;
 import com.example.foodflow.repository.ClaimRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
-import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
@@ -12,9 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
 import java.lang.reflect.Method;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
@@ -40,7 +37,7 @@ class BusinessMetricsServiceTest {
         when(claimRepository.countByStatus(ClaimStatus.COMPLETED)).thenReturn(10L);
         
         businessMetricsService = new BusinessMetricsService(
-                meterRegistry, claimRepository, surplusPostRepository);
+                meterRegistry);
         
         // Call the private registerActiveClaimsGauges method using reflection
         Method registerGauges = BusinessMetricsService.class
@@ -278,9 +275,6 @@ class BusinessMetricsServiceTest {
         when(claimRepository.countByStatus(ClaimStatus.ACTIVE)).thenReturn(0L);
         when(claimRepository.countByStatus(ClaimStatus.CANCELLED)).thenReturn(0L);
         when(claimRepository.countByStatus(ClaimStatus.COMPLETED)).thenReturn(0L);
-        
-        BusinessMetricsService freshService = new BusinessMetricsService(
-                freshRegistry, claimRepository, surplusPostRepository);
 
         // Then
         assertEquals(0.0, freshRegistry.counter("surplus.posts.created").count());
@@ -301,7 +295,7 @@ class BusinessMetricsServiceTest {
         // When - Recreate service to register gauges with new data
         MeterRegistry newRegistry = new SimpleMeterRegistry();
         BusinessMetricsService newService = new BusinessMetricsService(
-                newRegistry, claimRepository, surplusPostRepository);
+                newRegistry);
         
         // Call the private registerActiveClaimsGauges method using reflection
         Method registerGauges = BusinessMetricsService.class
