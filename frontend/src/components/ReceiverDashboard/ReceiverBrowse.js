@@ -287,8 +287,10 @@ export default function ReceiverBrowse() {
       try {
         if (isSaved) {
           await savedDonationAPI.unsave(item.id);
+          window.dispatchEvent(new Event('saved-donations-updated'));
         } else {
           await savedDonationAPI.save(item.id);
+          window.dispatchEvent(new Event('saved-donations-updated'));
           setSavedNotification(
             t('receiverBrowse.addedToSaved', 'Added to saved donations')
           );

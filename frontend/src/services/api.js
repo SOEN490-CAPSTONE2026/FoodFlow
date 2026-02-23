@@ -309,6 +309,12 @@ export const savedDonationAPI = {
    * @returns {Promise} Boolean indicating if saved
    */
   isSaved: donationId => api.get(`/receiver/saved/check/${donationId}`),
+
+  /**
+   * Get total number of saved donations for current user
+   * @returns {Promise} Count of saved donations
+   */
+  getSavedCount: () => api.get('/receiver/saved/count'),
 };
 
 export const conversationAPI = {
