@@ -12,6 +12,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
@@ -145,7 +147,9 @@ public class GoogleOAuthService {
         StringBuilder body = new StringBuilder();
         params.forEach((key, value) -> {
             if (body.length() > 0) body.append("&");
-            body.append(key).append("=").append(value);
+            body.append(URLEncoder.encode(key, StandardCharsets.UTF_8))
+                .append("=")
+                .append(URLEncoder.encode(value, StandardCharsets.UTF_8));
         });
         return body.toString();
     }
