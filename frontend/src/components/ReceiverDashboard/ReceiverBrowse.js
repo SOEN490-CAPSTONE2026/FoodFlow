@@ -75,6 +75,7 @@ export default function ReceiverBrowse() {
   const [error, setError] = useState(null);
   const [expandedCardId, setExpandedCardId] = useState(null);
   const [bookmarkedItems, setBookmarkedItems] = useState(new Set());
+  const [bookmarkingItemIds, setBookmarkingItemIds] = useState(new Set());
   const [claimModalOpen, setClaimModalOpen] = useState(false);
   const [claimTargetItem, setClaimTargetItem] = useState(null);
   const [selectedSlotIndex, setSelectedSlotIndex] = useState(0);
@@ -120,6 +121,16 @@ export default function ReceiverBrowse() {
     }
   }, [t]);
 
+  const fetchSavedDonations = useCallback(async () => {
+    try {
+      const response = await savedDonationAPI.getSavedDonations();
+      const savedDonations = Array.isArray(response.data) ? response.data : [];
+      setBookmarkedItems(new Set(savedDonations.map(donation => donation.id)));
+    } catch (e) {
+      console.error('Error fetching saved donations:', e);
+    }
+  }, []);
+
   const fetchFilteredDonations = useCallback(
     async filterCriteria => {
       setLoading(true);
@@ -152,7 +163,8 @@ export default function ReceiverBrowse() {
 
   useEffect(() => {
     fetchDonations();
-  }, [fetchDonations, userTimezone]);
+    fetchSavedDonations();
+  }, [fetchDonations, fetchSavedDonations, userTimezone]);
 
   useEffect(() => {
     if (items.length > 0) {
@@ -237,18 +249,61 @@ export default function ReceiverBrowse() {
     setExpandedCardId(prev => (prev === item.id ? null : item.id));
   }, []);
 
-  const handleBookmark = useCallback((item, e) => {
-    e.stopPropagation();
-    setBookmarkedItems(prev => {
-      const newBookmarks = new Set(prev);
-      if (newBookmarks.has(item.id)) {
-        newBookmarks.delete(item.id);
-      } else {
-        newBookmarks.add(item.id);
+  const handleBookmark = useCallback(
+    async (item, e) => {
+      e.stopPropagation();
+      const isSaved = bookmarkedItems.has(item.id);
+
+      setBookmarkedItems(prev => {
+        const next = new Set(prev);
+        if (isSaved) {
+          next.delete(item.id);
+        } else {
+          next.add(item.id);
+        }
+        return next;
+      });
+
+      setBookmarkingItemIds(prev => {
+        const next = new Set(prev);
+        next.add(item.id);
+        return next;
+      });
+
+      try {
+        if (isSaved) {
+          await savedDonationAPI.unsave(item.id);
+        } else {
+          await savedDonationAPI.save(item.id);
+        }
+      } catch (error) {
+        setBookmarkedItems(prev => {
+          const next = new Set(prev);
+          if (isSaved) {
+            next.add(item.id);
+          } else {
+            next.delete(item.id);
+          }
+          return next;
+        });
+        console.error('Error updating saved donation:', error);
+        alert(
+          error.response?.data?.message ||
+            t(
+              'receiverBrowse.failedToUpdateSaved',
+              'Failed to update saved donation'
+            )
+        );
+      } finally {
+        setBookmarkingItemIds(prev => {
+          const next = new Set(prev);
+          next.delete(item.id);
+          return next;
+        });
       }
-      return newBookmarks;
-    });
-  }, []);
+    },
+    [bookmarkedItems, t]
+  );
 
   const confirmClaim = useCallback(
     async (item, slot) => {
@@ -716,6 +771,7 @@ export default function ReceiverBrowse() {
                             className="receiver-bookmark-button"
                             onClick={e => handleBookmark(item, e)}
                             aria-label="Bookmark"
+                            disabled={bookmarkingItemIds.has(item.id)}
                           >
                             <Bookmark
                               size={16}

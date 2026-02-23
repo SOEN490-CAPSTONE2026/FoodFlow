@@ -110,6 +110,8 @@ function ReceiverLayoutContent() {
         return t('receiverLayout.pageTitles.receiverDashboard');
       case '/receiver/welcome':
         return t('receiverLayout.pageTitles.welcome');
+      case '/receiver/saved-donations':
+        return t('receiverLayout.pageTitles.savedDonations', 'Saved Donations');
       case '/receiver/browse':
         return t('receiverLayout.pageTitles.browse');
       case '/receiver/messages':
@@ -128,6 +130,11 @@ function ReceiverLayoutContent() {
         return t('receiverLayout.pageDescriptions.receiverDashboard');
       case '/receiver/welcome':
         return t('receiverLayout.pageDescriptions.welcome');
+      case '/receiver/saved-donations':
+        return t(
+          'receiverLayout.pageDescriptions.savedDonations',
+          'Review and manage your saved donations'
+        );
       case '/receiver/browse':
         return t('receiverLayout.pageDescriptions.browse');
       case '/receiver/messages':
@@ -379,8 +386,8 @@ function ReceiverLayoutContent() {
           </Link>
 
           <Link
-            to="/receiver/welcome"
-            className={`receiver-nav-link ${location.pathname === '/receiver/welcome' ? 'active' : ''}`}
+            to="/receiver/saved-donations"
+            className={`receiver-nav-link ${location.pathname === '/receiver/saved-donations' ? 'active' : ''}`}
             onClick={() => setIsMenuOpen(false)}
           >
             {t('receiverLayout.savedDonations')}

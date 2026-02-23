@@ -36,7 +36,24 @@ public class OrganizationDTO {
         if (org == null) return null;
         OrganizationDTO dto = new OrganizationDTO();
         dto.setId(org.getId());
-        dto.setUser(UserDTO.toDTO(org.getUser()));
+        dto.setUser(UserDTO.toDTOWithoutOrganization(org.getUser()));
+        dto.setName(org.getName());
+        dto.setContactPerson(org.getContactPerson());
+        dto.setPhone(org.getPhone());
+        dto.setAddress(org.getAddress());
+        dto.setOrganizationType(org.getOrganizationType());
+        dto.setCapacity(org.getCapacity());
+        dto.setBusinessLicense(org.getBusinessLicense());
+        dto.setCharityRegistrationNumber(org.getCharityRegistrationNumber());
+        dto.setVerificationStatus(org.getVerificationStatus());
+        dto.setCreatedAt(org.getCreatedAt());
+        return dto;
+    }
+
+    public static OrganizationDTO toDTOWithoutUser(com.example.foodflow.model.entity.Organization org) {
+        if (org == null) return null;
+        OrganizationDTO dto = new OrganizationDTO();
+        dto.setId(org.getId());
         dto.setName(org.getName());
         dto.setContactPerson(org.getContactPerson());
         dto.setPhone(org.getPhone());
