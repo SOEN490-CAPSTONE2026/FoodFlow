@@ -31,6 +31,7 @@ import {
   User as IconUser,
   Menu as IconMenu,
   X as IconX,
+  Calendar as IconCalendar,
 } from 'lucide-react';
 
 function ReceiverLayoutContent() {
@@ -117,6 +118,8 @@ function ReceiverLayoutContent() {
         return t('receiverLayout.pageTitles.browse');
       case '/receiver/messages':
         return t('receiverLayout.pageTitles.messages');
+      case '/receiver/calendar':
+        return t('receiverLayout.pageTitles.calendar', 'Calendar Integration');
       case '/receiver/settings':
         return t('receiverLayout.pageTitles.settings');
       default:
@@ -140,6 +143,11 @@ function ReceiverLayoutContent() {
         return t('receiverLayout.pageDescriptions.browse');
       case '/receiver/messages':
         return t('receiverLayout.pageDescriptions.messages');
+      case '/receiver/calendar':
+        return t(
+          'receiverLayout.pageDescriptions.calendar',
+          'Sync your pickups to Google Calendar'
+        );
       case '/receiver/settings':
         return t('receiverLayout.pageDescriptions.settings');
       default:
@@ -415,6 +423,15 @@ function ReceiverLayoutContent() {
             className={`receiver-nav-link ${isActive('/receiver/impact') ? 'active' : ''}`}
           >
             {t('receiverLayout.impact', 'Impact Dashboard')}
+          </Link>
+
+          <Link
+            to="/receiver/calendar"
+            className={`receiver-nav-link ${isActive('/receiver/calendar') ? 'active' : ''}`}
+            onClick={() => setIsMenuOpen(false)}
+          >
+            <IconCalendar size={18} style={{ marginRight: '8px' }} />
+            {t('receiverLayout.calendar', 'Calendar')}
           </Link>
 
           <Link

@@ -21,6 +21,7 @@ import {
   Menu,
   X,
   BarChart3,
+  Calendar,
 } from 'lucide-react';
 import { AuthContext } from '../../contexts/AuthContext';
 import Logo from '../../assets/Logo_White.png';
@@ -61,6 +62,8 @@ export default function DonorLayout() {
         return t('donorLayout.pageTitles.achievements', 'Achievements');
       case '/donor/messages':
         return t('donorLayout.pageTitles.messages');
+      case '/donor/calendar':
+        return t('donorLayout.pageTitles.calendar', 'Calendar');
       case '/donor/settings':
         return t('donorLayout.pageTitles.settings');
       case '/donor/help':
@@ -89,6 +92,11 @@ export default function DonorLayout() {
         );
       case '/donor/messages':
         return t('donorLayout.pageDescriptions.messages');
+      case '/donor/calendar':
+        return t(
+          'donorLayout.pageDescriptions.calendar',
+          'Manage your calendar integration'
+        );
       case '/donor/settings':
         return t('donorLayout.pageDescriptions.settings');
       case '/donor/help':
@@ -392,6 +400,17 @@ export default function DonorLayout() {
               <BarChart3 size={18} className="lucide" />
             </span>
             {t('donorLayout.impact', 'Impact')}
+          </Link>
+
+          <Link
+            to="/donor/calendar"
+            className={`donor-nav-link ${isActive('/donor/calendar') ? 'active' : ''}`}
+            data-tooltip={t('donorLayout.calendar', 'Calendar')}
+          >
+            <span className="nav-icon" aria-hidden>
+              <Calendar size={18} className="lucide" />
+            </span>
+            {t('donorLayout.calendar', 'Calendar')}
           </Link>
         </nav>
 
