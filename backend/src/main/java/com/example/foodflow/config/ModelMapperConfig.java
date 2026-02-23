@@ -1,13 +1,12 @@
 package com.example.foodflow.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 
 /**
- * Configuration for ModelMapper bean, RestTemplate, and ObjectMapper
+ * Configuration for ModelMapper bean and RestTemplate
  */
 @Configuration
 public class ModelMapperConfig {
@@ -22,8 +21,4 @@ public class ModelMapperConfig {
         return new RestTemplate();
     }
 
-    @Bean
-    public ObjectMapper objectMapper() {
-        return new ObjectMapper();
-    }
 }

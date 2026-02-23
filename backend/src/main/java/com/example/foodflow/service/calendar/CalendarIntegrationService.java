@@ -1,9 +1,11 @@
 package com.example.foodflow.service.calendar;
 
 import com.example.foodflow.model.entity.CalendarIntegration;
+import com.example.foodflow.model.entity.CalendarSyncPreference;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.repository.CalendarIntegrationRepository;
 import com.example.foodflow.repository.CalendarConsentHistoryRepository;
+import com.example.foodflow.repository.CalendarSyncPreferenceRepository;
 import com.example.foodflow.model.entity.CalendarConsentHistory;
 import com.example.foodflow.service.calendar.provider.GoogleOAuthService;
 import org.slf4j.Logger;
@@ -31,7 +33,7 @@ public class CalendarIntegrationService {
     private CalendarConsentHistoryRepository calendarConsentHistoryRepository;
 
     @Autowired
-    private EncryptionUtility encryptionUtility;
+    private CalendarSyncPreferenceRepository calendarSyncPreferenceRepository;
 
     /**
      * Get or create a calendar integration for a user
@@ -60,9 +62,9 @@ public class CalendarIntegrationService {
                                                  String refreshToken, LocalDateTime accessTokenExpiry) {
         CalendarIntegration integration = getOrCreateIntegration(user, calendarProvider);
         
-        // Encrypt the refresh token before storing
-        String encryptedToken = encryptionUtility.encrypt(refreshToken);
-        integration.setRefreshToken(encryptedToken);
+        // Store the refresh token in plain text (for local development)
+        // In production, consider database-level encryption or column encryption
+        integration.setRefreshToken(refreshToken);
         integration.setAccessTokenExpiry(accessTokenExpiry);
         integration.setIsConnected(true);
         
@@ -70,6 +72,9 @@ public class CalendarIntegrationService {
         
         // Log consent action for audit trail
         logConsentAction(user, calendarProvider, "GRANTED");
+        
+        // Create default sync preferences if they don't exist
+        createDefaultSyncPreferencesIfNeeded(user);
         
         logger.info("OAuth tokens stored for user {} with provider {}", user.getId(), calendarProvider);
         return saved;
@@ -79,20 +84,33 @@ public class CalendarIntegrationService {
      * Disconnect a calendar provider
      */
     public void disconnectCalendar(User user, String calendarProvider) {
-        Optional<CalendarIntegration> integration = calendarIntegrationRepository
-            .findByUserIdAndCalendarProvider(user.getId(), calendarProvider);
-        
-        if (integration.isPresent()) {
-            CalendarIntegration cal = integration.get();
-            cal.setIsConnected(false);
-            cal.setRefreshToken(null);
-            cal.setAccessTokenExpiry(null);
-            calendarIntegrationRepository.save(cal);
+        try {
+            logger.info("Disconnecting calendar for user {} from provider {}", user.getId(), calendarProvider);
             
-            // Log revocation for audit trail
-            logConsentAction(user, calendarProvider, "REVOKED");
+            Optional<CalendarIntegration> integration = calendarIntegrationRepository
+                .findByUserIdAndCalendarProvider(user.getId(), calendarProvider);
             
-            logger.info("Calendar disconnected for user {} with provider {}", user.getId(), calendarProvider);
+            if (integration.isPresent()) {
+                logger.info("Found calendar integration to disconnect: {}", integration.get().getId());
+                CalendarIntegration cal = integration.get();
+                cal.setIsConnected(false);
+                cal.setRefreshToken(null);
+                cal.setAccessTokenExpiry(null);
+                calendarIntegrationRepository.save(cal);
+                logger.info("Calendar integration updated in database");
+                
+                // Log revocation for audit trail
+                logger.info("Logging consent action REVOKED for user {}", user.getId());
+                logConsentAction(user, calendarProvider, "REVOKED");
+                
+                logger.info("Calendar disconnected for user {} with provider {}", user.getId(), calendarProvider);
+            } else {
+                logger.warn("No calendar integration found for user {} with provider {}", user.getId(), calendarProvider);
+            }
+        } catch (Exception e) {
+            logger.error("Error in disconnectCalendar for user {} provider {}: {}", 
+                        user.getId(), calendarProvider, e.getMessage(), e);
+            throw e;
         }
     }
 
@@ -113,13 +131,14 @@ public class CalendarIntegrationService {
     }
 
     /**
-     * Get decrypted refresh token
+     * Get refresh token (plain text for local development)
      */
     public String getDecryptedRefreshToken(CalendarIntegration integration) {
         if (integration.getRefreshToken() == null) {
             throw new RuntimeException("No refresh token available for calendar integration");
         }
-        return encryptionUtility.decrypt(integration.getRefreshToken());
+        // Return the token as-is (no decryption needed)
+        return integration.getRefreshToken();
     }
 
     /**
@@ -134,10 +153,18 @@ public class CalendarIntegrationService {
      * Log consent action for GDPR compliance
      */
     private void logConsentAction(User user, String calendarProvider, String action) {
-        CalendarConsentHistory history = new CalendarConsentHistory(user, action);
-        history.setCalendarProvider(calendarProvider);
-        calendarConsentHistoryRepository.save(history);
-        logger.info("Consent action {} logged for user {} with provider {}", action, user.getId(), calendarProvider);
+        try {
+            logger.debug("Creating consent history: user={}, provider={}, action={}", 
+                        user.getId(), calendarProvider, action);
+            CalendarConsentHistory history = new CalendarConsentHistory(user, action);
+            history.setCalendarProvider(calendarProvider);
+            logger.debug("Saving consent history to database");
+            calendarConsentHistoryRepository.save(history);
+            logger.info("Consent action {} logged for user {} with provider {}", action, user.getId(), calendarProvider);
+        } catch (Exception e) {
+            logger.error("Failed to log consent action for user {}: {}", user.getId(), e.getMessage(), e);
+            throw e;
+        }
     }
 
     /**
@@ -145,5 +172,26 @@ public class CalendarIntegrationService {
      */
     public java.util.List<CalendarConsentHistory> getConsentHistory(User user) {
         return calendarConsentHistoryRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
+    }
+
+    /**
+     * Create default sync preferences for a user if they don't exist
+     * This ensures users have sensible defaults when first connecting their calendar
+     */
+    public CalendarSyncPreference createDefaultSyncPreferencesIfNeeded(User user) {
+        Optional<CalendarSyncPreference> existing = calendarSyncPreferenceRepository.findByUserId(user.getId());
+        
+        if (existing.isPresent()) {
+            logger.debug("Sync preferences already exist for user {}", user.getId());
+            return existing.get();
+        }
+        
+        // Create new preferences with default values
+        // Defaults are set in the entity: all sync options enabled, 30-minute reminders
+        CalendarSyncPreference preferences = new CalendarSyncPreference(user);
+        CalendarSyncPreference saved = calendarSyncPreferenceRepository.save(preferences);
+        
+        logger.info("Default sync preferences created for user {}", user.getId());
+        return saved;
     }
 }

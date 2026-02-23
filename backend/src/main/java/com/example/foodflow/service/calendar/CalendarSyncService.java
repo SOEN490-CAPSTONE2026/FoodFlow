@@ -134,13 +134,20 @@ public class CalendarSyncService {
         try {
             Optional<CalendarIntegration> integration = calendarIntegrationService.getUserIntegration(user);
             
-            if (!integration.isPresent() || !integration.get().getIsConnected()) {
-                return false;
+            if (!integration.isPresent()) {
+                logger.warn("No calendar integration found for user {}", user.getId());
+                throw new RuntimeException("Calendar not connected. Please connect your calendar first.");
+            }
+            
+            if (!integration.get().getIsConnected()) {
+                logger.warn("Calendar integration exists but is not connected for user {}", user.getId());
+                throw new RuntimeException("Calendar is disconnected. Please reconnect your calendar.");
             }
 
             CalendarProvider provider = getCalendarProvider(calendarProvider);
             if (provider == null) {
-                return false;
+                logger.warn("Unsupported calendar provider: {}", calendarProvider);
+                throw new RuntimeException("Unsupported calendar provider: " + calendarProvider);
             }
 
             String refreshToken = calendarIntegrationService.getDecryptedRefreshToken(integration.get());
@@ -148,9 +155,12 @@ public class CalendarSyncService {
             
             logger.info("Calendar connection test successful for user {}", user.getId());
             return true;
+        } catch (RuntimeException e) {
+            // Re-throw RuntimeException with the descriptive message
+            throw e;
         } catch (Exception e) {
-            logger.warn("Calendar connection test failed for user {}", user.getId(), e);
-            return false;
+            logger.error("Calendar connection test failed for user {}", user.getId(), e);
+            throw new RuntimeException("Connection test failed: " + e.getMessage(), e);
         }
     }
 }

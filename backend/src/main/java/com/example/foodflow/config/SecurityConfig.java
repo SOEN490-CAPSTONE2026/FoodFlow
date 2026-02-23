@@ -66,6 +66,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/conversations/**").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
                 .requestMatchers("/api/messages/**").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
                 
+                // Calendar OAuth callback - must be public for Google redirect
+                .requestMatchers("/api/calendar/oauth/google/callback").permitAll()
+                
                 // Calendar endpoints - accessible to donors and receivers
                 .requestMatchers("/api/calendar/**").hasAnyAuthority("DONOR", "RECEIVER")
                 

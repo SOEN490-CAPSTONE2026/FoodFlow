@@ -6,6 +6,7 @@ import com.example.foodflow.model.dto.calendar.CalendarConnectionResponse;
 import com.example.foodflow.model.dto.calendar.CalendarEventDto;
 import com.example.foodflow.model.dto.calendar.CalendarSyncPreferenceDto;
 import com.example.foodflow.model.entity.*;
+import com.example.foodflow.repository.UserRepository;
 import com.example.foodflow.service.calendar.CalendarIntegrationService;
 import com.example.foodflow.service.calendar.CalendarEventService;
 import com.example.foodflow.service.calendar.CalendarSyncService;
@@ -48,6 +49,9 @@ public class CalendarController {
 
     @Autowired
     private ModelMapper modelMapper;
+
+    @Autowired
+    private UserRepository userRepository;
 
     /**
      * Get calendar integration status for current user
@@ -120,33 +124,53 @@ public class CalendarController {
 
     /**
      * Handle OAuth callback from Google Calendar
+     * This endpoint is PUBLIC - called by Google's OAuth redirect
      */
     @GetMapping("/oauth/google/callback")
-    public ResponseEntity<ApiResponse<CalendarConnectionResponse>> handleGoogleOAuthCallback(
+    public ResponseEntity<?> handleGoogleOAuthCallback(
             @RequestParam("code") String authCode,
-            @RequestParam(value = "state", required = false) String state,
-            @AuthenticationPrincipal User currentUser) {
+            @RequestParam(value = "state", required = true) String state) {
         try {
-            logger.info("Google OAuth callback received for user {}", currentUser.getId());
+            // Extract user ID from state token (format: UUID_userId)
+            String[] stateParts = state.split("_");
+            if (stateParts.length < 2) {
+                logger.error("Invalid state token format: {}", state);
+                return ResponseEntity.badRequest()
+                    .body("<html><body><h2>Invalid authentication state</h2><p>Please close this window and try again.</p></body></html>");
+            }
+
+            Long userId = Long.parseLong(stateParts[1]);
+            logger.info("Google OAuth callback received for user ID {}", userId);
+
+            // Fetch the user from database
+            Optional<User> userOpt = userRepository.findById(userId);
+            if (!userOpt.isPresent()) {
+                logger.error("User not found for ID: {}", userId);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("<html><body><h2>User not found</h2><p>Please close this window and try again.</p></body></html>");
+            }
+
+            User user = userOpt.get();
 
             // Exchange the authorization code for tokens
             GoogleOAuthService.GoogleTokenResponse tokenResponse = 
                 googleOAuthService.exchangeCodeForTokens(authCode);
 
             // Store the tokens in the database
-            calendarIntegrationService.storeOAuthTokens(currentUser, "GOOGLE", tokenResponse);
+            calendarIntegrationService.storeOAuthTokens(user, "GOOGLE", tokenResponse);
 
-            CalendarConnectionResponse response = new CalendarConnectionResponse();
-            response.setIsConnected(true);
-            response.setCalendarProvider("GOOGLE");
-            response.setMessage("Calendar successfully connected!");
-
-            return ResponseEntity.ok(new ApiResponse<>(true, 
-                "Google Calendar connected successfully", response));
+            // Return HTML success page that can close itself
+            return ResponseEntity.ok()
+                .header("Content-Type", "text/html")
+                .body("<html><body><h2>Calendar Connected Successfully!</h2><p>You can close this window now.</p><script>setTimeout(function(){window.close()}, 2000);</script></body></html>");
+        } catch (NumberFormatException e) {
+            logger.error("Invalid user ID in state token", e);
+            return ResponseEntity.badRequest()
+                .body("<html><body><h2>Invalid state parameter</h2><p>Please close this window and try again.</p></body></html>");
         } catch (Exception e) {
             logger.error("Error handling Google OAuth callback", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ApiResponse<>(false, "OAuth callback failed: " + e.getMessage(), null));
+                .body("<html><body><h2>Connection Failed</h2><p>Error: " + e.getMessage() + "</p><p>Please close this window and try again.</p></body></html>");
         }
     }
 
@@ -158,6 +182,21 @@ public class CalendarController {
             @RequestParam("provider") String calendarProvider,
             @AuthenticationPrincipal User currentUser) {
         try {
+            if (currentUser == null) {
+                logger.error("User is null in disconnect endpoint");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponse<>(false, "User not authenticated", null));
+            }
+            
+            if (calendarProvider == null || calendarProvider.isBlank()) {
+                logger.error("Calendar provider is null or empty");
+                return ResponseEntity.badRequest()
+                    .body(new ApiResponse<>(false, "Calendar provider is required", null));
+            }
+
+            logger.info("Attempting to disconnect calendar for user {} from provider {}", 
+                       currentUser.getId(), calendarProvider);
+
             calendarIntegrationService.disconnectCalendar(currentUser, calendarProvider);
 
             logger.info("Calendar disconnected for user {} from provider {}", 
@@ -166,7 +205,10 @@ public class CalendarController {
             return ResponseEntity.ok(new ApiResponse<>(true, 
                 "Calendar disconnected successfully", null));
         } catch (Exception e) {
-            logger.error("Error disconnecting calendar", e);
+            logger.error("Error disconnecting calendar for user {} from provider {}: {}", 
+                        currentUser != null ? currentUser.getId() : "null", 
+                        calendarProvider, 
+                        e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ApiResponse<>(false, "Error disconnecting: " + e.getMessage(), null));
         }
@@ -174,6 +216,7 @@ public class CalendarController {
 
     /**
      * Get user's calendar sync preferences
+     * Auto-creates default preferences if they don't exist
      */
     @GetMapping("/preferences")
     public ResponseEntity<ApiResponse<CalendarSyncPreferenceDto>> getSyncPreferences(
@@ -182,15 +225,18 @@ public class CalendarController {
             Optional<CalendarSyncPreference> preferences = 
                 calendarEventService.getUserSyncPreferences(currentUser.getId());
 
+            CalendarSyncPreference pref;
             if (preferences.isPresent()) {
-                CalendarSyncPreferenceDto dto = modelMapper.map(preferences.get(), 
-                    CalendarSyncPreferenceDto.class);
-                return ResponseEntity.ok(new ApiResponse<>(true, 
-                    "Sync preferences retrieved", dto));
+                pref = preferences.get();
             } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ApiResponse<>(false, "No sync preferences found", null));
+                // Auto-create default preferences for first-time users
+                logger.info("Creating default sync preferences for user {}", currentUser.getId());
+                pref = calendarIntegrationService.createDefaultSyncPreferencesIfNeeded(currentUser);
             }
+
+            CalendarSyncPreferenceDto dto = modelMapper.map(pref, CalendarSyncPreferenceDto.class);
+            return ResponseEntity.ok(new ApiResponse<>(true, 
+                "Sync preferences retrieved", dto));
         } catch (Exception e) {
             logger.error("Error retrieving sync preferences", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -286,19 +332,15 @@ public class CalendarController {
             @RequestParam("provider") String provider,
             @AuthenticationPrincipal User currentUser) {
         try {
-            boolean isConnected = calendarSyncService.testCalendarConnection(currentUser, provider);
+            calendarSyncService.testCalendarConnection(currentUser, provider);
 
-            if (isConnected) {
-                return ResponseEntity.ok(new ApiResponse<>(true, 
-                    "Calendar connection test successful", null));
-            } else {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ApiResponse<>(false, "Calendar connection test failed", null));
-            }
+            return ResponseEntity.ok(new ApiResponse<>(true, 
+                "Calendar connection test successful", null));
         } catch (Exception e) {
-            logger.error("Error testing calendar connection", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ApiResponse<>(false, "Test failed: " + e.getMessage(), null));
+            logger.error("Calendar connection test failed for user {}: {}", 
+                        currentUser.getId(), e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ApiResponse<>(false, e.getMessage(), null));
         }
     }
 
