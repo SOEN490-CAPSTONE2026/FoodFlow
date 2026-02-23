@@ -44,7 +44,9 @@ export default function AIDonationForm() {
         setStep('review');
         toast.success(t('aiDonation.toast.extractionComplete'));
       } else {
-        toast.error(response.data.errorMessage || t('aiDonation.toast.aiFailed'));
+        toast.error(
+          response.data.errorMessage || t('aiDonation.toast.aiFailed')
+        );
         setStep('upload');
       }
     } catch (error) {
@@ -52,7 +54,8 @@ export default function AIDonationForm() {
 
       if (error.response) {
         const errorMsg =
-          error.response.data?.errorMessage || t('aiDonation.toast.analysisFailed');
+          error.response.data?.errorMessage ||
+          t('aiDonation.toast.analysisFailed');
         toast.error(errorMsg);
       } else if (error.code === 'ECONNABORTED') {
         toast.error(t('aiDonation.toast.requestTimedOut'));
@@ -88,31 +91,31 @@ export default function AIDonationForm() {
 
       case 'processing':
         return (
-            <div className="ai-processing-container">
-              <div className="ai-spinner"></div>
-              <h3>{t('aiDonation.processing.title')}</h3>
-              <p className="processing-hint">{t('aiDonation.processing.hint')}</p>
-              <div className="processing-steps">
-                <div className="processing-step active">
-                  <div className="step-icon">
-                    <Upload size={16} />
-                  </div>
-                  <span>{t('aiDonation.processing.readingLabel')}</span>
+          <div className="ai-processing-container">
+            <div className="ai-spinner"></div>
+            <h3>{t('aiDonation.processing.title')}</h3>
+            <p className="processing-hint">{t('aiDonation.processing.hint')}</p>
+            <div className="processing-steps">
+              <div className="processing-step active">
+                <div className="step-icon">
+                  <Upload size={16} />
                 </div>
-                <div className="processing-step active">
-                  <div className="step-icon">
-                    <ScanSearch size={16} />
-                  </div>
-                  <span>{t('aiDonation.processing.extractingData')}</span>
+                <span>{t('aiDonation.processing.readingLabel')}</span>
+              </div>
+              <div className="processing-step active">
+                <div className="step-icon">
+                  <ScanSearch size={16} />
                 </div>
-                <div className="processing-step">
-                  <div className="step-icon">
-                    <FileCheck2 size={16} />
-                  </div>
-                  <span>{t('aiDonation.processing.preparingResults')}</span>
+                <span>{t('aiDonation.processing.extractingData')}</span>
+              </div>
+              <div className="processing-step">
+                <div className="step-icon">
+                  <FileCheck2 size={16} />
                 </div>
+                <span>{t('aiDonation.processing.preparingResults')}</span>
               </div>
             </div>
+          </div>
         );
 
       case 'review':
@@ -150,9 +153,7 @@ export default function AIDonationForm() {
           <span>{t('aiDonation.backToDashboard')}</span>
         </button>
         <h1>{t('aiDonation.title')}</h1>
-        <p className="ai-subtitle">
-          {t('aiDonation.subtitle')}
-        </p>
+        <p className="ai-subtitle">{t('aiDonation.subtitle')}</p>
       </div>
 
       <div className="ai-step-indicator">

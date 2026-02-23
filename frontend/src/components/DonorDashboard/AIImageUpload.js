@@ -147,7 +147,9 @@ export default function AIImageUpload({ onImageSelect, onManualEntry }) {
               <div className="upload-icon" aria-hidden="true">
                 <FileUp size={20} />
               </div>
-              <p className="dropzone-text">{t('aiDonation.upload.dragAndDrop')}</p>
+              <p className="dropzone-text">
+                {t('aiDonation.upload.dragAndDrop')}
+              </p>
               <p className="dropzone-or">{t('aiDonation.upload.or')}</p>
               <label htmlFor="image-upload" className="upload-button">
                 {t('aiDonation.upload.chooseFile')}
