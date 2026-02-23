@@ -33,8 +33,11 @@ public class RegisterDonorRequest {
 
     private OrganizationType organizationType;
 
-    @NotBlank(message = "Business license is required for donor registration")
+    // Business license is optional — user can provide a supporting document instead
     private String businessLicense;
+
+    // URL of the uploaded supporting document (set by the controller after file storage)
+    private String supportingDocumentUrl;
 
     private Boolean dataStorageConsent = false;
 
@@ -67,6 +70,9 @@ public class RegisterDonorRequest {
     
     public String getBusinessLicense() { return businessLicense; }
     public void setBusinessLicense(String businessLicense) { this.businessLicense = businessLicense; }
+
+    public String getSupportingDocumentUrl() { return supportingDocumentUrl; }
+    public void setSupportingDocumentUrl(String supportingDocumentUrl) { this.supportingDocumentUrl = supportingDocumentUrl; }
 
     public Boolean getDataStorageConsent() { return dataStorageConsent; }
     public void setDataStorageConsent(Boolean dataStorageConsent) { this.dataStorageConsent = dataStorageConsent; }

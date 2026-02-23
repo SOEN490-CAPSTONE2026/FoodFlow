@@ -38,6 +38,9 @@ public class RegisterReceiverRequest {
     private Integer capacity;
     private String charityRegistrationNumber;
 
+    // URL of the uploaded supporting document (set by the controller after file storage)
+    private String supportingDocumentUrl;
+
     private Boolean dataStorageConsent = false;
 
     // Constructors, getters, setters
@@ -72,6 +75,9 @@ public class RegisterReceiverRequest {
 
     public String getCharityRegistrationNumber() { return charityRegistrationNumber; }
     public void setCharityRegistrationNumber(String charityRegistrationNumber) { this.charityRegistrationNumber = charityRegistrationNumber; }
+
+    public String getSupportingDocumentUrl() { return supportingDocumentUrl; }
+    public void setSupportingDocumentUrl(String supportingDocumentUrl) { this.supportingDocumentUrl = supportingDocumentUrl; }
 
     public Boolean getDataStorageConsent() { return dataStorageConsent; }
     public void setDataStorageConsent(Boolean dataStorageConsent) { this.dataStorageConsent = dataStorageConsent; }
