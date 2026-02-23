@@ -16,9 +16,9 @@ describe('navigation', () => {
     it('should set navigator function', () => {
       const mockNavigate = jest.fn();
       setNavigator(mockNavigate);
-      
+
       const result = navigateTo('/test');
-      
+
       expect(result).toBe(true);
       expect(mockNavigate).toHaveBeenCalledWith('/test', {});
     });
@@ -26,15 +26,15 @@ describe('navigation', () => {
     it('should navigate with options', () => {
       const mockNavigate = jest.fn();
       setNavigator(mockNavigate);
-      
+
       navigateTo('/test', { replace: true });
-      
+
       expect(mockNavigate).toHaveBeenCalledWith('/test', { replace: true });
     });
 
     it('should return false when navigator is not set', () => {
       const result = navigateTo('/test');
-      
+
       expect(result).toBe(false);
     });
   });
@@ -42,9 +42,9 @@ describe('navigation', () => {
   describe('setNavigationLocation and getNavigationLocation', () => {
     it('should set and get navigation location', () => {
       const location = { pathname: '/test', search: '?id=123' };
-      
+
       setNavigationLocation(location);
-      
+
       expect(getNavigationLocation()).toEqual(location);
     });
 
@@ -55,7 +55,7 @@ describe('navigation', () => {
     it('should update location', () => {
       setNavigationLocation({ pathname: '/first' });
       expect(getNavigationLocation()).toEqual({ pathname: '/first' });
-      
+
       setNavigationLocation({ pathname: '/second' });
       expect(getNavigationLocation()).toEqual({ pathname: '/second' });
     });
