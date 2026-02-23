@@ -8,7 +8,9 @@ import { AuthContext } from '../../contexts/AuthContext';
 jest.mock('../../services/api', () => ({
   get: jest.fn(() => Promise.resolve({ data: [] })),
   profileAPI: { get: jest.fn(() => Promise.resolve({ data: {} })) },
-  savedDonationAPI: { getSavedDonations: jest.fn(() => Promise.resolve({ data: [] })) },
+  savedDonationAPI: {
+    getSavedDonations: jest.fn(() => Promise.resolve({ data: [] })),
+  },
 }));
 jest.mock('../../services/socket', () => ({
   connectToUserQueue: jest.fn(),
