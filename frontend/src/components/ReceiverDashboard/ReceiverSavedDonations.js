@@ -67,6 +67,7 @@ export default function ReceiverSavedDonations() {
 
     try {
       await savedDonationAPI.unsave(item.id);
+      window.dispatchEvent(new Event('saved-donations-updated'));
     } catch (unsaveError) {
       console.error('Error removing saved donation:', unsaveError);
       setBookmarkedItems(prev => {
@@ -90,6 +91,7 @@ export default function ReceiverSavedDonations() {
       try {
         await surplusAPI.claim(item.id, slot);
         await savedDonationAPI.unsave(item.id).catch(() => {});
+        window.dispatchEvent(new Event('saved-donations-updated'));
         setItems(prev => prev.filter(post => post.id !== item.id));
         setBookmarkedItems(prev => {
           const next = new Set(prev);

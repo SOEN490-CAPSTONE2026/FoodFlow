@@ -287,28 +287,34 @@ export const savedDonationAPI = {
    * Get all saved donations for the current user
    * @returns {Promise} List of saved donations
    */
-  getSavedDonations: () => api.get('/saved-donations'),
+  getSavedDonations: () => api.get('/receiver/saved'),
 
   /**
    * Save a donation
    * @param {number} donationId - Donation ID to save
    * @returns {Promise} Response data
    */
-  save: donationId => api.post(`/saved-donations/${donationId}`),
+  save: donationId => api.post(`/receiver/saved/${donationId}`),
 
   /**
    * Unsave a donation
    * @param {number} donationId - Donation ID to unsave
    * @returns {Promise} Response data
    */
-  unsave: donationId => api.delete(`/saved-donations/${donationId}`),
+  unsave: donationId => api.delete(`/receiver/saved/${donationId}`),
 
   /**
    * Check if a donation is saved
    * @param {number} donationId - Donation ID to check
    * @returns {Promise} Boolean indicating if saved
    */
-  isSaved: donationId => api.get(`/saved-donations/${donationId}/status`),
+  isSaved: donationId => api.get(`/receiver/saved/check/${donationId}`),
+
+  /**
+   * Get total number of saved donations for current user
+   * @returns {Promise} Count of saved donations
+   */
+  getSavedCount: () => api.get('/receiver/saved/count'),
 };
 
 export const conversationAPI = {
