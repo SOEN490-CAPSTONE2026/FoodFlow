@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Send } from 'lucide-react';
+import { ChevronLeft, Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
+import FoodFlowLogo from '../../assets/Logo.png';
 import { useTimezone } from '../../contexts/TimezoneContext';
 import {
   foodTypeImages,
@@ -232,6 +233,37 @@ const ChatPanel = ({
     return 'donor';
   };
 
+  const getOtherParticipantDisplayName = () => {
+    const rawName = conversation?.otherUserName || '';
+    const rawEmail = conversation?.otherUserEmail || '';
+    const role = (conversation?.otherUserRole || '').toUpperCase();
+    const lookup = `${rawName} ${rawEmail}`.toLowerCase();
+
+    const isAdminSupport =
+      role === 'ADMIN' ||
+      lookup.includes('admin@foodflow.com') ||
+      lookup === 'admin';
+
+    if (isAdminSupport) {
+      return t('messaging.customerSupport', 'Customer Support');
+    }
+
+    return rawName || rawEmail || t('messaging.participant', 'Participant');
+  };
+
+  const isAdminSupportParticipant = () => {
+    const rawName = conversation?.otherUserName || '';
+    const rawEmail = conversation?.otherUserEmail || '';
+    const role = (conversation?.otherUserRole || '').toUpperCase();
+    const lookup = `${rawName} ${rawEmail}`.toLowerCase();
+
+    return (
+      role === 'ADMIN' ||
+      lookup.includes('admin@foodflow.com') ||
+      lookup === 'admin'
+    );
+  };
+
   const handleViewDonation = () => {
     if (!conversation?.donationId) {
       return;
@@ -257,6 +289,10 @@ const ChatPanel = ({
   };
 
   const getConversationAvatarUrl = () => {
+    if (isAdminSupportParticipant()) {
+      return FoodFlowLogo;
+    }
+
     if (conversation?.donationPhoto) {
       const categoryLabel = getFoodTypeLabel(conversation.donationPhoto);
       return foodTypeImages[categoryLabel] || foodTypeImages['Prepared Meals'];
@@ -282,19 +318,33 @@ const ChatPanel = ({
 
   const statusInfo = getStatusInfo();
   const conversationAvatarUrl = getConversationAvatarUrl();
+  const otherParticipantDisplayName = getOtherParticipantDisplayName();
+  const isAdminSupport = isAdminSupportParticipant();
 
   return (
     <div
       className={`chat-panel ${showOnMobile ? 'show-mobile' : 'hide-mobile'}`}
     >
       <div className="chat-header">
+        <button
+          type="button"
+          className="chat-back-button"
+          onClick={onBack}
+          aria-label={t('common.back', 'Back')}
+        >
+          <ChevronLeft size={18} />
+          <span>{t('common.back', 'Back')}</span>
+        </button>
+
         <div className="chat-header-left">
           <div className="chat-header-info">
-            <h3>{conversation.donationTitle || conversation.otherUserName}</h3>
-            <p className="chat-header-subtitle">
-              {t('chat.with')} {getOtherParticipantRoleLabel()}:{' '}
-              {conversation.otherUserName}
-            </p>
+            <h3>{conversation.donationTitle || otherParticipantDisplayName}</h3>
+            {!isAdminSupport && (
+              <p className="chat-header-subtitle">
+                {t('chat.with')} {getOtherParticipantRoleLabel()}:{' '}
+                {otherParticipantDisplayName}
+              </p>
+            )}
           </div>
         </div>
         <div className="chat-header-actions">
@@ -349,18 +399,20 @@ const ChatPanel = ({
                     }`}
                   >
                     {message.senderId.toString() !== currentUserId && (
-                      <div className="message-avatar">
+                      <div
+                        className={`message-avatar ${isAdminSupport ? 'admin-support' : ''}`}
+                      >
                         {conversationAvatarUrl ? (
                           <img
                             src={conversationAvatarUrl}
                             alt={
                               conversation.donationTitle ||
-                              conversation.otherUserName
+                              otherParticipantDisplayName
                             }
-                            className="message-avatar-image"
+                            className={`message-avatar-image ${isAdminSupport ? 'admin-support' : ''}`}
                           />
                         ) : (
-                          conversation.otherUserName.charAt(0).toUpperCase()
+                          otherParticipantDisplayName.charAt(0).toUpperCase()
                         )}
                       </div>
                     )}
