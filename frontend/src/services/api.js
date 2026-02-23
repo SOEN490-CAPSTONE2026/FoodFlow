@@ -707,6 +707,65 @@ export const rateLimitAPI = {
   },
 };
 
+// Calendar API
+export const calendarAPI = {
+  /**
+   * Get calendar integration status
+   */
+  getStatus: () => api.get('/calendar/status'),
+
+  /**
+   * Initiate calendar connection (gets OAuth URL)
+   */
+  initiateConnection: provider =>
+    api.post('/calendar/connect', { calendarProvider: provider }),
+
+  /**
+   * Handle OAuth callback
+   */
+  handleOAuthCallback: (code, state) =>
+    api.get('/calendar/oauth/google/callback', {
+      params: { code, state },
+    }),
+
+  /**
+   * Disconnect calendar
+   */
+  disconnect: provider =>
+    api.post('/calendar/disconnect', null, {
+      params: { provider },
+    }),
+
+  /**
+   * Get sync preferences
+   */
+  getPreferences: () => api.get('/calendar/preferences'),
+
+  /**
+   * Update sync preferences
+   */
+  updatePreferences: preferences =>
+    api.put('/calendar/preferences', preferences),
+
+  /**
+   * Get synced events
+   */
+  getEvents: () => api.get('/calendar/events'),
+
+  /**
+   * Trigger manual sync
+   */
+  sync: () => api.post('/calendar/sync'),
+
+  /**
+   * Test calendar connection
+   */
+  testConnection: provider =>
+    api.post('/calendar/test', null, {
+      params: { provider },
+    }),
+};
+
 // Impact Dashboard API
 export const impactDashboardAPI = {
   /**

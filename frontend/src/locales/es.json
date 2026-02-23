@@ -847,7 +847,8 @@
       "messages": "Mensajes",
       "settings": "Configuración",
       "help": "Ayuda",
-      "donor": "Donante"
+      "donor": "Donante",
+      "calendar": "Integración de calendario"
     },
     "pageDescriptions": {
       "donorDashboard": "Resumen y acciones rápidas",
@@ -855,6 +856,7 @@
       "requestsClaims": "Solicitudes entrantes y estado",
       "pickupSchedule": "Actividad reciente e historial",
       "messages": "Comunicaciones entrantes",
+      "calendar": "Sincroniza tus donaciones con Google Calendar",
       "settings": "Gestiona tus preferencias y configuración de cuenta",
       "help": "Guías y soporte",
       "donorPortal": "Portal de donante FoodFlow"
@@ -955,6 +957,7 @@
       "welcome": "Bienvenido",
       "browse": "Explorar alimentos disponibles",
       "messages": "Mensajes",
+      "calendar": "Integración de calendario",
       "settings": "Configuración",
       "default": "Panel de receptor"
     },
@@ -963,6 +966,7 @@
       "welcome": "Comienza aquí: busca en el mapa o explora alimentos cercanos",
       "browse": "Explorar publicaciones de alimentos disponibles",
       "messages": "Comunicarse con donantes y otros usuarios",
+      "calendar": "Sincroniza tus recogidas con Google Calendar",
       "settings": "Gestionar tus preferencias y configuración de cuenta",
       "default": "Portal de receptor FoodFlow"
     }
@@ -1369,5 +1373,78 @@
     "selectAll": "Seleccionar todo",
     "clearAll": "Borrar todo",
     "done": "Listo"
+  },
+  "calendar": {
+    "title": "Integración de calendario",
+    "description": "Sincroniza tus actividades de FoodFlow con Google Calendar",
+    "status": {
+      "connected": "Conectado",
+      "notConnected": "No conectado",
+      "connecting": "Conectando..."
+    },
+    "connectPrompt": "Conecta tu Google Calendar para sincronizar automáticamente citas de donaciones y horarios de recogida. ¡Nunca te pierdas un evento importante!",
+    "connectButton": "Conectar Google Calendar",
+    "disconnectButton": "Desconectar calendario",
+    "disconnectConfirm": "¿Estás seguro de que quieres desconectar tu calendario? Tus eventos sincronizados permanecerán en Google Calendar.",
+    "disconnectSuccess": "Calendario desconectado exitosamente",
+    "disconnectError": "Error al desconectar el calendario",
+    "connectionSuccess": "¡Calendario conectado exitosamente!",
+    "connectionError": "Error al conectar el calendario. Por favor, inténtalo de nuevo.",
+    "sync": {
+      "title": "Sincronizar eventos",
+      "manual": "Sincronización manual",
+      "manualButton": "Sincronizar ahora",
+      "syncing": "Sincronizando...",
+      "success": "Eventos sincronizados exitosamente",
+      "error": "Error al sincronizar eventos",
+      "lastSync": "Última sincronización: {{time}}",
+      "neverSynced": "Nunca sincronizado",
+      "autoSync": "Sincronización automática activada"
+    },
+    "preferences": {
+      "title": "Preferencias de sincronización",
+      "description": "Elige qué eventos sincronizar con tu calendario",
+      "syncEnabled": "Activar sincronización de calendario",
+      "syncDonations": "Sincronizar citas de donaciones",
+      "syncClaims": "Sincronizar citas de recogida",
+      "syncReminders": "Agregar recordatorios a eventos",
+      "syncUpdates": "Actualizar eventos existentes cuando cambien",
+      "syncCompletions": "Marcar eventos completados",
+      "syncCancellations": "Eliminar eventos cancelados",
+      "reminderTime": "Tiempo de recordatorio antes del evento",
+      "saveButton": "Guardar preferencias",
+      "saveSuccess": "Preferencias guardadas exitosamente",
+      "saveError": "Error al guardar preferencias"
+    },
+    "events": {
+      "title": "Eventos sincronizados",
+      "noEvents": "Aún no hay eventos sincronizados",
+      "viewInGoogle": "Ver en Google Calendar",
+      "filter": {
+        "all": "Todos los eventos",
+        "upcoming": "Próximos",
+        "past": "Pasados",
+        "donations": "Donaciones",
+        "pickups": "Recogidas"
+      },
+      "donation": "Donación",
+      "pickup": "Recogida",
+      "at": "en",
+      "with": "con"
+    },
+    "errors": {
+      "loadFailed": "Error al cargar la configuración del calendario",
+      "unauthorized": "Por favor, inicia sesión para acceder a la configuración del calendario",
+      "permissionDenied": "Permisos de calendario denegados. Por favor, intenta conectar de nuevo.",
+      "networkError": "Error de red. Por favor, verifica tu conexión.",
+      "unknownError": "Ocurrió un error inesperado"
+    },
+    "help": {
+      "title": "Cómo funciona",
+      "step1": "Conecta tu cuenta de Google Calendar",
+      "step2": "Configura tus preferencias de sincronización",
+      "step3": "Tus donaciones y recogidas aparecerán automáticamente en tu calendario",
+      "privacy": "El acceso a tu calendario es seguro y puede ser revocado en cualquier momento"
+    }
   }
 }
