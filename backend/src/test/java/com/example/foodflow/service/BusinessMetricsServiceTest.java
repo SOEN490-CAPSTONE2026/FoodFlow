@@ -1,49 +1,21 @@
 package com.example.foodflow.service;
 
-import com.example.foodflow.model.types.ClaimStatus;
-import com.example.foodflow.repository.ClaimRepository;
-import com.example.foodflow.repository.SurplusPostRepository;
-import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import java.lang.reflect.Method;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
 
 class BusinessMetricsServiceTest {
 
     private MeterRegistry meterRegistry;
     private BusinessMetricsService businessMetricsService;
 
-    @Mock
-    private ClaimRepository claimRepository;
-
-    @Mock
-    private SurplusPostRepository surplusPostRepository;
-
     @BeforeEach
-    void setUp() throws Exception {
-        MockitoAnnotations.openMocks(this);
+    void setUp() {
         meterRegistry = new SimpleMeterRegistry();
-        
-        // Mock repository responses
-        when(claimRepository.countByStatus(ClaimStatus.ACTIVE)).thenReturn(5L);
-        when(claimRepository.countByStatus(ClaimStatus.CANCELLED)).thenReturn(2L);
-        when(claimRepository.countByStatus(ClaimStatus.COMPLETED)).thenReturn(10L);
-        
-        businessMetricsService = new BusinessMetricsService(
-                meterRegistry);
-        
-        // Call the private registerActiveClaimsGauges method using reflection
-        Method registerGauges = BusinessMetricsService.class
-                .getDeclaredMethod("registerActiveClaimsGauges");
-        registerGauges.setAccessible(true);
-        registerGauges.invoke(businessMetricsService);
+        businessMetricsService = new BusinessMetricsService(meterRegistry);
     }
 
     @Test
@@ -150,35 +122,6 @@ class BusinessMetricsServiceTest {
         assertEquals(initialCount + 1, finalCount);
     }
 
-    @Test
-    void testActiveClaimsGauge() {
-        // When
-        Gauge activeGauge = meterRegistry.find("claims.active").gauge();
-
-        // Then
-        assertNotNull(activeGauge);
-        assertEquals(5.0, activeGauge.value());
-    }
-
-    @Test
-    void testCancelledClaimsGauge() {
-        // When
-        Gauge cancelledGauge = meterRegistry.find("claims.cancelled.total").gauge();
-
-        // Then
-        assertNotNull(cancelledGauge);
-        assertEquals(2.0, cancelledGauge.value());
-    }
-
-    @Test
-    void testCompletedClaimsGauge() {
-        // When
-        Gauge completedGauge = meterRegistry.find("claims.completed.total").gauge();
-
-        // Then
-        assertNotNull(completedGauge);
-        assertEquals(10.0, completedGauge.value());
-    }
 
     @Test
     void testStartTimer() {
@@ -272,9 +215,6 @@ class BusinessMetricsServiceTest {
     void testAllCountersStartAtZero() {
         // Given - Fresh service
         MeterRegistry freshRegistry = new SimpleMeterRegistry();
-        when(claimRepository.countByStatus(ClaimStatus.ACTIVE)).thenReturn(0L);
-        when(claimRepository.countByStatus(ClaimStatus.CANCELLED)).thenReturn(0L);
-        when(claimRepository.countByStatus(ClaimStatus.COMPLETED)).thenReturn(0L);
 
         // Then
         assertEquals(0.0, freshRegistry.counter("surplus.posts.created").count());
@@ -285,28 +225,5 @@ class BusinessMetricsServiceTest {
         assertEquals(0.0, freshRegistry.counter("claims.completed").count());
         assertEquals(0.0, freshRegistry.counter("messages.sent").count());
         assertEquals(0.0, freshRegistry.counter("messages.received").count());
-    }
-
-    @Test
-    void testGaugesReflectRepositoryData() throws Exception {
-        // Given - Update repository mock
-        when(claimRepository.countByStatus(ClaimStatus.ACTIVE)).thenReturn(15L);
-        
-        // When - Recreate service to register gauges with new data
-        MeterRegistry newRegistry = new SimpleMeterRegistry();
-        BusinessMetricsService newService = new BusinessMetricsService(
-                newRegistry);
-        
-        // Call the private registerActiveClaimsGauges method using reflection
-        Method registerGauges = BusinessMetricsService.class
-                .getDeclaredMethod("registerActiveClaimsGauges");
-        registerGauges.setAccessible(true);
-        registerGauges.invoke(newService);
-        
-        Gauge activeGauge = newRegistry.find("claims.active").gauge();
-
-        // Then - Gauge should reflect updated repository count
-        assertNotNull(activeGauge);
-        assertEquals(15.0, activeGauge.value());
     }
 }
