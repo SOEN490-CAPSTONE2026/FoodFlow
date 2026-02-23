@@ -92,17 +92,7 @@ const ConversationsSidebar = ({
       <div className="sidebar-header">
         <div className="header-content">
           <h2>{t('messaging.messages')}</h2>
-          <p className="sidebar-subtitle">
-            {t('messaging.connectAndCoordinate')}
-          </p>
         </div>
-        <button
-          className="new-conversation-btn"
-          onClick={onNewConversation}
-          title={t('messaging.startNewConversation')}
-        >
-          +
-        </button>
       </div>
 
       <div className="filter-tabs">
@@ -161,29 +151,23 @@ const ConversationsSidebar = ({
               <div className="conversation-info">
                 <div className="conversation-header-row">
                   <h3 className="conversation-name">
-                    {conversation.otherUserName}
+                    {conversation.donationTitle || conversation.otherUserName}
                   </h3>
                   <span className="conversation-time">
                     {formatTimestamp(conversation.lastMessageAt)}
                   </span>
                 </div>
 
-                {conversation.donationTitle && (
-                  <p className="conversation-donation-context">
-                    {conversation.donationTitle}
-                  </p>
-                )}
-
-                <div className="conversation-preview-row">
-                  <p className="conversation-preview">
-                    {conversation.lastMessagePreview}
-                  </p>
-                  {conversation.unreadCount > 0 && (
-                    <span className="unread-badge">
-                      {conversation.unreadCount}
-                    </span>
-                  )}
+                <div className="conversation-inline-text">
+                  {conversation.otherUserName} ·{' '}
+                  {conversation.lastMessagePreview}
                 </div>
+
+                {conversation.unreadCount > 0 && (
+                  <span className="unread-badge-inline">
+                    {conversation.unreadCount}
+                  </span>
+                )}
               </div>
             </div>
           ))
