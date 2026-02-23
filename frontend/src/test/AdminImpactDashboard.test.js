@@ -489,10 +489,10 @@ describe('AdminImpactDashboard', () => {
     });
 
     test('displays 0 for undefined metrics', async () => {
-      impactDashboardAPI.getMetrics.mockResolvedValue({ 
+      impactDashboardAPI.getMetrics.mockResolvedValue({
         data: {
           foodSavedTimeSeries: [],
-        }
+        },
       });
 
       render(<AdminImpactDashboard />);
@@ -518,11 +518,17 @@ describe('AdminImpactDashboard', () => {
         expect(screen.getByText('Customize Metrics')).toBeInTheDocument();
       });
 
-      const customizeButton = screen.getByText('Customize Metrics').closest('button');
+      const customizeButton = screen
+        .getByText('Customize Metrics')
+        .closest('button');
       fireEvent.click(customizeButton);
 
       await waitFor(() => {
-        expect(screen.getByText('Select which metrics you want to display on your dashboard (maximum 4):')).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            'Select which metrics you want to display on your dashboard (maximum 4):'
+          )
+        ).toBeInTheDocument();
       });
 
       expect(screen.getByText('Select All')).toBeInTheDocument();
@@ -537,7 +543,9 @@ describe('AdminImpactDashboard', () => {
         expect(screen.getByText('Customize Metrics')).toBeInTheDocument();
       });
 
-      const customizeButton = screen.getByText('Customize Metrics').closest('button');
+      const customizeButton = screen
+        .getByText('Customize Metrics')
+        .closest('button');
       fireEvent.click(customizeButton);
 
       await waitFor(() => {
