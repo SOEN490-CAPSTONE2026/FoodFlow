@@ -562,7 +562,9 @@ describe('API service', () => {
     expect(mockGet).toHaveBeenCalledWith(
       expect.stringContaining('dietaryMatch=ALL')
     );
-    expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('sort=closest'));
+    expect(mockGet).toHaveBeenCalledWith(
+      expect.stringContaining('sort=closest')
+    );
     expect(resp).toEqual({ data: [] });
   });
 
@@ -583,10 +585,7 @@ describe('API service', () => {
     const oneResp = await conversationAPI.getConversation(7);
     const msgsResp = await conversationAPI.getMessages(7);
 
-    expect(mockPost).toHaveBeenNthCalledWith(
-      1,
-      '/conversations/interested/99'
-    );
+    expect(mockPost).toHaveBeenNthCalledWith(1, '/conversations/interested/99');
     expect(mockPost).toHaveBeenNthCalledWith(2, '/conversations/post/99', {
       otherUserId: 7,
     });
