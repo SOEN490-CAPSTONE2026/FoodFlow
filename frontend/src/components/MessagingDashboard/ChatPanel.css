@@ -140,7 +140,6 @@
   opacity: 0.7;
 }
 
-
 .status-badge.active {
   background-color: #38a169;
   color: white;
@@ -170,7 +169,6 @@
   background-color: #718096;
   color: white;
 }
-
 
 .system-message {
   text-align: center;
@@ -464,7 +462,6 @@
     display: inline-flex;
     flex-shrink: 0;
   }
-
 
   .chat-header-info h3 {
     font-size: 16px;

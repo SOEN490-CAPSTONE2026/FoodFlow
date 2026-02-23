@@ -30,7 +30,9 @@ describe('AdminMessages', () => {
       </MemoryRouter>
     );
     expect(
-      screen.getByText(/select a conversation from the sidebar or start a new one/i)
+      screen.getByText(
+        /select a conversation from the sidebar or start a new one/i
+      )
     ).toBeInTheDocument();
   });
 });

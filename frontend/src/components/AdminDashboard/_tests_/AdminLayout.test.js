@@ -131,5 +131,4 @@ describe('AdminLayout', () => {
       'Messages Content'
     );
   });
-
 });
