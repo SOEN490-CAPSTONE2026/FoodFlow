@@ -127,7 +127,12 @@ export default function ReceiverBrowse() {
     try {
       const response = await savedDonationAPI.getSavedDonations();
       const savedDonations = Array.isArray(response.data) ? response.data : [];
-      setBookmarkedItems(new Set(savedDonations.map(donation => donation.id)));
+      const availableSavedDonations = savedDonations.filter(
+        donation => donation?.status === 'AVAILABLE'
+      );
+      setBookmarkedItems(
+        new Set(availableSavedDonations.map(donation => donation.id))
+      );
     } catch (e) {
       console.error('Error fetching saved donations:', e);
     }
