@@ -1,5 +1,5 @@
 # Multi-stage build for React
-FROM node:20-alpine as build
+FROM node:20-alpine AS build
 
 ARG REACT_APP_GOOGLE_MAPS_API_KEY
 ARG REACT_APP_API_BASE_URL

@@ -898,6 +898,13 @@ jest.mock('./services/api', () => ({
     myClaims: jest.fn(() => Promise.resolve({ data: [] })),
     cancel: jest.fn(() => Promise.resolve({})),
   },
+  savedDonationAPI: {
+    save: jest.fn(() => Promise.resolve({})),
+    unsave: jest.fn(() => Promise.resolve({})),
+    getSavedDonations: jest.fn(() => Promise.resolve({ data: [] })),
+    isSaved: jest.fn(() => Promise.resolve({ data: false })),
+    getSavedCount: jest.fn(() => Promise.resolve({ data: 0 })),
+  },
   getLeaderboard: jest.fn(() =>
     Promise.resolve({
       data: {

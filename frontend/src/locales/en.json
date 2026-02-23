@@ -995,6 +995,7 @@
     "pageTitles": {
       "receiverDashboard": "Receiver Dashboard",
       "welcome": "Welcome",
+      "savedDonations": "Saved Donations",
       "browse": "Browse Available Food",
       "messages": "Messages",
       "settings": "Settings",
@@ -1003,6 +1004,7 @@
     "pageDescriptions": {
       "receiverDashboard": "Overview of nearby food and your activity",
       "welcome": "Start here: search the map or browse nearby food",
+      "savedDonations": "Review and manage your saved donations",
       "browse": "Browse available food listings",
       "messages": "Communicate with donors and other users",
       "settings": "Manage your preferences and account settings",

@@ -1,6 +1,6 @@
 package com.example.foodflow.controller;
 
-import com.example.foodflow.model.dto.SurplusPostDTO;
+import com.example.foodflow.model.dto.SurplusResponse;
 import com.example.foodflow.service.SavedDonationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -44,7 +44,7 @@ public class SavedDonationController {
        Get All Saved Donations
        */
     @GetMapping
-    public ResponseEntity<List<SurplusPostDTO>> getSavedDonations() {
+    public ResponseEntity<List<SurplusResponse>> getSavedDonations() {
 
         return ResponseEntity.ok(
                 savedDonationService.getSavedDonations()

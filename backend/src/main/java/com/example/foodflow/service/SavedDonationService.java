@@ -1,6 +1,6 @@
 package com.example.foodflow.service;
 
-import com.example.foodflow.model.dto.SurplusPostDTO;
+import com.example.foodflow.model.dto.SurplusResponse;
 import com.example.foodflow.model.entity.SavedDonation;
 import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.entity.User;
@@ -24,13 +24,16 @@ public class SavedDonationService {
 
     private final SavedDonationRepository savedDonationRepository;
     private final SurplusPostRepository surplusPostRepository;
+    private final SurplusService surplusService;
 
     public SavedDonationService(
             SavedDonationRepository savedDonationRepository,
-            SurplusPostRepository surplusPostRepository
+            SurplusPostRepository surplusPostRepository,
+            SurplusService surplusService
     ) {
         this.savedDonationRepository = savedDonationRepository;
         this.surplusPostRepository = surplusPostRepository;
+        this.surplusService = surplusService;
     }
 
     /* 
@@ -105,9 +108,12 @@ public class SavedDonationService {
     /* 
        Get All Saved Donations
         */
-    public List<SurplusPostDTO> getSavedDonations() {
+    public List<SurplusResponse> getSavedDonations() {
 
         User receiver = getAuthenticatedReceiver();
+        String receiverTimezone = receiver.getTimezone() != null
+                ? receiver.getTimezone()
+                : "UTC";
 
         return savedDonationRepository
                 .findByReceiverIdOrderBySavedAtDesc(receiver.getId())
@@ -120,7 +126,7 @@ public class SavedDonationService {
         !post.getExpiryDate().isBefore(LocalDate.now()))
 )
 
-                .map(SurplusPostDTO::toDTO)
+                .map(post -> surplusService.convertToResponseForReceiver(post, receiverTimezone))
                 .collect(Collectors.toList());
     }
 

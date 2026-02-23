@@ -42,6 +42,10 @@ function renderAt(path = '/receiver') {
           <Route path="/receiver/*" element={<ReceiverLayout />}>
             <Route index element={<div>Browse</div>} />
             <Route path="welcome" element={<div>Welcome</div>} />
+            <Route
+              path="saved-donations"
+              element={<div>Saved Donations</div>}
+            />
             <Route path="browse" element={<div>Browse</div>} />
             <Route path="my-claims" element={<div>My Claims</div>} />
             <Route path="messages" element={<div>Messages</div>} />
@@ -72,13 +76,13 @@ describe('ReceiverLayout', () => {
     expect(nav).toHaveClass('active');
   });
 
-  test("renders welcome title/description at /receiver/welcome and marks 'Saved Donations' active", () => {
-    renderAt('/receiver/welcome');
+  test("renders saved donations title/description at /receiver/saved-donations and marks 'Saved Donations' active", () => {
+    renderAt('/receiver/saved-donations');
     expect(
-      screen.getByRole('heading', { name: /welcome/i })
+      screen.getByRole('heading', { name: /saved donations/i })
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/start here: search the map or browse nearby food/i)
+      screen.getByText(/review and manage your saved donations/i)
     ).toBeInTheDocument();
 
     const link = screen.getByRole('link', { name: /saved donations/i });

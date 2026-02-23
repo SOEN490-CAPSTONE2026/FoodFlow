@@ -5,6 +5,7 @@ import ReceiverLayout from './ReceiverLayout';
 import ReceiverBrowse from './ReceiverBrowse';
 import ReceiverWelcome from './ReceiverWelcome';
 import ReceiverMyClaims from './ReceiverMyClaims';
+import ReceiverSavedDonations from './ReceiverSavedDonations';
 import ReceiverAchievements from './ReceiverAchievements';
 import ReceiverImpactDashboard from './ReceiverImpactDashboard';
 import ReceiverHelp from './ReceiverHelp';
@@ -18,6 +19,7 @@ export default function ReceiverDashboard() {
         <Route index element={<ReceiverBrowse />} />
         <Route path="welcome" element={<ReceiverWelcome />} />
         <Route path="browse" element={<ReceiverBrowse />} />
+        <Route path="saved-donations" element={<ReceiverSavedDonations />} />
         <Route path="my-claims" element={<ReceiverMyClaims />} />
         <Route path="achievements" element={<ReceiverAchievements />} />
         <Route path="impact" element={<ReceiverImpactDashboard />} />
