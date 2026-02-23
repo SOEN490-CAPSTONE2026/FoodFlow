@@ -9,9 +9,7 @@ import com.example.foodflow.repository.EmailVerificationTokenRepository;
 import com.example.foodflow.repository.OrganizationRepository;
 import com.example.foodflow.repository.UserRepository;
 import com.example.foodflow.security.JwtTokenProvider;
-
 import brevo.ApiException;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,9 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
 import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -30,7 +26,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.*;
-
 import org.mockito.ArgumentCaptor;
 
 @ExtendWith(MockitoExtension.class)
@@ -1241,7 +1236,6 @@ class AuthServiceTest {
     void verifyResetCode_ValidCode_ReturnsTrue() throws ApiException {
         // Given
         String email = "user@test.com";
-        String code = "123456";
         
         User user = new User();
         user.setEmail(email);
@@ -1312,7 +1306,6 @@ class AuthServiceTest {
     void resetPassword_WithEmail_Success() throws ApiException {
         // Given
         String email = "user@test.com";
-        String code = "123456";
         String newPassword = "newPassword123";
         
         User user = new User();

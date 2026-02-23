@@ -2,7 +2,6 @@ package com.example.foodflow.model.dto;
 
 import com.example.foodflow.validation.ValidPassword;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 
 public class ChangePasswordRequest {
     

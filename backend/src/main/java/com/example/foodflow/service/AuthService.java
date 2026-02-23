@@ -1,7 +1,6 @@
 package com.example.foodflow.service;
 
 import com.example.foodflow.exception.BusinessException;
-import com.example.foodflow.filter.RequestCorrelationFilter;
 import com.example.foodflow.model.dto.AuthResponse;
 import com.example.foodflow.model.dto.RegisterDonorRequest;
 import com.example.foodflow.model.dto.RegisterReceiverRequest;
@@ -14,17 +13,13 @@ import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.UserRole;
 import com.example.foodflow.model.entity.AccountStatus;
 import com.example.foodflow.model.entity.EmailVerificationToken;
-import com.example.foodflow.model.entity.PasswordResetToken;
 import com.example.foodflow.repository.OrganizationRepository;
 import com.example.foodflow.repository.UserRepository;
 import com.example.foodflow.repository.EmailVerificationTokenRepository;
-import com.example.foodflow.repository.PasswordResetTokenRepository;
-import com.example.foodflow.repository.PasswordHistoryRepository;
 import com.example.foodflow.security.JwtTokenProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -34,10 +29,8 @@ import java.security.SecureRandom;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.UUID;
 import java.util.List;
-
 import java.util.HashMap;
 import java.util.Map;
-
 
 @Service
 public class AuthService {
@@ -53,8 +46,6 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final EmailService emailService;
     private final EmailVerificationTokenRepository verificationTokenRepository;
-    private final PasswordResetTokenRepository passwordResetTokenRepository;
-    private final PasswordHistoryRepository passwordHistoryRepository;
     private final PasswordValidator passwordValidator;
 
     @Value("${password.policy.reset-token-expiry-minutes:15}")
@@ -92,8 +83,6 @@ public class AuthService {
                     ObjectMapper objectMapper,
                     EmailService emailService,
                     EmailVerificationTokenRepository verificationTokenRepository,
-                    PasswordResetTokenRepository passwordResetTokenRepository,
-                    PasswordHistoryRepository passwordHistoryRepository,
                     PasswordValidator passwordValidator) {
         this.userRepository = userRepository;
         this.organizationRepository = organizationRepository;
@@ -103,8 +92,6 @@ public class AuthService {
         this.objectMapper = objectMapper;
         this.emailService = emailService;
         this.verificationTokenRepository = verificationTokenRepository;
-        this.passwordResetTokenRepository = passwordResetTokenRepository;
-        this.passwordHistoryRepository = passwordHistoryRepository;
         this.passwordValidator = passwordValidator;
     }
 
