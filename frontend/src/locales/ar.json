@@ -37,6 +37,14 @@
     "sendResetLink": "إرسال رابط إعادة التعيين",
     "enterEmail": "أدخل عنوان بريدك الإلكتروني"
   },
+  "forgotPasswordPage": {
+    "backToLogin": "العودة إلى تسجيل الدخول",
+    "subtitle": "لا تقلق! يُرجى اختيار الطريقة التي تود استلام رمز التحقق OTP عبرها. بعد إدخال الرمز، ستتمكن من إعادة تعيين كلمة المرور.",
+    "methodEmailTitle": "البريد الإلكتروني",
+    "methodEmailSubtitle": "استلام رابط إعادة التعيين عبر البريد الإلكتروني",
+    "methodSmsTitle": "رسالة نصية",
+    "methodSmsSubtitle": "استلام رمز عبر رسالة نصية"
+  },
   "registration": {
     "registerAsDonor": "التسجيل كمتبرع",
     "registerAsReceiver": "التسجيل كمستفيد",

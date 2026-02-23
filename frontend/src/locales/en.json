@@ -37,6 +37,14 @@
     "sendResetLink": "Send Reset Link",
     "enterEmail": "Enter your email address"
   },
+  "forgotPasswordPage": {
+    "backToLogin": "Back to Login",
+    "subtitle": "No worries! Please select how you would like to receive your OTP. After entering the code, you will be eligible for a password reset.",
+    "methodEmailTitle": "Email",
+    "methodEmailSubtitle": "Receive a reset link by email",
+    "methodSmsTitle": "SMS",
+    "methodSmsSubtitle": "Receive a code by text"
+  },
   "registration": {
     "registerAsDonor": "Register as Donor",
     "registerAsReceiver": "Register as Receiver",

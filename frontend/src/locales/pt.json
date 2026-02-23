@@ -37,6 +37,14 @@
     "sendResetLink": "Enviar link de redefinição",
     "enterEmail": "Digite seu endereço de e-mail"
   },
+  "forgotPasswordPage": {
+    "backToLogin": "Voltar para o login",
+    "subtitle": "Sem preocupações! Selecione como você gostaria de receber seu OTP. Após inserir o código, você poderá redefinir sua senha.",
+    "methodEmailTitle": "E-mail",
+    "methodEmailSubtitle": "Receber um link de redefinição por e-mail",
+    "methodSmsTitle": "SMS",
+    "methodSmsSubtitle": "Receber um código por mensagem de texto"
+  },
   "registration": {
     "registerAsDonor": "Registrar como doador",
     "registerAsReceiver": "Registrar como receptor",

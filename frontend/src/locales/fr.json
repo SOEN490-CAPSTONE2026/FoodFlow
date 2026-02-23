@@ -37,6 +37,14 @@
     "sendResetLink": "Envoyer le lien de réinitialisation",
     "enterEmail": "Entrez votre adresse courriel"
   },
+  "forgotPasswordPage": {
+    "backToLogin": "Retour à la connexion",
+    "subtitle": "Pas d'inquiétude! Veuillez sélectionner comment vous souhaitez recevoir votre code OTP. Après avoir saisi le code, vous pourrez réinitialiser votre mot de passe.",
+    "methodEmailTitle": "Courriel",
+    "methodEmailSubtitle": "Recevoir un lien de réinitialisation par courriel",
+    "methodSmsTitle": "SMS",
+    "methodSmsSubtitle": "Recevoir un code par message texte"
+  },
   "registration": {
     "registerAsDonor": "S'inscrire comme donateur",
     "registerAsReceiver": "S'inscrire comme bénéficiaire",

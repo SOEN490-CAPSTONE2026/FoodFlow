@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Mail,
   ArrowLeft,
@@ -17,6 +18,7 @@ import PhoneInput from './PhoneInput';
 import '../style/ForgotPassword.css';
 
 export default function ForgotPassword() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -329,7 +331,7 @@ export default function ForgotPassword() {
               <div className="forgot-password-card">
                 <Link to="/login" className="back-link">
                   <ArrowLeft size={18} />
-                  Back to Login
+                  {t('forgotPasswordPage.backToLogin')}
                 </Link>
 
                 <div className="forgot-password-header">
@@ -339,11 +341,11 @@ export default function ForgotPassword() {
                   >
                     <Lock size={36} strokeWidth={1.5} />
                   </div>
-                  <h1 className="forgot-password-title">Forgot Password?</h1>
+                  <h1 className="forgot-password-title">
+                    {t('auth.forgotPassword')}
+                  </h1>
                   <p className="forgot-password-subtitle">
-                    No worries! Please select how you would like to receive your
-                    OTP. After entering the code, you will be eligible for a
-                    password reset.
+                    {t('forgotPasswordPage.subtitle')}
                   </p>
                 </div>
 
@@ -362,9 +364,11 @@ export default function ForgotPassword() {
                       >
                         <Mail size={20} />
                         <div className="method-text">
-                          <div className="method-title">Email</div>
+                          <div className="method-title">
+                            {t('forgotPasswordPage.methodEmailTitle')}
+                          </div>
                           <div className="method-subtitle">
-                            Receive a reset link by email
+                            {t('forgotPasswordPage.methodEmailSubtitle')}
                           </div>
                         </div>
                       </button>
@@ -381,9 +385,11 @@ export default function ForgotPassword() {
                       >
                         <Smartphone size={20} />
                         <div className="method-text">
-                          <div className="method-title">SMS</div>
+                          <div className="method-title">
+                            {t('forgotPasswordPage.methodSmsTitle')}
+                          </div>
                           <div className="method-subtitle">
-                            Receive a code by text
+                            {t('forgotPasswordPage.methodSmsSubtitle')}
                           </div>
                         </div>
                       </button>
@@ -499,7 +505,7 @@ export default function ForgotPassword() {
                     </div>
                     <div style={{ marginTop: 12 }}>
                       <Link to="/login" className="back-to-login-btn">
-                        Back to Login
+                        {t('forgotPasswordPage.backToLogin')}
                       </Link>
                     </div>
                   </div>
@@ -539,7 +545,7 @@ export default function ForgotPassword() {
                     </div>
                     <div style={{ marginTop: 12 }}>
                       <Link to="/login" className="back-to-login-btn">
-                        Back to Login
+                        {t('forgotPasswordPage.backToLogin')}
                       </Link>
                     </div>
                   </div>
@@ -816,7 +822,7 @@ export default function ForgotPassword() {
 
                       <div style={{ marginTop: 20 }}>
                         <Link to="/login" className="back-to-login-btn">
-                          Back to Login
+                          {t('forgotPasswordPage.backToLogin')}
                         </Link>
                       </div>
                     </div>
