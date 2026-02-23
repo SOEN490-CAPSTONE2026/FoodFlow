@@ -158,7 +158,9 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
   };
 
   const handleExpressInterest = useCallback(async () => {
-    if (!post?.id) return;
+    if (!post?.id) {
+      return;
+    }
 
     try {
       setExpressingInterest(true);

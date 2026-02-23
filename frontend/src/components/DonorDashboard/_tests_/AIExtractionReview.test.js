@@ -96,10 +96,14 @@ jest.mock('react-datepicker', () => {
     placeholderText,
   }) {
     const getValue = () => {
-      if (!selected) return '';
+      if (!selected) {
+        return '';
+      }
       if (selected instanceof Date) {
         // Check if date is valid
-        if (isNaN(selected.getTime())) return '';
+        if (isNaN(selected.getTime())) {
+          return '';
+        }
         return selected.toISOString();
       }
       return selected;

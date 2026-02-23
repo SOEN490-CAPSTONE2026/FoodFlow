@@ -44,7 +44,9 @@ export default function AdminLayout() {
   const isMessagesPage = location.pathname === '/admin/messages';
 
   const getProfilePhotoUrl = photoUrl => {
-    if (!photoUrl) return null;
+    if (!photoUrl) {
+      return null;
+    }
     if (
       photoUrl.startsWith('http://') ||
       photoUrl.startsWith('https://') ||
