@@ -120,7 +120,9 @@ const CalendarSettings = () => {
     try {
       setLoading(true);
       setError(null);
-      await calendarAPI.disconnect(connectionStatus.provider);
+      // Default to GOOGLE if provider is not set
+      const provider = connectionStatus.provider || 'GOOGLE';
+      await calendarAPI.disconnect(provider);
       setSuccess(
         t('calendar.disconnectSuccess') || 'Calendar disconnected successfully'
       );

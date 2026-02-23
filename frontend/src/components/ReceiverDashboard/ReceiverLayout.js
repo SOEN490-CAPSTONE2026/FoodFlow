@@ -426,15 +426,6 @@ function ReceiverLayoutContent() {
           </Link>
 
           <Link
-            to="/receiver/calendar"
-            className={`receiver-nav-link ${isActive('/receiver/calendar') ? 'active' : ''}`}
-            onClick={() => setIsMenuOpen(false)}
-          >
-            <IconCalendar size={18} style={{ marginRight: '8px' }} />
-            {t('receiverLayout.calendar', 'Calendar')}
-          </Link>
-
-          <Link
             to="/receiver/saved-donations"
             className={`receiver-nav-link receiver-nav-link--with-badge ${location.pathname === '/receiver/saved-donations' ? 'active' : ''}`}
             onClick={() => setIsMenuOpen(false)}
@@ -509,6 +500,17 @@ function ReceiverLayoutContent() {
               >
                 <IconUser size={18} />
                 <span>{t('receiverLayout.preferences')}</span>
+              </div>
+
+              <div
+                className="dropdown-item dropdown-item--calendar"
+                onClick={() => {
+                  setShowDropdown(false);
+                  navigate('/receiver/calendar');
+                }}
+              >
+                <IconCalendar size={18} />
+                <span>{t('receiverLayout.calendar', 'Calendar')}</span>
               </div>
 
               <div

@@ -401,17 +401,6 @@ export default function DonorLayout() {
             </span>
             {t('donorLayout.impact', 'Impact')}
           </Link>
-
-          <Link
-            to="/donor/calendar"
-            className={`donor-nav-link ${isActive('/donor/calendar') ? 'active' : ''}`}
-            data-tooltip={t('donorLayout.calendar', 'Calendar')}
-          >
-            <span className="nav-icon" aria-hidden>
-              <Calendar size={18} className="lucide" />
-            </span>
-            {t('donorLayout.calendar', 'Calendar')}
-          </Link>
         </nav>
 
         <div className="donor-nav-bottom">
@@ -471,6 +460,16 @@ export default function DonorLayout() {
           </div>
           {open && (
             <div className="account-menu">
+              <button
+                className="account-menu-item"
+                onClick={() => {
+                  setOpen(false);
+                  navigate('/donor/calendar');
+                }}
+              >
+                <Calendar size={16} className="lucide" />
+                {t('donorLayout.calendar', 'Calendar')}
+              </button>
               <button
                 className="account-menu-item logout"
                 onClick={handleLogout}
