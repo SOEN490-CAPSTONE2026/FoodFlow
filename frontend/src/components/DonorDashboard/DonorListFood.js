@@ -823,7 +823,7 @@ export default function DonorListFood() {
             onClick={() => navigate('/donor/ai-donation')}
           >
             <Sparkles size={18} />
-            Create with AI
+            {t('donorListFood.createWithAI')}
           </button>
           <button
             className="donor-add-button"

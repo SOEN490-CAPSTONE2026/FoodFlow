@@ -69,7 +69,7 @@ describe('BadgeDisplay', () => {
     );
 
     expect(
-      screen.getByText('Start donating to earn badges!')
+      screen.getByText('Start donating food to earn badges and points!')
     ).toBeInTheDocument();
     expect(screen.getByText('0')).toBeInTheDocument(); // Points should show 0
   });

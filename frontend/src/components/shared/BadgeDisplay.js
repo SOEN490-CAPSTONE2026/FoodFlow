@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight, ChevronDown } from 'lucide-react';
 import useGamification from '../../hooks/useGamification';
@@ -11,6 +12,7 @@ import './BadgeDisplay.css';
  * Shows points and badges in the donor sidebar
  */
 const BadgeDisplay = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { stats, loading, error } = useGamification();
   const [expanded, setExpanded] = useState(true);
@@ -18,7 +20,7 @@ const BadgeDisplay = () => {
   if (error) {
     return (
       <div className="badge-display-error">
-        <p>Unable to load achievements</p>
+        <p>{t('achievements.error', 'Unable to load achievements')}</p>
       </div>
     );
   }
@@ -42,7 +44,12 @@ const BadgeDisplay = () => {
       <div className="badge-display-container">
         <PointsDisplay points={0} />
         <div className="badges-empty">
-          <p>Start donating to earn badges!</p>
+          <p>
+            {t(
+              'achievements.startDonating',
+              'Start donating food to earn badges and points!'
+            )}
+          </p>
         </div>
       </div>
     );
@@ -98,7 +105,7 @@ const BadgeDisplay = () => {
           onClick={() => setExpanded(prev => !prev)}
           aria-expanded={expanded}
         >
-          <h4>Achievements</h4>
+          <h4>{t('achievements.sectionTitle', 'Achievements')}</h4>
           <span className="badges-header-right">
             <span className="badges-count">
               {unlockedAchievements.length} / {allAchievements.length}
@@ -114,7 +121,12 @@ const BadgeDisplay = () => {
           <>
             {displayedBadges.length === 0 ? (
               <div className="badges-empty">
-                <p>Start donating to earn badges!</p>
+                <p>
+                  {t(
+                    'achievements.startDonating',
+                    'Start donating food to earn badges and points!'
+                  )}
+                </p>
               </div>
             ) : (
               <div className="badges-grid">
@@ -133,7 +145,7 @@ const BadgeDisplay = () => {
 
             {hasMore && (
               <button className="view-all-btn" onClick={handleViewAll}>
-                View All Achievements
+                {t('achievements.viewAll', 'View All Achievements')}
                 <ChevronRight size={16} />
               </button>
             )}

@@ -961,22 +961,19 @@ const Settings = () => {
               <User size={24} />
             </div>
             <div className="section-title-group">
-              <h2>Privacy & Data Consent</h2>
+              <h2>{t('settings.privacyConsent.title')}</h2>
               <p className="section-description">
-                Your data storage consent and privacy information
+                {t('settings.privacyConsent.description')}
               </p>
             </div>
           </div>
           <div className="section-content">
             <div className="privacy-consent-info">
               <p style={{ marginBottom: '1rem', lineHeight: '1.6' }}>
-                You have consented to data storage upon registering with
-                FoodFlow. We collect and store your information to provide our
-                services and connect donors with receivers efficiently.
+                {t('settings.privacyConsent.consentMessage')}
               </p>
               <p style={{ lineHeight: '1.6' }}>
-                For more details about how we handle your data, please review
-                our{' '}
+                {t('settings.privacyConsent.detailsPrefix')}{' '}
                 <a
                   href="/privacy-policy"
                   target="_blank"
@@ -987,9 +984,9 @@ const Settings = () => {
                     fontWeight: '500',
                   }}
                 >
-                  Privacy Policy
+                  {t('settings.privacyConsent.privacyPolicyLink')}
                 </a>
-                .
+                {t('settings.privacyConsent.detailsSuffix')}
               </p>
             </div>
           </div>
