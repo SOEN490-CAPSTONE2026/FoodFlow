@@ -1717,5 +1717,66 @@
       "phoneLabel": "电话支持",
       "phoneAvailability": "周一至周五，上午9点至下午6点（EST）"
     }
+  },
+  "aiDonation": {
+    "backToDashboard": "返回仪表板",
+    "title": "使用 AI 创建捐赠",
+    "subtitle": "上传标签照片以提取产品详情。提交前可先进行审核。",
+    "steps": {
+      "upload": "上传",
+      "review": "审核",
+      "submit": "提交"
+    },
+    "processing": {
+      "title": "正在处理图片",
+      "hint": "这可能需要最多 30 秒。",
+      "readingLabel": "读取标签",
+      "extractingData": "提取数据",
+      "preparingResults": "准备结果",
+      "loadingMaps": "加载地图中"
+    },
+    "toast": {
+      "extractionComplete": "提取完成。请在提交前检查详情。",
+      "aiFailed": "AI 提取失败",
+      "analysisFailed": "图片分析失败",
+      "requestTimedOut": "请求超时。请尝试使用更小的图片。",
+      "networkError": "网络错误。请检查连接后重试。"
+    },
+    "upload": {
+      "title": "上传标签图片",
+      "subtitle": "请上传清晰图片，需包含：",
+      "required": {
+        "productName": "产品名称",
+        "nutritionFacts": "营养成分信息",
+        "ingredientsList": "配料表",
+        "expiryDate": "到期日或最佳食用日期",
+        "allergenInfo": "过敏原信息"
+      },
+      "ariaLabel": "上传标签图片",
+      "dragAndDrop": "拖放标签图片到此处",
+      "or": "或",
+      "chooseFile": "选择文件",
+      "fileTypes": "JPG, PNG, HEIC",
+      "maxSize": "最大 5 MB",
+      "selectedFile": "已选择文件",
+      "remove": "移除",
+      "continueToReview": "继续审核",
+      "alternative": "其他方式",
+      "manualEntry": "继续手动录入",
+      "guidelinesTitle": "图片指南",
+      "tips": {
+        "goodLighting": "光线充足",
+        "noGlare": "无反光",
+        "labelVisible": "标签完整可见",
+        "textInFocus": "文字保持清晰对焦",
+        "includeExpiry": "尽量包含到期/最佳食用日期"
+      },
+      "manualHint": "清晰图片可提升提取准确率。",
+      "errors": {
+        "selectFile": "请选择图片文件后继续。",
+        "unsupportedType": "不支持的文件类型。请使用 JPG、PNG 或 HEIC。",
+        "fileTooLarge": "文件超过 5 MB。请选择更小的图片。"
+      }
+    }
   }
 }

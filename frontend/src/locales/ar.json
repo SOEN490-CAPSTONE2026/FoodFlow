@@ -1717,5 +1717,66 @@
       "phoneLabel": "دعم هاتفي",
       "phoneAvailability": "الاثنين-الجمعة، 9 ص - 6 م (EST)"
     }
+  },
+  "aiDonation": {
+    "backToDashboard": "العودة إلى لوحة التحكم",
+    "title": "إنشاء تبرع بالذكاء الاصطناعي",
+    "subtitle": "قم برفع صورة الملصق لاستخراج تفاصيل المنتج. يمكنك المراجعة قبل الإرسال.",
+    "steps": {
+      "upload": "الرفع",
+      "review": "المراجعة",
+      "submit": "الإرسال"
+    },
+    "processing": {
+      "title": "جارٍ معالجة الصورة",
+      "hint": "قد يستغرق ذلك حتى 30 ثانية.",
+      "readingLabel": "قراءة الملصق",
+      "extractingData": "استخراج البيانات",
+      "preparingResults": "تجهيز النتائج",
+      "loadingMaps": "جارٍ تحميل الخرائط"
+    },
+    "toast": {
+      "extractionComplete": "اكتمل الاستخراج. راجع التفاصيل قبل الإرسال.",
+      "aiFailed": "فشل استخراج البيانات بالذكاء الاصطناعي",
+      "analysisFailed": "فشل تحليل الصورة",
+      "requestTimedOut": "انتهت مهلة الطلب. يرجى المحاولة بصورة أصغر.",
+      "networkError": "خطأ في الشبكة. يرجى التحقق من الاتصال والمحاولة مرة أخرى."
+    },
+    "upload": {
+      "title": "رفع صورة الملصق",
+      "subtitle": "ارفع صورة واضحة تتضمن:",
+      "required": {
+        "productName": "اسم المنتج",
+        "nutritionFacts": "القيم الغذائية",
+        "ingredientsList": "قائمة المكونات",
+        "expiryDate": "تاريخ الانتهاء أو الأفضل قبل",
+        "allergenInfo": "معلومات مسببات الحساسية"
+      },
+      "ariaLabel": "رفع صورة الملصق",
+      "dragAndDrop": "اسحب وأفلت صورة الملصق",
+      "or": "أو",
+      "chooseFile": "اختر ملف",
+      "fileTypes": "JPG, PNG, HEIC",
+      "maxSize": "الحد الأقصى 5 ميجابايت",
+      "selectedFile": "الملف المحدد",
+      "remove": "إزالة",
+      "continueToReview": "متابعة إلى المراجعة",
+      "alternative": "بديل",
+      "manualEntry": "المتابعة بالإدخال اليدوي",
+      "guidelinesTitle": "إرشادات الصورة",
+      "tips": {
+        "goodLighting": "إضاءة جيدة",
+        "noGlare": "بدون انعكاس",
+        "labelVisible": "الملصق ظاهر بالكامل",
+        "textInFocus": "اجعل النص واضحًا",
+        "includeExpiry": "أدرج تاريخ الانتهاء/الأفضل قبل عند توفره"
+      },
+      "manualHint": "الصور الواضحة تحسن دقة الاستخراج.",
+      "errors": {
+        "selectFile": "اختر ملف صورة للمتابعة.",
+        "unsupportedType": "نوع ملف غير مدعوم. استخدم JPG أو PNG أو HEIC.",
+        "fileTooLarge": "حجم الملف يتجاوز 5 ميجابايت. اختر صورة أصغر."
+      }
+    }
   }
 }

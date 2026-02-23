@@ -1717,5 +1717,66 @@
       "phoneLabel": "Soporte telefónico",
       "phoneAvailability": "Lun-Vie, 9AM-6PM EST"
     }
+  },
+  "aiDonation": {
+    "backToDashboard": "Volver al panel",
+    "title": "Crear donación con IA",
+    "subtitle": "Sube una foto de la etiqueta para extraer detalles del producto. Puedes revisar antes de enviar.",
+    "steps": {
+      "upload": "Subir",
+      "review": "Revisar",
+      "submit": "Enviar"
+    },
+    "processing": {
+      "title": "Procesando imagen",
+      "hint": "Esto puede tardar hasta 30 segundos.",
+      "readingLabel": "Leyendo etiqueta",
+      "extractingData": "Extrayendo datos",
+      "preparingResults": "Preparando resultados",
+      "loadingMaps": "Cargando mapas"
+    },
+    "toast": {
+      "extractionComplete": "Extracción completada. Revisa los detalles antes de enviar.",
+      "aiFailed": "La extracción con IA falló",
+      "analysisFailed": "Error al analizar la imagen",
+      "requestTimedOut": "La solicitud agotó el tiempo. Inténtalo con una imagen más pequeña.",
+      "networkError": "Error de red. Verifica tu conexión e inténtalo de nuevo."
+    },
+    "upload": {
+      "title": "Subir imagen de etiqueta",
+      "subtitle": "Sube una imagen clara que incluya:",
+      "required": {
+        "productName": "Nombre del producto",
+        "nutritionFacts": "Información nutricional",
+        "ingredientsList": "Lista de ingredientes",
+        "expiryDate": "Fecha de caducidad o consumo preferente",
+        "allergenInfo": "Información de alérgenos"
+      },
+      "ariaLabel": "Subir imagen de etiqueta",
+      "dragAndDrop": "Arrastra y suelta una imagen de etiqueta",
+      "or": "o",
+      "chooseFile": "Elegir archivo",
+      "fileTypes": "JPG, PNG, HEIC",
+      "maxSize": "Máx 5 MB",
+      "selectedFile": "Archivo seleccionado",
+      "remove": "Eliminar",
+      "continueToReview": "Continuar a revisión",
+      "alternative": "Alternativa",
+      "manualEntry": "Continuar con entrada manual",
+      "guidelinesTitle": "Guía de imagen",
+      "tips": {
+        "goodLighting": "Buena iluminación",
+        "noGlare": "Sin reflejos",
+        "labelVisible": "Etiqueta completamente visible",
+        "textInFocus": "Mantén el texto enfocado",
+        "includeExpiry": "Incluye caducidad/consumo preferente cuando esté disponible"
+      },
+      "manualHint": "Las imágenes claras mejoran la precisión de extracción.",
+      "errors": {
+        "selectFile": "Selecciona un archivo de imagen para continuar.",
+        "unsupportedType": "Tipo de archivo no compatible. Usa JPG, PNG o HEIC.",
+        "fileTooLarge": "El archivo supera los 5 MB. Elige una imagen más pequeña."
+      }
+    }
   }
 }

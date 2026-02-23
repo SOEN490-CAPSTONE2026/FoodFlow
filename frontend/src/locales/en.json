@@ -1741,5 +1741,66 @@
       "phoneLabel": "Phone Support",
       "phoneAvailability": "Mon-Fri, 9AM-6PM EST"
     }
+  },
+  "aiDonation": {
+    "backToDashboard": "Back to dashboard",
+    "title": "Create donation with AI",
+    "subtitle": "Upload a label photo to extract product details. You can review before submitting.",
+    "steps": {
+      "upload": "Upload",
+      "review": "Review",
+      "submit": "Submit"
+    },
+    "processing": {
+      "title": "Processing image",
+      "hint": "This can take up to 30 seconds.",
+      "readingLabel": "Reading label",
+      "extractingData": "Extracting data",
+      "preparingResults": "Preparing results",
+      "loadingMaps": "Loading maps"
+    },
+    "toast": {
+      "extractionComplete": "Extraction complete. Review the details before submit.",
+      "aiFailed": "AI extraction failed",
+      "analysisFailed": "Failed to analyze image",
+      "requestTimedOut": "Request timed out. Please try with a smaller image.",
+      "networkError": "Network error. Please check your connection and try again."
+    },
+    "upload": {
+      "title": "Upload label image",
+      "subtitle": "Upload a clear image that includes:",
+      "required": {
+        "productName": "Product name",
+        "nutritionFacts": "Nutrition facts",
+        "ingredientsList": "Ingredients list",
+        "expiryDate": "Expiry or best-before date",
+        "allergenInfo": "Allergen information"
+      },
+      "ariaLabel": "Upload label image",
+      "dragAndDrop": "Drag and drop a label image",
+      "or": "or",
+      "chooseFile": "Choose file",
+      "fileTypes": "JPG, PNG, HEIC",
+      "maxSize": "Max 5 MB",
+      "selectedFile": "Selected file",
+      "remove": "Remove",
+      "continueToReview": "Continue to review",
+      "alternative": "Alternative",
+      "manualEntry": "Continue with manual entry",
+      "guidelinesTitle": "Image guidelines",
+      "tips": {
+        "goodLighting": "Good lighting",
+        "noGlare": "No glare",
+        "labelVisible": "Label fully visible",
+        "textInFocus": "Keep text in focus",
+        "includeExpiry": "Include expiry/best-before when available"
+      },
+      "manualHint": "Clear images improve extraction accuracy.",
+      "errors": {
+        "selectFile": "Select an image file to continue.",
+        "unsupportedType": "Unsupported file type. Use JPG, PNG, or HEIC.",
+        "fileTooLarge": "File size exceeds 5 MB. Select a smaller image."
+      }
+    }
   }
 }

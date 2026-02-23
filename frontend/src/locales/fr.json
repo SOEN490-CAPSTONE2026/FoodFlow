@@ -1717,5 +1717,66 @@
       "phoneLabel": "Support téléphonique",
       "phoneAvailability": "Lun-Ven, 9h-18h EST"
     }
+  },
+  "aiDonation": {
+    "backToDashboard": "Retour au tableau de bord",
+    "title": "Créer un don avec l'IA",
+    "subtitle": "Téléchargez une photo d'étiquette pour extraire les détails du produit. Vous pourrez vérifier avant de soumettre.",
+    "steps": {
+      "upload": "Téléverser",
+      "review": "Vérifier",
+      "submit": "Soumettre"
+    },
+    "processing": {
+      "title": "Traitement de l'image",
+      "hint": "Cela peut prendre jusqu'à 30 secondes.",
+      "readingLabel": "Lecture de l'étiquette",
+      "extractingData": "Extraction des données",
+      "preparingResults": "Préparation des résultats",
+      "loadingMaps": "Chargement des cartes"
+    },
+    "toast": {
+      "extractionComplete": "Extraction terminée. Vérifiez les détails avant de soumettre.",
+      "aiFailed": "Échec de l'extraction IA",
+      "analysisFailed": "Échec de l'analyse de l'image",
+      "requestTimedOut": "Délai dépassé. Veuillez réessayer avec une image plus petite.",
+      "networkError": "Erreur réseau. Vérifiez votre connexion et réessayez."
+    },
+    "upload": {
+      "title": "Téléverser l'image de l'étiquette",
+      "subtitle": "Téléversez une image nette incluant :",
+      "required": {
+        "productName": "Nom du produit",
+        "nutritionFacts": "Valeurs nutritionnelles",
+        "ingredientsList": "Liste des ingrédients",
+        "expiryDate": "Date d'expiration ou date de péremption",
+        "allergenInfo": "Informations sur les allergènes"
+      },
+      "ariaLabel": "Téléverser l'image de l'étiquette",
+      "dragAndDrop": "Glissez-déposez une image d'étiquette",
+      "or": "ou",
+      "chooseFile": "Choisir un fichier",
+      "fileTypes": "JPG, PNG, HEIC",
+      "maxSize": "Max 5 Mo",
+      "selectedFile": "Fichier sélectionné",
+      "remove": "Retirer",
+      "continueToReview": "Continuer vers la vérification",
+      "alternative": "Alternative",
+      "manualEntry": "Continuer avec la saisie manuelle",
+      "guidelinesTitle": "Conseils d'image",
+      "tips": {
+        "goodLighting": "Bon éclairage",
+        "noGlare": "Sans reflet",
+        "labelVisible": "Étiquette entièrement visible",
+        "textInFocus": "Texte net",
+        "includeExpiry": "Inclure la date d'expiration si disponible"
+      },
+      "manualHint": "Des images nettes améliorent la précision de l'extraction.",
+      "errors": {
+        "selectFile": "Sélectionnez une image pour continuer.",
+        "unsupportedType": "Type de fichier non pris en charge. Utilisez JPG, PNG ou HEIC.",
+        "fileTooLarge": "Le fichier dépasse 5 Mo. Choisissez une image plus petite."
+      }
+    }
   }
 }

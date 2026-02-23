@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   AlertCircle,
   Camera,
@@ -13,6 +14,7 @@ import {
 import './Donor_Styles/AIDonation.css';
 
 export default function AIImageUpload({ onImageSelect, onManualEntry }) {
+  const { t } = useTranslation();
   const [preview, setPreview] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState(null);
@@ -25,17 +27,17 @@ export default function AIImageUpload({ onImageSelect, onManualEntry }) {
     setError(null);
 
     if (!file) {
-      setError('Select an image file to continue.');
+      setError(t('aiDonation.upload.errors.selectFile'));
       return false;
     }
 
     if (!ALLOWED_TYPES.includes(file.type.toLowerCase())) {
-      setError('Unsupported file type. Use JPG, PNG, or HEIC.');
+      setError(t('aiDonation.upload.errors.unsupportedType'));
       return false;
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      setError('File size exceeds 5 MB. Select a smaller image.');
+      setError(t('aiDonation.upload.errors.fileTooLarge'));
       return false;
     }
 
@@ -105,14 +107,14 @@ export default function AIImageUpload({ onImageSelect, onManualEntry }) {
     <div className="ai-image-upload-container">
       <div className="upload-section">
         <div className="upload-instructions">
-          <h3>Upload label image</h3>
-          <p>Upload a clear image that includes:</p>
+          <h3>{t('aiDonation.upload.title')}</h3>
+          <p>{t('aiDonation.upload.subtitle')}</p>
           <ul>
-            <li>Product name</li>
-            <li>Nutrition facts</li>
-            <li>Ingredients list</li>
-            <li>Expiry or best-before date</li>
-            <li>Allergen information</li>
+            <li>{t('aiDonation.upload.required.productName')}</li>
+            <li>{t('aiDonation.upload.required.nutritionFacts')}</li>
+            <li>{t('aiDonation.upload.required.ingredientsList')}</li>
+            <li>{t('aiDonation.upload.required.expiryDate')}</li>
+            <li>{t('aiDonation.upload.required.allergenInfo')}</li>
           </ul>
         </div>
 
@@ -121,7 +123,7 @@ export default function AIImageUpload({ onImageSelect, onManualEntry }) {
             className={`dropzone ${isDragging ? 'dragging' : ''}`}
             role="button"
             tabIndex={0}
-            aria-label="Upload label image"
+            aria-label={t('aiDonation.upload.ariaLabel')}
             onDragEnter={handleDragEnter}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -145,19 +147,19 @@ export default function AIImageUpload({ onImageSelect, onManualEntry }) {
               <div className="upload-icon" aria-hidden="true">
                 <FileUp size={20} />
               </div>
-              <p className="dropzone-text">Drag and drop a label image</p>
-              <p className="dropzone-or">or</p>
+              <p className="dropzone-text">{t('aiDonation.upload.dragAndDrop')}</p>
+              <p className="dropzone-or">{t('aiDonation.upload.or')}</p>
               <label htmlFor="image-upload" className="upload-button">
-                Choose file
+                {t('aiDonation.upload.chooseFile')}
               </label>
               <div className="constraint-pills">
                 <span className="constraint-pill">
                   <FileImage size={12} />
-                  JPG, PNG, HEIC
+                  {t('aiDonation.upload.fileTypes')}
                 </span>
                 <span className="constraint-pill">
                   <HardDrive size={12} />
-                  Max 5 MB
+                  {t('aiDonation.upload.maxSize')}
                 </span>
               </div>
             </div>
@@ -165,14 +167,14 @@ export default function AIImageUpload({ onImageSelect, onManualEntry }) {
         ) : (
           <div className="preview-container">
             <div className="preview-header">
-              <h4>Selected file</h4>
+              <h4>{t('aiDonation.upload.selectedFile')}</h4>
               <button
                 className="clear-button"
                 onClick={handleClear}
                 type="button"
               >
                 <Trash2 size={16} />
-                <span>Remove</span>
+                <span>{t('aiDonation.upload.remove')}</span>
               </button>
             </div>
             <div className="image-preview">
@@ -189,7 +191,7 @@ export default function AIImageUpload({ onImageSelect, onManualEntry }) {
               onClick={handleProceed}
               type="button"
             >
-              Continue to review
+              {t('aiDonation.upload.continueToReview')}
             </button>
           </div>
         )}
@@ -206,7 +208,7 @@ export default function AIImageUpload({ onImageSelect, onManualEntry }) {
 
       <div className="alternative-section">
         <div className="divider">
-          <span>Alternative</span>
+          <span>{t('aiDonation.upload.alternative')}</span>
         </div>
         <button
           className="manual-entry-button"
@@ -214,7 +216,7 @@ export default function AIImageUpload({ onImageSelect, onManualEntry }) {
           type="button"
         >
           <PencilLine size={16} />
-          <span>Continue with manual entry</span>
+          <span>{t('aiDonation.upload.manualEntry')}</span>
           <ChevronRight size={16} />
         </button>
       </div>
@@ -222,15 +224,15 @@ export default function AIImageUpload({ onImageSelect, onManualEntry }) {
       <div className="tips-section">
         <h4>
           <Camera size={16} />
-          <span>Image guidelines</span>
+          <span>{t('aiDonation.upload.guidelinesTitle')}</span>
         </h4>
         <ul className="tips-list">
           {[
-            'Good lighting',
-            'No glare',
-            'Label fully visible',
-            'Keep text in focus',
-            'Include expiry/best-before when available',
+            t('aiDonation.upload.tips.goodLighting'),
+            t('aiDonation.upload.tips.noGlare'),
+            t('aiDonation.upload.tips.labelVisible'),
+            t('aiDonation.upload.tips.textInFocus'),
+            t('aiDonation.upload.tips.includeExpiry'),
           ].map(item => (
             <li key={item}>
               <Check size={14} />
@@ -238,7 +240,7 @@ export default function AIImageUpload({ onImageSelect, onManualEntry }) {
             </li>
           ))}
         </ul>
-        <p className="manual-hint">Clear images improve extraction accuracy.</p>
+        <p className="manual-hint">{t('aiDonation.upload.manualHint')}</p>
       </div>
     </div>
   );

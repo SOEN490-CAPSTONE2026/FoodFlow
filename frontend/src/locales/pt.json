@@ -1717,5 +1717,66 @@
       "phoneLabel": "Suporte por telefone",
       "phoneAvailability": "Seg-Sex, 9h-18h EST"
     }
+  },
+  "aiDonation": {
+    "backToDashboard": "Voltar ao painel",
+    "title": "Criar doação com IA",
+    "subtitle": "Envie uma foto do rótulo para extrair detalhes do produto. Você pode revisar antes de enviar.",
+    "steps": {
+      "upload": "Enviar",
+      "review": "Revisar",
+      "submit": "Enviar"
+    },
+    "processing": {
+      "title": "Processando imagem",
+      "hint": "Isso pode levar até 30 segundos.",
+      "readingLabel": "Lendo rótulo",
+      "extractingData": "Extraindo dados",
+      "preparingResults": "Preparando resultados",
+      "loadingMaps": "Carregando mapas"
+    },
+    "toast": {
+      "extractionComplete": "Extração concluída. Revise os detalhes antes de enviar.",
+      "aiFailed": "Falha na extração por IA",
+      "analysisFailed": "Falha ao analisar a imagem",
+      "requestTimedOut": "Tempo de solicitação esgotado. Tente novamente com uma imagem menor.",
+      "networkError": "Erro de rede. Verifique sua conexão e tente novamente."
+    },
+    "upload": {
+      "title": "Enviar imagem do rótulo",
+      "subtitle": "Envie uma imagem nítida que inclua:",
+      "required": {
+        "productName": "Nome do produto",
+        "nutritionFacts": "Informações nutricionais",
+        "ingredientsList": "Lista de ingredientes",
+        "expiryDate": "Data de validade ou consumir de preferência antes de",
+        "allergenInfo": "Informações de alérgenos"
+      },
+      "ariaLabel": "Enviar imagem do rótulo",
+      "dragAndDrop": "Arraste e solte uma imagem do rótulo",
+      "or": "ou",
+      "chooseFile": "Escolher arquivo",
+      "fileTypes": "JPG, PNG, HEIC",
+      "maxSize": "Máx 5 MB",
+      "selectedFile": "Arquivo selecionado",
+      "remove": "Remover",
+      "continueToReview": "Continuar para revisão",
+      "alternative": "Alternativa",
+      "manualEntry": "Continuar com entrada manual",
+      "guidelinesTitle": "Diretrizes da imagem",
+      "tips": {
+        "goodLighting": "Boa iluminação",
+        "noGlare": "Sem reflexo",
+        "labelVisible": "Rótulo totalmente visível",
+        "textInFocus": "Mantenha o texto em foco",
+        "includeExpiry": "Inclua validade quando disponível"
+      },
+      "manualHint": "Imagens nítidas melhoram a precisão da extração.",
+      "errors": {
+        "selectFile": "Selecione um arquivo de imagem para continuar.",
+        "unsupportedType": "Tipo de arquivo não suportado. Use JPG, PNG ou HEIC.",
+        "fileTooLarge": "O arquivo excede 5 MB. Escolha uma imagem menor."
+      }
+    }
   }
 }
