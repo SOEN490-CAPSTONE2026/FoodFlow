@@ -118,17 +118,23 @@ describe('ChatWidget', () => {
     });
     expect(document.querySelector('textarea')).toBeInTheDocument();
     // close panel
-    const closeBtn = screen.getByRole('button', { name: /Close support chat/i });
+    const closeBtn = screen.getByRole('button', {
+      name: /Close support chat/i,
+    });
     userEvent.click(closeBtn);
     await waitFor(() => {
-      expect(document.querySelector('.support-chat-panel')).not.toBeInTheDocument();
+      expect(
+        document.querySelector('.support-chat-panel')
+      ).not.toBeInTheDocument();
     });
   });
 
   test('sends a message and displays assistant reply with various actions', async () => {
     render(<ChatWidget />);
     userEvent.click(screen.getByRole('button', { name: /open support chat/i }));
-    await waitFor(() => expect(document.querySelector('textarea')).toBeInTheDocument());
+    await waitFor(() =>
+      expect(document.querySelector('textarea')).toBeInTheDocument()
+    );
     const input = document.querySelector('textarea');
 
     // prepare api mock before sending
@@ -156,7 +162,6 @@ describe('ChatWidget', () => {
     expect(linkBtn).toBeInTheDocument();
     userEvent.click(linkBtn); // exercise internal link handling (navigate)
 
-
     // contact action should render and handle mailto
     const mailBtn = screen.getByText(/Email Us/i);
     expect(mailBtn).toBeInTheDocument();
@@ -175,7 +180,9 @@ describe('ChatWidget', () => {
   test('handles api error and shows contact action', async () => {
     render(<ChatWidget />);
     userEvent.click(screen.getByRole('button', { name: /open support chat/i }));
-    await waitFor(() => expect(document.querySelector('textarea')).toBeInTheDocument());
+    await waitFor(() =>
+      expect(document.querySelector('textarea')).toBeInTheDocument()
+    );
     const input = document.querySelector('textarea');
 
     api.post.mockRejectedValue(new Error('network'));
@@ -189,6 +196,4 @@ describe('ChatWidget', () => {
     const contactBtn = screen.getByText(/Contact Support/i);
     expect(contactBtn).toBeInTheDocument();
   });
-
-
 });
