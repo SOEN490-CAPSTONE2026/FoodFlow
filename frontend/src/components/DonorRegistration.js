@@ -451,10 +451,20 @@ const DonorRegistration = () => {
         navigate('/donor');
       }, 5000);
     } catch (err) {
-      setError(
-        err.response?.data?.message || 'Registration failed. Please try again.'
-      );
-      setCurrentStep(1); // Go back to first step on error
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        (err.message === 'Network Error'
+          ? 'Network error. Please check your connection and try again.'
+          : 'Registration failed. Please try again.');
+      setError(errorMessage);
+
+      // If it's a network/upload error, stay on the current step so user can retry
+      if (err.message === 'Network Error' || err.response?.status >= 500) {
+        // Stay on current step for retry
+      } else {
+        setCurrentStep(1); // Go back to first step on validation error
+      }
     } finally {
       setLoading(false);
     }
@@ -547,6 +557,7 @@ const DonorRegistration = () => {
         <div
           key={step}
           className="step-item"
+          data-testid={`step-item-${step}`}
           onClick={() => handleStepClick(step)}
           style={{ cursor: step <= currentStep ? 'pointer' : 'default' }}
         >
@@ -1081,5 +1092,7 @@ const DonorRegistration = () => {
     </div>
   );
 };
+
+export { formatPhoneNumber, validatePhoneNumber };
 
 export default DonorRegistration;

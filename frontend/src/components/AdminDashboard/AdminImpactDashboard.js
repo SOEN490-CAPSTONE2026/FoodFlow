@@ -174,7 +174,9 @@ export default function AdminImpactDashboard() {
 
   // Build comparison chart data
   const comparisonChartData = useMemo(() => {
-    if (!metrics) return [];
+    if (!metrics) {
+      return [];
+    }
     return [
       {
         name: t('impactDashboard.impactMetrics', 'Impact Metrics'),

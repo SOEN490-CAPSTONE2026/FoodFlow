@@ -154,6 +154,12 @@ public class AuthService {
         organization.setVerificationStatus(VerificationStatus.PENDING);
         organization.setBusinessLicense(request.getBusinessLicense());
 
+        // Store supporting document URL if uploaded
+        if (request.getSupportingDocumentUrl() != null) {
+            organization.setSupportingDocumentUrl(request.getSupportingDocumentUrl());
+            log.debug("Supporting document URL set for donor: {}", request.getSupportingDocumentUrl());
+        }
+
         organizationRepository.save(organization);
         log.debug("Organization created for user: {} - Organization: {}", 
             savedUser.getEmail(), request.getOrganizationName());
@@ -242,14 +248,14 @@ public class AuthService {
                 // Default verification status to PENDING on registration
                 organization.setVerificationStatus(VerificationStatus.PENDING);
         // Store charity registration number for verification (optional)
-        if (request.getClass().getSimpleName().equals("RegisterReceiverRequest")) {
-            // Safe cast because method signature accepts RegisterReceiverRequest
-            try {
-                String charityReg = (String) request.getClass().getMethod("getCharityRegistrationNumber").invoke(request);
-                organization.setCharityRegistrationNumber(charityReg);
-            } catch (Exception ignored) {
-                // If the getter is not present or invocation fails, skip setting the field
-            }
+        if (request.getCharityRegistrationNumber() != null) {
+            organization.setCharityRegistrationNumber(request.getCharityRegistrationNumber());
+        }
+
+        // Store supporting document URL if uploaded
+        if (request.getSupportingDocumentUrl() != null) {
+            organization.setSupportingDocumentUrl(request.getSupportingDocumentUrl());
+            log.debug("Supporting document URL set for receiver: {}", request.getSupportingDocumentUrl());
         }
 
         organizationRepository.save(organization);

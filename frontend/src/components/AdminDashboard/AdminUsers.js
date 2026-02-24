@@ -61,11 +61,18 @@ const AdminUsers = () => {
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
   const [showReactivateModal, setShowReactivateModal] = useState(false);
   const [showAlertModal, setShowAlertModal] = useState(false);
+  const [showUploadDocumentModal, setShowUploadDocumentModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [adminNotes, setAdminNotes] = useState('');
   const [alertMessage, setAlertMessage] = useState('');
   const [alertType, setAlertType] = useState('');
   const [mouseDownInsideModal, setMouseDownInsideModal] = useState(false);
+
+  // Document upload state
+  const [uploadingDocument, setUploadingDocument] = useState(false);
+  const [uploadDocumentError, setUploadDocumentError] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [isDraggingFile, setIsDraggingFile] = useState(false);
 
   // Notification modal
   const [showNotification, setShowNotification] = useState(false);
@@ -306,6 +313,102 @@ const AdminUsers = () => {
     setAlertMessage('');
     setAlertType('');
     setSelectedUser(null);
+  };
+
+  // File upload handlers
+  const handleFileSelect = file => {
+    if (!file) {
+      return;
+    }
+
+    const allowedTypes = [
+      'application/pdf',
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+    ];
+    const maxSize = 10 * 1024 * 1024; // 10MB
+
+    if (!allowedTypes.includes(file.type)) {
+      setUploadDocumentError('Only PDF, JPG, and PNG files are allowed');
+      return;
+    }
+
+    if (file.size > maxSize) {
+      setUploadDocumentError('File size must not exceed 10MB');
+      return;
+    }
+
+    setSelectedFile(file);
+    setUploadDocumentError('');
+  };
+
+  const handleDragOver = e => {
+    e.preventDefault();
+    setIsDraggingFile(true);
+  };
+
+  const handleDragLeave = e => {
+    e.preventDefault();
+    setIsDraggingFile(false);
+  };
+
+  const handleDrop = e => {
+    e.preventDefault();
+    setIsDraggingFile(false);
+    const file = e.dataTransfer.files[0];
+    handleFileSelect(file);
+  };
+
+  const handleUploadDocument = async () => {
+    if (!selectedFile || !selectedUserForView) {
+      setUploadDocumentError('Please select a file');
+      return;
+    }
+
+    setUploadingDocument(true);
+    setUploadDocumentError('');
+
+    try {
+      const token =
+        localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      const response = await axios.post(
+        `${process.env.REACT_APP_API_BASE_URL}/admin/users/${selectedUserForView.id}/supporting-document`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      // Update the user data with the new document URL
+      setSelectedUserForView(response.data);
+      setNotificationMessage('Document uploaded successfully');
+      setNotificationType('success');
+      setShowNotification(true);
+      closeUploadDocumentModal();
+
+      // Refresh the user list
+      fetchUsers();
+    } catch (err) {
+      console.error('Error uploading document:', err);
+      const errorMessage = err.response?.data || 'Failed to upload document';
+      setUploadDocumentError(errorMessage);
+    } finally {
+      setUploadingDocument(false);
+    }
+  };
+
+  const closeUploadDocumentModal = () => {
+    setShowUploadDocumentModal(false);
+    setSelectedFile(null);
+    setUploadDocumentError('');
+    setIsDraggingFile(false);
   };
 
   // Open user detail modal
@@ -1126,27 +1229,56 @@ const AdminUsers = () => {
                   </div>
                   <div className="info-item">
                     <span className="info-label">
-                      <FileText size={16} /> License Document
+                      <FileText size={16} /> Document
                     </span>
                     <span className="info-value">
-                      {selectedUserForView.licenseDocument ||
-                      selectedUserForView.businessLicense ||
-                      selectedUserForView.charityRegistrationNumber ? (
-                        <a
-                          href={
-                            selectedUserForView.licenseDocument ||
-                            `${process.env.REACT_APP_API_BASE_URL}/uploads/licenses/${selectedUserForView.businessLicense || selectedUserForView.charityRegistrationNumber}`
-                          }
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="license-document-link"
+                      <div
+                        style={{
+                          display: 'flex',
+                          gap: '10px',
+                          alignItems: 'center',
+                        }}
+                      >
+                        {selectedUserForView.supportingDocumentUrl ||
+                        selectedUserForView.licenseDocument ||
+                        selectedUserForView.businessLicense ||
+                        selectedUserForView.charityRegistrationNumber ? (
+                          <a
+                            href={
+                              selectedUserForView.supportingDocumentUrl ||
+                              selectedUserForView.licenseDocument ||
+                              `${process.env.REACT_APP_API_BASE_URL}/api/files/licenses/${selectedUserForView.businessLicense || selectedUserForView.charityRegistrationNumber}`
+                            }
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="license-document-link"
+                          >
+                            <Download size={16} />
+                            View Document
+                          </a>
+                        ) : (
+                          'No document uploaded'
+                        )}
+                        <button
+                          className="btn-modify-document"
+                          onClick={() => setShowUploadDocumentModal(true)}
+                          title="Upload or replace document"
+                          style={{
+                            padding: '6px 12px',
+                            fontSize: '14px',
+                            backgroundColor: '#0077b6',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                          }}
                         >
-                          <Download size={16} />
-                          View License Document
-                        </a>
-                      ) : (
-                        'No document uploaded'
-                      )}
+                          {Edit3 && (
+                            <Edit3 size={16} style={{ marginRight: '4px' }} />
+                          )}
+                          Modify
+                        </button>
+                      </div>
                     </span>
                   </div>
                   <div className="info-item">
@@ -1245,6 +1377,143 @@ const AdminUsers = () => {
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Upload Supporting Document Modal */}
+      {showUploadDocumentModal && selectedUserForView && (
+        <div
+          className="modal-overlay"
+          onClick={() => closeUploadDocumentModal()}
+        >
+          <div
+            className="modal-content"
+            onClick={e => e.stopPropagation()}
+            style={{ maxWidth: '500px' }}
+          >
+            <button
+              className="modal-close"
+              onClick={() => closeUploadDocumentModal()}
+            >
+              ✕
+            </button>
+            <div className="modal-header">
+              <h3>Upload Supporting Document</h3>
+            </div>
+            <div className="modal-body">
+              <p style={{ marginBottom: '20px', color: '#666' }}>
+                Upload a PDF, JPG, or PNG file (max 10MB) to replace the current
+                document.
+              </p>
+
+              <div
+                className={`file-upload-area ${isDraggingFile ? 'dragging' : ''} ${
+                  uploadDocumentError ? 'error' : ''
+                }`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                style={{
+                  border: isDraggingFile
+                    ? '2px solid #0077b6'
+                    : '2px dashed #cbd5e0',
+                  borderRadius: '8px',
+                  padding: '30px',
+                  textAlign: 'center',
+                  backgroundColor: isDraggingFile ? '#e6f2ff' : '#f7fafc',
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer',
+                }}
+              >
+                {!selectedFile ? (
+                  <>
+                    <p style={{ fontSize: '2em', marginBottom: '10px' }}>📎</p>
+                    <label
+                      htmlFor="fileUploadAdmin"
+                      style={{
+                        cursor: 'pointer',
+                        color: '#0077b6',
+                        fontWeight: 'bold',
+                      }}
+                    >
+                      Click to select or drag file here
+                    </label>
+                    <input
+                      type="file"
+                      id="fileUploadAdmin"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={e => handleFileSelect(e.target.files[0])}
+                      style={{ display: 'none' }}
+                    />
+                    <p
+                      style={{
+                        fontSize: '0.9em',
+                        color: '#a0aec0',
+                        marginTop: '10px',
+                      }}
+                    >
+                      PDF, JPG, PNG (Max 10MB)
+                    </p>
+                  </>
+                ) : (
+                  <div style={{ color: '#0077b6' }}>
+                    <p style={{ fontSize: '2em', marginBottom: '10px' }}>✓</p>
+                    <p style={{ fontWeight: 'bold', marginBottom: '10px' }}>
+                      {selectedFile.name}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedFile(null)}
+                      style={{
+                        padding: '6px 12px',
+                        backgroundColor: '#e53e3e',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Change File
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {uploadDocumentError && (
+                <div
+                  style={{
+                    color: '#e53e3e',
+                    fontSize: '0.9em',
+                    marginTop: '10px',
+                    padding: '10px',
+                    backgroundColor: '#fff5f5',
+                    borderRadius: '4px',
+                  }}
+                >
+                  {uploadDocumentError}
+                </div>
+              )}
+            </div>
+            <div className="modal-actions">
+              <button
+                onClick={() => closeUploadDocumentModal()}
+                className="btn-secondary"
+                disabled={uploadingDocument}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUploadDocument}
+                className="btn-confirm"
+                disabled={uploadingDocument || !selectedFile}
+                style={{
+                  opacity: uploadingDocument || !selectedFile ? 0.6 : 1,
+                }}
+              >
+                {uploadingDocument ? 'Uploading...' : 'Upload Document'}
+              </button>
             </div>
           </div>
         </div>

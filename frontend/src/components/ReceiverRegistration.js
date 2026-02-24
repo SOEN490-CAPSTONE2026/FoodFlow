@@ -487,11 +487,20 @@ const ReceiverRegistration = () => {
         navigate('/receiver');
       }, 5000);
     } catch (err) {
-      setError(
+      const errorMessage =
         err.response?.data?.message ||
-          t('receiverRegistration.registrationFailed')
-      );
-      setCurrentStep(1); // Go back to first step on error
+        err.response?.data?.error ||
+        (err.message === 'Network Error'
+          ? 'Network error. Please check your connection and try again.'
+          : t('receiverRegistration.registrationFailed'));
+      setError(errorMessage);
+
+      // If it's a network/upload error, stay on the current step so user can retry
+      if (err.message === 'Network Error' || err.response?.status >= 500) {
+        // Stay on current step for retry
+      } else {
+        setCurrentStep(1); // Go back to first step on validation error
+      }
     } finally {
       setLoading(false);
     }

@@ -90,24 +90,24 @@ class FileStorageServiceTest {
 
     @Test
     void storeFile_withInvalidContentType_shouldThrowException() {
-        // Given
-        MockMultipartFile pdfFile = new MockMultipartFile(
+        // Given - use a truly unsupported mime type (pdf is now allowed)
+        MockMultipartFile zipFile = new MockMultipartFile(
             "file",
-            "document.pdf",
-            "application/pdf",
-            "pdf content".getBytes()
+            "archive.zip",
+            "application/zip",
+            "zipcontent".getBytes()
         );
 
         // When/Then
-        assertThatThrownBy(() -> fileStorageService.storeFile(pdfFile, "evidence"))
+        assertThatThrownBy(() -> fileStorageService.storeFile(zipFile, "evidence"))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("Invalid file type");
     }
 
     @Test
     void storeFile_withFileTooLarge_shouldThrowException() {
-        // Given - Create a file larger than 5MB
-        byte[] largeContent = new byte[6 * 1024 * 1024]; // 6MB
+        // Given - create a file larger than the current 10MB limit
+        byte[] largeContent = new byte[11 * 1024 * 1024]; // 11MB
         MockMultipartFile largeFile = new MockMultipartFile(
             "file",
             "large-image.jpg",
@@ -118,7 +118,7 @@ class FileStorageServiceTest {
         // When/Then
         assertThatThrownBy(() -> fileStorageService.storeFile(largeFile, "evidence"))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("size exceeds");
+            .hasMessageContaining("exceeds maximum allowed size");
     }
 
     @Test

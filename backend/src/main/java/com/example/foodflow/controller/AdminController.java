@@ -11,6 +11,7 @@ import com.example.foodflow.security.JwtTokenProvider;
 import com.example.foodflow.service.AdminDonationService;
 import com.example.foodflow.service.AdminUserService;
 import com.example.foodflow.service.DisputeService;
+import com.example.foodflow.service.FileStorageService;
 import com.example.foodflow.model.dto.AdminDisputeResponse;
 import com.example.foodflow.model.dto.UpdateDisputeStatusRequest;
 import jakarta.validation.Valid;
@@ -18,10 +19,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDate;
 
 @RestController
@@ -37,15 +42,17 @@ public class AdminController {
     private final DisputeService disputeService;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
+    private final FileStorageService fileStorageService;
 
     public AdminController(AdminUserService adminUserService, AdminDonationService adminDonationService,
                           DisputeService disputeService, JwtTokenProvider jwtTokenProvider, 
-                          UserRepository userRepository) {
+                          UserRepository userRepository, FileStorageService fileStorageService) {
         this.adminUserService = adminUserService;
         this.adminDonationService = adminDonationService;
         this.disputeService = disputeService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.userRepository = userRepository;
+        this.fileStorageService = fileStorageService;
     }
 
     /**
@@ -188,6 +195,40 @@ public class AdminController {
         } catch (Exception e) {
             log.error("Error fetching activity for user {}", userId, e);
             return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * Upload/replace supporting document for a user
+     * POST /api/admin/users/{userId}/supporting-document
+     */
+    @PostMapping(value = "/users/{userId}/supporting-document", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> uploadSupportingDocument(
+            @PathVariable Long userId,
+            @RequestParam("file") MultipartFile file) {
+        log.info("Admin uploading supporting document for user: {}", userId);
+        
+        try {
+            // Validate and store file
+            String documentUrl = fileStorageService.storeFile(file, "licenses");
+            
+            // Update user's supporting document URL
+            AdminUserResponse updatedUser = adminUserService.updateSupportingDocument(userId, documentUrl);
+            
+            log.info("Supporting document uploaded successfully for user: {}", userId);
+            return ResponseEntity.ok(updatedUser);
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid file upload for user {}: {}", userId, e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (IOException e) {
+            log.error("Failed to store document for user {}: {}", userId, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to upload file");
+        } catch (RuntimeException e) {
+            log.error("Error updating user document for {}: {}", userId, e.getMessage());
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            log.error("Error uploading document for user {}", userId, e);
+            return ResponseEntity.internalServerError().body("Failed to upload document");
         }
     }
 

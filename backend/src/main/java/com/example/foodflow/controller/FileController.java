@@ -43,6 +43,16 @@ public class FileController {
     }
 
     /**
+     * Serves uploaded license/supporting documents.
+     * URL pattern: /api/files/licenses/{filename}
+     */
+    @GetMapping("/licenses/{filename:.+}")
+    public ResponseEntity<Resource> serveLicenseFile(@PathVariable String filename) {
+        logger.info("Serving license file: filename={}", filename);
+        return serveFile("licenses/" + filename);
+    }
+
+    /**
      * Fallback for legacy URLs that were stored directly as /uploads/{filename}
      * This handles old URLs that don't have the proper path structure
      * URL pattern: /api/files/uploads/{filename}
