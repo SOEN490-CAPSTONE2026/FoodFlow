@@ -678,7 +678,9 @@ describe('DonorRegistration', () => {
     });
 
     it('validates phone numbers properly', () => {
-      const { validatePhoneNumber } = require('../components/DonorRegistration');
+      const {
+        validatePhoneNumber,
+      } = require('../components/DonorRegistration');
       expect(validatePhoneNumber('+11234567890')).toBe(true);
       expect(validatePhoneNumber('555-1234')).toBe(true); // regex allows 7-digit numbers
       expect(validatePhoneNumber('abc')).toBe(false);
@@ -701,7 +703,10 @@ describe('DonorRegistration', () => {
       // navigate to step 2 quickly
       await user.type(screen.getByLabelText(/^email address$/i), 'a@a.com');
       await user.type(screen.getByLabelText(/^password$/i), 'SecurePass123!');
-      await user.type(screen.getByLabelText(/^confirm password$/i), 'SecurePass123!');
+      await user.type(
+        screen.getByLabelText(/^confirm password$/i),
+        'SecurePass123!'
+      );
       await user.click(screen.getByRole('button', { name: /next/i }));
 
       const input = screen.getByLabelText(/choose file or drag here/i);
@@ -719,14 +724,23 @@ describe('DonorRegistration', () => {
       // navigate to step 2
       await user.type(screen.getByLabelText(/^email address$/i), 'a@a.com');
       await user.type(screen.getByLabelText(/^password$/i), 'SecurePass123!');
-      await user.type(screen.getByLabelText(/^confirm password$/i), 'SecurePass123!');
+      await user.type(
+        screen.getByLabelText(/^confirm password$/i),
+        'SecurePass123!'
+      );
       await user.click(screen.getByRole('button', { name: /next/i }));
 
       const area = screen.getByText(/choose file or drag here/i).parentElement;
-      const largeFile = createFile('big.pdf', 11 * 1024 * 1024, 'application/pdf');
+      const largeFile = createFile(
+        'big.pdf',
+        11 * 1024 * 1024,
+        'application/pdf'
+      );
       fireEvent.dragOver(area);
       fireEvent.drop(area, { dataTransfer: { files: [largeFile] } });
-      expect(await screen.findByText(/file size exceeds 10MB limit/i)).toBeInTheDocument();
+      expect(
+        await screen.findByText(/file size exceeds 10MB limit/i)
+      ).toBeInTheDocument();
     });
 
     it('allows removing a selected file', async () => {
@@ -737,7 +751,10 @@ describe('DonorRegistration', () => {
       // navigate to step2
       await user.type(screen.getByLabelText(/^email address$/i), 'a@a.com');
       await user.type(screen.getByLabelText(/^password$/i), 'SecurePass123!');
-      await user.type(screen.getByLabelText(/^confirm password$/i), 'SecurePass123!');
+      await user.type(
+        screen.getByLabelText(/^confirm password$/i),
+        'SecurePass123!'
+      );
       await user.click(screen.getByRole('button', { name: /next/i }));
 
       const goodFile = createFile('doc.pdf', 1024, 'application/pdf');
@@ -756,7 +773,10 @@ describe('DonorRegistration', () => {
       // navigate to step 2
       await user.type(screen.getByLabelText(/^email address$/i), 'a@a.com');
       await user.type(screen.getByLabelText(/^password$/i), 'SecurePass123!');
-      await user.type(screen.getByLabelText(/^confirm password$/i), 'SecurePass123!');
+      await user.type(
+        screen.getByLabelText(/^confirm password$/i),
+        'SecurePass123!'
+      );
       await user.click(screen.getByRole('button', { name: /next/i }));
 
       const area = screen.getByText(/choose file or drag here/i).parentElement;
@@ -775,7 +795,10 @@ describe('DonorRegistration', () => {
       renderWithAuth(<DonorRegistration />);
       await user.type(screen.getByLabelText(/^email address$/i), 'a@a.com');
       await user.type(screen.getByLabelText(/^password$/i), 'SecurePass123!');
-      await user.type(screen.getByLabelText(/^confirm password$/i), 'SecurePass123!');
+      await user.type(
+        screen.getByLabelText(/^confirm password$/i),
+        'SecurePass123!'
+      );
       await user.click(screen.getByRole('button', { name: /next/i }));
 
       await screen.findByLabelText(/organization name/i);
@@ -790,7 +813,9 @@ describe('DonorRegistration', () => {
       const postal = screen.getByLabelText(/postal code/i);
       await user.type(postal, '###');
       await postal.blur();
-      expect(await screen.findByText(/invalid postal code/i)).toBeInTheDocument();
+      expect(
+        await screen.findByText(/invalid postal code/i)
+      ).toBeInTheDocument();
     });
 
     it('step indicator allows jumping back', async () => {
@@ -801,7 +826,10 @@ describe('DonorRegistration', () => {
       // complete step1
       await user.type(screen.getByLabelText(/^email address$/i), 'a@a.com');
       await user.type(screen.getByLabelText(/^password$/i), 'SecurePass123!');
-      await user.type(screen.getByLabelText(/^confirm password$/i), 'SecurePass123!');
+      await user.type(
+        screen.getByLabelText(/^confirm password$/i),
+        'SecurePass123!'
+      );
       await user.click(screen.getByRole('button', { name: /next/i }));
 
       // click step indicator for step1 using testid
