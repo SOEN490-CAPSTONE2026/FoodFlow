@@ -5,7 +5,7 @@
   "dependencies": {
     "@react-google-maps/api": "^2.20.7",
     "@stomp/stompjs": "^7.2.1",
-    "@tanstack/react-query": "^5.62.3",
+    "@tanstack/react-query": "^5.90.20",
     "@testing-library/dom": "^10.4.1",
     "axios": "^1.12.2",
     "firebase": "^12.7.0",
@@ -22,6 +22,8 @@
     "react-router-dom": "^6.30.1",
     "react-scripts": "5.0.1",
     "react-select": "^5.10.2",
+    "react-toastify": "^10.0.5",
+    "recharts": "^3.7.0",
     "sockjs-client": "^1.6.1",
     "use-places-autocomplete": "^4.0.1",
     "web-vitals": "^2.1.4"
@@ -47,7 +49,9 @@
       "!src/index.js",
       "!src/reportWebVitals.js",
       "!src/**/*.test.{js,jsx}",
-      "!src/setupTests.js"
+      "!src/setupTests.js",
+      "!src/components/DonorDashboard/AIDonationForm 2.js",
+      "!src/components/DonorDashboard/AIImageUpload 2.js"
     ],
     "coverageThreshold": {
       "global": {
@@ -80,6 +84,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
     "jest": "^27.5.1",
-    "prettier": "^3.8.1"
+    "prettier": "^3.8.1",
+    "typescript": "4.9.5"
   }
 }

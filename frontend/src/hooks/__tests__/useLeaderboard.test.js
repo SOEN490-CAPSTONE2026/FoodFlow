@@ -1,11 +1,15 @@
 import { renderHook } from '@testing-library/react';
 import { useQuery } from '@tanstack/react-query';
 import useLeaderboard from '../useLeaderboard';
-import { getLeaderboard } from '../../services/api';
+import { gamificationAPI } from '../../services/api';
 
 // Mock the dependencies
 jest.mock('@tanstack/react-query');
-jest.mock('../../services/api');
+jest.mock('../../services/api', () => ({
+  gamificationAPI: {
+    getLeaderboard: jest.fn(),
+  },
+}));
 
 describe('useLeaderboard Hook', () => {
   beforeEach(() => {
@@ -30,6 +34,8 @@ describe('useLeaderboard Hook', () => {
         queryFn: expect.any(Function),
         staleTime: 5 * 60 * 1000,
         cacheTime: 10 * 60 * 1000,
+        enabled: true,
+        retry: 2,
       })
     );
   });
@@ -52,8 +58,46 @@ describe('useLeaderboard Hook', () => {
         queryFn: expect.any(Function),
         staleTime: 5 * 60 * 1000,
         cacheTime: 10 * 60 * 1000,
+        enabled: true,
+        retry: 2,
       })
     );
+  });
+
+  it('disables query when role is missing', () => {
+    const mockUseQuery = jest.fn(() => ({
+      data: null,
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch: jest.fn(),
+    }));
+    useQuery.mockImplementation(mockUseQuery);
+
+    renderHook(() => useLeaderboard(''));
+
+    expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: ['leaderboard', ''],
+        enabled: false,
+      })
+    );
+  });
+
+  it('queryFn returns leaderboard data from API', async () => {
+    const mockUseQuery = jest.fn();
+    useQuery.mockImplementation(mockUseQuery);
+    gamificationAPI.getLeaderboard.mockResolvedValue({
+      data: { topUsers: [{ userId: 1 }] },
+    });
+
+    renderHook(() => useLeaderboard('DONOR'));
+
+    const options = mockUseQuery.mock.calls[0][0];
+    const result = await options.queryFn();
+
+    expect(gamificationAPI.getLeaderboard).toHaveBeenCalledWith('DONOR');
+    expect(result).toEqual({ topUsers: [{ userId: 1 }] });
   });
 
   it('returns data from useQuery', () => {

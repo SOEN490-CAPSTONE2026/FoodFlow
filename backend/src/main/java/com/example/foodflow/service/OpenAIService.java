@@ -4,14 +4,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import okhttp3.*;
-
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -42,7 +38,6 @@ public class OpenAIService {
     private static final String OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
     
     // Security limits
-    private static final int MAX_MESSAGE_LENGTH = 2000; // Limit user input length (no longer enforced)
     private static final int MAX_CONTEXT_LENGTH = 20000; // Limit context size
 
     public OpenAIService() {

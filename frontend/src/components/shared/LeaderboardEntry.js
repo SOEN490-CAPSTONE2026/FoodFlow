@@ -44,7 +44,22 @@ const LeaderboardEntry = ({ entry, showMedals = true }) => {
       <div className="entry-rank">{medal || `#${entry.rank}`}</div>
 
       <div className="entry-avatar">
-        <div className="avatar-placeholder">
+        {entry.profilePhoto ? (
+          <img
+            src={entry.profilePhoto}
+            alt={entry.displayName}
+            className="avatar-image"
+            onError={e => {
+              // Fallback to placeholder if image fails to load
+              e.target.style.display = 'none';
+              e.target.nextSibling.style.display = 'flex';
+            }}
+          />
+        ) : null}
+        <div
+          className="avatar-placeholder"
+          style={{ display: entry.profilePhoto ? 'none' : 'flex' }}
+        >
           {(entry.userName || entry.displayName || 'U').charAt(0).toUpperCase()}
         </div>
       </div>

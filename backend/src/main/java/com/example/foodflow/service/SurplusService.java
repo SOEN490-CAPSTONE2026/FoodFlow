@@ -17,13 +17,20 @@ import com.example.foodflow.model.entity.DonationTimeline;
 import com.example.foodflow.model.entity.PickupSlot;
 import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.entity.User;
+import com.example.foodflow.model.entity.ExpiryAuditLog;
+import com.example.foodflow.model.types.DietaryMatchMode;
+import com.example.foodflow.model.types.DietaryTag;
 import com.example.foodflow.model.types.FoodCategory;
 import com.example.foodflow.model.types.ClaimStatus;
+import com.example.foodflow.model.types.FoodType;
 import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.repository.ClaimRepository;
 import com.example.foodflow.repository.DonationTimelineRepository;
+import com.example.foodflow.repository.ExpiryAuditLogRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
 import com.example.foodflow.util.TimezoneResolver;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.Timer;
 
@@ -37,17 +44,29 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.Instant;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class SurplusService {
+
+    private static final Logger logger = LoggerFactory.getLogger(SurplusService.class);
 
     private final SurplusPostRepository surplusPostRepository;
     private final ClaimRepository claimRepository;
@@ -55,11 +74,19 @@ public class SurplusService {
     private final BusinessMetricsService businessMetricsService;
     private final NotificationService notificationService;
     private final ExpiryCalculationService expiryCalculationService;
+    private final ExpiryPredictionService expiryPredictionService;
+    private final ExpirySuggestionService expirySuggestionService;
+    private final ExpiryAuditLogRepository expiryAuditLogRepository;
+    private final ObjectMapper objectMapper;
     private final TimelineService timelineService;
     private final DonationTimelineRepository timelineRepository;
     private final FileStorageService fileStorageService;
     private final GamificationService gamificationService;
     private final ClaimService claimService;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final EmailService emailService;
+    private final NotificationPreferenceService notificationPreferenceService;
+    private final FoodTypeImpactService foodTypeImpactService;
 
     @Value("${pickup.tolerance.early-minutes:15}")
     private int earlyToleranceMinutes;
@@ -67,28 +94,47 @@ public class SurplusService {
     @Value("${pickup.tolerance.late-minutes:15}")
     private int lateToleranceMinutes;
 
+    @Value("${foodflow.expiring-soon-hours:24}")
+    private int expiringSoonHours;
+
     public SurplusService(SurplusPostRepository surplusPostRepository,
             ClaimRepository claimRepository,
             PickupSlotValidationService pickupSlotValidationService,
             BusinessMetricsService businessMetricsService,
             NotificationService notificationService,
             ExpiryCalculationService expiryCalculationService,
+            ExpiryPredictionService expiryPredictionService,
+            ExpirySuggestionService expirySuggestionService,
+            ExpiryAuditLogRepository expiryAuditLogRepository,
+            ObjectMapper objectMapper,
             TimelineService timelineService,
             DonationTimelineRepository timelineRepository,
             FileStorageService fileStorageService,
             GamificationService gamificationService,
-            ClaimService claimService) {
+            ClaimService claimService,
+            SimpMessagingTemplate messagingTemplate,
+            EmailService emailService,
+            NotificationPreferenceService notificationPreferenceService,
+            FoodTypeImpactService foodTypeImpactService) {
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;
         this.pickupSlotValidationService = pickupSlotValidationService;
         this.businessMetricsService = businessMetricsService;
         this.notificationService = notificationService;
         this.expiryCalculationService = expiryCalculationService;
+        this.expiryPredictionService = expiryPredictionService;
+        this.expirySuggestionService = expirySuggestionService;
+        this.expiryAuditLogRepository = expiryAuditLogRepository;
+        this.objectMapper = objectMapper;
         this.timelineService = timelineService;
         this.timelineRepository = timelineRepository;
         this.fileStorageService = fileStorageService;
         this.gamificationService = gamificationService;
         this.claimService = claimService;
+        this.messagingTemplate = messagingTemplate;
+        this.emailService = emailService;
+        this.notificationPreferenceService = notificationPreferenceService;
+        this.foodTypeImpactService = foodTypeImpactService;
     }
 
     /**
@@ -108,37 +154,29 @@ public class SurplusService {
         post.setPickupLocation(request.getPickupLocation());
         post.setTemperatureCategory(request.getTemperatureCategory());
         post.setPackagingType(request.getPackagingType());
+        post.setFoodType(resolveFoodType(request));
+        post.setDietaryTags(toDietaryTagArray(request.getDietaryTags()));
 
-        // Handle fabrication date and expiry date calculation
+        // Handle optional fabrication/actual expiry dates.
         LocalDate fabricationDate = request.getFabricationDate();
         LocalDate expiryDate = request.getExpiryDate();
 
         if (fabricationDate != null) {
-            // Validate fabrication date is not in the future
             if (!expiryCalculationService.isValidFabricationDate(fabricationDate)) {
                 throw new IllegalArgumentException("Fabrication date cannot be in the future");
             }
             post.setFabricationDate(fabricationDate);
-
-            // If expiry date not provided, calculate it automatically
-            if (expiryDate == null) {
-                expiryDate = expiryCalculationService.calculateExpiryDate(
-                        fabricationDate,
-                        request.getFoodCategories());
-            } else {
-                // Validate provided expiry date makes sense
-                if (!expiryCalculationService.isValidExpiryDate(fabricationDate, expiryDate)) {
-                    throw new IllegalArgumentException(
-                            "Expiry date must be after fabrication date and within reasonable limits");
-                }
-            }
         }
 
-        // Ensure expiry date is set (either provided or calculated)
-        if (expiryDate == null) {
-            throw new IllegalArgumentException("Expiry date is required");
+        if (expiryDate != null && fabricationDate != null &&
+                !expiryCalculationService.isValidExpiryDate(fabricationDate, expiryDate)) {
+            throw new IllegalArgumentException(
+                    "Expiry date must be after fabrication date and within reasonable limits");
         }
         post.setExpiryDate(expiryDate);
+        post.setUserProvidedExpiryDate(expiryDate);
+
+        applySubmissionExpirySuggestion(post);
 
         // Handle pickup slots
         List<PickupSlotRequest> slotsToProcess;
@@ -214,6 +252,8 @@ public class SurplusService {
         // Status will only change to READY_FOR_PICKUP after being claimed
         // and when the confirmed pickup slot time arrives (handled by scheduler)
         post.setStatus(request.getStatus() != null ? request.getStatus() : PostStatus.AVAILABLE);
+
+        applyExpiryPredictionAndResolution(post, donor, "PREDICTION_RECALCULATED");
 
         SurplusPost savedPost = surplusPostRepository.save(post);
 
@@ -326,8 +366,10 @@ public class SurplusService {
         post.setPickupLocation(request.getPickupLocation());
         post.setTemperatureCategory(request.getTemperatureCategory());
         post.setPackagingType(request.getPackagingType());
+        post.setFoodType(resolveFoodType(request));
+        post.setDietaryTags(toDietaryTagArray(request.getDietaryTags()));
 
-        // Handle fabrication date and expiry date
+        // Handle optional fabrication/actual expiry dates.
         LocalDate fabricationDate = request.getFabricationDate();
         LocalDate expiryDate = request.getExpiryDate();
 
@@ -336,23 +378,19 @@ public class SurplusService {
                 throw new IllegalArgumentException("Fabrication date cannot be in the future");
             }
             post.setFabricationDate(fabricationDate);
-
-            if (expiryDate == null) {
-                expiryDate = expiryCalculationService.calculateExpiryDate(
-                        fabricationDate,
-                        request.getFoodCategories());
-            } else {
-                if (!expiryCalculationService.isValidExpiryDate(fabricationDate, expiryDate)) {
-                    throw new IllegalArgumentException(
-                            "Expiry date must be after fabrication date and within reasonable limits");
-                }
-            }
+        } else {
+            post.setFabricationDate(null);
         }
 
-        if (expiryDate == null) {
-            throw new IllegalArgumentException("Expiry date is required");
+        if (expiryDate != null && fabricationDate != null &&
+                !expiryCalculationService.isValidExpiryDate(fabricationDate, expiryDate)) {
+            throw new IllegalArgumentException(
+                    "Expiry date must be after fabrication date and within reasonable limits");
         }
         post.setExpiryDate(expiryDate);
+        post.setUserProvidedExpiryDate(expiryDate);
+
+        applySubmissionExpirySuggestion(post);
 
         // Handle pickup slots update
         List<PickupSlotRequest> slotsToProcess;
@@ -428,6 +466,7 @@ public class SurplusService {
             post.getPickupSlots().add(slot);
         }
 
+        applyExpiryPredictionAndResolution(post, donor, "PREDICTION_RECALCULATED");
         SurplusPost updatedPost = surplusPostRepository.saveAndFlush(post);
 
         // Create timeline event for donation update
@@ -461,6 +500,24 @@ public class SurplusService {
         response.setPickupLocation(post.getPickupLocation());
         response.setFabricationDate(post.getFabricationDate());
         response.setExpiryDate(post.getExpiryDate());
+        response.setUserProvidedExpiryDate(post.getUserProvidedExpiryDate());
+        response.setSuggestedExpiryDate(post.getSuggestedExpiryDate());
+        response.setEligibleAtSubmission(post.getEligibleAtSubmission());
+        response.setWarningsAtSubmission(deserializeWarnings(post.getWarningsAtSubmission()));
+        response.setExpiryDateActual(post.getExpiryDate() != null
+                ? post.getExpiryDate().atTime(23, 59, 59)
+                : null);
+        response.setExpiryDatePredicted(post.getExpiryDatePredicted());
+        response.setExpiryDateEffective(post.getExpiryDateEffective());
+        response.setPredictionConfidence(post.getExpiryPredictionConfidence());
+        response.setPredictionVersion(post.getExpiryPredictionVersion());
+        response.setExpiryOverridden(post.getExpiryOverridden());
+        response.setExpired(isExpired(post));
+        response.setExpiringSoon(isExpiringSoon(post));
+        response.setImpactCo2eKg(post.getImpactCo2eKg());
+        response.setImpactWaterL(post.getImpactWaterL());
+        response.setImpactFactorVersion(post.getImpactFactorVersion());
+        response.setImpactComputedAt(post.getImpactComputedAt());
         response.setPickupDate(post.getPickupDate());
         response.setPickupFrom(post.getPickupFrom());
         response.setPickupTo(post.getPickupTo());
@@ -475,6 +532,8 @@ public class SurplusService {
         response.setUpdatedAt(post.getUpdatedAt());
         response.setTemperatureCategory(post.getTemperatureCategory());
         response.setPackagingType(post.getPackagingType());
+        response.setFoodType(post.getFoodType());
+        response.setDietaryTags(fromDietaryTagArray(post.getDietaryTags()));
 
         // Convert pickup slots
         if (post.getPickupSlots() != null && !post.getPickupSlots().isEmpty()) {
@@ -615,7 +674,7 @@ public class SurplusService {
      * to receiver's timezone.
      * All UTC times from database are converted to the receiver's local timezone.
      */
-    private SurplusResponse convertToResponseForReceiver(SurplusPost post, String receiverTimezone) {
+    public SurplusResponse convertToResponseForReceiver(SurplusPost post, String receiverTimezone) {
         // Get the base response (in UTC)
         SurplusResponse response = convertToResponse(post);
 
@@ -723,7 +782,7 @@ public class SurplusService {
     public List<SurplusResponse> searchSurplusPosts(SurplusFilterRequest filterRequest) {
         Specification<SurplusPost> specification = buildSpecificationFromFilter(filterRequest);
 
-        List<SurplusPost> posts = surplusPostRepository.findAll(specification);
+        List<SurplusPost> posts = applyPostFiltersAndSort(surplusPostRepository.findAll(specification), filterRequest);
 
         return posts.stream()
                 .map(this::convertToResponse)
@@ -740,7 +799,9 @@ public class SurplusService {
     public List<SurplusResponse> searchSurplusPostsForReceiver(SurplusFilterRequest filterRequest, User receiver) {
         Specification<SurplusPost> specification = buildSpecificationFromFilter(filterRequest);
 
-        List<SurplusPost> posts = surplusPostRepository.findAll(specification);
+        List<SurplusPost> posts = applyReceiverPrioritization(
+                applyPostFiltersAndSort(surplusPostRepository.findAll(specification), filterRequest),
+                filterRequest);
 
         String receiverTimezone = receiver != null && receiver.getTimezone() != null
                 ? receiver.getTimezone()
@@ -768,14 +829,33 @@ public class SurplusService {
             builder.and(ArrayFilter.containsAny(filterRequest.getFoodCategories()).toSpecification("foodCategories"));
         }
 
-        // Filter by expiry date (before) - FIXED
-        if (filterRequest.hasExpiryBefore()) {
-            builder.and(BasicFilter.lessThanOrEqual(filterRequest.getExpiryBefore()).toSpecification("expiryDate"));
+        // Filter by food types (matches any requested type)
+        if (filterRequest.hasFoodTypes()) {
+            builder.and((root, query, cb) -> root.get("foodType").in(filterRequest.getFoodTypes()));
         }
 
-        // Filter by expiry date (after)
+        // Filter by expiry date (before), with fallback to legacy expiryDate.
+        if (filterRequest.hasExpiryBefore()) {
+            LocalDateTime expiryBeforeEndOfDay = filterRequest.getExpiryBefore().atTime(23, 59, 59);
+            builder.and((root, query, cb) -> cb.or(
+                    cb.and(
+                            cb.isNotNull(root.get("expiryDateEffective")),
+                            cb.lessThanOrEqualTo(root.get("expiryDateEffective"), expiryBeforeEndOfDay)),
+                    cb.and(
+                            cb.isNull(root.get("expiryDateEffective")),
+                            cb.lessThanOrEqualTo(root.get("expiryDate"), filterRequest.getExpiryBefore()))));
+        }
+
+        // Filter by expiry date (after), with fallback to legacy expiryDate.
         if (filterRequest.hasExpiryAfter()) {
-            builder.and(BasicFilter.greaterThanOrEqual(filterRequest.getExpiryAfter()).toSpecification("expiryDate"));
+            LocalDateTime expiryAfterStartOfDay = filterRequest.getExpiryAfter().atStartOfDay();
+            builder.and((root, query, cb) -> cb.or(
+                    cb.and(
+                            cb.isNotNull(root.get("expiryDateEffective")),
+                            cb.greaterThanOrEqualTo(root.get("expiryDateEffective"), expiryAfterStartOfDay)),
+                    cb.and(
+                            cb.isNull(root.get("expiryDateEffective")),
+                            cb.greaterThanOrEqualTo(root.get("expiryDate"), filterRequest.getExpiryAfter()))));
         }
 
         // Filter by location
@@ -785,6 +865,321 @@ public class SurplusService {
         }
 
         return builder.buildOrDefault(SpecificationHandler.alwaysTrue());
+    }
+
+    private List<SurplusPost> applyPostFiltersAndSort(List<SurplusPost> posts, SurplusFilterRequest filterRequest) {
+        List<SurplusPost> filtered = posts;
+
+        if (filterRequest.hasDietaryTags()) {
+            DietaryMatchMode mode = filterRequest.getDietaryMatch() != null
+                    ? filterRequest.getDietaryMatch()
+                    : DietaryMatchMode.ANY;
+
+            Set<String> requestedTags = filterRequest.getDietaryTags().stream()
+                    .map(Enum::name)
+                    .collect(Collectors.toSet());
+
+            filtered = filtered.stream()
+                    .filter(post -> matchesDietaryTags(post.getDietaryTags(), requestedTags, mode))
+                    .collect(Collectors.toList());
+        }
+
+        String sort = filterRequest.getSort();
+        if (sort != null && !sort.isBlank()) {
+            Comparator<SurplusPost> byEffectiveExpiry = Comparator.comparing(
+                    this::resolveEffectiveExpiryForSort,
+                    Comparator.nullsLast(Comparator.naturalOrder()));
+
+            if ("expiry_desc".equalsIgnoreCase(sort)) {
+                filtered = filtered.stream()
+                        .sorted(byEffectiveExpiry.reversed())
+                        .collect(Collectors.toList());
+            } else if ("expiry_asc".equalsIgnoreCase(sort)) {
+                filtered = filtered.stream()
+                        .sorted(byEffectiveExpiry)
+                        .collect(Collectors.toList());
+            }
+        }
+
+        return filtered;
+    }
+
+    private List<SurplusPost> applyReceiverPrioritization(List<SurplusPost> posts, SurplusFilterRequest filterRequest) {
+        List<SurplusPost> nonExpired = posts.stream()
+                .filter(post -> !isExpired(post))
+                .collect(Collectors.toList());
+
+        Comparator<SurplusPost> comparator = Comparator
+                .comparing((SurplusPost post) -> isExpiringSoon(post) ? 0 : 1)
+                .thenComparing(
+                        this::resolveEffectiveExpiryForSort,
+                        Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(
+                        SurplusPost::getCreatedAt,
+                        Comparator.nullsLast(Comparator.naturalOrder()));
+
+        return nonExpired.stream()
+                .sorted(comparator)
+                .collect(Collectors.toList());
+    }
+
+    private boolean matchesDietaryTags(String[] postDietaryTags, Set<String> requestedTags, DietaryMatchMode mode) {
+        if (requestedTags.isEmpty()) {
+            return true;
+        }
+
+        Set<String> postTags = postDietaryTags == null
+                ? Set.of()
+                : Arrays.stream(postDietaryTags).collect(Collectors.toSet());
+
+        if (mode == DietaryMatchMode.ALL) {
+            return postTags.containsAll(requestedTags);
+        }
+
+        return requestedTags.stream().anyMatch(postTags::contains);
+    }
+
+    private FoodType resolveFoodType(CreateSurplusRequest request) {
+        if (request.getFoodType() != null) {
+            return request.getFoodType();
+        }
+
+        if (request.getFoodCategories() == null || request.getFoodCategories().isEmpty()) {
+            return FoodType.PANTRY;
+        }
+
+        FoodCategory category = request.getFoodCategories().iterator().next();
+        return mapFoodCategoryToFoodType(category);
+    }
+
+    private FoodType mapFoodCategoryToFoodType(FoodCategory category) {
+        return switch (category) {
+            case PREPARED_MEALS, READY_TO_EAT, SANDWICHES, SALADS, SOUPS, STEWS, CASSEROLES, LEFTOVERS -> FoodType.PREPARED;
+            case FRUITS_VEGETABLES, LEAFY_GREENS, ROOT_VEGETABLES, BERRIES, CITRUS_FRUITS, TROPICAL_FRUITS -> FoodType.PRODUCE;
+            case BAKERY_PASTRY, BREAD, BAKED_GOODS, BAKERY_ITEMS, CAKES_PASTRIES -> FoodType.BAKERY;
+            case DAIRY, DAIRY_COLD, MILK, CHEESE, YOGURT, BUTTER, CREAM, EGGS -> FoodType.DAIRY_EGGS;
+            case FRESH_MEAT, GROUND_MEAT, POULTRY -> FoodType.MEAT_POULTRY;
+            case SEAFOOD, FISH, FROZEN_SEAFOOD -> FoodType.SEAFOOD;
+            case BEVERAGES, WATER, JUICE, SOFT_DRINKS, SPORTS_DRINKS, TEA, COFFEE, HOT_CHOCOLATE, PROTEIN_SHAKES, SMOOTHIES -> FoodType.BEVERAGES;
+            default -> FoodType.PANTRY;
+        };
+    }
+
+    private String[] toDietaryTagArray(List<DietaryTag> dietaryTags) {
+        if (dietaryTags == null || dietaryTags.isEmpty()) {
+            return new String[0];
+        }
+        List<String> uniqueTags = new ArrayList<>(
+                new LinkedHashSet<>(dietaryTags.stream().map(Enum::name).collect(Collectors.toList())));
+        return uniqueTags.toArray(new String[0]);
+    }
+
+    private List<DietaryTag> fromDietaryTagArray(String[] dietaryTags) {
+        if (dietaryTags == null || dietaryTags.length == 0) {
+            return new ArrayList<>();
+        }
+
+        List<DietaryTag> result = new ArrayList<>();
+        for (String tag : dietaryTags) {
+            if (tag == null || tag.isBlank()) {
+                continue;
+            }
+            try {
+                result.add(DietaryTag.valueOf(tag));
+            } catch (IllegalArgumentException ignored) {
+                // Keep response resilient if legacy data has out-of-contract tags.
+            }
+        }
+        return result;
+    }
+
+    @Transactional
+    public SurplusResponse overrideExpiry(Long postId, String expiryDateRaw, String reason, User actor) {
+        SurplusPost post = surplusPostRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Surplus post not found"));
+
+        if (actor.getRole() != com.example.foodflow.model.entity.UserRole.ADMIN
+                && !post.getDonor().getId().equals(actor.getId())) {
+            throw new RuntimeException("You are not authorized to override expiry for this post");
+        }
+
+        LocalDateTime previousEffective = resolveEffectiveExpiryForSort(post);
+        LocalDateTime overrideExpiry = parseExpiryOverride(expiryDateRaw);
+
+        post.setExpiryOverridden(true);
+        post.setExpiryOverrideReason(reason);
+        post.setExpiryOverriddenAt(LocalDateTime.now(ZoneOffset.UTC));
+        post.setExpiryOverriddenBy(actor.getId());
+        post.setExpiryDateEffective(overrideExpiry);
+
+        applyExpiryPredictionAndResolution(post, actor, "EXPIRY_OVERRIDDEN");
+        SurplusPost saved = surplusPostRepository.save(post);
+        logExpiryAudit(saved, actor.getId(), "EXPIRY_OVERRIDDEN", previousEffective, saved.getExpiryDateEffective(),
+                Map.of("reason", reason));
+
+        return convertToResponse(saved);
+    }
+
+    @Transactional
+    public SurplusResponse clearExpiryOverride(Long postId, User actor) {
+        SurplusPost post = surplusPostRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Surplus post not found"));
+
+        if (actor.getRole() != com.example.foodflow.model.entity.UserRole.ADMIN
+                && !post.getDonor().getId().equals(actor.getId())) {
+            throw new RuntimeException("You are not authorized to clear expiry override for this post");
+        }
+
+        LocalDateTime previousEffective = resolveEffectiveExpiryForSort(post);
+
+        post.setExpiryOverridden(false);
+        post.setExpiryOverrideReason(null);
+        post.setExpiryOverriddenAt(null);
+        post.setExpiryOverriddenBy(null);
+
+        applyExpiryPredictionAndResolution(post, actor, "EXPIRY_OVERRIDE_REMOVED");
+        SurplusPost saved = surplusPostRepository.save(post);
+        logExpiryAudit(saved, actor.getId(), "EXPIRY_OVERRIDE_REMOVED", previousEffective, saved.getExpiryDateEffective(),
+                Map.of("reason", "override_removed"));
+
+        return convertToResponse(saved);
+    }
+
+    private void applyExpiryPredictionAndResolution(SurplusPost post, User actor, String eventType) {
+        ExpiryPredictionService.PredictionResult prediction = expiryPredictionService.predict(post);
+
+        post.setExpiryDatePredicted(LocalDateTime.ofInstant(prediction.predictedExpiry(), ZoneOffset.UTC));
+        post.setExpiryPredictionConfidence(prediction.confidence());
+        post.setExpiryPredictionVersion(prediction.version());
+        post.setExpiryPredictionInputs(serializeJson(prediction.inputs()));
+
+        LocalDateTime previousEffective = post.getExpiryDateEffective();
+        LocalDateTime effective = resolveEffectiveExpiry(post);
+        post.setExpiryDateEffective(effective);
+
+        Long actorId = actor != null ? actor.getId() : null;
+        if (post.getId() != null && !equalsDateTime(previousEffective, effective)) {
+            logExpiryAudit(post, actorId, eventType, previousEffective, effective, prediction.inputs());
+        }
+    }
+
+    private void applySubmissionExpirySuggestion(SurplusPost post) {
+        ExpirySuggestionService.SuggestionResult suggestion = expirySuggestionService.computeSuggestedExpiry(
+                post.getFoodType(),
+                post.getTemperatureCategory(),
+                post.getPackagingType(),
+                post.getFabricationDate());
+
+        post.setSuggestedExpiryDate(suggestion.suggestedExpiryDate());
+        post.setEligibleAtSubmission(suggestion.eligible());
+        post.setWarningsAtSubmission(serializeJson(suggestion.warnings()));
+
+        if (!suggestion.eligible()) {
+            post.setFlagged(true);
+            post.setFlagReason("requires_review: Not eligible at submission (temperature/food-type mismatch)");
+        }
+    }
+
+    private LocalDateTime resolveEffectiveExpiry(SurplusPost post) {
+        if (Boolean.TRUE.equals(post.getExpiryOverridden()) && post.getExpiryDateEffective() != null) {
+            return post.getExpiryDateEffective();
+        }
+
+        if (post.getExpiryDate() != null) {
+            return post.getExpiryDate().atTime(23, 59, 59);
+        }
+
+        return post.getExpiryDatePredicted();
+    }
+
+    private LocalDateTime resolveEffectiveExpiryForSort(SurplusPost post) {
+        if (post.getExpiryDateEffective() != null) {
+            return post.getExpiryDateEffective();
+        }
+        if (post.getExpiryDate() != null) {
+            return post.getExpiryDate().atTime(23, 59, 59);
+        }
+        return post.getExpiryDatePredicted();
+    }
+
+    private boolean isExpired(SurplusPost post) {
+        LocalDateTime effective = resolveEffectiveExpiryForSort(post);
+        return effective != null && !LocalDateTime.now(ZoneOffset.UTC).isBefore(effective);
+    }
+
+    private boolean isExpiringSoon(SurplusPost post) {
+        LocalDateTime effective = resolveEffectiveExpiryForSort(post);
+        if (effective == null) {
+            return false;
+        }
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
+        return now.isBefore(effective) && !effective.isAfter(now.plusHours(expiringSoonHours));
+    }
+
+    private void logExpiryAudit(SurplusPost post, Long actorId, String eventType, LocalDateTime previousEffective,
+            LocalDateTime newEffective, Map<String, Object> metadata) {
+        try {
+            ExpiryAuditLog logEntry = new ExpiryAuditLog();
+            logEntry.setSurplusPost(post);
+            logEntry.setActorId(actorId);
+            logEntry.setEventType(eventType);
+            logEntry.setPreviousEffective(previousEffective);
+            logEntry.setNewEffective(newEffective);
+            logEntry.setMetadata(serializeJson(metadata));
+            expiryAuditLogRepository.save(logEntry);
+        } catch (Exception e) {
+            logger.warn("Failed to write expiry audit log for postId={}: {}", post.getId(), e.getMessage());
+        }
+    }
+
+    private String serializeJson(Object payload) {
+        if (payload == null) {
+            return null;
+        }
+        try {
+            return objectMapper.writeValueAsString(payload);
+        } catch (JsonProcessingException e) {
+            return "{\"serializationError\":true}";
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<String> deserializeWarnings(String rawJson) {
+        if (rawJson == null || rawJson.isBlank()) {
+            return new ArrayList<>();
+        }
+        try {
+            return objectMapper.readValue(rawJson, List.class);
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
+    }
+
+    private LocalDateTime parseExpiryOverride(String raw) {
+        if (raw == null || raw.isBlank()) {
+            throw new IllegalArgumentException("Override expiryDate is required");
+        }
+
+        try {
+            return LocalDateTime.parse(raw.trim());
+        } catch (Exception ignored) {
+            try {
+                return LocalDate.parse(raw.trim()).atTime(23, 59, 59);
+            } catch (Exception ignoredAgain) {
+                throw new IllegalArgumentException(
+                        "Invalid expiryDate format. Use ISO date-time (e.g. 2026-02-17T15:00:00) or date (YYYY-MM-DD)");
+            }
+        }
+    }
+
+    private boolean equalsDateTime(LocalDateTime first, LocalDateTime second) {
+        if (first == null && second == null) {
+            return true;
+        }
+        if (first == null || second == null) {
+            return false;
+        }
+        return first.equals(second);
     }
 
     @Transactional
@@ -810,15 +1205,119 @@ public class SurplusService {
         }
 
         post.setStatus(PostStatus.COMPLETED);
+        foodTypeImpactService.applyImpactSnapshot(post);
         SurplusPost updatedPost = surplusPostRepository.save(post);
 
         // Also complete the related claim so pickup achievements are updated
+        logger.info("Looking for claim associated with postId={}", post.getId());
         claimRepository.findBySurplusPost(post)
-                .ifPresent(claim -> {
-                    if (claim.getStatus() != ClaimStatus.COMPLETED) {
-                        claimService.completeClaim(claim.getId());
-                    }
-                });
+                .ifPresentOrElse(
+                    claim -> {
+                        logger.info("Found claim claimId={} with status={} for postId={}", claim.getId(), claim.getStatus(), post.getId());
+                        if (claim.getStatus() != ClaimStatus.COMPLETED) {
+                            claimService.completeClaim(claim.getId());
+                            
+                            User receiver = claim.getReceiver();
+                            String receiverName = receiver.getOrganization() != null && receiver.getOrganization().getName() != null
+                                ? receiver.getOrganization().getName()
+                                : receiver.getFullName();
+                            
+                            // Send WebSocket notification to receiver that donation was completed (if preference allows)
+                            try {
+                                logger.info("Checking websocket preference for receiver userId={} for donationCompleted notification", receiver.getId());
+                                
+                                if (notificationPreferenceService.shouldSendNotification(receiver, "donationCompleted", "websocket")) {
+                                    logger.info("Receiver {} has websocket notifications enabled for donationCompleted, sending websocket notification", receiver.getId());
+                                    
+                                    Map<String, Object> receiverNotification = new HashMap<>();
+                                    receiverNotification.put("type", "DONATION_COMPLETED");
+                                    receiverNotification.put("donationId", post.getId());
+                                    receiverNotification.put("title", post.getTitle());
+                                    receiverNotification.put("message", "Donation Completed");
+                                    receiverNotification.put("timestamp", System.currentTimeMillis());
+                                    
+                                    messagingTemplate.convertAndSendToUser(
+                                        receiver.getId().toString(),
+                                        "/queue/donations/completed",
+                                        receiverNotification
+                                    );
+                                    logger.info("Successfully sent donation completed websocket notification to receiver userId={} for postId={}", receiver.getId(), post.getId());
+                                } else {
+                                    logger.info("Receiver {} has websocket notifications disabled for donationCompleted, skipping websocket notification", receiver.getId());
+                                }
+                            } catch (Exception e) {
+                                logger.error("Failed to send donation completed websocket notification to receiver: {}", e.getMessage(), e);
+                            }
+                            
+                            // Send email notification to receiver that donation was completed (if preference allows)
+                            try {
+                                logger.info("Checking email preference for receiver userId={} for donationCompleted notification", receiver.getId());
+                                
+                                if (notificationPreferenceService.shouldSendNotification(receiver, "donationCompleted", "email")) {
+                                    logger.info("Receiver {} has email notifications enabled for donationCompleted, sending email", receiver.getId());
+                                    
+                                    String donorName = donor.getOrganization() != null && donor.getOrganization().getName() != null 
+                                        ? donor.getOrganization().getName() 
+                                        : donor.getFullName();
+                                    
+                                    Map<String, Object> donationData = new HashMap<>();
+                                    donationData.put("donationTitle", post.getTitle());
+                                    donationData.put("quantity", post.getQuantity().getValue() + " " + post.getQuantity().getUnit().getLabel());
+                                    donationData.put("donorName", donorName);
+                                    
+                                    emailService.sendDonationCompletedNotification(
+                                        receiver.getEmail(),
+                                        receiverName,
+                                        donationData
+                                    );
+                                    
+                                    logger.info("Successfully sent donation completed email to receiver userId={} email={}", receiver.getId(), receiver.getEmail());
+                                } else {
+                                    logger.info("Receiver {} has email notifications disabled for donationCompleted or email globally disabled, skipping email", receiver.getId());
+                                }
+                            } catch (Exception e) {
+                                logger.error("Failed to send donation completed email notification to receiver: {}", e.getMessage(), e);
+                                // Don't throw - email is secondary to main functionality
+                            }
+                            
+                            // Send email notification to donor that donation was picked up (with preference checking)
+                            try {
+                                logger.info("Checking email preference for donor userId={} for donationPickedUp notification", donor.getId());
+                                
+                                if (notificationPreferenceService.shouldSendNotification(donor, "donationPickedUp", "email")) {
+                                    logger.info("Donor {} has email notifications enabled for donationPickedUp, sending email", donor.getId());
+                                    
+                                    // Prepare notification data
+                                    String donorName = donor.getOrganization() != null && donor.getOrganization().getName() != null 
+                                        ? donor.getOrganization().getName() 
+                                        : donor.getFullName();
+                                    
+                                    Map<String, Object> donationData = new HashMap<>();
+                                    donationData.put("donationTitle", post.getTitle());
+                                    donationData.put("quantity", post.getQuantity().getValue() + " " + post.getQuantity().getUnit().getLabel());
+                                    donationData.put("receiverName", receiverName);
+                                    
+                                    emailService.sendDonationPickedUpNotification(
+                                        donor.getEmail(),
+                                        donorName,
+                                        donationData
+                                    );
+                                    
+                                    logger.info("Successfully sent donation picked up email to donor userId={} email={}", donor.getId(), donor.getEmail());
+                                } else {
+                                    logger.info("Donor {} has email notifications disabled for donationPickedUp or email globally disabled, skipping email", donor.getId());
+                                }
+                            } catch (Exception e) {
+                                logger.error("Failed to send donation picked up email notification to donor: {}", e.getMessage(), e);
+                            }
+                        } else {
+                            logger.info("Claim claimId={} already completed, skipping notification", claim.getId());
+                        }
+                    },
+                    () -> logger.warn("No claim found for postId={}, skipping receiver notification", post.getId())
+                );
+
+
 
         businessMetricsService.incrementSurplusPostCompleted();
         businessMetricsService.recordTimer(sample, "surplus.service.complete", "status", "complete");
@@ -889,6 +1388,7 @@ public class SurplusService {
 
         post.setStatus(PostStatus.COMPLETED);
         post.setOtpCode(null);
+        foodTypeImpactService.applyImpactSnapshot(post);
 
         surplusPostRepository.save(post);
 

@@ -68,8 +68,11 @@ describe('ReceiverRegistration', () => {
       screen.getByLabelText(/email address/i),
       'test@example.com'
     );
-    await user.type(screen.getByLabelText(/^password$/i), 'password123');
-    await user.type(screen.getByLabelText(/confirm password/i), 'password123');
+    await user.type(screen.getByLabelText(/^password$/i), 'SecurePass123!');
+    await user.type(
+      screen.getByLabelText(/confirm password/i),
+      'SecurePass123!'
+    );
     await user.click(screen.getByRole('button', { name: /next/i }));
 
     // Step 2: Organization
@@ -116,7 +119,7 @@ describe('ReceiverRegistration', () => {
     renderWithAuth(<ReceiverRegistration />);
 
     await user.type(screen.getByLabelText(/email address/i), 'a@b.com');
-    await user.type(screen.getByLabelText(/^password$/i), 'password123');
+    await user.type(screen.getByLabelText(/^password$/i), 'SecurePass123!');
     await user.type(screen.getByLabelText(/confirm password/i), 'different');
     await user.click(screen.getByRole('button', { name: /next/i }));
 
@@ -139,8 +142,11 @@ describe('ReceiverRegistration', () => {
       screen.getByLabelText(/email address/i),
       'test@example.com'
     );
-    await user.type(screen.getByLabelText(/^password$/i), 'password123');
-    await user.type(screen.getByLabelText(/confirm password/i), 'password123');
+    await user.type(screen.getByLabelText(/^password$/i), 'SecurePass123!');
+    await user.type(
+      screen.getByLabelText(/confirm password/i),
+      'SecurePass123!'
+    );
     await user.click(screen.getByRole('button', { name: /next/i }));
 
     await waitFor(() => {
@@ -163,10 +169,13 @@ describe('ReceiverRegistration', () => {
     expect(email).toHaveValue('test@example.com');
 
     const password = screen.getByLabelText(/^password$/i);
-    await user.type(password, 'password123');
-    expect(password).toHaveValue('password123');
+    await user.type(password, 'SecurePass123!');
+    expect(password).toHaveValue('SecurePass123!');
 
-    await user.type(screen.getByLabelText(/confirm password/i), 'password123');
+    await user.type(
+      screen.getByLabelText(/confirm password/i),
+      'SecurePass123!'
+    );
     await user.click(screen.getByRole('button', { name: /next/i }));
 
     await screen.findByLabelText(/organization name/i);
@@ -214,10 +223,10 @@ describe('ReceiverRegistration', () => {
       screen.getByLabelText(/^email address$/i),
       'existing@example.com'
     );
-    await user.type(screen.getByLabelText(/^password$/i), 'password123');
+    await user.type(screen.getByLabelText(/^password$/i), 'SecurePass123!');
     await user.type(
       screen.getByLabelText(/^confirm password$/i),
-      'password123'
+      'SecurePass123!'
     );
     await user.click(screen.getByRole('button', { name: /next/i }));
 
@@ -243,10 +252,10 @@ describe('ReceiverRegistration', () => {
       screen.getByLabelText(/^email address$/i),
       'new@example.com'
     );
-    await user.type(screen.getByLabelText(/^password$/i), 'password123');
+    await user.type(screen.getByLabelText(/^password$/i), 'SecurePass123!');
     await user.type(
       screen.getByLabelText(/^confirm password$/i),
-      'password123'
+      'SecurePass123!'
     );
     await user.click(screen.getByRole('button', { name: /next/i }));
 
@@ -272,10 +281,10 @@ describe('ReceiverRegistration', () => {
       screen.getByLabelText(/^email address$/i),
       'receiver@example.com'
     );
-    await user.type(screen.getByLabelText(/^password$/i), 'password1234');
+    await user.type(screen.getByLabelText(/^password$/i), 'SecurePass123!4');
     await user.type(
       screen.getByLabelText(/^confirm password$/i),
-      'password1234'
+      'SecurePass123!4'
     );
     await user.click(screen.getByRole('button', { name: /next/i }));
 
@@ -338,10 +347,10 @@ describe('ReceiverRegistration', () => {
         screen.getByLabelText(/^email address$/i),
         'receiver@example.com'
       );
-      await user.type(screen.getByLabelText(/^password$/i), 'password123');
+      await user.type(screen.getByLabelText(/^password$/i), 'SecurePass123!');
       await user.type(
         screen.getByLabelText(/^confirm password$/i),
-        'password123'
+        'SecurePass123!'
       );
       await user.click(screen.getByRole('button', { name: /next/i }));
 
@@ -393,10 +402,10 @@ describe('ReceiverRegistration', () => {
         screen.getByLabelText(/^email address$/i),
         'receiver@example.com'
       );
-      await user.type(screen.getByLabelText(/^password$/i), 'password123');
+      await user.type(screen.getByLabelText(/^password$/i), 'SecurePass123!');
       await user.type(
         screen.getByLabelText(/^confirm password$/i),
-        'password123'
+        'SecurePass123!'
       );
       await user.click(screen.getByRole('button', { name: /next/i }));
 
@@ -450,10 +459,10 @@ describe('ReceiverRegistration', () => {
         screen.getByLabelText(/^email address$/i),
         'receiver@example.com'
       );
-      await user.type(screen.getByLabelText(/^password$/i), 'password123');
+      await user.type(screen.getByLabelText(/^password$/i), 'SecurePass123!');
       await user.type(
         screen.getByLabelText(/^confirm password$/i),
-        'password123'
+        'SecurePass123!'
       );
       await user.click(screen.getByRole('button', { name: /next/i }));
 
@@ -521,10 +530,10 @@ describe('ReceiverRegistration', () => {
         screen.getByLabelText(/^email address$/i),
         'receiver@example.com'
       );
-      await user.type(screen.getByLabelText(/^password$/i), 'password123');
+      await user.type(screen.getByLabelText(/^password$/i), 'SecurePass123!');
       await user.type(
         screen.getByLabelText(/^confirm password$/i),
-        'password123'
+        'SecurePass123!'
       );
       await user.click(screen.getByRole('button', { name: /next/i }));
 

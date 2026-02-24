@@ -21,6 +21,37 @@
   padding: 24px;
 }
 
+.receiver-saved-notification {
+  position: fixed;
+  top: 92px;
+  right: 28px;
+  z-index: 1200;
+  background: linear-gradient(135deg, #1b4965 0%, #256f9a 100%);
+  color: #f8fbff;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 12px;
+  padding: 14px 20px;
+  min-width: 250px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  box-shadow:
+    0 12px 30px rgba(27, 73, 101, 0.3),
+    0 2px 8px rgba(15, 23, 42, 0.2);
+  animation: savedNotifIn 0.28s ease-out;
+}
+
+@keyframes savedNotifIn {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 /* Header with title and controls */
 .receiver-browse-header {
   display: flex;
@@ -167,6 +198,16 @@
 
 .receiver-donation-card:hover {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.receiver-donation-card--focused {
+  border-left-color: #14b8a6;
+  border-top-color: #14b8a6;
+  border-right-color: #14b8a6;
+  border-bottom-color: #14b8a6;
+  box-shadow:
+    0 0 0 3px rgba(20, 184, 166, 0.2),
+    0 10px 24px rgba(15, 23, 42, 0.14);
 }
 
 /* Image section */
@@ -375,6 +416,31 @@
   font-size: 10px;
 }
 
+.receiver-expiring-soon-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #b45309;
+  background: #fff7ed;
+  color: #b45309;
+}
+
+.receiver-predicted-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #1d4ed8;
+  background: #eff6ff;
+  color: #1d4ed8;
+  text-transform: lowercase;
+}
+
 /* Info row */
 .receiver-donation-info {
   display: flex;
@@ -492,6 +558,7 @@
   display: flex;
   flex-direction: row;
   gap: 5px;
+  flex-wrap: wrap;
 }
 
 .receiver-category-tag {
@@ -502,6 +569,45 @@
   border-radius: 16px;
   font-size: 12px;
   font-weight: 600;
+}
+
+.receiver-food-type-row {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.receiver-food-type-chip {
+  padding: 4px 10px;
+  border-radius: 16px;
+  background: #ecfeff;
+  border: 1px solid #a5f3fc;
+  color: #155e75;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.receiver-dietary-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  max-height: 56px;
+  overflow: hidden;
+}
+
+.receiver-dietary-tag {
+  padding: 4px 10px;
+  border-radius: 16px;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  color: #3730a3;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.receiver-dietary-tag.overflow {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #475569;
 }
 
 .receiver-donor-info {
@@ -761,6 +867,27 @@
   margin-left: auto;
 }
 
+.receiver-interest-button {
+  padding: 10px 20px;
+  background: #38a169;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.receiver-interest-button:hover {
+  background: #2f855a;
+}
+
+.receiver-interest-button:disabled {
+  background: #a0aec0;
+  cursor: not-allowed;
+}
+
 .receiver-claim-button {
   padding: 10px 20px;
   background: #1b4965;
@@ -923,6 +1050,7 @@
     width: 100%;
   }
 
+  .receiver-interest-button,
   .receiver-claim-button,
   .receiver-more-button {
     width: auto;

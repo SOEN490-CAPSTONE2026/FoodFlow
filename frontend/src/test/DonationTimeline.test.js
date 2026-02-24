@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom';
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import DonationTimeline from '../components/shared/DonationTimeline';
 
 // Mock Lucide icons
@@ -370,6 +370,34 @@ describe('DonationTimeline Component', () => {
 
       consoleErrorSpy.mockRestore();
     });
+
+    it('should fallback to dash when date formatting throws', () => {
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      const toLocaleSpy = jest
+        .spyOn(Date.prototype, 'toLocaleString')
+        .mockImplementation(() => {
+          throw new Error('format failed');
+        });
+
+      const timeline = [
+        {
+          eventType: 'TEST_EVENT',
+          timestamp: '2026-01-11T10:30:00',
+          actor: 'test',
+          visibleToUsers: true,
+        },
+      ];
+
+      render(<DonationTimeline timeline={timeline} loading={false} />);
+
+      expect(screen.getByText('—')).toBeInTheDocument();
+      expect(consoleErrorSpy).toHaveBeenCalled();
+
+      toLocaleSpy.mockRestore();
+      consoleErrorSpy.mockRestore();
+    });
   });
 
   describe('Component Structure', () => {
@@ -618,6 +646,129 @@ describe('DonationTimeline Component', () => {
 
       const evidenceImage = screen.getByAltText('Pickup evidence');
       expect(evidenceImage).toHaveClass('evidence-thumbnail');
+    });
+
+    it('should render camera icon for pickup evidence upload event', () => {
+      render(
+        <DonationTimeline timeline={mockTimelineWithEvidence} loading={false} />
+      );
+
+      expect(screen.getByTestId('camera-icon')).toBeInTheDocument();
+    });
+
+    it('should normalize /uploads evidence URL', () => {
+      const timelineWithLegacyUpload = [
+        {
+          id: 9,
+          eventType: 'PICKUP_EVIDENCE_UPLOADED',
+          timestamp: '2026-01-11T14:00:00',
+          actor: 'donor',
+          visibleToUsers: true,
+          pickupEvidenceUrl: '/uploads/evidence-legacy.jpg',
+        },
+      ];
+
+      render(
+        <DonationTimeline timeline={timelineWithLegacyUpload} loading={false} />
+      );
+
+      const evidenceImage = screen.getByAltText('Pickup evidence');
+      expect(evidenceImage).toHaveAttribute(
+        'src',
+        expect.stringContaining('/api/files/uploads/evidence-legacy.jpg')
+      );
+    });
+
+    it('should keep full evidence URL unchanged', () => {
+      const timelineWithAbsoluteEvidence = [
+        {
+          id: 10,
+          eventType: 'PICKUP_EVIDENCE_UPLOADED',
+          timestamp: '2026-01-11T14:00:00',
+          actor: 'donor',
+          visibleToUsers: true,
+          pickupEvidenceUrl: 'https://cdn.example.com/evidence/photo.jpg',
+        },
+      ];
+
+      render(
+        <DonationTimeline
+          timeline={timelineWithAbsoluteEvidence}
+          loading={false}
+        />
+      );
+
+      const evidenceImage = screen.getByAltText('Pickup evidence');
+      expect(evidenceImage).toHaveAttribute(
+        'src',
+        'https://cdn.example.com/evidence/photo.jpg'
+      );
+    });
+
+    it('should map fallback relative evidence URL to /api/files', () => {
+      const timelineWithFallbackPath = [
+        {
+          id: 11,
+          eventType: 'PICKUP_EVIDENCE_UPLOADED',
+          timestamp: '2026-01-11T14:00:00',
+          actor: 'donor',
+          visibleToUsers: true,
+          pickupEvidenceUrl: 'evidence/fallback-photo.jpg',
+        },
+      ];
+
+      render(
+        <DonationTimeline timeline={timelineWithFallbackPath} loading={false} />
+      );
+
+      const evidenceImage = screen.getByAltText('Pickup evidence');
+      expect(evidenceImage).toHaveAttribute(
+        'src',
+        expect.stringContaining('/api/files/evidence/fallback-photo.jpg')
+      );
+    });
+
+    it('should open and close enlarged evidence modal', async () => {
+      render(
+        <DonationTimeline timeline={mockTimelineWithEvidence} loading={false} />
+      );
+
+      fireEvent.click(screen.getByAltText('Pickup evidence'));
+      expect(
+        screen.getByAltText('Pickup evidence enlarged')
+      ).toBeInTheDocument();
+      expect(screen.getByTestId('x-icon')).toBeInTheDocument();
+
+      fireEvent.click(document.querySelector('.evidence-modal-content'));
+      expect(
+        screen.getByAltText('Pickup evidence enlarged')
+      ).toBeInTheDocument();
+
+      fireEvent.click(document.querySelector('.evidence-modal-overlay'));
+      await waitFor(() => {
+        expect(
+          screen.queryByAltText('Pickup evidence enlarged')
+        ).not.toBeInTheDocument();
+      });
+    });
+
+    it('should close enlarged evidence modal with close button', async () => {
+      render(
+        <DonationTimeline timeline={mockTimelineWithEvidence} loading={false} />
+      );
+
+      fireEvent.click(screen.getByAltText('Pickup evidence'));
+      expect(
+        screen.getByAltText('Pickup evidence enlarged')
+      ).toBeInTheDocument();
+
+      fireEvent.click(document.querySelector('.evidence-modal-close'));
+
+      await waitFor(() => {
+        expect(
+          screen.queryByAltText('Pickup evidence enlarged')
+        ).not.toBeInTheDocument();
+      });
     });
   });
 });

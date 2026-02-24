@@ -5,7 +5,6 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class MetricsServiceTest {
@@ -219,7 +218,6 @@ class MetricsServiceTest {
     void testAllCountersStartAtZero() {
         // Given - Fresh service
         MeterRegistry freshRegistry = new SimpleMeterRegistry();
-        MetricsService freshService = new MetricsService(freshRegistry);
 
         // Then - All counters should exist and start at 0
         assertEquals(0.0, freshRegistry.counter("user.registrations.total").count());

@@ -45,7 +45,7 @@ class AuthControllerIntegrationTest {
         // Given - may fail validation if required fields are missing
         RegisterDonorRequest request = new RegisterDonorRequest();
         request.setEmail("donor@test.com");
-        request.setPassword("Password123!");
+        request.setPassword("TestSecure123!");
         request.setPhone("+1234567890");
         request.setOrganizationName("Donor Org");
         
@@ -64,7 +64,7 @@ class AuthControllerIntegrationTest {
         // Given
         RegisterDonorRequest request = new RegisterDonorRequest();
         request.setEmail("existing@test.com");
-        request.setPassword("Password123!");
+        request.setPassword("TestSecure123!");
         request.setPhone("+1234567890");
         request.setOrganizationName("Test Org");
         
@@ -83,7 +83,7 @@ class AuthControllerIntegrationTest {
         // Given - may fail validation if required fields are missing
         RegisterReceiverRequest request = new RegisterReceiverRequest();
         request.setEmail("receiver@test.com");
-        request.setPassword("Password123!");
+        request.setPassword("TestSecure123!");
         request.setPhone("+1987654321");
         request.setOrganizationName("Receiver Org");
         
@@ -102,7 +102,7 @@ class AuthControllerIntegrationTest {
         // Given
         LoginRequest request = new LoginRequest();
         request.setEmail("user@test.com");
-        request.setPassword("Password123!");
+        request.setPassword("TestSecure123!");
         
         AuthResponse response = new AuthResponse("jwt-token", "user@test.com", "DONOR", "Login successful");
         when(authService.login(any(LoginRequest.class))).thenReturn(response);
@@ -205,7 +205,7 @@ class AuthControllerIntegrationTest {
         ResetPasswordRequest request = new ResetPasswordRequest();
         request.setEmail("user@test.com");
         request.setCode("123456");
-        request.setNewPassword("NewPassword123!");
+        request.setNewPassword("NewTestSecure123!");
         
         when(authService.resetPassword(anyString(), anyString(), anyString(), anyString()))
             .thenReturn(Map.of("message", "Password reset successful"));
@@ -230,9 +230,9 @@ class AuthControllerIntegrationTest {
         );
         
         ChangePasswordRequest request = new ChangePasswordRequest();
-        request.setCurrentPassword("OldPassword123!");
-        request.setNewPassword("NewPassword123!");
-        request.setConfirmPassword("NewPassword123!");
+        request.setCurrentPassword("OldTestSecure123!");
+        request.setNewPassword("NewTestSecure123!");
+        request.setConfirmPassword("NewTestSecure123!");
         
         when(authService.changePassword(any(User.class), anyString(), anyString(), anyString()))
             .thenReturn(Map.of("message", "Password changed successfully"));

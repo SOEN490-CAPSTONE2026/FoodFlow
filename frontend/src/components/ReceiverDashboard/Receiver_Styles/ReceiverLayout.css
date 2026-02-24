@@ -48,6 +48,19 @@ body {
   gap: 40px;
 }
 
+/* Hamburger toggle — hidden on desktop */
+.receiver-menu-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: #1b4965;
+  cursor: pointer;
+  padding: 5px;
+  z-index: 1001;
+}
+
 .receiver-nav-link {
   text-decoration: none;
   color: #1b4965;
@@ -59,6 +72,27 @@ body {
   white-space: nowrap;
 }
 
+.receiver-nav-link--with-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.receiver-nav-count-badge {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  line-height: 20px;
+  font-weight: 700;
+  background: rgba(27, 73, 101, 0.12);
+  color: #1b4965;
+}
+
 .receiver-nav-link:hover {
   background: #f0f9ff;
   color: #62b6cb;
@@ -68,6 +102,11 @@ body {
   background: #1b4965;
   color: #fff;
   font-weight: 600;
+}
+
+.receiver-nav-link.active .receiver-nav-count-badge {
+  background: rgba(255, 255, 255, 0.28);
+  color: #fff;
 }
 
 .receiver-main {
@@ -214,16 +253,42 @@ body {
     padding: 1rem 5%;
     height: auto;
     min-height: 60px;
+    padding-right: 160px;
+  }
+
+  .receiver-menu-toggle {
+    display: flex;
   }
 
   .receiver-nav-links {
-    gap: 20px;
-    overflow-x: auto;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: white;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    display: none;
+    flex-direction: column;
+    gap: 0;
+    padding: 1rem 0;
+    z-index: 999;
+  }
+
+  .receiver-nav-links.active {
+    display: flex;
   }
 
   .receiver-nav-link {
-    font-size: 14px;
-    padding: 6px 12px;
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 1rem 0;
+    font-size: 1.1rem;
+    border-radius: 0;
+  }
+
+  .receiver-nav-link.active {
+    border-radius: 0;
   }
 
   .receiver-topbar {
@@ -245,24 +310,17 @@ body {
 @media (max-width: 576px) {
   .receiver-sidebar {
     padding: 0.8rem 5%;
-    flex-wrap: wrap;
     height: auto;
+    padding-right: 140px;
   }
 
   .receiver-sidebar-header h2 {
     font-size: 16px;
   }
 
-  .receiver-nav-links {
-    gap: 12px;
-    width: 100%;
-    justify-content: flex-start;
-    padding-top: 10px;
-  }
-
   .receiver-nav-link {
-    font-size: 13px;
-    padding: 6px 10px;
+    font-size: 1rem;
+    padding: 0.9rem 0;
   }
 
   .receiver-topbar {
@@ -338,17 +396,21 @@ body {
 
 @media (max-width: 968px) {
   .receiver-nav-links {
-    width: calc(100% - 320px);
-    justify-content: space-evenly;
+    position: absolute;
+    left: 0;
+    transform: none;
+    width: 100%;
+    justify-content: center;
   }
 }
 
 @media (max-width: 576px) {
   .receiver-nav-links {
-    position: static;
+    position: absolute;
+    left: 0;
     transform: none;
     width: 100%;
-    justify-content: space-between;
+    justify-content: center;
   }
 }
 

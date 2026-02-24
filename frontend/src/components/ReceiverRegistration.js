@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { authAPI } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
 import ReceiverIllustration from '../assets/illustrations/receiver-ilustration.jpg';
+import { validatePassword } from '../utils/passwordValidation';
 
 import '../style/Registration.css';
 
@@ -105,8 +106,11 @@ const ReceiverRegistration = () => {
       case 'password':
         if (!value) {
           errorMsg = t('receiverRegistration.passwordRequired');
-        } else if (value.length < 8) {
-          errorMsg = t('receiverRegistration.passwordMinLength');
+        } else {
+          const passwordErrors = validatePassword(value);
+          if (passwordErrors.length > 0) {
+            errorMsg = passwordErrors.join('; ');
+          }
         }
         break;
       case 'confirmPassword':
@@ -222,8 +226,11 @@ const ReceiverRegistration = () => {
 
         if (!formData.password) {
           errors.password = t('receiverRegistration.passwordRequired');
-        } else if (formData.password.length < 8) {
-          errors.password = t('receiverRegistration.passwordMinLength');
+        } else {
+          const passwordErrors = validatePassword(formData.password);
+          if (passwordErrors.length > 0) {
+            errors.password = passwordErrors.join('; ');
+          }
         }
 
         if (!formData.confirmPassword) {
@@ -638,7 +645,10 @@ const ReceiverRegistration = () => {
                   {showPassword ? 'Hide' : 'Show'}
                 </button>
               </div>
-              <small>Minimum 8 characters</small>
+              <small>
+                Minimum 10 characters, must include uppercase, lowercase, digit,
+                and special character
+              </small>
               {fieldErrors.password && (
                 <span className="error-text">{fieldErrors.password}</span>
               )}

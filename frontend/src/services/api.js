@@ -135,8 +135,16 @@ export const surplusAPI = {
   list: () => api.get('/surplus'), // Just /surplus, not /api/surplus
   getMyPosts: () => api.get('/surplus/my-posts'),
   getPost: id => api.get(`/surplus/${id}`),
-  create: data => api.post('/surplus', data),
-  update: (id, data) => api.put(`/surplus/${id}`, data),
+  create: data =>
+    api.post('/surplus', {
+      ...data,
+      dietaryTags: Array.isArray(data?.dietaryTags) ? data.dietaryTags : [],
+    }),
+  update: (id, data) =>
+    api.put(`/surplus/${id}`, {
+      ...data,
+      dietaryTags: Array.isArray(data?.dietaryTags) ? data.dietaryTags : [],
+    }),
   // claim now accepts an optional `slot` parameter. If `slot` has an `id` we send `pickupSlotId`,
   // otherwise we include the slot object as `pickupSlot` so the backend can interpret it.
   deletePost: id => api.delete(`/surplus/${id}/delete`),
@@ -175,9 +183,18 @@ export const surplusAPI = {
 
     // Only add fields if they have actual values
     if (filters.foodType && filters.foodType.length > 0) {
-      filterRequest.foodCategories = filters.foodType.map(
+      filterRequest.foodTypes = filters.foodType.map(
         mapFrontendCategoryToBackend
       );
+    }
+
+    if (filters.dietaryTags && filters.dietaryTags.length > 0) {
+      filterRequest.dietaryTags = filters.dietaryTags;
+      filterRequest.dietaryMatch = filters.dietaryMatch || 'ANY';
+    }
+
+    if (filters.sort) {
+      filterRequest.sort = filters.sort;
     }
 
     if (filters.expiryBefore) {
@@ -207,9 +224,19 @@ export const surplusAPI = {
     const params = new URLSearchParams();
 
     if (filters.foodType && filters.foodType.length > 0) {
-      filters.foodType.forEach(category => {
-        params.append('foodCategories', mapFrontendCategoryToBackend(category));
-      });
+      const mappedFoodTypes = filters.foodType
+        .map(category => mapFrontendCategoryToBackend(category))
+        .join(',');
+      params.append('foodType', mappedFoodTypes);
+    }
+
+    if (filters.dietaryTags && filters.dietaryTags.length > 0) {
+      params.append('dietaryTags', filters.dietaryTags.join(','));
+      params.append('dietaryMatch', filters.dietaryMatch || 'ANY');
+    }
+
+    if (filters.sort) {
+      params.append('sort', filters.sort);
     }
 
     if (filters.expiryBefore) {
@@ -246,10 +273,58 @@ export const surplusAPI = {
 };
 
 export const claimsAPI = {
-  myClaims: () => api.get('/claims/my-claims'), // ✅ No /api prefix
+  myClaims: () => api.get('/claims/my-claims'),
   claim: postId => api.post('/claims', { surplusPostId: postId }),
   cancel: claimId => api.delete(`/claims/${claimId}`),
   getClaimForSurplusPost: postId => api.get(`/claims/post/${postId}`),
+};
+
+/**
+ * Saved Donations API functions
+ */
+export const savedDonationAPI = {
+  /**
+   * Get all saved donations for the current user
+   * @returns {Promise} List of saved donations
+   */
+  getSavedDonations: () => api.get('/receiver/saved'),
+
+  /**
+   * Save a donation
+   * @param {number} donationId - Donation ID to save
+   * @returns {Promise} Response data
+   */
+  save: donationId => api.post(`/receiver/saved/${donationId}`),
+
+  /**
+   * Unsave a donation
+   * @param {number} donationId - Donation ID to unsave
+   * @returns {Promise} Response data
+   */
+  unsave: donationId => api.delete(`/receiver/saved/${donationId}`),
+
+  /**
+   * Check if a donation is saved
+   * @param {number} donationId - Donation ID to check
+   * @returns {Promise} Boolean indicating if saved
+   */
+  isSaved: donationId => api.get(`/receiver/saved/check/${donationId}`),
+
+  /**
+   * Get total number of saved donations for current user
+   * @returns {Promise} Count of saved donations
+   */
+  getSavedCount: () => api.get('/receiver/saved/count'),
+};
+
+export const conversationAPI = {
+  expressInterest: postId => api.post(`/conversations/interested/${postId}`),
+  createOrGetPostConversation: (postId, otherUserId) =>
+    api.post(`/conversations/post/${postId}`, { otherUserId }),
+  getConversations: () => api.get('/conversations'),
+  getConversation: convId => api.get(`/conversations/${convId}`),
+  getMessages: convId => api.get(`/conversations/${convId}/messages`),
+  markAsRead: convId => api.put(`/conversations/${convId}/read`),
 };
 
 /**
@@ -632,6 +707,29 @@ export const rateLimitAPI = {
   },
 };
 
+// Impact Dashboard API
+export const impactDashboardAPI = {
+  /**
+   * Get impact metrics for current user based on their role
+   * @param {string} dateRange - Date range filter: 'WEEKLY', 'MONTHLY', 'ALL_TIME'
+   * @returns {Promise} Impact metrics including food weight, meals, CO2, water saved
+   */
+  getMetrics: (dateRange = 'ALL_TIME') =>
+    api.get('/impact-dashboard/metrics', {
+      params: { dateRange },
+    }),
+
+  /**
+   * Export impact metrics as CSV
+   * @param {string} dateRange - Date range filter: 'WEEKLY', 'MONTHLY', 'ALL_TIME'
+   * @returns {Promise} CSV file download
+   */
+  exportMetrics: (dateRange = 'ALL_TIME') =>
+    api.get('/impact-dashboard/export', {
+      params: { dateRange },
+      responseType: 'blob',
+    }),
+};
 // Export the core axios instance for backward compatibility
 // Safely bind methods with fallbacks for testing
 export const post =

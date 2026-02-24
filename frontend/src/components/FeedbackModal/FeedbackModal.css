@@ -183,3 +183,114 @@
   font-size: 14px;
   margin: 16px 0;
 }
+
+/* ===== Mobile Responsive Styles ===== */
+@media (max-width: 768px) {
+  .feedback-modal {
+    width: 90%;
+    padding: 28px 24px;
+  }
+
+  .feedback-title {
+    font-size: 20px;
+  }
+
+  .feedback-subtitle {
+    font-size: 13px;
+  }
+
+  .star-btn svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .feedback-textarea {
+    min-height: 90px;
+    font-size: 13px;
+  }
+
+  .feedback-actions {
+    gap: 10px;
+  }
+
+  .feedback-cancel,
+  .feedback-submit {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .feedback-modal {
+    width: 95%;
+    max-width: 95%;
+    padding: 24px 20px;
+  }
+
+  .feedback-title {
+    font-size: 18px;
+  }
+
+  .feedback-subtitle {
+    font-size: 12px;
+    margin-bottom: 20px;
+  }
+
+  .feedback-stars {
+    gap: 6px;
+  }
+
+  .star-btn {
+    padding: 6px;
+  }
+
+  .star-btn svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .feedback-textarea {
+    min-height: 80px;
+    font-size: 12px;
+    padding: 10px;
+  }
+
+  .feedback-actions {
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .feedback-cancel,
+  .feedback-submit {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+
+  .feedback-already {
+    padding: 20px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 375px) {
+  .feedback-modal {
+    padding: 20px 16px;
+  }
+
+  .feedback-close {
+    top: 12px;
+    right: 12px;
+  }
+
+  .feedback-title {
+    font-size: 16px;
+    margin-bottom: 6px;
+  }
+
+  .star-btn svg {
+    width: 22px;
+    height: 22px;
+  }
+}

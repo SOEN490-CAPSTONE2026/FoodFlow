@@ -34,6 +34,7 @@ public class NotificationService {
     private final NotificationPreferenceService notificationPreferenceService;
     private final BusinessMetricsService businessMetricsService;
     private final EmailService emailService;
+    private final SmsService smsService;
     
     public NotificationService(
             SimpMessagingTemplate messagingTemplate,
@@ -42,7 +43,8 @@ public class NotificationService {
             UserRepository userRepository,
             NotificationPreferenceService notificationPreferenceService,
             BusinessMetricsService businessMetricsService,
-            EmailService emailService) {
+            EmailService emailService,
+            SmsService smsService) {
         this.messagingTemplate = messagingTemplate;
         this.receiverPreferencesRepository = receiverPreferencesRepository;
         this.claimRepository = claimRepository;
@@ -50,6 +52,7 @@ public class NotificationService {
         this.notificationPreferenceService = notificationPreferenceService;
         this.businessMetricsService = businessMetricsService;
         this.emailService = emailService;
+        this.smsService = smsService;
     }
     
     /**
@@ -307,6 +310,27 @@ public class NotificationService {
                 // Don't fail the whole operation if email fails
             }
         }
+        
+        // Send SMS notification if user has SMS notifications enabled
+        if (notificationPreferenceService.shouldSendNotification(receiver, "newDonationAvailable", "sms")) {
+            // Check if user has a valid phone number
+            if (hasValidPhoneNumber(receiver)) {
+                try {
+                    String userName = getReceiverName(receiver);
+                    boolean smsSent = smsService.sendNewDonationNotification(receiver.getPhone(), userName, notification);
+                    if (smsSent) {
+                        logger.info("Sent SMS notification to receiverId={} for postId={}", receiver.getId(), surplusPost.getId());
+                    } else {
+                        logger.warn("SMS notification failed for receiverId={} - falling back to email only", receiver.getId());
+                    }
+                } catch (Exception e) {
+                    logger.error("Failed to send SMS notification to receiverId={}: {}", receiver.getId(), e.getMessage());
+                    // Don't fail the whole operation if SMS fails
+                }
+            } else {
+                logger.warn("Cannot send SMS to receiverId={} - no valid phone number. User should add phone in Settings.", receiver.getId());
+            }
+        }
     }
     
     /**
@@ -317,5 +341,20 @@ public class NotificationService {
             return receiver.getOrganization().getName();
         }
         return "Receiver";
+    }
+    
+    /**
+     * Check if user has a valid phone number for SMS notifications
+     */
+    private boolean hasValidPhoneNumber(User user) {
+        if (user == null || user.getPhone() == null || user.getPhone().trim().isEmpty()) {
+            return false;
+        }
+        
+        String phone = user.getPhone().trim();
+        
+        // E.164 format validation: +[country code][number] (e.g., +12345678901)
+        // Must start with +, followed by 1-15 digits
+        return phone.matches("^\\+[1-9]\\d{1,14}$");
     }
 }

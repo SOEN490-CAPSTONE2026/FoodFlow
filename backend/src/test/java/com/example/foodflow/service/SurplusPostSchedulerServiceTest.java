@@ -50,6 +50,18 @@ class SurplusPostSchedulerServiceTest {
     @Mock
     private TimelineService timelineService;
 
+    @Mock
+    private NotificationPreferenceService notificationPreferenceService;
+
+    @Mock
+    private EmailService emailService;
+
+    @Mock
+    private SmsService smsService;
+
+    @Mock
+    private org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
+
     @InjectMocks
     private SurplusPostSchedulerService schedulerService;
 
@@ -78,7 +90,14 @@ class SurplusPostSchedulerServiceTest {
         receiver = new User();
         receiver.setId(2L);
         receiver.setEmail("receiver@test.com");
+        receiver.setFullName("Test Receiver");
         receiver.setRole(UserRole.RECEIVER);
+        
+        Organization receiverOrg = new Organization();
+        receiverOrg.setId(2L);
+        receiverOrg.setName("Test Charity");
+        receiverOrg.setOrganizationType(OrganizationType.CHARITY);
+        receiver.setOrganization(receiverOrg);
 
         // Create test posts
         availablePost = createTestPost(1L, PostStatus.AVAILABLE);
@@ -442,6 +461,16 @@ class SurplusPostSchedulerServiceTest {
         }
     }
 
+    private void enableAutoFlagging() {
+        try {
+            Field enableAutoFlaggingField = SurplusPostSchedulerService.class.getDeclaredField("enableAutoFlagging");
+            enableAutoFlaggingField.setAccessible(true);
+            enableAutoFlaggingField.set(schedulerService, true);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to enable auto-flagging", e);
+        }
+    }
+
     // ==================== Tests for Pickup Tolerance Feature ====================
 
     @Test
@@ -525,7 +554,9 @@ class SurplusPostSchedulerServiceTest {
     void testToleranceConfiguration_DefaultValues() {
         // Given - New scheduler service instance with default tolerance values
         SurplusPostSchedulerService freshService = new SurplusPostSchedulerService(
-                surplusPostRepository, claimRepository, timelineService);
+                surplusPostRepository, claimRepository, timelineService,
+                notificationPreferenceService, emailService, smsService,
+                messagingTemplate);
 
         // When - Set tolerance values to test the configuration is properly used
         try {
@@ -543,5 +574,193 @@ class SurplusPostSchedulerServiceTest {
         } catch (Exception e) {
             throw new RuntimeException("Failed to test tolerance configuration", e);
         }
+    }
+
+    // ==================== Notification Tests ====================
+
+    @Test
+    void testUpdatePostsToReadyForPickup_SendsEmailWhenEnabled() {
+        // Given
+        setToleranceValues(15, 15);
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+        LocalTime startTime = LocalTime.of(8, 0);
+        
+        claimedPost.setPickupDate(yesterday);
+        claimedPost.setPickupFrom(startTime);
+        claimedPost.setPickupTo(LocalTime.of(14, 0));
+        setCreatedAt(claimedPost, LocalDateTime.now().minusHours(1));
+        
+        when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
+                .thenReturn(Collections.singletonList(claimedPost));
+        mockClaimForPost(claimedPost, yesterday, startTime, LocalTime.of(14, 0));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
+        when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("donationReadyForPickup"), eq("email")))
+                .thenReturn(true);
+        when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("donationReadyForPickup"), eq("websocket")))
+                .thenReturn(false);
+
+        // When
+        schedulerService.updatePostsToReadyForPickup();
+
+        // Then
+        verify(emailService).sendReadyForPickupNotification(anyString(), anyString(), any());
+    }
+
+    @Test
+    void testUpdatePostsToReadyForPickup_DoesNotSendEmailWhenDisabled() {
+        // Given
+        setToleranceValues(15, 15);
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+        LocalTime startTime = LocalTime.of(8, 0);
+        
+        claimedPost.setPickupDate(yesterday);
+        claimedPost.setPickupFrom(startTime);
+        claimedPost.setPickupTo(LocalTime.of(14, 0));
+        setCreatedAt(claimedPost, LocalDateTime.now().minusHours(1));
+        
+        when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
+                .thenReturn(Collections.singletonList(claimedPost));
+        mockClaimForPost(claimedPost, yesterday, startTime, LocalTime.of(14, 0));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
+        // Email and websocket notifications default to false (no stubbing needed)
+
+        // When
+        schedulerService.updatePostsToReadyForPickup();
+
+        // Then
+        verify(emailService, never()).sendReadyForPickupNotification(anyString(), anyString(), any());
+    }
+
+    @Test
+    void testUpdatePostsToReadyForPickup_SendsWebsocketWhenEnabled() {
+        // Given
+        setToleranceValues(15, 15);
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+        LocalTime startTime = LocalTime.of(8, 0);
+        
+        claimedPost.setPickupDate(yesterday);
+        claimedPost.setPickupFrom(startTime);
+        claimedPost.setPickupTo(LocalTime.of(14, 0));
+        setCreatedAt(claimedPost, LocalDateTime.now().minusHours(1));
+        
+        when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
+                .thenReturn(Collections.singletonList(claimedPost));
+        mockClaimForPost(claimedPost, yesterday, startTime, LocalTime.of(14, 0));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
+        when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("donationReadyForPickup"), eq("websocket")))
+                .thenReturn(true);
+        when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("donationReadyForPickup"), eq("email")))
+                .thenReturn(false);
+
+        // When
+        schedulerService.updatePostsToReadyForPickup();
+
+        // Then
+        verify(messagingTemplate).convertAndSendToUser(anyString(), eq("/queue/donations/ready-for-pickup"), any());
+    }
+
+    @Test
+    void testUpdatePostsToReadyForPickup_DoesNotSendWebsocketWhenDisabled() {
+        // Given
+        setToleranceValues(15, 15);
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+        LocalTime startTime = LocalTime.of(8, 0);
+        
+        claimedPost.setPickupDate(yesterday);
+        claimedPost.setPickupFrom(startTime);
+        claimedPost.setPickupTo(LocalTime.of(14, 0));
+        setCreatedAt(claimedPost, LocalDateTime.now().minusHours(1));
+        
+        when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
+                .thenReturn(Collections.singletonList(claimedPost));
+        mockClaimForPost(claimedPost, yesterday, startTime, LocalTime.of(14, 0));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
+        // Email and websocket notifications default to false (no stubbing needed)
+
+        // When
+        schedulerService.updatePostsToReadyForPickup();
+
+        // Then
+        verify(messagingTemplate, never()).convertAndSendToUser(anyString(), eq("/queue/donations/ready-for-pickup"), any());
+    }
+
+    @Test
+    void testFlagExpiredDonations_SendsEmailWhenEnabled() {
+        // Given
+        enableAutoFlagging();
+        SurplusPost expiredPost = createTestPost(4L, PostStatus.AVAILABLE);
+        expiredPost.setExpiryDate(LocalDate.now().minusDays(3));
+        
+        when(surplusPostRepository.findByStatusIn(any()))
+                .thenReturn(Collections.singletonList(expiredPost));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(expiredPost);
+        when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("donationExpired"), eq("email")))
+                .thenReturn(true);
+
+        // When
+        schedulerService.markExpiredPosts();
+
+        // Then
+        verify(emailService).sendDonationExpiredNotification(anyString(), anyString(), any());
+    }
+
+    @Test
+    void testFlagExpiredDonations_DoesNotSendEmailWhenDisabled() {
+        // Given
+        enableAutoFlagging();
+        SurplusPost expiredPost = createTestPost(4L, PostStatus.AVAILABLE);
+        expiredPost.setExpiryDate(LocalDate.now().minusDays(3));
+        
+        lenient().when(surplusPostRepository.findByStatusIn(any()))
+                .thenReturn(Collections.singletonList(expiredPost));
+        lenient().when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(expiredPost);
+        lenient().when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("donationExpired"), eq("email")))
+                .thenReturn(false);
+
+        // When
+        schedulerService.markExpiredPosts();
+
+        // Then
+        verify(emailService, never()).sendDonationExpiredNotification(anyString(), anyString(), any());
+    }
+
+    @Test
+    void testFlagExpiredDonations_SendsWebsocketWhenEnabled() {
+        // Given
+        enableAutoFlagging();
+        SurplusPost expiredPost = createTestPost(4L, PostStatus.AVAILABLE);
+        expiredPost.setExpiryDate(LocalDate.now().minusDays(3));
+        
+        when(surplusPostRepository.findByStatusIn(any()))
+                .thenReturn(Collections.singletonList(expiredPost));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(expiredPost);
+        when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("donationExpired"), eq("websocket")))
+                .thenReturn(true);
+
+        // When
+        schedulerService.markExpiredPosts();
+
+        // Then
+        verify(messagingTemplate).convertAndSendToUser(anyString(), eq("/queue/donations/expired"), any());
+    }
+
+    @Test
+    void testFlagExpiredDonations_DoesNotSendWebsocketWhenDisabled() {
+        // Given
+        enableAutoFlagging();
+        SurplusPost expiredPost = createTestPost(4L, PostStatus.AVAILABLE);
+        expiredPost.setExpiryDate(LocalDate.now().minusDays(3));
+        
+        lenient().when(surplusPostRepository.findByStatusIn(any()))
+                .thenReturn(Collections.singletonList(expiredPost));
+        lenient().when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(expiredPost);
+        lenient().when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("donationExpired"), eq("websocket")))
+                .thenReturn(false);
+
+        // When
+        schedulerService.markExpiredPosts();
+
+        // Then
+        verify(messagingTemplate, never()).convertAndSendToUser(anyString(), eq("/queue/donations/expired"), any());
     }
 }

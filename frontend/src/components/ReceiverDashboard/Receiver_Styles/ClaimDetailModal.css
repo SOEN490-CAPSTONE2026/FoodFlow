@@ -354,7 +354,8 @@
 }
 
 .claimed-modal-btn-secondary,
-.claimed-modal-btn-primary {
+.claimed-modal-btn-primary,
+.claimed-modal-btn-interest {
   flex: 1;
   padding: 0.875rem 1.5rem;
   font-size: 0.95rem;
@@ -382,6 +383,22 @@
 
 .claimed-modal-btn-primary:hover {
   background: #164058;
+}
+
+.claimed-modal-btn-interest {
+  background: #62b6cb;
+  color: white;
+  border: none;
+}
+
+.claimed-modal-btn-interest:hover:not(:disabled) {
+  background: #4aa8c4;
+}
+
+.claimed-modal-btn-interest:disabled {
+  background: #62b6cb;
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .claimed-modal-btn-feedback {

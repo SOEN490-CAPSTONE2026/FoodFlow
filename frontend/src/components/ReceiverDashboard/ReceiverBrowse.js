@@ -15,19 +15,29 @@ import {
   Star,
 } from 'lucide-react';
 import { useLoadScript } from '@react-google-maps/api';
-import { surplusAPI, recommendationAPI } from '../../services/api';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
-  getFoodCategoryDisplays,
+  surplusAPI,
+  recommendationAPI,
+  conversationAPI,
+  savedDonationAPI,
+} from '../../services/api';
+import {
+  getDietaryTagLabel,
   getPrimaryFoodCategory,
   getFoodImageClass,
+  getFoodTypeLabel,
   foodTypeImages,
   getUnitLabel,
   getTemperatureCategoryLabel,
   getTemperatureCategoryIcon,
   getPackagingTypeLabel,
+  mapLegacyCategoryToFoodType,
 } from '../../constants/foodConstants';
 import { useTimezone } from '../../contexts/TimezoneContext';
 import FiltersPanel from './FiltersPanel';
+import MapViewBanner from './DonationsMap/MapViewBanner';
+import MapViewModal from './DonationsMap/MapViewModal';
 import './ReceiverBrowseModal.css';
 import './ReceiverBrowse.css';
 
@@ -41,6 +51,8 @@ export default function ReceiverBrowse() {
   });
 
   const { userTimezone } = useTimezone();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const [filters, setFilters] = useState({
     foodType: [],
@@ -64,6 +76,7 @@ export default function ReceiverBrowse() {
   const [error, setError] = useState(null);
   const [expandedCardId, setExpandedCardId] = useState(null);
   const [bookmarkedItems, setBookmarkedItems] = useState(new Set());
+  const [bookmarkingItemIds, setBookmarkingItemIds] = useState(new Set());
   const [claimModalOpen, setClaimModalOpen] = useState(false);
   const [claimTargetItem, setClaimTargetItem] = useState(null);
   const [selectedSlotIndex, setSelectedSlotIndex] = useState(0);
@@ -71,6 +84,11 @@ export default function ReceiverBrowse() {
   const [sortBy, setSortBy] = useState('relevance');
   const [hoveredRecommended, setHoveredRecommended] = useState(null);
   const [recommendations, setRecommendations] = useState({});
+  const [mapViewOpen, setMapViewOpen] = useState(false);
+  const [userLocation, setUserLocation] = useState(null);
+  const [expressingInterest, setExpressingInterest] = useState(null);
+  const [focusedDonationId, setFocusedDonationId] = useState(null);
+  const [savedNotification, setSavedNotification] = useState('');
 
   const getRecommendationData = item => {
     // Mock logic to determine if item is recommended
@@ -105,6 +123,21 @@ export default function ReceiverBrowse() {
     }
   }, [t]);
 
+  const fetchSavedDonations = useCallback(async () => {
+    try {
+      const response = await savedDonationAPI.getSavedDonations();
+      const savedDonations = Array.isArray(response.data) ? response.data : [];
+      const availableSavedDonations = savedDonations.filter(
+        donation => donation?.status === 'AVAILABLE'
+      );
+      setBookmarkedItems(
+        new Set(availableSavedDonations.map(donation => donation.id))
+      );
+    } catch (e) {
+      console.error('Error fetching saved donations:', e);
+    }
+  }, []);
+
   const fetchFilteredDonations = useCallback(
     async filterCriteria => {
       setLoading(true);
@@ -137,13 +170,70 @@ export default function ReceiverBrowse() {
 
   useEffect(() => {
     fetchDonations();
-  }, [fetchDonations, userTimezone]);
+    fetchSavedDonations();
+  }, [fetchDonations, fetchSavedDonations, userTimezone]);
 
   useEffect(() => {
     if (items.length > 0) {
       fetchRecommendations(items);
     }
   }, [items, fetchRecommendations]);
+
+  useEffect(() => {
+    if (!savedNotification) {
+      return undefined;
+    }
+
+    const timer = setTimeout(() => {
+      setSavedNotification('');
+    }, 2200);
+
+    return () => clearTimeout(timer);
+  }, [savedNotification]);
+
+  useEffect(() => {
+    const targetId = location.state?.focusDonationId;
+    if (!targetId || !items.length) {
+      return;
+    }
+
+    const normalizedTargetId = Number(targetId);
+    const targetItem = items.find(
+      item => Number(item.id) === normalizedTargetId
+    );
+
+    if (!targetItem) {
+      if (location.state?.fallbackToClaims) {
+        navigate('/receiver/my-claims', {
+          state: {
+            focusDonationId: normalizedTargetId,
+            fromBrowseFallback: true,
+          },
+        });
+        return;
+      }
+      navigate(location.pathname, { replace: true, state: {} });
+      return;
+    }
+
+    setExpandedCardId(normalizedTargetId);
+    setFocusedDonationId(normalizedTargetId);
+
+    const targetCard = document.getElementById(
+      `receiver-browse-card-${normalizedTargetId}`
+    );
+    if (targetCard) {
+      targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    const clearHighlightTimer = setTimeout(() => {
+      setFocusedDonationId(null);
+    }, 2200);
+
+    navigate(location.pathname, { replace: true, state: {} });
+
+    return () => clearTimeout(clearHighlightTimer);
+  }, [items, location.pathname, location.state, navigate]);
 
   const handleFiltersChange = useCallback((filterType, value) => {
     setFilters(prev => ({
@@ -178,18 +268,66 @@ export default function ReceiverBrowse() {
     setExpandedCardId(prev => (prev === item.id ? null : item.id));
   }, []);
 
-  const handleBookmark = useCallback((item, e) => {
-    e.stopPropagation();
-    setBookmarkedItems(prev => {
-      const newBookmarks = new Set(prev);
-      if (newBookmarks.has(item.id)) {
-        newBookmarks.delete(item.id);
-      } else {
-        newBookmarks.add(item.id);
+  const handleBookmark = useCallback(
+    async (item, e) => {
+      e.stopPropagation();
+      const isSaved = bookmarkedItems.has(item.id);
+
+      setBookmarkedItems(prev => {
+        const next = new Set(prev);
+        if (isSaved) {
+          next.delete(item.id);
+        } else {
+          next.add(item.id);
+        }
+        return next;
+      });
+
+      setBookmarkingItemIds(prev => {
+        const next = new Set(prev);
+        next.add(item.id);
+        return next;
+      });
+
+      try {
+        if (isSaved) {
+          await savedDonationAPI.unsave(item.id);
+          window.dispatchEvent(new Event('saved-donations-updated'));
+        } else {
+          await savedDonationAPI.save(item.id);
+          window.dispatchEvent(new Event('saved-donations-updated'));
+          setSavedNotification(
+            t('receiverBrowse.addedToSaved', 'Added to saved donations')
+          );
+        }
+      } catch (error) {
+        setBookmarkedItems(prev => {
+          const next = new Set(prev);
+          if (isSaved) {
+            next.add(item.id);
+          } else {
+            next.delete(item.id);
+          }
+          return next;
+        });
+        console.error('Error updating saved donation:', error);
+        alert(
+          error.response?.data?.message ||
+            t(
+              'receiverBrowse.failedToUpdateSaved',
+              'Failed to update saved donation'
+            )
+        );
+      } finally {
+        setBookmarkingItemIds(prev => {
+          const next = new Set(prev);
+          next.delete(item.id);
+          return next;
+        });
       }
-      return newBookmarks;
-    });
-  }, []);
+    },
+    [bookmarkedItems, t]
+  );
 
   const confirmClaim = useCallback(
     async (item, slot) => {
@@ -210,6 +348,47 @@ export default function ReceiverBrowse() {
     },
     [t]
   );
+
+  //======================================
+  // Donations Map Helpers
+  //======================================
+  const getNearbyCount = useCallback(() => {
+    if (!filters.locationCoords) {
+      return items.length;
+    }
+
+    return items.filter(item => {
+      if (!item.pickupLocation) {
+        return false;
+      }
+
+      const distance = calculateDistance(
+        filters.locationCoords.lat,
+        filters.locationCoords.lng,
+        item.pickupLocation.latitude,
+        item.pickupLocation.longitude
+      );
+
+      return distance <= (filters.distance || 10);
+    }).length;
+  }, [items, filters]);
+
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  //=================================================
+  //=================================================
 
   const handleClaimDonation = useCallback(
     item => {
@@ -242,6 +421,28 @@ export default function ReceiverBrowse() {
     [confirmClaim, t]
   );
 
+  const handleExpressInterest = useCallback(
+    async item => {
+      try {
+        setExpressingInterest(item.id);
+        const response = await conversationAPI.expressInterest(item.id);
+        const conversation = response.data;
+        navigate(`/receiver/messages?conversationId=${conversation.id}`);
+      } catch (err) {
+        console.error('Error expressing interest:', err);
+        alert(
+          t(
+            'receiverBrowse.failedToExpressInterest',
+            "Couldn't start conversation. Please try again."
+          )
+        );
+      } finally {
+        setExpressingInterest(null);
+      }
+    },
+    [navigate, t]
+  );
+
   const formatExpiryDate = useCallback(dateString => {
     if (!dateString) {
       return '—';
@@ -254,6 +455,24 @@ export default function ReceiverBrowse() {
         month: 'short',
         day: 'numeric',
         year: 'numeric',
+      });
+    } catch {
+      return '—';
+    }
+  }, []);
+
+  const formatBestBeforeDate = useCallback(dateValue => {
+    if (!dateValue) {
+      return '—';
+    }
+    try {
+      const date = new Date(dateValue);
+      return date.toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
       });
     } catch {
       return '—';
@@ -360,6 +579,12 @@ export default function ReceiverBrowse() {
 
   return (
     <div className="receiver-browse-container">
+      {savedNotification && (
+        <div role="alert" className="receiver-saved-notification">
+          {savedNotification}
+        </div>
+      )}
+
       <div className="receiver-browse-header">
         <h1 className="receiver-section-title-browse">
           {t('receiverBrowse.title')}
@@ -399,6 +624,15 @@ export default function ReceiverBrowse() {
           onClearFilters={handleClearFilters}
           isVisible={isFiltersVisible}
           onClose={handleCloseFilters}
+        />
+      )}
+
+      {isLoaded && (
+        <MapViewBanner
+          onOpenMap={() => setMapViewOpen(true)}
+          nearbyCount={getNearbyCount()}
+          distanceRadius={filters.distance || 10}
+          hasLocation={!!filters.locationCoords}
         />
       )}
 
@@ -464,18 +698,43 @@ export default function ReceiverBrowse() {
           return (
             <div className="receiver-donations-list">
               {filteredItems.map(item => {
-                const categoryDisplays = getFoodCategoryDisplays(
-                  item.foodCategories
-                );
+                const rawCategories =
+                  Array.isArray(item.foodCategories) &&
+                  item.foodCategories.length > 0
+                    ? item.foodCategories
+                    : item.foodType
+                      ? [item.foodType]
+                      : [];
+                const categoryDisplays =
+                  rawCategories.length > 0
+                    ? rawCategories.map(category => {
+                        const normalizedCategory =
+                          mapLegacyCategoryToFoodType(category);
+                        return t(
+                          `surplusForm.foodTypeValues.${normalizedCategory}`,
+                          getFoodTypeLabel(category)
+                        );
+                      })
+                    : ['Other'];
                 const primaryFoodCategory = getPrimaryFoodCategory(
                   item.foodCategories
                 );
+                const dietaryTags = Array.isArray(item.dietaryTags)
+                  ? item.dietaryTags
+                  : [];
+                const visibleDietaryTags = dietaryTags.slice(0, 4);
+                const hiddenDietaryCount = Math.max(dietaryTags.length - 4, 0);
 
                 return (
                   <div
                     key={item.id}
+                    id={`receiver-browse-card-${item.id}`}
                     className={`receiver-donation-card ${
                       expandedCardId === item.id ? 'expanded' : ''
+                    } ${
+                      focusedDonationId === Number(item.id)
+                        ? 'receiver-donation-card--focused'
+                        : ''
                     }`}
                   >
                     {/* Corner Recommended Badge */}
@@ -542,6 +801,7 @@ export default function ReceiverBrowse() {
                             className="receiver-bookmark-button"
                             onClick={e => handleBookmark(item, e)}
                             aria-label="Bookmark"
+                            disabled={bookmarkingItemIds.has(item.id)}
                           >
                             <Bookmark
                               size={16}
@@ -563,6 +823,21 @@ export default function ReceiverBrowse() {
                             <span className="receiver-status-icon">✓</span>
                             {formatStatus(item.status)}
                           </span>
+                          {item.expiringSoon && (
+                            <span className="receiver-expiring-soon-badge">
+                              {t(
+                                'receiverBrowse.expiringSoon',
+                                'Expiring soon'
+                              )}
+                            </span>
+                          )}
+                          {!item.expiryDateActual &&
+                            item.expiryDatePredicted &&
+                            !item.expiryOverridden && (
+                              <span className="receiver-predicted-badge">
+                                {t('receiverBrowse.predicted', 'predicted')}
+                              </span>
+                            )}
                         </div>
                       </div>
 
@@ -574,7 +849,9 @@ export default function ReceiverBrowse() {
                           />
                           <span>
                             {t('receiverBrowse.expires')}:{' '}
-                            {formatExpiryDate(item.expiryDate)}
+                            {formatBestBeforeDate(
+                              item.expiryDateEffective || item.expiryDate
+                            )}
                           </span>
                         </div>
                         <div className="receiver-info-item">
@@ -617,6 +894,26 @@ export default function ReceiverBrowse() {
                       </div>
 
                       <div className="receiver-donation-meta">
+                        {dietaryTags.length > 0 && (
+                          <div className="receiver-dietary-tags">
+                            {visibleDietaryTags.map(tag => (
+                              <span
+                                key={`${item.id}-${tag}`}
+                                className="receiver-dietary-tag"
+                              >
+                                {t(
+                                  `surplusForm.dietaryTagValues.${tag}`,
+                                  getDietaryTagLabel(tag)
+                                )}
+                              </span>
+                            ))}
+                            {hiddenDietaryCount > 0 && (
+                              <span className="receiver-dietary-tag overflow">
+                                +{hiddenDietaryCount}
+                              </span>
+                            )}
+                          </div>
+                        )}
                         <div className="receiver-category-tags">
                           {categoryDisplays.map((category, index) => (
                             <span key={index} className="receiver-category-tag">
@@ -704,7 +1001,9 @@ export default function ReceiverBrowse() {
                                   <span className="receiver-expiry-icon-detail">
                                     <Calendar size={14} />
                                   </span>
-                                  {formatExpiryDate(item.expiryDate)}
+                                  {formatBestBeforeDate(
+                                    item.expiryDateEffective || item.expiryDate
+                                  )}
                                 </div>
                               </div>
                               <div className="receiver-detail-item">
@@ -730,7 +1029,9 @@ export default function ReceiverBrowse() {
                                   {item.temperatureCategory && (
                                     <div className="receiver-detail-item">
                                       <span className="receiver-detail-label">
-                                        Temperature
+                                        {t(
+                                          'surplusForm.temperatureCategoryLabel'
+                                        )}
                                       </span>
                                       <div className="receiver-detail-value">
                                         <span className="receiver-compliance-icon-bg">
@@ -738,8 +1039,11 @@ export default function ReceiverBrowse() {
                                             item.temperatureCategory
                                           )}
                                         </span>
-                                        {getTemperatureCategoryLabel(
-                                          item.temperatureCategory
+                                        {t(
+                                          `surplusForm.temperatureCategoryValues.${item.temperatureCategory}`,
+                                          getTemperatureCategoryLabel(
+                                            item.temperatureCategory
+                                          )
                                         )}
                                       </div>
                                     </div>
@@ -749,14 +1053,17 @@ export default function ReceiverBrowse() {
                                   {item.packagingType && (
                                     <div className="receiver-detail-item">
                                       <span className="receiver-detail-label">
-                                        Packaging
+                                        {t('surplusForm.packagingTypeLabel')}
                                       </span>
                                       <div className="receiver-detail-value">
                                         <span className="receiver-compliance-icon-bg">
                                           <Package size={14} />
                                         </span>
-                                        {getPackagingTypeLabel(
-                                          item.packagingType
+                                        {t(
+                                          `surplusForm.packagingTypeValues.${item.packagingType}`,
+                                          getPackagingTypeLabel(
+                                            item.packagingType
+                                          )
                                         )}
                                       </div>
                                     </div>
@@ -838,6 +1145,20 @@ export default function ReceiverBrowse() {
         }}
         loading={claiming}
         formatFn={formatPickupTime}
+      />
+
+      <MapViewModal
+        isOpen={mapViewOpen}
+        onClose={() => setMapViewOpen(false)}
+        donations={items}
+        filters={filters}
+        onFiltersChange={handleFiltersChange}
+        onClaimClick={donation => {
+          setClaimTargetItem(donation);
+          setClaimModalOpen(true);
+        }}
+        isLoaded={isLoaded}
+        savedLocation={userLocation}
       />
     </div>
   );

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import {
   Outlet,
   useLocation,
@@ -8,66 +8,122 @@ import {
 } from 'react-router-dom';
 import {
   Home,
-  LayoutGrid,
   Users,
   UserCheck,
   Heart,
-  Calendar as CalendarIcon,
-  FileText,
   Mail,
   ChevronRight,
   ChevronLeft,
-  ChevronDown,
   HelpCircle,
-  MoreVertical,
   Settings,
   LogOut,
   Menu,
   X,
   AlertTriangle,
+  BarChart3,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Logo from '../../assets/Logo_White.png';
 import { AuthContext } from '../../contexts/AuthContext';
+import { profileAPI } from '../../services/api';
+import { connectToUserQueue, disconnect } from '../../services/socket';
+import MessageNotification from '../MessagingDashboard/MessageNotification';
 import './Admin_Styles/AdminLayout.css';
 
 export default function AdminLayout() {
   const { t } = useTranslation();
-  const { logout } = useContext(AuthContext);
+  const { logout, organizationName, role } = useContext(AuthContext);
   const location = useLocation();
   const navigate = useNavigate();
   const navType = useNavigationType();
-  const [messagesOpen, setMessagesOpen] = useState(false);
-  const [screenHeight, setScreenHeight] = useState(window.innerHeight);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [notification, setNotification] = useState(null);
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState(null);
 
-  const contacts = [
-    { name: 'Olive Nacelle', online: true },
-    { name: 'Amélie Laurent', online: true },
-    { name: 'Amélie Jackson', online: false },
-    { name: 'Frankie Sullivan', online: false },
-  ];
+  const isMessagesPage = location.pathname === '/admin/messages';
 
-  useEffect(() => {
-    const handleResize = () => {
-      setScreenHeight(window.innerHeight);
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  const getMaxContacts = () => {
-    if (screenHeight <= 650) {
-      return 1;
+  const getProfilePhotoUrl = photoUrl => {
+    if (!photoUrl) {
+      return null;
     }
-    if (screenHeight <= 800) {
-      return 2;
+    if (
+      photoUrl.startsWith('http://') ||
+      photoUrl.startsWith('https://') ||
+      photoUrl.startsWith('data:')
+    ) {
+      return photoUrl;
     }
-    return 4;
+    const apiBaseUrl =
+      process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+    const backendBaseUrl = apiBaseUrl.endsWith('/api')
+      ? apiBaseUrl.slice(0, -4)
+      : apiBaseUrl.replace(/\/api$/, '');
+    if (photoUrl.startsWith('/uploads/')) {
+      const filename = photoUrl.substring('/uploads/'.length);
+      return `${backendBaseUrl}/api/files/uploads/${filename}`;
+    }
+    if (photoUrl.startsWith('/api/files/')) {
+      return `${backendBaseUrl}${photoUrl}`;
+    }
+    return `${backendBaseUrl}${photoUrl.startsWith('/') ? '' : '/'}${photoUrl}`;
   };
 
-  const visibleContacts = contacts.slice(0, getMaxContacts());
+  useEffect(() => {
+    let isMounted = true;
+    const fetchProfilePhoto = async () => {
+      try {
+        const response = await profileAPI.get();
+        if (isMounted) {
+          const url = getProfilePhotoUrl(response.data?.profilePhoto);
+          setProfilePhotoUrl(url);
+        }
+      } catch (error) {
+        console.error('Error fetching profile photo:', error);
+      }
+    };
+    fetchProfilePhoto();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const onMessage = payload => {
+      const senderName =
+        payload.senderName ||
+        payload.sender?.email ||
+        payload.senderEmail ||
+        '';
+      const message =
+        payload.messageBody || payload.message || payload.body || '';
+      if (message) {
+        setNotification({ senderName, message });
+      }
+    };
+
+    connectToUserQueue(
+      onMessage,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    );
+    return () => {
+      try {
+        disconnect();
+      } catch (e) {
+        /* ignore */
+      }
+    };
+  }, []);
 
   const pageTitle = (() => {
     switch (location.pathname) {
@@ -80,6 +136,8 @@ export default function AdminLayout() {
         return 'Verification Queue';
       case '/admin/analytics':
         return t('admin.analytics');
+      case '/admin/impact':
+        return 'Impact Dashboard';
       case '/admin/calendar':
         return t('admin.calendar');
       case '/admin/messages':
@@ -104,6 +162,8 @@ export default function AdminLayout() {
         return 'Manage and monitor all platform users';
       case '/admin/analytics':
         return t('admin.metrics');
+      case '/admin/impact':
+        return 'Platform-wide environmental and social impact metrics';
       case '/admin/calendar':
         return t('admin.events');
       case '/admin/messages':
@@ -185,10 +245,10 @@ export default function AdminLayout() {
           </button>
         </div>
 
-        <nav className="admin-nav-links" style={{ flex: '0 1 auto' }}>
+        <nav className="admin-nav-links">
           <Link
-            to="/admin/welcome"
-            className={`admin-nav-link ${isActive('/admin/welcome') ? 'active' : ''}`}
+            to="/admin"
+            className={`admin-nav-link ${isActive('/admin') ? 'active' : ''}`}
             data-tooltip="Home"
           >
             <span className="nav-icon" aria-hidden>
@@ -231,6 +291,17 @@ export default function AdminLayout() {
           </Link>
 
           <Link
+            to="/admin/impact"
+            className={`admin-nav-link ${isActive('/admin/impact') ? 'active' : ''}`}
+            data-tooltip="Impact Dashboard"
+          >
+            <span className="nav-icon" aria-hidden>
+              <BarChart3 size={18} className="lucide" />
+            </span>
+            Impact
+          </Link>
+
+          <Link
             to="/admin/disputes"
             className={`admin-nav-link ${isActive('/admin/disputes') ? 'active' : ''}`}
             data-tooltip="Disputes"
@@ -241,47 +312,18 @@ export default function AdminLayout() {
             Disputes
           </Link>
 
-          <div
-            className={`admin-nav-link messages-link ${isActive('/admin/messages') ? 'active' : ''}`}
+          <Link
+            to="/admin/messages"
+            className={`admin-nav-link ${isActive('/admin/messages') ? 'active' : ''}`}
             data-tooltip="Messages"
           >
-            <div
-              onClick={() => navigate('/admin/messages')}
-              className="messages-left"
-            >
-              <span className="nav-icon" aria-hidden>
-                <Mail size={18} className="lucide" />
-              </span>
-              Messages
-            </div>
-            <button
-              className="messages-toggle"
-              onClick={() => setMessagesOpen(s => !s)}
-              aria-label="Toggle Messages"
-            >
-              {messagesOpen ? (
-                <ChevronDown size={16} className="lucide" />
-              ) : (
-                <ChevronRight size={16} className="lucide" />
-              )}
-            </button>
-          </div>
-
-          {messagesOpen && (
-            <div className="messages-dropdown">
-              {visibleContacts.map((c, i) => (
-                <div key={i} className="message-item">
-                  <div className="message-avatar">
-                    {c.online && <span className="message-status" />}
-                  </div>
-                  <span className="message-name">{c.name}</span>
-                </div>
-              ))}
-            </div>
-          )}
+            <span className="nav-icon" aria-hidden>
+              <Mail size={18} className="lucide" />
+            </span>
+            Messages
+          </Link>
         </nav>
 
-        <div style={{ flex: 1 }} />
         <div className="admin-nav-bottom">
           <div className="admin-nav-link disabled" data-tooltip="Help">
             <span className="nav-icon" aria-hidden>
@@ -314,10 +356,25 @@ export default function AdminLayout() {
         <div className="admin-sidebar-footer admin-user">
           <div className="account-row">
             <button className="user-profile-pic" type="button">
-              <div className="account-avatar"></div>
+              <div
+                className="account-avatar"
+                style={
+                  profilePhotoUrl
+                    ? {
+                        backgroundImage: `url(${profilePhotoUrl})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                      }
+                    : undefined
+                }
+              ></div>
               <div className="account-text">
-                <span className="account-name">Evian</span>
-                <span className="account-role">admin</span>
+                <span className="account-name">
+                  {organizationName || 'Admin'}
+                </span>
+                <span className="account-role">
+                  {role?.toLowerCase() || 'admin'}
+                </span>
               </div>
             </button>
           </div>
@@ -325,15 +382,27 @@ export default function AdminLayout() {
       </aside>
 
       <main className="admin-main">
-        <header className="admin-topbar">
-          <div className="admin-topbar-left">
-            <h1>{pageTitle}</h1>
-            <p>{pageDesc}</p>
-          </div>
-        </header>
+        {location.pathname !== '/admin' &&
+          location.pathname !== '/admin/dashboard' && (
+            <header className="admin-topbar">
+              <div className="admin-topbar-left">
+                <h1>{pageTitle}</h1>
+                <p>{pageDesc}</p>
+              </div>
+            </header>
+          )}
 
-        <section className="admin-content">
+        <section
+          className={`admin-content ${isMessagesPage ? 'messages-page' : ''}`}
+        >
           <Outlet />
+
+          {notification && (
+            <MessageNotification
+              notification={notification}
+              onClose={() => setNotification(null)}
+            />
+          )}
         </section>
       </main>
     </div>
