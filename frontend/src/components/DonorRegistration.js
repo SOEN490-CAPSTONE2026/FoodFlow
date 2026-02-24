@@ -557,6 +557,7 @@ const DonorRegistration = () => {
         <div
           key={step}
           className="step-item"
+          data-testid={`step-item-${step}`}
           onClick={() => handleStepClick(step)}
           style={{ cursor: step <= currentStep ? 'pointer' : 'default' }}
         >
@@ -1091,5 +1092,7 @@ const DonorRegistration = () => {
     </div>
   );
 };
+
+export { formatPhoneNumber, validatePhoneNumber };
 
 export default DonorRegistration;
