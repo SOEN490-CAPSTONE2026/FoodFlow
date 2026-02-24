@@ -8,7 +8,8 @@ const axios = require('axios');
 
 describe('AnalyticsService', () => {
   // compute the base url exactly as the service does so tests remain agnostic to env settings
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+  const API_BASE_URL =
+    process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
 
   let originalLocation;
   let consoleLogSpy;
