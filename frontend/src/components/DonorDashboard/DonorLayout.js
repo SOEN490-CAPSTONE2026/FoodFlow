@@ -9,7 +9,6 @@ import {
 import { useTranslation } from 'react-i18next';
 import {
   Home,
-  LayoutGrid,
   Heart,
   Award,
   Mail,
@@ -21,6 +20,7 @@ import {
   LogOut,
   Menu,
   X,
+  BarChart3,
 } from 'lucide-react';
 import { AuthContext } from '../../contexts/AuthContext';
 import Logo from '../../assets/Logo_White.png';
@@ -55,6 +55,8 @@ export default function DonorLayout() {
         return t('donorLayout.pageTitles.donorDashboard');
       case '/donor/list':
         return t('donorLayout.pageTitles.donateNow');
+      case '/donor/impact':
+        return t('donorLayout.pageTitles.impact', 'Impact Dashboard');
       case '/donor/achievements':
         return t('donorLayout.pageTitles.achievements', 'Achievements');
       case '/donor/messages':
@@ -75,6 +77,11 @@ export default function DonorLayout() {
         return t('donorLayout.pageDescriptions.donorDashboard');
       case '/donor/list':
         return t('donorLayout.pageDescriptions.donateNow');
+      case '/donor/impact':
+        return t(
+          'donorLayout.pageDescriptions.impact',
+          'View your environmental and social impact'
+        );
       case '/donor/achievements':
         return t(
           'donorLayout.pageDescriptions.achievements',
@@ -199,12 +206,56 @@ export default function DonorLayout() {
       setAchievementNotification(payload);
     };
 
+    const onReviewReceived = payload => {
+      console.log('DONOR: Review received:', payload);
+      // Show a notification to the donor that they received a review
+      if (payload.rating) {
+        const stars = '⭐'.repeat(payload.rating);
+        setNotification({
+          senderName: payload.reviewerName || 'Receiver',
+          message: `left you a ${payload.rating}-star review ${stars}`,
+        });
+      }
+    };
+
+    const onDonationExpired = payload => {
+      console.log('DONOR: Donation expired:', payload);
+      const message = `Your donation "${payload.title}" has expired and been removed from listings.`;
+      setNotification({
+        senderName: t('donorLayout.notifications.donationExpired'),
+        message,
+      });
+    };
+
+    const onDonationStatusUpdated = payload => {
+      console.log('DONOR: Donation status updated by admin:', payload);
+      setNotification({
+        senderName: t('donorLayout.notifications.donationStatusUpdated'),
+        message: payload.message,
+      });
+    };
+
+    const onVerificationApproved = payload => {
+      console.log('DONOR: Verification approved:', payload);
+      setNotification({
+        senderName: t('donorLayout.notifications.verificationApproved'),
+        message: payload.message,
+      });
+    };
+
     connectToUserQueue(
       onMessage,
       onClaimNotification,
       onClaimCancelled,
       null, // no new post notifications for donors
-      onAchievementUnlocked
+      onAchievementUnlocked,
+      onReviewReceived,
+      null, // no donation completion notifications for donors
+      null, // no donation ready for pickup for donors
+      onDonationExpired,
+      onDonationStatusUpdated,
+      null, // no donation status changed for donors
+      onVerificationApproved
     );
     return () => {
       try {
@@ -300,17 +351,6 @@ export default function DonorLayout() {
           </Link>
 
           <Link
-            to="/donor/dashboard"
-            className={`donor-nav-link ${isActive('/donor/dashboard') ? 'active' : ''}`}
-            data-tooltip={t('donorLayout.dashboard')}
-          >
-            <span className="nav-icon" aria-hidden>
-              <LayoutGrid size={18} className="lucide" />
-            </span>
-            {t('donorLayout.dashboard')}
-          </Link>
-
-          <Link
             to="/donor/list"
             className={`donor-nav-link ${isActive('/donor/list') ? 'active' : ''}`}
             data-tooltip={t('donorLayout.donateNow')}
@@ -341,6 +381,17 @@ export default function DonorLayout() {
               <Mail size={18} className="lucide" />
             </span>
             {t('donorLayout.messages')}
+          </Link>
+
+          <Link
+            to="/donor/impact"
+            className={`donor-nav-link ${isActive('/donor/impact') ? 'active' : ''}`}
+            data-tooltip={t('donorLayout.impact', 'Impact Dashboard')}
+          >
+            <span className="nav-icon" aria-hidden>
+              <BarChart3 size={18} className="lucide" />
+            </span>
+            {t('donorLayout.impact', 'Impact')}
           </Link>
         </nav>
 

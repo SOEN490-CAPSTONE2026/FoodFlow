@@ -27,6 +27,39 @@ const MessagingDashboard = () => {
     handleRecipientEmailQueryParam();
   }, []);
 
+  // Auto-select conversation when navigated with conversationId param
+  useEffect(() => {
+    const conversationIdParam = searchParams.get('conversationId');
+    if (conversationIdParam && conversations.length > 0) {
+      const targetConv = conversations.find(
+        c => c.id.toString() === conversationIdParam
+      );
+      if (targetConv) {
+        setSelectedConversation(targetConv);
+        setShowChatOnMobile(true);
+      } else {
+        // Conversation not in list yet - fetch it directly
+        const fetchConversation = async () => {
+          try {
+            const response = await api.get(
+              `/conversations/${conversationIdParam}`
+            );
+            const conv = response.data;
+            setConversations(prev => {
+              const exists = prev.some(c => c.id === conv.id);
+              return exists ? prev : [conv, ...prev];
+            });
+            setSelectedConversation(conv);
+            setShowChatOnMobile(true);
+          } catch (err) {
+            console.error('Error fetching conversation:', err);
+          }
+        };
+        fetchConversation();
+      }
+    }
+  }, [conversations.length, searchParams]);
+
   const loadConversations = async () => {
     try {
       setLoading(true);

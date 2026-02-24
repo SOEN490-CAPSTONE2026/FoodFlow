@@ -6,30 +6,20 @@ import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.OrganizationType;
 import com.example.foodflow.model.entity.UserRole;
 import com.example.foodflow.model.entity.VerificationStatus;
-
-import org.jboss.jandex.Main;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
-
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.LocalDate;
-
 import java.util.HashSet;
 import com.example.foodflow.model.types.*;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 @ActiveProfiles("test")
 class SurplusPostRepositoryTest {
-
-    @Autowired
-    private TestEntityManager entityManager;
 
     @Autowired
     private SurplusPostRepository surplusPostRepository;

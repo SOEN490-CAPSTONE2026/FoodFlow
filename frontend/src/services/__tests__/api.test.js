@@ -61,7 +61,7 @@ describe('API service', () => {
     expect(mockPost).toHaveBeenCalledWith(
       '/surplus/search',
       expect.objectContaining({
-        foodCategories: ['FRUITS_VEGETABLES', 'FROZEN'],
+        foodTypes: ['Fruits & Vegetables', 'Frozen Food'],
         expiryBefore: '2025-12-01',
         userLocation: { latitude: 45, longitude: -73, address: '123 Main St' },
         maxDistanceKm: 10,
@@ -106,7 +106,7 @@ describe('API service', () => {
     };
     const resp = await surplusAPI.searchBasic(filters);
     expect(mockGet).toHaveBeenCalledWith(
-      expect.stringMatching(/\/surplus\/search\?.*foodCategories=BAKERY_PASTRY/)
+      expect.stringMatching(/\/surplus\/search\?.*foodType=BAKERY/)
     );
     expect(resp).toEqual({ data: { items: [] } });
   });
@@ -351,7 +351,14 @@ describe('API service', () => {
     const data = { title: 'Food', quantity: 10 };
     const resp = await surplusAPI.create(data);
 
-    expect(mockPost).toHaveBeenCalledWith('/surplus', data);
+    expect(mockPost).toHaveBeenCalledWith(
+      '/surplus',
+      expect.objectContaining({
+        title: 'Food',
+        quantity: 10,
+        dietaryTags: [],
+      })
+    );
     expect(resp).toEqual({ data: { id: 1 } });
   });
 
@@ -377,7 +384,13 @@ describe('API service', () => {
     const data = { title: 'Updated' };
     const resp = await surplusAPI.update(1, data);
 
-    expect(mockPut).toHaveBeenCalledWith('/surplus/1', data);
+    expect(mockPut).toHaveBeenCalledWith(
+      '/surplus/1',
+      expect.objectContaining({
+        title: 'Updated',
+        dietaryTags: [],
+      })
+    );
     expect(resp).toEqual({ data: { id: 1 } });
   });
 
@@ -447,7 +460,7 @@ describe('API service', () => {
     const resp = await surplusAPI.search(filters);
 
     expect(mockPost).toHaveBeenCalledWith('/surplus/search', {
-      foodCategories: ['DAIRY_COLD'],
+      foodTypes: ['Dairy & Cold Items'],
       status: 'AVAILABLE',
     });
     expect(resp).toEqual({ data: [] });
@@ -482,6 +495,26 @@ describe('API service', () => {
     expect(resp).toEqual({ data: [] });
   });
 
+  test('surplusAPI.search with dietary tags and sort', async () => {
+    mockPost.mockResolvedValue({ data: [] });
+    const { surplusAPI } = require('../api');
+
+    const filters = {
+      dietaryTags: ['VEGAN', 'HALAL'],
+      dietaryMatch: 'ALL',
+      sort: 'newest',
+    };
+    const resp = await surplusAPI.search(filters);
+
+    expect(mockPost).toHaveBeenCalledWith('/surplus/search', {
+      dietaryTags: ['VEGAN', 'HALAL'],
+      dietaryMatch: 'ALL',
+      sort: 'newest',
+      status: 'AVAILABLE',
+    });
+    expect(resp).toEqual({ data: [] });
+  });
+
   test('surplusAPI.uploadEvidence', async () => {
     mockPost.mockResolvedValue({
       data: { url: 'http://example.com/evidence.jpg' },
@@ -510,6 +543,60 @@ describe('API service', () => {
       expect.stringContaining('status=AVAILABLE')
     );
     expect(resp).toEqual({ data: [] });
+  });
+
+  test('surplusAPI.searchBasic with dietary tags and sort', async () => {
+    mockGet.mockResolvedValue({ data: [] });
+    const { surplusAPI } = require('../api');
+
+    const filters = {
+      dietaryTags: ['VEGETARIAN', 'NUT_FREE'],
+      dietaryMatch: 'ALL',
+      sort: 'closest',
+    };
+    const resp = await surplusAPI.searchBasic(filters);
+
+    expect(mockGet).toHaveBeenCalledWith(
+      expect.stringContaining('dietaryTags=VEGETARIAN%2CNUT_FREE')
+    );
+    expect(mockGet).toHaveBeenCalledWith(
+      expect.stringContaining('dietaryMatch=ALL')
+    );
+    expect(mockGet).toHaveBeenCalledWith(
+      expect.stringContaining('sort=closest')
+    );
+    expect(resp).toEqual({ data: [] });
+  });
+
+  // conversationAPI tests
+  test('conversationAPI express/get endpoints', async () => {
+    mockPost
+      .mockResolvedValueOnce({ data: { id: 11 } })
+      .mockResolvedValueOnce({ data: { id: 22 } });
+    mockGet
+      .mockResolvedValueOnce({ data: [{ id: 1 }] })
+      .mockResolvedValueOnce({ data: { id: 7 } })
+      .mockResolvedValueOnce({ data: [{ id: 9, content: 'hi' }] });
+    const { conversationAPI } = require('../api');
+
+    const interestResp = await conversationAPI.expressInterest(99);
+    const createResp = await conversationAPI.createOrGetPostConversation(99, 7);
+    const allResp = await conversationAPI.getConversations();
+    const oneResp = await conversationAPI.getConversation(7);
+    const msgsResp = await conversationAPI.getMessages(7);
+
+    expect(mockPost).toHaveBeenNthCalledWith(1, '/conversations/interested/99');
+    expect(mockPost).toHaveBeenNthCalledWith(2, '/conversations/post/99', {
+      otherUserId: 7,
+    });
+    expect(mockGet).toHaveBeenNthCalledWith(1, '/conversations');
+    expect(mockGet).toHaveBeenNthCalledWith(2, '/conversations/7');
+    expect(mockGet).toHaveBeenNthCalledWith(3, '/conversations/7/messages');
+    expect(interestResp).toEqual({ data: { id: 11 } });
+    expect(createResp).toEqual({ data: { id: 22 } });
+    expect(allResp).toEqual({ data: [{ id: 1 }] });
+    expect(oneResp).toEqual({ data: { id: 7 } });
+    expect(msgsResp).toEqual({ data: [{ id: 9, content: 'hi' }] });
   });
 
   // claimsAPI tests
@@ -551,6 +638,57 @@ describe('API service', () => {
 
     expect(mockGet).toHaveBeenCalledWith('/claims/post/123');
     expect(resp).toEqual({ data: { id: 789 } });
+  });
+
+  // savedDonationAPI tests
+  test('savedDonationAPI.getSavedDonations', async () => {
+    mockGet.mockResolvedValue({ data: [{ id: 1 }] });
+    const { savedDonationAPI } = require('../api');
+
+    const resp = await savedDonationAPI.getSavedDonations();
+
+    expect(mockGet).toHaveBeenCalledWith('/receiver/saved');
+    expect(resp).toEqual({ data: [{ id: 1 }] });
+  });
+
+  test('savedDonationAPI.save', async () => {
+    mockPost.mockResolvedValue({ data: { success: true } });
+    const { savedDonationAPI } = require('../api');
+
+    const resp = await savedDonationAPI.save(42);
+
+    expect(mockPost).toHaveBeenCalledWith('/receiver/saved/42');
+    expect(resp).toEqual({ data: { success: true } });
+  });
+
+  test('savedDonationAPI.unsave', async () => {
+    mockDelete.mockResolvedValue({ data: { success: true } });
+    const { savedDonationAPI } = require('../api');
+
+    const resp = await savedDonationAPI.unsave(42);
+
+    expect(mockDelete).toHaveBeenCalledWith('/receiver/saved/42');
+    expect(resp).toEqual({ data: { success: true } });
+  });
+
+  test('savedDonationAPI.isSaved', async () => {
+    mockGet.mockResolvedValue({ data: true });
+    const { savedDonationAPI } = require('../api');
+
+    const resp = await savedDonationAPI.isSaved(42);
+
+    expect(mockGet).toHaveBeenCalledWith('/receiver/saved/check/42');
+    expect(resp).toEqual({ data: true });
+  });
+
+  test('savedDonationAPI.getSavedCount', async () => {
+    mockGet.mockResolvedValue({ data: { count: 3 } });
+    const { savedDonationAPI } = require('../api');
+
+    const resp = await savedDonationAPI.getSavedCount();
+
+    expect(mockGet).toHaveBeenCalledWith('/receiver/saved/count');
+    expect(resp).toEqual({ data: { count: 3 } });
   });
 
   // recommendationAPI tests
@@ -667,6 +805,15 @@ describe('API service', () => {
     );
     expect(result).toEqual([]);
     consoleSpy.mockRestore();
+  });
+
+  test('recommendationAPI.getTopRecommendations with empty postIds', async () => {
+    const { recommendationAPI } = require('../api');
+
+    const result = await recommendationAPI.getTopRecommendations([]);
+
+    expect(mockGet).not.toHaveBeenCalled();
+    expect(result).toEqual({});
   });
 
   // userAPI tests
@@ -1103,6 +1250,30 @@ describe('API service', () => {
     expect(resp).toEqual({ data: { success: true } });
   });
 
+  test('conversationAPI.markAsRead', async () => {
+    const mockPut = jest.fn().mockResolvedValue({ data: { success: true } });
+    jest.doMock('axios', () => ({
+      create: jest.fn(() => ({
+        interceptors: {
+          request: { use: jest.fn() },
+          response: { use: jest.fn() },
+        },
+        post: mockPost,
+        get: mockGet,
+        put: mockPut,
+        patch: mockPatch,
+        delete: mockDelete,
+      })),
+    }));
+
+    jest.resetModules();
+    const { conversationAPI } = require('../api');
+    const resp = await conversationAPI.markAsRead(91);
+
+    expect(mockPut).toHaveBeenCalledWith('/conversations/91/read');
+    expect(resp).toEqual({ data: { success: true } });
+  });
+
   // notificationPreferencesAPI tests
   test('notificationPreferencesAPI.getPreferences', async () => {
     mockGet.mockResolvedValue({ data: { email: true } });
@@ -1162,5 +1333,69 @@ describe('API service', () => {
 
     expect(mockGet).toHaveBeenCalledWith('/gamification/achievements');
     expect(resp).toEqual({ data: [] });
+  });
+
+  test('gamificationAPI.getLeaderboard', async () => {
+    mockGet.mockResolvedValue({ data: [{ userId: 1, points: 100 }] });
+    const { gamificationAPI } = require('../api');
+
+    const resp = await gamificationAPI.getLeaderboard('DONOR');
+
+    expect(mockGet).toHaveBeenCalledWith('/gamification/leaderboard/DONOR');
+    expect(resp).toEqual({ data: [{ userId: 1, points: 100 }] });
+  });
+
+  // support/rate-limit/impact API tests
+  test('supportChatAPI.sendMessage', async () => {
+    mockPost.mockResolvedValue({ data: { reply: 'ok' } });
+    const { supportChatAPI } = require('../api');
+
+    const resp = await supportChatAPI.sendMessage('hello', '/receiver/browse');
+
+    expect(mockPost).toHaveBeenCalledWith('/support/chat', {
+      message: 'hello',
+      pageContext: '/receiver/browse',
+    });
+    expect(resp).toEqual({ data: { reply: 'ok' } });
+  });
+
+  test('rateLimitAPI methods', async () => {
+    mockGet
+      .mockResolvedValueOnce({ data: { totalRequests: 10 } })
+      .mockResolvedValueOnce({ data: { status: 'OK' } });
+    const { rateLimitAPI } = require('../api');
+
+    const statsResp = await rateLimitAPI.getStats();
+    const statusResp = await rateLimitAPI.getUserStatus();
+
+    expect(mockGet).toHaveBeenNthCalledWith(1, '/admin/rate-limit-stats');
+    expect(mockGet).toHaveBeenNthCalledWith(2, '/admin/my-rate-limit');
+    expect(statsResp).toEqual({ data: { totalRequests: 10 } });
+    expect(statusResp).toEqual({ data: { status: 'OK' } });
+  });
+
+  test('impactDashboardAPI.getMetrics uses default range', async () => {
+    mockGet.mockResolvedValue({ data: { mealsSaved: 20 } });
+    const { impactDashboardAPI } = require('../api');
+
+    const resp = await impactDashboardAPI.getMetrics();
+
+    expect(mockGet).toHaveBeenCalledWith('/impact-dashboard/metrics', {
+      params: { dateRange: 'ALL_TIME' },
+    });
+    expect(resp).toEqual({ data: { mealsSaved: 20 } });
+  });
+
+  test('impactDashboardAPI.exportMetrics sets blob response type', async () => {
+    mockGet.mockResolvedValue({ data: new Blob(['csv']) });
+    const { impactDashboardAPI } = require('../api');
+
+    const resp = await impactDashboardAPI.exportMetrics('MONTHLY');
+
+    expect(mockGet).toHaveBeenCalledWith('/impact-dashboard/export', {
+      params: { dateRange: 'MONTHLY' },
+      responseType: 'blob',
+    });
+    expect(resp.data).toBeInstanceOf(Blob);
   });
 });

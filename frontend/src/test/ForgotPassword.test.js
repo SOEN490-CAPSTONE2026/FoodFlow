@@ -460,15 +460,15 @@ describe('ForgotPassword - Password Reset', () => {
       'Confirm New Password'
     );
 
-    await user.type(newPasswordInput, 'Pass1');
-    await user.type(confirmPasswordInput, 'Pass1');
+    await user.type(newPasswordInput, 'Pass1!');
+    await user.type(confirmPasswordInput, 'Pass1!');
 
     const resetButton = screen.getByRole('button', { name: /reset password/i });
     await user.click(resetButton);
 
     await waitFor(() => {
       expect(
-        screen.getByText(/password must be at least 8 characters/i)
+        screen.getByText(/password must be at least 10 characters/i)
       ).toBeInTheDocument();
     });
 
@@ -516,8 +516,8 @@ describe('ForgotPassword - Password Reset', () => {
       'Confirm New Password'
     );
 
-    await user.type(newPasswordInput, 'NewPassword123');
-    await user.type(confirmPasswordInput, 'NewPassword123');
+    await user.type(newPasswordInput, 'NewPassword123!');
+    await user.type(confirmPasswordInput, 'NewPassword123!');
 
     const resetButton = screen.getByRole('button', { name: /reset password/i });
     await user.click(resetButton);
@@ -526,7 +526,7 @@ describe('ForgotPassword - Password Reset', () => {
       expect(authAPI.resetPassword).toHaveBeenCalledWith({
         email: 'test@example.com',
         code: '111111',
-        newPassword: 'NewPassword123',
+        newPassword: 'NewPassword123!',
       });
     });
 
@@ -575,8 +575,8 @@ describe('ForgotPassword - Password Reset', () => {
       'Confirm New Password'
     );
 
-    await user.type(newPasswordInput, 'NewPassword123');
-    await user.type(confirmPasswordInput, 'NewPassword123');
+    await user.type(newPasswordInput, 'NewPassword123!');
+    await user.type(confirmPasswordInput, 'NewPassword123!');
 
     const resetButton = screen.getByRole('button', { name: /reset password/i });
     await user.click(resetButton);

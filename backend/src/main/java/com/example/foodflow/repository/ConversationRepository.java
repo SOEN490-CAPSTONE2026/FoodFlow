@@ -15,32 +15,46 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
     /**
      * Find all conversations where the user is either user1 or user2
      * Ordered by last message time (most recent first), falling back to creation date for new conversations
+     * Uses LEFT JOIN FETCH to eagerly load related entities and avoid N+1 queries
      */
     @Query("SELECT c FROM Conversation c " +
+           "LEFT JOIN FETCH c.user1 " +
+           "LEFT JOIN FETCH c.user2 " +
+           "LEFT JOIN FETCH c.donor " +
+           "LEFT JOIN FETCH c.receiver " +
+           "LEFT JOIN FETCH c.surplusPost " +
            "WHERE c.user1.id = :userId OR c.user2.id = :userId " +
            "ORDER BY COALESCE(c.lastMessageAt, c.createdAt) DESC")
     List<Conversation> findByUserId(@Param("userId") Long userId);
     
     /**
-     * Find conversation between two users (order-independent)
+     * Find direct (non-donation) conversation between two users (order-independent)
      */
     @Query("SELECT c FROM Conversation c " +
-           "WHERE (c.user1.id = :userId1 AND c.user2.id = :userId2) " +
-           "OR (c.user1.id = :userId2 AND c.user2.id = :userId1)")
+           "WHERE c.surplusPost IS NULL AND (" +
+           "(c.user1.id = :userId1 AND c.user2.id = :userId2) " +
+           "OR (c.user1.id = :userId2 AND c.user2.id = :userId1))")
     Optional<Conversation> findByUsers(@Param("userId1") Long userId1, @Param("userId2") Long userId2);
-    
+
     /**
-     * Check if conversation exists between two users
+     * Check if direct (non-donation) conversation exists between two users
      */
     @Query("SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END FROM Conversation c " +
-           "WHERE (c.user1.id = :userId1 AND c.user2.id = :userId2) " +
-           "OR (c.user1.id = :userId2 AND c.user2.id = :userId1)")
+           "WHERE c.surplusPost IS NULL AND (" +
+           "(c.user1.id = :userId1 AND c.user2.id = :userId2) " +
+           "OR (c.user1.id = :userId2 AND c.user2.id = :userId1))")
     boolean existsBetweenUsers(@Param("userId1") Long userId1, @Param("userId2") Long userId2);
 
         /**
      * Find conversation by surplus post ID where user is a participant
+     * Uses LEFT JOIN FETCH to eagerly load related entities
      */
     @Query("SELECT c FROM Conversation c " +
+           "LEFT JOIN FETCH c.user1 " +
+           "LEFT JOIN FETCH c.user2 " +
+           "LEFT JOIN FETCH c.donor " +
+           "LEFT JOIN FETCH c.receiver " +
+           "LEFT JOIN FETCH c.surplusPost " +
            "WHERE c.surplusPost.id = :postId " +
            "AND (c.user1.id = :userId OR c.user2.id = :userId)")
     Optional<Conversation> findByPostIdAndUserId(@Param("postId") Long postId, @Param("userId") Long userId);
@@ -53,4 +67,18 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
            "WHERE c.surplusPost.id = :postId " +
            "ORDER BY COALESCE(c.lastMessageAt, c.createdAt) DESC")
     List<Conversation> findByPostId(@Param("postId") Long postId);
+
+    /**
+     * Find conversation by donation (surplus post) ID and receiver ID.
+     * Used for donation-anchored threads where (donation_id, receiver_id) is the unique key.
+     * Uses LEFT JOIN FETCH to eagerly load related entities
+     */
+    @Query("SELECT c FROM Conversation c " +
+           "LEFT JOIN FETCH c.user1 " +
+           "LEFT JOIN FETCH c.user2 " +
+           "LEFT JOIN FETCH c.donor " +
+           "LEFT JOIN FETCH c.receiver " +
+           "LEFT JOIN FETCH c.surplusPost " +
+           "WHERE c.surplusPost.id = :postId AND c.receiver.id = :receiverId")
+    Optional<Conversation> findByPostIdAndReceiverId(@Param("postId") Long postId, @Param("receiverId") Long receiverId);
 }

@@ -304,9 +304,9 @@ class GamificationControllerTest {
         
         List<com.example.foodflow.model.dto.LeaderboardEntryDTO> topUsers = new ArrayList<>();
         com.example.foodflow.model.dto.LeaderboardEntryDTO entry1 = 
-            new com.example.foodflow.model.dto.LeaderboardEntryDTO(1, 1L, "Top Donor", 1000, true);
+            new com.example.foodflow.model.dto.LeaderboardEntryDTO(1, 1L, "Top Donor", 1000, true, null);
         com.example.foodflow.model.dto.LeaderboardEntryDTO entry2 = 
-            new com.example.foodflow.model.dto.LeaderboardEntryDTO(2, 2L, "Second Donor", 900, false);
+            new com.example.foodflow.model.dto.LeaderboardEntryDTO(2, 2L, "Second Donor", 900, false, null);
         topUsers.add(entry1);
         topUsers.add(entry2);
         
@@ -337,7 +337,7 @@ class GamificationControllerTest {
         
         List<com.example.foodflow.model.dto.LeaderboardEntryDTO> topUsers = new ArrayList<>();
         com.example.foodflow.model.dto.LeaderboardEntryDTO entry1 = 
-            new com.example.foodflow.model.dto.LeaderboardEntryDTO(1, 2L, "Top Receiver", 500, true);
+            new com.example.foodflow.model.dto.LeaderboardEntryDTO(1, 2L, "Top Receiver", 500, true, null);
         topUsers.add(entry1);
         
         leaderboardResponse.setTopUsers(topUsers);
@@ -366,11 +366,11 @@ class GamificationControllerTest {
         List<com.example.foodflow.model.dto.LeaderboardEntryDTO> topUsers = new ArrayList<>();
         for (int i = 1; i <= 10; i++) {
             topUsers.add(new com.example.foodflow.model.dto.LeaderboardEntryDTO(
-                i, (long) i, "User " + i, 1000 - (i * 10), false));
+                i, (long) i, "User " + i, 1000 - (i * 10), false, null));
         }
         
         com.example.foodflow.model.dto.LeaderboardEntryDTO currentEntry = 
-            new com.example.foodflow.model.dto.LeaderboardEntryDTO(15, 1L, "Current User", 500, true);
+            new com.example.foodflow.model.dto.LeaderboardEntryDTO(15, 1L, "Current User", 500, true, null);
         
         leaderboardResponse.setTopUsers(topUsers);
         leaderboardResponse.setCurrentUserEntry(currentEntry);

@@ -9,9 +9,7 @@ import com.example.foodflow.repository.EmailVerificationTokenRepository;
 import com.example.foodflow.repository.OrganizationRepository;
 import com.example.foodflow.repository.UserRepository;
 import com.example.foodflow.security.JwtTokenProvider;
-
 import brevo.ApiException;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,9 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
 import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -30,7 +26,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.*;
-
 import org.mockito.ArgumentCaptor;
 
 @ExtendWith(MockitoExtension.class)
@@ -56,6 +51,15 @@ class AuthServiceTest {
 
     @Mock
     private EmailService emailService;
+
+    @Mock
+    private com.example.foodflow.repository.PasswordResetTokenRepository passwordResetTokenRepository;
+
+    @Mock
+    private com.example.foodflow.repository.PasswordHistoryRepository passwordHistoryRepository;
+
+    @Mock
+    private PasswordValidator passwordValidator;
 
     @InjectMocks
     private AuthService authService;
@@ -362,6 +366,8 @@ class AuthServiceTest {
         when(passwordEncoder.matches("newPassword123", "encoded-old-password")).thenReturn(false);
         when(passwordEncoder.encode("newPassword123")).thenReturn("encoded-new-password");
         when(userRepository.save(any(User.class))).thenReturn(user);
+        when(passwordValidator.validatePassword("newPassword123")).thenReturn(java.util.Collections.emptyList());
+        when(passwordValidator.isPasswordInHistory(user, "newPassword123")).thenReturn(false);
 
         // When
         var response = authService.changePassword(user, "oldPassword123", "newPassword123", "newPassword123");
@@ -371,6 +377,7 @@ class AuthServiceTest {
         assertEquals("Password changed successfully", response.get("message"));
         verify(passwordEncoder).encode("newPassword123");
         verify(userRepository).save(user);
+        verify(passwordValidator).savePasswordToHistory(user, "encoded-new-password");
         assertEquals("encoded-new-password", user.getPassword());
     }
 
@@ -425,6 +432,48 @@ class AuthServiceTest {
                 () -> authService.changePassword(user, "oldPassword123", "newPassword123", "differentPassword123"));
 
         assertEquals("New password and confirmation do not match", ex.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void changePassword_PasswordPolicyViolation_ThrowsException() {
+        // Given
+        User user = new User();
+        user.setId(1L);
+        user.setEmail("user@test.com");
+        user.setPassword("encoded-old-password");
+
+        when(passwordEncoder.matches("oldPassword123", "encoded-old-password")).thenReturn(true);
+        when(passwordEncoder.matches("weak", "encoded-old-password")).thenReturn(false);
+        when(passwordValidator.validatePassword("weak"))
+            .thenReturn(java.util.Arrays.asList("Password must be at least 10 characters long"));
+
+        // When & Then
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> authService.changePassword(user, "oldPassword123", "weak", "weak"));
+
+        assertTrue(ex.getMessage().contains("at least 10 characters"));
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void changePassword_PasswordInHistory_ThrowsException() {
+        // Given
+        User user = new User();
+        user.setId(1L);
+        user.setEmail("user@test.com");
+        user.setPassword("encoded-old-password");
+
+        when(passwordEncoder.matches("oldPassword123", "encoded-old-password")).thenReturn(true);
+        when(passwordEncoder.matches("reusedTestSecure123!", "encoded-old-password")).thenReturn(false);
+        when(passwordValidator.validatePassword("reusedTestSecure123!")).thenReturn(java.util.Collections.emptyList());
+        when(passwordValidator.isPasswordInHistory(user, "reusedTestSecure123!")).thenReturn(true);
+
+        // When & Then
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> authService.changePassword(user, "oldPassword123", "reusedTestSecure123!", "reusedTestSecure123!"));
+
+        assertTrue(ex.getMessage().contains("cannot reuse a recent password"));
         verify(userRepository, never()).save(any(User.class));
     }
 
@@ -1187,7 +1236,6 @@ class AuthServiceTest {
     void verifyResetCode_ValidCode_ReturnsTrue() throws ApiException {
         // Given
         String email = "user@test.com";
-        String code = "123456";
         
         User user = new User();
         user.setEmail(email);
@@ -1258,7 +1306,6 @@ class AuthServiceTest {
     void resetPassword_WithEmail_Success() throws ApiException {
         // Given
         String email = "user@test.com";
-        String code = "123456";
         String newPassword = "newPassword123";
         
         User user = new User();

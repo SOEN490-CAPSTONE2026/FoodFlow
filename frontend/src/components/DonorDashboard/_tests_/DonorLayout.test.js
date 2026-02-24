@@ -28,13 +28,30 @@ jest.mock('../../MessagingDashboard/MessageNotification', () => {
 
 // Keep the handlers inside the mock AND spy on connectToUserQueue calls
 jest.mock('../../../services/socket', () => {
-  const handlers = { onMessage: null, onClaim: null, onCancel: null };
+  const handlers = {
+    onMessage: null,
+    onClaim: null,
+    onCancel: null,
+    onNewPost: null,
+    onAchievement: null,
+    onReview: null,
+  };
   return {
     connectToUserQueue: jest.fn(
-      (onMessage, onClaimNotification, onClaimCancelled) => {
+      (
+        onMessage,
+        onClaimNotification,
+        onClaimCancelled,
+        onNewPost,
+        onAchievement,
+        onReview
+      ) => {
         handlers.onMessage = onMessage;
         handlers.onClaim = onClaimNotification;
         handlers.onCancel = onClaimCancelled;
+        handlers.onNewPost = onNewPost;
+        handlers.onAchievement = onAchievement;
+        handlers.onReview = onReview;
       }
     ),
     disconnect: jest.fn(),
@@ -67,14 +84,15 @@ function renderWithRouter(initialPath = '/donor/dashboard') {
   };
 }
 
-// Utility to get the three socket handlers AFTER the effect runs
+// Utility to get socket handlers AFTER the effect runs
 async function getSocketHandlers() {
   await waitFor(() => {
     expect(socketModule.connectToUserQueue).toHaveBeenCalled();
   });
   const lastCall = socketModule.connectToUserQueue.mock.calls.at(-1);
-  const [onMessage, onClaim, onCancel] = lastCall;
-  return { onMessage, onClaim, onCancel };
+  const [onMessage, onClaim, onCancel, onNewPost, onAchievement, onReview] =
+    lastCall;
+  return { onMessage, onClaim, onCancel, onNewPost, onAchievement, onReview };
 }
 
 // --- Tests ---
@@ -96,9 +114,9 @@ describe('DonorLayout', () => {
     expect(screen.getByText('Dashboard Page')).toBeInTheDocument();
   });
 
-  test('highlights active nav link', () => {
-    renderWithRouter('/donor/dashboard');
-    const active = screen.getByRole('link', { name: /dashboard/i });
+  test('highlights active nav link on donate now route', () => {
+    renderWithRouter('/donor/list');
+    const active = screen.getByRole('link', { name: /donate now/i });
     expect(active).toHaveClass('active');
   });
 

@@ -2,6 +2,7 @@ package com.example.foodflow.model.dto;
 
 import com.example.foodflow.model.entity.OrganizationType;
 import com.example.foodflow.config.jackson.OrganizationTypeDeserializer;
+import com.example.foodflow.validation.ValidPassword;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -13,12 +14,10 @@ public class RegisterReceiverRequest {
     private String email;
 
     @NotBlank(message = "{validation.password.required}")
-    @Size(min = 8, message = "{validation.password.minLength}")
+    @ValidPassword
     private String password;
 
-    @NotBlank(message = "{validation.organizationName.required}")
-    @NotBlank
-    @Size(min = 8)
+    @NotBlank(message = "Password confirmation is required")
     private String confirmPassword;
 
     @NotBlank

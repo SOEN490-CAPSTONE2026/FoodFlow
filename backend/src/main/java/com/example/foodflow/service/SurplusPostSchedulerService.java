@@ -1,13 +1,18 @@
 package com.example.foodflow.service;
 
 import com.example.foodflow.model.entity.Claim;
+import com.example.foodflow.model.entity.ExpiryNotificationLog;
 import com.example.foodflow.model.entity.SurplusPost;
+import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.repository.ClaimRepository;
+import com.example.foodflow.repository.ExpiryNotificationLogRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,9 +22,14 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class SurplusPostSchedulerService {
@@ -28,9 +38,17 @@ public class SurplusPostSchedulerService {
     private static final SecureRandom random = new SecureRandom();
     private static final int GRACE_PERIOD_MINUTES = 2;
 
+    // Track which posts have already received pickup reminders to prevent duplicates
+    private final java.util.Set<Long> remindersSentForPosts = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
     private final SurplusPostRepository surplusPostRepository;
     private final ClaimRepository claimRepository;
+    private final ExpiryNotificationLogRepository expiryNotificationLogRepository;
     private final TimelineService timelineService;
+    private final NotificationPreferenceService notificationPreferenceService;
+    private final EmailService emailService;
+    private final SmsService smsService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Value("${foodflow.expiry.enable-auto-flagging:true}")
     private boolean enableAutoFlagging;
@@ -40,12 +58,39 @@ public class SurplusPostSchedulerService {
 
     @Value("${pickup.tolerance.late-minutes:15}")
     private int lateToleranceMinutes;
+
+    @Value("${foodflow.expiry.notification.threshold-hours:48,24}")
+    private String expiryNotificationThresholdHours;
+    
+    @Autowired
     public SurplusPostSchedulerService(SurplusPostRepository surplusPostRepository,
             ClaimRepository claimRepository,
-            TimelineService timelineService) {
+            ExpiryNotificationLogRepository expiryNotificationLogRepository,
+            TimelineService timelineService,
+            NotificationPreferenceService notificationPreferenceService,
+            EmailService emailService,
+            SmsService smsService,
+            SimpMessagingTemplate messagingTemplate) {
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;
+        this.expiryNotificationLogRepository = expiryNotificationLogRepository;
         this.timelineService = timelineService;
+        this.notificationPreferenceService = notificationPreferenceService;
+        this.emailService = emailService;
+        this.smsService = smsService;
+        this.messagingTemplate = messagingTemplate;
+    }
+
+    // Backward-compatible constructor for existing tests.
+    public SurplusPostSchedulerService(SurplusPostRepository surplusPostRepository,
+            ClaimRepository claimRepository,
+            TimelineService timelineService,
+            NotificationPreferenceService notificationPreferenceService,
+            EmailService emailService,
+            SmsService smsService,
+            SimpMessagingTemplate messagingTemplate) {
+        this(surplusPostRepository, claimRepository, null, timelineService, notificationPreferenceService, emailService, smsService,
+                messagingTemplate);
     }
 
     private String generateOtpCode() {
@@ -140,6 +185,75 @@ public class SurplusPostSchedulerService {
                     PostStatus.READY_FOR_PICKUP,
                     "Pickup time arrived - OTP generated automatically",
                     true);
+
+            // Send WebSocket and Email notifications to receiver
+            try {
+                Optional<Claim> claimOpt = claimRepository.findBySurplusPost(post);
+                if (claimOpt.isPresent()) {
+                    Claim claim = claimOpt.get();
+                    com.example.foodflow.model.entity.User receiver = claim.getReceiver();
+                    String receiverName = receiver.getOrganization() != null && receiver.getOrganization().getName() != null
+                        ? receiver.getOrganization().getName()
+                        : receiver.getFullName();
+                    
+                    // Send WebSocket notification if preference allows
+                    try {
+                        logger.info("Checking websocket preference for receiver userId={} for donationReadyForPickup notification", receiver.getId());
+                        
+                        if (notificationPreferenceService.shouldSendNotification(receiver, "donationReadyForPickup", "websocket")) {
+                            logger.info("Receiver {} has websocket notifications enabled for donationReadyForPickup, sending notification", receiver.getId());
+                            
+                            Map<String, Object> receiverNotification = new HashMap<>();
+                            receiverNotification.put("type", "DONATION_READY_FOR_PICKUP");
+                            receiverNotification.put("donationId", post.getId());
+                            receiverNotification.put("title", post.getTitle());
+                            receiverNotification.put("message", "Your donation is ready for pickup!");
+                            receiverNotification.put("pickupCode", post.getOtpCode());
+                            receiverNotification.put("timestamp", System.currentTimeMillis());
+                            
+                            messagingTemplate.convertAndSendToUser(
+                                receiver.getId().toString(),
+                                "/queue/donations/ready-for-pickup",
+                                receiverNotification
+                            );
+                            logger.info("Successfully sent ready for pickup websocket notification to receiver userId={} for postId={}", receiver.getId(), post.getId());
+                        } else {
+                            logger.info("Receiver {} has websocket notifications disabled for donationReadyForPickup", receiver.getId());
+                        }
+                    } catch (Exception e) {
+                        logger.error("Failed to send ready for pickup websocket notification to receiver: {}", e.getMessage(), e);
+                    }
+                    
+                    // Send Email notification if preference allows
+                    try {
+                        logger.info("Checking email preference for receiver userId={} for donationReadyForPickup notification", receiver.getId());
+                        
+                        if (notificationPreferenceService.shouldSendNotification(receiver, "donationReadyForPickup", "email")) {
+                            logger.info("Receiver {} has email notifications enabled for donationReadyForPickup, sending email", receiver.getId());
+                            
+                            Map<String, Object> donationData = new HashMap<>();
+                            donationData.put("donationTitle", post.getTitle());
+                            donationData.put("quantity", post.getQuantity().getValue() + " " + post.getQuantity().getUnit().getLabel());
+                            donationData.put("pickupDate", post.getPickupDate() != null ? post.getPickupDate().toString() : "Check your app");
+                            donationData.put("pickupTime", post.getPickupFrom() != null ? post.getPickupFrom().toString() : "Check your app");
+                            
+                            emailService.sendReadyForPickupNotification(
+                                receiver.getEmail(),
+                                receiverName,
+                                donationData
+                            );
+                            
+                            logger.info("Successfully sent ready for pickup email to receiver userId={} email={}", receiver.getId(), receiver.getEmail());
+                        } else {
+                            logger.info("Receiver {} has email notifications disabled for donationReadyForPickup or email globally disabled", receiver.getId());
+                        }
+                    } catch (Exception e) {
+                        logger.error("Failed to send ready for pickup email notification to receiver: {}", e.getMessage(), e);
+                    }
+                }
+            } catch (Exception e) {
+                logger.error("Error sending ready for pickup notifications for post ID {}: {}", post.getId(), e.getMessage(), e);
+            }
 
             logger.info("Post ID {} updated to READY_FOR_PICKUP", post.getId());
         }
@@ -257,7 +371,7 @@ public class SurplusPostSchedulerService {
             return;
         }
 
-        LocalDate today = LocalDate.now();
+        LocalDateTime nowUtc = LocalDateTime.now(ZoneOffset.UTC);
         logger.info("===== markExpiredPosts running at {} =====", LocalDateTime.now());
 
         // Find posts that are AVAILABLE or CLAIMED but have expired
@@ -266,7 +380,10 @@ public class SurplusPostSchedulerService {
         logger.info("Found {} active posts to check for expiry", activePosts.size());
 
         List<SurplusPost> expiredPosts = activePosts.stream()
-                .filter(post -> post.getExpiryDate() != null && post.getExpiryDate().isBefore(today))
+                .filter(post -> {
+                    LocalDateTime effectiveExpiry = getEffectiveExpiry(post);
+                    return effectiveExpiry != null && !effectiveExpiry.isAfter(nowUtc);
+                })
                 .toList();
 
         if (expiredPosts.isEmpty()) {
@@ -287,12 +404,330 @@ public class SurplusPostSchedulerService {
                     null,
                     oldStatus,
                     PostStatus.EXPIRED,
-                    "Expired automatically (expiry date: " + post.getExpiryDate() + ")",
+                    "Expired automatically (effective expiry: " + getEffectiveExpiry(post) + ")",
                     true);
 
-            logger.info("Post ID {} marked as EXPIRED (expiry date: {})", post.getId(), post.getExpiryDate());
+            logger.info("Post ID {} marked as EXPIRED (effective expiry: {})", post.getId(), getEffectiveExpiry(post));
+            
+            // Send notification to donor
+            User donor = post.getDonor();
+            sendExpiredNotificationToDonor(post, donor);
         }
 
         logger.info("Marked {} posts as EXPIRED", expiredPosts.size());
+    }
+
+    /**
+     * Every 30 minutes: send expiring soon notifications at configured thresholds
+     * (default 48h and 24h), deduped by post+threshold+channel.
+     * Only AVAILABLE posts are considered.
+     */
+    @Scheduled(fixedRate = 1800000)
+    @Transactional
+    public void sendExpiringSoonNotifications() {
+        if (expiryNotificationLogRepository == null) {
+            return;
+        }
+        LocalDateTime nowUtc = LocalDateTime.now(ZoneOffset.UTC);
+        List<Integer> thresholds = parseThresholdHours();
+        if (thresholds.isEmpty()) {
+            return;
+        }
+
+        List<SurplusPost> availablePosts = surplusPostRepository.findByStatus(PostStatus.AVAILABLE);
+        for (SurplusPost post : availablePosts) {
+            LocalDateTime effectiveExpiry = getEffectiveExpiry(post);
+            if (effectiveExpiry == null || !effectiveExpiry.isAfter(nowUtc)) {
+                continue;
+            }
+
+            long hoursRemaining = java.time.Duration.between(nowUtc, effectiveExpiry).toHours();
+            for (Integer threshold : thresholds) {
+                if (hoursRemaining <= threshold && hoursRemaining >= threshold - 1) {
+                    sendThresholdNotification(post, threshold, effectiveExpiry);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Every 5 minutes: send ONE pickup reminder notification to donor and receiver
+     * exactly 1 hour before pickup time starts (only sent once per post)
+     */
+    @Scheduled(fixedRate = 300000) // Run every 5 minutes
+    @Transactional
+    public void sendPickupReminders() {
+        // Use UTC for all time comparisons
+        ZonedDateTime nowUtc = ZonedDateTime.now(ZoneId.of("UTC"));
+        LocalDateTime nowDateTime = nowUtc.toLocalDateTime();
+        
+        logger.info("===== sendPickupReminders running at {} UTC =====", nowUtc);
+        
+        // Find CLAIMED posts (pickup hasn't started yet)
+        List<SurplusPost> claimedPosts = surplusPostRepository.findByStatus(PostStatus.CLAIMED);
+        logger.info("Found {} CLAIMED posts to check for pickup reminders", claimedPosts.size());
+        
+        for (SurplusPost post : claimedPosts) {
+            try {
+                // Skip if reminder already sent for this post
+                if (remindersSentForPosts.contains(post.getId())) {
+                    logger.debug("Post ID {} - Reminder already sent, skipping", post.getId());
+                    continue;
+                }
+                
+                // Find the claim to get confirmed pickup time
+                Optional<Claim> claimOpt = claimRepository.findBySurplusPost(post);
+                if (claimOpt.isEmpty()) {
+                    continue;
+                }
+                
+                Claim claim = claimOpt.get();
+                LocalDate confirmedPickupDate = claim.getConfirmedPickupDate();
+                LocalTime confirmedPickupStartTime = claim.getConfirmedPickupStartTime();
+                
+                if (confirmedPickupDate == null || confirmedPickupStartTime == null) {
+                    continue;
+                }
+                
+                // Calculate pickup start time
+                LocalDateTime pickupStartTime = LocalDateTime.of(confirmedPickupDate, confirmedPickupStartTime);
+                
+                // Calculate time until pickup (in minutes)
+                long minutesUntilPickup = java.time.Duration.between(nowDateTime, pickupStartTime).toMinutes();
+                
+                // Send reminder if pickup is between 55-65 minutes away
+                // This 10-minute window accounts for the 5-minute scheduler interval
+                // But we only send ONCE per post thanks to the tracking set
+                if (minutesUntilPickup >= 55 && minutesUntilPickup <= 65) {
+                    logger.info("Post ID {} - Pickup in {} minutes, sending ONE-TIME reminder", post.getId(), minutesUntilPickup);
+                    
+                    // Mark as sent BEFORE sending to prevent race conditions
+                    remindersSentForPosts.add(post.getId());
+                    
+                    // Get donor and receiver
+                    com.example.foodflow.model.entity.User donor = post.getDonor();
+                    com.example.foodflow.model.entity.User receiver = claim.getReceiver();
+                    
+                    // Format pickup time for messages
+                    String pickupTimeFormatted = confirmedPickupStartTime.toString();
+                    
+                    // Prepare notification data
+                    java.util.Map<String, Object> reminderData = new java.util.HashMap<>();
+                    reminderData.put("donationTitle", post.getTitle());
+                    reminderData.put("pickupTime", pickupTimeFormatted);
+                    reminderData.put("pickupDate", confirmedPickupDate.toString());
+                    
+                    // Send to DONOR
+                    sendPickupReminderToUser(donor, "pickupReminder", reminderData, "donor", post.getId());
+                    
+                    // Send to RECEIVER
+                    sendPickupReminderToUser(receiver, "pickupReminder", reminderData, "receiver", post.getId());
+                    
+                    logger.info("Post ID {} - Pickup reminder sent successfully (will not send again)", post.getId());
+                }
+                
+            } catch (Exception e) {
+                logger.error("Error processing pickup reminder for post ID {}: {}", post.getId(), e.getMessage());
+            }
+        }
+        
+        // Clean up tracking set: remove posts that are no longer CLAIMED
+        // This allows reminders to be sent again if a post is reclaimed later
+        List<Long> claimedPostIds = claimedPosts.stream().map(SurplusPost::getId).toList();
+        remindersSentForPosts.retainAll(claimedPostIds);
+    }
+    
+    /**
+     * Helper method to send pickup reminder to a user via SMS
+     */
+    private void sendPickupReminderToUser(com.example.foodflow.model.entity.User user, String notificationType, 
+            java.util.Map<String, Object> reminderData, String userType, Long postId) {
+        
+        String userName = getUserName(user);
+        
+        // Send SMS if enabled
+        if (notificationPreferenceService.shouldSendNotification(user, notificationType, "sms")) {
+            if (hasValidPhoneNumber(user)) {
+                try {
+                    boolean smsSent = smsService.sendPickupReminderNotification(user.getPhone(), userName, reminderData);
+                    if (smsSent) {
+                        logger.info("Sent pickup reminder SMS to {} userId={} for postId={}", userType, user.getId(), postId);
+                    } else {
+                        logger.warn("SMS pickup reminder failed for {} userId={}", userType, user.getId());
+                    }
+                } catch (Exception e) {
+                    logger.error("Failed to send pickup reminder SMS to {} userId={}: {}", userType, user.getId(), e.getMessage());
+                }
+            } else {
+                logger.debug("Cannot send SMS to {} userId={} - no valid phone number", userType, user.getId());
+            }
+        } else {
+            logger.debug("{} userId={} has pickup reminder SMS disabled", userType, user.getId());
+        }
+    }
+    
+    /**
+     * Get user name (from organization or default)
+     */
+    private String getUserName(com.example.foodflow.model.entity.User user) {
+        if (user.getOrganization() != null && user.getOrganization().getName() != null) {
+            return user.getOrganization().getName();
+        }
+        return "User";
+    }
+    
+    /**
+     * Check if user has a valid phone number for SMS notifications
+     */
+    private boolean hasValidPhoneNumber(com.example.foodflow.model.entity.User user) {
+        if (user == null || user.getPhone() == null || user.getPhone().trim().isEmpty()) {
+            return false;
+        }
+        
+        String phone = user.getPhone().trim();
+        
+        // E.164 format validation: +[country code][number] (e.g., +12345678901)
+        // Must start with +, followed by 1-15 digits
+        return phone.matches("^\\+[1-9]\\d{1,14}$");
+    }
+
+    private LocalDateTime getEffectiveExpiry(SurplusPost post) {
+        if (post.getExpiryDateEffective() != null) {
+            return post.getExpiryDateEffective();
+        }
+        if (post.getExpiryDate() != null) {
+            return post.getExpiryDate().atTime(23, 59, 59);
+        }
+        return post.getExpiryDatePredicted();
+    }
+
+    private List<Integer> parseThresholdHours() {
+        if (expiryNotificationThresholdHours == null || expiryNotificationThresholdHours.isBlank()) {
+            return List.of(48, 24);
+        }
+
+        return Arrays.stream(expiryNotificationThresholdHours.split(","))
+                .map(String::trim)
+                .filter(value -> !value.isEmpty())
+                .map(value -> {
+                    try {
+                        return Integer.parseInt(value);
+                    } catch (NumberFormatException ex) {
+                        return null;
+                    }
+                })
+                .filter(value -> value != null && value > 0)
+                .sorted(java.util.Collections.reverseOrder())
+                .collect(Collectors.toList());
+    }
+
+    private void sendThresholdNotification(SurplusPost post, int thresholdHours, LocalDateTime effectiveExpiry) {
+        User donor = post.getDonor();
+        String dedupeEmail = buildDedupeKey(post.getId(), thresholdHours, "email");
+        String dedupeWebsocket = buildDedupeKey(post.getId(), thresholdHours, "websocket");
+
+        if (notificationPreferenceService.shouldSendNotification(donor, "donationExpiringSoon", "email")
+                && !expiryNotificationLogRepository.existsByDedupeKey(dedupeEmail)) {
+            try {
+                Map<String, Object> payload = new HashMap<>();
+                payload.put("donationTitle", post.getTitle());
+                payload.put("effectiveExpiry", effectiveExpiry.toString());
+                payload.put("thresholdHours", thresholdHours);
+                String donorName = donor.getOrganization() != null ? donor.getOrganization().getName() : donor.getFullName();
+                emailService.sendDonationExpiredNotification(donor.getEmail(), donorName, payload);
+                saveNotificationLog(post, thresholdHours, "email", dedupeEmail);
+            } catch (Exception e) {
+                logger.error("Failed sending expiring-soon email for postId={}: {}", post.getId(), e.getMessage());
+            }
+        }
+
+        if (notificationPreferenceService.shouldSendNotification(donor, "donationExpiringSoon", "websocket")
+                && !expiryNotificationLogRepository.existsByDedupeKey(dedupeWebsocket)) {
+            try {
+                Map<String, Object> notification = new HashMap<>();
+                notification.put("type", "DONATION_EXPIRING_SOON");
+                notification.put("donationId", post.getId());
+                notification.put("title", post.getTitle());
+                notification.put("effectiveExpiry", effectiveExpiry.toString());
+                notification.put("thresholdHours", thresholdHours);
+                notification.put("message", "Donation expiring soon");
+                notification.put("timestamp", ZonedDateTime.now(ZoneId.of("UTC")).toString());
+                messagingTemplate.convertAndSendToUser(
+                        donor.getId().toString(),
+                        "/queue/donations/expired",
+                        notification
+                );
+                saveNotificationLog(post, thresholdHours, "websocket", dedupeWebsocket);
+            } catch (Exception e) {
+                logger.error("Failed sending expiring-soon websocket for postId={}: {}", post.getId(), e.getMessage());
+            }
+        }
+    }
+
+    private String buildDedupeKey(Long postId, int thresholdHours, String channel) {
+        return "expiring:" + postId + ":" + thresholdHours + ":" + channel;
+    }
+
+    private void saveNotificationLog(SurplusPost post, int thresholdHours, String channel, String dedupeKey) {
+        ExpiryNotificationLog log = new ExpiryNotificationLog();
+        log.setSurplusPost(post);
+        log.setThresholdHours(thresholdHours);
+        log.setChannel(channel);
+        log.setDedupeKey(dedupeKey);
+        expiryNotificationLogRepository.save(log);
+    }
+
+    private void sendExpiredNotificationToDonor(SurplusPost post, User donor) {
+        LocalDateTime effectiveExpiry = getEffectiveExpiry(post);
+        try {
+            logger.info("Checking email preference for donor userId={} for donationExpired notification", donor.getId());
+            
+            if (notificationPreferenceService.shouldSendNotification(donor, "donationExpired", "email")) {
+                logger.info("Donor {} has email notifications enabled for donationExpired, sending email", donor.getId());
+                
+                Map<String, Object> donationData = new HashMap<>();
+                donationData.put("donationTitle", post.getTitle());
+                donationData.put("quantity", post.getQuantity().getValue() + " " + post.getQuantity().getUnit().getLabel());
+                donationData.put("expiryDate", effectiveExpiry != null ? effectiveExpiry.toString() : "Unknown");
+                
+                String donorName = donor.getOrganization() != null ? 
+                    donor.getOrganization().getName() : donor.getFullName();
+                
+                emailService.sendDonationExpiredNotification(donor.getEmail(), donorName, donationData);
+                logger.info("Successfully sent donation expired email to donor userId={} for postId={}", donor.getId(), post.getId());
+            } else {
+                logger.info("Donor {} has email notifications disabled for donationExpired", donor.getId());
+            }
+        } catch (Exception e) {
+            logger.error("Failed to send donation expired email to donor: {}", e.getMessage(), e);
+        }
+        
+        // Send WebSocket notification
+        try {
+            logger.info("Checking websocket preference for donor userId={} for donationExpired notification", donor.getId());
+            
+            if (notificationPreferenceService.shouldSendNotification(donor, "donationExpired", "websocket")) {
+                logger.info("Donor {} has websocket notifications enabled for donationExpired, sending notification", donor.getId());
+                
+                Map<String, Object> notification = new HashMap<>();
+                notification.put("type", "DONATION_EXPIRED");
+                notification.put("donationId", post.getId());
+                notification.put("title", post.getTitle());
+                notification.put("message", "Your donation '" + post.getTitle() + "' has expired and been removed from listings.");
+                notification.put("expiryDate", effectiveExpiry != null ? effectiveExpiry.toString() : null);
+                notification.put("timestamp", ZonedDateTime.now(ZoneId.of("UTC")).toString());
+                
+                messagingTemplate.convertAndSendToUser(
+                    donor.getId().toString(),
+                    "/queue/donations/expired",
+                    notification
+                );
+                logger.info("Successfully sent donation expired websocket notification to donor userId={} for postId={}", donor.getId(), post.getId());
+            } else {
+                logger.info("Donor {} has websocket notifications disabled for donationExpired", donor.getId());
+            }
+        } catch (Exception e) {
+            logger.error("Failed to send donation expired websocket notification to donor: {}", e.getMessage(), e);
+        }
     }
 }

@@ -17,7 +17,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,15 +33,21 @@ public class AdminUserService {
     private final SurplusPostRepository surplusPostRepository;
     private final ClaimRepository claimRepository;
     private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
+    private final NotificationPreferenceService notificationPreferenceService;
+    private final EmailService emailService;
 
     public AdminUserService(UserRepository userRepository,
                            SurplusPostRepository surplusPostRepository,
                            ClaimRepository claimRepository,
-                           org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate) {
+                           org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate,
+                           NotificationPreferenceService notificationPreferenceService,
+                           EmailService emailService) {
         this.userRepository = userRepository;
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;
         this.messagingTemplate = messagingTemplate;
+        this.notificationPreferenceService = notificationPreferenceService;
+        this.emailService = emailService;
     }
 
     /**
@@ -110,6 +120,9 @@ public class AdminUserService {
         User savedUser = userRepository.save(user);
         log.info("User {} successfully deactivated", userId);
 
+        // Send notifications to user
+        sendAccountStatusNotification(savedUser, "deactivated", adminNotes);
+
         return convertToAdminUserResponse(savedUser);
     }
 
@@ -136,7 +149,68 @@ public class AdminUserService {
         User savedUser = userRepository.save(user);
         log.info("User {} successfully reactivated", userId);
 
+        // Send notifications to user
+        sendAccountStatusNotification(savedUser, "reactivated", null);
+
         return convertToAdminUserResponse(savedUser);
+    }
+
+    /**
+     * Send account status change notifications (deactivated/reactivated)
+     */
+    private void sendAccountStatusNotification(User user, String action, String adminNotes) {
+        String userName = user.getOrganization() != null 
+            ? user.getOrganization().getName() 
+            : user.getEmail();
+
+        // Send email notification if preference allows
+        if (notificationPreferenceService.shouldSendNotification(user, "verificationStatusChanged", "email")) {
+            try {
+                log.info("Sending {} email to user: {} ({})", action, user.getEmail(), userName);
+                if ("deactivated".equals(action)) {
+                    emailService.sendAccountDeactivationEmail(user.getEmail(), userName);
+                } else if ("reactivated".equals(action)) {
+                    emailService.sendAccountReactivationEmail(user.getEmail(), userName);
+                }
+                log.info("Account {} email sent successfully to: {}", action, user.getEmail());
+            } catch (Exception e) {
+                log.error("Failed to send {} email to {}: {}", action, user.getEmail(), e.getMessage(), e);
+            }
+        } else {
+            log.info("Email notification skipped for user {} - preference disabled", user.getEmail());
+        }
+
+        // Send WebSocket notification if preference allows
+        if (notificationPreferenceService.shouldSendNotification(user, "verificationStatusChanged", "websocket")) {
+            try {
+                Map<String, Object> notification = new HashMap<>();
+                notification.put("type", action.equals("deactivated") ? "ACCOUNT_DEACTIVATED" : "ACCOUNT_REACTIVATED");
+                
+                if ("deactivated".equals(action)) {
+                    notification.put("message", "Your account has been deactivated by an administrator. Please contact support for more information.");
+                    if (adminNotes != null && !adminNotes.isEmpty()) {
+                        notification.put("reason", adminNotes);
+                    }
+                } else {
+                    notification.put("message", "Your account has been reactivated by an administrator. You now have full access to FoodFlow.");
+                }
+                
+                notification.put("organizationName", userName);
+                notification.put("timestamp", ZonedDateTime.now(ZoneId.of("UTC")).toString());
+
+                log.info("Sending WebSocket {} notification to user ID: {}", action, user.getId());
+                messagingTemplate.convertAndSendToUser(
+                    user.getId().toString(),
+                    "/queue/verification/approved",
+                    notification
+                );
+                log.info("WebSocket {} notification sent to user ID: {}", action, user.getId());
+            } catch (Exception e) {
+                log.error("Failed to send WebSocket {} notification to user {}: {}", action, user.getId(), e.getMessage(), e);
+            }
+        } else {
+            log.info("WebSocket notification skipped for user ID {} - preference disabled", user.getId());
+        }
     }
 
     /**

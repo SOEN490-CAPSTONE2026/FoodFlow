@@ -37,6 +37,7 @@ public class ClaimService {
     private final TimelineService timelineService;
     private final EmailService emailService;
     private final GamificationService gamificationService;
+    private final SmsService smsService;
     
     public ClaimService(ClaimRepository claimRepository,
                        SurplusPostRepository surplusPostRepository,
@@ -45,7 +46,8 @@ public class ClaimService {
                        NotificationPreferenceService notificationPreferenceService,
                        TimelineService timelineService,
                        EmailService emailService,
-                       GamificationService gamificationService) {
+                       GamificationService gamificationService,
+                       SmsService smsService) {
         this.claimRepository = claimRepository;
         this.surplusPostRepository = surplusPostRepository;
         this.businessMetricsService = businessMetricsService;
@@ -54,6 +56,7 @@ public class ClaimService {
         this.timelineService = timelineService;
         this.emailService = emailService;
         this.gamificationService = gamificationService;
+        this.smsService = smsService;
     }
                        
     @Transactional
@@ -64,9 +67,13 @@ public class ClaimService {
         SurplusPost surplusPost = surplusPostRepository.findById(request.getSurplusPostId())
             .orElseThrow(() -> new ResourceNotFoundException("error.resource.not_found"));
 
-        // Check if post has expired
-        if (surplusPost.getExpiryDate() != null &&
-            surplusPost.getExpiryDate().isBefore(java.time.LocalDate.now())) {
+        // Check if post has expired based on effective expiry first, fallback to legacy expiry date.
+        LocalDateTime effectiveExpiry = surplusPost.getExpiryDateEffective();
+        if (effectiveExpiry == null && surplusPost.getExpiryDate() != null) {
+            effectiveExpiry = surplusPost.getExpiryDate().atTime(23, 59, 59);
+        }
+        if (effectiveExpiry != null &&
+                !LocalDateTime.now(java.time.ZoneOffset.UTC).isBefore(effectiveExpiry)) {
             throw new RuntimeException("This donation has expired and cannot be claimed");
         }
 
@@ -296,6 +303,30 @@ public class ClaimService {
             }
         }
         
+        // Send SMS notification to donor if enabled
+        if (notificationPreferenceService.shouldSendNotification(donor, "donationClaimed", "sms")) {
+            if (hasValidPhoneNumber(donor)) {
+                try {
+                    String donorName = getDonorName(donor);
+                    java.util.Map<String, Object> claimData = new java.util.HashMap<>();
+                    claimData.put("donationTitle", surplusPost.getTitle());
+                    claimData.put("receiverName", receiverName);
+                    claimData.put("pickupCode", surplusPost.getOtpCode());
+                    
+                    boolean smsSent = smsService.sendDonationClaimedNotification(donor.getPhone(), donorName, claimData);
+                    if (smsSent) {
+                        logger.info("Sent donation claimed SMS to donor userId={}", donor.getId());
+                    } else {
+                        logger.warn("SMS notification failed for donor userId={}", donor.getId());
+                    }
+                } catch (Exception e) {
+                    logger.error("Failed to send SMS notification to donor userId={}: {}", donor.getId(), e.getMessage());
+                }
+            } else {
+                logger.warn("Cannot send SMS to donor userId={} - no valid phone number", donor.getId());
+            }
+        }
+        
         // Broadcast websocket event to receiver
         try {
             messagingTemplate.convertAndSendToUser(
@@ -418,6 +449,28 @@ public class ClaimService {
                 logger.error("Failed to send email notification to donor userId={}: {}", donor.getId(), e.getMessage());
             }
         }
+        
+        // Send SMS notification to donor if enabled
+        if (notificationPreferenceService.shouldSendNotification(donor, "claimCanceled", "sms")) {
+            if (hasValidPhoneNumber(donor)) {
+                try {
+                    String donorName = getDonorName(donor);
+                    java.util.Map<String, Object> claimData = new java.util.HashMap<>();
+                    claimData.put("donationTitle", post.getTitle());
+                    
+                    boolean smsSent = smsService.sendClaimCanceledNotification(donor.getPhone(), donorName, claimData);
+                    if (smsSent) {
+                        logger.info("Sent claim canceled SMS to donor userId={}", donor.getId());
+                    } else {
+                        logger.warn("SMS notification failed for donor userId={}", donor.getId());
+                    }
+                } catch (Exception e) {
+                    logger.error("Failed to send SMS notification to donor userId={}: {}", donor.getId(), e.getMessage());
+                }
+            } else {
+                logger.warn("Cannot send SMS to donor userId={} - no valid phone number", donor.getId());
+            }
+        }
     }
 
     @Transactional
@@ -468,5 +521,20 @@ public class ClaimService {
             return receiver.getOrganization().getName();
         }
         return "Receiver";
+    }
+    
+    /**
+     * Check if user has a valid phone number for SMS notifications
+     */
+    private boolean hasValidPhoneNumber(User user) {
+        if (user == null || user.getPhone() == null || user.getPhone().trim().isEmpty()) {
+            return false;
+        }
+        
+        String phone = user.getPhone().trim();
+        
+        // E.164 format validation: +[country code][number] (e.g., +12345678901)
+        // Must start with +, followed by 1-15 digits
+        return phone.matches("^\\+[1-9]\\d{1,14}$");
     }
 }

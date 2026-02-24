@@ -43,6 +43,15 @@ class FeedbackServiceTest {
     @Mock
     private AlertService alertService;
 
+    @Mock
+    private org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
+
+    @Mock
+    private NotificationPreferenceService notificationPreferenceService;
+
+    @Mock
+    private EmailService emailService;
+
     @InjectMocks
     private FeedbackService feedbackService;
 
@@ -770,6 +779,36 @@ class FeedbackServiceTest {
 
             // Then
             assertEquals("individual@example.com", result.getUserName()); // Email fallback
+        }
+    }
+
+    // Notification preference tests
+    @Nested
+    @DisplayName("Notification Preference Tests")
+    class NotificationPreferenceTests {
+
+        @Test
+        @DisplayName("Should respect notification preferences when sending feedback notifications")
+        void shouldRespectNotificationPreferences() {
+            // Given
+            when(claimRepository.findById(1L)).thenReturn(Optional.of(claim));
+            when(feedbackRepository.existsByClaimAndReviewer(claim, donor)).thenReturn(false);
+            
+            Feedback savedFeedback = new Feedback(claim, donor, receiver, 5, "Excellent cooperation!");
+            savedFeedback.setId(1L);
+            savedFeedback.setCreatedAt(LocalDateTime.now());
+            when(feedbackRepository.save(any(Feedback.class))).thenReturn(savedFeedback);
+            when(feedbackRepository.getAverageRatingForUser(receiver)).thenReturn(4.5);
+            when(feedbackRepository.getTotalReviewsForUser(receiver)).thenReturn(5L);
+            when(feedbackRepository.getRatingDistributionForUser(receiver)).thenReturn(Arrays.asList());
+            
+            when(notificationPreferenceService.shouldSendNotification(any(User.class), anyString(), anyString())).thenReturn(true);
+
+            // When
+            feedbackService.submitFeedback(feedbackRequest, donor);
+
+            // Then - verify notification preferences were checked
+            verify(notificationPreferenceService, atLeastOnce()).shouldSendNotification(any(User.class), anyString(), anyString());
         }
     }
 }

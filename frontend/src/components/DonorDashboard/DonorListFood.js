@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Calendar,
   Clock,
@@ -18,9 +18,15 @@ import {
   ChevronRight,
   Upload,
   Star,
+  Sparkles,
 } from 'lucide-react';
 import { useLoadScript } from '@react-google-maps/api';
-import { surplusAPI, claimsAPI, reportAPI } from '../../services/api';
+import {
+  surplusAPI,
+  claimsAPI,
+  reportAPI,
+  conversationAPI,
+} from '../../services/api';
 import SurplusFormModal from '../DonorDashboard/SurplusFormModal';
 import ConfirmPickupModal from '../DonorDashboard/ConfirmPickupModal';
 import ClaimedSuccessModal from '../DonorDashboard/ClaimedSuccessModal';
@@ -29,11 +35,13 @@ import ReportUserModal from '../ReportUserModal';
 import FeedbackModal from '../FeedbackModal/FeedbackModal';
 import DonationTimeline from '../shared/DonationTimeline';
 import {
+  getDietaryTagLabel,
   getFoodTypeLabel,
   getUnitLabel,
   getTemperatureCategoryLabel,
   getTemperatureCategoryIcon,
   getPackagingTypeLabel,
+  mapLegacyCategoryToFoodType,
 } from '../../constants/foodConstants';
 import '../DonorDashboard/Donor_Styles/DonorListFood.css';
 
@@ -234,6 +242,7 @@ export default function DonorListFood() {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState({}); // { donationId: index }
   const [uploadingPhotos, setUploadingPhotos] = useState({}); // { donationId: true/false }
   const [uploadError, setUploadError] = useState({}); // { donationId: error message }
+  const [focusedDonationId, setFocusedDonationId] = useState(null);
 
   // Timeline states
   const [expandedTimeline, setExpandedTimeline] = useState({}); // { donationId: true/false }
@@ -243,6 +252,7 @@ export default function DonorListFood() {
   useEffect(() => {
     fetchMyPosts();
   }, []);
+  const location = useLocation();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -335,7 +345,7 @@ export default function DonorListFood() {
     }
   };
 
-  const getRecipientEmailForClaimedPost = async item => {
+  const getClaimedReceiverForPost = async item => {
     try {
       setError(null);
       const { data: claims } = await claimsAPI.getClaimForSurplusPost(item.id);
@@ -347,14 +357,23 @@ export default function DonorListFood() {
         return null;
       }
 
-      return claims[0].receiverEmail;
+      const activeClaim = claims[0];
+      if (!activeClaim.receiverId) {
+        setError(`Receiver ID missing for post "${item.title}"`);
+        return null;
+      }
+
+      return {
+        id: activeClaim.receiverId,
+        email: activeClaim.receiverEmail,
+      };
     } catch (err) {
-      console.error('Error fetching recipient email:', err);
+      console.error('Error fetching receiver details:', err);
 
       if (err.response?.status === 400) {
         setError('Receiver not found or invalid email');
       } else {
-        setError('Failed to fetch recipient email. Please try again.');
+        setError('Failed to fetch receiver details. Please try again.');
       }
 
       return null;
@@ -362,14 +381,21 @@ export default function DonorListFood() {
   };
 
   const contactReceiver = async item => {
-    const recipientEmail = await getRecipientEmailForClaimedPost(item);
-
-    if (!recipientEmail) {
+    const receiver = await getClaimedReceiverForPost(item);
+    if (!receiver) {
       return;
     }
-    navigate(
-      `/donor/messages?recipientEmail=${encodeURIComponent(recipientEmail)}`
-    );
+
+    try {
+      const response = await conversationAPI.createOrGetPostConversation(
+        item.id,
+        receiver.id
+      );
+      navigate(`/donor/messages?conversationId=${response.data.id}`);
+    } catch (err) {
+      console.error('Error opening donation conversation:', err);
+      setError('Failed to open donation chat. Please try again.');
+    }
   };
 
   const handleOpenFeedback = async item => {
@@ -461,7 +487,6 @@ export default function DonorListFood() {
   }
 
   function openEdit(item) {
-    alert(t('donorListFood.editFunctionality', { title: item.title }));
     setEditPostId(item.id);
     setIsEditMode(true);
     setIsModalOpen(true);
@@ -549,6 +574,30 @@ export default function DonorListFood() {
       alert('Failed to submit report. Please try again.');
     }
   };
+
+  useEffect(() => {
+    const targetId = location.state?.focusDonationId;
+    if (!targetId || !items.length) {
+      return;
+    }
+
+    const targetCard = document.getElementById(`donation-card-${targetId}`);
+    if (!targetCard) {
+      return;
+    }
+
+    setFocusedDonationId(Number(targetId));
+    targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    const clearHighlightTimer = setTimeout(() => {
+      setFocusedDonationId(null);
+    }, 2200);
+
+    // Clear focus state so it does not retrigger on every rerender.
+    navigate(location.pathname, { replace: true, state: {} });
+
+    return () => clearTimeout(clearHighlightTimer);
+  }, [items, location.pathname, location.state, navigate]);
 
   // Photo upload handlers
   const handlePhotoUpload = async (donationId, event) => {
@@ -768,16 +817,25 @@ export default function DonorListFood() {
           </div>
         </div>
 
-        <button
-          className="donor-add-button"
-          onClick={() => {
-            setIsEditMode(false);
-            setEditPostId(null);
-            setIsModalOpen(true);
-          }}
-        >
-          + {t('donorListFood.donateMore')}
-        </button>
+        <div className="header-actions">
+          <button
+            className="donor-ai-button"
+            onClick={() => navigate('/donor/ai-donation')}
+          >
+            <Sparkles size={18} />
+            Create with AI
+          </button>
+          <button
+            className="donor-add-button"
+            onClick={() => {
+              setIsEditMode(false);
+              setEditPostId(null);
+              setIsModalOpen(true);
+            }}
+          >
+            + {t('donorListFood.donateMore')}
+          </button>
+        </div>
         {isLoaded && (
           <SurplusFormModal
             isOpen={isModalOpen}
@@ -802,10 +860,65 @@ export default function DonorListFood() {
         <section className="donor-list-grid" aria-label="Donations list">
           {items.map(item => {
             const normalizedStatus = normalizeStatus(item.status);
+            const resolvedFoodType = item.foodType || item.foodCategories?.[0];
+            const normalizedFoodType = resolvedFoodType
+              ? mapLegacyCategoryToFoodType(resolvedFoodType)
+              : null;
+            const dietaryTags = Array.isArray(item.dietaryTags)
+              ? item.dietaryTags
+              : [];
+            const translatedTags = [];
+
+            if (normalizedFoodType) {
+              translatedTags.push({
+                label: t(
+                  `surplusForm.foodTypeValues.${normalizedFoodType}`,
+                  getFoodTypeLabel(resolvedFoodType)
+                ),
+                type: 'food',
+              });
+            }
+
+            dietaryTags.forEach(tag => {
+              translatedTags.push({
+                label: t(
+                  `surplusForm.dietaryTagValues.${tag}`,
+                  getDietaryTagLabel(tag)
+                ),
+                type: 'dietary',
+              });
+            });
+
+            if (item.foodCategories && item.foodCategories.length > 0) {
+              item.foodCategories.forEach(category => {
+                const categoryValue = category.name || category;
+                const mappedCategory =
+                  mapLegacyCategoryToFoodType(categoryValue);
+                translatedTags.push({
+                  label: t(
+                    `surplusForm.foodTypeValues.${mappedCategory}`,
+                    getFoodTypeLabel(categoryValue)
+                  ),
+                  type: 'food',
+                });
+              });
+            }
+
+            const uniqueTags = translatedTags.filter(
+              (tag, index, self) =>
+                index ===
+                self.findIndex(
+                  candidate =>
+                    candidate.label === tag.label && candidate.type === tag.type
+                )
+            );
             return (
               <article
                 key={item.id}
-                className="donation-card"
+                id={`donation-card-${item.id}`}
+                className={`donation-card ${
+                  focusedDonationId === item.id ? 'donation-card--focused' : ''
+                }`}
                 aria-label={item.title}
               >
                 <div className="donation-header">
@@ -827,20 +940,18 @@ export default function DonorListFood() {
                   </span>
                 </div>
 
-                {item.foodCategories && item.foodCategories.length > 0 && (
-                  <div className="donation-tags">
-                    {item.foodCategories.map((category, index) => {
-                      // Get the category value (handle both object and string formats)
-                      const categoryValue = category.name || category;
-                      // Map to display label using centralized helper function
-                      const displayLabel = getFoodTypeLabel(categoryValue);
-
-                      return (
-                        <span key={index} className="donation-tag">
-                          {displayLabel}
-                        </span>
-                      );
-                    })}
+                {uniqueTags.length > 0 && (
+                  <div className="dietary-tags-row">
+                    {uniqueTags.map((tag, index) => (
+                      <span
+                        key={`${item.id}-tag-${index}`}
+                        className={`donation-tag ${
+                          tag.type === 'dietary' ? 'donation-tag--dietary' : ''
+                        }`}
+                      >
+                        {tag.label}
+                      </span>
+                    ))}
                   </div>
                 )}
 
@@ -853,8 +964,11 @@ export default function DonorListFood() {
                           {getTemperatureCategoryIcon(item.temperatureCategory)}
                         </span>
                         <span className="badge-label">
-                          {getTemperatureCategoryLabel(
-                            item.temperatureCategory
+                          {t(
+                            `surplusForm.temperatureCategoryValues.${item.temperatureCategory}`,
+                            getTemperatureCategoryLabel(
+                              item.temperatureCategory
+                            )
                           )}
                         </span>
                       </span>
@@ -863,7 +977,10 @@ export default function DonorListFood() {
                       <span className="compliance-badge packaging">
                         <Package size={14} />
                         <span className="badge-label">
-                          {getPackagingTypeLabel(item.packagingType)}
+                          {t(
+                            `surplusForm.packagingTypeValues.${item.packagingType}`,
+                            getPackagingTypeLabel(item.packagingType)
+                          )}
                         </span>
                       </span>
                     )}

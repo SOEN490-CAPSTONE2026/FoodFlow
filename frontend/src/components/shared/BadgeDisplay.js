@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, ChevronDown } from 'lucide-react';
 import useGamification from '../../hooks/useGamification';
 import PointsDisplay from './PointsDisplay';
 import BadgeIcon from './BadgeIcon';
@@ -13,6 +13,7 @@ import './BadgeDisplay.css';
 const BadgeDisplay = () => {
   const navigate = useNavigate();
   const { stats, loading, error } = useGamification();
+  const [expanded, setExpanded] = useState(true);
 
   if (error) {
     return (
@@ -92,35 +93,51 @@ const BadgeDisplay = () => {
       <PointsDisplay points={stats.totalPoints || 0} />
 
       <div className="badges-section">
-        <div className="badges-header">
+        <button
+          className="badges-header"
+          onClick={() => setExpanded(prev => !prev)}
+          aria-expanded={expanded}
+        >
           <h4>Achievements</h4>
-          <span className="badges-count">
-            {unlockedAchievements.length} / {allAchievements.length}
+          <span className="badges-header-right">
+            <span className="badges-count">
+              {unlockedAchievements.length} / {allAchievements.length}
+            </span>
+            <ChevronDown
+              size={14}
+              className={`badges-toggle-icon ${expanded ? 'expanded' : ''}`}
+            />
           </span>
-        </div>
+        </button>
 
-        {displayedBadges.length === 0 ? (
-          <div className="badges-empty">
-            <p>Start donating to earn badges!</p>
-          </div>
-        ) : (
-          <div className="badges-grid">
-            {displayedBadges.map(achievement => (
-              <BadgeIcon
-                key={achievement.id}
-                achievement={achievement}
-                unlocked={achievement.unlocked}
-                progress={achievement.progress || progressMap[achievement.id]}
-              />
-            ))}
-          </div>
-        )}
+        {expanded && (
+          <>
+            {displayedBadges.length === 0 ? (
+              <div className="badges-empty">
+                <p>Start donating to earn badges!</p>
+              </div>
+            ) : (
+              <div className="badges-grid">
+                {displayedBadges.map(achievement => (
+                  <BadgeIcon
+                    key={achievement.id}
+                    achievement={achievement}
+                    unlocked={achievement.unlocked}
+                    progress={
+                      achievement.progress || progressMap[achievement.id]
+                    }
+                  />
+                ))}
+              </div>
+            )}
 
-        {hasMore && (
-          <button className="view-all-btn" onClick={handleViewAll}>
-            View All Achievements
-            <ChevronRight size={16} />
-          </button>
+            {hasMore && (
+              <button className="view-all-btn" onClick={handleViewAll}>
+                View All Achievements
+                <ChevronRight size={16} />
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>

@@ -31,7 +31,21 @@ public class UserDTO {
         dto.setId(user.getId());
         dto.setEmail(user.getEmail());
         dto.setRole(user.getRole());
-        dto.setOrganization(OrganizationDTO.toDTO(user.getOrganization()));
+        dto.setOrganization(OrganizationDTO.toDTOWithoutUser(user.getOrganization()));
+        dto.setCreatedAt(user.getCreatedAt());
+        dto.setUpdatedAt(user.getUpdatedAt());
+        dto.setLanguagePreference(user.getLanguagePreference());
+        dto.setEmailNotificationsEnabled(user.getEmailNotificationsEnabled());
+        dto.setSmsNotificationsEnabled(user.getSmsNotificationsEnabled());
+        return dto;
+    }
+
+    public static UserDTO toDTOWithoutOrganization(com.example.foodflow.model.entity.User user) {
+        if (user == null) return null;
+        UserDTO dto = new UserDTO();
+        dto.setId(user.getId());
+        dto.setEmail(user.getEmail());
+        dto.setRole(user.getRole());
         dto.setCreatedAt(user.getCreatedAt());
         dto.setUpdatedAt(user.getUpdatedAt());
         dto.setLanguagePreference(user.getLanguagePreference());

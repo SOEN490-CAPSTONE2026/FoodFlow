@@ -1,7 +1,5 @@
 package com.example.foodflow.helpers;
 
-import java.util.function.Predicate;
-
 /* 
 public class StringFilter extends Filter<String> {
 

@@ -21,7 +21,7 @@ import ReceiverPreferences from './ReceiverPreferences';
 import EmailVerificationRequired from '../EmailVerificationRequired';
 import AdminApprovalBanner from '../AdminApprovalBanner';
 import { connectToUserQueue, disconnect } from '../../services/socket';
-import api, { profileAPI } from '../../services/api';
+import api, { profileAPI, savedDonationAPI } from '../../services/api';
 import {
   Settings as IconSettings,
   HelpCircle as IconHelpCircle,
@@ -29,6 +29,8 @@ import {
   Inbox as IconInbox,
   CheckCircle,
   User as IconUser,
+  Menu as IconMenu,
+  X as IconX,
 } from 'lucide-react';
 
 function ReceiverLayoutContent() {
@@ -45,7 +47,9 @@ function ReceiverLayoutContent() {
   } = React.useContext(AuthContext);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
+  const [savedDonationsCount, setSavedDonationsCount] = useState(0);
   const [profilePhotoUrl, setProfilePhotoUrl] = useState(null);
   const [achievementNotification, setAchievementNotification] = useState(null);
   const dropdownRef = useRef(null);
@@ -107,6 +111,8 @@ function ReceiverLayoutContent() {
         return t('receiverLayout.pageTitles.receiverDashboard');
       case '/receiver/welcome':
         return t('receiverLayout.pageTitles.welcome');
+      case '/receiver/saved-donations':
+        return t('receiverLayout.pageTitles.savedDonations', 'Saved Donations');
       case '/receiver/browse':
         return t('receiverLayout.pageTitles.browse');
       case '/receiver/messages':
@@ -125,6 +131,11 @@ function ReceiverLayoutContent() {
         return t('receiverLayout.pageDescriptions.receiverDashboard');
       case '/receiver/welcome':
         return t('receiverLayout.pageDescriptions.welcome');
+      case '/receiver/saved-donations':
+        return t(
+          'receiverLayout.pageDescriptions.savedDonations',
+          'Review and manage your saved donations'
+        );
       case '/receiver/browse':
         return t('receiverLayout.pageDescriptions.browse');
       case '/receiver/messages':
@@ -165,6 +176,37 @@ function ReceiverLayoutContent() {
     // Refresh unread count every 30 seconds
     const interval = setInterval(fetchUnreadCount, 30000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const fetchSavedCount = async () => {
+      try {
+        const response = await savedDonationAPI.getSavedDonations();
+        const savedItems = Array.isArray(response?.data) ? response.data : [];
+        const availableSavedItems = savedItems.filter(
+          item => item?.status === 'AVAILABLE'
+        );
+        setSavedDonationsCount(availableSavedItems.length);
+      } catch (err) {
+        console.error('Error fetching saved donations count:', err);
+      }
+    };
+
+    fetchSavedCount();
+    const interval = setInterval(fetchSavedCount, 30000);
+    const handleSavedDonationUpdate = () => fetchSavedCount();
+    window.addEventListener(
+      'saved-donations-updated',
+      handleSavedDonationUpdate
+    );
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener(
+        'saved-donations-updated',
+        handleSavedDonationUpdate
+      );
+    };
   }, []);
 
   // Connect to websocket for user-specific notifications (receiver)
@@ -226,12 +268,69 @@ function ReceiverLayoutContent() {
       setAchievementNotification(payload);
     };
 
+    const onReviewReceived = payload => {
+      console.log('RECEIVER: Review received:', payload);
+      // Show a notification to the receiver that they received a review
+      if (payload.rating) {
+        const stars = '⭐'.repeat(payload.rating);
+        showNotification(
+          payload.reviewerName || 'Donor',
+          `left you a ${payload.rating}-star review ${stars}`
+        );
+      }
+    };
+
+    const onDonationCompleted = payload => {
+      console.log('RECEIVER: Donation completed:', payload);
+      // Show a notification to the receiver that their donation was completed
+      showNotification(
+        t('receiverLayout.notifications.donationCompleted'),
+        payload.message ||
+          t('receiverLayout.notifications.donationCompletedDesc')
+      );
+    };
+
+    const onDonationReadyForPickup = payload => {
+      console.log('RECEIVER: Donation ready for pickup:', payload);
+      // Show a notification to the receiver that their donation is ready for pickup
+      showNotification(
+        t('receiverLayout.notifications.donationReadyForPickup'),
+        payload.message ||
+          t('receiverLayout.notifications.donationReadyForPickupDesc')
+      );
+    };
+
+    const onDonationStatusChanged = payload => {
+      console.log('RECEIVER: Donation status changed by admin:', payload);
+      showNotification(
+        t('receiverLayout.notifications.donationStatusChanged'),
+        payload.message ||
+          t('receiverLayout.notifications.donationStatusChangedDesc')
+      );
+    };
+
+    const onVerificationApproved = payload => {
+      console.log('RECEIVER: Verification approved:', payload);
+      showNotification(
+        t('receiverLayout.notifications.verificationApproved'),
+        payload.message ||
+          t('receiverLayout.notifications.verificationApprovedDesc')
+      );
+    };
+
     connectToUserQueue(
       onMessage,
       onClaimNotification,
       onClaimCancelled,
       onNewPostNotification,
-      onAchievementUnlocked
+      onAchievementUnlocked,
+      onReviewReceived,
+      onDonationCompleted,
+      onDonationReadyForPickup,
+      null, // no donation expired for receivers
+      null, // no donation status updated for receivers
+      onDonationStatusChanged,
+      onVerificationApproved
     );
     return () => {
       try {
@@ -286,10 +385,11 @@ function ReceiverLayoutContent() {
           </Link>
         </div>
 
-        <div className="receiver-nav-links">
+        <div className={`receiver-nav-links ${isMenuOpen ? 'active' : ''}`}>
           <Link
             to="/receiver"
             className={`receiver-nav-link ${location.pathname === '/receiver' || location.pathname === '/receiver/browse' ? 'active' : ''}`}
+            onClick={() => setIsMenuOpen(false)}
           >
             {t('receiverLayout.donations')}
           </Link>
@@ -297,6 +397,7 @@ function ReceiverLayoutContent() {
           <Link
             to="/receiver/my-claims"
             className={`receiver-nav-link ${isActive('/receiver/my-claims') || isActive('/receiver/dashboard') ? 'active' : ''}`}
+            onClick={() => setIsMenuOpen(false)}
           >
             {t('receiverLayout.myClaims')}
           </Link>
@@ -304,20 +405,41 @@ function ReceiverLayoutContent() {
           <Link
             to="/receiver/achievements"
             className={`receiver-nav-link ${isActive('/receiver/achievements') ? 'active' : ''}`}
+            onClick={() => setIsMenuOpen(false)}
           >
             {t('receiverLayout.achievements', 'Achievements')}
           </Link>
 
           <Link
-            to="/receiver/welcome"
-            className={`receiver-nav-link ${location.pathname === '/receiver/welcome' ? 'active' : ''}`}
+            to="/receiver/impact"
+            className={`receiver-nav-link ${isActive('/receiver/impact') ? 'active' : ''}`}
+          >
+            {t('receiverLayout.impact', 'Impact Dashboard')}
+          </Link>
+
+          <Link
+            to="/receiver/saved-donations"
+            className={`receiver-nav-link receiver-nav-link--with-badge ${location.pathname === '/receiver/saved-donations' ? 'active' : ''}`}
+            onClick={() => setIsMenuOpen(false)}
           >
             {t('receiverLayout.savedDonations')}
+            <span className="receiver-nav-count-badge">
+              {savedDonationsCount}
+            </span>
           </Link>
         </div>
 
         <div className="receiver-user-info" ref={dropdownRef}>
           <div className="user-actions">
+            <button
+              className="receiver-menu-toggle"
+              type="button"
+              aria-label="Toggle menu"
+              onClick={() => setIsMenuOpen(o => !o)}
+            >
+              {isMenuOpen ? <IconX size={28} /> : <IconMenu size={28} />}
+            </button>
+
             <button
               className="inbox-btn"
               type="button"

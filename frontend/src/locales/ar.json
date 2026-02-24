@@ -520,7 +520,8 @@
       "readyForPickup": "جاهز للاستلام",
       "notCompleted": "غير مكتمل",
       "expired": "منتهي الصلاحية"
-    }
+    },
+    "yourRating": "تقييمك"
   },
   "receiverWelcome": {
     "title": "ابحث عن طعام بالقرب منك",
@@ -580,6 +581,10 @@
     "fabricationDateHelp": "اختياري - يساعد في تقييم نضارة الطعام",
     "expiryDateAutoCalculated": "(محسوب تلقائيًا، يمكنك التعديل)",
     "expiryDateSuggestion": "تاريخ الانتهاء المقترح: {{date}} (بناءً على فئة الطعام)",
+    "expiryDateSuggestionRule": "تاريخ الانتهاء المقترح: {{date}} (بناءً على {{foodType}} + {{temperature}})",
+    "eligibilityEligible": "مؤهل",
+    "eligibilityNotEligible": "غير مؤهل",
+    "confirmSafetyOverride": "أؤكد أن هذا العنصر آمن للتبرع",
     "loadingDetails": "جارٍ تحميل تفاصيل التبرع...",
     "validationError": "يرجى إكمال جميع الحقول المطلوبة قبل المتابعة.",
     "cancel": "إلغاء",
@@ -613,6 +618,55 @@
       "quantityDates": "الكمية والتاريخ",
       "pickupInfo": "معلومات الاستلام",
       "description": "الوصف"
+    },
+    "dietaryTagsLabel": "الوسوم الغذائية",
+    "dietaryTagsOptional": "(اختياري)",
+    "maxDietaryTags": "الحد الأقصى 10 وسوم غذائية",
+    "foodTypeValues": {
+      "PREPARED": "وجبات جاهزة",
+      "PRODUCE": "منتجات طازجة",
+      "BAKERY": "مخبوزات وحلويات",
+      "DAIRY_EGGS": "ألبان وبيض",
+      "MEAT_POULTRY": "لحوم ودواجن",
+      "SEAFOOD": "مأكولات بحرية",
+      "PANTRY": "مواد معبأة / مؤن",
+      "BEVERAGES": "مشروبات"
+    },
+    "dietaryTagValues": {
+      "HALAL": "حلال",
+      "KOSHER": "كوشير",
+      "VEGETARIAN": "نباتي",
+      "VEGAN": "نباتي صرف",
+      "GLUTEN_FREE": "خالٍ من الغلوتين",
+      "DAIRY_FREE": "خالٍ من الألبان",
+      "NUT_FREE": "خالٍ من المكسرات",
+      "EGG_FREE": "خالٍ من البيض",
+      "SOY_FREE": "خالٍ من الصويا"
+    },
+    "temperatureCategoryValues": {
+      "FROZEN": "مجمد (أقل من 0°م)",
+      "REFRIGERATED": "مبرد (0–4°م)",
+      "ROOM_TEMPERATURE": "درجة حرارة الغرفة",
+      "HOT_COOKED": "ساخن / مطبوخ"
+    },
+    "packagingTypeValues": {
+      "SEALED": "محكم الإغلاق",
+      "LOOSE": "سائب",
+      "REFRIGERATED_CONTAINER": "حاوية مبردة",
+      "FROZEN_CONTAINER": "حاوية مجمدة",
+      "VACUUM_PACKED": "معبأ بتفريغ الهواء",
+      "BOXED": "معبأ في صندوق",
+      "WRAPPED": "ملفوف",
+      "BULK": "كميات كبيرة",
+      "OTHER": "أخرى"
+    },
+    "expiryWarnings": {
+      "Packaging suggests cold storage, confirm temperature": "نوع التعبئة يشير إلى التخزين البارد، يرجى تأكيد درجة الحرارة",
+      "Packaging suggests frozen storage, confirm temperature": "نوع التعبئة يشير إلى التخزين المجمد، يرجى تأكيد درجة الحرارة",
+      "Hot food must be cooled and refrigerated to be eligible for donation": "يجب تبريد الطعام الساخن ووضعه في التبريد ليكون مؤهلاً للتبرع",
+      "Produce is usually not hot/cooked": "المنتجات الطازجة عادة لا تكون ساخنة/مطبوخة",
+      "Pantry items are usually stored at room temperature": "مواد المؤن عادة تُخزن في درجة حرارة الغرفة",
+      "Hot beverages are same-day donations": "المشروبات الساخنة تبرعات لليوم نفسه"
     }
   },
   "chat": {
@@ -723,7 +777,8 @@
     "events": "الفعاليات والجداول",
     "communications": "الاتصالات الواردة",
     "guides": "الأدلة والدعم",
-    "administration": "الإدارة"
+    "administration": "الإدارة",
+    "welcomeBack": "مرحباً بعودتك، {{name}}"
   },
   "claimedView": {
     "claimed": "تم المطالبة به",
@@ -960,7 +1015,10 @@
     "choosePickupSlot": "اختر موعد استلام",
     "noProposedSlots": "لا توجد مواعيد مقترحة متاحة.",
     "confirming": "جارٍ التأكيد...",
-    "confirmAndClaim": "تأكيد والمطالبة"
+    "confirmAndClaim": "تأكيد والمطالبة",
+    "expiringSoon": "ينتهي قريبًا",
+    "predicted": "متوقع",
+    "addedToSaved": "تمت الإضافة إلى التبرعات المحفوظة"
   },
   "receiverMyClaims": {
     "readyForPickup": "جاهز للاستلام",
@@ -1249,5 +1307,67 @@
     "hideTimeline": "إخفاء الجدول الزمني للتبرع",
     "backToDetails": "العودة إلى التفاصيل",
     "viewPickupSteps": "عرض خطوات الاستلام"
+  },
+  "impactDashboard": {
+    "title": "لوحة التأثير الخاصة بك",
+    "subtitle": "اطلع على الأثر البيئي والاجتماعي لتبرعاتك",
+    "receiverSubtitle": "اطلع على الأثر البيئي والاجتماعي للأغذية التي استلمتها",
+    "platformTitle": "لوحة تأثير المنصة",
+    "adminSubtitle": "مقاييس الأثر البيئي والاجتماعي على مستوى المنصة",
+    "weekly": "آخر 7 أيام",
+    "monthly": "آخر 30 يومًا",
+    "days7": "7 أيام",
+    "days30": "30 يومًا",
+    "allTime": "كل الوقت",
+    "export": "تصدير CSV",
+    "errorLoading": "فشل تحميل المقاييس",
+    "loadError": "فشل تحميل مقاييس التأثير",
+    "exportError": "فشل تصدير المقاييس",
+    "foodWeight": "وزن الطعام المُنقذ",
+    "foodReceived": "الطعام المستلم",
+    "foodClaimed": "الطعام المُستلم",
+    "totalFoodSaved": "إجمالي الطعام المُنقذ",
+    "mealsProvided": "الوجبات المقدمة",
+    "mealsServed": "الوجبات المقدمة",
+    "peopleFed": "أشخاص تم إطعامهم",
+    "co2Avoided": "انبعاثات CO₂ المتجنبة",
+    "waterSaved": "المياه المُوفرة",
+    "activityStats": "إحصاءات النشاط",
+    "activitySummary": "ملخص النشاط",
+    "platformActivity": "نشاط المنصة",
+    "totalPosts": "إجمالي التبرعات المنشورة",
+    "completed": "التبرعات المكتملة",
+    "completedClaims": "الاستلامات المكتملة",
+    "claimsCompleted": "الاستلامات المكتملة",
+    "totalClaims": "إجمالي طلبات الاستلام",
+    "completionRate": "معدل الإكمال",
+    "userEngagement": "تفاعل المستخدمين",
+    "activeDonors": "المتبرعون النشطون",
+    "activeReceivers": "المستلمون النشطون",
+    "activeDays": "الأيام النشطة",
+    "pendingPickups": "عمليات الاستلام المعلقة",
+    "avgResponseTime": "متوسط وقت الاستجابة",
+    "cancelledDonations": "التبرعات الملغاة",
+    "impactScore": "إجمالي نقاط التأثير",
+    "repeatDonors": "المتبرعون المتكررون",
+    "repeatReceivers": "المستلمون المتكررون",
+    "foodSavedOverTime": "الطعام المُنقذ بمرور الوقت",
+    "impactOverview": "نظرة عامة على التأثير",
+    "claimsByDay": "الاستلامات حسب اليوم",
+    "claimsByWeek": "الاستلامات حسب الأسبوع",
+    "claimsByMonth": "الاستلامات حسب الشهر",
+    "noChartData": "لا توجد بيانات للفترة المحددة",
+    "noPreviousData": "لا توجد بيانات للفترة السابقة",
+    "vsPrevious": "مقارنة بالفترة السابقة",
+    "customizeMetrics": "تخصيص المقاييس",
+    "selectMetrics": "حدد المقاييس التي تريد عرضها في لوحة التحكم",
+    "thankYou": "شكرًا لمساهمتك",
+    "donorMessage": "تساعد تبرعاتك في تقليل هدر الطعام ودعم مجتمعك.",
+    "receiverMessage": "من خلال استلام تبرعات الطعام، أنت تساعد في تقليل الهدر ودعم مجتمعك.",
+    "platformSuccess": "ملخص تأثير المنصة",
+    "adminMessage": "تُحدث FoodFlow تأثيرًا حقيقيًا في تقليل هدر الطعام ودعم المجتمعات.",
+    "selectAll": "تحديد الكل",
+    "clearAll": "مسح الكل",
+    "done": "تم"
   }
 }
