@@ -826,7 +826,11 @@ public class SurplusService {
 
         // Filter by food categories
         if (filterRequest.hasFoodCategories()) {
-            builder.and(ArrayFilter.containsAny(filterRequest.getFoodCategories()).toSpecification("foodCategories"));
+            // Convert strings to FoodCategory enums
+            List<FoodCategory> categories = filterRequest.getFoodCategories().stream()
+                .map(FoodCategory::valueOf)
+                .collect(Collectors.toList());
+            builder.and(ArrayFilter.containsAny(categories).toSpecification("foodCategories"));
         }
 
         // Filter by food types (matches any requested type)
