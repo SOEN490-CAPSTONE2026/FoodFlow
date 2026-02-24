@@ -679,6 +679,9 @@ describe('AdminVerificationQueue', () => {
   });
 
   it('handles document view click', async () => {
+    // spy on window.open since the component opens documents in a new tab
+    const openSpy = jest.spyOn(window, 'open').mockImplementation(() => {});
+
     render(<AdminVerificationQueue />);
 
     await waitFor(() => {
@@ -696,11 +699,14 @@ describe('AdminVerificationQueue', () => {
       await waitFor(() => {
         const docButton = screen.getByText('charity-cert.pdf');
         fireEvent.click(docButton.closest('button'));
-        expect(global.alert).toHaveBeenCalledWith(
-          expect.stringContaining('charity-cert.pdf')
+        expect(openSpy).toHaveBeenCalledWith(
+          expect.stringContaining('charity-cert.pdf'),
+          '_blank'
         );
       });
     }
+
+    openSpy.mockRestore();
   });
 
   it('displays N/A for missing phone number', async () => {
