@@ -14,13 +14,15 @@ public class CalendarSyncPreferenceDto {
     
     private Boolean syncEnabled;
     
-    private Boolean syncPickupEvents;
-    
-    private Boolean syncDeliveryEvents;
-    
-    private Boolean syncClaimEvents;
-    
     private Boolean autoCreateReminders;
     
-    private Integer reminderMinutesBefore;
+    private Integer reminderSecondsBefore; // Frontend sends in seconds, we'll store as minutes
+    
+    private String reminderType; // EMAIL, POPUP, etc.
+    
+    private String eventColor; // BLUE, RED, GREEN, etc.
+    
+    private String eventVisibility; // PRIVATE, PUBLIC
+    
+    private Integer eventDuration; // in minutes
 }

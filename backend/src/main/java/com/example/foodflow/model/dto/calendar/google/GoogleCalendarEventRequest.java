@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
  * DTO for creating/updating Google Calendar events
  */
@@ -24,6 +26,18 @@ public class GoogleCalendarEventRequest {
     
     @JsonProperty("end")
     private GoogleDateTime end;
+    
+    @JsonProperty("location")
+    private String location;
+    
+    @JsonProperty("colorId")
+    private String colorId;
+    
+    @JsonProperty("visibility")
+    private String visibility; // "public" or "private"
+    
+    @JsonProperty("attendees")
+    private List<Attendee> attendees;
     
     @JsonProperty("reminders")
     private RemindersConfig reminders;
@@ -64,9 +78,26 @@ public class GoogleCalendarEventRequest {
     @AllArgsConstructor
     public static class Reminder {
         @JsonProperty("method")
-        private String method = "notification"; // "notification" or "email"
+        private String method = "popup"; // "popup", "email", or "sms" per Google Calendar API v3
         
         @JsonProperty("minutes")
         private Integer minutes;
+    }
+
+    /**
+     * Event attendee
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Attendee {
+        @JsonProperty("email")
+        private String email;
+        
+        @JsonProperty("displayName")
+        private String displayName;
+        
+        @JsonProperty("optional")
+        private Boolean optional = false;
     }
 }

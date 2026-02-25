@@ -6,6 +6,7 @@ import com.example.foodflow.model.dto.calendar.CalendarConnectionResponse;
 import com.example.foodflow.model.dto.calendar.CalendarEventDto;
 import com.example.foodflow.model.dto.calendar.CalendarSyncPreferenceDto;
 import com.example.foodflow.model.entity.*;
+import com.example.foodflow.repository.CalendarSyncPreferenceRepository;
 import com.example.foodflow.repository.UserRepository;
 import com.example.foodflow.service.calendar.CalendarIntegrationService;
 import com.example.foodflow.service.calendar.CalendarEventService;
@@ -15,6 +16,7 @@ import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -53,6 +55,12 @@ public class CalendarController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private CalendarSyncPreferenceRepository calendarSyncPreferenceRepository;
+
+    @Value("${frontend.url}")
+    private String frontendUrl;
+
     /**
      * Get calendar integration status for current user
      */
@@ -60,14 +68,27 @@ public class CalendarController {
     public ResponseEntity<ApiResponse<CalendarConnectionResponse>> getCalendarStatus(
             @AuthenticationPrincipal User currentUser) {
         try {
+            // Verify connection status before returning (checks if user revoked permissions)
+            calendarIntegrationService.verifyAndUpdateConnectionStatus(currentUser);
+            
             Optional<CalendarIntegration> integration = calendarIntegrationService.getUserIntegration(currentUser);
 
             CalendarConnectionResponse response = new CalendarConnectionResponse();
             if (integration.isPresent()) {
-                response.setIsConnected(integration.get().getIsConnected());
-                response.setCalendarProvider(integration.get().getCalendarProvider());
-                response.setMessage(integration.get().getIsConnected() ? 
+                CalendarIntegration cal = integration.get();
+                response.setIsConnected(cal.getIsConnected());
+                response.setCalendarProvider(cal.getCalendarProvider());
+                response.setMessage(cal.getIsConnected() ? 
                     "Calendar is connected" : "Calendar is disconnected");
+                
+                // Add connection details
+                response.setConnectedSince(cal.getCreatedAt());
+                response.setGoogleAccountEmail(cal.getGoogleAccountEmail());
+                response.setPrimaryCalendarName(cal.getPrimaryCalendarName());
+                response.setCalendarTimeZone(cal.getCalendarTimeZone());
+                response.setGrantedScopes(cal.getGrantedScopes());
+                response.setLastSuccessfulSync(cal.getLastSuccessfulSync());
+                response.setLastFailedRefresh(cal.getLastFailedRefresh());
             } else {
                 response.setIsConnected(false);
                 response.setMessage("No calendar integration found");
@@ -159,10 +180,11 @@ public class CalendarController {
             // Store the tokens in the database
             calendarIntegrationService.storeOAuthTokens(user, "GOOGLE", tokenResponse);
 
-            // Return HTML success page that can close itself
-            return ResponseEntity.ok()
-                .header("Content-Type", "text/html")
-                .body("<html><body><h2>Calendar Connected Successfully!</h2><p>You can close this window now.</p><script>setTimeout(function(){window.close()}, 2000);</script></body></html>");
+            // Redirect to frontend success page
+            String redirectUrl = frontendUrl + "/calendar/oauth-success";
+            return ResponseEntity.status(HttpStatus.FOUND)
+                .header("Location", redirectUrl)
+                .build();
         } catch (NumberFormatException e) {
             logger.error("Invalid user ID in state token", e);
             return ResponseEntity.badRequest()
@@ -234,7 +256,16 @@ public class CalendarController {
                 pref = calendarIntegrationService.createDefaultSyncPreferencesIfNeeded(currentUser);
             }
 
-            CalendarSyncPreferenceDto dto = modelMapper.map(pref, CalendarSyncPreferenceDto.class);
+            // Map to DTO for response
+            CalendarSyncPreferenceDto dto = new CalendarSyncPreferenceDto();
+            dto.setSyncEnabled(pref.getSyncEnabled());
+            dto.setAutoCreateReminders(pref.getAutoCreateReminders());
+            dto.setReminderSecondsBefore(pref.getReminderMinutesBefore());
+            dto.setReminderType(pref.getReminderType());
+            dto.setEventColor(pref.getEventColor());
+            dto.setEventVisibility(pref.getEventVisibility());
+            dto.setEventDuration(pref.getEventDuration());
+
             return ResponseEntity.ok(new ApiResponse<>(true, 
                 "Sync preferences retrieved", dto));
         } catch (Exception e) {
@@ -262,16 +293,29 @@ public class CalendarController {
                 pref = new CalendarSyncPreference(currentUser);
             }
 
+            // Update fields from request
             if (request.getSyncEnabled() != null) pref.setSyncEnabled(request.getSyncEnabled());
-            if (request.getSyncPickupEvents() != null) pref.setSyncPickupEvents(request.getSyncPickupEvents());
-            if (request.getSyncDeliveryEvents() != null) pref.setSyncDeliveryEvents(request.getSyncDeliveryEvents());
-            if (request.getSyncClaimEvents() != null) pref.setSyncClaimEvents(request.getSyncClaimEvents());
             if (request.getAutoCreateReminders() != null) pref.setAutoCreateReminders(request.getAutoCreateReminders());
-            if (request.getReminderMinutesBefore() != null) pref.setReminderMinutesBefore(request.getReminderMinutesBefore());
+            if (request.getReminderSecondsBefore() != null) pref.setReminderMinutesBefore(request.getReminderSecondsBefore());
+            if (request.getReminderType() != null) pref.setReminderType(request.getReminderType());
+            if (request.getEventColor() != null) pref.setEventColor(request.getEventColor());
+            if (request.getEventVisibility() != null) pref.setEventVisibility(request.getEventVisibility());
+            if (request.getEventDuration() != null) pref.setEventDuration(request.getEventDuration());
 
-            logger.info("Sync preferences updated for user {}", currentUser.getId());
+            // Save to database
+            CalendarSyncPreference savedPref = calendarSyncPreferenceRepository.save(pref);
+            logger.info("Sync preferences saved for user {}", currentUser.getId());
 
-            CalendarSyncPreferenceDto responseDto = modelMapper.map(pref, CalendarSyncPreferenceDto.class);
+            // Map back to DTO for response
+            CalendarSyncPreferenceDto responseDto = new CalendarSyncPreferenceDto();
+            responseDto.setSyncEnabled(savedPref.getSyncEnabled());
+            responseDto.setAutoCreateReminders(savedPref.getAutoCreateReminders());
+            responseDto.setReminderSecondsBefore(savedPref.getReminderMinutesBefore());
+            responseDto.setReminderType(savedPref.getReminderType());
+            responseDto.setEventColor(savedPref.getEventColor());
+            responseDto.setEventVisibility(savedPref.getEventVisibility());
+            responseDto.setEventDuration(savedPref.getEventDuration());
+
             return ResponseEntity.ok(new ApiResponse<>(true, 
                 "Sync preferences updated", responseDto));
         } catch (Exception e) {
@@ -305,18 +349,26 @@ public class CalendarController {
     }
 
     /**
-     * Trigger manual sync of pending events
+     * Trigger manual sync of all upcoming pickups and pending events
+     * Creates calendar events for active claims that don't have them yet
      */
     @PostMapping("/sync")
     public ResponseEntity<ApiResponse<Object>> manualSync(
             @AuthenticationPrincipal User currentUser) {
         try {
+            // First, create calendar events for any active claims that don't have them
+            int eventsCreated = calendarSyncService.syncAllUpcomingPickups(currentUser);
+            
+            // Then sync all pending events (including newly created ones)
             calendarSyncService.syncUserPendingEvents(currentUser);
 
-            logger.info("Manual sync triggered for user {}", currentUser.getId());
+            String message = eventsCreated > 0 
+                ? String.format("Sync triggered successfully. Created %d new calendar event(s) for upcoming pickups.", eventsCreated)
+                : "Sync triggered successfully. All pickups already have calendar events.";
 
-            return ResponseEntity.ok(new ApiResponse<>(true, 
-                "Sync triggered successfully", null));
+            logger.info("Manual sync triggered for user {} - created {} events", currentUser.getId(), eventsCreated);
+
+            return ResponseEntity.ok(new ApiResponse<>(true, message, null));
         } catch (Exception e) {
             logger.error("Error during manual sync", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

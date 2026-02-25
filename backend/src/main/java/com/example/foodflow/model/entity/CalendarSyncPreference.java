@@ -37,6 +37,18 @@ public class CalendarSyncPreference {
     @Column(name = "reminder_minutes_before", nullable = false)
     private Integer reminderMinutesBefore = 30;
 
+    @Column(name = "reminder_type")
+    private String reminderType = "EMAIL";
+
+    @Column(name = "event_color")
+    private String eventColor = "BLUE";
+
+    @Column(name = "event_visibility")
+    private String eventVisibility = "PRIVATE";
+
+    @Column(name = "event_duration")
+    private Integer eventDuration = 15;
+
     @Column(name = "last_sync_at")
     private LocalDateTime lastSyncAt;
 
@@ -142,5 +154,37 @@ public class CalendarSyncPreference {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getReminderType() {
+        return reminderType;
+    }
+
+    public void setReminderType(String reminderType) {
+        this.reminderType = reminderType;
+    }
+
+    public String getEventColor() {
+        return eventColor;
+    }
+
+    public void setEventColor(String eventColor) {
+        this.eventColor = eventColor;
+    }
+
+    public String getEventVisibility() {
+        return eventVisibility;
+    }
+
+    public void setEventVisibility(String eventVisibility) {
+        this.eventVisibility = eventVisibility;
+    }
+
+    public Integer getEventDuration() {
+        return eventDuration;
+    }
+
+    public void setEventDuration(Integer eventDuration) {
+        this.eventDuration = eventDuration;
     }
 }

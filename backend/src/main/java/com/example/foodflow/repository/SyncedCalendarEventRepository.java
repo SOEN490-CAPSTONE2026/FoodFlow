@@ -18,6 +18,7 @@ public interface SyncedCalendarEventRepository extends JpaRepository<SyncedCalen
     Optional<SyncedCalendarEvent> findByExternalEventId(String externalEventId);
     List<SyncedCalendarEvent> findByUserIdAndExternalEventIdNotNull(Long userId);
     List<SyncedCalendarEvent> findByUserIdAndSyncStatus(Long userId, String syncStatus);
+    List<SyncedCalendarEvent> findBySyncStatus(String syncStatus);
     List<SyncedCalendarEvent> findByUserIdAndEventType(Long userId, String eventType);
     List<SyncedCalendarEvent> findByDonationId(Long donationId);
     List<SyncedCalendarEvent> findByClaimId(Long claimId);

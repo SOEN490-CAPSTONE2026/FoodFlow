@@ -31,6 +31,24 @@ public class CalendarIntegration {
     @Column(name = "access_token_expiry")
     private LocalDateTime accessTokenExpiry;
 
+    @Column(name = "google_account_email", length = 255)
+    private String googleAccountEmail;
+
+    @Column(name = "primary_calendar_name", length = 255)
+    private String primaryCalendarName;
+
+    @Column(name = "calendar_time_zone", length = 100)
+    private String calendarTimeZone;
+
+    @Column(name = "granted_scopes", columnDefinition = "TEXT")
+    private String grantedScopes;
+
+    @Column(name = "last_successful_sync")
+    private LocalDateTime lastSuccessfulSync;
+
+    @Column(name = "last_failed_refresh")
+    private LocalDateTime lastFailedRefresh;
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -111,5 +129,53 @@ public class CalendarIntegration {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getGoogleAccountEmail() {
+        return googleAccountEmail;
+    }
+
+    public void setGoogleAccountEmail(String googleAccountEmail) {
+        this.googleAccountEmail = googleAccountEmail;
+    }
+
+    public String getPrimaryCalendarName() {
+        return primaryCalendarName;
+    }
+
+    public void setPrimaryCalendarName(String primaryCalendarName) {
+        this.primaryCalendarName = primaryCalendarName;
+    }
+
+    public String getCalendarTimeZone() {
+        return calendarTimeZone;
+    }
+
+    public void setCalendarTimeZone(String calendarTimeZone) {
+        this.calendarTimeZone = calendarTimeZone;
+    }
+
+    public String getGrantedScopes() {
+        return grantedScopes;
+    }
+
+    public void setGrantedScopes(String grantedScopes) {
+        this.grantedScopes = grantedScopes;
+    }
+
+    public LocalDateTime getLastSuccessfulSync() {
+        return lastSuccessfulSync;
+    }
+
+    public void setLastSuccessfulSync(LocalDateTime lastSuccessfulSync) {
+        this.lastSuccessfulSync = lastSuccessfulSync;
+    }
+
+    public LocalDateTime getLastFailedRefresh() {
+        return lastFailedRefresh;
+    }
+
+    public void setLastFailedRefresh(LocalDateTime lastFailedRefresh) {
+        this.lastFailedRefresh = lastFailedRefresh;
     }
 }
