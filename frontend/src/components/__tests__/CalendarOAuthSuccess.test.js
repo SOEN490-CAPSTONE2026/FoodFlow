@@ -10,7 +10,7 @@ describe('CalendarOAuthSuccess Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
-    
+
     // Mock window.close
     global.window.close = jest.fn();
   });
@@ -82,7 +82,7 @@ describe('CalendarOAuthSuccess Component', () => {
 
     it('should countdown from 2 to 1 second', async () => {
       const { act } = require('@testing-library/react');
-      
+
       const { container } = render(<CalendarOAuthSuccess />);
 
       // Advance 2 seconds
@@ -101,7 +101,7 @@ describe('CalendarOAuthSuccess Component', () => {
 
     it('should use singular "second" when countdown is 1', async () => {
       const { act } = require('@testing-library/react');
-      
+
       const { container } = render(<CalendarOAuthSuccess />);
 
       await act(async () => {
@@ -124,7 +124,7 @@ describe('CalendarOAuthSuccess Component', () => {
 
     it('should countdown properly through all states', async () => {
       const { act } = require('@testing-library/react');
-      
+
       const { container } = render(<CalendarOAuthSuccess />);
 
       // Initial state: 3 seconds
@@ -265,7 +265,7 @@ describe('CalendarOAuthSuccess Component', () => {
   describe('Timer Behavior', () => {
     it('should update state every second', async () => {
       const { act } = require('@testing-library/react');
-      
+
       const { container } = render(<CalendarOAuthSuccess />);
 
       let closingMessage = container.querySelector('.closing-message');
@@ -312,9 +312,13 @@ describe('CalendarOAuthSuccess Component', () => {
   describe('Multiple Renders', () => {
     it('should handle multiple component instances independently', async () => {
       const { act } = require('@testing-library/react');
-      
-      const { unmount: unmount1, container: container1 } = render(<CalendarOAuthSuccess />);
-      const { unmount: unmount2, container: container2 } = render(<CalendarOAuthSuccess />);
+
+      const { unmount: unmount1, container: container1 } = render(
+        <CalendarOAuthSuccess />
+      );
+      const { unmount: unmount2, container: container2 } = render(
+        <CalendarOAuthSuccess />
+      );
 
       // Both should countdown independently
       await act(async () => {
@@ -343,7 +347,7 @@ describe('CalendarOAuthSuccess Component', () => {
   describe('Edge Cases', () => {
     it('should handle rapid timer updates', async () => {
       const { act } = require('@testing-library/react');
-      
+
       render(<CalendarOAuthSuccess />);
 
       // Rapidly advance time

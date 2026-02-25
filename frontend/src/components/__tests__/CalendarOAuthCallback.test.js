@@ -47,7 +47,7 @@ describe('CalendarOAuthCallback Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
-    
+
     // Mock window.close
     global.window.close = jest.fn();
   });
@@ -62,7 +62,10 @@ describe('CalendarOAuthCallback Component', () => {
         () => new Promise(() => {}) // Never resolves
       );
 
-      renderWithRouter(<CalendarOAuthCallback />, '?code=test-code&state=test-state');
+      renderWithRouter(
+        <CalendarOAuthCallback />,
+        '?code=test-code&state=test-state'
+      );
 
       expect(screen.getByText('calendar.connecting')).toBeInTheDocument();
       expect(screen.getByText('calendar.processingAuth')).toBeInTheDocument();
@@ -79,7 +82,10 @@ describe('CalendarOAuthCallback Component', () => {
         },
       });
 
-      renderWithRouter(<CalendarOAuthCallback />, '?code=test-auth-code&state=test-state');
+      renderWithRouter(
+        <CalendarOAuthCallback />,
+        '?code=test-auth-code&state=test-state'
+      );
 
       await waitFor(() => {
         expect(calendarAPI.handleOAuthCallback).toHaveBeenCalledWith(
@@ -110,7 +116,10 @@ describe('CalendarOAuthCallback Component', () => {
         },
       });
 
-      renderWithRouter(<CalendarOAuthCallback />, '?code=test-code&state=test-state');
+      renderWithRouter(
+        <CalendarOAuthCallback />,
+        '?code=test-code&state=test-state'
+      );
 
       await waitFor(() => {
         expect(screen.getByText('calendar.success')).toBeInTheDocument();
@@ -126,7 +135,10 @@ describe('CalendarOAuthCallback Component', () => {
         },
       });
 
-      renderWithRouter(<CalendarOAuthCallback />, '?code=test-code&state=test-state');
+      renderWithRouter(
+        <CalendarOAuthCallback />,
+        '?code=test-code&state=test-state'
+      );
 
       await waitFor(() => {
         expect(screen.getByText('calendar.success')).toBeInTheDocument();
@@ -184,11 +196,16 @@ describe('CalendarOAuthCallback Component', () => {
         },
       });
 
-      renderWithRouter(<CalendarOAuthCallback />, '?code=invalid-code&state=test-state');
+      renderWithRouter(
+        <CalendarOAuthCallback />,
+        '?code=invalid-code&state=test-state'
+      );
 
       await waitFor(() => {
         expect(screen.getByText('calendar.error')).toBeInTheDocument();
-        expect(screen.getByText('Invalid authorization code')).toBeInTheDocument();
+        expect(
+          screen.getByText('Invalid authorization code')
+        ).toBeInTheDocument();
       });
 
       jest.advanceTimersByTime(2000);
@@ -205,7 +222,10 @@ describe('CalendarOAuthCallback Component', () => {
         },
       });
 
-      renderWithRouter(<CalendarOAuthCallback />, '?code=test-code&state=test-state');
+      renderWithRouter(
+        <CalendarOAuthCallback />,
+        '?code=test-code&state=test-state'
+      );
 
       await waitFor(() => {
         expect(screen.getByText('calendar.error')).toBeInTheDocument();
@@ -221,10 +241,13 @@ describe('CalendarOAuthCallback Component', () => {
           },
         },
       };
-      
+
       calendarAPI.handleOAuthCallback.mockRejectedValue(errorResponse);
 
-      renderWithRouter(<CalendarOAuthCallback />, '?code=test-code&state=test-state');
+      renderWithRouter(
+        <CalendarOAuthCallback />,
+        '?code=test-code&state=test-state'
+      );
 
       await waitFor(() => {
         expect(screen.getByText('calendar.error')).toBeInTheDocument();
@@ -243,7 +266,10 @@ describe('CalendarOAuthCallback Component', () => {
         new Error('Unknown error')
       );
 
-      renderWithRouter(<CalendarOAuthCallback />, '?code=test-code&state=test-state');
+      renderWithRouter(
+        <CalendarOAuthCallback />,
+        '?code=test-code&state=test-state'
+      );
 
       await waitFor(() => {
         expect(screen.getByText('calendar.error')).toBeInTheDocument();
@@ -277,7 +303,10 @@ describe('CalendarOAuthCallback Component', () => {
         },
       });
 
-      renderWithRouter(<CalendarOAuthCallback />, '?code=test-code&state=test-state');
+      renderWithRouter(
+        <CalendarOAuthCallback />,
+        '?code=test-code&state=test-state'
+      );
 
       await waitFor(() => {
         expect(screen.getByText('calendar.success')).toBeInTheDocument();
@@ -338,7 +367,10 @@ describe('CalendarOAuthCallback Component', () => {
         () => new Promise(() => {})
       );
 
-      renderWithRouter(<CalendarOAuthCallback />, '?code=test-code&state=test-state');
+      renderWithRouter(
+        <CalendarOAuthCallback />,
+        '?code=test-code&state=test-state'
+      );
 
       expect(screen.getByTestId('loader-icon')).toBeInTheDocument();
     });
@@ -350,7 +382,10 @@ describe('CalendarOAuthCallback Component', () => {
         },
       });
 
-      renderWithRouter(<CalendarOAuthCallback />, '?code=test-code&state=test-state');
+      renderWithRouter(
+        <CalendarOAuthCallback />,
+        '?code=test-code&state=test-state'
+      );
 
       await waitFor(() => {
         expect(screen.getByTestId('check-circle-icon')).toBeInTheDocument();
@@ -373,7 +408,10 @@ describe('CalendarOAuthCallback Component', () => {
         },
       });
 
-      renderWithRouter(<CalendarOAuthCallback />, '?code=test-code&state=test-state');
+      renderWithRouter(
+        <CalendarOAuthCallback />,
+        '?code=test-code&state=test-state'
+      );
 
       await waitFor(() => {
         const heading = screen.getByText('calendar.success');
@@ -393,12 +431,17 @@ describe('CalendarOAuthCallback Component', () => {
 
   describe('Console Logging', () => {
     it('should log errors to console', async () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-      
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+
       const error = new Error('Test error');
       calendarAPI.handleOAuthCallback.mockRejectedValue(error);
 
-      renderWithRouter(<CalendarOAuthCallback />, '?code=test-code&state=test-state');
+      renderWithRouter(
+        <CalendarOAuthCallback />,
+        '?code=test-code&state=test-state'
+      );
 
       await waitFor(() => {
         expect(consoleErrorSpy).toHaveBeenCalledWith(

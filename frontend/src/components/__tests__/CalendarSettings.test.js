@@ -263,7 +263,9 @@ describe('CalendarSettings Component', () => {
       fireEvent.click(disconnectButton);
 
       await waitFor(() => {
-        expect(screen.getByText('calendar.disconnectTitle')).toBeInTheDocument();
+        expect(
+          screen.getByText('calendar.disconnectTitle')
+        ).toBeInTheDocument();
         expect(
           screen.getByText('calendar.disconnectWarning1')
         ).toBeInTheDocument();
@@ -283,7 +285,9 @@ describe('CalendarSettings Component', () => {
       fireEvent.click(disconnectButton);
 
       await waitFor(() => {
-        expect(screen.getByText('calendar.disconnectTitle')).toBeInTheDocument();
+        expect(
+          screen.getByText('calendar.disconnectTitle')
+        ).toBeInTheDocument();
       });
 
       const cancelButton = screen.getByText('common.cancel');
@@ -316,7 +320,9 @@ describe('CalendarSettings Component', () => {
       fireEvent.click(disconnectButton);
 
       await waitFor(() => {
-        expect(screen.getByText('calendar.disconnectTitle')).toBeInTheDocument();
+        expect(
+          screen.getByText('calendar.disconnectTitle')
+        ).toBeInTheDocument();
       });
 
       // Confirm disconnect - find the second disconnect button (in modal)
@@ -333,9 +339,7 @@ describe('CalendarSettings Component', () => {
     });
 
     it('should handle disconnect error', async () => {
-      calendarAPI.disconnect.mockRejectedValue(
-        new Error('Disconnect failed')
-      );
+      calendarAPI.disconnect.mockRejectedValue(new Error('Disconnect failed'));
 
       renderWithContext(<CalendarSettings />);
 
@@ -349,7 +353,9 @@ describe('CalendarSettings Component', () => {
       fireEvent.click(disconnectButton);
 
       await waitFor(() => {
-        expect(screen.getByText('calendar.disconnectTitle')).toBeInTheDocument();
+        expect(
+          screen.getByText('calendar.disconnectTitle')
+        ).toBeInTheDocument();
       });
 
       const confirmButtons = screen.getAllByText('calendar.disconnectButton');
@@ -390,7 +396,7 @@ describe('CalendarSettings Component', () => {
         .getByText('calendar.syncEnabled')
         .closest('label')
         .querySelector('input[type="checkbox"]');
-      
+
       expect(checkbox.checked).toBe(true);
       fireEvent.click(checkbox);
       expect(checkbox.checked).toBe(false);
@@ -417,7 +423,7 @@ describe('CalendarSettings Component', () => {
         .getByText('calendar.autoReminders')
         .closest('label')
         .querySelector('input[type="checkbox"]');
-      
+
       expect(checkbox.checked).toBe(true);
       fireEvent.click(checkbox);
       expect(checkbox.checked).toBe(false);
@@ -558,9 +564,7 @@ describe('CalendarSettings Component', () => {
     });
 
     it('should handle save error', async () => {
-      calendarAPI.updatePreferences.mockRejectedValue(
-        new Error('Save failed')
-      );
+      calendarAPI.updatePreferences.mockRejectedValue(new Error('Save failed'));
 
       renderWithContext(<CalendarSettings />);
 
@@ -636,9 +640,7 @@ describe('CalendarSettings Component', () => {
       renderWithContext(<CalendarSettings />);
 
       await waitFor(() => {
-        expect(
-          screen.getByText('View Connection Details')
-        ).toBeInTheDocument();
+        expect(screen.getByText('View Connection Details')).toBeInTheDocument();
       });
 
       const detailsButton = screen.getByText('View Connection Details');
@@ -655,9 +657,7 @@ describe('CalendarSettings Component', () => {
       renderWithContext(<CalendarSettings />);
 
       await waitFor(() => {
-        expect(
-          screen.getByText('View Connection Details')
-        ).toBeInTheDocument();
+        expect(screen.getByText('View Connection Details')).toBeInTheDocument();
       });
 
       const detailsButton = screen.getByText('View Connection Details');
@@ -674,9 +674,7 @@ describe('CalendarSettings Component', () => {
       renderWithContext(<CalendarSettings />);
 
       await waitFor(() => {
-        expect(
-          screen.getByText('View Connection Details')
-        ).toBeInTheDocument();
+        expect(screen.getByText('View Connection Details')).toBeInTheDocument();
       });
 
       const detailsButton = screen.getByText('View Connection Details');
@@ -733,16 +731,16 @@ describe('CalendarSettings Component', () => {
       renderWithContext(<CalendarSettings />);
 
       await waitFor(() => {
-        expect(screen.queryByText('calendar.syncedEvents')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('calendar.syncedEvents')
+        ).not.toBeInTheDocument();
       });
     });
   });
 
   describe('Error Handling', () => {
     it('should display error alert', async () => {
-      calendarAPI.getStatus.mockRejectedValue(
-        new Error('Failed to load data')
-      );
+      calendarAPI.getStatus.mockRejectedValue(new Error('Failed to load data'));
 
       renderWithContext(<CalendarSettings />);
 
@@ -752,9 +750,7 @@ describe('CalendarSettings Component', () => {
     });
 
     it('should close error alert', async () => {
-      calendarAPI.getStatus.mockRejectedValue(
-        new Error('Failed to load data')
-      );
+      calendarAPI.getStatus.mockRejectedValue(new Error('Failed to load data'));
 
       renderWithContext(<CalendarSettings />);
 
@@ -775,7 +771,7 @@ describe('CalendarSettings Component', () => {
     it('should auto-clear success message after 3 seconds', async () => {
       const { act } = require('@testing-library/react');
       jest.useFakeTimers();
-      
+
       calendarAPI.getStatus.mockResolvedValue(mockConnectedStatus);
       calendarAPI.getPreferences.mockResolvedValue(mockPreferences);
       calendarAPI.getEvents.mockResolvedValue(mockEvents);
@@ -845,7 +841,7 @@ describe('CalendarSettings Component', () => {
       });
 
       const reminderHeader = screen.getByText('calendar.reminderPreferences');
-      
+
       // Expand
       fireEvent.click(reminderHeader);
 
@@ -890,7 +886,7 @@ describe('CalendarSettings Component', () => {
           },
         },
       };
-      
+
       calendarAPI.getStatus.mockResolvedValue(statusWithoutProvider);
 
       renderWithContext(<CalendarSettings />);
@@ -900,7 +896,7 @@ describe('CalendarSettings Component', () => {
       });
 
       const connectButton = screen.getByText('calendar.connectButton');
-      
+
       calendarAPI.initiateConnection.mockResolvedValue({
         data: {
           data: {

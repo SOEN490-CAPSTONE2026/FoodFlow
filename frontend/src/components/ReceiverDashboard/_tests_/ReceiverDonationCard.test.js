@@ -34,23 +34,51 @@ const t = (key, fallbackOrVars) => {
   if (typeof fallbackOrVars === 'string') {
     return fallbackOrVars;
   }
-  if (key === 'receiverBrowse.expires') return 'Expires';
-  if (key === 'receiverBrowse.pickupTime') return 'Pickup Time';
-  if (key === 'receiverBrowse.quantity') return 'Quantity';
-  if (key === 'receiverBrowse.items') return 'items';
-  if (key === 'receiverBrowse.more') return 'More';
-  if (key === 'receiverBrowse.less') return 'Less';
-  if (key === 'receiverBrowse.claimDonation') return 'Claim Donation';
-  if (key === 'receiverBrowse.claiming') return 'Claiming...';
-  if (key === 'receiverBrowse.donorsNote') return "Donor's Note";
-  if (key === 'receiverBrowse.posted') return 'Posted';
-  if (key === 'receiverBrowse.localBusiness') return 'Local Business';
-  if (key === 'receiverBrowse.locationNotSpecified')
+  if (key === 'receiverBrowse.expires') {
+    return 'Expires';
+  }
+  if (key === 'receiverBrowse.pickupTime') {
+    return 'Pickup Time';
+  }
+  if (key === 'receiverBrowse.quantity') {
+    return 'Quantity';
+  }
+  if (key === 'receiverBrowse.items') {
+    return 'items';
+  }
+  if (key === 'receiverBrowse.more') {
+    return 'More';
+  }
+  if (key === 'receiverBrowse.less') {
+    return 'Less';
+  }
+  if (key === 'receiverBrowse.claimDonation') {
+    return 'Claim Donation';
+  }
+  if (key === 'receiverBrowse.claiming') {
+    return 'Claiming...';
+  }
+  if (key === 'receiverBrowse.donorsNote') {
+    return "Donor's Note";
+  }
+  if (key === 'receiverBrowse.posted') {
+    return 'Posted';
+  }
+  if (key === 'receiverBrowse.localBusiness') {
+    return 'Local Business';
+  }
+  if (key === 'receiverBrowse.locationNotSpecified') {
     return 'Location not specified';
-  if (key === 'receiverBrowse.donatedBy')
+  }
+  if (key === 'receiverBrowse.donatedBy') {
     return `Donated by ${fallbackOrVars?.donorName || ''}`;
-  if (key.startsWith('surplusForm.')) return key;
-  if (key.startsWith('receiverBrowse.status.')) return 'Available';
+  }
+  if (key.startsWith('surplusForm.')) {
+    return key;
+  }
+  if (key.startsWith('receiverBrowse.status.')) {
+    return 'Available';
+  }
   return key;
 };
 
