@@ -15,7 +15,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -73,6 +72,11 @@ public class GoogleOAuthService {
             tokenResponse.setRefreshToken(jsonResponse.get("refresh_token").asText());
             tokenResponse.setExpiresIn(jsonResponse.get("expires_in").asInt());
             tokenResponse.setTokenType(jsonResponse.get("token_type").asText("Bearer"));
+            
+            // Extract scope if present (space-separated list of granted scopes)
+            if (jsonResponse.has("scope")) {
+                tokenResponse.setScope(jsonResponse.get("scope").asText());
+            }
 
             // Calculate expiry time
             LocalDateTime expiryTime = LocalDateTime.now().plusSeconds(tokenResponse.getExpiresIn());
@@ -125,18 +129,27 @@ public class GoogleOAuthService {
 
     /**
      * Revoke a refresh token (disconnect)
+     * Makes a POST request to Google's revoke endpoint with the token
      */
     public void revokeRefreshToken(String refreshToken) throws CalendarProvider.CalendarProviderException {
         try {
-            String url = UriComponentsBuilder.fromHttpUrl(GOOGLE_REVOKE_URL)
-                .queryParam("token", refreshToken)
-                .toUriString();
+            logger.info("Attempting to revoke refresh token with Google");
+            
+            Map<String, String> body = new HashMap<>();
+            body.put("token", refreshToken);
 
-            restTemplate.postForObject(url, null, String.class);
-            logger.info("Successfully revoked refresh token");
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+            String requestBody = buildFormUrlEncodedBody(body);
+            HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+            restTemplate.postForObject(GOOGLE_REVOKE_URL, request, String.class);
+            logger.info("Successfully revoked refresh token with Google");
         } catch (Exception e) {
-            logger.warn("Failed to revoke refresh token (may already be revoked)", e);
+            logger.warn("Failed to revoke refresh token with Google (may already be revoked): {}", e.getMessage());
             // Don't throw exception - revocation failure shouldn't block disconnect
+            // Token may already be revoked or invalid
         }
     }
 
@@ -158,7 +171,7 @@ public class GoogleOAuthService {
      * Generate OAuth authorization URL
      */
     public String getAuthorizationUrl(String state) {
-        return UriComponentsBuilder.fromHttpUrl("https://accounts.google.com/o/oauth2/v2/auth")
+        return UriComponentsBuilder.fromUriString("https://accounts.google.com/o/oauth2/v2/auth")
             .queryParam("client_id", clientId)
             .queryParam("redirect_uri", redirectUri)
             .queryParam("response_type", "code")
@@ -177,6 +190,7 @@ public class GoogleOAuthService {
         private String refreshToken;
         private int expiresIn;
         private String tokenType;
+        private String scope; // Space-separated list of granted scopes
         private LocalDateTime accessTokenExpiry;
 
         // Getters and Setters
@@ -191,6 +205,9 @@ public class GoogleOAuthService {
 
         public String getTokenType() { return tokenType; }
         public void setTokenType(String tokenType) { this.tokenType = tokenType; }
+
+        public String getScope() { return scope; }
+        public void setScope(String scope) { this.scope = scope; }
 
         public LocalDateTime getAccessTokenExpiry() { return accessTokenExpiry; }
         public void setAccessTokenExpiry(LocalDateTime accessTokenExpiry) { this.accessTokenExpiry = accessTokenExpiry; }

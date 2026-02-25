@@ -132,6 +132,13 @@ public class CalendarEventService {
     public List<SyncedCalendarEvent> getUserPendingSyncEvents(Long userId) {
         return syncedCalendarEventRepository.findByUserIdAndSyncStatus(userId, "PENDING");
     }
+    
+    /**
+     * Get all pending sync events across all users
+     */
+    public List<SyncedCalendarEvent> getAllPendingSyncEvents() {
+        return syncedCalendarEventRepository.findBySyncStatus("PENDING");
+    }
 
     /**
      * Get all synced events for a user
