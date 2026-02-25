@@ -8,7 +8,7 @@ const PrivacyPolicy = () => {
 
   useEffect(() => {
     setTimeout(() => setFadeIn(true), 50);
-    
+
     // Scroll to anchor if present in URL
     const hash = window.location.hash;
     if (hash) {
