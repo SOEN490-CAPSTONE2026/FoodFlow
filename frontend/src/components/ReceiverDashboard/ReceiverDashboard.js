@@ -11,7 +11,6 @@ import ReceiverImpactDashboard from './ReceiverImpactDashboard';
 import ReceiverHelp from './ReceiverHelp';
 import MessagingDashboard from '../MessagingDashboard/MessagingDashboard';
 import Settings from '../Settings';
-import CalendarSettings from '../CalendarSettings';
 
 export default function ReceiverDashboard() {
   return (
@@ -26,7 +25,6 @@ export default function ReceiverDashboard() {
         <Route path="impact" element={<ReceiverImpactDashboard />} />
         <Route path="messages" element={<MessagingDashboard />} />
         <Route path="settings" element={<Settings />} />
-        <Route path="calendar" element={<CalendarSettings />} />
         <Route path="help" element={<ReceiverHelp />} />
 
         <Route path="*" element={<Navigate to="." replace />} />

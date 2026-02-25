@@ -21,7 +21,6 @@ import {
   Menu,
   X,
   BarChart3,
-  Calendar,
 } from 'lucide-react';
 import { AuthContext } from '../../contexts/AuthContext';
 import Logo from '../../assets/Logo_White.png';
@@ -62,8 +61,6 @@ export default function DonorLayout() {
         return t('donorLayout.pageTitles.achievements', 'Achievements');
       case '/donor/messages':
         return t('donorLayout.pageTitles.messages');
-      case '/donor/calendar':
-        return t('donorLayout.pageTitles.calendar', 'Calendar');
       case '/donor/settings':
         return t('donorLayout.pageTitles.settings');
       case '/donor/help':
@@ -92,11 +89,6 @@ export default function DonorLayout() {
         );
       case '/donor/messages':
         return t('donorLayout.pageDescriptions.messages');
-      case '/donor/calendar':
-        return t(
-          'donorLayout.pageDescriptions.calendar',
-          'Manage your calendar integration'
-        );
       case '/donor/settings':
         return t('donorLayout.pageDescriptions.settings');
       case '/donor/help':
@@ -460,16 +452,6 @@ export default function DonorLayout() {
           </div>
           {open && (
             <div className="account-menu">
-              <button
-                className="account-menu-item"
-                onClick={() => {
-                  setOpen(false);
-                  navigate('/donor/calendar');
-                }}
-              >
-                <Calendar size={16} className="lucide" />
-                {t('donorLayout.calendar', 'Calendar')}
-              </button>
               <button
                 className="account-menu-item logout"
                 onClick={handleLogout}
