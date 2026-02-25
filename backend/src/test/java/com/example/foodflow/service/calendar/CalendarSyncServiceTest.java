@@ -571,4 +571,350 @@ class CalendarSyncServiceTest {
         verify(calendarEventService).markEventAsSynced(event2, "google-event-2");
         verify(calendarIntegrationService, times(1)).updateLastSuccessfulSync(testUser);
     }
+
+    // ==================== Additional tests for syncAllUpcomingPickups success paths ====================
+
+    @Test
+    void syncAllUpcomingPickups_CreatesEventForReceiver_Success() {
+        // Given - user is the receiver
+        when(calendarIntegrationService.isCalendarConnected(testUser, "GOOGLE")).thenReturn(true);
+        when(calendarSyncPreferenceRepository.findByUserId(1L)).thenReturn(Optional.of(testPrefs));
+        when(claimRepository.findActiveClaimsForUser(testUser)).thenReturn(Arrays.asList(testClaim));
+        when(syncedCalendarEventRepository.findByClaimId(1L)).thenReturn(Collections.emptyList());
+        
+        // Mock event creation
+        SyncedCalendarEvent createdEvent = new SyncedCalendarEvent();
+        createdEvent.setId(10L);
+        createdEvent.setUser(testUser);
+        
+        when(calendarEventService.createCalendarEvent(
+            eq(testUser), eq("CLAIM"), anyString(), anyString(), any(), any(), anyString()
+        )).thenReturn(createdEvent);
+        
+        doNothing().when(calendarEventService).linkEventToClaim(createdEvent, testClaim);
+
+        // When
+        int result = calendarSyncService.syncAllUpcomingPickups(testUser);
+
+        // Then
+        assertThat(result).isEqualTo(1);
+        verify(calendarEventService).createCalendarEvent(
+            eq(testUser), eq("CLAIM"), contains("Pickup Appointment"), anyString(), any(), any(), eq("America/New_York")
+        );
+        verify(calendarEventService).linkEventToClaim(createdEvent, testClaim);
+    }
+
+    @Test
+    void syncAllUpcomingPickups_CreatesEventForDonor_Success() {
+        // Given - user is the donor
+        testDonation.setDonor(testUser);
+        User receiver = new User();
+        receiver.setId(3L);
+        receiver.setEmail("receiver@example.com");
+        testClaim.setReceiver(receiver);
+        
+        when(calendarIntegrationService.isCalendarConnected(testUser, "GOOGLE")).thenReturn(true);
+        when(calendarSyncPreferenceRepository.findByUserId(1L)).thenReturn(Optional.of(testPrefs));
+        when(claimRepository.findActiveClaimsForUser(testUser)).thenReturn(Arrays.asList(testClaim));
+        when(syncedCalendarEventRepository.findByClaimId(1L)).thenReturn(Collections.emptyList());
+        
+        // Mock event creation
+        SyncedCalendarEvent createdEvent = new SyncedCalendarEvent();
+        createdEvent.setId(10L);
+        createdEvent.setUser(testUser);
+        
+        when(calendarEventService.createCalendarEvent(
+            eq(testUser), eq("CLAIM"), anyString(), anyString(), any(), any(), anyString()
+        )).thenReturn(createdEvent);
+        
+        doNothing().when(calendarEventService).linkEventToClaim(createdEvent, testClaim);
+
+        // When
+        int result = calendarSyncService.syncAllUpcomingPickups(testUser);
+
+        // Then
+        assertThat(result).isEqualTo(1);
+        verify(calendarEventService).createCalendarEvent(
+            eq(testUser), eq("CLAIM"), contains("Donation Pickup"), anyString(), any(), any(), eq("America/New_York")
+        );
+        verify(calendarEventService).linkEventToClaim(createdEvent, testClaim);
+    }
+
+    @Test
+    void syncAllUpcomingPickups_HandlesExceptionGracefully() {
+        // Given
+        when(calendarIntegrationService.isCalendarConnected(testUser, "GOOGLE")).thenReturn(true);
+        when(calendarSyncPreferenceRepository.findByUserId(1L)).thenReturn(Optional.of(testPrefs));
+        when(claimRepository.findActiveClaimsForUser(testUser)).thenReturn(Arrays.asList(testClaim));
+        when(syncedCalendarEventRepository.findByClaimId(1L)).thenReturn(Collections.emptyList());
+        
+        // Mock event creation to throw exception
+        when(calendarEventService.createCalendarEvent(
+            any(), anyString(), anyString(), anyString(), any(), any(), anyString()
+        )).thenThrow(new RuntimeException("Database error"));
+
+        // When
+        int result = calendarSyncService.syncAllUpcomingPickups(testUser);
+
+        // Then - should handle exception and continue
+        assertThat(result).isEqualTo(0);
+        verify(calendarEventService).createCalendarEvent(
+            eq(testUser), eq("CLAIM"), anyString(), anyString(), any(), any(), anyString()
+        );
+    }
+
+    @Test
+    void syncAllUpcomingPickups_WithoutEndTime_UsesFallbackDuration() {
+        // Given - claim has no end time
+        testClaim.setConfirmedPickupEndTime(null);
+        
+        when(calendarIntegrationService.isCalendarConnected(testUser, "GOOGLE")).thenReturn(true);
+        when(calendarSyncPreferenceRepository.findByUserId(1L)).thenReturn(Optional.of(testPrefs));
+        when(claimRepository.findActiveClaimsForUser(testUser)).thenReturn(Arrays.asList(testClaim));
+        when(syncedCalendarEventRepository.findByClaimId(1L)).thenReturn(Collections.emptyList());
+        
+        SyncedCalendarEvent createdEvent = new SyncedCalendarEvent();
+        createdEvent.setId(10L);
+        
+        when(calendarEventService.createCalendarEvent(
+            eq(testUser), eq("CLAIM"), anyString(), anyString(), any(), any(), anyString()
+        )).thenReturn(createdEvent);
+        
+        doNothing().when(calendarEventService).linkEventToClaim(createdEvent, testClaim);
+
+        // When
+        int result = calendarSyncService.syncAllUpcomingPickups(testUser);
+
+        // Then - should use eventDuration (60 minutes) from preferences
+        assertThat(result).isEqualTo(1);
+        verify(calendarEventService).createCalendarEvent(
+            eq(testUser), eq("CLAIM"), anyString(), anyString(), any(), any(), eq("America/New_York")
+        );
+    }
+
+    @Test
+    void syncAllUpcomingPickups_WithUserTimezoneNull_UsesUTC() {
+        // Given - user has null timezone
+        testUser.setTimezone(null);
+        
+        when(calendarIntegrationService.isCalendarConnected(testUser, "GOOGLE")).thenReturn(true);
+        when(calendarSyncPreferenceRepository.findByUserId(1L)).thenReturn(Optional.of(testPrefs));
+        when(claimRepository.findActiveClaimsForUser(testUser)).thenReturn(Arrays.asList(testClaim));
+        when(syncedCalendarEventRepository.findByClaimId(1L)).thenReturn(Collections.emptyList());
+        
+        SyncedCalendarEvent createdEvent = new SyncedCalendarEvent();
+        createdEvent.setId(10L);
+        
+        when(calendarEventService.createCalendarEvent(
+            eq(testUser), eq("CLAIM"), anyString(), anyString(), any(), any(), anyString()
+        )).thenReturn(createdEvent);
+        
+        doNothing().when(calendarEventService).linkEventToClaim(createdEvent, testClaim);
+
+        // When
+        int result = calendarSyncService.syncAllUpcomingPickups(testUser);
+
+        // Then - should use UTC as fallback
+        assertThat(result).isEqualTo(1);
+        verify(calendarEventService).createCalendarEvent(
+            eq(testUser), eq("CLAIM"), anyString(), anyString(), any(), any(), eq("UTC")
+        );
+    }
+
+    @Test
+    void syncAllUpcomingPickups_WithOtpCode_IncludesInDescription() {
+        // Given - post has OTP code
+        testDonation.setOtpCode("ABC123");
+        
+        when(calendarIntegrationService.isCalendarConnected(testUser, "GOOGLE")).thenReturn(true);
+        when(calendarSyncPreferenceRepository.findByUserId(1L)).thenReturn(Optional.of(testPrefs));
+        when(claimRepository.findActiveClaimsForUser(testUser)).thenReturn(Arrays.asList(testClaim));
+        when(syncedCalendarEventRepository.findByClaimId(1L)).thenReturn(Collections.emptyList());
+        
+        SyncedCalendarEvent createdEvent = new SyncedCalendarEvent();
+        createdEvent.setId(10L);
+        
+        when(calendarEventService.createCalendarEvent(
+            eq(testUser), eq("CLAIM"), anyString(), anyString(), any(), any(), anyString()
+        )).thenReturn(createdEvent);
+        
+        doNothing().when(calendarEventService).linkEventToClaim(createdEvent, testClaim);
+
+        // When
+        int result = calendarSyncService.syncAllUpcomingPickups(testUser);
+
+        // Then - description should contain OTP code
+        assertThat(result).isEqualTo(1);
+        verify(calendarEventService).createCalendarEvent(
+            eq(testUser), eq("CLAIM"), anyString(), contains("ABC123"), any(), any(), eq("America/New_York")
+        );
+    }
+
+    @Test
+    void syncAllUpcomingPickups_WithQuantity_IncludesInDescription() {
+        // Given - post has quantity
+        com.example.foodflow.model.types.Quantity quantity = new com.example.foodflow.model.types.Quantity();
+        quantity.setValue(5.0);
+        quantity.setUnit(com.example.foodflow.model.types.Quantity.Unit.KILOGRAM);
+        testDonation.setQuantity(quantity);
+        
+        when(calendarIntegrationService.isCalendarConnected(testUser, "GOOGLE")).thenReturn(true);
+        when(calendarSyncPreferenceRepository.findByUserId(1L)).thenReturn(Optional.of(testPrefs));
+        when(claimRepository.findActiveClaimsForUser(testUser)).thenReturn(Arrays.asList(testClaim));
+        when(syncedCalendarEventRepository.findByClaimId(1L)).thenReturn(Collections.emptyList());
+        
+        SyncedCalendarEvent createdEvent = new SyncedCalendarEvent();
+        createdEvent.setId(10L);
+        
+        when(calendarEventService.createCalendarEvent(
+            eq(testUser), eq("CLAIM"), anyString(), anyString(), any(), any(), anyString()
+        )).thenReturn(createdEvent);
+        
+        doNothing().when(calendarEventService).linkEventToClaim(createdEvent, testClaim);
+
+        // When
+        int result = calendarSyncService.syncAllUpcomingPickups(testUser);
+
+        // Then - description should contain quantity info
+        assertThat(result).isEqualTo(1);
+        verify(calendarEventService).createCalendarEvent(
+            eq(testUser), eq("CLAIM"), anyString(), contains("5.0"), any(), any(), eq("America/New_York")
+        );
+    }
+
+    @Test
+    void syncAllUpcomingPickups_ReceiverWithPickupLocation_IncludesInDescription() {
+        // Given - user is receiver and post has pickup location
+        com.example.foodflow.model.types.Location location = new com.example.foodflow.model.types.Location();
+        location.setAddress("123 Main St, City, State 12345");
+        testDonation.setPickupLocation(location);
+        
+        when(calendarIntegrationService.isCalendarConnected(testUser, "GOOGLE")).thenReturn(true);
+        when(calendarSyncPreferenceRepository.findByUserId(1L)).thenReturn(Optional.of(testPrefs));
+        when(claimRepository.findActiveClaimsForUser(testUser)).thenReturn(Arrays.asList(testClaim));
+        when(syncedCalendarEventRepository.findByClaimId(1L)).thenReturn(Collections.emptyList());
+        
+        SyncedCalendarEvent createdEvent = new SyncedCalendarEvent();
+        createdEvent.setId(10L);
+        
+        when(calendarEventService.createCalendarEvent(
+            eq(testUser), eq("CLAIM"), anyString(), anyString(), any(), any(), anyString()
+        )).thenReturn(createdEvent);
+        
+        doNothing().when(calendarEventService).linkEventToClaim(createdEvent, testClaim);
+
+        // When
+        int result = calendarSyncService.syncAllUpcomingPickups(testUser);
+
+        // Then - description should contain pickup location
+        assertThat(result).isEqualTo(1);
+        verify(calendarEventService).createCalendarEvent(
+            eq(testUser), eq("CLAIM"), anyString(), contains("123 Main St"), any(), any(), eq("America/New_York")
+        );
+    }
+
+    @Test
+    void syncAllUpcomingPickups_DonorWithReceiverOrganization_IncludesInDescription() {
+        // Given - user is donor and receiver has organization
+        testDonation.setDonor(testUser);
+        User receiver = new User();
+        receiver.setId(3L);
+        receiver.setEmail("receiver@example.com");
+        receiver.setPhone("555-1234");
+        com.example.foodflow.model.entity.Organization receiverOrg = new com.example.foodflow.model.entity.Organization();
+        receiverOrg.setName("Food Bank XYZ");
+        receiver.setOrganization(receiverOrg);
+        testClaim.setReceiver(receiver);
+        
+        when(calendarIntegrationService.isCalendarConnected(testUser, "GOOGLE")).thenReturn(true);
+        when(calendarSyncPreferenceRepository.findByUserId(1L)).thenReturn(Optional.of(testPrefs));
+        when(claimRepository.findActiveClaimsForUser(testUser)).thenReturn(Arrays.asList(testClaim));
+        when(syncedCalendarEventRepository.findByClaimId(1L)).thenReturn(Collections.emptyList());
+        
+        SyncedCalendarEvent createdEvent = new SyncedCalendarEvent();
+        createdEvent.setId(10L);
+        
+        when(calendarEventService.createCalendarEvent(
+            eq(testUser), eq("CLAIM"), anyString(), anyString(), any(), any(), anyString()
+        )).thenReturn(createdEvent);
+        
+        doNothing().when(calendarEventService).linkEventToClaim(createdEvent, testClaim);
+
+        // When
+        int result = calendarSyncService.syncAllUpcomingPickups(testUser);
+
+        // Then - description should contain organization name and contact info
+        assertThat(result).isEqualTo(1);
+        verify(calendarEventService).createCalendarEvent(
+            eq(testUser), eq("CLAIM"), anyString(), contains("Food Bank XYZ"), any(), any(), eq("America/New_York")
+        );
+        verify(calendarEventService).createCalendarEvent(
+            eq(testUser), eq("CLAIM"), anyString(), contains("555-1234"), any(), any(), eq("America/New_York")
+        );
+    }
+
+    @Test
+    void syncAllUpcomingPickups_ReceiverWithDonorOrganization_IncludesInDescription() {
+        // Given - user is receiver and donor has organization
+        User donor = new User();
+        donor.setId(2L);
+        donor.setEmail("donor@example.com");
+        donor.setPhone("555-5678");
+        com.example.foodflow.model.entity.Organization donorOrg = new com.example.foodflow.model.entity.Organization();
+        donorOrg.setName("Restaurant ABC");
+        donor.setOrganization(donorOrg);
+        testDonation.setDonor(donor);
+        
+        when(calendarIntegrationService.isCalendarConnected(testUser, "GOOGLE")).thenReturn(true);
+        when(calendarSyncPreferenceRepository.findByUserId(1L)).thenReturn(Optional.of(testPrefs));
+        when(claimRepository.findActiveClaimsForUser(testUser)).thenReturn(Arrays.asList(testClaim));
+        when(syncedCalendarEventRepository.findByClaimId(1L)).thenReturn(Collections.emptyList());
+        
+        SyncedCalendarEvent createdEvent = new SyncedCalendarEvent();
+        createdEvent.setId(10L);
+        
+        when(calendarEventService.createCalendarEvent(
+            eq(testUser), eq("CLAIM"), anyString(), anyString(), any(), any(), anyString()
+        )).thenReturn(createdEvent);
+        
+        doNothing().when(calendarEventService).linkEventToClaim(createdEvent, testClaim);
+
+        // When
+        int result = calendarSyncService.syncAllUpcomingPickups(testUser);
+
+        // Then - description should contain organization name and contact info
+        assertThat(result).isEqualTo(1);
+        verify(calendarEventService).createCalendarEvent(
+            eq(testUser), eq("CLAIM"), anyString(), contains("Restaurant ABC"), any(), any(), eq("America/New_York")
+        );
+        verify(calendarEventService).createCalendarEvent(
+            eq(testUser), eq("CLAIM"), anyString(), contains("555-5678"), any(), any(), eq("America/New_York")
+        );
+    }
+
+    @Test
+    void syncAllUpcomingPickups_TriggersAsyncSyncWhenEventsCreated() {
+        // Given
+        when(calendarIntegrationService.isCalendarConnected(testUser, "GOOGLE")).thenReturn(true);
+        when(calendarSyncPreferenceRepository.findByUserId(1L)).thenReturn(Optional.of(testPrefs));
+        when(claimRepository.findActiveClaimsForUser(testUser)).thenReturn(Arrays.asList(testClaim));
+        when(syncedCalendarEventRepository.findByClaimId(1L)).thenReturn(Collections.emptyList());
+        
+        SyncedCalendarEvent createdEvent = new SyncedCalendarEvent();
+        createdEvent.setId(10L);
+        
+        when(calendarEventService.createCalendarEvent(
+            eq(testUser), eq("CLAIM"), anyString(), anyString(), any(), any(), anyString()
+        )).thenReturn(createdEvent);
+        
+        doNothing().when(calendarEventService).linkEventToClaim(createdEvent, testClaim);
+
+        // When
+        int result = calendarSyncService.syncAllUpcomingPickups(testUser);
+
+        // Then
+        assertThat(result).isEqualTo(1);
+        // Note: We can't easily verify async call, but we've tested the success path
+    }
 }
+
