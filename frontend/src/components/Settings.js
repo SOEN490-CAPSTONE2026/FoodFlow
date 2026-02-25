@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
-import { User, Globe, Bell, Camera, Lock } from 'lucide-react';
+import { User, Globe, Bell, Camera, Lock, Calendar } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './LanguageSwitcher';
 import RegionSelector from './RegionSelector';
 import ChangePasswordModal from './ChangePasswordModal';
+import CalendarSettings from './CalendarSettings';
 import { AuthContext } from '../contexts/AuthContext';
 import { notificationPreferencesAPI, profileAPI } from '../services/api';
 import api from '../services/api';
@@ -887,6 +888,9 @@ const Settings = () => {
             </div>
           </div>
         </div>
+
+        {/* Calendar Integration Section */}
+        <CalendarSettings />
 
         {/* Notification Preferences Section */}
         <div className="settings-section">
