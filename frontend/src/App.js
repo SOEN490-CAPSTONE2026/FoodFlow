@@ -18,6 +18,7 @@ import EmailVerification from './components/EmailVerification';
 import NavigationBar from './components/NavigationBar';
 import ChatWidget from './components/shared/ChatWidget';
 import CalendarOAuthCallback from './components/CalendarOAuthCallback';
+import CalendarOAuthSuccess from './components/CalendarOAuthSuccess';
 import { AuthProvider } from './contexts/AuthContext';
 import { TimezoneProvider } from './contexts/TimezoneContext';
 import { useAnalytics } from './hooks/useAnalytics';
@@ -73,6 +74,7 @@ function AppContent() {
     location.pathname === '/login' ||
     location.pathname === '/forgot-password' ||
     location.pathname === '/verify-email' ||
+    location.pathname === '/calendar/oauth-success' ||
     location.pathname.startsWith('/register') ||
     location.pathname.startsWith('/donor') ||
     location.pathname.startsWith('/admin') ||
@@ -97,6 +99,10 @@ function AppContent() {
         <Route
           path="/calendar/oauth/callback"
           element={<CalendarOAuthCallback />}
+        />
+        <Route
+          path="/calendar/oauth-success"
+          element={<CalendarOAuthSuccess />}
         />
 
         {/* ===== Admin Dashboard (UNPROTECTED for dev preview) ===== */}
