@@ -16,6 +16,7 @@ import com.example.foodflow.model.entity.Claim;
 import com.example.foodflow.model.entity.DonationTimeline;
 import com.example.foodflow.model.entity.PickupSlot;
 import com.example.foodflow.model.entity.SurplusPost;
+import com.example.foodflow.model.entity.SyncedCalendarEvent;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.ExpiryAuditLog;
 import com.example.foodflow.model.types.DietaryMatchMode;
@@ -27,7 +28,12 @@ import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.repository.ClaimRepository;
 import com.example.foodflow.repository.DonationTimelineRepository;
 import com.example.foodflow.repository.ExpiryAuditLogRepository;
+import com.example.foodflow.repository.CalendarSyncPreferenceRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
+import com.example.foodflow.repository.SyncedCalendarEventRepository;
+import com.example.foodflow.service.calendar.CalendarEventService;
+import com.example.foodflow.service.calendar.CalendarIntegrationService;
+import com.example.foodflow.service.calendar.CalendarSyncService;
 import com.example.foodflow.util.TimezoneResolver;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,6 +44,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -87,6 +95,11 @@ public class SurplusService {
     private final EmailService emailService;
     private final NotificationPreferenceService notificationPreferenceService;
     private final FoodTypeImpactService foodTypeImpactService;
+    private final CalendarEventService calendarEventService;
+    private final CalendarIntegrationService calendarIntegrationService;
+    private final CalendarSyncService calendarSyncService;
+    private final CalendarSyncPreferenceRepository calendarSyncPreferenceRepository;
+    private final SyncedCalendarEventRepository syncedCalendarEventRepository;
 
     @Value("${pickup.tolerance.early-minutes:15}")
     private int earlyToleranceMinutes;
@@ -115,7 +128,12 @@ public class SurplusService {
             SimpMessagingTemplate messagingTemplate,
             EmailService emailService,
             NotificationPreferenceService notificationPreferenceService,
-            FoodTypeImpactService foodTypeImpactService) {
+            FoodTypeImpactService foodTypeImpactService,
+            CalendarEventService calendarEventService,
+            CalendarIntegrationService calendarIntegrationService,
+            CalendarSyncService calendarSyncService,
+            CalendarSyncPreferenceRepository calendarSyncPreferenceRepository,
+            SyncedCalendarEventRepository syncedCalendarEventRepository) {
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;
         this.pickupSlotValidationService = pickupSlotValidationService;
@@ -135,6 +153,11 @@ public class SurplusService {
         this.emailService = emailService;
         this.notificationPreferenceService = notificationPreferenceService;
         this.foodTypeImpactService = foodTypeImpactService;
+        this.calendarEventService = calendarEventService;
+        this.calendarIntegrationService = calendarIntegrationService;
+        this.calendarSyncService = calendarSyncService;
+        this.calendarSyncPreferenceRepository = calendarSyncPreferenceRepository;
+        this.syncedCalendarEventRepository = syncedCalendarEventRepository;
     }
 
     /**
@@ -826,7 +849,11 @@ public class SurplusService {
 
         // Filter by food categories
         if (filterRequest.hasFoodCategories()) {
-            builder.and(ArrayFilter.containsAny(filterRequest.getFoodCategories()).toSpecification("foodCategories"));
+            // Convert strings to FoodCategory enums
+            List<FoodCategory> categories = filterRequest.getFoodCategories().stream()
+                .map(FoodCategory::valueOf)
+                .collect(Collectors.toList());
+            builder.and(ArrayFilter.containsAny(categories).toSpecification("foodCategories"));
         }
 
         // Filter by food types (matches any requested type)
@@ -1310,6 +1337,17 @@ public class SurplusService {
                             } catch (Exception e) {
                                 logger.error("Failed to send donation picked up email notification to donor: {}", e.getMessage(), e);
                             }
+                            
+                            // Update calendar events to mark as completed
+                            try {
+                                updateCalendarEventsForCompletion(claim.getId());
+                                // Trigger async sync for both donor and receiver
+                                triggerCalendarSyncIfEnabled(donor);
+                                triggerCalendarSyncIfEnabled(claim.getReceiver());
+                            } catch (Exception e) {
+                                logger.error("Failed to update calendar events for completed claim {}: {}", claim.getId(), e.getMessage(), e);
+                                // Don't fail the completion if calendar update fails
+                            }
                         } else {
                             logger.info("Claim claimId={} already completed, skipping notification", claim.getId());
                         }
@@ -1542,6 +1580,88 @@ public class SurplusService {
         timelineRepository.save(evidenceEvent);
 
         return new UploadEvidenceResponse(fileUrl, "Evidence uploaded successfully", true);
+    }
+    
+    /**
+     * Update calendar events to mark them as completed
+     */
+    private void updateCalendarEventsForCompletion(Long claimId) {
+        try {
+            // Find all synced events for this claim
+            List<SyncedCalendarEvent> events = syncedCalendarEventRepository.findByClaimId(claimId);
+            
+            if (events.isEmpty()) {
+                logger.info("No calendar events found for claim {}", claimId);
+                return;
+            }
+            
+            // Update each event's description to indicate completion
+            for (SyncedCalendarEvent event : events) {
+                String updatedDescription = event.getEventDescription() + 
+                    "\n\n✅ COMPLETED - This pickup has been successfully completed.";
+                String updatedTitle = "✅ " + event.getEventTitle();
+                
+                calendarEventService.updateCalendarEvent(
+                    event,
+                    updatedTitle,
+                    updatedDescription,
+                    event.getStartTime(),
+                    event.getEndTime(),
+                    event.getTimezone()
+                );
+                
+                logger.info("Updated calendar event {} to mark as completed for claim {}", 
+                           event.getId(), claimId);
+            }
+            
+            logger.info("Updated {} calendar events for completed claim {}", events.size(), claimId);
+            
+        } catch (Exception e) {
+            logger.error("Error updating calendar events for claim {}: {}", claimId, e.getMessage(), e);
+            throw e;
+        }
+    }
+    
+    /**
+     * Trigger async calendar sync for a user if they have calendar integrated and sync enabled
+     * Uses TransactionSynchronization to ensure sync happens AFTER transaction commits
+     */
+    private void triggerCalendarSyncIfEnabled(User user) {
+        try {
+            // Check if user has calendar connected
+            if (!calendarIntegrationService.isCalendarConnected(user, "GOOGLE")) {
+                logger.debug("User {} does not have calendar connected, skipping async sync", user.getId());
+                return;
+            }
+            
+            // Check if sync is enabled in preferences
+            java.util.Optional<com.example.foodflow.model.entity.CalendarSyncPreference> prefsOpt = 
+                calendarSyncPreferenceRepository.findByUserId(user.getId());
+            if (!prefsOpt.isPresent() || !prefsOpt.get().getSyncEnabled()) {
+                logger.debug("User {} has sync disabled, skipping async sync", user.getId());
+                return;
+            }
+            
+            // Register callback to trigger async sync AFTER transaction commits
+            // This fixes the bug where @Async threads query before the transaction commits
+            if (TransactionSynchronizationManager.isSynchronizationActive()) {
+                logger.info("📌 Registering post-commit sync callback for user {}", user.getId());
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        logger.info("🚀 [POST-COMMIT] Triggering async calendar sync for user {}", user.getId());
+                        calendarSyncService.syncUserPendingEventsAsync(user);
+                    }
+                });
+            } else {
+                // Fallback: trigger immediately if no transaction is active
+                logger.info("🚀 Triggering async calendar sync for user {} (no active transaction)", user.getId());
+                calendarSyncService.syncUserPendingEventsAsync(user);
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error triggering calendar sync for user {}: {}", user.getId(), e.getMessage());
+        }
     }
 
 }

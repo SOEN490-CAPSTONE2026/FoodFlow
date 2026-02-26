@@ -173,7 +173,8 @@
     "download": "Download",
     "hidePassword": "Hide password",
     "showPassword": "Show password",
-    "time": "Time"
+    "time": "Time",
+    "syncing": "Syncing..."
   },
   "validation": {
     "required": "This field is required",
@@ -867,7 +868,8 @@
       "messages": "Messages",
       "settings": "Settings",
       "help": "Help",
-      "donor": "Donor"
+      "donor": "Donor",
+      "calendar": "Calendar Integration"
     },
     "pageDescriptions": {
       "donorDashboard": "Overview and quick actions",
@@ -875,6 +877,7 @@
       "requestsClaims": "Incoming requests and status",
       "pickupSchedule": "Recent activity and history",
       "messages": "Incoming communications",
+      "calendar": "Sync your donations to Google Calendar",
       "settings": "Manage your preferences and account settings",
       "help": "Guides and support",
       "donorPortal": "FoodFlow Donor Portal"
@@ -998,6 +1001,7 @@
       "savedDonations": "Saved Donations",
       "browse": "Browse Available Food",
       "messages": "Messages",
+      "calendar": "Calendar Integration",
       "settings": "Settings",
       "default": "Receiver Dashboard"
     },
@@ -1007,6 +1011,7 @@
       "savedDonations": "Review and manage your saved donations",
       "browse": "Browse available food listings",
       "messages": "Communicate with donors and other users",
+      "calendar": "Sync your pickups to Google Calendar",
       "settings": "Manage your preferences and account settings",
       "default": "FoodFlow Receiver Portal"
     }
@@ -1393,5 +1398,68 @@
     "selectAll": "Select All",
     "clearAll": "Clear All",
     "done": "Done"
+  },
+  "calendar": {
+    "title": "Calendar Integration",
+    "description": "Sync your FoodFlow pick ups to Google Calendar",
+    "connected": "Connected",
+    "notConnected": "Not Connected",
+    "connecting": "Connecting...",
+    "provider": "Provider",
+    "connectPrompt": "Connect your Google Calendar to automatically sync donation appointments and pickup schedules. Never miss an important event!",
+    "connectButton": "Connect Google Calendar",
+    "disconnectButton": "Disconnect",
+    "disconnectTitle": "Disconnect Calendar?",
+    "disconnectWarning1": "By disconnecting your calendar, FoodFlow will lose all permissions to perform operations on your Google Calendar.",
+    "disconnectWarning2": "To re-enable calendar integration, you will need to go through the OAuth connection flow again.",
+    "disconnectWarning3": "All events that were already created will still be present in your calendar.",
+    "confirmDisconnect": "Are you sure you want to disconnect your calendar? Your synced events will remain in Google Calendar.",
+    "disconnectSuccess": "Calendar disconnected successfully",
+    "disconnectError": "Failed to disconnect calendar",
+    "connectionSuccess": "Calendar connected successfully!",
+    "connectError": "Failed to connect calendar. Please try again.",
+    "testButton": "Test Connection",
+    "testSuccess": "Connection test successful!",
+    "testError": "Connection test failed",
+    "preferences": "Sync Preferences",
+    "syncEnabled": "Enable automatic sync",
+    "eventTypes": "Event Types to Sync",
+    "pickupEvents": "Pickup Events",
+    "deliveryEvents": "Delivery Events",
+    "claimEvents": "Claim Events",
+    "autoReminders": "Enable automatic reminders",
+    "reminderPreferences": "Reminder Preferences",
+    "reminderTime": "Reminder time before event",
+    "reminderTimeBeforeEvent": "Reminder time before event",
+    "reminderType": "Reminder Type",
+    "eventPreferences": "Event Preferences",
+    "eventColor": "Event Color",
+    "eventVisibility": "Event Visibility",
+    "eventDuration": "Event Duration",
+    "findOutMore": "Find out more",
+    "saveButton": "Save Preferences",
+    "saveSuccess": "Preferences saved successfully",
+    "saveError": "Failed to save preferences",
+    "syncButton": "Sync Now",
+    "syncing": "Syncing...",
+    "syncSuccess": "Events synced successfully",
+    "syncError": "Failed to sync events",
+    "syncedEvents": "Synced Events",
+    "noEvents": "No events synced yet",
+    "loadError": "Failed to load calendar data",
+    "viewInGoogle": "View in Google Calendar",
+    "connectionDetails": {
+      "title": "Connection Details",
+      "connectedSince": "First Connected",
+      "grantedScopes": "Granted Scopes",
+      "lastSuccessfulSync": "Last Successful Sync",
+      "lastFailedRefresh": "Last Failed Refresh",
+      "googleAccountEmail": "Google Account Email",
+      "primaryCalendarName": "Primary Calendar Name",
+      "calendarTimeZone": "Calendar Time Zone",
+      "noData": "No data available",
+      "never": "Never",
+      "notAvailable": "Not available yet"
+    }
   }
 }

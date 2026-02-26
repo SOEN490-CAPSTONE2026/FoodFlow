@@ -43,11 +43,12 @@ describe('PrivacyPolicy', () => {
       screen.getByText('3. How We Use Your Information')
     ).toBeInTheDocument();
     expect(screen.getByText('4. Data Sharing')).toBeInTheDocument();
-    expect(screen.getByText('5. Data Retention')).toBeInTheDocument();
-    expect(screen.getByText('6. Your Rights')).toBeInTheDocument();
-    expect(screen.getByText('7. Security')).toBeInTheDocument();
-    expect(screen.getByText('8. Changes to This Policy')).toBeInTheDocument();
-    expect(screen.getByText('9. Contact Us')).toBeInTheDocument();
+    expect(screen.getByText('5. Third-Party Integrations')).toBeInTheDocument();
+    expect(screen.getByText('6. Data Retention')).toBeInTheDocument();
+    expect(screen.getByText('7. Your Rights')).toBeInTheDocument();
+    expect(screen.getByText('8. Security')).toBeInTheDocument();
+    expect(screen.getByText('9. Changes to This Policy')).toBeInTheDocument();
+    expect(screen.getByText('10. Contact Us')).toBeInTheDocument();
   });
 
   it('renders introduction section content', () => {

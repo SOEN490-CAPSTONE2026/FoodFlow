@@ -4,25 +4,32 @@ import com.example.foodflow.exception.BusinessException;
 import com.example.foodflow.exception.ResourceNotFoundException;
 import com.example.foodflow.model.dto.ClaimRequest;
 import com.example.foodflow.model.dto.ClaimResponse;
-import com.example.foodflow.model.entity.Claim;
-import com.example.foodflow.model.entity.PickupSlot;
-import com.example.foodflow.model.entity.SurplusPost;
-import com.example.foodflow.model.entity.User;
+import com.example.foodflow.model.entity.*;
 import com.example.foodflow.model.types.ClaimStatus;
 import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.repository.ClaimRepository;
+import com.example.foodflow.repository.CalendarSyncPreferenceRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
+import com.example.foodflow.repository.SyncedCalendarEventRepository;
+import com.example.foodflow.service.calendar.CalendarEventService;
+import com.example.foodflow.service.calendar.CalendarIntegrationService;
+import com.example.foodflow.service.calendar.CalendarSyncService;
 import com.example.foodflow.util.TimezoneResolver;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.Timer;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -38,6 +45,11 @@ public class ClaimService {
     private final EmailService emailService;
     private final GamificationService gamificationService;
     private final SmsService smsService;
+    private final CalendarEventService calendarEventService;
+    private final CalendarIntegrationService calendarIntegrationService;
+    private final CalendarSyncService calendarSyncService;
+    private final CalendarSyncPreferenceRepository calendarSyncPreferenceRepository;
+    private final SyncedCalendarEventRepository syncedCalendarEventRepository;
     
     public ClaimService(ClaimRepository claimRepository,
                        SurplusPostRepository surplusPostRepository,
@@ -47,7 +59,12 @@ public class ClaimService {
                        TimelineService timelineService,
                        EmailService emailService,
                        GamificationService gamificationService,
-                       SmsService smsService) {
+                       SmsService smsService,
+                       CalendarEventService calendarEventService,
+                       CalendarIntegrationService calendarIntegrationService,
+                       CalendarSyncService calendarSyncService,
+                       CalendarSyncPreferenceRepository calendarSyncPreferenceRepository,
+                       SyncedCalendarEventRepository syncedCalendarEventRepository) {
         this.claimRepository = claimRepository;
         this.surplusPostRepository = surplusPostRepository;
         this.businessMetricsService = businessMetricsService;
@@ -57,6 +74,11 @@ public class ClaimService {
         this.emailService = emailService;
         this.gamificationService = gamificationService;
         this.smsService = smsService;
+        this.calendarEventService = calendarEventService;
+        this.calendarIntegrationService = calendarIntegrationService;
+        this.calendarSyncService = calendarSyncService;
+        this.calendarSyncPreferenceRepository = calendarSyncPreferenceRepository;
+        this.syncedCalendarEventRepository = syncedCalendarEventRepository;
     }
                        
     @Transactional
@@ -340,6 +362,24 @@ public class ClaimService {
             logger.error("Failed to send websocket notification to receiver: {}", e.getMessage());
         }
 
+        // Create calendar events for BOTH users if they have calendar enabled
+        logger.info("=== ATTEMPTING TO CREATE CALENDAR EVENTS FOR CLAIM {} ===", claim.getId());
+        logger.info("Receiver: {}, Donor: {}", receiver.getId(), donor.getId());
+        try {
+            createCalendarEventForPickup(claim, receiver, false); // Receiver's event
+            createCalendarEventForPickup(claim, donor, true);     // Donor's event
+            logger.info("✅ Calendar event creation calls completed for claim {}", claim.getId());
+            
+            // Trigger async sync immediately for both users if they have calendar integrated
+            triggerCalendarSyncIfEnabled(receiver);
+            triggerCalendarSyncIfEnabled(donor);
+            
+        } catch (Exception e) {
+            // Log but don't fail the claim if calendar sync fails
+            logger.error("❌ Failed to create calendar events for claim {}: {}", 
+                         claim.getId(), e.getMessage(), e);
+        }
+
         return response;
     }
 
@@ -415,6 +455,15 @@ public class ClaimService {
         // Record metrics
         businessMetricsService.incrementClaimCancelled();
         businessMetricsService.recordTimer(sample, "claim.service.cancel", "status", "cancelled");
+        
+        // Delete calendar events for both users
+        try {
+            deleteCalendarEventsForClaim(claimId);
+        } catch (Exception e) {
+            // Log but don't fail the cancellation if calendar deletion fails
+            logger.error("Failed to delete calendar events for claim {}: {}", 
+                         claimId, e.getMessage());
+        }
         
         // Notify donor that the claim was cancelled (if they have notifications enabled)
         User donor = post.getDonor();
@@ -536,5 +585,256 @@ public class ClaimService {
         // E.164 format validation: +[country code][number] (e.g., +12345678901)
         // Must start with +, followed by 1-15 digits
         return phone.matches("^\\+[1-9]\\d{1,14}$");
+    }
+    
+    /**
+     * Create a calendar event for a pickup claim
+     * Creates a separate event for donor or receiver based on their preferences
+     */
+    private void createCalendarEventForPickup(Claim claim, User user, boolean isDonor) {
+        logger.info("🔍 createCalendarEventForPickup called - userId={}, isDonor={}, claimId={}", 
+                   user.getId(), isDonor, claim.getId());
+        try {
+            // 1. Check if user has calendar connected
+            if (!calendarIntegrationService.isCalendarConnected(user, "GOOGLE")) {
+                logger.info("⚠️ User {} does not have Google Calendar connected, skipping event creation", user.getId());
+                return;
+            }
+            logger.info("✓ User {} has Google Calendar connected", user.getId());
+            logger.info("✓ User {} has Google Calendar connected", user.getId());
+            
+            // 2. Load user's calendar sync preferences
+            Optional<CalendarSyncPreference> prefsOpt = calendarSyncPreferenceRepository.findByUserId(user.getId());
+            if (!prefsOpt.isPresent()) {
+                logger.info("⚠️ User {} has no calendar sync preferences, skipping event creation", user.getId());
+                return;
+            }
+            
+            CalendarSyncPreference prefs = prefsOpt.get();
+            logger.info("✓ User {} preferences found - syncEnabled={}, syncClaimEvents={}", 
+                       user.getId(), prefs.getSyncEnabled(), prefs.getSyncClaimEvents());
+            
+            // 3. Check if sync is enabled and claim events are enabled
+            if (!prefs.getSyncEnabled() || !prefs.getSyncClaimEvents()) {
+                logger.info("⚠️ User {} has calendar sync disabled for claim events (syncEnabled={}, syncClaimEvents={})", 
+                           user.getId(), prefs.getSyncEnabled(), prefs.getSyncClaimEvents());
+                return;
+            }
+            logger.info("✓ User {} has claim event sync enabled", user.getId());
+            
+            // 4. Get pickup time details (stored in UTC in database)
+            if (claim.getConfirmedPickupDate() == null || claim.getConfirmedPickupStartTime() == null) {
+                logger.warn("Claim {} has no confirmed pickup time, cannot create calendar event", claim.getId());
+                return;
+            }
+            
+            java.time.LocalDate pickupDateUTC = claim.getConfirmedPickupDate();
+            java.time.LocalTime startTimeUTC = claim.getConfirmedPickupStartTime();
+            java.time.LocalTime endTimeUTC = claim.getConfirmedPickupEndTime();
+            
+            // 5. Convert UTC times to user's timezone for display in calendar
+            String userTimezone = user.getTimezone() != null ? user.getTimezone() : "UTC";
+            LocalDateTime startInUserTz = TimezoneResolver.convertDateTime(
+                pickupDateUTC, startTimeUTC, "UTC", userTimezone
+            );
+            
+            LocalDateTime endInUserTz;
+            if (endTimeUTC != null) {
+                endInUserTz = TimezoneResolver.convertDateTime(
+                    pickupDateUTC, endTimeUTC, "UTC", userTimezone
+                );
+            } else {
+                // Fallback: use event duration preference
+                endInUserTz = startInUserTz.plusMinutes(prefs.getEventDuration());
+            }
+            
+            // 6. Build event title and description
+            SurplusPost post = claim.getSurplusPost();
+            String eventTitle = buildEventTitle(post, isDonor);
+            String eventDescription = buildEventDescription(claim, user, isDonor);
+            
+            logger.info("📅 Calling CalendarEventService to create event for user {}: '{}' ({} to {})", 
+                       user.getId(), eventTitle, startInUserTz, endInUserTz);
+            
+            // 7. Create the synced calendar event record
+            SyncedCalendarEvent event = calendarEventService.createCalendarEvent(
+                user,
+                "CLAIM", // event type
+                eventTitle,
+                eventDescription,
+                startInUserTz,
+                endInUserTz,
+                userTimezone
+            );
+            
+            logger.info("✅ CalendarEventService returned event with ID: {}", event.getId());
+            
+            // 8. Link event to claim
+            calendarEventService.linkEventToClaim(event, claim);
+            
+            logger.info("Created calendar event {} for user {} (isDonor={}) for claim {}", 
+                       event.getId(), user.getId(), isDonor, claim.getId());
+                       
+        } catch (Exception e) {
+            logger.error("Error creating calendar event for user {} claim {}: {}", 
+                        user.getId(), claim.getId(), e.getMessage(), e);
+            throw e; // Re-throw to be caught by calling method
+        }
+    }
+    
+    /**
+     * Delete calendar events for a cancelled claim
+     */
+    private void deleteCalendarEventsForClaim(Long claimId) {
+        try {
+            // Find all synced events for this claim
+            List<SyncedCalendarEvent> events = syncedCalendarEventRepository.findByClaimId(claimId);
+            
+            if (events.isEmpty()) {
+                logger.info("No calendar events found for claim {}", claimId);
+                return;
+            }
+            
+            // Track unique users who need sync
+            Set<Long> userIdsToSync = new HashSet<>();
+            
+            // Mark each event as deleted (soft delete)
+            for (SyncedCalendarEvent event : events) {
+                calendarEventService.deleteCalendarEvent(event);
+                userIdsToSync.add(event.getUser().getId());
+                logger.info("Marked calendar event {} as deleted for claim {}", event.getId(), claimId);
+            }
+            
+            logger.info("Deleted {} calendar events for claim {}", events.size(), claimId);
+            
+            // Trigger async sync for each affected user to actually delete from Google Calendar
+            for (Long userId : userIdsToSync) {
+                User user = events.stream()
+                    .filter(e -> e.getUser().getId().equals(userId))
+                    .findFirst()
+                    .map(SyncedCalendarEvent::getUser)
+                    .orElse(null);
+                    
+                if (user != null) {
+                    logger.info("Triggering sync to delete calendar event from Google for user {}", userId);
+                    triggerCalendarSyncIfEnabled(user);
+                }
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error deleting calendar events for claim {}: {}", claimId, e.getMessage(), e);
+            throw e;
+        }
+    }
+    
+    /**
+     * Build event title based on user role
+     */
+    private String buildEventTitle(SurplusPost post, boolean isDonor) {
+        String foodTitle = post.getTitle();
+        if (isDonor) {
+            return "📦 Donation Pickup - " + foodTitle;
+        } else {
+            return "🍽️ Pickup Appointment - " + foodTitle;
+        }
+    }
+    
+    /**
+     * Build detailed event description
+     */
+    private String buildEventDescription(Claim claim, User user, boolean isDonor) {
+        SurplusPost post = claim.getSurplusPost();
+        User donor = post.getDonor();
+        User receiver = claim.getReceiver();
+        
+        StringBuilder desc = new StringBuilder();
+        desc.append("🍽️ FoodFlow Pickup Event\n\n");
+        desc.append("📦 Food: ").append(post.getTitle()).append("\n");
+        
+        if (post.getQuantity() != null) {
+            desc.append("📊 Quantity: ")
+                .append(post.getQuantity().getValue())
+                .append(" ")
+                .append(post.getQuantity().getUnit())
+                .append("\n");
+        }
+        
+        desc.append("\n");
+        
+        if (isDonor) {
+            // Donor's view
+            String receiverName = getReceiverName(receiver);
+            desc.append("👤 Receiver: ").append(receiverName).append("\n");
+            if (receiver.getEmail() != null) {
+                desc.append("📧 Contact: ").append(receiver.getEmail()).append("\n");
+            }
+            if (receiver.getPhone() != null) {
+                desc.append("📱 Phone: ").append(receiver.getPhone()).append("\n");
+            }
+        } else {
+            // Receiver's view
+            String donorName = getDonorName(donor);
+            desc.append("👤 Donor: ").append(donorName).append("\n");
+            
+            if (post.getPickupLocation() != null && post.getPickupLocation().getAddress() != null) {
+                desc.append("📍 Location: ").append(post.getPickupLocation().getAddress()).append("\n");
+            }
+            
+            if (donor.getEmail() != null) {
+                desc.append("📧 Contact: ").append(donor.getEmail()).append("\n");
+            }
+            if (donor.getPhone() != null) {
+                desc.append("📱 Phone: ").append(donor.getPhone()).append("\n");
+            }
+        }
+        
+        if (post.getOtpCode() != null && !post.getOtpCode().isEmpty()) {
+            desc.append("\n🔐 Confirmation Code: ").append(post.getOtpCode()).append("\n");
+        }
+        
+        desc.append("\n⏰ Please arrive on time. Contact the other party if there are any issues.");
+        
+        return desc.toString();
+    }
+    
+    /**
+     * Trigger async calendar sync for a user if they have calendar integrated and sync enabled
+     * Uses TransactionSynchronization to ensure sync happens AFTER transaction commits
+     */
+    private void triggerCalendarSyncIfEnabled(User user) {
+        try {
+            // Check if user has calendar connected
+            if (!calendarIntegrationService.isCalendarConnected(user, "GOOGLE")) {
+                logger.debug("User {} does not have calendar connected, skipping async sync", user.getId());
+                return;
+            }
+            
+            // Check if sync is enabled in preferences
+            Optional<CalendarSyncPreference> prefsOpt = calendarSyncPreferenceRepository.findByUserId(user.getId());
+            if (!prefsOpt.isPresent() || !prefsOpt.get().getSyncEnabled()) {
+                logger.debug("User {} has sync disabled, skipping async sync", user.getId());
+                return;
+            }
+            
+            // Register callback to trigger async sync AFTER transaction commits
+            // This fixes the bug where @Async threads query before the transaction commits
+            if (TransactionSynchronizationManager.isSynchronizationActive()) {
+                logger.info("📌 Registering post-commit sync callback for user {}", user.getId());
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        logger.info("🚀 [POST-COMMIT] Triggering async calendar sync for user {}", user.getId());
+                        calendarSyncService.syncUserPendingEventsAsync(user);
+                    }
+                });
+            } else {
+                // Fallback: trigger immediately if no transaction is active
+                logger.info("🚀 Triggering async calendar sync for user {} (no active transaction)", user.getId());
+                calendarSyncService.syncUserPendingEventsAsync(user);
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error triggering calendar sync for user {}: {}", user.getId(), e.getMessage());
+        }
     }
 }

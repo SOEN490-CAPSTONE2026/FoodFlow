@@ -151,7 +151,7 @@ export const computeSuggestedExpiry = ({
   const eligible = computeEligibility(foodType, temperatureCategory);
   const parsedFabricationDate = parseFabricationDate(fabricationDate);
 
-  if (!parsedFabricationDate || shelfLifeDays == null) {
+  if (!parsedFabricationDate || shelfLifeDays === null) {
     return {
       suggestedExpiryDate: null,
       shelfLifeDays,

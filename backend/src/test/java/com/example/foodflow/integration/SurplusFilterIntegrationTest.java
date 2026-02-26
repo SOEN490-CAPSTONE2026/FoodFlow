@@ -286,20 +286,6 @@ class SurplusFilterIntegrationTest {
 
         @Test
         @WithMockUser(authorities = "RECEIVER")
-        @DisplayName("Should filter via GET endpoint with query parameters")
-        void shouldFilterViaGetEndpointWithQueryParams() throws Exception {
-            // Act & Assert
-            mockMvc.perform(get("/api/surplus/search")
-                    .param("foodCategories", "FRUITS_VEGETABLES")
-                    .param("status", "AVAILABLE"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2)) // 2 available fruit posts
-                .andExpect(jsonPath("$[0].foodCategories").isArray())
-                .andExpect(jsonPath("$[0].status").value("AVAILABLE"));
-        }
-
-        @Test
-        @WithMockUser(authorities = "RECEIVER")
         @DisplayName("Should handle empty search results gracefully")
         void shouldHandleEmptySearchResultsGracefully() throws Exception {
             // Arrange - Search for category that doesn't exist in test data

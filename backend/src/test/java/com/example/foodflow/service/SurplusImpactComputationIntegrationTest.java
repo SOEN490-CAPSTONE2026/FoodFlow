@@ -55,7 +55,12 @@ class SurplusImpactComputationIntegrationTest {
                 Mockito.mock(org.springframework.messaging.simp.SimpMessagingTemplate.class),
                 Mockito.mock(EmailService.class),
                 Mockito.mock(NotificationPreferenceService.class),
-                new FoodTypeImpactService(new ObjectMapper()));
+                new FoodTypeImpactService(new ObjectMapper()),
+                Mockito.mock(com.example.foodflow.service.calendar.CalendarEventService.class),
+                Mockito.mock(com.example.foodflow.service.calendar.CalendarIntegrationService.class),
+                Mockito.mock(com.example.foodflow.service.calendar.CalendarSyncService.class),
+                Mockito.mock(com.example.foodflow.repository.CalendarSyncPreferenceRepository.class),
+                Mockito.mock(com.example.foodflow.repository.SyncedCalendarEventRepository.class));
     }
 
     @Test
