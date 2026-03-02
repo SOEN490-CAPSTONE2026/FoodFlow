@@ -21,6 +21,7 @@ import {
   X,
   AlertTriangle,
   BarChart3,
+  Image,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Logo from '../../assets/Logo_White.png';
@@ -146,6 +147,8 @@ export default function AdminLayout() {
         return 'Disputes & Reports';
       case '/admin/help':
         return t('admin.help');
+      case '/admin/images':
+        return 'Images';
       default:
         return t('admin.dashboard');
     }
@@ -172,6 +175,8 @@ export default function AdminLayout() {
         return 'Track, review, and resolve reported issues';
       case '/admin/help':
         return t('admin.guides');
+      case '/admin/images':
+        return 'Moderate uploads and manage default library images';
       default:
         return t('admin.administration');
     }
@@ -288,6 +293,17 @@ export default function AdminLayout() {
               <Heart size={18} className="lucide" />
             </span>
             Donations
+          </Link>
+
+          <Link
+            to="/admin/images"
+            className={`admin-nav-link ${isActive('/admin/images') ? 'active' : ''}`}
+            data-tooltip="Images"
+          >
+            <span className="nav-icon" aria-hidden>
+              <Image size={18} className="lucide" />
+            </span>
+            Images
           </Link>
 
           <Link

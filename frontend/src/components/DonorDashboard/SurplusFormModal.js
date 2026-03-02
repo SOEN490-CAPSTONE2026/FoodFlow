@@ -4,7 +4,11 @@ import { X, Calendar, Clock, Plus, Trash2 } from 'lucide-react';
 import { Autocomplete } from '@react-google-maps/api';
 import Select from 'react-select';
 import DatePicker from 'react-datepicker';
-import { surplusAPI } from '../../services/api';
+import {
+  donorPhotoSettingsAPI,
+  imageAPI,
+  surplusAPI,
+} from '../../services/api';
 import {
   dietaryTagOptions,
   foodTypeOptions,
@@ -62,6 +66,10 @@ const SurplusFormModal = ({
 
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [donationPhotoFile, setDonationPhotoFile] = useState(null);
+  const [donationPhotoPreview, setDonationPhotoPreview] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [photoError, setPhotoError] = useState('');
   const autocompleteRef = useRef(null);
   const translatedFoodTypeOptions = useMemo(
     () =>
@@ -345,6 +353,25 @@ const SurplusFormModal = ({
     });
   };
 
+  const handleDonationPhotoChange = e => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      return;
+    }
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type.toLowerCase())) {
+      setPhotoError('Only JPEG, PNG, and WEBP images are allowed.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setPhotoError('Image size must be 5MB or less.');
+      return;
+    }
+    setPhotoError('');
+    setDonationPhotoFile(file);
+    setDonationPhotoPreview(URL.createObjectURL(file));
+  };
+
   const handleSubmit = async e => {
     e.preventDefault();
     setMessage('');
@@ -401,6 +428,59 @@ const SurplusFormModal = ({
         setMessage(t('surplusForm.successCreated', { id: createdPostId }));
       }
 
+      const savedPostId = response?.data?.id || postId;
+      if (donationPhotoFile) {
+        setUploadProgress(1);
+        const uploaded = await imageAPI.upload(
+          donationPhotoFile,
+          {
+            foodType:
+              selectedFoodTypes.length > 0 ? selectedFoodTypes[0] : null,
+            donationId: savedPostId,
+          },
+          progressEvent => {
+            const total = progressEvent.total || 1;
+            const percent = Math.round((progressEvent.loaded / total) * 100);
+            setUploadProgress(percent);
+          }
+        );
+
+        const imageId = uploaded?.data?.image?.id;
+        if (imageId) {
+          try {
+            const settingsResp = await donorPhotoSettingsAPI.get();
+            const current = settingsResp?.data || {};
+            const payload = {
+              displayType: current.displayType || 'SINGLE',
+              singleImageId: current.singleImageId || null,
+              singleLibraryImageId: current.singleLibraryImageId || null,
+              perFoodTypeMap: current.perFoodTypeMap || {},
+              perFoodTypeLibraryMap: current.perFoodTypeLibraryMap || {},
+            };
+
+            if (payload.displayType === 'PER_FOOD_TYPE') {
+              const foodTypeKey =
+                selectedFoodTypes.length > 0 ? selectedFoodTypes[0] : null;
+              if (foodTypeKey) {
+                payload.perFoodTypeMap = {
+                  ...(payload.perFoodTypeMap || {}),
+                  [foodTypeKey]: imageId,
+                };
+              }
+            } else {
+              payload.singleImageId = imageId;
+              payload.singleLibraryImageId = null;
+            }
+            await donorPhotoSettingsAPI.update(payload);
+          } catch (settingsErr) {
+            console.error(
+              'Failed to auto-link uploaded donation photo:',
+              settingsErr
+            );
+          }
+        }
+      }
+
       // Reset form only in create mode
       if (!editMode) {
         setFormData({
@@ -429,6 +509,11 @@ const SurplusFormModal = ({
         setExpiryTouched(false);
         setSafetyAcknowledged(false);
       }
+
+      setDonationPhotoFile(null);
+      setDonationPhotoPreview(null);
+      setUploadProgress(0);
+      setPhotoError('');
 
       setTimeout(() => {
         setMessage('');
@@ -466,6 +551,10 @@ const SurplusFormModal = ({
     ]);
     setExpiryTouched(false);
     setSafetyAcknowledged(false);
+    setDonationPhotoFile(null);
+    setDonationPhotoPreview(null);
+    setUploadProgress(0);
+    setPhotoError('');
     onClose();
   };
 
@@ -727,6 +816,43 @@ const SurplusFormModal = ({
                         {t('surplusForm.packagingTypeHelp')}
                       </span>
                     </div>
+                  </div>
+
+                  <div className="form-section">
+                    <label className="input-label">
+                      Donation Photo (Optional)
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/webp"
+                      onChange={handleDonationPhotoChange}
+                      className="input-field"
+                    />
+                    <span className="input-help-text">
+                      Upload JPEG/PNG/WEBP, max 5MB. Admin approval is required
+                      before receiver display.
+                    </span>
+                    {photoError && (
+                      <div className="error-message">{photoError}</div>
+                    )}
+                    {donationPhotoPreview && (
+                      <img
+                        src={donationPhotoPreview}
+                        alt="Donation preview"
+                        style={{
+                          width: '100%',
+                          maxHeight: '180px',
+                          objectFit: 'cover',
+                          borderRadius: '10px',
+                          marginTop: '0.75rem',
+                        }}
+                      />
+                    )}
+                    {uploadProgress > 0 && uploadProgress < 100 && (
+                      <div className="input-help-text">
+                        Upload progress: {uploadProgress}%
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

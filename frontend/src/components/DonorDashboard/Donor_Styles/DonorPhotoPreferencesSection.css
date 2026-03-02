@@ -1,0 +1,141 @@
+.donor-photo-section {
+  border: 1px solid #e6ecf2;
+}
+
+.donor-photo-header {
+  margin-bottom: 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 0;
+}
+
+.donor-photo-title h2 {
+  margin-bottom: 0.15rem;
+}
+
+.donor-photo-toggle-btn {
+  border: 1px solid #c8d8e5;
+  background: #f5f9fc;
+  color: #1b4965;
+  border-radius: 999px;
+  padding: 0.38rem 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.donor-photo-toggle-btn:hover {
+  background: #e8f0f6;
+  border-color: #9fbad0;
+}
+
+.donor-photo-content {
+  margin-top: 0.25rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #edf2f7;
+}
+
+.donor-display-mode-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.donor-display-mode-item {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.75rem 0.9rem;
+  background: #fbfdff;
+}
+
+.donor-photo-mode-card {
+  background: #f8fbfe;
+  border: 1px solid #e6edf4;
+  border-radius: 12px;
+  padding: 0.8rem;
+}
+
+.donor-photo-preview {
+  width: 220px;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-top: 8px;
+  border: 1px solid #dbe7f1;
+}
+
+.donor-photo-preview-wrap {
+  position: relative;
+  width: fit-content;
+}
+
+.donor-photo-pending-badge {
+  position: absolute;
+  top: 14px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(245, 158, 11, 0.92);
+  color: #111827;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.donor-per-type-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.donor-library-grid {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.donor-library-card {
+  width: 120px;
+  padding: 0;
+  border: 1px solid #dbe7f1;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.donor-library-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(27, 73, 101, 0.15);
+}
+
+.donor-library-card-small {
+  width: 100px;
+}
+
+.donor-library-card-image {
+  width: 100%;
+  height: 80px;
+  object-fit: cover;
+}
+
+.donor-library-card-image-small {
+  height: 70px;
+}
+
+@media (max-width: 900px) {
+  .donor-display-mode-list {
+    grid-template-columns: 1fr;
+  }
+
+  .donor-photo-preview {
+    width: 100%;
+    max-width: 300px;
+  }
+}

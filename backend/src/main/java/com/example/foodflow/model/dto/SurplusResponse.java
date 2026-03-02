@@ -57,6 +57,8 @@ public class SurplusResponse {
     private Long donorId;
     private String donorEmail;
     private String donorName;
+    private String donorLogoUrl;
+    private String resolvedDonationImageUrl;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<PickupSlotResponse> pickupSlots = new ArrayList<>();
@@ -134,6 +136,7 @@ public class SurplusResponse {
         this.donorName = surplusPost.getDonor().getOrganization() != null
                 ? surplusPost.getDonor().getOrganization().getName()
                 : null;
+        this.donorLogoUrl = surplusPost.getDonor().getProfilePhoto();
         this.createdAt = surplusPost.getCreatedAt();
         this.updatedAt = surplusPost.getUpdatedAt();
         this.temperatureCategory = surplusPost.getTemperatureCategory();
@@ -416,6 +419,22 @@ public class SurplusResponse {
 
     public void setDonorName(String donorName) {
         this.donorName = donorName;
+    }
+
+    public String getDonorLogoUrl() {
+        return donorLogoUrl;
+    }
+
+    public void setDonorLogoUrl(String donorLogoUrl) {
+        this.donorLogoUrl = donorLogoUrl;
+    }
+
+    public String getResolvedDonationImageUrl() {
+        return resolvedDonationImageUrl;
+    }
+
+    public void setResolvedDonationImageUrl(String resolvedDonationImageUrl) {
+        this.resolvedDonationImageUrl = resolvedDonationImageUrl;
     }
 
     public LocalDateTime getCreatedAt() {
