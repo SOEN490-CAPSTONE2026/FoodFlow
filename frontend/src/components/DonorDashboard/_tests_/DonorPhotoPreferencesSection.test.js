@@ -138,7 +138,9 @@ describe('DonorPhotoPreferencesSection', () => {
     });
     fireEvent.change(fileInput, { target: { files: [large] } });
 
-    expect(await screen.findByText('Image must be 5MB or less.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Image must be 5MB or less.')
+    ).toBeInTheDocument();
   });
 
   test('allows choosing a library image and saves singleLibraryImageId', async () => {
@@ -185,7 +187,9 @@ describe('DonorPhotoPreferencesSection', () => {
     const file = new File(['img'], 'test.jpg', { type: 'image/jpeg' });
     fireEvent.change(fileInput, { target: { files: [file] } });
 
-    expect(await screen.findByText('Upload failed from server')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Upload failed from server')
+    ).toBeInTheDocument();
   });
 
   test('saves per-food-type uploaded image mapping', async () => {
@@ -215,7 +219,9 @@ describe('DonorPhotoPreferencesSection', () => {
 
     await waitFor(() => expect(imageAPI.upload).toHaveBeenCalled());
     await screen.findByText('Pending approval');
-    fireEvent.click(screen.getByRole('button', { name: 'Save Photo Preferences' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Save Photo Preferences' })
+    );
 
     await waitFor(() => {
       expect(donorPhotoSettingsAPI.update).toHaveBeenCalledWith(
