@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { adminImageAPI } from '../../services/api';
+import { foodTypeOptions } from '../../constants/foodConstants';
 import './Admin_Styles/AdminImages.css';
 
 const moderationOptions = ['PENDING', 'APPROVED', 'REJECTED', 'DISABLED'];
@@ -60,11 +61,16 @@ export default function AdminImages() {
   };
 
   const addLibrary = async () => {
+    if (!foodType) {
+      setError('Please select a food type category.');
+      return;
+    }
+
     try {
       await adminImageAPI.addLibraryItem({
         file: uploadFile,
         imageUrl,
-        foodType: foodType || null,
+        foodType,
         active: true,
       });
       setUploadFile(null);
@@ -79,14 +85,6 @@ export default function AdminImages() {
   return (
     <div className="admin-images-page">
       <div className="admin-images-header">
-        <div className="admin-images-header-content">
-          <div className="admin-images-eyebrow">Admin Console</div>
-          <h2>Image Moderation</h2>
-          <p>
-            Review donor uploads, moderate visibility, and manage fallback
-            library assets.
-          </p>
-        </div>
         <div className="admin-images-filter">
           <label htmlFor="image-status-filter">Status</label>
           <select
@@ -219,14 +217,19 @@ export default function AdminImages() {
             />
           </div>
           <div className="toolbar-field">
-            <label htmlFor="library-food-type">Food type (optional)</label>
-            <input
+            <label htmlFor="library-food-type">Food type</label>
+            <select
               id="library-food-type"
-              type="text"
-              placeholder="PRODUCE, BAKERY, ..."
               value={foodType}
               onChange={e => setFoodType(e.target.value)}
-            />
+            >
+              <option value="">Select a category</option>
+              {foodTypeOptions.map(option => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           </div>
           <button type="button" className="btn-action add" onClick={addLibrary}>
             Add

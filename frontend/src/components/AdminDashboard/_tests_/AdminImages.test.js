@@ -60,4 +60,18 @@ describe('AdminImages', () => {
       );
     });
   });
+
+  test('requires food type before adding library item', async () => {
+    render(<AdminImages />);
+    await waitFor(() => {
+      expect(adminImageAPI.getLibrary).toHaveBeenCalled();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add' }));
+
+    expect(
+      screen.getByText('Please select a food type category.')
+    ).toBeInTheDocument();
+    expect(adminImageAPI.addLibraryItem).not.toHaveBeenCalled();
+  });
 });
