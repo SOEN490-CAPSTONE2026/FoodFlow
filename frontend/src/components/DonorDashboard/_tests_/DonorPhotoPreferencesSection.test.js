@@ -60,7 +60,9 @@ describe('DonorPhotoPreferencesSection', () => {
         name: /toggle display preferences/i,
       })
     );
-    fireEvent.click(await screen.findByLabelText('Photo per food type'));
+    fireEvent.click(
+      (await screen.findByText('Photo per food type')).closest('button')
+    );
     fireEvent.click(
       screen.getByRole('button', { name: 'Save Photo Preferences' })
     );
