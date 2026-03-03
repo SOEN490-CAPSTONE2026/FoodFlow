@@ -312,54 +312,67 @@ export default function DonorPhotoPreferencesSection() {
           {error && <div className="error-message">{error}</div>}
           {success && <div className="success-message">{success}</div>}
 
-          <div className="notification-list donor-display-mode-list">
-            <label className="notification-item donor-display-mode-item">
-              <div className="notification-info">
+          <div
+            className="donor-display-mode-grid"
+            role="radiogroup"
+            aria-label={tx(
+              'donorPhotoPreferences.displayModeAria',
+              'Photo display mode'
+            )}
+          >
+            <button
+              type="button"
+              role="radio"
+              aria-checked={settings.displayType === 'SINGLE'}
+              className={`donor-display-mode-card ${settings.displayType === 'SINGLE' ? 'active' : ''}`}
+              onClick={() =>
+                setSettings(prev => ({ ...prev, displayType: 'SINGLE' }))
+              }
+            >
+              <div className="donor-display-mode-header">
                 <h4 className="notification-title">
                   {tx(
                     'donorPhotoPreferences.singleModeTitle',
                     'Single photo for all donations'
                   )}
                 </h4>
+                <span className="donor-display-mode-indicator" />
               </div>
-              <input
-                type="radio"
-                aria-label={tx(
-                  'donorPhotoPreferences.singleModeTitle',
-                  'Single photo for all donations'
+              <p className="input-help-text donor-display-mode-help">
+                {tx(
+                  'donorPhotoPreferences.singleModeHelp',
+                  'Use one brand image for every donation card.'
                 )}
-                name="displayType"
-                checked={settings.displayType === 'SINGLE'}
-                onChange={() =>
-                  setSettings(prev => ({ ...prev, displayType: 'SINGLE' }))
-                }
-              />
-            </label>
-            <label className="notification-item donor-display-mode-item">
-              <div className="notification-info">
+              </p>
+            </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={settings.displayType === 'PER_FOOD_TYPE'}
+              className={`donor-display-mode-card ${settings.displayType === 'PER_FOOD_TYPE' ? 'active' : ''}`}
+              onClick={() =>
+                setSettings(prev => ({
+                  ...prev,
+                  displayType: 'PER_FOOD_TYPE',
+                }))
+              }
+            >
+              <div className="donor-display-mode-header">
                 <h4 className="notification-title">
                   {tx(
                     'donorPhotoPreferences.perTypeModeTitle',
                     'Photo per food type'
                   )}
                 </h4>
+                <span className="donor-display-mode-indicator" />
               </div>
-              <input
-                type="radio"
-                aria-label={tx(
-                  'donorPhotoPreferences.perTypeModeTitle',
-                  'Photo per food type'
+              <p className="input-help-text donor-display-mode-help">
+                {tx(
+                  'donorPhotoPreferences.perTypeModeHelp',
+                  'Customize images by category for clearer browsing.'
                 )}
-                name="displayType"
-                checked={settings.displayType === 'PER_FOOD_TYPE'}
-                onChange={() =>
-                  setSettings(prev => ({
-                    ...prev,
-                    displayType: 'PER_FOOD_TYPE',
-                  }))
-                }
-              />
-            </label>
+              </p>
+            </button>
           </div>
 
           {settings.displayType === 'SINGLE' && (
@@ -370,16 +383,19 @@ export default function DonorPhotoPreferencesSection() {
                   'Single donation image'
                 )}
               </label>
-              <input
-                type="file"
-                aria-label={tx(
-                  'donorPhotoPreferences.singleDonationImage',
-                  'Single donation image'
-                )}
-                data-testid="single-image-upload"
-                accept="image/jpeg,image/jpg,image/png,image/webp"
-                onChange={e => handleUpload(e.target.files?.[0])}
-              />
+              <div className="donor-file-input-wrap">
+                <input
+                  type="file"
+                  className="donor-file-input"
+                  aria-label={tx(
+                    'donorPhotoPreferences.singleDonationImage',
+                    'Single donation image'
+                  )}
+                  data-testid="single-image-upload"
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
+                  onChange={e => handleUpload(e.target.files?.[0])}
+                />
+              </div>
               {uploadingKey === 'single' && (
                 <div className="input-help-text">
                   {tx('donorPhotoPreferences.uploading', 'Uploading...')}
@@ -443,13 +459,16 @@ export default function DonorPhotoPreferencesSection() {
                   <label className="field-label">
                     {getFoodTypeLabel(option.value)}
                   </label>
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/jpg,image/png,image/webp"
-                    onChange={e =>
-                      handleUpload(e.target.files?.[0], option.value)
-                    }
-                  />
+                  <div className="donor-file-input-wrap">
+                    <input
+                      type="file"
+                      className="donor-file-input"
+                      accept="image/jpeg,image/jpg,image/png,image/webp"
+                      onChange={e =>
+                        handleUpload(e.target.files?.[0], option.value)
+                      }
+                    />
+                  </div>
                   {uploadingKey === option.value && (
                     <div className="input-help-text">
                       {tx('donorPhotoPreferences.uploading', 'Uploading...')}
