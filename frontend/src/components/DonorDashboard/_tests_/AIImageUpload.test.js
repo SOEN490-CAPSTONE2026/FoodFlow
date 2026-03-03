@@ -4,6 +4,19 @@ import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import AIImageUpload from '../AIImageUpload';
 
+jest.mock('react-i18next', () => ({
+  useTranslation: () => {
+    const en = require('../../../locales/en.json');
+    const getValue = (obj, key) =>
+      key.split('.').reduce((acc, part) => acc?.[part], obj);
+
+    return {
+      t: key => getValue(en, key) ?? key,
+      i18n: { language: 'en' },
+    };
+  },
+}));
+
 // Mock dependencies
 jest.mock('lucide-react', () => ({
   AlertCircle: () => <span>AlertCircleIcon</span>,

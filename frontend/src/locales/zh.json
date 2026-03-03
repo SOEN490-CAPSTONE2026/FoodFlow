@@ -835,7 +835,9 @@
     "donateNow": "立即捐赠",
     "requestsClaims": "请求与认领",
     "pickupSchedule": "取货时间表",
+    "achievements": "成就",
     "messages": "消息",
+    "impact": "影响力面板",
     "settings": "设置",
     "help": "帮助",
     "logout": "退出登录",
@@ -844,7 +846,9 @@
       "donateNow": "立即捐赠",
       "requestsClaims": "请求与认领",
       "pickupSchedule": "取货时间表",
+      "achievements": "成就",
       "messages": "消息",
+      "impact": "影响力面板",
       "settings": "设置",
       "help": "帮助",
       "donor": "捐赠者"
@@ -854,7 +858,9 @@
       "donateNow": "创建和管理捐赠列表",
       "requestsClaims": "收到的请求和状态",
       "pickupSchedule": "最近活动和历史记录",
+      "achievements": "查看您的成就和徽章",
       "messages": "收到的通信",
+      "impact": "查看您的环境与社会影响",
       "settings": "管理您的偏好和账户设置",
       "help": "指南和支持",
       "donorPortal": "FoodFlow 捐赠者门户"
@@ -879,6 +885,7 @@
     "loading": "正在加载您的捐赠...",
     "sortByDate": "按日期排序",
     "sortByStatus": "按状态排序",
+    "createWithAI": "使用 AI 创建",
     "donateMore": "捐赠更多",
     "emptyStateTitle": "您还没有发布任何内容",
     "emptyStateDescription": "创建您的第一个捐赠帖子，开始帮助您的社区减少食物浪费。",
@@ -892,8 +899,34 @@
     },
     "expires": "过期时间",
     "pickup": "取货",
+    "flexible": "灵活",
     "notSpecified": "未指定",
     "addressNotSpecified": "地址未指定",
+    "uploading": "上传中...",
+    "uploadDonationPhoto": "上传捐赠照片",
+    "photosUploadedSingular": "已上传 {{count}} 张照片",
+    "photosUploadedPlural": "已上传 {{count}} 张照片",
+    "viewPhotosSingular": "查看 {{count}} 张照片",
+    "viewPhotosPlural": "查看 {{count}} 张照片",
+    "viewDonationTimeline": "查看捐赠时间线",
+    "hideDonationTimeline": "隐藏捐赠时间线",
+    "reportReceiver": "举报受助者",
+    "leaveFeedback": "留下反馈",
+    "failedFetchRecipientEmail": "无法获取帖子“{{title}}”的受助者邮箱",
+    "receiverIdMissing": "帖子“{{title}}”缺少受助者 ID",
+    "receiverNotFoundOrInvalidEmail": "未找到受助者或邮箱无效",
+    "failedFetchReceiverDetails": "获取受助者信息失败。请重试。",
+    "failedOpenDonationChat": "打开捐赠聊天失败。请重试。",
+    "unableLoadReceiverInfo": "无法加载受助者信息。请重试。",
+    "noClaimsFoundForDonation": "未找到该捐赠的认领记录。请重试。",
+    "failedOpenFeedbackModal": "打开反馈窗口失败。请重试。",
+    "failedOpenReportModal": "打开举报窗口失败。请重试。",
+    "reportSubmittedSuccessfully": "举报提交成功",
+    "failedSubmitReport": "举报提交失败。请重试。",
+    "onlyJpegPngAllowed": "仅支持 JPEG 和 PNG 图片",
+    "fileSizeMustBeLessThan5Mb": "文件大小必须小于 5MB",
+    "uploadFailed": "上传失败",
+    "failedUploadPhoto": "上传照片失败。请重试。",
     "confirmDelete": "您确定要删除此帖子吗？",
     "failedToFetch": "获取帖子失败",
     "editFunctionality": "打开编辑表单：{{title}}\n（编辑功能待实现）"
@@ -1181,6 +1214,14 @@
       "smsDisabled": "短信提醒已禁用",
       "updateFailed": "更新失败。请重试。"
     },
+    "privacyConsent": {
+      "title": "隐私与数据同意",
+      "description": "您的数据存储同意与隐私信息",
+      "consentMessage": "您在注册 FoodFlow 时已同意数据存储。我们收集并存储您的信息，以提供我们的服务并高效连接捐赠者与受助者。",
+      "detailsPrefix": "如需了解我们如何处理您的数据的更多信息，请查看我们的",
+      "privacyPolicyLink": "隐私政策",
+      "detailsSuffix": "。"
+    },
     "notificationTypes": {
       "title": "通知类型",
       "description": "自定义您想要接收的通知类型",
@@ -1271,6 +1312,159 @@
       "imageTooLarge": "图片大小必须小于5MB",
       "imageInvalid": "请上传有效的图片文件"
     }
+  },
+  "achievements": {
+    "loading": "正在加载您的成就...",
+    "error": "无法加载成就",
+    "errorMessage": "请刷新页面后重试",
+    "noAchievements": "暂时没有成就",
+    "startDonating": "开始捐赠食物以获得徽章和积分！",
+    "title": "您的成就",
+    "sectionTitle": "成就",
+    "subtitle": "追踪您的进度并获得奖励",
+    "totalPoints": "总积分",
+    "pointsDescription": "通过成就获得的积分",
+    "progress": "进度",
+    "complete": "已完成",
+    "unlockedBadges": "已解锁徽章",
+    "badgesDescription": "已获得的成就",
+    "unlocked": "已解锁成就",
+    "unlockedTitle": "成就已解锁！",
+    "unlockedIndicator": "✓ 已解锁",
+    "inProgress": "进行中",
+    "locked": "未解锁成就",
+    "points": "积分",
+    "viewAll": "查看所有成就",
+    "unlockCriteria": "解锁条件：",
+    "pointsEarned": "+{{count}} 已获得积分",
+    "closeNotification": "关闭通知",
+    "criteriaTypes": {
+      "DONATION_COUNT": "捐赠次数",
+      "CLAIM_COUNT": "认领次数",
+      "MESSAGE_COUNT": "消息数",
+      "WEEKLY_STREAK": "连续周数",
+      "UNIQUE_PARTNER_COUNT": "组织数量",
+      "STREAK_DAYS": "连续天数",
+      "TOTAL_POINTS": "总积分"
+    },
+    "descriptionTemplates": {
+      "DONATION_COUNT": "完成 {{count}} 次成功食物捐赠",
+      "WEEKLY_STREAK": "连续 {{count}} 周每周至少捐赠一次",
+      "MESSAGE_COUNT": "在捐赠对话中发送 {{count}} 条消息",
+      "UNIQUE_PARTNER_COUNT": "成功与 {{count}} 个不同组织互动"
+    },
+    "catalog": {
+      "community_champion": {
+        "name": "社区冠军"
+      },
+      "century_donor": {
+        "name": "百次捐赠者"
+      },
+      "unstoppable_force": {
+        "name": "势不可挡"
+      },
+      "donation_master": {
+        "name": "捐赠大师"
+      },
+      "elite_contributor": {
+        "name": "精英贡献者"
+      },
+      "legendary_donor": {
+        "name": "传奇捐赠者"
+      },
+      "donation_titan": {
+        "name": "捐赠巨擘"
+      },
+      "thousand_strong": {
+        "name": "千次坚守"
+      },
+      "ultimate_benefactor": {
+        "name": "终极慈善家"
+      },
+      "steady_start": {
+        "name": "稳健起步"
+      },
+      "monthly_commitment": {
+        "name": "月度承诺"
+      },
+      "two_month_streak": {
+        "name": "两月连胜"
+      },
+      "quarterly_dedication": {
+        "name": "季度奉献"
+      },
+      "half_year_hero": {
+        "name": "半年英雄"
+      },
+      "year_round_giver": {
+        "name": "全年捐赠者"
+      },
+      "two_year_legend": {
+        "name": "两年传奇"
+      },
+      "chatty_starter": {
+        "name": "聊天新手"
+      },
+      "conversationalist": {
+        "name": "对话达人"
+      },
+      "active_communicator": {
+        "name": "活跃沟通者"
+      },
+      "communication_expert": {
+        "name": "沟通专家"
+      },
+      "message_master": {
+        "name": "消息大师"
+      },
+      "communication_guru": {
+        "name": "沟通宗师"
+      },
+      "ultimate_networker": {
+        "name": "终极联络者"
+      },
+      "making_connections": {
+        "name": "建立连接"
+      },
+      "community_builder": {
+        "name": "社区建设者"
+      },
+      "network_grower": {
+        "name": "网络拓展者"
+      },
+      "relationship_expert": {
+        "name": "关系专家"
+      },
+      "community_leader": {
+        "name": "社区领袖"
+      },
+      "connection_master": {
+        "name": "连接大师"
+      },
+      "network_titan": {
+        "name": "网络巨擘"
+      },
+      "ultimate_connector": {
+        "name": "终极连接者"
+      }
+    }
+  },
+  "leaderboard": {
+    "title": "排行榜",
+    "loading": "正在加载排行榜...",
+    "error": "无法加载排行榜",
+    "errorMessage": "请刷新页面后重试",
+    "retry": "重试",
+    "noData": "暂无排行榜数据",
+    "noDataMessage": "成为第一个获得积分并登上排行榜的人！",
+    "topDonors": "顶级捐赠者",
+    "topReceivers": "顶级受助者",
+    "refresh": "刷新",
+    "yourPosition": "您的排名",
+    "keepGoing": "继续贡献，提升您的排名！",
+    "totalUsers": "共 {{count}} 位用户",
+    "you": "您",
+    "pts": "分"
   },
   "completedView": {
     "claimed": "已认领",
@@ -1369,5 +1563,220 @@
     "selectAll": "全选",
     "clearAll": "清除全部",
     "done": "完成"
+  },
+  "donorHelp": {
+    "gettingStarted": {
+      "title": "快速开始",
+      "intro": "欢迎使用 FoodFlow！按照以下步骤开始捐赠剩余食物，帮助有需要的人。",
+      "steps": {
+        "step1": {
+          "title": "创建您的第一条捐赠",
+          "description": "点击侧边栏中的“立即捐赠”，填写食物类型、数量和描述等信息。"
+        },
+        "step2": {
+          "title": "设置取货时间",
+          "description": "选择受助方可到您地点取货的时间段，您可以添加多个时间段。"
+        },
+        "step3": {
+          "title": "等待认领",
+          "description": "已验证的受助方会看到您的捐赠并进行认领，认领后您会立即收到通知。"
+        },
+        "step4": {
+          "title": "使用 OTP 确认交接",
+          "description": "受助方在取货时间到达后会提供 OTP 代码，输入后即可确认交接成功。"
+        }
+      }
+    },
+    "faq": {
+      "title": "常见问题",
+      "items": {
+        "q1": {
+          "question": "如何创建捐赠？",
+          "answer": "在侧边栏进入“立即捐赠”，点击“添加捐赠”，填写标题、食物类型、数量、到期时间和取货时段，然后提交发布。"
+        },
+        "q2": {
+          "question": "取货确认是如何工作的？",
+          "answer": "当受助方认领并在预约时间到达后，您需要输入其提供的 OTP 代码来确认交接完成。"
+        },
+        "q3": {
+          "question": "什么是 OTP 代码？",
+          "answer": "OTP 是一次性密码，为 6 位数字，在捐赠变为“准备取货”时自动生成。"
+        },
+        "q4": {
+          "question": "我可以编辑或删除捐赠吗？",
+          "answer": "可以，前提是捐赠尚未被认领。认领后不可修改或删除。"
+        },
+        "q5": {
+          "question": "如何给受助方发消息？",
+          "answer": "点击侧边栏“消息”进入会话，与认领您捐赠的受助方沟通取货细节。"
+        },
+        "q6": {
+          "question": "可以捐赠哪些食物类型？",
+          "answer": "支持熟食、包装食品、果蔬、乳制品/冷藏品、烘焙食品和冷冻食品等类别。"
+        },
+        "q7": {
+          "question": "如何设置取货时段？",
+          "answer": "创建捐赠时可添加多个时段，并填写日期、开始时间和结束时间。"
+        },
+        "q8": {
+          "question": "如果受助方未到场怎么办？",
+          "answer": "在合理等待后，该认领可能过期，捐赠将重新开放给其他受助方。"
+        },
+        "q9": {
+          "question": "我的机构如何被验证？",
+          "answer": "注册后，管理员会审核您的机构信息、资质和地址等内容。"
+        },
+        "q10": {
+          "question": "我能看到是谁认领了我的捐赠吗？",
+          "answer": "可以，认领后您可查看受助机构名称和联系方式以便协调取货。"
+        }
+      }
+    },
+    "support": {
+      "title": "需要更多帮助？",
+      "intro": "没找到您需要的内容？我们的支持团队随时为您提供帮助。",
+      "emailLabel": "邮件支持",
+      "emailResponseTime": "24 小时内回复",
+      "phoneLabel": "电话支持",
+      "phoneAvailability": "周一至周五，上午9点至下午6点（EST）"
+    }
+  },
+  "receiverHelp": {
+    "gettingStarted": {
+      "title": "快速开始",
+      "intro": "欢迎使用 FoodFlow！作为受助方，您可以认领来自本地商家和机构的剩余食物捐赠。",
+      "steps": {
+        "step1": {
+          "title": "浏览可用捐赠",
+          "description": "在捐赠页面查找附近的食物列表，并使用筛选条件匹配您的需求。"
+        },
+        "step2": {
+          "title": "认领并安排取货",
+          "description": "点击“认领”并从可用时段中选择取货时间，捐赠将为您的机构保留。"
+        },
+        "step3": {
+          "title": "使用 OTP 取货",
+          "description": "按预约时间到达并向捐赠方提供 OTP 代码，对方确认后流程完成。"
+        },
+        "step4": {
+          "title": "设置偏好",
+          "description": "在个人资料中更新食物偏好，以获得更精准的匹配。"
+        }
+      }
+    },
+    "faq": {
+      "title": "常见问题",
+      "items": {
+        "q1": {
+          "question": "如何认领捐赠？",
+          "answer": "浏览可用捐赠，找到合适项后点击“认领”，并选择取货时间段。"
+        },
+        "q2": {
+          "question": "如何确认取货？",
+          "answer": "到达捐赠方地点后提供 OTP 代码，捐赠方输入后即可确认交接。"
+        },
+        "q3": {
+          "question": "什么是 OTP 代码？",
+          "answer": "它是每笔认领对应的 6 位一次性验证码。"
+        },
+        "q4": {
+          "question": "什么是食物偏好？",
+          "answer": "可设置食物类别、捐赠规模和饮食限制，以便匹配更合适的捐赠。"
+        },
+        "q5": {
+          "question": "如何设置食物偏好？",
+          "answer": "点击右上角头像，进入“偏好”即可设置食物类型和限制条件。"
+        },
+        "q6": {
+          "question": "如何给捐赠方发消息？",
+          "answer": "点击“消息”进入会话，与捐赠方沟通取货安排和问题。"
+        },
+        "q7": {
+          "question": "捐赠状态分别是什么意思？",
+          "answer": "状态包括：可用、已认领、准备取货、已完成、已取消。"
+        },
+        "q8": {
+          "question": "我可以取消认领吗？",
+          "answer": "可以，在“我的认领”中找到对应捐赠并在取货前取消。"
+        },
+        "q9": {
+          "question": "如何找到附近捐赠？",
+          "answer": "在捐赠页面使用类型、距离和取货时间筛选，快速定位附近资源。"
+        },
+        "q10": {
+          "question": "我的机构如何验证？",
+          "answer": "注册后管理员会审核机构资质、注册文件和联系信息。"
+        }
+      }
+    },
+    "support": {
+      "title": "需要更多帮助？",
+      "intro": "没找到您需要的内容？我们的支持团队随时为您提供帮助。",
+      "emailLabel": "邮件支持",
+      "emailResponseTime": "24 小时内回复",
+      "phoneLabel": "电话支持",
+      "phoneAvailability": "周一至周五，上午9点至下午6点（EST）"
+    }
+  },
+  "aiDonation": {
+    "backToDashboard": "返回仪表板",
+    "title": "使用 AI 创建捐赠",
+    "subtitle": "上传标签照片以提取产品详情。提交前可先进行审核。",
+    "steps": {
+      "upload": "上传",
+      "review": "审核",
+      "submit": "提交"
+    },
+    "processing": {
+      "title": "正在处理图片",
+      "hint": "这可能需要最多 30 秒。",
+      "readingLabel": "读取标签",
+      "extractingData": "提取数据",
+      "preparingResults": "准备结果",
+      "loadingMaps": "加载地图中"
+    },
+    "toast": {
+      "extractionComplete": "提取完成。请在提交前检查详情。",
+      "aiFailed": "AI 提取失败",
+      "analysisFailed": "图片分析失败",
+      "requestTimedOut": "请求超时。请尝试使用更小的图片。",
+      "networkError": "网络错误。请检查连接后重试。"
+    },
+    "upload": {
+      "title": "上传标签图片",
+      "subtitle": "请上传清晰图片，需包含：",
+      "required": {
+        "productName": "产品名称",
+        "nutritionFacts": "营养成分信息",
+        "ingredientsList": "配料表",
+        "expiryDate": "到期日或最佳食用日期",
+        "allergenInfo": "过敏原信息"
+      },
+      "ariaLabel": "上传标签图片",
+      "dragAndDrop": "拖放标签图片到此处",
+      "or": "或",
+      "chooseFile": "选择文件",
+      "fileTypes": "JPG, PNG, HEIC",
+      "maxSize": "最大 5 MB",
+      "selectedFile": "已选择文件",
+      "remove": "移除",
+      "continueToReview": "继续审核",
+      "alternative": "其他方式",
+      "manualEntry": "继续手动录入",
+      "guidelinesTitle": "图片指南",
+      "tips": {
+        "goodLighting": "光线充足",
+        "noGlare": "无反光",
+        "labelVisible": "标签完整可见",
+        "textInFocus": "文字保持清晰对焦",
+        "includeExpiry": "尽量包含到期/最佳食用日期"
+      },
+      "manualHint": "清晰图片可提升提取准确率。",
+      "errors": {
+        "selectFile": "请选择图片文件后继续。",
+        "unsupportedType": "不支持的文件类型。请使用 JPG、PNG 或 HEIC。",
+        "fileTooLarge": "文件超过 5 MB。请选择更小的图片。"
+      }
+    }
   }
 }

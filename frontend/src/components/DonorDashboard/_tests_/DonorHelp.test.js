@@ -3,6 +3,18 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import DonorHelp from '../DonorHelp';
 
+jest.mock('react-i18next', () => {
+  const en = require('../../../locales/en.json');
+  const getValue = (obj, key) =>
+    key.split('.').reduce((acc, part) => acc?.[part], obj);
+
+  return {
+    useTranslation: () => ({
+      t: key => getValue(en, key) ?? key,
+    }),
+  };
+});
+
 // Wrapper component for Router context
 const renderWithRouter = component => {
   return render(<BrowserRouter>{component}</BrowserRouter>);

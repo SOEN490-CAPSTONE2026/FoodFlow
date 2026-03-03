@@ -37,6 +37,14 @@
     "sendResetLink": "Enviar link de redefinição",
     "enterEmail": "Digite seu endereço de e-mail"
   },
+  "forgotPasswordPage": {
+    "backToLogin": "Voltar para o login",
+    "subtitle": "Sem preocupações! Selecione como você gostaria de receber seu OTP. Após inserir o código, você poderá redefinir sua senha.",
+    "methodEmailTitle": "E-mail",
+    "methodEmailSubtitle": "Receber um link de redefinição por e-mail",
+    "methodSmsTitle": "SMS",
+    "methodSmsSubtitle": "Receber um código por mensagem de texto"
+  },
   "registration": {
     "registerAsDonor": "Registrar como doador",
     "registerAsReceiver": "Registrar como receptor",
@@ -835,7 +843,9 @@
     "donateNow": "Doar agora",
     "requestsClaims": "Solicitações e reivindicações",
     "pickupSchedule": "Agenda de coleta",
+    "achievements": "Conquistas",
     "messages": "Mensagens",
+    "impact": "Painel de impacto",
     "settings": "Configurações",
     "help": "Ajuda",
     "logout": "Sair",
@@ -844,7 +854,9 @@
       "donateNow": "Doar agora",
       "requestsClaims": "Solicitações e reivindicações",
       "pickupSchedule": "Agenda de coleta",
+      "achievements": "Conquistas",
       "messages": "Mensagens",
+      "impact": "Painel de impacto",
       "settings": "Configurações",
       "help": "Ajuda",
       "donor": "Doador"
@@ -854,7 +866,9 @@
       "donateNow": "Criar e gerenciar anúncios de doações",
       "requestsClaims": "Solicitações recebidas e status",
       "pickupSchedule": "Atividade recente e histórico",
+      "achievements": "Veja suas conquistas e badges",
       "messages": "Comunicações recebidas",
+      "impact": "Veja seu impacto ambiental e social",
       "settings": "Gerencie suas preferências e configurações da conta",
       "help": "Guias e suporte",
       "donorPortal": "Portal do doador FoodFlow"
@@ -879,6 +893,7 @@
     "loading": "Carregando suas doações...",
     "sortByDate": "Ordenar por data",
     "sortByStatus": "Ordenar por status",
+    "createWithAI": "Criar com IA",
     "donateMore": "Doar mais",
     "emptyStateTitle": "Você ainda não publicou nada",
     "emptyStateDescription": "Crie sua primeira publicação de doação para começar a ajudar sua comunidade a reduzir o desperdício de alimentos.",
@@ -892,8 +907,34 @@
     },
     "expires": "Expira",
     "pickup": "Coleta",
+    "flexible": "Flexível",
     "notSpecified": "Não especificado",
     "addressNotSpecified": "Endereço não especificado",
+    "uploading": "Enviando...",
+    "uploadDonationPhoto": "Enviar foto da doação",
+    "photosUploadedSingular": "{{count}} foto enviada",
+    "photosUploadedPlural": "{{count}} fotos enviadas",
+    "viewPhotosSingular": "Ver {{count}} foto",
+    "viewPhotosPlural": "Ver {{count}} fotos",
+    "viewDonationTimeline": "Ver linha do tempo da doação",
+    "hideDonationTimeline": "Ocultar linha do tempo da doação",
+    "reportReceiver": "DENUNCIAR RECEPTOR",
+    "leaveFeedback": "DEIXAR FEEDBACK",
+    "failedFetchRecipientEmail": "Falha ao buscar o e-mail do receptor para a publicação \"{{title}}\"",
+    "receiverIdMissing": "ID do receptor ausente para a publicação \"{{title}}\"",
+    "receiverNotFoundOrInvalidEmail": "Receptor não encontrado ou e-mail inválido",
+    "failedFetchReceiverDetails": "Falha ao buscar detalhes do receptor. Tente novamente.",
+    "failedOpenDonationChat": "Falha ao abrir o chat da doação. Tente novamente.",
+    "unableLoadReceiverInfo": "Não foi possível carregar as informações do receptor. Tente novamente.",
+    "noClaimsFoundForDonation": "Nenhuma reivindicação encontrada para esta doação. Tente novamente.",
+    "failedOpenFeedbackModal": "Falha ao abrir o modal de feedback. Tente novamente.",
+    "failedOpenReportModal": "Falha ao abrir o modal de denúncia. Tente novamente.",
+    "reportSubmittedSuccessfully": "Denúncia enviada com sucesso",
+    "failedSubmitReport": "Falha ao enviar denúncia. Tente novamente.",
+    "onlyJpegPngAllowed": "Apenas imagens JPEG e PNG são permitidas",
+    "fileSizeMustBeLessThan5Mb": "O tamanho do arquivo deve ser menor que 5 MB",
+    "uploadFailed": "Falha no envio",
+    "failedUploadPhoto": "Falha ao enviar foto. Tente novamente.",
     "confirmDelete": "Tem certeza de que deseja excluir esta publicação?",
     "failedToFetch": "Falha ao buscar publicações",
     "editFunctionality": "Abrindo formulário de edição para: {{title}}\n(Funcionalidade de edição a ser implementada)"
@@ -1181,6 +1222,14 @@
       "smsDisabled": "Alertas por SMS desativados",
       "updateFailed": "Falha na atualização. Por favor, tente novamente."
     },
+    "privacyConsent": {
+      "title": "Privacidade e consentimento de dados",
+      "description": "Seu consentimento de armazenamento de dados e informações de privacidade",
+      "consentMessage": "Você consentiu com o armazenamento de dados ao se registrar no FoodFlow. Coletamos e armazenamos suas informações para fornecer nossos serviços e conectar doadores e receptores com eficiência.",
+      "detailsPrefix": "Para mais detalhes sobre como tratamos seus dados, revise nossa",
+      "privacyPolicyLink": "Política de Privacidade",
+      "detailsSuffix": "."
+    },
     "notificationTypes": {
       "title": "Tipos de notificação",
       "description": "Personalize quais tipos de notificações deseja receber",
@@ -1271,6 +1320,159 @@
       "imageTooLarge": "O tamanho da imagem deve ser menor que 5 MB",
       "imageInvalid": "Por favor, envie um arquivo de imagem válido"
     }
+  },
+  "achievements": {
+    "loading": "Carregando suas conquistas...",
+    "error": "Não foi possível carregar as conquistas",
+    "errorMessage": "Tente atualizar a página",
+    "noAchievements": "Ainda não há conquistas",
+    "startDonating": "Comece a doar alimentos para ganhar badges e pontos!",
+    "title": "Suas conquistas",
+    "sectionTitle": "Conquistas",
+    "subtitle": "Acompanhe seu progresso e ganhe recompensas",
+    "totalPoints": "Pontos totais",
+    "pointsDescription": "Pontos ganhos com conquistas",
+    "progress": "Progresso",
+    "complete": "Concluído",
+    "unlockedBadges": "Badges desbloqueados",
+    "badgesDescription": "Conquistas obtidas",
+    "unlocked": "Conquistas desbloqueadas",
+    "unlockedTitle": "Conquista desbloqueada!",
+    "unlockedIndicator": "✓ Desbloqueado",
+    "inProgress": "Em progresso",
+    "locked": "Conquistas bloqueadas",
+    "points": "pontos",
+    "viewAll": "Ver todas as conquistas",
+    "unlockCriteria": "Critérios para desbloquear:",
+    "pointsEarned": "+{{count}} pontos ganhos",
+    "closeNotification": "Fechar notificação",
+    "criteriaTypes": {
+      "DONATION_COUNT": "doações",
+      "CLAIM_COUNT": "reivindicações",
+      "MESSAGE_COUNT": "mensagens",
+      "WEEKLY_STREAK": "semanas consecutivas",
+      "UNIQUE_PARTNER_COUNT": "organizações",
+      "STREAK_DAYS": "dias de sequência",
+      "TOTAL_POINTS": "pontos totais"
+    },
+    "descriptionTemplates": {
+      "DONATION_COUNT": "Crie {{count}} doações de alimentos bem-sucedidas",
+      "WEEKLY_STREAK": "Doe pelo menos uma vez por semana durante {{count}} semanas consecutivas",
+      "MESSAGE_COUNT": "Envie {{count}} mensagens em conversas de doação",
+      "UNIQUE_PARTNER_COUNT": "Interaja com sucesso com {{count}} organizações diferentes"
+    },
+    "catalog": {
+      "community_champion": {
+        "name": "Campeão da comunidade"
+      },
+      "century_donor": {
+        "name": "Doador centenário"
+      },
+      "unstoppable_force": {
+        "name": "Força imparável"
+      },
+      "donation_master": {
+        "name": "Mestre das doações"
+      },
+      "elite_contributor": {
+        "name": "Contribuidor de elite"
+      },
+      "legendary_donor": {
+        "name": "Doador lendário"
+      },
+      "donation_titan": {
+        "name": "Titã das doações"
+      },
+      "thousand_strong": {
+        "name": "Mil em força"
+      },
+      "ultimate_benefactor": {
+        "name": "Benfeitor supremo"
+      },
+      "steady_start": {
+        "name": "Início constante"
+      },
+      "monthly_commitment": {
+        "name": "Compromisso mensal"
+      },
+      "two_month_streak": {
+        "name": "Sequência de dois meses"
+      },
+      "quarterly_dedication": {
+        "name": "Dedicação trimestral"
+      },
+      "half_year_hero": {
+        "name": "Herói de meio ano"
+      },
+      "year_round_giver": {
+        "name": "Doador do ano inteiro"
+      },
+      "two_year_legend": {
+        "name": "Lenda de dois anos"
+      },
+      "chatty_starter": {
+        "name": "Iniciante comunicativo"
+      },
+      "conversationalist": {
+        "name": "Conversador"
+      },
+      "active_communicator": {
+        "name": "Comunicador ativo"
+      },
+      "communication_expert": {
+        "name": "Especialista em comunicação"
+      },
+      "message_master": {
+        "name": "Mestre das mensagens"
+      },
+      "communication_guru": {
+        "name": "Guru da comunicação"
+      },
+      "ultimate_networker": {
+        "name": "Conector supremo"
+      },
+      "making_connections": {
+        "name": "Criando conexões"
+      },
+      "community_builder": {
+        "name": "Construtor da comunidade"
+      },
+      "network_grower": {
+        "name": "Expansor de rede"
+      },
+      "relationship_expert": {
+        "name": "Especialista em relacionamentos"
+      },
+      "community_leader": {
+        "name": "Líder comunitário"
+      },
+      "connection_master": {
+        "name": "Mestre das conexões"
+      },
+      "network_titan": {
+        "name": "Titã da rede"
+      },
+      "ultimate_connector": {
+        "name": "Conector supremo"
+      }
+    }
+  },
+  "leaderboard": {
+    "title": "Classificação",
+    "loading": "Carregando classificação...",
+    "error": "Não foi possível carregar a classificação",
+    "errorMessage": "Tente atualizar a página",
+    "retry": "Tentar novamente",
+    "noData": "Ainda não há dados de classificação",
+    "noDataMessage": "Seja o primeiro a ganhar pontos e subir no ranking!",
+    "topDonors": "Principais doadores",
+    "topReceivers": "Principais receptores",
+    "refresh": "Atualizar",
+    "yourPosition": "Sua posição",
+    "keepGoing": "Continue contribuindo para subir na classificação!",
+    "totalUsers": "{{count}} usuários no total",
+    "you": "Você",
+    "pts": "pts"
   },
   "completedView": {
     "claimed": "Reivindicado",
@@ -1369,5 +1571,220 @@
     "selectAll": "Selecionar tudo",
     "clearAll": "Limpar tudo",
     "done": "Concluir"
+  },
+  "donorHelp": {
+    "gettingStarted": {
+      "title": "Primeiros passos",
+      "intro": "Bem-vindo ao FoodFlow! Siga estas etapas para começar a fazer a diferença doando seu excedente de alimentos para quem precisa.",
+      "steps": {
+        "step1": {
+          "title": "Crie sua primeira doação",
+          "description": "Clique em \"Doar agora\" na barra lateral e preencha o formulário com os detalhes do excedente, incluindo tipo de alimento, quantidade e descrição."
+        },
+        "step2": {
+          "title": "Defina horários de retirada",
+          "description": "Escolha os horários disponíveis para os receptores retirarem os alimentos no seu local. Você pode adicionar vários horários."
+        },
+        "step3": {
+          "title": "Aguarde as reivindicações",
+          "description": "Receptores verificados verão sua doação e poderão reivindicá-la. Você será notificado imediatamente quando alguém reivindicar."
+        },
+        "step4": {
+          "title": "Confirme a retirada com OTP",
+          "description": "Quando o receptor chegar no período de retirada, ele fornecerá um código OTP. Insira o código para confirmar a entrega com sucesso."
+        }
+      }
+    },
+    "faq": {
+      "title": "Perguntas frequentes",
+      "items": {
+        "q1": {
+          "question": "Como crio uma doação?",
+          "answer": "Vá em \"Doar agora\" na barra lateral, clique em \"Adicionar doação\" e preencha os detalhes (título, tipo de alimento, quantidade, validade e horários de retirada). Clique em \"Enviar\" para publicar sua doação."
+        },
+        "q2": {
+          "question": "Como funciona a confirmação de retirada?",
+          "answer": "Quando um receptor reivindica sua doação e chega ao local no horário agendado, você precisa confirmar a entrega. Um OTP (código de uso único) é gerado para cada doação reivindicada."
+        },
+        "q3": {
+          "question": "O que é um código OTP?",
+          "answer": "OTP significa senha de uso único. É um código exclusivo de 6 dígitos gerado automaticamente quando a doação muda para \"Pronto para coleta\"."
+        },
+        "q4": {
+          "question": "Posso editar ou excluir uma doação?",
+          "answer": "Sim, você pode editar ou excluir doações que ainda não foram reivindicadas. Depois que uma doação é reivindicada, ela não pode mais ser alterada ou removida."
+        },
+        "q5": {
+          "question": "Como envio mensagem para um receptor?",
+          "answer": "Clique em \"Mensagens\" na barra lateral para acessar suas conversas e coordenar detalhes de retirada com receptores."
+        },
+        "q6": {
+          "question": "Quais tipos de alimentos posso doar?",
+          "answer": "O FoodFlow suporta várias categorias: refeições preparadas, itens embalados, frutas e vegetais, laticínios/refrigerados, padaria/confeitaria e alimentos congelados."
+        },
+        "q7": {
+          "question": "Como defino os horários de retirada?",
+          "answer": "Ao criar uma doação, você pode adicionar vários horários de retirada com data, hora de início e hora de término para dar mais flexibilidade."
+        },
+        "q8": {
+          "question": "O que acontece se o receptor não aparecer?",
+          "answer": "Se o receptor não retirar no período combinado, a reivindicação pode expirar após um tempo razoável e a doação ficará disponível novamente."
+        },
+        "q9": {
+          "question": "Como minha organização é verificada?",
+          "answer": "No cadastro, os dados da organização são enviados para verificação. A equipe administrativa analisa licença, endereço e outros detalhes."
+        },
+        "q10": {
+          "question": "Posso ver quem reivindicou minha doação?",
+          "answer": "Sim. Quando um receptor reivindica a doação, você pode ver o nome da organização e informações de contato para coordenar a retirada."
+        }
+      }
+    },
+    "support": {
+      "title": "Precisa de mais ajuda?",
+      "intro": "Não encontrou o que procura? Nossa equipe de suporte está aqui para ajudar.",
+      "emailLabel": "Suporte por e-mail",
+      "emailResponseTime": "Resposta em até 24 horas",
+      "phoneLabel": "Suporte por telefone",
+      "phoneAvailability": "Seg-Sex, 9h-18h EST"
+    }
+  },
+  "receiverHelp": {
+    "gettingStarted": {
+      "title": "Primeiros passos",
+      "intro": "Bem-vindo ao FoodFlow! Como receptor, você pode reivindicar doações de alimentos excedentes de empresas e organizações locais.",
+      "steps": {
+        "step1": {
+          "title": "Explore doações disponíveis",
+          "description": "Acesse a página de doações para encontrar alimentos próximos. Use filtros para achar o que combina com as necessidades da sua organização."
+        },
+        "step2": {
+          "title": "Reivindique e agende a retirada",
+          "description": "Clique em \"Reivindicar\" na doação e selecione um horário de retirada. A doação ficará reservada para sua organização."
+        },
+        "step3": {
+          "title": "Retire com OTP",
+          "description": "Chegue no horário agendado e informe seu código OTP ao doador. Ele confirmará a entrega e concluirá o processo."
+        },
+        "step4": {
+          "title": "Defina suas preferências",
+          "description": "Atualize as preferências alimentares no perfil para receber correspondências melhores."
+        }
+      }
+    },
+    "faq": {
+      "title": "Perguntas frequentes",
+      "items": {
+        "q1": {
+          "question": "Como reivindico uma doação?",
+          "answer": "Navegue pelas doações disponíveis. Ao encontrar uma que deseja, clique em \"Reivindicar\" e escolha um horário de retirada."
+        },
+        "q2": {
+          "question": "Como confirmo a retirada?",
+          "answer": "Ao chegar ao local do doador no horário agendado, forneça seu código OTP. O doador inserirá o código para confirmar a entrega."
+        },
+        "q3": {
+          "question": "O que é o código OTP?",
+          "answer": "É um código único de verificação com 6 dígitos atribuído a cada doação reivindicada."
+        },
+        "q4": {
+          "question": "O que são preferências alimentares?",
+          "answer": "As preferências permitem definir categorias de alimentos, tamanhos de doação e restrições alimentares para melhorar as correspondências."
+        },
+        "q5": {
+          "question": "Como defino minhas preferências alimentares?",
+          "answer": "Clique no avatar do perfil no canto superior direito e selecione \"Preferências\" para configurar tipos de alimento e restrições."
+        },
+        "q6": {
+          "question": "Como envio mensagem para um doador?",
+          "answer": "Clique em \"Mensagens\" na navegação para acessar conversas com doadores e coordenar a retirada."
+        },
+        "q7": {
+          "question": "O que significam os status da doação?",
+          "answer": "Os status incluem: \"Disponível\", \"Reivindicado\", \"Pronto para coleta\", \"Concluído\" e \"Cancelado\"."
+        },
+        "q8": {
+          "question": "Posso cancelar uma reivindicação?",
+          "answer": "Sim. Vá em \"Minhas reivindicações\", encontre a doação e cancele antes da retirada."
+        },
+        "q9": {
+          "question": "Como encontro doações perto de mim?",
+          "answer": "A página de doações mostra anúncios da sua região. Use filtros de tipo de alimento, distância e horário de retirada."
+        },
+        "q10": {
+          "question": "Como minha organização é verificada?",
+          "answer": "No cadastro, os dados da organização são enviados para verificação da equipe administrativa."
+        }
+      }
+    },
+    "support": {
+      "title": "Precisa de mais ajuda?",
+      "intro": "Não encontrou o que procura? Nossa equipe de suporte está aqui para ajudar.",
+      "emailLabel": "Suporte por e-mail",
+      "emailResponseTime": "Resposta em até 24 horas",
+      "phoneLabel": "Suporte por telefone",
+      "phoneAvailability": "Seg-Sex, 9h-18h EST"
+    }
+  },
+  "aiDonation": {
+    "backToDashboard": "Voltar ao painel",
+    "title": "Criar doação com IA",
+    "subtitle": "Envie uma foto do rótulo para extrair detalhes do produto. Você pode revisar antes de enviar.",
+    "steps": {
+      "upload": "Enviar",
+      "review": "Revisar",
+      "submit": "Enviar"
+    },
+    "processing": {
+      "title": "Processando imagem",
+      "hint": "Isso pode levar até 30 segundos.",
+      "readingLabel": "Lendo rótulo",
+      "extractingData": "Extraindo dados",
+      "preparingResults": "Preparando resultados",
+      "loadingMaps": "Carregando mapas"
+    },
+    "toast": {
+      "extractionComplete": "Extração concluída. Revise os detalhes antes de enviar.",
+      "aiFailed": "Falha na extração por IA",
+      "analysisFailed": "Falha ao analisar a imagem",
+      "requestTimedOut": "Tempo de solicitação esgotado. Tente novamente com uma imagem menor.",
+      "networkError": "Erro de rede. Verifique sua conexão e tente novamente."
+    },
+    "upload": {
+      "title": "Enviar imagem do rótulo",
+      "subtitle": "Envie uma imagem nítida que inclua:",
+      "required": {
+        "productName": "Nome do produto",
+        "nutritionFacts": "Informações nutricionais",
+        "ingredientsList": "Lista de ingredientes",
+        "expiryDate": "Data de validade ou consumir de preferência antes de",
+        "allergenInfo": "Informações de alérgenos"
+      },
+      "ariaLabel": "Enviar imagem do rótulo",
+      "dragAndDrop": "Arraste e solte uma imagem do rótulo",
+      "or": "ou",
+      "chooseFile": "Escolher arquivo",
+      "fileTypes": "JPG, PNG, HEIC",
+      "maxSize": "Máx 5 MB",
+      "selectedFile": "Arquivo selecionado",
+      "remove": "Remover",
+      "continueToReview": "Continuar para revisão",
+      "alternative": "Alternativa",
+      "manualEntry": "Continuar com entrada manual",
+      "guidelinesTitle": "Diretrizes da imagem",
+      "tips": {
+        "goodLighting": "Boa iluminação",
+        "noGlare": "Sem reflexo",
+        "labelVisible": "Rótulo totalmente visível",
+        "textInFocus": "Mantenha o texto em foco",
+        "includeExpiry": "Inclua validade quando disponível"
+      },
+      "manualHint": "Imagens nítidas melhoram a precisão da extração.",
+      "errors": {
+        "selectFile": "Selecione um arquivo de imagem para continuar.",
+        "unsupportedType": "Tipo de arquivo não suportado. Use JPG, PNG ou HEIC.",
+        "fileTooLarge": "O arquivo excede 5 MB. Escolha uma imagem menor."
+      }
+    }
   }
 }

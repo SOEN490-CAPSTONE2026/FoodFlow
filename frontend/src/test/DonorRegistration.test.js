@@ -97,7 +97,12 @@ const fillAllFields = async user => {
 
 describe('DonorRegistration', () => {
   beforeEach(() => {
+    jest.useRealTimers();
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it('renders the form with all required fields', async () => {
@@ -176,7 +181,6 @@ describe('DonorRegistration', () => {
   });
 
   it('successfully registers donor with token', async () => {
-    jest.useFakeTimers();
     const user = userEvent.setup({ delay: null });
 
     authAPI.checkEmailExists.mockResolvedValue({ data: { exists: false } });
@@ -202,13 +206,12 @@ describe('DonorRegistration', () => {
     expect(mockAuthContextValue.login.mock.calls[0][1]).toBe('DONOR');
     expect(mockAuthContextValue.login.mock.calls[0][2]).toBe('user-123');
 
-    jest.runAllTimers();
-    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/donor'));
-    jest.useRealTimers();
-  });
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/donor'), {
+      timeout: 7000,
+    });
+  }, 15000);
 
   it('successfully registers donor without token', async () => {
-    jest.useFakeTimers();
     const user = userEvent.setup({ delay: null });
 
     authAPI.checkEmailExists.mockResolvedValue({ data: { exists: false } });
@@ -231,10 +234,10 @@ describe('DonorRegistration', () => {
 
     expect(mockAuthContextValue.login).not.toHaveBeenCalled();
 
-    jest.runAllTimers();
-    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/donor'));
-    jest.useRealTimers();
-  });
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/donor'), {
+      timeout: 7000,
+    });
+  }, 15000);
 
   it('shows API-specific error message', async () => {
     const user = userEvent.setup({ delay: null });

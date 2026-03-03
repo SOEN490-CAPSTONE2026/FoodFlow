@@ -8,10 +8,16 @@ import api from '../../../services/api';
 import { TimezoneProvider } from '../../../contexts/TimezoneContext';
 
 jest.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: key => key,
-    i18n: { language: 'en' },
-  }),
+  useTranslation: () => {
+    const en = require('../../../locales/en.json');
+    const getValue = (obj, key) =>
+      key.split('.').reduce((acc, part) => acc?.[part], obj);
+
+    return {
+      t: key => getValue(en, key) ?? key,
+      i18n: { language: 'en' },
+    };
+  },
 }));
 
 jest.mock('../../../services/api', () => ({
