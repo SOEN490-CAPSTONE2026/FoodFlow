@@ -1445,6 +1445,81 @@
       "step2": "Configura tus preferencias de sincronización",
       "step3": "Tus donaciones y recogidas aparecerán automáticamente en tu calendario",
       "privacy": "El acceso a tu calendario es seguro y puede ser revocado en cualquier momento"
+    },
+    "summary": {
+      "connectedTo": "Conectado a {{provider}}",
+      "notConnected": "No conectado",
+      "syncedEventSingular": "{{count}} evento sincronizado",
+      "syncedEventPlural": "{{count}} eventos sincronizados"
+    },
+    "toggleAria": "Alternar integración del calendario",
+    "hide": "Ocultar",
+    "edit": "Editar",
+    "viewConnectionDetails": "Ver detalles de conexión",
+    "minutes": "minutos",
+    "email": "Correo electrónico",
+    "popup": "Emergente",
+    "both": "Ambos",
+    "colors": {
+      "blue": "Azul",
+      "green": "Verde",
+      "purple": "Morado",
+      "red": "Rojo",
+      "yellow": "Amarillo",
+      "orange": "Naranja",
+      "gray": "Gris"
+    },
+    "visibility": {
+      "private": "Privado",
+      "public": "Público"
+    },
+    "onlyAppliedNoEndTime": "Solo se aplica si la recogida no tiene hora de fin",
+    "privacyPolicyPrefix": "Haz clic aquí para ver la",
+    "privacyPolicyLink": "política de integración del calendario",
+    "closeModalAria": "Cerrar modal"
+  },
+  "donorPhotoPreferences": {
+    "title": "Preferencias de visualización",
+    "modeSingle": "Modo: Foto única",
+    "modePerFoodType": "Modo: Por tipo de alimento",
+    "selectedSingular": "{{count}} imagen seleccionada",
+    "selectedPlural": "{{count}} imágenes seleccionadas",
+    "toggleAria": "Alternar preferencias de visualización",
+    "hide": "Ocultar",
+    "edit": "Editar",
+    "singleModeTitle": "Foto única para todas las donaciones",
+    "perTypeModeTitle": "Foto por tipo de alimento",
+    "singleDonationImage": "Imagen única de donación",
+    "uploading": "Subiendo...",
+    "pendingApproval": "Pendiente de aprobación",
+    "selectFromLibrary": "O selecciona de la biblioteca interna:",
+    "libraryImageAlt": "Library {{id}}",
+    "selectedTypeAlt": "{{foodType}} selected",
+    "saving": "Guardando...",
+    "saveButton": "Guardar preferencias de foto",
+    "note": "Nota: las imágenes subidas por donantes son revisadas por un administrador antes de mostrarse en las tarjetas de donación del receptor.",
+    "loading": "Cargando preferencias de foto...",
+    "messages": {
+      "uploadSuccess": "Imagen subida. Guarda las preferencias para aplicar los cambios. Las tarjetas del receptor mostrarán fotos cargadas tras la aprobación del administrador.",
+      "saved": "Preferencias de foto guardadas."
+    },
+    "errors": {
+      "load": "No se pudieron cargar las preferencias de visualización de fotos.",
+      "save": "No se pudieron guardar las preferencias.",
+      "upload": "Error al subir la imagen.",
+      "fileRequired": "Se requiere un archivo de imagen.",
+      "invalidType": "Solo se permiten imágenes JPEG, PNG y WEBP.",
+      "maxSize": "La imagen debe ser de 5 MB o menos."
     }
+  },
+  "foodTypeLabels": {
+    "PREPARED": "Comidas preparadas",
+    "PRODUCE": "Productos frescos",
+    "BAKERY": "Panadería y pastelería",
+    "DAIRY_EGGS": "Lácteos y huevos",
+    "MEAT_POULTRY": "Carne y aves",
+    "SEAFOOD": "Mariscos",
+    "PANTRY": "Productos envasados / despensa",
+    "BEVERAGES": "Bebidas"
   }
 }

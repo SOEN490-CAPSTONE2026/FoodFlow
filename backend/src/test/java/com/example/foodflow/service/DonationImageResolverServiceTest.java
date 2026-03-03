@@ -83,10 +83,6 @@ class DonationImageResolverServiceTest {
                 FoodType.PRODUCE,
                 DonationImageStatus.APPROVED
         )).thenReturn(Optional.empty());
-        when(donationImageRepository.findFirstByDonorIdAndStatusOrderByCreatedAtDesc(
-                11L,
-                DonationImageStatus.APPROVED
-        )).thenReturn(Optional.empty());
         when(internalImageLibraryRepository.findFirstByFoodTypeAndActiveTrueOrderByCreatedAtDesc(FoodType.PRODUCE))
                 .thenReturn(Optional.of(library));
 
@@ -121,5 +117,60 @@ class DonationImageResolverServiceTest {
         String resolved = service.resolveDonationImageUrl(donor, FoodType.BAKERY);
 
         assertThat(resolved).isEqualTo("/api/files/donation-images/approved-latest.jpg");
+    }
+
+    @Test
+    void resolveDonationImageUrl_perFoodTypeMissing_usesSingleConfiguredImageAsFallback() {
+        User donor = new User();
+        donor.setId(21L);
+
+        DonationImage singleImage = new DonationImage();
+        singleImage.setStatus(DonationImageStatus.APPROVED);
+        singleImage.setUrl("/api/files/donation-images/donor-21/single-approved.jpg");
+
+        DonorPhotoPreferences preferences = new DonorPhotoPreferences();
+        preferences.setDisplayType(PhotoDisplayType.PER_FOOD_TYPE);
+        preferences.setSingleImage(singleImage);
+        preferences.setPerFoodTypeMap("{\"PRODUCE\": 555}");
+        preferences.setPerFoodTypeLibraryMap("{}");
+
+        when(donorPhotoPreferencesRepository.findByDonorId(21L)).thenReturn(Optional.of(preferences));
+        when(donationImageRepository.findById(555L)).thenReturn(Optional.empty());
+        when(donationImageRepository.findFirstByDonorIdAndFoodTypeAndStatusOrderByCreatedAtDesc(
+                21L,
+                FoodType.PRODUCE,
+                DonationImageStatus.APPROVED
+        )).thenReturn(Optional.empty());
+
+        String resolved = service.resolveDonationImageUrl(donor, FoodType.PRODUCE);
+
+        assertThat(resolved).isEqualTo("/api/files/donation-images/donor-21/single-approved.jpg");
+    }
+
+    @Test
+    void resolveDonationImageUrl_perFoodTypeMissing_usesSingleLibraryFallbackWhenSingleUploadMissing() {
+        User donor = new User();
+        donor.setId(22L);
+
+        InternalImageLibrary singleLibraryImage = new InternalImageLibrary();
+        singleLibraryImage.setActive(true);
+        singleLibraryImage.setUrl("https://cdn.foodflow/internal/single-fallback.jpg");
+
+        DonorPhotoPreferences preferences = new DonorPhotoPreferences();
+        preferences.setDisplayType(PhotoDisplayType.PER_FOOD_TYPE);
+        preferences.setSingleLibraryImage(singleLibraryImage);
+        preferences.setPerFoodTypeMap("{}");
+        preferences.setPerFoodTypeLibraryMap("{}");
+
+        when(donorPhotoPreferencesRepository.findByDonorId(22L)).thenReturn(Optional.of(preferences));
+        when(donationImageRepository.findFirstByDonorIdAndFoodTypeAndStatusOrderByCreatedAtDesc(
+                22L,
+                FoodType.MEAT_POULTRY,
+                DonationImageStatus.APPROVED
+        )).thenReturn(Optional.empty());
+
+        String resolved = service.resolveDonationImageUrl(donor, FoodType.MEAT_POULTRY);
+
+        assertThat(resolved).isEqualTo("https://cdn.foodflow/internal/single-fallback.jpg");
     }
 }

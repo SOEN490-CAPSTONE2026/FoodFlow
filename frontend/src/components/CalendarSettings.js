@@ -16,6 +16,10 @@ import '../style/CalendarSettings.css';
 
 const CalendarSettings = () => {
   const { t } = useTranslation();
+  const tx = (key, fallback, options = {}) => {
+    const value = t(key, options);
+    return !value || value === key ? fallback : value;
+  };
   const { userId } = useContext(AuthContext);
 
   // State management
@@ -248,9 +252,18 @@ const CalendarSettings = () => {
           </p>
           <p className="calendar-summary-line">
             {connectionStatus.isConnected
-              ? `Connected to ${connectionStatus.provider || 'GOOGLE'}`
-              : 'Not connected'}{' '}
-            • {events.length} synced event{events.length === 1 ? '' : 's'}
+              ? t('calendar.summary.connectedTo', {
+                  provider: connectionStatus.provider || 'GOOGLE',
+                })
+              : t('calendar.summary.notConnected')}{' '}
+            •{' '}
+            {events.length === 1
+              ? t('calendar.summary.syncedEventSingular', {
+                  count: events.length,
+                })
+              : t('calendar.summary.syncedEventPlural', {
+                  count: events.length,
+                })}
           </p>
         </div>
         <div className="calendar-header-actions">
@@ -270,9 +283,15 @@ const CalendarSettings = () => {
             className="calendar-toggle-btn"
             onClick={() => setIsExpanded(prev => !prev)}
             aria-expanded={isExpanded}
-            aria-label="Toggle calendar integration"
+            aria-label={tx(
+              'calendar.toggleAria',
+              'Toggle calendar integration'
+            )}
           >
-            {isExpanded ? 'Hide ▲' : 'Edit ▼'}
+            {isExpanded
+              ? tx('calendar.hide', 'Hide')
+              : tx('calendar.edit', 'Edit')}{' '}
+            {isExpanded ? '▲' : '▼'}
           </button>
         </div>
       </div>
@@ -334,7 +353,12 @@ const CalendarSettings = () => {
                     disabled={testing}
                     className="btn btn-secondary"
                   >
-                    {testing ? t('common.loading') : 'View Connection Details'}
+                    {testing
+                      ? t('common.loading')
+                      : tx(
+                          'calendar.viewConnectionDetails',
+                          'View Connection Details'
+                        )}
                   </button>
                   <button
                     onClick={handleDisconnect}
@@ -431,7 +455,9 @@ const CalendarSettings = () => {
                           disabled={!preferences.autoCreateReminders}
                           className="input-field"
                         />
-                        <span className="input-unit">minutes</span>
+                        <span className="input-unit">
+                          {t('calendar.minutes')}
+                        </span>
                       </div>
                     </div>
 
@@ -454,9 +480,9 @@ const CalendarSettings = () => {
                         disabled={!preferences.autoCreateReminders}
                         className="select-field"
                       >
-                        <option value="EMAIL">Email</option>
-                        <option value="POPUP">Pop-up</option>
-                        <option value="BOTH">Both</option>
+                        <option value="EMAIL">{t('calendar.email')}</option>
+                        <option value="POPUP">{t('calendar.popup')}</option>
+                        <option value="BOTH">{t('calendar.both')}</option>
                       </select>
                     </div>
                   </div>
@@ -491,13 +517,25 @@ const CalendarSettings = () => {
                         }
                         className="select-field"
                       >
-                        <option value="BLUE">Blue</option>
-                        <option value="GREEN">Green</option>
-                        <option value="PURPLE">Purple</option>
-                        <option value="RED">Red</option>
-                        <option value="YELLOW">Yellow</option>
-                        <option value="ORANGE">Orange</option>
-                        <option value="GRAY">Gray</option>
+                        <option value="BLUE">
+                          {t('calendar.colors.blue')}
+                        </option>
+                        <option value="GREEN">
+                          {t('calendar.colors.green')}
+                        </option>
+                        <option value="PURPLE">
+                          {t('calendar.colors.purple')}
+                        </option>
+                        <option value="RED">{t('calendar.colors.red')}</option>
+                        <option value="YELLOW">
+                          {t('calendar.colors.yellow')}
+                        </option>
+                        <option value="ORANGE">
+                          {t('calendar.colors.orange')}
+                        </option>
+                        <option value="GRAY">
+                          {t('calendar.colors.gray')}
+                        </option>
                       </select>
                     </div>
 
@@ -519,8 +557,12 @@ const CalendarSettings = () => {
                         }
                         className="select-field"
                       >
-                        <option value="PRIVATE">Private</option>
-                        <option value="PUBLIC">Public</option>
+                        <option value="PRIVATE">
+                          {t('calendar.visibility.private')}
+                        </option>
+                        <option value="PUBLIC">
+                          {t('calendar.visibility.public')}
+                        </option>
                       </select>
                     </div>
 
@@ -547,7 +589,9 @@ const CalendarSettings = () => {
                           placeholder="15"
                           className="input-field"
                         />
-                        <span className="input-unit">minutes</span>
+                        <span className="input-unit">
+                          {t('calendar.minutes')}
+                        </span>
                       </div>
                       <small
                         style={{
@@ -558,7 +602,7 @@ const CalendarSettings = () => {
                           textAlign: 'left',
                         }}
                       >
-                        Only applied if the pickup has no end time
+                        {t('calendar.onlyAppliedNoEndTime')}
                       </small>
                     </div>
                   </div>
@@ -593,7 +637,7 @@ const CalendarSettings = () => {
                     lineHeight: '1.6',
                   }}
                 >
-                  Click here for the{' '}
+                  {t('calendar.privacyPolicyPrefix')}{' '}
                   <a
                     href="/privacy-policy#third-party-integrations"
                     target="_blank"
@@ -604,7 +648,7 @@ const CalendarSettings = () => {
                       fontWeight: '500',
                     }}
                   >
-                    calendar integration policy
+                    {t('calendar.privacyPolicyLink')}
                   </a>
                   .
                 </p>
@@ -667,7 +711,7 @@ const CalendarSettings = () => {
               <button
                 className="modal-close"
                 onClick={() => setShowConnectionDetailsModal(false)}
-                aria-label="Close modal"
+                aria-label={t('calendar.closeModalAria')}
               >
                 ×
               </button>
@@ -802,7 +846,7 @@ const CalendarSettings = () => {
               <button
                 className="modal-close"
                 onClick={() => setShowDisconnectModal(false)}
-                aria-label="Close modal"
+                aria-label={t('calendar.closeModalAria')}
               >
                 ×
               </button>

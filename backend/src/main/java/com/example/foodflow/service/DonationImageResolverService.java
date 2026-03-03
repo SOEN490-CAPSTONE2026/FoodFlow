@@ -73,9 +73,18 @@ public class DonationImageResolverService {
             }
         }
 
-        String approvedDonorTypeImage = resolveLatestApprovedDonorImage(donor.getId(), foodType);
+        String approvedDonorTypeImage = resolveLatestApprovedDonorImageForType(donor.getId(), foodType);
         if (approvedDonorTypeImage != null) {
             return approvedDonorTypeImage;
+        }
+
+        String singleFallback = resolveDonationImage(preferences.getSingleImage());
+        if (singleFallback != null) {
+            return singleFallback;
+        }
+
+        if (preferences.getSingleLibraryImage() != null && Boolean.TRUE.equals(preferences.getSingleLibraryImage().getActive())) {
+            return preferences.getSingleLibraryImage().getUrl();
         }
 
         Map<String, Long> perFoodLibraryMap = parseMap(preferences.getPerFoodTypeLibraryMap());
@@ -131,6 +140,20 @@ public class DonationImageResolverService {
         return donationImageRepository
                 .findFirstByDonorIdAndStatusOrderByCreatedAtDesc(
                         donorId,
+                        DonationImageStatus.APPROVED
+                )
+                .map(DonationImage::getUrl)
+                .orElse(null);
+    }
+
+    private String resolveLatestApprovedDonorImageForType(Long donorId, FoodType foodType) {
+        if (foodType == null) {
+            return null;
+        }
+        return donationImageRepository
+                .findFirstByDonorIdAndFoodTypeAndStatusOrderByCreatedAtDesc(
+                        donorId,
+                        foodType,
                         DonationImageStatus.APPROVED
                 )
                 .map(DonationImage::getUrl)

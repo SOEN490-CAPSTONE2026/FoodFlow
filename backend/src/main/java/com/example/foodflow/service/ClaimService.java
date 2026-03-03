@@ -4,6 +4,7 @@ import com.example.foodflow.exception.BusinessException;
 import com.example.foodflow.exception.ResourceNotFoundException;
 import com.example.foodflow.model.dto.ClaimRequest;
 import com.example.foodflow.model.dto.ClaimResponse;
+import com.example.foodflow.model.dto.SurplusResponse;
 import com.example.foodflow.model.entity.*;
 import com.example.foodflow.model.types.ClaimStatus;
 import com.example.foodflow.model.types.PostStatus;
@@ -18,6 +19,7 @@ import com.example.foodflow.util.TimezoneResolver;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.Timer;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -50,6 +52,8 @@ public class ClaimService {
     private final CalendarSyncService calendarSyncService;
     private final CalendarSyncPreferenceRepository calendarSyncPreferenceRepository;
     private final SyncedCalendarEventRepository syncedCalendarEventRepository;
+    @Autowired(required = false)
+    private DonationImageResolverService donationImageResolverService;
     
     public ClaimService(ClaimRepository claimRepository,
                        SurplusPostRepository surplusPostRepository,
@@ -288,7 +292,7 @@ public class ClaimService {
             logger.error("Failed to award gamification points for claimId={}: {}", claim.getId(), e.getMessage());
         }
 
-        ClaimResponse response = new ClaimResponse(claim);
+        ClaimResponse response = toClaimResponse(claim);
         
         // Broadcast websocket event to donor (if they have notifications enabled)
         User donor = surplusPost.getDonor();
@@ -389,6 +393,21 @@ public class ClaimService {
         int otp = 100000 + random.nextInt(900000); // 6-digit number
         return String.valueOf(otp);
     }
+
+    private ClaimResponse toClaimResponse(Claim claim) {
+        ClaimResponse response = new ClaimResponse(claim);
+        SurplusResponse surplus = response.getSurplusPost();
+        if (surplus != null && claim.getSurplusPost() != null && claim.getSurplusPost().getDonor() != null) {
+            surplus.setDonorLogoUrl(claim.getSurplusPost().getDonor().getProfilePhoto());
+            if (donationImageResolverService != null) {
+                surplus.setResolvedDonationImageUrl(
+                        donationImageResolverService.resolveDonationImageUrl(
+                                claim.getSurplusPost().getDonor(),
+                                claim.getSurplusPost().getFoodType()));
+            }
+        }
+        return response;
+    }
     
     @Transactional(readOnly = true)
     @Timed(value = "claim.service.getReceiverClaims", description = "Time taken to get receiver claims")
@@ -403,7 +422,7 @@ public class ClaimService {
             )
         )
             .stream()
-            .map(ClaimResponse::new)
+            .map(this::toClaimResponse)
             .collect(Collectors.toList());
     }
     
@@ -411,7 +430,7 @@ public class ClaimService {
     public List<ClaimResponse> getClaimsForSurplusPost(Long surplusPostId) {
         return claimRepository.findBySurplusPostId(surplusPostId)
             .stream()
-            .map(ClaimResponse::new)
+            .map(this::toClaimResponse)
             .collect(Collectors.toList());
     }
     
@@ -472,7 +491,7 @@ public class ClaimService {
                 messagingTemplate.convertAndSendToUser(
                     donor.getId().toString(),
                     "/queue/claims/cancelled",
-                    new ClaimResponse(claim)
+                    toClaimResponse(claim)
                 );
                 logger.info("Sent claim cancellation notification to donor userId={} for claimId={} (type: claimCanceled)", 
                     donor.getId(), claimId);

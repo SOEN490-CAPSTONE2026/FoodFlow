@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Image as ImageIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import {
   donorPhotoSettingsAPI,
   imageAPI,
@@ -10,19 +11,6 @@ import './Donor_Styles/DonorPhotoPreferencesSection.css';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 const MAX_SIZE = 5 * 1024 * 1024;
-
-function validateImage(file) {
-  if (!file) {
-    return 'Image file is required.';
-  }
-  if (!ALLOWED_TYPES.includes((file.type || '').toLowerCase())) {
-    return 'Only JPEG, PNG and WEBP images are allowed.';
-  }
-  if (file.size > MAX_SIZE) {
-    return 'Image must be 5MB or less.';
-  }
-  return null;
-}
 
 function toAbsoluteImageUrl(imageUrl) {
   if (!imageUrl) {
@@ -47,6 +35,11 @@ function toAbsoluteImageUrl(imageUrl) {
 }
 
 export default function DonorPhotoPreferencesSection() {
+  const { t } = useTranslation();
+  const tx = (key, fallback, options = {}) => {
+    const value = t(key, options);
+    return !value || value === key ? fallback : value;
+  };
   const [loading, setLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -67,6 +60,10 @@ export default function DonorPhotoPreferencesSection() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  const getFoodTypeLabel = value => {
+    return t(`foodTypeLabels.${value}`, value);
+  };
+
   useEffect(() => {
     const load = async () => {
       try {
@@ -78,7 +75,12 @@ export default function DonorPhotoPreferencesSection() {
         setSettings(prev => ({ ...prev, ...(settingsResp.data || {}) }));
         setLibrary(Array.isArray(libraryResp.data) ? libraryResp.data : []);
       } catch (err) {
-        setError('Failed to load photo display preferences.');
+        setError(
+          tx(
+            'donorPhotoPreferences.errors.load',
+            'Failed to load photo display preferences.'
+          )
+        );
       } finally {
         setLoading(false);
       }
@@ -99,7 +101,24 @@ export default function DonorPhotoPreferencesSection() {
   }, [library]);
 
   const handleUpload = async (file, foodTypeKey = null) => {
-    const validationError = validateImage(file);
+    let validationError = null;
+    if (!file) {
+      validationError = tx(
+        'donorPhotoPreferences.errors.fileRequired',
+        'Image file is required.'
+      );
+    } else if (!ALLOWED_TYPES.includes((file.type || '').toLowerCase())) {
+      validationError = tx(
+        'donorPhotoPreferences.errors.invalidType',
+        'Only JPEG, PNG and WEBP images are allowed.'
+      );
+    } else if (file.size > MAX_SIZE) {
+      validationError = tx(
+        'donorPhotoPreferences.errors.maxSize',
+        'Image must be 5MB or less.'
+      );
+    }
+
     if (validationError) {
       setError(validationError);
       return;
@@ -148,10 +167,16 @@ export default function DonorPhotoPreferencesSection() {
         [foodTypeKey || 'single']: true,
       }));
       setSuccess(
-        'Image uploaded. Save preferences to apply. Receiver cards display uploaded photos after admin approval.'
+        tx(
+          'donorPhotoPreferences.messages.uploadSuccess',
+          'Image uploaded. Save preferences to apply. Receiver cards display uploaded photos after admin approval.'
+        )
       );
     } catch (err) {
-      setError(err.response?.data?.message || 'Image upload failed.');
+      setError(
+        err.response?.data?.message ||
+          tx('donorPhotoPreferences.errors.upload', 'Image upload failed.')
+      );
     } finally {
       setUploadingKey('');
     }
@@ -208,9 +233,17 @@ export default function DonorPhotoPreferencesSection() {
       };
       const resp = await donorPhotoSettingsAPI.update(payload);
       setSettings(prev => ({ ...prev, ...(resp.data || {}) }));
-      setSuccess('Photo display preferences saved.');
+      setSuccess(
+        tx(
+          'donorPhotoPreferences.messages.saved',
+          'Photo display preferences saved.'
+        )
+      );
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to save preferences.');
+      setError(
+        err.response?.data?.message ||
+          tx('donorPhotoPreferences.errors.save', 'Failed to save preferences.')
+      );
     } finally {
       setSaving(false);
     }
@@ -226,7 +259,9 @@ export default function DonorPhotoPreferencesSection() {
   if (loading) {
     return (
       <div className="settings-section">
-        <div className="section-content">Loading photo preferences...</div>
+        <div className="section-content">
+          {tx('donorPhotoPreferences.loading', 'Loading photo preferences...')}
+        </div>
       </div>
     );
   }
@@ -238,12 +273,22 @@ export default function DonorPhotoPreferencesSection() {
           <ImageIcon size={24} />
         </div>
         <div className="section-title-group donor-photo-title">
-          <h2>Display Preferences</h2>
+          <h2>{tx('donorPhotoPreferences.title', 'Display Preferences')}</h2>
           <p className="section-description">
             {settings.displayType === 'SINGLE'
-              ? 'Mode: Single photo'
-              : 'Mode: Per food type'}{' '}
-            • {selectedCount} image{selectedCount === 1 ? '' : 's'} selected
+              ? tx('donorPhotoPreferences.modeSingle', 'Mode: Single photo')
+              : tx(
+                  'donorPhotoPreferences.modePerFoodType',
+                  'Mode: Per food type'
+                )}{' '}
+            •{' '}
+            {selectedCount === 1
+              ? t('donorPhotoPreferences.selectedSingular', {
+                  count: selectedCount,
+                })
+              : t('donorPhotoPreferences.selectedPlural', {
+                  count: selectedCount,
+                })}
           </p>
         </div>
         <button
@@ -251,9 +296,15 @@ export default function DonorPhotoPreferencesSection() {
           className="donor-photo-toggle-btn"
           onClick={() => setIsExpanded(prev => !prev)}
           aria-expanded={isExpanded}
-          aria-label="Toggle display preferences"
+          aria-label={tx(
+            'donorPhotoPreferences.toggleAria',
+            'Toggle display preferences'
+          )}
         >
-          {isExpanded ? 'Hide' : 'Edit'} {isExpanded ? '▲' : '▼'}
+          {isExpanded
+            ? tx('donorPhotoPreferences.hide', 'Hide')
+            : tx('donorPhotoPreferences.edit', 'Edit')}{' '}
+          {isExpanded ? '▲' : '▼'}
         </button>
       </div>
       {isExpanded && (
@@ -265,12 +316,18 @@ export default function DonorPhotoPreferencesSection() {
             <label className="notification-item donor-display-mode-item">
               <div className="notification-info">
                 <h4 className="notification-title">
-                  Single photo for all donations
+                  {tx(
+                    'donorPhotoPreferences.singleModeTitle',
+                    'Single photo for all donations'
+                  )}
                 </h4>
               </div>
               <input
                 type="radio"
-                aria-label="Single photo for all donations"
+                aria-label={tx(
+                  'donorPhotoPreferences.singleModeTitle',
+                  'Single photo for all donations'
+                )}
                 name="displayType"
                 checked={settings.displayType === 'SINGLE'}
                 onChange={() =>
@@ -280,11 +337,19 @@ export default function DonorPhotoPreferencesSection() {
             </label>
             <label className="notification-item donor-display-mode-item">
               <div className="notification-info">
-                <h4 className="notification-title">Photo per food type</h4>
+                <h4 className="notification-title">
+                  {tx(
+                    'donorPhotoPreferences.perTypeModeTitle',
+                    'Photo per food type'
+                  )}
+                </h4>
               </div>
               <input
                 type="radio"
-                aria-label="Photo per food type"
+                aria-label={tx(
+                  'donorPhotoPreferences.perTypeModeTitle',
+                  'Photo per food type'
+                )}
                 name="displayType"
                 checked={settings.displayType === 'PER_FOOD_TYPE'}
                 onChange={() =>
@@ -299,16 +364,26 @@ export default function DonorPhotoPreferencesSection() {
 
           {settings.displayType === 'SINGLE' && (
             <div className="form-field donor-photo-mode-card">
-              <label className="field-label">Single donation image</label>
+              <label className="field-label">
+                {tx(
+                  'donorPhotoPreferences.singleDonationImage',
+                  'Single donation image'
+                )}
+              </label>
               <input
                 type="file"
-                aria-label="Single donation image"
+                aria-label={tx(
+                  'donorPhotoPreferences.singleDonationImage',
+                  'Single donation image'
+                )}
                 data-testid="single-image-upload"
                 accept="image/jpeg,image/jpg,image/png,image/webp"
                 onChange={e => handleUpload(e.target.files?.[0])}
               />
               {uploadingKey === 'single' && (
-                <div className="input-help-text">Uploading...</div>
+                <div className="input-help-text">
+                  {tx('donorPhotoPreferences.uploading', 'Uploading...')}
+                </div>
               )}
               {(settings.singleImageUrl || settings.singleLibraryImageUrl) && (
                 <div className="donor-photo-preview-wrap">
@@ -321,13 +396,19 @@ export default function DonorPhotoPreferencesSection() {
                   />
                   {pendingUploadByKey.single && (
                     <span className="donor-photo-pending-badge">
-                      Pending approval
+                      {tx(
+                        'donorPhotoPreferences.pendingApproval',
+                        'Pending approval'
+                      )}
                     </span>
                   )}
                 </div>
               )}
               <div className="input-help-text">
-                Or select from internal library:
+                {tx(
+                  'donorPhotoPreferences.selectFromLibrary',
+                  'Or select from internal library:'
+                )}
               </div>
               <div className="donor-library-grid">
                 {(libraryByFoodType.GENERIC || library.slice(0, 6)).map(
@@ -340,7 +421,9 @@ export default function DonorPhotoPreferencesSection() {
                     >
                       <img
                         src={toAbsoluteImageUrl(item.url)}
-                        alt={`Library ${item.id}`}
+                        alt={t('donorPhotoPreferences.libraryImageAlt', {
+                          id: item.id,
+                        })}
                         className="donor-library-card-image"
                       />
                     </button>
@@ -357,7 +440,9 @@ export default function DonorPhotoPreferencesSection() {
                   key={option.value}
                   className="form-field donor-photo-mode-card"
                 >
-                  <label className="field-label">{option.label}</label>
+                  <label className="field-label">
+                    {getFoodTypeLabel(option.value)}
+                  </label>
                   <input
                     type="file"
                     accept="image/jpeg,image/jpg,image/png,image/webp"
@@ -366,7 +451,9 @@ export default function DonorPhotoPreferencesSection() {
                     }
                   />
                   {uploadingKey === option.value && (
-                    <div className="input-help-text">Uploading...</div>
+                    <div className="input-help-text">
+                      {tx('donorPhotoPreferences.uploading', 'Uploading...')}
+                    </div>
                   )}
                   {(settings.perFoodTypeUrls?.[option.value] ||
                     settings.perFoodTypeLibraryUrls?.[option.value]) && (
@@ -376,12 +463,17 @@ export default function DonorPhotoPreferencesSection() {
                           settings.perFoodTypeUrls?.[option.value] ||
                             settings.perFoodTypeLibraryUrls?.[option.value]
                         )}
-                        alt={`${option.label} selected`}
+                        alt={t('donorPhotoPreferences.selectedTypeAlt', {
+                          foodType: getFoodTypeLabel(option.value),
+                        })}
                         className="donor-photo-preview"
                       />
                       {pendingUploadByKey[option.value] && (
                         <span className="donor-photo-pending-badge">
-                          Pending approval
+                          {tx(
+                            'donorPhotoPreferences.pendingApproval',
+                            'Pending approval'
+                          )}
                         </span>
                       )}
                     </div>
@@ -401,7 +493,9 @@ export default function DonorPhotoPreferencesSection() {
                         >
                           <img
                             src={toAbsoluteImageUrl(item.url)}
-                            alt={`Library ${item.id}`}
+                            alt={t('donorPhotoPreferences.libraryImageAlt', {
+                              id: item.id,
+                            })}
                             className="donor-library-card-image donor-library-card-image-small"
                           />
                         </button>
@@ -419,11 +513,18 @@ export default function DonorPhotoPreferencesSection() {
             disabled={saving}
             style={{ marginTop: 12 }}
           >
-            {saving ? 'Saving...' : 'Save Photo Preferences'}
+            {saving
+              ? tx('donorPhotoPreferences.saving', 'Saving...')
+              : tx(
+                  'donorPhotoPreferences.saveButton',
+                  'Save Photo Preferences'
+                )}
           </button>
           <p className="input-help-text">
-            Note: uploaded donor images are reviewed by admin before showing on
-            receiver donation cards.
+            {tx(
+              'donorPhotoPreferences.note',
+              'Note: uploaded donor images are reviewed by admin before showing on receiver donation cards.'
+            )}
           </p>
         </div>
       )}
