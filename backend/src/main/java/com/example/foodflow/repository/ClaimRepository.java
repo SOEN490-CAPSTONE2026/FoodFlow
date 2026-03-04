@@ -53,4 +53,16 @@ public interface ClaimRepository extends JpaRepository<Claim, Long> {
         "c.status = com.example.foodflow.model.types.ClaimStatus.COMPLETED AND " +
         "(c.surplusPost.donor = :user OR c.receiver = :user)")
     List<Claim> findCompletedClaimsForUser(@Param("user") User user);
+    
+    /**
+     * Find all active/upcoming claims for a user (either as donor or receiver)
+     */
+    @Query("SELECT c FROM Claim c " +
+           "JOIN FETCH c.surplusPost sp " +
+           "JOIN FETCH sp.donor " +
+           "JOIN FETCH c.receiver " +
+           "WHERE c.status = com.example.foodflow.model.types.ClaimStatus.ACTIVE " +
+           "AND (sp.donor = :user OR c.receiver = :user) " +
+           "ORDER BY c.confirmedPickupDate ASC, c.confirmedPickupStartTime ASC")
+    List<Claim> findActiveClaimsForUser(@Param("user") User user);
 }

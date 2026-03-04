@@ -430,6 +430,33 @@ export const profileAPI = {
   update: data => api.put('/profile', data),
 };
 
+export const imageAPI = {
+  upload: (file, options = {}, onProgress) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (options.foodType) {
+      formData.append('foodType', options.foodType);
+    }
+    if (options.donationId) {
+      formData.append('donationId', options.donationId);
+    }
+    return api.post('/images/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      onUploadProgress: onProgress,
+    });
+  },
+};
+
+export const imageLibraryAPI = {
+  list: (activeOnly = true) =>
+    api.get('/images/library', { params: { activeOnly } }),
+};
+
+export const donorPhotoSettingsAPI = {
+  get: () => api.get('/donor/settings/photos'),
+  update: payload => api.put('/donor/settings/photos', payload),
+};
+
 /**
  * Report/Dispute API functions
  */
@@ -648,6 +675,37 @@ export const adminVerificationAPI = {
     }),
 };
 
+export const adminImageAPI = {
+  getLibrary: (activeOnly = false) =>
+    api.get('/admin/image-library', { params: { activeOnly } }),
+  addLibraryItem: payload => {
+    const formData = new FormData();
+    if (payload.file) {
+      formData.append('file', payload.file);
+    }
+    if (payload.imageUrl) {
+      formData.append('imageUrl', payload.imageUrl);
+    }
+    if (payload.foodType) {
+      formData.append('foodType', payload.foodType);
+    }
+    if (payload.active !== undefined) {
+      formData.append('active', payload.active);
+    }
+    return api.post('/admin/image-library', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+  deleteLibraryItem: id => api.delete(`/admin/image-library/${id}`),
+  patchLibraryItem: (id, active) =>
+    api.patch(`/admin/image-library/${id}`, { active }),
+  getUploads: status =>
+    api.get('/admin/uploads/images', { params: { status } }),
+  moderateUpload: (id, payload) =>
+    api.patch(`/admin/uploads/images/${id}`, payload),
+  deleteUpload: id => api.delete(`/admin/uploads/images/${id}`),
+};
+
 /**
  * Maps frontend food categories to backend enum values.
  * @param {string} frontendCategory - Frontend category name
@@ -705,6 +763,65 @@ export const rateLimitAPI = {
   getUserStatus: () => {
     return api.get('/admin/my-rate-limit');
   },
+};
+
+// Calendar API
+export const calendarAPI = {
+  /**
+   * Get calendar integration status
+   */
+  getStatus: () => api.get('/calendar/status'),
+
+  /**
+   * Initiate calendar connection (gets OAuth URL)
+   */
+  initiateConnection: provider =>
+    api.post('/calendar/connect', { calendarProvider: provider }),
+
+  /**
+   * Handle OAuth callback
+   */
+  handleOAuthCallback: (code, state) =>
+    api.get('/calendar/oauth/google/callback', {
+      params: { code, state },
+    }),
+
+  /**
+   * Disconnect calendar
+   */
+  disconnect: provider =>
+    api.post('/calendar/disconnect', null, {
+      params: { provider },
+    }),
+
+  /**
+   * Get sync preferences
+   */
+  getPreferences: () => api.get('/calendar/preferences'),
+
+  /**
+   * Update sync preferences
+   */
+  updatePreferences: preferences =>
+    api.put('/calendar/preferences', preferences),
+
+  /**
+   * Get synced events
+   */
+  getEvents: () => api.get('/calendar/events'),
+
+  /**
+   * Trigger manual sync
+   */
+  sync: () => api.post('/calendar/sync'),
+
+  /**
+   * Test calendar connection
+   */
+  testConnection: provider =>
+    api.post('/calendar/test', null, {
+      params: { provider },
+    }),
 };
 
 // Impact Dashboard API

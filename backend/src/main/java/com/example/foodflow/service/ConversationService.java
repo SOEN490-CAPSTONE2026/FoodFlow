@@ -50,6 +50,9 @@ public class ConversationService {
 
     @Autowired
     private NotificationPreferenceService notificationPreferenceService;
+    
+    @Autowired(required = false)
+    private DonationImageResolverService donationImageResolverService;
 
     
     /**
@@ -73,7 +76,10 @@ public class ConversationService {
                     currentUser.getId()
                 );
                 
-                return new ConversationResponse(conv, currentUser, lastMessagePreview, unreadCount, true);
+                return enrichConversationResponse(
+                    new ConversationResponse(conv, currentUser, lastMessagePreview, unreadCount, true),
+                    conv
+                );
             })
             .collect(Collectors.toList());
     }
@@ -125,7 +131,10 @@ public class ConversationService {
             conversationRepository.save(conversation);
         }
         
-        return new ConversationResponse(conversation, currentUser, lastMessagePreview, unreadCount, conversationAlreadyExists);
+        return enrichConversationResponse(
+            new ConversationResponse(conversation, currentUser, lastMessagePreview, unreadCount, conversationAlreadyExists),
+            conversation
+        );
     }
     
     /**
@@ -163,7 +172,10 @@ public class ConversationService {
             currentUser.getId()
         );
         
-        return new ConversationResponse(conversation, currentUser, lastMessagePreview, unreadCount, true);
+        return enrichConversationResponse(
+            new ConversationResponse(conversation, currentUser, lastMessagePreview, unreadCount, true),
+            conversation
+        );
     }
 
     /**
@@ -187,7 +199,10 @@ public class ConversationService {
             currentUser.getId()
         );
         
-        return new ConversationResponse(conversation, currentUser, lastMessagePreview, unreadCount, true);
+        return enrichConversationResponse(
+            new ConversationResponse(conversation, currentUser, lastMessagePreview, unreadCount, true),
+            conversation
+        );
     }
 
      /**
@@ -238,7 +253,10 @@ public class ConversationService {
             currentUser.getId()
         );
         
-        return new ConversationResponse(conversation, currentUser, lastMessagePreview, unreadCount, true);
+        return enrichConversationResponse(
+            new ConversationResponse(conversation, currentUser, lastMessagePreview, unreadCount, true),
+            conversation
+        );
     }
 
     /**
@@ -302,7 +320,12 @@ public class ConversationService {
             // Notify donor via WebSocket
             try {
                 com.example.foodflow.model.dto.ConversationResponse notificationPayload =
-                    new com.example.foodflow.model.dto.ConversationResponse(conversation, donor, lastMessagePreview, 1L, false);
+                    enrichConversationResponse(
+                        new com.example.foodflow.model.dto.ConversationResponse(
+                            conversation, donor, lastMessagePreview, 1L, false
+                        ),
+                        conversation
+                    );
                 messagingTemplate.convertAndSendToUser(
                     donor.getId().toString(),
                     "/queue/messages",
@@ -348,6 +371,25 @@ public class ConversationService {
             }
         }
 
-        return new ConversationResponse(conversation, receiver, lastMessagePreview, unreadCount, alreadyExists);
+        return enrichConversationResponse(
+            new ConversationResponse(conversation, receiver, lastMessagePreview, unreadCount, alreadyExists),
+            conversation
+        );
+    }
+
+    private ConversationResponse enrichConversationResponse(ConversationResponse response, Conversation conversation) {
+        if (response == null || conversation == null || conversation.getSurplusPost() == null) {
+            return response;
+        }
+        if (donationImageResolverService != null && conversation.getSurplusPost().getDonor() != null) {
+            response.setResolvedDonationImageUrl(
+                donationImageResolverService.resolveDonationImageUrl(
+                    conversation.getSurplusPost().getDonor(),
+                    conversation.getSurplusPost().getFoodType(),
+                    conversation.getSurplusPost().getId()
+                )
+            );
+        }
+        return response;
     }
 }

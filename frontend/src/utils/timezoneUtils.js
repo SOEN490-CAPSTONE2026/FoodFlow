@@ -32,6 +32,7 @@ export const formatTimeInTimezone = (timestamp, userTimezone = 'UTC') => {
       timeZone: userTimezone,
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error formatting time:', error);
     // Fallback - just parse normally
     const date = new Date(timestamp);
@@ -63,6 +64,7 @@ export const formatDateInTimezone = (timestamp, userTimezone = 'UTC') => {
       timeZone: userTimezone,
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error formatting date:', error);
     const date = new Date(timestamp);
     return date.toLocaleDateString('en-US', {
@@ -111,6 +113,7 @@ export const getDateSeparatorInTimezone = (timestamp, userTimezone = 'UTC') => {
       return formatDateInTimezone(timestamp, userTimezone);
     }
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error getting date separator:', error);
     return formatDateInTimezone(timestamp, userTimezone);
   }
@@ -148,6 +151,7 @@ export const areDifferentDaysInTimezone = (
 
     return date1InUserTz.getTime() !== date2InUserTz.getTime();
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error comparing dates:', error);
     return true;
   }

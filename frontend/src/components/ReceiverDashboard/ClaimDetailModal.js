@@ -46,6 +46,27 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
   const [expressingInterest, setExpressingInterest] = useState(false);
   const navigate = useNavigate();
   const { userTimezone } = useTimezone();
+  const getImageUrl = imageUrl => {
+    if (!imageUrl) {
+      return null;
+    }
+    if (
+      imageUrl.startsWith('http://') ||
+      imageUrl.startsWith('https://') ||
+      imageUrl.startsWith('data:')
+    ) {
+      return imageUrl;
+    }
+    const apiBaseUrl =
+      process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+    const backendBaseUrl = apiBaseUrl.endsWith('/api')
+      ? apiBaseUrl.slice(0, -4)
+      : apiBaseUrl.replace(/\/api$/, '');
+    if (imageUrl.startsWith('/api/files/')) {
+      return `${backendBaseUrl}${imageUrl}`;
+    }
+    return `${backendBaseUrl}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+  };
 
   // Reset timeline state when modal closes or claim changes
   useEffect(() => {
@@ -200,6 +221,7 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
           <div className="claimed-modal-header">
             <img
               src={
+                getImageUrl(post?.resolvedDonationImageUrl) ||
                 foodTypeImages[getPrimaryFoodCategory(post?.foodCategories)] ||
                 foodTypeImages['Prepared Meals']
               }

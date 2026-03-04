@@ -41,6 +41,24 @@ class FileControllerTest {
         mockMvc.perform(get("/api/files/uploads/legacy-file.jpg"))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    void serveDonationImageFile_ValidPath_ShouldAttemptToServe() throws Exception {
+        mockMvc.perform(get("/api/files/donation-images/approved.jpg"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void serveDonationImageFileInDonorFolder_ValidPath_ShouldAttemptToServe() throws Exception {
+        mockMvc.perform(get("/api/files/donation-images/donor-7/image.jpg"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void serveInternalLibraryImageFile_ValidPath_ShouldAttemptToServe() throws Exception {
+        mockMvc.perform(get("/api/files/internal-library/library.jpg"))
+                .andExpect(status().isNotFound());
+    }
     
     @Test
     void serveEvidenceFile_WithSpecialCharacters_ShouldHandle() throws Exception {
