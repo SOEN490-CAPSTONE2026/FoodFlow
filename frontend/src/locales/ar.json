@@ -38,14 +38,6 @@
     "enterEmail": "أدخل عنوان بريدك الإلكتروني"
   },
   "forgotPasswordPage": {
-    "backToLogin": "العودة إلى تسجيل الدخول",
-    "subtitle": "لا تقلق! يُرجى اختيار الطريقة التي تود استلام رمز التحقق OTP عبرها. بعد إدخال الرمز، ستتمكن من إعادة تعيين كلمة المرور.",
-    "methodEmailTitle": "البريد الإلكتروني",
-    "methodEmailSubtitle": "استلام رابط إعادة التعيين عبر البريد الإلكتروني",
-    "methodSmsTitle": "رسالة نصية",
-    "methodSmsSubtitle": "استلام رمز عبر رسالة نصية"
-  },
-  "forgotPasswordPage": {
     "backToLogin": "العودة الى تسجيل الدخول",
     "subtitle": "لا تقلق. اختر كيف تريد استلام رمز OTP. بعد ادخال الرمز يمكنك اعادة تعيين كلمة المرور.",
     "methodEmailTitle": "البريد الالكتروني",
@@ -268,6 +260,23 @@
     "minLength": "الحد الأدنى {{count}} أحرف مطلوبة",
     "maxLength": "الحد الأقصى {{count}} حرف مسموح",
     "pattern": "تنسيق غير صالح"
+  },
+  "passwordValidation": {
+    "required": "كلمة المرور مطلوبة",
+    "minLength": "يجب أن تتكون كلمة المرور من 10 أحرف على الأقل",
+    "uppercase": "يجب أن تحتوي كلمة المرور على حرف كبير واحد على الأقل",
+    "lowercase": "يجب أن تحتوي كلمة المرور على حرف صغير واحد على الأقل",
+    "digit": "يجب أن تحتوي كلمة المرور على رقم واحد على الأقل",
+    "specialCharacter": "يجب أن تحتوي كلمة المرور على رمز خاص واحد على الأقل (!@#$%^&*()_+-=[]{}|;:,.<>?)",
+    "commonPassword": "كلمة المرور هذه شائعة جدًا. يرجى اختيار كلمة مرور أكثر أمانًا",
+    "policy": {
+      "minLength": "10 أحرف على الأقل",
+      "uppercase": "حرف كبير واحد على الأقل (A-Z)",
+      "lowercase": "حرف صغير واحد على الأقل (a-z)",
+      "digit": "رقم واحد على الأقل (0-9)",
+      "specialCharacter": "رمز خاص واحد على الأقل (!@#$%^&*()_+-=[]{}|;:,.<>?)",
+      "commonPassword": "عدم استخدام كلمة مرور شائعة"
+    }
   },
   "toast": {
     "saved": "تم الحفظ",
@@ -1884,6 +1893,119 @@
         "unsupportedType": "نوع ملف غير مدعوم. استخدم JPG أو PNG أو HEIC.",
         "fileTooLarge": "حجم الملف يتجاوز 5 ميجابايت. اختر صورة أصغر."
       }
+    }
+  },
+  "adminWelcome": {
+    "title": "مرحبًا",
+    "description": "هذه هي صفحة الترحيب الخاصة بالإدارة."
+  },
+  "adminHelp": {
+    "title": "المساعدة"
+  },
+  "adminCalendar": {
+    "title": "التقويم"
+  },
+  "adminAnalytics": {
+    "title": "تحليلات الامتثال لسلامة الغذاء",
+    "subtitle": "راقب الامتثال لدرجات الحرارة والتغليف عبر جميع التبرعات",
+    "loading": "جارٍ تحميل بيانات الامتثال...",
+    "temperatureCategories": "فئات درجات الحرارة",
+    "packagingTypes": "أنواع التغليف",
+    "noTemperatureData": "لا توجد بيانات درجات حرارة متاحة",
+    "noPackagingData": "لا توجد بيانات تغليف متاحة",
+    "totalAnalyzed": "إجمالي التبرعات التي تم تحليلها:",
+    "errors": {
+      "loadFailed": "تعذر تحميل بيانات الامتثال"
+    }
+  },
+  "adminDisputes": {
+    "loading": "جارٍ تحميل النزاعات...",
+    "allCases": "جميع الحالات",
+    "searchPlaceholder": "ابحث في الحالات...",
+    "emptyTitle": "لم يتم العثور على حالات",
+    "emptyDescription": "لا توجد نزاعات تطابق عوامل التصفية الحالية.",
+    "userTypes": {
+      "donor": "متبرع",
+      "receiver": "مستلم"
+    },
+    "status": {
+      "open": "مفتوح",
+      "underReview": "قيد المراجعة",
+      "resolved": "تم الحل",
+      "closed": "مغلق"
+    },
+    "stats": {
+      "totalCases": "إجمالي الحالات",
+      "resolvedToday": "تم حلها اليوم",
+      "avgResolution": "متوسط الحل",
+      "avgResolutionValue": "{{count}} يوم"
+    },
+    "table": {
+      "caseId": "معرّف الحالة",
+      "reporter": "المبلّغ",
+      "reportedUser": "المستخدم المُبلّغ عنه",
+      "donationId": "معرّف التبرع",
+      "created": "تاريخ الإنشاء",
+      "status": "الحالة",
+      "action": "الإجراء",
+      "view": "عرض"
+    },
+    "errors": {
+      "loadFailed": "حدث خطأ أثناء تحميل النزاعات"
+    }
+  },
+  "adminDisputeDetail": {
+    "notAvailable": "غير متاح",
+    "backToDisputes": "العودة إلى النزاعات",
+    "caseNotFound": "الحالة غير موجودة",
+    "caseTitle": "الحالة {{caseId}}",
+    "createdOn": "تم الإنشاء في {{date}} الساعة {{time}}",
+    "saveStatusChange": "حفظ تغيير الحالة",
+    "statusHint": "تتطلب تغييرات الحالة تأكيدًا",
+    "actionsHint": "جميع الإجراءات خاصة بالمسؤولين فقط وغير مرئية لمستخدمي المنصة.",
+    "resolutionHint": "يجب وضع علامة تم الحل على الحالة قبل إغلاقها",
+    "labels": {
+      "caseId": "معرّف الحالة",
+      "createdDate": "تاريخ الإنشاء",
+      "createdTime": "وقت الإنشاء",
+      "name": "الاسم",
+      "userId": "معرّف المستخدم",
+      "donationId": "معرّف التبرع",
+      "currentStatus": "الحالة الحالية",
+      "updateStatus": "تحديث الحالة"
+    },
+    "sections": {
+      "caseInformation": "معلومات الحالة",
+      "reporter": "المبلّغ",
+      "reportedUser": "المستخدم المُبلّغ عنه",
+      "relatedDonation": "التبرع المرتبط",
+      "reportDescription": "وصف البلاغ",
+      "caseStatus": "حالة القضية",
+      "adminActions": "إجراءات إدارية",
+      "caseResolution": "حل القضية"
+    },
+    "actions": {
+      "deactivateUser": "إلغاء تفعيل حساب المستخدم",
+      "overrideDonation": "تجاوز حالة التبرع",
+      "flagUser": "وضع علامة للمراجعة على المستخدم",
+      "closeCase": "إغلاق الحالة"
+    },
+    "alerts": {
+      "statusAlreadySet": "تم تعيين الحالة بالفعل إلى {{status}}",
+      "statusUpdated": "تم تحديث الحالة بنجاح",
+      "updateFailed": "فشل تحديث الحالة: {{message}}",
+      "deactivateRequested": "تم طلب إلغاء تفعيل حساب المستخدم",
+      "overrideDonation": "تجاوز حالة التبرع",
+      "userFlagged": "تم وضع علامة للمراجعة على المستخدم",
+      "mustResolveBeforeClose": "يجب وضع علامة تم الحل على الحالة قبل إغلاقها"
+    },
+    "confirm": {
+      "changeStatus": "هل أنت متأكد أنك تريد تغيير الحالة إلى \"{{status}}\"؟",
+      "deactivateUser": "هل أنت متأكد أنك تريد إلغاء تفعيل حساب هذا المستخدم؟",
+      "closeCase": "هل أنت متأكد أنك تريد إغلاق هذه الحالة؟"
+    },
+    "errors": {
+      "loadFailed": "تعذر تحميل تفاصيل الحالة"
     }
   }
 }
