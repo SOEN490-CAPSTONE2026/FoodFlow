@@ -9,6 +9,10 @@ import {
 import '@testing-library/jest-dom';
 import ReportUserModal from '../components/ReportUserModal';
 
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({ t: key => key }),
+}));
+
 // Mock URL.createObjectURL
 global.URL.createObjectURL = jest.fn(
   () => 'blob:http://localhost/mock-blob-url'
@@ -42,7 +46,7 @@ describe('ReportUserModal', () => {
       />
     );
 
-    expect(screen.queryByText('Report User')).not.toBeInTheDocument();
+    expect(screen.queryByText('reportUserModal.title')).not.toBeInTheDocument();
   });
 
   test('renders modal when isOpen is true', () => {
@@ -56,8 +60,8 @@ describe('ReportUserModal', () => {
       />
     );
 
-    expect(screen.getByText('Report User')).toBeInTheDocument();
-    expect(screen.getByText(/You are reporting/)).toBeInTheDocument();
+    expect(screen.getByText('reportUserModal.title')).toBeInTheDocument();
+    expect(screen.getByText(/reportUserModal\.infoPrefix/)).toBeInTheDocument();
     expect(screen.getByText('John Doe')).toBeInTheDocument();
   });
 
@@ -73,7 +77,7 @@ describe('ReportUserModal', () => {
     );
 
     expect(
-      screen.getByText(/This report will be linked to the donation/)
+      screen.getByText(/reportUserModal\.donationLinked/)
     ).toBeInTheDocument();
   });
 
@@ -89,7 +93,7 @@ describe('ReportUserModal', () => {
     );
 
     expect(
-      screen.queryByText(/This report will be linked to the donation/)
+      screen.queryByText(/reportUserModal\.donationLinked/)
     ).not.toBeInTheDocument();
   });
 
@@ -104,7 +108,7 @@ describe('ReportUserModal', () => {
       />
     );
 
-    expect(screen.getByText('this user')).toBeInTheDocument();
+    expect(screen.getByText('reportUserModal.thisUser')).toBeInTheDocument();
   });
 
   test('updates description when typing', () => {
@@ -119,7 +123,7 @@ describe('ReportUserModal', () => {
     );
 
     const textarea = screen.getByPlaceholderText(
-      'Please describe what happened...'
+      'reportUserModal.descriptionPlaceholder'
     );
     fireEvent.change(textarea, { target: { value: 'Test description' } });
 
@@ -138,7 +142,7 @@ describe('ReportUserModal', () => {
     );
 
     const textarea = screen.getByPlaceholderText(
-      'Please describe what happened...'
+      'reportUserModal.descriptionPlaceholder'
     );
     fireEvent.change(textarea, { target: { value: 'Test' } });
 
@@ -164,7 +168,7 @@ describe('ReportUserModal', () => {
     fireEvent.change(fileInput, { target: { files: [file] } });
 
     expect(
-      screen.getByText('Photo size must be less than 5MB')
+      screen.getByText('reportUserModal.photoTooLarge')
     ).toBeInTheDocument();
   });
 
@@ -224,7 +228,9 @@ describe('ReportUserModal', () => {
     mockFileReader.onloadend();
 
     await waitFor(() => {
-      expect(screen.getByAltText('Evidence preview')).toBeInTheDocument();
+      expect(
+        screen.getByAltText('reportUserModal.evidencePreviewAlt')
+      ).toBeInTheDocument();
     });
   });
 
@@ -254,14 +260,20 @@ describe('ReportUserModal', () => {
     mockFileReader.onloadend();
 
     await waitFor(() => {
-      expect(screen.getByAltText('Evidence preview')).toBeInTheDocument();
+      expect(
+        screen.getByAltText('reportUserModal.evidencePreviewAlt')
+      ).toBeInTheDocument();
     });
 
-    const removeButton = screen.getByRole('button', { name: /Remove/i });
+    const removeButton = screen.getByRole('button', {
+      name: /reportUserModal\.removePhoto/i,
+    });
     fireEvent.click(removeButton);
 
-    expect(screen.queryByAltText('Evidence preview')).not.toBeInTheDocument();
-    expect(screen.getByText('Click to upload photo')).toBeInTheDocument();
+    expect(
+      screen.queryByAltText('reportUserModal.evidencePreviewAlt')
+    ).not.toBeInTheDocument();
+    expect(screen.getByText('reportUserModal.uploadPrompt')).toBeInTheDocument();
   });
 
   test('shows error when submitting without description', async () => {
@@ -276,7 +288,7 @@ describe('ReportUserModal', () => {
     );
 
     const textarea = screen.getByPlaceholderText(
-      'Please describe what happened...'
+      'reportUserModal.descriptionPlaceholder'
     );
     const form = textarea.closest('form');
 
@@ -285,7 +297,7 @@ describe('ReportUserModal', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('Please provide a description')
+        screen.getByText('reportUserModal.descriptionRequired')
       ).toBeInTheDocument();
     });
     expect(mockOnSubmit).not.toHaveBeenCalled();
@@ -302,7 +314,7 @@ describe('ReportUserModal', () => {
       />
     );
 
-    const submitButton = screen.getByText('Submit Report');
+    const submitButton = screen.getByText('reportUserModal.submit');
     expect(submitButton).toBeDisabled();
   });
 
@@ -318,11 +330,11 @@ describe('ReportUserModal', () => {
     );
 
     const textarea = screen.getByPlaceholderText(
-      'Please describe what happened...'
+      'reportUserModal.descriptionPlaceholder'
     );
     fireEvent.change(textarea, { target: { value: 'Test description' } });
 
-    const submitButton = screen.getByText('Submit Report');
+    const submitButton = screen.getByText('reportUserModal.submit');
     expect(submitButton).not.toBeDisabled();
   });
 
@@ -340,13 +352,13 @@ describe('ReportUserModal', () => {
     );
 
     const textarea = screen.getByPlaceholderText(
-      'Please describe what happened...'
+      'reportUserModal.descriptionPlaceholder'
     );
     fireEvent.change(textarea, {
       target: { value: 'Test report description' },
     });
 
-    const submitButton = screen.getByText('Submit Report');
+    const submitButton = screen.getByText('reportUserModal.submit');
     fireEvent.click(submitButton);
 
     await waitFor(() => {
@@ -375,11 +387,11 @@ describe('ReportUserModal', () => {
     );
 
     const textarea = screen.getByPlaceholderText(
-      'Please describe what happened...'
+      'reportUserModal.descriptionPlaceholder'
     );
     fireEvent.change(textarea, { target: { value: 'Test description' } });
 
-    const submitButton = screen.getByText('Submit Report');
+    const submitButton = screen.getByText('reportUserModal.submit');
     fireEvent.click(submitButton);
 
     await waitFor(() => {
@@ -403,16 +415,16 @@ describe('ReportUserModal', () => {
     );
 
     const textarea = screen.getByPlaceholderText(
-      'Please describe what happened...'
+      'reportUserModal.descriptionPlaceholder'
     );
     fireEvent.change(textarea, { target: { value: 'Test description' } });
 
-    const submitButton = screen.getByText('Submit Report');
+    const submitButton = screen.getByText('reportUserModal.submit');
     fireEvent.click(submitButton);
 
     await waitFor(() => {
       expect(
-        screen.getByText('Failed to submit report. Please try again.')
+        screen.getByText('reportUserModal.submitFailed')
       ).toBeInTheDocument();
     });
   });
@@ -433,14 +445,14 @@ describe('ReportUserModal', () => {
     );
 
     const textarea = screen.getByPlaceholderText(
-      'Please describe what happened...'
+      'reportUserModal.descriptionPlaceholder'
     );
     fireEvent.change(textarea, { target: { value: 'Test description' } });
 
-    const submitButton = screen.getByText('Submit Report');
+    const submitButton = screen.getByText('reportUserModal.submit');
     fireEvent.click(submitButton);
 
-    expect(screen.getByText('Submitting...')).toBeInTheDocument();
+    expect(screen.getByText('reportUserModal.submitting')).toBeInTheDocument();
     expect(submitButton).toBeDisabled();
   });
 
@@ -472,7 +484,7 @@ describe('ReportUserModal', () => {
       />
     );
 
-    const cancelButton = screen.getByText('Cancel');
+    const cancelButton = screen.getByText('reportUserModal.cancel');
     fireEvent.click(cancelButton);
 
     expect(mockOnClose).toHaveBeenCalled();
@@ -526,11 +538,11 @@ describe('ReportUserModal', () => {
     );
 
     const textarea = screen.getByPlaceholderText(
-      'Please describe what happened...'
+      'reportUserModal.descriptionPlaceholder'
     );
     fireEvent.change(textarea, { target: { value: 'Test description' } });
 
-    const submitButton = screen.getByText('Submit Report');
+    const submitButton = screen.getByText('reportUserModal.submit');
     fireEvent.click(submitButton);
 
     await waitFor(() => {
@@ -549,7 +561,7 @@ describe('ReportUserModal', () => {
     );
 
     const newTextarea = screen.getByPlaceholderText(
-      'Please describe what happened...'
+      'reportUserModal.descriptionPlaceholder'
     );
     expect(newTextarea).toHaveValue('');
   });
@@ -583,7 +595,7 @@ describe('ReportUserModal', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('Photo size must be less than 5MB')
+        screen.getByText('reportUserModal.photoTooLarge')
       ).toBeInTheDocument();
     });
 
@@ -594,7 +606,7 @@ describe('ReportUserModal', () => {
 
     await waitFor(() => {
       expect(
-        screen.queryByText('Photo size must be less than 5MB')
+        screen.queryByText('reportUserModal.photoTooLarge')
       ).not.toBeInTheDocument();
     });
   });
@@ -615,14 +627,14 @@ describe('ReportUserModal', () => {
     );
 
     const textarea = screen.getByPlaceholderText(
-      'Please describe what happened...'
+      'reportUserModal.descriptionPlaceholder'
     );
     fireEvent.change(textarea, { target: { value: 'Test description' } });
 
-    const submitButton = screen.getByText('Submit Report');
+    const submitButton = screen.getByText('reportUserModal.submit');
     fireEvent.click(submitButton);
 
-    const cancelButton = screen.getByText('Cancel');
+    const cancelButton = screen.getByText('reportUserModal.cancel');
     expect(cancelButton).toBeDisabled();
     expect(submitButton).toBeDisabled();
   });
