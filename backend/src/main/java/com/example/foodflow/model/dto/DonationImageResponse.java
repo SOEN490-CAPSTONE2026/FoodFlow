@@ -8,6 +8,8 @@ import java.time.LocalDateTime;
 public class DonationImageResponse {
     private Long id;
     private Long donorId;
+    private String donorName;
+    private String donorEmail;
     private Long donationId;
     private FoodType foodType;
     private String url;
@@ -34,6 +36,22 @@ public class DonationImageResponse {
 
     public void setDonorId(Long donorId) {
         this.donorId = donorId;
+    }
+
+    public String getDonorName() {
+        return donorName;
+    }
+
+    public void setDonorName(String donorName) {
+        this.donorName = donorName;
+    }
+
+    public String getDonorEmail() {
+        return donorEmail;
+    }
+
+    public void setDonorEmail(String donorEmail) {
+        this.donorEmail = donorEmail;
     }
 
     public Long getDonationId() {

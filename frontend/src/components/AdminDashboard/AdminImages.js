@@ -142,6 +142,14 @@ export default function AdminImages() {
                       </span>
                     </div>
                     <div className="admin-image-meta-row">
+                      <span className="admin-image-meta-label">Donor</span>
+                      <span className="admin-image-meta-value">
+                        {item.donorName ||
+                          item.donorEmail ||
+                          (item.donorId ? `#${item.donorId}` : '-')}
+                      </span>
+                    </div>
+                    <div className="admin-image-meta-row">
                       <span className="admin-image-meta-label">Status</span>
                       <span
                         className={`admin-image-status admin-image-status-${(item.status || '').toLowerCase()}`}

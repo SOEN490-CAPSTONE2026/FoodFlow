@@ -170,6 +170,14 @@ public class DonationImageService {
         DonationImageResponse response = new DonationImageResponse();
         response.setId(image.getId());
         response.setDonorId(image.getDonor() != null ? image.getDonor().getId() : null);
+        if (image.getDonor() != null) {
+            String donorName = image.getDonor().getFullName();
+            if ((donorName == null || donorName.isBlank()) && image.getDonor().getOrganization() != null) {
+                donorName = image.getDonor().getOrganization().getName();
+            }
+            response.setDonorName(donorName);
+            response.setDonorEmail(image.getDonor().getEmail());
+        }
         response.setDonationId(image.getDonation() != null ? image.getDonation().getId() : null);
         response.setFoodType(image.getFoodType());
         response.setUrl(image.getUrl());
