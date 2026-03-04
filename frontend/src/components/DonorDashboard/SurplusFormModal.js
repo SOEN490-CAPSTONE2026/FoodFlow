@@ -319,16 +319,28 @@ const SurplusFormModal = ({
         setError(t('surplusForm.errors.requiresStreetAddress'));
         setFormData(prev => ({
           ...prev,
-          pickupLocation: { latitude: '', longitude: '', address: '' },
+          pickupLocation: {
+            latitude: '',
+            longitude: '',
+            address: '',
+            country: '',
+          },
         }));
         return;
       }
 
-      // Valid address - set location
+      // Extract country from address components (full country name)
+      const countryComponent = place.address_components?.find(component =>
+        component.types.includes('country')
+      );
+      const country = countryComponent?.long_name || null;
+
+      // Valid address - set location with country
       const location = {
         latitude: place.geometry.location.lat(),
         longitude: place.geometry.location.lng(),
         address: place.formatted_address || place.name || '',
+        country: country,
       };
       setFormData(prev => ({ ...prev, pickupLocation: location }));
       setError(''); // Clear any previous errors

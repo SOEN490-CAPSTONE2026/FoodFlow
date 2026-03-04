@@ -24,6 +24,7 @@ import com.example.foodflow.model.types.DietaryTag;
 import com.example.foodflow.model.types.FoodCategory;
 import com.example.foodflow.model.types.ClaimStatus;
 import com.example.foodflow.model.types.FoodType;
+import com.example.foodflow.model.types.Location;
 import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.repository.ClaimRepository;
 import com.example.foodflow.repository.DonationTimelineRepository;
@@ -814,17 +815,22 @@ public class SurplusService {
 
     /**
      * Search surplus posts for a receiver with times converted to their timezone.
+     * Also applies country-based filtering to only show donations from the same country.
      * 
      * @param filterRequest Filter criteria
-     * @param receiver      The receiver user (for timezone conversion)
-     * @return List of surplus posts with times in receiver's timezone
+     * @param receiver      The receiver user (for timezone conversion and country filtering)
+     * @return List of surplus posts with times in receiver's timezone, filtered by country
      */
     public List<SurplusResponse> searchSurplusPostsForReceiver(SurplusFilterRequest filterRequest, User receiver) {
         Specification<SurplusPost> specification = buildSpecificationFromFilter(filterRequest);
 
-        List<SurplusPost> posts = applyReceiverPrioritization(
-                applyPostFiltersAndSort(surplusPostRepository.findAll(specification), filterRequest),
-                filterRequest);
+        List<SurplusPost> posts = applyPostFiltersAndSort(surplusPostRepository.findAll(specification), filterRequest);
+        
+        // Apply country-based filtering (only show donations from same country)
+        posts = applyCountryFilter(posts, receiver);
+        
+        // Apply receiver prioritization (expiring soon first, etc.)
+        posts = applyReceiverPrioritization(posts, filterRequest);
 
         String receiverTimezone = receiver != null && receiver.getTimezone() != null
                 ? receiver.getTimezone()
@@ -948,6 +954,95 @@ public class SurplusService {
         return nonExpired.stream()
                 .sorted(comparator)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Apply country-based filtering to only show donations from the same country.
+     * Extracts country from receiver's organization address.
+     * If receiver has no country set, or donation has no country, allow (permissive).
+     * Only filters out donations from DIFFERENT countries.
+     */
+    private List<SurplusPost> applyCountryFilter(List<SurplusPost> posts, User receiver) {
+        // Extract country from receiver's organization address
+        String receiverCountryRaw = extractCountryFromOrganization(receiver);
+        
+        // If receiver has no country, show all donations (permissive)
+        if (receiverCountryRaw == null || receiverCountryRaw.trim().isEmpty()) {
+            logger.debug("Receiver {} has no country set (org address: {}), showing all donations", 
+                       receiver.getId(), 
+                       receiver.getOrganization() != null ? receiver.getOrganization().getAddress() : "null");
+            return posts;
+        }
+
+        final String receiverCountry = receiverCountryRaw.trim();
+        logger.debug("Applying country filter for receiver {} with country: {} (extracted from org address)", 
+                   receiver.getId(), receiverCountry);
+
+        return posts.stream()
+                .filter(post -> {
+                    Location pickupLocation = post.getPickupLocation();
+                    if (pickupLocation == null || pickupLocation.getCountry() == null 
+                            || pickupLocation.getCountry().trim().isEmpty()) {
+                        // If donation has no country, allow it (permissive for legacy data)
+                        logger.debug("Post {} has no country, allowing", post.getId());
+                        return true;
+                    }
+
+                    String postCountry = pickupLocation.getCountry().trim();
+                    boolean sameCountry = isSameCountry(receiverCountry, postCountry);
+                    
+                    if (!sameCountry) {
+                        logger.debug("Filtering out post {} - receiver country: {}, post country: {}", 
+                                   post.getId(), receiverCountry, postCountry);
+                    } else {
+                        logger.debug("Including post {} - countries match: {}", post.getId(), receiverCountry);
+                    }
+                    
+                    return sameCountry;
+                })
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * Extract country from user's organization address.
+     * Assumes address format: "street, city, province/state, postal, Country"
+     * Returns the text after the last comma, trimmed.
+     * 
+     * @param user The user whose organization address to parse
+     * @return Country name, or null if not found
+     */
+    private String extractCountryFromOrganization(User user) {
+        if (user == null || user.getOrganization() == null) {
+            return null;
+        }
+        
+        String address = user.getOrganization().getAddress();
+        if (address == null || address.trim().isEmpty()) {
+            return null;
+        }
+        
+        // Find the last comma and extract everything after it
+        int lastCommaIndex = address.lastIndexOf(',');
+        if (lastCommaIndex >= 0 && lastCommaIndex < address.length() - 1) {
+            String country = address.substring(lastCommaIndex + 1).trim();
+            logger.debug("Extracted country '{}' from address '{}' for user {}", 
+                       country, address, user.getId());
+            return country;
+        }
+        
+        logger.debug("Could not extract country from address '{}' for user {}", address, user.getId());
+        return null;
+    }
+
+    /**
+     * Helper method to compare two country codes/names.
+     * Performs case-insensitive comparison.
+     */
+    private boolean isSameCountry(String country1, String country2) {
+        if (country1 == null || country2 == null) {
+            return true; // Permissive if either is null
+        }
+        return country1.equalsIgnoreCase(country2);
     }
 
     private boolean matchesDietaryTags(String[] postDietaryTags, Set<String> requestedTags, DietaryMatchMode mode) {
