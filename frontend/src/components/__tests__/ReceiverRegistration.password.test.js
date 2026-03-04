@@ -28,23 +28,38 @@ const renderWithContext = component =>
 describe('ReceiverRegistration - Password Validation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    authAPI.checkEmailExists = jest.fn().mockResolvedValue({ data: { exists: false } });
-    authAPI.checkPhoneExists = jest.fn().mockResolvedValue({ data: { exists: false } });
+    authAPI.checkEmailExists = jest
+      .fn()
+      .mockResolvedValue({ data: { exists: false } });
+    authAPI.checkPhoneExists = jest
+      .fn()
+      .mockResolvedValue({ data: { exists: false } });
   });
 
   test('accepts typing weak password in key-based field', () => {
     renderWithContext(<ReceiverRegistration />);
-    const passwordInput = screen.getByPlaceholderText('receiverRegistration.passwordPlaceholder');
+    const passwordInput = screen.getByPlaceholderText(
+      'receiverRegistration.passwordPlaceholder'
+    );
     fireEvent.change(passwordInput, { target: { value: 'weak' } });
-    expect(screen.getByLabelText('receiverRegistration.passwordLabel')).toHaveValue('weak');
+    expect(
+      screen.getByLabelText('receiverRegistration.passwordLabel')
+    ).toHaveValue('weak');
   });
 
   test('shows key error when passwords do not match', () => {
     renderWithContext(<ReceiverRegistration />);
-    fireEvent.change(screen.getByPlaceholderText('receiverRegistration.passwordPlaceholder'), { target: { value: 'SecurePass123!' } });
-    const confirm = screen.getByPlaceholderText('receiverRegistration.confirmPasswordPlaceholder');
+    fireEvent.change(
+      screen.getByPlaceholderText('receiverRegistration.passwordPlaceholder'),
+      { target: { value: 'SecurePass123!' } }
+    );
+    const confirm = screen.getByPlaceholderText(
+      'receiverRegistration.confirmPasswordPlaceholder'
+    );
     fireEvent.change(confirm, { target: { value: 'DifferentPass456!' } });
     fireEvent.blur(confirm);
-    expect(screen.getByText('receiverRegistration.passwordMismatch')).toBeInTheDocument();
+    expect(
+      screen.getByText('receiverRegistration.passwordMismatch')
+    ).toBeInTheDocument();
   });
 });

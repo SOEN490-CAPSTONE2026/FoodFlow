@@ -14,8 +14,16 @@ global.navigator.geolocation = mockGeolocation;
 describe('RegionSelector', () => {
   const mockOnChange = jest.fn();
   const mockCountriesData = [
-    { name: { common: 'Canada' }, cca2: 'CA', timezones: ['America/Toronto', 'America/Vancouver'] },
-    { name: { common: 'United States' }, cca2: 'US', timezones: ['America/New_York'] },
+    {
+      name: { common: 'Canada' },
+      cca2: 'CA',
+      timezones: ['America/Toronto', 'America/Vancouver'],
+    },
+    {
+      name: { common: 'United States' },
+      cca2: 'US',
+      timezones: ['America/New_York'],
+    },
   ];
 
   beforeEach(() => {
@@ -25,18 +33,24 @@ describe('RegionSelector', () => {
 
   test('renders loading key initially', () => {
     render(<RegionSelector value={{}} onChange={mockOnChange} />);
-    expect(screen.getByText('regionSelector.loadingCountries')).toBeInTheDocument();
+    expect(
+      screen.getByText('regionSelector.loadingCountries')
+    ).toBeInTheDocument();
   });
 
   test('opens country dropdown with key placeholder', async () => {
     render(<RegionSelector value={{}} onChange={mockOnChange} />);
 
     await waitFor(() => {
-      expect(screen.queryByText('regionSelector.loadingCountries')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('regionSelector.loadingCountries')
+      ).not.toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByText('regionSelector.selectCountry'));
-    expect(screen.getByPlaceholderText('regionSelector.searchCountries')).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText('regionSelector.searchCountries')
+    ).toBeInTheDocument();
   });
 
   test('shows detect location key button', () => {

@@ -44,9 +44,13 @@ describe('AdminVerificationQueue', () => {
   });
 
   test('renders loading key', () => {
-    adminVerificationAPI.getPendingUsers.mockImplementation(() => new Promise(() => {}));
+    adminVerificationAPI.getPendingUsers.mockImplementation(
+      () => new Promise(() => {})
+    );
     render(<AdminVerificationQueue />);
-    expect(screen.getByText('adminVerificationQueue.loading')).toBeInTheDocument();
+    expect(
+      screen.getByText('adminVerificationQueue.loading')
+    ).toBeInTheDocument();
   });
 
   test('renders key-based filters and data', async () => {
@@ -54,8 +58,12 @@ describe('AdminVerificationQueue', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Food Bank Alpha')).toBeInTheDocument();
-      expect(screen.getByPlaceholderText('adminVerificationQueue.searchPlaceholder')).toBeInTheDocument();
-      expect(screen.getByText('adminVerificationQueue.stats.totalPending')).toBeInTheDocument();
+      expect(
+        screen.getByPlaceholderText('adminVerificationQueue.searchPlaceholder')
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText('adminVerificationQueue.stats.totalPending')
+      ).toBeInTheDocument();
     });
   });
 
@@ -63,9 +71,13 @@ describe('AdminVerificationQueue', () => {
     render(<AdminVerificationQueue />);
     await screen.findByText('Food Bank Alpha');
 
-    const approveButtons = screen.getAllByTitle('adminVerificationQueue.actions.approve');
+    const approveButtons = screen.getAllByTitle(
+      'adminVerificationQueue.actions.approve'
+    );
     fireEvent.click(approveButtons[0]);
 
-    expect(await screen.findByText('adminVerificationQueue.modals.approval.title')).toBeInTheDocument();
+    expect(
+      await screen.findByText('adminVerificationQueue.modals.approval.title')
+    ).toBeInTheDocument();
   });
 });

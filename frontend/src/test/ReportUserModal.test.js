@@ -273,7 +273,9 @@ describe('ReportUserModal', () => {
     expect(
       screen.queryByAltText('reportUserModal.evidencePreviewAlt')
     ).not.toBeInTheDocument();
-    expect(screen.getByText('reportUserModal.uploadPrompt')).toBeInTheDocument();
+    expect(
+      screen.getByText('reportUserModal.uploadPrompt')
+    ).toBeInTheDocument();
   });
 
   test('shows error when submitting without description', async () => {

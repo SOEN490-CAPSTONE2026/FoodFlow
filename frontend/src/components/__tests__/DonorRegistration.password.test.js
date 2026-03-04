@@ -28,23 +28,38 @@ const renderWithContext = component =>
 describe('DonorRegistration - Password Validation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    authAPI.checkEmailExists = jest.fn().mockResolvedValue({ data: { exists: false } });
-    authAPI.checkPhoneExists = jest.fn().mockResolvedValue({ data: { exists: false } });
+    authAPI.checkEmailExists = jest
+      .fn()
+      .mockResolvedValue({ data: { exists: false } });
+    authAPI.checkPhoneExists = jest
+      .fn()
+      .mockResolvedValue({ data: { exists: false } });
   });
 
   test('accepts typing weak password in key-based field', () => {
     renderWithContext(<DonorRegistration />);
-    const passwordInput = screen.getByPlaceholderText('donorRegistration.passwordPlaceholder');
+    const passwordInput = screen.getByPlaceholderText(
+      'donorRegistration.passwordPlaceholder'
+    );
     fireEvent.change(passwordInput, { target: { value: 'weak' } });
-    expect(screen.getByLabelText('donorRegistration.passwordLabel')).toHaveValue('weak');
+    expect(
+      screen.getByLabelText('donorRegistration.passwordLabel')
+    ).toHaveValue('weak');
   });
 
   test('shows key error when passwords do not match', () => {
     renderWithContext(<DonorRegistration />);
-    fireEvent.change(screen.getByPlaceholderText('donorRegistration.passwordPlaceholder'), { target: { value: 'SecurePass123!' } });
-    const confirm = screen.getByPlaceholderText('donorRegistration.confirmPasswordPlaceholder');
+    fireEvent.change(
+      screen.getByPlaceholderText('donorRegistration.passwordPlaceholder'),
+      { target: { value: 'SecurePass123!' } }
+    );
+    const confirm = screen.getByPlaceholderText(
+      'donorRegistration.confirmPasswordPlaceholder'
+    );
     fireEvent.change(confirm, { target: { value: 'DifferentPass456!' } });
     fireEvent.blur(confirm);
-    expect(screen.getByText('donorRegistration.passwordMismatch')).toBeInTheDocument();
+    expect(
+      screen.getByText('donorRegistration.passwordMismatch')
+    ).toBeInTheDocument();
   });
 });

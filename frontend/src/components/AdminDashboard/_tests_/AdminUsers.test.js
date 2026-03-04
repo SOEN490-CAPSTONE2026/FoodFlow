@@ -27,7 +27,9 @@ jest.mock('react-select', () => {
         data-testid={props.placeholder}
         value={props.value?.value ?? ''}
         onChange={e => {
-          const selected = props.options.find(opt => opt.value === e.target.value);
+          const selected = props.options.find(
+            opt => opt.value === e.target.value
+          );
           props.onChange(selected);
         }}
       >
@@ -132,7 +134,9 @@ describe('AdminUsers', () => {
       expect(screen.getByText('John Donor')).toBeInTheDocument();
     });
 
-    const searchInput = screen.getByPlaceholderText('adminUsers.searchPlaceholder');
+    const searchInput = screen.getByPlaceholderText(
+      'adminUsers.searchPlaceholder'
+    );
     fireEvent.change(searchInput, { target: { value: 'Jane' } });
 
     act(() => {
@@ -148,7 +152,9 @@ describe('AdminUsers', () => {
   test('applies role filter via API params', async () => {
     render(<AdminUsers />);
 
-    await waitFor(() => expect(screen.getByText('John Donor')).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText('John Donor')).toBeInTheDocument()
+    );
 
     fireEvent.change(screen.getByTestId('adminUsers.filters.allRoles'), {
       target: { value: 'DONOR' },
@@ -167,7 +173,9 @@ describe('AdminUsers', () => {
   test('applies status filter via API params', async () => {
     render(<AdminUsers />);
 
-    await waitFor(() => expect(screen.getByText('John Donor')).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText('John Donor')).toBeInTheDocument()
+    );
 
     fireEvent.change(screen.getByTestId('adminUsers.filters.allStatus'), {
       target: { value: 'ACTIVE' },
@@ -186,7 +194,9 @@ describe('AdminUsers', () => {
   test('resets filters', async () => {
     render(<AdminUsers />);
 
-    await waitFor(() => expect(screen.getByText('John Donor')).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText('John Donor')).toBeInTheDocument()
+    );
     const resetButton = await screen.findByRole('button', {
       name: 'adminUsers.filters.reset',
     });
@@ -212,7 +222,9 @@ describe('AdminUsers', () => {
     render(<AdminUsers />);
 
     await waitFor(() => {
-      expect(screen.getByText('adminUsers.errors.loadFailed')).toBeInTheDocument();
+      expect(
+        screen.getByText('adminUsers.errors.loadFailed')
+      ).toBeInTheDocument();
     });
   });
 
@@ -228,12 +240,16 @@ describe('AdminUsers', () => {
   test('opens deactivate modal and requires reason', async () => {
     render(<AdminUsers />);
 
-    await waitFor(() => expect(screen.getByText('John Donor')).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText('John Donor')).toBeInTheDocument()
+    );
 
     fireEvent.click(screen.getAllByTitle('adminUsers.actions.deactivate')[0]);
 
     await waitFor(() => {
-      expect(screen.getByText('adminUsers.modals.deactivate.title')).toBeInTheDocument();
+      expect(
+        screen.getByText('adminUsers.modals.deactivate.title')
+      ).toBeInTheDocument();
     });
 
     const modalTitle = screen.getByText('adminUsers.modals.deactivate.title');
@@ -245,14 +261,18 @@ describe('AdminUsers', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('adminUsers.notifications.reasonRequired')).toBeInTheDocument();
+      expect(
+        screen.getByText('adminUsers.notifications.reasonRequired')
+      ).toBeInTheDocument();
     });
   });
 
   test('deactivates user with reason', async () => {
     render(<AdminUsers />);
 
-    await waitFor(() => expect(screen.getByText('John Donor')).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText('John Donor')).toBeInTheDocument()
+    );
 
     fireEvent.click(screen.getAllByTitle('adminUsers.actions.deactivate')[0]);
 
@@ -260,12 +280,16 @@ describe('AdminUsers', () => {
     const modalRoot = modal.closest('.modal-content');
 
     fireEvent.change(
-      within(modalRoot).getByPlaceholderText('adminUsers.modals.deactivate.placeholder'),
+      within(modalRoot).getByPlaceholderText(
+        'adminUsers.modals.deactivate.placeholder'
+      ),
       { target: { value: 'Policy violation' } }
     );
 
     fireEvent.click(
-      within(modalRoot).getByRole('button', { name: 'adminUsers.actions.deactivate' })
+      within(modalRoot).getByRole('button', {
+        name: 'adminUsers.actions.deactivate',
+      })
     );
 
     await waitFor(() => {
@@ -274,7 +298,9 @@ describe('AdminUsers', () => {
         { adminNotes: 'Policy violation' },
         expect.any(Object)
       );
-      expect(screen.getByText('adminUsers.notifications.deactivated')).toBeInTheDocument();
+      expect(
+        screen.getByText('adminUsers.notifications.deactivated')
+      ).toBeInTheDocument();
     });
   });
 
@@ -287,11 +313,15 @@ describe('AdminUsers', () => {
 
     fireEvent.click(screen.getByTitle('adminUsers.actions.reactivate'));
 
-    const modalTitle = await screen.findByText('adminUsers.modals.reactivate.title');
+    const modalTitle = await screen.findByText(
+      'adminUsers.modals.reactivate.title'
+    );
     const modalRoot = modalTitle.closest('.modal-content');
 
     fireEvent.click(
-      within(modalRoot).getByRole('button', { name: 'adminUsers.actions.reactivate' })
+      within(modalRoot).getByRole('button', {
+        name: 'adminUsers.actions.reactivate',
+      })
     );
 
     await waitFor(() => {
@@ -300,29 +330,41 @@ describe('AdminUsers', () => {
         {},
         expect.any(Object)
       );
-      expect(screen.getByText('adminUsers.notifications.reactivated')).toBeInTheDocument();
+      expect(
+        screen.getByText('adminUsers.notifications.reactivated')
+      ).toBeInTheDocument();
     });
   });
 
   test('opens alert modal and sends custom alert', async () => {
     render(<AdminUsers />);
 
-    await waitFor(() => expect(screen.getByText('John Donor')).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText('John Donor')).toBeInTheDocument()
+    );
 
     fireEvent.click(screen.getAllByTitle('adminUsers.actions.sendAlert')[0]);
 
     const alertTitle = await screen.findByText('adminUsers.modals.alert.title');
     const modalRoot = alertTitle.closest('.modal-content');
 
-    fireEvent.click(within(modalRoot).getByText('adminUsers.alertTypes.custom').closest('label'));
+    fireEvent.click(
+      within(modalRoot)
+        .getByText('adminUsers.alertTypes.custom')
+        .closest('label')
+    );
 
     fireEvent.change(
-      within(modalRoot).getByPlaceholderText('adminUsers.modals.alert.customPlaceholder'),
+      within(modalRoot).getByPlaceholderText(
+        'adminUsers.modals.alert.customPlaceholder'
+      ),
       { target: { value: 'Important message' } }
     );
 
     fireEvent.click(
-      within(modalRoot).getByRole('button', { name: 'adminUsers.actions.sendAlert' })
+      within(modalRoot).getByRole('button', {
+        name: 'adminUsers.actions.sendAlert',
+      })
     );
 
     await waitFor(() => {
@@ -331,18 +373,22 @@ describe('AdminUsers', () => {
         { message: 'Important message' },
         expect.any(Object)
       );
-      expect(screen.getByText('adminUsers.notifications.alertSent')).toBeInTheDocument();
+      expect(
+        screen.getByText('adminUsers.notifications.alertSent')
+      ).toBeInTheDocument();
     });
   });
 
   test('expands row and fetches user rating once', async () => {
     render(<AdminUsers />);
 
-    await waitFor(() => expect(screen.getByText('John Donor')).toBeInTheDocument());
-
-    const expandButtons = screen.getAllByRole('button').filter(btn =>
-      btn.className.includes('expand-btn')
+    await waitFor(() =>
+      expect(screen.getByText('John Donor')).toBeInTheDocument()
     );
+
+    const expandButtons = screen
+      .getAllByRole('button')
+      .filter(btn => btn.className.includes('expand-btn'));
 
     fireEvent.click(expandButtons[0]);
 

@@ -10,7 +10,9 @@ jest.mock('react-i18next', () => ({
 describe('AdminWelcome', () => {
   test('renders key-based heading and description', () => {
     render(<AdminWelcome />);
-    expect(screen.getByRole('heading', { level: 2, name: 'adminWelcome.title' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'adminWelcome.title' })
+    ).toBeInTheDocument();
     expect(screen.getByText('adminWelcome.description')).toBeInTheDocument();
   });
 });

@@ -74,10 +74,14 @@ describe('AIDonationForm', () => {
     const user = userEvent.setup();
     renderComponent();
 
-    await user.click(screen.getByRole('button', { name: 'aiDonation.backToDashboard' }));
+    await user.click(
+      screen.getByRole('button', { name: 'aiDonation.backToDashboard' })
+    );
     expect(mockNavigate).toHaveBeenCalledWith('/donor/dashboard');
 
-    await user.click(screen.getByRole('button', { name: 'aiDonation.upload.manualEntry' }));
+    await user.click(
+      screen.getByRole('button', { name: 'aiDonation.upload.manualEntry' })
+    );
     expect(mockNavigate).toHaveBeenCalledWith('/donor/list');
   });
 

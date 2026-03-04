@@ -47,7 +47,9 @@ describe('AdminDisputeDetail', () => {
   });
 
   test('renders loading key', () => {
-    adminDisputeAPI.getDisputeById.mockImplementation(() => new Promise(() => {}));
+    adminDisputeAPI.getDisputeById.mockImplementation(
+      () => new Promise(() => {})
+    );
     renderComponent();
     expect(screen.getByText('common.loading')).toBeInTheDocument();
   });
@@ -57,9 +59,15 @@ describe('AdminDisputeDetail', () => {
     renderComponent();
 
     await waitFor(() => {
-      expect(screen.getByText('adminDisputeDetail.sections.caseInformation')).toBeInTheDocument();
-      expect(screen.getByText('adminDisputeDetail.saveStatusChange')).toBeInTheDocument();
-      expect(screen.getByText('adminDisputeDetail.actions.closeCase')).toBeInTheDocument();
+      expect(
+        screen.getByText('adminDisputeDetail.sections.caseInformation')
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText('adminDisputeDetail.saveStatusChange')
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText('adminDisputeDetail.actions.closeCase')
+      ).toBeInTheDocument();
       expect(screen.getByText('John Doe')).toBeInTheDocument();
     });
   });

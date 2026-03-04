@@ -7,12 +7,15 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: key => key }),
 }));
 
-const renderWithRouter = component => render(<BrowserRouter>{component}</BrowserRouter>);
+const renderWithRouter = component =>
+  render(<BrowserRouter>{component}</BrowserRouter>);
 
 describe('ReceiverHelp', () => {
   test('renders key-based sections', () => {
     renderWithRouter(<ReceiverHelp />);
-    expect(screen.getByText('receiverHelp.gettingStarted.title')).toBeInTheDocument();
+    expect(
+      screen.getByText('receiverHelp.gettingStarted.title')
+    ).toBeInTheDocument();
     expect(screen.getByText('receiverHelp.faq.title')).toBeInTheDocument();
     expect(screen.getByText('receiverHelp.support.title')).toBeInTheDocument();
   });
@@ -21,6 +24,8 @@ describe('ReceiverHelp', () => {
     renderWithRouter(<ReceiverHelp />);
     const question = screen.getByText('receiverHelp.faq.items.q1.question');
     fireEvent.click(question);
-    expect(screen.getByText('receiverHelp.faq.items.q1.answer')).toBeInTheDocument();
+    expect(
+      screen.getByText('receiverHelp.faq.items.q1.answer')
+    ).toBeInTheDocument();
   });
 });

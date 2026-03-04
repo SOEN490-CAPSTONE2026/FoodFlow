@@ -42,7 +42,9 @@ describe('AdminAnalytics', () => {
     render(<AdminAnalytics />);
 
     await waitFor(() => {
-      expect(screen.getByText('adminAnalytics.totalAnalyzed')).toBeInTheDocument();
+      expect(
+        screen.getByText('adminAnalytics.totalAnalyzed')
+      ).toBeInTheDocument();
     });
   });
 });

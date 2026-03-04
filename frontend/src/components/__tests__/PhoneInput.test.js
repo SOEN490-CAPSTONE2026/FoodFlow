@@ -63,7 +63,10 @@ describe('PhoneInput', () => {
 
     await user.type(input, '1234567');
     await user.click(screen.getByRole('button', { name: /\+1/i }));
-    await user.type(screen.getByPlaceholderText('phoneInput.searchCountry'), 'france');
+    await user.type(
+      screen.getByPlaceholderText('phoneInput.searchCountry'),
+      'france'
+    );
     await user.click(screen.getByRole('button', { name: /france/i }));
 
     expect(onChange).toHaveBeenLastCalledWith('+331234567');
@@ -85,7 +88,8 @@ describe('PhoneInput', () => {
 
     rerender(<PhoneInput value="" onChange={jest.fn()} disabled />);
     expect(screen.getByRole('button', { name: /\+1/i })).toBeDisabled();
-    expect(screen.getByPlaceholderText('phoneInput.placeholder')).toBeDisabled();
+    expect(
+      screen.getByPlaceholderText('phoneInput.placeholder')
+    ).toBeDisabled();
   });
 });
-

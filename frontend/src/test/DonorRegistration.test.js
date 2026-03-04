@@ -8,7 +8,8 @@ import { MemoryRouter } from 'react-router-dom';
 import DonorRegistration from '../components/DonorRegistration';
 
 jest.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: key => key }), initReactI18next: { type: '3rdParty', init: () => {} },
+  useTranslation: () => ({ t: key => key }),
+  initReactI18next: { type: '3rdParty', init: () => {} },
 }));
 
 jest.mock('../assets/illustrations/donor-illustration.jpg', () => 'donor.jpg');
@@ -17,7 +18,11 @@ jest.mock('../style/Registration.css', () => ({}), { virtual: true });
 const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => {
   const actual = jest.requireActual('react-router-dom');
-  return { ...actual, useNavigate: () => mockNavigate, MemoryRouter: actual.MemoryRouter };
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+    MemoryRouter: actual.MemoryRouter,
+  };
 });
 
 jest.mock('../services/api', () => ({
@@ -39,7 +44,9 @@ const mockAuthContextValue = {
 const renderWithAuth = component =>
   render(
     <MemoryRouter>
-      <AuthContext.Provider value={mockAuthContextValue}>{component}</AuthContext.Provider>
+      <AuthContext.Provider value={mockAuthContextValue}>
+        {component}
+      </AuthContext.Provider>
     </MemoryRouter>
   );
 
@@ -52,34 +59,62 @@ describe('DonorRegistration', () => {
 
   test('renders key-based step 1 fields', () => {
     renderWithAuth(<DonorRegistration />);
-    expect(screen.getByLabelText('donorRegistration.emailLabel')).toBeInTheDocument();
-    expect(screen.getByLabelText('donorRegistration.passwordLabel')).toBeInTheDocument();
-    expect(screen.getByLabelText('donorRegistration.confirmPasswordLabel')).toBeInTheDocument();
+    expect(
+      screen.getByLabelText('donorRegistration.emailLabel')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText('donorRegistration.passwordLabel')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText('donorRegistration.confirmPasswordLabel')
+    ).toBeInTheDocument();
   });
 
   test('shows password mismatch key', async () => {
     const user = userEvent.setup();
     renderWithAuth(<DonorRegistration />);
 
-    await user.type(screen.getByLabelText('donorRegistration.emailLabel'), 'donor@example.com');
-    await user.type(screen.getByLabelText('donorRegistration.passwordLabel'), 'SecurePass123!');
-    await user.type(screen.getByLabelText('donorRegistration.confirmPasswordLabel'), 'WrongPass123!');
+    await user.type(
+      screen.getByLabelText('donorRegistration.emailLabel'),
+      'donor@example.com'
+    );
+    await user.type(
+      screen.getByLabelText('donorRegistration.passwordLabel'),
+      'SecurePass123!'
+    );
+    await user.type(
+      screen.getByLabelText('donorRegistration.confirmPasswordLabel'),
+      'WrongPass123!'
+    );
     await user.click(screen.getByText('donorRegistration.nextButtonText'));
 
-    expect(await screen.findByText('donorRegistration.passwordMismatch')).toBeInTheDocument();
+    expect(
+      await screen.findByText('donorRegistration.passwordMismatch')
+    ).toBeInTheDocument();
   });
 
   test('progresses to next step with valid step 1', async () => {
     const user = userEvent.setup();
     renderWithAuth(<DonorRegistration />);
 
-    await user.type(screen.getByLabelText('donorRegistration.emailLabel'), 'donor@example.com');
-    await user.type(screen.getByLabelText('donorRegistration.passwordLabel'), 'SecurePass123!');
-    await user.type(screen.getByLabelText('donorRegistration.confirmPasswordLabel'), 'SecurePass123!');
+    await user.type(
+      screen.getByLabelText('donorRegistration.emailLabel'),
+      'donor@example.com'
+    );
+    await user.type(
+      screen.getByLabelText('donorRegistration.passwordLabel'),
+      'SecurePass123!'
+    );
+    await user.type(
+      screen.getByLabelText('donorRegistration.confirmPasswordLabel'),
+      'SecurePass123!'
+    );
     await user.click(screen.getByText('donorRegistration.nextButtonText'));
 
     await waitFor(() => {
-      expect(screen.getByLabelText('donorRegistration.organizationNameLabel')).toBeInTheDocument();
+      expect(
+        screen.getByLabelText('donorRegistration.organizationNameLabel')
+      ).toBeInTheDocument();
     });
   });
 });

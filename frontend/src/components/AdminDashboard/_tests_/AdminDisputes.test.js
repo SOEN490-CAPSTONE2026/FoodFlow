@@ -43,24 +43,34 @@ describe('AdminDisputes', () => {
     );
 
   test('renders loading key', () => {
-    adminDisputeAPI.getAllDisputes.mockImplementation(() => new Promise(() => {}));
+    adminDisputeAPI.getAllDisputes.mockImplementation(
+      () => new Promise(() => {})
+    );
     renderComponent();
     expect(screen.getByText('adminDisputes.loading')).toBeInTheDocument();
   });
 
   test('renders key-based table and search', async () => {
-    adminDisputeAPI.getAllDisputes.mockResolvedValue({ data: { content: disputes } });
+    adminDisputeAPI.getAllDisputes.mockResolvedValue({
+      data: { content: disputes },
+    });
     renderComponent();
 
     await waitFor(() => {
-      expect(screen.getAllByText('adminDisputes.allCases').length).toBeGreaterThan(0);
-      expect(screen.getByPlaceholderText('adminDisputes.searchPlaceholder')).toBeInTheDocument();
+      expect(
+        screen.getAllByText('adminDisputes.allCases').length
+      ).toBeGreaterThan(0);
+      expect(
+        screen.getByPlaceholderText('adminDisputes.searchPlaceholder')
+      ).toBeInTheDocument();
       expect(screen.getByText('John Donor')).toBeInTheDocument();
     });
   });
 
   test('filters by key tab', async () => {
-    adminDisputeAPI.getAllDisputes.mockResolvedValue({ data: { content: disputes } });
+    adminDisputeAPI.getAllDisputes.mockResolvedValue({
+      data: { content: disputes },
+    });
     renderComponent();
 
     await screen.findByText('John Donor');

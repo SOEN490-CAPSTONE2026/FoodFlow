@@ -1,5 +1,11 @@
 import React from 'react';
-import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
+import {
+  render,
+  screen,
+  waitFor,
+  fireEvent,
+  act,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
 import { signInWithPhoneNumber } from 'firebase/auth';
@@ -314,9 +320,7 @@ describe('ForgotPassword', () => {
     });
   });
 
-  test(
-    'password form validations and successful reset navigate to login',
-    async () => {
+  test('password form validations and successful reset navigate to login', async () => {
     const user = userEvent.setup();
     renderWithRouter(<ForgotPassword />);
 
@@ -368,12 +372,13 @@ describe('ForgotPassword', () => {
     expect(
       screen.getByText('forgotPasswordPage.resetSuccessTitle')
     ).toBeInTheDocument();
-      await waitFor(() => {
+    await waitFor(
+      () => {
         expect(mockNavigate).toHaveBeenCalledWith('/login', { replace: true });
-      }, { timeout: 4000 });
-    },
-    15000
-  );
+      },
+      { timeout: 4000 }
+    );
+  }, 15000);
 
   test('shows backend field error for reset password failure', async () => {
     const user = userEvent.setup();

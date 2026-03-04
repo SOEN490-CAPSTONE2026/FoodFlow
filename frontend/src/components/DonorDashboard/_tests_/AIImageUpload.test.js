@@ -45,8 +45,12 @@ describe('AIImageUpload', () => {
     renderComponent();
     expect(screen.getByText('aiDonation.upload.title')).toBeInTheDocument();
     expect(screen.getByText('aiDonation.upload.subtitle')).toBeInTheDocument();
-    expect(screen.getByText('aiDonation.upload.chooseFile')).toBeInTheDocument();
-    expect(screen.getByText('aiDonation.upload.manualEntry')).toBeInTheDocument();
+    expect(
+      screen.getByText('aiDonation.upload.chooseFile')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('aiDonation.upload.manualEntry')
+    ).toBeInTheDocument();
   });
 
   test('calls onManualEntry when manual button is clicked', async () => {
@@ -102,7 +106,9 @@ describe('AIImageUpload', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('aiDonation.upload.selectedFile')).toBeInTheDocument();
+      expect(
+        screen.getByText('aiDonation.upload.selectedFile')
+      ).toBeInTheDocument();
       expect(screen.getByText('test.jpg')).toBeInTheDocument();
       expect(screen.getByAltText('Label preview')).toBeInTheDocument();
     });
@@ -160,8 +166,12 @@ describe('AIImageUpload', () => {
     await user.click(removeButton);
 
     await waitFor(() => {
-      expect(screen.queryByText('aiDonation.upload.selectedFile')).not.toBeInTheDocument();
-      expect(screen.getByText('aiDonation.upload.dragAndDrop')).toBeInTheDocument();
+      expect(
+        screen.queryByText('aiDonation.upload.selectedFile')
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getByText('aiDonation.upload.dragAndDrop')
+      ).toBeInTheDocument();
     });
   });
 
