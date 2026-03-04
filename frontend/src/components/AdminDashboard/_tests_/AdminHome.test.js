@@ -16,6 +16,17 @@ jest.mock('react-i18next', () => ({
       if (key === 'admin.welcomeBack') {
         return `Welcome back, ${params.name}`;
       }
+      const map = {
+        'adminHome.quickActions.title': 'Quick Actions',
+        'adminHome.quickActions.userManagement.title': 'User Management',
+        'adminHome.quickActions.reviewDonations.title': 'Review Donations',
+        'adminHome.stats.totalUsers': 'Total Users',
+        'adminHome.stats.totalDonations': 'Total Donations',
+        'adminHome.stats.ongoingClaims': 'Ongoing Claims',
+      };
+      if (map[key]) {
+        return map[key];
+      }
       return key;
     },
   }),
