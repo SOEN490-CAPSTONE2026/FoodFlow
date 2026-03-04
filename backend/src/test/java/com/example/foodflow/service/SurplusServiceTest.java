@@ -2234,5 +2234,322 @@ class SurplusServiceTest {
                 .hasMessageContaining("Evidence can only be uploaded for claimed");
     }
 
+    // ==================== Tests for Country Filtering ====================
+
+    @Test
+    void testSearchSurplusPostsForReceiver_FiltersPostsByReceiverCountry() {
+        // Given - receiver in Canada
+        Organization receiverOrg = new Organization();
+        receiverOrg.setId(2L);
+        receiverOrg.setName("Food Bank");
+        receiverOrg.setAddress("456 Main St, Toronto, ON, M5H 2N2, Canada");
+        receiverOrg.setOrganizationType(OrganizationType.FOOD_BANK);
+        receiver.setOrganization(receiverOrg);
+
+        // Post from Canada (should be included)
+        SurplusPost canadaPost = new SurplusPost();
+        canadaPost.setId(1L);
+        canadaPost.setDonor(donor);
+        canadaPost.setTitle("Canadian Food");
+        canadaPost.setStatus(PostStatus.AVAILABLE);
+        canadaPost.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        canadaPost.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        canadaPost.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC", "Canada"));
+        canadaPost.setExpiryDate(LocalDate.now().plusDays(2));
+        canadaPost.setPickupDate(LocalDate.now());
+        canadaPost.setPickupFrom(LocalTime.of(9, 0));
+        canadaPost.setPickupTo(LocalTime.of(17, 0));
+
+        // Post from USA (should be filtered out)
+        SurplusPost usaPost = new SurplusPost();
+        usaPost.setId(2L);
+        usaPost.setDonor(donor);
+        usaPost.setTitle("USA Food");
+        usaPost.setStatus(PostStatus.AVAILABLE);
+        usaPost.setFoodCategories(Set.of(FoodCategory.BAKERY_PASTRY));
+        usaPost.setQuantity(new Quantity(3.0, Quantity.Unit.KILOGRAM));
+        usaPost.setPickupLocation(new Location(40.7128, -74.0060, "New York, NY", "United States"));
+        usaPost.setExpiryDate(LocalDate.now().plusDays(1));
+        usaPost.setPickupDate(LocalDate.now());
+        usaPost.setPickupFrom(LocalTime.of(10, 0));
+        usaPost.setPickupTo(LocalTime.of(18, 0));
+
+        com.example.foodflow.model.dto.SurplusFilterRequest filterRequest = 
+                new com.example.foodflow.model.dto.SurplusFilterRequest();
+        filterRequest.setStatus(PostStatus.AVAILABLE.name());
+
+        when(surplusPostRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class)))
+                .thenReturn(Arrays.asList(canadaPost, usaPost));
+
+        // When
+        List<SurplusResponse> responses = surplusService.searchSurplusPostsForReceiver(filterRequest, receiver);
+
+        // Then - only Canadian post should be returned
+        assertThat(responses).hasSize(1);
+        assertThat(responses.get(0).getTitle()).isEqualTo("Canadian Food");
+        assertThat(responses.get(0).getPickupLocation().getCountry()).isEqualTo("Canada");
+    }
+
+    @Test
+    void testSearchSurplusPostsForReceiver_NoCountryOnReceiver_ShowsAllPosts() {
+        // Given - receiver with no country
+        Organization receiverOrg = new Organization();
+        receiverOrg.setId(2L);
+        receiverOrg.setName("Food Bank");
+        receiverOrg.setAddress("456 Main St"); // No country
+        receiverOrg.setOrganizationType(OrganizationType.FOOD_BANK);
+        receiver.setOrganization(receiverOrg);
+
+        SurplusPost canadaPost = new SurplusPost();
+        canadaPost.setId(1L);
+        canadaPost.setDonor(donor);
+        canadaPost.setTitle("Canadian Food");
+        canadaPost.setStatus(PostStatus.AVAILABLE);
+        canadaPost.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        canadaPost.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        canadaPost.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC", "Canada"));
+        canadaPost.setExpiryDate(LocalDate.now().plusDays(2));
+        canadaPost.setPickupDate(LocalDate.now());
+        canadaPost.setPickupFrom(LocalTime.of(9, 0));
+        canadaPost.setPickupTo(LocalTime.of(17, 0));
+
+        SurplusPost usaPost = new SurplusPost();
+        usaPost.setId(2L);
+        usaPost.setDonor(donor);
+        usaPost.setTitle("USA Food");
+        usaPost.setStatus(PostStatus.AVAILABLE);
+        usaPost.setFoodCategories(Set.of(FoodCategory.BAKERY_PASTRY));
+        usaPost.setQuantity(new Quantity(3.0, Quantity.Unit.KILOGRAM));
+        usaPost.setPickupLocation(new Location(40.7128, -74.0060, "New York, NY", "United States"));
+        usaPost.setExpiryDate(LocalDate.now().plusDays(1));
+        usaPost.setPickupDate(LocalDate.now());
+        usaPost.setPickupFrom(LocalTime.of(10, 0));
+        usaPost.setPickupTo(LocalTime.of(18, 0));
+
+        com.example.foodflow.model.dto.SurplusFilterRequest filterRequest = 
+                new com.example.foodflow.model.dto.SurplusFilterRequest();
+        filterRequest.setStatus(PostStatus.AVAILABLE.name());
+
+        when(surplusPostRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class)))
+                .thenReturn(Arrays.asList(canadaPost, usaPost));
+
+        // When
+        List<SurplusResponse> responses = surplusService.searchSurplusPostsForReceiver(filterRequest, receiver);
+
+        // Then - should show all posts (permissive)
+        assertThat(responses).hasSize(2);
+    }
+
+    @Test
+    void testSearchSurplusPostsForReceiver_NoCountryOnPost_PostIsIncluded() {
+        // Given - receiver in Canada
+        Organization receiverOrg = new Organization();
+        receiverOrg.setId(2L);
+        receiverOrg.setName("Food Bank");
+        receiverOrg.setAddress("456 Main St, Toronto, ON, M5H 2N2, Canada");
+        receiverOrg.setOrganizationType(OrganizationType.FOOD_BANK);
+        receiver.setOrganization(receiverOrg);
+
+        // Post without country (legacy data - should be included)
+        SurplusPost noCountryPost = new SurplusPost();
+        noCountryPost.setId(1L);
+        noCountryPost.setDonor(donor);
+        noCountryPost.setTitle("Legacy Food");
+        noCountryPost.setStatus(PostStatus.AVAILABLE);
+        noCountryPost.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        noCountryPost.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        noCountryPost.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC")); // No country
+        noCountryPost.setExpiryDate(LocalDate.now().plusDays(2));
+        noCountryPost.setPickupDate(LocalDate.now());
+        noCountryPost.setPickupFrom(LocalTime.of(9, 0));
+        noCountryPost.setPickupTo(LocalTime.of(17, 0));
+
+        com.example.foodflow.model.dto.SurplusFilterRequest filterRequest = 
+                new com.example.foodflow.model.dto.SurplusFilterRequest();
+        filterRequest.setStatus(PostStatus.AVAILABLE.name());
+
+        when(surplusPostRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class)))
+                .thenReturn(Collections.singletonList(noCountryPost));
+
+        // When
+        List<SurplusResponse> responses = surplusService.searchSurplusPostsForReceiver(filterRequest, receiver);
+
+        // Then - legacy post should be included (permissive)
+        assertThat(responses).hasSize(1);
+        assertThat(responses.get(0).getTitle()).isEqualTo("Legacy Food");
+    }
+
+    @Test
+    void testSearchSurplusPostsForReceiver_CaseInsensitiveCountryMatching() {
+        // Given - receiver in "Canada"
+        Organization receiverOrg = new Organization();
+        receiverOrg.setId(2L);
+        receiverOrg.setName("Food Bank");
+        receiverOrg.setAddress("456 Main St, Toronto, ON, M5H 2N2, Canada");
+        receiverOrg.setOrganizationType(OrganizationType.FOOD_BANK);
+        receiver.setOrganization(receiverOrg);
+
+        // Post with "CANADA" (different case)
+        SurplusPost canadaPost = new SurplusPost();
+        canadaPost.setId(1L);
+        canadaPost.setDonor(donor);
+        canadaPost.setTitle("CANADA Food");
+        canadaPost.setStatus(PostStatus.AVAILABLE);
+        canadaPost.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        canadaPost.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        canadaPost.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC", "CANADA")); // Uppercase
+        canadaPost.setExpiryDate(LocalDate.now().plusDays(2));
+        canadaPost.setPickupDate(LocalDate.now());
+        canadaPost.setPickupFrom(LocalTime.of(9, 0));
+        canadaPost.setPickupTo(LocalTime.of(17, 0));
+
+        com.example.foodflow.model.dto.SurplusFilterRequest filterRequest = 
+                new com.example.foodflow.model.dto.SurplusFilterRequest();
+        filterRequest.setStatus(PostStatus.AVAILABLE.name());
+
+        when(surplusPostRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class)))
+                .thenReturn(Collections.singletonList(canadaPost));
+
+        // When
+        List<SurplusResponse> responses = surplusService.searchSurplusPostsForReceiver(filterRequest, receiver);
+
+        // Then - should match despite case difference
+        assertThat(responses).hasSize(1);
+        assertThat(responses.get(0).getTitle()).isEqualTo("CANADA Food");
+    }
+
+    @Test
+    void testSearchSurplusPostsForReceiver_NullReceiver_ShowsAllPosts() {
+        // Given
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setTitle("Test Food");
+        post.setStatus(PostStatus.AVAILABLE);
+        post.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        post.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        post.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC", "Canada"));
+        post.setExpiryDate(LocalDate.now().plusDays(2));
+        post.setPickupDate(LocalDate.now());
+        post.setPickupFrom(LocalTime.of(9, 0));
+        post.setPickupTo(LocalTime.of(17, 0));
+
+        com.example.foodflow.model.dto.SurplusFilterRequest filterRequest = 
+                new com.example.foodflow.model.dto.SurplusFilterRequest();
+        filterRequest.setStatus(PostStatus.AVAILABLE.name());
+
+        when(surplusPostRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class)))
+                .thenReturn(Collections.singletonList(post));
+
+        // When - null receiver (e.g., in tests)
+        List<SurplusResponse> responses = surplusService.searchSurplusPostsForReceiver(filterRequest, null);
+
+        // Then - should not filter by country
+        assertThat(responses).hasSize(1);
+        assertThat(responses.get(0).getTitle()).isEqualTo("Test Food");
+    }
+
+    @Test
+    void testSearchSurplusPostsForReceiver_NoOrganization_ShowsAllPosts() {
+        // Given - receiver without organization
+        User receiverWithoutOrg = new User();
+        receiverWithoutOrg.setId(2L);
+        receiverWithoutOrg.setEmail("receiver@test.com");
+        receiverWithoutOrg.setRole(UserRole.RECEIVER);
+        receiverWithoutOrg.setOrganization(null); // No organization
+
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setTitle("Test Food");
+        post.setStatus(PostStatus.AVAILABLE);
+        post.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        post.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        post.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC", "Canada"));
+        post.setExpiryDate(LocalDate.now().plusDays(2));
+        post.setPickupDate(LocalDate.now());
+        post.setPickupFrom(LocalTime.of(9, 0));
+        post.setPickupTo(LocalTime.of(17, 0));
+
+        com.example.foodflow.model.dto.SurplusFilterRequest filterRequest = 
+                new com.example.foodflow.model.dto.SurplusFilterRequest();
+        filterRequest.setStatus(PostStatus.AVAILABLE.name());
+
+        when(surplusPostRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class)))
+                .thenReturn(Collections.singletonList(post));
+
+        // When
+        List<SurplusResponse> responses = surplusService.searchSurplusPostsForReceiver(filterRequest, receiverWithoutOrg);
+
+        // Then - should not filter by country (permissive)
+        assertThat(responses).hasSize(1);
+        assertThat(responses.get(0).getTitle()).isEqualTo("Test Food");
+    }
+
+    @Test
+    void testSearchSurplusPostsForReceiver_MultiplePostsDifferentCountries() {
+        // Given - receiver in Canada
+        Organization receiverOrg = new Organization();
+        receiverOrg.setId(2L);
+        receiverOrg.setName("Food Bank");
+        receiverOrg.setAddress("456 Main St, Toronto, ON, M5H 2N2, Canada");
+        receiverOrg.setOrganizationType(OrganizationType.FOOD_BANK);
+        receiver.setOrganization(receiverOrg);
+
+        SurplusPost canadaPost1 = new SurplusPost();
+        canadaPost1.setId(1L);
+        canadaPost1.setDonor(donor);
+        canadaPost1.setTitle("Canadian Food 1");
+        canadaPost1.setStatus(PostStatus.AVAILABLE);
+        canadaPost1.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        canadaPost1.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        canadaPost1.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC", "Canada"));
+        canadaPost1.setExpiryDate(LocalDate.now().plusDays(2));
+        canadaPost1.setPickupDate(LocalDate.now());
+        canadaPost1.setPickupFrom(LocalTime.of(9, 0));
+        canadaPost1.setPickupTo(LocalTime.of(17, 0));
+
+        SurplusPost canadaPost2 = new SurplusPost();
+        canadaPost2.setId(2L);
+        canadaPost2.setDonor(donor);
+        canadaPost2.setTitle("Canadian Food 2");
+        canadaPost2.setStatus(PostStatus.AVAILABLE);
+        canadaPost2.setFoodCategories(Set.of(FoodCategory.BAKERY_PASTRY));
+        canadaPost2.setQuantity(new Quantity(3.0, Quantity.Unit.KILOGRAM));
+        canadaPost2.setPickupLocation(new Location(43.6532, -79.3832, "Toronto, ON", "Canada"));
+        canadaPost2.setExpiryDate(LocalDate.now().plusDays(1));
+        canadaPost2.setPickupDate(LocalDate.now());
+        canadaPost2.setPickupFrom(LocalTime.of(10, 0));
+        canadaPost2.setPickupTo(LocalTime.of(18, 0));
+
+        SurplusPost usaPost = new SurplusPost();
+        usaPost.setId(3L);
+        usaPost.setDonor(donor);
+        usaPost.setTitle("USA Food");
+        usaPost.setStatus(PostStatus.AVAILABLE);
+        usaPost.setFoodCategories(Set.of(FoodCategory.FRUITS_VEGETABLES));
+        usaPost.setQuantity(new Quantity(10.0, Quantity.Unit.KILOGRAM));
+        usaPost.setPickupLocation(new Location(40.7128, -74.0060, "New York, NY", "United States"));
+        usaPost.setExpiryDate(LocalDate.now().plusDays(3));
+        usaPost.setPickupDate(LocalDate.now());
+        usaPost.setPickupFrom(LocalTime.of(8, 0));
+        usaPost.setPickupTo(LocalTime.of(16, 0));
+
+        com.example.foodflow.model.dto.SurplusFilterRequest filterRequest = 
+                new com.example.foodflow.model.dto.SurplusFilterRequest();
+        filterRequest.setStatus(PostStatus.AVAILABLE.name());
+
+        when(surplusPostRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class)))
+                .thenReturn(Arrays.asList(canadaPost1, canadaPost2, usaPost));
+
+        // When
+        List<SurplusResponse> responses = surplusService.searchSurplusPostsForReceiver(filterRequest, receiver);
+
+        // Then - only Canadian posts should be returned
+        assertThat(responses).hasSize(2);
+        assertThat(responses).extracting(SurplusResponse::getTitle)
+                .containsExactlyInAnyOrder("Canadian Food 1", "Canadian Food 2");
+    }
+
 }
 
