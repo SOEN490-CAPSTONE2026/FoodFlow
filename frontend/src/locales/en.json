@@ -282,6 +282,23 @@
     "maxLength": "Maximum {{count}} characters allowed",
     "pattern": "Invalid format"
   },
+  "passwordValidation": {
+    "required": "Password is required",
+    "minLength": "Password must be at least 10 characters long",
+    "uppercase": "Password must contain at least one uppercase letter",
+    "lowercase": "Password must contain at least one lowercase letter",
+    "digit": "Password must contain at least one digit",
+    "specialCharacter": "Password must contain at least one special character (!@#$%^&*()_+-=[]{}|;:,.<>?)",
+    "commonPassword": "This password is too common. Please choose a more secure password",
+    "policy": {
+      "minLength": "At least 10 characters long",
+      "uppercase": "At least one uppercase letter (A-Z)",
+      "lowercase": "At least one lowercase letter (a-z)",
+      "digit": "At least one digit (0-9)",
+      "specialCharacter": "At least one special character (!@#$%^&*()_+-=[]{}|;:,.<>?)",
+      "commonPassword": "Not a common password"
+    }
+  },
   "toast": {
     "saved": "Saved",
     "deleted": "Deleted",
@@ -1752,6 +1769,119 @@
       "noData": "No data available",
       "never": "Never",
       "notAvailable": "Not available yet"
+    }
+  },
+  "adminWelcome": {
+    "title": "Welcome",
+    "description": "This is the welcome page for admin."
+  },
+  "adminHelp": {
+    "title": "Help"
+  },
+  "adminCalendar": {
+    "title": "Calendar"
+  },
+  "adminAnalytics": {
+    "title": "Food Safety Compliance Analytics",
+    "subtitle": "Monitor temperature and packaging compliance across all donations",
+    "loading": "Loading compliance data...",
+    "temperatureCategories": "Temperature Categories",
+    "packagingTypes": "Packaging Types",
+    "noTemperatureData": "No temperature data available",
+    "noPackagingData": "No packaging data available",
+    "totalAnalyzed": "Total donations analyzed:",
+    "errors": {
+      "loadFailed": "Failed to load compliance data"
+    }
+  },
+  "adminDisputes": {
+    "loading": "Loading disputes...",
+    "allCases": "All Cases",
+    "searchPlaceholder": "Search cases...",
+    "emptyTitle": "No Cases Found",
+    "emptyDescription": "There are no disputes matching your current filters.",
+    "userTypes": {
+      "donor": "Donor",
+      "receiver": "Receiver"
+    },
+    "status": {
+      "open": "Open",
+      "underReview": "Under Review",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "stats": {
+      "totalCases": "Total Cases",
+      "resolvedToday": "Resolved Today",
+      "avgResolution": "Avg Resolution",
+      "avgResolutionValue": "{{count}} days"
+    },
+    "table": {
+      "caseId": "Case ID",
+      "reporter": "Reporter",
+      "reportedUser": "Reported User",
+      "donationId": "Donation ID",
+      "created": "Created",
+      "status": "Status",
+      "action": "Action",
+      "view": "View"
+    },
+    "errors": {
+      "loadFailed": "Error loading disputes"
+    }
+  },
+  "adminDisputeDetail": {
+    "notAvailable": "N/A",
+    "backToDisputes": "Back to Disputes",
+    "caseNotFound": "Case not found",
+    "caseTitle": "Case {{caseId}}",
+    "createdOn": "Created on {{date}} at {{time}}",
+    "saveStatusChange": "Save Status Change",
+    "statusHint": "Status changes require confirmation",
+    "actionsHint": "All actions are admin-only and not visible to platform users.",
+    "resolutionHint": "Case must be marked as Resolved before closing",
+    "labels": {
+      "caseId": "Case ID",
+      "createdDate": "Created Date",
+      "createdTime": "Created Time",
+      "name": "Name",
+      "userId": "User ID",
+      "donationId": "Donation ID",
+      "currentStatus": "Current Status",
+      "updateStatus": "Update Status"
+    },
+    "sections": {
+      "caseInformation": "CASE INFORMATION",
+      "reporter": "REPORTER",
+      "reportedUser": "REPORTED USER",
+      "relatedDonation": "RELATED DONATION",
+      "reportDescription": "REPORT DESCRIPTION",
+      "caseStatus": "CASE STATUS",
+      "adminActions": "ADMINISTRATIVE ACTIONS",
+      "caseResolution": "CASE RESOLUTION"
+    },
+    "actions": {
+      "deactivateUser": "Deactivate User Account",
+      "overrideDonation": "Override Donation Status",
+      "flagUser": "Flag User for Review",
+      "closeCase": "Close Case"
+    },
+    "alerts": {
+      "statusAlreadySet": "Status is already set to {{status}}",
+      "statusUpdated": "Status updated successfully",
+      "updateFailed": "Failed to update status: {{message}}",
+      "deactivateRequested": "User account deactivation requested",
+      "overrideDonation": "Override donation status",
+      "userFlagged": "User flagged for review",
+      "mustResolveBeforeClose": "Case must be marked as Resolved before closing"
+    },
+    "confirm": {
+      "changeStatus": "Are you sure you want to change the status to \"{{status}}\"?",
+      "deactivateUser": "Are you sure you want to deactivate this user account?",
+      "closeCase": "Are you sure you want to close this case?"
+    },
+    "errors": {
+      "loadFailed": "Failed to load case details"
     }
   }
 }
