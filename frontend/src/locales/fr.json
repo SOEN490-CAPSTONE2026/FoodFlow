@@ -2454,7 +2454,69 @@
     "disconnectError": "Echec de la deconnexion du calendrier",
     "syncButton": "Synchroniser maintenant",
     "preferences": "Preferences de synchronisation",
-    "syncEnabled": "Activer la synchronisation automatique"
+    "syncEnabled": "Activer la synchronisation automatique",
+    "connecting": "Connexion en cours...",
+    "disconnectTitle": "Déconnecter le calendrier ?",
+    "disconnectWarning1": "En déconnectant votre calendrier, FoodFlow perdra toutes les autorisations pour effectuer des opérations sur votre Google Agenda.",
+    "disconnectWarning2": "Pour réactiver l'intégration du calendrier, vous devrez refaire le flux de connexion OAuth.",
+    "disconnectWarning3": "Les événements déjà créés resteront dans votre calendrier.",
+    "disconnectSuccess": "Calendrier déconnecté avec succès",
+    "autoReminders": "Activer les rappels automatiques",
+    "reminderPreferences": "Préférences de rappel",
+    "reminderTimeBeforeEvent": "Temps de rappel avant l'événement",
+    "reminderType": "Type de rappel",
+    "eventPreferences": "Préférences d'événement",
+    "eventColor": "Couleur de l'événement",
+    "eventVisibility": "Visibilité de l'événement",
+    "eventDuration": "Durée de l'événement",
+    "saveButton": "Enregistrer les préférences",
+    "saveSuccess": "Préférences enregistrées avec succès",
+    "saveError": "Échec de l'enregistrement des préférences",
+    "syncError": "Échec de la synchronisation du calendrier",
+    "syncedEvents": "Événements synchronisés",
+    "connectionDetails": {
+      "title": "Détails de connexion",
+      "connectedSince": "Première connexion",
+      "grantedScopes": "Autorisations accordées",
+      "lastSuccessfulSync": "Dernière synchronisation réussie",
+      "lastFailedRefresh": "Dernier rafraîchissement échoué",
+      "googleAccountEmail": "E-mail du compte Google",
+      "primaryCalendarName": "Nom du calendrier principal",
+      "calendarTimeZone": "Fuseau horaire du calendrier",
+      "never": "Jamais",
+      "notAvailable": "Pas encore disponible"
+    },
+    "summary": {
+      "connectedTo": "Connecté à {{provider}}",
+      "notConnected": "Non connecté",
+      "syncedEventSingular": "{{count}} événement synchronisé",
+      "syncedEventPlural": "{{count}} événements synchronisés"
+    },
+    "toggleAria": "Basculer l'intégration du calendrier",
+    "hide": "Masquer",
+    "edit": "Modifier",
+    "viewConnectionDetails": "Voir les détails de connexion",
+    "minutes": "minutes",
+    "email": "E-mail",
+    "popup": "Pop-up",
+    "both": "Les deux",
+    "colors": {
+      "blue": "Bleu",
+      "green": "Vert",
+      "purple": "Violet",
+      "red": "Rouge",
+      "yellow": "Jaune",
+      "orange": "Orange",
+      "gray": "Gris"
+    },
+    "visibility": {
+      "private": "Privé",
+      "public": "Public"
+    },
+    "onlyAppliedNoEndTime": "Appliqué uniquement si la collecte n'a pas d'heure de fin",
+    "privacyPolicyPrefix": "Cliquez ici pour la",
+    "privacyPolicyLink": "politique d'intégration du calendrier",
+    "closeModalAria": "Fermer la fenêtre"
   },
   "changePasswordModal": {
     "title": "Changer le mot de passe",
@@ -2490,5 +2552,49 @@
       "closeModal": "Fermer la fenetre",
       "togglePasswordVisibility": "Afficher ou masquer le mot de passe"
     }
+  },
+  "donorPhotoPreferences": {
+    "title": "Préférences d'affichage",
+    "modeSingle": "Mode : photo unique",
+    "modePerFoodType": "Mode : par type d'aliment",
+    "selectedSingular": "{{count}} image sélectionnée",
+    "selectedPlural": "{{count}} images sélectionnées",
+    "toggleAria": "Basculer les préférences d'affichage",
+    "hide": "Masquer",
+    "edit": "Modifier",
+    "singleModeTitle": "Photo unique pour tous les dons",
+    "perTypeModeTitle": "Photo par type d'aliment",
+    "singleDonationImage": "Image unique du don",
+    "uploading": "Téléversement...",
+    "pendingApproval": "En attente d'approbation",
+    "selectFromLibrary": "Ou sélectionner depuis la bibliothèque interne :",
+    "libraryImageAlt": "Library {{id}}",
+    "selectedTypeAlt": "{{foodType}} selected",
+    "saving": "Enregistrement...",
+    "saveButton": "Enregistrer les préférences photo",
+    "note": "Remarque : les images téléversées par les donateurs sont examinées par un administrateur avant d'apparaître sur les cartes des bénéficiaires.",
+    "loading": "Chargement des préférences photo...",
+    "messages": {
+      "uploadSuccess": "Image téléversée. Enregistrez les préférences pour appliquer. Les cartes bénéficiaires afficheront les images après approbation admin.",
+      "saved": "Préférences photo enregistrées."
+    },
+    "errors": {
+      "load": "Impossible de charger les préférences photo.",
+      "save": "Impossible d'enregistrer les préférences.",
+      "upload": "Échec du téléversement de l'image.",
+      "fileRequired": "Un fichier image est requis.",
+      "invalidType": "Seules les images JPEG, PNG et WEBP sont autorisées.",
+      "maxSize": "L'image doit faire 5 Mo ou moins."
+    }
+  },
+  "foodTypeLabels": {
+    "PREPARED": "Repas préparés",
+    "PRODUCE": "Produits frais",
+    "BAKERY": "Boulangerie et pâtisserie",
+    "DAIRY_EGGS": "Produits laitiers et œufs",
+    "MEAT_POULTRY": "Viande et volaille",
+    "SEAFOOD": "Fruits de mer",
+    "PANTRY": "Produits emballés / garde-manger",
+    "BEVERAGES": "Boissons"
   }
 }

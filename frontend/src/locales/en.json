@@ -1795,7 +1795,38 @@
       "noData": "No data available",
       "never": "Never",
       "notAvailable": "Not available yet"
-    }
+    },
+    "summary": {
+      "connectedTo": "Connected to {{provider}}",
+      "notConnected": "Not connected",
+      "syncedEventSingular": "{{count}} synced event",
+      "syncedEventPlural": "{{count}} synced events"
+    },
+    "toggleAria": "Toggle calendar integration",
+    "hide": "Hide",
+    "edit": "Edit",
+    "viewConnectionDetails": "View Connection Details",
+    "minutes": "minutes",
+    "email": "Email",
+    "popup": "Pop-up",
+    "both": "Both",
+    "colors": {
+      "blue": "Blue",
+      "green": "Green",
+      "purple": "Purple",
+      "red": "Red",
+      "yellow": "Yellow",
+      "orange": "Orange",
+      "gray": "Gray"
+    },
+    "visibility": {
+      "private": "Private",
+      "public": "Public"
+    },
+    "onlyAppliedNoEndTime": "Only applied if the pickup has no end time",
+    "privacyPolicyPrefix": "Click here for the",
+    "privacyPolicyLink": "calendar integration policy",
+    "closeModalAria": "Close modal"
   },
   "adminWelcome": {
     "title": "Welcome",
@@ -2350,5 +2381,49 @@
       "closeModal": "Close modal",
       "togglePasswordVisibility": "Toggle password visibility"
     }
+  },
+  "donorPhotoPreferences": {
+    "title": "Display Preferences",
+    "modeSingle": "Mode: Single photo",
+    "modePerFoodType": "Mode: Per food type",
+    "selectedSingular": "{{count}} image selected",
+    "selectedPlural": "{{count}} images selected",
+    "toggleAria": "Toggle display preferences",
+    "hide": "Hide",
+    "edit": "Edit",
+    "singleModeTitle": "Single photo for all donations",
+    "perTypeModeTitle": "Photo per food type",
+    "singleDonationImage": "Single donation image",
+    "uploading": "Uploading...",
+    "pendingApproval": "Pending approval",
+    "selectFromLibrary": "Or select from internal library:",
+    "libraryImageAlt": "Library {{id}}",
+    "selectedTypeAlt": "{{foodType}} selected",
+    "saving": "Saving...",
+    "saveButton": "Save Photo Preferences",
+    "note": "Note: uploaded donor images are reviewed by admin before showing on receiver donation cards.",
+    "loading": "Loading photo preferences...",
+    "messages": {
+      "uploadSuccess": "Image uploaded. Save preferences to apply. Receiver cards display uploaded photos after admin approval.",
+      "saved": "Photo display preferences saved."
+    },
+    "errors": {
+      "load": "Failed to load photo display preferences.",
+      "save": "Failed to save preferences.",
+      "upload": "Image upload failed.",
+      "fileRequired": "Image file is required.",
+      "invalidType": "Only JPEG, PNG and WEBP images are allowed.",
+      "maxSize": "Image must be 5MB or less."
+    }
+  },
+  "foodTypeLabels": {
+    "PREPARED": "Prepared Meals",
+    "PRODUCE": "Produce",
+    "BAKERY": "Bakery & Pastry",
+    "DAIRY_EGGS": "Dairy & Eggs",
+    "MEAT_POULTRY": "Meat & Poultry",
+    "SEAFOOD": "Seafood",
+    "PANTRY": "Packaged / Pantry Items",
+    "BEVERAGES": "Beverages"
   }
 }

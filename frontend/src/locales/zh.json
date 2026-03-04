@@ -2454,7 +2454,69 @@
     "disconnectError": "断开日历连接失败",
     "syncButton": "立即同步",
     "preferences": "同步偏好设置",
-    "syncEnabled": "启用自动同步"
+    "syncEnabled": "启用自动同步",
+    "connecting": "连接中...",
+    "disconnectTitle": "断开日历连接？",
+    "disconnectWarning1": "断开后，FoodFlow 将失去在您的 Google 日历中执行操作的权限。",
+    "disconnectWarning2": "如需重新启用，您需要再次完成 OAuth 连接流程。",
+    "disconnectWarning3": "已创建的事件仍会保留在您的日历中。",
+    "disconnectSuccess": "日历已成功断开",
+    "autoReminders": "启用自动提醒",
+    "reminderPreferences": "提醒偏好",
+    "reminderTimeBeforeEvent": "事件前提醒时间",
+    "reminderType": "提醒类型",
+    "eventPreferences": "事件偏好",
+    "eventColor": "事件颜色",
+    "eventVisibility": "事件可见性",
+    "eventDuration": "事件时长",
+    "saveButton": "保存偏好设置",
+    "saveSuccess": "偏好设置已保存",
+    "saveError": "保存偏好设置失败",
+    "syncError": "同步日历失败",
+    "syncedEvents": "已同步事件",
+    "connectionDetails": {
+      "title": "连接详情",
+      "connectedSince": "首次连接时间",
+      "grantedScopes": "已授予范围",
+      "lastSuccessfulSync": "上次成功同步",
+      "lastFailedRefresh": "上次刷新失败",
+      "googleAccountEmail": "Google 账号邮箱",
+      "primaryCalendarName": "主日历名称",
+      "calendarTimeZone": "日历时区",
+      "never": "从未",
+      "notAvailable": "暂不可用"
+    },
+    "summary": {
+      "connectedTo": "已连接到 {{provider}}",
+      "notConnected": "未连接",
+      "syncedEventSingular": "{{count}} 个已同步事件",
+      "syncedEventPlural": "{{count}} 个已同步事件"
+    },
+    "toggleAria": "切换日历集成",
+    "hide": "隐藏",
+    "edit": "编辑",
+    "viewConnectionDetails": "查看连接详情",
+    "minutes": "分钟",
+    "email": "电子邮件",
+    "popup": "弹窗",
+    "both": "两者",
+    "colors": {
+      "blue": "蓝色",
+      "green": "绿色",
+      "purple": "紫色",
+      "red": "红色",
+      "yellow": "黄色",
+      "orange": "橙色",
+      "gray": "灰色"
+    },
+    "visibility": {
+      "private": "私密",
+      "public": "公开"
+    },
+    "onlyAppliedNoEndTime": "仅当取货没有结束时间时生效",
+    "privacyPolicyPrefix": "点击查看",
+    "privacyPolicyLink": "日历集成政策",
+    "closeModalAria": "关闭弹窗"
   },
   "changePasswordModal": {
     "title": "更改密码",
@@ -2490,5 +2552,49 @@
       "closeModal": "关闭弹窗",
       "togglePasswordVisibility": "切换密码可见性"
     }
+  },
+  "donorPhotoPreferences": {
+    "title": "展示偏好",
+    "modeSingle": "模式：单张图片",
+    "modePerFoodType": "模式：按食物类型",
+    "selectedSingular": "已选择 {{count}} 张图片",
+    "selectedPlural": "已选择 {{count}} 张图片",
+    "toggleAria": "切换展示偏好",
+    "hide": "隐藏",
+    "edit": "编辑",
+    "singleModeTitle": "所有捐赠使用同一张图片",
+    "perTypeModeTitle": "每种食物类型单独图片",
+    "singleDonationImage": "单张捐赠图片",
+    "uploading": "上传中...",
+    "pendingApproval": "待审核",
+    "selectFromLibrary": "或从内部图片库选择：",
+    "libraryImageAlt": "Library {{id}}",
+    "selectedTypeAlt": "{{foodType}} selected",
+    "saving": "保存中...",
+    "saveButton": "保存图片偏好",
+    "note": "注意：捐赠者上传的图片需经管理员审核后，才会显示在接收方捐赠卡片中。",
+    "loading": "正在加载图片偏好...",
+    "messages": {
+      "uploadSuccess": "图片已上传。请保存偏好设置以生效。管理员审核通过后会显示在接收方卡片中。",
+      "saved": "图片偏好已保存。"
+    },
+    "errors": {
+      "load": "加载图片展示偏好失败。",
+      "save": "保存偏好失败。",
+      "upload": "图片上传失败。",
+      "fileRequired": "必须选择图片文件。",
+      "invalidType": "仅允许 JPEG、PNG 和 WEBP 图片。",
+      "maxSize": "图片大小必须不超过 5MB。"
+    }
+  },
+  "foodTypeLabels": {
+    "PREPARED": "熟食餐",
+    "PRODUCE": "生鲜果蔬",
+    "BAKERY": "烘焙糕点",
+    "DAIRY_EGGS": "奶制品和鸡蛋",
+    "MEAT_POULTRY": "肉类和禽类",
+    "SEAFOOD": "海鲜",
+    "PANTRY": "包装/储藏食品",
+    "BEVERAGES": "饮品"
   }
 }

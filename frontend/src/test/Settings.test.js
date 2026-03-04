@@ -141,6 +141,24 @@ describe('Settings', () => {
     );
   };
 
+  const expandNotificationTypesSection = async () => {
+    const toggleButton = await screen.findByRole('button', {
+      name: 'Toggle notification types',
+    });
+    if (toggleButton.getAttribute('aria-expanded') === 'false') {
+      fireEvent.click(toggleButton);
+    }
+  };
+
+  const expandLanguageRegionSection = async () => {
+    const toggleButton = await screen.findByRole('button', {
+      name: 'Toggle language and region settings',
+    });
+    if (toggleButton.getAttribute('aria-expanded') === 'false') {
+      fireEvent.click(toggleButton);
+    }
+  };
+
   describe('Component Rendering', () => {
     test('renders all main sections', async () => {
       renderSettings();
@@ -171,6 +189,7 @@ describe('Settings', () => {
 
     test('renders LanguageSwitcher component', async () => {
       renderSettings();
+      await expandLanguageRegionSection();
 
       await waitFor(() => {
         expect(screen.getByTestId('language-switcher')).toBeInTheDocument();
@@ -179,6 +198,7 @@ describe('Settings', () => {
 
     test('renders RegionSelector component', async () => {
       renderSettings();
+      await expandLanguageRegionSection();
 
       await waitFor(() => {
         expect(screen.getByTestId('region-selector')).toBeInTheDocument();
@@ -593,6 +613,7 @@ describe('Settings', () => {
       await waitFor(() => {
         expect(api.get).toHaveBeenCalledWith('/profile/region');
       });
+      await expandLanguageRegionSection();
 
       const regionSelector = screen.getByTestId('region-selector');
       fireEvent.click(regionSelector);
@@ -627,6 +648,7 @@ describe('Settings', () => {
       await waitFor(() => {
         expect(api.get).toHaveBeenCalledWith('/profile/region');
       });
+      await expandLanguageRegionSection();
 
       const regionSelector = screen.getByTestId('region-selector');
       fireEvent.click(regionSelector);
@@ -818,6 +840,7 @@ describe('Settings', () => {
           screen.queryByText('settings.account.loadingProfile')
         ).not.toBeInTheDocument();
       });
+      await expandNotificationTypesSection();
 
       // Find a specific notification toggle
       const donationClaimedLabel = screen.getByText(
@@ -849,6 +872,7 @@ describe('Settings', () => {
           screen.queryByText('settings.account.loadingProfile')
         ).not.toBeInTheDocument();
       });
+      await expandNotificationTypesSection();
 
       const donationClaimedLabel = screen.getByText(
         'settings.notificationTypes.donor.donationClaimed'
@@ -871,6 +895,7 @@ describe('Settings', () => {
 
     test('renders DONOR role notifications', async () => {
       renderSettings();
+      await expandNotificationTypesSection();
 
       await waitFor(() => {
         expect(
@@ -885,6 +910,7 @@ describe('Settings', () => {
     test('renders RECEIVER role notifications', async () => {
       const receiverContext = { ...mockAuthContext, role: 'RECEIVER' };
       renderSettings(receiverContext);
+      await expandNotificationTypesSection();
 
       await waitFor(() => {
         expect(
@@ -903,6 +929,7 @@ describe('Settings', () => {
     test('renders ADMIN role notifications', async () => {
       const adminContext = { ...mockAuthContext, role: 'ADMIN' };
       renderSettings(adminContext);
+      await expandNotificationTypesSection();
 
       await waitFor(() => {
         expect(

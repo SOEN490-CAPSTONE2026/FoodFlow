@@ -577,6 +577,28 @@ export default function ReceiverBrowse() {
     }
   }, []);
 
+  const getImageUrl = useCallback(imageUrl => {
+    if (!imageUrl) {
+      return null;
+    }
+    if (
+      imageUrl.startsWith('http://') ||
+      imageUrl.startsWith('https://') ||
+      imageUrl.startsWith('data:')
+    ) {
+      return imageUrl;
+    }
+    const apiBaseUrl =
+      process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+    const backendBaseUrl = apiBaseUrl.endsWith('/api')
+      ? apiBaseUrl.slice(0, -4)
+      : apiBaseUrl.replace(/\/api$/, '');
+    if (imageUrl.startsWith('/api/files/')) {
+      return `${backendBaseUrl}${imageUrl}`;
+    }
+    return `${backendBaseUrl}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+  }, []);
+
   return (
     <div className="receiver-browse-container">
       {savedNotification && (
@@ -724,6 +746,10 @@ export default function ReceiverBrowse() {
                   : [];
                 const visibleDietaryTags = dietaryTags.slice(0, 4);
                 const hiddenDietaryCount = Math.max(dietaryTags.length - 4, 0);
+                const resolvedDonationImage = getImageUrl(
+                  item.resolvedDonationImageUrl
+                );
+                const donorLogoUrl = getImageUrl(item.donorLogoUrl);
 
                 return (
                   <div
@@ -777,6 +803,7 @@ export default function ReceiverBrowse() {
                     >
                       <img
                         src={
+                          resolvedDonationImage ||
                           foodTypeImages[primaryFoodCategory] ||
                           foodTypeImages['Prepared Meals']
                         }
@@ -922,7 +949,20 @@ export default function ReceiverBrowse() {
                           ))}
                         </div>
                         <div className="receiver-donor-info">
-                          <User size={16} />
+                          {donorLogoUrl ? (
+                            <img
+                              src={donorLogoUrl}
+                              alt={`${item.donorName || 'Donor'} logo`}
+                              style={{
+                                width: 20,
+                                height: 20,
+                                objectFit: 'cover',
+                                borderRadius: '50%',
+                              }}
+                            />
+                          ) : (
+                            <User size={16} />
+                          )}
                           <span>
                             {t('receiverBrowse.donatedBy', {
                               donorName:

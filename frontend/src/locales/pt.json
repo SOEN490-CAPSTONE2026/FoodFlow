@@ -2454,7 +2454,69 @@
     "disconnectError": "Falha ao desconectar o calendario",
     "syncButton": "Sincronizar agora",
     "preferences": "Preferencias de sincronizacao",
-    "syncEnabled": "Ativar sincronizacao automatica"
+    "syncEnabled": "Ativar sincronizacao automatica",
+    "connecting": "Conectando...",
+    "disconnectTitle": "Desconectar calendário?",
+    "disconnectWarning1": "Ao desconectar, o FoodFlow perderá todas as permissões para operar no seu Google Agenda.",
+    "disconnectWarning2": "Para reativar, você precisará passar pelo fluxo OAuth novamente.",
+    "disconnectWarning3": "Todos os eventos já criados continuarão no seu calendário.",
+    "disconnectSuccess": "Calendário desconectado com sucesso",
+    "autoReminders": "Ativar lembretes automáticos",
+    "reminderPreferences": "Preferências de lembrete",
+    "reminderTimeBeforeEvent": "Tempo de lembrete antes do evento",
+    "reminderType": "Tipo de lembrete",
+    "eventPreferences": "Preferências do evento",
+    "eventColor": "Cor do evento",
+    "eventVisibility": "Visibilidade do evento",
+    "eventDuration": "Duração do evento",
+    "saveButton": "Salvar preferências",
+    "saveSuccess": "Preferências salvas com sucesso",
+    "saveError": "Falha ao salvar preferências",
+    "syncError": "Falha ao sincronizar calendário",
+    "syncedEvents": "Eventos sincronizados",
+    "connectionDetails": {
+      "title": "Detalhes da conexão",
+      "connectedSince": "Primeira conexão",
+      "grantedScopes": "Escopos concedidos",
+      "lastSuccessfulSync": "Última sincronização bem-sucedida",
+      "lastFailedRefresh": "Última atualização com falha",
+      "googleAccountEmail": "E-mail da conta Google",
+      "primaryCalendarName": "Nome do calendário principal",
+      "calendarTimeZone": "Fuso horário do calendário",
+      "never": "Nunca",
+      "notAvailable": "Ainda não disponível"
+    },
+    "summary": {
+      "connectedTo": "Conectado a {{provider}}",
+      "notConnected": "Não conectado",
+      "syncedEventSingular": "{{count}} evento sincronizado",
+      "syncedEventPlural": "{{count}} eventos sincronizados"
+    },
+    "toggleAria": "Alternar integração do calendário",
+    "hide": "Ocultar",
+    "edit": "Editar",
+    "viewConnectionDetails": "Ver detalhes da conexão",
+    "minutes": "minutos",
+    "email": "E-mail",
+    "popup": "Pop-up",
+    "both": "Ambos",
+    "colors": {
+      "blue": "Azul",
+      "green": "Verde",
+      "purple": "Roxo",
+      "red": "Vermelho",
+      "yellow": "Amarelo",
+      "orange": "Laranja",
+      "gray": "Cinza"
+    },
+    "visibility": {
+      "private": "Privado",
+      "public": "Público"
+    },
+    "onlyAppliedNoEndTime": "Aplicado somente se a retirada não tiver horário de término",
+    "privacyPolicyPrefix": "Clique aqui para a",
+    "privacyPolicyLink": "política de integração de calendário",
+    "closeModalAria": "Fechar modal"
   },
   "changePasswordModal": {
     "title": "Alterar senha",
@@ -2490,5 +2552,49 @@
       "closeModal": "Fechar modal",
       "togglePasswordVisibility": "Alternar visibilidade da senha"
     }
+  },
+  "donorPhotoPreferences": {
+    "title": "Preferências de exibição",
+    "modeSingle": "Modo: foto única",
+    "modePerFoodType": "Modo: por tipo de alimento",
+    "selectedSingular": "{{count}} imagem selecionada",
+    "selectedPlural": "{{count}} imagens selecionadas",
+    "toggleAria": "Alternar preferências de exibição",
+    "hide": "Ocultar",
+    "edit": "Editar",
+    "singleModeTitle": "Foto única para todas as doações",
+    "perTypeModeTitle": "Foto por tipo de alimento",
+    "singleDonationImage": "Imagem única da doação",
+    "uploading": "Enviando...",
+    "pendingApproval": "Aguardando aprovação",
+    "selectFromLibrary": "Ou selecione da biblioteca interna:",
+    "libraryImageAlt": "Library {{id}}",
+    "selectedTypeAlt": "{{foodType}} selected",
+    "saving": "Salvando...",
+    "saveButton": "Salvar preferências de foto",
+    "note": "Observação: imagens enviadas pelos doadores são revisadas pelo admin antes de aparecerem nos cartões dos receptores.",
+    "loading": "Carregando preferências de foto...",
+    "messages": {
+      "uploadSuccess": "Imagem enviada. Salve as preferências para aplicar. Os cartões dos receptores exibem fotos após aprovação do admin.",
+      "saved": "Preferências de foto salvas."
+    },
+    "errors": {
+      "load": "Falha ao carregar preferências de exibição de fotos.",
+      "save": "Falha ao salvar preferências.",
+      "upload": "Falha no envio da imagem.",
+      "fileRequired": "Arquivo de imagem é obrigatório.",
+      "invalidType": "Somente imagens JPEG, PNG e WEBP são permitidas.",
+      "maxSize": "A imagem deve ter no máximo 5MB."
+    }
+  },
+  "foodTypeLabels": {
+    "PREPARED": "Refeições preparadas",
+    "PRODUCE": "Produtos frescos",
+    "BAKERY": "Padaria e confeitaria",
+    "DAIRY_EGGS": "Laticínios e ovos",
+    "MEAT_POULTRY": "Carnes e aves",
+    "SEAFOOD": "Frutos do mar",
+    "PANTRY": "Itens embalados / despensa",
+    "BEVERAGES": "Bebidas"
   }
 }

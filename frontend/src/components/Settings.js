@@ -5,6 +5,7 @@ import LanguageSwitcher from './LanguageSwitcher';
 import RegionSelector from './RegionSelector';
 import ChangePasswordModal from './ChangePasswordModal';
 import CalendarSettings from './CalendarSettings';
+import DonorPhotoPreferencesSection from './DonorDashboard/DonorPhotoPreferencesSection';
 import { AuthContext } from '../contexts/AuthContext';
 import { notificationPreferencesAPI, profileAPI } from '../services/api';
 import api from '../services/api';
@@ -275,6 +276,10 @@ const Settings = () => {
   const [errors, setErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState('');
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [isLanguageRegionExpanded, setIsLanguageRegionExpanded] =
+    useState(false);
+  const [isNotificationTypesExpanded, setIsNotificationTypesExpanded] =
+    useState(false);
 
   const fileInputRef = useRef(null);
 
@@ -855,42 +860,62 @@ const Settings = () => {
               <p className="section-description">
                 {t('settings.languageRegion.description')}
               </p>
+              <p className="language-region-summary">
+                {(regionSettings?.city && regionSettings?.country
+                  ? `${regionSettings.city}, ${regionSettings.country}`
+                  : t('settings.languageRegion.locationTimezone')) || ''}
+              </p>
+            </div>
+            <div className="settings-header-actions">
+              <button
+                type="button"
+                className="settings-toggle-btn"
+                onClick={() => setIsLanguageRegionExpanded(prev => !prev)}
+                aria-expanded={isLanguageRegionExpanded}
+                aria-label="Toggle language and region settings"
+              >
+                {isLanguageRegionExpanded ? 'Hide ▲' : 'Edit ▼'}
+              </button>
             </div>
           </div>
-          <div className="section-content">
-            <div className="language-region-container">
-              <div className="subsection-header">
-                <h3 className="subsection-title">
-                  {t('settings.languageRegion.languagePreference')}
-                </h3>
-                <p className="subsection-description">
-                  {t('settings.languageRegion.languageDesc')}
-                </p>
+          {isLanguageRegionExpanded && (
+            <div className="section-content language-region-content-wrap">
+              <div className="language-region-container">
+                <div className="subsection-header">
+                  <h3 className="subsection-title">
+                    {t('settings.languageRegion.languagePreference')}
+                  </h3>
+                  <p className="subsection-description">
+                    {t('settings.languageRegion.languageDesc')}
+                  </p>
+                </div>
+                <LanguageSwitcher />
               </div>
-              <LanguageSwitcher />
-            </div>
 
-            <div className="region-settings-divider"></div>
+              <div className="region-settings-divider"></div>
 
-            <div className="language-region-container">
-              <div className="subsection-header">
-                <h3 className="subsection-title">
-                  {t('settings.languageRegion.locationTimezone')}
-                </h3>
-                <p className="subsection-description">
-                  {t('settings.languageRegion.locationDesc')}
-                </p>
+              <div className="language-region-container">
+                <div className="subsection-header">
+                  <h3 className="subsection-title">
+                    {t('settings.languageRegion.locationTimezone')}
+                  </h3>
+                  <p className="subsection-description">
+                    {t('settings.languageRegion.locationDesc')}
+                  </p>
+                </div>
+                <RegionSelector
+                  value={regionSettings}
+                  onChange={handleRegionChange}
+                />
               </div>
-              <RegionSelector
-                value={regionSettings}
-                onChange={handleRegionChange}
-              />
             </div>
-          </div>
+          )}
         </div>
 
         {/* Calendar Integration Section */}
         <CalendarSettings />
+
+        {role === 'DONOR' && <DonorPhotoPreferencesSection />}
 
         {/* Notification Preferences Section */}
         <div className="settings-section">
@@ -1007,38 +1032,59 @@ const Settings = () => {
               <p className="section-description">
                 {t('settings.notificationTypes.description')}
               </p>
+              <p className="language-region-summary">
+                {Object.values(notifications || {}).filter(Boolean).length}{' '}
+                active
+              </p>
+            </div>
+            <div className="settings-header-actions">
+              <button
+                type="button"
+                className="settings-toggle-btn"
+                onClick={() => setIsNotificationTypesExpanded(prev => !prev)}
+                aria-expanded={isNotificationTypesExpanded}
+                aria-label="Toggle notification types"
+              >
+                {isNotificationTypesExpanded ? 'Hide ▲' : 'Edit ▼'}
+              </button>
             </div>
           </div>
-          <div className="section-content">
-            {Object.entries(
-              getNotificationCategories()[role] ||
-                getNotificationCategories().RECEIVER
-            ).map(([categoryName, categoryItems]) => (
-              <div key={categoryName} className="notification-category">
-                <h3 className="notification-category-title">{categoryName}</h3>
-                <div className="notification-list">
-                  {categoryItems.map(notification => (
-                    <div key={notification.key} className="notification-item">
-                      <div className="notification-info">
-                        <h4 className="notification-title">
-                          {notification.label}
-                        </h4>
-                        <p className="notification-desc">{notification.desc}</p>
+          {isNotificationTypesExpanded && (
+            <div className="section-content language-region-content-wrap">
+              {Object.entries(
+                getNotificationCategories()[role] ||
+                  getNotificationCategories().RECEIVER
+              ).map(([categoryName, categoryItems]) => (
+                <div key={categoryName} className="notification-category">
+                  <h3 className="notification-category-title">
+                    {categoryName}
+                  </h3>
+                  <div className="notification-list">
+                    {categoryItems.map(notification => (
+                      <div key={notification.key} className="notification-item">
+                        <div className="notification-info">
+                          <h4 className="notification-title">
+                            {notification.label}
+                          </h4>
+                          <p className="notification-desc">
+                            {notification.desc}
+                          </p>
+                        </div>
+                        <label className="toggle-switch">
+                          <input
+                            type="checkbox"
+                            checked={notifications[notification.key] || false}
+                            onChange={() => handleToggle(notification.key)}
+                          />
+                          <span className="toggle-slider"></span>
+                        </label>
                       </div>
-                      <label className="toggle-switch">
-                        <input
-                          type="checkbox"
-                          checked={notifications[notification.key] || false}
-                          onChange={() => handleToggle(notification.key)}
-                        />
-                        <span className="toggle-slider"></span>
-                      </label>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
