@@ -688,6 +688,13 @@
       "Produce is usually not hot/cooked": "Produce is usually not hot/cooked",
       "Pantry items are usually stored at room temperature": "Pantry items are usually stored at room temperature",
       "Hot beverages are same-day donations": "Hot beverages are same-day donations"
+    },
+    "errors": {
+      "invalidAddress": "Please select a valid address from the dropdown suggestions",
+      "requiresStreetAddress": "Please enter a complete street address with street number and name (not just a city, province, or postal code)",
+      "cityOnlyNotAllowed": "City-only addresses are not permitted. Please include the street number and name.",
+      "provinceOnlyNotAllowed": "Province-only addresses are not permitted. Please provide a complete street address.",
+      "postalCodeOnlyNotAllowed": "Postal code-only addresses are not permitted. Please include the full street address."
     }
   },
   "chat": {
