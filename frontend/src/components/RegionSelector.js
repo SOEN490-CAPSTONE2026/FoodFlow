@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
+import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 import { MapPin, Clock, Loader, ChevronDown, Check } from 'lucide-react';
 import '../style/RegionSelector.css';
 
 const RegionSelector = ({ value, onChange }) => {
+  const { t } = useTranslation();
   const [selectedCountry, setSelectedCountry] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
   const [selectedTimezone, setSelectedTimezone] = useState('');
@@ -40,7 +43,6 @@ const RegionSelector = ({ value, onChange }) => {
         setCountries(sortedCountries);
         setLoadingCountries(false);
       } catch (error) {
-        console.error('Error loading countries:', error);
         setLoadingCountries(false);
       }
     };
@@ -71,14 +73,14 @@ const RegionSelector = ({ value, onChange }) => {
       setTimezones([]);
       setSelectedTimezone('');
     }
-  }, [selectedCountry, countries]);
+  }, [selectedCountry, countries, selectedTimezone]);
 
   // Auto-detect location using browser geolocation
   const detectLocation = async () => {
     setDetectingLocation(true);
 
     if (!navigator.geolocation) {
-      alert('Geolocation is not supported by your browser');
+      alert(t('regionSelector.geolocationUnsupported'));
       setDetectingLocation(false);
       return;
     }
@@ -147,15 +149,13 @@ const RegionSelector = ({ value, onChange }) => {
             }
           }
         } catch (error) {
-          console.error('Error detecting location:', error);
-          alert('Failed to detect location. Please select manually.');
+          alert(t('regionSelector.detectFailed'));
         } finally {
           setDetectingLocation(false);
         }
       },
-      error => {
-        console.error('Geolocation error:', error);
-        alert('Unable to access your location. Please select manually.');
+      () => {
+        alert(t('regionSelector.accessLocationFailed'));
         setDetectingLocation(false);
       }
     );
@@ -268,12 +268,12 @@ const RegionSelector = ({ value, onChange }) => {
         {detectingLocation ? (
           <>
             <Loader size={16} className="spinner" />
-            Detecting location...
+            {t('regionSelector.detecting')}
           </>
         ) : (
           <>
             <MapPin size={16} />
-            Auto-detect my location
+            {t('regionSelector.autoDetect')}
           </>
         )}
       </button>
@@ -283,7 +283,7 @@ const RegionSelector = ({ value, onChange }) => {
         <div className="region-field" ref={countryDropdownRef}>
           <label className="region-label">
             <MapPin size={16} />
-            Country
+            {t('regionSelector.country')}
           </label>
           <div
             className={`custom-select ${showCountryDropdown ? 'open' : ''}`}
@@ -296,8 +296,8 @@ const RegionSelector = ({ value, onChange }) => {
                 {selectedCountry
                   ? selectedCountryData?.name
                   : loadingCountries
-                    ? 'Loading countries...'
-                    : 'Select your country...'}
+                    ? t('regionSelector.loadingCountries')
+                    : t('regionSelector.selectCountry')}
               </span>
               <ChevronDown size={20} className="chevron-icon" />
             </div>
@@ -307,7 +307,7 @@ const RegionSelector = ({ value, onChange }) => {
                 <div className="dropdown-search">
                   <input
                     type="text"
-                    placeholder="Search countries..."
+                    placeholder={t('regionSelector.searchCountries')}
                     value={countrySearch}
                     onChange={e => setCountrySearch(e.target.value)}
                     onClick={e => e.stopPropagation()}
@@ -335,14 +335,14 @@ const RegionSelector = ({ value, onChange }) => {
           <div className="region-field">
             <label className="region-label">
               <MapPin size={16} />
-              City
+              {t('regionSelector.city')}
             </label>
             <input
               type="text"
               className="region-input"
               value={selectedCity}
               onChange={handleCityChange}
-              placeholder="Enter your city..."
+              placeholder={t('regionSelector.enterCity')}
             />
           </div>
         )}
@@ -352,7 +352,7 @@ const RegionSelector = ({ value, onChange }) => {
           <div className="region-field" ref={timezoneDropdownRef}>
             <label className="region-label">
               <Clock size={16} />
-              Timezone
+              {t('regionSelector.timezone')}
             </label>
             <div
               className={`custom-select ${showTimezoneDropdown ? 'open' : ''}`}
@@ -362,7 +362,7 @@ const RegionSelector = ({ value, onChange }) => {
                 <span className={selectedTimezone ? 'selected' : 'placeholder'}>
                   {selectedTimezone
                     ? formatTimezone(selectedTimezone)
-                    : 'Select timezone...'}
+                    : t('regionSelector.selectTimezone')}
                 </span>
                 <ChevronDown size={20} className="chevron-icon" />
               </div>
@@ -386,8 +386,8 @@ const RegionSelector = ({ value, onChange }) => {
             </div>
             <small className="region-hint">
               {timezones.length === 1
-                ? 'Automatically set based on your country'
-                : 'Your timezone has been auto-detected. You can change it if needed.'}
+                ? t('regionSelector.autoSetCountry')
+                : t('regionSelector.autoDetectedHint')}
             </small>
           </div>
         )}
@@ -413,3 +413,12 @@ const RegionSelector = ({ value, onChange }) => {
 };
 
 export default RegionSelector;
+
+RegionSelector.propTypes = {
+  value: PropTypes.shape({
+    timezone: PropTypes.string,
+    city: PropTypes.string,
+    country: PropTypes.string,
+  }),
+  onChange: PropTypes.func,
+};
