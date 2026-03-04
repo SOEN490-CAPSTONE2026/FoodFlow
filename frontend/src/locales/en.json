@@ -273,7 +273,10 @@
     "hidePassword": "Hide password",
     "showPassword": "Show password",
     "time": "Time",
-    "syncing": "Syncing..."
+    "syncing": "Syncing...",
+    "retry": "Retry",
+    "less": "Less",
+    "more": "More"
   },
   "validation": {
     "required": "This field is required",
@@ -915,7 +918,21 @@
     "communications": "Incoming communications",
     "guides": "Guides and support",
     "administration": "Administration",
-    "welcomeBack": "Welcome back, {{name}}"
+    "welcomeBack": "Welcome back, {{name}}",
+    "users": "User Management",
+    "verificationQueue": "Verification Queue",
+    "impact": "Impact Dashboard",
+    "disputes": "Disputes & Reports",
+    "donations": "Donations",
+    "settings": "Settings",
+    "logout": "Logout",
+    "toggleMenu": "Toggle Menu",
+    "foodflowHome": "FoodFlow Home",
+    "toggleSidebar": "Toggle sidebar",
+    "verificationQueueDesc": "Review and approve pending user registrations",
+    "usersDesc": "Manage and monitor all platform users",
+    "impactDesc": "Platform-wide environmental and social impact metrics",
+    "disputesDesc": "Track, review, and resolve reported issues"
   },
   "claimedView": {
     "claimed": "Claimed",
@@ -1162,7 +1179,9 @@
       "calendar": "Sync your pickups to Google Calendar",
       "settings": "Manage your preferences and account settings",
       "default": "FoodFlow Receiver Portal"
-    }
+    },
+    "achievements": "Achievements",
+    "impact": "Impact Dashboard"
   },
   "receiverBrowse": {
     "confirmClaim": "Are you sure you want to claim this donation?",
@@ -1690,6 +1709,8 @@
     "repeatDonors": "Repeat Donors",
     "repeatReceivers": "Repeat Receivers",
     "foodSavedOverTime": "Food Saved Over Time",
+    "dateLabel": "Date",
+    "foodSavedLabel": "Food Saved",
     "impactOverview": "Impact Overview",
     "claimsByDay": "Claims by Day",
     "claimsByWeek": "Claims by Week",
@@ -1706,7 +1727,12 @@
     "adminMessage": "FoodFlow is making a real difference in reducing food waste and supporting communities. These metrics represent the collective impact of all our donors and receivers.",
     "selectAll": "Select All",
     "clearAll": "Clear All",
-    "done": "Done"
+    "done": "Done",
+    "impactMetrics": "Impact Metrics",
+    "foodSavedByDay": "Food Saved by Day",
+    "foodSavedByWeek": "Food Saved by Week",
+    "foodSavedByMonth": "Food Saved by Month",
+    "claimsLabel": "Claims"
   },
   "calendar": {
     "title": "Calendar Integration",
@@ -1882,6 +1908,447 @@
     },
     "errors": {
       "loadFailed": "Failed to load case details"
+    }
+  },
+  "adminVerificationQueue": {
+    "title": "Pending Registrations",
+    "loading": "Loading pending users...",
+    "showing": "Showing {{shown}} of {{total}} pending users",
+    "searchPlaceholder": "Search by organization name or email...",
+    "notAvailable": "N/A",
+    "labels": {
+      "organization": "Organization",
+      "contact": "Contact",
+      "email": "Email",
+      "type": "Type"
+    },
+    "stats": {
+      "totalPending": "Total Pending",
+      "pendingDonors": "Pending Donors",
+      "pendingReceivers": "Pending Receivers",
+      "avgWaitTime": "Avg. Wait Time"
+    },
+    "filters": {
+      "allTypes": "All Types",
+      "donors": "Donors",
+      "receivers": "Receivers",
+      "byType": "Filter by type",
+      "byStatus": "Filter by status",
+      "sortBy": "Sort by"
+    },
+    "status": {
+      "emailVerified": "Email Verified",
+      "emailNotVerified": "Email Not Verified",
+      "pendingApproval": "Pending Approval"
+    },
+    "sort": {
+      "registrationDate": "Registration Date",
+      "userType": "User Type",
+      "waitingTime": "Waiting Time",
+      "toggle": "Sort {{order}}",
+      "ascending": "Ascending",
+      "descending": "Descending"
+    },
+    "table": {
+      "id": "ID",
+      "organization": "Organization",
+      "type": "Type",
+      "status": "Status",
+      "email": "Email",
+      "phone": "Phone",
+      "waitingTime": "Waiting Time",
+      "actions": "Actions"
+    },
+    "empty": {
+      "title": "No Pending Registrations",
+      "description": "All user registrations have been reviewed."
+    },
+    "actions": {
+      "verifyEmail": "Verify Email",
+      "approve": "Approve",
+      "reject": "Reject"
+    },
+    "time": {
+      "day": "day",
+      "days": "days",
+      "hour": "hour",
+      "hours": "hours"
+    },
+    "document": {
+      "viewing": "Viewing document: {{name}}",
+      "productionNote": "In production, this would open the uploaded document for review."
+    },
+    "rejectionReasons": {
+      "incompleteInfo": "Incomplete Information",
+      "invalidOrganization": "Invalid Organization",
+      "duplicateAccount": "Duplicate Account",
+      "suspiciousActivity": "Suspicious Activity",
+      "doesNotMeetCriteria": "Does Not Meet Criteria",
+      "other": "Other"
+    },
+    "modals": {
+      "approval": {
+        "title": "Approve Registration",
+        "confirm": "Are you sure you want to approve this registration?",
+        "note": "The user will receive an approval email and their status will be set to ACTIVE.",
+        "loading": "Approving...",
+        "action": "Approve User"
+      },
+      "rejection": {
+        "title": "Reject Registration",
+        "selectReason": "Please select a rejection reason",
+        "prompt": "Please provide a reason for rejecting this registration:",
+        "reason": "Rejection Reason",
+        "reasonPlaceholder": "Select a reason...",
+        "additionalMessage": "Additional Message (Optional)",
+        "messagePlaceholder": "Add any additional information for the user...",
+        "note": "The user will receive a rejection email with the reason and can re-register if needed.",
+        "loading": "Rejecting...",
+        "action": "Reject User"
+      },
+      "manualVerify": {
+        "title": "Manually Verify Email",
+        "prompt": "This will mark the user's email as verified and move them to the admin approval queue.",
+        "note": "Use this only when the verification link fails.",
+        "loading": "Verifying...",
+        "action": "Verify Email"
+      }
+    },
+    "toasts": {
+      "approved": "{{name}} has been approved successfully!",
+      "approveFailed": "Failed to approve user. Please try again.",
+      "rejected": "{{name}} has been rejected.",
+      "rejectFailed": "Failed to reject user. Please try again.",
+      "verified": "Email verified manually",
+      "verifyFailed": "Failed to verify email. Please try again."
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "pageOf": "Page {{page}} of {{total}}"
+    }
+  },
+  "adminUsers": {
+    "title": "All Users",
+    "searchPlaceholder": "Search by name, email, or organization...",
+    "empty": "No users found",
+    "moreLess": "More/Less",
+    "notAvailable": "N/A",
+    "stats": {
+      "totalUsers": "Total Users",
+      "totalDonors": "Total Donors",
+      "newUsers": "New Users",
+      "totalReceivers": "Total Receivers"
+    },
+    "filters": {
+      "allRoles": "All Roles",
+      "allStatus": "All Status",
+      "reset": "Reset"
+    },
+    "table": {
+      "id": "ID",
+      "name": "Name",
+      "role": "Role",
+      "status": "Status",
+      "email": "Email",
+      "activity": "Activity",
+      "actions": "Actions"
+    },
+    "roles": {
+      "donor": "Donor",
+      "receiver": "Receiver",
+      "admin": "Admin"
+    },
+    "status": {
+      "active": "Active",
+      "deactivated": "Deactivated"
+    },
+    "actions": {
+      "viewDetails": "View Details",
+      "deactivate": "Deactivate",
+      "reactivate": "Reactivate",
+      "sendAlert": "Send Alert"
+    },
+    "details": {
+      "totalActivity": "Total Activity",
+      "donationsCount": "{{count}} donations",
+      "claimsCount": "{{count}} claims",
+      "disputes": "Disputes",
+      "feedbackScore": "Feedback Score",
+      "noReviews": "No reviews yet",
+      "memberSince": "Member Since",
+      "recentActivity": "Recent Activity"
+    },
+    "modals": {
+      "deactivate": {
+        "title": "Deactivate User:",
+        "placeholder": "Enter reason for deactivation (required)..."
+      },
+      "reactivate": {
+        "title": "Reactivate User",
+        "confirmPrefix": "Are you sure you want to reactivate"
+      },
+      "alert": {
+        "title": "Send Alert to:",
+        "alertType": "Alert Type",
+        "customPlaceholder": "Enter your custom message...",
+        "editPlaceholder": "Edit message"
+      }
+    },
+    "alertTypes": {
+      "warning": "Warning",
+      "safety": "Safety Notice",
+      "compliance": "Compliance Reminder",
+      "custom": "Custom Alert"
+    },
+    "alertDescriptions": {
+      "warning": "Send a warning about policy violations",
+      "safety": "Important safety information",
+      "compliance": "Remind about compliance requirements",
+      "custom": "Send a custom message"
+    },
+    "notifications": {
+      "reasonRequired": "Please provide a reason for deactivation",
+      "deactivated": "User deactivated successfully",
+      "deactivateFailed": "Failed to deactivate user",
+      "reactivated": "User reactivated successfully",
+      "reactivateFailed": "Failed to reactivate user",
+      "alertRequired": "Please enter an alert message",
+      "alertSent": "Alert sent successfully",
+      "alertFailed": "Failed to send alert"
+    },
+    "errors": {
+      "loadFailed": "Failed to load users. Please try again later."
+    }
+  },
+  "adminDonations": {
+    "title": "All Donations",
+    "searchPlaceholder": "Search by title, donor, receiver, or ID...",
+    "loading": "Loading donations...",
+    "empty": "No donations found",
+    "notAvailable": "N/A",
+    "flaggedDonation": "Flagged donation",
+    "lowRating": "Low rating (<=2 stars)",
+    "stats": {
+      "total": "Total Donations",
+      "active": "Active",
+      "completed": "Completed",
+      "flagged": "Flagged"
+    },
+    "filters": {
+      "allStatus": "All Status",
+      "reset": "Reset"
+    },
+    "table": {
+      "id": "ID",
+      "title": "Title",
+      "status": "Status",
+      "donor": "Donor",
+      "receiver": "Receiver",
+      "rating": "Rating",
+      "flagged": "Flagged",
+      "created": "Created",
+      "updated": "Updated",
+      "actions": "Actions"
+    },
+    "actions": {
+      "viewDetails": "View Details"
+    },
+    "details": {
+      "foodCategories": "Food Categories",
+      "quantity": "Quantity",
+      "expiryDate": "Expiry Date",
+      "pickupDate": "Pickup Date",
+      "temperature": "Temperature",
+      "packagingConditions": "Packaging Conditions",
+      "description": "Description",
+      "noDescription": "No description",
+      "feedbackRatings": "Feedback & Ratings",
+      "clickToLoadFeedback": "Click to expand and load feedback...",
+      "noFeedback": "No feedback has been provided yet for this donation."
+    },
+    "errors": {
+      "loadFailed": "Failed to load donations. Please try again."
+    }
+  },
+  "adminSettings": {
+    "loading": "Loading profile...",
+    "profileAlt": "Profile",
+    "profilePhoto": "Profile Photo",
+    "profilePhotoDescription": "Upload a photo to personalize your account",
+    "changePassword": "Change Password",
+    "saving": "Saving...",
+    "saveChanges": "Save Changes",
+    "emailAlerts": "Email Alerts",
+    "smsAlerts": "SMS Alerts",
+    "yourEmailAddress": "your email address",
+    "emailAlertsDescription": "Receive notifications via email at {{email}}",
+    "smsAlertsDescription": "Receive notifications via text message{{phone}}",
+    "sections": {
+      "account": "Account",
+      "languageRegion": "Language & Region",
+      "notificationPreferences": "Notification Preferences",
+      "notificationTypes": "Notification Types"
+    },
+    "descriptions": {
+      "account": "Manage your profile and account details",
+      "languageRegion": "Set your language, location, and timezone preferences",
+      "notificationPreferences": "Choose how you want to receive notifications",
+      "notificationTypes": "Customize which types of notifications you want to receive"
+    },
+    "subsections": {
+      "languagePreference": "Language Preference",
+      "locationTimezone": "Location & Timezone"
+    },
+    "subsectionDescriptions": {
+      "languagePreference": "Choose your preferred language for the interface",
+      "locationTimezone": "Set your location to ensure accurate date and time information"
+    },
+    "fields": {
+      "fullName": "Full Name",
+      "email": "Email Address",
+      "organization": "Organization",
+      "phone": "Phone Number",
+      "address": "Address"
+    },
+    "placeholders": {
+      "fullName": "Enter your full name",
+      "email": "Enter your email",
+      "organization": "Enter your organization",
+      "phone": "Enter your phone number",
+      "address": "Enter your address"
+    },
+    "validation": {
+      "fullNameRequired": "Full name is required",
+      "fullNameMin": "Full name must be at least 2 characters",
+      "emailRequired": "Email is required",
+      "emailInvalid": "Please enter a valid email address",
+      "phoneInvalid": "Please enter a valid phone number",
+      "imageSize": "Image size must be less than 5MB",
+      "imageFile": "Please upload a valid image file"
+    },
+    "messages": {
+      "profileUpdated": "Profile updated successfully!",
+      "updateFailed": "Failed to update profile. Please try again.",
+      "emailAlertsEnabled": "Email alerts enabled",
+      "emailAlertsDisabled": "Email alerts disabled",
+      "smsAlertsEnabled": "SMS alerts enabled",
+      "smsAlertsDisabled": "SMS alerts disabled"
+    }
+  },
+  "adminHome": {
+    "defaultAdminName": "Admin",
+    "loadingDashboardStats": "Loading dashboard statistics...",
+    "errors": {
+      "loadStats": "Failed to load dashboard statistics"
+    },
+    "stats": {
+      "totalUsers": "Total Users",
+      "totalDonations": "Total Donations",
+      "ongoingClaims": "Ongoing Claims",
+      "activeDonations": "Active Donations",
+      "pendingVerifications": "Pending Verifications",
+      "completed": "Completed"
+    },
+    "quickActions": {
+      "title": "Quick Actions",
+      "subtitle": "Access the most critical admin tools",
+      "viewLess": "View Less",
+      "viewAllTools": "View All Tools",
+      "userManagement": {
+        "title": "User Management",
+        "description": "Manage users, roles, and permissions"
+      },
+      "reviewDonations": {
+        "title": "Review Donations",
+        "description": "Review and moderate donation posts"
+      },
+      "disputeDashboard": {
+        "title": "Dispute Dashboard",
+        "description": "Handle disputes and reports"
+      },
+      "messages": {
+        "title": "Messages",
+        "description": "View platform communications"
+      },
+      "flaggedPosts": {
+        "title": "Flagged Posts",
+        "description": "Review flagged content"
+      },
+      "pickupSchedule": {
+        "title": "Pickup Schedule",
+        "description": "View and manage pickup schedules"
+      },
+      "analytics": {
+        "title": "Analytics",
+        "description": "View platform analytics and reports"
+      },
+      "systemSettings": {
+        "title": "System Settings",
+        "description": "Configure platform settings"
+      }
+    },
+    "recentActivity": {
+      "title": "Recent Activity",
+      "viewAllActivity": "View All Activity"
+    },
+    "activity": {
+      "defaultUser": "New user",
+      "defaultDonor": "A donor",
+      "defaultDonationTitle": "New donation",
+      "userType": {
+        "donor": "donor",
+        "receiver": "receiver"
+      },
+      "newUserRegistered": "{{name}} registered as a new {{userType}}",
+      "newDonationPosted": "{{name}} posted a new donation",
+      "flaggedPostTitle": "System flagged a post for review",
+      "flaggedPostSubtitle": "Post #{{id}} - Inappropriate content detected",
+      "disputeResolvedTitle": "Admin resolved a dispute",
+      "disputeResolvedSubtitle": "Case #{{id}}"
+    },
+    "timeAgo": {
+      "minuteAgo": "1 min ago",
+      "minutesAgo": "{{count}} min ago",
+      "hourAgo": "1 hour ago",
+      "hoursAgo": "{{count}} hours ago",
+      "dayAgo": "1 day ago",
+      "daysAgo": "{{count}} days ago"
+    }
+  },
+  "changePasswordModal": {
+    "title": "Change Password",
+    "changing": "Changing...",
+    "fields": {
+      "currentPassword": "Current Password",
+      "newPassword": "New Password",
+      "confirmNewPassword": "Confirm New Password"
+    },
+    "placeholders": {
+      "currentPassword": "Enter current password",
+      "newPassword": "Enter new password",
+      "confirmNewPassword": "Confirm new password"
+    },
+    "requirements": {
+      "title": "Password Requirements:",
+      "minLength": "At least 8 characters long",
+      "differentFromCurrent": "Must be different from your current password"
+    },
+    "errors": {
+      "currentPasswordRequired": "Current password is required",
+      "newPasswordRequired": "New password is required",
+      "newPasswordMinLength": "Password must be at least 8 characters long",
+      "newPasswordDifferent": "New password must be different from current password",
+      "confirmPasswordRequired": "Please confirm your new password",
+      "passwordsDoNotMatch": "Passwords do not match"
+    },
+    "messages": {
+      "success": "Password changed successfully",
+      "changeFailed": "Failed to change password"
+    },
+    "aria": {
+      "closeModal": "Close modal",
+      "togglePasswordVisibility": "Toggle password visibility"
     }
   }
 }
