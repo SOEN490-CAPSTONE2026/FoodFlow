@@ -4,10 +4,7 @@ import { X, Calendar, Clock, Plus, Trash2 } from 'lucide-react';
 import { Autocomplete } from '@react-google-maps/api';
 import Select from 'react-select';
 import DatePicker from 'react-datepicker';
-import {
-  imageAPI,
-  surplusAPI,
-} from '../../services/api';
+import { imageAPI, surplusAPI } from '../../services/api';
 import {
   dietaryTagOptions,
   foodTypeOptions,
