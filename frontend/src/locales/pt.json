@@ -39,14 +39,6 @@
   },
   "forgotPasswordPage": {
     "backToLogin": "Voltar para o login",
-    "subtitle": "Sem preocupações! Selecione como você gostaria de receber seu OTP. Após inserir o código, você poderá redefinir sua senha.",
-    "methodEmailTitle": "E-mail",
-    "methodEmailSubtitle": "Receber um link de redefinição por e-mail",
-    "methodSmsTitle": "SMS",
-    "methodSmsSubtitle": "Receber um código por mensagem de texto"
-  },
-  "forgotPasswordPage": {
-    "backToLogin": "Voltar para o login",
     "subtitle": "Sem problemas. Escolha como deseja receber seu codigo OTP. Depois de inserir o codigo, voce podera redefinir sua senha.",
     "methodEmailTitle": "E-mail",
     "methodEmailSubtitle": "Receber um link por e-mail",
@@ -268,6 +260,23 @@
     "minLength": "Mínimo de {{count}} caracteres necessários",
     "maxLength": "Máximo de {{count}} caracteres permitidos",
     "pattern": "Formato inválido"
+  },
+  "passwordValidation": {
+    "required": "A senha ? obrigat?ria",
+    "minLength": "A senha deve ter pelo menos 10 caracteres",
+    "uppercase": "A senha deve conter pelo menos uma letra mai?scula",
+    "lowercase": "A senha deve conter pelo menos uma letra min?scula",
+    "digit": "A senha deve conter pelo menos um n?mero",
+    "specialCharacter": "A senha deve conter pelo menos um caractere especial (!@#$%^&*()_+-=[]{}|;:,.<>?)",
+    "commonPassword": "Esta senha ? muito comum. Escolha uma senha mais segura",
+    "policy": {
+      "minLength": "Pelo menos 10 caracteres",
+      "uppercase": "Pelo menos uma letra mai?scula (A-Z)",
+      "lowercase": "Pelo menos uma letra min?scula (a-z)",
+      "digit": "Pelo menos um n?mero (0-9)",
+      "specialCharacter": "Pelo menos um caractere especial (!@#$%^&*()_+-=[]{}|;:,.<>?)",
+      "commonPassword": "N?o usar uma senha comum"
+    }
   },
   "toast": {
     "saved": "Salvo",
@@ -1884,6 +1893,119 @@
         "unsupportedType": "Tipo de arquivo não suportado. Use JPG, PNG ou HEIC.",
         "fileTooLarge": "O arquivo excede 5 MB. Escolha uma imagem menor."
       }
+    }
+  },
+  "adminWelcome": {
+    "title": "Bem-vindo",
+    "description": "Esta ? a p?gina de boas-vindas do administrador."
+  },
+  "adminHelp": {
+    "title": "Ajuda"
+  },
+  "adminCalendar": {
+    "title": "Calend?rio"
+  },
+  "adminAnalytics": {
+    "title": "An?lises de conformidade de seguran?a alimentar",
+    "subtitle": "Monitore a conformidade de temperatura e embalagem em todas as doa??es",
+    "loading": "Carregando dados de conformidade...",
+    "temperatureCategories": "Categorias de temperatura",
+    "packagingTypes": "Tipos de embalagem",
+    "noTemperatureData": "Nenhum dado de temperatura dispon?vel",
+    "noPackagingData": "Nenhum dado de embalagem dispon?vel",
+    "totalAnalyzed": "Total de doa??es analisadas:",
+    "errors": {
+      "loadFailed": "Falha ao carregar os dados de conformidade"
+    }
+  },
+  "adminDisputes": {
+    "loading": "Carregando disputas...",
+    "allCases": "Todos os casos",
+    "searchPlaceholder": "Pesquisar casos...",
+    "emptyTitle": "Nenhum caso encontrado",
+    "emptyDescription": "N?o h? disputas correspondentes aos filtros atuais.",
+    "userTypes": {
+      "donor": "Doador",
+      "receiver": "Recebedor"
+    },
+    "status": {
+      "open": "Aberto",
+      "underReview": "Em an?lise",
+      "resolved": "Resolvido",
+      "closed": "Fechado"
+    },
+    "stats": {
+      "totalCases": "Total de casos",
+      "resolvedToday": "Resolvidos hoje",
+      "avgResolution": "Resolu??o m?dia",
+      "avgResolutionValue": "{{count}} dias"
+    },
+    "table": {
+      "caseId": "ID do caso",
+      "reporter": "Denunciante",
+      "reportedUser": "Usu?rio denunciado",
+      "donationId": "ID da doa??o",
+      "created": "Criado",
+      "status": "Status",
+      "action": "A??o",
+      "view": "Ver"
+    },
+    "errors": {
+      "loadFailed": "Erro ao carregar disputas"
+    }
+  },
+  "adminDisputeDetail": {
+    "notAvailable": "N/D",
+    "backToDisputes": "Voltar para disputas",
+    "caseNotFound": "Caso n?o encontrado",
+    "caseTitle": "Caso {{caseId}}",
+    "createdOn": "Criado em {{date}} ?s {{time}}",
+    "saveStatusChange": "Salvar altera??o de status",
+    "statusHint": "Altera??es de status exigem confirma??o",
+    "actionsHint": "Todas as a??es s?o exclusivas para administradores e n?o ficam vis?veis para os usu?rios da plataforma.",
+    "resolutionHint": "O caso deve ser marcado como resolvido antes de ser encerrado",
+    "labels": {
+      "caseId": "ID do caso",
+      "createdDate": "Data de cria??o",
+      "createdTime": "Hora de cria??o",
+      "name": "Nome",
+      "userId": "ID do usu?rio",
+      "donationId": "ID da doa??o",
+      "currentStatus": "Status atual",
+      "updateStatus": "Atualizar status"
+    },
+    "sections": {
+      "caseInformation": "INFORMA??ES DO CASO",
+      "reporter": "DENUNCIANTE",
+      "reportedUser": "USU?RIO DENUNCIADO",
+      "relatedDonation": "DOA??O RELACIONADA",
+      "reportDescription": "DESCRI??O DA DEN?NCIA",
+      "caseStatus": "STATUS DO CASO",
+      "adminActions": "A??ES ADMINISTRATIVAS",
+      "caseResolution": "RESOLU??O DO CASO"
+    },
+    "actions": {
+      "deactivateUser": "Desativar conta do usu?rio",
+      "overrideDonation": "Substituir status da doa??o",
+      "flagUser": "Sinalizar usu?rio para revis?o",
+      "closeCase": "Encerrar caso"
+    },
+    "alerts": {
+      "statusAlreadySet": "O status j? est? definido como {{status}}",
+      "statusUpdated": "Status atualizado com sucesso",
+      "updateFailed": "Falha ao atualizar o status: {{message}}",
+      "deactivateRequested": "Solicita??o de desativa??o de conta enviada",
+      "overrideDonation": "Substituir status da doa??o",
+      "userFlagged": "Usu?rio sinalizado para revis?o",
+      "mustResolveBeforeClose": "O caso deve ser marcado como resolvido antes de ser encerrado"
+    },
+    "confirm": {
+      "changeStatus": "Tem certeza de que deseja alterar o status para \"{{status}}\"?",
+      "deactivateUser": "Tem certeza de que deseja desativar esta conta de usu?rio?",
+      "closeCase": "Tem certeza de que deseja encerrar este caso?"
+    },
+    "errors": {
+      "loadFailed": "Falha ao carregar os detalhes do caso"
     }
   }
 }
