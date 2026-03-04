@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import Select from 'react-select';
 import {
@@ -35,6 +36,7 @@ import {
 } from '../ui/table';
 
 const AdminUsers = () => {
+  const { t } = useTranslation();
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -137,7 +139,7 @@ const AdminUsers = () => {
       setLoading(false);
     } catch (err) {
       console.error('Error fetching users:', err);
-      setError('Failed to load users. Please try again later.');
+      setError(t('adminUsers.errors.loadFailed'));
       setUsers([]);
       setLoading(false);
     }
@@ -211,7 +213,7 @@ const AdminUsers = () => {
   // Deactivate user
   const handleDeactivate = async () => {
     if (!selectedUser || !adminNotes.trim()) {
-      setNotificationMessage('Please provide a reason for deactivation');
+      setNotificationMessage(t('adminUsers.notifications.reasonRequired'));
       setNotificationType('error');
       setShowNotification(true);
       return;
@@ -226,7 +228,7 @@ const AdminUsers = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      setNotificationMessage('User deactivated successfully');
+      setNotificationMessage(t('adminUsers.notifications.deactivated'));
       setNotificationType('success');
       setShowNotification(true);
       setShowDeactivateModal(false);
@@ -235,7 +237,9 @@ const AdminUsers = () => {
       fetchUsers();
     } catch (err) {
       console.error('Error deactivating user:', err);
-      setNotificationMessage(err.response?.data || 'Failed to deactivate user');
+      setNotificationMessage(
+        err.response?.data || t('adminUsers.notifications.deactivateFailed')
+      );
       setNotificationType('error');
       setShowNotification(true);
     }
@@ -256,7 +260,7 @@ const AdminUsers = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      setNotificationMessage('User reactivated successfully');
+      setNotificationMessage(t('adminUsers.notifications.reactivated'));
       setNotificationType('success');
       setShowNotification(true);
       setShowReactivateModal(false);
@@ -264,7 +268,9 @@ const AdminUsers = () => {
       fetchUsers();
     } catch (err) {
       console.error('Error reactivating user:', err);
-      setNotificationMessage(err.response?.data || 'Failed to reactivate user');
+      setNotificationMessage(
+        err.response?.data || t('adminUsers.notifications.reactivateFailed')
+      );
       setNotificationType('error');
       setShowNotification(true);
     }
@@ -273,7 +279,7 @@ const AdminUsers = () => {
   // Send alert
   const handleSendAlert = async () => {
     if (!selectedUser || !alertMessage.trim()) {
-      setNotificationMessage('Please enter an alert message');
+      setNotificationMessage(t('adminUsers.notifications.alertRequired'));
       setNotificationType('error');
       setShowNotification(true);
       return;
@@ -288,13 +294,13 @@ const AdminUsers = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      setNotificationMessage('Alert sent successfully');
+      setNotificationMessage(t('adminUsers.notifications.alertSent'));
       setNotificationType('success');
       setShowNotification(true);
       closeAlertModal();
     } catch (err) {
       console.error('Error sending alert:', err);
-      setNotificationMessage('Failed to send alert');
+      setNotificationMessage(t('adminUsers.notifications.alertFailed'));
       setNotificationType('error');
       setShowNotification(true);
     }
@@ -406,16 +412,16 @@ const AdminUsers = () => {
 
   // React Select options
   const roleOptions = [
-    { value: '', label: 'All Roles' },
-    { value: 'DONOR', label: 'Donor' },
-    { value: 'RECEIVER', label: 'Receiver' },
-    { value: 'ADMIN', label: 'Admin' },
+    { value: '', label: t('adminUsers.filters.allRoles') },
+    { value: 'DONOR', label: t('adminUsers.roles.donor') },
+    { value: 'RECEIVER', label: t('adminUsers.roles.receiver') },
+    { value: 'ADMIN', label: t('adminUsers.roles.admin') },
   ];
 
   const statusOptions = [
-    { value: '', label: 'All Status' },
-    { value: 'ACTIVE', label: 'Active' },
-    { value: 'DEACTIVATED', label: 'Deactivated' },
+    { value: '', label: t('adminUsers.filters.allStatus') },
+    { value: 'ACTIVE', label: t('adminUsers.status.active') },
+    { value: 'DEACTIVATED', label: t('adminUsers.status.deactivated') },
   ];
 
   // Custom styles for React Select
@@ -456,7 +462,7 @@ const AdminUsers = () => {
             <Users style={{ color: '#2196f3' }} size={24} />
           </div>
           <div className="stat-content">
-            <div className="stat-label">Total Users</div>
+            <div className="stat-label">{t('adminUsers.stats.totalUsers')}</div>
             <div className="stat-value">{stats.totalUsers}</div>
           </div>
         </div>
@@ -465,7 +471,9 @@ const AdminUsers = () => {
             <Gift style={{ color: '#4caf50' }} size={24} />
           </div>
           <div className="stat-content">
-            <div className="stat-label">Total Donors</div>
+            <div className="stat-label">
+              {t('adminUsers.stats.totalDonors')}
+            </div>
             <div className="stat-value">{stats.totalDonors}</div>
           </div>
         </div>
@@ -474,7 +482,7 @@ const AdminUsers = () => {
             <Sparkles style={{ color: '#ff9800' }} size={24} />
           </div>
           <div className="stat-content">
-            <div className="stat-label">New Users</div>
+            <div className="stat-label">{t('adminUsers.stats.newUsers')}</div>
             <div className="stat-value">{stats.newUsers}</div>
           </div>
         </div>
@@ -483,7 +491,9 @@ const AdminUsers = () => {
             <Handshake style={{ color: '#9c27b0' }} size={24} />
           </div>
           <div className="stat-content">
-            <div className="stat-label">Total Receivers</div>
+            <div className="stat-label">
+              {t('adminUsers.stats.totalReceivers')}
+            </div>
             <div className="stat-value">{stats.totalReceivers}</div>
           </div>
         </div>
@@ -492,7 +502,7 @@ const AdminUsers = () => {
       {/* All Users Section */}
       <div className="users-section">
         <div className="users-section-header">
-          <h2>All Users</h2>
+          <h2>{t('adminUsers.title')}</h2>
           <div className="pagination-info">
             {filteredUsers.length > 0 && (
               <span>
@@ -508,7 +518,7 @@ const AdminUsers = () => {
             <Search className="search-icon" size={18} />
             <input
               type="text"
-              placeholder="Search by name, email, or organization..."
+              placeholder={t('adminUsers.searchPlaceholder')}
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               className="search-input admin-users-search-input"
@@ -522,7 +532,7 @@ const AdminUsers = () => {
               options={roleOptions}
               styles={selectStyles}
               className="filter-select-react"
-              placeholder="All Roles"
+              placeholder={t('adminUsers.filters.allRoles')}
               isSearchable={false}
             />
 
@@ -532,12 +542,12 @@ const AdminUsers = () => {
               options={statusOptions}
               styles={selectStyles}
               className="filter-select-react"
-              placeholder="All Status"
+              placeholder={t('adminUsers.filters.allStatus')}
               isSearchable={false}
             />
 
             <button onClick={handleResetFilters} className="filter-reset-btn">
-              Reset
+              {t('adminUsers.filters.reset')}
             </button>
           </div>
         </div>
@@ -551,20 +561,20 @@ const AdminUsers = () => {
           <TableHeader>
             <TableRow>
               <TableHead></TableHead>
-              <TableHead>ID</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Activity</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead>{t('adminUsers.table.id')}</TableHead>
+              <TableHead>{t('adminUsers.table.name')}</TableHead>
+              <TableHead>{t('adminUsers.table.role')}</TableHead>
+              <TableHead>{t('adminUsers.table.status')}</TableHead>
+              <TableHead>{t('adminUsers.table.email')}</TableHead>
+              <TableHead>{t('adminUsers.table.activity')}</TableHead>
+              <TableHead>{t('adminUsers.table.actions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredUsers.length === 0 ? (
               <TableRow>
                 <TableCell colSpan="8" className="no-users">
-                  No users found
+                  {t('adminUsers.empty')}
                 </TableCell>
               </TableRow>
             ) : (
@@ -593,7 +603,9 @@ const AdminUsers = () => {
                         ) : (
                           <ChevronRight size={18} />
                         )}
-                        <span className="mobile-expand-label">More/Less</span>
+                        <span className="mobile-expand-label">
+                          {t('adminUsers.moreLess')}
+                        </span>
                       </button>
                     </TableCell>
                     <TableCell data-label="ID" className="id-cell">
@@ -602,20 +614,21 @@ const AdminUsers = () => {
                     <TableCell data-label="Name">
                       <div className="user-name-info">
                         <div className="user-name">
-                          {user.contactPerson || 'N/A'}
+                          {user.contactPerson || t('adminUsers.notAvailable')}
                         </div>
                         <div className="user-org">
-                          {user.organizationName || 'N/A'}
+                          {user.organizationName ||
+                            t('adminUsers.notAvailable')}
                         </div>
                       </div>
                     </TableCell>
                     <TableCell data-label="Role">
                       <span className={`pill pill-${user.role.toLowerCase()}`}>
                         {user.role === 'DONOR'
-                          ? 'Donor'
+                          ? t('adminUsers.roles.donor')
                           : user.role === 'RECEIVER'
-                            ? 'Receiver'
-                            : 'Admin'}
+                            ? t('adminUsers.roles.receiver')
+                            : t('adminUsers.roles.admin')}
                       </span>
                     </TableCell>
                     <TableCell data-label="Status">
@@ -623,8 +636,8 @@ const AdminUsers = () => {
                         className={`pill pill-status-${user.accountStatus.toLowerCase()}`}
                       >
                         {user.accountStatus === 'ACTIVE'
-                          ? 'Active'
-                          : 'Deactivated'}
+                          ? t('adminUsers.status.active')
+                          : t('adminUsers.status.deactivated')}
                       </span>
                     </TableCell>
                     <TableCell data-label="Email" className="email-cell">
@@ -640,11 +653,11 @@ const AdminUsers = () => {
                         <button
                           className="action-btn"
                           onClick={() => openUserDetailModal(user)}
-                          title="View Details"
+                          title={t('adminUsers.actions.viewDetails')}
                         >
                           <Eye size={16} />
                           <span className="mobile-action-label">
-                            View Details
+                            {t('adminUsers.actions.viewDetails')}
                           </span>
                         </button>
                         {user.accountStatus === 'ACTIVE' &&
@@ -655,7 +668,7 @@ const AdminUsers = () => {
                                 setShowDeactivateModal(true);
                               }}
                               className="action-btn action-btn-power"
-                              title="Deactivate"
+                              title={t('adminUsers.actions.deactivate')}
                             >
                               <Power size={16} />
                             </button>
@@ -667,7 +680,7 @@ const AdminUsers = () => {
                               setShowReactivateModal(true);
                             }}
                             className="action-btn action-btn-power"
-                            title="Reactivate"
+                            title={t('adminUsers.actions.reactivate')}
                           >
                             <Power size={16} />
                           </button>
@@ -678,7 +691,7 @@ const AdminUsers = () => {
                             setShowAlertModal(true);
                           }}
                           className="action-btn action-btn-bell"
-                          title="Send Alert"
+                          title={t('adminUsers.actions.sendAlert')}
                         >
                           <Bell size={16} />
                         </button>
@@ -693,34 +706,39 @@ const AdminUsers = () => {
                         <div className="user-details-expanded">
                           <div className="details-grid">
                             <div className="details-section">
-                              <h4>Total Activity</h4>
+                              <h4>{t('adminUsers.details.totalActivity')}</h4>
                               <p className="details-value">
                                 {user.role === 'DONOR' &&
-                                  `${user.donationCount || 0} donations`}
+                                  t('adminUsers.details.donationsCount', {
+                                    count: user.donationCount || 0,
+                                  })}
                                 {user.role === 'RECEIVER' &&
-                                  `${user.claimCount || 0} claims`}
-                                {user.role === 'ADMIN' && 'N/A'}
+                                  t('adminUsers.details.claimsCount', {
+                                    count: user.claimCount || 0,
+                                  })}
+                                {user.role === 'ADMIN' &&
+                                  t('adminUsers.notAvailable')}
                               </p>
                             </div>
 
                             <div className="details-section">
-                              <h4>Disputes</h4>
+                              <h4>{t('adminUsers.details.disputes')}</h4>
                               <p className="details-value">0</p>
                             </div>
 
                             <div className="details-section">
-                              <h4>Feedback Score</h4>
+                              <h4>{t('adminUsers.details.feedbackScore')}</h4>
                               <p className="details-value">
                                 {userRatings[user.id]
                                   ? userRatings[user.id].totalReviews > 0
                                     ? `${userRatings[user.id].averageRating.toFixed(1)}/5 (${userRatings[user.id].totalReviews} reviews)`
-                                    : 'No reviews yet'
-                                  : 'Loading...'}
+                                    : t('adminUsers.details.noReviews')
+                                  : t('common.loading')}
                               </p>
                             </div>
 
                             <div className="details-section">
-                              <h4>Member Since</h4>
+                              <h4>{t('adminUsers.details.memberSince')}</h4>
                               <p className="details-value">
                                 {new Date(user.createdAt).toLocaleDateString(
                                   'en-US',
@@ -735,7 +753,7 @@ const AdminUsers = () => {
                           </div>
 
                           <div className="details-activity">
-                            <h4>Recent Activity</h4>
+                            <h4>{t('adminUsers.details.recentActivity')}</h4>
                             <ul className="activity-list">
                               <li>• Donated 50kg of produce on Dec 15, 2025</li>
                               <li>
@@ -771,11 +789,11 @@ const AdminUsers = () => {
             >
               ×
             </button>
-            <h2>Deactivate User:</h2>
+            <h2>{t('adminUsers.modals.deactivate.title')}</h2>
             <p className="alert-user-name">{selectedUser?.email}</p>
 
             <textarea
-              placeholder="Enter reason for deactivation (required)..."
+              placeholder={t('adminUsers.modals.deactivate.placeholder')}
               value={adminNotes}
               onChange={e => setAdminNotes(e.target.value)}
               className="modal-textarea"
@@ -786,10 +804,10 @@ const AdminUsers = () => {
                 onClick={() => setShowDeactivateModal(false)}
                 className="btn-cancel"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button onClick={handleDeactivate} className="btn-confirm">
-                Deactivate
+                {t('adminUsers.actions.deactivate')}
               </button>
             </div>
           </div>
@@ -803,20 +821,20 @@ const AdminUsers = () => {
           onClick={() => setShowReactivateModal(false)}
         >
           <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <h2>Reactivate User</h2>
+            <h2>{t('adminUsers.modals.reactivate.title')}</h2>
             <p>
-              Are you sure you want to reactivate{' '}
+              {t('adminUsers.modals.reactivate.confirmPrefix')}{' '}
               <strong>{selectedUser?.email}</strong>?
             </p>
             <div className="modal-actions">
               <button onClick={handleReactivate} className="btn-confirm">
-                Reactivate
+                {t('adminUsers.actions.reactivate')}
               </button>
               <button
                 onClick={() => setShowReactivateModal(false)}
                 className="btn-cancel"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
             </div>
           </div>
@@ -846,13 +864,15 @@ const AdminUsers = () => {
             <button className="modal-close" onClick={closeAlertModal}>
               ×
             </button>
-            <h2>Send Alert to:</h2>
+            <h2>{t('adminUsers.modals.alert.title')}</h2>
             <p className="alert-user-name">
               {selectedUser?.contactPerson || selectedUser?.email}
             </p>
 
             <div className="alert-type-section">
-              <label className="alert-section-label">Alert Type</label>
+              <label className="alert-section-label">
+                {t('adminUsers.modals.alert.alertType')}
+              </label>
 
               <div className="alert-options">
                 <label
@@ -879,9 +899,11 @@ const AdminUsers = () => {
                     readOnly
                   />
                   <div className="alert-option-content">
-                    <div className="alert-option-title">Warning</div>
+                    <div className="alert-option-title">
+                      {t('adminUsers.alertTypes.warning')}
+                    </div>
                     <div className="alert-option-desc">
-                      Send a warning about policy violations
+                      {t('adminUsers.alertDescriptions.warning')}
                     </div>
                   </div>
                 </label>
@@ -910,9 +932,11 @@ const AdminUsers = () => {
                     readOnly
                   />
                   <div className="alert-option-content">
-                    <div className="alert-option-title">Safety Notice</div>
+                    <div className="alert-option-title">
+                      {t('adminUsers.alertTypes.safety')}
+                    </div>
                     <div className="alert-option-desc">
-                      Important safety information
+                      {t('adminUsers.alertDescriptions.safety')}
                     </div>
                   </div>
                 </label>
@@ -942,10 +966,10 @@ const AdminUsers = () => {
                   />
                   <div className="alert-option-content">
                     <div className="alert-option-title">
-                      Compliance Reminder
+                      {t('adminUsers.alertTypes.compliance')}
                     </div>
                     <div className="alert-option-desc">
-                      Remind about compliance requirements
+                      {t('adminUsers.alertDescriptions.compliance')}
                     </div>
                   </div>
                 </label>
@@ -972,9 +996,11 @@ const AdminUsers = () => {
                     readOnly
                   />
                   <div className="alert-option-content">
-                    <div className="alert-option-title">Custom Alert</div>
+                    <div className="alert-option-title">
+                      {t('adminUsers.alertTypes.custom')}
+                    </div>
                     <div className="alert-option-desc">
-                      Send a custom message
+                      {t('adminUsers.alertDescriptions.custom')}
                     </div>
                   </div>
                 </label>
@@ -990,8 +1016,8 @@ const AdminUsers = () => {
                 <textarea
                   placeholder={
                     alertType === 'custom'
-                      ? 'Enter your custom message...'
-                      : 'Edit message'
+                      ? t('adminUsers.modals.alert.customPlaceholder')
+                      : t('adminUsers.modals.alert.editPlaceholder')
                   }
                   value={alertMessage}
                   onChange={e => setAlertMessage(e.target.value)}
@@ -1006,13 +1032,13 @@ const AdminUsers = () => {
 
             <div className="modal-actions">
               <button onClick={closeAlertModal} className="btn-cancel">
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 onClick={handleSendAlert}
                 className="btn-confirm btn-send-alert"
               >
-                Send Alert
+                {t('adminUsers.actions.sendAlert')}
               </button>
             </div>
           </div>
