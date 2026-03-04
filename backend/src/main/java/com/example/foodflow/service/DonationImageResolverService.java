@@ -38,6 +38,21 @@ public class DonationImageResolverService {
 
     @Transactional(readOnly = true)
     public String resolveDonationImageUrl(User donor, FoodType foodType) {
+        return resolveDonationImageUrl(donor, foodType, null);
+    }
+
+    @Transactional(readOnly = true)
+    public String resolveDonationImageUrl(User donor, FoodType foodType, Long donationId) {
+        if (donationId != null) {
+            String donationSpecific = donationImageRepository
+                    .findFirstByDonationIdAndStatusOrderByCreatedAtDesc(donationId, DonationImageStatus.APPROVED)
+                    .map(DonationImage::getUrl)
+                    .orElse(null);
+            if (donationSpecific != null) {
+                return donationSpecific;
+            }
+        }
+
         if (donor == null) {
             return resolveFallback(foodType);
         }
@@ -51,10 +66,6 @@ public class DonationImageResolverService {
             String single = resolveDonationImage(preferences.getSingleImage());
             if (single != null) {
                 return single;
-            }
-            String approvedDonorImage = resolveLatestApprovedDonorImage(donor.getId(), null);
-            if (approvedDonorImage != null) {
-                return approvedDonorImage;
             }
             if (preferences.getSingleLibraryImage() != null && Boolean.TRUE.equals(preferences.getSingleLibraryImage().getActive())) {
                 return preferences.getSingleLibraryImage().getUrl();
@@ -73,9 +84,13 @@ public class DonationImageResolverService {
             }
         }
 
-        String approvedDonorTypeImage = resolveLatestApprovedDonorImageForType(donor.getId(), foodType);
-        if (approvedDonorTypeImage != null) {
-            return approvedDonorTypeImage;
+        Map<String, Long> perFoodLibraryMap = parseMap(preferences.getPerFoodTypeLibraryMap());
+        Long mappedLibraryId = foodType == null ? null : perFoodLibraryMap.get(foodType.name());
+        if (mappedLibraryId != null) {
+            InternalImageLibrary libraryImage = internalImageLibraryRepository.findById(mappedLibraryId).orElse(null);
+            if (libraryImage != null && Boolean.TRUE.equals(libraryImage.getActive())) {
+                return libraryImage.getUrl();
+            }
         }
 
         String singleFallback = resolveDonationImage(preferences.getSingleImage());
@@ -85,15 +100,6 @@ public class DonationImageResolverService {
 
         if (preferences.getSingleLibraryImage() != null && Boolean.TRUE.equals(preferences.getSingleLibraryImage().getActive())) {
             return preferences.getSingleLibraryImage().getUrl();
-        }
-
-        Map<String, Long> perFoodLibraryMap = parseMap(preferences.getPerFoodTypeLibraryMap());
-        Long mappedLibraryId = foodType == null ? null : perFoodLibraryMap.get(foodType.name());
-        if (mappedLibraryId != null) {
-            InternalImageLibrary libraryImage = internalImageLibraryRepository.findById(mappedLibraryId).orElse(null);
-            if (libraryImage != null && Boolean.TRUE.equals(libraryImage.getActive())) {
-                return libraryImage.getUrl();
-            }
         }
 
         return resolveFallback(foodType);
@@ -119,44 +125,6 @@ public class DonationImageResolverService {
         return internalImageLibraryRepository
                 .findFirstByFoodTypeIsNullAndActiveTrueOrderByCreatedAtDesc()
                 .map(InternalImageLibrary::getUrl)
-                .orElse(null);
-    }
-
-    private String resolveLatestApprovedDonorImage(Long donorId, FoodType foodType) {
-        if (foodType != null) {
-            String byType = donationImageRepository
-                    .findFirstByDonorIdAndFoodTypeAndStatusOrderByCreatedAtDesc(
-                            donorId,
-                            foodType,
-                            DonationImageStatus.APPROVED
-                    )
-                    .map(DonationImage::getUrl)
-                    .orElse(null);
-            if (byType != null) {
-                return byType;
-            }
-        }
-
-        return donationImageRepository
-                .findFirstByDonorIdAndStatusOrderByCreatedAtDesc(
-                        donorId,
-                        DonationImageStatus.APPROVED
-                )
-                .map(DonationImage::getUrl)
-                .orElse(null);
-    }
-
-    private String resolveLatestApprovedDonorImageForType(Long donorId, FoodType foodType) {
-        if (foodType == null) {
-            return null;
-        }
-        return donationImageRepository
-                .findFirstByDonorIdAndFoodTypeAndStatusOrderByCreatedAtDesc(
-                        donorId,
-                        foodType,
-                        DonationImageStatus.APPROVED
-                )
-                .map(DonationImage::getUrl)
                 .orElse(null);
     }
 

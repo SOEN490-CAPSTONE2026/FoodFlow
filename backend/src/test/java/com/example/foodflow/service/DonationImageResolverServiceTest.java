@@ -78,11 +78,6 @@ class DonationImageResolverServiceTest {
 
         when(donorPhotoPreferencesRepository.findByDonorId(11L)).thenReturn(Optional.of(preferences));
         when(donationImageRepository.findById(999L)).thenReturn(Optional.empty());
-        when(donationImageRepository.findFirstByDonorIdAndFoodTypeAndStatusOrderByCreatedAtDesc(
-                11L,
-                FoodType.PRODUCE,
-                DonationImageStatus.APPROVED
-        )).thenReturn(Optional.empty());
         when(internalImageLibraryRepository.findFirstByFoodTypeAndActiveTrueOrderByCreatedAtDesc(FoodType.PRODUCE))
                 .thenReturn(Optional.of(library));
 
@@ -92,7 +87,7 @@ class DonationImageResolverServiceTest {
     }
 
     @Test
-    void resolveDonationImageUrl_singlePendingImage_usesLatestApprovedDonorImage() {
+    void resolveDonationImageUrl_singlePendingImage_usesSingleFallbackLibraryImage() {
         User donor = new User();
         donor.setId(15L);
 
@@ -100,23 +95,19 @@ class DonationImageResolverServiceTest {
         pendingImage.setStatus(DonationImageStatus.PENDING);
         pendingImage.setUrl("/api/files/donation-images/pending.jpg");
 
-        DonationImage approvedImage = new DonationImage();
-        approvedImage.setStatus(DonationImageStatus.APPROVED);
-        approvedImage.setUrl("/api/files/donation-images/approved-latest.jpg");
-
         DonorPhotoPreferences preferences = new DonorPhotoPreferences();
         preferences.setDisplayType(PhotoDisplayType.SINGLE);
         preferences.setSingleImage(pendingImage);
+        InternalImageLibrary singleLibraryImage = new InternalImageLibrary();
+        singleLibraryImage.setActive(true);
+        singleLibraryImage.setUrl("https://cdn.foodflow/internal/single-fallback.jpg");
+        preferences.setSingleLibraryImage(singleLibraryImage);
 
         when(donorPhotoPreferencesRepository.findByDonorId(15L)).thenReturn(Optional.of(preferences));
-        when(donationImageRepository.findFirstByDonorIdAndStatusOrderByCreatedAtDesc(
-                15L,
-                DonationImageStatus.APPROVED
-        )).thenReturn(Optional.of(approvedImage));
 
         String resolved = service.resolveDonationImageUrl(donor, FoodType.BAKERY);
 
-        assertThat(resolved).isEqualTo("/api/files/donation-images/approved-latest.jpg");
+        assertThat(resolved).isEqualTo("https://cdn.foodflow/internal/single-fallback.jpg");
     }
 
     @Test
@@ -136,11 +127,6 @@ class DonationImageResolverServiceTest {
 
         when(donorPhotoPreferencesRepository.findByDonorId(21L)).thenReturn(Optional.of(preferences));
         when(donationImageRepository.findById(555L)).thenReturn(Optional.empty());
-        when(donationImageRepository.findFirstByDonorIdAndFoodTypeAndStatusOrderByCreatedAtDesc(
-                21L,
-                FoodType.PRODUCE,
-                DonationImageStatus.APPROVED
-        )).thenReturn(Optional.empty());
 
         String resolved = service.resolveDonationImageUrl(donor, FoodType.PRODUCE);
 
@@ -163,14 +149,29 @@ class DonationImageResolverServiceTest {
         preferences.setPerFoodTypeLibraryMap("{}");
 
         when(donorPhotoPreferencesRepository.findByDonorId(22L)).thenReturn(Optional.of(preferences));
-        when(donationImageRepository.findFirstByDonorIdAndFoodTypeAndStatusOrderByCreatedAtDesc(
-                22L,
-                FoodType.MEAT_POULTRY,
-                DonationImageStatus.APPROVED
-        )).thenReturn(Optional.empty());
 
         String resolved = service.resolveDonationImageUrl(donor, FoodType.MEAT_POULTRY);
 
         assertThat(resolved).isEqualTo("https://cdn.foodflow/internal/single-fallback.jpg");
+    }
+
+    @Test
+    void resolveDonationImageUrl_donationSpecificImage_takesPriority() {
+        User donor = new User();
+        donor.setId(44L);
+
+        DonorPhotoPreferences preferences = new DonorPhotoPreferences();
+        preferences.setDisplayType(PhotoDisplayType.SINGLE);
+
+        DonationImage donationSpecific = new DonationImage();
+        donationSpecific.setStatus(DonationImageStatus.APPROVED);
+        donationSpecific.setUrl("/api/files/donation-images/donation-999.jpg");
+
+        when(donationImageRepository.findFirstByDonationIdAndStatusOrderByCreatedAtDesc(999L, DonationImageStatus.APPROVED))
+                .thenReturn(Optional.of(donationSpecific));
+
+        String resolved = service.resolveDonationImageUrl(donor, FoodType.PRODUCE, 999L);
+
+        assertThat(resolved).isEqualTo("/api/files/donation-images/donation-999.jpg");
     }
 }

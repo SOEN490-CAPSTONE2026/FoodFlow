@@ -13,6 +13,7 @@ public interface DonationImageRepository extends JpaRepository<DonationImage, Lo
     List<DonationImage> findByStatusOrderByCreatedAtDesc(DonationImageStatus status);
     List<DonationImage> findAllByOrderByCreatedAtDesc();
     Optional<DonationImage> findByIdAndDonorId(Long id, Long donorId);
+    Optional<DonationImage> findFirstByDonationIdAndStatusOrderByCreatedAtDesc(Long donationId, DonationImageStatus status);
     Optional<DonationImage> findFirstByDonorIdAndStatusOrderByCreatedAtDesc(Long donorId, DonationImageStatus status);
     Optional<DonationImage> findFirstByDonorIdAndFoodTypeAndStatusOrderByCreatedAtDesc(Long donorId, FoodType foodType, DonationImageStatus status);
 }

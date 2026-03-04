@@ -557,7 +557,7 @@ public class SurplusService {
         response.setDonorLogoUrl(post.getDonor().getProfilePhoto());
         if (donationImageResolverService != null) {
             response.setResolvedDonationImageUrl(
-                    donationImageResolverService.resolveDonationImageUrl(post.getDonor(), post.getFoodType()));
+                    donationImageResolverService.resolveDonationImageUrl(post.getDonor(), post.getFoodType(), post.getId()));
         }
         response.setCreatedAt(post.getCreatedAt());
         response.setUpdatedAt(post.getUpdatedAt());

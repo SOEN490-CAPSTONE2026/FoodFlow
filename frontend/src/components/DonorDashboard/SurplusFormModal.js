@@ -5,7 +5,6 @@ import { Autocomplete } from '@react-google-maps/api';
 import Select from 'react-select';
 import DatePicker from 'react-datepicker';
 import {
-  donorPhotoSettingsAPI,
   imageAPI,
   surplusAPI,
 } from '../../services/api';
@@ -444,40 +443,8 @@ const SurplusFormModal = ({
             setUploadProgress(percent);
           }
         );
-
-        const imageId = uploaded?.data?.image?.id;
-        if (imageId) {
-          try {
-            const settingsResp = await donorPhotoSettingsAPI.get();
-            const current = settingsResp?.data || {};
-            const payload = {
-              displayType: current.displayType || 'SINGLE',
-              singleImageId: current.singleImageId || null,
-              singleLibraryImageId: current.singleLibraryImageId || null,
-              perFoodTypeMap: current.perFoodTypeMap || {},
-              perFoodTypeLibraryMap: current.perFoodTypeLibraryMap || {},
-            };
-
-            if (payload.displayType === 'PER_FOOD_TYPE') {
-              const foodTypeKey =
-                selectedFoodTypes.length > 0 ? selectedFoodTypes[0] : null;
-              if (foodTypeKey) {
-                payload.perFoodTypeMap = {
-                  ...(payload.perFoodTypeMap || {}),
-                  [foodTypeKey]: imageId,
-                };
-              }
-            } else {
-              payload.singleImageId = imageId;
-              payload.singleLibraryImageId = null;
-            }
-            await donorPhotoSettingsAPI.update(payload);
-          } catch (settingsErr) {
-            console.error(
-              'Failed to auto-link uploaded donation photo:',
-              settingsErr
-            );
-          }
+        if (!uploaded?.data?.image?.id) {
+          console.warn('Donation photo upload completed without image id');
         }
       }
 

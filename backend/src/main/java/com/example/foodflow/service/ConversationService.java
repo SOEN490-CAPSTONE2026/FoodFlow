@@ -385,7 +385,8 @@ public class ConversationService {
             response.setResolvedDonationImageUrl(
                 donationImageResolverService.resolveDonationImageUrl(
                     conversation.getSurplusPost().getDonor(),
-                    conversation.getSurplusPost().getFoodType()
+                    conversation.getSurplusPost().getFoodType(),
+                    conversation.getSurplusPost().getId()
                 )
             );
         }

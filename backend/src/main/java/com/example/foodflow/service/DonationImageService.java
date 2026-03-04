@@ -66,13 +66,17 @@ public class DonationImageService {
         donationImage.setDonation(donation);
         donationImage.setFoodType(foodType);
         donationImage.setUrl(imageUrl);
-        donationImage.setStatus(DonationImageStatus.PENDING);
+        // Donation-scoped images are used only on that card and do not require manual moderation.
+        donationImage.setStatus(donationId != null ? DonationImageStatus.APPROVED : DonationImageStatus.PENDING);
         donationImage.setOriginalFileName(file.getOriginalFilename());
         donationImage.setContentType(file.getContentType());
         donationImage.setFileSize(file.getSize());
 
         DonationImage saved = donationImageRepository.save(donationImage);
-        return new ImageUploadResponse("Image uploaded and queued for moderation", toResponse(saved));
+        String message = donationId != null
+                ? "Image uploaded for this donation"
+                : "Image uploaded and queued for moderation";
+        return new ImageUploadResponse(message, toResponse(saved));
     }
 
     @Transactional(readOnly = true)

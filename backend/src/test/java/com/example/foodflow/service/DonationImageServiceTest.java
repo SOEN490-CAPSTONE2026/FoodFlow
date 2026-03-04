@@ -3,7 +3,10 @@ package com.example.foodflow.service;
 import com.example.foodflow.model.dto.DonationImageResponse;
 import com.example.foodflow.model.entity.DonationImage;
 import com.example.foodflow.model.entity.Organization;
+import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.entity.User;
+import com.example.foodflow.model.types.DonationImageStatus;
+import com.example.foodflow.model.types.FoodType;
 import com.example.foodflow.repository.DonationImageRepository;
 import com.example.foodflow.repository.InternalImageLibraryRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
@@ -16,6 +19,8 @@ import org.springframework.mock.web.MockMultipartFile;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class DonationImageServiceTest {
@@ -94,5 +99,37 @@ class DonationImageServiceTest {
         assertThat(response.getDonorId()).isEqualTo(7L);
         assertThat(response.getDonorEmail()).isEqualTo("donor@foodflow.org");
         assertThat(response.getDonorName()).isEqualTo("Community Kitchen");
+    }
+
+    @Test
+    void uploadDonationImage_withDonationId_setsApprovedStatus() throws Exception {
+        User donor = new User();
+        donor.setId(9L);
+
+        SurplusPost post = new SurplusPost();
+        post.setId(123L);
+        post.setDonor(donor);
+
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "donation.jpg",
+                "image/jpeg",
+                "ok".getBytes()
+        );
+
+        when(surplusPostRepository.findById(123L)).thenReturn(java.util.Optional.of(post));
+        when(fileStorageService.storeFile(any(), any())).thenReturn("/api/files/donation-images/donor-9/donation.jpg");
+        when(donationImageRepository.save(any(DonationImage.class))).thenAnswer(invocation -> {
+            DonationImage img = invocation.getArgument(0);
+            img.setId(555L);
+            return img;
+        });
+
+        com.example.foodflow.model.dto.ImageUploadResponse response =
+                donationImageService.uploadDonationImage(donor, file, FoodType.PRODUCE, 123L);
+
+        assertThat(response.getImage()).isNotNull();
+        assertThat(response.getImage().getStatus()).isEqualTo(DonationImageStatus.APPROVED);
+        assertThat(response.getImage().getDonationId()).isEqualTo(123L);
     }
 }

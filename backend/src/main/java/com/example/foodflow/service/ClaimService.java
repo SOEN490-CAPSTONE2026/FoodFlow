@@ -403,7 +403,8 @@ public class ClaimService {
                 surplus.setResolvedDonationImageUrl(
                         donationImageResolverService.resolveDonationImageUrl(
                                 claim.getSurplusPost().getDonor(),
-                                claim.getSurplusPost().getFoodType()));
+                                claim.getSurplusPost().getFoodType(),
+                                claim.getSurplusPost().getId()));
             }
         }
         return response;
