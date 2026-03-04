@@ -252,7 +252,10 @@
     "download": "تحميل",
     "hidePassword": "إخفاء كلمة المرور",
     "showPassword": "إظهار كلمة المرور",
-    "time": "الوقت"
+    "time": "الوقت",
+    "retry": "إعادة المحاولة",
+    "less": "أقل",
+    "more": "المزيد"
   },
   "validation": {
     "required": "هذا الحقل مطلوب",
@@ -894,7 +897,21 @@
     "communications": "الاتصالات الواردة",
     "guides": "الأدلة والدعم",
     "administration": "الإدارة",
-    "welcomeBack": "مرحباً بعودتك، {{name}}"
+    "welcomeBack": "مرحباً بعودتك، {{name}}",
+    "users": "إدارة المستخدمين",
+    "verificationQueue": "قائمة التحقق",
+    "impact": "لوحة الأثر",
+    "disputes": "النزاعات والتقارير",
+    "donations": "التبرعات",
+    "settings": "الإعدادات",
+    "logout": "تسجيل الخروج",
+    "toggleMenu": "تبديل القائمة",
+    "foodflowHome": "الصفحة الرئيسية لـ FoodFlow",
+    "toggleSidebar": "تبديل الشريط الجانبي",
+    "verificationQueueDesc": "مراجعة واعتماد تسجيلات المستخدمين المعلقة",
+    "usersDesc": "إدارة ومراقبة جميع مستخدمي المنصة",
+    "impactDesc": "مقاييس الأثر البيئي والاجتماعي على مستوى المنصة",
+    "disputesDesc": "تتبع ومراجعة وحل المشكلات المبلغ عنها"
   },
   "claimedView": {
     "claimed": "تم المطالبة به",
@@ -1114,7 +1131,9 @@
       "messages": "التواصل مع المتبرعين والمستخدمين الآخرين",
       "settings": "إدارة تفضيلاتك وإعدادات الحساب",
       "default": "بوابة المستفيد FoodFlow"
-    }
+    },
+    "achievements": "الإنجازات",
+    "impact": "لوحة تحكم الأثر"
   },
   "receiverBrowse": {
     "confirmClaim": "هل أنت متأكد من رغبتك في المطالبة بهذا التبرع؟",
@@ -1662,6 +1681,8 @@
     "repeatDonors": "المتبرعون المتكررون",
     "repeatReceivers": "المستلمون المتكررون",
     "foodSavedOverTime": "الطعام المُنقذ بمرور الوقت",
+    "dateLabel": "التاريخ",
+    "foodSavedLabel": "الطعام المنقذ",
     "impactOverview": "نظرة عامة على التأثير",
     "claimsByDay": "الاستلامات حسب اليوم",
     "claimsByWeek": "الاستلامات حسب الأسبوع",
@@ -1678,7 +1699,12 @@
     "adminMessage": "تُحدث FoodFlow تأثيرًا حقيقيًا في تقليل هدر الطعام ودعم المجتمعات.",
     "selectAll": "تحديد الكل",
     "clearAll": "مسح الكل",
-    "done": "تم"
+    "done": "تم",
+    "impactMetrics": "مقاييس الأثر",
+    "foodSavedByDay": "الطعام المنقذ حسب اليوم",
+    "foodSavedByWeek": "الطعام المنقذ حسب الأسبوع",
+    "foodSavedByMonth": "الطعام المنقذ حسب الشهر",
+    "claimsLabel": "المطالبات"
   },
   "donorHelp": {
     "gettingStarted": {
@@ -2006,6 +2032,463 @@
     },
     "errors": {
       "loadFailed": "تعذر تحميل تفاصيل الحالة"
+    }
+  },
+  "adminVerificationQueue": {
+    "title": "عمليات التسجيل المعلقة",
+    "loading": "جارٍ تحميل المستخدمين المعلقين...",
+    "showing": "عرض {{shown}} من أصل {{total}} مستخدمين معلقين",
+    "searchPlaceholder": "ابحث باسم المؤسسة أو البريد الإلكتروني...",
+    "notAvailable": "غير متوفر",
+    "labels": {
+      "organization": "المؤسسة",
+      "contact": "جهة الاتصال",
+      "email": "البريد الإلكتروني",
+      "type": "النوع"
+    },
+    "stats": {
+      "totalPending": "إجمالي المعلّق",
+      "pendingDonors": "المتبرعون المعلقون",
+      "pendingReceivers": "المستلمون المعلقون",
+      "avgWaitTime": "متوسط وقت الانتظار"
+    },
+    "filters": {
+      "allTypes": "كل الأنواع",
+      "donors": "المتبرعون",
+      "receivers": "المستلمون",
+      "byType": "تصفية حسب النوع",
+      "byStatus": "تصفية حسب الحالة",
+      "sortBy": "ترتيب حسب"
+    },
+    "status": {
+      "emailVerified": "تم التحقق من البريد",
+      "emailNotVerified": "لم يتم التحقق من البريد",
+      "pendingApproval": "بانتظار الموافقة"
+    },
+    "sort": {
+      "registrationDate": "تاريخ التسجيل",
+      "userType": "نوع المستخدم",
+      "waitingTime": "وقت الانتظار",
+      "toggle": "ترتيب {{order}}",
+      "ascending": "تصاعدي",
+      "descending": "تنازلي"
+    },
+    "table": {
+      "id": "المعرف",
+      "organization": "المؤسسة",
+      "type": "النوع",
+      "status": "الحالة",
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف",
+      "waitingTime": "وقت الانتظار",
+      "actions": "الإجراءات"
+    },
+    "empty": {
+      "title": "لا توجد تسجيلات معلقة",
+      "description": "تمت مراجعة جميع تسجيلات المستخدمين."
+    },
+    "actions": {
+      "verifyEmail": "التحقق من البريد",
+      "approve": "موافقة",
+      "reject": "رفض"
+    },
+    "time": {
+      "day": "يوم",
+      "days": "أيام",
+      "hour": "ساعة",
+      "hours": "ساعات"
+    },
+    "document": {
+      "viewing": "عرض المستند: {{name}}",
+      "productionNote": "في بيئة الإنتاج، سيفتح هذا المستند المرفوع للمراجعة."
+    },
+    "rejectionReasons": {
+      "incompleteInfo": "معلومات غير مكتملة",
+      "invalidOrganization": "مؤسسة غير صالحة",
+      "duplicateAccount": "حساب مكرر",
+      "suspiciousActivity": "نشاط مشبوه",
+      "doesNotMeetCriteria": "لا يستوفي المعايير",
+      "other": "أخرى"
+    },
+    "modals": {
+      "approval": {
+        "title": "الموافقة على التسجيل",
+        "confirm": "هل أنت متأكد أنك تريد الموافقة على هذا التسجيل؟",
+        "note": "سيتلقى المستخدم رسالة موافقة عبر البريد وسيتم تعيين حالته إلى نشط.",
+        "loading": "جارٍ الموافقة...",
+        "action": "الموافقة على المستخدم"
+      },
+      "rejection": {
+        "title": "رفض التسجيل",
+        "selectReason": "يرجى اختيار سبب الرفض",
+        "prompt": "يرجى تقديم سبب لرفض هذا التسجيل:",
+        "reason": "سبب الرفض",
+        "reasonPlaceholder": "اختر سببًا...",
+        "additionalMessage": "رسالة إضافية (اختياري)",
+        "messagePlaceholder": "أضف أي معلومات إضافية للمستخدم...",
+        "note": "سيتلقى المستخدم رسالة رفض مع السبب ويمكنه إعادة التسجيل إذا لزم الأمر.",
+        "loading": "جارٍ الرفض...",
+        "action": "رفض المستخدم"
+      },
+      "manualVerify": {
+        "title": "التحقق اليدوي من البريد",
+        "prompt": "سيؤدي هذا إلى اعتبار بريد المستخدم متحققًا ونقله إلى قائمة موافقة الإدارة.",
+        "note": "استخدم هذا فقط عندما يفشل رابط التحقق.",
+        "loading": "جارٍ التحقق...",
+        "action": "التحقق من البريد"
+      }
+    },
+    "toasts": {
+      "approved": "تمت الموافقة على {{name}} بنجاح!",
+      "approveFailed": "تعذر الموافقة على المستخدم. يرجى المحاولة مرة أخرى.",
+      "rejected": "تم رفض {{name}}.",
+      "rejectFailed": "تعذر رفض المستخدم. يرجى المحاولة مرة أخرى.",
+      "verified": "تم التحقق من البريد يدويًا",
+      "verifyFailed": "تعذر التحقق من البريد. يرجى المحاولة مرة أخرى."
+    },
+    "pagination": {
+      "previous": "السابق",
+      "next": "التالي",
+      "pageOf": "الصفحة {{page}} من {{total}}"
+    }
+  },
+  "adminUsers": {
+    "title": "كل المستخدمين",
+    "searchPlaceholder": "ابحث بالاسم أو البريد أو المؤسسة...",
+    "empty": "لم يتم العثور على مستخدمين",
+    "moreLess": "المزيد/أقل",
+    "notAvailable": "غير متوفر",
+    "stats": {
+      "totalUsers": "إجمالي المستخدمين",
+      "totalDonors": "إجمالي المتبرعين",
+      "newUsers": "مستخدمون جدد",
+      "totalReceivers": "إجمالي المستلمين"
+    },
+    "filters": {
+      "allRoles": "كل الأدوار",
+      "allStatus": "كل الحالات",
+      "reset": "إعادة تعيين"
+    },
+    "table": {
+      "id": "المعرف",
+      "name": "الاسم",
+      "role": "الدور",
+      "status": "الحالة",
+      "email": "البريد الإلكتروني",
+      "activity": "النشاط",
+      "actions": "الإجراءات"
+    },
+    "roles": {
+      "donor": "متبرع",
+      "receiver": "مستلم",
+      "admin": "مسؤول"
+    },
+    "status": {
+      "active": "نشط",
+      "deactivated": "معطل"
+    },
+    "actions": {
+      "viewDetails": "عرض التفاصيل",
+      "deactivate": "تعطيل",
+      "reactivate": "إعادة التفعيل",
+      "sendAlert": "إرسال تنبيه"
+    },
+    "details": {
+      "totalActivity": "إجمالي النشاط",
+      "donationsCount": "{{count}} تبرعات",
+      "claimsCount": "{{count}} مطالبات",
+      "disputes": "النزاعات",
+      "feedbackScore": "تقييم الملاحظات",
+      "noReviews": "لا توجد مراجعات بعد",
+      "memberSince": "عضو منذ",
+      "recentActivity": "النشاط الأخير"
+    },
+    "modals": {
+      "deactivate": {
+        "title": "تعطيل المستخدم:",
+        "placeholder": "أدخل سبب التعطيل (مطلوب)..."
+      },
+      "reactivate": {
+        "title": "إعادة تفعيل المستخدم",
+        "confirmPrefix": "هل أنت متأكد أنك تريد إعادة تفعيل"
+      },
+      "alert": {
+        "title": "إرسال تنبيه إلى:",
+        "alertType": "نوع التنبيه",
+        "customPlaceholder": "أدخل رسالتك المخصصة...",
+        "editPlaceholder": "تعديل الرسالة"
+      }
+    },
+    "alertTypes": {
+      "warning": "تحذير",
+      "safety": "إشعار أمان",
+      "compliance": "تذكير بالامتثال",
+      "custom": "تنبيه مخصص"
+    },
+    "alertDescriptions": {
+      "warning": "إرسال تحذير بشأن مخالفات السياسات",
+      "safety": "معلومات أمان مهمة",
+      "compliance": "تذكير بمتطلبات الامتثال",
+      "custom": "إرسال رسالة مخصصة"
+    },
+    "notifications": {
+      "reasonRequired": "يرجى إدخال سبب التعطيل",
+      "deactivated": "تم تعطيل المستخدم بنجاح",
+      "deactivateFailed": "فشل تعطيل المستخدم",
+      "reactivated": "تمت إعادة تفعيل المستخدم بنجاح",
+      "reactivateFailed": "فشلت إعادة تفعيل المستخدم",
+      "alertRequired": "يرجى إدخال رسالة تنبيه",
+      "alertSent": "تم إرسال التنبيه بنجاح",
+      "alertFailed": "فشل إرسال التنبيه"
+    },
+    "errors": {
+      "loadFailed": "تعذر تحميل المستخدمين. يرجى المحاولة مرة أخرى لاحقًا."
+    }
+  },
+  "adminDonations": {
+    "title": "كل التبرعات",
+    "searchPlaceholder": "ابحث بالعنوان أو المتبرع أو المستلم أو المعرف...",
+    "loading": "جارٍ تحميل التبرعات...",
+    "empty": "لم يتم العثور على تبرعات",
+    "notAvailable": "غير متوفر",
+    "flaggedDonation": "تبرع مبلّغ عنه",
+    "lowRating": "تقييم منخفض (<= نجمتين)",
+    "stats": {
+      "total": "إجمالي التبرعات",
+      "active": "نشطة",
+      "completed": "مكتملة",
+      "flagged": "مبلّغ عنها"
+    },
+    "filters": {
+      "allStatus": "كل الحالات",
+      "reset": "إعادة تعيين"
+    },
+    "table": {
+      "id": "المعرف",
+      "title": "العنوان",
+      "status": "الحالة",
+      "donor": "المتبرع",
+      "receiver": "المستلم",
+      "rating": "التقييم",
+      "flagged": "مبلّغ عنه",
+      "created": "تم الإنشاء",
+      "updated": "تم التحديث",
+      "actions": "الإجراءات"
+    },
+    "actions": {
+      "viewDetails": "عرض التفاصيل"
+    },
+    "details": {
+      "foodCategories": "فئات الطعام",
+      "quantity": "الكمية",
+      "expiryDate": "تاريخ الانتهاء",
+      "pickupDate": "تاريخ الاستلام",
+      "temperature": "درجة الحرارة",
+      "packagingConditions": "حالة التغليف",
+      "description": "الوصف",
+      "noDescription": "لا يوجد وصف",
+      "feedbackRatings": "الملاحظات والتقييمات",
+      "clickToLoadFeedback": "انقر للتوسيع وتحميل الملاحظات...",
+      "noFeedback": "لم يتم تقديم أي ملاحظات لهذا التبرع بعد."
+    },
+    "errors": {
+      "loadFailed": "تعذر تحميل التبرعات. يرجى المحاولة مرة أخرى."
+    }
+  },
+  "adminSettings": {
+    "loading": "جارٍ تحميل الملف الشخصي...",
+    "profileAlt": "الملف الشخصي",
+    "profilePhoto": "صورة الملف الشخصي",
+    "profilePhotoDescription": "ارفع صورة لتخصيص حسابك",
+    "changePassword": "تغيير كلمة المرور",
+    "saving": "جارٍ الحفظ...",
+    "saveChanges": "حفظ التغييرات",
+    "emailAlerts": "تنبيهات البريد الإلكتروني",
+    "smsAlerts": "تنبيهات الرسائل النصية",
+    "yourEmailAddress": "عنوان بريدك الإلكتروني",
+    "emailAlertsDescription": "استلم الإشعارات عبر البريد الإلكتروني على {{email}}",
+    "smsAlertsDescription": "استلم الإشعارات عبر الرسائل النصية{{phone}}",
+    "sections": {
+      "account": "الحساب",
+      "languageRegion": "اللغة والمنطقة",
+      "notificationPreferences": "تفضيلات الإشعارات",
+      "notificationTypes": "أنواع الإشعارات"
+    },
+    "descriptions": {
+      "account": "إدارة ملفك الشخصي وتفاصيل حسابك",
+      "languageRegion": "اضبط تفضيلات اللغة والموقع والمنطقة الزمنية",
+      "notificationPreferences": "اختر كيف تريد استلام الإشعارات",
+      "notificationTypes": "خصّص أنواع الإشعارات التي تريد استلامها"
+    },
+    "subsections": {
+      "languagePreference": "تفضيل اللغة",
+      "locationTimezone": "الموقع والمنطقة الزمنية"
+    },
+    "subsectionDescriptions": {
+      "languagePreference": "اختر لغتك المفضلة لواجهة الاستخدام",
+      "locationTimezone": "اضبط موقعك لضمان دقة معلومات التاريخ والوقت"
+    },
+    "fields": {
+      "fullName": "الاسم الكامل",
+      "email": "البريد الإلكتروني",
+      "organization": "المؤسسة",
+      "phone": "رقم الهاتف",
+      "address": "العنوان"
+    },
+    "placeholders": {
+      "fullName": "أدخل اسمك الكامل",
+      "email": "أدخل بريدك الإلكتروني",
+      "organization": "أدخل اسم مؤسستك",
+      "phone": "أدخل رقم هاتفك",
+      "address": "أدخل عنوانك"
+    },
+    "validation": {
+      "fullNameRequired": "الاسم الكامل مطلوب",
+      "fullNameMin": "يجب أن يتكون الاسم الكامل من حرفين على الأقل",
+      "emailRequired": "البريد الإلكتروني مطلوب",
+      "emailInvalid": "يرجى إدخال بريد إلكتروني صالح",
+      "phoneInvalid": "يرجى إدخال رقم هاتف صالح",
+      "imageSize": "يجب أن يكون حجم الصورة أقل من 5 ميجابايت",
+      "imageFile": "يرجى رفع ملف صورة صالح"
+    },
+    "messages": {
+      "profileUpdated": "تم تحديث الملف الشخصي بنجاح",
+      "updateFailed": "تعذر تحديث الملف الشخصي. يرجى المحاولة مرة أخرى.",
+      "emailAlertsEnabled": "تم تفعيل تنبيهات البريد الإلكتروني",
+      "emailAlertsDisabled": "تم تعطيل تنبيهات البريد الإلكتروني",
+      "smsAlertsEnabled": "تم تفعيل تنبيهات الرسائل النصية",
+      "smsAlertsDisabled": "تم تعطيل تنبيهات الرسائل النصية"
+    }
+  },
+  "adminHome": {
+    "defaultAdminName": "المسؤول",
+    "loadingDashboardStats": "جارٍ تحميل إحصائيات لوحة التحكم...",
+    "errors": {
+      "loadStats": "فشل تحميل إحصائيات لوحة التحكم"
+    },
+    "stats": {
+      "totalUsers": "إجمالي المستخدمين",
+      "totalDonations": "إجمالي التبرعات",
+      "ongoingClaims": "المطالبات الجارية",
+      "activeDonations": "التبرعات النشطة",
+      "pendingVerifications": "عمليات التحقق المعلقة",
+      "completed": "المكتمل"
+    },
+    "quickActions": {
+      "title": "إجراءات سريعة",
+      "subtitle": "الوصول إلى أهم أدوات الإدارة",
+      "viewLess": "عرض أقل",
+      "viewAllTools": "عرض كل الأدوات",
+      "userManagement": {
+        "title": "إدارة المستخدمين",
+        "description": "إدارة المستخدمين والأدوار والصلاحيات"
+      },
+      "reviewDonations": {
+        "title": "مراجعة التبرعات",
+        "description": "مراجعة وإدارة منشورات التبرعات"
+      },
+      "disputeDashboard": {
+        "title": "لوحة النزاعات",
+        "description": "معالجة النزاعات والتقارير"
+      },
+      "messages": {
+        "title": "الرسائل",
+        "description": "عرض تواصل المنصة"
+      },
+      "flaggedPosts": {
+        "title": "المنشورات المُعلّمة",
+        "description": "مراجعة المحتوى المُعلّم"
+      },
+      "pickupSchedule": {
+        "title": "جدول الاستلام",
+        "description": "عرض وإدارة جداول الاستلام"
+      },
+      "analytics": {
+        "title": "التحليلات",
+        "description": "عرض تحليلات وتقارير المنصة"
+      },
+      "systemSettings": {
+        "title": "إعدادات النظام",
+        "description": "تهيئة إعدادات المنصة"
+      }
+    },
+    "recentActivity": {
+      "title": "النشاط الأخير",
+      "viewAllActivity": "عرض كل النشاط"
+    },
+    "activity": {
+      "defaultUser": "مستخدم جديد",
+      "defaultDonor": "متبرع",
+      "defaultDonationTitle": "تبرع جديد",
+      "userType": {
+        "donor": "متبرع",
+        "receiver": "مستفيد"
+      },
+      "newUserRegistered": "قام {{name}} بالتسجيل كـ {{userType}} جديد",
+      "newDonationPosted": "قام {{name}} بنشر تبرع جديد",
+      "flaggedPostTitle": "قام النظام بتعليم منشور للمراجعة",
+      "flaggedPostSubtitle": "المنشور #{{id}} - تم اكتشاف محتوى غير مناسب",
+      "disputeResolvedTitle": "قام المسؤول بحل نزاع",
+      "disputeResolvedSubtitle": "القضية #{{id}}"
+    },
+    "timeAgo": {
+      "minuteAgo": "منذ دقيقة واحدة",
+      "minutesAgo": "منذ {{count}} دقائق",
+      "hourAgo": "منذ ساعة واحدة",
+      "hoursAgo": "منذ {{count}} ساعات",
+      "dayAgo": "منذ يوم واحد",
+      "daysAgo": "منذ {{count}} أيام"
+    }
+  },
+  "calendar": {
+    "title": "تكامل التقويم",
+    "description": "زامن مواعيد الاستلام في FoodFlow مع Google Calendar",
+    "connected": "متصل",
+    "notConnected": "غير متصل",
+    "provider": "المزوّد",
+    "connectPrompt": "قم بربط Google Calendar لمزامنة مواعيد التبرعات وجداول الاستلام تلقائيًا. لا تفوّت أي حدث مهم!",
+    "connectButton": "ربط Google Calendar",
+    "disconnectButton": "قطع الاتصال",
+    "loadError": "فشل تحميل بيانات التقويم",
+    "connectError": "فشل ربط التقويم. يرجى المحاولة مرة أخرى.",
+    "disconnectError": "فشل قطع اتصال التقويم",
+    "syncButton": "مزامنة الآن",
+    "preferences": "تفضيلات المزامنة",
+    "syncEnabled": "تفعيل المزامنة التلقائية"
+  },
+  "changePasswordModal": {
+    "title": "تغيير كلمة المرور",
+    "changing": "جاري التغيير...",
+    "fields": {
+      "currentPassword": "كلمة المرور الحالية",
+      "newPassword": "كلمة المرور الجديدة",
+      "confirmNewPassword": "تأكيد كلمة المرور الجديدة"
+    },
+    "placeholders": {
+      "currentPassword": "أدخل كلمة المرور الحالية",
+      "newPassword": "أدخل كلمة مرور جديدة",
+      "confirmNewPassword": "أكد كلمة المرور الجديدة"
+    },
+    "requirements": {
+      "title": "متطلبات كلمة المرور:",
+      "minLength": "على الأقل 8 أحرف",
+      "differentFromCurrent": "يجب أن تكون مختلفة عن كلمة مرورك الحالية"
+    },
+    "errors": {
+      "currentPasswordRequired": "كلمة المرور الحالية مطلوبة",
+      "newPasswordRequired": "كلمة المرور الجديدة مطلوبة",
+      "newPasswordMinLength": "يجب أن تكون كلمة المرور 8 أحرف على الأقل",
+      "newPasswordDifferent": "يجب أن تختلف كلمة المرور الجديدة عن الحالية",
+      "confirmPasswordRequired": "الرجاء تأكيد كلمة المرور الجديدة",
+      "passwordsDoNotMatch": "كلمتا المرور غير متطابقتين"
+    },
+    "messages": {
+      "success": "تم تغيير كلمة المرور بنجاح",
+      "changeFailed": "فشل تغيير كلمة المرور"
+    },
+    "aria": {
+      "closeModal": "إغلاق النافذة",
+      "togglePasswordVisibility": "تبديل ظهور كلمة المرور"
     }
   }
 }
