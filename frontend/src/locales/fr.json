@@ -38,14 +38,6 @@
     "enterEmail": "Entrez votre adresse courriel"
   },
   "forgotPasswordPage": {
-    "backToLogin": "Retour à la connexion",
-    "subtitle": "Pas d'inquiétude! Veuillez sélectionner comment vous souhaitez recevoir votre code OTP. Après avoir saisi le code, vous pourrez réinitialiser votre mot de passe.",
-    "methodEmailTitle": "Courriel",
-    "methodEmailSubtitle": "Recevoir un lien de réinitialisation par courriel",
-    "methodSmsTitle": "SMS",
-    "methodSmsSubtitle": "Recevoir un code par message texte"
-  },
-  "forgotPasswordPage": {
     "backToLogin": "Retour a la connexion",
     "subtitle": "Pas de souci. Choisissez comment recevoir votre code OTP. Apres avoir saisi le code, vous pourrez reinitialiser votre mot de passe.",
     "methodEmailTitle": "Courriel",
@@ -288,6 +280,23 @@
     "minLength": "Minimum {{count}} caractères requis",
     "maxLength": "Maximum {{count}} caractères autorisés",
     "pattern": "Format invalide"
+  },
+  "passwordValidation": {
+    "required": "Le mot de passe est obligatoire",
+    "minLength": "Le mot de passe doit contenir au moins 10 caract?res",
+    "uppercase": "Le mot de passe doit contenir au moins une lettre majuscule",
+    "lowercase": "Le mot de passe doit contenir au moins une lettre minuscule",
+    "digit": "Le mot de passe doit contenir au moins un chiffre",
+    "specialCharacter": "Le mot de passe doit contenir au moins un caract?re sp?cial (!@#$%^&*()_+-=[]{}|;:,.<>?)",
+    "commonPassword": "Ce mot de passe est trop courant. Veuillez choisir un mot de passe plus s?curis?",
+    "policy": {
+      "minLength": "Au moins 10 caract?res",
+      "uppercase": "Au moins une lettre majuscule (A-Z)",
+      "lowercase": "Au moins une lettre minuscule (a-z)",
+      "digit": "Au moins un chiffre (0-9)",
+      "specialCharacter": "Au moins un caract?re sp?cial (!@#$%^&*()_+-=[]{}|;:,.<>?)",
+      "commonPassword": "Ne pas utiliser un mot de passe courant"
+    }
   },
   "toast": {
     "saved": "Enregistré",
@@ -1884,6 +1893,119 @@
         "unsupportedType": "Type de fichier non pris en charge. Utilisez JPG, PNG ou HEIC.",
         "fileTooLarge": "Le fichier dépasse 5 Mo. Choisissez une image plus petite."
       }
+    }
+  },
+  "adminWelcome": {
+    "title": "Bienvenue",
+    "description": "Ceci est la page de bienvenue pour l?administration."
+  },
+  "adminHelp": {
+    "title": "Aide"
+  },
+  "adminCalendar": {
+    "title": "Calendrier"
+  },
+  "adminAnalytics": {
+    "title": "Analyses de conformit? en s?curit? alimentaire",
+    "subtitle": "Surveillez la conformit? de la temp?rature et de l?emballage pour tous les dons",
+    "loading": "Chargement des donn?es de conformit?...",
+    "temperatureCategories": "Cat?gories de temp?rature",
+    "packagingTypes": "Types d?emballage",
+    "noTemperatureData": "Aucune donn?e de temp?rature disponible",
+    "noPackagingData": "Aucune donn?e d?emballage disponible",
+    "totalAnalyzed": "Total des dons analys?s :",
+    "errors": {
+      "loadFailed": "Impossible de charger les donn?es de conformit?"
+    }
+  },
+  "adminDisputes": {
+    "loading": "Chargement des litiges...",
+    "allCases": "Tous les cas",
+    "searchPlaceholder": "Rechercher des cas...",
+    "emptyTitle": "Aucun cas trouv?",
+    "emptyDescription": "Aucun litige ne correspond aux filtres actuels.",
+    "userTypes": {
+      "donor": "Donneur",
+      "receiver": "Receveur"
+    },
+    "status": {
+      "open": "Ouvert",
+      "underReview": "En examen",
+      "resolved": "R?solu",
+      "closed": "Ferm?"
+    },
+    "stats": {
+      "totalCases": "Nombre total de cas",
+      "resolvedToday": "R?solus aujourd?hui",
+      "avgResolution": "R?solution moy.",
+      "avgResolutionValue": "{{count}} jours"
+    },
+    "table": {
+      "caseId": "ID du cas",
+      "reporter": "D?clarant",
+      "reportedUser": "Utilisateur signal?",
+      "donationId": "ID du don",
+      "created": "Cr??",
+      "status": "Statut",
+      "action": "Action",
+      "view": "Voir"
+    },
+    "errors": {
+      "loadFailed": "Erreur lors du chargement des litiges"
+    }
+  },
+  "adminDisputeDetail": {
+    "notAvailable": "N/D",
+    "backToDisputes": "Retour aux litiges",
+    "caseNotFound": "Cas introuvable",
+    "caseTitle": "Cas {{caseId}}",
+    "createdOn": "Cr?? le {{date}} ? {{time}}",
+    "saveStatusChange": "Enregistrer le changement de statut",
+    "statusHint": "Les changements de statut n?cessitent une confirmation",
+    "actionsHint": "Toutes les actions sont r?serv?es aux administrateurs et ne sont pas visibles pour les utilisateurs de la plateforme.",
+    "resolutionHint": "Le cas doit ?tre marqu? comme r?solu avant d??tre ferm?",
+    "labels": {
+      "caseId": "ID du cas",
+      "createdDate": "Date de cr?ation",
+      "createdTime": "Heure de cr?ation",
+      "name": "Nom",
+      "userId": "ID utilisateur",
+      "donationId": "ID du don",
+      "currentStatus": "Statut actuel",
+      "updateStatus": "Mettre ? jour le statut"
+    },
+    "sections": {
+      "caseInformation": "INFORMATIONS SUR LE CAS",
+      "reporter": "D?CLARANT",
+      "reportedUser": "UTILISATEUR SIGNAL?",
+      "relatedDonation": "DON ASSOCI?",
+      "reportDescription": "DESCRIPTION DU SIGNALEMENT",
+      "caseStatus": "STATUT DU CAS",
+      "adminActions": "ACTIONS ADMINISTRATIVES",
+      "caseResolution": "R?SOLUTION DU CAS"
+    },
+    "actions": {
+      "deactivateUser": "D?sactiver le compte utilisateur",
+      "overrideDonation": "Forcer le statut du don",
+      "flagUser": "Signaler l?utilisateur pour examen",
+      "closeCase": "Fermer le cas"
+    },
+    "alerts": {
+      "statusAlreadySet": "Le statut est d?j? d?fini sur {{status}}",
+      "statusUpdated": "Statut mis ? jour avec succ?s",
+      "updateFailed": "?chec de la mise ? jour du statut : {{message}}",
+      "deactivateRequested": "Demande de d?sactivation du compte utilisateur envoy?e",
+      "overrideDonation": "Forcer le statut du don",
+      "userFlagged": "Utilisateur signal? pour examen",
+      "mustResolveBeforeClose": "Le cas doit ?tre marqu? comme r?solu avant d??tre ferm?"
+    },
+    "confirm": {
+      "changeStatus": "?tes-vous s?r de vouloir changer le statut en ? {{status}} ? ?",
+      "deactivateUser": "?tes-vous s?r de vouloir d?sactiver ce compte utilisateur ?",
+      "closeCase": "?tes-vous s?r de vouloir fermer ce cas ?"
+    },
+    "errors": {
+      "loadFailed": "Impossible de charger les d?tails du cas"
     }
   }
 }
