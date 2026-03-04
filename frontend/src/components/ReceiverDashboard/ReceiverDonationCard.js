@@ -67,6 +67,29 @@ export default function ReceiverDonationCard({
   const recommendation = getRecommendationData
     ? getRecommendationData(item)
     : null;
+  const getImageUrl = imageUrl => {
+    if (!imageUrl) {
+      return null;
+    }
+    if (
+      imageUrl.startsWith('http://') ||
+      imageUrl.startsWith('https://') ||
+      imageUrl.startsWith('data:')
+    ) {
+      return imageUrl;
+    }
+    const apiBaseUrl =
+      process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+    const backendBaseUrl = apiBaseUrl.endsWith('/api')
+      ? apiBaseUrl.slice(0, -4)
+      : apiBaseUrl.replace(/\/api$/, '');
+    if (imageUrl.startsWith('/api/files/')) {
+      return `${backendBaseUrl}${imageUrl}`;
+    }
+    return `${backendBaseUrl}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+  };
+  const resolvedDonationImage = getImageUrl(item.resolvedDonationImageUrl);
+  const donorLogoUrl = getImageUrl(item.donorLogoUrl);
 
   return (
     <div className={`receiver-donation-card ${expanded ? 'expanded' : ''}`}>
@@ -102,6 +125,7 @@ export default function ReceiverDonationCard({
       >
         <img
           src={
+            resolvedDonationImage ||
             foodTypeImages[primaryFoodCategory] ||
             foodTypeImages['Prepared Meals']
           }
@@ -227,7 +251,20 @@ export default function ReceiverDonationCard({
             ))}
           </div>
           <div className="receiver-donor-info">
-            <User size={16} />
+            {donorLogoUrl ? (
+              <img
+                src={donorLogoUrl}
+                alt={`${item.donorName || 'Donor'} logo`}
+                style={{
+                  width: 20,
+                  height: 20,
+                  objectFit: 'cover',
+                  borderRadius: '50%',
+                }}
+              />
+            ) : (
+              <User size={16} />
+            )}
             <span>
               {t('receiverBrowse.donatedBy', {
                 donorName: item.donorName || t('receiverBrowse.localBusiness'),

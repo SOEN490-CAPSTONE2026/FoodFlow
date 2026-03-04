@@ -21,6 +21,7 @@ public class ConversationResponse {
     private Long donationId;
     private String donationTitle;
     private String donationPhoto;
+    private String resolvedDonationImageUrl;
     private String donationDescription;
     private String status;
     private Long donorId;
@@ -180,6 +181,14 @@ public class ConversationResponse {
 
     public void setDonationDescription(String donationDescription) {
         this.donationDescription = donationDescription;
+    }
+
+    public String getResolvedDonationImageUrl() {
+        return resolvedDonationImageUrl;
+    }
+
+    public void setResolvedDonationImageUrl(String resolvedDonationImageUrl) {
+        this.resolvedDonationImageUrl = resolvedDonationImageUrl;
     }
 
     public String getStatus() {

@@ -39,6 +39,28 @@ export default function ReceiverMyClaims() {
   const [rating, setRating] = useState({ averageRating: 0, totalReviews: 0 });
   const [focusedDonationId, setFocusedDonationId] = useState(null);
 
+  const getImageUrl = imageUrl => {
+    if (!imageUrl) {
+      return null;
+    }
+    if (
+      imageUrl.startsWith('http://') ||
+      imageUrl.startsWith('https://') ||
+      imageUrl.startsWith('data:')
+    ) {
+      return imageUrl;
+    }
+    const apiBaseUrl =
+      process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+    const backendBaseUrl = apiBaseUrl.endsWith('/api')
+      ? apiBaseUrl.slice(0, -4)
+      : apiBaseUrl.replace(/\/api$/, '');
+    if (imageUrl.startsWith('/api/files/')) {
+      return `${backendBaseUrl}${imageUrl}`;
+    }
+    return `${backendBaseUrl}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+  };
+
   const sortOptions = [
     { value: 'date', label: t('receiverMyClaims.sortByDate') },
     { value: 'status', label: t('receiverMyClaims.sortByStatus') },
@@ -529,6 +551,9 @@ export default function ReceiverMyClaims() {
           const primaryFoodCategory = getPrimaryFoodCategory(
             post?.foodCategories
           );
+          const resolvedDonationImage = getImageUrl(
+            post?.resolvedDonationImageUrl
+          );
 
           return (
             <div
@@ -553,6 +578,7 @@ export default function ReceiverMyClaims() {
               <div className="claimed-page card-image">
                 <img
                   src={
+                    resolvedDonationImage ||
                     foodTypeImages[primaryFoodCategory] ||
                     foodTypeImages['Prepared Meals']
                   }

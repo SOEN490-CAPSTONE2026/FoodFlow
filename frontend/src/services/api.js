@@ -430,6 +430,33 @@ export const profileAPI = {
   update: data => api.put('/profile', data),
 };
 
+export const imageAPI = {
+  upload: (file, options = {}, onProgress) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (options.foodType) {
+      formData.append('foodType', options.foodType);
+    }
+    if (options.donationId) {
+      formData.append('donationId', options.donationId);
+    }
+    return api.post('/images/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      onUploadProgress: onProgress,
+    });
+  },
+};
+
+export const imageLibraryAPI = {
+  list: (activeOnly = true) =>
+    api.get('/images/library', { params: { activeOnly } }),
+};
+
+export const donorPhotoSettingsAPI = {
+  get: () => api.get('/donor/settings/photos'),
+  update: payload => api.put('/donor/settings/photos', payload),
+};
+
 /**
  * Report/Dispute API functions
  */
@@ -646,6 +673,37 @@ export const adminVerificationAPI = {
       reason,
       message,
     }),
+};
+
+export const adminImageAPI = {
+  getLibrary: (activeOnly = false) =>
+    api.get('/admin/image-library', { params: { activeOnly } }),
+  addLibraryItem: payload => {
+    const formData = new FormData();
+    if (payload.file) {
+      formData.append('file', payload.file);
+    }
+    if (payload.imageUrl) {
+      formData.append('imageUrl', payload.imageUrl);
+    }
+    if (payload.foodType) {
+      formData.append('foodType', payload.foodType);
+    }
+    if (payload.active !== undefined) {
+      formData.append('active', payload.active);
+    }
+    return api.post('/admin/image-library', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+  deleteLibraryItem: id => api.delete(`/admin/image-library/${id}`),
+  patchLibraryItem: (id, active) =>
+    api.patch(`/admin/image-library/${id}`, { active }),
+  getUploads: status =>
+    api.get('/admin/uploads/images', { params: { status } }),
+  moderateUpload: (id, payload) =>
+    api.patch(`/admin/uploads/images/${id}`, payload),
+  deleteUpload: id => api.delete(`/admin/uploads/images/${id}`),
 };
 
 /**

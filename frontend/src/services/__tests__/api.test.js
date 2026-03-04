@@ -3,6 +3,7 @@ jest.unmock('../api');
 
 const mockPost = jest.fn();
 const mockGet = jest.fn();
+const mockPut = jest.fn();
 const mockPatch = jest.fn();
 const mockDelete = jest.fn();
 
@@ -11,6 +12,7 @@ jest.mock('axios', () => ({
     interceptors: { request: { use: jest.fn() }, response: { use: jest.fn() } },
     post: mockPost,
     get: mockGet,
+    put: mockPut,
     patch: mockPatch,
     delete: mockDelete,
   })),
@@ -21,6 +23,7 @@ describe('API service', () => {
     jest.resetModules();
     mockPost.mockReset();
     mockGet.mockReset();
+    mockPut.mockReset();
     mockPatch.mockReset();
     mockDelete.mockReset();
     localStorage.clear();
@@ -266,6 +269,36 @@ describe('API service', () => {
       params: { email: 'test@test.com' },
     });
     expect(resp).toEqual({ data: { exists: true } });
+  });
+
+  test('imageAPI.upload sends multipart form-data', async () => {
+    mockPost.mockResolvedValue({ data: { image: { id: 1 } } });
+    const { imageAPI } = require('../api');
+    const file = new File(['data'], 'photo.jpg', { type: 'image/jpeg' });
+
+    await imageAPI.upload(file, { foodType: 'PRODUCE', donationId: 9 });
+
+    expect(mockPost).toHaveBeenCalledWith(
+      '/images/upload',
+      expect.any(FormData),
+      expect.objectContaining({
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+    );
+  });
+
+  test('donorPhotoSettingsAPI calls expected endpoints', async () => {
+    mockGet.mockResolvedValue({ data: { displayType: 'SINGLE' } });
+    mockPut.mockResolvedValue({ data: { displayType: 'PER_FOOD_TYPE' } });
+    const { donorPhotoSettingsAPI } = require('../api');
+
+    await donorPhotoSettingsAPI.get();
+    await donorPhotoSettingsAPI.update({ displayType: 'PER_FOOD_TYPE' });
+
+    expect(mockGet).toHaveBeenCalledWith('/donor/settings/photos');
+    expect(mockPut).toHaveBeenCalledWith('/donor/settings/photos', {
+      displayType: 'PER_FOOD_TYPE',
+    });
   });
 
   test('authAPI.checkPhoneExists', async () => {

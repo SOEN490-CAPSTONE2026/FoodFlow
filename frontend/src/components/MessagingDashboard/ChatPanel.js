@@ -293,6 +293,10 @@ const ChatPanel = ({
       return FoodFlowLogo;
     }
 
+    if (conversation?.resolvedDonationImageUrl) {
+      return getProfilePhotoUrl(conversation.resolvedDonationImageUrl);
+    }
+
     if (conversation?.donationPhoto) {
       const categoryLabel = getFoodTypeLabel(conversation.donationPhoto);
       return foodTypeImages[categoryLabel] || foodTypeImages['Prepared Meals'];
