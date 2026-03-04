@@ -261,6 +261,23 @@
     "maxLength": "Máximo {{count}} caracteres permitidos",
     "pattern": "Formato inválido"
   },
+  "passwordValidation": {
+    "required": "La contrase?a es obligatoria",
+    "minLength": "La contrase?a debe tener al menos 10 caracteres",
+    "uppercase": "La contrase?a debe contener al menos una letra may?scula",
+    "lowercase": "La contrase?a debe contener al menos una letra min?scula",
+    "digit": "La contrase?a debe contener al menos un n?mero",
+    "specialCharacter": "La contrase?a debe contener al menos un car?cter especial (!@#$%^&*()_+-=[]{}|;:,.<>?)",
+    "commonPassword": "Esta contrase?a es demasiado com?n. Elige una contrase?a m?s segura",
+    "policy": {
+      "minLength": "Al menos 10 caracteres",
+      "uppercase": "Al menos una letra may?scula (A-Z)",
+      "lowercase": "Al menos una letra min?scula (a-z)",
+      "digit": "Al menos un n?mero (0-9)",
+      "specialCharacter": "Al menos un car?cter especial (!@#$%^&*()_+-=[]{}|;:,.<>?)",
+      "commonPassword": "No usar una contrase?a com?n"
+    }
+  },
   "toast": {
     "saved": "Guardado",
     "deleted": "Eliminado",
@@ -1736,6 +1753,119 @@
       "step2": "Configura tus preferencias de sincronización",
       "step3": "Tus donaciones y recogidas aparecerán automáticamente en tu calendario",
       "privacy": "El acceso a tu calendario es seguro y puede ser revocado en cualquier momento"
+    }
+  },
+  "adminWelcome": {
+    "title": "Bienvenido",
+    "description": "Esta es la p?gina de bienvenida para administraci?n."
+  },
+  "adminHelp": {
+    "title": "Ayuda"
+  },
+  "adminCalendar": {
+    "title": "Calendario"
+  },
+  "adminAnalytics": {
+    "title": "Anal?tica de cumplimiento de seguridad alimentaria",
+    "subtitle": "Supervisa el cumplimiento de temperatura y empaque en todas las donaciones",
+    "loading": "Cargando datos de cumplimiento...",
+    "temperatureCategories": "Categor?as de temperatura",
+    "packagingTypes": "Tipos de empaque",
+    "noTemperatureData": "No hay datos de temperatura disponibles",
+    "noPackagingData": "No hay datos de empaque disponibles",
+    "totalAnalyzed": "Donaciones analizadas en total:",
+    "errors": {
+      "loadFailed": "No se pudieron cargar los datos de cumplimiento"
+    }
+  },
+  "adminDisputes": {
+    "loading": "Cargando disputas...",
+    "allCases": "Todos los casos",
+    "searchPlaceholder": "Buscar casos...",
+    "emptyTitle": "No se encontraron casos",
+    "emptyDescription": "No hay disputas que coincidan con los filtros actuales.",
+    "userTypes": {
+      "donor": "Donante",
+      "receiver": "Receptor"
+    },
+    "status": {
+      "open": "Abierto",
+      "underReview": "En revisi?n",
+      "resolved": "Resuelto",
+      "closed": "Cerrado"
+    },
+    "stats": {
+      "totalCases": "Casos totales",
+      "resolvedToday": "Resueltos hoy",
+      "avgResolution": "Resoluci?n prom.",
+      "avgResolutionValue": "{{count}} d?as"
+    },
+    "table": {
+      "caseId": "ID del caso",
+      "reporter": "Reportante",
+      "reportedUser": "Usuario reportado",
+      "donationId": "ID de donaci?n",
+      "created": "Creado",
+      "status": "Estado",
+      "action": "Acci?n",
+      "view": "Ver"
+    },
+    "errors": {
+      "loadFailed": "Error al cargar disputas"
+    }
+  },
+  "adminDisputeDetail": {
+    "notAvailable": "N/D",
+    "backToDisputes": "Volver a disputas",
+    "caseNotFound": "Caso no encontrado",
+    "caseTitle": "Caso {{caseId}}",
+    "createdOn": "Creado el {{date}} a las {{time}}",
+    "saveStatusChange": "Guardar cambio de estado",
+    "statusHint": "Los cambios de estado requieren confirmaci?n",
+    "actionsHint": "Todas las acciones son solo para administradores y no son visibles para los usuarios de la plataforma.",
+    "resolutionHint": "El caso debe marcarse como resuelto antes de cerrarlo",
+    "labels": {
+      "caseId": "ID del caso",
+      "createdDate": "Fecha de creaci?n",
+      "createdTime": "Hora de creaci?n",
+      "name": "Nombre",
+      "userId": "ID de usuario",
+      "donationId": "ID de donaci?n",
+      "currentStatus": "Estado actual",
+      "updateStatus": "Actualizar estado"
+    },
+    "sections": {
+      "caseInformation": "INFORMACI?N DEL CASO",
+      "reporter": "REPORTANTE",
+      "reportedUser": "USUARIO REPORTADO",
+      "relatedDonation": "DONACI?N RELACIONADA",
+      "reportDescription": "DESCRIPCI?N DEL REPORTE",
+      "caseStatus": "ESTADO DEL CASO",
+      "adminActions": "ACCIONES ADMINISTRATIVAS",
+      "caseResolution": "RESOLUCI?N DEL CASO"
+    },
+    "actions": {
+      "deactivateUser": "Desactivar cuenta de usuario",
+      "overrideDonation": "Anular estado de donaci?n",
+      "flagUser": "Marcar usuario para revisi?n",
+      "closeCase": "Cerrar caso"
+    },
+    "alerts": {
+      "statusAlreadySet": "El estado ya est? establecido en {{status}}",
+      "statusUpdated": "Estado actualizado correctamente",
+      "updateFailed": "No se pudo actualizar el estado: {{message}}",
+      "deactivateRequested": "Se solicit? la desactivaci?n de la cuenta",
+      "overrideDonation": "Anular estado de la donaci?n",
+      "userFlagged": "Usuario marcado para revisi?n",
+      "mustResolveBeforeClose": "El caso debe marcarse como resuelto antes de cerrarlo"
+    },
+    "confirm": {
+      "changeStatus": "?Seguro que quieres cambiar el estado a \"{{status}}\"?",
+      "deactivateUser": "?Seguro que quieres desactivar esta cuenta de usuario?",
+      "closeCase": "?Seguro que quieres cerrar este caso?"
+    },
+    "errors": {
+      "loadFailed": "No se pudieron cargar los detalles del caso"
     }
   }
 }
