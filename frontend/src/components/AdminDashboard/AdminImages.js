@@ -55,6 +55,12 @@ export default function AdminImages() {
   }, [status, refreshKey]);
 
   const moderate = async (id, nextStatus) => {
+    if (nextStatus === 'APPROVED') {
+      await adminImageAPI.moderateUpload(id, { status: nextStatus });
+      setRefreshKey(k => k + 1);
+      return;
+    }
+
     const reason = window.prompt('Reason (optional):') || '';
     await adminImageAPI.moderateUpload(id, { status: nextStatus, reason });
     setRefreshKey(k => k + 1);

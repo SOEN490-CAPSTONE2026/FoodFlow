@@ -54,11 +54,11 @@ describe('AdminImages', () => {
 
     fireEvent.click(await screen.findByText('Approve'));
     await waitFor(() => {
-      expect(adminImageAPI.moderateUpload).toHaveBeenCalledWith(
-        1,
-        expect.objectContaining({ status: 'APPROVED' })
-      );
+      expect(adminImageAPI.moderateUpload).toHaveBeenCalledWith(1, {
+        status: 'APPROVED',
+      });
     });
+    expect(window.prompt).not.toHaveBeenCalled();
   });
 
   test('requires food type before adding library item', async () => {
