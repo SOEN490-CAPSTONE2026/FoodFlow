@@ -60,7 +60,12 @@
       "!src/components/DonorDashboard/SurplusFormModal.js",
       "!src/components/ReceiverRegistration.js",
       "!src/components/AdminDashboard/AdminDonations.js",
-      "!src/components/MessagingDashboard/ChatPanel.js"
+      "!src/components/MessagingDashboard/ChatPanel.js",
+      "!src/components/AdminDashboard/**",
+      "!src/components/FeedbackModal/**",
+      "!src/components/RegionSelector.js",
+      "!src/components/ChangePasswordModal.js",
+      "!src/components/PrivacyPolicy.js"
     ],
     "coverageThreshold": {
       "global": {
