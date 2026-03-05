@@ -421,11 +421,19 @@ const AdminVerificationQueue = () => {
       const now = new Date();
       const waitTimes = content.map(u => {
         const createdDate = new Date(u.createdAt);
-        return (now - createdDate) / (1000 * 60 * 60); // hours
+        if (isNaN(createdDate)) return 0;
+        const diffMs = now - createdDate;
+        // Guard: never allow negative wait time (e.g. future createdAt due to clock skew)
+        return Math.max(0, diffMs / (1000 * 60 * 60));
       });
       const avgWaitTime =
         waitTimes.length > 0
-          ? Math.round(waitTimes.reduce((a, b) => a + b, 0) / waitTimes.length)
+          ? Math.max(
+              0,
+              Math.round(
+                waitTimes.reduce((a, b) => a + b, 0) / waitTimes.length
+              )
+            )
           : 0;
 
       setStats({
@@ -586,8 +594,13 @@ const AdminVerificationQueue = () => {
   const getWaitingTime = createdAt => {
     const now = new Date();
     const created = new Date(createdAt);
+    if (isNaN(created)) {
+      return `0 ${t('adminVerificationQueue.time.hours')}`;
+    }
     const diffMs = now - created;
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    // Guard: never show negative waiting time
+    const safeDiffMs = Math.max(0, diffMs);
+    const diffHours = Math.floor(safeDiffMs / (1000 * 60 * 60));
     const diffDays = Math.floor(diffHours / 24);
 
     if (diffDays > 0) {
@@ -720,7 +733,7 @@ const AdminVerificationQueue = () => {
             <div className="stat-label">
               {t('adminVerificationQueue.stats.avgWaitTime')}
             </div>
-            <div className="stat-value">{stats.avgWaitTime}h</div>
+            <div className="stat-value">{Math.max(0, stats.avgWaitTime)}h</div>
           </div>
         </div>
       </div>

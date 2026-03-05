@@ -23,7 +23,8 @@ public class AdminDisputeResponse {
     private String adminNotes; // Admin-only field
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    
+    private LocalDateTime resolvedAt;
+
     // Getters and Setters
     public Long getId() {
         return id;
@@ -143,5 +144,13 @@ public class AdminDisputeResponse {
     
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public LocalDateTime getResolvedAt() {
+        return resolvedAt;
+    }
+
+    public void setResolvedAt(LocalDateTime resolvedAt) {
+        this.resolvedAt = resolvedAt;
     }
 }

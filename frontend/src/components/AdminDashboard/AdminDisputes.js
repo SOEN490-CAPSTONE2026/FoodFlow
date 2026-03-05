@@ -53,7 +53,8 @@ const AdminDisputes = () => {
           description: dispute.description,
           status: dispute.status,
           createdAt: dispute.createdAt,
-          resolvedAt: dispute.resolvedAt,
+          resolvedAt: dispute.resolvedAt || null,
+          updatedAt: dispute.updatedAt || null,
         }));
 
         setDisputes(transformedData);
@@ -70,13 +71,48 @@ const AdminDisputes = () => {
   }, [t]);
 
   const calculateStats = disputeList => {
+    const resolvedDisputes = disputeList.filter(
+      d => d.status === 'RESOLVED' || d.status === 'CLOSED'
+    );
+
+    // Calculate average resolution time in days (submission → resolution)
+    // Uses resolvedAt if available, otherwise falls back to updatedAt
+    const resolutionTimes = resolvedDisputes
+      .map(d => {
+        const start = d.createdAt ? new Date(d.createdAt) : null;
+        const end = d.resolvedAt
+          ? new Date(d.resolvedAt)
+          : d.updatedAt
+            ? new Date(d.updatedAt)
+            : null;
+
+        if (!start || !end || isNaN(start) || isNaN(end)) return null;
+
+        const diffMs = end - start;
+        // Guard: never allow negative resolution time
+        return diffMs >= 0 ? diffMs / (1000 * 60 * 60 * 24) : 0;
+      })
+      .filter(t => t !== null);
+
+    const avgResolutionDays =
+      resolutionTimes.length > 0
+        ? Math.max(
+            0,
+            Math.round(
+              (resolutionTimes.reduce((a, b) => a + b, 0) /
+                resolutionTimes.length) *
+                10
+            ) / 10
+          )
+        : 0;
+
     const stats = {
       total: disputeList.length,
       open: disputeList.filter(d => d.status === 'OPEN').length,
       underReview: disputeList.filter(d => d.status === 'UNDER_REVIEW').length,
       resolved: disputeList.filter(d => d.status === 'RESOLVED').length,
       closed: disputeList.filter(d => d.status === 'CLOSED').length,
-      avgResolutionDays: 2.4, // This should be calculated from resolved disputes
+      avgResolutionDays,
     };
     setStats(stats);
   };

@@ -567,4 +567,93 @@ class DisputeServiceTest {
         assertThat(response).isNotNull();
         verify(disputeRepository).save(any(Dispute.class));
     }
+
+    // ==================== Tests for resolvedAt field (avg wait time fix) ====================
+
+    @Test
+    void testUpdateDisputeStatus_ToResolved_SetsResolvedAt() {
+        // Given: dispute has no resolvedAt yet
+        assertThat(dispute.getResolvedAt()).isNull();
+        when(disputeRepository.findById(1L)).thenReturn(Optional.of(dispute));
+        when(disputeRepository.save(any(Dispute.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // When
+        disputeService.updateDisputeStatus(1L, "RESOLVED", "Resolved by admin");
+
+        // Then: resolvedAt must be set to a non-null, non-future timestamp
+        assertThat(dispute.getResolvedAt()).isNotNull();
+        assertThat(dispute.getResolvedAt()).isBeforeOrEqualTo(java.time.LocalDateTime.now());
+    }
+
+    @Test
+    void testUpdateDisputeStatus_ToClosed_SetsResolvedAt() {
+        // Given: dispute has no resolvedAt yet
+        assertThat(dispute.getResolvedAt()).isNull();
+        when(disputeRepository.findById(1L)).thenReturn(Optional.of(dispute));
+        when(disputeRepository.save(any(Dispute.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // When
+        disputeService.updateDisputeStatus(1L, "CLOSED", "Case closed");
+
+        // Then: resolvedAt must be set
+        assertThat(dispute.getResolvedAt()).isNotNull();
+        assertThat(dispute.getResolvedAt()).isBeforeOrEqualTo(java.time.LocalDateTime.now());
+    }
+
+    @Test
+    void testUpdateDisputeStatus_ResolvedAt_NotOverwrittenOnSecondUpdate() {
+        // Given: dispute already has a resolvedAt (was resolved before)
+        java.time.LocalDateTime originalResolvedAt = java.time.LocalDateTime.of(2025, 1, 15, 10, 30);
+        dispute.setResolvedAt(originalResolvedAt);
+        when(disputeRepository.findById(1L)).thenReturn(Optional.of(dispute));
+        when(disputeRepository.save(any(Dispute.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // When: status updated again (e.g. re-resolved or reopened/closed)
+        disputeService.updateDisputeStatus(1L, "RESOLVED", "Re-resolved");
+
+        // Then: the original resolvedAt must not be overwritten
+        assertThat(dispute.getResolvedAt()).isEqualTo(originalResolvedAt);
+    }
+
+    @Test
+    void testUpdateDisputeStatus_ToUnderReview_DoesNotSetResolvedAt() {
+        // Given
+        assertThat(dispute.getResolvedAt()).isNull();
+        when(disputeRepository.findById(1L)).thenReturn(Optional.of(dispute));
+        when(disputeRepository.save(any(Dispute.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // When: status changes to UNDER_REVIEW (not a terminal state)
+        disputeService.updateDisputeStatus(1L, "UNDER_REVIEW", null);
+
+        // Then: resolvedAt must remain null
+        assertThat(dispute.getResolvedAt()).isNull();
+    }
+
+    @Test
+    void testMapToAdminDisputeResponse_IncludesResolvedAt() {
+        // Given: dispute with a resolvedAt
+        java.time.LocalDateTime resolvedTime = java.time.LocalDateTime.of(2025, 6, 1, 12, 0);
+        dispute.setResolvedAt(resolvedTime);
+        dispute.setStatus(DisputeStatus.RESOLVED);
+        when(disputeRepository.findById(1L)).thenReturn(Optional.of(dispute));
+
+        // When
+        AdminDisputeResponse response = disputeService.getDisputeById(1L);
+
+        // Then: DTO must expose resolvedAt
+        assertThat(response.getResolvedAt()).isEqualTo(resolvedTime);
+    }
+
+    @Test
+    void testMapToAdminDisputeResponse_ResolvedAtIsNullForOpenDispute() {
+        // Given: open dispute with no resolvedAt
+        assertThat(dispute.getResolvedAt()).isNull();
+        when(disputeRepository.findById(1L)).thenReturn(Optional.of(dispute));
+
+        // When
+        AdminDisputeResponse response = disputeService.getDisputeById(1L);
+
+        // Then: resolvedAt must be null in the response (no fake negative time)
+        assertThat(response.getResolvedAt()).isNull();
+    }
 }
