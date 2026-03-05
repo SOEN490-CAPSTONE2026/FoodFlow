@@ -131,6 +131,8 @@ public class AuthService {
         user.setFullName(request.getContactPerson());
         user.setPhone(request.getPhone());
         user.setDataStorageConsent(request.getDataStorageConsent() != null ? request.getDataStorageConsent() : false);
+        // Set timezone from request, default to UTC if not provided
+        user.setTimezone(request.getTimezone() != null ? request.getTimezone() : "UTC");
 
         // Initialize default notification preferences
         initializeDefaultNotificationPreferences(user);
@@ -153,6 +155,8 @@ public class AuthService {
         // Default verification status to PENDING on registration
         organization.setVerificationStatus(VerificationStatus.PENDING);
         organization.setBusinessLicense(request.getBusinessLicense());
+        // Set timezone from request, default to UTC if not provided
+        organization.setTimezone(request.getTimezone() != null ? request.getTimezone() : "UTC");
 
         organizationRepository.save(organization);
         log.debug("Organization created for user: {} - Organization: {}", 
@@ -220,6 +224,8 @@ public class AuthService {
         user.setFullName(request.getContactPerson());
         user.setPhone(request.getPhone());
         user.setDataStorageConsent(request.getDataStorageConsent() != null ? request.getDataStorageConsent() : false);
+        // Set timezone from request, default to UTC if not provided
+        user.setTimezone(request.getTimezone() != null ? request.getTimezone() : "UTC");
 
         // Initialize default notification preferences
         initializeDefaultNotificationPreferences(user);
@@ -251,6 +257,8 @@ public class AuthService {
                 // If the getter is not present or invocation fails, skip setting the field
             }
         }
+        // Set timezone from request, default to UTC if not provided
+        organization.setTimezone(request.getTimezone() != null ? request.getTimezone() : "UTC");
 
         organizationRepository.save(organization);
 
@@ -790,5 +798,3 @@ public class AuthService {
         }
     }
 }
-
-

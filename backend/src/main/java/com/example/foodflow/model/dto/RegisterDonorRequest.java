@@ -37,6 +37,8 @@ public class RegisterDonorRequest {
 
     private Boolean dataStorageConsent = false;
 
+    private String timezone; // Timezone inferred from address (e.g., "America/Toronto")
+
     // Constructors, getters, setters
     public RegisterDonorRequest() {}
 
@@ -69,4 +71,7 @@ public class RegisterDonorRequest {
 
     public Boolean getDataStorageConsent() { return dataStorageConsent; }
     public void setDataStorageConsent(Boolean dataStorageConsent) { this.dataStorageConsent = dataStorageConsent; }
+
+    public String getTimezone() { return timezone; }
+    public void setTimezone(String timezone) { this.timezone = timezone; }
 }

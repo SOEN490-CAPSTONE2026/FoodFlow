@@ -5,6 +5,10 @@ import { authAPI } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
 import DonorIllustration from '../assets/illustrations/donor-illustration.jpg';
 import { validatePassword } from '../utils/passwordValidation';
+import {
+  inferTimezoneFromAddress,
+  getBrowserTimezone,
+} from '../services/timezoneService';
 import '../style/Registration.css';
 
 // Phone number formatting utility
@@ -54,6 +58,7 @@ const DonorRegistration = () => {
     postalCode: '',
     province: '',
     country: '',
+    timezone: '', // Automatically inferred from address
     // Step 4
     contactPerson: '',
     phone: '',
@@ -323,6 +328,42 @@ const DonorRegistration = () => {
       }
     }
 
+    // Automatically infer timezone from address after Step 3 (Location Details)
+    if (currentStep === 3) {
+      setLoading(true);
+      try {
+        console.log('Inferring timezone from address...');
+
+        // Build full address string
+        const fullAddress = [
+          formData.streetAddress,
+          formData.unit ? `Unit ${formData.unit}` : '',
+          formData.city,
+          formData.province,
+          formData.postalCode,
+          formData.country,
+        ]
+          .filter(Boolean)
+          .join(', ');
+
+        // Infer timezone from address
+        const inferredTimezone = await inferTimezoneFromAddress(fullAddress);
+
+        // Update formData with inferred timezone
+        setFormData(prev => ({ ...prev, timezone: inferredTimezone }));
+
+        console.log('Timezone automatically set to:', inferredTimezone);
+      } catch (err) {
+        console.error('Error inferring timezone:', err);
+        // Fallback to browser timezone on error
+        const browserTz = getBrowserTimezone();
+        setFormData(prev => ({ ...prev, timezone: browserTz }));
+        console.log('Timezone fallback to browser timezone:', browserTz);
+      } finally {
+        setLoading(false);
+      }
+    }
+
     setError('');
     setFieldErrors({});
     setCurrentStep(currentStep + 1);
@@ -405,6 +446,7 @@ const DonorRegistration = () => {
         payload.append('contactPerson', formData.contactPerson);
         payload.append('phone', formatPhoneNumber(formData.phone));
         payload.append('dataStorageConsent', dataStorageConsent);
+        payload.append('timezone', formData.timezone || 'UTC');
       } else {
         // Use JSON payload if no file
         payload = {
@@ -418,6 +460,7 @@ const DonorRegistration = () => {
           contactPerson: formData.contactPerson,
           phone: formatPhoneNumber(formData.phone),
           dataStorageConsent: dataStorageConsent,
+          timezone: formData.timezone || 'UTC',
         };
       }
 
