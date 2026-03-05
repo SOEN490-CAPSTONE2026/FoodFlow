@@ -19,6 +19,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Service
 public class DisputeService {
     
@@ -135,8 +137,16 @@ public class DisputeService {
             
             if (status == DisputeStatus.RESOLVED) {
                 businessMetricsService.incrementDisputesResolved();
+                // Set resolvedAt only on first transition to RESOLVED
+                if (dispute.getResolvedAt() == null) {
+                    dispute.setResolvedAt(LocalDateTime.now());
+                }
             } else if (status == DisputeStatus.CLOSED) {
                 businessMetricsService.incrementDisputesRejected();
+                // Set resolvedAt only on first terminal transition if not already set
+                if (dispute.getResolvedAt() == null) {
+                    dispute.setResolvedAt(LocalDateTime.now());
+                }
             }
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("Invalid status: " + newStatus);
@@ -214,7 +224,8 @@ public class DisputeService {
         response.setAdminNotes(dispute.getAdminNotes()); // Admin-only field
         response.setCreatedAt(dispute.getCreatedAt());
         response.setUpdatedAt(dispute.getUpdatedAt());
-        
+        response.setResolvedAt(dispute.getResolvedAt());
+
         return response;
     }
     

@@ -256,4 +256,113 @@ describe('AdminVerificationQueue', () => {
       );
     });
   });
+
+  // ==================== avgWaitTime negative guard tests ====================
+
+  test('avgWaitTime stat displays 0h when all users have future createdAt (clock skew)', async () => {
+    // Set createdAt far in the future to simulate clock skew
+    const futureDate = new Date(
+      Date.now() + 1000 * 60 * 60 * 24 * 7
+    ).toISOString();
+    adminVerificationAPI.getPendingUsers.mockResolvedValueOnce({
+      data: {
+        content: [
+          {
+            id: 10,
+            organizationName: 'Future Org',
+            contactName: 'Test',
+            email: 'future@test.com',
+            phoneNumber: null,
+            role: 'DONOR',
+            accountStatus: 'PENDING_ADMIN_APPROVAL',
+            createdAt: futureDate,
+          },
+        ],
+        totalElements: 1,
+        totalPages: 1,
+      },
+    });
+
+    render(<AdminVerificationQueue />);
+
+    await waitFor(() => {
+      // avgWaitTime must not be negative — should render as 0h
+      expect(screen.getByText('0h')).toBeInTheDocument();
+    });
+  });
+
+  test('avgWaitTime stat displays 0h when users have invalid createdAt', async () => {
+    adminVerificationAPI.getPendingUsers.mockResolvedValueOnce({
+      data: {
+        content: [
+          {
+            id: 11,
+            organizationName: 'Bad Date Org',
+            contactName: 'Test',
+            email: 'bad@test.com',
+            phoneNumber: null,
+            role: 'RECEIVER',
+            accountStatus: 'PENDING_ADMIN_APPROVAL',
+            createdAt: 'not-a-valid-date',
+          },
+        ],
+        totalElements: 1,
+        totalPages: 1,
+      },
+    });
+
+    render(<AdminVerificationQueue />);
+
+    await waitFor(() => {
+      expect(screen.getByText('0h')).toBeInTheDocument();
+    });
+  });
+
+  test('waiting time in expanded row shows 0 hours for future createdAt', async () => {
+    const futureDate = new Date(Date.now() + 1000 * 60 * 60 * 48).toISOString();
+    adminVerificationAPI.getPendingUsers.mockResolvedValueOnce({
+      data: {
+        content: [
+          {
+            id: 12,
+            organizationName: 'Future Food Bank',
+            contactName: 'Jane Future',
+            email: 'jane@future.com',
+            phoneNumber: '5555555555',
+            role: 'DONOR',
+            accountStatus: 'PENDING_ADMIN_APPROVAL',
+            createdAt: futureDate,
+            businessLicense: 'BL-999',
+            supportingDocument: 'future.pdf',
+            address: {
+              street: '1 Future St',
+              city: 'Montreal',
+              state: 'QC',
+              zipCode: 'H9Z',
+            },
+          },
+        ],
+        totalElements: 1,
+        totalPages: 1,
+      },
+    });
+
+    render(<AdminVerificationQueue />);
+    await screen.findByText('Future Food Bank');
+
+    // Expand the row
+    const expandButtons = document.querySelectorAll('.expand-btn');
+    fireEvent.click(expandButtons[0]);
+
+    await waitFor(() => {
+      // Waiting Time in expanded row must not be negative
+      const waitingTimeEl = screen
+        .getByText('Waiting Time')
+        .closest('.detail-item');
+      expect(waitingTimeEl).toBeInTheDocument();
+      // The displayed value should start with "0" (0 hours or 0 days)
+      const valueEl = waitingTimeEl.querySelector('.detail-value');
+      expect(valueEl.textContent).toMatch(/^0/);
+    });
+  });
 });
