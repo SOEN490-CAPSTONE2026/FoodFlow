@@ -1,4 +1,4 @@
-{
+﻿{
   "nav": {
     "home": "Home",
     "howItWorks": "How it works",
@@ -860,6 +860,7 @@
     "settings": "Settings",
     "help": "Help",
     "logout": "Logout",
+    "suggestBusiness": "Suggest Business",
     "pageTitles": {
       "donorDashboard": "Donor Dashboard",
       "donateNow": "Donate Now",
@@ -869,7 +870,8 @@
       "settings": "Settings",
       "help": "Help",
       "donor": "Donor",
-      "calendar": "Calendar Integration"
+      "calendar": "Calendar Integration",
+      "suggestBusiness": "Suggest a Business"
     },
     "pageDescriptions": {
       "donorDashboard": "Overview and quick actions",
@@ -880,7 +882,8 @@
       "calendar": "Sync your donations to Google Calendar",
       "settings": "Manage your preferences and account settings",
       "help": "Guides and support",
-      "donorPortal": "FoodFlow Donor Portal"
+      "donorPortal": "FoodFlow Donor Portal",
+      "suggestBusiness": "Suggest a business to join FoodFlow as a food donor"
     },
     "notifications": {
       "newClaim": "New Claim",
@@ -976,6 +979,7 @@
     "donations": "Donations",
     "myClaims": "My Claims",
     "savedDonations": "Saved Donations",
+    "inviteCommunity": "Invite Community",
     "settings": "Settings",
     "preferences": "Preferences",
     "help": "Help",
@@ -999,6 +1003,7 @@
       "receiverDashboard": "Receiver Dashboard",
       "welcome": "Welcome",
       "savedDonations": "Saved Donations",
+      "inviteCommunity": "Invite Community",
       "browse": "Browse Available Food",
       "messages": "Messages",
       "calendar": "Calendar Integration",
@@ -1461,5 +1466,63 @@
       "never": "Never",
       "notAvailable": "Not available yet"
     }
+  },
+  "inviteCommunity": {
+    "title": "Invite a Community Organization",
+    "subtitle": "Know an organization that could benefit from FoodFlow? Invite them to join as a receiver.",
+    "form": {
+      "businessNameLabel": "Organization Name",
+      "businessNamePlaceholder": "e.g. Community Food Pantry",
+      "contactEmailLabel": "Contact Email",
+      "contactEmailPlaceholder": "contact@organization.org",
+      "contactPhoneLabel": "Contact Phone (optional)",
+      "contactPhonePlaceholder": "+1 (555) 123-4567",
+      "messageLabel": "Personal Message (optional)",
+      "messagePlaceholder": "Tell them why FoodFlow would be a great fit...",
+      "submitButton": "Send Invitation",
+      "submitting": "Sending Invitation…"
+    },
+    "validation": {
+      "businessNameRequired": "Organization name is required.",
+      "businessNameTooLong": "Organization name cannot exceed 200 characters.",
+      "contactEmailRequired": "Contact email is required.",
+      "contactEmailInvalid": "Please enter a valid email address.",
+      "messageTooLong": "Message cannot exceed 500 characters."
+    },
+    "success": {
+      "heading": "Invitation Submitted!",
+      "body": "Thank you for helping grow the FoodFlow community. Our team will reach out to {{email}} with more information.",
+      "submitAnother": "Submit Another Invitation"
+    },
+    "errors": { "generic": "Something went wrong. Please try again." }
+  },
+  "suggestBusiness": {
+    "title": "Suggest a Business",
+    "subtitle": "Know a business that produces surplus food? Suggest them to join FoodFlow as a donor.",
+    "form": {
+      "businessNameLabel": "Business Name",
+      "businessNamePlaceholder": "e.g. Green Valley Bakery",
+      "contactEmailLabel": "Contact Email",
+      "contactEmailPlaceholder": "contact@business.com",
+      "contactPhoneLabel": "Contact Phone (optional)",
+      "contactPhonePlaceholder": "+1 (555) 123-4567",
+      "messageLabel": "Personal Message (optional)",
+      "messagePlaceholder": "Tell them why FoodFlow is a great opportunity to reduce waste…",
+      "submitButton": "Submit Suggestion",
+      "submitting": "Submitting…"
+    },
+    "validation": {
+      "businessNameRequired": "Business name is required.",
+      "businessNameTooLong": "Business name cannot exceed 200 characters.",
+      "contactEmailRequired": "Contact email is required.",
+      "contactEmailInvalid": "Please enter a valid email address.",
+      "messageTooLong": "Message cannot exceed 500 characters."
+    },
+    "success": {
+      "heading": "Suggestion Submitted!",
+      "body": "Thank you for helping grow the FoodFlow network. Our team will reach out to {{email}} with more information.",
+      "submitAnother": "Submit Another Suggestion"
+    },
+    "errors": { "generic": "Something went wrong. Please try again." }
   }
 }

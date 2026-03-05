@@ -1,4 +1,4 @@
-{
+﻿{
   "nav": {
     "home": "الرئيسية",
     "howItWorks": "كيف يعمل",
@@ -839,6 +839,7 @@
     "settings": "الإعدادات",
     "help": "المساعدة",
     "logout": "تسجيل الخروج",
+    "suggestBusiness": "اقتراح شركة",
     "pageTitles": {
       "donorDashboard": "لوحة تحكم المتبرع",
       "donateNow": "تبرع الآن",
@@ -847,7 +848,8 @@
       "messages": "الرسائل",
       "settings": "الإعدادات",
       "help": "المساعدة",
-      "donor": "متبرع"
+      "donor": "متبرع",
+      "suggestBusiness": "اقتراح شركة"
     },
     "pageDescriptions": {
       "donorDashboard": "نظرة عامة وإجراءات سريعة",
@@ -857,7 +859,8 @@
       "messages": "الاتصالات الواردة",
       "settings": "إدارة تفضيلاتك وإعدادات الحساب",
       "help": "الأدلة والدعم",
-      "donorPortal": "بوابة المتبرع FoodFlow"
+      "donorPortal": "بوابة المتبرع FoodFlow",
+      "suggestBusiness": "اقترح شركة للانضمام إلى FoodFlow كمتبرع بالطعام"
     },
     "notifications": {
       "newClaim": "مطالبة جديدة",
@@ -943,6 +946,7 @@
     "donations": "التبرعات",
     "myClaims": "مطالباتي",
     "savedDonations": "التبرعات المحفوظة",
+    "inviteCommunity": "دعوة مجتمع",
     "settings": "الإعدادات",
     "preferences": "التفضيلات",
     "help": "المساعدة",
@@ -1369,5 +1373,63 @@
     "selectAll": "تحديد الكل",
     "clearAll": "مسح الكل",
     "done": "تم"
+  },
+  "inviteCommunity": {
+    "title": "دعوة منظمة مجتمعية",
+    "subtitle": "هل تعرف منظمة يمكنها الاستفادة من FoodFlow؟ ادعوها للانضمام كمتلقٍّ.",
+    "form": {
+      "businessNameLabel": "اسم المنظمة",
+      "businessNamePlaceholder": "مثال: مخزن الغذاء المجتمعي",
+      "contactEmailLabel": "البريد الإلكتروني للتواصل",
+      "contactEmailPlaceholder": "contact@organization.org",
+      "contactPhoneLabel": "هاتف التواصل (اختياري)",
+      "contactPhonePlaceholder": "+1 (555) 123-4567",
+      "messageLabel": "رسالة شخصية (اختياري)",
+      "messagePlaceholder": "أخبرهم لماذا يعد FoodFlow خياراً رائعاً...",
+      "submitButton": "إرسال الدعوة",
+      "submitting": "جارٍ إرسال الدعوة…"
+    },
+    "validation": {
+      "businessNameRequired": "اسم المنظمة مطلوب.",
+      "businessNameTooLong": "لا يمكن أن يتجاوز اسم المنظمة 200 حرف.",
+      "contactEmailRequired": "البريد الإلكتروني للتواصل مطلوب.",
+      "contactEmailInvalid": "يرجى إدخال عنوان بريد إلكتروني صحيح.",
+      "messageTooLong": "لا يمكن أن تتجاوز الرسالة 500 حرف."
+    },
+    "success": {
+      "heading": "تم إرسال الدعوة!",
+      "body": "شكراً لمساعدتك في تنمية مجتمع FoodFlow. سيتواصل فريقنا مع {{email}} لتزويدهم بمزيد من المعلومات.",
+      "submitAnother": "إرسال دعوة أخرى"
+    },
+    "errors": { "generic": "حدث خطأ ما. يرجى المحاولة مرة أخرى." }
+  },
+  "suggestBusiness": {
+    "title": "اقتراح شركة",
+    "subtitle": "هل تعرف شركة تنتج فائضاً غذائياً؟ اقترح عليها الانضمام إلى FoodFlow كمتبرع.",
+    "form": {
+      "businessNameLabel": "اسم الشركة",
+      "businessNamePlaceholder": "مثال: مخبز الوادي الأخضر",
+      "contactEmailLabel": "البريد الإلكتروني للتواصل",
+      "contactEmailPlaceholder": "contact@business.com",
+      "contactPhoneLabel": "هاتف التواصل (اختياري)",
+      "contactPhonePlaceholder": "+1 (555) 123-4567",
+      "messageLabel": "رسالة شخصية (اختياري)",
+      "messagePlaceholder": "أخبرهم لماذا يعد FoodFlow فرصة رائعة للحد من الهدر…",
+      "submitButton": "إرسال الاقتراح",
+      "submitting": "جارٍ الإرسال…"
+    },
+    "validation": {
+      "businessNameRequired": "اسم الشركة مطلوب.",
+      "businessNameTooLong": "لا يمكن أن يتجاوز اسم الشركة 200 حرف.",
+      "contactEmailRequired": "البريد الإلكتروني للتواصل مطلوب.",
+      "contactEmailInvalid": "يرجى إدخال عنوان بريد إلكتروني صحيح.",
+      "messageTooLong": "لا يمكن أن تتجاوز الرسالة 500 حرف."
+    },
+    "success": {
+      "heading": "تم إرسال الاقتراح!",
+      "body": "شكراً لمساعدتك في تنمية شبكة FoodFlow. سيتواصل فريقنا مع {{email}} لتزويدهم بمزيد من المعلومات.",
+      "submitAnother": "إرسال اقتراح آخر"
+    },
+    "errors": { "generic": "حدث خطأ ما. يرجى المحاولة مرة أخرى." }
   }
 }

@@ -839,6 +839,7 @@
     "settings": "Configuración",
     "help": "Ayuda",
     "logout": "Cerrar sesión",
+    "suggestBusiness": "Sugerir empresa",
     "pageTitles": {
       "donorDashboard": "Panel de donante",
       "donateNow": "Donar ahora",
@@ -848,7 +849,8 @@
       "settings": "Configuración",
       "help": "Ayuda",
       "donor": "Donante",
-      "calendar": "Integración de calendario"
+      "calendar": "Integración de calendario",
+      "suggestBusiness": "Sugerir una empresa"
     },
     "pageDescriptions": {
       "donorDashboard": "Resumen y acciones rápidas",
@@ -859,7 +861,8 @@
       "calendar": "Sincroniza tus donaciones con Google Calendar",
       "settings": "Gestiona tus preferencias y configuración de cuenta",
       "help": "Guías y soporte",
-      "donorPortal": "Portal de donante FoodFlow"
+      "donorPortal": "Portal de donante FoodFlow",
+      "suggestBusiness": "Sugiere una empresa para que se una a FoodFlow como donante de alimentos"
     },
     "notifications": {
       "newClaim": "Nueva reclamación",
@@ -945,6 +948,7 @@
     "donations": "Donaciones",
     "myClaims": "Mis reclamaciones",
     "savedDonations": "Donaciones guardadas",
+    "inviteCommunity": "Invitar comunidad",
     "settings": "Configuración",
     "preferences": "Preferencias",
     "help": "Ayuda",
@@ -959,6 +963,7 @@
       "messages": "Mensajes",
       "calendar": "Integración de calendario",
       "settings": "Configuración",
+      "inviteCommunity": "Invitar a una organización comunitaria",
       "default": "Panel de receptor"
     },
     "pageDescriptions": {
@@ -968,6 +973,7 @@
       "messages": "Comunicarse con donantes y otros usuarios",
       "calendar": "Sincroniza tus recogidas con Google Calendar",
       "settings": "Gestionar tus preferencias y configuración de cuenta",
+      "inviteCommunity": "¿Conoces una organización que podría beneficiarse de FoodFlow? Invítala a unirse.",
       "default": "Portal de receptor FoodFlow"
     }
   },
@@ -1446,5 +1452,63 @@
       "step3": "Tus donaciones y recogidas aparecerán automáticamente en tu calendario",
       "privacy": "El acceso a tu calendario es seguro y puede ser revocado en cualquier momento"
     }
+  },
+  "inviteCommunity": {
+    "title": "Invitar a una organización comunitaria",
+    "subtitle": "¿Conoces una organización que podría beneficiarse de FoodFlow? Invítala a unirse como receptora.",
+    "form": {
+      "businessNameLabel": "Nombre de la organización",
+      "businessNamePlaceholder": "ej. Despensa alimentaria comunitaria",
+      "contactEmailLabel": "Correo electrónico de contacto",
+      "contactEmailPlaceholder": "contacto@organizacion.org",
+      "contactPhoneLabel": "Teléfono de contacto (opcional)",
+      "contactPhonePlaceholder": "+1 (555) 123-4567",
+      "messageLabel": "Mensaje personal (opcional)",
+      "messagePlaceholder": "Cuéntales por qué FoodFlow sería una excelente opción...",
+      "submitButton": "Enviar invitación",
+      "submitting": "Enviando invitación…"
+    },
+    "validation": {
+      "businessNameRequired": "El nombre de la organización es obligatorio.",
+      "businessNameTooLong": "El nombre de la organización no puede exceder 200 caracteres.",
+      "contactEmailRequired": "El correo electrónico de contacto es obligatorio.",
+      "contactEmailInvalid": "Por favor, introduce una dirección de correo electrónico válida.",
+      "messageTooLong": "El mensaje no puede exceder 500 caracteres."
+    },
+    "success": {
+      "heading": "¡Invitación enviada!",
+      "body": "Gracias por ayudar a hacer crecer la comunidad FoodFlow. Nuestro equipo contactará a {{email}} con más información.",
+      "submitAnother": "Enviar otra invitación"
+    },
+    "errors": { "generic": "Algo salió mal. Por favor, inténtalo de nuevo." }
+  },
+  "suggestBusiness": {
+    "title": "Sugerir un negocio",
+    "subtitle": "¿Conoces un negocio que produce excedentes de alimentos? Sugiere que se una a FoodFlow como donante.",
+    "form": {
+      "businessNameLabel": "Nombre del negocio",
+      "businessNamePlaceholder": "ej. Panadería Valle Verde",
+      "contactEmailLabel": "Correo electrónico de contacto",
+      "contactEmailPlaceholder": "contacto@negocio.com",
+      "contactPhoneLabel": "Teléfono de contacto (opcional)",
+      "contactPhonePlaceholder": "+1 (555) 123-4567",
+      "messageLabel": "Mensaje personal (opcional)",
+      "messagePlaceholder": "Cuéntales por qué FoodFlow es una gran oportunidad para reducir el desperdicio…",
+      "submitButton": "Enviar sugerencia",
+      "submitting": "Enviando…"
+    },
+    "validation": {
+      "businessNameRequired": "El nombre del negocio es obligatorio.",
+      "businessNameTooLong": "El nombre del negocio no puede exceder 200 caracteres.",
+      "contactEmailRequired": "El correo electrónico de contacto es obligatorio.",
+      "contactEmailInvalid": "Por favor, introduce una dirección de correo electrónico válida.",
+      "messageTooLong": "El mensaje no puede exceder 500 caracteres."
+    },
+    "success": {
+      "heading": "¡Sugerencia enviada!",
+      "body": "Gracias por ayudar a hacer crecer la red FoodFlow. Nuestro equipo contactará a {{email}} con más información.",
+      "submitAnother": "Enviar otra sugerencia"
+    },
+    "errors": { "generic": "Algo salió mal. Por favor, inténtalo de nuevo." }
   }
 }
