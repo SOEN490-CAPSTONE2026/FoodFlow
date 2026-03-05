@@ -743,6 +743,74 @@ i18n.use(initReactI18next).init({
           fileTypeError: 'Invalid file type. Please upload PDF, JPG, or PNG',
           fileSizeError: 'File size exceeds 10MB limit',
         },
+        suggestBusiness: {
+          title: 'Suggest a Business',
+          subtitle: 'Know a business that produces surplus food? Suggest them to join FoodFlow as a donor.',
+          form: {
+            businessNameLabel: 'Business Name',
+            businessNamePlaceholder: 'e.g. Green Valley Bakery',
+            contactEmailLabel: 'Contact Email',
+            contactEmailPlaceholder: 'contact@business.com',
+            contactPhoneLabel: 'Contact Phone (optional)',
+            contactPhonePlaceholder: '+1 (555) 123-4567',
+            messageLabel: 'Personal Message (optional)',
+            messagePlaceholder: 'Tell them why FoodFlow is a great opportunity to reduce waste…',
+            submitButton: 'Submit Suggestion',
+            submitting: 'Submitting…',
+          },
+          validation: {
+            businessNameRequired: 'Business name is required.',
+            businessNameTooLong: 'Business name cannot exceed 200 characters.',
+            contactEmailRequired: 'Contact email is required.',
+            contactEmailInvalid: 'Please enter a valid email address.',
+            messageTooLong: 'Message cannot exceed 500 characters.',
+          },
+          success: {
+            heading: 'Suggestion Submitted!',
+            body: 'Thank you for helping grow the FoodFlow network. Our team will reach out to {{email}} with more information.',
+            submitAnother: 'Submit Another Suggestion',
+          },
+          errors: {
+            generic: 'Something went wrong. Please try again.',
+          },
+        },
+        inviteCommunity: {
+          title: 'Invite a Community Organization',
+          subtitle: 'Know an organization that could benefit from FoodFlow? Invite them to join as a receiver.',
+          form: {
+            businessNameLabel: 'Organization Name',
+            businessNamePlaceholder: 'e.g. Community Food Pantry',
+            contactEmailLabel: 'Contact Email',
+            contactEmailPlaceholder: 'contact@organization.org',
+            contactPhoneLabel: 'Contact Phone (optional)',
+            contactPhonePlaceholder: '+1 (555) 123-4567',
+            messageLabel: 'Personal Message (optional)',
+            messagePlaceholder: 'Tell them why FoodFlow would be a great fit...',
+            submitButton: 'Send Invitation',
+            submitting: 'Sending Invitation…',
+          },
+          validation: {
+            businessNameRequired: 'Organization name is required.',
+            businessNameTooLong: 'Organization name cannot exceed 200 characters.',
+            contactEmailRequired: 'Contact email is required.',
+            contactEmailInvalid: 'Please enter a valid email address.',
+            messageTooLong: 'Message cannot exceed 500 characters.',
+          },
+          success: {
+            heading: 'Invitation Submitted!',
+            body: 'Thank you for helping grow the FoodFlow community. Our team will reach out to {{email}} with more information.',
+            submitAnother: 'Submit Another Invitation',
+          },
+          errors: {
+            generic: 'Something went wrong. Please try again.',
+          },
+        },
+        common: {
+          retry: 'Retry',
+        },
+        impactDashboard: {
+          loadError: 'Failed to load impact metrics. Please try again.',
+        },
       },
     },
   },
@@ -913,6 +981,19 @@ jest.mock('./services/api', () => ({
       },
     })
   ),
+  referralAPI: {
+    submit: jest.fn(() => Promise.resolve({ data: { id: 1 } })),
+    getAll: jest.fn(() => Promise.resolve({ data: [] })),
+    updateStatus: jest.fn(() => Promise.resolve({ data: {} })),
+  },
+  profileAPI: {
+    get: jest.fn(() => Promise.resolve({ data: {} })),
+    update: jest.fn(() => Promise.resolve({ data: {} })),
+    uploadPhoto: jest.fn(() => Promise.resolve({ data: {} })),
+  },
+  impactAPI: {
+    getMetrics: jest.fn(() => Promise.resolve({ data: {} })),
+  },
 }));
 
 // Mock Firebase
