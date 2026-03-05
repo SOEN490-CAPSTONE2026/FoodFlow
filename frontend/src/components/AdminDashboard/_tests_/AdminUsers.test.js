@@ -152,9 +152,7 @@ describe('AdminUsers', () => {
   test('applies role filter via API params', async () => {
     render(<AdminUsers />);
 
-    await waitFor(() =>
-      expect(screen.getByText('John Donor')).toBeInTheDocument()
-    );
+    await screen.findByText('John Donor');
 
     fireEvent.change(screen.getByTestId('adminUsers.filters.allRoles'), {
       target: { value: 'DONOR' },
@@ -173,9 +171,7 @@ describe('AdminUsers', () => {
   test('applies status filter via API params', async () => {
     render(<AdminUsers />);
 
-    await waitFor(() =>
-      expect(screen.getByText('John Donor')).toBeInTheDocument()
-    );
+    await screen.findByText('John Donor');
 
     fireEvent.change(screen.getByTestId('adminUsers.filters.allStatus'), {
       target: { value: 'ACTIVE' },
@@ -194,9 +190,7 @@ describe('AdminUsers', () => {
   test('resets filters', async () => {
     render(<AdminUsers />);
 
-    await waitFor(() =>
-      expect(screen.getByText('John Donor')).toBeInTheDocument()
-    );
+    await screen.findByText('John Donor');
     const resetButton = await screen.findByRole('button', {
       name: 'adminUsers.filters.reset',
     });
@@ -240,9 +234,7 @@ describe('AdminUsers', () => {
   test('opens deactivate modal and requires reason', async () => {
     render(<AdminUsers />);
 
-    await waitFor(() =>
-      expect(screen.getByText('John Donor')).toBeInTheDocument()
-    );
+    await screen.findByText('John Donor');
 
     fireEvent.click(screen.getAllByTitle('adminUsers.actions.deactivate')[0]);
 
@@ -270,9 +262,7 @@ describe('AdminUsers', () => {
   test('deactivates user with reason', async () => {
     render(<AdminUsers />);
 
-    await waitFor(() =>
-      expect(screen.getByText('John Donor')).toBeInTheDocument()
-    );
+    await screen.findByText('John Donor');
 
     fireEvent.click(screen.getAllByTitle('adminUsers.actions.deactivate')[0]);
 
@@ -307,9 +297,7 @@ describe('AdminUsers', () => {
   test('reactivates deactivated user', async () => {
     render(<AdminUsers />);
 
-    await waitFor(() =>
-      expect(screen.getByText('Deactivated User')).toBeInTheDocument()
-    );
+    await screen.findByText('Deactivated User');
 
     fireEvent.click(screen.getByTitle('adminUsers.actions.reactivate'));
 
@@ -339,9 +327,7 @@ describe('AdminUsers', () => {
   test('opens alert modal and sends custom alert', async () => {
     render(<AdminUsers />);
 
-    await waitFor(() =>
-      expect(screen.getByText('John Donor')).toBeInTheDocument()
-    );
+    await screen.findByText('John Donor');
 
     fireEvent.click(screen.getAllByTitle('adminUsers.actions.sendAlert')[0]);
 
@@ -382,9 +368,7 @@ describe('AdminUsers', () => {
   test('expands row and fetches user rating once', async () => {
     render(<AdminUsers />);
 
-    await waitFor(() =>
-      expect(screen.getByText('John Donor')).toBeInTheDocument()
-    );
+    await screen.findByText('John Donor');
 
     const expandButtons = screen
       .getAllByRole('button')

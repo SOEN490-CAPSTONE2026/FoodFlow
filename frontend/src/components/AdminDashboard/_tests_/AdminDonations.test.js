@@ -160,9 +160,7 @@ describe('AdminDonations Component', () => {
 
     render(<AdminDonations />);
 
-    await waitFor(() =>
-      expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument()
-    );
+    await screen.findByText('Vegetable Lasagna');
 
     const input = screen.getByPlaceholderText(
       'adminDonations.searchPlaceholder'
@@ -183,9 +181,7 @@ describe('AdminDonations Component', () => {
   test('applies status filter', async () => {
     render(<AdminDonations />);
 
-    await waitFor(() =>
-      expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument()
-    );
+    await screen.findByText('Vegetable Lasagna');
 
     fireEvent.change(screen.getAllByTestId('react-select')[0], {
       target: { value: 'AVAILABLE' },
@@ -202,9 +198,7 @@ describe('AdminDonations Component', () => {
     const user = userEvent.setup();
     render(<AdminDonations />);
 
-    await waitFor(() =>
-      expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument()
-    );
+    await screen.findByText('Vegetable Lasagna');
 
     const input = screen.getByPlaceholderText(
       'adminDonations.searchPlaceholder'
@@ -220,9 +214,7 @@ describe('AdminDonations Component', () => {
   test('opens detail modal from view details action', async () => {
     render(<AdminDonations />);
 
-    await waitFor(() =>
-      expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument()
-    );
+    await screen.findByText('Vegetable Lasagna');
 
     fireEvent.click(
       screen.getAllByTitle('adminDonations.actions.viewDetails')[0]
@@ -239,9 +231,7 @@ describe('AdminDonations Component', () => {
   test('disables back button on first modal page', async () => {
     render(<AdminDonations />);
 
-    await waitFor(() =>
-      expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument()
-    );
+    await screen.findByText('Vegetable Lasagna');
     fireEvent.click(
       screen.getAllByTitle('adminDonations.actions.viewDetails')[0]
     );
@@ -254,16 +244,12 @@ describe('AdminDonations Component', () => {
   test('navigates to timeline and shows event', async () => {
     render(<AdminDonations />);
 
-    await waitFor(() =>
-      expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument()
-    );
+    await screen.findByText('Vegetable Lasagna');
     fireEvent.click(
       screen.getAllByTitle('adminDonations.actions.viewDetails')[0]
     );
 
-    await waitFor(() =>
-      expect(screen.getByText('Page 1 of 3')).toBeInTheDocument()
-    );
+    await screen.findByText('Page 1 of 3');
     fireEvent.click(screen.getByRole('button', { name: /next/i }));
 
     await waitFor(() => {
@@ -278,32 +264,20 @@ describe('AdminDonations Component', () => {
   test('shows status override validation errors', async () => {
     render(<AdminDonations />);
 
-    await waitFor(() =>
-      expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument()
-    );
+    await screen.findByText('Vegetable Lasagna');
     fireEvent.click(
       screen.getAllByTitle('adminDonations.actions.viewDetails')[0]
     );
 
-    await waitFor(() =>
-      expect(screen.getByText('Page 1 of 3')).toBeInTheDocument()
-    );
+    await screen.findByText('Page 1 of 3');
     fireEvent.click(screen.getByRole('button', { name: /next/i }));
-    await waitFor(() =>
-      expect(screen.getByText('Page 2 of 3')).toBeInTheDocument()
-    );
+    await screen.findByText('Page 2 of 3');
     fireEvent.click(screen.getByRole('button', { name: /next/i }));
 
-    await waitFor(() =>
-      expect(
-        screen.getByText('Donation Details - Override Status')
-      ).toBeInTheDocument()
-    );
+    await screen.findByText('Donation Details - Override Status');
 
     fireEvent.click(screen.getByRole('button', { name: 'Override Status' }));
-    await waitFor(() =>
-      expect(screen.getByText('Please select a new status')).toBeInTheDocument()
-    );
+    await screen.findByText('Please select a new status');
 
     const selects = screen.getAllByTestId('react-select');
     fireEvent.change(selects[selects.length - 1], {
@@ -322,27 +296,17 @@ describe('AdminDonations Component', () => {
     const user = userEvent.setup();
     render(<AdminDonations />);
 
-    await waitFor(() =>
-      expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument()
-    );
+    await screen.findByText('Vegetable Lasagna');
     fireEvent.click(
       screen.getAllByTitle('adminDonations.actions.viewDetails')[0]
     );
 
-    await waitFor(() =>
-      expect(screen.getByText('Page 1 of 3')).toBeInTheDocument()
-    );
+    await screen.findByText('Page 1 of 3');
     fireEvent.click(screen.getByRole('button', { name: /next/i }));
-    await waitFor(() =>
-      expect(screen.getByText('Page 2 of 3')).toBeInTheDocument()
-    );
+    await screen.findByText('Page 2 of 3');
     fireEvent.click(screen.getByRole('button', { name: /next/i }));
 
-    await waitFor(() =>
-      expect(
-        screen.getByText('Donation Details - Override Status')
-      ).toBeInTheDocument()
-    );
+    await screen.findByText('Donation Details - Override Status');
 
     const selects = screen.getAllByTestId('react-select');
     fireEvent.change(selects[selects.length - 1], {
