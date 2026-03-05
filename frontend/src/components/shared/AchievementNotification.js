@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Trophy, X } from 'lucide-react';
 import BadgeIcon from './BadgeIcon';
+import { translateAchievement } from '../../utils/achievementsI18n';
 import './AchievementNotification.css';
 
 const AchievementNotification = ({ achievement, onClose }) => {
   const { t } = useTranslation();
   const [isVisible, setIsVisible] = useState(false);
+  const localizedAchievement = translateAchievement(t, achievement);
 
   useEffect(() => {
     if (!achievement) {
@@ -46,7 +48,7 @@ const AchievementNotification = ({ achievement, onClose }) => {
       <button
         className="achievement-close"
         onClick={handleClose}
-        aria-label="Close notification"
+        aria-label={t('achievements.closeNotification', 'Close notification')}
       >
         <X size={20} />
       </button>
@@ -56,7 +58,7 @@ const AchievementNotification = ({ achievement, onClose }) => {
         <div className="achievement-header">
           <Trophy className="trophy-icon" size={24} />
           <span className="achievement-title">
-            {t('achievements.unlocked', 'Achievement Unlocked!')}
+            {t('achievements.unlockedTitle', 'Achievement Unlocked!')}
           </span>
         </div>
 
@@ -77,8 +79,10 @@ const AchievementNotification = ({ achievement, onClose }) => {
           </div>
 
           <div className="achievement-details">
-            <h3 className="achievement-name">{achievement.name}</h3>
-            <p className="achievement-description">{achievement.description}</p>
+            <h3 className="achievement-name">{localizedAchievement.name}</h3>
+            <p className="achievement-description">
+              {localizedAchievement.description}
+            </p>
             <div className="achievement-points">
               <span className="points-badge">
                 +{achievement.pointsValue} {t('achievements.points', 'points')}

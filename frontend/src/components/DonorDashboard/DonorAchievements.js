@@ -5,6 +5,7 @@ import useGamification from '../../hooks/useGamification';
 import PointsDisplay from '../shared/PointsDisplay';
 import BadgeIcon from '../shared/BadgeIcon';
 import Leaderboard from '../shared/Leaderboard';
+import { translateAchievement } from '../../utils/achievementsI18n';
 import './Donor_Styles/DonorAchievements.css';
 
 /**
@@ -190,26 +191,29 @@ const DonorAchievements = () => {
             </span>
           </div>
           <div className="achievements-grid">
-            {categorizedAchievements.unlocked.map(achievement => (
-              <div key={achievement.id} className="achievement-card unlocked">
-                <BadgeIcon
-                  achievement={achievement}
-                  unlocked={true}
-                  progress={progressMap[achievement.id]}
-                  showTooltip={true}
-                />
-                <div className="achievement-info">
-                  <h3>{achievement.name}</h3>
-                  <p>{achievement.description}</p>
-                  {achievement.pointsReward > 0 && (
-                    <div className="achievement-reward">
-                      +{achievement.pointsReward}{' '}
-                      {t('achievements.points', 'points')}
-                    </div>
-                  )}
+            {categorizedAchievements.unlocked.map(achievement => {
+              const localizedAchievement = translateAchievement(t, achievement);
+              return (
+                <div key={achievement.id} className="achievement-card unlocked">
+                  <BadgeIcon
+                    achievement={localizedAchievement}
+                    unlocked={true}
+                    progress={progressMap[achievement.id]}
+                    showTooltip={true}
+                  />
+                  <div className="achievement-info">
+                    <h3>{localizedAchievement.name}</h3>
+                    <p>{localizedAchievement.description}</p>
+                    {achievement.pointsReward > 0 && (
+                      <div className="achievement-reward">
+                        +{achievement.pointsReward}{' '}
+                        {t('achievements.points', 'points')}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -224,44 +228,47 @@ const DonorAchievements = () => {
             </span>
           </div>
           <div className="achievements-grid">
-            {categorizedAchievements.inProgress.map(achievement => (
-              <div
-                key={achievement.id}
-                className="achievement-card in-progress"
-              >
-                <BadgeIcon
-                  achievement={achievement}
-                  unlocked={false}
-                  progress={achievement.progress}
-                  showTooltip={true}
-                />
-                <div className="achievement-info">
-                  <h3>{achievement.name}</h3>
-                  <p>{achievement.description}</p>
-                  {achievement.progress && (
-                    <div className="achievement-progress">
-                      <div className="progress-text">
-                        {achievement.progress.currentValue} /{' '}
-                        {achievement.progress.targetValue}
+            {categorizedAchievements.inProgress.map(achievement => {
+              const localizedAchievement = translateAchievement(t, achievement);
+              return (
+                <div
+                  key={achievement.id}
+                  className="achievement-card in-progress"
+                >
+                  <BadgeIcon
+                    achievement={localizedAchievement}
+                    unlocked={false}
+                    progress={achievement.progress}
+                    showTooltip={true}
+                  />
+                  <div className="achievement-info">
+                    <h3>{localizedAchievement.name}</h3>
+                    <p>{localizedAchievement.description}</p>
+                    {achievement.progress && (
+                      <div className="achievement-progress">
+                        <div className="progress-text">
+                          {achievement.progress.currentValue} /{' '}
+                          {achievement.progress.targetValue}
+                        </div>
+                        <div className="progress-bar-mini">
+                          <div
+                            className="progress-bar-mini-fill"
+                            style={{
+                              width: `${Math.min(
+                                (achievement.progress.currentValue /
+                                  achievement.progress.targetValue) *
+                                  100,
+                                100
+                              )}%`,
+                            }}
+                          ></div>
+                        </div>
                       </div>
-                      <div className="progress-bar-mini">
-                        <div
-                          className="progress-bar-mini-fill"
-                          style={{
-                            width: `${Math.min(
-                              (achievement.progress.currentValue /
-                                achievement.progress.targetValue) *
-                                100,
-                              100
-                            )}%`,
-                          }}
-                        ></div>
-                      </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -276,20 +283,23 @@ const DonorAchievements = () => {
             </span>
           </div>
           <div className="achievements-grid">
-            {categorizedAchievements.locked.map(achievement => (
-              <div key={achievement.id} className="achievement-card locked">
-                <BadgeIcon
-                  achievement={achievement}
-                  unlocked={false}
-                  progress={null}
-                  showTooltip={true}
-                />
-                <div className="achievement-info">
-                  <h3>{achievement.name}</h3>
-                  <p>{achievement.description}</p>
+            {categorizedAchievements.locked.map(achievement => {
+              const localizedAchievement = translateAchievement(t, achievement);
+              return (
+                <div key={achievement.id} className="achievement-card locked">
+                  <BadgeIcon
+                    achievement={localizedAchievement}
+                    unlocked={false}
+                    progress={null}
+                    showTooltip={true}
+                  />
+                  <div className="achievement-info">
+                    <h3>{localizedAchievement.name}</h3>
+                    <p>{localizedAchievement.description}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

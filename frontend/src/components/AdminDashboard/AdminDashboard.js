@@ -15,6 +15,7 @@ import AdminVerificationQueue from './AdminVerificationQueue';
 import AdminReferrals from './AdminReferrals';
 import AdminSettings from './AdminSettings';
 import AdminDonations from './AdminDonations';
+import AdminImages from './AdminImages';
 
 export default function AdminDashboard() {
   return (
@@ -28,6 +29,7 @@ export default function AdminDashboard() {
         <Route path="analytics" element={<AdminAnalytics />} />
         <Route path="impact" element={<AdminImpactDashboard />} />
         <Route path="donations" element={<AdminDonations />} />
+        <Route path="images" element={<AdminImages />} />
         <Route path="calendar" element={<AdminCalendar />} />
         <Route path="messages" element={<AdminMessages />} />
         <Route path="disputes" element={<AdminDisputes />} />

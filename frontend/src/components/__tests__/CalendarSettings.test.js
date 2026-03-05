@@ -112,6 +112,17 @@ const renderWithContext = component => {
   );
 };
 
+const renderExpanded = async () => {
+  const utils = renderWithContext(<CalendarSettings />);
+  const toggleButton = await screen.findByRole('button', {
+    name: 'Toggle calendar integration',
+  });
+  if (toggleButton.getAttribute('aria-expanded') === 'false') {
+    fireEvent.click(toggleButton);
+  }
+  return utils;
+};
+
 describe('CalendarSettings Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -132,7 +143,7 @@ describe('CalendarSettings Component', () => {
     it('should load calendar data on mount when disconnected', async () => {
       calendarAPI.getStatus.mockResolvedValue(mockDisconnectedStatus);
 
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(calendarAPI.getStatus).toHaveBeenCalled();
@@ -148,7 +159,7 @@ describe('CalendarSettings Component', () => {
       calendarAPI.getPreferences.mockResolvedValue(mockPreferences);
       calendarAPI.getEvents.mockResolvedValue(mockEvents);
 
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(calendarAPI.getStatus).toHaveBeenCalled();
@@ -164,7 +175,7 @@ describe('CalendarSettings Component', () => {
         new Error('Failed to load status')
       );
 
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(screen.getByText('calendar.loadError')).toBeInTheDocument();
@@ -176,7 +187,7 @@ describe('CalendarSettings Component', () => {
     it('should display connect button when disconnected', async () => {
       calendarAPI.getStatus.mockResolvedValue(mockDisconnectedStatus);
 
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(screen.getByText('calendar.connectButton')).toBeInTheDocument();
@@ -197,7 +208,7 @@ describe('CalendarSettings Component', () => {
       const mockPopup = { closed: false };
       global.window.open = jest.fn(() => mockPopup);
 
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(screen.getByText('calendar.connectButton')).toBeInTheDocument();
@@ -218,7 +229,7 @@ describe('CalendarSettings Component', () => {
         new Error('Connection failed')
       );
 
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(screen.getByText('calendar.connectButton')).toBeInTheDocument();
@@ -241,7 +252,7 @@ describe('CalendarSettings Component', () => {
     });
 
     it('should display disconnect button when connected', async () => {
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(
@@ -251,7 +262,7 @@ describe('CalendarSettings Component', () => {
     });
 
     it('should show disconnect modal when disconnect button is clicked', async () => {
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(
@@ -273,7 +284,7 @@ describe('CalendarSettings Component', () => {
     });
 
     it('should close disconnect modal when cancel is clicked', async () => {
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(
@@ -307,7 +318,7 @@ describe('CalendarSettings Component', () => {
       calendarAPI.getStatus.mockResolvedValueOnce(mockConnectedStatus);
       calendarAPI.getStatus.mockResolvedValueOnce(mockDisconnectedStatus);
 
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(
@@ -341,7 +352,7 @@ describe('CalendarSettings Component', () => {
     it('should handle disconnect error', async () => {
       calendarAPI.disconnect.mockRejectedValue(new Error('Disconnect failed'));
 
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(
@@ -378,7 +389,7 @@ describe('CalendarSettings Component', () => {
     });
 
     it('should display preferences when connected', async () => {
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(screen.getByText('calendar.preferences')).toBeInTheDocument();
@@ -386,7 +397,7 @@ describe('CalendarSettings Component', () => {
     });
 
     it('should toggle sync enabled preference', async () => {
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(screen.getByText('calendar.syncEnabled')).toBeInTheDocument();
@@ -403,7 +414,7 @@ describe('CalendarSettings Component', () => {
     });
 
     it('should toggle auto reminders preference', async () => {
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(
@@ -430,7 +441,7 @@ describe('CalendarSettings Component', () => {
     });
 
     it('should update reminder time', async () => {
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(
@@ -454,7 +465,7 @@ describe('CalendarSettings Component', () => {
     });
 
     it('should update reminder type', async () => {
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(
@@ -476,7 +487,7 @@ describe('CalendarSettings Component', () => {
     });
 
     it('should update event color', async () => {
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(
@@ -498,7 +509,7 @@ describe('CalendarSettings Component', () => {
     });
 
     it('should update event visibility', async () => {
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(
@@ -522,7 +533,7 @@ describe('CalendarSettings Component', () => {
     });
 
     it('should update event duration', async () => {
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(
@@ -548,7 +559,7 @@ describe('CalendarSettings Component', () => {
         data: { success: true },
       });
 
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(screen.getByText('calendar.saveButton')).toBeInTheDocument();
@@ -566,7 +577,7 @@ describe('CalendarSettings Component', () => {
     it('should handle save error', async () => {
       calendarAPI.updatePreferences.mockRejectedValue(new Error('Save failed'));
 
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(screen.getByText('calendar.saveButton')).toBeInTheDocument();
@@ -597,7 +608,7 @@ describe('CalendarSettings Component', () => {
         data: { message: 'Sync successful' },
       });
 
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(screen.getByText('calendar.syncButton')).toBeInTheDocument();
@@ -614,7 +625,7 @@ describe('CalendarSettings Component', () => {
     it('should handle sync error', async () => {
       calendarAPI.sync.mockRejectedValue(new Error('Sync failed'));
 
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(screen.getByText('calendar.syncButton')).toBeInTheDocument();
@@ -637,7 +648,7 @@ describe('CalendarSettings Component', () => {
     });
 
     it('should open connection details modal', async () => {
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(screen.getByText('View Connection Details')).toBeInTheDocument();
@@ -654,7 +665,7 @@ describe('CalendarSettings Component', () => {
     });
 
     it('should display connection details', async () => {
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(screen.getByText('View Connection Details')).toBeInTheDocument();
@@ -671,7 +682,7 @@ describe('CalendarSettings Component', () => {
     });
 
     it('should close connection details modal', async () => {
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(screen.getByText('View Connection Details')).toBeInTheDocument();
@@ -705,7 +716,7 @@ describe('CalendarSettings Component', () => {
     });
 
     it('should display synced events', async () => {
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(
@@ -716,7 +727,7 @@ describe('CalendarSettings Component', () => {
     });
 
     it('should display event count', async () => {
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(screen.getByText(/\(2\)/)).toBeInTheDocument();
@@ -728,7 +739,7 @@ describe('CalendarSettings Component', () => {
         data: { data: [] },
       });
 
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(
@@ -742,7 +753,7 @@ describe('CalendarSettings Component', () => {
     it('should display error alert', async () => {
       calendarAPI.getStatus.mockRejectedValue(new Error('Failed to load data'));
 
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(screen.getByText('calendar.loadError')).toBeInTheDocument();
@@ -752,7 +763,7 @@ describe('CalendarSettings Component', () => {
     it('should close error alert', async () => {
       calendarAPI.getStatus.mockRejectedValue(new Error('Failed to load data'));
 
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(screen.getByText('calendar.loadError')).toBeInTheDocument();
@@ -779,7 +790,7 @@ describe('CalendarSettings Component', () => {
         data: { success: true },
       });
 
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(screen.getByText('calendar.saveButton')).toBeInTheDocument();
@@ -815,7 +826,7 @@ describe('CalendarSettings Component', () => {
     });
 
     it('should expand reminder section when clicked', async () => {
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(
@@ -832,7 +843,7 @@ describe('CalendarSettings Component', () => {
     });
 
     it('should collapse reminder section when clicked again', async () => {
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(
@@ -860,7 +871,7 @@ describe('CalendarSettings Component', () => {
     });
 
     it('should expand event preferences section', async () => {
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(
@@ -889,7 +900,7 @@ describe('CalendarSettings Component', () => {
 
       calendarAPI.getStatus.mockResolvedValue(statusWithoutProvider);
 
-      renderWithContext(<CalendarSettings />);
+      await renderExpanded();
 
       await waitFor(() => {
         expect(screen.getByText('calendar.connectButton')).toBeInTheDocument();

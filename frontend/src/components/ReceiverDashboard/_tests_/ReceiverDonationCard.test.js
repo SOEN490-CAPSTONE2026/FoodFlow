@@ -153,4 +153,43 @@ describe('ReceiverDonationCard', () => {
     expect(screen.getByText('Claiming...')).toBeInTheDocument();
     expect(screen.getByText('Less')).toBeInTheDocument();
   });
+
+  test('renders donor logo and resolved donation image when provided', () => {
+    const itemWithImages = {
+      ...item,
+      donorLogoUrl: 'https://example.com/logo.png',
+      resolvedDonationImageUrl: 'https://example.com/donation.png',
+    };
+
+    render(
+      <ReceiverDonationCard
+        item={itemWithImages}
+        t={t}
+        expanded={false}
+        onToggleMore={jest.fn()}
+        onClaim={jest.fn()}
+        onBookmark={jest.fn()}
+        isBookmarked={false}
+        isBookmarking={false}
+        claiming={false}
+        isClaimTarget={false}
+        formatBestBeforeDate={() => 'Mar 24, 2026'}
+        formatPickupTime={() => 'Mar 23, 2026 8:00 AM-9:00 AM'}
+        formatPostedTime={() => '1 day ago'}
+        formatStatus={() => 'Available'}
+        getStatusClass={() => 'status-available'}
+        hoveredRecommended={null}
+        setHoveredRecommended={jest.fn()}
+      />
+    );
+
+    const donationImage = document.querySelector('.receiver-food-type-image');
+    expect(donationImage).toHaveAttribute(
+      'src',
+      itemWithImages.resolvedDonationImageUrl
+    );
+    expect(
+      screen.getByAltText(`${itemWithImages.donorName} logo`)
+    ).toHaveAttribute('src', itemWithImages.donorLogoUrl);
+  });
 });

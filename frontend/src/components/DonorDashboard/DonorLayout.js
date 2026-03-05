@@ -460,10 +460,13 @@ export default function DonorLayout() {
               ></div>
               <div className="account-text">
                 <span className="account-name">
-                  {organizationName || 'Donor'}
+                  {organizationName ||
+                    t('donorLayout.pageTitles.donor', 'Donor')}
                 </span>
                 <span className="account-role">
-                  {role?.toLowerCase() || 'donor'}
+                  {role
+                    ? t(`roles.${role.toLowerCase()}`, role)
+                    : t('donorLayout.pageTitles.donor', 'Donor')}
                 </span>
               </div>
             </button>

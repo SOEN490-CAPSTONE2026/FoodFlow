@@ -8,6 +8,32 @@ import DonorListFood from '../DonorListFood';
 import { surplusAPI } from '../../../services/api';
 import { AuthContext } from '../../../contexts/AuthContext';
 
+jest.mock('react-i18next', () => ({
+  useTranslation: () => {
+    const en = require('../../../locales/en.json');
+    const getValue = (obj, key) =>
+      key.split('.').reduce((acc, part) => acc?.[part], obj);
+
+    return {
+      t: (key, options) => {
+        const value = getValue(en, key);
+        if (typeof value === 'string') {
+          if (!options || typeof options !== 'object') {
+            return value;
+          }
+          return Object.entries(options).reduce(
+            (text, [k, v]) =>
+              text.replace(new RegExp(`{{${k}}}`, 'g'), String(v)),
+            value
+          );
+        }
+        return key;
+      },
+      i18n: { language: 'en' },
+    };
+  },
+}));
+
 // Mock the dependencies
 jest.mock('axios', () => ({
   get: jest.fn(),
@@ -304,9 +330,7 @@ describe('DonorListFood', () => {
     expect(quantityDiv).toHaveTextContent('5');
     expect(quantityDiv).toHaveTextContent('kg');
     expect(within(appleCard).getByText(/Available/i)).toBeInTheDocument();
-    expect(
-      within(appleCard).getByText(/Fruits & Vegetables/i)
-    ).toBeInTheDocument();
+    expect(within(appleCard).getByText(/Produce/i)).toBeInTheDocument();
   });
 
   test('displays donation details like time and location after loading data', async () => {
