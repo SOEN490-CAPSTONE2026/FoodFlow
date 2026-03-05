@@ -129,12 +129,8 @@ describe('DonorRegistration - Password Validation', () => {
     );
 
     // Step 2
-    await waitFor(() =>
-      expect(
-        screen.getByPlaceholderText(
-          'donorRegistration.organizationNamePlaceholder'
-        )
-      ).toBeInTheDocument()
+    await screen.findByPlaceholderText(
+      'donorRegistration.organizationNamePlaceholder'
     );
     fireEvent.change(
       screen.getByPlaceholderText(
@@ -153,12 +149,8 @@ describe('DonorRegistration - Password Validation', () => {
     );
 
     // Step 3
-    await waitFor(() =>
-      expect(
-        screen.getByPlaceholderText(
-          'donorRegistration.streetAddressPlaceholder'
-        )
-      ).toBeInTheDocument()
+    await screen.findByPlaceholderText(
+      'donorRegistration.streetAddressPlaceholder'
     );
     fireEvent.change(
       screen.getByPlaceholderText('donorRegistration.streetAddressPlaceholder'),
@@ -185,12 +177,8 @@ describe('DonorRegistration - Password Validation', () => {
     );
 
     // Step 4
-    await waitFor(() =>
-      expect(
-        screen.getByPlaceholderText(
-          'donorRegistration.contactPersonPlaceholder'
-        )
-      ).toBeInTheDocument()
+    await screen.findByPlaceholderText(
+      'donorRegistration.contactPersonPlaceholder'
     );
     fireEvent.change(
       screen.getByPlaceholderText('donorRegistration.contactPersonPlaceholder'),
@@ -246,12 +234,8 @@ describe('DonorRegistration - Password Validation', () => {
       screen.getByRole('button', { name: 'donorRegistration.nextButtonText' })
     );
 
-    await waitFor(() =>
-      expect(
-        screen.getByPlaceholderText(
-          'donorRegistration.organizationNamePlaceholder'
-        )
-      ).toBeInTheDocument()
+    await screen.findByPlaceholderText(
+      'donorRegistration.organizationNamePlaceholder'
     );
     fireEvent.change(
       screen.getByPlaceholderText(
@@ -286,12 +270,8 @@ describe('DonorRegistration - Password Validation', () => {
       screen.getByRole('button', { name: 'donorRegistration.nextButtonText' })
     );
 
-    await waitFor(() =>
-      expect(
-        screen.getByPlaceholderText(
-          'donorRegistration.organizationNamePlaceholder'
-        )
-      ).toBeInTheDocument()
+    await screen.findByPlaceholderText(
+      'donorRegistration.organizationNamePlaceholder'
     );
 
     const fileInput = document.getElementById('fileUpload');

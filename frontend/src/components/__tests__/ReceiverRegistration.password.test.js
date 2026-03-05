@@ -133,12 +133,8 @@ describe('ReceiverRegistration - Password Validation', () => {
     );
 
     // Step 2
-    await waitFor(() =>
-      expect(
-        screen.getByPlaceholderText(
-          'receiverRegistration.organizationNamePlaceholder'
-        )
-      ).toBeInTheDocument()
+    await screen.findByPlaceholderText(
+      'receiverRegistration.organizationNamePlaceholder'
     );
     fireEvent.change(
       screen.getByPlaceholderText(
@@ -165,12 +161,8 @@ describe('ReceiverRegistration - Password Validation', () => {
     );
 
     // Step 3
-    await waitFor(() =>
-      expect(
-        screen.getByPlaceholderText(
-          'receiverRegistration.streetAddressPlaceholder'
-        )
-      ).toBeInTheDocument()
+    await screen.findByPlaceholderText(
+      'receiverRegistration.streetAddressPlaceholder'
     );
     fireEvent.change(
       screen.getByPlaceholderText(
@@ -201,12 +193,8 @@ describe('ReceiverRegistration - Password Validation', () => {
     );
 
     // Step 4
-    await waitFor(() =>
-      expect(
-        screen.getByPlaceholderText(
-          'receiverRegistration.contactPersonPlaceholder'
-        )
-      ).toBeInTheDocument()
+    await screen.findByPlaceholderText(
+      'receiverRegistration.contactPersonPlaceholder'
     );
     fireEvent.change(
       screen.getByPlaceholderText(
@@ -229,11 +217,7 @@ describe('ReceiverRegistration - Password Validation', () => {
     );
 
     // Step 5
-    await waitFor(() =>
-      expect(
-        screen.getByText('receiverRegistration.reviewOperationsTitle')
-      ).toBeInTheDocument()
-    );
+    await screen.findByText('receiverRegistration.reviewOperationsTitle');
     const checkboxes = screen.getAllByRole('checkbox');
     fireEvent.click(checkboxes[0]);
     fireEvent.click(checkboxes[1]);
@@ -279,12 +263,8 @@ describe('ReceiverRegistration - Password Validation', () => {
       })
     );
 
-    await waitFor(() =>
-      expect(
-        screen.getByPlaceholderText(
-          'receiverRegistration.organizationNamePlaceholder'
-        )
-      ).toBeInTheDocument()
+    await screen.findByPlaceholderText(
+      'receiverRegistration.organizationNamePlaceholder'
     );
     fireEvent.change(
       screen.getByPlaceholderText(
@@ -328,12 +308,8 @@ describe('ReceiverRegistration - Password Validation', () => {
       })
     );
 
-    await waitFor(() =>
-      expect(
-        screen.getByPlaceholderText(
-          'receiverRegistration.organizationNamePlaceholder'
-        )
-      ).toBeInTheDocument()
+    await screen.findByPlaceholderText(
+      'receiverRegistration.organizationNamePlaceholder'
     );
 
     const bigFile = new File(['x'.repeat(1024)], 'big.pdf', {
