@@ -10,6 +10,7 @@ jest.mock('react-i18next', () => ({
 global.fetch = jest.fn();
 const mockGeolocation = { getCurrentPosition: jest.fn() };
 global.navigator.geolocation = mockGeolocation;
+global.alert = jest.fn();
 
 describe('RegionSelector', () => {
   const mockOnChange = jest.fn();
@@ -28,6 +29,7 @@ describe('RegionSelector', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    global.navigator.geolocation = mockGeolocation;
     fetch.mockResolvedValue({ json: async () => mockCountriesData });
   });
 
@@ -56,5 +58,89 @@ describe('RegionSelector', () => {
   test('shows detect location key button', () => {
     render(<RegionSelector value={{}} onChange={mockOnChange} />);
     expect(screen.getByText('regionSelector.autoDetect')).toBeInTheDocument();
+  });
+
+  test('shows unsupported geolocation alert', async () => {
+    const previousGeo = global.navigator.geolocation;
+    delete global.navigator.geolocation;
+
+    render(<RegionSelector value={{}} onChange={mockOnChange} />);
+    await waitFor(() =>
+      expect(
+        screen.queryByText('regionSelector.loadingCountries')
+      ).not.toBeInTheDocument()
+    );
+    fireEvent.click(screen.getByText('regionSelector.autoDetect'));
+
+    await waitFor(() => {
+      expect(global.alert).toHaveBeenCalledWith(
+        'regionSelector.geolocationUnsupported'
+      );
+    });
+
+    global.navigator.geolocation = previousGeo;
+  });
+
+  test('auto-detect location calls onChange with detected data', async () => {
+    mockGeolocation.getCurrentPosition.mockImplementation(success =>
+      success({ coords: { latitude: 45.5, longitude: -73.5 } })
+    );
+    fetch
+      .mockResolvedValueOnce({ json: async () => mockCountriesData })
+      .mockResolvedValueOnce({
+        json: async () => ({
+          address: { country_code: 'ca', city: 'Montreal' },
+        }),
+      });
+
+    render(<RegionSelector value={{}} onChange={mockOnChange} />);
+
+    await waitFor(() =>
+      expect(
+        screen.queryByText('regionSelector.loadingCountries')
+      ).not.toBeInTheDocument()
+    );
+
+    fireEvent.click(screen.getByText('regionSelector.autoDetect'));
+
+    await waitFor(() => {
+      expect(mockOnChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          country: 'CA',
+          city: 'Montreal',
+        })
+      );
+    });
+  });
+
+  test('manual country + city + timezone selection triggers onChange', async () => {
+    render(<RegionSelector value={{}} onChange={mockOnChange} />);
+
+    await waitFor(() =>
+      expect(
+        screen.queryByText('regionSelector.loadingCountries')
+      ).not.toBeInTheDocument()
+    );
+
+    fireEvent.click(screen.getByText('regionSelector.selectCountry'));
+    fireEvent.click(screen.getByText('Canada'));
+
+    const cityInput = await screen.findByPlaceholderText(
+      'regionSelector.enterCity'
+    );
+    fireEvent.change(cityInput, { target: { value: 'Toronto' } });
+
+    fireEvent.click(screen.getByText(/Toronto/i));
+    fireEvent.click(screen.getByText(/Vancouver/i));
+
+    await waitFor(() => {
+      expect(mockOnChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          country: 'CA',
+          city: 'Toronto',
+          timezone: 'America/Vancouver',
+        })
+      );
+    });
   });
 });

@@ -388,4 +388,63 @@ describe('AdminUsers', () => {
       expect(feedbackAPI.getUserRating).toHaveBeenCalledTimes(1);
     });
   });
+
+  test('handles rating API failure with fallback no-reviews state', async () => {
+    feedbackAPI.getUserRating.mockRejectedValueOnce(new Error('rating fail'));
+    render(<AdminUsers />);
+
+    await screen.findByText('John Donor');
+
+    const expandButtons = screen
+      .getAllByRole('button')
+      .filter(btn => btn.className.includes('expand-btn'));
+    fireEvent.click(expandButtons[0]);
+
+    await waitFor(() => {
+      expect(feedbackAPI.getUserRating).toHaveBeenCalledWith(1);
+      expect(screen.getByText('adminUsers.details.noReviews')).toBeInTheDocument();
+    });
+  });
+
+  test('falls back to row user when detail API fails', async () => {
+    axios.get.mockImplementation(url => {
+      if (url.endsWith('/admin/users')) {
+        return Promise.resolve(mockResponse);
+      }
+      if (url.endsWith('/admin/users/1')) {
+        return Promise.reject(new Error('detail fail'));
+      }
+      return Promise.resolve(mockResponse);
+    });
+
+    render(<AdminUsers />);
+    await screen.findByText('John Donor');
+
+    fireEvent.click(screen.getAllByTitle('adminUsers.actions.viewDetails')[0]);
+
+    await waitFor(() => {
+      expect(screen.getByText('User Details')).toBeInTheDocument();
+      expect(screen.getAllByText('John Donor').length).toBeGreaterThan(0);
+    });
+  });
+
+  test('shows alert-required notification when sending empty alert', async () => {
+    render(<AdminUsers />);
+    await screen.findByText('John Donor');
+
+    fireEvent.click(screen.getAllByTitle('adminUsers.actions.sendAlert')[0]);
+    const alertTitle = await screen.findByText('adminUsers.modals.alert.title');
+    const modalRoot = alertTitle.closest('.modal-content');
+    fireEvent.click(
+      within(modalRoot).getByRole('button', {
+        name: 'adminUsers.actions.sendAlert',
+      })
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('adminUsers.notifications.alertRequired')
+      ).toBeInTheDocument();
+    });
+  });
 });
