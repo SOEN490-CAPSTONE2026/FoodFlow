@@ -32,7 +32,9 @@ export default function AdminReferrals() {
       : referrals.filter(r => r.referralType === filter);
 
   const formatDate = dateStr => {
-    if (!dateStr) return '—';
+    if (!dateStr) {
+      return '—';
+    }
     return new Date(dateStr).toLocaleDateString('en-CA', {
       year: 'numeric',
       month: 'short',

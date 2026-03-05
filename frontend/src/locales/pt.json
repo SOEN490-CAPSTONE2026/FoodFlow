@@ -1764,7 +1764,8 @@
       "submitAnother": "Enviar outra sugestão"
     },
     "errors": { "generic": "Algo deu errado. Por favor, tente novamente." }
-    "done": "Concluir",
+  },
+  "done": "Concluir",
     "impactMetrics": "Métricas de impacto",
     "foodSavedByDay": "Alimentos salvos por dia",
     "foodSavedByWeek": "Alimentos salvos por semana",

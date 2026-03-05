@@ -1764,7 +1764,8 @@
       "submitAnother": "再次提交推荐"
     },
     "errors": { "generic": "出现错误，请重试。" }
-    "done": "完成",
+  },
+  "done": "完成",
     "impactMetrics": "影响指标",
     "foodSavedByDay": "按天挽救食物",
     "foodSavedByWeek": "按周挽救食物",

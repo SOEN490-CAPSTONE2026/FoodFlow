@@ -999,7 +999,7 @@
       "settings": "Gestiona tus preferencias y configuración de cuenta",
       "help": "Guías y soporte",
       "donorPortal": "Portal de donante FoodFlow",
-      "suggestBusiness": "Sugiere una empresa para que se una a FoodFlow como donante de alimentos"
+      "suggestBusiness": "Sugiere una empresa para que se una a FoodFlow como donante de alimentos",
       "calendar": "Sincroniza tus donaciones con Google Calendar"
     },
     "notifications": {
@@ -1982,6 +1982,7 @@
       "submitAnother": "Enviar otra sugerencia"
     },
     "errors": { "generic": "Algo salió mal. Por favor, inténtalo de nuevo." }
+  },
   "adminVerificationQueue": {
     "title": "Registros pendientes",
     "loading": "Cargando usuarios pendientes...",

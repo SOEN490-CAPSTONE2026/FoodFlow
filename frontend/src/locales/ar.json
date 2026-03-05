@@ -1762,7 +1762,8 @@
       "submitAnother": "إرسال اقتراح آخر"
     },
     "errors": { "generic": "حدث خطأ ما. يرجى المحاولة مرة أخرى." }
-    "done": "تم",
+  },
+  "done": "تم",
     "impactMetrics": "مقاييس الأثر",
     "foodSavedByDay": "الطعام المنقذ حسب اليوم",
     "foodSavedByWeek": "الطعام المنقذ حسب الأسبوع",

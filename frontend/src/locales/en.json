@@ -2264,6 +2264,7 @@
       "submitAnother": "Submit Another Suggestion"
     },
     "errors": { "generic": "Something went wrong. Please try again." }
+  },
   "adminSettings": {
     "loading": "Loading profile...",
     "profileAlt": "Profile",
