@@ -2,8 +2,13 @@ import {
   validatePassword,
   getPasswordPolicyDescription,
 } from '../passwordValidation';
+import i18n from '../../locales/i18n';
 
 describe('validatePassword', () => {
+  beforeAll(() => {
+    i18n.changeLanguage('en');
+  });
+
   test('should return no errors for valid password', () => {
     const errors = validatePassword('SecurePass123!');
     expect(errors).toEqual([]);

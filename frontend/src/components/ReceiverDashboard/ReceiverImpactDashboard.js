@@ -405,6 +405,10 @@ export default function ReceiverImpactDashboard() {
                     borderRadius: '8px',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                   }}
+                  formatter={value => [
+                    value,
+                    t('impactDashboard.claimsLabel', 'Claims'),
+                  ]}
                   cursor={{ fill: 'transparent' }}
                 />
                 <Bar dataKey="claims" fill="#5eb3b7" radius={[8, 8, 0, 0]} />
