@@ -1,5 +1,12 @@
 import React from 'react';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import PropTypes from 'prop-types';
+import {
+  render,
+  screen,
+  waitFor,
+  fireEvent,
+  within,
+} from '@testing-library/react';
 import '@testing-library/jest-dom';
 import AdminVerificationQueue from '../AdminVerificationQueue';
 import { adminVerificationAPI } from '../../../services/api';
@@ -9,26 +16,39 @@ jest.mock('react-i18next', () => ({
 }));
 
 jest.mock('react-select', () => {
-  return function MockSelect(props) {
+  function MockSelect({ placeholder, value, options, onChange }) {
     return (
       <select
-        data-testid={props.placeholder || 'select'}
-        value={props.value?.value ?? ''}
+        data-testid={placeholder || 'select'}
+        value={value?.value ?? ''}
         onChange={e => {
-          const selected = props.options.find(
+          const selected = options.find(
             opt => String(opt.value) === String(e.target.value)
           );
-          props.onChange(selected);
+          onChange(selected);
         }}
       >
-        {props.options.map(option => (
+        {options.map(option => (
           <option key={option.value || 'empty'} value={option.value}>
             {option.label}
           </option>
         ))}
       </select>
     );
+  }
+  MockSelect.propTypes = {
+    placeholder: PropTypes.string,
+    value: PropTypes.shape({ value: PropTypes.any }),
+    options: PropTypes.arrayOf(
+      PropTypes.shape({ value: PropTypes.any, label: PropTypes.string })
+    ).isRequired,
+    onChange: PropTypes.func.isRequired,
   };
+  MockSelect.defaultProps = {
+    placeholder: 'select',
+    value: null,
+  };
+  return MockSelect;
 });
 
 jest.mock('../../../services/api', () => ({
@@ -71,6 +91,35 @@ describe('AdminVerificationQueue', () => {
     },
   ];
 
+  const mockPendingUsers = [
+    ...users,
+    {
+      id: 3,
+      organizationName: 'Restaurant Beta',
+      contactName: 'Bob Smith',
+      email: 'bob@restaurant.com',
+      phoneNumber: '3333333333',
+      role: 'DONOR',
+      accountStatus: 'PENDING_ADMIN_APPROVAL',
+      createdAt: new Date().toISOString(),
+      businessLicense: 'BL789012',
+      supportingDocument: 'charity-cert.pdf',
+      address: { street: '789', city: 'Quebec', state: 'QC', zipCode: 'H3C' },
+    },
+    {
+      id: 4,
+      organizationName: 'Shelter Gamma',
+      contactName: 'Alice Jones',
+      email: 'alice@shelter.org',
+      phoneNumber: null,
+      role: 'RECEIVER',
+      accountStatus: 'PENDING_VERIFICATION',
+      createdAt: new Date().toISOString(),
+      supportingDocument: 'doc2.pdf',
+      address: { street: '101', city: 'Gatineau', state: 'QC', zipCode: 'H4D' },
+    },
+  ];
+
   beforeEach(() => {
     jest.clearAllMocks();
     adminVerificationAPI.getPendingUsers.mockResolvedValue({
@@ -96,9 +145,13 @@ describe('AdminVerificationQueue', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Food Bank Alpha')).toBeInTheDocument();
+    });
+    await waitFor(() => {
       expect(
         screen.getByPlaceholderText('adminVerificationQueue.searchPlaceholder')
       ).toBeInTheDocument();
+    });
+    await waitFor(() => {
       expect(
         screen.getByText('adminVerificationQueue.stats.totalPending')
       ).toBeInTheDocument();
@@ -145,10 +198,14 @@ describe('AdminVerificationQueue', () => {
     );
     expect(title).toBeInTheDocument();
     const modalRoot = title.closest('.modal-content');
-    fireEvent.click(modalRoot.querySelector('.btn-approve'));
+    fireEvent.click(
+      within(modalRoot).getByRole('button', { name: /approve/i })
+    );
 
     await waitFor(() => {
       expect(adminVerificationAPI.approveUser).toHaveBeenCalledWith(1);
+    });
+    await waitFor(() => {
       expect(
         screen.getByText('adminVerificationQueue.toasts.approved')
       ).toBeInTheDocument();
@@ -169,17 +226,22 @@ describe('AdminVerificationQueue', () => {
     const modalRoot = title.closest('.modal-content');
 
     fireEvent.change(
-      modalRoot.querySelector(
-        '[data-testid="adminVerificationQueue.modals.rejection.reasonPlaceholder"]'
+      within(modalRoot).getByTestId(
+        'adminVerificationQueue.modals.rejection.reasonPlaceholder'
       ),
       { target: { value: 'other' } }
     );
 
-    fireEvent.change(modalRoot.querySelector('textarea'), {
-      target: { value: 'Missing details' },
-    });
+    fireEvent.change(
+      within(modalRoot).getByRole('textbox', {
+        name: /notes|reason|details/i,
+      }) ?? within(modalRoot).getByRole('textbox'),
+      {
+        target: { value: 'Missing details' },
+      }
+    );
 
-    fireEvent.click(modalRoot.querySelector('.btn-reject'));
+    fireEvent.click(within(modalRoot).getByRole('button', { name: /reject/i }));
 
     await waitFor(() => {
       expect(adminVerificationAPI.rejectUser).toHaveBeenCalledWith(
@@ -187,6 +249,8 @@ describe('AdminVerificationQueue', () => {
         'other',
         'Missing details'
       );
+    });
+    await waitFor(() => {
       expect(
         screen.getByText('adminVerificationQueue.toasts.rejected')
       ).toBeInTheDocument();
@@ -211,10 +275,14 @@ describe('AdminVerificationQueue', () => {
       'adminVerificationQueue.modals.manualVerify.title'
     );
     const modalRoot = title.closest('.modal-content');
-    fireEvent.click(modalRoot.querySelector('.btn-approve'));
+    fireEvent.click(
+      within(modalRoot).getByRole('button', { name: /verify|approve/i })
+    );
 
     await waitFor(() => {
       expect(adminVerificationAPI.verifyEmail).toHaveBeenCalledWith(2);
+    });
+    await waitFor(() => {
       expect(
         screen.getByText('adminVerificationQueue.toasts.verified')
       ).toBeInTheDocument();
@@ -225,7 +293,7 @@ describe('AdminVerificationQueue', () => {
     render(<AdminVerificationQueue />);
     await screen.findByText('Food Bank Alpha');
 
-    const expandButtons = document.querySelectorAll('.expand-btn');
+    const expandButtons = screen.getAllByRole('button', { name: /expand/i });
     fireEvent.click(expandButtons[0]);
 
     await waitFor(() => {
@@ -254,26 +322,17 @@ describe('AdminVerificationQueue', () => {
       expect(screen.getByText('Food Bank Alpha')).toBeInTheDocument();
     });
 
-    const expandButtons = screen.getAllByRole('button');
-    const expandButton = expandButtons.find(
-      btn => btn.querySelector('svg') && btn.className.includes('expand-btn')
-    );
-
-    if (expandButton) {
-      fireEvent.click(expandButton);
-
-      await waitFor(() => {
-        expect(screen.getByText('CH123456')).toBeInTheDocument();
-      });
+    const expandButtons = screen.getAllByRole('button', { name: /expand/i });
+    if (expandButtons.length > 0) {
+      fireEvent.click(expandButtons[0]);
+      await screen.findByText('CH123456');
     }
   });
 
   it('displays business license for donors', async () => {
     render(<AdminVerificationQueue />);
 
-    await waitFor(() => {
-      expect(screen.getByText('Restaurant Beta')).toBeInTheDocument();
-    });
+    await screen.findByText('Restaurant Beta');
 
     const table = screen.getByRole('table');
     const rows = within(table).getAllByRole('row');
@@ -281,52 +340,40 @@ describe('AdminVerificationQueue', () => {
       row.textContent.includes('Restaurant Beta')
     );
 
-    if (donorRow) {
-      const buttons = within(donorRow).getAllByRole('button');
-      const expandButton = buttons.find(btn =>
-        btn.className.includes('expand-btn')
-      );
-      fireEvent.click(expandButton);
+    expect(donorRow).toBeDefined();
+    const expandButton = within(donorRow)
+      .getAllByRole('button')
+      .find(btn => btn.className.includes('expand-btn'));
+    expect(expandButton).toBeDefined();
+    fireEvent.click(expandButton);
 
-      await waitFor(() => {
-        expect(screen.getByText('BL789012')).toBeInTheDocument();
-      });
-    }
+    await screen.findByText('BL789012');
   });
 
   it('handles document view click', async () => {
-    // spy on window.open since the component opens documents in a new tab
     const openSpy = jest.spyOn(window, 'open').mockImplementation(() => {});
 
     render(<AdminVerificationQueue />);
 
-    await waitFor(() => {
-      expect(screen.getByText('Food Bank Alpha')).toBeInTheDocument();
-    });
+    await screen.findByText('Food Bank Alpha');
 
-    const expandButtons = screen.getAllByRole('button');
-    const expandButton = expandButtons.find(
-      btn => btn.querySelector('svg') && btn.className.includes('expand-btn')
-    );
+    const expandButtons = screen.getAllByRole('button', { name: /expand/i });
+    if (expandButtons.length > 0) {
+      fireEvent.click(expandButtons[0]);
 
-    if (expandButton) {
-      fireEvent.click(expandButton);
+      const docButton = await screen.findByText('charity-cert.pdf');
+      fireEvent.click(docButton.closest('button'));
 
-      await waitFor(() => {
-        const docButton = screen.getByText('charity-cert.pdf');
-        fireEvent.click(docButton.closest('button'));
-        expect(openSpy).toHaveBeenCalledWith(
-          expect.stringContaining('charity-cert.pdf'),
-          '_blank'
-        );
-      });
+      expect(openSpy).toHaveBeenCalledWith(
+        expect.stringContaining('charity-cert.pdf'),
+        '_blank'
+      );
     }
 
     openSpy.mockRestore();
   });
 
   it('displays N/A for missing phone number', async () => {
-    // Override to include PENDING_VERIFICATION users
     const unverifiedUsers = mockPendingUsers.filter(
       u => u.accountStatus === 'PENDING_VERIFICATION'
     );
@@ -340,30 +387,20 @@ describe('AdminVerificationQueue', () => {
 
     render(<AdminVerificationQueue />);
 
-    // Wait for component to load
-    await waitFor(() => {
-      expect(screen.getByText('Total Pending')).toBeInTheDocument();
-    });
+    await screen.findByText('Total Pending');
 
-    // Change status filter to 'Email Not Verified'
-    const statusSelect = screen
-      .getByText('Email Verified')
-      .closest('.select__control');
-    fireEvent.mouseDown(within(statusSelect).getByText('Email Verified'));
+    const option = await screen.findByText('Email Not Verified');
+    fireEvent.click(option);
 
-    await waitFor(() => {
-      const option = screen.getByText('Email Not Verified');
-      fireEvent.click(option);
-    });
+    await screen.findByText('Shelter Gamma');
 
-    await waitFor(() => {
-      const table = screen.getByRole('table');
-      const rows = within(table).getAllByRole('row');
-      const shelterRow = rows.find(row =>
-        row.textContent.includes('Shelter Gamma')
-      );
-      expect(within(shelterRow).getByText('N/A')).toBeInTheDocument();
-    });
+    const table = screen.getByRole('table');
+    const rows = within(table).getAllByRole('row');
+    const shelterRow = rows.find(row =>
+      row.textContent.includes('Shelter Gamma')
+    );
+    expect(shelterRow).toBeDefined();
+    expect(within(shelterRow).getByText('N/A')).toBeInTheDocument();
   });
 
   it('displays empty state when no pending users', async () => {
@@ -375,6 +412,8 @@ describe('AdminVerificationQueue', () => {
 
     await waitFor(() => {
       expect(screen.getByText('No Pending Registrations')).toBeInTheDocument();
+    });
+    await waitFor(() => {
       expect(
         screen.getByText('All user registrations have been reviewed.')
       ).toBeInTheDocument();
@@ -409,10 +448,8 @@ describe('AdminVerificationQueue', () => {
     const approveButtons = screen.getAllByTitle('Approve');
     fireEvent.click(approveButtons[0]);
 
-    await waitFor(() => {
-      const confirmButton = screen.getByText('Approve User');
-      fireEvent.click(confirmButton);
-    });
+    const confirmButton = await screen.findByText('Approve User');
+    fireEvent.click(confirmButton);
 
     await waitFor(() => {
       expect(
@@ -428,22 +465,16 @@ describe('AdminVerificationQueue', () => {
 
     render(<AdminVerificationQueue />);
 
-    await waitFor(() => {
-      expect(screen.getByText('Restaurant Beta')).toBeInTheDocument();
-    });
+    await screen.findByText('Restaurant Beta');
 
     const rejectButtons = screen.getAllByTitle('Reject');
     fireEvent.click(rejectButtons[0]);
 
-    await waitFor(() => {
-      const selectPlaceholder = screen.getByText('Select a reason...');
-      fireEvent.mouseDown(selectPlaceholder);
-    });
+    const selectPlaceholder = await screen.findByText('Select a reason...');
+    fireEvent.mouseDown(selectPlaceholder);
 
-    await waitFor(() => {
-      const option = screen.getByText('Incomplete Information');
-      fireEvent.click(option);
-    });
+    const option = await screen.findByText('Incomplete Information');
+    fireEvent.click(option);
 
     const rejectButton = screen.getByText('Reject User');
     fireEvent.click(rejectButton);
@@ -456,7 +487,6 @@ describe('AdminVerificationQueue', () => {
   });
 
   it('handles manual verify email API error', async () => {
-    // Override to include PENDING_VERIFICATION users first
     const unverifiedUsers = mockPendingUsers.filter(
       u => u.accountStatus === 'PENDING_VERIFICATION'
     );
@@ -473,33 +503,18 @@ describe('AdminVerificationQueue', () => {
 
     render(<AdminVerificationQueue />);
 
-    // Wait for component to load
-    await waitFor(() => {
-      expect(screen.getByText('Total Pending')).toBeInTheDocument();
-    });
+    await screen.findByText('Total Pending');
 
-    // Change status filter to 'Email Not Verified'
-    const statusSelect = screen
-      .getByText('Email Verified')
-      .closest('.select__control');
-    fireEvent.mouseDown(within(statusSelect).getByText('Email Verified'));
+    const option = await screen.findByText('Email Not Verified');
+    fireEvent.click(option);
 
-    await waitFor(() => {
-      const option = screen.getByText('Email Not Verified');
-      fireEvent.click(option);
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText('Shelter Gamma')).toBeInTheDocument();
-    });
+    await screen.findByText('Shelter Gamma');
 
     const verifyButton = screen.getByTitle('Verify Email');
     fireEvent.click(verifyButton);
 
-    await waitFor(() => {
-      const confirmButton = screen.getByText('Verify Email');
-      fireEvent.click(confirmButton);
-    });
+    const confirmButton = await screen.findByText('Verify Email');
+    fireEvent.click(confirmButton);
 
     await waitFor(() => {
       expect(screen.getByText('Verification failed')).toBeInTheDocument();
@@ -509,20 +524,15 @@ describe('AdminVerificationQueue', () => {
   it('closes modal when clicking backdrop', async () => {
     render(<AdminVerificationQueue />);
 
-    await waitFor(() => {
-      expect(screen.getByText('Food Bank Alpha')).toBeInTheDocument();
-    });
+    await screen.findByText('Food Bank Alpha');
 
     const approveButtons = screen.getAllByTitle('Approve');
     fireEvent.click(approveButtons[0]);
 
-    await waitFor(() => {
-      expect(screen.getByText('Approve Registration')).toBeInTheDocument();
-    });
+    const modalTitle = await screen.findByText('Approve Registration');
+    expect(modalTitle).toBeInTheDocument();
 
-    const backdrop = screen
-      .getByText('Approve Registration')
-      .closest('.modal-backdrop');
+    const backdrop = modalTitle.closest('.modal-backdrop');
     fireEvent.click(backdrop);
 
     await waitFor(() => {
@@ -535,34 +545,25 @@ describe('AdminVerificationQueue', () => {
   it('prevents modal close when clicking inside modal content', async () => {
     render(<AdminVerificationQueue />);
 
-    await waitFor(() => {
-      expect(screen.getByText('Food Bank Alpha')).toBeInTheDocument();
-    });
+    await screen.findByText('Food Bank Alpha');
 
     const approveButtons = screen.getAllByTitle('Approve');
     fireEvent.click(approveButtons[0]);
 
-    await waitFor(() => {
-      expect(screen.getByText('Approve Registration')).toBeInTheDocument();
-    });
+    const modalTitle = await screen.findByText('Approve Registration');
+    expect(modalTitle).toBeInTheDocument();
 
-    const modalContent = screen
-      .getByText('Approve Registration')
-      .closest('.modal-content');
+    const modalContent = modalTitle.closest('.modal-content');
     fireEvent.mouseDown(modalContent);
     fireEvent.click(modalContent);
 
-    await waitFor(() => {
-      expect(screen.getByText('Approve Registration')).toBeInTheDocument();
-    });
+    expect(screen.getByText('Approve Registration')).toBeInTheDocument();
   });
 
   it('displays formatted date correctly', async () => {
     render(<AdminVerificationQueue />);
 
-    await waitFor(() => {
-      expect(screen.getByText('Restaurant Beta')).toBeInTheDocument();
-    });
+    await screen.findByText('Restaurant Beta');
 
     const table = screen.getByRole('table');
     const rows = within(table).getAllByRole('row');
@@ -570,19 +571,14 @@ describe('AdminVerificationQueue', () => {
       row.textContent.includes('Restaurant Beta')
     );
 
-    if (donorRow) {
-      const buttons = within(donorRow).getAllByRole('button');
-      const expandButton = buttons.find(btn =>
-        btn.className.includes('expand-btn')
-      );
-      if (expandButton) {
-        fireEvent.click(expandButton);
+    expect(donorRow).toBeDefined();
+    const expandButton = within(donorRow)
+      .getAllByRole('button')
+      .find(btn => btn.className.includes('expand-btn'));
+    expect(expandButton).toBeDefined();
+    fireEvent.click(expandButton);
 
-        await waitFor(() => {
-          expect(screen.getByText(/Submitted/)).toBeInTheDocument();
-        });
-      }
-    }
+    await screen.findByText(/Submitted/);
   });
 
   it('shows pagination controls when multiple pages exist', async () => {
@@ -598,7 +594,11 @@ describe('AdminVerificationQueue', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Previous')).toBeInTheDocument();
+    });
+    await waitFor(() => {
       expect(screen.getByText('Next')).toBeInTheDocument();
+    });
+    await waitFor(() => {
       expect(screen.getByText('Page 1 of 2')).toBeInTheDocument();
     });
   });
@@ -641,10 +641,8 @@ describe('AdminVerificationQueue', () => {
 
     render(<AdminVerificationQueue />);
 
-    await waitFor(() => {
-      const previousButton = screen.getByText('Previous');
-      expect(previousButton).toBeDisabled();
-    });
+    const previousButton = await screen.findByText('Previous');
+    expect(previousButton).toBeDisabled();
   });
 
   it('displays correct status pills', async () => {
@@ -669,27 +667,16 @@ describe('AdminVerificationQueue', () => {
 
     render(<AdminVerificationQueue />);
 
-    // Wait for component to load
-    await waitFor(() => {
-      expect(screen.getByText('Total Pending')).toBeInTheDocument();
-    });
+    await screen.findByText('Total Pending');
 
-    // Change status filter to 'Email Not Verified'
-    const statusSelect = screen
-      .getByText('Email Verified')
-      .closest('.select__control');
-    fireEvent.mouseDown(within(statusSelect).getByText('Email Verified'));
-
-    await waitFor(() => {
-      const option = screen.getByText('Email Not Verified');
-      fireEvent.click(option);
-    });
+    const option = await screen.findByText('Email Not Verified');
+    fireEvent.click(option);
 
     await waitFor(() => {
       const pills = screen.getAllByText('Email Not Verified');
-      const statusPill = pills.find(el =>
-        el.className.includes('pill-email-pending')
-      );
+      expect(
+        pills.some(el => el.className.includes('pill-email-pending'))
+      ).toBe(true);
     });
   });
 });
