@@ -439,7 +439,9 @@ export default function DonorLayout() {
                     t('donorLayout.pageTitles.donor', 'Donor')}
                 </span>
                 <span className="account-role">
-                  {t('donorLayout.pageTitles.donor', 'Donor')}
+                  {role
+                    ? t(`roles.${role.toLowerCase()}`, role)
+                    : t('donorLayout.pageTitles.donor', 'Donor')}
                 </span>
               </div>
             </button>
