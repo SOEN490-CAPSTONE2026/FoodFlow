@@ -28,7 +28,7 @@ public class FileStorageService {
         "image/jpeg",
         "image/jpg",
         "image/png",
-        "application/pdf"
+        "application/pdf",
         "image/webp"
     );
 
