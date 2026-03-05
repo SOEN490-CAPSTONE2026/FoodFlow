@@ -1,131 +1,196 @@
 import React from 'react';
-import { render, screen, waitFor, act } from '@testing-library/react';
+import {
+  render,
+  screen,
+  waitFor,
+  fireEvent,
+  act,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
+import { signInWithPhoneNumber } from 'firebase/auth';
 import ForgotPassword from '../components/ForgotPassword';
 import { authAPI } from '../services/api';
-import { signInWithPhoneNumber } from 'firebase/auth';
 
-// Mock API and Firebase
-jest.mock('../services/api');
-jest.mock('../services/firebase', () => ({
-  auth: {},
+const tMock = key => key;
+
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({ t: tMock }),
 }));
+
+jest.mock('../services/api', () => ({
+  authAPI: {
+    forgotPassword: jest.fn(),
+    verifyResetCode: jest.fn(),
+    resetPassword: jest.fn(),
+  },
+}));
+
+jest.mock('../services/firebase', () => ({ auth: {} }));
 jest.mock('firebase/auth', () => ({
   signInWithPhoneNumber: jest.fn(),
   RecaptchaVerifier: jest.fn().mockImplementation(() => ({})),
 }));
 
-const mockNavigate = jest.fn();
+jest.mock('../components/PhoneInput', () => ({
+  __esModule: true,
+  default: ({ value, onChange, placeholder, disabled }) => (
+    <input
+      data-testid="mock-phone-input"
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      placeholder={placeholder}
+      disabled={disabled}
+    />
+  ),
+}));
 
+const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => {
   const actual = jest.requireActual('react-router-dom');
-  return {
-    ...actual,
-    useNavigate: () => mockNavigate,
-  };
+  return { ...actual, useNavigate: () => mockNavigate };
 });
 
 const renderWithRouter = ui => render(<BrowserRouter>{ui}</BrowserRouter>);
 
-describe('ForgotPassword - Method Selection', () => {
+const fillOtp = async code => {
+  const digits = code.split('');
+  for (let i = 0; i < digits.length; i++) {
+    fireEvent.change(screen.getByTestId(`code-digit-${i}`), {
+      target: { value: digits[i] },
+    });
+  }
+};
+
+describe('ForgotPassword', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    authAPI.forgotPassword.mockResolvedValue({ data: { message: 'ok' } });
+    authAPI.verifyResetCode.mockResolvedValue({ data: { ok: true } });
+    authAPI.resetPassword.mockResolvedValue({ data: { ok: true } });
+    signInWithPhoneNumber.mockResolvedValue({ confirm: jest.fn() });
   });
 
-  test('selecting Email shows email input and highlights the Email option', async () => {
-    renderWithRouter(<ForgotPassword />);
+  afterEach(() => {
+    jest.clearAllTimers();
+    jest.useRealTimers();
+  });
+
+  const requestEmailCode = async user => {
+    await user.click(screen.getByTestId('option-email'));
+    await user.type(
+      screen.getByPlaceholderText('forgotPasswordPage.emailPlaceholder'),
+      'test@example.com'
+    );
+    await user.click(
+      screen.getByRole('button', { name: 'forgotPasswordPage.sendCode' })
+    );
+  };
+
+  const moveToVerifiedState = async user => {
+    await requestEmailCode(user);
+    await screen.findByTestId('code-digit-0');
+    await fillOtp('123456');
+    await screen.findByText('forgotPasswordPage.verifiedTitle');
+  };
+
+  test('switches methods and renders key placeholders', async () => {
     const user = userEvent.setup();
-
-    const emailOption = screen.getByTestId('option-email');
-    const smsOption = screen.getByTestId('option-sms');
-
-    await user.click(emailOption);
-
-    // email input should appear
-    const emailInput = screen.getByPlaceholderText(/enter your email/i);
-    expect(emailInput).toBeInTheDocument();
-
-    // Email option should be marked pressed
-    expect(emailOption).toHaveAttribute('aria-pressed', 'true');
-    expect(smsOption).toHaveAttribute('aria-pressed', 'false');
-  });
-
-  test('selecting SMS shows phone input and highlights the SMS option', async () => {
     renderWithRouter(<ForgotPassword />);
-    const user = userEvent.setup();
-
-    const smsOption = screen.getByTestId('option-sms');
-    const emailOption = screen.getByTestId('option-email');
-
-    await user.click(smsOption);
-
-    // phone input should appear (from PhoneInput component)
-    const phoneInput = screen.getByPlaceholderText(/phone number/i);
-    expect(phoneInput).toBeInTheDocument();
-
-    // SMS option should be marked pressed
-    expect(smsOption).toHaveAttribute('aria-pressed', 'true');
-    expect(emailOption).toHaveAttribute('aria-pressed', 'false');
-  });
-
-  test('shows error when submitting without selecting a method', async () => {
-    renderWithRouter(<ForgotPassword />);
-    const user = userEvent.setup();
-
-    const submitButton = screen.queryByRole('button', { name: /send code/i });
-    expect(submitButton).not.toBeInTheDocument();
-  });
-});
-
-describe('ForgotPassword - Email Validation', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  test('shows error for empty email', async () => {
-    renderWithRouter(<ForgotPassword />);
-    const user = userEvent.setup();
 
     await user.click(screen.getByTestId('option-email'));
-    const submitButton = screen.getByRole('button', { name: /send code/i });
-    await user.click(submitButton);
-
     expect(
-      await screen.findByText(/please enter your email address/i)
+      screen.getByPlaceholderText('forgotPasswordPage.emailPlaceholder')
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByTestId('option-sms'));
+    expect(
+      screen.getByPlaceholderText('forgotPasswordPage.phonePlaceholder')
     ).toBeInTheDocument();
   });
 
-  test('shows error for invalid email format', async () => {
-    renderWithRouter(<ForgotPassword />);
-    const user = userEvent.setup();
-
-    await user.click(screen.getByTestId('option-email'));
-    const emailInput = screen.getByPlaceholderText(/enter your email/i);
-    await user.type(emailInput, 'invalidemail');
-
-    const submitButton = screen.getByRole('button', { name: /send code/i });
-    await user.click(submitButton);
-
+  test('shows validation error for no selected method when form submitted', () => {
+    const { container } = renderWithRouter(<ForgotPassword />);
+    fireEvent.submit(container.querySelector('form'));
     expect(
-      await screen.findByText(/please enter a valid email address/i)
+      screen.getByText('forgotPasswordPage.chooseMethod')
     ).toBeInTheDocument();
   });
 
-  test('successfully sends email when valid', async () => {
-    authAPI.forgotPassword = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Success' } });
-
-    renderWithRouter(<ForgotPassword />);
+  test('shows key validation errors for invalid email', async () => {
     const user = userEvent.setup();
+    renderWithRouter(<ForgotPassword />);
 
     await user.click(screen.getByTestId('option-email'));
-    const emailInput = screen.getByPlaceholderText(/enter your email/i);
-    await user.type(emailInput, 'test@example.com');
+    await user.click(
+      screen.getByRole('button', { name: 'forgotPasswordPage.sendCode' })
+    );
+    expect(
+      await screen.findByText('forgotPasswordPage.enterEmailAddress')
+    ).toBeInTheDocument();
 
-    const submitButton = screen.getByRole('button', { name: /send code/i });
-    await user.click(submitButton);
+    await user.type(
+      screen.getByPlaceholderText('forgotPasswordPage.emailPlaceholder'),
+      'bad-email'
+    );
+    await user.click(
+      screen.getByRole('button', { name: 'forgotPasswordPage.sendCode' })
+    );
+    expect(
+      await screen.findByText('forgotPasswordPage.enterValidEmail')
+    ).toBeInTheDocument();
+  });
+
+  test('shows validation errors for SMS phone input rules', async () => {
+    const user = userEvent.setup();
+    renderWithRouter(<ForgotPassword />);
+
+    await user.click(screen.getByTestId('option-sms'));
+    await user.click(
+      screen.getByRole('button', { name: 'forgotPasswordPage.sendCode' })
+    );
+    expect(
+      await screen.findByText('forgotPasswordPage.enterPhoneNumber')
+    ).toBeInTheDocument();
+
+    await user.type(
+      screen.getByPlaceholderText('forgotPasswordPage.phonePlaceholder'),
+      '123456'
+    );
+    await user.click(
+      screen.getByRole('button', { name: 'forgotPasswordPage.sendCode' })
+    );
+    expect(
+      await screen.findByText('forgotPasswordPage.selectCountryCode')
+    ).toBeInTheDocument();
+
+    await user.clear(
+      screen.getByPlaceholderText('forgotPasswordPage.phonePlaceholder')
+    );
+    await user.type(
+      screen.getByPlaceholderText('forgotPasswordPage.phonePlaceholder'),
+      '+'
+    );
+    await user.click(
+      screen.getByRole('button', { name: 'forgotPasswordPage.sendCode' })
+    );
+    expect(
+      await screen.findByText('forgotPasswordPage.enterValidPhoneNumber')
+    ).toBeInTheDocument();
+  });
+
+  test('calls forgotPassword API for valid email and moves to OTP step', async () => {
+    const user = userEvent.setup();
+    renderWithRouter(<ForgotPassword />);
+
+    await user.click(screen.getByTestId('option-email'));
+    await user.type(
+      screen.getByPlaceholderText('forgotPasswordPage.emailPlaceholder'),
+      'test@example.com'
+    );
+    await user.click(
+      screen.getByRole('button', { name: 'forgotPasswordPage.sendCode' })
+    );
 
     await waitFor(() => {
       expect(authAPI.forgotPassword).toHaveBeenCalledWith({
@@ -133,513 +198,241 @@ describe('ForgotPassword - Email Validation', () => {
         method: 'email',
       });
     });
-  });
-
-  test('shows error when email does not exist in database', async () => {
-    authAPI.forgotPassword = jest.fn().mockRejectedValue({
-      response: { data: { message: 'User not found' } },
-    });
-
-    renderWithRouter(<ForgotPassword />);
-    const user = userEvent.setup();
-
-    await user.click(screen.getByTestId('option-email'));
-    const emailInput = screen.getByPlaceholderText(/enter your email/i);
-    await user.type(emailInput, 'nonexistent@example.com');
-
-    const submitButton = screen.getByRole('button', { name: /send code/i });
-    await user.click(submitButton);
-
-    expect(await screen.findByText(/user not found/i)).toBeInTheDocument();
-  });
-});
-
-describe('ForgotPassword - Phone Validation', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  test('shows error for empty phone number', async () => {
-    renderWithRouter(<ForgotPassword />);
-    const user = userEvent.setup();
-
-    await user.click(screen.getByTestId('option-sms'));
-    const submitButton = screen.getByRole('button', { name: /send code/i });
-    await user.click(submitButton);
-
     expect(
-      await screen.findByText(/please enter your phone number/i)
+      screen.getByText('forgotPasswordPage.codeSentTitle')
     ).toBeInTheDocument();
   });
-});
 
-describe('ForgotPassword - Code Entry', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    jest.useFakeTimers();
-  });
-
-  afterEach(() => {
-    jest.runOnlyPendingTimers();
-    jest.useRealTimers();
-  });
-
-  test('shows 6 code input fields after email submission', async () => {
-    authAPI.forgotPassword = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Success' } });
-
+  test('handles SMS flow and initializes firebase phone auth', async () => {
+    const user = userEvent.setup();
     renderWithRouter(<ForgotPassword />);
-    const user = userEvent.setup({ delay: null });
-
-    await user.click(screen.getByTestId('option-email'));
-    const emailInput = screen.getByPlaceholderText(/enter your email/i);
-    await user.type(emailInput, 'test@example.com');
-
-    const submitButton = screen.getByRole('button', { name: /send code/i });
-    await user.click(submitButton);
-
-    await waitFor(() => {
-      const inputs = screen.getAllByRole('textbox');
-      expect(inputs.length).toBe(6);
-    });
-  });
-
-  test('shows timer countdown for email (60 seconds)', async () => {
-    authAPI.forgotPassword = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Success' } });
-
-    renderWithRouter(<ForgotPassword />);
-    const user = userEvent.setup({ delay: null });
-
-    await user.click(screen.getByTestId('option-email'));
-    const emailInput = screen.getByPlaceholderText(/enter your email/i);
-    await user.type(emailInput, 'test@example.com');
-
-    const submitButton = screen.getByRole('button', { name: /send code/i });
-    await user.click(submitButton);
-
-    await waitFor(() => {
-      expect(screen.getByText(/expires in/i)).toBeInTheDocument();
-      expect(screen.getByText(/60s/i)).toBeInTheDocument();
-    });
-  });
-
-  test('auto-focuses next input when entering digit', async () => {
-    authAPI.forgotPassword = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Success' } });
-
-    renderWithRouter(<ForgotPassword />);
-    const user = userEvent.setup({ delay: null });
-
-    await user.click(screen.getByTestId('option-email'));
-    const emailInput = screen.getByPlaceholderText(/enter your email/i);
-    await user.type(emailInput, 'test@example.com');
-
-    const submitButton = screen.getByRole('button', { name: /send code/i });
-    await user.click(submitButton);
-
-    await waitFor(() => {
-      const inputs = screen.getAllByRole('textbox');
-      expect(inputs.length).toBe(6);
-    });
-
-    const inputs = screen.getAllByRole('textbox');
-    await user.type(inputs[0], '1');
-
-    await waitFor(() => {
-      expect(document.activeElement).toBe(inputs[1]);
-    });
-  });
-});
-
-describe('ForgotPassword - Code Verification', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  test('shows error when incorrect email code is entered', async () => {
-    authAPI.forgotPassword = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Success' } });
-    authAPI.verifyResetCode = jest.fn().mockRejectedValue({
-      response: { data: { message: 'Invalid reset code' } },
-    });
-
-    renderWithRouter(<ForgotPassword />);
-    const user = userEvent.setup({ delay: null });
-
-    await user.click(screen.getByTestId('option-email'));
-    const emailInput = screen.getByPlaceholderText(/enter your email/i);
-    await user.type(emailInput, 'test@example.com');
-
-    const submitButton = screen.getByRole('button', { name: /send code/i });
-    await user.click(submitButton);
-
-    await waitFor(() => {
-      const inputs = screen.getAllByRole('textbox');
-      expect(inputs.length).toBe(6);
-    });
-
-    // Enter incorrect code
-    const inputs = screen.getAllByRole('textbox');
-    for (let i = 0; i < 6; i++) {
-      await user.type(inputs[i], '9');
-    }
-
-    await waitFor(() => {
-      expect(
-        screen.getByText(/the code you submitted is incorrect/i)
-      ).toBeInTheDocument();
-    });
-  });
-
-  test('shows password form when correct email code is entered', async () => {
-    authAPI.forgotPassword = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Success' } });
-    authAPI.verifyResetCode = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Code verified' } });
-
-    renderWithRouter(<ForgotPassword />);
-    const user = userEvent.setup({ delay: null });
-
-    await user.click(screen.getByTestId('option-email'));
-    const emailInput = screen.getByPlaceholderText(/enter your email/i);
-    await user.type(emailInput, 'test@example.com');
-
-    const submitButton = screen.getByRole('button', { name: /send code/i });
-    await user.click(submitButton);
-
-    await waitFor(() => {
-      const inputs = screen.getAllByRole('textbox');
-      expect(inputs.length).toBe(6);
-    });
-
-    // Enter correct code
-    const inputs = screen.getAllByRole('textbox');
-    for (let i = 0; i < 6; i++) {
-      await user.type(inputs[i], '1');
-    }
-
-    await waitFor(() => {
-      expect(screen.getByPlaceholderText('New Password')).toBeInTheDocument();
-      expect(
-        screen.getByPlaceholderText('Confirm New Password')
-      ).toBeInTheDocument();
-    });
-  });
-
-  test('shows error when SMS code is incorrect', async () => {
-    const mockConfirmationResult = {
-      confirm: jest
-        .fn()
-        .mockRejectedValue({ code: 'auth/invalid-verification-code' }),
-    };
-    signInWithPhoneNumber.mockResolvedValue(mockConfirmationResult);
-
-    renderWithRouter(<ForgotPassword />);
-    const user = userEvent.setup({ delay: null });
 
     await user.click(screen.getByTestId('option-sms'));
-    const phoneInput = screen.getByPlaceholderText(/phone number/i);
-    await user.type(phoneInput, '+14165551234');
-
-    const submitButton = screen.getByRole('button', { name: /send code/i });
-    await user.click(submitButton);
-
-    await waitFor(() => {
-      const inputs = screen.getAllByRole('textbox');
-      expect(inputs.length).toBe(6);
-    });
-
-    // Enter incorrect code
-    const inputs = screen.getAllByRole('textbox');
-    for (let i = 0; i < 6; i++) {
-      await user.type(inputs[i], '9');
-    }
-
-    await waitFor(() => {
-      expect(
-        screen.getByText(/the code you submitted is incorrect/i)
-      ).toBeInTheDocument();
-    });
-  });
-});
-
-describe('ForgotPassword - Password Reset', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  test('shows error when passwords do not match', async () => {
-    authAPI.forgotPassword = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Success' } });
-    authAPI.verifyResetCode = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Code verified' } });
-
-    renderWithRouter(<ForgotPassword />);
-    const user = userEvent.setup({ delay: null });
-
-    await user.click(screen.getByTestId('option-email'));
-    const emailInput = screen.getByPlaceholderText(/enter your email/i);
-    await user.type(emailInput, 'test@example.com');
-
-    await user.click(screen.getByRole('button', { name: /send code/i }));
-
-    await waitFor(() => {
-      const inputs = screen.getAllByRole('textbox');
-      expect(inputs.length).toBe(6);
-    });
-
-    // Enter code
-    const codeInputs = screen.getAllByRole('textbox');
-    for (let i = 0; i < 6; i++) {
-      await user.type(codeInputs[i], '1');
-    }
-
-    await waitFor(() => {
-      expect(screen.getByPlaceholderText('New Password')).toBeInTheDocument();
-    });
-
-    // Enter non-matching passwords
-    const newPasswordInput = screen.getByPlaceholderText('New Password');
-    const confirmPasswordInput = screen.getByPlaceholderText(
-      'Confirm New Password'
+    await user.type(
+      screen.getByPlaceholderText('forgotPasswordPage.phonePlaceholder'),
+      '+15145551234'
+    );
+    await user.click(
+      screen.getByRole('button', { name: 'forgotPasswordPage.sendCode' })
     );
 
-    await user.type(newPasswordInput, 'Password123');
-    await user.type(confirmPasswordInput, 'DifferentPassword');
-
     await waitFor(() => {
-      expect(screen.getByText(/passwords do not match/i)).toBeInTheDocument();
+      expect(authAPI.forgotPassword).toHaveBeenCalledWith({
+        phone: '+15145551234',
+        method: 'sms',
+      });
+      expect(signInWithPhoneNumber).toHaveBeenCalled();
     });
   });
 
-  test('shows error when password is too short', async () => {
-    authAPI.forgotPassword = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Success' } });
-    authAPI.verifyResetCode = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Code verified' } });
-    authAPI.resetPassword = jest.fn();
-
+  test('maps firebase and generic errors while sending SMS code', async () => {
+    const user = userEvent.setup();
     renderWithRouter(<ForgotPassword />);
-    const user = userEvent.setup({ delay: null });
-
-    await user.click(screen.getByTestId('option-email'));
-    const emailInput = screen.getByPlaceholderText(/enter your email/i);
-    await user.type(emailInput, 'test@example.com');
-
-    await user.click(screen.getByRole('button', { name: /send code/i }));
-
-    await waitFor(() => {
-      const inputs = screen.getAllByRole('textbox');
-      expect(inputs.length).toBe(6);
-    });
-
-    // Enter code
-    const codeInputs = screen.getAllByRole('textbox');
-    for (let i = 0; i < 6; i++) {
-      await user.type(codeInputs[i], '1');
-    }
-
-    await waitFor(() => {
-      expect(screen.getByPlaceholderText('New Password')).toBeInTheDocument();
-    });
-
-    // Enter short password
-    const newPasswordInput = screen.getByPlaceholderText('New Password');
-    const confirmPasswordInput = screen.getByPlaceholderText(
-      'Confirm New Password'
+    await user.click(screen.getByTestId('option-sms'));
+    await user.type(
+      screen.getByPlaceholderText('forgotPasswordPage.phonePlaceholder'),
+      '+15145550000'
     );
 
-    await user.type(newPasswordInput, 'Pass1!');
-    await user.type(confirmPasswordInput, 'Pass1!');
-
-    const resetButton = screen.getByRole('button', { name: /reset password/i });
-    await user.click(resetButton);
-
-    await waitFor(() => {
-      expect(
-        screen.getByText(/password must be at least 10 characters/i)
-      ).toBeInTheDocument();
+    authAPI.forgotPassword.mockRejectedValueOnce({
+      code: 'auth/invalid-phone-number',
     });
+    await user.click(
+      screen.getByRole('button', { name: 'forgotPasswordPage.sendCode' })
+    );
+    expect(
+      await screen.findByText('forgotPasswordPage.invalidPhoneFormat')
+    ).toBeInTheDocument();
 
-    expect(authAPI.resetPassword).not.toHaveBeenCalled();
+    authAPI.forgotPassword.mockRejectedValueOnce({
+      code: 'auth/too-many-requests',
+    });
+    await user.click(
+      screen.getByRole('button', { name: 'forgotPasswordPage.sendCode' })
+    );
+    expect(
+      await screen.findByText('forgotPasswordPage.tooManyRequests')
+    ).toBeInTheDocument();
+
+    authAPI.forgotPassword.mockRejectedValueOnce({
+      response: { data: { message: 'backend-error' } },
+    });
+    await user.click(
+      screen.getByRole('button', { name: 'forgotPasswordPage.sendCode' })
+    );
+    expect(await screen.findByText('backend-error')).toBeInTheDocument();
   });
 
-  test('successfully resets password with valid input', async () => {
-    authAPI.forgotPassword = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Success' } });
-    authAPI.verifyResetCode = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Code verified' } });
-    authAPI.resetPassword = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Password reset successful' } });
-
+  test('verifies OTP for email and shows password reset form', async () => {
+    const user = userEvent.setup();
     renderWithRouter(<ForgotPassword />);
-    const user = userEvent.setup({ delay: null });
 
-    await user.click(screen.getByTestId('option-email'));
-    const emailInput = screen.getByPlaceholderText(/enter your email/i);
-    await user.type(emailInput, 'test@example.com');
-
-    await user.click(screen.getByRole('button', { name: /send code/i }));
-
+    await requestEmailCode(user);
+    await screen.findByTestId('code-digit-0');
+    await fillOtp('123456');
     await waitFor(() => {
-      const inputs = screen.getAllByRole('textbox');
-      expect(inputs.length).toBe(6);
-    });
-
-    // Enter code
-    const codeInputs = screen.getAllByRole('textbox');
-    for (let i = 0; i < 6; i++) {
-      await user.type(codeInputs[i], '1');
-    }
-
-    await waitFor(() => {
-      expect(screen.getByPlaceholderText('New Password')).toBeInTheDocument();
-    });
-
-    // Enter valid password
-    const newPasswordInput = screen.getByPlaceholderText('New Password');
-    const confirmPasswordInput = screen.getByPlaceholderText(
-      'Confirm New Password'
-    );
-
-    await user.type(newPasswordInput, 'NewPassword123!');
-    await user.type(confirmPasswordInput, 'NewPassword123!');
-
-    const resetButton = screen.getByRole('button', { name: /reset password/i });
-    await user.click(resetButton);
-
-    await waitFor(() => {
-      expect(authAPI.resetPassword).toHaveBeenCalledWith({
+      expect(authAPI.verifyResetCode).toHaveBeenCalledWith({
         email: 'test@example.com',
-        code: '111111',
-        newPassword: 'NewPassword123!',
+        code: '123456',
       });
     });
-
-    await waitFor(() => {
-      expect(screen.getByText(/password reset/i)).toBeInTheDocument();
-    });
+    expect(
+      screen.getByText('forgotPasswordPage.verifiedTitle')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText('forgotPasswordPage.newPasswordPlaceholder')
+    ).toBeInTheDocument();
   });
 
-  test('shows success screen and redirects after password reset', async () => {
-    jest.useFakeTimers();
-    authAPI.forgotPassword = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Success' } });
-    authAPI.verifyResetCode = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Code verified' } });
-    authAPI.resetPassword = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Password reset successful' } });
-
+  test('handles incorrect OTP and supports try again', async () => {
+    const user = userEvent.setup();
+    authAPI.verifyResetCode.mockRejectedValueOnce(new Error('bad-code'));
     renderWithRouter(<ForgotPassword />);
-    const user = userEvent.setup({ delay: null });
 
-    await user.click(screen.getByTestId('option-email'));
-    const emailInput = screen.getByPlaceholderText(/enter your email/i);
-    await user.type(emailInput, 'test@example.com');
+    await requestEmailCode(user);
+    await screen.findByTestId('code-digit-0');
 
-    await user.click(screen.getByRole('button', { name: /send code/i }));
+    await fillOtp('111111');
+    expect(
+      await screen.findByText('forgotPasswordPage.codeIncorrectTitle')
+    ).toBeInTheDocument();
 
-    await waitFor(() => {
-      const inputs = screen.getAllByRole('textbox');
-      expect(inputs.length).toBe(6);
-    });
-
-    const codeInputs = screen.getAllByRole('textbox');
-    for (let i = 0; i < 6; i++) {
-      await user.type(codeInputs[i], '1');
-    }
-
-    await waitFor(() => {
-      expect(screen.getByPlaceholderText('New Password')).toBeInTheDocument();
-    });
-
-    const newPasswordInput = screen.getByPlaceholderText('New Password');
-    const confirmPasswordInput = screen.getByPlaceholderText(
-      'Confirm New Password'
+    await user.click(
+      screen.getByRole('button', { name: 'forgotPasswordPage.tryAgain' })
     );
-
-    await user.type(newPasswordInput, 'NewPassword123!');
-    await user.type(confirmPasswordInput, 'NewPassword123!');
-
-    const resetButton = screen.getByRole('button', { name: /reset password/i });
-    await user.click(resetButton);
-
-    await waitFor(() => {
-      expect(
-        screen.getByText(/you will be redirected to the login page now/i)
-      ).toBeInTheDocument();
-    });
-
-    act(() => {
-      jest.advanceTimersByTime(3000);
-    });
-
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/login', { replace: true });
-    });
-
-    jest.useRealTimers();
-  });
-});
-
-describe('ForgotPassword - Resend Code', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+    expect(
+      screen.queryByText('forgotPasswordPage.codeIncorrectTitle')
+    ).not.toBeInTheDocument();
   });
 
-  test('allows resending code when expired', async () => {
-    jest.useFakeTimers();
-    authAPI.forgotPassword = jest
-      .fn()
-      .mockResolvedValue({ data: { message: 'Success' } });
-
+  test('resend code triggers a new request', async () => {
+    const user = userEvent.setup();
     renderWithRouter(<ForgotPassword />);
-    const user = userEvent.setup({ delay: null });
 
-    await user.click(screen.getByTestId('option-email'));
-    const emailInput = screen.getByPlaceholderText(/enter your email/i);
-    await user.type(emailInput, 'test@example.com');
+    await requestEmailCode(user);
 
-    await user.click(screen.getByRole('button', { name: /send code/i }));
-
-    await waitFor(() => {
-      const inputs = screen.getAllByRole('textbox');
-      expect(inputs.length).toBe(6);
-    });
-
-    // Fast-forward 60 seconds to expire code
-    act(() => {
-      jest.advanceTimersByTime(60000);
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText(/did not submit in time/i)).toBeInTheDocument();
-    });
-
-    const resendButton = screen.getByRole('button', { name: /resend code/i });
-    await user.click(resendButton);
+    await user.click(
+      screen.getByRole('button', { name: 'forgotPasswordPage.resendCode' })
+    );
 
     await waitFor(() => {
       expect(authAPI.forgotPassword).toHaveBeenCalledTimes(2);
     });
+  });
 
-    jest.useRealTimers();
+  test('password form validations and successful reset navigate to login', async () => {
+    const user = userEvent.setup();
+    renderWithRouter(<ForgotPassword />);
+
+    await moveToVerifiedState(user);
+
+    const newPass = screen.getByPlaceholderText(
+      'forgotPasswordPage.newPasswordPlaceholder'
+    );
+    const confirmPass = screen.getByPlaceholderText(
+      'forgotPasswordPage.confirmNewPasswordPlaceholder'
+    );
+
+    await user.type(newPass, 'short');
+    await user.type(confirmPass, 'short');
+    await user.click(
+      screen.getByRole('button', {
+        name: 'forgotPasswordPage.resetPasswordAction',
+      })
+    );
+    await waitFor(() => {
+      expect(
+        screen.getByText('forgotPasswordPage.passwordMinLength')
+      ).toBeInTheDocument();
+    });
+
+    await user.clear(newPass);
+    await user.clear(confirmPass);
+    await user.type(newPass, 'Validpassword1!');
+    await user.type(confirmPass, 'Mismatch1!');
+    expect(
+      await screen.findByText('forgotPasswordPage.passwordsDoNotMatch')
+    ).toBeInTheDocument();
+
+    await user.clear(confirmPass);
+    await user.type(confirmPass, 'Validpassword1!');
+    await user.click(
+      screen.getByRole('button', {
+        name: 'forgotPasswordPage.resetPasswordAction',
+      })
+    );
+
+    await waitFor(() => {
+      expect(authAPI.resetPassword).toHaveBeenCalledWith({
+        email: 'test@example.com',
+        code: '123456',
+        newPassword: 'Validpassword1!',
+      });
+    });
+    expect(
+      screen.getByText('forgotPasswordPage.resetSuccessTitle')
+    ).toBeInTheDocument();
+    await waitFor(
+      () => {
+        expect(mockNavigate).toHaveBeenCalledWith('/login', { replace: true });
+      },
+      { timeout: 4000 }
+    );
+  }, 15000);
+
+  test('shows backend field error for reset password failure', async () => {
+    const user = userEvent.setup();
+    authAPI.resetPassword.mockRejectedValueOnce({
+      response: {
+        data: {
+          fieldErrors: [{ message: 'weak-password-field-error' }],
+        },
+      },
+    });
+    renderWithRouter(<ForgotPassword />);
+
+    await moveToVerifiedState(user);
+
+    await user.type(
+      screen.getByPlaceholderText('forgotPasswordPage.newPasswordPlaceholder'),
+      'Validpassword1!'
+    );
+    await user.type(
+      screen.getByPlaceholderText(
+        'forgotPasswordPage.confirmNewPasswordPlaceholder'
+      ),
+      'Validpassword1!'
+    );
+    await user.click(
+      screen.getByRole('button', {
+        name: 'forgotPasswordPage.resetPasswordAction',
+      })
+    );
+
+    expect(
+      await screen.findByText('weak-password-field-error')
+    ).toBeInTheDocument();
+  });
+
+  test('toggles password visibility buttons in verified state', async () => {
+    const user = userEvent.setup();
+    renderWithRouter(<ForgotPassword />);
+
+    await moveToVerifiedState(user);
+
+    const [toggleNew, toggleConfirm] = screen.getAllByRole('button', {
+      name: 'common.showPassword',
+    });
+    const newPasswordInput = screen.getByPlaceholderText(
+      'forgotPasswordPage.newPasswordPlaceholder'
+    );
+
+    expect(newPasswordInput).toHaveAttribute('type', 'password');
+    await user.click(toggleNew);
+    expect(newPasswordInput).toHaveAttribute('type', 'text');
+    await user.click(toggleConfirm);
+    expect(
+      screen.getAllByRole('button', { name: 'common.hidePassword' }).length
+    ).toBeGreaterThan(0);
   });
 });

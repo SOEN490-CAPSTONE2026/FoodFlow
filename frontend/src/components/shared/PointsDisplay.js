@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Trophy } from 'lucide-react';
 import './BadgeDisplay.css';
 
@@ -9,6 +10,8 @@ import './BadgeDisplay.css';
  * @param {boolean} props.loading - Loading state
  */
 const PointsDisplay = ({ points = 0, loading = false }) => {
+  const { t } = useTranslation();
+
   if (loading) {
     return (
       <div className="points-display loading">
@@ -24,7 +27,9 @@ const PointsDisplay = ({ points = 0, loading = false }) => {
         <Trophy size={24} />
       </div>
       <div className="points-content">
-        <span className="points-label">Total Points</span>
+        <span className="points-label">
+          {t('achievements.totalPoints', 'Total Points')}
+        </span>
         <span className="points-value">{points.toLocaleString()}</span>
       </div>
     </div>

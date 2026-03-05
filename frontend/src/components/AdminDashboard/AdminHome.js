@@ -51,8 +51,8 @@ export default function AdminHome() {
   const quickActions = [
     {
       id: 1,
-      title: 'User Management',
-      description: 'Manage users, roles, and permissions',
+      title: t('adminHome.quickActions.userManagement.title'),
+      description: t('adminHome.quickActions.userManagement.description'),
       icon: Users,
       iconColor: '#2196f3',
       iconBg: '#e3f2fd',
@@ -60,8 +60,8 @@ export default function AdminHome() {
     },
     {
       id: 2,
-      title: 'Review Donations',
-      description: 'Review and moderate donation posts',
+      title: t('adminHome.quickActions.reviewDonations.title'),
+      description: t('adminHome.quickActions.reviewDonations.description'),
       icon: Shield,
       iconColor: '#4caf50',
       iconBg: '#e8f5e9',
@@ -69,8 +69,8 @@ export default function AdminHome() {
     },
     {
       id: 3,
-      title: 'Dispute Dashboard',
-      description: 'Handle disputes and reports',
+      title: t('adminHome.quickActions.disputeDashboard.title'),
+      description: t('adminHome.quickActions.disputeDashboard.description'),
       icon: Scale,
       iconColor: '#f44336',
       iconBg: '#ffebee',
@@ -78,8 +78,8 @@ export default function AdminHome() {
     },
     {
       id: 4,
-      title: 'Messages',
-      description: 'View platform communications',
+      title: t('adminHome.quickActions.messages.title'),
+      description: t('adminHome.quickActions.messages.description'),
       icon: MessageSquare,
       iconColor: '#009688',
       iconBg: '#e0f2f1',
@@ -87,8 +87,8 @@ export default function AdminHome() {
     },
     {
       id: 5,
-      title: 'Flagged Posts',
-      description: 'Review flagged content',
+      title: t('adminHome.quickActions.flaggedPosts.title'),
+      description: t('adminHome.quickActions.flaggedPosts.description'),
       icon: Flag,
       iconColor: '#ff9800',
       iconBg: '#fff3e0',
@@ -96,8 +96,8 @@ export default function AdminHome() {
     },
     {
       id: 6,
-      title: 'Pickup Schedule',
-      description: 'View and manage pickup schedules',
+      title: t('adminHome.quickActions.pickupSchedule.title'),
+      description: t('adminHome.quickActions.pickupSchedule.description'),
       icon: Calendar,
       iconColor: '#9c27b0',
       iconBg: '#f3e5f5',
@@ -105,8 +105,8 @@ export default function AdminHome() {
     },
     {
       id: 7,
-      title: 'Analytics',
-      description: 'View platform analytics and reports',
+      title: t('adminHome.quickActions.analytics.title'),
+      description: t('adminHome.quickActions.analytics.description'),
       icon: BarChart3,
       iconColor: '#3f51b5',
       iconBg: '#e8eaf6',
@@ -114,8 +114,8 @@ export default function AdminHome() {
     },
     {
       id: 8,
-      title: 'System Settings',
-      description: 'Configure platform settings',
+      title: t('adminHome.quickActions.systemSettings.title'),
+      description: t('adminHome.quickActions.systemSettings.description'),
       icon: Settings,
       iconColor: '#e91e63',
       iconBg: '#fce4ec',
@@ -147,13 +147,22 @@ export default function AdminHome() {
 
       // Add new donor registrations with real data
       pendingUsers.forEach(user => {
-        const userName = user.organizationName || user.email || 'New user';
-        const userType = user.userType === 'DONOR' ? 'donor' : 'receiver';
+        const userName =
+          user.organizationName ||
+          user.email ||
+          t('adminHome.activity.defaultUser');
+        const userType =
+          user.userType === 'DONOR'
+            ? t('adminHome.activity.userType.donor')
+            : t('adminHome.activity.userType.receiver');
         recentActivities.push({
           id: `new-user-${user.userId}`,
           type: 'user',
           icon: 'user',
-          title: `${userName} registered as a new ${userType}`,
+          title: t('adminHome.activity.newUserRegistered', {
+            name: userName,
+            userType,
+          }),
           subtitle: null,
           timestamp: user.registrationDate
             ? new Date(user.registrationDate)
@@ -174,13 +183,14 @@ export default function AdminHome() {
           donation.donorOrganization ||
           donation.donorName ||
           donation.donorEmail ||
-          'A donor';
-        const donationTitle = donation.title || 'New donation';
+          t('adminHome.activity.defaultDonor');
+        const donationTitle =
+          donation.title || t('adminHome.activity.defaultDonationTitle');
         recentActivities.push({
           id: `new-donation-${donation.id}`,
           type: 'donation',
           icon: 'gift',
-          title: `${donorName} posted a new donation`,
+          title: t('adminHome.activity.newDonationPosted', { name: donorName }),
           subtitle:
             donationTitle.length > 50
               ? donationTitle.substring(0, 47) + '...'
@@ -204,8 +214,10 @@ export default function AdminHome() {
           id: `flagged-post-${post.id}`,
           type: 'flag',
           icon: 'flag',
-          title: 'System flagged a post for review',
-          subtitle: `Post #${post.id} - Inappropriate content detected`,
+          title: t('adminHome.activity.flaggedPostTitle'),
+          subtitle: t('adminHome.activity.flaggedPostSubtitle', {
+            id: post.id,
+          }),
           timestamp: post.flaggedAt ? new Date(post.flaggedAt) : new Date(),
         });
       });
@@ -223,8 +235,10 @@ export default function AdminHome() {
           id: `dispute-resolved-${dispute.id}`,
           type: 'dispute',
           icon: 'dispute',
-          title: 'Admin resolved a dispute',
-          subtitle: `Case #${dispute.id}`,
+          title: t('adminHome.activity.disputeResolvedTitle'),
+          subtitle: t('adminHome.activity.disputeResolvedSubtitle', {
+            id: dispute.id,
+          }),
           timestamp: dispute.resolvedAt
             ? new Date(dispute.resolvedAt)
             : dispute.updatedAt
@@ -251,12 +265,18 @@ export default function AdminHome() {
     const days = Math.floor(diff / 86400000);
 
     if (minutes < 60) {
-      return `${minutes} min ago`;
+      return minutes === 1
+        ? t('adminHome.timeAgo.minuteAgo')
+        : t('adminHome.timeAgo.minutesAgo', { count: minutes });
     }
     if (hours < 24) {
-      return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+      return hours === 1
+        ? t('adminHome.timeAgo.hourAgo')
+        : t('adminHome.timeAgo.hoursAgo', { count: hours });
     }
-    return `${days} day${days !== 1 ? 's' : ''} ago`;
+    return days === 1
+      ? t('adminHome.timeAgo.dayAgo')
+      : t('adminHome.timeAgo.daysAgo', { count: days });
   };
 
   const getActivityIcon = iconType => {
@@ -338,7 +358,7 @@ export default function AdminHome() {
       });
     } catch (err) {
       console.error('Error fetching dashboard stats:', err);
-      setError('Failed to load dashboard statistics');
+      setError(t('adminHome.errors.loadStats'));
     } finally {
       setLoading(false);
     }
@@ -346,7 +366,9 @@ export default function AdminHome() {
 
   if (loading && stats.totalUsers === 0) {
     return (
-      <div className="admin-home-loading">Loading dashboard statistics...</div>
+      <div className="admin-home-loading">
+        {t('adminHome.loadingDashboardStats')}
+      </div>
     );
   }
 
@@ -357,7 +379,9 @@ export default function AdminHome() {
       {/* Welcome Header */}
       <div className="admin-home-welcome-header">
         <h1>
-          {t('admin.welcomeBack', { name: 'Evian' })}
+          {t('admin.welcomeBack', {
+            name: organizationName || t('adminHome.defaultAdminName'),
+          })}
           <Sparkles
             className="admin-home-wave-icon"
             size={28}
@@ -377,7 +401,9 @@ export default function AdminHome() {
             <Users style={{ color: '#2196f3' }} size={28} />
           </div>
           <div className="admin-home-stat-content">
-            <div className="admin-home-stat-label">Total Users</div>
+            <div className="admin-home-stat-label">
+              {t('adminHome.stats.totalUsers')}
+            </div>
             <div className="admin-home-stat-value">
               {stats.totalUsers.toLocaleString()}
             </div>
@@ -393,7 +419,9 @@ export default function AdminHome() {
             <Gift style={{ color: '#4caf50' }} size={28} />
           </div>
           <div className="admin-home-stat-content">
-            <div className="admin-home-stat-label">Total Donations</div>
+            <div className="admin-home-stat-label">
+              {t('adminHome.stats.totalDonations')}
+            </div>
             <div className="admin-home-stat-value">
               {stats.totalDonations.toLocaleString()}
             </div>
@@ -409,7 +437,9 @@ export default function AdminHome() {
             <ShoppingBag style={{ color: '#9c27b0' }} size={28} />
           </div>
           <div className="admin-home-stat-content">
-            <div className="admin-home-stat-label">Ongoing Claims</div>
+            <div className="admin-home-stat-label">
+              {t('adminHome.stats.ongoingClaims')}
+            </div>
             <div className="admin-home-stat-value">
               {stats.ongoingClaims.toLocaleString()}
             </div>
@@ -425,7 +455,9 @@ export default function AdminHome() {
             <Activity style={{ color: '#ff9800' }} size={28} />
           </div>
           <div className="admin-home-stat-content">
-            <div className="admin-home-stat-label">Active Donations</div>
+            <div className="admin-home-stat-label">
+              {t('adminHome.stats.activeDonations')}
+            </div>
             <div className="admin-home-stat-value">
               {stats.activeDonations.toLocaleString()}
             </div>
@@ -441,7 +473,9 @@ export default function AdminHome() {
             <UserCheck style={{ color: '#fbc02d' }} size={28} />
           </div>
           <div className="admin-home-stat-content">
-            <div className="admin-home-stat-label">Pending Verifications</div>
+            <div className="admin-home-stat-label">
+              {t('adminHome.stats.pendingVerifications')}
+            </div>
             <div className="admin-home-stat-value">
               {stats.pendingVerifications.toLocaleString()}
             </div>
@@ -457,7 +491,9 @@ export default function AdminHome() {
             <CheckCircle style={{ color: '#10b981' }} size={28} />
           </div>
           <div className="admin-home-stat-content">
-            <div className="admin-home-stat-label">Completed</div>
+            <div className="admin-home-stat-label">
+              {t('adminHome.stats.completed')}
+            </div>
             <div className="admin-home-stat-value">
               {stats.completedToday.toLocaleString()}
             </div>
@@ -469,9 +505,9 @@ export default function AdminHome() {
       <div className="admin-home-quick-actions-section">
         <div className="admin-home-section-header">
           <div>
-            <h2>Quick Actions</h2>
+            <h2>{t('adminHome.quickActions.title')}</h2>
             <p className="admin-home-section-subtitle">
-              Access the most critical admin tools
+              {t('adminHome.quickActions.subtitle')}
             </p>
           </div>
           <span
@@ -481,7 +517,9 @@ export default function AdminHome() {
             tabIndex={0}
             style={{ cursor: 'pointer', userSelect: 'none' }}
           >
-            {showAllActions ? 'View Less' : 'View All Tools'}
+            {showAllActions
+              ? t('adminHome.quickActions.viewLess')
+              : t('adminHome.quickActions.viewAllTools')}
           </span>
         </div>
         <div className="admin-home-quick-actions-grid">
@@ -519,13 +557,13 @@ export default function AdminHome() {
       {activities.length > 0 && (
         <div className="admin-home-recent-activity-section">
           <div className="admin-home-activity-header">
-            <h2>Recent Activity</h2>
+            <h2>{t('adminHome.recentActivity.title')}</h2>
             <div className="admin-home-activity-header-right">
               <span
                 className="admin-home-view-all-link"
                 onClick={() => navigate('/admin/donations')}
               >
-                View All Activity
+                {t('adminHome.recentActivity.viewAllActivity')}
               </span>
             </div>
           </div>

@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Mail,
   ArrowLeft,
@@ -17,6 +18,7 @@ import PhoneInput from './PhoneInput';
 import '../style/ForgotPassword.css';
 
 export default function ForgotPassword() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -43,11 +45,11 @@ export default function ForgotPassword() {
   // Check password matching in real-time
   useEffect(() => {
     if (confirmPassword && newPassword !== confirmPassword) {
-      setPasswordError('Passwords do not match');
+      setPasswordError(t('forgotPasswordPage.passwordsDoNotMatch'));
     } else {
       setPasswordError('');
     }
-  }, [newPassword, confirmPassword]);
+  }, [newPassword, confirmPassword, t]);
 
   const handleSubmit = async e => {
     e.preventDefault();
@@ -55,7 +57,7 @@ export default function ForgotPassword() {
 
     // Ensure a method is selected
     if (!selectedMethod) {
-      setError('Please choose Email or SMS');
+      setError(t('forgotPasswordPage.chooseMethod'));
       return;
     }
 
@@ -64,27 +66,27 @@ export default function ForgotPassword() {
 
     if (selectedMethod === 'email') {
       if (!email) {
-        setError('Please enter your email address');
+        setError(t('forgotPasswordPage.enterEmailAddress'));
         return;
       }
       if (!emailRegex.test(email)) {
-        setError('Please enter a valid email address');
+        setError(t('forgotPasswordPage.enterValidEmail'));
         return;
       }
     } else if (selectedMethod === 'sms') {
       if (!phone) {
-        setError('Please enter your phone number');
+        setError(t('forgotPasswordPage.enterPhoneNumber'));
         return;
       }
       // Enforce E.164 format: must start with + and have country code
       if (!phone.startsWith('+')) {
-        setError('Please select a country code from the dropdown');
+        setError(t('forgotPasswordPage.selectCountryCode'));
         return;
       }
       // Validate E.164 format: +[1-3 digits country code][4-15 digits phone number]
       const e164Regex = /^\+[1-9]\d{1,14}$/;
       if (!e164Regex.test(phone)) {
-        setError('Please enter a valid phone number with country code');
+        setError(t('forgotPasswordPage.enterValidPhoneNumber'));
         return;
       }
     }
@@ -94,11 +96,10 @@ export default function ForgotPassword() {
     try {
       if (selectedMethod === 'email') {
         // Call backend API for email reset
-        const response = await authAPI.forgotPassword({
+        await authAPI.forgotPassword({
           email,
           method: 'email',
         });
-        console.log('Password reset email sent:', response.data);
       } else {
         // SMS flow - verify phone exists in backend BEFORE sending OTP
         // Assume phone is already in E.164 format with country code (e.g., +15145551234)
@@ -106,7 +107,6 @@ export default function ForgotPassword() {
           phone: phone.trim(),
           method: 'sms',
         });
-        console.log('Phone number verified in database');
 
         // Initialize reCAPTCHA if not already done
         if (!recaptchaVerifierRef.current) {
@@ -115,9 +115,7 @@ export default function ForgotPassword() {
             'recaptcha-container',
             {
               size: 'invisible',
-              callback: () => {
-                console.log('reCAPTCHA solved');
-              },
+              callback: () => undefined,
             }
           );
         }
@@ -129,7 +127,6 @@ export default function ForgotPassword() {
           recaptchaVerifierRef.current
         );
         confirmationResultRef.current = confirmationResult;
-        console.log('Firebase SMS sent to:', phone.trim());
       }
 
       // mark submitted and reset expiry/timer state when we request a code
@@ -139,18 +136,15 @@ export default function ForgotPassword() {
       // focus first input after render
       setTimeout(() => inputsRef.current[0]?.focus(), 0);
     } catch (err) {
-      console.error('Forgot password error:', err);
       if (err.code === 'auth/invalid-phone-number') {
-        setError(
-          'Invalid phone number format. Please use format: +14165551234'
-        );
+        setError(t('forgotPasswordPage.invalidPhoneFormat'));
       } else if (err.code === 'auth/too-many-requests') {
-        setError('Too many requests. Please try again later.');
+        setError(t('forgotPasswordPage.tooManyRequests'));
       } else {
         setError(
           err.response?.data?.message ||
             err.message ||
-            'Failed to send verification code. Please try again.'
+            t('forgotPasswordPage.failedSendCode')
         );
       }
     } finally {
@@ -211,59 +205,58 @@ export default function ForgotPassword() {
     }, 100);
   };
 
+  const handleVerifyCode = useCallback(
+    async code => {
+      if (selectedMethod === 'sms' && confirmationResultRef.current) {
+        try {
+          setIsLoading(true);
+          await confirmationResultRef.current.confirm(code);
+          setCodeVerified(true);
+          setCodeIncorrect(false);
+          setCodeExpired(false); // Reset expired state when code is verified
+          // Stop the timer when code is verified
+          if (timerRef.current) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+          }
+        } catch (err) {
+          setCodeIncorrect(true);
+          setVerificationCode(Array(6).fill(''));
+          setTimeout(() => inputsRef.current[0]?.focus(), 100);
+        } finally {
+          setIsLoading(false);
+        }
+      } else if (selectedMethod === 'email') {
+        try {
+          setIsLoading(true);
+          await authAPI.verifyResetCode({ email, code });
+          setCodeVerified(true);
+          setCodeIncorrect(false);
+          setCodeExpired(false); // Reset expired state when code is verified
+          // Stop the timer when code is verified
+          if (timerRef.current) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+          }
+        } catch (err) {
+          setCodeIncorrect(true);
+          setVerificationCode(Array(6).fill(''));
+          setTimeout(() => inputsRef.current[0]?.focus(), 100);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    },
+    [email, selectedMethod]
+  );
+
   // Auto-verify when all 6 digits are entered
   useEffect(() => {
     const code = verificationCode.join('');
     if (code.length === 6 && isSubmitted && !codeExpired) {
       handleVerifyCode(code);
     }
-  }, [verificationCode, isSubmitted, codeExpired]);
-
-  const handleVerifyCode = async code => {
-    if (selectedMethod === 'sms' && confirmationResultRef.current) {
-      try {
-        setIsLoading(true);
-        const result = await confirmationResultRef.current.confirm(code);
-        console.log('Phone verified successfully:', result.user.phoneNumber);
-        setCodeVerified(true);
-        setCodeIncorrect(false);
-        setCodeExpired(false); // Reset expired state when code is verified
-        // Stop the timer when code is verified
-        if (timerRef.current) {
-          clearInterval(timerRef.current);
-          timerRef.current = null;
-        }
-      } catch (err) {
-        console.error('Code verification error:', err);
-        setCodeIncorrect(true);
-        setVerificationCode(Array(6).fill(''));
-        setTimeout(() => inputsRef.current[0]?.focus(), 100);
-      } finally {
-        setIsLoading(false);
-      }
-    } else if (selectedMethod === 'email') {
-      try {
-        setIsLoading(true);
-        await authAPI.verifyResetCode({ email, code });
-        console.log('Email code verified successfully');
-        setCodeVerified(true);
-        setCodeIncorrect(false);
-        setCodeExpired(false); // Reset expired state when code is verified
-        // Stop the timer when code is verified
-        if (timerRef.current) {
-          clearInterval(timerRef.current);
-          timerRef.current = null;
-        }
-      } catch (err) {
-        console.error('Code verification error:', err);
-        setCodeIncorrect(true);
-        setVerificationCode(Array(6).fill(''));
-        setTimeout(() => inputsRef.current[0]?.focus(), 100);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-  };
+  }, [verificationCode, isSubmitted, codeExpired, handleVerifyCode]);
 
   // start/stop countdown when code view becomes active
   useEffect(() => {
@@ -309,13 +302,13 @@ export default function ForgotPassword() {
         </div>
         <img
           src="https://i.ibb.co/HLxDnk57/Untitled-design-6.png"
-          alt="Donation example"
+          alt={t('forgotPasswordPage.sideImageAlt')}
           className="main"
         />
         <Link to="/">
           <img
             src="https://i.ibb.co/jkF1r5xL/logo-white.png"
-            alt="FoodFlow logo"
+            alt={t('forgotPasswordPage.logoAlt')}
             className="forgot-password-logo"
           />
         </Link>
@@ -329,7 +322,7 @@ export default function ForgotPassword() {
               <div className="forgot-password-card">
                 <Link to="/login" className="back-link">
                   <ArrowLeft size={18} />
-                  Back to Login
+                  {t('forgotPasswordPage.backToLogin')}
                 </Link>
 
                 <div className="forgot-password-header">
@@ -339,11 +332,11 @@ export default function ForgotPassword() {
                   >
                     <Lock size={36} strokeWidth={1.5} />
                   </div>
-                  <h1 className="forgot-password-title">Forgot Password?</h1>
+                  <h1 className="forgot-password-title">
+                    {t('auth.forgotPassword')}
+                  </h1>
                   <p className="forgot-password-subtitle">
-                    No worries! Please select how you would like to receive your
-                    OTP. After entering the code, you will be eligible for a
-                    password reset.
+                    {t('forgotPasswordPage.subtitle')}
                   </p>
                 </div>
 
@@ -362,9 +355,11 @@ export default function ForgotPassword() {
                       >
                         <Mail size={20} />
                         <div className="method-text">
-                          <div className="method-title">Email</div>
+                          <div className="method-title">
+                            {t('forgotPasswordPage.methodEmailTitle')}
+                          </div>
                           <div className="method-subtitle">
-                            Receive a reset link by email
+                            {t('forgotPasswordPage.methodEmailSubtitle')}
                           </div>
                         </div>
                       </button>
@@ -381,9 +376,11 @@ export default function ForgotPassword() {
                       >
                         <Smartphone size={20} />
                         <div className="method-text">
-                          <div className="method-title">SMS</div>
+                          <div className="method-title">
+                            {t('forgotPasswordPage.methodSmsTitle')}
+                          </div>
                           <div className="method-subtitle">
-                            Receive a code by text
+                            {t('forgotPasswordPage.methodSmsSubtitle')}
                           </div>
                         </div>
                       </button>
@@ -394,13 +391,15 @@ export default function ForgotPassword() {
                         {selectedMethod === 'email' ? (
                           <>
                             <label htmlFor="email" className="form-label">
-                              Email Address
+                              {t('forgotPasswordPage.emailAddressLabel')}
                             </label>
                             <input
                               id="email"
                               type="email"
                               className="form-input"
-                              placeholder="Enter your email"
+                              placeholder={t(
+                                'forgotPasswordPage.emailPlaceholder'
+                              )}
                               value={email}
                               onChange={e => setEmail(e.target.value)}
                               disabled={isLoading}
@@ -409,13 +408,15 @@ export default function ForgotPassword() {
                         ) : (
                           <>
                             <label htmlFor="phone" className="form-label">
-                              Phone Number
+                              {t('forgotPasswordPage.phoneNumberLabel')}
                             </label>
                             <PhoneInput
                               value={phone}
                               onChange={setPhone}
                               disabled={isLoading}
-                              placeholder="Phone number"
+                              placeholder={t(
+                                'forgotPasswordPage.phonePlaceholder'
+                              )}
                             />
                           </>
                         )}
@@ -431,7 +432,9 @@ export default function ForgotPassword() {
                       className="submit-btn"
                       disabled={isLoading}
                     >
-                      {isLoading ? 'Sending...' : 'Send Code'}
+                      {isLoading
+                        ? t('forgotPasswordPage.sending')
+                        : t('forgotPasswordPage.sendCode')}
                     </button>
                   )}
                 </form>
@@ -467,26 +470,25 @@ export default function ForgotPassword() {
                       className="success-title"
                       style={{ color: '#16a34a', marginTop: 16 }}
                     >
-                      Password Reset!
+                      {t('forgotPasswordPage.resetSuccessTitle')}
                     </h1>
                     <p
                       className="success-message"
                       style={{ marginTop: 12, fontSize: 16 }}
                     >
-                      Your password has been successfully reset.
+                      {t('forgotPasswordPage.resetSuccessMessage')}
                     </p>
                     <p style={{ color: '#6b7280', marginTop: 8, fontSize: 14 }}>
-                      You will be redirected to the login page now...
+                      {t('forgotPasswordPage.redirectLogin')}
                     </p>
                   </div>
                 ) : codeExpired ? (
                   <div className="code-entry" style={{ textAlign: 'center' }}>
                     <h2 style={{ color: '#b91c1c' }}>
-                      Oops! You did not submit in time.
+                      {t('forgotPasswordPage.codeExpiredTitle')}
                     </h2>
                     <p style={{ color: '#6b7280', marginTop: 8 }}>
-                      The code has expired. You can resend a new code or go back
-                      to login.
+                      {t('forgotPasswordPage.codeExpiredMessage')}
                     </p>
                     <div style={{ marginTop: 24 }}>
                       <button
@@ -494,27 +496,27 @@ export default function ForgotPassword() {
                         type="button"
                         onClick={handleResend}
                       >
-                        Resend code
+                        {t('forgotPasswordPage.resendCode')}
                       </button>
                     </div>
                     <div style={{ marginTop: 12 }}>
                       <Link to="/login" className="back-to-login-btn">
-                        Back to Login
+                        {t('forgotPasswordPage.backToLogin')}
                       </Link>
                     </div>
                   </div>
                 ) : codeIncorrect ? (
                   <div className="code-entry" style={{ textAlign: 'center' }}>
                     <h2 style={{ color: '#b91c1c' }}>
-                      Oops! The code you submitted is incorrect.
+                      {t('forgotPasswordPage.codeIncorrectTitle')}
                     </h2>
                     <p style={{ color: '#6b7280', marginTop: 8 }}>
-                      Please check the code and try again, or request a new one.
+                      {t('forgotPasswordPage.codeIncorrectMessage')}
                     </p>
                     <div
                       style={{ marginTop: 12, color: '#6b7280', fontSize: 14 }}
                     >
-                      Time remaining: {secondsLeft}s
+                      {t('forgotPasswordPage.timeRemaining')}: {secondsLeft}s
                     </div>
                     <div style={{ marginTop: 24 }}>
                       <button
@@ -525,7 +527,7 @@ export default function ForgotPassword() {
                           setTimeout(() => inputsRef.current[0]?.focus(), 100);
                         }}
                       >
-                        Try Again
+                        {t('forgotPasswordPage.tryAgain')}
                       </button>
                     </div>
                     <div style={{ marginTop: 12 }}>
@@ -534,23 +536,22 @@ export default function ForgotPassword() {
                         type="button"
                         onClick={handleResend}
                       >
-                        Resend code
+                        {t('forgotPasswordPage.resendCode')}
                       </button>
                     </div>
                     <div style={{ marginTop: 12 }}>
                       <Link to="/login" className="back-to-login-btn">
-                        Back to Login
+                        {t('forgotPasswordPage.backToLogin')}
                       </Link>
                     </div>
                   </div>
                 ) : codeVerified ? (
                   <div className="code-entry" style={{ textAlign: 'center' }}>
                     <h1 className="success-title" style={{ color: '#16a34a' }}>
-                      Success!
+                      {t('forgotPasswordPage.verifiedTitle')}
                     </h1>
                     <p className="success-message" style={{ marginTop: 8 }}>
-                      Your identity has been verified. Please enter your new
-                      password below.
+                      {t('forgotPasswordPage.verifiedMessage')}
                     </p>
 
                     <form
@@ -560,44 +561,48 @@ export default function ForgotPassword() {
                         setPasswordError('');
 
                         if (!newPassword || !confirmPassword) {
-                          setPasswordError('Please enter both password fields');
+                          setPasswordError(
+                            t('forgotPasswordPage.enterBothPasswords')
+                          );
                           return;
                         }
                         if (newPassword !== confirmPassword) {
-                          setPasswordError('Passwords do not match');
+                          setPasswordError(
+                            t('forgotPasswordPage.passwordsDoNotMatch')
+                          );
                           return;
                         }
                         if (newPassword.length < 10) {
                           setPasswordError(
-                            'Password must be at least 10 characters'
+                            t('forgotPasswordPage.passwordMinLength')
                           );
                           return;
                         }
                         if (!/[A-Z]/.test(newPassword)) {
                           setPasswordError(
-                            'Password must contain at least one uppercase letter'
+                            t('forgotPasswordPage.passwordUppercase')
                           );
                           return;
                         }
                         if (!/[a-z]/.test(newPassword)) {
                           setPasswordError(
-                            'Password must contain at least one lowercase letter'
+                            t('forgotPasswordPage.passwordLowercase')
                           );
                           return;
                         }
                         if (!/[0-9]/.test(newPassword)) {
                           setPasswordError(
-                            'Password must contain at least one digit'
+                            t('forgotPasswordPage.passwordDigit')
                           );
                           return;
                         }
                         if (
-                          !/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(
+                          !/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(
                             newPassword
                           )
                         ) {
                           setPasswordError(
-                            'Password must contain at least one special character (!@#$%^&*()_+-=[]{}|;:,.<>?)'
+                            t('forgotPasswordPage.passwordSpecial')
                           );
                           return;
                         }
@@ -631,7 +636,7 @@ export default function ForgotPassword() {
                           setPasswordError(
                             fieldErrorMsg ||
                               data?.message ||
-                              'Failed to reset password. Please try again.'
+                              t('forgotPasswordPage.failedResetPassword')
                           );
                         } finally {
                           setIsLoading(false);
@@ -642,7 +647,9 @@ export default function ForgotPassword() {
                       <div style={{ marginBottom: 16, position: 'relative' }}>
                         <input
                           type={showPassword ? 'text' : 'password'}
-                          placeholder="New Password"
+                          placeholder={t(
+                            'forgotPasswordPage.newPasswordPlaceholder'
+                          )}
                           value={newPassword}
                           onChange={e => setNewPassword(e.target.value)}
                           className="input-field"
@@ -658,6 +665,11 @@ export default function ForgotPassword() {
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
+                          aria-label={
+                            showPassword
+                              ? t('common.hidePassword')
+                              : t('common.showPassword')
+                          }
                           style={{
                             position: 'absolute',
                             right: 12,
@@ -682,7 +694,9 @@ export default function ForgotPassword() {
                       <div style={{ marginBottom: 16, position: 'relative' }}>
                         <input
                           type={showConfirmPassword ? 'text' : 'password'}
-                          placeholder="Confirm New Password"
+                          placeholder={t(
+                            'forgotPasswordPage.confirmNewPasswordPlaceholder'
+                          )}
                           value={confirmPassword}
                           onChange={e => setConfirmPassword(e.target.value)}
                           className="input-field"
@@ -699,6 +713,11 @@ export default function ForgotPassword() {
                           type="button"
                           onClick={() =>
                             setShowConfirmPassword(!showConfirmPassword)
+                          }
+                          aria-label={
+                            showConfirmPassword
+                              ? t('common.hidePassword')
+                              : t('common.showPassword')
                           }
                           style={{
                             position: 'absolute',
@@ -755,22 +774,29 @@ export default function ForgotPassword() {
                               : 1,
                         }}
                       >
-                        {isLoading ? 'Resetting...' : 'Reset Password'}
+                        {isLoading
+                          ? t('forgotPasswordPage.resetting')
+                          : t('forgotPasswordPage.resetPasswordAction')}
                       </button>
                     </form>
                   </div>
                 ) : (
                   <>
-                    <h1 className="success-title">Code Sent</h1>
+                    <h1 className="success-title">
+                      {t('forgotPasswordPage.codeSentTitle')}
+                    </h1>
                     <p className="success-message">
-                      We've sent a 6-digit verification code to{' '}
+                      {t('forgotPasswordPage.codeSentMessage')}{' '}
                       <strong>
                         {selectedMethod === 'sms' ? phone : email}
                       </strong>
                     </p>
                     <p className="success-info">
-                      Enter the 6 digits you received via{' '}
-                      {selectedMethod === 'sms' ? 'text message' : 'email'}.
+                      {t('forgotPasswordPage.codeSentInfo')}{' '}
+                      {selectedMethod === 'sms'
+                        ? t('forgotPasswordPage.delivery.sms')
+                        : t('forgotPasswordPage.delivery.email')}
+                      .
                     </p>
 
                     <div className="code-entry">
@@ -800,7 +826,7 @@ export default function ForgotPassword() {
 
                       <div style={{ marginTop: 12 }}>
                         <div style={{ color: '#6b7280', fontSize: 13 }}>
-                          Expires in {secondsLeft}s
+                          {t('forgotPasswordPage.expiresIn')} {secondsLeft}s
                         </div>
                       </div>
 
@@ -810,13 +836,13 @@ export default function ForgotPassword() {
                           type="button"
                           onClick={handleResend}
                         >
-                          Resend code
+                          {t('forgotPasswordPage.resendCode')}
                         </button>
                       </div>
 
                       <div style={{ marginTop: 20 }}>
                         <Link to="/login" className="back-to-login-btn">
-                          Back to Login
+                          {t('forgotPasswordPage.backToLogin')}
                         </Link>
                       </div>
                     </div>

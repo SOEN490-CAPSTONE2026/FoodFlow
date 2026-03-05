@@ -37,6 +37,104 @@
     "sendResetLink": "发送重置链接",
     "enterEmail": "输入您的电子邮箱地址"
   },
+  "forgotPasswordPage": {
+    "backToLogin": "返回登录",
+    "subtitle": "别担心。请选择接收 OTP 的方式。输入验证码后，你就可以重置密码。",
+    "methodEmailTitle": "电子邮件",
+    "methodEmailSubtitle": "通过电子邮件接收链接",
+    "methodSmsTitle": "短信",
+    "methodSmsSubtitle": "通过短信接收验证码",
+    "passwordsDoNotMatch": "两次输入的密码不一致",
+    "chooseMethod": "请选择电子邮件或短信",
+    "enterEmailAddress": "请输入你的电子邮箱",
+    "enterValidEmail": "请输入有效的电子邮箱",
+    "enterPhoneNumber": "请输入你的手机号",
+    "selectCountryCode": "请从下拉菜单中选择国家代码",
+    "enterValidPhoneNumber": "请输入带国家代码的有效手机号",
+    "invalidPhoneFormat": "手机号格式无效。请使用格式：+14165551234",
+    "tooManyRequests": "请求过多。请稍后再试。",
+    "failedSendCode": "发送验证码失败。请重试。",
+    "emailAddressLabel": "电子邮箱",
+    "emailPlaceholder": "输入你的电子邮箱",
+    "phoneNumberLabel": "手机号",
+    "phonePlaceholder": "手机号",
+    "sending": "发送中...",
+    "sendCode": "发送验证码",
+    "resetSuccessTitle": "密码已重置",
+    "resetSuccessMessage": "你的密码已成功重置。",
+    "redirectLogin": "现在将跳转到登录页面...",
+    "codeExpiredTitle": "已超时。",
+    "codeExpiredMessage": "验证码已过期。你可以重新发送新验证码或返回登录。",
+    "resendCode": "重新发送验证码",
+    "codeIncorrectTitle": "你输入的验证码不正确。",
+    "codeIncorrectMessage": "请检查验证码后重试，或重新申请一个。",
+    "timeRemaining": "剩余时间",
+    "tryAgain": "再试一次",
+    "verifiedTitle": "成功",
+    "verifiedMessage": "你的身份已验证。请输入你的新密码。",
+    "enterBothPasswords": "请输入两个密码字段",
+    "passwordMinLength": "密码至少需要 10 个字符",
+    "passwordUppercase": "密码至少需要一个大写字母",
+    "passwordLowercase": "密码至少需要一个小写字母",
+    "passwordDigit": "密码至少需要一个数字",
+    "passwordSpecial": "密码至少需要一个特殊字符 (!@#$%^&*()_+-=[]{}|;:,.<>?)",
+    "failedResetPassword": "重置密码失败。请重试。",
+    "newPasswordPlaceholder": "新密码",
+    "confirmNewPasswordPlaceholder": "确认新密码",
+    "resetting": "重置中...",
+    "resetPasswordAction": "重置密码",
+    "codeSentTitle": "验证码已发送",
+    "codeSentMessage": "我们已向以下地址发送 6 位验证码：",
+    "codeSentInfo": "请输入你通过以下方式收到的 6 位数字：",
+    "expiresIn": "将在以下时间后过期",
+    "sideImageAlt": "捐赠示例",
+    "logoAlt": "FoodFlow 标志",
+    "delivery": {
+      "sms": "短信",
+      "email": "电子邮件"
+    }
+  },
+  "reportUserModal": {
+    "photoTooLarge": "照片大小必须小于 5MB",
+    "descriptionRequired": "请提供描述",
+    "submitFailed": "提交举报失败。请重试。",
+    "title": "举报用户",
+    "infoPrefix": "你正在举报",
+    "thisUser": "该用户",
+    "donationLinked": "该举报将关联到捐赠记录。",
+    "descriptionLabel": "描述",
+    "descriptionPlaceholder": "请描述发生了什么...",
+    "photoLabel": "照片证据（可选）",
+    "uploadPrompt": "点击上传照片",
+    "maxSize": "最大大小：5MB",
+    "evidencePreviewAlt": "证据预览",
+    "removePhoto": "移除",
+    "cancel": "取消",
+    "submitting": "提交中...",
+    "submit": "提交举报"
+  },
+  "regionSelector": {
+    "geolocationUnsupported": "你的浏览器不支持地理定位",
+    "detectFailed": "无法检测位置。请手动选择。",
+    "accessLocationFailed": "无法访问你的位置。请手动选择。",
+    "detecting": "正在检测位置...",
+    "autoDetect": "自动检测我的位置",
+    "country": "国家",
+    "city": "城市",
+    "timezone": "时区",
+    "loadingCountries": "正在加载国家...",
+    "selectCountry": "选择你的国家...",
+    "searchCountries": "搜索国家...",
+    "enterCity": "输入你的城市...",
+    "selectTimezone": "选择时区...",
+    "autoSetCountry": "将根据你的国家自动设置",
+    "autoDetectedHint": "你的时区已自动检测。如有需要可以更改。"
+  },
+  "phoneInput": {
+    "searchCountry": "搜索国家...",
+    "noCountries": "未找到国家",
+    "placeholder": "手机号"
+  },
   "registration": {
     "registerAsDonor": "注册为捐赠者",
     "registerAsReceiver": "注册为受助者",
@@ -51,6 +149,7 @@
     "country": "国家",
     "fullName": "全名",
     "acceptTerms": "我接受服务条款",
+    "dataConsentPrefix": "我同意按照以下内容存储数据：",
     "privacyPolicy": "隐私政策",
     "termsOfService": "服务条款",
     "registrationSuccess": "注册成功",
@@ -153,7 +252,10 @@
     "download": "下载",
     "hidePassword": "隐藏密码",
     "showPassword": "显示密码",
-    "time": "时间"
+    "time": "时间",
+    "retry": "重试",
+    "less": "更少",
+    "more": "更多"
   },
   "validation": {
     "required": "此字段为必填项",
@@ -161,6 +263,23 @@
     "minLength": "至少需要{{count}}个字符",
     "maxLength": "最多允许{{count}}个字符",
     "pattern": "格式无效"
+  },
+  "passwordValidation": {
+    "required": "??????",
+    "minLength": "????????? 10 ???",
+    "uppercase": "??????????????",
+    "lowercase": "??????????????",
+    "digit": "????????????",
+    "specialCharacter": "?????????????? (!@#$%^&*()_+-=[]{}|;:,.<>?)",
+    "commonPassword": "?????????????????",
+    "policy": {
+      "minLength": "?? 10 ???",
+      "uppercase": "???????? (A-Z)",
+      "lowercase": "???????? (a-z)",
+      "digit": "?????? (0-9)",
+      "specialCharacter": "???????? (!@#$%^&*()_+-=[]{}|;:,.<>?)",
+      "commonPassword": "????????"
+    }
   },
   "toast": {
     "saved": "已保存",
@@ -778,7 +897,21 @@
     "communications": "收到的通信",
     "guides": "指南和支持",
     "administration": "管理",
-    "welcomeBack": "欢迎回来，{{name}}"
+    "welcomeBack": "欢迎回来，{{name}}",
+    "users": "用户管理",
+    "verificationQueue": "审核队列",
+    "impact": "影响力看板",
+    "disputes": "争议与举报",
+    "donations": "捐赠",
+    "settings": "设置",
+    "logout": "退出登录",
+    "toggleMenu": "????",
+    "foodflowHome": "FoodFlow ??",
+    "toggleSidebar": "切换侧边栏",
+    "verificationQueueDesc": "?????????????",
+    "usersDesc": "管理并监控平台所有用户",
+    "impactDesc": "平台范围内的环境与社会影响指标",
+    "disputesDesc": "跟踪、审查并解决已报告的问题"
   },
   "claimedView": {
     "claimed": "已认领",
@@ -835,7 +968,9 @@
     "donateNow": "立即捐赠",
     "requestsClaims": "请求与认领",
     "pickupSchedule": "取货时间表",
+    "achievements": "成就",
     "messages": "消息",
+    "impact": "影响力面板",
     "settings": "设置",
     "help": "帮助",
     "logout": "退出登录",
@@ -845,7 +980,9 @@
       "donateNow": "立即捐赠",
       "requestsClaims": "请求与认领",
       "pickupSchedule": "取货时间表",
+      "achievements": "成就",
       "messages": "消息",
+      "impact": "影响力面板",
       "settings": "设置",
       "help": "帮助",
       "donor": "捐赠者",
@@ -856,7 +993,9 @@
       "donateNow": "创建和管理捐赠列表",
       "requestsClaims": "收到的请求和状态",
       "pickupSchedule": "最近活动和历史记录",
+      "achievements": "查看您的成就和徽章",
       "messages": "收到的通信",
+      "impact": "查看您的环境与社会影响",
       "settings": "管理您的偏好和账户设置",
       "help": "指南和支持",
       "donorPortal": "FoodFlow 捐赠者门户",
@@ -882,6 +1021,7 @@
     "loading": "正在加载您的捐赠...",
     "sortByDate": "按日期排序",
     "sortByStatus": "按状态排序",
+    "createWithAI": "使用 AI 创建",
     "donateMore": "捐赠更多",
     "emptyStateTitle": "您还没有发布任何内容",
     "emptyStateDescription": "创建您的第一个捐赠帖子，开始帮助您的社区减少食物浪费。",
@@ -895,8 +1035,34 @@
     },
     "expires": "过期时间",
     "pickup": "取货",
+    "flexible": "灵活",
     "notSpecified": "未指定",
     "addressNotSpecified": "地址未指定",
+    "uploading": "上传中...",
+    "uploadDonationPhoto": "上传捐赠照片",
+    "photosUploadedSingular": "已上传 {{count}} 张照片",
+    "photosUploadedPlural": "已上传 {{count}} 张照片",
+    "viewPhotosSingular": "查看 {{count}} 张照片",
+    "viewPhotosPlural": "查看 {{count}} 张照片",
+    "viewDonationTimeline": "查看捐赠时间线",
+    "hideDonationTimeline": "隐藏捐赠时间线",
+    "reportReceiver": "举报受助者",
+    "leaveFeedback": "留下反馈",
+    "failedFetchRecipientEmail": "无法获取帖子“{{title}}”的受助者邮箱",
+    "receiverIdMissing": "帖子“{{title}}”缺少受助者 ID",
+    "receiverNotFoundOrInvalidEmail": "未找到受助者或邮箱无效",
+    "failedFetchReceiverDetails": "获取受助者信息失败。请重试。",
+    "failedOpenDonationChat": "打开捐赠聊天失败。请重试。",
+    "unableLoadReceiverInfo": "无法加载受助者信息。请重试。",
+    "noClaimsFoundForDonation": "未找到该捐赠的认领记录。请重试。",
+    "failedOpenFeedbackModal": "打开反馈窗口失败。请重试。",
+    "failedOpenReportModal": "打开举报窗口失败。请重试。",
+    "reportSubmittedSuccessfully": "举报提交成功",
+    "failedSubmitReport": "举报提交失败。请重试。",
+    "onlyJpegPngAllowed": "仅支持 JPEG 和 PNG 图片",
+    "fileSizeMustBeLessThan5Mb": "文件大小必须小于 5MB",
+    "uploadFailed": "上传失败",
+    "failedUploadPhoto": "上传照片失败。请重试。",
     "confirmDelete": "您确定要删除此帖子吗？",
     "failedToFetch": "获取帖子失败",
     "editFunctionality": "打开编辑表单：{{title}}\n（编辑功能待实现）"
@@ -971,7 +1137,9 @@
       "messages": "与捐赠者和其他用户交流",
       "settings": "管理您的偏好和账户设置",
       "default": "FoodFlow 接收者门户"
-    }
+    },
+    "achievements": "成就",
+    "impact": "影响力仪表板"
   },
   "receiverBrowse": {
     "confirmClaim": "您确定要认领这个捐赠吗？",
@@ -1187,6 +1355,14 @@
       "smsDisabled": "短信提醒已禁用",
       "updateFailed": "更新失败。请重试。"
     },
+    "privacyConsent": {
+      "title": "隐私与数据同意",
+      "description": "您的数据存储同意与隐私信息",
+      "consentMessage": "您在注册 FoodFlow 时已同意数据存储。我们收集并存储您的信息，以提供我们的服务并高效连接捐赠者与受助者。",
+      "detailsPrefix": "如需了解我们如何处理您的数据的更多信息，请查看我们的",
+      "privacyPolicyLink": "隐私政策",
+      "detailsSuffix": "。"
+    },
     "notificationTypes": {
       "title": "通知类型",
       "description": "自定义您想要接收的通知类型",
@@ -1278,6 +1454,159 @@
       "imageInvalid": "请上传有效的图片文件"
     }
   },
+  "achievements": {
+    "loading": "正在加载您的成就...",
+    "error": "无法加载成就",
+    "errorMessage": "请刷新页面后重试",
+    "noAchievements": "暂时没有成就",
+    "startDonating": "开始捐赠食物以获得徽章和积分！",
+    "title": "您的成就",
+    "sectionTitle": "成就",
+    "subtitle": "追踪您的进度并获得奖励",
+    "totalPoints": "总积分",
+    "pointsDescription": "通过成就获得的积分",
+    "progress": "进度",
+    "complete": "已完成",
+    "unlockedBadges": "已解锁徽章",
+    "badgesDescription": "已获得的成就",
+    "unlocked": "已解锁成就",
+    "unlockedTitle": "成就已解锁！",
+    "unlockedIndicator": "✓ 已解锁",
+    "inProgress": "进行中",
+    "locked": "未解锁成就",
+    "points": "积分",
+    "viewAll": "查看所有成就",
+    "unlockCriteria": "解锁条件：",
+    "pointsEarned": "+{{count}} 已获得积分",
+    "closeNotification": "关闭通知",
+    "criteriaTypes": {
+      "DONATION_COUNT": "捐赠次数",
+      "CLAIM_COUNT": "认领次数",
+      "MESSAGE_COUNT": "消息数",
+      "WEEKLY_STREAK": "连续周数",
+      "UNIQUE_PARTNER_COUNT": "组织数量",
+      "STREAK_DAYS": "连续天数",
+      "TOTAL_POINTS": "总积分"
+    },
+    "descriptionTemplates": {
+      "DONATION_COUNT": "完成 {{count}} 次成功食物捐赠",
+      "WEEKLY_STREAK": "连续 {{count}} 周每周至少捐赠一次",
+      "MESSAGE_COUNT": "在捐赠对话中发送 {{count}} 条消息",
+      "UNIQUE_PARTNER_COUNT": "成功与 {{count}} 个不同组织互动"
+    },
+    "catalog": {
+      "community_champion": {
+        "name": "社区冠军"
+      },
+      "century_donor": {
+        "name": "百次捐赠者"
+      },
+      "unstoppable_force": {
+        "name": "势不可挡"
+      },
+      "donation_master": {
+        "name": "捐赠大师"
+      },
+      "elite_contributor": {
+        "name": "精英贡献者"
+      },
+      "legendary_donor": {
+        "name": "传奇捐赠者"
+      },
+      "donation_titan": {
+        "name": "捐赠巨擘"
+      },
+      "thousand_strong": {
+        "name": "千次坚守"
+      },
+      "ultimate_benefactor": {
+        "name": "终极慈善家"
+      },
+      "steady_start": {
+        "name": "稳健起步"
+      },
+      "monthly_commitment": {
+        "name": "月度承诺"
+      },
+      "two_month_streak": {
+        "name": "两月连胜"
+      },
+      "quarterly_dedication": {
+        "name": "季度奉献"
+      },
+      "half_year_hero": {
+        "name": "半年英雄"
+      },
+      "year_round_giver": {
+        "name": "全年捐赠者"
+      },
+      "two_year_legend": {
+        "name": "两年传奇"
+      },
+      "chatty_starter": {
+        "name": "聊天新手"
+      },
+      "conversationalist": {
+        "name": "对话达人"
+      },
+      "active_communicator": {
+        "name": "活跃沟通者"
+      },
+      "communication_expert": {
+        "name": "沟通专家"
+      },
+      "message_master": {
+        "name": "消息大师"
+      },
+      "communication_guru": {
+        "name": "沟通宗师"
+      },
+      "ultimate_networker": {
+        "name": "终极联络者"
+      },
+      "making_connections": {
+        "name": "建立连接"
+      },
+      "community_builder": {
+        "name": "社区建设者"
+      },
+      "network_grower": {
+        "name": "网络拓展者"
+      },
+      "relationship_expert": {
+        "name": "关系专家"
+      },
+      "community_leader": {
+        "name": "社区领袖"
+      },
+      "connection_master": {
+        "name": "连接大师"
+      },
+      "network_titan": {
+        "name": "网络巨擘"
+      },
+      "ultimate_connector": {
+        "name": "终极连接者"
+      }
+    }
+  },
+  "leaderboard": {
+    "title": "排行榜",
+    "loading": "正在加载排行榜...",
+    "error": "无法加载排行榜",
+    "errorMessage": "请刷新页面后重试",
+    "retry": "重试",
+    "noData": "暂无排行榜数据",
+    "noDataMessage": "成为第一个获得积分并登上排行榜的人！",
+    "topDonors": "顶级捐赠者",
+    "topReceivers": "顶级受助者",
+    "refresh": "刷新",
+    "yourPosition": "您的排名",
+    "keepGoing": "继续贡献，提升您的排名！",
+    "totalUsers": "共 {{count}} 位用户",
+    "you": "您",
+    "pts": "分"
+  },
   "completedView": {
     "claimed": "已认领",
     "untitledDonation": "无标题捐赠",
@@ -1358,6 +1687,8 @@
     "repeatDonors": "重复捐赠者",
     "repeatReceivers": "重复接收方",
     "foodSavedOverTime": "食物挽救趋势",
+    "dateLabel": "日期",
+    "foodSavedLabel": "已挽救食物",
     "impactOverview": "影响概览",
     "claimsByDay": "按天领取",
     "claimsByWeek": "按周领取",
@@ -1374,7 +1705,903 @@
     "adminMessage": "FoodFlow 正在切实减少食物浪费并支持社区发展。",
     "selectAll": "全选",
     "clearAll": "清除全部",
-    "done": "完成"
+    "done": "完成",
+    "impactMetrics": "影响指标",
+    "foodSavedByDay": "按天挽救食物",
+    "foodSavedByWeek": "按周挽救食物",
+    "foodSavedByMonth": "按月挽救食物",
+    "claimsLabel": "认领数"
+  },
+  "donorHelp": {
+    "gettingStarted": {
+      "title": "快速开始",
+      "intro": "欢迎使用 FoodFlow！按照以下步骤开始捐赠剩余食物，帮助有需要的人。",
+      "steps": {
+        "step1": {
+          "title": "创建您的第一条捐赠",
+          "description": "点击侧边栏中的“立即捐赠”，填写食物类型、数量和描述等信息。"
+        },
+        "step2": {
+          "title": "设置取货时间",
+          "description": "选择受助方可到您地点取货的时间段，您可以添加多个时间段。"
+        },
+        "step3": {
+          "title": "等待认领",
+          "description": "已验证的受助方会看到您的捐赠并进行认领，认领后您会立即收到通知。"
+        },
+        "step4": {
+          "title": "使用 OTP 确认交接",
+          "description": "受助方在取货时间到达后会提供 OTP 代码，输入后即可确认交接成功。"
+        }
+      }
+    },
+    "faq": {
+      "title": "常见问题",
+      "items": {
+        "q1": {
+          "question": "如何创建捐赠？",
+          "answer": "在侧边栏进入“立即捐赠”，点击“添加捐赠”，填写标题、食物类型、数量、到期时间和取货时段，然后提交发布。"
+        },
+        "q2": {
+          "question": "取货确认是如何工作的？",
+          "answer": "当受助方认领并在预约时间到达后，您需要输入其提供的 OTP 代码来确认交接完成。"
+        },
+        "q3": {
+          "question": "什么是 OTP 代码？",
+          "answer": "OTP 是一次性密码，为 6 位数字，在捐赠变为“准备取货”时自动生成。"
+        },
+        "q4": {
+          "question": "我可以编辑或删除捐赠吗？",
+          "answer": "可以，前提是捐赠尚未被认领。认领后不可修改或删除。"
+        },
+        "q5": {
+          "question": "如何给受助方发消息？",
+          "answer": "点击侧边栏“消息”进入会话，与认领您捐赠的受助方沟通取货细节。"
+        },
+        "q6": {
+          "question": "可以捐赠哪些食物类型？",
+          "answer": "支持熟食、包装食品、果蔬、乳制品/冷藏品、烘焙食品和冷冻食品等类别。"
+        },
+        "q7": {
+          "question": "如何设置取货时段？",
+          "answer": "创建捐赠时可添加多个时段，并填写日期、开始时间和结束时间。"
+        },
+        "q8": {
+          "question": "如果受助方未到场怎么办？",
+          "answer": "在合理等待后，该认领可能过期，捐赠将重新开放给其他受助方。"
+        },
+        "q9": {
+          "question": "我的机构如何被验证？",
+          "answer": "注册后，管理员会审核您的机构信息、资质和地址等内容。"
+        },
+        "q10": {
+          "question": "我能看到是谁认领了我的捐赠吗？",
+          "answer": "可以，认领后您可查看受助机构名称和联系方式以便协调取货。"
+        }
+      }
+    },
+    "support": {
+      "title": "需要更多帮助？",
+      "intro": "没找到您需要的内容？我们的支持团队随时为您提供帮助。",
+      "emailLabel": "邮件支持",
+      "emailResponseTime": "24 小时内回复",
+      "phoneLabel": "电话支持",
+      "phoneAvailability": "周一至周五，上午9点至下午6点（EST）"
+    }
+  },
+  "receiverHelp": {
+    "gettingStarted": {
+      "title": "快速开始",
+      "intro": "欢迎使用 FoodFlow！作为受助方，您可以认领来自本地商家和机构的剩余食物捐赠。",
+      "steps": {
+        "step1": {
+          "title": "浏览可用捐赠",
+          "description": "在捐赠页面查找附近的食物列表，并使用筛选条件匹配您的需求。"
+        },
+        "step2": {
+          "title": "认领并安排取货",
+          "description": "点击“认领”并从可用时段中选择取货时间，捐赠将为您的机构保留。"
+        },
+        "step3": {
+          "title": "使用 OTP 取货",
+          "description": "按预约时间到达并向捐赠方提供 OTP 代码，对方确认后流程完成。"
+        },
+        "step4": {
+          "title": "设置偏好",
+          "description": "在个人资料中更新食物偏好，以获得更精准的匹配。"
+        }
+      }
+    },
+    "faq": {
+      "title": "常见问题",
+      "items": {
+        "q1": {
+          "question": "如何认领捐赠？",
+          "answer": "浏览可用捐赠，找到合适项后点击“认领”，并选择取货时间段。"
+        },
+        "q2": {
+          "question": "如何确认取货？",
+          "answer": "到达捐赠方地点后提供 OTP 代码，捐赠方输入后即可确认交接。"
+        },
+        "q3": {
+          "question": "什么是 OTP 代码？",
+          "answer": "它是每笔认领对应的 6 位一次性验证码。"
+        },
+        "q4": {
+          "question": "什么是食物偏好？",
+          "answer": "可设置食物类别、捐赠规模和饮食限制，以便匹配更合适的捐赠。"
+        },
+        "q5": {
+          "question": "如何设置食物偏好？",
+          "answer": "点击右上角头像，进入“偏好”即可设置食物类型和限制条件。"
+        },
+        "q6": {
+          "question": "如何给捐赠方发消息？",
+          "answer": "点击“消息”进入会话，与捐赠方沟通取货安排和问题。"
+        },
+        "q7": {
+          "question": "捐赠状态分别是什么意思？",
+          "answer": "状态包括：可用、已认领、准备取货、已完成、已取消。"
+        },
+        "q8": {
+          "question": "我可以取消认领吗？",
+          "answer": "可以，在“我的认领”中找到对应捐赠并在取货前取消。"
+        },
+        "q9": {
+          "question": "如何找到附近捐赠？",
+          "answer": "在捐赠页面使用类型、距离和取货时间筛选，快速定位附近资源。"
+        },
+        "q10": {
+          "question": "我的机构如何验证？",
+          "answer": "注册后管理员会审核机构资质、注册文件和联系信息。"
+        }
+      }
+    },
+    "support": {
+      "title": "需要更多帮助？",
+      "intro": "没找到您需要的内容？我们的支持团队随时为您提供帮助。",
+      "emailLabel": "邮件支持",
+      "emailResponseTime": "24 小时内回复",
+      "phoneLabel": "电话支持",
+      "phoneAvailability": "周一至周五，上午9点至下午6点（EST）"
+    }
+  },
+  "aiDonation": {
+    "backToDashboard": "返回仪表板",
+    "title": "使用 AI 创建捐赠",
+    "subtitle": "上传标签照片以提取产品详情。提交前可先进行审核。",
+    "steps": {
+      "upload": "上传",
+      "review": "审核",
+      "submit": "提交"
+    },
+    "processing": {
+      "title": "正在处理图片",
+      "hint": "这可能需要最多 30 秒。",
+      "readingLabel": "读取标签",
+      "extractingData": "提取数据",
+      "preparingResults": "准备结果",
+      "loadingMaps": "加载地图中"
+    },
+    "toast": {
+      "extractionComplete": "提取完成。请在提交前检查详情。",
+      "aiFailed": "AI 提取失败",
+      "analysisFailed": "图片分析失败",
+      "requestTimedOut": "请求超时。请尝试使用更小的图片。",
+      "networkError": "网络错误。请检查连接后重试。"
+    },
+    "upload": {
+      "title": "上传标签图片",
+      "subtitle": "请上传清晰图片，需包含：",
+      "required": {
+        "productName": "产品名称",
+        "nutritionFacts": "营养成分信息",
+        "ingredientsList": "配料表",
+        "expiryDate": "到期日或最佳食用日期",
+        "allergenInfo": "过敏原信息"
+      },
+      "ariaLabel": "上传标签图片",
+      "dragAndDrop": "拖放标签图片到此处",
+      "or": "或",
+      "chooseFile": "选择文件",
+      "fileTypes": "JPG, PNG, HEIC",
+      "maxSize": "最大 5 MB",
+      "selectedFile": "已选择文件",
+      "remove": "移除",
+      "continueToReview": "继续审核",
+      "alternative": "其他方式",
+      "manualEntry": "继续手动录入",
+      "guidelinesTitle": "图片指南",
+      "tips": {
+        "goodLighting": "光线充足",
+        "noGlare": "无反光",
+        "labelVisible": "标签完整可见",
+        "textInFocus": "文字保持清晰对焦",
+        "includeExpiry": "尽量包含到期/最佳食用日期"
+      },
+      "manualHint": "清晰图片可提升提取准确率。",
+      "errors": {
+        "selectFile": "请选择图片文件后继续。",
+        "unsupportedType": "不支持的文件类型。请使用 JPG、PNG 或 HEIC。",
+        "fileTooLarge": "文件超过 5 MB。请选择更小的图片。"
+      }
+    }
+  },
+  "adminWelcome": {
+    "title": "??",
+    "description": "??????????"
+  },
+  "adminHelp": {
+    "title": "??"
+  },
+  "adminCalendar": {
+    "title": "??"
+  },
+  "adminAnalytics": {
+    "title": "????????",
+    "subtitle": "????????????????",
+    "loading": "????????...",
+    "temperatureCategories": "????",
+    "packagingTypes": "????",
+    "noTemperatureData": "??????",
+    "noPackagingData": "??????",
+    "totalAnalyzed": "????????",
+    "errors": {
+      "loadFailed": "????????"
+    }
+  },
+  "adminDisputes": {
+    "loading": "??????...",
+    "allCases": "????",
+    "searchPlaceholder": "????...",
+    "emptyTitle": "?????",
+    "emptyDescription": "??????????????",
+    "userTypes": {
+      "donor": "???",
+      "receiver": "???"
+    },
+    "status": {
+      "open": "??",
+      "underReview": "???",
+      "resolved": "???",
+      "closed": "???"
+    },
+    "stats": {
+      "totalCases": "????",
+      "resolvedToday": "?????",
+      "avgResolution": "??????",
+      "avgResolutionValue": "{{count}} ?"
+    },
+    "table": {
+      "caseId": "????",
+      "reporter": "???",
+      "reportedUser": "?????",
+      "donationId": "????",
+      "created": "????",
+      "status": "??",
+      "action": "??",
+      "view": "??"
+    },
+    "errors": {
+      "loadFailed": "???????"
+    }
+  },
+  "adminDisputeDetail": {
+    "notAvailable": "???",
+    "backToDisputes": "??????",
+    "caseNotFound": "?????",
+    "caseTitle": "?? {{caseId}}",
+    "createdOn": "??? {{date}} {{time}}",
+    "saveStatusChange": "??????",
+    "statusHint": "????????",
+    "actionsHint": "??????????????????",
+    "resolutionHint": "????????????????",
+    "labels": {
+      "caseId": "????",
+      "createdDate": "????",
+      "createdTime": "????",
+      "name": "??",
+      "userId": "????",
+      "donationId": "????",
+      "currentStatus": "????",
+      "updateStatus": "????"
+    },
+    "sections": {
+      "caseInformation": "????",
+      "reporter": "???",
+      "reportedUser": "?????",
+      "relatedDonation": "????",
+      "reportDescription": "????",
+      "caseStatus": "????",
+      "adminActions": "????",
+      "caseResolution": "????"
+    },
+    "actions": {
+      "deactivateUser": "??????",
+      "overrideDonation": "??????",
+      "flagUser": "???????",
+      "closeCase": "????"
+    },
+    "alerts": {
+      "statusAlreadySet": "?????? {{status}}",
+      "statusUpdated": "??????",
+      "updateFailed": "???????{{message}}",
+      "deactivateRequested": "?????????",
+      "overrideDonation": "??????",
+      "userFlagged": "?????????",
+      "mustResolveBeforeClose": "????????????????"
+    },
+    "confirm": {
+      "changeStatus": "??????????{{status}}???",
+      "deactivateUser": "????????????",
+      "closeCase": "??????????"
+    },
+    "errors": {
+      "loadFailed": "????????"
+    }
+  },
+  "adminVerificationQueue": {
+    "title": "待处理注册",
+    "loading": "正在加载待处理用户...",
+    "showing": "显示 {{shown}} / {{total}} 个待处理用户",
+    "searchPlaceholder": "按机构名称或邮箱搜索...",
+    "notAvailable": "无",
+    "labels": {
+      "organization": "机构",
+      "contact": "联系人",
+      "email": "邮箱",
+      "type": "类型"
+    },
+    "stats": {
+      "totalPending": "待处理总数",
+      "pendingDonors": "待处理捐赠者",
+      "pendingReceivers": "待处理接收者",
+      "avgWaitTime": "平均等待时间"
+    },
+    "filters": {
+      "allTypes": "所有类型",
+      "donors": "捐赠者",
+      "receivers": "接收者",
+      "byType": "按类型筛选",
+      "byStatus": "按状态筛选",
+      "sortBy": "排序方式"
+    },
+    "status": {
+      "emailVerified": "邮箱已验证",
+      "emailNotVerified": "邮箱未验证",
+      "pendingApproval": "等待批准"
+    },
+    "sort": {
+      "registrationDate": "注册日期",
+      "userType": "用户类型",
+      "waitingTime": "等待时间",
+      "toggle": "按{{order}}排序",
+      "ascending": "升序",
+      "descending": "降序"
+    },
+    "table": {
+      "id": "ID",
+      "organization": "机构",
+      "type": "类型",
+      "status": "状态",
+      "email": "邮箱",
+      "phone": "电话",
+      "waitingTime": "等待时间",
+      "actions": "操作"
+    },
+    "empty": {
+      "title": "没有待处理注册",
+      "description": "所有用户注册都已审核。"
+    },
+    "actions": {
+      "verifyEmail": "验证邮箱",
+      "approve": "批准",
+      "reject": "拒绝"
+    },
+    "time": {
+      "day": "天",
+      "days": "天",
+      "hour": "小时",
+      "hours": "小时"
+    },
+    "document": {
+      "viewing": "正在查看文档：{{name}}",
+      "productionNote": "在生产环境中，这里会打开已上传的文档供审核。"
+    },
+    "rejectionReasons": {
+      "incompleteInfo": "信息不完整",
+      "invalidOrganization": "机构无效",
+      "duplicateAccount": "重复账户",
+      "suspiciousActivity": "可疑活动",
+      "doesNotMeetCriteria": "不符合条件",
+      "other": "其他"
+    },
+    "modals": {
+      "approval": {
+        "title": "批准注册",
+        "confirm": "确定要批准此注册吗？",
+        "note": "用户将收到批准邮件，其状态将被设置为 ACTIVE。",
+        "loading": "正在批准...",
+        "action": "批准用户"
+      },
+      "rejection": {
+        "title": "拒绝注册",
+        "selectReason": "请选择拒绝原因",
+        "prompt": "请提供拒绝此注册的原因：",
+        "reason": "拒绝原因",
+        "reasonPlaceholder": "选择原因...",
+        "additionalMessage": "附加消息（可选）",
+        "messagePlaceholder": "为用户添加其他说明...",
+        "note": "用户将收到包含原因的拒绝邮件，并可在需要时重新注册。",
+        "loading": "正在拒绝...",
+        "action": "拒绝用户"
+      },
+      "manualVerify": {
+        "title": "手动验证邮箱",
+        "prompt": "这将把用户邮箱标记为已验证，并将其移入管理员审批队列。",
+        "note": "仅在验证链接失效时使用。",
+        "loading": "正在验证...",
+        "action": "验证邮箱"
+      }
+    },
+    "toasts": {
+      "approved": "{{name}} 已成功批准！",
+      "approveFailed": "批准用户失败。请重试。",
+      "rejected": "{{name}} 已被拒绝。",
+      "rejectFailed": "拒绝用户失败。请重试。",
+      "verified": "邮箱已手动验证",
+      "verifyFailed": "邮箱验证失败。请重试。"
+    },
+    "pagination": {
+      "previous": "上一页",
+      "next": "下一页",
+      "pageOf": "第 {{page}} / {{total}} 页"
+    }
+  },
+  "adminUsers": {
+    "title": "所有用户",
+    "searchPlaceholder": "按姓名、邮箱或机构搜索...",
+    "empty": "未找到用户",
+    "moreLess": "更多/更少",
+    "notAvailable": "无",
+    "stats": {
+      "totalUsers": "用户总数",
+      "totalDonors": "捐赠者总数",
+      "newUsers": "新用户",
+      "totalReceivers": "接收者总数"
+    },
+    "filters": {
+      "allRoles": "所有角色",
+      "allStatus": "所有状态",
+      "reset": "重置"
+    },
+    "table": {
+      "id": "ID",
+      "name": "姓名",
+      "role": "角色",
+      "status": "状态",
+      "email": "邮箱",
+      "activity": "活动",
+      "actions": "操作"
+    },
+    "roles": {
+      "donor": "捐赠者",
+      "receiver": "接收者",
+      "admin": "管理员"
+    },
+    "status": {
+      "active": "启用",
+      "deactivated": "停用"
+    },
+    "actions": {
+      "viewDetails": "查看详情",
+      "deactivate": "停用",
+      "reactivate": "重新启用",
+      "sendAlert": "发送提醒"
+    },
+    "details": {
+      "totalActivity": "总活动量",
+      "donationsCount": "{{count}} 次捐赠",
+      "claimsCount": "{{count}} 次领取",
+      "disputes": "争议",
+      "feedbackScore": "反馈评分",
+      "noReviews": "暂无评价",
+      "memberSince": "加入时间",
+      "recentActivity": "最近活动"
+    },
+    "modals": {
+      "deactivate": {
+        "title": "停用用户：",
+        "placeholder": "输入停用原因（必填）..."
+      },
+      "reactivate": {
+        "title": "重新启用用户",
+        "confirmPrefix": "确定要重新启用"
+      },
+      "alert": {
+        "title": "发送提醒给：",
+        "alertType": "提醒类型",
+        "customPlaceholder": "输入你的自定义消息...",
+        "editPlaceholder": "编辑消息"
+      }
+    },
+    "alertTypes": {
+      "warning": "警告",
+      "safety": "安全通知",
+      "compliance": "合规提醒",
+      "custom": "自定义提醒"
+    },
+    "alertDescriptions": {
+      "warning": "发送有关违反政策的警告",
+      "safety": "重要安全信息",
+      "compliance": "提醒合规要求",
+      "custom": "发送自定义消息"
+    },
+    "notifications": {
+      "reasonRequired": "请输入停用原因",
+      "deactivated": "用户已成功停用",
+      "deactivateFailed": "停用用户失败",
+      "reactivated": "用户已成功重新启用",
+      "reactivateFailed": "重新启用用户失败",
+      "alertRequired": "请输入提醒消息",
+      "alertSent": "提醒发送成功",
+      "alertFailed": "提醒发送失败"
+    },
+    "errors": {
+      "loadFailed": "加载用户失败。请稍后再试。"
+    }
+  },
+  "adminDonations": {
+    "title": "所有捐赠",
+    "searchPlaceholder": "按标题、捐赠者、接收者或 ID 搜索...",
+    "loading": "正在加载捐赠...",
+    "empty": "未找到捐赠",
+    "notAvailable": "无",
+    "flaggedDonation": "已标记捐赠",
+    "lowRating": "低评分（<=2 星）",
+    "stats": {
+      "total": "捐赠总数",
+      "active": "进行中",
+      "completed": "已完成",
+      "flagged": "已标记"
+    },
+    "filters": {
+      "allStatus": "所有状态",
+      "reset": "重置"
+    },
+    "table": {
+      "id": "ID",
+      "title": "标题",
+      "status": "状态",
+      "donor": "捐赠者",
+      "receiver": "接收者",
+      "rating": "评分",
+      "flagged": "已标记",
+      "created": "创建时间",
+      "updated": "更新时间",
+      "actions": "操作"
+    },
+    "actions": {
+      "viewDetails": "查看详情"
+    },
+    "details": {
+      "foodCategories": "食物类别",
+      "quantity": "数量",
+      "expiryDate": "到期日期",
+      "pickupDate": "取货日期",
+      "temperature": "温度",
+      "packagingConditions": "包装情况",
+      "description": "描述",
+      "noDescription": "无描述",
+      "feedbackRatings": "反馈与评分",
+      "clickToLoadFeedback": "点击展开并加载反馈...",
+      "noFeedback": "此捐赠尚未收到任何反馈。"
+    },
+    "errors": {
+      "loadFailed": "加载捐赠失败。请重试。"
+    }
+  },
+  "adminSettings": {
+    "loading": "正在加载资料...",
+    "profileAlt": "个人资料",
+    "profilePhoto": "头像",
+    "profilePhotoDescription": "上传照片以个性化你的账户",
+    "changePassword": "修改密码",
+    "saving": "正在保存...",
+    "saveChanges": "保存更改",
+    "emailAlerts": "邮件提醒",
+    "smsAlerts": "短信提醒",
+    "yourEmailAddress": "你的邮箱地址",
+    "emailAlertsDescription": "通过 {{email}} 接收邮件通知",
+    "smsAlertsDescription": "通过短信接收通知{{phone}}",
+    "sections": {
+      "account": "账户",
+      "languageRegion": "语言和地区",
+      "notificationPreferences": "通知偏好",
+      "notificationTypes": "通知类型"
+    },
+    "descriptions": {
+      "account": "管理你的个人资料和账户详情",
+      "languageRegion": "设置你的语言、位置和时区偏好",
+      "notificationPreferences": "选择你希望如何接收通知",
+      "notificationTypes": "自定义你希望接收的通知类型"
+    },
+    "subsections": {
+      "languagePreference": "语言偏好",
+      "locationTimezone": "位置和时区"
+    },
+    "subsectionDescriptions": {
+      "languagePreference": "选择界面的首选语言",
+      "locationTimezone": "设置你的位置以确保日期和时间信息准确"
+    },
+    "fields": {
+      "fullName": "全名",
+      "email": "邮箱地址",
+      "organization": "机构",
+      "phone": "电话号码",
+      "address": "地址"
+    },
+    "placeholders": {
+      "fullName": "输入你的全名",
+      "email": "输入你的邮箱",
+      "organization": "输入你的机构名称",
+      "phone": "输入你的电话号码",
+      "address": "输入你的地址"
+    },
+    "validation": {
+      "fullNameRequired": "全名为必填项",
+      "fullNameMin": "全名至少需要 2 个字符",
+      "emailRequired": "邮箱为必填项",
+      "emailInvalid": "请输入有效的邮箱地址",
+      "phoneInvalid": "请输入有效的电话号码",
+      "imageSize": "图片大小必须小于 5MB",
+      "imageFile": "请上传有效的图片文件"
+    },
+    "messages": {
+      "profileUpdated": "个人资料更新成功",
+      "updateFailed": "个人资料更新失败。请重试。",
+      "emailAlertsEnabled": "邮件提醒已启用",
+      "emailAlertsDisabled": "邮件提醒已停用",
+      "smsAlertsEnabled": "短信提醒已启用",
+      "smsAlertsDisabled": "短信提醒已停用"
+    }
+  },
+  "adminHome": {
+    "defaultAdminName": "???",
+    "loadingDashboardStats": "???????????...",
+    "errors": {
+      "loadStats": "???????????"
+    },
+    "stats": {
+      "totalUsers": "????",
+      "totalDonations": "????",
+      "ongoingClaims": "进行中的认领",
+      "activeDonations": "????",
+      "pendingVerifications": "待审核",
+      "completed": "已完成"
+    },
+    "quickActions": {
+      "title": "????",
+      "subtitle": "访问最关键的管理工具",
+      "viewLess": "??",
+      "viewAllTools": "??????",
+      "userManagement": {
+        "title": "????",
+        "description": "管理用户、角色和权限"
+      },
+      "reviewDonations": {
+        "title": "????",
+        "description": "审核并管理捐赠帖子"
+      },
+      "disputeDashboard": {
+        "title": "????",
+        "description": "???????"
+      },
+      "messages": {
+        "title": "??",
+        "description": "????????"
+      },
+      "flaggedPosts": {
+        "title": "已标记内容",
+        "description": "审核被标记内容"
+      },
+      "pickupSchedule": {
+        "title": "????",
+        "description": "查看并管理取货安排"
+      },
+      "analytics": {
+        "title": "??",
+        "description": "?????????"
+      },
+      "systemSettings": {
+        "title": "系统设置",
+        "description": "配置平台设置"
+      }
+    },
+    "recentActivity": {
+      "title": "最近活动",
+      "viewAllActivity": "查看全部活动"
+    },
+    "activity": {
+      "defaultUser": "???",
+      "defaultDonor": "?????",
+      "defaultDonationTitle": "???",
+      "userType": {
+        "donor": "???",
+        "receiver": "接收者"
+      },
+      "newUserRegistered": "{{name}} 注册为新的 {{userType}}",
+      "newDonationPosted": "{{name}} 发布了新的捐赠",
+      "flaggedPostTitle": "系统标记了一条待审核内容",
+      "flaggedPostSubtitle": "帖子 #{{id}} - 检测到不当内容",
+      "disputeResolvedTitle": "管理员已解决一条争议",
+      "disputeResolvedSubtitle": "?? #{{id}}"
+    },
+    "timeAgo": {
+      "minuteAgo": "1 ???",
+      "minutesAgo": "{{count}} ???",
+      "hourAgo": "1 ???",
+      "hoursAgo": "{{count}} ???",
+      "dayAgo": "1 ??",
+      "daysAgo": "{{count}} ??"
+    }
+  },
+  "calendar": {
+    "title": "日历集成",
+    "description": "将您的 FoodFlow 取货安排同步到 Google Calendar",
+    "connected": "已连接",
+    "notConnected": "未连接",
+    "provider": "提供方",
+    "connectPrompt": "连接您的 Google Calendar 以自动同步捐赠预约和取货时间。不错过任何重要事件！",
+    "connectButton": "连接 Google Calendar",
+    "disconnectButton": "断开连接",
+    "loadError": "加载日历数据失败",
+    "connectError": "连接日历失败。请重试。",
+    "disconnectError": "断开日历连接失败",
+    "syncButton": "立即同步",
+    "preferences": "同步偏好设置",
+    "syncEnabled": "启用自动同步",
+    "connecting": "连接中...",
+    "disconnectTitle": "断开日历连接？",
+    "disconnectWarning1": "断开后，FoodFlow 将失去在您的 Google 日历中执行操作的权限。",
+    "disconnectWarning2": "如需重新启用，您需要再次完成 OAuth 连接流程。",
+    "disconnectWarning3": "已创建的事件仍会保留在您的日历中。",
+    "disconnectSuccess": "日历已成功断开",
+    "autoReminders": "启用自动提醒",
+    "reminderPreferences": "提醒偏好",
+    "reminderTimeBeforeEvent": "事件前提醒时间",
+    "reminderType": "提醒类型",
+    "eventPreferences": "事件偏好",
+    "eventColor": "事件颜色",
+    "eventVisibility": "事件可见性",
+    "eventDuration": "事件时长",
+    "saveButton": "保存偏好设置",
+    "saveSuccess": "偏好设置已保存",
+    "saveError": "保存偏好设置失败",
+    "syncError": "同步日历失败",
+    "syncedEvents": "已同步事件",
+    "connectionDetails": {
+      "title": "连接详情",
+      "connectedSince": "首次连接时间",
+      "grantedScopes": "已授予范围",
+      "lastSuccessfulSync": "上次成功同步",
+      "lastFailedRefresh": "上次刷新失败",
+      "googleAccountEmail": "Google 账号邮箱",
+      "primaryCalendarName": "主日历名称",
+      "calendarTimeZone": "日历时区",
+      "never": "从未",
+      "notAvailable": "暂不可用"
+    },
+    "summary": {
+      "connectedTo": "已连接到 {{provider}}",
+      "notConnected": "未连接",
+      "syncedEventSingular": "{{count}} 个已同步事件",
+      "syncedEventPlural": "{{count}} 个已同步事件"
+    },
+    "toggleAria": "切换日历集成",
+    "hide": "隐藏",
+    "edit": "编辑",
+    "viewConnectionDetails": "查看连接详情",
+    "minutes": "分钟",
+    "email": "电子邮件",
+    "popup": "弹窗",
+    "both": "两者",
+    "colors": {
+      "blue": "蓝色",
+      "green": "绿色",
+      "purple": "紫色",
+      "red": "红色",
+      "yellow": "黄色",
+      "orange": "橙色",
+      "gray": "灰色"
+    },
+    "visibility": {
+      "private": "私密",
+      "public": "公开"
+    },
+    "onlyAppliedNoEndTime": "仅当取货没有结束时间时生效",
+    "privacyPolicyPrefix": "点击查看",
+    "privacyPolicyLink": "日历集成政策",
+    "closeModalAria": "关闭弹窗"
+  },
+  "changePasswordModal": {
+    "title": "更改密码",
+    "changing": "正在更改...",
+    "fields": {
+      "currentPassword": "当前密码",
+      "newPassword": "新密码",
+      "confirmNewPassword": "确认新密码"
+    },
+    "placeholders": {
+      "currentPassword": "输入当前密码",
+      "newPassword": "输入新密码",
+      "confirmNewPassword": "确认新密码"
+    },
+    "requirements": {
+      "title": "密码要求：",
+      "minLength": "至少 8 个字符",
+      "differentFromCurrent": "必须与当前密码不同"
+    },
+    "errors": {
+      "currentPasswordRequired": "当前密码为必填项",
+      "newPasswordRequired": "新密码为必填项",
+      "newPasswordMinLength": "密码至少需要 8 个字符",
+      "newPasswordDifferent": "新密码必须与当前密码不同",
+      "confirmPasswordRequired": "请确认新密码",
+      "passwordsDoNotMatch": "两次输入的密码不一致"
+    },
+    "messages": {
+      "success": "密码更改成功",
+      "changeFailed": "更改密码失败"
+    },
+    "aria": {
+      "closeModal": "关闭弹窗",
+      "togglePasswordVisibility": "切换密码可见性"
+    }
+  },
+  "donorPhotoPreferences": {
+    "title": "展示偏好",
+    "modeSingle": "模式：单张图片",
+    "modePerFoodType": "模式：按食物类型",
+    "selectedSingular": "已选择 {{count}} 张图片",
+    "selectedPlural": "已选择 {{count}} 张图片",
+    "toggleAria": "切换展示偏好",
+    "hide": "隐藏",
+    "edit": "编辑",
+    "singleModeTitle": "所有捐赠使用同一张图片",
+    "perTypeModeTitle": "每种食物类型单独图片",
+    "singleDonationImage": "单张捐赠图片",
+    "uploading": "上传中...",
+    "pendingApproval": "待审核",
+    "selectFromLibrary": "或从内部图片库选择：",
+    "libraryImageAlt": "Library {{id}}",
+    "selectedTypeAlt": "{{foodType}} selected",
+    "saving": "保存中...",
+    "saveButton": "保存图片偏好",
+    "note": "注意：捐赠者上传的图片需经管理员审核后，才会显示在接收方捐赠卡片中。",
+    "loading": "正在加载图片偏好...",
+    "messages": {
+      "uploadSuccess": "图片已上传。请保存偏好设置以生效。管理员审核通过后会显示在接收方卡片中。",
+      "saved": "图片偏好已保存。"
+    },
+    "errors": {
+      "load": "加载图片展示偏好失败。",
+      "save": "保存偏好失败。",
+      "upload": "图片上传失败。",
+      "fileRequired": "必须选择图片文件。",
+      "invalidType": "仅允许 JPEG、PNG 和 WEBP 图片。",
+      "maxSize": "图片大小必须不超过 5MB。"
+    }
+  },
+  "foodTypeLabels": {
+    "PREPARED": "熟食餐",
+    "PRODUCE": "生鲜果蔬",
+    "BAKERY": "烘焙糕点",
+    "DAIRY_EGGS": "奶制品和鸡蛋",
+    "MEAT_POULTRY": "肉类和禽类",
+    "SEAFOOD": "海鲜",
+    "PANTRY": "包装/储藏食品",
+    "BEVERAGES": "饮品"
   },
   "inviteCommunity": {
     "title": "邀请社区组织",

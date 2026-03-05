@@ -3,6 +3,7 @@ jest.unmock('../api');
 
 const mockPost = jest.fn();
 const mockGet = jest.fn();
+const mockPut = jest.fn();
 const mockPatch = jest.fn();
 const mockDelete = jest.fn();
 
@@ -11,6 +12,7 @@ jest.mock('axios', () => ({
     interceptors: { request: { use: jest.fn() }, response: { use: jest.fn() } },
     post: mockPost,
     get: mockGet,
+    put: mockPut,
     patch: mockPatch,
     delete: mockDelete,
   })),
@@ -21,6 +23,7 @@ describe('API service', () => {
     jest.resetModules();
     mockPost.mockReset();
     mockGet.mockReset();
+    mockPut.mockReset();
     mockPatch.mockReset();
     mockDelete.mockReset();
     localStorage.clear();
@@ -266,6 +269,36 @@ describe('API service', () => {
       params: { email: 'test@test.com' },
     });
     expect(resp).toEqual({ data: { exists: true } });
+  });
+
+  test('imageAPI.upload sends multipart form-data', async () => {
+    mockPost.mockResolvedValue({ data: { image: { id: 1 } } });
+    const { imageAPI } = require('../api');
+    const file = new File(['data'], 'photo.jpg', { type: 'image/jpeg' });
+
+    await imageAPI.upload(file, { foodType: 'PRODUCE', donationId: 9 });
+
+    expect(mockPost).toHaveBeenCalledWith(
+      '/images/upload',
+      expect.any(FormData),
+      expect.objectContaining({
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+    );
+  });
+
+  test('donorPhotoSettingsAPI calls expected endpoints', async () => {
+    mockGet.mockResolvedValue({ data: { displayType: 'SINGLE' } });
+    mockPut.mockResolvedValue({ data: { displayType: 'PER_FOOD_TYPE' } });
+    const { donorPhotoSettingsAPI } = require('../api');
+
+    await donorPhotoSettingsAPI.get();
+    await donorPhotoSettingsAPI.update({ displayType: 'PER_FOOD_TYPE' });
+
+    expect(mockGet).toHaveBeenCalledWith('/donor/settings/photos');
+    expect(mockPut).toHaveBeenCalledWith('/donor/settings/photos', {
+      displayType: 'PER_FOOD_TYPE',
+    });
   });
 
   test('authAPI.checkPhoneExists', async () => {
@@ -723,18 +756,15 @@ describe('API service', () => {
   });
 
   test('recommendationAPI.getBrowseRecommendations handles error', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
     mockGet.mockRejectedValue(new Error('Network error'));
     const { recommendationAPI } = require('../api');
 
     const result = await recommendationAPI.getBrowseRecommendations([1, 2]);
 
-    expect(consoleSpy).toHaveBeenCalledWith(
-      'Error fetching browse recommendations:',
-      expect.any(Error)
-    );
+    expect(mockGet).toHaveBeenCalledWith('/recommendations/browse', {
+      params: { postIds: '1,2' },
+    });
     expect(result).toEqual({});
-    consoleSpy.mockRestore();
   });
 
   test('recommendationAPI.getRecommendationForPost', async () => {
@@ -748,18 +778,13 @@ describe('API service', () => {
   });
 
   test('recommendationAPI.getRecommendationForPost handles error', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
     mockGet.mockRejectedValue(new Error('Not found'));
     const { recommendationAPI } = require('../api');
 
     const result = await recommendationAPI.getRecommendationForPost(999);
 
-    expect(consoleSpy).toHaveBeenCalledWith(
-      'Error fetching post recommendation:',
-      expect.any(Error)
-    );
+    expect(mockGet).toHaveBeenCalledWith('/recommendations/post/999');
     expect(result).toBeNull();
-    consoleSpy.mockRestore();
   });
 
   test('recommendationAPI.getTopRecommendations with default minScore', async () => {
@@ -793,18 +818,15 @@ describe('API service', () => {
   });
 
   test('recommendationAPI.getTopRecommendations handles error', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
     mockGet.mockRejectedValue(new Error('Server error'));
     const { recommendationAPI } = require('../api');
 
-    const result = await recommendationAPI.getTopRecommendations(60);
+    const result = await recommendationAPI.getTopRecommendations([1, 2], 60);
 
-    expect(consoleSpy).toHaveBeenCalledWith(
-      'Error fetching top recommendations:',
-      expect.any(Error)
-    );
+    expect(mockGet).toHaveBeenCalledWith('/recommendations/top', {
+      params: { postIds: '1,2', minScore: 60 },
+    });
     expect(result).toEqual([]);
-    consoleSpy.mockRestore();
   });
 
   test('recommendationAPI.getTopRecommendations with empty postIds', async () => {

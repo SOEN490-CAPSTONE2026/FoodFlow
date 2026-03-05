@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { useLoadScript } from '@react-google-maps/api';
 import { ArrowLeft, FileCheck2, Send, ScanSearch, Upload } from 'lucide-react';
@@ -12,6 +13,7 @@ const libraries = ['places'];
 
 export default function AIDonationForm() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
     libraries: libraries,
@@ -40,9 +42,11 @@ export default function AIDonationForm() {
       if (response.data.success) {
         setExtractedData(response.data);
         setStep('review');
-        toast.success('Extraction complete. Review the details before submit.');
+        toast.success(t('aiDonation.toast.extractionComplete'));
       } else {
-        toast.error(response.data.errorMessage || 'AI extraction failed');
+        toast.error(
+          response.data.errorMessage || t('aiDonation.toast.aiFailed')
+        );
         setStep('upload');
       }
     } catch (error) {
@@ -50,14 +54,13 @@ export default function AIDonationForm() {
 
       if (error.response) {
         const errorMsg =
-          error.response.data?.errorMessage || 'Failed to analyze image';
+          error.response.data?.errorMessage ||
+          t('aiDonation.toast.analysisFailed');
         toast.error(errorMsg);
       } else if (error.code === 'ECONNABORTED') {
-        toast.error('Request timed out. Please try with a smaller image.');
+        toast.error(t('aiDonation.toast.requestTimedOut'));
       } else {
-        toast.error(
-          'Network error. Please check your connection and try again.'
-        );
+        toast.error(t('aiDonation.toast.networkError'));
       }
 
       setStep('upload');
@@ -90,26 +93,26 @@ export default function AIDonationForm() {
         return (
           <div className="ai-processing-container">
             <div className="ai-spinner"></div>
-            <h3>Processing image</h3>
-            <p className="processing-hint">This can take up to 30 seconds.</p>
+            <h3>{t('aiDonation.processing.title')}</h3>
+            <p className="processing-hint">{t('aiDonation.processing.hint')}</p>
             <div className="processing-steps">
               <div className="processing-step active">
                 <div className="step-icon">
                   <Upload size={16} />
                 </div>
-                <span>Reading label</span>
+                <span>{t('aiDonation.processing.readingLabel')}</span>
               </div>
               <div className="processing-step active">
                 <div className="step-icon">
                   <ScanSearch size={16} />
                 </div>
-                <span>Extracting data</span>
+                <span>{t('aiDonation.processing.extractingData')}</span>
               </div>
               <div className="processing-step">
                 <div className="step-icon">
                   <FileCheck2 size={16} />
                 </div>
-                <span>Preparing results</span>
+                <span>{t('aiDonation.processing.preparingResults')}</span>
               </div>
             </div>
           </div>
@@ -120,7 +123,7 @@ export default function AIDonationForm() {
           return (
             <div className="ai-processing-container">
               <div className="ai-spinner"></div>
-              <h3>Loading maps</h3>
+              <h3>{t('aiDonation.processing.loadingMaps')}</h3>
             </div>
           );
         }
@@ -147,13 +150,10 @@ export default function AIDonationForm() {
           disabled={isProcessing}
         >
           <ArrowLeft size={16} />
-          <span>Back to dashboard</span>
+          <span>{t('aiDonation.backToDashboard')}</span>
         </button>
-        <h1>Create donation with AI</h1>
-        <p className="ai-subtitle">
-          Upload a label photo to extract product details. You can review before
-          submitting.
-        </p>
+        <h1>{t('aiDonation.title')}</h1>
+        <p className="ai-subtitle">{t('aiDonation.subtitle')}</p>
       </div>
 
       <div className="ai-step-indicator">
@@ -167,21 +167,21 @@ export default function AIDonationForm() {
           <div className="step-number">
             <Upload size={14} />
           </div>
-          <span>Upload</span>
+          <span>{t('aiDonation.steps.upload')}</span>
         </div>
         <div className="step-line"></div>
         <div className={`step ${step === 'review' ? 'active' : ''}`}>
           <div className="step-number">
             <FileCheck2 size={14} />
           </div>
-          <span>Review</span>
+          <span>{t('aiDonation.steps.review')}</span>
         </div>
         <div className="step-line"></div>
         <div className="step">
           <div className="step-number">
             <Send size={14} />
           </div>
-          <span>Submit</span>
+          <span>{t('aiDonation.steps.submit')}</span>
         </div>
       </div>
 

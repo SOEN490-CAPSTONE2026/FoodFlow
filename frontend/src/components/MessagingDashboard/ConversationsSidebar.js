@@ -92,6 +92,10 @@ const ConversationsSidebar = ({
       return FoodFlowLogo;
     }
 
+    if (conversation?.resolvedDonationImageUrl) {
+      return getProfilePhotoUrl(conversation.resolvedDonationImageUrl);
+    }
+
     if (!conversation?.donationPhoto) {
       return null;
     }

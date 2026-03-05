@@ -17,7 +17,22 @@ jest.mock('../../shared/Leaderboard', () => {
 // Mock i18next
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key, defaultValue) => defaultValue || key,
+    t: (key, optionsOrDefault) => {
+      if (typeof optionsOrDefault === 'string') {
+        return optionsOrDefault;
+      }
+      if (
+        optionsOrDefault &&
+        typeof optionsOrDefault === 'object' &&
+        typeof optionsOrDefault.defaultValue === 'string'
+      ) {
+        return optionsOrDefault.defaultValue.replace(
+          '{{count}}',
+          String(optionsOrDefault.count ?? '')
+        );
+      }
+      return key;
+    },
   }),
 }));
 

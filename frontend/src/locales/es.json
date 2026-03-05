@@ -37,6 +37,104 @@
     "sendResetLink": "Enviar enlace de restablecimiento",
     "enterEmail": "Ingresa tu dirección de correo electrónico"
   },
+  "forgotPasswordPage": {
+    "backToLogin": "Volver al inicio de sesion",
+    "subtitle": "No te preocupes. Selecciona como quieres recibir tu codigo OTP. Despues de ingresarlo, podras restablecer tu contrasena.",
+    "methodEmailTitle": "Correo",
+    "methodEmailSubtitle": "Recibe un enlace por correo",
+    "methodSmsTitle": "SMS",
+    "methodSmsSubtitle": "Recibe un codigo por mensaje",
+    "passwordsDoNotMatch": "Las contrasenas no coinciden",
+    "chooseMethod": "Elige correo o SMS",
+    "enterEmailAddress": "Ingresa tu correo electronico",
+    "enterValidEmail": "Ingresa un correo electronico valido",
+    "enterPhoneNumber": "Ingresa tu numero de telefono",
+    "selectCountryCode": "Selecciona un codigo de pais del menu",
+    "enterValidPhoneNumber": "Ingresa un numero valido con codigo de pais",
+    "invalidPhoneFormat": "Formato de telefono invalido. Usa el formato: +14165551234",
+    "tooManyRequests": "Demasiadas solicitudes. Intentalo mas tarde.",
+    "failedSendCode": "No se pudo enviar el codigo de verificacion. Intentalo de nuevo.",
+    "emailAddressLabel": "Correo electronico",
+    "emailPlaceholder": "Ingresa tu correo",
+    "phoneNumberLabel": "Numero de telefono",
+    "phonePlaceholder": "Numero de telefono",
+    "sending": "Enviando...",
+    "sendCode": "Enviar codigo",
+    "resetSuccessTitle": "Contrasena restablecida",
+    "resetSuccessMessage": "Tu contrasena se restablecio correctamente.",
+    "redirectLogin": "Seras redirigido a la pagina de inicio de sesion ahora...",
+    "codeExpiredTitle": "El tiempo se agoto.",
+    "codeExpiredMessage": "El codigo vencio. Puedes reenviar uno nuevo o volver al inicio de sesion.",
+    "resendCode": "Reenviar codigo",
+    "codeIncorrectTitle": "El codigo ingresado es incorrecto.",
+    "codeIncorrectMessage": "Verifica el codigo e intentalo de nuevo, o solicita uno nuevo.",
+    "timeRemaining": "Tiempo restante",
+    "tryAgain": "Intentar de nuevo",
+    "verifiedTitle": "Exito",
+    "verifiedMessage": "Tu identidad fue verificada. Ingresa tu nueva contrasena abajo.",
+    "enterBothPasswords": "Ingresa ambos campos de contrasena",
+    "passwordMinLength": "La contrasena debe tener al menos 10 caracteres",
+    "passwordUppercase": "La contrasena debe incluir al menos una mayuscula",
+    "passwordLowercase": "La contrasena debe incluir al menos una minuscula",
+    "passwordDigit": "La contrasena debe incluir al menos un numero",
+    "passwordSpecial": "La contrasena debe incluir al menos un caracter especial (!@#$%^&*()_+-=[]{}|;:,.<>?)",
+    "failedResetPassword": "No se pudo restablecer la contrasena. Intentalo de nuevo.",
+    "newPasswordPlaceholder": "Nueva contrasena",
+    "confirmNewPasswordPlaceholder": "Confirmar nueva contrasena",
+    "resetting": "Restableciendo...",
+    "resetPasswordAction": "Restablecer contrasena",
+    "codeSentTitle": "Codigo enviado",
+    "codeSentMessage": "Enviamos un codigo de verificacion de 6 digitos a",
+    "codeSentInfo": "Ingresa los 6 digitos que recibiste por",
+    "expiresIn": "Vence en",
+    "sideImageAlt": "Ejemplo de donacion",
+    "logoAlt": "Logo de FoodFlow",
+    "delivery": {
+      "sms": "mensaje de texto",
+      "email": "correo electronico"
+    }
+  },
+  "reportUserModal": {
+    "photoTooLarge": "La foto debe ser menor de 5 MB",
+    "descriptionRequired": "Proporciona una descripcion",
+    "submitFailed": "No se pudo enviar el reporte. Intentalo de nuevo.",
+    "title": "Reportar usuario",
+    "infoPrefix": "Estas reportando a",
+    "thisUser": "este usuario",
+    "donationLinked": "Este reporte se vinculara a la donacion.",
+    "descriptionLabel": "Descripcion",
+    "descriptionPlaceholder": "Describe lo que paso...",
+    "photoLabel": "Evidencia fotografica (opcional)",
+    "uploadPrompt": "Haz clic para subir una foto",
+    "maxSize": "Tamano maximo: 5 MB",
+    "evidencePreviewAlt": "Vista previa de evidencia",
+    "removePhoto": "Quitar",
+    "cancel": "Cancelar",
+    "submitting": "Enviando...",
+    "submit": "Enviar reporte"
+  },
+  "regionSelector": {
+    "geolocationUnsupported": "Tu navegador no admite geolocalizacion",
+    "detectFailed": "No se pudo detectar la ubicacion. Seleccionala manualmente.",
+    "accessLocationFailed": "No se pudo acceder a tu ubicacion. Seleccionala manualmente.",
+    "detecting": "Detectando ubicacion...",
+    "autoDetect": "Detectar mi ubicacion",
+    "country": "Pais",
+    "city": "Ciudad",
+    "timezone": "Zona horaria",
+    "loadingCountries": "Cargando paises...",
+    "selectCountry": "Selecciona tu pais...",
+    "searchCountries": "Buscar paises...",
+    "enterCity": "Ingresa tu ciudad...",
+    "selectTimezone": "Selecciona zona horaria...",
+    "autoSetCountry": "Se configura automaticamente segun tu pais",
+    "autoDetectedHint": "Tu zona horaria fue detectada automaticamente. Puedes cambiarla si es necesario."
+  },
+  "phoneInput": {
+    "searchCountry": "Buscar pais...",
+    "noCountries": "No se encontraron paises",
+    "placeholder": "Numero de telefono"
+  },
   "registration": {
     "registerAsDonor": "Registrarse como donante",
     "registerAsReceiver": "Registrarse como receptor",
@@ -51,6 +149,7 @@
     "country": "País",
     "fullName": "Nombre completo",
     "acceptTerms": "Acepto los Términos de Servicio",
+    "dataConsentPrefix": "Consiento el almacenamiento de datos como se describe en la",
     "privacyPolicy": "Política de Privacidad",
     "termsOfService": "Términos de Servicio",
     "registrationSuccess": "Registro exitoso",
@@ -153,7 +252,10 @@
     "download": "Descargar",
     "hidePassword": "Ocultar contraseña",
     "showPassword": "Mostrar contraseña",
-    "time": "Hora"
+    "time": "Hora",
+    "retry": "Reintentar",
+    "less": "Menos",
+    "more": "Más"
   },
   "validation": {
     "required": "Este campo es obligatorio",
@@ -161,6 +263,23 @@
     "minLength": "Se requieren mínimo {{count}} caracteres",
     "maxLength": "Máximo {{count}} caracteres permitidos",
     "pattern": "Formato inválido"
+  },
+  "passwordValidation": {
+    "required": "La contrase?a es obligatoria",
+    "minLength": "La contrase?a debe tener al menos 10 caracteres",
+    "uppercase": "La contrase?a debe contener al menos una letra may?scula",
+    "lowercase": "La contrase?a debe contener al menos una letra min?scula",
+    "digit": "La contrase?a debe contener al menos un n?mero",
+    "specialCharacter": "La contrase?a debe contener al menos un car?cter especial (!@#$%^&*()_+-=[]{}|;:,.<>?)",
+    "commonPassword": "Esta contrase?a es demasiado com?n. Elige una contrase?a m?s segura",
+    "policy": {
+      "minLength": "Al menos 10 caracteres",
+      "uppercase": "Al menos una letra may?scula (A-Z)",
+      "lowercase": "Al menos una letra min?scula (a-z)",
+      "digit": "Al menos un n?mero (0-9)",
+      "specialCharacter": "Al menos un car?cter especial (!@#$%^&*()_+-=[]{}|;:,.<>?)",
+      "commonPassword": "No usar una contrase?a com?n"
+    }
   },
   "toast": {
     "saved": "Guardado",
@@ -778,7 +897,21 @@
     "communications": "Comunicaciones entrantes",
     "guides": "Guías y soporte",
     "administration": "Administración",
-    "welcomeBack": "Bienvenido de nuevo, {{name}}"
+    "welcomeBack": "Bienvenido de nuevo, {{name}}",
+    "users": "Gestión de usuarios",
+    "verificationQueue": "Cola de verificación",
+    "impact": "Panel de impacto",
+    "disputes": "Disputas y reportes",
+    "donations": "Donaciones",
+    "settings": "Configuración",
+    "logout": "Cerrar sesión",
+    "toggleMenu": "Alternar menú",
+    "foodflowHome": "Inicio de FoodFlow",
+    "toggleSidebar": "Alternar barra lateral",
+    "verificationQueueDesc": "Revisar y aprobar registros de usuarios pendientes",
+    "usersDesc": "Gestionar y supervisar todos los usuarios de la plataforma",
+    "impactDesc": "Métricas de impacto ambiental y social de toda la plataforma",
+    "disputesDesc": "Rastrear, revisar y resolver problemas reportados"
   },
   "claimedView": {
     "claimed": "Reclamado",
@@ -835,7 +968,9 @@
     "donateNow": "Donar ahora",
     "requestsClaims": "Solicitudes y reclamaciones",
     "pickupSchedule": "Calendario de recogida",
+    "achievements": "Logros",
     "messages": "Mensajes",
+    "impact": "Panel de impacto",
     "settings": "Configuración",
     "help": "Ayuda",
     "logout": "Cerrar sesión",
@@ -845,7 +980,9 @@
       "donateNow": "Donar ahora",
       "requestsClaims": "Solicitudes y reclamaciones",
       "pickupSchedule": "Calendario de recogida",
+      "achievements": "Logros",
       "messages": "Mensajes",
+      "impact": "Panel de impacto",
       "settings": "Configuración",
       "help": "Ayuda",
       "donor": "Donante",
@@ -857,11 +994,12 @@
       "donateNow": "Crear y gestionar publicaciones de donaciones",
       "requestsClaims": "Solicitudes entrantes y estado",
       "pickupSchedule": "Actividad reciente e historial",
+      "achievements": "Consulta tus logros e insignias",
       "messages": "Comunicaciones entrantes",
-      "calendar": "Sincroniza tus donaciones con Google Calendar",
       "settings": "Gestiona tus preferencias y configuración de cuenta",
       "help": "Guías y soporte",
       "donorPortal": "Portal de donante FoodFlow",
+      "calendar": "Sincroniza tus donaciones con Google Calendar"
       "suggestBusiness": "Sugiere una empresa para que se una a FoodFlow como donante de alimentos"
     },
     "notifications": {
@@ -884,6 +1022,7 @@
     "loading": "Cargando tus donaciones...",
     "sortByDate": "Ordenar por fecha",
     "sortByStatus": "Ordenar por estado",
+    "createWithAI": "Crear con IA",
     "donateMore": "Donar más",
     "emptyStateTitle": "Aún no has publicado nada",
     "emptyStateDescription": "Crea tu primera publicación de donación para comenzar a ayudar a tu comunidad a reducir el desperdicio de alimentos.",
@@ -897,8 +1036,34 @@
     },
     "expires": "Expira",
     "pickup": "Recogida",
+    "flexible": "Flexible",
     "notSpecified": "No especificado",
     "addressNotSpecified": "Dirección no especificada",
+    "uploading": "Subiendo...",
+    "uploadDonationPhoto": "Subir foto de la donación",
+    "photosUploadedSingular": "{{count}} foto subida",
+    "photosUploadedPlural": "{{count}} fotos subidas",
+    "viewPhotosSingular": "Ver {{count}} foto",
+    "viewPhotosPlural": "Ver {{count}} fotos",
+    "viewDonationTimeline": "Ver cronología de la donación",
+    "hideDonationTimeline": "Ocultar cronología de la donación",
+    "reportReceiver": "REPORTAR RECEPTOR",
+    "leaveFeedback": "DEJAR COMENTARIO",
+    "failedFetchRecipientEmail": "No se pudo obtener el correo del receptor para la publicación \"{{title}}\"",
+    "receiverIdMissing": "Falta el ID del receptor para la publicación \"{{title}}\"",
+    "receiverNotFoundOrInvalidEmail": "Receptor no encontrado o correo inválido",
+    "failedFetchReceiverDetails": "No se pudieron obtener los datos del receptor. Inténtalo de nuevo.",
+    "failedOpenDonationChat": "No se pudo abrir el chat de la donación. Inténtalo de nuevo.",
+    "unableLoadReceiverInfo": "No se pudo cargar la información del receptor. Inténtalo de nuevo.",
+    "noClaimsFoundForDonation": "No se encontraron reclamaciones para esta donación. Inténtalo de nuevo.",
+    "failedOpenFeedbackModal": "No se pudo abrir el modal de comentarios. Inténtalo de nuevo.",
+    "failedOpenReportModal": "No se pudo abrir el modal de reporte. Inténtalo de nuevo.",
+    "reportSubmittedSuccessfully": "Reporte enviado correctamente",
+    "failedSubmitReport": "No se pudo enviar el reporte. Inténtalo de nuevo.",
+    "onlyJpegPngAllowed": "Solo se permiten imágenes JPEG y PNG",
+    "fileSizeMustBeLessThan5Mb": "El tamaño del archivo debe ser menor de 5 MB",
+    "uploadFailed": "Error de carga",
+    "failedUploadPhoto": "No se pudo subir la foto. Inténtalo de nuevo.",
     "confirmDelete": "¿Estás seguro de que quieres eliminar esta publicación?",
     "failedToFetch": "Error al recuperar publicaciones",
     "editFunctionality": "Abriendo formulario de edición para: {{title}}\n(Funcionalidad de edición por implementar)"
@@ -975,7 +1140,9 @@
       "settings": "Gestionar tus preferencias y configuración de cuenta",
       "inviteCommunity": "¿Conoces una organización que podría beneficiarse de FoodFlow? Invítala a unirse.",
       "default": "Portal de receptor FoodFlow"
-    }
+    },
+    "achievements": "Logros",
+    "impact": "Panel de impacto"
   },
   "receiverBrowse": {
     "confirmClaim": "¿Estás seguro de que quieres reclamar esta donación?",
@@ -1191,6 +1358,14 @@
       "smsDisabled": "Alertas por SMS desactivadas",
       "updateFailed": "Error al actualizar. Por favor, inténtalo de nuevo."
     },
+    "privacyConsent": {
+      "title": "Privacidad y consentimiento de datos",
+      "description": "Tu consentimiento de almacenamiento de datos e información de privacidad",
+      "consentMessage": "Has dado tu consentimiento para el almacenamiento de datos al registrarte en FoodFlow. Recopilamos y almacenamos tu información para proporcionar nuestros servicios y conectar donantes con receptores de manera eficiente.",
+      "detailsPrefix": "Para más detalles sobre cómo manejamos tus datos, consulta nuestra",
+      "privacyPolicyLink": "Política de privacidad",
+      "detailsSuffix": "."
+    },
     "notificationTypes": {
       "title": "Tipos de notificación",
       "description": "Personaliza qué tipos de notificaciones deseas recibir",
@@ -1282,6 +1457,159 @@
       "imageInvalid": "Por favor, sube un archivo de imagen válido"
     }
   },
+  "achievements": {
+    "loading": "Cargando tus logros...",
+    "error": "No se pudieron cargar los logros",
+    "errorMessage": "Intenta actualizar la página",
+    "noAchievements": "Aún no hay logros",
+    "startDonating": "¡Comienza a donar alimentos para ganar insignias y puntos!",
+    "title": "Tus logros",
+    "sectionTitle": "Logros",
+    "subtitle": "Sigue tu progreso y gana recompensas",
+    "totalPoints": "Puntos totales",
+    "pointsDescription": "Puntos obtenidos por logros",
+    "progress": "Progreso",
+    "complete": "Completado",
+    "unlockedBadges": "Insignias desbloqueadas",
+    "badgesDescription": "Logros obtenidos",
+    "unlocked": "Logros desbloqueados",
+    "unlockedTitle": "¡Logro desbloqueado!",
+    "unlockedIndicator": "✓ Desbloqueado",
+    "inProgress": "En progreso",
+    "locked": "Logros bloqueados",
+    "points": "puntos",
+    "viewAll": "Ver todos los logros",
+    "unlockCriteria": "Criterios para desbloquear:",
+    "pointsEarned": "+{{count}} puntos ganados",
+    "closeNotification": "Cerrar notificación",
+    "criteriaTypes": {
+      "DONATION_COUNT": "donaciones",
+      "CLAIM_COUNT": "reclamaciones",
+      "MESSAGE_COUNT": "mensajes",
+      "WEEKLY_STREAK": "semanas consecutivas",
+      "UNIQUE_PARTNER_COUNT": "organizaciones",
+      "STREAK_DAYS": "días de racha",
+      "TOTAL_POINTS": "puntos totales"
+    },
+    "descriptionTemplates": {
+      "DONATION_COUNT": "Crea {{count}} donaciones de alimentos exitosas",
+      "WEEKLY_STREAK": "Dona al menos una vez por semana durante {{count}} semanas consecutivas",
+      "MESSAGE_COUNT": "Envía {{count}} mensajes en conversaciones de donación",
+      "UNIQUE_PARTNER_COUNT": "Interactúa exitosamente con {{count}} organizaciones diferentes"
+    },
+    "catalog": {
+      "community_champion": {
+        "name": "Campeón comunitario"
+      },
+      "century_donor": {
+        "name": "Donante centenario"
+      },
+      "unstoppable_force": {
+        "name": "Fuerza imparable"
+      },
+      "donation_master": {
+        "name": "Maestro de donaciones"
+      },
+      "elite_contributor": {
+        "name": "Contribuidor de élite"
+      },
+      "legendary_donor": {
+        "name": "Donante legendario"
+      },
+      "donation_titan": {
+        "name": "Titán de donaciones"
+      },
+      "thousand_strong": {
+        "name": "Mil en fuerza"
+      },
+      "ultimate_benefactor": {
+        "name": "Benefactor supremo"
+      },
+      "steady_start": {
+        "name": "Inicio constante"
+      },
+      "monthly_commitment": {
+        "name": "Compromiso mensual"
+      },
+      "two_month_streak": {
+        "name": "Racha de dos meses"
+      },
+      "quarterly_dedication": {
+        "name": "Dedicación trimestral"
+      },
+      "half_year_hero": {
+        "name": "Héroe de medio año"
+      },
+      "year_round_giver": {
+        "name": "Donante de todo el año"
+      },
+      "two_year_legend": {
+        "name": "Leyenda de dos años"
+      },
+      "chatty_starter": {
+        "name": "Iniciador parlanchín"
+      },
+      "conversationalist": {
+        "name": "Conversador"
+      },
+      "active_communicator": {
+        "name": "Comunicador activo"
+      },
+      "communication_expert": {
+        "name": "Experto en comunicación"
+      },
+      "message_master": {
+        "name": "Maestro de mensajes"
+      },
+      "communication_guru": {
+        "name": "Gurú de la comunicación"
+      },
+      "ultimate_networker": {
+        "name": "Conector supremo"
+      },
+      "making_connections": {
+        "name": "Creando conexiones"
+      },
+      "community_builder": {
+        "name": "Constructor de comunidad"
+      },
+      "network_grower": {
+        "name": "Expansor de red"
+      },
+      "relationship_expert": {
+        "name": "Experto en relaciones"
+      },
+      "community_leader": {
+        "name": "Líder comunitario"
+      },
+      "connection_master": {
+        "name": "Maestro de conexiones"
+      },
+      "network_titan": {
+        "name": "Titán de la red"
+      },
+      "ultimate_connector": {
+        "name": "Conector definitivo"
+      }
+    }
+  },
+  "leaderboard": {
+    "title": "Clasificación",
+    "loading": "Cargando clasificación...",
+    "error": "No se pudo cargar la clasificación",
+    "errorMessage": "Intenta actualizar la página",
+    "retry": "Reintentar",
+    "noData": "Aún no hay datos de clasificación",
+    "noDataMessage": "¡Sé el primero en ganar puntos y subir en la clasificación!",
+    "topDonors": "Mejores donantes",
+    "topReceivers": "Mejores receptores",
+    "refresh": "Actualizar",
+    "yourPosition": "Tu posición",
+    "keepGoing": "¡Sigue contribuyendo para subir en la clasificación!",
+    "totalUsers": "{{count}} usuarios en total",
+    "you": "Tú",
+    "pts": "pts"
+  },
   "completedView": {
     "claimed": "Reclamado",
     "untitledDonation": "Donación sin título",
@@ -1362,6 +1690,8 @@
     "repeatDonors": "Donantes recurrentes",
     "repeatReceivers": "Receptores recurrentes",
     "foodSavedOverTime": "Alimentos recuperados en el tiempo",
+    "dateLabel": "Fecha",
+    "foodSavedLabel": "Alimentos recuperados",
     "impactOverview": "Resumen de impacto",
     "claimsByDay": "Reclamaciones por día",
     "claimsByWeek": "Reclamaciones por semana",
@@ -1378,19 +1708,24 @@
     "adminMessage": "FoodFlow está generando un impacto real al reducir el desperdicio de alimentos y apoyar a las comunidades.",
     "selectAll": "Seleccionar todo",
     "clearAll": "Borrar todo",
-    "done": "Listo"
+    "done": "Listo",
+    "impactMetrics": "Métricas de impacto",
+    "foodSavedByDay": "Alimentos recuperados por dia",
+    "foodSavedByWeek": "Alimentos recuperados por semana",
+    "foodSavedByMonth": "Alimentos recuperados por mes",
+    "claimsLabel": "Reclamaciones"
   },
   "calendar": {
-    "title": "Integración de calendario",
-    "description": "Sincroniza tus actividades de FoodFlow con Google Calendar",
+    "title": "Integracion de calendario",
+    "description": "Sincroniza tus recogidas de FoodFlow con Google Calendar",
     "status": {
       "connected": "Conectado",
       "notConnected": "No conectado",
       "connecting": "Conectando..."
     },
-    "connectPrompt": "Conecta tu Google Calendar para sincronizar automáticamente citas de donaciones y horarios de recogida. ¡Nunca te pierdas un evento importante!",
+    "connectPrompt": "Conecta tu Google Calendar para sincronizar automaticamente citas de donaciones y horarios de recogida. Nunca te pierdas un evento importante.",
     "connectButton": "Conectar Google Calendar",
-    "disconnectButton": "Desconectar calendario",
+    "disconnectButton": "Desconectar",
     "disconnectConfirm": "¿Estás seguro de que quieres desconectar tu calendario? Tus eventos sincronizados permanecerán en Google Calendar.",
     "disconnectSuccess": "Calendario desconectado exitosamente",
     "disconnectError": "Error al desconectar el calendario",
@@ -1407,21 +1742,7 @@
       "neverSynced": "Nunca sincronizado",
       "autoSync": "Sincronización automática activada"
     },
-    "preferences": {
-      "title": "Preferencias de sincronización",
-      "description": "Elige qué eventos sincronizar con tu calendario",
-      "syncEnabled": "Activar sincronización de calendario",
-      "syncDonations": "Sincronizar citas de donaciones",
-      "syncClaims": "Sincronizar citas de recogida",
-      "syncReminders": "Agregar recordatorios a eventos",
-      "syncUpdates": "Actualizar eventos existentes cuando cambien",
-      "syncCompletions": "Marcar eventos completados",
-      "syncCancellations": "Eliminar eventos cancelados",
-      "reminderTime": "Tiempo de recordatorio antes del evento",
-      "saveButton": "Guardar preferencias",
-      "saveSuccess": "Preferencias guardadas exitosamente",
-      "saveError": "Error al guardar preferencias"
-    },
+    "preferences": "Preferencias de sincronizacion",
     "events": {
       "title": "Eventos sincronizados",
       "noEvents": "Aún no hay eventos sincronizados",
@@ -1451,7 +1772,643 @@
       "step2": "Configura tus preferencias de sincronización",
       "step3": "Tus donaciones y recogidas aparecerán automáticamente en tu calendario",
       "privacy": "El acceso a tu calendario es seguro y puede ser revocado en cualquier momento"
+    },
+    "connected": "Conectado",
+    "notConnected": "No conectado",
+    "provider": "Proveedor",
+    "loadError": "Error al cargar los datos del calendario",
+    "connectError": "Error al conectar el calendario. Por favor, intentalo de nuevo.",
+    "syncButton": "Sincronizar ahora",
+    "syncEnabled": "Activar sincronizacion automatica",
+    "summary": {
+      "connectedTo": "Conectado a {{provider}}",
+      "notConnected": "No conectado",
+      "syncedEventSingular": "{{count}} evento sincronizado",
+      "syncedEventPlural": "{{count}} eventos sincronizados"
+    },
+    "toggleAria": "Alternar integración del calendario",
+    "hide": "Ocultar",
+    "edit": "Editar",
+    "viewConnectionDetails": "Ver detalles de conexión",
+    "minutes": "minutos",
+    "email": "Correo electrónico",
+    "popup": "Emergente",
+    "both": "Ambos",
+    "colors": {
+      "blue": "Azul",
+      "green": "Verde",
+      "purple": "Morado",
+      "red": "Rojo",
+      "yellow": "Amarillo",
+      "orange": "Naranja",
+      "gray": "Gris"
+    },
+    "visibility": {
+      "private": "Privado",
+      "public": "Público"
+    },
+    "onlyAppliedNoEndTime": "Solo se aplica si la recogida no tiene hora de fin",
+    "privacyPolicyPrefix": "Haz clic aquí para ver la",
+    "privacyPolicyLink": "política de integración del calendario",
+    "closeModalAria": "Cerrar modal"
+  },
+  "adminWelcome": {
+    "title": "Bienvenido",
+    "description": "Esta es la p?gina de bienvenida para administraci?n."
+  },
+  "adminHelp": {
+    "title": "Ayuda"
+  },
+  "adminCalendar": {
+    "title": "Calendario"
+  },
+  "adminAnalytics": {
+    "title": "Anal?tica de cumplimiento de seguridad alimentaria",
+    "subtitle": "Supervisa el cumplimiento de temperatura y empaque en todas las donaciones",
+    "loading": "Cargando datos de cumplimiento...",
+    "temperatureCategories": "Categor?as de temperatura",
+    "packagingTypes": "Tipos de empaque",
+    "noTemperatureData": "No hay datos de temperatura disponibles",
+    "noPackagingData": "No hay datos de empaque disponibles",
+    "totalAnalyzed": "Donaciones analizadas en total:",
+    "errors": {
+      "loadFailed": "No se pudieron cargar los datos de cumplimiento"
     }
+  },
+  "adminDisputes": {
+    "loading": "Cargando disputas...",
+    "allCases": "Todos los casos",
+    "searchPlaceholder": "Buscar casos...",
+    "emptyTitle": "No se encontraron casos",
+    "emptyDescription": "No hay disputas que coincidan con los filtros actuales.",
+    "userTypes": {
+      "donor": "Donante",
+      "receiver": "Receptor"
+    },
+    "status": {
+      "open": "Abierto",
+      "underReview": "En revisi?n",
+      "resolved": "Resuelto",
+      "closed": "Cerrado"
+    },
+    "stats": {
+      "totalCases": "Casos totales",
+      "resolvedToday": "Resueltos hoy",
+      "avgResolution": "Resoluci?n prom.",
+      "avgResolutionValue": "{{count}} d?as"
+    },
+    "table": {
+      "caseId": "ID del caso",
+      "reporter": "Reportante",
+      "reportedUser": "Usuario reportado",
+      "donationId": "ID de donaci?n",
+      "created": "Creado",
+      "status": "Estado",
+      "action": "Acci?n",
+      "view": "Ver"
+    },
+    "errors": {
+      "loadFailed": "Error al cargar disputas"
+    }
+  },
+  "adminDisputeDetail": {
+    "notAvailable": "N/D",
+    "backToDisputes": "Volver a disputas",
+    "caseNotFound": "Caso no encontrado",
+    "caseTitle": "Caso {{caseId}}",
+    "createdOn": "Creado el {{date}} a las {{time}}",
+    "saveStatusChange": "Guardar cambio de estado",
+    "statusHint": "Los cambios de estado requieren confirmaci?n",
+    "actionsHint": "Todas las acciones son solo para administradores y no son visibles para los usuarios de la plataforma.",
+    "resolutionHint": "El caso debe marcarse como resuelto antes de cerrarlo",
+    "labels": {
+      "caseId": "ID del caso",
+      "createdDate": "Fecha de creaci?n",
+      "createdTime": "Hora de creaci?n",
+      "name": "Nombre",
+      "userId": "ID de usuario",
+      "donationId": "ID de donaci?n",
+      "currentStatus": "Estado actual",
+      "updateStatus": "Actualizar estado"
+    },
+    "sections": {
+      "caseInformation": "INFORMACI?N DEL CASO",
+      "reporter": "REPORTANTE",
+      "reportedUser": "USUARIO REPORTADO",
+      "relatedDonation": "DONACI?N RELACIONADA",
+      "reportDescription": "DESCRIPCI?N DEL REPORTE",
+      "caseStatus": "ESTADO DEL CASO",
+      "adminActions": "ACCIONES ADMINISTRATIVAS",
+      "caseResolution": "RESOLUCI?N DEL CASO"
+    },
+    "actions": {
+      "deactivateUser": "Desactivar cuenta de usuario",
+      "overrideDonation": "Anular estado de donaci?n",
+      "flagUser": "Marcar usuario para revisi?n",
+      "closeCase": "Cerrar caso"
+    },
+    "alerts": {
+      "statusAlreadySet": "El estado ya est? establecido en {{status}}",
+      "statusUpdated": "Estado actualizado correctamente",
+      "updateFailed": "No se pudo actualizar el estado: {{message}}",
+      "deactivateRequested": "Se solicit? la desactivaci?n de la cuenta",
+      "overrideDonation": "Anular estado de la donaci?n",
+      "userFlagged": "Usuario marcado para revisi?n",
+      "mustResolveBeforeClose": "El caso debe marcarse como resuelto antes de cerrarlo"
+    },
+    "confirm": {
+      "changeStatus": "?Seguro que quieres cambiar el estado a \"{{status}}\"?",
+      "deactivateUser": "?Seguro que quieres desactivar esta cuenta de usuario?",
+      "closeCase": "?Seguro que quieres cerrar este caso?"
+    },
+    "errors": {
+      "loadFailed": "No se pudieron cargar los detalles del caso"
+    }
+  },
+  "adminVerificationQueue": {
+    "title": "Registros pendientes",
+    "loading": "Cargando usuarios pendientes...",
+    "showing": "Mostrando {{shown}} de {{total}} usuarios pendientes",
+    "searchPlaceholder": "Buscar por nombre de organización o correo...",
+    "notAvailable": "No disponible",
+    "labels": {
+      "organization": "Organización",
+      "contact": "Contacto",
+      "email": "Correo",
+      "type": "Tipo"
+    },
+    "stats": {
+      "totalPending": "Total pendientes",
+      "pendingDonors": "Donantes pendientes",
+      "pendingReceivers": "Receptores pendientes",
+      "avgWaitTime": "Tiempo de espera prom."
+    },
+    "filters": {
+      "allTypes": "Todos los tipos",
+      "donors": "Donantes",
+      "receivers": "Receptores",
+      "byType": "Filtrar por tipo",
+      "byStatus": "Filtrar por estado",
+      "sortBy": "Ordenar por"
+    },
+    "status": {
+      "emailVerified": "Correo verificado",
+      "emailNotVerified": "Correo no verificado",
+      "pendingApproval": "Pendiente de aprobación"
+    },
+    "sort": {
+      "registrationDate": "Fecha de registro",
+      "userType": "Tipo de usuario",
+      "waitingTime": "Tiempo de espera",
+      "toggle": "Ordenar {{order}}",
+      "ascending": "Ascendente",
+      "descending": "Descendente"
+    },
+    "table": {
+      "id": "ID",
+      "organization": "Organización",
+      "type": "Tipo",
+      "status": "Estado",
+      "email": "Correo",
+      "phone": "Teléfono",
+      "waitingTime": "Tiempo de espera",
+      "actions": "Acciones"
+    },
+    "empty": {
+      "title": "No hay registros pendientes",
+      "description": "Todos los registros de usuarios ya fueron revisados."
+    },
+    "actions": {
+      "verifyEmail": "Verificar correo",
+      "approve": "Aprobar",
+      "reject": "Rechazar"
+    },
+    "time": {
+      "day": "día",
+      "days": "días",
+      "hour": "hora",
+      "hours": "horas"
+    },
+    "document": {
+      "viewing": "Viendo documento: {{name}}",
+      "productionNote": "En producción, esto abriría el documento cargado para su revisión."
+    },
+    "rejectionReasons": {
+      "incompleteInfo": "Información incompleta",
+      "invalidOrganization": "Organización no válida",
+      "duplicateAccount": "Cuenta duplicada",
+      "suspiciousActivity": "Actividad sospechosa",
+      "doesNotMeetCriteria": "No cumple los criterios",
+      "other": "Otro"
+    },
+    "modals": {
+      "approval": {
+        "title": "Aprobar registro",
+        "confirm": "¿Seguro que deseas aprobar este registro?",
+        "note": "El usuario recibirá un correo de aprobación y su estado pasará a ACTIVO.",
+        "loading": "Aprobando...",
+        "action": "Aprobar usuario"
+      },
+      "rejection": {
+        "title": "Rechazar registro",
+        "selectReason": "Selecciona un motivo de rechazo",
+        "prompt": "Indica el motivo para rechazar este registro:",
+        "reason": "Motivo de rechazo",
+        "reasonPlaceholder": "Selecciona un motivo...",
+        "additionalMessage": "Mensaje adicional (opcional)",
+        "messagePlaceholder": "Agrega información adicional para el usuario...",
+        "note": "El usuario recibirá un correo de rechazo con el motivo y podrá registrarse de nuevo si es necesario.",
+        "loading": "Rechazando...",
+        "action": "Rechazar usuario"
+      },
+      "manualVerify": {
+        "title": "Verificar correo manualmente",
+        "prompt": "Esto marcará el correo del usuario como verificado y lo moverá a la cola de aprobación del administrador.",
+        "note": "Usa esto solo cuando falle el enlace de verificación.",
+        "loading": "Verificando...",
+        "action": "Verificar correo"
+      }
+    },
+    "toasts": {
+      "approved": "¡{{name}} ha sido aprobado correctamente!",
+      "approveFailed": "No se pudo aprobar al usuario. Inténtalo de nuevo.",
+      "rejected": "{{name}} ha sido rechazado.",
+      "rejectFailed": "No se pudo rechazar al usuario. Inténtalo de nuevo.",
+      "verified": "Correo verificado manualmente",
+      "verifyFailed": "No se pudo verificar el correo. Inténtalo de nuevo."
+    },
+    "pagination": {
+      "previous": "Anterior",
+      "next": "Siguiente",
+      "pageOf": "Página {{page}} de {{total}}"
+    }
+  },
+  "adminUsers": {
+    "title": "Todos los usuarios",
+    "searchPlaceholder": "Buscar por nombre, correo u organización...",
+    "empty": "No se encontraron usuarios",
+    "moreLess": "Más/Menos",
+    "notAvailable": "No disponible",
+    "stats": {
+      "totalUsers": "Total de usuarios",
+      "totalDonors": "Total de donantes",
+      "newUsers": "Usuarios nuevos",
+      "totalReceivers": "Total de receptores"
+    },
+    "filters": {
+      "allRoles": "Todos los roles",
+      "allStatus": "Todos los estados",
+      "reset": "Restablecer"
+    },
+    "table": {
+      "id": "ID",
+      "name": "Nombre",
+      "role": "Rol",
+      "status": "Estado",
+      "email": "Correo",
+      "activity": "Actividad",
+      "actions": "Acciones"
+    },
+    "roles": {
+      "donor": "Donante",
+      "receiver": "Receptor",
+      "admin": "Administrador"
+    },
+    "status": {
+      "active": "Activo",
+      "deactivated": "Desactivado"
+    },
+    "actions": {
+      "viewDetails": "Ver detalles",
+      "deactivate": "Desactivar",
+      "reactivate": "Reactivar",
+      "sendAlert": "Enviar alerta"
+    },
+    "details": {
+      "totalActivity": "Actividad total",
+      "donationsCount": "{{count}} donaciones",
+      "claimsCount": "{{count}} reclamaciones",
+      "disputes": "Disputas",
+      "feedbackScore": "Puntuación de comentarios",
+      "noReviews": "Aún no hay reseñas",
+      "memberSince": "Miembro desde",
+      "recentActivity": "Actividad reciente"
+    },
+    "modals": {
+      "deactivate": {
+        "title": "Desactivar usuario:",
+        "placeholder": "Ingresa el motivo de la desactivación (obligatorio)..."
+      },
+      "reactivate": {
+        "title": "Reactivar usuario",
+        "confirmPrefix": "¿Seguro que deseas reactivar a"
+      },
+      "alert": {
+        "title": "Enviar alerta a:",
+        "alertType": "Tipo de alerta",
+        "customPlaceholder": "Escribe tu mensaje personalizado...",
+        "editPlaceholder": "Editar mensaje"
+      }
+    },
+    "alertTypes": {
+      "warning": "Advertencia",
+      "safety": "Aviso de seguridad",
+      "compliance": "Recordatorio de cumplimiento",
+      "custom": "Alerta personalizada"
+    },
+    "alertDescriptions": {
+      "warning": "Enviar una advertencia por violaciones de políticas",
+      "safety": "Información de seguridad importante",
+      "compliance": "Recordar requisitos de cumplimiento",
+      "custom": "Enviar un mensaje personalizado"
+    },
+    "notifications": {
+      "reasonRequired": "Ingresa un motivo para la desactivación",
+      "deactivated": "Usuario desactivado correctamente",
+      "deactivateFailed": "No se pudo desactivar al usuario",
+      "reactivated": "Usuario reactivado correctamente",
+      "reactivateFailed": "No se pudo reactivar al usuario",
+      "alertRequired": "Ingresa un mensaje de alerta",
+      "alertSent": "Alerta enviada correctamente",
+      "alertFailed": "No se pudo enviar la alerta"
+    },
+    "errors": {
+      "loadFailed": "No se pudieron cargar los usuarios. Inténtalo más tarde."
+    }
+  },
+  "adminDonations": {
+    "title": "Todas las donaciones",
+    "searchPlaceholder": "Buscar por título, donante, receptor o ID...",
+    "loading": "Cargando donaciones...",
+    "empty": "No se encontraron donaciones",
+    "notAvailable": "No disponible",
+    "flaggedDonation": "Donación marcada",
+    "lowRating": "Calificación baja (<=2 estrellas)",
+    "stats": {
+      "total": "Total de donaciones",
+      "active": "Activas",
+      "completed": "Completadas",
+      "flagged": "Marcadas"
+    },
+    "filters": {
+      "allStatus": "Todos los estados",
+      "reset": "Restablecer"
+    },
+    "table": {
+      "id": "ID",
+      "title": "Título",
+      "status": "Estado",
+      "donor": "Donante",
+      "receiver": "Receptor",
+      "rating": "Calificación",
+      "flagged": "Marcada",
+      "created": "Creada",
+      "updated": "Actualizada",
+      "actions": "Acciones"
+    },
+    "actions": {
+      "viewDetails": "Ver detalles"
+    },
+    "details": {
+      "foodCategories": "Categorías de alimentos",
+      "quantity": "Cantidad",
+      "expiryDate": "Fecha de vencimiento",
+      "pickupDate": "Fecha de recogida",
+      "temperature": "Temperatura",
+      "packagingConditions": "Condiciones del empaque",
+      "description": "Descripción",
+      "noDescription": "Sin descripción",
+      "feedbackRatings": "Comentarios y calificaciones",
+      "clickToLoadFeedback": "Haz clic para expandir y cargar los comentarios...",
+      "noFeedback": "Aún no se han enviado comentarios para esta donación."
+    },
+    "errors": {
+      "loadFailed": "No se pudieron cargar las donaciones. Inténtalo de nuevo."
+    }
+  },
+  "adminSettings": {
+    "loading": "Cargando perfil...",
+    "profileAlt": "Perfil",
+    "profilePhoto": "Foto de perfil",
+    "profilePhotoDescription": "Sube una foto para personalizar tu cuenta",
+    "changePassword": "Cambiar contraseña",
+    "saving": "Guardando...",
+    "saveChanges": "Guardar cambios",
+    "emailAlerts": "Alertas por correo",
+    "smsAlerts": "Alertas por SMS",
+    "yourEmailAddress": "tu dirección de correo",
+    "emailAlertsDescription": "Recibe notificaciones por correo en {{email}}",
+    "smsAlertsDescription": "Recibe notificaciones por mensaje de texto{{phone}}",
+    "sections": {
+      "account": "Cuenta",
+      "languageRegion": "Idioma y región",
+      "notificationPreferences": "Preferencias de notificación",
+      "notificationTypes": "Tipos de notificación"
+    },
+    "descriptions": {
+      "account": "Administra tu perfil y los detalles de tu cuenta",
+      "languageRegion": "Configura tus preferencias de idioma, ubicación y zona horaria",
+      "notificationPreferences": "Elige cómo quieres recibir las notificaciones",
+      "notificationTypes": "Personaliza qué tipos de notificaciones quieres recibir"
+    },
+    "subsections": {
+      "languagePreference": "Preferencia de idioma",
+      "locationTimezone": "Ubicación y zona horaria"
+    },
+    "subsectionDescriptions": {
+      "languagePreference": "Elige tu idioma preferido para la interfaz",
+      "locationTimezone": "Configura tu ubicación para obtener información precisa de fecha y hora"
+    },
+    "fields": {
+      "fullName": "Nombre completo",
+      "email": "Correo electrónico",
+      "organization": "Organización",
+      "phone": "Número de teléfono",
+      "address": "Dirección"
+    },
+    "placeholders": {
+      "fullName": "Ingresa tu nombre completo",
+      "email": "Ingresa tu correo",
+      "organization": "Ingresa tu organización",
+      "phone": "Ingresa tu número de teléfono",
+      "address": "Ingresa tu dirección"
+    },
+    "validation": {
+      "fullNameRequired": "El nombre completo es obligatorio",
+      "fullNameMin": "El nombre completo debe tener al menos 2 caracteres",
+      "emailRequired": "El correo es obligatorio",
+      "emailInvalid": "Ingresa un correo válido",
+      "phoneInvalid": "Ingresa un número de teléfono válido",
+      "imageSize": "La imagen debe ser menor de 5 MB",
+      "imageFile": "Sube un archivo de imagen válido"
+    },
+    "messages": {
+      "profileUpdated": "Perfil actualizado correctamente",
+      "updateFailed": "No se pudo actualizar el perfil. Inténtalo de nuevo.",
+      "emailAlertsEnabled": "Alertas por correo activadas",
+      "emailAlertsDisabled": "Alertas por correo desactivadas",
+      "smsAlertsEnabled": "Alertas por SMS activadas",
+      "smsAlertsDisabled": "Alertas por SMS desactivadas"
+    }
+  },
+  "adminHome": {
+    "defaultAdminName": "Administrador",
+    "loadingDashboardStats": "Cargando estad?sticas del panel...",
+    "errors": {
+      "loadStats": "No se pudieron cargar las estad?sticas del panel"
+    },
+    "stats": {
+      "totalUsers": "Usuarios totales",
+      "totalDonations": "Donaciones totales",
+      "ongoingClaims": "Reclamos en curso",
+      "activeDonations": "Donaciones activas",
+      "pendingVerifications": "Verificaciones pendientes",
+      "completed": "Completado"
+    },
+    "quickActions": {
+      "title": "Acciones r?pidas",
+      "subtitle": "Accede a las herramientas administrativas más críticas",
+      "viewLess": "Ver menos",
+      "viewAllTools": "Ver todas las herramientas",
+      "userManagement": {
+        "title": "Gesti?n de usuarios",
+        "description": "Gestiona usuarios, roles y permisos"
+      },
+      "reviewDonations": {
+        "title": "Revisar donaciones",
+        "description": "Revisa y modera publicaciones de donaciones"
+      },
+      "disputeDashboard": {
+        "title": "Panel de disputas",
+        "description": "Gestiona disputas y reportes"
+      },
+      "messages": {
+        "title": "Mensajes",
+        "description": "Ver comunicaciones de la plataforma"
+      },
+      "flaggedPosts": {
+        "title": "Publicaciones marcadas",
+        "description": "Revisar contenido marcado"
+      },
+      "pickupSchedule": {
+        "title": "Agenda de recogidas",
+        "description": "Ver y gestionar horarios de recogida"
+      },
+      "analytics": {
+        "title": "Anal?ticas",
+        "description": "Ver anal?ticas y reportes de la plataforma"
+      },
+      "systemSettings": {
+        "title": "Configuración del sistema",
+        "description": "Configurar ajustes de la plataforma"
+      }
+    },
+    "recentActivity": {
+      "title": "Actividad reciente",
+      "viewAllActivity": "Ver toda la actividad"
+    },
+    "activity": {
+      "defaultUser": "Nuevo usuario",
+      "defaultDonor": "Un donante",
+      "defaultDonationTitle": "Nueva donaci?n",
+      "userType": {
+        "donor": "donante",
+        "receiver": "receptor"
+      },
+      "newUserRegistered": "{{name}} se registró como nuevo {{userType}}",
+      "newDonationPosted": "{{name}} publicó una nueva donación",
+      "flaggedPostTitle": "El sistema marcó una publicación para revisión",
+      "flaggedPostSubtitle": "Publicación #{{id}} - Se detectó contenido inapropiado",
+      "disputeResolvedTitle": "Un administrador resolvió una disputa",
+      "disputeResolvedSubtitle": "Caso #{{id}}"
+    },
+    "timeAgo": {
+      "minuteAgo": "hace 1 min",
+      "minutesAgo": "hace {{count}} min",
+      "hourAgo": "hace 1 hora",
+      "hoursAgo": "hace {{count}} horas",
+      "dayAgo": "hace 1 d?a",
+      "daysAgo": "hace {{count}} d?as"
+    }
+  },
+  "changePasswordModal": {
+    "title": "Cambiar contrasena",
+    "changing": "Cambiando...",
+    "fields": {
+      "currentPassword": "Contrasena actual",
+      "newPassword": "Nueva contrasena",
+      "confirmNewPassword": "Confirmar nueva contrasena"
+    },
+    "placeholders": {
+      "currentPassword": "Ingresa la contrasena actual",
+      "newPassword": "Ingresa la nueva contrasena",
+      "confirmNewPassword": "Confirma la nueva contrasena"
+    },
+    "requirements": {
+      "title": "Requisitos de contrasena:",
+      "minLength": "Al menos 8 caracteres",
+      "differentFromCurrent": "Debe ser diferente de tu contrasena actual"
+    },
+    "errors": {
+      "currentPasswordRequired": "La contrasena actual es obligatoria",
+      "newPasswordRequired": "La nueva contrasena es obligatoria",
+      "newPasswordMinLength": "La contrasena debe tener al menos 8 caracteres",
+      "newPasswordDifferent": "La nueva contrasena debe ser diferente de la actual",
+      "confirmPasswordRequired": "Por favor confirma tu nueva contrasena",
+      "passwordsDoNotMatch": "Las contrasenas no coinciden"
+    },
+    "messages": {
+      "success": "Contrasena cambiada correctamente",
+      "changeFailed": "No se pudo cambiar la contrasena"
+    },
+    "aria": {
+      "closeModal": "Cerrar modal",
+      "togglePasswordVisibility": "Alternar visibilidad de la contrasena"
+    }
+  },
+  "donorPhotoPreferences": {
+    "title": "Preferencias de visualización",
+    "modeSingle": "Modo: Foto única",
+    "modePerFoodType": "Modo: Por tipo de alimento",
+    "selectedSingular": "{{count}} imagen seleccionada",
+    "selectedPlural": "{{count}} imágenes seleccionadas",
+    "toggleAria": "Alternar preferencias de visualización",
+    "hide": "Ocultar",
+    "edit": "Editar",
+    "singleModeTitle": "Foto única para todas las donaciones",
+    "perTypeModeTitle": "Foto por tipo de alimento",
+    "singleDonationImage": "Imagen única de donación",
+    "uploading": "Subiendo...",
+    "pendingApproval": "Pendiente de aprobación",
+    "selectFromLibrary": "O selecciona de la biblioteca interna:",
+    "libraryImageAlt": "Library {{id}}",
+    "selectedTypeAlt": "{{foodType}} selected",
+    "saving": "Guardando...",
+    "saveButton": "Guardar preferencias de foto",
+    "note": "Nota: las imágenes subidas por donantes son revisadas por un administrador antes de mostrarse en las tarjetas de donación del receptor.",
+    "loading": "Cargando preferencias de foto...",
+    "messages": {
+      "uploadSuccess": "Imagen subida. Guarda las preferencias para aplicar los cambios. Las tarjetas del receptor mostrarán fotos cargadas tras la aprobación del administrador.",
+      "saved": "Preferencias de foto guardadas."
+    },
+    "errors": {
+      "load": "No se pudieron cargar las preferencias de visualización de fotos.",
+      "save": "No se pudieron guardar las preferencias.",
+      "upload": "Error al subir la imagen.",
+      "fileRequired": "Se requiere un archivo de imagen.",
+      "invalidType": "Solo se permiten imágenes JPEG, PNG y WEBP.",
+      "maxSize": "La imagen debe ser de 5 MB o menos."
+    }
+  },
+  "foodTypeLabels": {
+    "PREPARED": "Comidas preparadas",
+    "PRODUCE": "Productos frescos",
+    "BAKERY": "Panadería y pastelería",
+    "DAIRY_EGGS": "Lácteos y huevos",
+    "MEAT_POULTRY": "Carne y aves",
+    "SEAFOOD": "Mariscos",
+    "PANTRY": "Productos envasados / despensa",
+    "BEVERAGES": "Bebidas"
   },
   "inviteCommunity": {
     "title": "Invitar a una organización comunitaria",
