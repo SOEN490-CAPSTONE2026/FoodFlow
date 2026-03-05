@@ -23,6 +23,7 @@ import {
   Calendar,
   Clock,
   Download,
+  Globe,
 } from 'lucide-react';
 import { feedbackAPI } from '../../services/api';
 import './Admin_Styles/AdminUsers.css';
@@ -408,6 +409,19 @@ const AdminUsers = () => {
     ];
     const charCode = name ? name.charCodeAt(0) : 0;
     return colors[charCode % colors.length];
+  };
+
+  // Map language code to display name
+  const getLanguageLabel = code => {
+    const languageMap = {
+      en: 'English',
+      fr: 'Français',
+      es: 'Español',
+      zh: '中文',
+      ar: 'العربية',
+      pt: 'Português',
+    };
+    return languageMap[code] || code || 'N/A';
   };
 
   // React Select options
@@ -1148,6 +1162,14 @@ const AdminUsers = () => {
                     </span>
                     <span className="info-value">
                       {selectedUserForView.phone || 'N/A'}
+                    </span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">
+                      <Globe size={16} /> Preferred Language
+                    </span>
+                    <span className="info-value">
+                      {getLanguageLabel(selectedUserForView.languagePreference)}
                     </span>
                   </div>
                   <div className="info-item">
