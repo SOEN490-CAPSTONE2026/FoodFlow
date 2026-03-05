@@ -9,6 +9,7 @@ import ReceiverSavedDonations from './ReceiverSavedDonations';
 import ReceiverAchievements from './ReceiverAchievements';
 import ReceiverImpactDashboard from './ReceiverImpactDashboard';
 import ReceiverHelp from './ReceiverHelp';
+import InviteCommunity from './InviteCommunity';
 import MessagingDashboard from '../MessagingDashboard/MessagingDashboard';
 import Settings from '../Settings';
 
@@ -26,6 +27,7 @@ export default function ReceiverDashboard() {
         <Route path="messages" element={<MessagingDashboard />} />
         <Route path="settings" element={<Settings />} />
         <Route path="help" element={<ReceiverHelp />} />
+        <Route path="invite" element={<InviteCommunity />} />
 
         <Route path="*" element={<Navigate to="." replace />} />
       </Route>
