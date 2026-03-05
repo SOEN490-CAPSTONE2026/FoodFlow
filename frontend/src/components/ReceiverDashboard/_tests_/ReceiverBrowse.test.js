@@ -90,7 +90,12 @@ jest.mock('../DonationsMap/MapViewBanner', () => {
 });
 
 jest.mock('../DonationsMap/MapViewModal', () => {
-  return function MockMapViewModal({ isOpen, onClose, onClaimClick, donations }) {
+  return function MockMapViewModal({
+    isOpen,
+    onClose,
+    onClaimClick,
+    donations,
+  }) {
     if (!isOpen) {
       return null;
     }
@@ -597,8 +602,16 @@ describe('ReceiverBrowse Component', () => {
       const donation = createMockDonation({
         id: 88,
         pickupSlots: [
-          { pickupDate: '2025-11-20', startTime: '09:00:00', endTime: '11:00:00' },
-          { pickupDate: '2025-11-21', startTime: '14:00:00', endTime: '16:00:00' },
+          {
+            pickupDate: '2025-11-20',
+            startTime: '09:00:00',
+            endTime: '11:00:00',
+          },
+          {
+            pickupDate: '2025-11-21',
+            startTime: '14:00:00',
+            endTime: '16:00:00',
+          },
         ],
       });
       surplusAPI.list.mockResolvedValue({ data: [donation] });
@@ -608,11 +621,15 @@ describe('ReceiverBrowse Component', () => {
       });
 
       fireEvent.click(await screen.findByText('Claim Donation'));
-      expect(await screen.findByText('Choose a pickup slot')).toBeInTheDocument();
+      expect(
+        await screen.findByText('Choose a pickup slot')
+      ).toBeInTheDocument();
 
       const radios = screen.getAllByRole('radio');
       fireEvent.click(radios[1]);
-      fireEvent.click(document.querySelector('.claim-modal-actions .btn-create'));
+      fireEvent.click(
+        document.querySelector('.claim-modal-actions .btn-create')
+      );
 
       await waitFor(() => {
         expect(surplusAPI.claim).toHaveBeenCalledWith(
@@ -630,7 +647,11 @@ describe('ReceiverBrowse Component', () => {
       const donation = createMockDonation({
         id: 89,
         pickupSlots: [
-          { pickupDate: '2025-11-22', startTime: '10:00:00', endTime: '12:00:00' },
+          {
+            pickupDate: '2025-11-22',
+            startTime: '10:00:00',
+            endTime: '12:00:00',
+          },
         ],
       });
       surplusAPI.list.mockResolvedValue({ data: [donation] });
@@ -643,7 +664,9 @@ describe('ReceiverBrowse Component', () => {
       expect(await screen.findByTestId('map-modal')).toBeInTheDocument();
 
       fireEvent.click(screen.getByText('Claim From Map'));
-      expect(await screen.findByText('Choose a pickup slot')).toBeInTheDocument();
+      expect(
+        await screen.findByText('Choose a pickup slot')
+      ).toBeInTheDocument();
     });
   });
 });

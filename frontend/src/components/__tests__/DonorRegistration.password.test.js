@@ -76,7 +76,9 @@ describe('DonorRegistration - Password Validation', () => {
       { target: { value: 'StrongPass1!' } }
     );
     fireEvent.change(
-      screen.getByPlaceholderText('donorRegistration.confirmPasswordPlaceholder'),
+      screen.getByPlaceholderText(
+        'donorRegistration.confirmPasswordPlaceholder'
+      ),
       { target: { value: 'StrongPass1!' } }
     );
 
@@ -117,7 +119,9 @@ describe('DonorRegistration - Password Validation', () => {
       { target: { value: 'StrongPass1!' } }
     );
     fireEvent.change(
-      screen.getByPlaceholderText('donorRegistration.confirmPasswordPlaceholder'),
+      screen.getByPlaceholderText(
+        'donorRegistration.confirmPasswordPlaceholder'
+      ),
       { target: { value: 'StrongPass1!' } }
     );
     fireEvent.click(
@@ -133,11 +137,15 @@ describe('DonorRegistration - Password Validation', () => {
       ).toBeInTheDocument()
     );
     fireEvent.change(
-      screen.getByPlaceholderText('donorRegistration.organizationNamePlaceholder'),
+      screen.getByPlaceholderText(
+        'donorRegistration.organizationNamePlaceholder'
+      ),
       { target: { value: 'Food Rescue Org' } }
     );
     fireEvent.change(
-      screen.getByPlaceholderText('donorRegistration.businessLicensePlaceholder'),
+      screen.getByPlaceholderText(
+        'donorRegistration.businessLicensePlaceholder'
+      ),
       { target: { value: 'BL-123' } }
     );
     fireEvent.click(
@@ -147,7 +155,9 @@ describe('DonorRegistration - Password Validation', () => {
     // Step 3
     await waitFor(() =>
       expect(
-        screen.getByPlaceholderText('donorRegistration.streetAddressPlaceholder')
+        screen.getByPlaceholderText(
+          'donorRegistration.streetAddressPlaceholder'
+        )
       ).toBeInTheDocument()
     );
     fireEvent.change(
@@ -177,7 +187,9 @@ describe('DonorRegistration - Password Validation', () => {
     // Step 4
     await waitFor(() =>
       expect(
-        screen.getByPlaceholderText('donorRegistration.contactPersonPlaceholder')
+        screen.getByPlaceholderText(
+          'donorRegistration.contactPersonPlaceholder'
+        )
       ).toBeInTheDocument()
     );
     fireEvent.change(
@@ -225,7 +237,9 @@ describe('DonorRegistration - Password Validation', () => {
       { target: { value: 'StrongPass1!' } }
     );
     fireEvent.change(
-      screen.getByPlaceholderText('donorRegistration.confirmPasswordPlaceholder'),
+      screen.getByPlaceholderText(
+        'donorRegistration.confirmPasswordPlaceholder'
+      ),
       { target: { value: 'StrongPass1!' } }
     );
     fireEvent.click(
@@ -240,7 +254,9 @@ describe('DonorRegistration - Password Validation', () => {
       ).toBeInTheDocument()
     );
     fireEvent.change(
-      screen.getByPlaceholderText('donorRegistration.organizationNamePlaceholder'),
+      screen.getByPlaceholderText(
+        'donorRegistration.organizationNamePlaceholder'
+      ),
       { target: { value: 'Org No Docs' } }
     );
 
@@ -261,7 +277,9 @@ describe('DonorRegistration - Password Validation', () => {
       { target: { value: 'StrongPass1!' } }
     );
     fireEvent.change(
-      screen.getByPlaceholderText('donorRegistration.confirmPasswordPlaceholder'),
+      screen.getByPlaceholderText(
+        'donorRegistration.confirmPasswordPlaceholder'
+      ),
       { target: { value: 'StrongPass1!' } }
     );
     fireEvent.click(

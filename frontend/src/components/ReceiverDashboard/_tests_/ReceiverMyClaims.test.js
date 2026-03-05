@@ -403,19 +403,35 @@ describe('ReceiverMyClaims Component', () => {
         data: [
           createMockClaim({
             id: 11,
-            surplusPost: { ...createMockClaim().surplusPost, status: 'READY_FOR_PICKUP', title: 'Ready Item' },
+            surplusPost: {
+              ...createMockClaim().surplusPost,
+              status: 'READY_FOR_PICKUP',
+              title: 'Ready Item',
+            },
           }),
           createMockClaim({
             id: 12,
-            surplusPost: { ...createMockClaim().surplusPost, status: 'COMPLETED', title: 'Completed Item' },
+            surplusPost: {
+              ...createMockClaim().surplusPost,
+              status: 'COMPLETED',
+              title: 'Completed Item',
+            },
           }),
           createMockClaim({
             id: 13,
-            surplusPost: { ...createMockClaim().surplusPost, status: 'NOT_COMPLETED', title: 'Not Completed Item' },
+            surplusPost: {
+              ...createMockClaim().surplusPost,
+              status: 'NOT_COMPLETED',
+              title: 'Not Completed Item',
+            },
           }),
           createMockClaim({
             id: 14,
-            surplusPost: { ...createMockClaim().surplusPost, status: 'EXPIRED', title: 'Expired Item' },
+            surplusPost: {
+              ...createMockClaim().surplusPost,
+              status: 'EXPIRED',
+              title: 'Expired Item',
+            },
           }),
         ],
       });

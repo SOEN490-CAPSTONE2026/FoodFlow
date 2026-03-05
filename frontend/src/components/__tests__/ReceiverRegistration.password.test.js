@@ -146,9 +146,12 @@ describe('ReceiverRegistration - Password Validation', () => {
       ),
       { target: { value: 'Community Kitchen' } }
     );
-    fireEvent.change(screen.getByLabelText('receiverRegistration.organizationTypeLabel'), {
-      target: { value: 'CHARITY' },
-    });
+    fireEvent.change(
+      screen.getByLabelText('receiverRegistration.organizationTypeLabel'),
+      {
+        target: { value: 'CHARITY' },
+      }
+    );
     fireEvent.change(
       screen.getByPlaceholderText(
         'receiverRegistration.charityRegistrationPlaceholder'
@@ -164,11 +167,15 @@ describe('ReceiverRegistration - Password Validation', () => {
     // Step 3
     await waitFor(() =>
       expect(
-        screen.getByPlaceholderText('receiverRegistration.streetAddressPlaceholder')
+        screen.getByPlaceholderText(
+          'receiverRegistration.streetAddressPlaceholder'
+        )
       ).toBeInTheDocument()
     );
     fireEvent.change(
-      screen.getByPlaceholderText('receiverRegistration.streetAddressPlaceholder'),
+      screen.getByPlaceholderText(
+        'receiverRegistration.streetAddressPlaceholder'
+      ),
       { target: { value: '456 Hope St' } }
     );
     fireEvent.change(
@@ -196,11 +203,15 @@ describe('ReceiverRegistration - Password Validation', () => {
     // Step 4
     await waitFor(() =>
       expect(
-        screen.getByPlaceholderText('receiverRegistration.contactPersonPlaceholder')
+        screen.getByPlaceholderText(
+          'receiverRegistration.contactPersonPlaceholder'
+        )
       ).toBeInTheDocument()
     );
     fireEvent.change(
-      screen.getByPlaceholderText('receiverRegistration.contactPersonPlaceholder'),
+      screen.getByPlaceholderText(
+        'receiverRegistration.contactPersonPlaceholder'
+      ),
       { target: { value: 'Jamie Receiver' } }
     );
     fireEvent.change(
@@ -281,9 +292,12 @@ describe('ReceiverRegistration - Password Validation', () => {
       ),
       { target: { value: 'No Doc Receiver' } }
     );
-    fireEvent.change(screen.getByLabelText('receiverRegistration.organizationTypeLabel'), {
-      target: { value: 'CHARITY' },
-    });
+    fireEvent.change(
+      screen.getByLabelText('receiverRegistration.organizationTypeLabel'),
+      {
+        target: { value: 'CHARITY' },
+      }
+    );
     expect(
       screen.getByRole('button', {
         name: 'receiverRegistration.nextButtonText',

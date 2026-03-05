@@ -402,7 +402,9 @@ describe('AdminUsers', () => {
 
     await waitFor(() => {
       expect(feedbackAPI.getUserRating).toHaveBeenCalledWith(1);
-      expect(screen.getByText('adminUsers.details.noReviews')).toBeInTheDocument();
+      expect(
+        screen.getByText('adminUsers.details.noReviews')
+      ).toBeInTheDocument();
     });
   });
 

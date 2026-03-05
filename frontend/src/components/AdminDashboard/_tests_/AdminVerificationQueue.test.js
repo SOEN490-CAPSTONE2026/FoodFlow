@@ -112,12 +112,16 @@ describe('AdminVerificationQueue', () => {
     render(<AdminVerificationQueue />);
 
     await waitFor(() => {
-      expect(screen.getByText('adminVerificationQueue.empty.title')).toBeInTheDocument();
+      expect(
+        screen.getByText('adminVerificationQueue.empty.title')
+      ).toBeInTheDocument();
     });
   });
 
   test('shows API error state when loading fails', async () => {
-    adminVerificationAPI.getPendingUsers.mockRejectedValueOnce(new Error('fail'));
+    adminVerificationAPI.getPendingUsers.mockRejectedValueOnce(
+      new Error('fail')
+    );
     render(<AdminVerificationQueue />);
 
     await waitFor(() => {
@@ -141,9 +145,7 @@ describe('AdminVerificationQueue', () => {
     );
     expect(title).toBeInTheDocument();
     const modalRoot = title.closest('.modal-content');
-    fireEvent.click(
-      modalRoot.querySelector('.btn-approve')
-    );
+    fireEvent.click(modalRoot.querySelector('.btn-approve'));
 
     await waitFor(() => {
       expect(adminVerificationAPI.approveUser).toHaveBeenCalledWith(1);
