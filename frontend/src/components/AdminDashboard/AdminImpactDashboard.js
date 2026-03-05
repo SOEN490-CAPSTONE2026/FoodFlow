@@ -279,7 +279,7 @@ export default function AdminImpactDashboard() {
               <div className="metric-icon-wrapper eco">
                 <Leaf size={24} />
               </div>
-              <h3>{t('impactDashboard.co2Avoided', 'COâ‚‚ Reduced')}</h3>
+              <h3>{t('impactDashboard.co2Avoided', 'CO₂ Reduced')}</h3>
             </div>
             <div className="metric-content">
               <div className="metric-value-large">
