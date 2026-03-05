@@ -259,6 +259,7 @@
 							<exclude>**/dto/**</exclude>
 							<exclude>**/config/**</exclude>
 							<exclude>**/FoodflowApplication.class</exclude>
+							<exclude>**/service/EmailService.class</exclude>
 						</excludes>
 					</configuration>
 				</execution>

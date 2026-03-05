@@ -430,8 +430,13 @@ export default function AdminImpactDashboard() {
                     borderRadius: '8px',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                   }}
-                  labelFormatter={value => `Date: ${value}`}
-                  formatter={value => [`${value} kg`, 'Food Saved']}
+                  labelFormatter={value =>
+                    `${t('impactDashboard.dateLabel', 'Date')}: ${value}`
+                  }
+                  formatter={value => [
+                    `${value} kg`,
+                    t('impactDashboard.foodSavedLabel', 'Food Saved'),
+                  ]}
                 />
                 <Area
                   type="monotone"
@@ -473,7 +478,7 @@ export default function AdminImpactDashboard() {
               />
               <Bar
                 dataKey="co2Kg"
-                name="CO₂ Saved (kg)"
+                name="COâ‚‚ Saved (kg)"
                 fill="#3b82f6"
                 radius={[8, 8, 0, 0]}
               />

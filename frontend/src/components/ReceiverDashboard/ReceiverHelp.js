@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ChevronDown,
   ChevronUp,
@@ -107,57 +108,40 @@ const FAQItem = ({ question, answer, isOpen, onClick }) => (
  */
 export default function ReceiverHelp() {
   const [openFAQ, setOpenFAQ] = useState(null);
+  const { t } = useTranslation();
 
   const faqs = [
+    'q1',
+    'q2',
+    'q3',
+    'q4',
+    'q5',
+    'q6',
+    'q7',
+    'q8',
+    'q9',
+    'q10',
+  ].map(key => ({
+    question: t(`receiverHelp.faq.items.${key}.question`),
+    answer: t(`receiverHelp.faq.items.${key}.answer`),
+  }));
+
+  const steps = [
     {
-      question: 'How do I claim a donation?',
-      answer:
-        "Browse available donations on the main page. When you find a listing you want, click 'Claim' on the donation card. Select a pickup time slot from the available options provided by the donor. Once confirmed, the donation is reserved for your organization. You'll receive notifications about the pickup status.",
+      key: 'step1',
+      icon: <Search size={20} />,
     },
     {
-      question: 'How do I confirm pickup?',
-      answer:
-        "When you arrive at the donor's location during your scheduled pickup time, you'll need to provide an OTP (One-Time Password) code to the donor. This code is visible in your 'My Claims' section under the donation details. The donor enters this code to confirm the successful handoff, completing the transaction.",
+      key: 'step2',
+      icon: <Clock size={20} />,
     },
     {
-      question: 'What is the OTP code?',
-      answer:
-        "The OTP (One-Time Password) is a unique 6-digit verification code assigned to each claimed donation. It appears in your claim details once the donation status changes to 'Ready for Pickup'. You'll need to show or tell this code to the donor when collecting the food. This ensures secure verification of the pickup.",
+      key: 'step3',
+      icon: <CheckCircle size={20} />,
     },
     {
-      question: 'What are food preferences?',
-      answer:
-        "Food preferences allow you to customize what types of donations you're interested in receiving. You can set preferences for food categories (prepared food, produce, dairy, etc.), donation sizes (small, medium, large), and dietary requirements (vegetarian, halal, kosher, etc.). Donors may be able to see your preferences to better match donations to your needs.",
-    },
-    {
-      question: 'How do I set my food preferences?',
-      answer:
-        "Click on your profile avatar in the top right corner and select 'Preferences' from the dropdown menu. You can select your preferred food types, specify dietary restrictions, set your pickup capacity, and indicate your operating hours. These preferences help match you with suitable donations.",
-    },
-    {
-      question: 'How do I message a donor?',
-      answer:
-        "Click 'Messages' in the navigation bar to access your conversations. You can send messages to donors whose donations you've claimed to coordinate pickup details, ask questions about the food, or handle any issues. Messages are delivered in real-time and you'll receive notifications for new messages.",
-    },
-    {
-      question: 'What do the donation statuses mean?',
-      answer:
-        "Donations go through several statuses: 'Available' means the food is open for claims. 'Claimed' means someone has reserved it. 'Ready for Pickup' indicates it's time to collect the food - you'll see your OTP code at this stage. 'Completed' means the pickup was successful. 'Cancelled' means the claim was cancelled.",
-    },
-    {
-      question: 'Can I cancel a claim?',
-      answer:
-        "Yes, you can cancel a claim that hasn't been picked up yet. Go to 'My Claims', find the donation, and click the cancel option. Please try to cancel as early as possible so the food can be made available to other receivers. Frequent cancellations may affect your organization's reputation on the platform.",
-    },
-    {
-      question: 'How do I find donations near me?',
-      answer:
-        "The Donations page shows available food listings in your area. You can browse all listings or use the filters to narrow down by food type, distance, or pickup time. The map view helps you visualize locations. Your organization's registered address is used to calculate distances to donations.",
-    },
-    {
-      question: 'How is my organization verified?',
-      answer:
-        "When you register, your organization details are submitted for verification. Our admin team reviews your charitable status, registration documents, and contact information. You'll see your verification status in your profile. Some features may be limited until verification is complete.",
+      key: 'step4',
+      icon: <Settings size={20} />,
     },
   ];
 
@@ -167,81 +151,38 @@ export default function ReceiverHelp() {
 
   return (
     <div className="receiver-help">
-      {/* Getting Started Section */}
       <section className="help-section getting-started">
         <div className="section-header">
           <BookOpen size={24} />
-          <h2>Getting Started</h2>
+          <h2>{t('receiverHelp.gettingStarted.title')}</h2>
         </div>
         <p className="section-intro">
-          Welcome to FoodFlow! As a receiver, you can claim surplus food
-          donations from local businesses and organizations. Here's how to get
-          started.
+          {t('receiverHelp.gettingStarted.intro')}
         </p>
         <div className="getting-started-content">
-          <div className="step">
-            <div className="step-number">1</div>
-            <div className="step-content">
-              <div className="step-icon">
-                <Search size={20} />
+          {steps.map((step, index) => (
+            <div className="step" key={step.key}>
+              <div className="step-number">{index + 1}</div>
+              <div className="step-content">
+                <div className="step-icon">{step.icon}</div>
+                <h4>
+                  {t(`receiverHelp.gettingStarted.steps.${step.key}.title`)}
+                </h4>
+                <p>
+                  {t(
+                    `receiverHelp.gettingStarted.steps.${step.key}.description`
+                  )}
+                </p>
               </div>
-              <h4>Browse Available Donations</h4>
-              <p>
-                Explore the Donations page to find surplus food listings near
-                you. Use filters to find food that matches your organization's
-                needs.
-              </p>
             </div>
-          </div>
-          <div className="step">
-            <div className="step-number">2</div>
-            <div className="step-content">
-              <div className="step-icon">
-                <Clock size={20} />
-              </div>
-              <h4>Claim & Schedule Pickup</h4>
-              <p>
-                Click 'Claim' on a donation and select a pickup time from the
-                available slots. The donation will be reserved for your
-                organization.
-              </p>
-            </div>
-          </div>
-          <div className="step">
-            <div className="step-number">3</div>
-            <div className="step-content">
-              <div className="step-icon">
-                <CheckCircle size={20} />
-              </div>
-              <h4>Pickup with OTP</h4>
-              <p>
-                Arrive at the scheduled time and provide your OTP code to the
-                donor. They'll confirm the handoff, completing the donation
-                process.
-              </p>
-            </div>
-          </div>
-          <div className="step">
-            <div className="step-number">4</div>
-            <div className="step-content">
-              <div className="step-icon">
-                <Settings size={20} />
-              </div>
-              <h4>Set Your Preferences</h4>
-              <p>
-                Update your food preferences in your profile to get better
-                matches and help donors understand your organization's needs.
-              </p>
-            </div>
-          </div>
+          ))}
         </div>
       </section>
 
-      {/* FAQ Section */}
       <section className="help-section faq-section">
         <div className="section-header">
           <HelpCircle size={24} />
-          <h2>Frequently Asked Questions</h2>
+          <h2>{t('receiverHelp.faq.title')}</h2>
         </div>
         <div
           role="list"
@@ -259,25 +200,23 @@ export default function ReceiverHelp() {
         </div>
       </section>
 
-      {/* Contact Support Section */}
       <section className="help-section contact-section">
         <div className="section-header">
           <MessageCircle size={24} />
-          <h2>Need More Help?</h2>
+          <h2>{t('receiverHelp.support.title')}</h2>
         </div>
-        <p className="section-intro">
-          Can't find what you're looking for? Our support team is here to help
-          you.
-        </p>
+        <p className="section-intro">{t('receiverHelp.support.intro')}</p>
         <div className="contact-options">
           <a href="mailto:support@foodflow.com" className="contact-card">
             <div className="contact-icon">
               <Mail size={24} />
             </div>
             <div className="contact-info">
-              <h4>Email Support</h4>
+              <h4>{t('receiverHelp.support.emailLabel')}</h4>
               <p>support@foodflow.com</p>
-              <span className="response-time">Response within 24 hours</span>
+              <span className="response-time">
+                {t('receiverHelp.support.emailResponseTime')}
+              </span>
             </div>
           </a>
           <a href="tel:1-800-FOODFLOW" className="contact-card">
@@ -285,9 +224,11 @@ export default function ReceiverHelp() {
               <Phone size={24} />
             </div>
             <div className="contact-info">
-              <h4>Phone Support</h4>
+              <h4>{t('receiverHelp.support.phoneLabel')}</h4>
               <p>1-800-FOODFLOW</p>
-              <span className="response-time">Mon-Fri, 9AM-6PM EST</span>
+              <span className="response-time">
+                {t('receiverHelp.support.phoneAvailability')}
+              </span>
             </div>
           </a>
         </div>

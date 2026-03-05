@@ -41,6 +41,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.Timer;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -101,6 +102,8 @@ public class SurplusService {
     private final CalendarSyncService calendarSyncService;
     private final CalendarSyncPreferenceRepository calendarSyncPreferenceRepository;
     private final SyncedCalendarEventRepository syncedCalendarEventRepository;
+    @Autowired(required = false)
+    private DonationImageResolverService donationImageResolverService;
 
     @Value("${pickup.tolerance.early-minutes:15}")
     private int earlyToleranceMinutes;
@@ -552,6 +555,11 @@ public class SurplusService {
         response.setDonorName(post.getDonor().getOrganization() != null
                 ? post.getDonor().getOrganization().getName()
                 : null);
+        response.setDonorLogoUrl(post.getDonor().getProfilePhoto());
+        if (donationImageResolverService != null) {
+            response.setResolvedDonationImageUrl(
+                    donationImageResolverService.resolveDonationImageUrl(post.getDonor(), post.getFoodType(), post.getId()));
+        }
         response.setCreatedAt(post.getCreatedAt());
         response.setUpdatedAt(post.getUpdatedAt());
         response.setTemperatureCategory(post.getTemperatureCategory());

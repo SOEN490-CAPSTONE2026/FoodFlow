@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
+import { useTranslation } from 'react-i18next';
 import { User, Globe, Bell, Camera, Lock } from 'lucide-react';
 import LanguageSwitcher from '../LanguageSwitcher';
 import RegionSelector from '../RegionSelector';
@@ -10,55 +11,56 @@ import './Admin_Styles/AdminSettings.css';
  * Admin Settings page (standalone, with admin-specific logic)
  */
 const AdminSettings = () => {
+  const { t } = useTranslation();
   const { userId, organizationName, role } = useContext(AuthContext);
 
   // Admin-specific notification categories
   const notificationCategories = {
     ADMIN: {
-      'System Oversight': [
+      systemOversight: [
         {
           key: 'donationFlagged',
-          label: 'Flagged Donations',
-          desc: 'New flagged donation (safety/fraud/inappropriate content)',
+          labelKey: 'donationFlagged',
+          descKey: 'donationFlaggedDesc',
         },
         {
           key: 'suspiciousActivity',
-          label: 'Suspicious Activity',
-          desc: 'New suspicious user action detected',
+          labelKey: 'suspiciousActivity',
+          descKey: 'suspiciousActivityDesc',
         },
         {
           key: 'verificationRequest',
-          label: 'Verification Requests',
-          desc: 'New verification request (receiver/donor)',
+          labelKey: 'verificationRequest',
+          descKey: 'verificationRequestDesc',
         },
       ],
-      'Dispute & Compliance': [
+      disputeCompliance: [
         {
           key: 'newDispute',
-          label: 'New Disputes',
-          desc: 'New dispute/case opened',
+          labelKey: 'newDispute',
+          descKey: 'newDisputeDesc',
         },
         {
           key: 'escalatedIssue',
-          label: 'Escalated Issues',
-          desc: 'Repeat offender, unsafe food, dangerous temperature logs',
+          labelKey: 'escalatedIssue',
+          descKey: 'escalatedIssueDesc',
         },
         {
           key: 'safetyAlert',
-          label: 'Safety Alerts',
-          desc: 'Automated safety alerts (expired donations, cold-chain issues)',
+          labelKey: 'safetyAlert',
+          descKey: 'safetyAlertDesc',
         },
       ],
-      Operational: [
+      operational: [
         {
           key: 'systemError',
-          label: 'System Errors',
-          desc: 'System errors/failures (internal use)',
+          labelKey: 'systemError',
+          descKey: 'systemErrorDesc',
         },
         {
           key: 'highVolumeDonation',
-          label: 'High Volume Alerts',
-          desc: 'High-volume donation alert',
+          labelKey: 'highVolumeDonation',
+          descKey: 'highVolumeDonationDesc',
         },
       ],
     },
@@ -147,17 +149,17 @@ const AdminSettings = () => {
   const validateForm = () => {
     const newErrors = {};
     if (!formData.fullName || formData.fullName.trim().length === 0) {
-      newErrors.fullName = 'Full name is required';
+      newErrors.fullName = t('adminSettings.validation.fullNameRequired');
     } else if (formData.fullName.trim().length < 2) {
-      newErrors.fullName = 'Full name must be at least 2 characters';
+      newErrors.fullName = t('adminSettings.validation.fullNameMin');
     }
     if (!formData.email || formData.email.trim().length === 0) {
-      newErrors.email = 'Email is required';
+      newErrors.email = t('adminSettings.validation.emailRequired');
     } else if (!validateEmail(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
+      newErrors.email = t('adminSettings.validation.emailInvalid');
     }
     if (formData.phoneNumber && !validatePhoneNumber(formData.phoneNumber)) {
-      newErrors.phoneNumber = 'Please enter a valid phone number';
+      newErrors.phoneNumber = t('adminSettings.validation.phoneInvalid');
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -188,11 +190,11 @@ const AdminSettings = () => {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        setErrors({ profileImage: 'Image size must be less than 5MB' });
+        setErrors({ profileImage: t('adminSettings.validation.imageSize') });
         return;
       }
       if (!file.type.startsWith('image/')) {
-        setErrors({ profileImage: 'Please upload a valid image file' });
+        setErrors({ profileImage: t('adminSettings.validation.imageFile') });
         return;
       }
       setProfileImageFile(file);
@@ -214,11 +216,11 @@ const AdminSettings = () => {
     setErrors({});
     try {
       setTimeout(() => {
-        setSuccessMessage('Profile updated successfully!');
+        setSuccessMessage(t('adminSettings.messages.profileUpdated'));
         setLoading(false);
       }, 500);
     } catch (error) {
-      setErrors({ submit: 'Failed to update profile. Please try again.' });
+      setErrors({ submit: t('adminSettings.messages.updateFailed') });
       setLoading(false);
     }
   };
@@ -227,7 +229,11 @@ const AdminSettings = () => {
     setNotificationPreferences(prev => ({ ...prev, emailAlerts: newValue }));
     const toast = document.createElement('div');
     toast.className = 'language-toast';
-    toast.textContent = `Email alerts ${newValue ? 'enabled' : 'disabled'}`;
+    toast.textContent = t(
+      newValue
+        ? 'adminSettings.messages.emailAlertsEnabled'
+        : 'adminSettings.messages.emailAlertsDisabled'
+    );
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 2000);
   };
@@ -236,7 +242,11 @@ const AdminSettings = () => {
     setNotificationPreferences(prev => ({ ...prev, smsAlerts: newValue }));
     const toast = document.createElement('div');
     toast.className = 'language-toast';
-    toast.textContent = `SMS alerts ${newValue ? 'enabled' : 'disabled'}`;
+    toast.textContent = t(
+      newValue
+        ? 'adminSettings.messages.smsAlertsEnabled'
+        : 'adminSettings.messages.smsAlertsDisabled'
+    );
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 2000);
   };
@@ -254,15 +264,17 @@ const AdminSettings = () => {
               <User size={24} />
             </div>
             <div className="section-title-group">
-              <h2>Account</h2>
+              <h2>{t('adminSettings.sections.account')}</h2>
               <p className="section-description">
-                Manage your profile and account details
+                {t('adminSettings.descriptions.account')}
               </p>
             </div>
           </div>
           <div className="section-content">
             {loadingProfile ? (
-              <div className="loading-spinner">Loading profile...</div>
+              <div className="loading-spinner">
+                {t('adminSettings.loading')}
+              </div>
             ) : (
               <>
                 <div className="profile-image-section">
@@ -271,7 +283,7 @@ const AdminSettings = () => {
                       {profileImage ? (
                         <img
                           src={profileImage}
-                          alt="Profile"
+                          alt={t('adminSettings.profileAlt')}
                           className="profile-image"
                         />
                       ) : (
@@ -295,8 +307,8 @@ const AdminSettings = () => {
                       />
                     </div>
                     <div className="profile-image-info">
-                      <h3>Profile Photo</h3>
-                      <p>Upload a photo to personalize your account</p>
+                      <h3>{t('adminSettings.profilePhoto')}</h3>
+                      <p>{t('adminSettings.profilePhotoDescription')}</p>
                       {errors.profileImage && (
                         <span className="field-error">
                           {errors.profileImage}
@@ -307,12 +319,14 @@ const AdminSettings = () => {
                 </div>
                 <div className="account-form-grid">
                   <div className="form-field">
-                    <label className="field-label">Full Name *</label>
+                    <label className="field-label">
+                      {t('adminSettings.fields.fullName')} *
+                    </label>
                     <input
                       type="text"
                       name="fullName"
                       className={`field-input ${errors.fullName ? 'error' : ''}`}
-                      placeholder="Enter your full name"
+                      placeholder={t('adminSettings.placeholders.fullName')}
                       value={formData.fullName}
                       onChange={handleInputChange}
                     />
@@ -321,12 +335,14 @@ const AdminSettings = () => {
                     )}
                   </div>
                   <div className="form-field">
-                    <label className="field-label">Email Address *</label>
+                    <label className="field-label">
+                      {t('adminSettings.fields.email')} *
+                    </label>
                     <input
                       type="email"
                       name="email"
                       className={`field-input ${errors.email ? 'error' : ''}`}
-                      placeholder="Enter your email"
+                      placeholder={t('adminSettings.placeholders.email')}
                       value={formData.email}
                       onChange={handleInputChange}
                     />
@@ -335,23 +351,27 @@ const AdminSettings = () => {
                     )}
                   </div>
                   <div className="form-field">
-                    <label className="field-label">Organization</label>
+                    <label className="field-label">
+                      {t('adminSettings.fields.organization')}
+                    </label>
                     <input
                       type="text"
                       name="organization"
                       className="field-input"
-                      placeholder="Enter your organization"
+                      placeholder={t('adminSettings.placeholders.organization')}
                       value={formData.organization}
                       onChange={handleInputChange}
                     />
                   </div>
                   <div className="form-field">
-                    <label className="field-label">Phone Number</label>
+                    <label className="field-label">
+                      {t('adminSettings.fields.phone')}
+                    </label>
                     <input
                       type="tel"
                       name="phoneNumber"
                       className={`field-input ${errors.phoneNumber ? 'error' : ''}`}
-                      placeholder="Enter your phone number"
+                      placeholder={t('adminSettings.placeholders.phone')}
                       value={formData.phoneNumber}
                       onChange={handleInputChange}
                     />
@@ -360,12 +380,14 @@ const AdminSettings = () => {
                     )}
                   </div>
                   <div className="form-field form-field-full">
-                    <label className="field-label">Address</label>
+                    <label className="field-label">
+                      {t('adminSettings.fields.address')}
+                    </label>
                     <input
                       type="text"
                       name="address"
                       className="field-input"
-                      placeholder="Enter your address"
+                      placeholder={t('adminSettings.placeholders.address')}
                       value={formData.address}
                       onChange={handleInputChange}
                     />
@@ -378,7 +400,7 @@ const AdminSettings = () => {
                     type="button"
                   >
                     <Lock size={18} />
-                    <span>Change Password</span>
+                    <span>{t('adminSettings.changePassword')}</span>
                   </button>
                 </div>
                 <button
@@ -386,7 +408,9 @@ const AdminSettings = () => {
                   onClick={handleSaveChanges}
                   disabled={loading}
                 >
-                  {loading ? 'Saving...' : 'Save Changes'}
+                  {loading
+                    ? t('adminSettings.saving')
+                    : t('adminSettings.saveChanges')}
                 </button>
               </>
             )}
@@ -398,18 +422,20 @@ const AdminSettings = () => {
               <Globe size={24} />
             </div>
             <div className="section-title-group">
-              <h2>Language & Region</h2>
+              <h2>{t('adminSettings.sections.languageRegion')}</h2>
               <p className="section-description">
-                Set your language, location, and timezone preferences
+                {t('adminSettings.descriptions.languageRegion')}
               </p>
             </div>
           </div>
           <div className="section-content">
             <div className="language-region-container">
               <div className="subsection-header">
-                <h3 className="subsection-title">Language Preference</h3>
+                <h3 className="subsection-title">
+                  {t('adminSettings.subsections.languagePreference')}
+                </h3>
                 <p className="subsection-description">
-                  Choose your preferred language for the interface
+                  {t('adminSettings.subsectionDescriptions.languagePreference')}
                 </p>
               </div>
               <LanguageSwitcher />
@@ -417,9 +443,11 @@ const AdminSettings = () => {
             <div className="region-settings-divider"></div>
             <div className="language-region-container">
               <div className="subsection-header">
-                <h3 className="subsection-title">Location & Timezone</h3>
+                <h3 className="subsection-title">
+                  {t('adminSettings.subsections.locationTimezone')}
+                </h3>
                 <p className="subsection-description">
-                  Set your location to ensure accurate date and time information
+                  {t('adminSettings.subsectionDescriptions.locationTimezone')}
                 </p>
               </div>
               <RegionSelector
@@ -435,9 +463,9 @@ const AdminSettings = () => {
               <Bell size={24} />
             </div>
             <div className="section-title-group">
-              <h2>Notification Preferences</h2>
+              <h2>{t('adminSettings.sections.notificationPreferences')}</h2>
               <p className="section-description">
-                Choose how you want to receive notifications
+                {t('adminSettings.descriptions.notificationPreferences')}
               </p>
             </div>
           </div>
@@ -451,10 +479,12 @@ const AdminSettings = () => {
             <div className="notification-preferences">
               <div className="preference-item">
                 <div className="preference-info">
-                  <h4>Email Alerts</h4>
+                  <h4>{t('adminSettings.emailAlerts')}</h4>
                   <p>
-                    Receive notifications via email at{' '}
-                    {formData.email || 'your email address'}
+                    {t('adminSettings.emailAlertsDescription', {
+                      email:
+                        formData.email || t('adminSettings.yourEmailAddress'),
+                    })}
                   </p>
                 </div>
                 <label className="toggle-switch">
@@ -468,10 +498,13 @@ const AdminSettings = () => {
               </div>
               <div className="preference-item">
                 <div className="preference-info">
-                  <h4>SMS Alerts</h4>
+                  <h4>{t('adminSettings.smsAlerts')}</h4>
                   <p>
-                    Receive notifications via text message
-                    {formData.phoneNumber ? ` at ${formData.phoneNumber}` : ''}
+                    {t('adminSettings.smsAlertsDescription', {
+                      phone: formData.phoneNumber
+                        ? ` ${formData.phoneNumber}`
+                        : '',
+                    })}
                   </p>
                 </div>
                 <label className="toggle-switch">
@@ -492,9 +525,9 @@ const AdminSettings = () => {
               <Bell size={24} />
             </div>
             <div className="section-title-group">
-              <h2>Notification Types</h2>
+              <h2>{t('adminSettings.sections.notificationTypes')}</h2>
               <p className="section-description">
-                Customize which types of notifications you want to receive
+                {t('adminSettings.descriptions.notificationTypes')}
               </p>
             </div>
           </div>
@@ -503,17 +536,21 @@ const AdminSettings = () => {
               ([categoryName, categoryItems]) => (
                 <div key={categoryName} className="notification-category">
                   <h3 className="notification-category-title">
-                    {categoryName}
+                    {t(`settings.notificationTypes.admin.${categoryName}`)}
                   </h3>
                   <div className="notification-list">
                     {categoryItems.map(notification => (
                       <div key={notification.key} className="notification-item">
                         <div className="notification-info">
                           <h4 className="notification-title">
-                            {notification.label}
+                            {t(
+                              `settings.notificationTypes.admin.${notification.labelKey}`
+                            )}
                           </h4>
                           <p className="notification-desc">
-                            {notification.desc}
+                            {t(
+                              `settings.notificationTypes.admin.${notification.descKey}`
+                            )}
                           </p>
                         </div>
                         <label className="toggle-switch">

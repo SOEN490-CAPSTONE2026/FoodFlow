@@ -7,6 +7,42 @@ import { AuthContext } from '../../../contexts/AuthContext';
 import AdminLayout from '../AdminLayout';
 
 const mockedNavigate = jest.fn();
+
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: key => {
+      const map = {
+        'admin.dashboard': 'Home',
+        'admin.users': 'User Management',
+        'admin.verificationQueue': 'Verification Queue',
+        'admin.impact': 'Impact Dashboard',
+        'admin.disputes': 'Disputes & Reports',
+        'admin.donations': 'Donations',
+        'admin.messages': 'Messages',
+        'admin.help': 'Help',
+        'admin.settings': 'Settings',
+        'admin.logout': 'Logout',
+        'admin.toggleMenu': 'Toggle Menu',
+        'admin.toggleSidebar': 'Toggle sidebar',
+        'admin.foodflowHome': 'FoodFlow Home',
+        'admin.communications': 'Incoming communications',
+      };
+      return map[key] || key;
+    },
+  }),
+}));
+
+jest.mock('../../../services/api', () => ({
+  profileAPI: {
+    get: jest.fn().mockResolvedValue({ data: {} }),
+  },
+}));
+
+jest.mock('../../../services/socket', () => ({
+  connectToUserQueue: jest.fn(),
+  disconnect: jest.fn(),
+}));
+
 jest.mock('react-router-dom', () => {
   const actual = jest.requireActual('react-router-dom');
   return {
@@ -92,7 +128,7 @@ describe('AdminLayout', () => {
     renderWithRoutes('/admin/users');
     const nav = screen.getByRole('navigation');
     // Check that Users link exists and navigation renders
-    const usersLink = within(nav).getByText('Users');
+    const usersLink = within(nav).getByText('User Management');
     expect(usersLink).toBeInTheDocument();
     expect(nav).toBeInTheDocument();
   });

@@ -16,6 +16,10 @@ import '../style/CalendarSettings.css';
 
 const CalendarSettings = () => {
   const { t } = useTranslation();
+  const tx = (key, fallback, options = {}) => {
+    const value = t(key, options);
+    return !value || value === key ? fallback : value;
+  };
   const { userId } = useContext(AuthContext);
 
   // State management
@@ -43,6 +47,7 @@ const CalendarSettings = () => {
   const [showDisconnectModal, setShowDisconnectModal] = useState(false);
   const [showConnectionDetailsModal, setShowConnectionDetailsModal] =
     useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // Load data on component mount
   useEffect(() => {
@@ -73,7 +78,7 @@ const CalendarSettings = () => {
         setEvents(eventsRes.data.data || []);
       }
     } catch (err) {
-      setError(t('calendar.loadError') || 'Failed to load calendar data');
+      setError(t('calendar.loadError'));
       console.error('Calendar data load error:', err);
     } finally {
       setLoading(false);
@@ -245,382 +250,448 @@ const CalendarSettings = () => {
             {t('calendar.description') ||
               'Connect your Google Calendar to automatically sync donation appointments and pickups'}
           </p>
+          <p className="calendar-summary-line">
+            {connectionStatus.isConnected
+              ? t('calendar.summary.connectedTo', {
+                  provider: connectionStatus.provider || 'GOOGLE',
+                })
+              : t('calendar.summary.notConnected')}{' '}
+            •{' '}
+            {events.length === 1
+              ? t('calendar.summary.syncedEventSingular', {
+                  count: events.length,
+                })
+              : t('calendar.summary.syncedEventPlural', {
+                  count: events.length,
+                })}
+          </p>
         </div>
-        {connectionStatus.isConnected && (
+        <div className="calendar-header-actions">
+          {connectionStatus.isConnected && (
+            <button
+              onClick={handleManualSync}
+              disabled={loading || preferences.syncEnabled}
+              className="btn btn-secondary btn-compact"
+            >
+              {loading
+                ? t('common.syncing')
+                : t('calendar.syncButton') || 'Sync Now'}
+            </button>
+          )}
           <button
-            onClick={handleManualSync}
-            disabled={loading || preferences.syncEnabled}
-            className="btn btn-secondary btn-compact"
+            type="button"
+            className="calendar-toggle-btn"
+            onClick={() => setIsExpanded(prev => !prev)}
+            aria-expanded={isExpanded}
+            aria-label={tx(
+              'calendar.toggleAria',
+              'Toggle calendar integration'
+            )}
           >
-            {loading
-              ? t('common.syncing')
-              : t('calendar.syncButton') || 'Sync Now'}
+            {isExpanded
+              ? tx('calendar.hide', 'Hide')
+              : tx('calendar.edit', 'Edit')}{' '}
+            {isExpanded ? '▲' : '▼'}
           </button>
-        )}
+        </div>
       </div>
 
-      <div className="section-content">
-        {/* Connection Status */}
-        <div className="connection-card">
-          <div className="status-indicator">
-            {connectionStatus.isConnected ? (
-              <>
-                <div className="status-content">
-                  <div className="status-title-row">
-                    <CheckCircle className="status-icon success" />
-                    <p className="status-title">
-                      {t('calendar.connected') || 'Connected'}
+      {isExpanded && (
+        <div className="section-content calendar-content-wrap">
+          {/* Connection Status */}
+          <div className="connection-card">
+            <div className="status-indicator">
+              {connectionStatus.isConnected ? (
+                <>
+                  <div className="status-content">
+                    <div className="status-title-row">
+                      <CheckCircle className="status-icon success" />
+                      <p className="status-title">
+                        {t('calendar.connected') || 'Connected'}
+                      </p>
+                    </div>
+                    <p className="status-subtext">
+                      {t('calendar.provider') || 'Provider'}:{' '}
+                      {connectionStatus.provider || 'GOOGLE'}
                     </p>
                   </div>
-                  <p className="status-subtext">
-                    {t('calendar.provider') || 'Provider'}:{' '}
-                    {connectionStatus.provider || 'GOOGLE'}
-                  </p>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="status-content">
-                  <div className="status-title-row">
-                    <AlertCircle className="status-icon warning" />
-                    <p className="status-title">
-                      {t('calendar.notConnected') || 'Not Connected'}
+                </>
+              ) : (
+                <>
+                  <div className="status-content">
+                    <div className="status-title-row">
+                      <AlertCircle className="status-icon warning" />
+                      <p className="status-title">
+                        {t('calendar.notConnected') || 'Not Connected'}
+                      </p>
+                    </div>
+                    <p className="status-subtext">
+                      {t('calendar.connectPrompt') ||
+                        'Connect your calendar to get started'}
                     </p>
                   </div>
-                  <p className="status-subtext">
-                    {t('calendar.connectPrompt') ||
-                      'Connect your calendar to get started'}
-                  </p>
-                </div>
-              </>
-            )}
-          </div>
+                </>
+              )}
+            </div>
 
-          <div className="connection-actions">
-            {!connectionStatus.isConnected ? (
-              <button
-                onClick={handleConnect}
-                disabled={loading}
-                className="btn btn-primary"
-              >
-                <LinkIcon size={18} />
-                {loading
-                  ? t('common.loading')
-                  : t('calendar.connectButton') || 'Connect Google Calendar'}
-              </button>
-            ) : (
-              <>
+            <div className="connection-actions">
+              {!connectionStatus.isConnected ? (
                 <button
-                  onClick={() => setShowConnectionDetailsModal(true)}
-                  disabled={testing}
-                  className="btn btn-secondary"
-                >
-                  {testing ? t('common.loading') : 'View Connection Details'}
-                </button>
-                <button
-                  onClick={handleDisconnect}
+                  onClick={handleConnect}
                   disabled={loading}
-                  className="btn btn-danger"
+                  className="btn btn-primary"
                 >
-                  <UnlinkIcon size={18} />
-                  {t('calendar.disconnectButton') || 'Disconnect'}
+                  <LinkIcon size={18} />
+                  {loading
+                    ? t('common.loading')
+                    : t('calendar.connectButton') || 'Connect Google Calendar'}
                 </button>
-              </>
-            )}
+              ) : (
+                <>
+                  <button
+                    onClick={() => setShowConnectionDetailsModal(true)}
+                    disabled={testing}
+                    className="btn btn-secondary"
+                  >
+                    {testing
+                      ? t('common.loading')
+                      : tx(
+                          'calendar.viewConnectionDetails',
+                          'View Connection Details'
+                        )}
+                  </button>
+                  <button
+                    onClick={handleDisconnect}
+                    disabled={loading}
+                    className="btn btn-danger"
+                  >
+                    <UnlinkIcon size={18} />
+                    {t('calendar.disconnectButton') || 'Disconnect'}
+                  </button>
+                </>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Preferences Section */}
-        {connectionStatus.isConnected && (
-          <div className="preferences-section">
-            <h3>{t('calendar.preferences') || 'Sync Preferences'}</h3>
+          {/* Preferences Section */}
+          {connectionStatus.isConnected && (
+            <div className="preferences-section">
+              <h3>{t('calendar.preferences') || 'Sync Preferences'}</h3>
 
-            <div className="preference-group">
-              <label className="checkbox-label btn-compact">
-                <input
-                  type="checkbox"
-                  checked={preferences.syncEnabled}
-                  onChange={e =>
-                    handlePreferencesChange('syncEnabled', e.target.checked)
+              <div className="preference-group">
+                <label className="checkbox-label btn-compact">
+                  <input
+                    type="checkbox"
+                    checked={preferences.syncEnabled}
+                    onChange={e =>
+                      handlePreferencesChange('syncEnabled', e.target.checked)
+                    }
+                  />
+                  <span>
+                    {t('calendar.syncEnabled') || 'Enable automatic sync'}
+                  </span>
+                </label>
+              </div>
+
+              {/* Reminders Section */}
+              <div className="preferences-subsection">
+                <h4
+                  className="subsection-header collapsible-header"
+                  onClick={() =>
+                    setReminderSectionExpanded(!reminderSectionExpanded)
                   }
-                />
-                <span>
-                  {t('calendar.syncEnabled') || 'Enable automatic sync'}
-                </span>
-              </label>
-            </div>
+                >
+                  {t('calendar.reminderPreferences') || 'Reminder Preferences'}
+                  {reminderSectionExpanded ? (
+                    <ChevronUp size={20} />
+                  ) : (
+                    <ChevronDown size={20} />
+                  )}
+                </h4>
 
-            {/* Reminders Section */}
-            <div className="preferences-subsection">
-              <h4
-                className="subsection-header collapsible-header"
-                onClick={() =>
-                  setReminderSectionExpanded(!reminderSectionExpanded)
-                }
-              >
-                {t('calendar.reminderPreferences') || 'Reminder Preferences'}
-                {reminderSectionExpanded ? (
-                  <ChevronUp size={20} />
-                ) : (
-                  <ChevronDown size={20} />
-                )}
-              </h4>
+                {reminderSectionExpanded && (
+                  <div>
+                    <div className="preference-group">
+                      <label className="checkbox-label btn-compact">
+                        <input
+                          type="checkbox"
+                          checked={preferences.autoCreateReminders}
+                          onChange={e =>
+                            handlePreferencesChange(
+                              'autoCreateReminders',
+                              e.target.checked
+                            )
+                          }
+                        />
+                        <span>
+                          {t('calendar.autoReminders') ||
+                            'Enable automatic reminders'}
+                        </span>
+                      </label>
+                    </div>
 
-              {reminderSectionExpanded && (
-                <div>
-                  <div className="preference-group">
-                    <label className="checkbox-label btn-compact">
-                      <input
-                        type="checkbox"
-                        checked={preferences.autoCreateReminders}
+                    <div className="preference-group">
+                      <label
+                        htmlFor="reminder-seconds"
+                        className="preference-label"
+                      >
+                        {t('calendar.reminderTimeBeforeEvent') ||
+                          'Reminder time before event'}
+                      </label>
+                      <div className="input-with-unit">
+                        <input
+                          id="reminder-seconds"
+                          type="number"
+                          min="0"
+                          max="1440"
+                          value={preferences.reminderSecondsBefore}
+                          onChange={e =>
+                            handlePreferencesChange(
+                              'reminderSecondsBefore',
+                              parseInt(e.target.value) || 0
+                            )
+                          }
+                          placeholder="60"
+                          disabled={!preferences.autoCreateReminders}
+                          className="input-field"
+                        />
+                        <span className="input-unit">
+                          {t('calendar.minutes')}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="preference-group">
+                      <label
+                        htmlFor="reminder-type"
+                        className="preference-label"
+                      >
+                        {t('calendar.reminderType') || 'Reminder Type'}
+                      </label>
+                      <select
+                        id="reminder-type"
+                        value={preferences.reminderType}
                         onChange={e =>
                           handlePreferencesChange(
-                            'autoCreateReminders',
-                            e.target.checked
+                            'reminderType',
+                            e.target.value
                           )
                         }
-                      />
-                      <span>
-                        {t('calendar.autoReminders') ||
-                          'Enable automatic reminders'}
-                      </span>
-                    </label>
-                  </div>
-
-                  <div className="preference-group">
-                    <label
-                      htmlFor="reminder-seconds"
-                      className="preference-label"
-                    >
-                      {t('calendar.reminderTimeBeforeEvent') ||
-                        'Reminder time before event'}
-                    </label>
-                    <div className="input-with-unit">
-                      <input
-                        id="reminder-seconds"
-                        type="number"
-                        min="0"
-                        max="1440"
-                        value={preferences.reminderSecondsBefore}
-                        onChange={e =>
-                          handlePreferencesChange(
-                            'reminderSecondsBefore',
-                            parseInt(e.target.value) || 0
-                          )
-                        }
-                        placeholder="60"
                         disabled={!preferences.autoCreateReminders}
-                        className="input-field"
-                      />
-                      <span className="input-unit">minutes</span>
+                        className="select-field"
+                      >
+                        <option value="EMAIL">{t('calendar.email')}</option>
+                        <option value="POPUP">{t('calendar.popup')}</option>
+                        <option value="BOTH">{t('calendar.both')}</option>
+                      </select>
                     </div>
                   </div>
-
-                  <div className="preference-group">
-                    <label htmlFor="reminder-type" className="preference-label">
-                      {t('calendar.reminderType') || 'Reminder Type'}
-                    </label>
-                    <select
-                      id="reminder-type"
-                      value={preferences.reminderType}
-                      onChange={e =>
-                        handlePreferencesChange('reminderType', e.target.value)
-                      }
-                      disabled={!preferences.autoCreateReminders}
-                      className="select-field"
-                    >
-                      <option value="EMAIL">Email</option>
-                      <option value="POPUP">Pop-up</option>
-                      <option value="BOTH">Both</option>
-                    </select>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Event Preferences Section */}
-            <div className="preferences-subsection">
-              <h4
-                className="subsection-header collapsible-header"
-                onClick={() => setEventSectionExpanded(!eventSectionExpanded)}
-              >
-                {t('calendar.eventPreferences') || 'Event Preferences'}
-                {eventSectionExpanded ? (
-                  <ChevronUp size={20} />
-                ) : (
-                  <ChevronDown size={20} />
                 )}
-              </h4>
+              </div>
 
-              {eventSectionExpanded && (
-                <div>
-                  <div className="preference-group">
-                    <label htmlFor="event-color" className="preference-label">
-                      {t('calendar.eventColor') || 'Event Color'}
-                    </label>
-                    <select
-                      id="event-color"
-                      value={preferences.eventColor}
-                      onChange={e =>
-                        handlePreferencesChange('eventColor', e.target.value)
-                      }
-                      className="select-field"
-                    >
-                      <option value="BLUE">Blue</option>
-                      <option value="GREEN">Green</option>
-                      <option value="PURPLE">Purple</option>
-                      <option value="RED">Red</option>
-                      <option value="YELLOW">Yellow</option>
-                      <option value="ORANGE">Orange</option>
-                      <option value="GRAY">Gray</option>
-                    </select>
-                  </div>
+              {/* Event Preferences Section */}
+              <div className="preferences-subsection">
+                <h4
+                  className="subsection-header collapsible-header"
+                  onClick={() => setEventSectionExpanded(!eventSectionExpanded)}
+                >
+                  {t('calendar.eventPreferences') || 'Event Preferences'}
+                  {eventSectionExpanded ? (
+                    <ChevronUp size={20} />
+                  ) : (
+                    <ChevronDown size={20} />
+                  )}
+                </h4>
 
-                  <div className="preference-group">
-                    <label
-                      htmlFor="event-visibility"
-                      className="preference-label"
-                    >
-                      {t('calendar.eventVisibility') || 'Event Visibility'}
-                    </label>
-                    <select
-                      id="event-visibility"
-                      value={preferences.eventVisibility}
-                      onChange={e =>
-                        handlePreferencesChange(
-                          'eventVisibility',
-                          e.target.value
-                        )
-                      }
-                      className="select-field"
-                    >
-                      <option value="PRIVATE">Private</option>
-                      <option value="PUBLIC">Public</option>
-                    </select>
-                  </div>
+                {eventSectionExpanded && (
+                  <div>
+                    <div className="preference-group">
+                      <label htmlFor="event-color" className="preference-label">
+                        {t('calendar.eventColor') || 'Event Color'}
+                      </label>
+                      <select
+                        id="event-color"
+                        value={preferences.eventColor}
+                        onChange={e =>
+                          handlePreferencesChange('eventColor', e.target.value)
+                        }
+                        className="select-field"
+                      >
+                        <option value="BLUE">
+                          {t('calendar.colors.blue')}
+                        </option>
+                        <option value="GREEN">
+                          {t('calendar.colors.green')}
+                        </option>
+                        <option value="PURPLE">
+                          {t('calendar.colors.purple')}
+                        </option>
+                        <option value="RED">{t('calendar.colors.red')}</option>
+                        <option value="YELLOW">
+                          {t('calendar.colors.yellow')}
+                        </option>
+                        <option value="ORANGE">
+                          {t('calendar.colors.orange')}
+                        </option>
+                        <option value="GRAY">
+                          {t('calendar.colors.gray')}
+                        </option>
+                      </select>
+                    </div>
 
-                  <div className="preference-group">
-                    <label
-                      htmlFor="event-duration"
-                      className="preference-label"
-                    >
-                      {t('calendar.eventDuration') || 'Event Duration'}
-                    </label>
-                    <div className="input-with-unit">
-                      <input
-                        id="event-duration"
-                        type="number"
-                        min="1"
-                        max="1440"
-                        value={preferences.eventDuration}
+                    <div className="preference-group">
+                      <label
+                        htmlFor="event-visibility"
+                        className="preference-label"
+                      >
+                        {t('calendar.eventVisibility') || 'Event Visibility'}
+                      </label>
+                      <select
+                        id="event-visibility"
+                        value={preferences.eventVisibility}
                         onChange={e =>
                           handlePreferencesChange(
-                            'eventDuration',
-                            parseInt(e.target.value) || 1
+                            'eventVisibility',
+                            e.target.value
                           )
                         }
-                        placeholder="15"
-                        className="input-field"
-                      />
-                      <span className="input-unit">minutes</span>
+                        className="select-field"
+                      >
+                        <option value="PRIVATE">
+                          {t('calendar.visibility.private')}
+                        </option>
+                        <option value="PUBLIC">
+                          {t('calendar.visibility.public')}
+                        </option>
+                      </select>
                     </div>
-                    <small
-                      style={{
-                        color: '#666',
-                        fontSize: '12px',
-                        marginTop: '4px',
-                        display: 'block',
-                        textAlign: 'left',
-                      }}
-                    >
-                      Only applied if the pickup has no end time
-                    </small>
+
+                    <div className="preference-group">
+                      <label
+                        htmlFor="event-duration"
+                        className="preference-label"
+                      >
+                        {t('calendar.eventDuration') || 'Event Duration'}
+                      </label>
+                      <div className="input-with-unit">
+                        <input
+                          id="event-duration"
+                          type="number"
+                          min="1"
+                          max="1440"
+                          value={preferences.eventDuration}
+                          onChange={e =>
+                            handlePreferencesChange(
+                              'eventDuration',
+                              parseInt(e.target.value) || 1
+                            )
+                          }
+                          placeholder="15"
+                          className="input-field"
+                        />
+                        <span className="input-unit">
+                          {t('calendar.minutes')}
+                        </span>
+                      </div>
+                      <small
+                        style={{
+                          color: '#666',
+                          fontSize: '12px',
+                          marginTop: '4px',
+                          display: 'block',
+                          textAlign: 'left',
+                        }}
+                      >
+                        {t('calendar.onlyAppliedNoEndTime')}
+                      </small>
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
 
-            <div className="preferences-actions">
-              <button
-                onClick={handleSavePreferences}
-                disabled={saving}
-                className="btn btn-primary btn-compact"
-              >
-                {saving
-                  ? t('common.saving')
-                  : t('calendar.saveButton') || 'Save Preferences'}
-              </button>
-            </div>
+              <div className="preferences-actions">
+                <button
+                  onClick={handleSavePreferences}
+                  disabled={saving}
+                  className="btn btn-primary btn-compact"
+                >
+                  {saving
+                    ? t('common.saving')
+                    : t('calendar.saveButton') || 'Save Preferences'}
+                </button>
+              </div>
 
-            {/* Privacy Policy Link */}
-            <div
-              className="preference-group"
-              style={{
-                marginTop: '1.5rem',
-                paddingTop: '1.5rem',
-                borderTop: '1px solid #e0e0e0',
-              }}
-            >
-              <p
+              {/* Privacy Policy Link */}
+              <div
+                className="preference-group"
                 style={{
-                  fontSize: '0.875rem',
-                  color: '#666',
-                  lineHeight: '1.6',
+                  marginTop: '1.5rem',
+                  paddingTop: '1.5rem',
+                  borderTop: '1px solid #e0e0e0',
                 }}
               >
-                Click here for the{' '}
-                <a
-                  href="/privacy-policy#third-party-integrations"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <p
                   style={{
-                    color: '#609B7E',
-                    textDecoration: 'underline',
-                    fontWeight: '500',
+                    fontSize: '0.875rem',
+                    color: '#666',
+                    lineHeight: '1.6',
                   }}
                 >
-                  calendar integration policy
-                </a>
-                .
-              </p>
+                  {t('calendar.privacyPolicyPrefix')}{' '}
+                  <a
+                    href="/privacy-policy#third-party-integrations"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      color: '#609B7E',
+                      textDecoration: 'underline',
+                      fontWeight: '500',
+                    }}
+                  >
+                    {t('calendar.privacyPolicyLink')}
+                  </a>
+                  .
+                </p>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Synced Events Section */}
-        {connectionStatus.isConnected && events.length > 0 && (
-          <div className="events-section">
-            <h3>
-              {t('calendar.syncedEvents') || 'Synced Events'} ({events.length})
-            </h3>
-            <div className="events-list">
-              {events.map(event => (
-                <div key={event.id} className="event-item">
-                  <div className="event-time">
-                    {new Date(event.startTime).toLocaleDateString()}{' '}
-                    {new Date(event.startTime).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
+          {/* Synced Events Section */}
+          {connectionStatus.isConnected && events.length > 0 && (
+            <div className="events-section">
+              <h3>
+                {t('calendar.syncedEvents') || 'Synced Events'} ({events.length}
+                )
+              </h3>
+              <div className="events-list">
+                {events.map(event => (
+                  <div key={event.id} className="event-item">
+                    <div className="event-time">
+                      {new Date(event.startTime).toLocaleDateString()}{' '}
+                      {new Date(event.startTime).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </div>
+                    <div className="event-details">
+                      <p className="event-title">{event.eventTitle}</p>
+                      <p className="event-status">
+                        {event.syncStatus === 'SYNCED' && (
+                          <CheckCircle
+                            size={14}
+                            className="status-icon success"
+                          />
+                        )}
+                        {event.syncStatus}
+                      </p>
+                    </div>
                   </div>
-                  <div className="event-details">
-                    <p className="event-title">{event.eventTitle}</p>
-                    <p className="event-status">
-                      {event.syncStatus === 'SYNCED' && (
-                        <CheckCircle
-                          size={14}
-                          className="status-icon success"
-                        />
-                      )}
-                      {event.syncStatus}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       {/* Connection Details Modal */}
       {showConnectionDetailsModal && (
@@ -640,9 +711,9 @@ const CalendarSettings = () => {
               <button
                 className="modal-close"
                 onClick={() => setShowConnectionDetailsModal(false)}
-                aria-label="Close modal"
+                aria-label={t('calendar.closeModalAria')}
               >
-                ×
+                Ã—
               </button>
             </div>
             <div className="modal-body">
@@ -775,9 +846,9 @@ const CalendarSettings = () => {
               <button
                 className="modal-close"
                 onClick={() => setShowDisconnectModal(false)}
-                aria-label="Close modal"
+                aria-label={t('calendar.closeModalAria')}
               >
-                ×
+                Ã—
               </button>
             </div>
             <div className="modal-body">

@@ -319,7 +319,6 @@ const DonorRegistration = () => {
           return;
         }
       } catch (err) {
-        console.error('Error checking email:', err);
         setError(t('donorRegistration.emailValidationError'));
         setLoading(false);
         return;
@@ -394,19 +393,16 @@ const DonorRegistration = () => {
       const response = await authAPI.checkPhoneExists(formattedPhone);
       if (response.data.exists) {
         setFieldErrors({
-          phone: 'An account with this phone number already exists',
+          phone: t('donorRegistration.phoneExists'),
         });
-        setError(
-          'Phone number already registered. Please use a different number.'
-        );
+        setError(t('donorRegistration.phoneExistsError'));
         setLoading(false);
         return;
       }
     } catch (err) {
-      console.error('Error checking phone:', err);
       const errorMessage =
         err.response?.data?.message ||
-        'Phone number already exists in the system';
+        t('donorRegistration.phoneValidationError');
       setError(errorMessage);
       setLoading(false);
       return;
@@ -495,7 +491,7 @@ const DonorRegistration = () => {
       }, 5000);
     } catch (err) {
       setError(
-        err.response?.data?.message || 'Registration failed. Please try again.'
+        err.response?.data?.message || t('donorRegistration.registrationFailed')
       );
       setCurrentStep(1); // Go back to first step on error
     } finally {
@@ -511,14 +507,14 @@ const DonorRegistration = () => {
           type="button"
           className="exit-registration-button"
           onClick={() => navigate('/register')}
-          aria-label="Back to registration selection"
+          aria-label={t('donorRegistration.backToRegistration')}
         >
-          ← Back
+          {`← ${t('donorRegistration.backButtonText')}`}
         </button>
         <div className="background-image">
           <img
             src={DonorIllustration}
-            alt="Donor Illustration"
+            alt={t('donorRegistration.title')}
             height={500}
             width={900}
           />
@@ -526,39 +522,31 @@ const DonorRegistration = () => {
         <div className="form-container">
           <div className="success-screen">
             <div className="success-icon">✓</div>
-            <h1>Registration Submitted Successfully!</h1>
+            <h1>{t('donorRegistration.successTitle')}</h1>
             <div className="success-details">
-              <p className="status-badge">Status: Verification Pending</p>
+              <p className="status-badge">
+                {t('donorRegistration.successStatus')}
+              </p>
               <p className="success-message">
-                Thank you for registering with FoodFlow. Your application has
-                been submitted and is currently under review by our admin team.
+                {t('donorRegistration.successMessage')}
               </p>
               <div className="info-box">
-                <h3>What happens next?</h3>
+                <h3>{t('donorRegistration.successNextStepsTitle')}</h3>
                 <ul>
-                  <li>
-                    Our team will review your application and verify your
-                    organization details
-                  </li>
-                  <li>This process typically takes 1–3 business days</li>
-                  <li>
-                    You'll receive an email notification once your account is
-                    verified
-                  </li>
-                  <li>
-                    After verification, you'll have full access to create
-                    donation listings
-                  </li>
+                  <li>{t('donorRegistration.successStep1')}</li>
+                  <li>{t('donorRegistration.successStep2')}</li>
+                  <li>{t('donorRegistration.successStep3')}</li>
+                  <li>{t('donorRegistration.successStep4')}</li>
                 </ul>
               </div>
               <p className="redirect-message">
-                Redirecting to your dashboard in a moment...
+                {t('donorRegistration.successRedirectMessage')}
               </p>
               <button
                 className="submit-button"
                 onClick={() => navigate('/donor')}
               >
-                Go to Dashboard
+                {t('donorRegistration.successDashboardButton')}
               </button>
             </div>
           </div>
@@ -571,16 +559,35 @@ const DonorRegistration = () => {
   const getStepTitle = step => {
     switch (step) {
       case 1:
-        return 'Account Credentials';
+        return t('donorRegistration.step1Title');
       case 2:
-        return 'Organization Information';
+        return t('donorRegistration.step2Title');
       case 3:
-        return 'Location Details';
+        return t('donorRegistration.step3Title');
       case 4:
-        return 'Contact Information';
+        return t('donorRegistration.step4Title');
       default:
         return '';
     }
+  };
+
+  const getOrganizationTypeLabel = value => {
+    const keyMap = {
+      RESTAURANT: 'restaurant',
+      GROCERY_STORE: 'groceryStore',
+      BAKERY: 'bakery',
+      CAFE: 'cafe',
+      CATERING: 'catering',
+      HOTEL: 'hotel',
+      EVENT_ORGANIZER: 'eventOrganizer',
+      FARM: 'farm',
+      FOOD_MANUFACTURER: 'foodManufacturer',
+      OTHER: 'other',
+    };
+
+    return keyMap[value]
+      ? t(`donorRegistration.organizationTypes.${keyMap[value]}`)
+      : value?.replace(/_/g, ' ') || '';
   };
 
   // Step indicator component
@@ -610,7 +617,7 @@ const DonorRegistration = () => {
         return (
           <div className="step-content fade-in">
             <div className="form-group">
-              <label htmlFor="email">Email Address</label>
+              <label htmlFor="email">{t('donorRegistration.emailLabel')}</label>
               <input
                 type="email"
                 id="email"
@@ -618,7 +625,7 @@ const DonorRegistration = () => {
                 value={formData.email}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                placeholder="Enter your email address"
+                placeholder={t('donorRegistration.emailPlaceholder')}
                 className={fieldErrors.email ? 'error' : ''}
               />
               {fieldErrors.email && (
@@ -627,7 +634,9 @@ const DonorRegistration = () => {
             </div>
 
             <div className="form-group password-wrapper">
-              <label htmlFor="password">Password</label>
+              <label htmlFor="password">
+                {t('donorRegistration.passwordLabel')}
+              </label>
               <div className="password-input">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -636,29 +645,34 @@ const DonorRegistration = () => {
                   value={formData.password}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  placeholder="Enter your password"
+                  placeholder={t('donorRegistration.passwordPlaceholder')}
                   className={fieldErrors.password ? 'error' : ''}
                 />
                 <button
                   type="button"
                   className="toggle-password"
                   onClick={() => setShowPassword(s => !s)}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-label={
+                    showPassword
+                      ? t('common.hidePassword')
+                      : t('common.showPassword')
+                  }
                 >
-                  {showPassword ? 'Hide' : 'Show'}
+                  {showPassword
+                    ? t('donorRegistration.hidePassword')
+                    : t('donorRegistration.showPassword')}
                 </button>
               </div>
-              <small>
-                Minimum 10 characters, must include uppercase, lowercase, digit,
-                and special character
-              </small>
+              <small>{t('donorRegistration.passwordMinLengthHint')}</small>
               {fieldErrors.password && (
                 <span className="error-text">{fieldErrors.password}</span>
               )}
             </div>
 
             <div className="form-group password-wrapper">
-              <label htmlFor="confirmPassword">Confirm Password</label>
+              <label htmlFor="confirmPassword">
+                {t('donorRegistration.confirmPasswordLabel')}
+              </label>
               <div className="password-input">
                 <input
                   type={showConfirmPassword ? 'text' : 'password'}
@@ -667,7 +681,9 @@ const DonorRegistration = () => {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  placeholder="Re-enter your password"
+                  placeholder={t(
+                    'donorRegistration.confirmPasswordPlaceholder'
+                  )}
                   className={fieldErrors.confirmPassword ? 'error' : ''}
                 />
                 <button
@@ -675,10 +691,14 @@ const DonorRegistration = () => {
                   className="toggle-password"
                   onClick={() => setShowConfirmPassword(s => !s)}
                   aria-label={
-                    showConfirmPassword ? 'Hide password' : 'Show password'
+                    showConfirmPassword
+                      ? t('common.hidePassword')
+                      : t('common.showPassword')
                   }
                 >
-                  {showConfirmPassword ? 'Hide' : 'Show'}
+                  {showConfirmPassword
+                    ? t('donorRegistration.hidePassword')
+                    : t('donorRegistration.showPassword')}
                 </button>
               </div>
               {fieldErrors.confirmPassword && (
@@ -694,7 +714,9 @@ const DonorRegistration = () => {
         return (
           <div className="step-content fade-in">
             <div className="form-group">
-              <label htmlFor="organizationName">Organization Name</label>
+              <label htmlFor="organizationName">
+                {t('donorRegistration.organizationNameLabel')}
+              </label>
               <input
                 type="text"
                 id="organizationName"
@@ -702,7 +724,7 @@ const DonorRegistration = () => {
                 value={formData.organizationName}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                placeholder="Enter your organization name"
+                placeholder={t('donorRegistration.organizationNamePlaceholder')}
                 className={fieldErrors.organizationName ? 'error' : ''}
               />
               {fieldErrors.organizationName && (
@@ -713,7 +735,9 @@ const DonorRegistration = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="organizationType">Organization Type</label>
+              <label htmlFor="organizationType">
+                {t('donorRegistration.organizationTypeLabel')}
+              </label>
               <select
                 id="organizationType"
                 name="organizationType"
@@ -722,16 +746,36 @@ const DonorRegistration = () => {
                 onBlur={handleBlur}
                 className={fieldErrors.organizationType ? 'error' : ''}
               >
-                <option value="RESTAURANT">Restaurant</option>
-                <option value="GROCERY_STORE">Grocery Store</option>
-                <option value="BAKERY">Bakery</option>
-                <option value="CAFE">Café / Coffee Shop</option>
-                <option value="CATERING">Catering Company</option>
-                <option value="HOTEL">Hotel</option>
-                <option value="EVENT_ORGANIZER">Event Organizer</option>
-                <option value="FARM">Farm / Agricultural Producer</option>
-                <option value="FOOD_MANUFACTURER">Food Manufacturer</option>
-                <option value="OTHER">Other</option>
+                <option value="RESTAURANT">
+                  {t('donorRegistration.organizationTypes.restaurant')}
+                </option>
+                <option value="GROCERY_STORE">
+                  {t('donorRegistration.organizationTypes.groceryStore')}
+                </option>
+                <option value="BAKERY">
+                  {t('donorRegistration.organizationTypes.bakery')}
+                </option>
+                <option value="CAFE">
+                  {t('donorRegistration.organizationTypes.cafe')}
+                </option>
+                <option value="CATERING">
+                  {t('donorRegistration.organizationTypes.catering')}
+                </option>
+                <option value="HOTEL">
+                  {t('donorRegistration.organizationTypes.hotel')}
+                </option>
+                <option value="EVENT_ORGANIZER">
+                  {t('donorRegistration.organizationTypes.eventOrganizer')}
+                </option>
+                <option value="FARM">
+                  {t('donorRegistration.organizationTypes.farm')}
+                </option>
+                <option value="FOOD_MANUFACTURER">
+                  {t('donorRegistration.organizationTypes.foodManufacturer')}
+                </option>
+                <option value="OTHER">
+                  {t('donorRegistration.organizationTypes.other')}
+                </option>
               </select>
               {fieldErrors.organizationType && (
                 <span className="error-text">
@@ -741,26 +785,26 @@ const DonorRegistration = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="businessLicense">Business License Number</label>
+              <label htmlFor="businessLicense">
+                {t('donorRegistration.businessLicenseLabel')}
+              </label>
               <input
                 type="text"
                 id="businessLicense"
                 name="businessLicense"
                 value={formData.businessLicense}
                 onChange={handleChange}
-                placeholder="Enter your business license number (optional)"
+                placeholder={t('donorRegistration.businessLicensePlaceholder')}
               />
-              <small>
-                Optional — helps us verify and approve your organization
-              </small>
+              <small>{t('donorRegistration.businessLicenseHint')}</small>
             </div>
 
             <div className="verification-divider">
-              <span>OR</span>
+              <span>{t('donorRegistration.orDivider')}</span>
             </div>
 
             <div className="form-group">
-              <label>Upload Supporting Document</label>
+              <label>{t('donorRegistration.supportingDocumentLabel')}</label>
               <div
                 className={`file-upload-area compact ${isDragging ? 'dragging' : ''} ${fieldErrors.supportingDocument ? 'error' : ''}`}
                 onDragOver={handleDragOver}
@@ -773,7 +817,7 @@ const DonorRegistration = () => {
                       htmlFor="fileUpload"
                       className="upload-button-compact"
                     >
-                      📎 Choose File or Drag Here
+                      {t('donorRegistration.chooseFileButton')}
                     </label>
                     <input
                       type="file"
@@ -782,7 +826,7 @@ const DonorRegistration = () => {
                       onChange={handleFileUpload}
                       style={{ display: 'none' }}
                     />
-                    <small>PDF, JPG, PNG (Max 10MB)</small>
+                    <small>{t('donorRegistration.fileTypeHint')}</small>
                   </>
                 ) : (
                   <div className="file-preview-compact">
@@ -809,7 +853,7 @@ const DonorRegistration = () => {
                 <span className="error-text">{fieldErrors.verification}</span>
               )}
               <small className="help-text">
-                Required if no business license number provided
+                {t('donorRegistration.documentRequiredHint')}
               </small>
             </div>
           </div>
@@ -819,7 +863,9 @@ const DonorRegistration = () => {
         return (
           <div className="step-content fade-in">
             <div className="form-group">
-              <label htmlFor="streetAddress">Street Address</label>
+              <label htmlFor="streetAddress">
+                {t('donorRegistration.streetAddressLabel')}
+              </label>
               <input
                 type="text"
                 id="streetAddress"
@@ -827,7 +873,7 @@ const DonorRegistration = () => {
                 value={formData.streetAddress}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                placeholder="123 Main Street"
+                placeholder={t('donorRegistration.streetAddressPlaceholder')}
                 className={fieldErrors.streetAddress ? 'error' : ''}
               />
               {fieldErrors.streetAddress && (
@@ -836,20 +882,20 @@ const DonorRegistration = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="unit">Unit / Suite (Optional)</label>
+              <label htmlFor="unit">{t('donorRegistration.unitLabel')}</label>
               <input
                 type="text"
                 id="unit"
                 name="unit"
                 value={formData.unit}
                 onChange={handleChange}
-                placeholder="Unit 4B"
+                placeholder={t('donorRegistration.unitPlaceholder')}
               />
             </div>
 
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="city">City</label>
+                <label htmlFor="city">{t('donorRegistration.cityLabel')}</label>
                 <input
                   type="text"
                   id="city"
@@ -857,7 +903,7 @@ const DonorRegistration = () => {
                   value={formData.city}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  placeholder="Montreal"
+                  placeholder={t('donorRegistration.cityPlaceholder')}
                   className={fieldErrors.city ? 'error' : ''}
                 />
                 {fieldErrors.city && (
@@ -866,7 +912,9 @@ const DonorRegistration = () => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="postalCode">Postal Code</label>
+                <label htmlFor="postalCode">
+                  {t('donorRegistration.postalCodeLabel')}
+                </label>
                 <input
                   type="text"
                   id="postalCode"
@@ -874,7 +922,7 @@ const DonorRegistration = () => {
                   value={formData.postalCode}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  placeholder="H3A 0G4"
+                  placeholder={t('donorRegistration.postalCodePlaceholder')}
                   className={fieldErrors.postalCode ? 'error' : ''}
                 />
                 {fieldErrors.postalCode && (
@@ -885,7 +933,9 @@ const DonorRegistration = () => {
 
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="province">Province / State</label>
+                <label htmlFor="province">
+                  {t('donorRegistration.provinceLabel')}
+                </label>
                 <input
                   type="text"
                   id="province"
@@ -893,7 +943,7 @@ const DonorRegistration = () => {
                   value={formData.province}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  placeholder="Quebec"
+                  placeholder={t('donorRegistration.provincePlaceholder')}
                   className={fieldErrors.province ? 'error' : ''}
                 />
                 {fieldErrors.province && (
@@ -902,7 +952,9 @@ const DonorRegistration = () => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="country">Country</label>
+                <label htmlFor="country">
+                  {t('donorRegistration.countryLabel')}
+                </label>
                 <input
                   type="text"
                   id="country"
@@ -910,7 +962,7 @@ const DonorRegistration = () => {
                   value={formData.country}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  placeholder="Canada"
+                  placeholder={t('donorRegistration.countryPlaceholder')}
                   className={fieldErrors.country ? 'error' : ''}
                 />
                 {fieldErrors.country && (
@@ -925,7 +977,9 @@ const DonorRegistration = () => {
         return (
           <div className="step-content fade-in">
             <div className="form-group">
-              <label htmlFor="contactPerson">Contact Person Name</label>
+              <label htmlFor="contactPerson">
+                {t('donorRegistration.contactPersonLabel')}
+              </label>
               <input
                 type="text"
                 id="contactPerson"
@@ -933,7 +987,7 @@ const DonorRegistration = () => {
                 value={formData.contactPerson}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                placeholder="John Smith"
+                placeholder={t('donorRegistration.contactPersonPlaceholder')}
                 className={fieldErrors.contactPerson ? 'error' : ''}
               />
               {fieldErrors.contactPerson && (
@@ -942,7 +996,7 @@ const DonorRegistration = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="phone">Phone Number</label>
+              <label htmlFor="phone">{t('donorRegistration.phoneLabel')}</label>
               <input
                 type="tel"
                 id="phone"
@@ -950,7 +1004,7 @@ const DonorRegistration = () => {
                 value={formData.phone}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                placeholder="+1 (514) 555-0123"
+                placeholder={t('donorRegistration.phonePlaceholder')}
                 className={fieldErrors.phone ? 'error' : ''}
               />
               {fieldErrors.phone && (
@@ -959,33 +1013,47 @@ const DonorRegistration = () => {
             </div>
 
             <div className="review-section compact">
-              <h3>Review Your Information</h3>
+              <h3>{t('donorRegistration.reviewSectionTitle')}</h3>
               <div className="review-item">
-                <span className="review-label">Email:</span>
+                <span className="review-label">
+                  {t('donorRegistration.reviewEmail')}
+                </span>
                 <span className="review-value">{formData.email}</span>
               </div>
               <div className="review-item">
-                <span className="review-label">Organization:</span>
+                <span className="review-label">
+                  {t('donorRegistration.reviewOrganization')}
+                </span>
                 <span className="review-value">
                   {formData.organizationName}
                 </span>
               </div>
               <div className="review-item">
-                <span className="review-label">Type:</span>
+                <span className="review-label">
+                  {t('donorRegistration.reviewType')}
+                </span>
                 <span className="review-value">
-                  {formData.organizationType.replace(/_/g, ' ')}
+                  {getOrganizationTypeLabel(formData.organizationType)}
                 </span>
               </div>
               <div className="review-item">
-                <span className="review-label">Verification Method:</span>
+                <span className="review-label">
+                  {t('donorRegistration.reviewVerificationMethod')}
+                </span>
                 <span className="review-value">
                   {formData.businessLicense
-                    ? `Business License: ${formData.businessLicense}`
-                    : `Document: ${formData.supportingDocument?.name}`}
+                    ? t('donorRegistration.reviewBusinessLicense', {
+                        license: formData.businessLicense,
+                      })
+                    : t('donorRegistration.reviewDocument', {
+                        filename: formData.supportingDocument?.name,
+                      })}
                 </span>
               </div>
               <div className="review-item">
-                <span className="review-label">Address:</span>
+                <span className="review-label">
+                  {t('donorRegistration.reviewAddress')}
+                </span>
                 <span className="review-value">
                   {formData.streetAddress}
                   {formData.unit && `, Unit ${formData.unit}`}
@@ -1004,7 +1072,7 @@ const DonorRegistration = () => {
                   checked={confirmAccuracy}
                   onChange={e => setConfirmAccuracy(e.target.checked)}
                 />
-                <span>I confirm that the information provided is accurate</span>
+                <span>{t('donorRegistration.confirmAccuracyLabel')}</span>
               </label>
             </div>
 
@@ -1016,14 +1084,14 @@ const DonorRegistration = () => {
                   onChange={e => setDataStorageConsent(e.target.checked)}
                 />
                 <span>
-                  I consent to data storage as outlined in the{' '}
+                  {t('registration.dataConsentPrefix')}{' '}
                   <Link
                     to="/privacy-policy"
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{ color: '#609B7E', textDecoration: 'underline' }}
                   >
-                    Privacy Policy
+                    {t('registration.privacyPolicy')}
                   </Link>
                 </span>
               </label>
@@ -1042,27 +1110,27 @@ const DonorRegistration = () => {
         type="button"
         className="exit-registration-button"
         onClick={() => navigate('/register')}
-        aria-label="Back to registration selection"
+        aria-label={t('donorRegistration.backToRegistration')}
       >
-        ← Back
+        {`← ${t('donorRegistration.backButtonText')}`}
       </button>
       <div className="background-image">
         <img
           src={DonorIllustration}
-          alt="Donor Illustration"
+          alt={t('donorRegistration.title')}
           height={500}
           width={900}
         />
-        <p>
-          Your participation ensures surplus food is redistributed safely,
-          responsibly, and where it’s needed most.
-        </p>
+        <p>{t('donorRegistration.subtitle')}</p>
       </div>
       <div className={`form-container ${currentStep === 4 ? 'step-4' : ''}`}>
         <div className="form-header-fixed">
-          <h1>Register as Donor</h1>
+          <h1>{t('donorRegistration.title')}</h1>
           <p className="form-subtitle">
-            Step {currentStep} of {totalSteps}
+            {t('donorRegistration.stepOf', {
+              current: currentStep,
+              total: totalSteps,
+            })}
           </p>
           <StepIndicator />
           <h2 className="step-title-fixed">{getStepTitle(currentStep)}</h2>
@@ -1082,7 +1150,7 @@ const DonorRegistration = () => {
                   onClick={handleBack}
                   disabled={loading}
                 >
-                  Back
+                  {t('donorRegistration.backButtonText')}
                 </button>
               ) : (
                 <button
@@ -1090,7 +1158,7 @@ const DonorRegistration = () => {
                   className="back-button"
                   onClick={() => navigate('/register')}
                 >
-                  Cancel
+                  {t('donorRegistration.cancelButtonText')}
                 </button>
               )}
               {currentStep < totalSteps ? (
@@ -1100,7 +1168,7 @@ const DonorRegistration = () => {
                   onClick={handleNext}
                   disabled={!isStepValid(currentStep)}
                 >
-                  Next
+                  {t('donorRegistration.nextButtonText')}
                 </button>
               ) : (
                 <button
@@ -1114,7 +1182,9 @@ const DonorRegistration = () => {
                     !isStepValid(currentStep)
                   }
                 >
-                  {loading ? 'Submitting...' : 'Register as Donor'}
+                  {loading
+                    ? t('donorRegistration.submittingButtonText')
+                    : t('donorRegistration.registerButtonText')}
                 </button>
               )}
             </div>

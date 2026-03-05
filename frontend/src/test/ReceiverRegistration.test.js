@@ -55,7 +55,12 @@ const mockAuthContextValue = {
 
 describe('ReceiverRegistration', () => {
   beforeEach(() => {
+    jest.useRealTimers();
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   const renderWithAuth = component => {
