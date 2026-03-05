@@ -806,6 +806,13 @@
       "Produce is usually not hot/cooked": "Les produits frais ne sont généralement pas chauds/cuits",
       "Pantry items are usually stored at room temperature": "Les articles de garde-manger sont généralement stockés à température ambiante",
       "Hot beverages are same-day donations": "Les boissons chaudes sont des dons à consommer le jour même"
+    },
+    "errors": {
+      "invalidAddress": "Veuillez sélectionner une adresse valide parmi les suggestions du menu déroulant",
+      "requiresStreetAddress": "Veuillez entrer une adresse complète avec le numéro et le nom de rue (pas seulement une ville, province ou code postal)",
+      "cityOnlyNotAllowed": "Les adresses avec ville seulement ne sont pas autorisées. Veuillez inclure le numéro et le nom de rue.",
+      "provinceOnlyNotAllowed": "Les adresses avec province seulement ne sont pas autorisées. Veuillez fournir une adresse complète.",
+      "postalCodeOnlyNotAllowed": "Les adresses avec code postal seulement ne sont pas autorisées. Veuillez inclure l'adresse complète."
     }
   },
   "chat": {

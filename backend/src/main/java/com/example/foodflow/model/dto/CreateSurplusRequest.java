@@ -8,6 +8,7 @@ import com.example.foodflow.model.types.TemperatureCategory;
 import com.example.foodflow.model.types.PackagingType;
 import com.example.foodflow.model.types.DietaryTag;
 import com.example.foodflow.model.types.FoodType;
+import com.example.foodflow.validation.ValidAddress;
 import com.fasterxml.jackson.annotation.JsonAlias;
 
 import jakarta.validation.constraints.*;
@@ -49,6 +50,7 @@ public class CreateSurplusRequest {
     private LocalTime pickupTo;
 
     @NotNull(message = "{validation.pickupLocation.required}")
+    @ValidAddress
     private Location pickupLocation;
 
     @Valid

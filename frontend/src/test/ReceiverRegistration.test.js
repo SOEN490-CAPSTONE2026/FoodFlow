@@ -36,6 +36,12 @@ jest.mock('../services/api', () => ({
   },
 }));
 
+// Mock timezone service
+jest.mock('../services/timezoneService', () => ({
+  inferTimezoneFromAddress: jest.fn().mockResolvedValue('America/Toronto'),
+  getBrowserTimezone: jest.fn().mockReturnValue('America/Toronto'),
+}));
+
 const setItemSpy = jest.spyOn(Storage.prototype, 'setItem');
 
 // Mock AuthContext value
