@@ -430,6 +430,30 @@ describe('AdminUsers', () => {
     });
   });
 
+  test('shows preferred language in user detail modal', async () => {
+    const detailResponse = {
+      ...mockUsers[0],
+      languagePreference: 'fr',
+    };
+
+    axios.get.mockImplementation(url => {
+      if (url.includes('/admin/users/1')) {
+        return Promise.resolve({ data: detailResponse });
+      }
+      return Promise.resolve(mockResponse);
+    });
+
+    render(<AdminUsers />);
+    await screen.findByText('John Donor');
+
+    fireEvent.click(screen.getAllByTitle('adminUsers.actions.viewDetails')[0]);
+
+    await waitFor(() => {
+      expect(screen.getByText('User Details')).toBeInTheDocument();
+      expect(screen.getByText('Français')).toBeInTheDocument();
+    });
+  });
+
   test('shows alert-required notification when sending empty alert', async () => {
     render(<AdminUsers />);
     await screen.findByText('John Donor');
