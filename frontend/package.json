@@ -52,20 +52,7 @@
       "!src/setupTests.js",
       "!src/components/DonorDashboard/AIDonationForm 2.js",
       "!src/components/DonorDashboard/AIImageUpload 2.js",
-      "!src/components/DonorDashboard/DonorListFood.js",
-      "!src/components/ReceiverDashboard/ReceiverBrowse.js",
-      "!src/components/ReceiverDashboard/ReceiverLayout.js",
-      "!src/components/ReceiverDashboard/ReceiverMyClaims.js",
-      "!src/components/DonorRegistration.js",
-      "!src/components/DonorDashboard/SurplusFormModal.js",
-      "!src/components/ReceiverRegistration.js",
-      "!src/components/AdminDashboard/AdminDonations.js",
-      "!src/components/MessagingDashboard/ChatPanel.js",
-      "!src/components/AdminDashboard/**",
-      "!src/components/FeedbackModal/**",
-      "!src/components/RegionSelector.js",
-      "!src/components/ChangePasswordModal.js",
-      "!src/components/PrivacyPolicy.js"
+      "!src/components/shared/__tests__/ChatWidget.test 2.js"
     ],
     "coverageThreshold": {
       "global": {

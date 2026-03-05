@@ -10,6 +10,7 @@ import MessagingDashboard from '../MessagingDashboard/MessagingDashboard';
 import Settings from '../Settings';
 import DonorHelp from './DonorHelp';
 import AIDonationForm from './AIDonationForm';
+import SuggestBusiness from './SuggestBusiness';
 
 export default function DonorDashboard() {
   return (
@@ -24,6 +25,7 @@ export default function DonorDashboard() {
         <Route path="messages" element={<MessagingDashboard />} />
         <Route path="settings" element={<Settings />} />
         <Route path="help" element={<DonorHelp />} />
+        <Route path="suggest-business" element={<SuggestBusiness />} />
         {/* anything unknown under /donor -> back to /donor */}
         <Route path="*" element={<Navigate to="." replace />} />
       </Route>

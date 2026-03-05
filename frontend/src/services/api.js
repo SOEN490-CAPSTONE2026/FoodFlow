@@ -847,6 +847,22 @@ export const impactDashboardAPI = {
       responseType: 'blob',
     }),
 };
+// Referral API
+export const referralAPI = {
+  /**
+   * Submit a referral (INVITE_COMMUNITY from receiver, SUGGEST_BUSINESS from donor)
+   * @param {Object} data - { referralType, businessName, contactEmail, contactPhone?, message? }
+   * @returns {Promise} Created referral data
+   */
+  submit: data => api.post('/referrals', data),
+
+  /**
+   * Get all referral submissions (admin only)
+   * @returns {Promise} List of all referrals
+   */
+  getAll: () => api.get('/admin/referrals'),
+};
+
 // Export the core axios instance for backward compatibility
 // Safely bind methods with fallbacks for testing
 export const post =

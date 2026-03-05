@@ -21,6 +21,7 @@ import {
   X,
   AlertTriangle,
   BarChart3,
+  UserPlus,
   Image,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -145,6 +146,8 @@ export default function AdminLayout() {
         return t('admin.messages');
       case '/admin/disputes':
         return t('admin.disputes');
+      case '/admin/referrals':
+        return 'Referral Submissions';
       case '/admin/help':
         return t('admin.help');
       case '/admin/images':
@@ -173,6 +176,8 @@ export default function AdminLayout() {
         return t('admin.communications');
       case '/admin/disputes':
         return t('admin.disputesDesc');
+      case '/admin/referrals':
+        return 'View community invitations and business suggestions from users';
       case '/admin/help':
         return t('admin.guides');
       case '/admin/images':
@@ -326,6 +331,17 @@ export default function AdminLayout() {
               <AlertTriangle size={18} className="lucide" />
             </span>
             {t('admin.disputes')}
+          </Link>
+
+          <Link
+            to="/admin/referrals"
+            className={`admin-nav-link ${isActive('/admin/referrals') ? 'active' : ''}`}
+            data-tooltip="Referrals"
+          >
+            <span className="nav-icon" aria-hidden>
+              <UserPlus size={18} className="lucide" />
+            </span>
+            Referrals
           </Link>
 
           <Link

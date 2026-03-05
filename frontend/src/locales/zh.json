@@ -1,4 +1,4 @@
-{
+﻿{
   "nav": {
     "home": "首页",
     "howItWorks": "如何运作",
@@ -974,6 +974,7 @@
     "settings": "设置",
     "help": "帮助",
     "logout": "退出登录",
+    "suggestBusiness": "推荐企业",
     "pageTitles": {
       "donorDashboard": "捐赠者仪表板",
       "donateNow": "立即捐赠",
@@ -984,7 +985,8 @@
       "impact": "影响力面板",
       "settings": "设置",
       "help": "帮助",
-      "donor": "捐赠者"
+      "donor": "捐赠者",
+      "suggestBusiness": "推荐企业"
     },
     "pageDescriptions": {
       "donorDashboard": "概览和快速操作",
@@ -996,7 +998,8 @@
       "impact": "查看您的环境与社会影响",
       "settings": "管理您的偏好和账户设置",
       "help": "指南和支持",
-      "donorPortal": "FoodFlow 捐赠者门户"
+      "donorPortal": "FoodFlow 捐赠者门户",
+      "suggestBusiness": "推荐一家企业作为食物捐赠者加入 FoodFlow"
     },
     "notifications": {
       "newClaim": "新认领",
@@ -1109,6 +1112,7 @@
     "donations": "捐赠",
     "myClaims": "我的认领",
     "savedDonations": "已保存的捐赠",
+    "inviteCommunity": "邀请社区",
     "settings": "设置",
     "preferences": "偏好",
     "help": "帮助",
@@ -1119,6 +1123,7 @@
     "pageTitles": {
       "receiverDashboard": "接收者仪表板",
       "welcome": "欢迎",
+      "inviteCommunity": "邀请社区组织",
       "browse": "浏览可用食物",
       "messages": "消息",
       "settings": "设置",
@@ -1127,6 +1132,7 @@
     "pageDescriptions": {
       "receiverDashboard": "附近食物和您的活动概览",
       "welcome": "从这里开始：搜索地图或浏览附近的食物",
+      "inviteCommunity": "邀请社区组织加入 FoodFlow",
       "browse": "浏览可用食物列表",
       "messages": "与捐赠者和其他用户交流",
       "settings": "管理您的偏好和账户设置",
@@ -2596,5 +2602,63 @@
     "SEAFOOD": "海鲜",
     "PANTRY": "包装/储藏食品",
     "BEVERAGES": "饮品"
+  },
+  "inviteCommunity": {
+    "title": "邀请社区组织",
+    "subtitle": "认识一个可以从 FoodFlow 受益的组织？邀请他们作为受益方加入。",
+    "form": {
+      "businessNameLabel": "组织名称",
+      "businessNamePlaceholder": "例如：社区食物银行",
+      "contactEmailLabel": "联系邮箱",
+      "contactEmailPlaceholder": "contact@organization.org",
+      "contactPhoneLabel": "联系电话（可选）",
+      "contactPhonePlaceholder": "+1 (555) 123-4567",
+      "messageLabel": "个人留言（可选）",
+      "messagePlaceholder": "告诉他们为什么 FoodFlow 是一个好的选择...",
+      "submitButton": "发送邀请",
+      "submitting": "正在发送邀请…"
+    },
+    "validation": {
+      "businessNameRequired": "组织名称为必填项。",
+      "businessNameTooLong": "组织名称不能超过 200 个字符。",
+      "contactEmailRequired": "联系邮箱为必填项。",
+      "contactEmailInvalid": "请输入有效的电子邮件地址。",
+      "messageTooLong": "留言不能超过 500 个字符。"
+    },
+    "success": {
+      "heading": "邀请已提交！",
+      "body": "感谢您帮助壮大 FoodFlow 社区。我们的团队将联系 {{email}} 提供更多信息。",
+      "submitAnother": "再次提交邀请"
+    },
+    "errors": { "generic": "出现错误，请重试。" }
+  },
+  "suggestBusiness": {
+    "title": "推荐企业",
+    "subtitle": "认识一家产生多余食物的企业？推荐他们作为捐赠方加入 FoodFlow。",
+    "form": {
+      "businessNameLabel": "企业名称",
+      "businessNamePlaceholder": "例如：绿谷烘焙",
+      "contactEmailLabel": "联系邮箱",
+      "contactEmailPlaceholder": "contact@business.com",
+      "contactPhoneLabel": "联系电话（可选）",
+      "contactPhonePlaceholder": "+1 (555) 123-4567",
+      "messageLabel": "个人留言（可选）",
+      "messagePlaceholder": "告诉他们为什么 FoodFlow 是减少食物浪费的好机会…",
+      "submitButton": "提交推荐",
+      "submitting": "正在提交…"
+    },
+    "validation": {
+      "businessNameRequired": "企业名称为必填项。",
+      "businessNameTooLong": "企业名称不能超过 200 个字符。",
+      "contactEmailRequired": "联系邮箱为必填项。",
+      "contactEmailInvalid": "请输入有效的电子邮件地址。",
+      "messageTooLong": "留言不能超过 500 个字符。"
+    },
+    "success": {
+      "heading": "推荐已提交！",
+      "body": "感谢您帮助壮大 FoodFlow 网络。我们的团队将联系 {{email}} 提供更多信息。",
+      "submitAnother": "再次提交推荐"
+    },
+    "errors": { "generic": "出现错误，请重试。" }
   }
 }
