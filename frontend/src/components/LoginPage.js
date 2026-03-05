@@ -154,7 +154,7 @@ const LoginPage = () => {
                 {t('login.backHome')}
               </button>
               <h1 id="login-title" className="login-title">
-                Log in to your account
+                {t('login.title')}
               </h1>
 
               <form onSubmit={handleLogin} noValidate>

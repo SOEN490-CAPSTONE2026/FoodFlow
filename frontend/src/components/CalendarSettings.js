@@ -78,7 +78,7 @@ const CalendarSettings = () => {
         setEvents(eventsRes.data.data || []);
       }
     } catch (err) {
-      setError(t('calendar.loadError') || 'Failed to load calendar data');
+      setError(t('calendar.loadError'));
       console.error('Calendar data load error:', err);
     } finally {
       setLoading(false);
@@ -713,7 +713,7 @@ const CalendarSettings = () => {
                 onClick={() => setShowConnectionDetailsModal(false)}
                 aria-label={t('calendar.closeModalAria')}
               >
-                ×
+                Ã—
               </button>
             </div>
             <div className="modal-body">
@@ -848,7 +848,7 @@ const CalendarSettings = () => {
                 onClick={() => setShowDisconnectModal(false)}
                 aria-label={t('calendar.closeModalAria')}
               >
-                ×
+                Ã—
               </button>
             </div>
             <div className="modal-body">

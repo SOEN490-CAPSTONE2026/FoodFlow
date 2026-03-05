@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import Select from 'react-select';
 import {
   ChevronRight,
@@ -42,6 +43,7 @@ const statusOptions = [
 ];
 
 const AdminDonations = () => {
+  const { t } = useTranslation();
   const [donations, setDonations] = useState([]);
   const [filteredDonations, setFilteredDonations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -116,7 +118,7 @@ const AdminDonations = () => {
       });
     } catch (err) {
       console.error('Error fetching donations:', err);
-      setError('Failed to load donations. Please try again.');
+      setError(t('adminDonations.errors.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -377,7 +379,7 @@ const AdminDonations = () => {
 
   const formatDate = dateString => {
     if (!dateString) {
-      return 'N/A';
+      return t('adminDonations.notAvailable');
     }
     return new Date(dateString).toLocaleString();
   };
@@ -390,7 +392,7 @@ const AdminDonations = () => {
             <Gift style={{ color: '#2196f3' }} size={24} />
           </div>
           <div className="stat-content">
-            <div className="stat-label">Total Donations</div>
+            <div className="stat-label">{t('adminDonations.stats.total')}</div>
             <div className="stat-value">{totalElements}</div>
           </div>
         </div>
@@ -399,7 +401,7 @@ const AdminDonations = () => {
             <Users style={{ color: '#4caf50' }} size={24} />
           </div>
           <div className="stat-content">
-            <div className="stat-label">Active</div>
+            <div className="stat-label">{t('adminDonations.stats.active')}</div>
             <div className="stat-value">{stats.active}</div>
           </div>
         </div>
@@ -408,7 +410,9 @@ const AdminDonations = () => {
             <Sparkles style={{ color: '#ff9800' }} size={24} />
           </div>
           <div className="stat-content">
-            <div className="stat-label">Completed</div>
+            <div className="stat-label">
+              {t('adminDonations.stats.completed')}
+            </div>
             <div className="stat-value">{stats.completed}</div>
           </div>
         </div>
@@ -417,7 +421,9 @@ const AdminDonations = () => {
             <Flag style={{ color: '#9c27b0' }} size={24} />
           </div>
           <div className="stat-content">
-            <div className="stat-label">Flagged</div>
+            <div className="stat-label">
+              {t('adminDonations.stats.flagged')}
+            </div>
             <div className="stat-value">{stats.flagged}</div>
           </div>
         </div>
@@ -425,7 +431,7 @@ const AdminDonations = () => {
 
       <div className="donations-section">
         <div className="donations-section-header">
-          <h2>All Donations</h2>
+          <h2>{t('adminDonations.title')}</h2>
           <div className="pagination-info">
             {totalElements > 0 && (
               <span>
@@ -442,7 +448,7 @@ const AdminDonations = () => {
             <Search className="search-icon" size={18} />
             <input
               type="text"
-              placeholder="Search by title, donor, receiver, or ID..."
+              placeholder={t('adminDonations.searchPlaceholder')}
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               className="search-input"
@@ -454,7 +460,7 @@ const AdminDonations = () => {
               onChange={option => setStatusFilter(option.value)}
               options={statusOptions}
               className="filter-select-react"
-              placeholder="All Status"
+              placeholder={t('adminDonations.filters.allStatus')}
               isSearchable={false}
             />
             <input
@@ -484,7 +490,7 @@ const AdminDonations = () => {
               }}
             />
             <button onClick={handleResetFilters} className="filter-reset-btn">
-              Reset
+              {t('adminDonations.filters.reset')}
             </button>
           </div>
         </div>
@@ -507,7 +513,7 @@ const AdminDonations = () => {
 
       {loading ? (
         <div style={{ textAlign: 'center', padding: '40px' }}>
-          Loading donations...
+          {t('adminDonations.loading')}
         </div>
       ) : (
         <div className="donations-table-container">
@@ -515,23 +521,23 @@ const AdminDonations = () => {
             <TableHeader>
               <TableRow>
                 <TableHead></TableHead>
-                <TableHead>ID</TableHead>
-                <TableHead>Title</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Donor</TableHead>
-                <TableHead>Receiver</TableHead>
-                <TableHead>Rating</TableHead>
-                <TableHead>Flagged</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead>Updated</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>{t('adminDonations.table.id')}</TableHead>
+                <TableHead>{t('adminDonations.table.title')}</TableHead>
+                <TableHead>{t('adminDonations.table.status')}</TableHead>
+                <TableHead>{t('adminDonations.table.donor')}</TableHead>
+                <TableHead>{t('adminDonations.table.receiver')}</TableHead>
+                <TableHead>{t('adminDonations.table.rating')}</TableHead>
+                <TableHead>{t('adminDonations.table.flagged')}</TableHead>
+                <TableHead>{t('adminDonations.table.created')}</TableHead>
+                <TableHead>{t('adminDonations.table.updated')}</TableHead>
+                <TableHead>{t('adminDonations.table.actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredDonations.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan="11" className="no-donations">
-                    No donations found
+                    {t('adminDonations.empty')}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -553,7 +559,9 @@ const AdminDonations = () => {
                             <ChevronRight size={18} />
                           )}
                           <span className="mobile-expand-label">
-                            {expandedRows.has(donation.id) ? 'Less' : 'More'}
+                            {expandedRows.has(donation.id)
+                              ? t('common.less', 'Less')
+                              : t('common.more', 'More')}
                           </span>
                         </button>
                       </TableCell>
@@ -569,10 +577,11 @@ const AdminDonations = () => {
                         </span>
                       </TableCell>
                       <TableCell data-label="Donor">
-                        {donation.donorName || 'N/A'}
+                        {donation.donorName || t('adminDonations.notAvailable')}
                       </TableCell>
                       <TableCell data-label="Receiver">
-                        {donation.receiverName || 'N/A'}
+                        {donation.receiverName ||
+                          t('adminDonations.notAvailable')}
                       </TableCell>
                       <TableCell data-label="Rating">
                         {!donation.claimId ? (
@@ -599,10 +608,15 @@ const AdminDonations = () => {
                         {donation.flagged ? (
                           <div
                             className="flagged-cell"
-                            title={donation.flagReason || 'Flagged donation'}
+                            title={
+                              donation.flagReason ||
+                              t('adminDonations.flaggedDonation')
+                            }
                           >
                             <Flag color="#ef4444" size={16} />
-                            <span className="flagged-text">Yes</span>
+                            <span className="flagged-text">
+                              {t('common.yes', 'Yes')}
+                            </span>
                           </div>
                         ) : hasLowRating(donation) ? (
                           <div
@@ -625,11 +639,11 @@ const AdminDonations = () => {
                         <button
                           className="action-btn"
                           onClick={() => openDetailModal(donation)}
-                          title="View Details"
+                          title={t('adminDonations.actions.viewDetails')}
                         >
                           <Eye size={16} />
                           <span className="mobile-action-label">
-                            View Details
+                            {t('adminDonations.actions.viewDetails')}
                           </span>
                         </button>
                       </TableCell>
@@ -640,58 +654,80 @@ const AdminDonations = () => {
                           <div className="user-details-expanded">
                             <div className="details-grid">
                               <div className="details-section">
-                                <h4>Food Categories</h4>
+                                <h4>
+                                  {t('adminDonations.details.foodCategories')}
+                                </h4>
                                 <p className="details-value">
-                                  {donation.foodCategories?.join(', ') || 'N/A'}
+                                  {donation.foodCategories?.join(', ') ||
+                                    t('adminDonations.notAvailable')}
                                 </p>
                               </div>
                               <div className="details-section">
-                                <h4>Quantity</h4>
+                                <h4>{t('adminDonations.details.quantity')}</h4>
                                 <p className="details-value">
                                   {donation.quantity
                                     ? `${donation.quantity.value} ${donation.quantity.unit}`
-                                    : 'N/A'}
+                                    : t('adminDonations.notAvailable')}
                                 </p>
                               </div>
                               <div className="details-section">
-                                <h4>Expiry Date</h4>
+                                <h4>
+                                  {t('adminDonations.details.expiryDate')}
+                                </h4>
                                 <p className="details-value">
-                                  {donation.expiryDate || 'N/A'}
+                                  {donation.expiryDate ||
+                                    t('adminDonations.notAvailable')}
                                 </p>
                               </div>
                               <div className="details-section">
-                                <h4>Pickup Date</h4>
+                                <h4>
+                                  {t('adminDonations.details.pickupDate')}
+                                </h4>
                                 <p className="details-value">
-                                  {donation.pickupDate || 'N/A'}
+                                  {donation.pickupDate ||
+                                    t('adminDonations.notAvailable')}
                                 </p>
                               </div>
                               <div className="details-section">
-                                <h4>Temperature</h4>
+                                <h4>
+                                  {t('adminDonations.details.temperature')}
+                                </h4>
                                 <p className="details-value">
-                                  {donation.temperature || 'N/A'}
+                                  {donation.temperature ||
+                                    t('adminDonations.notAvailable')}
                                 </p>
                               </div>
                               <div className="details-section">
-                                <h4>Packaging Conditions</h4>
+                                <h4>
+                                  {t(
+                                    'adminDonations.details.packagingConditions'
+                                  )}
+                                </h4>
                                 <p className="details-value">
-                                  {donation.packagingConditions || 'N/A'}
+                                  {donation.packagingConditions ||
+                                    t('adminDonations.notAvailable')}
                                 </p>
                               </div>
                             </div>
                             <div className="details-section">
-                              <h4>Description</h4>
+                              <h4>{t('adminDonations.details.description')}</h4>
                               <p className="details-value">
-                                {donation.description || 'No description'}
+                                {donation.description ||
+                                  t('adminDonations.details.noDescription')}
                               </p>
                             </div>
 
                             {/* Feedback in expanded row */}
                             {donation.claimId && (
                               <div className="feedback-section">
-                                <h4>Feedback & Ratings</h4>
+                                <h4>
+                                  {t('adminDonations.details.feedbackRatings')}
+                                </h4>
                                 {!feedbackData[donation.id] ? (
                                   <div className="feedback-loading">
-                                    Click to expand and load feedback...
+                                    {t(
+                                      'adminDonations.details.clickToLoadFeedback'
+                                    )}
                                   </div>
                                 ) : feedbackData[donation.id].donorFeedback ||
                                   feedbackData[donation.id].receiverFeedback ? (
@@ -819,8 +855,7 @@ const AdminDonations = () => {
                                   </div>
                                 ) : (
                                   <div className="feedback-empty">
-                                    No feedback has been provided yet for this
-                                    donation.
+                                    {t('adminDonations.details.noFeedback')}
                                   </div>
                                 )}
                               </div>
@@ -850,10 +885,13 @@ const AdminDonations = () => {
                 disabled={currentPage === 0}
                 className="filter-reset-btn"
               >
-                Previous
+                {t('adminVerificationQueue.pagination.previous')}
               </button>
               <span style={{ padding: '10px' }}>
-                Page {currentPage + 1} of {totalPages}
+                {t('adminVerificationQueue.pagination.pageOf', {
+                  page: currentPage + 1,
+                  total: totalPages,
+                })}
               </span>
               <button
                 onClick={() =>
@@ -862,7 +900,7 @@ const AdminDonations = () => {
                 disabled={currentPage >= totalPages - 1}
                 className="filter-reset-btn"
               >
-                Next
+                {t('adminVerificationQueue.pagination.next')}
               </button>
             </div>
           )}

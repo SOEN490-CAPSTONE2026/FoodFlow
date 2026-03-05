@@ -9,7 +9,7 @@ import {
 import '@testing-library/jest-dom';
 import { MemoryRouter } from 'react-router-dom';
 import ReceiverMyClaims from '../ReceiverMyClaims';
-import { surplusAPI, claimsAPI } from '../../../services/api';
+import { surplusAPI, claimsAPI, feedbackAPI } from '../../../services/api';
 import { NotificationProvider } from '../../../contexts/NotificationContext';
 import { TimezoneProvider } from '../../../contexts/TimezoneContext';
 
@@ -75,6 +75,9 @@ describe('ReceiverMyClaims Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     global.confirm.mockReturnValue(true);
+    feedbackAPI?.getMyRating?.mockResolvedValue({
+      data: { averageRating: 4.6, totalReviews: 12 },
+    });
     jest.useFakeTimers();
   });
 
@@ -341,6 +344,168 @@ describe('ReceiverMyClaims Component', () => {
 
       await waitFor(() => {
         expect(claimsAPI.cancel).toHaveBeenCalledWith(1);
+      });
+    });
+
+    test('closes confirmation dialog when keeping claim', async () => {
+      claimsAPI.myClaims.mockResolvedValue({ data: [createMockClaim()] });
+
+      await act(async () => {
+        render(
+          <Wrapper>
+            <ReceiverMyClaims />
+          </Wrapper>
+        );
+      });
+
+      const cancelButton = await screen.findByText('Cancel');
+      await act(async () => {
+        fireEvent.click(cancelButton);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Cancel Claim')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText('Keep Claim'));
+
+      await waitFor(() => {
+        expect(screen.queryByText('Cancel Claim')).not.toBeInTheDocument();
+      });
+    });
+
+    test('handles cancel API failure and closes dialog', async () => {
+      claimsAPI.myClaims.mockResolvedValue({ data: [createMockClaim()] });
+      claimsAPI.cancel.mockRejectedValueOnce(new Error('cancel failed'));
+
+      await act(async () => {
+        render(
+          <Wrapper>
+            <ReceiverMyClaims />
+          </Wrapper>
+        );
+      });
+
+      const cancelButton = await screen.findByText('Cancel');
+      fireEvent.click(cancelButton);
+      fireEvent.click(await screen.findByText('Yes, Cancel Claim'));
+
+      await waitFor(() => {
+        expect(claimsAPI.cancel).toHaveBeenCalledWith(1);
+        expect(screen.queryByText('Cancel Claim')).not.toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Status and image branches', () => {
+    test('renders status badges for ready/completed/not completed/expired', async () => {
+      claimsAPI.myClaims.mockResolvedValue({
+        data: [
+          createMockClaim({
+            id: 11,
+            surplusPost: {
+              ...createMockClaim().surplusPost,
+              status: 'READY_FOR_PICKUP',
+              title: 'Ready Item',
+            },
+          }),
+          createMockClaim({
+            id: 12,
+            surplusPost: {
+              ...createMockClaim().surplusPost,
+              status: 'COMPLETED',
+              title: 'Completed Item',
+            },
+          }),
+          createMockClaim({
+            id: 13,
+            surplusPost: {
+              ...createMockClaim().surplusPost,
+              status: 'NOT_COMPLETED',
+              title: 'Not Completed Item',
+            },
+          }),
+          createMockClaim({
+            id: 14,
+            surplusPost: {
+              ...createMockClaim().surplusPost,
+              status: 'EXPIRED',
+              title: 'Expired Item',
+            },
+          }),
+        ],
+      });
+
+      await act(async () => {
+        render(
+          <Wrapper>
+            <ReceiverMyClaims />
+          </Wrapper>
+        );
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: /All/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText('Ready Item')).toBeInTheDocument();
+        expect(screen.getByText('Completed Item')).toBeInTheDocument();
+        expect(screen.getByText('Not Completed Item')).toBeInTheDocument();
+        expect(screen.getByText('Expired Item')).toBeInTheDocument();
+      });
+    });
+
+    test('resolves absolute and backend image URLs', async () => {
+      process.env.REACT_APP_API_BASE_URL = 'http://localhost:8080/api';
+      claimsAPI.myClaims.mockResolvedValue({
+        data: [
+          createMockClaim({
+            id: 21,
+            surplusPost: {
+              ...createMockClaim().surplusPost,
+              title: 'Absolute Image',
+              resolvedDonationImageUrl: 'https://cdn.example.com/img.jpg',
+            },
+          }),
+          createMockClaim({
+            id: 22,
+            surplusPost: {
+              ...createMockClaim().surplusPost,
+              title: 'Api Image',
+              resolvedDonationImageUrl: '/api/files/uploads/receipt.jpg',
+            },
+          }),
+          createMockClaim({
+            id: 23,
+            surplusPost: {
+              ...createMockClaim().surplusPost,
+              title: 'Relative Image',
+              resolvedDonationImageUrl: 'uploads/local.jpg',
+            },
+          }),
+        ],
+      });
+
+      await act(async () => {
+        render(
+          <Wrapper>
+            <ReceiverMyClaims />
+          </Wrapper>
+        );
+      });
+
+      await waitFor(() => {
+        expect(screen.getByAltText('Absolute Image')).toHaveAttribute(
+          'src',
+          'https://cdn.example.com/img.jpg'
+        );
+        expect(screen.getByAltText('Api Image')).toHaveAttribute(
+          'src',
+          'http://localhost:8080/api/files/uploads/receipt.jpg'
+        );
+        expect(screen.getByAltText('Relative Image')).toHaveAttribute(
+          'src',
+          'http://localhost:8080/uploads/local.jpg'
+        );
       });
     });
   });

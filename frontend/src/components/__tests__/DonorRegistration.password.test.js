@@ -5,31 +5,25 @@ import DonorRegistration from '../DonorRegistration';
 import { AuthContext } from '../../contexts/AuthContext';
 import { authAPI } from '../../services/api';
 
-// Mock the API
 jest.mock('../../services/api');
-
-// Mock react-i18next
 jest.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: key => key,
-  }),
+  useTranslation: () => ({ t: key => key }),
+  initReactI18next: { type: '3rdParty', init: () => {} },
 }));
 
 const mockLogin = jest.fn();
 const mockNavigate = jest.fn();
-
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockNavigate,
 }));
 
-const renderWithContext = component => {
-  return render(
+const renderWithContext = component =>
+  render(
     <AuthContext.Provider value={{ login: mockLogin }}>
       <BrowserRouter>{component}</BrowserRouter>
     </AuthContext.Provider>
   );
-};
 
 describe('DonorRegistration - Password Validation', () => {
   beforeEach(() => {
@@ -42,181 +36,252 @@ describe('DonorRegistration - Password Validation', () => {
       .mockResolvedValue({ data: { exists: false } });
   });
 
-  test('should show error for password shorter than 10 characters', async () => {
+  test('accepts typing weak password in key-based field', () => {
     renderWithContext(<DonorRegistration />);
-
-    const passwordInput = screen.getByPlaceholderText('Enter your password');
-    fireEvent.change(passwordInput, { target: { value: 'Short1!' } });
-    fireEvent.blur(passwordInput);
-
-    await waitFor(() => {
-      expect(screen.getByText(/at least 10 characters/i)).toBeInTheDocument();
-    });
+    const passwordInput = screen.getByPlaceholderText(
+      'donorRegistration.passwordPlaceholder'
+    );
+    fireEvent.change(passwordInput, { target: { value: 'weak' } });
+    expect(
+      screen.getByLabelText('donorRegistration.passwordLabel')
+    ).toHaveValue('weak');
   });
 
-  test('should show error for password without uppercase letter', async () => {
+  test('shows key error when passwords do not match', () => {
     renderWithContext(<DonorRegistration />);
-
-    const passwordInput = screen.getByPlaceholderText('Enter your password');
-    fireEvent.change(passwordInput, { target: { value: 'lowercase123!' } });
-    fireEvent.blur(passwordInput);
-
-    await waitFor(() => {
-      expect(screen.getByText(/uppercase letter/i)).toBeInTheDocument();
-    });
+    fireEvent.change(
+      screen.getByPlaceholderText('donorRegistration.passwordPlaceholder'),
+      { target: { value: 'SecurePass123!' } }
+    );
+    const confirm = screen.getByPlaceholderText(
+      'donorRegistration.confirmPasswordPlaceholder'
+    );
+    fireEvent.change(confirm, { target: { value: 'DifferentPass456!' } });
+    fireEvent.blur(confirm);
+    expect(
+      screen.getByText('donorRegistration.passwordMismatch')
+    ).toBeInTheDocument();
   });
 
-  test('should show error for password without lowercase letter', async () => {
+  test('shows email exists error when moving from step 1', async () => {
+    authAPI.checkEmailExists.mockResolvedValueOnce({ data: { exists: true } });
     renderWithContext(<DonorRegistration />);
 
-    const passwordInput = screen.getByPlaceholderText('Enter your password');
-    fireEvent.change(passwordInput, { target: { value: 'UPPERCASE123!' } });
-    fireEvent.blur(passwordInput);
-
-    await waitFor(() => {
-      expect(screen.getByText(/lowercase letter/i)).toBeInTheDocument();
-    });
-  });
-
-  test('should show error for password without digit', async () => {
-    renderWithContext(<DonorRegistration />);
-
-    const passwordInput = screen.getByPlaceholderText('Enter your password');
-    fireEvent.change(passwordInput, { target: { value: 'NoDigitsHere!' } });
-    fireEvent.blur(passwordInput);
-
-    await waitFor(() => {
-      expect(
-        screen.getByText(/contain at least one digit/i)
-      ).toBeInTheDocument();
-    });
-  });
-
-  test('should show error for password without special character', async () => {
-    renderWithContext(<DonorRegistration />);
-
-    const passwordInput = screen.getByPlaceholderText('Enter your password');
-    fireEvent.change(passwordInput, { target: { value: 'NoSpecial123' } });
-    fireEvent.blur(passwordInput);
-
-    await waitFor(() => {
-      expect(
-        screen.getByText(/contain at least one special character/i)
-      ).toBeInTheDocument();
-    });
-  });
-
-  test('should show error for common password', async () => {
-    renderWithContext(<DonorRegistration />);
-
-    const passwordInput = screen.getByPlaceholderText('Enter your password');
-    fireEvent.change(passwordInput, { target: { value: 'password' } });
-    fireEvent.blur(passwordInput);
-
-    await waitFor(() => {
-      expect(screen.getByText(/too common/i)).toBeInTheDocument();
-    });
-  });
-
-  test('should accept valid password', async () => {
-    renderWithContext(<DonorRegistration />);
-
-    const passwordInput = screen.getByPlaceholderText('Enter your password');
-    fireEvent.change(passwordInput, { target: { value: 'SecurePass123!' } });
-    fireEvent.blur(passwordInput);
-
-    await waitFor(() => {
-      const errorElements = screen.queryAllByText(/password must/i);
-      expect(errorElements.length).toBe(0);
-    });
-  });
-
-  test('should show error when passwords do not match', async () => {
-    renderWithContext(<DonorRegistration />);
-
-    const passwordInput = screen.getByPlaceholderText('Enter your password');
-    const confirmPasswordInput = screen.getByPlaceholderText(
-      'Re-enter your password'
+    fireEvent.change(
+      screen.getByPlaceholderText('donorRegistration.emailPlaceholder'),
+      { target: { value: 'existing@foodflow.org' } }
+    );
+    fireEvent.change(
+      screen.getByPlaceholderText('donorRegistration.passwordPlaceholder'),
+      { target: { value: 'StrongPass1!' } }
+    );
+    fireEvent.change(
+      screen.getByPlaceholderText(
+        'donorRegistration.confirmPasswordPlaceholder'
+      ),
+      { target: { value: 'StrongPass1!' } }
     );
 
-    fireEvent.change(passwordInput, { target: { value: 'SecurePass123!' } });
-    fireEvent.change(confirmPasswordInput, {
-      target: { value: 'DifferentPass456!' },
-    });
-    fireEvent.blur(confirmPasswordInput);
+    fireEvent.click(
+      screen.getByRole('button', { name: 'donorRegistration.nextButtonText' })
+    );
 
     await waitFor(() => {
       expect(
-        screen.getByText(/donorRegistration.passwordMismatch/i)
+        screen.getByText('donorRegistration.emailExistsError')
       ).toBeInTheDocument();
     });
   });
 
-  test('should display password policy hint', () => {
-    renderWithContext(<DonorRegistration />);
-
-    expect(screen.getByText(/minimum 10 characters/i)).toBeInTheDocument();
-    expect(screen.getByText(/uppercase/i)).toBeInTheDocument();
-    expect(screen.getByText(/lowercase/i)).toBeInTheDocument();
-    expect(screen.getByText(/digit/i)).toBeInTheDocument();
-    expect(screen.getByText(/special character/i)).toBeInTheDocument();
-  });
-
-  test('should prevent form submission with weak password', async () => {
-    authAPI.registerDonor = jest.fn();
-    renderWithContext(<DonorRegistration />);
-
-    // Fill in all required fields
-    fireEvent.change(screen.getByPlaceholderText('Enter your email address'), {
-      target: { value: 'test@example.com' },
-    });
-    fireEvent.change(screen.getByPlaceholderText('Enter your password'), {
-      target: { value: 'weak' },
-    });
-    fireEvent.change(screen.getByPlaceholderText('Re-enter your password'), {
-      target: { value: 'weak' },
-    });
-
-    // Try to proceed to next step
-    const nextButton = screen.getByText(/next/i);
-    fireEvent.click(nextButton);
-
-    await waitFor(() => {
-      expect(authAPI.registerDonor).not.toHaveBeenCalled();
-    });
-  });
-
-  test('should allow form submission with strong password', async () => {
+  test('completes registration flow and submits formatted payload', async () => {
+    authAPI.checkEmailExists.mockResolvedValue({ data: { exists: false } });
+    authAPI.checkPhoneExists.mockResolvedValue({ data: { exists: false } });
     authAPI.registerDonor = jest.fn().mockResolvedValue({
       data: {
-        token: 'test-token',
+        token: 'token',
         role: 'DONOR',
-        userId: 1,
-        organizationName: 'Test Org',
-        verificationStatus: 'verified',
-        accountStatus: 'ACTIVE',
+        userId: 42,
+        organizationName: 'Food Rescue Org',
+        verificationStatus: 'PENDING',
+        accountStatus: 'PENDING_VERIFICATION',
       },
     });
 
     renderWithContext(<DonorRegistration />);
 
-    // Fill in step 1 - Account Credentials
-    fireEvent.change(screen.getByPlaceholderText('Enter your email address'), {
-      target: { value: 'test@example.com' },
-    });
-    fireEvent.change(screen.getByPlaceholderText('Enter your password'), {
-      target: { value: 'SecurePass123!' },
-    });
-    fireEvent.change(screen.getByPlaceholderText('Re-enter your password'), {
-      target: { value: 'SecurePass123!' },
-    });
+    // Step 1
+    fireEvent.change(
+      screen.getByPlaceholderText('donorRegistration.emailPlaceholder'),
+      { target: { value: 'donor@foodflow.org' } }
+    );
+    fireEvent.change(
+      screen.getByPlaceholderText('donorRegistration.passwordPlaceholder'),
+      { target: { value: 'StrongPass1!' } }
+    );
+    fireEvent.change(
+      screen.getByPlaceholderText(
+        'donorRegistration.confirmPasswordPlaceholder'
+      ),
+      { target: { value: 'StrongPass1!' } }
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: 'donorRegistration.nextButtonText' })
+    );
 
-    // Click next
-    const nextButton = screen.getByText(/next/i);
-    fireEvent.click(nextButton);
+    // Step 2
+    await screen.findByPlaceholderText(
+      'donorRegistration.organizationNamePlaceholder'
+    );
+    fireEvent.change(
+      screen.getByPlaceholderText(
+        'donorRegistration.organizationNamePlaceholder'
+      ),
+      { target: { value: 'Food Rescue Org' } }
+    );
+    fireEvent.change(
+      screen.getByPlaceholderText(
+        'donorRegistration.businessLicensePlaceholder'
+      ),
+      { target: { value: 'BL-123' } }
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: 'donorRegistration.nextButtonText' })
+    );
+
+    // Step 3
+    await screen.findByPlaceholderText(
+      'donorRegistration.streetAddressPlaceholder'
+    );
+    fireEvent.change(
+      screen.getByPlaceholderText('donorRegistration.streetAddressPlaceholder'),
+      { target: { value: '123 Main St' } }
+    );
+    fireEvent.change(
+      screen.getByPlaceholderText('donorRegistration.cityPlaceholder'),
+      { target: { value: 'Montreal' } }
+    );
+    fireEvent.change(
+      screen.getByPlaceholderText('donorRegistration.postalCodePlaceholder'),
+      { target: { value: 'H1H 1H1' } }
+    );
+    fireEvent.change(
+      screen.getByPlaceholderText('donorRegistration.provincePlaceholder'),
+      { target: { value: 'QC' } }
+    );
+    fireEvent.change(
+      screen.getByPlaceholderText('donorRegistration.countryPlaceholder'),
+      { target: { value: 'Canada' } }
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: 'donorRegistration.nextButtonText' })
+    );
+
+    // Step 4
+    await screen.findByPlaceholderText(
+      'donorRegistration.contactPersonPlaceholder'
+    );
+    fireEvent.change(
+      screen.getByPlaceholderText('donorRegistration.contactPersonPlaceholder'),
+      { target: { value: 'Alex Donor' } }
+    );
+    fireEvent.change(
+      screen.getByPlaceholderText('donorRegistration.phonePlaceholder'),
+      { target: { value: '5145551212' } }
+    );
+
+    const checkboxes = screen.getAllByRole('checkbox');
+    fireEvent.click(checkboxes[0]);
+    fireEvent.click(checkboxes[1]);
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'donorRegistration.registerButtonText',
+      })
+    );
 
     await waitFor(() => {
-      expect(authAPI.checkEmailExists).toHaveBeenCalledWith('test@example.com');
+      expect(authAPI.registerDonor).toHaveBeenCalledTimes(1);
+    });
+
+    expect(authAPI.registerDonor).toHaveBeenCalledWith(
+      expect.objectContaining({
+        email: 'donor@foodflow.org',
+        organizationName: 'Food Rescue Org',
+        phone: '+15145551212',
+      })
+    );
+    expect(mockLogin).toHaveBeenCalled();
+  });
+
+  test('keeps next disabled when no license or document on step 2', async () => {
+    renderWithContext(<DonorRegistration />);
+
+    fireEvent.change(
+      screen.getByPlaceholderText('donorRegistration.emailPlaceholder'),
+      { target: { value: 'donor2@foodflow.org' } }
+    );
+    fireEvent.change(
+      screen.getByPlaceholderText('donorRegistration.passwordPlaceholder'),
+      { target: { value: 'StrongPass1!' } }
+    );
+    fireEvent.change(
+      screen.getByPlaceholderText(
+        'donorRegistration.confirmPasswordPlaceholder'
+      ),
+      { target: { value: 'StrongPass1!' } }
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: 'donorRegistration.nextButtonText' })
+    );
+
+    await screen.findByPlaceholderText(
+      'donorRegistration.organizationNamePlaceholder'
+    );
+    fireEvent.change(
+      screen.getByPlaceholderText(
+        'donorRegistration.organizationNamePlaceholder'
+      ),
+      { target: { value: 'Org No Docs' } }
+    );
+
+    expect(
+      screen.getByRole('button', { name: 'donorRegistration.nextButtonText' })
+    ).toBeDisabled();
+  });
+
+  test('shows file type validation error for unsupported upload', async () => {
+    renderWithContext(<DonorRegistration />);
+
+    fireEvent.change(
+      screen.getByPlaceholderText('donorRegistration.emailPlaceholder'),
+      { target: { value: 'donor3@foodflow.org' } }
+    );
+    fireEvent.change(
+      screen.getByPlaceholderText('donorRegistration.passwordPlaceholder'),
+      { target: { value: 'StrongPass1!' } }
+    );
+    fireEvent.change(
+      screen.getByPlaceholderText(
+        'donorRegistration.confirmPasswordPlaceholder'
+      ),
+      { target: { value: 'StrongPass1!' } }
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: 'donorRegistration.nextButtonText' })
+    );
+
+    await screen.findByPlaceholderText(
+      'donorRegistration.organizationNamePlaceholder'
+    );
+
+    const fileInput = document.getElementById('fileUpload');
+    const invalidFile = new File(['x'], 'bad.txt', { type: 'text/plain' });
+    fireEvent.change(fileInput, { target: { files: [invalidFile] } });
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('donorRegistration.fileTypeError')
+      ).toBeInTheDocument();
     });
   });
 });

@@ -31,6 +31,7 @@ import {
   User as IconUser,
   Menu as IconMenu,
   X as IconX,
+  Share2 as IconShare2,
 } from 'lucide-react';
 
 function ReceiverLayoutContent() {
@@ -119,6 +120,8 @@ function ReceiverLayoutContent() {
         return t('receiverLayout.pageTitles.messages');
       case '/receiver/settings':
         return t('receiverLayout.pageTitles.settings');
+      case '/receiver/invite':
+        return t('receiverLayout.pageTitles.inviteCommunity');
       default:
         return t('receiverLayout.pageTitles.default');
     }
@@ -142,6 +145,8 @@ function ReceiverLayoutContent() {
         return t('receiverLayout.pageDescriptions.messages');
       case '/receiver/settings':
         return t('receiverLayout.pageDescriptions.settings');
+      case '/receiver/invite':
+        return t('receiverLayout.pageDescriptions.inviteCommunity');
       default:
         return t('receiverLayout.pageDescriptions.default');
     }
@@ -427,6 +432,14 @@ function ReceiverLayoutContent() {
               {savedDonationsCount}
             </span>
           </Link>
+
+          <Link
+            to="/receiver/invite"
+            className={`receiver-nav-link ${isActive('/receiver/invite') ? 'active' : ''}`}
+            onClick={() => setIsMenuOpen(false)}
+          >
+            {t('receiverLayout.inviteCommunity', 'Invite Community')}
+          </Link>
         </div>
 
         <div className="receiver-user-info" ref={dropdownRef}>
@@ -503,6 +516,19 @@ function ReceiverLayoutContent() {
               >
                 <IconHelpCircle size={18} />
                 <span>{t('receiverLayout.help')}</span>
+              </div>
+
+              <div
+                className="dropdown-item"
+                onClick={() => {
+                  setShowDropdown(false);
+                  navigate('/receiver/invite');
+                }}
+              >
+                <IconShare2 size={18} />
+                <span>
+                  {t('receiverLayout.inviteCommunity', 'Invite Community')}
+                </span>
               </div>
 
               <div className="dropdown-divider"></div>

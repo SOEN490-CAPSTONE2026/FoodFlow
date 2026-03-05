@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
+import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 import { ChevronDown } from 'lucide-react';
 import '../style/PhoneInput.css';
 
@@ -37,6 +39,7 @@ export default function PhoneInput({
   className,
   placeholder,
 }) {
+  const { t } = useTranslation();
   const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0]); // Default to US
   const [phoneNumber, setPhoneNumber] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -68,7 +71,7 @@ export default function PhoneInput({
         }
       }
     }
-  }, []);
+  }, [value]);
 
   const handlePhoneChange = e => {
     let input = e.target.value;
@@ -135,7 +138,7 @@ export default function PhoneInput({
               <div className="country-search">
                 <input
                   type="text"
-                  placeholder="Search country..."
+                  placeholder={t('phoneInput.searchCountry')}
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
                   className="country-search-input"
@@ -161,7 +164,9 @@ export default function PhoneInput({
                     </button>
                   ))
                 ) : (
-                  <div className="no-results">No countries found</div>
+                  <div className="no-results">
+                    {t('phoneInput.noCountries')}
+                  </div>
                 )}
               </div>
             </div>
@@ -172,7 +177,7 @@ export default function PhoneInput({
         <input
           type="tel"
           className="phone-number-input"
-          placeholder={placeholder || 'Phone number'}
+          placeholder={placeholder || t('phoneInput.placeholder')}
           value={phoneNumber}
           onChange={handlePhoneChange}
           disabled={disabled}
@@ -189,3 +194,11 @@ export default function PhoneInput({
     </div>
   );
 }
+
+PhoneInput.propTypes = {
+  value: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
+  disabled: PropTypes.bool,
+  className: PropTypes.string,
+  placeholder: PropTypes.string,
+};

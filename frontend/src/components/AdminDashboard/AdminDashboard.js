@@ -12,7 +12,7 @@ import AdminUsers from './AdminUsers';
 import AdminDisputes from './AdminDisputes';
 import AdminDisputeDetail from './AdminDisputeDetail';
 import AdminVerificationQueue from './AdminVerificationQueue';
-
+import AdminReferrals from './AdminReferrals';
 import AdminSettings from './AdminSettings';
 import AdminDonations from './AdminDonations';
 import AdminImages from './AdminImages';
@@ -34,6 +34,7 @@ export default function AdminDashboard() {
         <Route path="messages" element={<AdminMessages />} />
         <Route path="disputes" element={<AdminDisputes />} />
         <Route path="disputes/:id" element={<AdminDisputeDetail />} />
+        <Route path="referrals" element={<AdminReferrals />} />
         <Route path="help" element={<AdminHelp />} />
         <Route path="settings" element={<AdminSettings />} />
         <Route path="*" element={<Navigate to="." replace />} />
