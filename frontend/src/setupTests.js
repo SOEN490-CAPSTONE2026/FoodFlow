@@ -745,7 +745,8 @@ i18n.use(initReactI18next).init({
         },
         suggestBusiness: {
           title: 'Suggest a Business',
-          subtitle: 'Know a business that produces surplus food? Suggest them to join FoodFlow as a donor.',
+          subtitle:
+            'Know a business that produces surplus food? Suggest them to join FoodFlow as a donor.',
           form: {
             businessNameLabel: 'Business Name',
             businessNamePlaceholder: 'e.g. Green Valley Bakery',
@@ -754,7 +755,8 @@ i18n.use(initReactI18next).init({
             contactPhoneLabel: 'Contact Phone (optional)',
             contactPhonePlaceholder: '+1 (555) 123-4567',
             messageLabel: 'Personal Message (optional)',
-            messagePlaceholder: 'Tell them why FoodFlow is a great opportunity to reduce waste…',
+            messagePlaceholder:
+              'Tell them why FoodFlow is a great opportunity to reduce waste…',
             submitButton: 'Submit Suggestion',
             submitting: 'Submitting…',
           },
@@ -776,7 +778,8 @@ i18n.use(initReactI18next).init({
         },
         inviteCommunity: {
           title: 'Invite a Community Organization',
-          subtitle: 'Know an organization that could benefit from FoodFlow? Invite them to join as a receiver.',
+          subtitle:
+            'Know an organization that could benefit from FoodFlow? Invite them to join as a receiver.',
           form: {
             businessNameLabel: 'Organization Name',
             businessNamePlaceholder: 'e.g. Community Food Pantry',
@@ -785,13 +788,15 @@ i18n.use(initReactI18next).init({
             contactPhoneLabel: 'Contact Phone (optional)',
             contactPhonePlaceholder: '+1 (555) 123-4567',
             messageLabel: 'Personal Message (optional)',
-            messagePlaceholder: 'Tell them why FoodFlow would be a great fit...',
+            messagePlaceholder:
+              'Tell them why FoodFlow would be a great fit...',
             submitButton: 'Send Invitation',
             submitting: 'Sending Invitation…',
           },
           validation: {
             businessNameRequired: 'Organization name is required.',
-            businessNameTooLong: 'Organization name cannot exceed 200 characters.',
+            businessNameTooLong:
+              'Organization name cannot exceed 200 characters.',
             contactEmailRequired: 'Contact email is required.',
             contactEmailInvalid: 'Please enter a valid email address.',
             messageTooLong: 'Message cannot exceed 500 characters.',
