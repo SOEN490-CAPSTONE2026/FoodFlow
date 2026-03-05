@@ -146,7 +146,6 @@ export default function AdminLayout() {
         return t('admin.messages');
       case '/admin/disputes':
         return 'Disputes & Reports';
-        return t('admin.disputes');
       case '/admin/referrals':
         return 'Referral Submissions';
       case '/admin/help':
@@ -177,7 +176,6 @@ export default function AdminLayout() {
         return t('admin.communications');
       case '/admin/disputes':
         return 'Track, review, and resolve reported issues';
-        return t('admin.disputesDesc');
       case '/admin/referrals':
         return 'View community invitations and business suggestions from users';
       case '/admin/help':
