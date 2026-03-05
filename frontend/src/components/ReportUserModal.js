@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 import { X, Upload, AlertCircle } from 'lucide-react';
 import './ReportUserModal.css';
 
@@ -9,6 +11,7 @@ const ReportUserModal = ({
   donationId,
   onSubmit,
 }) => {
+  const { t } = useTranslation();
   const [description, setDescription] = useState('');
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
@@ -20,7 +23,7 @@ const ReportUserModal = ({
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
         // 5MB limit
-        setError('Photo size must be less than 5MB');
+        setError(t('reportUserModal.photoTooLarge'));
         return;
       }
       setPhotoFile(file);
@@ -37,7 +40,7 @@ const ReportUserModal = ({
     e.preventDefault();
 
     if (!description.trim()) {
-      setError('Please provide a description');
+      setError(t('reportUserModal.descriptionRequired'));
       return;
     }
 
@@ -66,7 +69,7 @@ const ReportUserModal = ({
       setPhotoPreview(null);
       onClose();
     } catch (err) {
-      setError(err.message || 'Failed to submit report. Please try again.');
+      setError(err.message || t('reportUserModal.submitFailed'));
     } finally {
       setIsSubmitting(false);
     }
@@ -88,7 +91,7 @@ const ReportUserModal = ({
     <div className="report-modal-overlay" onClick={handleClose}>
       <div className="report-modal-content" onClick={e => e.stopPropagation()}>
         <div className="report-modal-header">
-          <h2>Report User</h2>
+          <h2>{t('reportUserModal.title')}</h2>
           <button className="report-modal-close" onClick={handleClose}>
             <X size={24} />
           </button>
@@ -98,22 +101,25 @@ const ReportUserModal = ({
           <div className="report-info-card">
             <AlertCircle size={20} />
             <p>
-              You are reporting{' '}
-              <strong>{reportedUser?.name || 'this user'}</strong>.
-              {donationId && ' This report will be linked to the donation.'}
+              {t('reportUserModal.infoPrefix')}{' '}
+              <strong>
+                {reportedUser?.name || t('reportUserModal.thisUser')}
+              </strong>
+              .{donationId && ` ${t('reportUserModal.donationLinked')}`}
             </p>
           </div>
 
           <form onSubmit={handleSubmit}>
             <div className="report-form-group">
               <label htmlFor="description">
-                Description <span className="required">*</span>
+                {t('reportUserModal.descriptionLabel')}{' '}
+                <span className="required">*</span>
               </label>
               <textarea
                 id="description"
                 value={description}
                 onChange={e => setDescription(e.target.value)}
-                placeholder="Please describe what happened..."
+                placeholder={t('reportUserModal.descriptionPlaceholder')}
                 rows={5}
                 required
                 maxLength={1000}
@@ -122,17 +128,22 @@ const ReportUserModal = ({
             </div>
 
             <div className="report-form-group">
-              <label htmlFor="photo">Photo Evidence (Optional)</label>
+              <label htmlFor="photo">{t('reportUserModal.photoLabel')}</label>
               <div className="photo-upload-area">
                 {!photoPreview ? (
                   <label htmlFor="photo-input" className="photo-upload-label">
                     <Upload size={32} />
-                    <span>Click to upload photo</span>
-                    <span className="upload-hint">Max size: 5MB</span>
+                    <span>{t('reportUserModal.uploadPrompt')}</span>
+                    <span className="upload-hint">
+                      {t('reportUserModal.maxSize')}
+                    </span>
                   </label>
                 ) : (
                   <div className="photo-preview">
-                    <img src={photoPreview} alt="Evidence preview" />
+                    <img
+                      src={photoPreview}
+                      alt={t('reportUserModal.evidencePreviewAlt')}
+                    />
                     <button
                       type="button"
                       className="remove-photo-btn"
@@ -141,7 +152,7 @@ const ReportUserModal = ({
                         setPhotoPreview(null);
                       }}
                     >
-                      <X size={16} /> Remove
+                      <X size={16} /> {t('reportUserModal.removePhoto')}
                     </button>
                   </div>
                 )}
@@ -169,14 +180,16 @@ const ReportUserModal = ({
                 onClick={handleClose}
                 disabled={isSubmitting}
               >
-                Cancel
+                {t('reportUserModal.cancel')}
               </button>
               <button
                 type="submit"
                 className="report-btn-submit"
                 disabled={isSubmitting || !description.trim()}
               >
-                {isSubmitting ? 'Submitting...' : 'Submit Report'}
+                {isSubmitting
+                  ? t('reportUserModal.submitting')
+                  : t('reportUserModal.submit')}
               </button>
             </div>
           </form>
@@ -187,3 +200,14 @@ const ReportUserModal = ({
 };
 
 export default ReportUserModal;
+
+ReportUserModal.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  reportedUser: PropTypes.shape({
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    name: PropTypes.string,
+  }),
+  donationId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  onSubmit: PropTypes.func.isRequired,
+};

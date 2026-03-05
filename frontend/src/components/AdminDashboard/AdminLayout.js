@@ -21,6 +21,7 @@ import {
   X,
   AlertTriangle,
   BarChart3,
+  UserPlus,
   Image,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -132,19 +133,21 @@ export default function AdminLayout() {
       case '/admin/dashboard':
         return t('admin.dashboard');
       case '/admin/users':
-        return 'User Management';
+        return t('admin.users');
       case '/admin/verification-queue':
-        return 'Verification Queue';
+        return t('admin.verificationQueue');
       case '/admin/analytics':
         return t('admin.analytics');
       case '/admin/impact':
-        return 'Impact Dashboard';
+        return t('admin.impact');
       case '/admin/calendar':
         return t('admin.calendar');
       case '/admin/messages':
         return t('admin.messages');
       case '/admin/disputes':
-        return 'Disputes & Reports';
+        return t('admin.disputes');
+      case '/admin/referrals':
+        return 'Referral Submissions';
       case '/admin/help':
         return t('admin.help');
       case '/admin/images':
@@ -160,19 +163,21 @@ export default function AdminLayout() {
       case '/admin/dashboard':
         return t('admin.overview');
       case '/admin/verification-queue':
-        return 'Review and approve pending user registrations';
+        return t('admin.verificationQueueDesc');
       case '/admin/users':
-        return 'Manage and monitor all platform users';
+        return t('admin.usersDesc');
       case '/admin/analytics':
         return t('admin.metrics');
       case '/admin/impact':
-        return 'Platform-wide environmental and social impact metrics';
+        return t('admin.impactDesc');
       case '/admin/calendar':
         return t('admin.events');
       case '/admin/messages':
         return t('admin.communications');
       case '/admin/disputes':
-        return 'Track, review, and resolve reported issues';
+        return t('admin.disputesDesc');
+      case '/admin/referrals':
+        return 'View community invitations and business suggestions from users';
       case '/admin/help':
         return t('admin.guides');
       case '/admin/images':
@@ -212,7 +217,7 @@ export default function AdminLayout() {
         <button
           className="hamburger-btn"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label="Toggle Menu"
+          aria-label={t('admin.toggleMenu')}
         >
           {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
@@ -233,14 +238,14 @@ export default function AdminLayout() {
             to="/"
             replace
             state={{ scrollTo: 'home', from: 'admin' }}
-            aria-label="FoodFlow Home"
+            aria-label={t('admin.foodflowHome')}
           >
             <img src={Logo} alt="FoodFlow" className="admin-logo" />
           </Link>
           <button
             className="sidebar-toggle-btn"
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            aria-label="Toggle sidebar"
+            aria-label={t('admin.toggleSidebar')}
           >
             {sidebarCollapsed ? (
               <ChevronRight size={20} />
@@ -254,45 +259,45 @@ export default function AdminLayout() {
           <Link
             to="/admin"
             className={`admin-nav-link ${isActive('/admin') ? 'active' : ''}`}
-            data-tooltip="Home"
+            data-tooltip={t('admin.dashboard')}
           >
             <span className="nav-icon" aria-hidden>
               <Home size={18} className="lucide" />
             </span>
-            Home
+            {t('admin.dashboard')}
           </Link>
 
           <Link
             to="/admin/verification-queue"
             className={`admin-nav-link ${isActive('/admin/verification-queue') ? 'active' : ''}`}
-            data-tooltip="Verification Queue"
+            data-tooltip={t('admin.verificationQueue')}
           >
             <span className="nav-icon" aria-hidden>
               <UserCheck size={18} className="lucide" />
             </span>
-            Verification
+            {t('admin.verificationQueue')}
           </Link>
 
           <Link
             to="/admin/users"
             className={`admin-nav-link ${isActive('/admin/users') ? 'active' : ''}`}
-            data-tooltip="Users"
+            data-tooltip={t('admin.users')}
           >
             <span className="nav-icon" aria-hidden>
               <Users size={18} className="lucide" />
             </span>
-            Users
+            {t('admin.users')}
           </Link>
 
           <Link
             to="/admin/donations"
             className={`admin-nav-link ${isActive('/admin/donations') ? 'active' : ''}`}
-            data-tooltip="Donations"
+            data-tooltip={t('admin.donations')}
           >
             <span className="nav-icon" aria-hidden>
               <Heart size={18} className="lucide" />
             </span>
-            Donations
+            {t('admin.donations')}
           </Link>
 
           <Link
@@ -309,63 +314,77 @@ export default function AdminLayout() {
           <Link
             to="/admin/impact"
             className={`admin-nav-link ${isActive('/admin/impact') ? 'active' : ''}`}
-            data-tooltip="Impact Dashboard"
+            data-tooltip={t('admin.impact')}
           >
             <span className="nav-icon" aria-hidden>
               <BarChart3 size={18} className="lucide" />
             </span>
-            Impact
+            {t('admin.impact')}
           </Link>
 
           <Link
             to="/admin/disputes"
             className={`admin-nav-link ${isActive('/admin/disputes') ? 'active' : ''}`}
-            data-tooltip="Disputes"
+            data-tooltip={t('admin.disputes')}
           >
             <span className="nav-icon" aria-hidden>
               <AlertTriangle size={18} className="lucide" />
             </span>
-            Disputes
+            {t('admin.disputes')}
+          </Link>
+
+          <Link
+            to="/admin/referrals"
+            className={`admin-nav-link ${isActive('/admin/referrals') ? 'active' : ''}`}
+            data-tooltip="Referrals"
+          >
+            <span className="nav-icon" aria-hidden>
+              <UserPlus size={18} className="lucide" />
+            </span>
+            Referrals
           </Link>
 
           <Link
             to="/admin/messages"
             className={`admin-nav-link ${isActive('/admin/messages') ? 'active' : ''}`}
-            data-tooltip="Messages"
+            data-tooltip={t('admin.messages')}
           >
             <span className="nav-icon" aria-hidden>
               <Mail size={18} className="lucide" />
             </span>
-            Messages
+            {t('admin.messages')}
           </Link>
         </nav>
 
         <div className="admin-nav-bottom">
-          <div className="admin-nav-link disabled" data-tooltip="Help">
+          <div
+            className="admin-nav-link disabled"
+            data-tooltip={t('admin.help')}
+          >
             <span className="nav-icon" aria-hidden>
               <HelpCircle size={18} className="lucide" />
             </span>
-            Help
+            {t('admin.help')}
           </div>
           <Link
             to="/admin/settings"
             className={`admin-nav-link ${isActive('/admin/settings') ? 'active' : ''}`}
-            data-tooltip="Settings"
+            data-tooltip={t('admin.settings')}
           >
             <span className="nav-icon" aria-hidden>
               <Settings size={18} className="lucide" />
             </span>
-            Settings
+            {t('admin.settings')}
           </Link>
           <button
             onClick={handleLogout}
             className="admin-nav-link logout-btn"
-            data-tooltip="Logout"
+            data-tooltip={t('admin.logout')}
           >
             <span className="nav-icon" aria-hidden>
               <LogOut size={18} className="lucide" />
             </span>
-            Logout
+            {t('admin.logout')}
           </button>
         </div>
 

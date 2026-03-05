@@ -171,7 +171,9 @@ describe('Settings', () => {
         expect(
           screen.getByText('settings.notificationPreferences.title')
         ).toBeInTheDocument();
-        expect(screen.getByText('Privacy & Data Consent')).toBeInTheDocument();
+        expect(
+          screen.getByText('settings.privacyConsent.title')
+        ).toBeInTheDocument();
         expect(
           screen.getByText('settings.notificationTypes.title')
         ).toBeInTheDocument();
@@ -206,7 +208,9 @@ describe('Settings', () => {
     test('displays privacy policy link', () => {
       renderSettings();
 
-      const privacyLink = screen.getByText('Privacy Policy');
+      const privacyLink = screen.getByText(
+        'settings.privacyConsent.privacyPolicyLink'
+      );
       expect(privacyLink).toHaveAttribute('href', '/privacy-policy');
       expect(privacyLink).toHaveAttribute('target', '_blank');
     });

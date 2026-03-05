@@ -10,6 +10,7 @@ public class Location {
     private Double latitude;
     private Double longitude;
     private String address;
+    private String country; // Full country name (e.g., "Canada", "United States")
 
     public Location() {} // JPA requirement
 
@@ -19,17 +20,27 @@ public class Location {
         this.address = address;
     }
 
+    public Location(Double latitude, Double longitude, String address, String country) {
+        this.latitude = Objects.requireNonNull(latitude);
+        this.longitude = Objects.requireNonNull(longitude);
+        this.address = address;
+        this.country = country;
+    }
+
     public Double getLatitude() { return latitude; }
     public Double getLongitude() { return longitude; }
     public String getAddress() { return address; }
+    public String getCountry() { return country; }
 
     public void setLatitude(Double latitude) { this.latitude = latitude; }
     public void setLongitude(Double longitude) { this.longitude = longitude; }
     public void setAddress(String address) { this.address = address; }
+    public void setCountry(String country) { this.country = country; }
 
     @Override
     public String toString() {
-        return address + " (" + latitude + ", " + longitude + ")";
+        String countryPart = country != null ? ", " + country : "";
+        return address + " (" + latitude + ", " + longitude + countryPart + ")";
     }
 
     @Override

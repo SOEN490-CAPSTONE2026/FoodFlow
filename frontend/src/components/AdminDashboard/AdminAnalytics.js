@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { surplusAPI } from '../../services/api';
 import {
   getTemperatureCategoryLabel,
@@ -8,6 +9,7 @@ import { Package, Thermometer } from 'lucide-react';
 import './AdminAnalytics.css';
 
 export default function AdminAnalytics() {
+  const { t } = useTranslation();
   const [complianceData, setComplianceData] = useState({
     temperatureDistribution: {},
     packagingDistribution: {},
@@ -17,47 +19,44 @@ export default function AdminAnalytics() {
   });
 
   useEffect(() => {
+    const fetchComplianceData = async () => {
+      try {
+        const response = await surplusAPI.list();
+        const posts = response.data || [];
+
+        const tempDist = {};
+        const packDist = {};
+        const total = posts.length;
+
+        posts.forEach(post => {
+          if (post.temperatureCategory) {
+            tempDist[post.temperatureCategory] =
+              (tempDist[post.temperatureCategory] || 0) + 1;
+          }
+          if (post.packagingType) {
+            packDist[post.packagingType] =
+              (packDist[post.packagingType] || 0) + 1;
+          }
+        });
+
+        setComplianceData({
+          temperatureDistribution: tempDist,
+          packagingDistribution: packDist,
+          totalPosts: total,
+          loading: false,
+          error: null,
+        });
+      } catch {
+        setComplianceData(prev => ({
+          ...prev,
+          loading: false,
+          error: t('adminAnalytics.errors.loadFailed'),
+        }));
+      }
+    };
+
     fetchComplianceData();
-  }, []);
-
-  const fetchComplianceData = async () => {
-    try {
-      // Fetch all surplus posts (admins should have access to all posts)
-      const response = await surplusAPI.list();
-      const posts = response.data || [];
-
-      // Calculate distribution
-      const tempDist = {};
-      const packDist = {};
-      const total = posts.length;
-
-      posts.forEach(post => {
-        if (post.temperatureCategory) {
-          tempDist[post.temperatureCategory] =
-            (tempDist[post.temperatureCategory] || 0) + 1;
-        }
-        if (post.packagingType) {
-          packDist[post.packagingType] =
-            (packDist[post.packagingType] || 0) + 1;
-        }
-      });
-
-      setComplianceData({
-        temperatureDistribution: tempDist,
-        packagingDistribution: packDist,
-        totalPosts: total,
-        loading: false,
-        error: null,
-      });
-    } catch (error) {
-      console.error('Error fetching compliance data:', error);
-      setComplianceData(prev => ({
-        ...prev,
-        loading: false,
-        error: 'Failed to load compliance data',
-      }));
-    }
-  };
+  }, [t]);
 
   const calculatePercentage = (count, total) => {
     if (total === 0) {
@@ -69,8 +68,8 @@ export default function AdminAnalytics() {
   if (complianceData.loading) {
     return (
       <div className="admin-analytics">
-        <h2>Food Safety Compliance Analytics</h2>
-        <p>Loading compliance data...</p>
+        <h2>{t('adminAnalytics.title')}</h2>
+        <p>{t('adminAnalytics.loading')}</p>
       </div>
     );
   }
@@ -78,7 +77,7 @@ export default function AdminAnalytics() {
   if (complianceData.error) {
     return (
       <div className="admin-analytics">
-        <h2>Food Safety Compliance Analytics</h2>
+        <h2>{t('adminAnalytics.title')}</h2>
         <p className="error-message">{complianceData.error}</p>
       </div>
     );
@@ -86,17 +85,15 @@ export default function AdminAnalytics() {
 
   return (
     <div className="admin-analytics">
-      <h2>Food Safety Compliance Analytics</h2>
-      <p className="analytics-subtitle">
-        Monitor temperature and packaging compliance across all donations
-      </p>
+      <h2>{t('adminAnalytics.title')}</h2>
+      <p className="analytics-subtitle">{t('adminAnalytics.subtitle')}</p>
 
       <div className="analytics-grid">
         {/* Temperature Category Distribution */}
         <div className="analytics-card">
           <div className="card-header">
             <Thermometer size={20} />
-            <h3>Temperature Categories</h3>
+            <h3>{t('adminAnalytics.temperatureCategories')}</h3>
           </div>
           <div className="distribution-table">
             {Object.keys(complianceData.temperatureDistribution).length > 0 ? (
@@ -125,7 +122,7 @@ export default function AdminAnalytics() {
                   ))}
               </>
             ) : (
-              <p className="no-data">No temperature data available</p>
+              <p className="no-data">{t('adminAnalytics.noTemperatureData')}</p>
             )}
           </div>
         </div>
@@ -134,7 +131,7 @@ export default function AdminAnalytics() {
         <div className="analytics-card">
           <div className="card-header">
             <Package size={20} />
-            <h3>Packaging Types</h3>
+            <h3>{t('adminAnalytics.packagingTypes')}</h3>
           </div>
           <div className="distribution-table">
             {Object.keys(complianceData.packagingDistribution).length > 0 ? (
@@ -163,7 +160,7 @@ export default function AdminAnalytics() {
                   ))}
               </>
             ) : (
-              <p className="no-data">No packaging data available</p>
+              <p className="no-data">{t('adminAnalytics.noPackagingData')}</p>
             )}
           </div>
         </div>
@@ -171,7 +168,8 @@ export default function AdminAnalytics() {
 
       <div className="analytics-summary">
         <p>
-          Total donations analyzed: <strong>{complianceData.totalPosts}</strong>
+          {t('adminAnalytics.totalAnalyzed')}{' '}
+          <strong>{complianceData.totalPosts}</strong>
         </p>
       </div>
     </div>

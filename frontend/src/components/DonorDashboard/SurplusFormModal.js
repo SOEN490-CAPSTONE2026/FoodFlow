@@ -291,17 +291,63 @@ const SurplusFormModal = ({
 
   const onLoadAutocomplete = autocomplete => {
     autocompleteRef.current = autocomplete;
+
+    // Restrict to street addresses only (no cities, provinces, countries)
+    autocompleteRef.current.setOptions({
+      types: ['address'], // Only street-level addresses
+      fields: ['formatted_address', 'geometry', 'address_components'],
+    });
   };
 
   const onPlaceChanged = () => {
     if (autocompleteRef.current) {
       const place = autocompleteRef.current.getPlace();
+
+      // Validate that a place was actually selected
+      if (!place || !place.geometry) {
+        setError(t('surplusForm.errors.invalidAddress'));
+        return;
+      }
+
+      // Check address components for street number and route
+      const hasStreetNumber = place.address_components?.some(component =>
+        component.types.includes('street_number')
+      );
+
+      const hasRoute = place.address_components?.some(component =>
+        component.types.includes('route')
+      );
+
+      // Reject if missing street number or route
+      if (!hasStreetNumber || !hasRoute) {
+        setError(t('surplusForm.errors.requiresStreetAddress'));
+        setFormData(prev => ({
+          ...prev,
+          pickupLocation: {
+            latitude: '',
+            longitude: '',
+            address: '',
+            country: '',
+          },
+        }));
+        return;
+      }
+
+      // Extract country from address components (full country name)
+      const countryComponent = place.address_components?.find(component =>
+        component.types.includes('country')
+      );
+      const country = countryComponent?.long_name || null;
+
+      // Valid address - set location with country
       const location = {
-        latitude: place.geometry?.location?.lat() || '',
-        longitude: place.geometry?.location?.lng() || '',
+        latitude: place.geometry.location.lat(),
+        longitude: place.geometry.location.lng(),
         address: place.formatted_address || place.name || '',
+        country: country,
       };
       setFormData(prev => ({ ...prev, pickupLocation: location }));
+      setError(''); // Clear any previous errors
     }
   };
 
@@ -541,15 +587,22 @@ const SurplusFormModal = ({
           formData.expiryDate !== '' &&
           (expirySuggestion.eligible || safetyAcknowledged)
         );
-      case 3: // Pickup Info
+      case 3: {
+        // Pickup Info
+        const hasValidAddress =
+          formData.pickupLocation.address.trim() !== '' &&
+          formData.pickupLocation.latitude !== '' &&
+          formData.pickupLocation.longitude !== '';
+
         return (
           pickupSlots.every(
             slot =>
               slot.pickupDate !== '' &&
               slot.startTime !== '' &&
               slot.endTime !== ''
-          ) && formData.pickupLocation.address.trim() !== ''
+          ) && hasValidAddress
         );
+      }
       default:
         return false;
     }

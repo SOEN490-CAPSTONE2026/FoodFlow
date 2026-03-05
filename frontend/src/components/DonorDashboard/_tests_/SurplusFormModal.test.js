@@ -134,7 +134,30 @@ jest.mock('@react-google-maps/api', () => {
               },
               formatted_address: '123 Test Street, Ottawa, ON',
               name: 'Test Location',
+              address_components: [
+                {
+                  long_name: '123',
+                  short_name: '123',
+                  types: ['street_number'],
+                },
+                {
+                  long_name: 'Test Street',
+                  short_name: 'Test St',
+                  types: ['route'],
+                },
+                {
+                  long_name: 'Ottawa',
+                  short_name: 'Ottawa',
+                  types: ['locality', 'political'],
+                },
+                {
+                  long_name: 'Ontario',
+                  short_name: 'ON',
+                  types: ['administrative_area_level_1', 'political'],
+                },
+              ],
             })),
+            setOptions: jest.fn(), // Add setOptions method to the mock
           };
           onLoad(mockAutocomplete);
         }

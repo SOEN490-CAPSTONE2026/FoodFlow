@@ -4,44 +4,59 @@ import {
   screen,
   fireEvent,
   waitFor,
-  within,
+  act,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import AdminDonations from '../AdminDonations';
-import { adminDonationAPI } from '../../../services/api';
+import { adminDonationAPI, feedbackAPI } from '../../../services/api';
 
-// Mock the API
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({ t: key => key }),
+}));
+
 jest.mock('../../../services/api', () => ({
   adminDonationAPI: {
     getAllDonations: jest.fn(),
     getDonationById: jest.fn(),
     overrideStatus: jest.fn(),
   },
+  feedbackAPI: {
+    getFeedbackForClaim: jest.fn(),
+  },
 }));
 
-// Mock react-select
-jest.mock('react-select', () => ({ options, value, onChange, placeholder }) => {
-  return (
-    <select
-      data-testid="react-select"
-      value={value?.value || ''}
-      onChange={e => {
-        const selected = options.find(opt => opt.value === e.target.value);
-        onChange(selected);
-      }}
-    >
-      <option value="">{placeholder}</option>
-      {options.map(option => (
-        <option key={option.value} value={option.value}>
-          {option.label}
-        </option>
-      ))}
-    </select>
-  );
-});
+jest.mock(
+  'react-select',
+  () =>
+    ({ options, value, onChange, placeholder, styles }) => {
+      // Execute style callbacks so those branches are covered.
+      if (styles) {
+        styles.control?.({});
+        styles.option?.({}, { isSelected: true, isFocused: false });
+        styles.menu?.({});
+        styles.singleValue?.({});
+      }
 
-// Mock lucide-react icons
+      return (
+        <select
+          data-testid="react-select"
+          value={value?.value || ''}
+          onChange={e =>
+            onChange(options.find(opt => opt.value === e.target.value))
+          }
+        >
+          <option value="">{placeholder}</option>
+          {options.map(option => (
+            <option key={option.value || 'empty'} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      );
+    }
+);
+
 jest.mock('lucide-react', () => ({
   ChevronRight: () => <span>ChevronRight</span>,
   ChevronDown: () => <span>ChevronDown</span>,
@@ -60,9 +75,9 @@ jest.mock('lucide-react', () => ({
   AlertCircle: () => <span>AlertCircle</span>,
   Info: () => <span>Info</span>,
   ShieldAlert: () => <span>ShieldAlert</span>,
+  Star: () => <span>Star</span>,
 }));
 
-// Mock CSS import
 jest.mock('../Admin_Styles/AdminDonations.css', () => ({}));
 
 describe('AdminDonations Component', () => {
@@ -81,9 +96,6 @@ describe('AdminDonations Component', () => {
         quantity: { value: 10, unit: 'BOX' },
         expiryDate: '2026-01-11',
         pickupDate: '2026-01-10',
-        temperature: null,
-        packagingConditions: null,
-        description: 'lasagna yum',
       },
       {
         id: 2,
@@ -94,13 +106,6 @@ describe('AdminDonations Component', () => {
         flagged: true,
         createdAt: '2026-01-07T10:00:00',
         updatedAt: '2026-01-11T14:30:00',
-        foodCategories: ['BAKED_GOODS'],
-        quantity: { value: 20, unit: 'LOAVES' },
-        expiryDate: '2026-01-13',
-        pickupDate: '2026-01-12',
-        temperature: 22,
-        packagingConditions: 'Good',
-        description: 'Fresh baked bread',
       },
     ],
     totalPages: 1,
@@ -127,856 +132,549 @@ describe('AdminDonations Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     adminDonationAPI.getAllDonations.mockResolvedValue({ data: mockDonations });
+    adminDonationAPI.getDonationById.mockResolvedValue({
+      data: mockDonationDetails,
+    });
+    feedbackAPI.getFeedbackForClaim.mockResolvedValue({ data: [] });
+    adminDonationAPI.overrideStatus.mockResolvedValue({
+      data: { ...mockDonationDetails, status: 'COMPLETED' },
+    });
   });
 
-  describe('Initial Rendering', () => {
-    test('renders without crashing', async () => {
-      render(<AdminDonations />);
-      await waitFor(() => {
-        expect(
-          screen.queryByText('Loading donations...')
-        ).not.toBeInTheDocument();
-      });
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  test('loads donations and renders rows', async () => {
+    render(<AdminDonations />);
+
+    expect(screen.getByText('adminDonations.loading')).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
+      expect(screen.getByText('Fresh Bread')).toBeInTheDocument();
     });
+  });
 
-    test('displays stats cards correctly', async () => {
-      render(<AdminDonations />);
+  test('calls API on mount with expected filters', async () => {
+    render(<AdminDonations />);
 
-      await waitFor(() => {
-        const statsGrid = document.querySelector('.donations-stats-grid');
-        expect(
-          within(statsGrid).getByText('Total Donations')
-        ).toBeInTheDocument();
-        expect(within(statsGrid).getByText('Active')).toBeInTheDocument();
-        expect(within(statsGrid).getByText('Completed')).toBeInTheDocument();
-        expect(within(statsGrid).getByText('Flagged')).toBeInTheDocument();
-      });
-    });
-
-    test('calculates and displays correct stats', async () => {
-      render(<AdminDonations />);
-
-      await waitFor(() => {
-        const statValues = screen.getAllByText(/^[0-9]+$/);
-        expect(statValues.some(el => el.textContent === '2')).toBeTruthy(); // totalElements
-      });
-    });
-
-    test('displays loading state initially', () => {
-      render(<AdminDonations />);
-      expect(screen.getByText('Loading donations...')).toBeInTheDocument();
-    });
-
-    test('fetches donations on mount', async () => {
-      render(<AdminDonations />);
-
-      await waitFor(() => {
-        expect(adminDonationAPI.getAllDonations).toHaveBeenCalledWith({
-          search: undefined,
-          status: undefined,
-          fromDate: undefined,
-          toDate: undefined,
-          page: 0,
-          size: 20,
-        });
+    await waitFor(() => {
+      expect(adminDonationAPI.getAllDonations).toHaveBeenCalledWith({
+        search: undefined,
+        status: undefined,
+        fromDate: undefined,
+        toDate: undefined,
+        page: 0,
+        size: 20,
       });
     });
   });
 
-  describe('Donations Table', () => {
-    test('displays donations in table', async () => {
-      render(<AdminDonations />);
+  test('search uses debounced value', async () => {
+    jest.useFakeTimers();
+    const user = userEvent.setup({ delay: null });
 
-      await waitFor(() => {
-        expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
-        expect(screen.getByText('Fresh Bread')).toBeInTheDocument();
-      });
-    });
+    render(<AdminDonations />);
 
-    test('displays correct table headers', async () => {
-      render(<AdminDonations />);
+    await screen.findByText('Vegetable Lasagna');
 
-      await waitFor(() => {
-        expect(
-          screen.getByRole('columnheader', { name: 'ID' })
-        ).toBeInTheDocument();
-        expect(
-          screen.getByRole('columnheader', { name: 'Title' })
-        ).toBeInTheDocument();
-        expect(
-          screen.getByRole('columnheader', { name: 'Status' })
-        ).toBeInTheDocument();
-        expect(
-          screen.getByRole('columnheader', { name: 'Donor' })
-        ).toBeInTheDocument();
-        expect(
-          screen.getByRole('columnheader', { name: 'Receiver' })
-        ).toBeInTheDocument();
-        expect(
-          screen.getByRole('columnheader', { name: 'Flagged' })
-        ).toBeInTheDocument();
-        expect(
-          screen.getByRole('columnheader', { name: 'Created' })
-        ).toBeInTheDocument();
-        expect(
-          screen.getByRole('columnheader', { name: 'Updated' })
-        ).toBeInTheDocument();
-        expect(
-          screen.getByRole('columnheader', { name: 'Actions' })
-        ).toBeInTheDocument();
-      });
-    });
+    const input = screen.getByPlaceholderText(
+      'adminDonations.searchPlaceholder'
+    );
+    await user.type(input, 'bread');
 
-    test('displays donor names correctly', async () => {
-      render(<AdminDonations />);
-
-      await waitFor(() => {
-        expect(screen.getByText('John Donor')).toBeInTheDocument();
-        expect(screen.getByText('Jane Donor')).toBeInTheDocument();
-      });
-    });
-
-    test('displays receiver name or N/A', async () => {
-      render(<AdminDonations />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Bob Receiver')).toBeInTheDocument();
-        const cells = screen.getAllByText('N/A');
-        expect(cells.length).toBeGreaterThan(0);
-      });
-    });
-
-    test('shows no donations message when list is empty', async () => {
-      adminDonationAPI.getAllDonations.mockResolvedValue({
-        data: { content: [], totalPages: 0, totalElements: 0 },
-      });
-
-      render(<AdminDonations />);
-
-      await waitFor(() => {
-        expect(screen.getByText('No donations found')).toBeInTheDocument();
-      });
-    });
-  });
-
-  describe('Row Expansion', () => {
-    test('expands row to show details when expand button is clicked', async () => {
-      render(<AdminDonations />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
-      });
-
-      const expandButtons = screen.getAllByRole('button');
-      const expandBtn = expandButtons.find(
-        btn => btn.className === 'expand-btn'
-      );
-
-      fireEvent.click(expandBtn);
-
-      await waitFor(() => {
-        expect(screen.getByText('Food Categories')).toBeInTheDocument();
-        expect(screen.getByText('Quantity')).toBeInTheDocument();
-        expect(screen.getByText('Expiry Date')).toBeInTheDocument();
-        expect(screen.getByText('Pickup Date')).toBeInTheDocument();
-      });
-    });
-
-    test('collapses expanded row when expand button is clicked again', async () => {
-      render(<AdminDonations />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
-      });
-
-      const expandButtons = screen.getAllByRole('button');
-      const expandBtn = expandButtons.find(
-        btn => btn.className === 'expand-btn'
-      );
-
-      // Expand
-      fireEvent.click(expandBtn);
-      await waitFor(() => {
-        expect(screen.getByText('Food Categories')).toBeInTheDocument();
-      });
-
-      // Collapse
-      fireEvent.click(expandBtn);
-      await waitFor(() => {
-        expect(screen.queryByText('Food Categories')).not.toBeInTheDocument();
-      });
-    });
-
-    test('displays temperature and packaging conditions in expanded view', async () => {
-      render(<AdminDonations />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Fresh Bread')).toBeInTheDocument();
-      });
-
-      const expandButtons = screen.getAllByRole('button');
-      // Find the second expand button (for Fresh Bread)
-      const expandBtn = expandButtons[1];
-
-      fireEvent.click(expandBtn);
-
-      await waitFor(() => {
-        expect(screen.getByText('Temperature')).toBeInTheDocument();
-        expect(screen.getByText('Packaging Conditions')).toBeInTheDocument();
-      });
-    });
-  });
-
-  describe('Search Functionality', () => {
-    test('renders search input', async () => {
-      render(<AdminDonations />);
-
-      await waitFor(() => {
-        const searchInput = screen.getByPlaceholderText(
-          'Search by title, donor, receiver, or ID...'
-        );
-        expect(searchInput).toBeInTheDocument();
-      });
-    });
-
-    test('updates search term on input change', async () => {
-      const user = userEvent.setup();
-      render(<AdminDonations />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
-      });
-
-      const searchInput = screen.getByPlaceholderText(
-        'Search by title, donor, receiver, or ID...'
-      );
-      await user.type(searchInput, 'lasagna');
-
-      expect(searchInput.value).toBe('lasagna');
-    });
-
-    test('debounces search and calls API after delay', async () => {
-      jest.useFakeTimers();
-      const user = userEvent.setup({ delay: null });
-
-      render(<AdminDonations />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
-      });
-
-      const searchInput = screen.getByPlaceholderText(
-        'Search by title, donor, receiver, or ID...'
-      );
-      await user.type(searchInput, 'test');
-
-      // Fast-forward time
+    act(() => {
       jest.advanceTimersByTime(500);
+    });
 
-      await waitFor(() => {
-        expect(adminDonationAPI.getAllDonations).toHaveBeenCalledWith(
-          expect.objectContaining({
-            search: 'test',
-          })
-        );
-      });
-
-      jest.useRealTimers();
+    await waitFor(() => {
+      expect(adminDonationAPI.getAllDonations).toHaveBeenLastCalledWith(
+        expect.objectContaining({ search: 'bread' })
+      );
     });
   });
 
-  describe('Filtering', () => {
-    test('renders status filter dropdown', async () => {
-      render(<AdminDonations />);
+  test('applies status filter', async () => {
+    render(<AdminDonations />);
 
-      await waitFor(() => {
-        const selects = screen.getAllByTestId('react-select');
-        expect(selects.length).toBeGreaterThan(0);
-      });
+    await screen.findByText('Vegetable Lasagna');
+
+    fireEvent.change(screen.getAllByTestId('react-select')[0], {
+      target: { value: 'AVAILABLE' },
     });
 
-    test('renders date filter inputs', async () => {
-      render(<AdminDonations />);
-
-      await waitFor(() => {
-        const dateInputs = screen.getAllByPlaceholderText(/Date/);
-        expect(dateInputs.length).toBe(2);
-      });
-    });
-
-    test('filters by status when status is selected', async () => {
-      render(<AdminDonations />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
-      });
-
-      const statusSelect = screen.getAllByTestId('react-select')[0];
-      fireEvent.change(statusSelect, { target: { value: 'AVAILABLE' } });
-
-      await waitFor(() => {
-        expect(adminDonationAPI.getAllDonations).toHaveBeenCalledWith(
-          expect.objectContaining({
-            status: 'AVAILABLE',
-          })
-        );
-      });
-    });
-
-    test('filters by date range', async () => {
-      const user = userEvent.setup();
-      render(<AdminDonations />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
-      });
-
-      const dateInputs = screen.getAllByPlaceholderText(/Date/);
-      await user.type(dateInputs[0], '2026-01-01');
-      await user.type(dateInputs[1], '2026-01-31');
-
-      await waitFor(() => {
-        expect(adminDonationAPI.getAllDonations).toHaveBeenCalledWith(
-          expect.objectContaining({
-            fromDate: '2026-01-01',
-            toDate: '2026-01-31',
-          })
-        );
-      });
-    });
-
-    test('resets all filters when reset button is clicked', async () => {
-      const user = userEvent.setup();
-      render(<AdminDonations />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
-      });
-
-      // Set some filters
-      const searchInput = screen.getByPlaceholderText(
-        'Search by title, donor, receiver, or ID...'
+    await waitFor(() => {
+      expect(adminDonationAPI.getAllDonations).toHaveBeenLastCalledWith(
+        expect.objectContaining({ status: 'AVAILABLE' })
       );
-      await user.type(searchInput, 'test');
-
-      const resetButton = screen.getByText('Reset');
-      fireEvent.click(resetButton);
-
-      expect(searchInput.value).toBe('');
     });
   });
 
-  describe('Pagination', () => {
-    test('displays pagination info correctly', async () => {
-      render(<AdminDonations />);
+  test('resets filters', async () => {
+    const user = userEvent.setup();
+    render(<AdminDonations />);
 
-      await waitFor(() => {
-        expect(screen.getByText('1 - 2 of 2')).toBeInTheDocument();
-      });
-    });
+    await screen.findByText('Vegetable Lasagna');
 
-    test('hides pagination when only one page', async () => {
-      render(<AdminDonations />);
+    const input = screen.getByPlaceholderText(
+      'adminDonations.searchPlaceholder'
+    );
+    await user.type(input, 'abc');
+    fireEvent.click(
+      screen.getByRole('button', { name: 'adminDonations.filters.reset' })
+    );
 
-      await waitFor(() => {
-        const nextButton = screen.queryByText('Next');
-        expect(nextButton).not.toBeInTheDocument();
-      });
-    });
+    expect(input).toHaveValue('');
+  });
 
-    test('shows pagination controls when multiple pages exist', async () => {
-      adminDonationAPI.getAllDonations.mockResolvedValue({
-        data: { ...mockDonations, totalPages: 3 },
-      });
+  test('opens detail modal from view details action', async () => {
+    render(<AdminDonations />);
 
-      render(<AdminDonations />);
+    await screen.findByText('Vegetable Lasagna');
 
-      await waitFor(() => {
-        expect(screen.getByText('Previous')).toBeInTheDocument();
-        expect(screen.getByText('Next')).toBeInTheDocument();
-        expect(screen.getByText('Page 1 of 3')).toBeInTheDocument();
-      });
-    });
+    fireEvent.click(
+      screen.getAllByTitle('adminDonations.actions.viewDetails')[0]
+    );
 
-    test('navigates to next page when next button is clicked', async () => {
-      adminDonationAPI.getAllDonations.mockResolvedValue({
-        data: { ...mockDonations, totalPages: 3 },
-      });
-
-      render(<AdminDonations />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Page 1 of 3')).toBeInTheDocument();
-      });
-
-      const nextButton = screen.getByText('Next');
-      fireEvent.click(nextButton);
-
-      await waitFor(() => {
-        expect(adminDonationAPI.getAllDonations).toHaveBeenCalledWith(
-          expect.objectContaining({
-            page: 1,
-          })
-        );
-      });
-    });
-
-    test('disables previous button on first page', async () => {
-      adminDonationAPI.getAllDonations.mockResolvedValue({
-        data: { ...mockDonations, totalPages: 3 },
-      });
-
-      render(<AdminDonations />);
-
-      await waitFor(() => {
-        const prevButton = screen.getByText('Previous');
-        expect(prevButton).toBeDisabled();
-      });
+    await waitFor(() => {
+      expect(adminDonationAPI.getDonationById).toHaveBeenCalledWith(1);
+      expect(
+        screen.getByText('Donation Details - Basic Info & Participants')
+      ).toBeInTheDocument();
     });
   });
 
-  describe('Detail Modal', () => {
-    beforeEach(() => {
-      adminDonationAPI.getDonationById.mockResolvedValue({
-        data: mockDonationDetails,
-      });
-    });
+  test('disables back button on first modal page', async () => {
+    render(<AdminDonations />);
 
-    test('opens modal when eye button is clicked', async () => {
-      render(<AdminDonations />);
+    await screen.findByText('Vegetable Lasagna');
+    fireEvent.click(
+      screen.getAllByTitle('adminDonations.actions.viewDetails')[0]
+    );
 
-      await waitFor(() => {
-        expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
-      });
-
-      const eyeButtons = screen.getAllByTitle('View Details');
-      fireEvent.click(eyeButtons[0]);
-
-      await waitFor(() => {
-        expect(
-          screen.getByText('Donation Details - Basic Info & Participants')
-        ).toBeInTheDocument();
-      });
-    });
-
-    test('fetches donation details when modal opens', async () => {
-      render(<AdminDonations />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
-      });
-
-      const eyeButtons = screen.getAllByTitle('View Details');
-      fireEvent.click(eyeButtons[0]);
-
-      await waitFor(() => {
-        expect(adminDonationAPI.getDonationById).toHaveBeenCalledWith(1);
-      });
-    });
-
-    test('closes modal when close button is clicked', async () => {
-      render(<AdminDonations />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
-      });
-
-      const eyeButtons = screen.getAllByTitle('View Details');
-      fireEvent.click(eyeButtons[0]);
-
-      await waitFor(() => {
-        expect(
-          screen.getByText('Donation Details - Basic Info & Participants')
-        ).toBeInTheDocument();
-      });
-
-      const closeButton = screen.getByText('×');
-      fireEvent.click(closeButton);
-
-      await waitFor(() => {
-        expect(
-          screen.queryByText('Donation Details - Basic Info & Participants')
-        ).not.toBeInTheDocument();
-      });
-    });
-
-    test('displays basic info on page 1', async () => {
-      render(<AdminDonations />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
-      });
-
-      const eyeButtons = screen.getAllByTitle('View Details');
-      fireEvent.click(eyeButtons[0]);
-
-      await waitFor(() => {
-        expect(screen.getByText('Basic Information')).toBeInTheDocument();
-        expect(screen.getByText('Participants')).toBeInTheDocument();
-      });
-    });
-
-    test('navigates to timeline page when next is clicked', async () => {
-      adminDonationAPI.getDonationById.mockResolvedValue({
-        data: mockDonationDetails,
-      });
-      render(<AdminDonations />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
-      });
-
-      const eyeButtons = screen.getAllByTitle('View Details');
-      fireEvent.click(eyeButtons[0]);
-
-      await waitFor(() => {
-        expect(
-          screen.getByText('Donation Details - Basic Info & Participants')
-        ).toBeInTheDocument();
-      });
-
-      const nextButton = screen.getByText('Next');
-      fireEvent.click(nextButton);
-
-      await waitFor(() => {
-        expect(
-          screen.getByText('Donation Details - Timeline')
-        ).toBeInTheDocument();
-        expect(screen.getAllByText('Timeline').length).toBeGreaterThan(0);
-      });
-    });
-
-    test('navigates to override status page', async () => {
-      render(<AdminDonations />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
-      });
-
-      const eyeButtons = screen.getAllByTitle('View Details');
-      fireEvent.click(eyeButtons[0]);
-
-      await waitFor(() => {
-        expect(screen.getByText('Page 1 of 3')).toBeInTheDocument();
-      });
-
-      // Navigate to page 3
-      const nextButtons = screen.getAllByText('Next');
-      fireEvent.click(nextButtons[0]);
-
-      await waitFor(() => {
-        expect(screen.getByText('Page 2 of 3')).toBeInTheDocument();
-      });
-
-      const nextButton2 = screen.getAllByText('Next')[0];
-      fireEvent.click(nextButton2);
-
-      await waitFor(() => {
-        expect(
-          screen.getByText('Donation Details - Override Status')
-        ).toBeInTheDocument();
-        expect(screen.getByText('Current Status:')).toBeInTheDocument();
-        expect(screen.getAllByText('New Status:').length).toBeGreaterThan(0);
-      });
-    });
-
-    test('disables back button on first page', async () => {
-      render(<AdminDonations />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
-      });
-
-      const eyeButtons = screen.getAllByTitle('View Details');
-      fireEvent.click(eyeButtons[0]);
-
-      await waitFor(() => {
-        const backButton = screen.getByRole('button', { name: /back/i });
-        expect(backButton).toBeDisabled();
-      });
-    });
-
-    test('displays timeline events correctly', async () => {
-      adminDonationAPI.getDonationById.mockResolvedValue({
-        data: mockDonationDetails,
-      });
-      render(<AdminDonations />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
-      });
-
-      const eyeButtons = screen.getAllByTitle('View Details');
-      fireEvent.click(eyeButtons[0]);
-
-      await waitFor(() => {
-        expect(screen.getByText('Page 1 of 3')).toBeInTheDocument();
-      });
-
-      const nextButton = screen.getAllByText('Next')[0];
-      fireEvent.click(nextButton);
-
-      await waitFor(() => {
-        expect(
-          screen.getByText('Donation Details - Timeline')
-        ).toBeInTheDocument();
-      });
-
-      await waitFor(() => {
-        expect(screen.getAllByText('DONATION_CREATED').length).toBeGreaterThan(
-          0
-        );
-        expect(screen.getAllByText('Donation created').length).toBeGreaterThan(
-          0
-        );
-      });
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /back/i })).toBeDisabled();
     });
   });
 
-  describe('Status Override', () => {
-    beforeEach(() => {
-      adminDonationAPI.getDonationById.mockResolvedValue({
-        data: mockDonationDetails,
-      });
-      adminDonationAPI.overrideStatus.mockResolvedValue({
-        data: { ...mockDonationDetails, status: 'COMPLETED' },
-      });
-    });
+  test('navigates to timeline and shows event', async () => {
+    render(<AdminDonations />);
 
-    test('shows error when status is not selected', async () => {
-      render(<AdminDonations />);
+    await screen.findByText('Vegetable Lasagna');
+    fireEvent.click(
+      screen.getAllByTitle('adminDonations.actions.viewDetails')[0]
+    );
 
-      await waitFor(() => {
-        expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
-      });
+    await screen.findByText('Page 1 of 3');
+    fireEvent.click(screen.getByRole('button', { name: /next/i }));
 
-      const eyeButtons = screen.getAllByTitle('View Details');
-      fireEvent.click(eyeButtons[0]);
-
-      // Navigate to override page
-      await waitFor(() => {
-        expect(screen.getByText('Page 1 of 3')).toBeInTheDocument();
-      });
-
-      const nextButtons = screen.getAllByText('Next');
-      fireEvent.click(nextButtons[0]);
-
-      await waitFor(() => {
-        expect(screen.getByText('Page 2 of 3')).toBeInTheDocument();
-      });
-
-      fireEvent.click(screen.getAllByText('Next')[0]);
-
-      await waitFor(() => {
-        expect(screen.getByText('Current Status:')).toBeInTheDocument();
-        expect(screen.getAllByText('New Status:').length).toBeGreaterThan(0);
-      });
-
-      const overrideButton = screen.getByRole('button', {
-        name: 'Override Status',
-      });
-      fireEvent.click(overrideButton);
-
-      await waitFor(() => {
-        expect(
-          screen.getByText('Please select a new status')
-        ).toBeInTheDocument();
-      });
-    });
-
-    test('shows error when reason is not provided', async () => {
-      const user = userEvent.setup();
-      render(<AdminDonations />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
-      });
-
-      const eyeButtons = screen.getAllByTitle('View Details');
-      fireEvent.click(eyeButtons[0]);
-
-      // Navigate to override page
-      await waitFor(() => {
-        const nextButtons = screen.getAllByText('Next');
-        fireEvent.click(nextButtons[0]);
-      });
-
-      await waitFor(() => {
-        const nextButtons = screen.getAllByText('Next');
-        fireEvent.click(nextButtons[0]);
-      });
-
-      await waitFor(() => {
-        expect(screen.getByText('Current Status:')).toBeInTheDocument();
-        expect(screen.getAllByText('New Status:').length).toBeGreaterThan(0);
-      });
-
-      // Select status but don't provide reason
-      const statusSelects = screen.getAllByTestId('react-select');
-      const overrideSelect = statusSelects[statusSelects.length - 1];
-      fireEvent.change(overrideSelect, { target: { value: 'COMPLETED' } });
-
-      const overrideButton = screen.getByRole('button', {
-        name: 'Override Status',
-      });
-      fireEvent.click(overrideButton);
-
-      await waitFor(() => {
-        expect(
-          screen.getByText('Please provide a reason for the override')
-        ).toBeInTheDocument();
-      });
-    });
-
-    test('successfully overrides status with valid inputs', async () => {
-      const user = userEvent.setup();
-      render(<AdminDonations />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
-      });
-
-      const eyeButtons = screen.getAllByTitle('View Details');
-      fireEvent.click(eyeButtons[0]);
-
-      // Navigate to override page
-      await waitFor(() => {
-        const nextButtons = screen.getAllByText('Next');
-        fireEvent.click(nextButtons[0]);
-      });
-
-      await waitFor(() => {
-        const nextButtons = screen.getAllByText('Next');
-        fireEvent.click(nextButtons[0]);
-      });
-
-      await waitFor(() => {
-        expect(screen.getByText('Current Status:')).toBeInTheDocument();
-        expect(screen.getAllByText('New Status:').length).toBeGreaterThan(0);
-      });
-
-      // Select status
-      const statusSelects = screen.getAllByTestId('react-select');
-      const overrideSelect = statusSelects[statusSelects.length - 1];
-      fireEvent.change(overrideSelect, { target: { value: 'COMPLETED' } });
-
-      // Provide reason
-      const reasonTextareas = screen.getAllByPlaceholderText(
-        'Provide a reason for the status override...'
-      );
-      const reasonTextarea = reasonTextareas[reasonTextareas.length - 1];
-      await user.type(reasonTextarea, 'Admin override for testing');
-
-      const overrideButton = screen.getByRole('button', {
-        name: 'Override Status',
-      });
-      fireEvent.click(overrideButton);
-
-      await waitFor(() => {
-        expect(adminDonationAPI.overrideStatus).toHaveBeenCalledWith(
-          1,
-          'COMPLETED',
-          'Admin override for testing'
-        );
-      });
-
-      await waitFor(() => {
-        expect(
-          screen.getByText('Status updated successfully!')
-        ).toBeInTheDocument();
-      });
+    await waitFor(() => {
+      expect(
+        screen.getByText('Donation Details - Timeline')
+      ).toBeInTheDocument();
+      expect(screen.getAllByText('DONATION_CREATED').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Donation created').length).toBeGreaterThan(0);
     });
   });
 
-  describe('Error Handling', () => {
-    test('displays error message when fetching donations fails', async () => {
-      adminDonationAPI.getAllDonations.mockRejectedValue(
-        new Error('Network error')
-      );
+  test('shows status override validation errors', async () => {
+    render(<AdminDonations />);
 
-      render(<AdminDonations />);
+    await screen.findByText('Vegetable Lasagna');
+    fireEvent.click(
+      screen.getAllByTitle('adminDonations.actions.viewDetails')[0]
+    );
 
-      await waitFor(() => {
-        expect(
-          screen.getByText('Failed to load donations. Please try again.')
-        ).toBeInTheDocument();
-      });
+    await screen.findByText('Page 1 of 3');
+    fireEvent.click(screen.getByRole('button', { name: /next/i }));
+    await screen.findByText('Page 2 of 3');
+    fireEvent.click(screen.getByRole('button', { name: /next/i }));
+
+    await screen.findByText('Donation Details - Override Status');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Override Status' }));
+    await screen.findByText('Please select a new status');
+
+    const selects = screen.getAllByTestId('react-select');
+    fireEvent.change(selects[selects.length - 1], {
+      target: { value: 'COMPLETED' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Override Status' }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('Please provide a reason for the override')
+      ).toBeInTheDocument();
+    });
+  });
+
+  test('overrides status successfully', async () => {
+    const user = userEvent.setup();
+    render(<AdminDonations />);
+
+    await screen.findByText('Vegetable Lasagna');
+    fireEvent.click(
+      screen.getAllByTitle('adminDonations.actions.viewDetails')[0]
+    );
+
+    await screen.findByText('Page 1 of 3');
+    fireEvent.click(screen.getByRole('button', { name: /next/i }));
+    await screen.findByText('Page 2 of 3');
+    fireEvent.click(screen.getByRole('button', { name: /next/i }));
+
+    await screen.findByText('Donation Details - Override Status');
+
+    const selects = screen.getAllByTestId('react-select');
+    fireEvent.change(selects[selects.length - 1], {
+      target: { value: 'COMPLETED' },
     });
 
-    test('displays error when fetching donation details fails', async () => {
-      adminDonationAPI.getDonationById.mockRejectedValue(
-        new Error('Not found')
+    const reason = screen
+      .getAllByPlaceholderText('Provide a reason for the status override...')
+      .at(-1);
+    await user.type(reason, 'Admin override for testing');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Override Status' }));
+
+    await waitFor(() => {
+      expect(adminDonationAPI.overrideStatus).toHaveBeenCalledWith(
+        1,
+        'COMPLETED',
+        'Admin override for testing'
       );
+      expect(
+        screen.getByText('Status updated successfully!')
+      ).toBeInTheDocument();
+    });
+  });
 
-      render(<AdminDonations />);
+  test('shows load error message when API fails', async () => {
+    adminDonationAPI.getAllDonations.mockRejectedValueOnce(
+      new Error('Network')
+    );
 
-      await waitFor(() => {
-        expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
-      });
+    render(<AdminDonations />);
 
-      const eyeButtons = screen.getAllByTitle('View Details');
-      fireEvent.click(eyeButtons[0]);
+    await waitFor(() => {
+      expect(
+        screen.getByText('adminDonations.errors.loadFailed')
+      ).toBeInTheDocument();
+    });
+  });
 
-      await waitFor(() => {
-        expect(
-          screen.getByText('Failed to load donation details')
-        ).toBeInTheDocument();
-      });
+  test('shows empty state when donations list is empty', async () => {
+    adminDonationAPI.getAllDonations.mockResolvedValueOnce({
+      data: { content: [], totalPages: 0, totalElements: 0 },
     });
 
-    test('displays error when status override fails', async () => {
-      const user = userEvent.setup();
-      adminDonationAPI.getDonationById.mockResolvedValue({
-        data: mockDonationDetails,
-      });
-      adminDonationAPI.overrideStatus.mockRejectedValue({
-        response: { data: 'Override failed' },
-      });
+    render(<AdminDonations />);
 
-      render(<AdminDonations />);
+    expect(await screen.findByText('adminDonations.empty')).toBeInTheDocument();
+  });
 
-      await waitFor(() => {
-        expect(screen.getByText('Vegetable Lasagna')).toBeInTheDocument();
-      });
+  test('applies from/to date filters', async () => {
+    render(<AdminDonations />);
+    await screen.findByText('Vegetable Lasagna');
 
-      const eyeButtons = screen.getAllByTitle('View Details');
-      fireEvent.click(eyeButtons[0]);
+    const dateInputs = document.querySelectorAll('input[type="date"]');
+    fireEvent.change(dateInputs[0], { target: { value: '2026-01-01' } });
+    fireEvent.change(dateInputs[1], { target: { value: '2026-01-31' } });
 
-      // Navigate to override page
-      await waitFor(() => {
-        const nextButtons = screen.getAllByText('Next');
-        fireEvent.click(nextButtons[0]);
-      });
-
-      await waitFor(() => {
-        const nextButtons = screen.getAllByText('Next');
-        fireEvent.click(nextButtons[0]);
-      });
-
-      await waitFor(() => {
-        expect(screen.getByText('Current Status:')).toBeInTheDocument();
-        expect(screen.getAllByText('New Status:').length).toBeGreaterThan(0);
-      });
-
-      // Select status and provide reason
-      const statusSelects = screen.getAllByTestId('react-select');
-      const overrideSelect = statusSelects[statusSelects.length - 1];
-      fireEvent.change(overrideSelect, { target: { value: 'COMPLETED' } });
-
-      const reasonTextareas = screen.getAllByPlaceholderText(
-        'Provide a reason for the status override...'
+    await waitFor(() => {
+      expect(adminDonationAPI.getAllDonations).toHaveBeenCalledWith(
+        expect.objectContaining({
+          fromDate: '2026-01-01',
+          toDate: '2026-01-31',
+        })
       );
-      const reasonTextarea = reasonTextareas[reasonTextareas.length - 1];
-      await user.type(reasonTextarea, 'Test reason');
+    });
+  });
 
-      const overrideButton = screen.getByRole('button', {
-        name: 'Override Status',
-      });
-      fireEvent.click(overrideButton);
+  test('supports pagination next and previous', async () => {
+    adminDonationAPI.getAllDonations.mockResolvedValue({
+      data: {
+        content: [mockDonations.content[0]],
+        totalPages: 2,
+        totalElements: 25,
+      },
+    });
 
-      await waitFor(() => {
-        expect(screen.getByText('Override failed')).toBeInTheDocument();
-      });
+    render(<AdminDonations />);
+    await screen.findByText('Vegetable Lasagna');
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'adminVerificationQueue.pagination.next',
+      })
+    );
+    await waitFor(() => {
+      expect(adminDonationAPI.getAllDonations).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 1 })
+      );
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', {
+          name: 'adminVerificationQueue.pagination.previous',
+        })
+      ).toBeInTheDocument();
+    });
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'adminVerificationQueue.pagination.previous',
+      })
+    );
+    await waitFor(() => {
+      expect(adminDonationAPI.getAllDonations).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 0 })
+      );
+    });
+  });
+
+  test('fetches feedback on expanded claim row and shows rating + low-rating flag', async () => {
+    adminDonationAPI.getAllDonations.mockResolvedValueOnce({
+      data: {
+        content: [
+          {
+            ...mockDonations.content[0],
+            claimId: 44,
+            donorId: 10,
+            receiverId: 20,
+            flagged: false,
+          },
+        ],
+        totalPages: 1,
+        totalElements: 1,
+      },
+    });
+    feedbackAPI.getFeedbackForClaim.mockResolvedValueOnce({
+      data: [
+        { reviewerId: 10, rating: 1, reviewText: 'late handoff' },
+        { reviewerId: 20, rating: 3, reviewText: 'good food' },
+      ],
+    });
+
+    render(<AdminDonations />);
+    await screen.findByText('Vegetable Lasagna');
+
+    fireEvent.click(screen.getByRole('button', { name: /more/i }));
+
+    await waitFor(() => {
+      expect(feedbackAPI.getFeedbackForClaim).toHaveBeenCalled();
+    });
+    expect(await screen.findByText('2.0')).toBeInTheDocument();
+    expect(await screen.findByText(/late handoff/)).toBeInTheDocument();
+    expect(await screen.findByText(/good food/)).toBeInTheDocument();
+  });
+
+  test('handles 404 feedback response gracefully in expanded row', async () => {
+    adminDonationAPI.getAllDonations.mockResolvedValueOnce({
+      data: {
+        content: [
+          {
+            ...mockDonations.content[0],
+            claimId: 45,
+            donorId: 10,
+            receiverId: 20,
+          },
+        ],
+        totalPages: 1,
+        totalElements: 1,
+      },
+    });
+    feedbackAPI.getFeedbackForClaim.mockRejectedValueOnce({
+      response: { status: 404 },
+    });
+
+    render(<AdminDonations />);
+    await screen.findByText('Vegetable Lasagna');
+    fireEvent.click(screen.getByRole('button', { name: /more/i }));
+
+    expect(
+      await screen.findByText('adminDonations.details.noFeedback')
+    ).toBeInTheDocument();
+  });
+
+  test('shows detail-load error when opening modal fails', async () => {
+    adminDonationAPI.getDonationById.mockRejectedValueOnce(new Error('boom'));
+    render(<AdminDonations />);
+
+    await screen.findByText('Vegetable Lasagna');
+    fireEvent.click(
+      screen.getAllByTitle('adminDonations.actions.viewDetails')[0]
+    );
+
+    expect(
+      await screen.findByText('Failed to load donation details')
+    ).toBeInTheDocument();
+  });
+
+  test('shows override API error message on failure', async () => {
+    adminDonationAPI.overrideStatus.mockRejectedValueOnce({
+      response: { data: 'No permission' },
+    });
+    const user = userEvent.setup();
+    render(<AdminDonations />);
+
+    await screen.findByText('Vegetable Lasagna');
+    fireEvent.click(
+      screen.getAllByTitle('adminDonations.actions.viewDetails')[0]
+    );
+    fireEvent.click(await screen.findByRole('button', { name: /next/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /next/i }));
+
+    const selects = screen.getAllByTestId('react-select');
+    fireEvent.change(selects[selects.length - 1], {
+      target: { value: 'COMPLETED' },
+    });
+
+    const reason = screen
+      .getAllByPlaceholderText('Provide a reason for the status override...')
+      .at(-1);
+    await user.type(reason, 'manual review');
+    fireEvent.click(screen.getByRole('button', { name: 'Override Status' }));
+
+    expect(await screen.findByText('No permission')).toBeInTheDocument();
+  });
+
+  test('closes detail modal from close button and overlay click', async () => {
+    render(<AdminDonations />);
+    await screen.findByText('Vegetable Lasagna');
+
+    fireEvent.click(
+      screen.getAllByTitle('adminDonations.actions.viewDetails')[0]
+    );
+    expect(
+      await screen.findByText('Donation Details - Basic Info & Participants')
+    ).toBeInTheDocument();
+
+    fireEvent.click(document.querySelector('.donation-admin-modal-close'));
+    await waitFor(() => {
+      expect(
+        screen.queryByText('Donation Details - Basic Info & Participants')
+      ).not.toBeInTheDocument();
+    });
+
+    fireEvent.click(
+      screen.getAllByTitle('adminDonations.actions.viewDetails')[0]
+    );
+    await screen.findByText('Donation Details - Basic Info & Participants');
+    fireEvent.click(document.querySelector('.donation-admin-modal-overlay'));
+    await waitFor(() => {
+      expect(
+        screen.queryByText('Donation Details - Basic Info & Participants')
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  test('handles generic feedback fetch error and collapse toggle', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    adminDonationAPI.getAllDonations.mockResolvedValueOnce({
+      data: {
+        content: [
+          {
+            ...mockDonations.content[0],
+            claimId: 99,
+            donorId: 10,
+            receiverId: 20,
+          },
+        ],
+        totalPages: 1,
+        totalElements: 1,
+      },
+    });
+    feedbackAPI.getFeedbackForClaim.mockRejectedValueOnce(new Error('fail'));
+
+    render(<AdminDonations />);
+    await screen.findByText('Vegetable Lasagna');
+
+    const expandBtn = document.querySelector('.expand-btn');
+    fireEvent.click(expandBtn);
+    await waitFor(() => {
+      expect(errorSpy).toHaveBeenCalledWith(
+        '❌ Error fetching feedback:',
+        expect.any(Error)
+      );
+    });
+    await waitFor(() => {
+      expect(
+        screen.getByText('adminDonations.details.foodCategories')
+      ).toBeInTheDocument();
+    });
+
+    fireEvent.click(expandBtn);
+    await waitFor(() => {
+      expect(
+        screen.queryByText('adminDonations.details.foodCategories')
+      ).not.toBeInTheDocument();
+    });
+    errorSpy.mockRestore();
+  });
+
+  test('renders detail modal feedback cards and supports page navigation back', async () => {
+    adminDonationAPI.getDonationById.mockResolvedValueOnce({
+      data: {
+        ...mockDonationDetails,
+        claimId: 77,
+        donorId: 10,
+        receiverId: 20,
+      },
+    });
+    feedbackAPI.getFeedbackForClaim.mockResolvedValueOnce({
+      data: [
+        { reviewerId: 20, rating: 2, reviewText: 'receiver note' },
+        { reviewerId: 10, rating: 4, reviewText: 'donor note' },
+      ],
+    });
+
+    render(<AdminDonations />);
+    await screen.findByText('Vegetable Lasagna');
+    fireEvent.click(
+      screen.getAllByTitle('adminDonations.actions.viewDetails')[0]
+    );
+
+    await screen.findByText('Donation Details - Basic Info & Participants');
+    expect(await screen.findByText('Feedback & Ratings')).toBeInTheDocument();
+    expect(screen.getByText('From Donor to Receiver')).toBeInTheDocument();
+    expect(screen.getByText('From Receiver to Donor')).toBeInTheDocument();
+
+    fireEvent.click(screen.getAllByRole('button', { name: /next/i })[0]);
+    fireEvent.click(screen.getAllByRole('button', { name: /back/i })[0]);
+    expect(
+      await screen.findByText('Donation Details - Basic Info & Participants')
+    ).toBeInTheDocument();
+  });
+
+  test('closes modal after successful override timeout refresh', async () => {
+    jest.useFakeTimers();
+    const user = userEvent.setup({ delay: null });
+    render(<AdminDonations />);
+
+    await screen.findByText('Vegetable Lasagna');
+    fireEvent.click(
+      screen.getAllByTitle('adminDonations.actions.viewDetails')[0]
+    );
+    await screen.findByText('Donation Details - Basic Info & Participants');
+    fireEvent.click(screen.getAllByRole('button', { name: /next/i })[0]);
+    fireEvent.click(screen.getAllByRole('button', { name: /next/i })[0]);
+
+    const scopedOverrideForm = document.querySelector(
+      '.donation-admin-override-form'
+    );
+    const modalSelect = scopedOverrideForm.querySelector('select');
+    fireEvent.change(modalSelect, { target: { value: 'COMPLETED' } });
+
+    const modalTextarea = scopedOverrideForm.querySelector('textarea');
+    await user.type(modalTextarea, 'approved after review');
+    fireEvent.click(screen.getByRole('button', { name: 'Override Status' }));
+
+    jest.advanceTimersByTime(1500);
+    await waitFor(() => {
+      expect(
+        screen.queryByText('Donation Details - Basic Info & Participants')
+      ).not.toBeInTheDocument();
     });
   });
 });

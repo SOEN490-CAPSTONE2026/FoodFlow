@@ -161,10 +161,18 @@ export default function AIExtractionReview({
   const onPlaceChanged = () => {
     if (autocompleteRef.current) {
       const place = autocompleteRef.current.getPlace();
+
+      // Extract country from address components (full country name)
+      const countryComponent = place.address_components?.find(component =>
+        component.types.includes('country')
+      );
+      const country = countryComponent?.long_name || null;
+
       const location = {
-        latitude: place.geometry?.location?.lat() || '',
-        longitude: place.geometry?.location?.lng() || '',
-        address: place.formatted_address || place.name || '',
+        latitude: place.geometry?.location.lat() || '',
+        longitude: place.geometry?.location.lng() || '',
+        address: place.formatted_address || '',
+        country: country,
       };
       setFormData(prev => ({ ...prev, pickupLocation: location }));
     }

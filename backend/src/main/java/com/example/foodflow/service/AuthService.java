@@ -131,6 +131,8 @@ public class AuthService {
         user.setFullName(request.getContactPerson());
         user.setPhone(request.getPhone());
         user.setDataStorageConsent(request.getDataStorageConsent() != null ? request.getDataStorageConsent() : false);
+        // Set timezone from request, default to UTC if not provided
+        user.setTimezone(request.getTimezone() != null ? request.getTimezone() : "UTC");
 
         // Initialize default notification preferences
         initializeDefaultNotificationPreferences(user);
@@ -153,6 +155,8 @@ public class AuthService {
         // Default verification status to PENDING on registration
         organization.setVerificationStatus(VerificationStatus.PENDING);
         organization.setBusinessLicense(request.getBusinessLicense());
+        // Set timezone from request, default to UTC if not provided
+        organization.setTimezone(request.getTimezone() != null ? request.getTimezone() : "UTC");
 
         // Store supporting document URL if uploaded
         if (request.getSupportingDocumentUrl() != null) {
@@ -226,6 +230,8 @@ public class AuthService {
         user.setFullName(request.getContactPerson());
         user.setPhone(request.getPhone());
         user.setDataStorageConsent(request.getDataStorageConsent() != null ? request.getDataStorageConsent() : false);
+        // Set timezone from request, default to UTC if not provided
+        user.setTimezone(request.getTimezone() != null ? request.getTimezone() : "UTC");
 
         // Initialize default notification preferences
         initializeDefaultNotificationPreferences(user);
@@ -257,6 +263,8 @@ public class AuthService {
             organization.setSupportingDocumentUrl(request.getSupportingDocumentUrl());
             log.debug("Supporting document URL set for receiver: {}", request.getSupportingDocumentUrl());
         }
+        // Set timezone from request, default to UTC if not provided
+        organization.setTimezone(request.getTimezone() != null ? request.getTimezone() : "UTC");
 
         organizationRepository.save(organization);
 
@@ -796,5 +804,3 @@ public class AuthService {
         }
     }
 }
-
-

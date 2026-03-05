@@ -21,6 +21,7 @@ import {
   Menu,
   X,
   BarChart3,
+  Building2,
 } from 'lucide-react';
 import { AuthContext } from '../../contexts/AuthContext';
 import Logo from '../../assets/Logo_White.png';
@@ -65,6 +66,11 @@ export default function DonorLayout() {
         return t('donorLayout.pageTitles.settings');
       case '/donor/help':
         return t('donorLayout.pageTitles.help');
+      case '/donor/suggest-business':
+        return t(
+          'donorLayout.pageTitles.suggestBusiness',
+          'Suggest a Business'
+        );
       default:
         return t('donorLayout.pageTitles.donor');
     }
@@ -93,6 +99,11 @@ export default function DonorLayout() {
         return t('donorLayout.pageDescriptions.settings');
       case '/donor/help':
         return t('donorLayout.pageDescriptions.help');
+      case '/donor/suggest-business':
+        return t(
+          'donorLayout.pageDescriptions.suggestBusiness',
+          'Suggest a business to join FoodFlow as a food donor'
+        );
       default:
         return t('donorLayout.pageDescriptions.donorPortal');
     }
@@ -393,6 +404,20 @@ export default function DonorLayout() {
             </span>
             {t('donorLayout.impact', 'Impact')}
           </Link>
+
+          <Link
+            to="/donor/suggest-business"
+            className={`donor-nav-link ${isActive('/donor/suggest-business') ? 'active' : ''}`}
+            data-tooltip={t(
+              'donorLayout.suggestBusiness',
+              'Suggest a Business'
+            )}
+          >
+            <span className="nav-icon" aria-hidden>
+              <Building2 size={18} className="lucide" />
+            </span>
+            {t('donorLayout.suggestBusiness', 'Suggest Business')}
+          </Link>
         </nav>
 
         <div className="donor-nav-bottom">
@@ -435,10 +460,13 @@ export default function DonorLayout() {
               ></div>
               <div className="account-text">
                 <span className="account-name">
-                  {organizationName || 'Donor'}
+                  {organizationName ||
+                    t('donorLayout.pageTitles.donor', 'Donor')}
                 </span>
                 <span className="account-role">
-                  {role?.toLowerCase() || 'donor'}
+                  {role
+                    ? t(`roles.${role.toLowerCase()}`, role)
+                    : t('donorLayout.pageTitles.donor', 'Donor')}
                 </span>
               </div>
             </button>
