@@ -421,7 +421,9 @@ const AdminVerificationQueue = () => {
       const now = new Date();
       const waitTimes = content.map(u => {
         const createdDate = new Date(u.createdAt);
-        if (isNaN(createdDate)) return 0;
+        if (isNaN(createdDate)) {
+          return 0;
+        }
         const diffMs = now - createdDate;
         // Guard: never allow negative wait time (e.g. future createdAt due to clock skew)
         return Math.max(0, diffMs / (1000 * 60 * 60));

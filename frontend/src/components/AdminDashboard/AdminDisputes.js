@@ -86,7 +86,9 @@ const AdminDisputes = () => {
             ? new Date(d.updatedAt)
             : null;
 
-        if (!start || !end || isNaN(start) || isNaN(end)) return null;
+        if (!start || !end || isNaN(start) || isNaN(end)) {
+          return null;
+        }
 
         const diffMs = end - start;
         // Guard: never allow negative resolution time

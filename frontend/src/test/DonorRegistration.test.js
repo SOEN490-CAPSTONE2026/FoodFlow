@@ -159,8 +159,14 @@ describe('DonorRegistration', () => {
 
       renderWithAuth(<DonorRegistration />);
       // navigate to step 2 quickly
-      await user.type(screen.getByLabelText('donorRegistration.emailLabel'), 'a@a.com');
-      await user.type(screen.getByLabelText('donorRegistration.passwordLabel'), 'SecurePass123!');
+      await user.type(
+        screen.getByLabelText('donorRegistration.emailLabel'),
+        'a@a.com'
+      );
+      await user.type(
+        screen.getByLabelText('donorRegistration.passwordLabel'),
+        'SecurePass123!'
+      );
       await user.type(
         screen.getByLabelText('donorRegistration.confirmPasswordLabel'),
         'SecurePass123!'
@@ -181,15 +187,23 @@ describe('DonorRegistration', () => {
 
       renderWithAuth(<DonorRegistration />);
       // navigate to step 2
-      await user.type(screen.getByLabelText('donorRegistration.emailLabel'), 'a@a.com');
-      await user.type(screen.getByLabelText('donorRegistration.passwordLabel'), 'SecurePass123!');
+      await user.type(
+        screen.getByLabelText('donorRegistration.emailLabel'),
+        'a@a.com'
+      );
+      await user.type(
+        screen.getByLabelText('donorRegistration.passwordLabel'),
+        'SecurePass123!'
+      );
       await user.type(
         screen.getByLabelText('donorRegistration.confirmPasswordLabel'),
         'SecurePass123!'
       );
       await user.click(screen.getByText('donorRegistration.nextButtonText'));
 
-      const area = screen.getByLabelText('donorRegistration.chooseFileButton').closest('.file-upload-area');
+      const area = screen
+        .getByLabelText('donorRegistration.chooseFileButton')
+        .closest('.file-upload-area');
       const largeFile = createFile(
         'big.pdf',
         11 * 1024 * 1024,
@@ -199,7 +213,9 @@ describe('DonorRegistration', () => {
       fireEvent.drop(area, { dataTransfer: { files: [largeFile] } });
       // With i18n mock, error renders as its key — assert some error element appeared
       await waitFor(() => {
-        const errorEl = document.querySelector('.file-error, .error-message, [class*="error"]');
+        const errorEl = document.querySelector(
+          '.file-error, .error-message, [class*="error"]'
+        );
         expect(errorEl).toBeTruthy();
       });
     });
@@ -210,8 +226,14 @@ describe('DonorRegistration', () => {
 
       renderWithAuth(<DonorRegistration />);
       // navigate to step2
-      await user.type(screen.getByLabelText('donorRegistration.emailLabel'), 'a@a.com');
-      await user.type(screen.getByLabelText('donorRegistration.passwordLabel'), 'SecurePass123!');
+      await user.type(
+        screen.getByLabelText('donorRegistration.emailLabel'),
+        'a@a.com'
+      );
+      await user.type(
+        screen.getByLabelText('donorRegistration.passwordLabel'),
+        'SecurePass123!'
+      );
       await user.type(
         screen.getByLabelText('donorRegistration.confirmPasswordLabel'),
         'SecurePass123!'
@@ -232,15 +254,23 @@ describe('DonorRegistration', () => {
 
       renderWithAuth(<DonorRegistration />);
       // navigate to step 2
-      await user.type(screen.getByLabelText('donorRegistration.emailLabel'), 'a@a.com');
-      await user.type(screen.getByLabelText('donorRegistration.passwordLabel'), 'SecurePass123!');
+      await user.type(
+        screen.getByLabelText('donorRegistration.emailLabel'),
+        'a@a.com'
+      );
+      await user.type(
+        screen.getByLabelText('donorRegistration.passwordLabel'),
+        'SecurePass123!'
+      );
       await user.type(
         screen.getByLabelText('donorRegistration.confirmPasswordLabel'),
         'SecurePass123!'
       );
       await user.click(screen.getByText('donorRegistration.nextButtonText'));
 
-      const area = screen.getByLabelText('donorRegistration.chooseFileButton').closest('.file-upload-area');
+      const area = screen
+        .getByLabelText('donorRegistration.chooseFileButton')
+        .closest('.file-upload-area');
       fireEvent.dragOver(area);
       expect(area).toHaveClass('dragging');
       fireEvent.dragLeave(area);
@@ -254,8 +284,14 @@ describe('DonorRegistration', () => {
       authAPI.checkEmailExists.mockResolvedValue({ data: { exists: false } });
 
       renderWithAuth(<DonorRegistration />);
-      await user.type(screen.getByLabelText('donorRegistration.emailLabel'), 'a@a.com');
-      await user.type(screen.getByLabelText('donorRegistration.passwordLabel'), 'SecurePass123!');
+      await user.type(
+        screen.getByLabelText('donorRegistration.emailLabel'),
+        'a@a.com'
+      );
+      await user.type(
+        screen.getByLabelText('donorRegistration.passwordLabel'),
+        'SecurePass123!'
+      );
       await user.type(
         screen.getByLabelText('donorRegistration.confirmPasswordLabel'),
         'SecurePass123!'
@@ -263,14 +299,26 @@ describe('DonorRegistration', () => {
       await user.click(screen.getByText('donorRegistration.nextButtonText'));
 
       await screen.findByLabelText('donorRegistration.organizationNameLabel');
-      await user.type(screen.getByLabelText('donorRegistration.organizationNameLabel'), 'Org');
+      await user.type(
+        screen.getByLabelText('donorRegistration.organizationNameLabel'),
+        'Org'
+      );
       // organizationType defaults to RESTAURANT, supply business license so step passes
-      await user.type(screen.getByLabelText('donorRegistration.businessLicenseLabel'), 'BL1');
+      await user.type(
+        screen.getByLabelText('donorRegistration.businessLicenseLabel'),
+        'BL1'
+      );
       await user.click(screen.getByText('donorRegistration.nextButtonText'));
 
       await screen.findByLabelText('donorRegistration.streetAddressLabel');
-      await user.type(screen.getByLabelText('donorRegistration.streetAddressLabel'), '123');
-      await user.type(screen.getByLabelText('donorRegistration.cityLabel'), 'City');
+      await user.type(
+        screen.getByLabelText('donorRegistration.streetAddressLabel'),
+        '123'
+      );
+      await user.type(
+        screen.getByLabelText('donorRegistration.cityLabel'),
+        'City'
+      );
       const postal = screen.getByLabelText('donorRegistration.postalCodeLabel');
       await user.type(postal, '###');
       await postal.blur();
@@ -285,8 +333,14 @@ describe('DonorRegistration', () => {
 
       renderWithAuth(<DonorRegistration />);
       // complete step1
-      await user.type(screen.getByLabelText('donorRegistration.emailLabel'), 'a@a.com');
-      await user.type(screen.getByLabelText('donorRegistration.passwordLabel'), 'SecurePass123!');
+      await user.type(
+        screen.getByLabelText('donorRegistration.emailLabel'),
+        'a@a.com'
+      );
+      await user.type(
+        screen.getByLabelText('donorRegistration.passwordLabel'),
+        'SecurePass123!'
+      );
       await user.type(
         screen.getByLabelText('donorRegistration.confirmPasswordLabel'),
         'SecurePass123!'
@@ -296,7 +350,9 @@ describe('DonorRegistration', () => {
       // click step indicator for step1 using testid
       const step1 = screen.getByTestId('step-item-1');
       await user.click(step1);
-      expect(screen.getByLabelText('donorRegistration.emailLabel')).toBeInTheDocument();
+      expect(
+        screen.getByLabelText('donorRegistration.emailLabel')
+      ).toBeInTheDocument();
     });
   });
 });

@@ -187,7 +187,9 @@ describe('AdminVerificationQueue', () => {
     const modalRoot = title.closest('.modal-content');
     // The approve button text is the i18n key: adminVerificationQueue.modals.approval.action
     fireEvent.click(
-      within(modalRoot).getByText('adminVerificationQueue.modals.approval.action')
+      within(modalRoot).getByText(
+        'adminVerificationQueue.modals.approval.action'
+      )
     );
 
     await waitFor(() => {
@@ -221,16 +223,15 @@ describe('AdminVerificationQueue', () => {
     );
 
     // The textarea has no accessible name, so just get it by role without name filter
-    fireEvent.change(
-      within(modalRoot).getByRole('textbox'),
-      {
-        target: { value: 'Missing details' },
-      }
-    );
+    fireEvent.change(within(modalRoot).getByRole('textbox'), {
+      target: { value: 'Missing details' },
+    });
 
     // The reject button text is the i18n key
     fireEvent.click(
-      within(modalRoot).getByText('adminVerificationQueue.modals.rejection.action')
+      within(modalRoot).getByText(
+        'adminVerificationQueue.modals.rejection.action'
+      )
     );
 
     await waitFor(() => {
@@ -267,7 +268,9 @@ describe('AdminVerificationQueue', () => {
     const modalRoot = title.closest('.modal-content');
     // The verify button text is the i18n key
     fireEvent.click(
-      within(modalRoot).getByText('adminVerificationQueue.modals.manualVerify.action')
+      within(modalRoot).getByText(
+        'adminVerificationQueue.modals.manualVerify.action'
+      )
     );
 
     await waitFor(() => {
