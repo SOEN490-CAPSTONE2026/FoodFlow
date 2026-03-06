@@ -41,6 +41,8 @@ public class Organization {
     @Column(name = "charity_registration_number")
     private String charityRegistrationNumber;
 
+    @Column(name = "supporting_document_url", columnDefinition = "TEXT")
+    private String supportingDocumentUrl;
     private String timezone; // Timezone inferred from address (e.g., "America/Toronto")
 
     @Enumerated(EnumType.STRING)
@@ -82,6 +84,9 @@ public class Organization {
     
     public String getCharityRegistrationNumber() { return charityRegistrationNumber; }
     public void setCharityRegistrationNumber(String charityRegistrationNumber) { this.charityRegistrationNumber = charityRegistrationNumber; }
+
+    public String getSupportingDocumentUrl() { return supportingDocumentUrl; }
+    public void setSupportingDocumentUrl(String supportingDocumentUrl) { this.supportingDocumentUrl = supportingDocumentUrl; }
     
     public String getTimezone() { return timezone; }
     public void setTimezone(String timezone) { this.timezone = timezone; }

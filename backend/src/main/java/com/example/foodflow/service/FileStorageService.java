@@ -28,10 +28,11 @@ public class FileStorageService {
         "image/jpeg",
         "image/jpg",
         "image/png",
+        "application/pdf",
         "image/webp"
     );
 
-    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+    private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
     @Value("${file.upload.dir:uploads}")
     private String uploadDir;
@@ -106,12 +107,12 @@ public class FileStorageService {
         }
 
         if (file.getSize() > MAX_FILE_SIZE) {
-            throw new IllegalArgumentException("File size exceeds maximum allowed size of 5MB");
+            throw new IllegalArgumentException("File size exceeds maximum allowed size of 10MB");
         }
 
         String contentType = file.getContentType();
         if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType.toLowerCase())) {
-            throw new IllegalArgumentException("Invalid file type. Only JPEG, PNG and WEBP images are allowed");
+            throw new IllegalArgumentException("Invalid file type. Only JPEG, PNG, PDF and WEBP images are allowed");
         }
     }
 

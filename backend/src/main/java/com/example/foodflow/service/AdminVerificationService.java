@@ -261,8 +261,8 @@ public class AdminVerificationService {
                 dto.setAddress(addressDTO);
             }
 
-            // TODO: Set supporting document URL when document storage is implemented
-            dto.setSupportingDocument(null);
+            // Map the supporting document URL from the organization
+            dto.setSupportingDocument(org.getSupportingDocumentUrl());
         }
 
         return dto;

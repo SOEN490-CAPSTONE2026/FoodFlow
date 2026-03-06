@@ -7,6 +7,10 @@ jest.mock('axios', () => ({
 const axios = require('axios');
 
 describe('AnalyticsService', () => {
+  // compute the base url exactly as the service does so tests remain agnostic to env settings
+  const API_BASE_URL =
+    process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+
   let originalLocation;
   let consoleLogSpy;
   let consoleErrorSpy;
@@ -60,7 +64,7 @@ describe('AnalyticsService', () => {
     it('should send event data to the backend', async () => {
       await AnalyticsService.trackEvent('test_action', 'test_component');
       expect(axios.post).toHaveBeenCalledWith(
-        'http://localhost:8080/api/analytics/track',
+        `${API_BASE_URL}/analytics/track`,
         expect.objectContaining({
           action: 'test_action',
           component: 'test_component',
@@ -79,7 +83,7 @@ describe('AnalyticsService', () => {
         additionalData
       );
       expect(axios.post).toHaveBeenCalledWith(
-        'http://localhost:8080/api/analytics/track',
+        `${API_BASE_URL}/analytics/track`,
         expect.objectContaining({
           action: 'test_action',
           component: 'test_component',

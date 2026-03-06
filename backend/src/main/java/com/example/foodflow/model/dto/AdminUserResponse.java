@@ -21,6 +21,7 @@ public class AdminUserResponse {
     private String address;
     private String businessLicense;
     private String charityRegistrationNumber;
+    private String supportingDocumentUrl;
 
     // Language preference
     private String languagePreference;
@@ -183,5 +184,13 @@ public class AdminUserResponse {
 
     public void setLanguagePreference(String languagePreference) {
         this.languagePreference = languagePreference;
+    }
+  
+    public String getSupportingDocumentUrl() { 
+      return supportingDocumentUrl; 
+    }
+  
+    public void setSupportingDocumentUrl(String supportingDocumentUrl) { 
+      this.supportingDocumentUrl = supportingDocumentUrl; 
     }
 }

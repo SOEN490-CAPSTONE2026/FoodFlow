@@ -421,7 +421,9 @@ const AdminVerificationQueue = () => {
       const now = new Date();
       const waitTimes = content.map(u => {
         const createdDate = new Date(u.createdAt);
-        if (isNaN(createdDate)) return 0;
+        if (isNaN(createdDate)) {
+          return 0;
+        }
         const diffMs = now - createdDate;
         // Guard: never allow negative wait time (e.g. future createdAt due to clock skew)
         return Math.max(0, diffMs / (1000 * 60 * 60));
@@ -640,11 +642,19 @@ const AdminVerificationQueue = () => {
   };
 
   // Handle document view
-  const handleViewDocument = documentName => {
-    // In a real app, this would open the document
-    alert(
-      `${t('adminVerificationQueue.document.viewing', { name: documentName })}\n\n${t('adminVerificationQueue.document.productionNote')}`
-    );
+  const handleViewDocument = documentUrl => {
+    // If it's a URL (contains http), open in a new tab; otherwise show alert
+    if (documentUrl && documentUrl.startsWith('http')) {
+      window.open(documentUrl, '_blank');
+    } else if (documentUrl) {
+      // Fallback for document names - construct URL
+      window.open(
+        `${process.env.REACT_APP_API_BASE_URL}/api/files/licenses/${documentUrl}`,
+        '_blank'
+      );
+    } else {
+      alert('No document available');
+    }
   };
 
   // User type filter options
