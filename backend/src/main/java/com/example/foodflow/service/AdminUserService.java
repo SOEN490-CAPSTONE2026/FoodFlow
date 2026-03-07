@@ -1,7 +1,10 @@
 package com.example.foodflow.service;
 
 import com.example.foodflow.model.dto.AdminUserResponse;
+import com.example.foodflow.model.dto.UserActivityDTO;
 import com.example.foodflow.model.entity.AccountStatus;
+import com.example.foodflow.model.entity.Claim;
+import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.UserRole;
 import com.example.foodflow.repository.ClaimRepository;
@@ -19,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -321,6 +326,96 @@ public class AdminUserService {
         }
         
         return convertToAdminUserResponse(user);
+    }
+
+    /**
+     * Get recent activity for a user
+     * @param userId User ID
+     * @param limit Maximum number of activities to return
+     * @return List of recent activities
+     */
+    @Transactional(readOnly = true)
+    public List<UserActivityDTO> getRecentActivity(Long userId, int limit) {
+        log.info("Fetching recent activity for user {}, limit: {}", userId, limit);
+        
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+        
+        List<UserActivityDTO> activities = new ArrayList<>();
+        
+        if (user.getRole() == UserRole.DONOR) {
+            // Get recent donations
+            List<SurplusPost> recentPosts = surplusPostRepository.findByDonorOrderByCreatedAtDesc(user);
+            
+            for (SurplusPost post : recentPosts) {
+                if (activities.size() >= limit) break;
+                
+                String description = String.format("Donated %s", post.getTitle());
+                if (post.getQuantity() != null && post.getQuantity().getValue() != null) {
+                    description = String.format("Donated %.0f%s of %s", 
+                        post.getQuantity().getValue(),
+                        post.getQuantity().getUnit() != null ? post.getQuantity().getUnit().getLabel() : "",
+                        post.getTitle());
+                }
+                
+                activities.add(new UserActivityDTO(
+                    "DONATION",
+                    description,
+                    post.getCreatedAt(),
+                    post.getId(),
+                    "SurplusPost"
+                ));
+            }
+            
+        } else if (user.getRole() == UserRole.RECEIVER) {
+            // Get recent claims with post details
+            List<Claim> recentClaims = claimRepository.findReceiverClaimsWithDetails(
+                userId, 
+                List.of(com.example.foodflow.model.types.ClaimStatus.ACTIVE, 
+                       com.example.foodflow.model.types.ClaimStatus.COMPLETED,
+                       com.example.foodflow.model.types.ClaimStatus.CANCELLED)
+            );
+            
+            for (Claim claim : recentClaims) {
+                if (activities.size() >= limit) break;
+                
+                SurplusPost post = claim.getSurplusPost();
+                String description = String.format("Claimed %s", post.getTitle());
+                if (post.getQuantity() != null && post.getQuantity().getValue() != null) {
+                    description = String.format("Claimed %.0f%s of %s", 
+                        post.getQuantity().getValue(),
+                        post.getQuantity().getUnit() != null ? post.getQuantity().getUnit().getLabel() : "",
+                        post.getTitle());
+                }
+                
+                activities.add(new UserActivityDTO(
+                    "CLAIM",
+                    description,
+                    claim.getClaimedAt(),
+                    claim.getId(),
+                    "Claim"
+                ));
+            }
+        }
+        
+        // Add verification activity if available
+        if (user.getOrganization() != null && user.getOrganization().getVerificationStatus() != null) {
+            if (activities.size() < limit) {
+                activities.add(new UserActivityDTO(
+                    "VERIFICATION",
+                    "Completed verification",
+                    user.getCreatedAt(), // Use account creation as proxy for verification
+                    user.getId(),
+                    "User"
+                ));
+            }
+        }
+        
+        // Sort by timestamp descending and limit
+        return activities.stream()
+                .sorted(Comparator.comparing(UserActivityDTO::getTimestamp).reversed())
+                .limit(limit)
+                .collect(Collectors.toList());
     }
 
 }

@@ -88,6 +88,9 @@ const AdminUsers = () => {
   // User ratings
   const [userRatings, setUserRatings] = useState({});
 
+  // User recent activities
+  const [userActivities, setUserActivities] = useState({});
+
   // User detail modal
   const [showUserDetailModal, setShowUserDetailModal] = useState(false);
   const [selectedUserForView, setSelectedUserForView] = useState(null);
@@ -418,6 +421,36 @@ const AdminUsers = () => {
     setIsDraggingFile(false);
   };
 
+  // Fetch user recent activity
+  const fetchUserActivity = async userId => {
+    if (userActivities[userId]) {
+      return;
+    } // Already fetched
+
+    try {
+      const token =
+        localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_BASE_URL}/admin/users/${userId}/recent-activity?limit=3`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      if (response && response.data) {
+        setUserActivities(prev => ({
+          ...prev,
+          [userId]: response.data,
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching user activity:', error);
+      setUserActivities(prev => ({
+        ...prev,
+        [userId]: [],
+      }));
+    }
+  };
+
   // Open user detail modal
   const openUserDetailModal = async user => {
     try {
@@ -447,6 +480,11 @@ const AdminUsers = () => {
       if (!userRatings[user.id]) {
         await fetchUserRating(user.id);
       }
+
+      // Fetch recent activity if not already loaded
+      if (!userActivities[user.id]) {
+        await fetchUserActivity(user.id);
+      }
     } catch (error) {
       console.error('Error fetching user details:', error);
       // Fallback to using the user object from the table if API fails
@@ -456,6 +494,11 @@ const AdminUsers = () => {
       // Still try to fetch rating
       if (!userRatings[user.id]) {
         await fetchUserRating(user.id);
+      }
+
+      // Still try to fetch activity
+      if (!userActivities[user.id]) {
+        await fetchUserActivity(user.id);
       }
     }
   };
@@ -709,8 +752,9 @@ const AdminUsers = () => {
                             newExpanded.delete(user.id);
                           } else {
                             newExpanded.add(user.id);
-                            // Fetch rating when expanding
+                            // Fetch rating and activity when expanding
                             fetchUserRating(user.id);
+                            fetchUserActivity(user.id);
                           }
                           setExpandedRows(newExpanded);
                         }}
@@ -872,11 +916,28 @@ const AdminUsers = () => {
                           <div className="details-activity">
                             <h4>{t('adminUsers.details.recentActivity')}</h4>
                             <ul className="activity-list">
-                              <li>• Donated 50kg of produce on Dec 15, 2025</li>
-                              <li>
-                                • Donated 30kg of bakery items on Dec 10, 2025
-                              </li>
-                              <li>• Completed verification on Dec 1, 2024</li>
+                              {userActivities[user.id] ? (
+                                userActivities[user.id].length > 0 ? (
+                                  userActivities[user.id].map(
+                                    (activity, index) => (
+                                      <li key={index}>
+                                        • {activity.description} on{' '}
+                                        {new Date(
+                                          activity.timestamp
+                                        ).toLocaleDateString('en-US', {
+                                          month: 'short',
+                                          day: 'numeric',
+                                          year: 'numeric',
+                                        })}
+                                      </li>
+                                    )
+                                  )
+                                ) : (
+                                  <li>No recent activity</li>
+                                )
+                              ) : (
+                                <li>{t('common.loading')}</li>
+                              )}
                             </ul>
                           </div>
                         </div>

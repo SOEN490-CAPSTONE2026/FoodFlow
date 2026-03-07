@@ -5,6 +5,7 @@ import com.example.foodflow.model.dto.AdminUserResponse;
 import com.example.foodflow.model.dto.DeactivateUserRequest;
 import com.example.foodflow.model.dto.OverrideStatusRequest;
 import com.example.foodflow.model.dto.SendAlertRequest;
+import com.example.foodflow.model.dto.UserActivityDTO;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.repository.UserRepository;
 import com.example.foodflow.security.JwtTokenProvider;
@@ -28,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -194,6 +196,28 @@ public class AdminController {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
             log.error("Error fetching activity for user {}", userId, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * Get recent activity history for a user
+     * GET /api/admin/users/{userId}/recent-activity?limit=3
+     */
+    @GetMapping("/users/{userId}/recent-activity")
+    public ResponseEntity<List<UserActivityDTO>> getRecentActivity(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "3") int limit) {
+        log.info("Admin fetching recent activity for user: {}, limit: {}", userId, limit);
+        
+        try {
+            List<UserActivityDTO> activities = adminUserService.getRecentActivity(userId, limit);
+            return ResponseEntity.ok(activities);
+        } catch (RuntimeException e) {
+            log.error("Error fetching recent activity for user {}: {}", userId, e.getMessage());
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            log.error("Error fetching recent activity for user {}", userId, e);
             return ResponseEntity.internalServerError().build();
         }
     }
