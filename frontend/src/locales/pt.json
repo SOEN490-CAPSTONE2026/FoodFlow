@@ -2207,7 +2207,15 @@
       "feedbackScore": "Pontuação de feedback",
       "noReviews": "Ainda não há avaliações",
       "memberSince": "Membro desde",
-      "recentActivity": "Atividade recente"
+      "recentActivity": "Atividade recente",
+      "activityLog": {
+        "DONATION": "Doou {{item}}",
+        "CLAIM": "Solicitou {{item}}",
+        "VERIFICATION": "Verificação concluída",
+        "quantityOf": "{{quantity}} de {{title}}",
+        "noActivity": "Sem atividade recente",
+        "on": "em"
+      }
     },
     "modals": {
       "deactivate": {

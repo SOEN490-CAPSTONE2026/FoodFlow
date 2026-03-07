@@ -2205,7 +2205,15 @@
       "feedbackScore": "تقييم الملاحظات",
       "noReviews": "لا توجد مراجعات بعد",
       "memberSince": "عضو منذ",
-      "recentActivity": "النشاط الأخير"
+      "recentActivity": "النشاط الأخير",
+      "activityLog": {
+        "DONATION": "تبرع بـ {{item}}",
+        "CLAIM": "طالب بـ {{item}}",
+        "VERIFICATION": "اكتمل التحقق",
+        "quantityOf": "{{quantity}} من {{title}}",
+        "noActivity": "لا يوجد نشاط حديث",
+        "on": "في"
+      }
     },
     "modals": {
       "deactivate": {

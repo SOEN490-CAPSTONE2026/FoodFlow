@@ -2092,7 +2092,15 @@
       "feedbackScore": "Puntuación de comentarios",
       "noReviews": "Aún no hay reseñas",
       "memberSince": "Miembro desde",
-      "recentActivity": "Actividad reciente"
+      "recentActivity": "Actividad reciente",
+      "activityLog": {
+        "DONATION": "Donó {{item}}",
+        "CLAIM": "Solicitó {{item}}",
+        "VERIFICATION": "Verificación completada",
+        "quantityOf": "{{quantity}} de {{title}}",
+        "noActivity": "Sin actividad reciente",
+        "on": "el"
+      }
     },
     "modals": {
       "deactivate": {

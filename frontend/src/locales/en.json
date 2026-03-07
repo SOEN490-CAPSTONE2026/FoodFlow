@@ -2120,7 +2120,15 @@
       "feedbackScore": "Feedback Score",
       "noReviews": "No reviews yet",
       "memberSince": "Member Since",
-      "recentActivity": "Recent Activity"
+      "recentActivity": "Recent Activity",
+      "activityLog": {
+        "DONATION": "Donated {{item}}",
+        "CLAIM": "Claimed {{item}}",
+        "VERIFICATION": "Completed verification",
+        "quantityOf": "{{quantity}} of {{title}}",
+        "noActivity": "No recent activity",
+        "on": "on"
+      }
     },
     "modals": {
       "deactivate": {

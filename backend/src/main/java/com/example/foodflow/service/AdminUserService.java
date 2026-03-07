@@ -350,20 +350,21 @@ public class AdminUserService {
             for (SurplusPost post : recentPosts) {
                 if (activities.size() >= limit) break;
                 
-                String description = String.format("Donated %s", post.getTitle());
+                String postTitle = post.getTitle();
+                String postQuantity = null;
                 if (post.getQuantity() != null && post.getQuantity().getValue() != null) {
-                    description = String.format("Donated %.0f%s of %s", 
+                    postQuantity = String.format("%.0f%s",
                         post.getQuantity().getValue(),
-                        post.getQuantity().getUnit() != null ? post.getQuantity().getUnit().getLabel() : "",
-                        post.getTitle());
+                        post.getQuantity().getUnit() != null ? post.getQuantity().getUnit().getLabel() : "");
                 }
                 
                 activities.add(new UserActivityDTO(
                     "DONATION",
-                    description,
                     post.getCreatedAt(),
                     post.getId(),
-                    "SurplusPost"
+                    "SurplusPost",
+                    postTitle,
+                    postQuantity
                 ));
             }
             
@@ -380,20 +381,21 @@ public class AdminUserService {
                 if (activities.size() >= limit) break;
                 
                 SurplusPost post = claim.getSurplusPost();
-                String description = String.format("Claimed %s", post.getTitle());
+                String claimTitle = post.getTitle();
+                String claimQuantity = null;
                 if (post.getQuantity() != null && post.getQuantity().getValue() != null) {
-                    description = String.format("Claimed %.0f%s of %s", 
+                    claimQuantity = String.format("%.0f%s",
                         post.getQuantity().getValue(),
-                        post.getQuantity().getUnit() != null ? post.getQuantity().getUnit().getLabel() : "",
-                        post.getTitle());
+                        post.getQuantity().getUnit() != null ? post.getQuantity().getUnit().getLabel() : "");
                 }
                 
                 activities.add(new UserActivityDTO(
                     "CLAIM",
-                    description,
                     claim.getClaimedAt(),
                     claim.getId(),
-                    "Claim"
+                    "Claim",
+                    claimTitle,
+                    claimQuantity
                 ));
             }
         }
@@ -403,10 +405,11 @@ public class AdminUserService {
             if (activities.size() < limit) {
                 activities.add(new UserActivityDTO(
                     "VERIFICATION",
-                    "Completed verification",
                     user.getCreatedAt(), // Use account creation as proxy for verification
                     user.getId(),
-                    "User"
+                    "User",
+                    null,
+                    null
                 ));
             }
         }

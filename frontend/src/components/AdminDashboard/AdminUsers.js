@@ -37,7 +37,7 @@ import {
 } from '../ui/table';
 
 const AdminUsers = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -919,21 +919,44 @@ const AdminUsers = () => {
                               {userActivities[user.id] ? (
                                 userActivities[user.id].length > 0 ? (
                                   userActivities[user.id].map(
-                                    (activity, index) => (
-                                      <li key={index}>
-                                        • {activity.description} on{' '}
-                                        {new Date(
-                                          activity.timestamp
-                                        ).toLocaleDateString('en-US', {
-                                          month: 'short',
-                                          day: 'numeric',
-                                          year: 'numeric',
-                                        })}
-                                      </li>
-                                    )
+                                    (activity, index) => {
+                                      const item = activity.quantity
+                                        ? t(
+                                            'adminUsers.details.activityLog.quantityOf',
+                                            {
+                                              quantity: activity.quantity,
+                                              title: activity.title,
+                                            }
+                                          )
+                                        : activity.title || '';
+                                      const actionText = t(
+                                        `adminUsers.details.activityLog.${activity.action}`,
+                                        { item }
+                                      );
+                                      const dateText = new Date(
+                                        activity.timestamp
+                                      ).toLocaleDateString(i18n.language, {
+                                        month: 'short',
+                                        day: 'numeric',
+                                        year: 'numeric',
+                                      });
+                                      return (
+                                        <li key={index}>
+                                          • {actionText}{' '}
+                                          {t(
+                                            'adminUsers.details.activityLog.on'
+                                          )}{' '}
+                                          {dateText}
+                                        </li>
+                                      );
+                                    }
                                   )
                                 ) : (
-                                  <li>No recent activity</li>
+                                  <li>
+                                    {t(
+                                      'adminUsers.details.activityLog.noActivity'
+                                    )}
+                                  </li>
                                 )
                               ) : (
                                 <li>{t('common.loading')}</li>

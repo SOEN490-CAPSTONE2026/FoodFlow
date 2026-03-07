@@ -2207,7 +2207,15 @@
       "feedbackScore": "反馈评分",
       "noReviews": "暂无评价",
       "memberSince": "加入时间",
-      "recentActivity": "最近活动"
+      "recentActivity": "最近活动",
+      "activityLog": {
+        "DONATION": "捐赠了{{item}}",
+        "CLAIM": "领取了{{item}}",
+        "VERIFICATION": "完成了验证",
+        "quantityOf": "{{quantity}}的{{title}}",
+        "noActivity": "暂无最近活动",
+        "on": "于"
+      }
     },
     "modals": {
       "deactivate": {
