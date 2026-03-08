@@ -80,7 +80,7 @@ public class EmailService {
         recipient.setEmail(toEmail);
         sendSmtpEmail.setTo(Collections.singletonList(recipient));
         
-        sendSmtpEmail.setSubject("FoodFlow - Verify Your Email Address");
+        sendSmtpEmail.setSubject("[No-Reply] FoodFlow - Verify Your Email Address");
         sendSmtpEmail.setTextContent("Please verify your email address by clicking the link: " + frontendUrl + "/verify-email?token=" + verificationToken);
         sendSmtpEmail.setHtmlContent(buildVerificationEmailBody(verificationToken));
         
@@ -119,7 +119,7 @@ public class EmailService {
         recipient.setEmail(toEmail);
         sendSmtpEmail.setTo(Collections.singletonList(recipient));
         
-        sendSmtpEmail.setSubject("FoodFlow - Password Reset Code");
+        sendSmtpEmail.setSubject("[No-Reply] FoodFlow - Password Reset Code");
         sendSmtpEmail.setTextContent("Your password reset code is: " + resetCode);
         sendSmtpEmail.setHtmlContent(buildPasswordResetEmailBody(resetCode));
         
@@ -156,7 +156,7 @@ public class EmailService {
             recipient.setEmail(toEmail);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             
-            sendSmtpEmail.setSubject("New Donation Available - FoodFlow");
+            sendSmtpEmail.setSubject("[No-Reply] New Donation Available - FoodFlow");
             sendSmtpEmail.setHtmlContent(buildNewDonationEmailBody(userName, donationData));
             
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
@@ -189,7 +189,7 @@ public class EmailService {
             recipient.setEmail(toEmail);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             
-            sendSmtpEmail.setSubject("Your Donation Has Been Claimed - FoodFlow");
+            sendSmtpEmail.setSubject("[No-Reply] Your Donation Has Been Claimed - FoodFlow");
             sendSmtpEmail.setHtmlContent(buildDonationClaimedEmailBody(userName, claimData));
             
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
@@ -222,7 +222,7 @@ public class EmailService {
             recipient.setEmail(toEmail);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             
-            sendSmtpEmail.setSubject("Claim Canceled - FoodFlow");
+            sendSmtpEmail.setSubject("[No-Reply] Claim Canceled - FoodFlow");
             sendSmtpEmail.setHtmlContent(buildClaimCanceledEmailBody(userName, claimData));
             
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
@@ -255,7 +255,7 @@ public class EmailService {
             recipient.setEmail(toEmail);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             
-            sendSmtpEmail.setSubject("New Review Received - FoodFlow");
+            sendSmtpEmail.setSubject("[No-Reply] New Review Received - FoodFlow");
             sendSmtpEmail.setHtmlContent(buildReviewReceivedEmailBody(userName, reviewData));
             
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
@@ -288,7 +288,7 @@ public class EmailService {
             recipient.setEmail(toEmail);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             
-            sendSmtpEmail.setSubject("Your Donation Has Been Picked Up - FoodFlow");
+            sendSmtpEmail.setSubject("[No-Reply] Your Donation Has Been Picked Up - FoodFlow");
             sendSmtpEmail.setHtmlContent(buildDonationPickedUpEmailBody(userName, donationData));
             
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
@@ -325,7 +325,7 @@ public class EmailService {
             recipient.setEmail(toEmail);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             
-            sendSmtpEmail.setSubject("New Message from " + senderName + " - FoodFlow");
+            sendSmtpEmail.setSubject("[No-Reply] New Message from " + senderName + " - FoodFlow");
             sendSmtpEmail.setHtmlContent(buildNewMessageEmailBody(recipientName, senderName, messagePreview));
             
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
@@ -360,7 +360,7 @@ public class EmailService {
         recipient.setEmail(toEmail);
         sendSmtpEmail.setTo(Collections.singletonList(recipient));
         
-        sendSmtpEmail.setSubject("FoodFlow - Account Approved! Welcome to FoodFlow");
+        sendSmtpEmail.setSubject("[No-Reply] FoodFlow - Account Approved! Welcome to FoodFlow");
         sendSmtpEmail.setTextContent("Your FoodFlow account has been approved by our admin team. You now have full access to all features.");
         sendSmtpEmail.setHtmlContent(buildAccountApprovalEmailBody(userName));
         
@@ -401,7 +401,7 @@ public class EmailService {
         recipient.setEmail(toEmail);
         sendSmtpEmail.setTo(Collections.singletonList(recipient));
         
-        sendSmtpEmail.setSubject("FoodFlow - Account Registration Update");
+        sendSmtpEmail.setSubject("[No-Reply] FoodFlow - Account Registration Update");
         sendSmtpEmail.setTextContent("Your FoodFlow account registration could not be approved. Reason: " + getRejectionReasonText(reason));
         sendSmtpEmail.setHtmlContent(buildAccountRejectionEmailBody(userName, reason, customMessage));
         
@@ -438,7 +438,7 @@ public class EmailService {
             recipient.setEmail(toEmail);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             
-            sendSmtpEmail.setSubject("Your Donation Has Been Completed - FoodFlow");
+            sendSmtpEmail.setSubject("[No-Reply] Your Donation Has Been Completed - FoodFlow");
             sendSmtpEmail.setHtmlContent(buildDonationCompletedEmailBody(userName, donationData));
             
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
@@ -471,7 +471,7 @@ public class EmailService {
             recipient.setEmail(toEmail);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             
-            sendSmtpEmail.setSubject("Your Donation Is Ready for Pickup - FoodFlow");
+            sendSmtpEmail.setSubject("[No-Reply] Your Donation Is Ready for Pickup - FoodFlow");
             sendSmtpEmail.setHtmlContent(buildReadyForPickupEmailBody(userName, donationData));
             
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
@@ -503,7 +503,7 @@ public class EmailService {
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
             sendSmtpEmail.setSender(sender);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
-            sendSmtpEmail.setSubject("Donation Expired - FoodFlow");
+            sendSmtpEmail.setSubject("[No-Reply] Donation Expired - FoodFlow");
             sendSmtpEmail.setHtmlContent(buildDonationExpiredEmailBody(donorName, donationData));
 
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
@@ -535,7 +535,7 @@ public class EmailService {
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
             sendSmtpEmail.setSender(sender);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
-            sendSmtpEmail.setSubject("Donation Status Updated by Admin - FoodFlow");
+            sendSmtpEmail.setSubject("[No-Reply] Donation Status Updated by Admin - FoodFlow");
             sendSmtpEmail.setHtmlContent(buildDonationStatusUpdateEmailBody(userName, statusData));
 
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
@@ -567,7 +567,7 @@ public class EmailService {
         recipient.setEmail(toEmail);
         sendSmtpEmail.setTo(Collections.singletonList(recipient));
         
-        sendSmtpEmail.setSubject("Account Deactivated - FoodFlow");
+        sendSmtpEmail.setSubject("[No-Reply] Account Deactivated - FoodFlow");
         sendSmtpEmail.setTextContent("Your FoodFlow account has been deactivated by an administrator.");
         sendSmtpEmail.setHtmlContent(buildAccountDeactivationEmailBody(userName));
         
@@ -602,7 +602,7 @@ public class EmailService {
         recipient.setEmail(toEmail);
         sendSmtpEmail.setTo(Collections.singletonList(recipient));
         
-        sendSmtpEmail.setSubject("Account Reactivated - FoodFlow");
+        sendSmtpEmail.setSubject("[No-Reply] Account Reactivated - FoodFlow");
         sendSmtpEmail.setTextContent("Your FoodFlow account has been reactivated by an administrator.");
         sendSmtpEmail.setHtmlContent(buildAccountReactivationEmailBody(userName));
         
@@ -700,10 +700,33 @@ public class EmailService {
                             <td class="logo-cell" align="center" style="padding:32px 24px 18px 24px;">
                                 <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                                     <tr>
-                                        <td style="background-color:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:12px 24px; text-align:center;">
-                                            <span style="font-family:%s; font-size:24px; font-weight:700; color:%s; letter-spacing:0.5px; text-decoration:none;">
-                                                &#127858; FoodFlow
-                                            </span>
+                                        <td style="background-color:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:14px 28px; text-align:center;">
+                                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="display:inline-table;">
+                                                <tr>
+                                                    <!-- Green circle icon -->
+                                                    <td align="center" valign="middle"
+                                                        style="width:44px; height:44px; background-color:#10b981; border-radius:22px; text-align:center; vertical-align:middle;">
+                                                        <!--[if mso]>
+                                                        <v:oval xmlns:v="urn:schemas-microsoft-com:vml" style="width:44px;height:44px;" fillcolor="#10b981" stroked="f">
+                                                            <v:textbox inset="0,0,0,0" style="mso-fit-shape-to-text:false;">
+                                                                <center style="font-size:18px;font-weight:700;color:#ffffff;font-family:Segoe UI,sans-serif;">FF</center>
+                                                            </v:textbox>
+                                                        </v:oval>
+                                                        <![endif]-->
+                                                        <!--[if !mso]><!-->
+                                                        <span style="font-family:%s; font-size:18px; font-weight:700; color:#ffffff; line-height:44px; display:block;">FF</span>
+                                                        <!--<![endif]-->
+                                                    </td>
+                                                    <!-- Spacing -->
+                                                    <td style="width:12px; font-size:0;">&nbsp;</td>
+                                                    <!-- Brand name -->
+                                                    <td valign="middle" style="vertical-align:middle;">
+                                                        <span style="font-family:%s; font-size:24px; font-weight:700; color:%s; letter-spacing:0.5px; line-height:1.1;">
+                                                            FoodFlow
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            </table>
                                         </td>
                                     </tr>
                                 </table>
@@ -742,7 +765,24 @@ public class EmailService {
                                         <td align="center" style="font-family:%s; font-size:12px; color:#94a3b8; line-height:1.6;">
                                             <p style="margin:0 0 6px 0;">&copy; 2026 FoodFlow. All rights reserved.</p>
                                             %s
-                                            <p style="margin:6px 0 0 0; font-size:11px;">This is an automated message &mdash; please do not reply.</p>
+                                            <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="margin:10px 0 0 0;">
+                                                <tr>
+                                                    <td align="center">
+                                                        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                                                            <tr>
+                                                                <td style="background-color:#fef2f2; border:1px solid #fecaca; border-radius:6px; padding:8px 16px; text-align:center;">
+                                                                    <p style="margin:0; font-size:12px; font-weight:600; color:#dc2626; line-height:1.4;">
+                                                                        &#9888; This is an automated message sent from a no-reply address.
+                                                                    </p>
+                                                                    <p style="margin:3px 0 0 0; font-size:11px; color:#991b1b; line-height:1.4;">
+                                                                        Please do not reply to this email &mdash; responses are not monitored.
+                                                                    </p>
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                            </table>
                                         </td>
                                     </tr>
                                 </table>
@@ -761,17 +801,18 @@ public class EmailService {
             </body>
             </html>
             """.formatted(
-                bannerColor,           // a tag color
-                FONT_STACK,            // body font
-                FONT_STACK,            // logo font
-                COLOR_PRIMARY,         // logo color
-                bannerColor,           // banner bg
-                FONT_STACK,            // banner h1 font
-                bannerTitle,           // banner text
-                FONT_STACK,            // content font
-                innerContent,          // main content
-                FONT_STACK,            // footer font
-                footerNote             // footer note
+                bannerColor,           
+                FONT_STACK,            
+                FONT_STACK,            
+                FONT_STACK,            
+                COLOR_PRIMARY,         
+                bannerColor,          
+                FONT_STACK,            
+                bannerTitle,           
+                FONT_STACK,            
+                innerContent,         
+                FONT_STACK,            
+                footerNote             
             );
     }
 
