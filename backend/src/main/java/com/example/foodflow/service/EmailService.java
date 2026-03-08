@@ -67,7 +67,7 @@ public class EmailService {
         // Set subject and content
         sendSmtpEmail.setSubject("FoodFlow - Verify Your Email Address");
         sendSmtpEmail.setTextContent("Please verify your email address by clicking the link: " + frontendUrl + "/verify-email?token=" + verificationToken);
-        sendSmtpEmail.setHtmlContent(buildVerificationEmailBody(verificationToken));
+        sendSmtpEmail.setHtmlContent(applyBranding(buildVerificationEmailBody(verificationToken)));
         
         try {
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
@@ -112,7 +112,7 @@ public class EmailService {
         // Set subject and content
         sendSmtpEmail.setSubject("FoodFlow - Password Reset Code");
         sendSmtpEmail.setTextContent("Your password reset code is: " + resetCode);
-        sendSmtpEmail.setHtmlContent(buildPasswordResetEmailBody(resetCode));
+        sendSmtpEmail.setHtmlContent(applyBranding(buildPasswordResetEmailBody(resetCode)));
         
         try {
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
@@ -148,7 +148,7 @@ public class EmailService {
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             
             sendSmtpEmail.setSubject("New Donation Available - FoodFlow");
-            sendSmtpEmail.setHtmlContent(buildNewDonationEmailBody(userName, donationData));
+            sendSmtpEmail.setHtmlContent(applyBranding(buildNewDonationEmailBody(userName, donationData)));
             
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
             log.info("New donation notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
@@ -182,7 +182,7 @@ public class EmailService {
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             
             sendSmtpEmail.setSubject("Your Donation Has Been Claimed - FoodFlow");
-            sendSmtpEmail.setHtmlContent(buildDonationClaimedEmailBody(userName, claimData));
+            sendSmtpEmail.setHtmlContent(applyBranding(buildDonationClaimedEmailBody(userName, claimData)));
             
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
             log.info("Donation claimed notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
@@ -215,7 +215,7 @@ public class EmailService {
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             
             sendSmtpEmail.setSubject("Claim Canceled - FoodFlow");
-            sendSmtpEmail.setHtmlContent(buildClaimCanceledEmailBody(userName, claimData));
+            sendSmtpEmail.setHtmlContent(applyBranding(buildClaimCanceledEmailBody(userName, claimData)));
             
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
             log.info("Claim canceled notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
@@ -248,7 +248,7 @@ public class EmailService {
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             
             sendSmtpEmail.setSubject("New Review Received - FoodFlow");
-            sendSmtpEmail.setHtmlContent(buildReviewReceivedEmailBody(userName, reviewData));
+            sendSmtpEmail.setHtmlContent(applyBranding(buildReviewReceivedEmailBody(userName, reviewData)));
             
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
             log.info("Review received notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
@@ -282,7 +282,7 @@ public class EmailService {
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             
             sendSmtpEmail.setSubject("Your Donation Has Been Picked Up - FoodFlow");
-            sendSmtpEmail.setHtmlContent(buildDonationPickedUpEmailBody(userName, donationData));
+            sendSmtpEmail.setHtmlContent(applyBranding(buildDonationPickedUpEmailBody(userName, donationData)));
             
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
             log.info("Donation picked up notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
@@ -701,7 +701,7 @@ public class EmailService {
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             
             sendSmtpEmail.setSubject("New Message from " + senderName + " - FoodFlow");
-            sendSmtpEmail.setHtmlContent(buildNewMessageEmailBody(recipientName, senderName, messagePreview));
+            sendSmtpEmail.setHtmlContent(applyBranding(buildNewMessageEmailBody(recipientName, senderName, messagePreview)));
             
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
             log.info("New message notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
@@ -744,7 +744,7 @@ public class EmailService {
         // Set subject and content
         sendSmtpEmail.setSubject("FoodFlow - Account Approved! Welcome to FoodFlow");
         sendSmtpEmail.setTextContent("Your FoodFlow account has been approved by our admin team. You now have full access to all features.");
-        sendSmtpEmail.setHtmlContent(buildAccountApprovalEmailBody(userName));
+        sendSmtpEmail.setHtmlContent(applyBranding(buildAccountApprovalEmailBody(userName)));
         
         try {
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
@@ -791,7 +791,7 @@ public class EmailService {
         // Set subject and content
         sendSmtpEmail.setSubject("FoodFlow - Account Registration Update");
         sendSmtpEmail.setTextContent("Your FoodFlow account registration could not be approved. Reason: " + getRejectionReasonText(reason));
-        sendSmtpEmail.setHtmlContent(buildAccountRejectionEmailBody(userName, reason, customMessage));
+        sendSmtpEmail.setHtmlContent(applyBranding(buildAccountRejectionEmailBody(userName, reason, customMessage)));
         
         try {
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
@@ -816,6 +816,130 @@ public class EmailService {
             case "other" -> "Other";
             default -> "Unspecified Reason";
         };
+    }
+
+    /**
+     * Applies a consistent branded wrapper and responsive styling
+     * to every email template without changing message text.
+     */
+    private String applyBranding(String htmlContent) {
+        if (htmlContent == null || htmlContent.isBlank()) {
+            return htmlContent;
+        }
+
+        String brandedHtml = htmlContent.replace("http://localhost:3000", frontendUrl);
+        if (brandedHtml.contains("ff-branding-wrapper")) {
+            return brandedHtml;
+        }
+
+        String brandCss = """
+            <style>
+                body, table, td, p, a, li, h1, h2, h3, h4, h5, h6 {
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, Arial, sans-serif !important;
+                    color: #1f2937;
+                }
+                body {
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    width: 100% !important;
+                    background-color: #eef3f6 !important;
+                }
+                .ff-branding-wrapper {
+                    background-color: #eef3f6;
+                    padding: 24px 12px;
+                    width: 100%;
+                    box-sizing: border-box;
+                }
+                .ff-branding-header {
+                    max-width: 600px;
+                    margin: 0 auto 12px auto;
+                    text-align: center;
+                }
+                .ff-branding-wordmark {
+                    display: inline-block;
+                    padding: 8px 16px;
+                    border: 1px solid #d1d5db;
+                    border-radius: 8px;
+                    background-color: #ffffff;
+                    color: #224d68 !important;
+                    font-size: 22px;
+                    font-weight: 700;
+                    letter-spacing: 0.2px;
+                    line-height: 1.1;
+                }
+                .ff-branding-logo {
+                    height: 44px;
+                    width: auto;
+                    display: inline-block;
+                    border: 0;
+                    outline: none;
+                    text-decoration: none;
+                }
+                .container {
+                    max-width: 600px !important;
+                    margin-left: auto !important;
+                    margin-right: auto !important;
+                    width: 100% !important;
+                }
+                .button, .verify-button, a.button, a.verify-button {
+                    background-color: #224d68 !important;
+                    color: #ffffff !important;
+                    text-decoration: none !important;
+                    border-radius: 8px !important;
+                    padding: 12px 24px !important;
+                    display: inline-block !important;
+                    font-weight: 600 !important;
+                }
+                @media only screen and (max-width: 620px) {
+                    .ff-branding-wrapper {
+                        padding: 14px 8px !important;
+                    }
+                    .container {
+                        width: 100% !important;
+                        margin-left: auto !important;
+                        margin-right: auto !important;
+                    }
+                    .content {
+                        padding: 20px !important;
+                    }
+                    .header {
+                        padding: 20px !important;
+                    }
+                    .button, .verify-button, a.button, a.verify-button {
+                        width: 100% !important;
+                        box-sizing: border-box !important;
+                        text-align: center !important;
+                    }
+                }
+            </style>
+            """;
+
+        String brandHeader = """
+            <div class="ff-branding-wrapper">
+                <div class="ff-branding-header">
+                    <div class="ff-branding-wordmark">FoodFlow</div>
+                </div>
+                <div class="ff-branding-header">
+                    <img src="%s/Logo.png" alt="FoodFlow" class="ff-branding-logo" />
+                </div>
+            """.formatted(frontendUrl);
+
+        if (brandedHtml.contains("</head>")) {
+            brandedHtml = brandedHtml.replace("</head>", brandCss + "\n</head>");
+        }
+
+        int bodyTagStart = brandedHtml.indexOf("<body");
+        if (bodyTagStart >= 0) {
+            int bodyTagEnd = brandedHtml.indexOf(">", bodyTagStart);
+            if (bodyTagEnd >= 0) {
+                brandedHtml = brandedHtml.substring(0, bodyTagEnd + 1)
+                    + brandHeader
+                    + brandedHtml.substring(bodyTagEnd + 1);
+                brandedHtml = brandedHtml.replace("</body>", "</div></body>");
+            }
+        }
+
+        return brandedHtml;
     }
     
     /**
@@ -1092,7 +1216,7 @@ public class EmailService {
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             
             sendSmtpEmail.setSubject("Your Donation Has Been Completed - FoodFlow");
-            sendSmtpEmail.setHtmlContent(buildDonationCompletedEmailBody(userName, donationData));
+            sendSmtpEmail.setHtmlContent(applyBranding(buildDonationCompletedEmailBody(userName, donationData)));
             
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
             log.info("Donation completed notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
@@ -1186,7 +1310,7 @@ public class EmailService {
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             
             sendSmtpEmail.setSubject("Your Donation Is Ready for Pickup - FoodFlow");
-            sendSmtpEmail.setHtmlContent(buildReadyForPickupEmailBody(userName, donationData));
+            sendSmtpEmail.setHtmlContent(applyBranding(buildReadyForPickupEmailBody(userName, donationData)));
             
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
             log.info("Ready for pickup notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
@@ -1281,7 +1405,7 @@ public class EmailService {
             sendSmtpEmail.setSender(sender);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             sendSmtpEmail.setSubject("Donation Expired - FoodFlow");
-            sendSmtpEmail.setHtmlContent(buildDonationExpiredEmailBody(donorName, donationData));
+            sendSmtpEmail.setHtmlContent(applyBranding(buildDonationExpiredEmailBody(donorName, donationData)));
 
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
             log.info("Donation expired email sent successfully to {} - Message ID: {}", toEmail, result.getMessageId());
@@ -1376,7 +1500,7 @@ public class EmailService {
             sendSmtpEmail.setSender(sender);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             sendSmtpEmail.setSubject("Donation Status Updated by Admin - FoodFlow");
-            sendSmtpEmail.setHtmlContent(buildDonationStatusUpdateEmailBody(userName, statusData));
+            sendSmtpEmail.setHtmlContent(applyBranding(buildDonationStatusUpdateEmailBody(userName, statusData)));
 
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
             log.info("Donation status update email sent successfully to {} - Message ID: {}", toEmail, result.getMessageId());
@@ -1481,7 +1605,7 @@ public class EmailService {
         
         sendSmtpEmail.setSubject("Account Deactivated - FoodFlow");
         sendSmtpEmail.setTextContent("Your FoodFlow account has been deactivated by an administrator.");
-        sendSmtpEmail.setHtmlContent(buildAccountDeactivationEmailBody(userName));
+        sendSmtpEmail.setHtmlContent(applyBranding(buildAccountDeactivationEmailBody(userName)));
         
         try {
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
@@ -1564,7 +1688,7 @@ public class EmailService {
         
         sendSmtpEmail.setSubject("Account Reactivated - FoodFlow");
         sendSmtpEmail.setTextContent("Your FoodFlow account has been reactivated by an administrator.");
-        sendSmtpEmail.setHtmlContent(buildAccountReactivationEmailBody(userName));
+        sendSmtpEmail.setHtmlContent(applyBranding(buildAccountReactivationEmailBody(userName)));
         
         try {
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
