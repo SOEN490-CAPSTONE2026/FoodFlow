@@ -444,14 +444,21 @@ body {
   padding: 14px 16px;
   font-size: 15px;
   color: #eaf4ff;
+  text-align: left;
   transition:
     background-color 0.15s ease,
     opacity 0.15s ease;
 }
 
+.dropdown-item span {
+  text-align: left;
+}
+
 .dropdown-item svg {
   flex: 0 0 auto;
   display: block;
+  width: 18px;
+  height: 18px;
   opacity: 0.95;
 }
 
@@ -460,7 +467,8 @@ body {
 }
 
 .dropdown-item--settings svg,
-.dropdown-item--help svg {
+.dropdown-item--help svg,
+.dropdown-item--invite svg {
   color: #eaf4ff;
 }
 
