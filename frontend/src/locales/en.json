@@ -1151,7 +1151,7 @@
     "donations": "Donations",
     "myClaims": "My Claims",
     "savedDonations": "Saved Donations",
-    "inviteCommunity": "Invite Community",
+    "inviteCommunity": "Recommend Organization",
     "settings": "Settings",
     "preferences": "Preferences",
     "help": "Help",
@@ -1175,7 +1175,7 @@
       "receiverDashboard": "Receiver Dashboard",
       "welcome": "Welcome",
       "savedDonations": "Saved Donations",
-      "inviteCommunity": "Invite Community",
+      "inviteCommunity": "Recommend Organization",
       "browse": "Browse Available Food",
       "messages": "Messages",
       "calendar": "Calendar Integration",
@@ -2439,8 +2439,8 @@
     "BEVERAGES": "Beverages"
   },
   "inviteCommunity": {
-    "title": "Invite a Community Organization",
-    "subtitle": "Know an organization that could benefit from FoodFlow? Invite them to join as a receiver.",
+    "title": "Recommend an Organization",
+    "subtitle": "Share the contact details of an organization that may benefit from FoodFlow. Our team will reach out and introduce the platform.",
     "form": {
       "businessNameLabel": "Organization Name",
       "businessNamePlaceholder": "e.g. Community Food Pantry",
@@ -2449,9 +2449,9 @@
       "contactPhoneLabel": "Contact Phone (optional)",
       "contactPhonePlaceholder": "+1 (555) 123-4567",
       "messageLabel": "Personal Message (optional)",
-      "messagePlaceholder": "Tell them why FoodFlow would be a great fit...",
-      "submitButton": "Send Invitation",
-      "submitting": "Sending Invitation…"
+      "messagePlaceholder": "Add context to help the FoodFlow team (optional)...",
+      "submitButton": "Send Recommendation",
+      "submitting": "Sending Recommendation…"
     },
     "validation": {
       "businessNameRequired": "Organization name is required.",
@@ -2461,9 +2461,9 @@
       "messageTooLong": "Message cannot exceed 500 characters."
     },
     "success": {
-      "heading": "Invitation Submitted!",
-      "body": "Thank you for helping grow the FoodFlow community. Our team will reach out to {{email}} with more information.",
-      "submitAnother": "Submit Another Invitation"
+      "heading": "Recommendation Submitted!",
+      "body": "Thank you. The FoodFlow team will contact {{email}} and introduce the platform.",
+      "submitAnother": "Submit Another Recommendation"
     },
     "errors": {
       "generic": "Something went wrong. Please try again."
