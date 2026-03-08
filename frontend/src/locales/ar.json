@@ -733,8 +733,11 @@
       "box": "صناديق"
     },
     "steps": {
+      "basicInfo": "معلومات أساسية",
       "foodDetails": "تفاصيل الطعام",
       "quantityDates": "الكمية والتاريخ",
+      "pickupSchedule": "جدول الاستلام",
+      "pickupLocation": "موقع الاستلام",
       "pickupInfo": "معلومات الاستلام",
       "description": "الوصف"
     },

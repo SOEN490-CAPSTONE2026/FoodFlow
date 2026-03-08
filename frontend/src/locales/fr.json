@@ -753,8 +753,11 @@
       "box": "boîtes"
     },
     "steps": {
+      "basicInfo": "Informations de base",
       "foodDetails": "Détails de l'aliment",
       "quantityDates": "Quantité & Dates",
+      "pickupSchedule": "Horaire de collecte",
+      "pickupLocation": "Lieu de collecte",
       "pickupInfo": "Informations de collecte",
       "description": "Description"
     },

@@ -733,8 +733,11 @@
       "box": "盒"
     },
     "steps": {
+      "basicInfo": "基本信息",
       "foodDetails": "食物详情",
       "quantityDates": "数量和日期",
+      "pickupSchedule": "取货时间表",
+      "pickupLocation": "取货地点",
       "pickupInfo": "取货信息",
       "description": "描述"
     },

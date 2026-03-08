@@ -733,8 +733,11 @@
       "box": "cajas"
     },
     "steps": {
+      "basicInfo": "Información básica",
       "foodDetails": "Detalles del alimento",
       "quantityDates": "Cantidad y fechas",
+      "pickupSchedule": "Horario de recogida",
+      "pickupLocation": "Ubicación de recogida",
       "pickupInfo": "Información de recogida",
       "description": "Descripción"
     },
