@@ -103,6 +103,8 @@ export default function DonorWelcome() {
             });
 
             const recipient =
+              donation.receiverOrganization ||
+              donation.receiverName ||
               donation.claimant?.organizationName ||
               donation.claimant?.name ||
               t('donorWelcome.noNameYet');
