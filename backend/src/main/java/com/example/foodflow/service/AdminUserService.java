@@ -240,6 +240,15 @@ public class AdminUserService {
 
         log.info("WebSocket alert sent to userId={} ({})", user.getId(), user.getEmail());
 
+        // Send alert via email
+        try {
+            String userName = user.getFullName() != null ? user.getFullName() : user.getEmail();
+            emailService.sendAdminAlertEmail(user.getEmail(), userName, message);
+            log.info("Admin alert email sent to userId={} ({})", user.getId(), user.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to send admin alert email to userId={}: {}", user.getId(), e.getMessage(), e);
+        }
+
         // Also add to admin_notes for record-keeping
         String currentNotes = user.getAdminNotes() != null ? user.getAdminNotes() : "";
         String alertNote = String.format("\n[ALERT %s]: %s", LocalDateTime.now(), message);

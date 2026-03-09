@@ -51,9 +51,9 @@ public class EmailService {
     private static final String FOOTER_AUTOMATED = "<p style=\"margin:4px 0;\">Need help? Contact us at support@foodflow.com</p>";
     private static final String FOOTER_ADMIN_ACTION = "<p style=\"margin:4px 0;\">You received this because administrative action was taken on your account.</p>";
 
-    // ══════════════════════════════════════════════════════════════
+    
     //  PUBLIC SEND METHODS
-    // ══════════════════════════════════════════════════════════════
+    
 
     /**
      * Send an email verification link to new users
@@ -615,20 +615,48 @@ public class EmailService {
         }
     }
 
-    // ══════════════════════════════════════════════════════════════
-    //  BRANDED TEMPLATE SYSTEM
-    // ══════════════════════════════════════════════════════════════
-
     /**
-     * Wraps email inner content in a fully branded, mobile-responsive,
-     * table-based HTML template compatible with all major email clients.
-     *
-     * @param bannerTitle  Text shown in the colored banner (e.g. "Verify Your Email")
-     * @param bannerColor  Hex background color for the banner
-     * @param innerContent The main body HTML (paragraphs, info boxes, buttons, etc.)
-     * @param footerNote   Additional footer line(s) — notification context, etc.
-     * @return Complete HTML email document
+     * Send an admin alert email to a user
+     * @param toEmail recipient email address
+     * @param userName user's display name
+     * @param alertMessage the alert message from the admin
      */
+    public void sendAdminAlertEmail(String toEmail, String userName, String alertMessage) {
+        log.info("Sending admin alert email to: {}", toEmail);
+
+        try {
+            ApiClient defaultClient = Configuration.getDefaultApiClient();
+            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
+            apiKey.setApiKey(brevoApiKey);
+
+            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+            SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+
+            SendSmtpEmailSender sender = new SendSmtpEmailSender();
+            sender.setEmail(fromEmail);
+            sender.setName(fromName);
+            sendSmtpEmail.setSender(sender);
+
+            SendSmtpEmailTo recipient = new SendSmtpEmailTo();
+            recipient.setEmail(toEmail);
+            sendSmtpEmail.setTo(Collections.singletonList(recipient));
+
+            sendSmtpEmail.setSubject("[No-Reply] FoodFlow - Important Alert from Administration");
+            sendSmtpEmail.setTextContent("Dear " + userName + ", You have received an alert from the FoodFlow administration team: " + alertMessage);
+            sendSmtpEmail.setHtmlContent(buildAdminAlertEmailBody(userName, alertMessage));
+
+            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            log.info("Admin alert email sent successfully to: {}. MessageId: {}", toEmail, result.getMessageId());
+        } catch (ApiException ex) {
+            log.error("Error sending admin alert email to: {}. Status: {}, Response: {}",
+                      toEmail, ex.getCode(), ex.getResponseBody(), ex);
+        }
+    }
+
+    
+    //  BRANDED TEMPLATE SYSTEM
+   
+
     private String wrapInBrandedTemplate(String bannerTitle, String bannerColor, String innerContent, String footerNote) {
         return """
             <!DOCTYPE html>
@@ -926,9 +954,9 @@ public class EmailService {
             """.formatted(url, COLOR_PRIMARY, url);
     }
 
-    // ══════════════════════════════════════════════════════════════
+    
     //  EMAIL BODY BUILDERS
-    // ══════════════════════════════════════════════════════════════
+    
 
     /**
      * 1. Email Verification
@@ -1305,6 +1333,70 @@ public class EmailService {
     }
 
    
+    /**
+     * 17. Admin Alert Email
+     */
+    private String buildAdminAlertEmailBody(String userName, String alertMessage) {
+        String formattedMessage = formatAlertMessageToHtml(alertMessage);
+
+        String content = p("Dear " + userName + ",")
+            + p("You have received an important alert from the FoodFlow administration team.")
+            + infoBox(COLOR_WARNING, "#fffbeb",
+                "<p style=\"margin:0 0 8px 0; font-size:14px; color:#92400e;\"><strong>Admin Alert</strong></p>"
+                + "<div style=\"font-size:14px; color:#92400e; line-height:1.7;\">" + formattedMessage + "</div>")
+            + p("Please review this alert carefully and take any necessary action. If you have questions or believe this was sent in error, please contact our support team.")
+            + ctaButton("Go to FoodFlow", frontendUrl + "/login", COLOR_PRIMARY)
+            + "<p style=\"margin:16px 0 0 0; font-size:15px; color:#374151; line-height:1.6;\">" 
+            + "Best regards,<br/><strong>The FoodFlow Team</strong></p>";
+
+        return wrapInBrandedTemplate("&#9888; Admin Alert", COLOR_WARNING, content, FOOTER_ADMIN_ACTION);
+    }
+
+    /**
+     * Convert plain-text alert message (with \n line breaks and bullet markers)
+     * into formatted HTML for email rendering.
+     * Handles: newlines → &lt;br/&gt;, lines starting with - or ✓ → styled list items.
+     */
+    private static String formatAlertMessageToHtml(String message) {
+        if (message == null || message.isEmpty()) return "";
+
+        String[] lines = message.split("\n");
+        StringBuilder sb = new StringBuilder();
+        boolean inList = false;
+
+        for (String line : lines) {
+            String trimmed = line.trim();
+            // Detect bullet lines: starting with "- " or "✓ " (with or without space)
+            boolean isBullet = trimmed.startsWith("- ") || trimmed.startsWith("✓ ")
+                    || trimmed.startsWith("✓");
+            if (isBullet) {
+                if (!inList) {
+                    sb.append("<table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"margin:8px 0 8px 4px;\">");
+                    inList = true;
+                }
+                // Strip the bullet marker
+                String bulletText = trimmed.replaceFirst("^[-✓]\\s*", "");
+                sb.append("<tr><td style=\"vertical-align:top; padding:2px 8px 2px 0; color:#92400e; font-size:14px;\">&#8226;</td>")
+                  .append("<td style=\"vertical-align:top; padding:2px 0; font-size:14px; color:#92400e;\">")
+                  .append(bulletText).append("</td></tr>");
+            } else {
+                if (inList) {
+                    sb.append("</table>");
+                    inList = false;
+                }
+                if (trimmed.isEmpty()) {
+                    sb.append("<br/>");
+                } else {
+                    sb.append("<p style=\"margin:4px 0; font-size:14px; color:#92400e;\">").append(trimmed).append("</p>");
+                }
+            }
+        }
+        if (inList) {
+            sb.append("</table>");
+        }
+        return sb.toString();
+    }
+
     /**
      * Convert rejection reason code to human-readable text
      */
