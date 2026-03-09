@@ -154,6 +154,7 @@
 /* ===== Location Input ===== */
 .location-input-container {
   position: relative;
+  width: 100%;
 }
 
 .location-input {
@@ -372,13 +373,18 @@
 }
 
 /* Keep Google Places suggestions above the location modal overlay. */
-.pac-container {
-  z-index: 2147483647 !important;
+body.location-editor-open .pac-container {
+  z-index: 12050 !important;
+  margin-top: 0 !important;
+  border: 1px solid #d5e2ee;
+  border-radius: 10px;
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.16);
+  overflow: hidden;
 }
 
-/* Align Google Places popup with fixed modal input when page is scrolled. */
-body.location-editor-open .pac-container {
-  transform: translateY(calc(-1 * var(--ff-scroll-y, 0px)));
+body.location-editor-open .pac-item {
+  padding: 10px 12px;
+  border-top: 1px solid #ecf2f8;
 }
 
 .location-search-label {

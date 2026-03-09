@@ -290,6 +290,13 @@ const Settings = () => {
     libraries: ['places'],
   });
 
+  useEffect(() => {
+    document.body.classList.add('settings-address-open');
+    return () => {
+      document.body.classList.remove('settings-address-open');
+    };
+  }, []);
+
   // Load user profile on component mount
   useEffect(() => {
     if (userId) {
@@ -877,20 +884,25 @@ const Settings = () => {
                       {t('settings.account.address')}
                     </label>
                     {isMapsLoaded ? (
-                      <Autocomplete
-                        onLoad={onLoadAddressAutocomplete}
-                        onPlaceChanged={handleAddressPlaceChanged}
-                      >
-                        <input
-                          type="text"
-                          name="address"
-                          className={`field-input ${errors.address ? 'error' : ''}`}
-                          placeholder={t('settings.account.addressPlaceholder')}
-                          value={formData.address}
-                          onChange={handleInputChange}
-                          autoComplete="off"
-                        />
-                      </Autocomplete>
+                      <div className="settings-address-autocomplete-wrap">
+                        <Autocomplete
+                          onLoad={onLoadAddressAutocomplete}
+                          onPlaceChanged={handleAddressPlaceChanged}
+                          options={{ types: ['address'] }}
+                        >
+                          <input
+                            type="text"
+                            name="address"
+                            className={`field-input ${errors.address ? 'error' : ''}`}
+                            placeholder={t(
+                              'settings.account.addressPlaceholder'
+                            )}
+                            value={formData.address}
+                            onChange={handleInputChange}
+                            autoComplete="off"
+                          />
+                        </Autocomplete>
+                      </div>
                     ) : (
                       <input
                         type="text"

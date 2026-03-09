@@ -208,17 +208,26 @@ const FiltersPanel = ({
       return undefined;
     }
 
+    const syncScrollOffset = () => {
+      root.style.setProperty(
+        '--ff-modal-scroll-y',
+        `${window.scrollY || window.pageYOffset || 0}px`
+      );
+    };
+
     if (showLocationEditor) {
       body.classList.add('location-editor-open');
-      root.style.setProperty('--ff-scroll-y', `${window.scrollY || 0}px`);
+      syncScrollOffset();
+      window.addEventListener('scroll', syncScrollOffset, { passive: true });
     } else {
       body.classList.remove('location-editor-open');
-      root.style.removeProperty('--ff-scroll-y');
+      root.style.removeProperty('--ff-modal-scroll-y');
     }
 
     return () => {
       body.classList.remove('location-editor-open');
-      root.style.removeProperty('--ff-scroll-y');
+      root.style.removeProperty('--ff-modal-scroll-y');
+      window.removeEventListener('scroll', syncScrollOffset);
     };
   }, [showLocationEditor]);
 
