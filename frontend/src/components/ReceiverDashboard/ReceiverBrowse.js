@@ -186,42 +186,170 @@ export default function ReceiverBrowse() {
 
     let isMounted = true;
 
-    const geocodeAddress = address =>
-      new Promise(resolve => {
-        if (!address?.trim() || !window.google?.maps?.Geocoder) {
-          resolve(null);
-          return;
+    const geocodeAddress = async address => {
+      const normalizedAddress = address?.trim();
+      if (!normalizedAddress) {
+        return null;
+      }
+
+      // Prefer in-browser Geocoder when available.
+      if (window.google?.maps?.Geocoder) {
+        const geocoder = new window.google.maps.Geocoder();
+        const geocoderResult = await new Promise(resolve => {
+          geocoder.geocode(
+            { address: normalizedAddress },
+            (results, status) => {
+              if (
+                status !== 'OK' ||
+                !Array.isArray(results) ||
+                results.length === 0
+              ) {
+                resolve(null);
+                return;
+              }
+
+              const topResult = results[0];
+              const point = topResult.geometry?.location;
+              if (!point) {
+                resolve(null);
+                return;
+              }
+
+              resolve({
+                lat: point.lat(),
+                lng: point.lng(),
+                address: topResult.formatted_address || normalizedAddress,
+                formattedAddress:
+                  topResult.formatted_address || normalizedAddress,
+                placeId: topResult.place_id || '',
+                addressComponents: topResult.address_components || [],
+                source: 'account',
+              });
+            }
+          );
+        });
+
+        if (geocoderResult) {
+          return geocoderResult;
+        }
+      }
+
+      // Fallback: Places text search via Maps JS (works when Places is enabled).
+      if (window.google?.maps?.places?.PlacesService) {
+        try {
+          const placesResult = await new Promise(resolve => {
+            const service = new window.google.maps.places.PlacesService(
+              document.createElement('div')
+            );
+            service.findPlaceFromQuery(
+              {
+                query: normalizedAddress,
+                fields: ['geometry', 'formatted_address', 'place_id', 'name'],
+              },
+              (results, status) => {
+                const topResult =
+                  status === window.google.maps.places.PlacesServiceStatus.OK &&
+                  Array.isArray(results) &&
+                  results.length > 0
+                    ? results[0]
+                    : null;
+                const point = topResult?.geometry?.location;
+                if (!point) {
+                  resolve(null);
+                  return;
+                }
+                resolve({
+                  lat: point.lat(),
+                  lng: point.lng(),
+                  address:
+                    topResult.formatted_address ||
+                    topResult.name ||
+                    normalizedAddress,
+                  formattedAddress:
+                    topResult.formatted_address ||
+                    topResult.name ||
+                    normalizedAddress,
+                  placeId: topResult.place_id || '',
+                  addressComponents: [],
+                  source: 'account',
+                });
+              }
+            );
+          });
+
+          if (placesResult) {
+            return placesResult;
+          }
+        } catch {
+          // continue to HTTP fallbacks
+        }
+      }
+
+      // Fallback 1: Google Geocoding HTTP API.
+      const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+      if (apiKey) {
+        try {
+          const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
+            normalizedAddress
+          )}&key=${apiKey}`;
+          const response = await fetch(url);
+          const payload = await response.json();
+          const topResult =
+            payload?.status === 'OK' &&
+            Array.isArray(payload.results) &&
+            payload.results.length > 0
+              ? payload.results[0]
+              : null;
+          const point = topResult?.geometry?.location;
+          if (point) {
+            return {
+              lat: point.lat,
+              lng: point.lng,
+              address: topResult.formatted_address || normalizedAddress,
+              formattedAddress:
+                topResult.formatted_address || normalizedAddress,
+              placeId: topResult.place_id || '',
+              addressComponents: topResult.address_components || [],
+              source: 'account',
+            };
+          }
+        } catch {
+          // continue to Nominatim fallback
+        }
+      }
+
+      // Fallback 2: OpenStreetMap Nominatim (no key required).
+      try {
+        const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(
+          normalizedAddress
+        )}`;
+        const response = await fetch(nominatimUrl, {
+          headers: {
+            Accept: 'application/json',
+          },
+        });
+        const payload = await response.json();
+        const topResult =
+          Array.isArray(payload) && payload.length > 0 ? payload[0] : null;
+        const lat = Number(topResult?.lat);
+        const lng = Number(topResult?.lon);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+          return null;
         }
 
-        const geocoder = new window.google.maps.Geocoder();
-        geocoder.geocode({ address: address.trim() }, (results, status) => {
-          if (
-            status !== 'OK' ||
-            !Array.isArray(results) ||
-            results.length === 0
-          ) {
-            resolve(null);
-            return;
-          }
-
-          const topResult = results[0];
-          const point = topResult.geometry?.location;
-          if (!point) {
-            resolve(null);
-            return;
-          }
-
-          resolve({
-            lat: point.lat(),
-            lng: point.lng(),
-            address: topResult.formatted_address || address.trim(),
-            formattedAddress: topResult.formatted_address || address.trim(),
-            placeId: topResult.place_id || '',
-            addressComponents: topResult.address_components || [],
-            source: 'account',
-          });
-        });
-      });
+        return {
+          lat,
+          lng,
+          address: topResult.display_name || normalizedAddress,
+          formattedAddress: topResult.display_name || normalizedAddress,
+          placeId: topResult.place_id ? String(topResult.place_id) : '',
+          addressComponents: [],
+          source: 'account',
+        };
+      } catch {
+        return null;
+      }
+    };
 
     const getCountryCodeFromComponents = components => {
       if (!Array.isArray(components)) {
@@ -730,6 +858,40 @@ export default function ReceiverBrowse() {
         <h1 className="receiver-section-title-browse">
           {t('receiverBrowse.title')}
         </h1>
+      </div>
+
+      <div className="receiver-browse-toolbar">
+        <div className="browse-mode-category">
+          <span className="browse-mode-category-label">
+            {t('receiverBrowse.browseBy', 'Browse by')}
+          </span>
+          <div className="browse-mode-controls">
+            <button
+              className={`browse-mode-button ${browseMode === 'list' ? 'active' : ''}`}
+              onClick={() => setBrowseMode('list')}
+            >
+              <List size={16} />
+              {t('receiverBrowse.listView', 'List')}
+            </button>
+            <button
+              className={`browse-mode-button ${browseMode === 'map' ? 'active' : ''}`}
+              onClick={() => {
+                if (accountLocation) {
+                  setFilters(prev => ({
+                    ...prev,
+                    location: prev.location || accountLocation.address || '',
+                    locationCoords: prev.locationCoords || accountLocation,
+                    locationSource: prev.locationSource || 'account',
+                  }));
+                }
+                setBrowseMode('map');
+              }}
+            >
+              <Map size={16} />
+              {t('receiverBrowse.mapView', 'Map')}
+            </button>
+          </div>
+        </div>
 
         {browseMode === 'list' && (
           <div className="sort-controls">
@@ -755,28 +917,6 @@ export default function ReceiverBrowse() {
             </div>
           </div>
         )}
-      </div>
-
-      <div className="browse-mode-category">
-        <span className="browse-mode-category-label">
-          {t('receiverBrowse.browseBy', 'Browse by')}
-        </span>
-        <div className="browse-mode-controls">
-          <button
-            className={`browse-mode-button ${browseMode === 'list' ? 'active' : ''}`}
-            onClick={() => setBrowseMode('list')}
-          >
-            <List size={16} />
-            {t('receiverBrowse.listView', 'List')}
-          </button>
-          <button
-            className={`browse-mode-button ${browseMode === 'map' ? 'active' : ''}`}
-            onClick={() => setBrowseMode('map')}
-          >
-            <Map size={16} />
-            {t('receiverBrowse.mapView', 'Map')}
-          </button>
-        </div>
       </div>
 
       {/* Only render FiltersPanel when Google Maps is loaded */}
@@ -806,12 +946,27 @@ export default function ReceiverBrowse() {
         </div>
       )}
 
-      {!loading && !error && items.length === 0 && (
+      {!loading && !error && items.length === 0 && browseMode === 'list' && (
         <div className="receiver-empty-state">
           <Package className="receiver-empty-state-icon" size={64} />
           <p>{t('receiverBrowse.noDonations')}</p>
           <p>{t('receiverBrowse.checkBackSoon')}</p>
         </div>
+      )}
+
+      {!loading && !error && browseMode === 'map' && (
+        <MapViewModal
+          isOpen={true}
+          onClose={() => setBrowseMode('list')}
+          donations={items}
+          filters={filters}
+          accountLocation={accountLocation}
+          onClaimClick={donation => {
+            setClaimTargetItem(donation);
+            setClaimModalOpen(true);
+          }}
+          isLoaded={isLoaded}
+        />
       )}
 
       {!loading &&
@@ -1323,20 +1478,6 @@ export default function ReceiverBrowse() {
         loading={claiming}
         formatFn={formatPickupTime}
       />
-
-      {!loading && !error && browseMode === 'map' && (
-        <MapViewModal
-          isOpen={true}
-          onClose={() => setBrowseMode('list')}
-          donations={items}
-          filters={appliedFilters}
-          onClaimClick={donation => {
-            setClaimTargetItem(donation);
-            setClaimModalOpen(true);
-          }}
-          isLoaded={isLoaded}
-        />
-      )}
     </div>
   );
 }
