@@ -193,6 +193,7 @@ const FiltersPanel = ({
 }) => {
   const { t } = useTranslation();
   const autocompleteRef = useRef(null);
+  const modalLocationInputRef = useRef(null);
   const [showLocationEditor, setShowLocationEditor] = useState(false);
   const [loadingCurrentLocation, setLoadingCurrentLocation] = useState(false);
   const [locationError, setLocationError] = useState('');
@@ -202,34 +203,81 @@ const FiltersPanel = ({
 
   useEffect(() => {
     const body = document?.body;
-    const root = document?.documentElement;
 
-    if (!body || !root) {
+    if (!body) {
       return undefined;
     }
 
-    const syncScrollOffset = () => {
-      root.style.setProperty(
-        '--ff-modal-scroll-y',
-        `${window.scrollY || window.pageYOffset || 0}px`
-      );
-    };
-
     if (showLocationEditor) {
       body.classList.add('location-editor-open');
-      syncScrollOffset();
-      window.addEventListener('scroll', syncScrollOffset, { passive: true });
     } else {
       body.classList.remove('location-editor-open');
-      root.style.removeProperty('--ff-modal-scroll-y');
     }
 
     return () => {
       body.classList.remove('location-editor-open');
-      root.style.removeProperty('--ff-modal-scroll-y');
-      window.removeEventListener('scroll', syncScrollOffset);
     };
   }, [showLocationEditor]);
+
+  useEffect(() => {
+    if (!showLocationEditor) {
+      return undefined;
+    }
+
+    const syncPacPosition = () => {
+      const input = modalLocationInputRef.current;
+      const pacContainers = Array.from(
+        document.querySelectorAll('.pac-container')
+      );
+      if (!input || pacContainers.length === 0) {
+        return;
+      }
+
+      // Use the latest pac container (Google may leave stale ones in DOM)
+      const pac = pacContainers[pacContainers.length - 1];
+      const rect = input.getBoundingClientRect();
+      pac.style.setProperty('display', 'block', 'important');
+      pac.style.setProperty('position', 'fixed', 'important');
+      pac.style.setProperty('left', `${Math.round(rect.left)}px`, 'important');
+      pac.style.setProperty(
+        'top',
+        `${Math.round(rect.bottom - 1)}px`,
+        'important'
+      );
+      pac.style.setProperty(
+        'width',
+        `${Math.round(rect.width)}px`,
+        'important'
+      );
+
+      // Hide stale suggestion containers to avoid duplicate dropdowns.
+      pacContainers.forEach(container => {
+        if (container === pac) {
+          return;
+        }
+        container.style.setProperty('display', 'none', 'important');
+      });
+    };
+
+    const rafSync = () => {
+      window.requestAnimationFrame(syncPacPosition);
+    };
+
+    const intervalId = window.setInterval(syncPacPosition, 120);
+    window.addEventListener('scroll', rafSync, { passive: true });
+    window.addEventListener('resize', rafSync);
+
+    syncPacPosition();
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener('scroll', rafSync);
+      window.removeEventListener('resize', rafSync);
+      document.querySelectorAll('.pac-container').forEach(container => {
+        container.style.setProperty('display', 'none', 'important');
+      });
+    };
+  }, [showLocationEditor, filters.location]);
 
   // Translate food categories
   const translatedCategories = FOOD_CATEGORIES.map(cat => ({
@@ -594,6 +642,7 @@ const FiltersPanel = ({
                       componentRestrictions={autocompleteCountryRestriction}
                     >
                       <input
+                        ref={modalLocationInputRef}
                         type="text"
                         className="location-input"
                         placeholder={t(
