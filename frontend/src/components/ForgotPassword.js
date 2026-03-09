@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import SEOHead from './SEOHead';
 import {
   Mail,
   ArrowLeft,
@@ -293,6 +294,7 @@ export default function ForgotPassword() {
 
   return (
     <div className="forgot-password-page">
+      <SEOHead noindex />
       {/* Left Side - Image */}
       <div className="forgot-password-left">
         <div className="background-spots">

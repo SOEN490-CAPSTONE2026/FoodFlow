@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { authAPI } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
 import '../style/EmailVerification.css';
+import SEOHead from './SEOHead';
 
 const EmailVerification = () => {
   const [searchParams] = useSearchParams();
@@ -54,6 +55,7 @@ const EmailVerification = () => {
 
   return (
     <div className="email-verification-container">
+      <SEOHead noindex />
       <div className="email-verification-card">
         {status === 'verifying' && (
           <>

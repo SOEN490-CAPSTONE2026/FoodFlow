@@ -8,6 +8,7 @@ import {
 } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { HelmetProvider } from 'react-helmet-async';
 import LandingPage from './components/LandingPage/LandingPage';
 import RegisterType from './components/RegisterType';
 import DonorRegistration from './components/DonorRegistration';
@@ -32,6 +33,7 @@ import ReceiverDashboard from './components/ReceiverDashboard/ReceiverDashboard'
 
 import SurplusForm from './components/DonorDashboard/SurplusFormModal';
 import PrivacyPolicy from './components/PrivacyPolicy';
+import NotFound from './components/NotFound';
 import './App.css';
 
 import { useLocation } from 'react-router-dom';
@@ -141,6 +143,8 @@ function AppContent() {
         />
         <Route path="/surplus/create" element={<SurplusForm />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        {/* Catch-all: renders a noindex 404 page for any unknown route */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
 
       {/* Support chat widget - shown only for authenticated users */}
@@ -151,15 +155,17 @@ function AppContent() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TimezoneProvider>
-          <Router>
-            <AppContent />
-          </Router>
-        </TimezoneProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <TimezoneProvider>
+            <Router>
+              <AppContent />
+            </Router>
+          </TimezoneProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </HelmetProvider>
   );
 }
 
