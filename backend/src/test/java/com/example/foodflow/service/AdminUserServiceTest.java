@@ -6,6 +6,7 @@ import com.example.foodflow.model.entity.Organization;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.UserRole;
 import com.example.foodflow.model.entity.VerificationStatus;
+import com.example.foodflow.audit.AuditLogger;
 import com.example.foodflow.repository.ClaimRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
 import com.example.foodflow.repository.UserRepository;
@@ -49,6 +50,9 @@ class AdminUserServiceTest {
 
     @Mock
     private EmailService emailService;
+
+    @Mock
+    private AuditLogger auditLogger;
 
     @InjectMocks
     private AdminUserService adminUserService;
