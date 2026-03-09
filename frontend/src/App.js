@@ -32,6 +32,8 @@ import ReceiverDashboard from './components/ReceiverDashboard/ReceiverDashboard'
 
 import SurplusForm from './components/DonorDashboard/SurplusFormModal';
 import PrivacyPolicy from './components/PrivacyPolicy';
+import CookieBanner from './components/CookieBanner';
+import { ConsentProvider } from './contexts/ConsentContext';
 import './App.css';
 
 import { useLocation } from 'react-router-dom';
@@ -145,21 +147,25 @@ function AppContent() {
 
       {/* Support chat widget - shown only for authenticated users */}
       {showChatWidget && <ChatWidget />}
+      {/* Cookie consent banner — shown on first visit until user makes a choice */}
+      <CookieBanner />
     </div>
   );
 }
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TimezoneProvider>
-          <Router>
-            <AppContent />
-          </Router>
-        </TimezoneProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <ConsentProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <TimezoneProvider>
+            <Router>
+              <AppContent />
+            </Router>
+          </TimezoneProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ConsentProvider>
   );
 }
 

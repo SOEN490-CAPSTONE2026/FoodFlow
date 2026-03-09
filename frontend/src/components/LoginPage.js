@@ -6,6 +6,7 @@ import { authAPI } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { Eye, EyeOff } from 'lucide-react';
+import ga4Service from '../services/ga4Service';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -64,6 +65,7 @@ const LoginPage = () => {
         accountStatus
       ); // this automatically updates localStorage and context
       trackLogin(true);
+      ga4Service.trackLogin(userRole);
 
       switch (userRole.toUpperCase()) {
         case 'ADMIN':

@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { X, Calendar, Clock, Plus, Trash2 } from 'lucide-react';
 import { Autocomplete } from '@react-google-maps/api';
 import Select from 'react-select';
+import ga4Service from '../../services/ga4Service';
 import DatePicker from 'react-datepicker';
 import { imageAPI, surplusAPI } from '../../services/api';
 import {
@@ -468,6 +469,7 @@ const SurplusFormModal = ({
         response = await surplusAPI.create(submissionData);
         const createdPostId = response?.data?.id || 'unknown';
         setMessage(t('surplusForm.successCreated', { id: createdPostId }));
+        ga4Service.trackDonationCreated();
       }
 
       const savedPostId = response?.data?.id || postId;
