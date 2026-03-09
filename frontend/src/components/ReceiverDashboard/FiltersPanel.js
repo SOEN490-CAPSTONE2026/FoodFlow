@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Autocomplete } from '@react-google-maps/api';
 import DatePicker from 'react-datepicker';
 import {
@@ -149,6 +149,28 @@ const FiltersPanel = ({
   const autocompleteCountryRestriction = countryRestriction
     ? { country: countryRestriction }
     : undefined;
+
+  useEffect(() => {
+    const body = document?.body;
+    const root = document?.documentElement;
+
+    if (!body || !root) {
+      return undefined;
+    }
+
+    if (showLocationEditor) {
+      body.classList.add('location-editor-open');
+      root.style.setProperty('--ff-scroll-y', `${window.scrollY || 0}px`);
+    } else {
+      body.classList.remove('location-editor-open');
+      root.style.removeProperty('--ff-scroll-y');
+    }
+
+    return () => {
+      body.classList.remove('location-editor-open');
+      root.style.removeProperty('--ff-scroll-y');
+    };
+  }, [showLocationEditor]);
 
   // Translate food categories
   const translatedCategories = FOOD_CATEGORIES.map(cat => ({
