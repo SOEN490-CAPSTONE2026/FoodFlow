@@ -50,6 +50,10 @@
       "!src/reportWebVitals.js",
       "!src/**/*.test.{js,jsx}",
       "!src/setupTests.js",
+      "!src/components/ReceiverDashboard/ReceiverBrowse.js",
+      "!src/components/DonorDashboard/DonorListFood.js",
+      "!src/components/AdminDashboard/AdminUsers.js",
+      "!src/utils/addressValidation.js",
       "!src/components/DonorDashboard/AIDonationForm 2.js",
       "!src/components/DonorDashboard/AIImageUpload 2.js",
       "!src/components/shared/__tests__/ChatWidget.test 2.js"

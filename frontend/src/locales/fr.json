@@ -448,6 +448,8 @@
     "streetAddressLabel": "Adresse",
     "streetAddressPlaceholder": "123 Rue Principale",
     "streetAddressRequired": "L'adresse est requise",
+    "selectAddressFromSuggestions": "Veuillez sélectionner une adresse dans les suggestions Google",
+    "addressAutocompleteHint": "Commencez à taper puis sélectionnez une adresse complète",
     "unitLabel": "Unité / Bureau (Optionnel)",
     "unitPlaceholder": "Unité 4B",
     "cityLabel": "Ville",
@@ -463,6 +465,10 @@
     "countryLabel": "Pays",
     "countryPlaceholder": "Canada",
     "countryRequired": "Le pays est requis",
+    "addressValidationError": "Veuillez entrer une adresse complète valide reconnue par Google Maps",
+    "addressReviewError": "Veuillez vérifier les champs d'adresse en surbrillance",
+    "addressMismatchInvalid": "Cette valeur ne correspond pas à Google Maps",
+    "addressMismatchSuggested": "Cette valeur semble incorrecte. Suggestion : {{value}}",
     "contactPersonLabel": "Nom de la personne-ressource",
     "contactPersonPlaceholder": "Jean Dupont",
     "contactPersonRequired": "Le nom de la personne-ressource est requis",
@@ -564,6 +570,8 @@
     "streetAddressLabel": "Adresse",
     "streetAddressPlaceholder": "123 Rue Principale",
     "streetAddressRequired": "L'adresse est requise",
+    "selectAddressFromSuggestions": "Veuillez sélectionner une adresse dans les suggestions Google",
+    "addressAutocompleteHint": "Commencez à taper puis sélectionnez une adresse complète",
     "unitLabel": "Unité / Bureau (Optionnel)",
     "unitPlaceholder": "Unité 4B",
     "cityLabel": "Ville",
@@ -579,6 +587,10 @@
     "countryLabel": "Pays",
     "countryPlaceholder": "Canada",
     "countryRequired": "Le pays est requis",
+    "addressValidationError": "Veuillez entrer une adresse complète valide reconnue par Google Maps",
+    "addressReviewError": "Veuillez vérifier les champs d'adresse en surbrillance",
+    "addressMismatchInvalid": "Cette valeur ne correspond pas à Google Maps",
+    "addressMismatchSuggested": "Cette valeur semble incorrecte. Suggestion : {{value}}",
     "contactPersonLabel": "Nom de la personne-ressource",
     "contactPersonPlaceholder": "Jean Dupont",
     "contactPersonRequired": "Le nom de la personne-ressource est requis",
@@ -966,6 +978,15 @@
     "km": "km",
     "locationLabel": "Emplacement",
     "enterLocation": "Entrer l'emplacement...",
+    "usingAddress": "Adresse utilisée",
+    "noAddressSelected": "Aucune adresse sélectionnée",
+    "useAnotherAddress": "Utiliser une autre adresse",
+    "useAccountAddress": "Utiliser l'adresse du compte",
+    "useCurrentLocation": "Utiliser ma position actuelle",
+    "gettingCurrentLocation": "Localisation en cours…",
+    "searchAnotherAddress": "Rechercher une autre adresse...",
+    "currentLocationUnsupported": "La géolocalisation n'est pas prise en charge par ce navigateur.",
+    "currentLocationFailed": "Impossible d'obtenir votre position actuelle. Essayez une autre adresse.",
     "clearAll": "Tout effacer",
     "applyFilters": "Appliquer les filtres",
     "selectedCount": "{{count}} sélectionné(s)",
@@ -1139,7 +1160,7 @@
     "donations": "Dons",
     "myClaims": "Mes réclamations",
     "savedDonations": "Dons sauvegardés",
-    "inviteCommunity": "Inviter une communauté",
+    "inviteCommunity": "Recommander une organisation",
     "settings": "Paramètres",
     "preferences": "Préférences",
     "help": "Aide",
@@ -1153,7 +1174,7 @@
       "browse": "Parcourir les aliments disponibles",
       "messages": "Messages",
       "settings": "Paramètres",
-      "inviteCommunity": "Inviter une organisation communautaire",
+      "inviteCommunity": "Recommander une organisation",
       "default": "Tableau de bord bénéficiaire"
     },
     "pageDescriptions": {
@@ -1162,7 +1183,7 @@
       "browse": "Parcourir les annonces de nourriture disponibles",
       "messages": "Communiquer avec les donateurs et autres utilisateurs",
       "settings": "Gérer vos préférences et paramètres de compte",
-      "inviteCommunity": "Connaissez-vous une organisation qui pourrait bénéficier de FoodFlow ? Invitez-la à rejoindre.",
+      "inviteCommunity": "Connaissez-vous une organisation qui pourrait bénéficier de FoodFlow ? Partagez son contact et l'équipe FoodFlow la contactera.",
       "default": "Portail bénéficiaire FoodFlow"
     },
     "achievements": "Realisations",
@@ -2624,8 +2645,8 @@
     "BEVERAGES": "Boissons"
   },
   "inviteCommunity": {
-    "title": "Inviter une organisation communautaire",
-    "subtitle": "Vous connaissez une organisation qui pourrait bénéficier de FoodFlow ? Invitez-la à rejoindre en tant que bénéficiaire.",
+    "title": "Recommander une organisation",
+    "subtitle": "Partagez les coordonnées d'une organisation potentiellement intéressée. L'équipe FoodFlow la contactera pour lui présenter la plateforme.",
     "form": {
       "businessNameLabel": "Nom de l'organisation",
       "businessNamePlaceholder": "ex. Banque alimentaire communautaire",
@@ -2634,8 +2655,8 @@
       "contactPhoneLabel": "Téléphone de contact (optionnel)",
       "contactPhonePlaceholder": "+1 (555) 123-4567",
       "messageLabel": "Message personnel (optionnel)",
-      "messagePlaceholder": "Dites-leur pourquoi FoodFlow serait une excellente solution...",
-      "submitButton": "Envoyer l'invitation",
+      "messagePlaceholder": "Ajoutez un contexte utile pour l'équipe FoodFlow (optionnel)...",
+      "submitButton": "Envoyer la recommandation",
       "submitting": "Envoi en cours…"
     },
     "validation": {
@@ -2646,9 +2667,9 @@
       "messageTooLong": "Le message ne peut pas dépasser 500 caractères."
     },
     "success": {
-      "heading": "Invitation envoyée !",
-      "body": "Merci d'avoir aidé à développer la communauté FoodFlow. Notre équipe contactera {{email}} avec plus d'informations.",
-      "submitAnother": "Envoyer une autre invitation"
+      "heading": "Recommandation envoyée !",
+      "body": "Merci. L'équipe FoodFlow contactera {{email}} pour présenter la plateforme.",
+      "submitAnother": "Envoyer une autre recommandation"
     },
     "errors": {
       "generic": "Une erreur s'est produite. Veuillez réessayer."

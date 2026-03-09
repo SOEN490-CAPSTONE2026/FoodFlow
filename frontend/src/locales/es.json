@@ -428,6 +428,8 @@
     "streetAddressLabel": "Dirección",
     "streetAddressPlaceholder": "Calle Principal 123",
     "streetAddressRequired": "La dirección es obligatoria",
+    "selectAddressFromSuggestions": "Por favor selecciona una dirección de las sugerencias de Google",
+    "addressAutocompleteHint": "Empieza a escribir y selecciona una dirección completa",
     "unitLabel": "Unidad / Suite (Opcional)",
     "unitPlaceholder": "Unidad 4B",
     "cityLabel": "Ciudad",
@@ -443,6 +445,10 @@
     "countryLabel": "País",
     "countryPlaceholder": "Canadá",
     "countryRequired": "El país es obligatorio",
+    "addressValidationError": "Por favor ingresa una dirección completa válida reconocida por Google Maps",
+    "addressReviewError": "Por favor revisa los campos de dirección resaltados",
+    "addressMismatchInvalid": "Este valor no coincide con Google Maps",
+    "addressMismatchSuggested": "Este valor parece incorrecto. Sugerencia: {{value}}",
     "contactPersonLabel": "Nombre de la persona de contacto",
     "contactPersonPlaceholder": "Juan Pérez",
     "contactPersonRequired": "El nombre de la persona de contacto es obligatorio",
@@ -544,6 +550,8 @@
     "streetAddressLabel": "Dirección",
     "streetAddressPlaceholder": "Calle Principal 123",
     "streetAddressRequired": "La dirección es obligatoria",
+    "selectAddressFromSuggestions": "Por favor selecciona una dirección de las sugerencias de Google",
+    "addressAutocompleteHint": "Empieza a escribir y selecciona una dirección completa",
     "unitLabel": "Unidad / Suite (Opcional)",
     "unitPlaceholder": "Unidad 4B",
     "cityLabel": "Ciudad",
@@ -559,6 +567,10 @@
     "countryLabel": "País",
     "countryPlaceholder": "Canadá",
     "countryRequired": "El país es obligatorio",
+    "addressValidationError": "Por favor ingresa una dirección completa válida reconocida por Google Maps",
+    "addressReviewError": "Por favor revisa los campos de dirección resaltados",
+    "addressMismatchInvalid": "Este valor no coincide con Google Maps",
+    "addressMismatchSuggested": "Este valor parece incorrecto. Sugerencia: {{value}}",
     "contactPersonLabel": "Nombre de la persona de contacto",
     "contactPersonPlaceholder": "Juan Pérez",
     "contactPersonRequired": "El nombre de la persona de contacto es obligatorio",
@@ -939,6 +951,15 @@
     "km": "km",
     "locationLabel": "Ubicación",
     "enterLocation": "Ingresar ubicación...",
+    "usingAddress": "Usando dirección",
+    "noAddressSelected": "No hay dirección seleccionada",
+    "useAnotherAddress": "Usar otra dirección",
+    "useAccountAddress": "Usar dirección de la cuenta",
+    "useCurrentLocation": "Usar ubicación actual",
+    "gettingCurrentLocation": "Obteniendo ubicación…",
+    "searchAnotherAddress": "Buscar otra dirección...",
+    "currentLocationUnsupported": "La ubicación actual no es compatible en este navegador.",
+    "currentLocationFailed": "No se pudo obtener la ubicación actual. Prueba con otra dirección.",
     "clearAll": "Borrar todo",
     "applyFilters": "Aplicar filtros",
     "selectedCount": "{{count}} seleccionado(s)",
@@ -1113,7 +1134,7 @@
     "donations": "Donaciones",
     "myClaims": "Mis reclamaciones",
     "savedDonations": "Donaciones guardadas",
-    "inviteCommunity": "Invitar comunidad",
+    "inviteCommunity": "Recomendar organización",
     "settings": "Configuración",
     "preferences": "Preferencias",
     "help": "Ayuda",
@@ -1128,7 +1149,7 @@
       "messages": "Mensajes",
       "calendar": "Integración de calendario",
       "settings": "Configuración",
-      "inviteCommunity": "Invitar a una organización comunitaria",
+      "inviteCommunity": "Recomendar una organización",
       "default": "Panel de receptor"
     },
     "pageDescriptions": {
@@ -1138,7 +1159,7 @@
       "messages": "Comunicarse con donantes y otros usuarios",
       "calendar": "Sincroniza tus recogidas con Google Calendar",
       "settings": "Gestionar tus preferencias y configuración de cuenta",
-      "inviteCommunity": "¿Conoces una organización que podría beneficiarse de FoodFlow? Invítala a unirse.",
+      "inviteCommunity": "¿Conoces una organización que podría beneficiarse de FoodFlow? Comparte su contacto y el equipo de FoodFlow la contactará.",
       "default": "Portal de receptor FoodFlow"
     },
     "achievements": "Logros",
@@ -2424,8 +2445,8 @@
     "BEVERAGES": "Bebidas"
   },
   "inviteCommunity": {
-    "title": "Invitar a una organización comunitaria",
-    "subtitle": "¿Conoces una organización que podría beneficiarse de FoodFlow? Invítala a unirse como receptora.",
+    "title": "Recomendar una organización",
+    "subtitle": "Comparte los datos de contacto de una organización que pueda beneficiarse de FoodFlow. Nuestro equipo la contactará para presentarle la plataforma.",
     "form": {
       "businessNameLabel": "Nombre de la organización",
       "businessNamePlaceholder": "ej. Despensa alimentaria comunitaria",
@@ -2434,9 +2455,9 @@
       "contactPhoneLabel": "Teléfono de contacto (opcional)",
       "contactPhonePlaceholder": "+1 (555) 123-4567",
       "messageLabel": "Mensaje personal (opcional)",
-      "messagePlaceholder": "Cuéntales por qué FoodFlow sería una excelente opción...",
-      "submitButton": "Enviar invitación",
-      "submitting": "Enviando invitación…"
+      "messagePlaceholder": "Añade contexto útil para el equipo de FoodFlow (opcional)...",
+      "submitButton": "Enviar recomendación",
+      "submitting": "Enviando recomendación…"
     },
     "validation": {
       "businessNameRequired": "El nombre de la organización es obligatorio.",
@@ -2446,9 +2467,9 @@
       "messageTooLong": "El mensaje no puede exceder 500 caracteres."
     },
     "success": {
-      "heading": "¡Invitación enviada!",
-      "body": "Gracias por ayudar a hacer crecer la comunidad FoodFlow. Nuestro equipo contactará a {{email}} con más información.",
-      "submitAnother": "Enviar otra invitación"
+      "heading": "¡Recomendación enviada!",
+      "body": "Gracias. El equipo de FoodFlow contactará a {{email}} para presentarle la plataforma.",
+      "submitAnother": "Enviar otra recomendación"
     },
     "errors": { "generic": "Algo salió mal. Por favor, inténtalo de nuevo." }
   },

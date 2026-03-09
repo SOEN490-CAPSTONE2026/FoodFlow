@@ -1,7 +1,15 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Autocomplete } from '@react-google-maps/api';
 import DatePicker from 'react-datepicker';
-import { Filter, X, ChevronDown, MapPin, Check } from 'lucide-react';
+import {
+  Filter,
+  X,
+  ChevronDown,
+  MapPin,
+  Check,
+  Navigation,
+  Search,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import './Receiver_Styles/FiltersPanel.css';
 
@@ -130,9 +138,39 @@ const FiltersPanel = ({
   onClearFilters,
   isVisible = true,
   onClose,
+  accountLocation = null,
+  countryRestriction = '',
 }) => {
   const { t } = useTranslation();
   const autocompleteRef = useRef(null);
+  const [showLocationEditor, setShowLocationEditor] = useState(false);
+  const [loadingCurrentLocation, setLoadingCurrentLocation] = useState(false);
+  const [locationError, setLocationError] = useState('');
+  const autocompleteCountryRestriction = countryRestriction
+    ? { country: countryRestriction }
+    : undefined;
+
+  useEffect(() => {
+    const body = document?.body;
+    const root = document?.documentElement;
+
+    if (!body || !root) {
+      return undefined;
+    }
+
+    if (showLocationEditor) {
+      body.classList.add('location-editor-open');
+      root.style.setProperty('--ff-scroll-y', `${window.scrollY || 0}px`);
+    } else {
+      body.classList.remove('location-editor-open');
+      root.style.removeProperty('--ff-scroll-y');
+    }
+
+    return () => {
+      body.classList.remove('location-editor-open');
+      root.style.removeProperty('--ff-scroll-y');
+    };
+  }, [showLocationEditor]);
 
   // Translate food categories
   const translatedCategories = FOOD_CATEGORIES.map(cat => ({
@@ -161,9 +199,16 @@ const FiltersPanel = ({
     } else if (filterType === 'distance') {
       onFiltersChange(filterType, 10); // Reset to default
     } else if (filterType === 'location') {
-      // Clear both location string and coordinates
-      onFiltersChange(filterType, '');
-      onFiltersChange('locationCoords', null);
+      if (accountLocation) {
+        onFiltersChange('location', accountLocation.address || '');
+        onFiltersChange('locationCoords', accountLocation);
+        onFiltersChange('locationSource', 'account');
+      } else {
+        // Clear both location string and coordinates
+        onFiltersChange(filterType, '');
+        onFiltersChange('locationCoords', null);
+        onFiltersChange('locationSource', 'manual');
+      }
     } else {
       onFiltersChange(filterType, '');
     }
@@ -183,17 +228,110 @@ const FiltersPanel = ({
           lat: location.lat(),
           lng: location.lng(),
           address: address,
+          formattedAddress: place.formatted_address || address,
+          placeId: place.place_id || '',
+          addressComponents: place.address_components || [],
         };
 
         // Store both the display address and coordinates
         handleFilterChange('location', address);
         handleFilterChange('locationCoords', coords);
+        handleFilterChange('locationSource', 'manual');
+        setLocationError('');
       } else if (place && place.formatted_address) {
         handleFilterChange('location', place.formatted_address);
+        handleFilterChange('locationSource', 'manual');
       } else if (place && place.name) {
         handleFilterChange('location', place.name);
+        handleFilterChange('locationSource', 'manual');
       }
     }
+  };
+
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError(
+        t(
+          'filtersPanel.currentLocationUnsupported',
+          'Current location is not supported in this browser.'
+        )
+      );
+      return;
+    }
+
+    setLoadingCurrentLocation(true);
+    setLocationError('');
+
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        const { latitude, longitude } = position.coords;
+        const geocoder = window.google?.maps
+          ? new window.google.maps.Geocoder()
+          : null;
+
+        if (!geocoder) {
+          const fallbackAddress = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+          handleFilterChange('location', fallbackAddress);
+          handleFilterChange('locationCoords', {
+            lat: latitude,
+            lng: longitude,
+            address: fallbackAddress,
+          });
+          handleFilterChange('locationSource', 'current');
+          setLoadingCurrentLocation(false);
+          return;
+        }
+
+        geocoder.geocode(
+          { location: { lat: latitude, lng: longitude } },
+          (results, status) => {
+            const topResult =
+              status === 'OK' && Array.isArray(results) && results[0]
+                ? results[0]
+                : null;
+            const address =
+              topResult?.formatted_address ||
+              `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+
+            handleFilterChange('location', address);
+            handleFilterChange('locationCoords', {
+              lat: latitude,
+              lng: longitude,
+              address,
+              formattedAddress: topResult?.formatted_address || address,
+              placeId: topResult?.place_id || '',
+              addressComponents: topResult?.address_components || [],
+            });
+            handleFilterChange('locationSource', 'current');
+            setLoadingCurrentLocation(false);
+          }
+        );
+      },
+      () => {
+        setLocationError(
+          t(
+            'filtersPanel.currentLocationFailed',
+            'Unable to get current location. Please try another address.'
+          )
+        );
+        setLoadingCurrentLocation(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+  };
+
+  const handleUseAccountAddress = () => {
+    if (!accountLocation) {
+      return;
+    }
+    handleFilterChange('location', accountLocation.address || '');
+    handleFilterChange('locationCoords', accountLocation);
+    handleFilterChange('locationSource', 'account');
+    setLocationError('');
   };
 
   if (!isVisible) {
@@ -273,33 +411,156 @@ const FiltersPanel = ({
               />
             </div>
           </div>
+        </div>
 
-          {/* Location Filter */}
-          <div className="filter-group">
-            <label className="filter-label">
-              {t('filtersPanel.locationLabel')}
-            </label>
-            <div className="location-input-container">
-              <MapPin className="location-icon" size={16} color="#717182" />
-              <Autocomplete
-                onLoad={autocomplete =>
-                  (autocompleteRef.current = autocomplete)
-                }
-                onPlaceChanged={handlePlaceSelect}
-                types={['geocode', 'establishment']}
-                componentRestrictions={{ country: ['us', 'ca'] }}
+        <div className="location-override-row">
+          <div className="location-summary">
+            <MapPin className="location-icon-inline" size={14} />
+            <span className="location-summary-label">
+              {t('filtersPanel.usingAddress', 'Using address')}:
+            </span>
+            <span className="location-summary-value">
+              {filters.location ||
+                t('filtersPanel.noAddressSelected', 'No address selected')}
+            </span>
+          </div>
+          <div className="location-summary-actions">
+            <button
+              type="button"
+              className="location-override-btn"
+              onClick={() => setShowLocationEditor(true)}
+            >
+              {t('filtersPanel.useAnotherAddress', 'Use another address')}
+            </button>
+            {filters.locationSource !== 'account' && accountLocation && (
+              <button
+                type="button"
+                className="location-override-btn location-override-btn--secondary"
+                onClick={handleUseAccountAddress}
               >
-                <input
-                  type="text"
-                  className="location-input"
-                  placeholder={t('filtersPanel.enterLocation')}
-                  value={filters.location || ''}
-                  onChange={e => handleFilterChange('location', e.target.value)}
-                />
-              </Autocomplete>
-            </div>
+                {t('filtersPanel.useAccountAddress', 'Use account address')}
+              </button>
+            )}
           </div>
         </div>
+
+        {showLocationEditor && (
+          <div
+            className="location-editor-modal-overlay"
+            role="dialog"
+            aria-modal="true"
+            onClick={() => setShowLocationEditor(false)}
+          >
+            <div
+              className="location-editor-modal"
+              onClick={e => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                className="location-editor-modal-close"
+                onClick={() => setShowLocationEditor(false)}
+              >
+                <X size={16} />
+              </button>
+
+              <div className="location-editor-modal-hero">
+                <div className="location-editor-modal-icon">
+                  <MapPin size={24} />
+                </div>
+                <h3>
+                  {t('filtersPanel.useAnotherAddress', 'Use another address')}
+                </h3>
+                <p>
+                  {t(
+                    'filtersPanel.chooseAddressHint',
+                    'Choose your current location or search for another address.'
+                  )}
+                </p>
+              </div>
+
+              <div className="location-editor">
+                <div className="location-editor-actions location-choice-actions">
+                  <button
+                    type="button"
+                    className="location-choice-btn location-choice-btn--primary"
+                    onClick={handleUseCurrentLocation}
+                    disabled={loadingCurrentLocation}
+                  >
+                    <Navigation size={16} />
+                    {loadingCurrentLocation
+                      ? t(
+                          'filtersPanel.gettingCurrentLocation',
+                          'Getting location…'
+                        )
+                      : t(
+                          'filtersPanel.useCurrentLocation',
+                          'Use current location'
+                        )}
+                  </button>
+                  {accountLocation && (
+                    <button
+                      type="button"
+                      className="location-choice-btn location-choice-btn--secondary"
+                      onClick={handleUseAccountAddress}
+                    >
+                      <MapPin size={16} />
+                      {t(
+                        'filtersPanel.useAccountAddress',
+                        'Use account address'
+                      )}
+                    </button>
+                  )}
+                </div>
+
+                <div className="location-search-card">
+                  <div className="location-search-label">
+                    <Search size={15} />
+                    {t(
+                      'filtersPanel.searchAnotherAddress',
+                      'Search another address...'
+                    )}
+                  </div>
+                  <div className="location-input-container">
+                    <MapPin
+                      className="location-icon"
+                      size={16}
+                      color="#717182"
+                    />
+                    <Autocomplete
+                      onLoad={autocomplete =>
+                        (autocompleteRef.current = autocomplete)
+                      }
+                      onPlaceChanged={handlePlaceSelect}
+                      types={['address']}
+                      componentRestrictions={autocompleteCountryRestriction}
+                    >
+                      <input
+                        type="text"
+                        className="location-input"
+                        placeholder={t(
+                          'filtersPanel.searchAnotherAddress',
+                          'Search another address...'
+                        )}
+                        value={
+                          filters.locationSource === 'manual'
+                            ? filters.location || ''
+                            : ''
+                        }
+                        onChange={e => {
+                          handleFilterChange('locationSource', 'manual');
+                          handleFilterChange('location', e.target.value);
+                        }}
+                      />
+                    </Autocomplete>
+                  </div>
+                </div>
+                {locationError && (
+                  <p className="location-error">{locationError}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Applied Filters and Action Buttons */}
         <div className="filter-actions">
@@ -359,19 +620,20 @@ const FiltersPanel = ({
                 </div>
               )}
 
-              {appliedFilters.location && (
-                <div className="filter-tag">
-                  <span className="tag-text">
-                    {t('filtersPanel.tagNear')} {appliedFilters.location}
-                  </span>
-                  <button
-                    className="tag-remove"
-                    onClick={() => handleRemoveFilter('location')}
-                  >
-                    <X size={10} />
-                  </button>
-                </div>
-              )}
+              {appliedFilters.location &&
+                appliedFilters.locationSource !== 'account' && (
+                  <div className="filter-tag">
+                    <span className="tag-text">
+                      {t('filtersPanel.tagNear')} {appliedFilters.location}
+                    </span>
+                    <button
+                      className="tag-remove"
+                      onClick={() => handleRemoveFilter('location')}
+                    >
+                      <X size={10} />
+                    </button>
+                  </div>
+                )}
             </div>
           </div>
 
