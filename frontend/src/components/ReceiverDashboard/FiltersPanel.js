@@ -1,7 +1,15 @@
 import React, { useState, useRef } from 'react';
 import { Autocomplete } from '@react-google-maps/api';
 import DatePicker from 'react-datepicker';
-import { Filter, X, ChevronDown, MapPin, Check } from 'lucide-react';
+import {
+  Filter,
+  X,
+  ChevronDown,
+  MapPin,
+  Check,
+  Navigation,
+  Search,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import './Receiver_Styles/FiltersPanel.css';
 
@@ -398,7 +406,7 @@ const FiltersPanel = ({
             <button
               type="button"
               className="location-override-btn"
-              onClick={() => setShowLocationEditor(prev => !prev)}
+              onClick={() => setShowLocationEditor(true)}
             >
               {t('filtersPanel.useAnotherAddress', 'Use another address')}
             </button>
@@ -415,55 +423,120 @@ const FiltersPanel = ({
         </div>
 
         {showLocationEditor && (
-          <div className="location-editor">
-            <div className="location-editor-actions">
+          <div
+            className="location-editor-modal-overlay"
+            role="dialog"
+            aria-modal="true"
+            onClick={() => setShowLocationEditor(false)}
+          >
+            <div
+              className="location-editor-modal"
+              onClick={e => e.stopPropagation()}
+            >
               <button
                 type="button"
-                className="location-editor-btn"
-                onClick={handleUseCurrentLocation}
-                disabled={loadingCurrentLocation}
+                className="location-editor-modal-close"
+                onClick={() => setShowLocationEditor(false)}
               >
-                {loadingCurrentLocation
-                  ? t(
-                      'filtersPanel.gettingCurrentLocation',
-                      'Getting location…'
-                    )
-                  : t(
-                      'filtersPanel.useCurrentLocation',
-                      'Use current location'
-                    )}
+                <X size={16} />
               </button>
-            </div>
-            <div className="location-input-container">
-              <MapPin className="location-icon" size={16} color="#717182" />
-              <Autocomplete
-                onLoad={autocomplete =>
-                  (autocompleteRef.current = autocomplete)
-                }
-                onPlaceChanged={handlePlaceSelect}
-                types={['address']}
-                componentRestrictions={autocompleteCountryRestriction}
-              >
-                <input
-                  type="text"
-                  className="location-input"
-                  placeholder={t(
-                    'filtersPanel.searchAnotherAddress',
-                    'Search another address...'
+
+              <div className="location-editor-modal-hero">
+                <div className="location-editor-modal-icon">
+                  <MapPin size={24} />
+                </div>
+                <h3>
+                  {t('filtersPanel.useAnotherAddress', 'Use another address')}
+                </h3>
+                <p>
+                  {t(
+                    'filtersPanel.chooseAddressHint',
+                    'Choose your current location or search for another address.'
                   )}
-                  value={
-                    filters.locationSource === 'manual'
-                      ? filters.location || ''
-                      : ''
-                  }
-                  onChange={e => {
-                    handleFilterChange('locationSource', 'manual');
-                    handleFilterChange('location', e.target.value);
-                  }}
-                />
-              </Autocomplete>
+                </p>
+              </div>
+
+              <div className="location-editor">
+                <div className="location-editor-actions location-choice-actions">
+                  <button
+                    type="button"
+                    className="location-choice-btn location-choice-btn--primary"
+                    onClick={handleUseCurrentLocation}
+                    disabled={loadingCurrentLocation}
+                  >
+                    <Navigation size={16} />
+                    {loadingCurrentLocation
+                      ? t(
+                          'filtersPanel.gettingCurrentLocation',
+                          'Getting location…'
+                        )
+                      : t(
+                          'filtersPanel.useCurrentLocation',
+                          'Use current location'
+                        )}
+                  </button>
+                  {accountLocation && (
+                    <button
+                      type="button"
+                      className="location-choice-btn location-choice-btn--secondary"
+                      onClick={handleUseAccountAddress}
+                    >
+                      <MapPin size={16} />
+                      {t(
+                        'filtersPanel.useAccountAddress',
+                        'Use account address'
+                      )}
+                    </button>
+                  )}
+                </div>
+
+                <div className="location-search-card">
+                  <div className="location-search-label">
+                    <Search size={15} />
+                    {t(
+                      'filtersPanel.searchAnotherAddress',
+                      'Search another address...'
+                    )}
+                  </div>
+                  <div className="location-input-container">
+                    <MapPin
+                      className="location-icon"
+                      size={16}
+                      color="#717182"
+                    />
+                    <Autocomplete
+                      onLoad={autocomplete =>
+                        (autocompleteRef.current = autocomplete)
+                      }
+                      onPlaceChanged={handlePlaceSelect}
+                      types={['address']}
+                      componentRestrictions={autocompleteCountryRestriction}
+                    >
+                      <input
+                        type="text"
+                        className="location-input"
+                        placeholder={t(
+                          'filtersPanel.searchAnotherAddress',
+                          'Search another address...'
+                        )}
+                        value={
+                          filters.locationSource === 'manual'
+                            ? filters.location || ''
+                            : ''
+                        }
+                        onChange={e => {
+                          handleFilterChange('locationSource', 'manual');
+                          handleFilterChange('location', e.target.value);
+                        }}
+                      />
+                    </Autocomplete>
+                  </div>
+                </div>
+                {locationError && (
+                  <p className="location-error">{locationError}</p>
+                )}
+              </div>
             </div>
-            {locationError && <p className="location-error">{locationError}</p>}
           </div>
         )}
 

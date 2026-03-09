@@ -70,10 +70,11 @@ const ReceiverRegistration = () => {
   const navigate = useNavigate();
   const { login } = useContext(AuthContext);
   const autocompleteRef = useRef(null);
-  const { isLoaded: isMapsLoaded } = useLoadScript({
-    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY || '',
-    libraries,
-  });
+  const { isLoaded: isMapsLoaded } =
+    useLoadScript({
+      googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY || '',
+      libraries,
+    }) || {};
   const shouldRequireAddressSelection =
     process.env.NODE_ENV !== 'test' && isMapsLoaded;
 

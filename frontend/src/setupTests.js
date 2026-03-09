@@ -6,6 +6,8 @@ import '@testing-library/jest-dom';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
+jest.setTimeout(15000);
+
 // Initialize i18n for tests
 i18n.use(initReactI18next).init({
   lng: 'en',

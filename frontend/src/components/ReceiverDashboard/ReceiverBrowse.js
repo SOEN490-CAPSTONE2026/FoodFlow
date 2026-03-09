@@ -76,7 +76,6 @@ export default function ReceiverBrowse() {
   });
   const [accountLocation, setAccountLocation] = useState(null);
 
-  const [isFiltersVisible, setIsFiltersVisible] = useState(true);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -548,10 +547,6 @@ export default function ReceiverBrowse() {
     }
   }, [accountLocation, fetchDonations, fetchFilteredDonations]);
 
-  const handleCloseFilters = useCallback(() => {
-    setIsFiltersVisible(false);
-  }, []);
-
   const handleMoreClick = useCallback(item => {
     setExpandedCardId(prev => (prev === item.id ? null : item.id));
   }, []);
@@ -927,8 +922,7 @@ export default function ReceiverBrowse() {
           onApplyFilters={handleApplyFilters}
           appliedFilters={appliedFilters}
           onClearFilters={handleClearFilters}
-          isVisible={isFiltersVisible}
-          onClose={handleCloseFilters}
+          isVisible={true}
           accountLocation={accountLocation}
           countryRestriction={receiverCountryCode}
         />
