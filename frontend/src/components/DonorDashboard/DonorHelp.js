@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  ChevronDown,
-  ChevronUp,
+  Plus,
+  Minus,
   HelpCircle,
   BookOpen,
   MessageCircle,
@@ -12,6 +12,9 @@ import {
   Clock,
   Shield,
   AlertCircle,
+  Search,
+  Rocket,
+  Users,
 } from 'lucide-react';
 import './Donor_Styles/DonorHelp.css';
 
@@ -19,60 +22,18 @@ import './Donor_Styles/DonorHelp.css';
  * Reusable FAQ Item component with expand/collapse functionality
  */
 const FAQItem = ({ question, answer, isOpen, onClick }) => (
-  <div
-    data-no-animate="true"
-    style={{
-      border: '2px solid #e5e7eb',
-      borderRadius: '10px',
-      marginBottom: '12px',
-      backgroundColor: '#ffffff',
-      overflow: 'visible',
-      opacity: 1,
-      transform: 'none',
-      animation: 'none',
-      transition: 'none',
-      visibility: 'visible',
-      position: 'relative',
-      zIndex: 1,
-      height: 'auto',
-      maxHeight: 'none',
-      minHeight: 'auto',
-    }}
-  >
+  <div data-no-animate="true" className={`faq-item ${isOpen ? 'open' : ''}`}>
     <button
       className="faq-question"
       onClick={onClick}
       aria-expanded={isOpen}
       aria-controls={`faq-answer-${question.replace(/\s+/g, '-').toLowerCase()}`}
-      style={{
-        width: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '16px 20px',
-        backgroundColor: isOpen ? '#e8f5e9' : '#ffffff',
-        border: 'none',
-        cursor: 'pointer',
-        textAlign: 'left',
-        color: isOpen ? '#2e7d32' : '#1a1a1a',
-        fontSize: '16px',
-        fontWeight: '600',
-        fontFamily: 'inherit',
-      }}
     >
-      <span
-        style={{
-          color: isOpen ? '#2e7d32' : '#1a1a1a',
-          flex: 1,
-          paddingRight: '16px',
-        }}
-      >
-        {question}
-      </span>
+      <span>{question}</span>
       {isOpen ? (
-        <ChevronUp size={24} style={{ color: '#4caf50', flexShrink: 0 }} />
+        <Minus size={20} style={{ color: '#1b4965', flexShrink: 0 }} />
       ) : (
-        <ChevronDown size={24} style={{ color: '#4caf50', flexShrink: 0 }} />
+        <Plus size={20} style={{ color: '#9ca3af', flexShrink: 0 }} />
       )}
     </button>
     {isOpen && (
@@ -80,21 +41,6 @@ const FAQItem = ({ question, answer, isOpen, onClick }) => (
         className="faq-answer"
         id={`faq-answer-${question.replace(/\s+/g, '-').toLowerCase()}`}
         role="region"
-        style={{
-          padding: '16px 20px',
-          backgroundColor: '#f9fffe',
-          color: '#333333',
-          fontSize: '15px',
-          lineHeight: '1.8',
-          borderTop: '1px solid #e8f5e9',
-          overflow: 'visible',
-          height: 'auto',
-          maxHeight: 'none',
-          minHeight: 'auto',
-          display: 'block',
-          opacity: 1,
-          visibility: 'visible',
-        }}
       >
         {answer}
       </div>
@@ -108,6 +54,7 @@ const FAQItem = ({ question, answer, isOpen, onClick }) => (
  */
 export default function DonorHelp() {
   const [openFAQ, setOpenFAQ] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const { t } = useTranslation();
 
   const faqs = [
@@ -126,22 +73,22 @@ export default function DonorHelp() {
     answer: t(`donorHelp.faq.items.${key}.answer`),
   }));
 
-  const steps = [
+  const categories = [
     {
-      key: 'step1',
-      icon: <Heart size={20} />,
+      icon: <Rocket size={24} />,
+      title: t('donorHelp.gettingStarted.title'),
+      description: t('donorHelp.gettingStarted.intro'),
     },
     {
-      key: 'step2',
-      icon: <Clock size={20} />,
+      icon: <Shield size={24} />,
+      title: 'Food Safety',
+      description:
+        'Learn about food safety guidelines, proper handling, and storage requirements.',
     },
     {
-      key: 'step3',
-      icon: <AlertCircle size={20} />,
-    },
-    {
-      key: 'step4',
-      icon: <Shield size={20} />,
+      icon: <Users size={24} />,
+      title: t('donorHelp.support.title'),
+      description: t('donorHelp.support.intro'),
     },
   ];
 
@@ -149,40 +96,57 @@ export default function DonorHelp() {
     setOpenFAQ(openFAQ === index ? null : index);
   };
 
+  const filteredFAQs = faqs.filter(
+    faq =>
+      faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      faq.answer.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="donor-help">
-      <section className="help-section getting-started">
-        <div className="section-header">
-          <BookOpen size={24} />
-          <h2>{t('donorHelp.gettingStarted.title')}</h2>
+      {/* Hero Section with Search */}
+      <div className="help-hero">
+        <h1 className="donor-help-title">Need Assistance?</h1>
+        <p className="help-subtitle">
+          If you're feeling overwhelmed, remember you don't have to face it
+          alone. Reach out and get the help you need
+        </p>
+        <div className="search-container">
+          <Search className="search-icon" size={20} />
+          <input
+            type="text"
+            placeholder="Ask a question..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="search-input"
+          />
         </div>
-        <p className="section-intro">{t('donorHelp.gettingStarted.intro')}</p>
-        <div className="getting-started-content">
-          {steps.map((step, index) => (
-            <div className="step" key={step.key}>
-              <div className="step-number">{index + 1}</div>
-              <div className="step-content">
-                <div className="step-icon">{step.icon}</div>
-                <h4>{t(`donorHelp.gettingStarted.steps.${step.key}.title`)}</h4>
-                <p>
-                  {t(`donorHelp.gettingStarted.steps.${step.key}.description`)}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+      </div>
 
-      <section className="help-section faq-section">
-        <div className="section-header">
-          <HelpCircle size={24} />
-          <h2>{t('donorHelp.faq.title')}</h2>
+      {/* Category Cards */}
+      <div className="category-cards">
+        {categories.map((category, index) => (
+          <div className="category-card" key={index}>
+            <div className="category-header">
+              <div className="category-icon">{category.icon}</div>
+              <h3 className="category-title">{category.title}</h3>
+            </div>
+            <p className="category-description">{category.description}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* FAQ Section */}
+      <section className="faq-section">
+        <div className="faq-header">
+          <h2 className="faq-heading">FAQ's</h2>
+          <p className="faq-subtitle">
+            Everything you need to know about the product and other information.
+            Can't find the answer you're looking for?
+          </p>
         </div>
-        <div
-          role="list"
-          style={{ display: 'flex', flexDirection: 'column', gap: '0' }}
-        >
-          {faqs.map((faq, index) => (
+        <div className="faq-list">
+          {(searchQuery ? filteredFAQs : faqs).map((faq, index) => (
             <FAQItem
               key={index}
               question={faq.question}
@@ -194,18 +158,21 @@ export default function DonorHelp() {
         </div>
       </section>
 
-      <section className="help-section contact-section">
-        <div className="section-header">
-          <MessageCircle size={24} />
-          <h2>{t('donorHelp.support.title')}</h2>
+      {/* Contact Support */}
+      <section className="help-contact-section">
+        <div className="donor-contact-header">
+          <h2 className="donor-contact-heading">Still need help?</h2>
+          <p className="donor-contact-subtitle">
+            Our support team is here to assist you. Reach out through your
+            preferred channel.
+          </p>
         </div>
-        <p className="section-intro">{t('donorHelp.support.intro')}</p>
-        <div className="contact-options">
-          <a href="mailto:support@foodflow.com" className="contact-card">
-            <div className="contact-icon">
+        <div className="donor-contact-options">
+          <a href="mailto:support@foodflow.com" className="donor-contact-card">
+            <div className="donor-contact-icon">
               <Mail size={24} />
             </div>
-            <div className="contact-info">
+            <div className="donor-contact-info">
               <h4>{t('donorHelp.support.emailLabel')}</h4>
               <p>support@foodflow.com</p>
               <span className="response-time">
@@ -213,11 +180,11 @@ export default function DonorHelp() {
               </span>
             </div>
           </a>
-          <a href="tel:1-800-FOODFLOW" className="contact-card">
-            <div className="contact-icon">
+          <a href="tel:1-800-FOODFLOW" className="donor-contact-card">
+            <div className="donor-contact-icon">
               <Phone size={24} />
             </div>
-            <div className="contact-info">
+            <div className="donor-contact-info">
               <h4>{t('donorHelp.support.phoneLabel')}</h4>
               <p>1-800-FOODFLOW</p>
               <span className="response-time">
