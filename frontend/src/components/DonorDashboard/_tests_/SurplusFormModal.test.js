@@ -661,9 +661,7 @@ describe('SurplusFormModal', () => {
     fireEvent.click(screen.getByText('Next'));
 
     // Step 2
-    await waitFor(() =>
-      expect(screen.getByText('Food Details')).toBeInTheDocument()
-    );
+    expect(await screen.findByText('Food Details')).toBeInTheDocument();
     const tempSelect = screen.getByTestId('mock-select-temperatureCategory');
     fireEvent.change(tempSelect, { target: { value: 'REFRIGERATED' } });
     const packagingSelect = screen.getByTestId('mock-select-packagingType');
@@ -672,9 +670,7 @@ describe('SurplusFormModal', () => {
     fireEvent.click(screen.getByText('Next'));
 
     // Step 3
-    await waitFor(() =>
-      expect(screen.getByText('Quantity & Dates')).toBeInTheDocument()
-    );
+    expect(await screen.findByText('Quantity & Dates')).toBeInTheDocument();
     const quantityInput = document.querySelector('input[name="quantityValue"]');
     await userEvent.type(quantityInput, '5');
     expect(quantityInput.value).toBe('5');
@@ -685,9 +681,7 @@ describe('SurplusFormModal', () => {
     fireEvent.click(screen.getByText('Next'));
 
     // Step 4
-    await waitFor(() =>
-      expect(screen.getByText('Pickup Info')).toBeInTheDocument()
-    );
+    expect(await screen.findByText('Pickup Info')).toBeInTheDocument();
     const pickupDatePickers = screen.getAllByTestId('date-picker');
     const timePickers = screen.getAllByTestId('time-picker');
     fireEvent.click(pickupDatePickers[0]);
@@ -752,9 +746,7 @@ describe('SurplusFormModal', () => {
     await fillStep2();
     fireEvent.click(screen.getByText('Next'));
 
-    await waitFor(() =>
-      expect(screen.getByText('Quantity & Dates')).toBeInTheDocument()
-    );
+    expect(await screen.findByText('Quantity & Dates')).toBeInTheDocument();
 
     const unitSelect = screen.getByTestId('mock-select-quantityUnit');
     fireEvent.change(unitSelect, { target: { value: 'ITEM' } });
@@ -771,9 +763,7 @@ describe('SurplusFormModal', () => {
     await fillStep2();
     fireEvent.click(screen.getByText('Next'));
 
-    await waitFor(() =>
-      expect(screen.getByText('Quantity & Dates')).toBeInTheDocument()
-    );
+    expect(await screen.findByText('Quantity & Dates')).toBeInTheDocument();
 
     const datePickers = screen.getAllByTestId('date-picker');
     const expiryDatePicker = datePickers[1]; // Second date picker is expiry date
@@ -795,9 +785,7 @@ describe('SurplusFormModal', () => {
     await fillStep3();
     fireEvent.click(screen.getByText('Next'));
 
-    await waitFor(() =>
-      expect(screen.getByText('Pickup Info')).toBeInTheDocument()
-    );
+    expect(await screen.findByText('Pickup Info')).toBeInTheDocument();
 
     const addButton = screen.getByText('Add Another Slot');
     fireEvent.click(addButton);
@@ -821,9 +809,7 @@ describe('SurplusFormModal', () => {
     await fillStep3();
     fireEvent.click(screen.getByText('Next'));
 
-    await waitFor(() =>
-      expect(screen.getByText('Pickup Info')).toBeInTheDocument()
-    );
+    expect(await screen.findByText('Pickup Info')).toBeInTheDocument();
 
     const addButton = screen.getByText('Add Another Slot');
     fireEvent.click(addButton);
@@ -850,9 +836,7 @@ describe('SurplusFormModal', () => {
     await fillStep3();
     fireEvent.click(screen.getByText('Next'));
 
-    await waitFor(() =>
-      expect(screen.getByText('Pickup Info')).toBeInTheDocument()
-    );
+    expect(await screen.findByText('Pickup Info')).toBeInTheDocument();
 
     // With only one slot, no trash icon should be rendered
     const trashIcons = screen.queryAllByTestId('trash-icon');
@@ -872,9 +856,7 @@ describe('SurplusFormModal', () => {
     await fillStep3();
     fireEvent.click(screen.getByText('Next'));
 
-    await waitFor(() =>
-      expect(screen.getByText('Pickup Info')).toBeInTheDocument()
-    );
+    expect(await screen.findByText('Pickup Info')).toBeInTheDocument();
 
     const datePickers = screen.getAllByTestId('date-picker');
     const slotDatePicker = datePickers[0];
@@ -895,9 +877,7 @@ describe('SurplusFormModal', () => {
     await fillStep3();
     fireEvent.click(screen.getByText('Next'));
 
-    await waitFor(() =>
-      expect(screen.getByText('Pickup Info')).toBeInTheDocument()
-    );
+    expect(await screen.findByText('Pickup Info')).toBeInTheDocument();
 
     const timePickers = screen.getAllByTestId('time-picker');
     const startTimePicker = timePickers[0];
@@ -918,9 +898,7 @@ describe('SurplusFormModal', () => {
     await fillStep3();
     fireEvent.click(screen.getByText('Next'));
 
-    await waitFor(() =>
-      expect(screen.getByText('Pickup Info')).toBeInTheDocument()
-    );
+    expect(await screen.findByText('Pickup Info')).toBeInTheDocument();
 
     const timePickers = screen.getAllByTestId('time-picker');
     const endTimePicker = timePickers[1];
@@ -941,9 +919,7 @@ describe('SurplusFormModal', () => {
     await fillStep3();
     fireEvent.click(screen.getByText('Next'));
 
-    await waitFor(() =>
-      expect(screen.getByText('Pickup Info')).toBeInTheDocument()
-    );
+    expect(await screen.findByText('Pickup Info')).toBeInTheDocument();
 
     const notesInput = screen.getByPlaceholderText(
       'e.g., Use back entrance, Ask for manager'
@@ -965,9 +941,7 @@ describe('SurplusFormModal', () => {
     await fillStep3();
     fireEvent.click(screen.getByText('Next'));
 
-    await waitFor(() =>
-      expect(screen.getByText('Pickup Info')).toBeInTheDocument()
-    );
+    expect(await screen.findByText('Pickup Info')).toBeInTheDocument();
 
     const addressInput = screen.getByPlaceholderText('Start typing address...');
     fireEvent.blur(addressInput);
@@ -990,9 +964,7 @@ describe('SurplusFormModal', () => {
     await fillStep3();
     fireEvent.click(screen.getByText('Next'));
 
-    await waitFor(() =>
-      expect(screen.getByText('Pickup Info')).toBeInTheDocument()
-    );
+    expect(await screen.findByText('Pickup Info')).toBeInTheDocument();
 
     const addressInput = screen.getByPlaceholderText('Start typing address...');
     await userEvent.clear(addressInput);
@@ -1016,9 +988,7 @@ describe('SurplusFormModal', () => {
     await fillStep3();
     fireEvent.click(screen.getByText('Next'));
 
-    await waitFor(() =>
-      expect(screen.getByText('Pickup Info')).toBeInTheDocument()
-    );
+    expect(await screen.findByText('Pickup Info')).toBeInTheDocument();
 
     // Fill first slot
     let datePickers = screen.getAllByTestId('date-picker');
@@ -1069,9 +1039,7 @@ describe('SurplusFormModal', () => {
     await fillStep2();
     fireEvent.click(screen.getByText('Next'));
 
-    await waitFor(() =>
-      expect(screen.getByText('Quantity & Dates')).toBeInTheDocument()
-    );
+    expect(await screen.findByText('Quantity & Dates')).toBeInTheDocument();
 
     const quantityInput = document.querySelector('input[name="quantityValue"]');
     await userEvent.type(quantityInput, '5.5');
