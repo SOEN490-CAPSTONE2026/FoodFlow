@@ -2504,6 +2504,11 @@
     }
   },
   "donorHelp": {
+    "hero": {
+      "title": "Need Assistance?",
+      "subtitle": "If you're feeling overwhelmed, remember you don't have to face it alone. Reach out and get the help you need",
+      "searchPlaceholder": "Ask a question..."
+    },
     "gettingStarted": {
       "title": "Getting Started",
       "intro": "Welcome to FoodFlow! Here's how to start donating surplus food and making a difference in your community.",
@@ -2526,8 +2531,13 @@
         }
       }
     },
+    "foodSafety": {
+      "title": "Food Safety",
+      "intro": "Learn about food safety guidelines, proper handling, and storage requirements."
+    },
     "faq": {
-      "title": "Frequently Asked Questions",
+      "title": "FAQ's",
+      "subtitle": "Everything you need to know about the product and other information. Can't find the answer you're looking for?",
       "items": {
         "q1": {
           "question": "What types of food can I donate?",
@@ -2570,6 +2580,10 @@
           "answer": "Your donor dashboard displays metrics including pounds of food donated, meals provided, and estimated CO2 emissions prevented. You can view detailed reports and share your impact story."
         }
       }
+    },
+    "contact": {
+      "title": "Still need help?",
+      "subtitle": "Our support team is here to assist you. Reach out through your preferred channel."
     },
     "support": {
       "title": "Need More Help?",

@@ -81,9 +81,8 @@ export default function DonorHelp() {
     },
     {
       icon: <Shield size={24} />,
-      title: 'Food Safety',
-      description:
-        'Learn about food safety guidelines, proper handling, and storage requirements.',
+      title: t('donorHelp.foodSafety.title'),
+      description: t('donorHelp.foodSafety.intro'),
     },
     {
       icon: <Users size={24} />,
@@ -106,16 +105,13 @@ export default function DonorHelp() {
     <div className="donor-help">
       {/* Hero Section with Search */}
       <div className="help-hero">
-        <h1 className="donor-help-title">Need Assistance?</h1>
-        <p className="help-subtitle">
-          If you're feeling overwhelmed, remember you don't have to face it
-          alone. Reach out and get the help you need
-        </p>
+        <h1 className="donor-help-title">{t('donorHelp.hero.title')}</h1>
+        <p className="help-subtitle">{t('donorHelp.hero.subtitle')}</p>
         <div className="search-container">
           <Search className="search-icon" size={20} />
           <input
             type="text"
-            placeholder="Ask a question..."
+            placeholder={t('donorHelp.hero.searchPlaceholder')}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             className="search-input"
@@ -139,11 +135,8 @@ export default function DonorHelp() {
       {/* FAQ Section */}
       <section className="faq-section">
         <div className="faq-header">
-          <h2 className="faq-heading">FAQ's</h2>
-          <p className="faq-subtitle">
-            Everything you need to know about the product and other information.
-            Can't find the answer you're looking for?
-          </p>
+          <h2 className="faq-heading">{t('donorHelp.faq.title')}</h2>
+          <p className="faq-subtitle">{t('donorHelp.faq.subtitle')}</p>
         </div>
         <div className="faq-list">
           {(searchQuery ? filteredFAQs : faqs).map((faq, index) => (
@@ -161,10 +154,11 @@ export default function DonorHelp() {
       {/* Contact Support */}
       <section className="help-contact-section">
         <div className="donor-contact-header">
-          <h2 className="donor-contact-heading">Still need help?</h2>
+          <h2 className="donor-contact-heading">
+            {t('donorHelp.contact.title')}
+          </h2>
           <p className="donor-contact-subtitle">
-            Our support team is here to assist you. Reach out through your
-            preferred channel.
+            {t('donorHelp.contact.subtitle')}
           </p>
         </div>
         <div className="donor-contact-options">

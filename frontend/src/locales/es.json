@@ -2472,6 +2472,11 @@
     "errors": { "generic": "Algo salió mal. Por favor, inténtalo de nuevo." }
   },
   "donorHelp": {
+    "hero": {
+      "title": "¿Necesitas asistencia?",
+      "subtitle": "Si te sientes abrumado, recuerda que no tienes que enfrentarlo solo. Comunícate y obtén la ayuda que necesitas",
+      "searchPlaceholder": "Haz una pregunta..."
+    },
     "gettingStarted": {
       "title": "Primeros pasos",
       "intro": "¡Bienvenido a FoodFlow! Así es como puedes empezar a donar excedentes de alimentos y marcar la diferencia en tu comunidad.",
@@ -2494,8 +2499,13 @@
         }
       }
     },
+    "foodSafety": {
+      "title": "Seguridad Alimentaria",
+      "intro": "Aprende sobre las pautas de seguridad alimentaria, manejo adecuado y requisitos de almacenamiento."
+    },
     "faq": {
       "title": "Preguntas frecuentes",
+      "subtitle": "Todo lo que necesitas saber sobre el producto y otra información. ¿No encuentras la respuesta que buscas?",
       "items": {
         "q1": {
           "question": "¿Qué tipos de alimentos puedo donar?",
@@ -2538,6 +2548,10 @@
           "answer": "Tu panel de donante muestra métricas que incluyen libras de alimentos donados, comidas proporcionadas y emisiones de CO2 estimadas evitadas. Puedes ver informes detallados y compartir tu historia de impacto."
         }
       }
+    },
+    "contact": {
+      "title": "¿Aún necesitas ayuda?",
+      "subtitle": "Nuestro equipo de soporte está aquí para ayudarte. Comunícate a través de tu canal preferido."
     },
     "support": {
       "title": "¿Necesitas más ayuda?",
