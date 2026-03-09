@@ -43,7 +43,7 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
   const [timeline, setTimeline] = useState([]);
   const [loadingTimeline, setLoadingTimeline] = useState(false);
   const [expandedTimeline, setExpandedTimeline] = useState(false);
-  const [expressingInterest, setExpressingInterest] = useState(false);
+  const [, setExpressingInterest] = useState(false);
   const navigate = useNavigate();
   const { userTimezone } = useTimezone();
   const getImageUrl = imageUrl => {
@@ -459,29 +459,12 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                 getDisplayStatus() === t('claimDetail.status.completed') ||
                 getDisplayStatus() ===
                   t('claimDetail.status.notCompleted')) && (
-                <>
-                  <button
-                    className="claimed-modal-btn-interest"
-                    onClick={handleExpressInterest}
-                    disabled={expressingInterest}
-                  >
-                    {expressingInterest
-                      ? t('claimDetail.connecting', 'Connecting...')
-                      : t('claimDetail.imInterested', "I'm Interested")}
-                  </button>
-                  <button
-                    className="claimed-modal-btn-secondary"
-                    onClick={onClose}
-                  >
-                    {t('claimDetail.backToDetails')}
-                  </button>
-                  <button
-                    className="claimed-modal-btn-primary"
-                    onClick={handleViewPickupSteps}
-                  >
-                    {t('claimDetail.viewPickupSteps')}
-                  </button>
-                </>
+                <button
+                  className="claimed-modal-btn-primary"
+                  onClick={handleViewPickupSteps}
+                >
+                  {t('claimDetail.viewPickupSteps')}
+                </button>
               )}
             </div>
           </div>
