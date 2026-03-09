@@ -2097,6 +2097,7 @@
         "DONATION": "Donó {{item}}",
         "CLAIM": "Solicitó {{item}}",
         "VERIFICATION": "Verificación completada",
+        "DEACTIVATE_USER": "Cuenta desactivada",
         "quantityOf": "{{quantity}} de {{title}}",
         "noActivity": "Sin actividad reciente",
         "on": "el"
@@ -2328,7 +2329,11 @@
       "flaggedPostTitle": "El sistema marcó una publicación para revisión",
       "flaggedPostSubtitle": "Publicación #{{id}} - Se detectó contenido inapropiado",
       "disputeResolvedTitle": "Un administrador resolvió una disputa",
-      "disputeResolvedSubtitle": "Caso #{{id}}"
+      "disputeResolvedSubtitle": "Caso #{{id}}",
+      "deactivatedUserTitle": "Usuario desactivado: {{name}}",
+      "deactivatedUserSubtitle": "Admin: {{admin}}  ·  Motivo: {{reason}}  ·  Marca de tiempo: {{timestamp}}",
+      "unknownUser": "Desconocido",
+      "noReasonProvided": "Sin motivo proporcionado"
     },
     "timeAgo": {
       "minuteAgo": "hace 1 min",

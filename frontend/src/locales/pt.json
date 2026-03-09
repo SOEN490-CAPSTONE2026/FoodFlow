@@ -2212,6 +2212,7 @@
         "DONATION": "Doou {{item}}",
         "CLAIM": "Solicitou {{item}}",
         "VERIFICATION": "Verificação concluída",
+        "DEACTIVATE_USER": "Conta desativada",
         "quantityOf": "{{quantity}} de {{title}}",
         "noActivity": "Sem atividade recente",
         "on": "em"
@@ -2443,7 +2444,11 @@
       "flaggedPostTitle": "O sistema sinalizou uma publicação para revisão",
       "flaggedPostSubtitle": "Publicação #{{id}} - Conteúdo inadequado detectado",
       "disputeResolvedTitle": "Um administrador resolveu uma disputa",
-      "disputeResolvedSubtitle": "Caso #{{id}}"
+      "disputeResolvedSubtitle": "Caso #{{id}}",
+      "deactivatedUserTitle": "Usuário desativado: {{name}}",
+      "deactivatedUserSubtitle": "Admin: {{admin}}  ·  Motivo: {{reason}}  ·  Timestamp: {{timestamp}}",
+      "unknownUser": "Desconhecido",
+      "noReasonProvided": "Nenhum motivo fornecido"
     },
     "timeAgo": {
       "minuteAgo": "h? 1 min",
