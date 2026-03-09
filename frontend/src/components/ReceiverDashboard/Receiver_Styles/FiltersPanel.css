@@ -61,10 +61,10 @@
 
 .filters-row {
   display: grid;
-  grid-template-columns: 230px 220px 250px 1fr;
+  grid-template-columns: 230px 220px 1fr;
   gap: 32px;
   align-items: end;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
 }
 
 /* ===== Mobile Filter Toggle ===== */
@@ -169,6 +169,99 @@
   height: 16px;
   color: #6c757d;
   pointer-events: none;
+}
+
+.location-override-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0 4px;
+}
+
+.location-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.location-icon-inline {
+  color: #1b4965;
+  flex: 0 0 auto;
+}
+
+.location-summary-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1b4965;
+  flex: 0 0 auto;
+}
+
+.location-summary-value {
+  font-size: 13px;
+  color: #495057;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.location-summary-actions {
+  display: inline-flex;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.location-override-btn {
+  border: 1px solid #ced4da;
+  background: white;
+  color: #1b4965;
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.location-override-btn:hover {
+  border-color: #1b4965;
+}
+
+.location-override-btn--secondary {
+  color: #495057;
+}
+
+.location-editor {
+  margin-top: 8px;
+  border: 1px dashed #d9e2ec;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.location-editor-actions {
+  margin-bottom: 8px;
+}
+
+.location-editor-btn {
+  border: 1px solid #ced4da;
+  background: #f8f9fa;
+  color: #1b4965;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.location-editor-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.location-error {
+  margin: 8px 0 0;
+  color: #dc3545;
+  font-size: 12px;
 }
 
 /* ===== Multi-Select ===== */
@@ -410,7 +503,7 @@
     grid-template-columns: 1fr 1fr;
     grid-template-areas:
       'food-type expiry-date'
-      'distance location';
+      'distance distance';
     gap: 20px;
   }
 
@@ -422,9 +515,6 @@
   }
   .filter-group:nth-child(3) {
     grid-area: distance;
-  }
-  .filter-group:nth-child(4) {
-    grid-area: location;
   }
 }
 
@@ -467,6 +557,20 @@
     grid-template-columns: 1fr;
     gap: 16px;
     margin-bottom: 16px;
+  }
+
+  .location-override-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .location-summary {
+    width: 100%;
+  }
+
+  .location-summary-actions {
+    width: 100%;
+    flex-wrap: wrap;
   }
 
   .filter-actions {

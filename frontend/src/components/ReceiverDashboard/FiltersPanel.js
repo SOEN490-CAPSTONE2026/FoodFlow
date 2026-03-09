@@ -130,9 +130,13 @@ const FiltersPanel = ({
   onClearFilters,
   isVisible = true,
   onClose,
+  accountLocation = null,
 }) => {
   const { t } = useTranslation();
   const autocompleteRef = useRef(null);
+  const [showLocationEditor, setShowLocationEditor] = useState(false);
+  const [loadingCurrentLocation, setLoadingCurrentLocation] = useState(false);
+  const [locationError, setLocationError] = useState('');
 
   // Translate food categories
   const translatedCategories = FOOD_CATEGORIES.map(cat => ({
@@ -161,9 +165,16 @@ const FiltersPanel = ({
     } else if (filterType === 'distance') {
       onFiltersChange(filterType, 10); // Reset to default
     } else if (filterType === 'location') {
-      // Clear both location string and coordinates
-      onFiltersChange(filterType, '');
-      onFiltersChange('locationCoords', null);
+      if (accountLocation) {
+        onFiltersChange('location', accountLocation.address || '');
+        onFiltersChange('locationCoords', accountLocation);
+        onFiltersChange('locationSource', 'account');
+      } else {
+        // Clear both location string and coordinates
+        onFiltersChange(filterType, '');
+        onFiltersChange('locationCoords', null);
+        onFiltersChange('locationSource', 'manual');
+      }
     } else {
       onFiltersChange(filterType, '');
     }
@@ -183,17 +194,110 @@ const FiltersPanel = ({
           lat: location.lat(),
           lng: location.lng(),
           address: address,
+          formattedAddress: place.formatted_address || address,
+          placeId: place.place_id || '',
+          addressComponents: place.address_components || [],
         };
 
         // Store both the display address and coordinates
         handleFilterChange('location', address);
         handleFilterChange('locationCoords', coords);
+        handleFilterChange('locationSource', 'manual');
+        setLocationError('');
       } else if (place && place.formatted_address) {
         handleFilterChange('location', place.formatted_address);
+        handleFilterChange('locationSource', 'manual');
       } else if (place && place.name) {
         handleFilterChange('location', place.name);
+        handleFilterChange('locationSource', 'manual');
       }
     }
+  };
+
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError(
+        t(
+          'filtersPanel.currentLocationUnsupported',
+          'Current location is not supported in this browser.'
+        )
+      );
+      return;
+    }
+
+    setLoadingCurrentLocation(true);
+    setLocationError('');
+
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        const { latitude, longitude } = position.coords;
+        const geocoder = window.google?.maps
+          ? new window.google.maps.Geocoder()
+          : null;
+
+        if (!geocoder) {
+          const fallbackAddress = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+          handleFilterChange('location', fallbackAddress);
+          handleFilterChange('locationCoords', {
+            lat: latitude,
+            lng: longitude,
+            address: fallbackAddress,
+          });
+          handleFilterChange('locationSource', 'current');
+          setLoadingCurrentLocation(false);
+          return;
+        }
+
+        geocoder.geocode(
+          { location: { lat: latitude, lng: longitude } },
+          (results, status) => {
+            const topResult =
+              status === 'OK' && Array.isArray(results) && results[0]
+                ? results[0]
+                : null;
+            const address =
+              topResult?.formatted_address ||
+              `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+
+            handleFilterChange('location', address);
+            handleFilterChange('locationCoords', {
+              lat: latitude,
+              lng: longitude,
+              address,
+              formattedAddress: topResult?.formatted_address || address,
+              placeId: topResult?.place_id || '',
+              addressComponents: topResult?.address_components || [],
+            });
+            handleFilterChange('locationSource', 'current');
+            setLoadingCurrentLocation(false);
+          }
+        );
+      },
+      () => {
+        setLocationError(
+          t(
+            'filtersPanel.currentLocationFailed',
+            'Unable to get current location. Please try another address.'
+          )
+        );
+        setLoadingCurrentLocation(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+  };
+
+  const handleUseAccountAddress = () => {
+    if (!accountLocation) {
+      return;
+    }
+    handleFilterChange('location', accountLocation.address || '');
+    handleFilterChange('locationCoords', accountLocation);
+    handleFilterChange('locationSource', 'account');
+    setLocationError('');
   };
 
   if (!isVisible) {
@@ -273,12 +377,59 @@ const FiltersPanel = ({
               />
             </div>
           </div>
+        </div>
 
-          {/* Location Filter */}
-          <div className="filter-group">
-            <label className="filter-label">
-              {t('filtersPanel.locationLabel')}
-            </label>
+        <div className="location-override-row">
+          <div className="location-summary">
+            <MapPin className="location-icon-inline" size={14} />
+            <span className="location-summary-label">
+              {t('filtersPanel.usingAddress', 'Using address')}:
+            </span>
+            <span className="location-summary-value">
+              {filters.location ||
+                t('filtersPanel.noAddressSelected', 'No address selected')}
+            </span>
+          </div>
+          <div className="location-summary-actions">
+            <button
+              type="button"
+              className="location-override-btn"
+              onClick={() => setShowLocationEditor(prev => !prev)}
+            >
+              {t('filtersPanel.useAnotherAddress', 'Use another address')}
+            </button>
+            {filters.locationSource !== 'account' && accountLocation && (
+              <button
+                type="button"
+                className="location-override-btn location-override-btn--secondary"
+                onClick={handleUseAccountAddress}
+              >
+                {t('filtersPanel.useAccountAddress', 'Use account address')}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {showLocationEditor && (
+          <div className="location-editor">
+            <div className="location-editor-actions">
+              <button
+                type="button"
+                className="location-editor-btn"
+                onClick={handleUseCurrentLocation}
+                disabled={loadingCurrentLocation}
+              >
+                {loadingCurrentLocation
+                  ? t(
+                      'filtersPanel.gettingCurrentLocation',
+                      'Getting location…'
+                    )
+                  : t(
+                      'filtersPanel.useCurrentLocation',
+                      'Use current location'
+                    )}
+              </button>
+            </div>
             <div className="location-input-container">
               <MapPin className="location-icon" size={16} color="#717182" />
               <Autocomplete
@@ -292,14 +443,22 @@ const FiltersPanel = ({
                 <input
                   type="text"
                   className="location-input"
-                  placeholder={t('filtersPanel.enterLocation')}
-                  value={filters.location || ''}
+                  placeholder={t(
+                    'filtersPanel.searchAnotherAddress',
+                    'Search another address...'
+                  )}
+                  value={
+                    filters.locationSource === 'manual'
+                      ? filters.location || ''
+                      : ''
+                  }
                   onChange={e => handleFilterChange('location', e.target.value)}
                 />
               </Autocomplete>
             </div>
+            {locationError && <p className="location-error">{locationError}</p>}
           </div>
-        </div>
+        )}
 
         {/* Applied Filters and Action Buttons */}
         <div className="filter-actions">
@@ -359,19 +518,20 @@ const FiltersPanel = ({
                 </div>
               )}
 
-              {appliedFilters.location && (
-                <div className="filter-tag">
-                  <span className="tag-text">
-                    {t('filtersPanel.tagNear')} {appliedFilters.location}
-                  </span>
-                  <button
-                    className="tag-remove"
-                    onClick={() => handleRemoveFilter('location')}
-                  >
-                    <X size={10} />
-                  </button>
-                </div>
-              )}
+              {appliedFilters.location &&
+                appliedFilters.locationSource !== 'account' && (
+                  <div className="filter-tag">
+                    <span className="tag-text">
+                      {t('filtersPanel.tagNear')} {appliedFilters.location}
+                    </span>
+                    <button
+                      className="tag-remove"
+                      onClick={() => handleRemoveFilter('location')}
+                    >
+                      <X size={10} />
+                    </button>
+                  </div>
+                )}
             </div>
           </div>
 

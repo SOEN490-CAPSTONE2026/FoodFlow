@@ -21,6 +21,7 @@ import {
   recommendationAPI,
   conversationAPI,
   savedDonationAPI,
+  profileAPI,
 } from '../../services/api';
 import {
   getDietaryTagLabel,
@@ -60,6 +61,7 @@ export default function ReceiverBrowse() {
     distance: 10,
     location: '',
     locationCoords: null,
+    locationSource: 'account',
   });
 
   const [appliedFilters, setAppliedFilters] = useState({
@@ -68,7 +70,9 @@ export default function ReceiverBrowse() {
     distance: 10,
     location: '',
     locationCoords: null,
+    locationSource: 'account',
   });
+  const [accountLocation, setAccountLocation] = useState(null);
 
   const [isFiltersVisible, setIsFiltersVisible] = useState(true);
   const [items, setItems] = useState([]);
@@ -174,6 +178,88 @@ export default function ReceiverBrowse() {
   }, [fetchDonations, fetchSavedDonations, userTimezone]);
 
   useEffect(() => {
+    if (!isLoaded) {
+      return;
+    }
+
+    let isMounted = true;
+
+    const geocodeAddress = address =>
+      new Promise(resolve => {
+        if (!address?.trim() || !window.google?.maps?.Geocoder) {
+          resolve(null);
+          return;
+        }
+
+        const geocoder = new window.google.maps.Geocoder();
+        geocoder.geocode({ address: address.trim() }, (results, status) => {
+          if (
+            status !== 'OK' ||
+            !Array.isArray(results) ||
+            results.length === 0
+          ) {
+            resolve(null);
+            return;
+          }
+
+          const topResult = results[0];
+          const point = topResult.geometry?.location;
+          if (!point) {
+            resolve(null);
+            return;
+          }
+
+          resolve({
+            lat: point.lat(),
+            lng: point.lng(),
+            address: topResult.formatted_address || address.trim(),
+            formattedAddress: topResult.formatted_address || address.trim(),
+            placeId: topResult.place_id || '',
+            addressComponents: topResult.address_components || [],
+            source: 'account',
+          });
+        });
+      });
+
+    const initializeAccountAddressFilter = async () => {
+      try {
+        const response = await profileAPI.get();
+        const savedAddress =
+          response?.data?.organizationAddress || response?.data?.address || '';
+        if (!savedAddress) {
+          return;
+        }
+
+        const structuredAddress = await geocodeAddress(savedAddress);
+        if (!structuredAddress || !isMounted) {
+          return;
+        }
+
+        setAccountLocation(structuredAddress);
+        const defaultFilters = {
+          foodType: [],
+          expiryBefore: null,
+          distance: 10,
+          location: structuredAddress.address,
+          locationCoords: structuredAddress,
+          locationSource: 'account',
+        };
+        setFilters(defaultFilters);
+        setAppliedFilters(defaultFilters);
+        await fetchFilteredDonations(defaultFilters);
+      } catch (err) {
+        console.error('Error initializing account address filters:', err);
+      }
+    };
+
+    initializeAccountAddressFilter();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isLoaded, fetchFilteredDonations]);
+
+  useEffect(() => {
     if (items.length > 0) {
       fetchRecommendations(items);
     }
@@ -252,13 +338,18 @@ export default function ReceiverBrowse() {
       foodType: [],
       expiryBefore: null,
       distance: 10,
-      location: '',
-      locationCoords: null,
+      location: accountLocation?.address || '',
+      locationCoords: accountLocation || null,
+      locationSource: 'account',
     };
     setFilters(clearedFilters);
     setAppliedFilters(clearedFilters);
-    await fetchDonations();
-  }, [fetchDonations]);
+    if (clearedFilters.locationCoords) {
+      await fetchFilteredDonations(clearedFilters);
+    } else {
+      await fetchDonations();
+    }
+  }, [accountLocation, fetchDonations, fetchFilteredDonations]);
 
   const handleCloseFilters = useCallback(() => {
     setIsFiltersVisible(false);
@@ -646,6 +737,7 @@ export default function ReceiverBrowse() {
           onClearFilters={handleClearFilters}
           isVisible={isFiltersVisible}
           onClose={handleCloseFilters}
+          accountLocation={accountLocation}
         />
       )}
 
