@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { X, CircleCheck } from 'lucide-react';
+import { X } from 'lucide-react';
 import {
   foodTypeImages,
   getPrimaryFoodCategory,
@@ -111,24 +111,20 @@ const ReadyForPickUpView = ({ claim, isOpen, onClose, onBack }) => {
             </div>
           </div>
 
-          {/* Step 2: Confirm Pickup */}
+          {/* Step 2: Automatic Confirmation */}
           <div className="PickupView-ready-pickup-step">
             <div className="PickupView-ready-pickup-step-number">2</div>
             <div className="PickupView-ready-pickup-step-content">
               <h4 className="PickupView-ready-pickup-step-title">
-                Confirm Pickup
+                Automatic Pickup Confirmation
               </h4>
               <p className="PickupView-ready-pickup-step-description">
-                After collecting the food, mark this donation as collected.
+                Once the donor validates your pickup code on the platform, this
+                claim is automatically marked as completed for you.
               </p>
-
-              <button
-                className="PickupView-mark-collected-btn"
-                onClick={() => console.log('Marking as collected...')}
-              >
-                <CircleCheck size={20} />
-                Mark as Collected
-              </button>
+              <div className="PickupView-auto-confirm-note">
+                No manual confirmation needed from your side.
+              </div>
             </div>
           </div>
 

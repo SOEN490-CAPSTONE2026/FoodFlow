@@ -92,31 +92,18 @@
   color: #64748b;
 }
 
-/* Mark as Collected Button */
-.PickupView-mark-collected-btn {
-  display: flex;
+/* Auto-confirmation note */
+.PickupView-auto-confirm-note {
+  margin-top: 8px;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: auto;
-  padding: 14px 32px;
-  background: #0092b8;
-  color: white;
-  border: none;
-  margin: 0 auto;
+  padding: 10px 14px;
   border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.PickupView-mark-collected-btn:hover {
-  background: #007a9a;
-}
-
-.PickupView-mark-collected-btn:active {
-  transform: scale(0.98);
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  color: #0c4a6e;
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 /* Responsive Design */
