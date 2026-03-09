@@ -201,13 +201,13 @@ export default function DonorHelp() {
         </div>
         <p className="section-intro">{t('donorHelp.support.intro')}</p>
         <div className="contact-options">
-          <a href="mailto:support@foodflow.com" className="contact-card">
+          <a href="mailto:foodflow.group@gmail.com" className="contact-card">
             <div className="contact-icon">
               <Mail size={24} />
             </div>
             <div className="contact-info">
               <h4>{t('donorHelp.support.emailLabel')}</h4>
-              <p>support@foodflow.com</p>
+              <p>foodflow.group@gmail.com</p>
               <span className="response-time">
                 {t('donorHelp.support.emailResponseTime')}
               </span>

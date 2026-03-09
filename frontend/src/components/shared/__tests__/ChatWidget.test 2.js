@@ -425,7 +425,7 @@ describe('ChatWidget', () => {
             {
               type: 'contact',
               label: 'Contact Support',
-              value: 'support@foodflow.com',
+              value: 'foodflow.group@gmail.com',
             },
           ],
         },

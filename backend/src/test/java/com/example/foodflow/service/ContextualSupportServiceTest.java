@@ -38,7 +38,7 @@ class ContextualSupportServiceTest {
         List<Map<String, Object>> actions = (List<Map<String, Object>>) result.get("actions");
         assertThat(actions).isNotEmpty();
         assertThat(actions.get(0).get("type")).isEqualTo("contact");
-        assertThat(actions.get(0).get("value")).isEqualTo("support@foodflow.com");
+        assertThat(actions.get(0).get("value")).isEqualTo("foodflow.group@gmail.com");
         assertThat(actions.stream().anyMatch(a -> "/donor/help".equals(a.get("value")))).isTrue();
         assertThat(result.get("escalate")).isEqualTo(false);
     }

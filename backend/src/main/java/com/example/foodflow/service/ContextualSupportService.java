@@ -71,7 +71,7 @@ public class ContextualSupportService {
             boolean escalationResponse = isEscalationResponse(aiResponse);
             if (escalationResponse) {
                 List<Map<String, Object>> actions = new ArrayList<>();
-                actions.add(createAction("contact", "Contact Support", "support@foodflow.com"));
+                actions.add(createAction("contact", "Contact Support", "foodflow.group@gmail.com"));
                 response.put("actions", actions);
             } else {
                 response.put("actions", generateContextualActions(userMessage, userRole));
@@ -195,7 +195,7 @@ public class ContextualSupportService {
 
                         SPECIAL HANDLING - CONTACT SUPPORT QUESTIONS:
                         When users ask about "contact support" or "reach support team":
-                        - Provide direct contact information (email: support@foodflow.com)
+                        - Provide direct contact information (email: foodflow.group@gmail.com)
                         - Mention support hours and response time
                         - Suggest what information to include when contacting
                         - Be direct and helpful, not generic
@@ -231,7 +231,7 @@ public class ContextualSupportService {
         // Contact support specific actions
         if (lowerMessage.contains("contact")
                 && (lowerMessage.contains("support") || lowerMessage.contains("help team"))) {
-            actions.add(createAction("contact", "Email Support", "support@foodflow.com"));
+            actions.add(createAction("contact", "Email Support", "foodflow.group@gmail.com"));
 
             // Add role-specific help center link
             if ("DONOR".equals(userRole)) {
