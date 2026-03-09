@@ -157,7 +157,9 @@ describe('MapViewModal', () => {
     const onClaimClick = jest.fn();
     render(<MapViewModal {...defaultProps} onClaimClick={onClaimClick} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Claim Fresh Vegetables' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Claim Fresh Vegetables' })
+    );
     expect(onClaimClick).toHaveBeenCalledWith(mockDonations[0]);
   });
 
@@ -190,7 +192,11 @@ describe('MapViewModal', () => {
     render(
       <MapViewModal
         {...defaultProps}
-        filters={{ distance: 12, location: 'Montreal, QC', locationCoords: null }}
+        filters={{
+          distance: 12,
+          location: 'Montreal, QC',
+          locationCoords: null,
+        }}
       />
     );
 
@@ -203,7 +209,9 @@ describe('MapViewModal', () => {
   });
 
   it('keeps map uncentered when geocoding cannot resolve address', async () => {
-    const geocode = jest.fn((request, callback) => callback([], 'ZERO_RESULTS'));
+    const geocode = jest.fn((request, callback) =>
+      callback([], 'ZERO_RESULTS')
+    );
 
     global.window.google = {
       maps: {
@@ -216,7 +224,11 @@ describe('MapViewModal', () => {
     render(
       <MapViewModal
         {...defaultProps}
-        filters={{ distance: 10, location: 'Unknown place', locationCoords: null }}
+        filters={{
+          distance: 10,
+          location: 'Unknown place',
+          locationCoords: null,
+        }}
       />
     );
 
