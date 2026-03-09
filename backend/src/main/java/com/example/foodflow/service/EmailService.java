@@ -1311,33 +1311,46 @@ public class EmailService {
             <body>
                 <div class="container">
                     <div class="header">
-                        <h1>✓ Donation Completed</h1>
+                        <h1>%s</h1>
                     </div>
                     <div class="content">
-                        <p>Hi %s,</p>
+                        <p>%s</p>
                         <div class="success-box">
-                            <p><strong>Excellent news!</strong> Your donation from %s has been successfully completed. Thank you for helping those in need!</p>
+                            <p>%s</p>
                         </div>
-                        <p>Here are the details of your donation:</p>
+                        <p>%s</p>
                         <div class="info-box">
-                            <div class="detail"><span class="label">Donation Item:</span> %s</div>
-                            <div class="detail"><span class="label">Quantity Received:</span> %s</div>
-                            <div class="detail"><span class="label">From:</span> %s</div>
+                            <div class="detail"><span class="label">%s</span> %s</div>
+                            <div class="detail"><span class="label">%s</span> %s</div>
+                            <div class="detail"><span class="label">%s</span> %s</div>
                         </div>
-                        <p>This donation will make a real difference in your community. Your support is deeply appreciated!</p>
+                        <p>%s</p>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/receiver/dashboard" class="button" style="color: white !important; text-decoration: none;">View Your Dashboard</a>
+                            <a href="http://localhost:3000/receiver/dashboard" class="button" style="color: white !important; text-decoration: none;">%s</a>
                         </p>
                     </div>
                     <div class="footer">
-                        <p>© 2026 FoodFlow. All rights reserved.</p>
-                        <p>You're receiving this email because you have email notifications enabled in your preferences.</p>
-                        <p>To manage your notification settings, visit Settings in your FoodFlow account.</p>
+                        <p>%s</p>
+                        <p>%s</p>
+                        <p>%s</p>
                     </div>
                 </div>
             </body>
             </html>
-            """.formatted(userName, donorName, donationTitle, quantity, donorName);
+            """.formatted(
+                getMessage("email.donation_completed.header", locale),
+                getMessage("email.donation_completed.greeting", locale, userName),
+                getMessage("email.donation_completed.success_message", locale, donorName),
+                getMessage("email.donation_completed.details_title", locale),
+                getMessage("email.donation_completed.label.donation_item", locale), donationTitle,
+                getMessage("email.donation_completed.label.quantity_received", locale), quantity,
+                getMessage("email.donation_completed.label.from", locale), donorName,
+                getMessage("email.donation_completed.thank_you", locale),
+                getMessage("email.donation_completed.button", locale),
+                getMessage("email.common.footer", locale),
+                getMessage("email.common.footer.notifications", locale),
+                getMessage("email.common.footer.manage_settings", locale)
+            );
     }
 
     /**
@@ -1408,34 +1421,48 @@ public class EmailService {
             <body>
                 <div class="container">
                     <div class="header">
-                        <h1>🚨 Ready for Pickup!</h1>
+                        <h1>%s</h1>
                     </div>
                     <div class="content">
-                        <p>Hi %s,</p>
+                        <p>%s</p>
                         <div class="alert-box">
-                            <p><strong>Great news!</strong> Your claimed donation is now ready for pickup. Don't miss it!</p>
+                            <p>%s</p>
                         </div>
-                        <p>Here are the details of your donation:</p>
+                        <p>%s</p>
                         <div class="info-box">
-                            <div class="detail"><span class="label">Donation Item:</span> %s</div>
-                            <div class="detail"><span class="label">Quantity:</span> %s</div>
-                            <div class="detail"><span class="label">Pickup Date:</span> %s</div>
-                            <div class="detail"><span class="label">Pickup Time:</span> %s</div>
+                            <div class="detail"><span class="label">%s</span> %s</div>
+                            <div class="detail"><span class="label">%s</span> %s</div>
+                            <div class="detail"><span class="label">%s</span> %s</div>
+                            <div class="detail"><span class="label">%s</span> %s</div>
                         </div>
-                        <p><strong>Don't forget to bring your pickup code!</strong> You'll need it to confirm the pickup.</p>
+                        <p>%s</p>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/receiver/dashboard" class="button" style="color: white !important; text-decoration: none;">View Pickup Details</a>
+                            <a href="http://localhost:3000/receiver/dashboard" class="button" style="color: white !important; text-decoration: none;">%s</a>
                         </p>
                     </div>
                     <div class="footer">
-                        <p>© 2026 FoodFlow. All rights reserved.</p>
-                        <p>You're receiving this email because you have email notifications enabled in your preferences.</p>
-                        <p>To manage your notification settings, visit Settings in your FoodFlow account.</p>
+                        <p>%s</p>
+                        <p>%s</p>
+                        <p>%s</p>
                     </div>
                 </div>
             </body>
             </html>
-            """.formatted(userName, donationTitle, quantity, pickupDate, pickupTime);
+            """.formatted(
+                getMessage("email.ready_for_pickup.header", locale),
+                getMessage("email.ready_for_pickup.greeting", locale, userName),
+                getMessage("email.ready_for_pickup.alert_message", locale),
+                getMessage("email.ready_for_pickup.details_title", locale),
+                getMessage("email.ready_for_pickup.label.donation_item", locale), donationTitle,
+                getMessage("email.ready_for_pickup.label.quantity", locale), quantity,
+                getMessage("email.ready_for_pickup.label.pickup_date", locale), pickupDate,
+                getMessage("email.ready_for_pickup.label.pickup_time", locale), pickupTime,
+                getMessage("email.ready_for_pickup.code_reminder", locale),
+                getMessage("email.ready_for_pickup.button", locale),
+                getMessage("email.common.footer", locale),
+                getMessage("email.common.footer.notifications", locale),
+                getMessage("email.common.footer.manage_settings", locale)
+            );
     }
 
     /**
@@ -1501,38 +1528,54 @@ public class EmailService {
             <body>
                 <div class="container">
                     <div class="header">
-                        <h1>🚨 Donation Expired</h1>
+                        <h1>%s</h1>
                     </div>
                     <div class="content">
-                        <p>Hello %s,</p>
+                        <p>%s</p>
                         <div class="alert">
-                            <p class="alert-title">Your donation has expired</p>
-                            <p class="alert-text">The expiry date for this donation has passed. The donation has been automatically marked as expired and removed from available listings.</p>
+                            <p class="alert-title">%s</p>
+                            <p class="alert-text">%s</p>
                         </div>
                         <div class="details">
-                            <div class="detail"><span class="label">Donation Item:</span> %s</div>
-                            <div class="detail"><span class="label">Quantity:</span> %s</div>
-                            <div class="detail"><span class="label">Expiry Date:</span> %s</div>
+                            <div class="detail"><span class="label">%s</span> %s</div>
+                            <div class="detail"><span class="label">%s</span> %s</div>
+                            <div class="detail"><span class="label">%s</span> %s</div>
                         </div>
-                        <p><strong>What happens next?</strong></p>
+                        <p><strong>%s</strong></p>
                         <ul>
-                            <li>The donation is no longer visible to receivers</li>
-                            <li>If the donation was claimed, the receiver will be notified</li>
-                            <li>You can create a new donation if you still have food available</li>
+                            <li>%s</li>
+                            <li>%s</li>
+                            <li>%s</li>
                         </ul>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/donor/dashboard" class="button" style="color: white !important; text-decoration: none;">View Dashboard</a>
+                            <a href="http://localhost:3000/donor/dashboard" class="button" style="color: white !important; text-decoration: none;">%s</a>
                         </p>
                     </div>
                     <div class="footer">
-                        <p>© 2026 FoodFlow. All rights reserved.</p>
-                        <p>You're receiving this email because you have email notifications enabled in your preferences.</p>
-                        <p>To manage your notification settings, visit Settings in your FoodFlow account.</p>
+                        <p>%s</p>
+                        <p>%s</p>
+                        <p>%s</p>
                     </div>
                 </div>
             </body>
             </html>
-            """.formatted(donorName, donationTitle, quantity, expiryDate);
+            """.formatted(
+                getMessage("email.donation_expired.header", locale),
+                getMessage("email.donation_expired.greeting", locale, donorName),
+                getMessage("email.donation_expired.alert_title", locale),
+                getMessage("email.donation_expired.alert_message", locale),
+                getMessage("email.donation_expired.label.donation_item", locale), donationTitle,
+                getMessage("email.donation_expired.label.quantity", locale), quantity,
+                getMessage("email.donation_expired.label.expiry_date", locale), expiryDate,
+                getMessage("email.donation_expired.next_steps_title", locale),
+                getMessage("email.donation_expired.next_step1", locale),
+                getMessage("email.donation_expired.next_step2", locale),
+                getMessage("email.donation_expired.next_step3", locale),
+                getMessage("email.donation_expired.button", locale),
+                getMessage("email.common.footer", locale),
+                getMessage("email.common.footer.notifications", locale),
+                getMessage("email.common.footer.manage_settings", locale)
+            );
     }
 
     /**
@@ -1575,6 +1618,10 @@ public class EmailService {
         String newStatus = (String) statusData.get("newStatus");
         String reason = (String) statusData.get("reason");
         String userType = (String) statusData.get("userType");
+        
+        String donationType = userType.equals("donor") ? 
+            getMessage("email.donation_status_updated.donation_type", locale) : 
+            getMessage("email.donation_status_updated.claim_type", locale);
 
         return """
             <!DOCTYPE html>
@@ -1604,41 +1651,57 @@ public class EmailService {
             <body>
                 <div class="container">
                     <div class="header">
-                        <h1>🔔 Status Updated by Admin</h1>
+                        <h1>%s</h1>
                     </div>
                     <div class="content">
-                        <p>Hello %s,</p>
+                        <p>%s</p>
                         <div class="alert">
-                            <p class="alert-title">Admin Status Update</p>
-                            <p class="alert-text">An administrator has updated the status of your %s.</p>
+                            <p class="alert-title">%s</p>
+                            <p class="alert-text">%s</p>
                         </div>
                         <div class="details">
-                            <div class="detail"><span class="label">Donation:</span> %s</div>
+                            <div class="detail"><span class="label">%s</span> %s</div>
                             <div class="detail">
-                                <span class="label">Status Change:</span>
+                                <span class="label">%s</span>
                                 <div class="status-change">
                                     <span class="old-status">%s</span>
                                     <span class="arrow">→</span>
                                     <span class="new-status">%s</span>
                                 </div>
                             </div>
-                            <div class="detail"><span class="label">Admin Reason:</span> %s</div>
+                            <div class="detail"><span class="label">%s</span> %s</div>
                         </div>
-                        <p><strong>What does this mean?</strong></p>
-                        <p>An administrator has manually updated the status of this donation. This may have been done to resolve an issue, correct an error, or manage the donation lifecycle.</p>
+                        <p><strong>%s</strong></p>
+                        <p>%s</p>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/%s/dashboard" class="button" style="color: white !important; text-decoration: none;">View Dashboard</a>
+                            <a href="http://localhost:3000/%s/dashboard" class="button" style="color: white !important; text-decoration: none;">%s</a>
                         </p>
                     </div>
                     <div class="footer">
-                        <p>© 2026 FoodFlow. All rights reserved.</p>
-                        <p>You're receiving this email because you have email notifications enabled in your preferences.</p>
-                        <p>To manage your notification settings, visit Settings in your FoodFlow account.</p>
+                        <p>%s</p>
+                        <p>%s</p>
+                        <p>%s</p>
                     </div>
                 </div>
             </body>
             </html>
-            """.formatted(userName, userType.equals("donor") ? "donation" : "claim", donationTitle, oldStatus, newStatus, reason, userType);
+            """.formatted(
+                getMessage("email.donation_status_updated.header", locale),
+                getMessage("email.donation_status_updated.greeting", locale, userName),
+                getMessage("email.donation_status_updated.alert_title", locale),
+                getMessage("email.donation_status_updated.alert_message", locale, donationType),
+                getMessage("email.donation_status_updated.label.donation", locale), donationTitle,
+                getMessage("email.donation_status_updated.label.status_change", locale),
+                oldStatus, newStatus,
+                getMessage("email.donation_status_updated.label.admin_reason", locale), reason,
+                getMessage("email.donation_status_updated.meaning_title", locale),
+                getMessage("email.donation_status_updated.meaning_message", locale),
+                userType,
+                getMessage("email.donation_status_updated.button", locale),
+                getMessage("email.common.footer", locale),
+                getMessage("email.common.footer.notifications", locale),
+                getMessage("email.common.footer.manage_settings", locale)
+            );
     }
 
     /**
@@ -1689,41 +1752,50 @@ public class EmailService {
             <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f3f4f6;">
                 <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
                     <div style="background: linear-gradient(135deg, #ef4444 0%%, #dc2626 100%%); padding: 40px 20px; text-align: center;">
-                        <h1 style="color: #ffffff; margin: 0; font-size: 28px;">Account Deactivated</h1>
+                        <h1 style="color: #ffffff; margin: 0; font-size: 28px;">%s</h1>
                     </div>
                     
                     <div style="padding: 40px 30px;">
-                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">Hi %s,</p>
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">%s</p>
                         
                         <p style="color: #374151; font-size: 16px; line-height: 1.6;">
-                            Your FoodFlow account has been deactivated by an administrator.
+                            %s
                         </p>
                         
                         <div style="background-color: #fee2e2; border-left: 4px solid #ef4444; padding: 15px; margin: 20px 0; border-radius: 4px;">
                             <p style="color: #991b1b; margin: 0; font-size: 14px;">
-                                <strong>What this means:</strong><br>
-                                You will no longer be able to access your FoodFlow account or use any platform features.
+                                <strong>%s</strong><br>
+                                %s
                             </p>
                         </div>
                         
                         <p style="color: #374151; font-size: 16px; line-height: 1.6;">
-                            If you believe this is a mistake or would like to appeal this decision, please contact our support team.
+                            %s
                         </p>
                         
                         <p style="color: #374151; font-size: 16px; line-height: 1.6;">
-                            Best regards,<br>
-                            <strong>The FoodFlow Team</strong>
+                            %s
                         </p>
                     </div>
                     
                     <div style="background-color: #f9fafb; padding: 20px 30px; text-align: center; font-size: 12px; color: #6b7280; border-top: 1px solid #e5e7eb;">
-                        <p>© 2026 FoodFlow. All rights reserved.</p>
-                        <p>You're receiving this email because administrative action was taken on your account.</p>
+                        <p>%s</p>
+                        <p>%s</p>
                     </div>
                 </div>
             </body>
             </html>
-            """.formatted(userName);
+            """.formatted(
+                getMessage("email.account_deactivation.header", locale),
+                getMessage("email.account_deactivation.greeting", locale, userName),
+                getMessage("email.account_deactivation.message", locale),
+                getMessage("email.account_deactivation.meaning_title", locale),
+                getMessage("email.account_deactivation.meaning_message", locale),
+                getMessage("email.account_deactivation.appeal", locale),
+                getMessage("email.account_deactivation.signature", locale),
+                getMessage("email.common.footer", locale),
+                getMessage("email.common.footer.notifications", locale)
+            );
     }
 
     /**
@@ -1774,46 +1846,56 @@ public class EmailService {
             <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f3f4f6;">
                 <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
                     <div style="background: linear-gradient(135deg, #10b981 0%%, #059669 100%%); padding: 40px 20px; text-align: center;">
-                        <h1 style="color: #ffffff; margin: 0; font-size: 28px;">Account Reactivated</h1>
+                        <h1 style="color: #ffffff; margin: 0; font-size: 28px;">%s</h1>
                     </div>
                     
                     <div style="padding: 40px 30px;">
-                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">Hi %s,</p>
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">%s</p>
                         
                         <p style="color: #374151; font-size: 16px; line-height: 1.6;">
-                            Great news! Your FoodFlow account has been reactivated by an administrator.
+                            %s
                         </p>
                         
                         <div style="background-color: #d1fae5; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0; border-radius: 4px;">
                             <p style="color: #065f46; margin: 0; font-size: 14px;">
-                                <strong>What this means:</strong><br>
-                                You now have full access to your FoodFlow account and can resume using all platform features.
+                                <strong>%s</strong><br>
+                                %s
                             </p>
                         </div>
                         
                         <p style="color: #374151; font-size: 16px; line-height: 1.6;">
-                            You can log in to your account and continue connecting donors with receivers to reduce food waste.
+                            %s
                         </p>
                         
                         <div style="text-align: center; margin: 30px 0;">
                             <a href="http://localhost:3000/login" style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #10b981 0%%, #059669 100%%); color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
-                                Log In to Your Account
+                                %s
                             </a>
                         </div>
                         
                         <p style="color: #374151; font-size: 16px; line-height: 1.6;">
-                            Welcome back,<br>
-                            <strong>The FoodFlow Team</strong>
+                            %s
                         </p>
                     </div>
                     
                     <div style="background-color: #f9fafb; padding: 20px 30px; text-align: center; font-size: 12px; color: #6b7280; border-top: 1px solid #e5e7eb;">
-                        <p>© 2026 FoodFlow. All rights reserved.</p>
-                        <p>You're receiving this email because administrative action was taken on your account.</p>
+                        <p>%s</p>
+                        <p>%s</p>
                     </div>
                 </div>
             </body>
             </html>
-            """.formatted(userName);
+            """.formatted(
+                getMessage("email.account_reactivation.header", locale),
+                getMessage("email.account_reactivation.greeting", locale, userName),
+                getMessage("email.account_reactivation.message", locale),
+                getMessage("email.account_reactivation.meaning_title", locale),
+                getMessage("email.account_reactivation.meaning_message", locale),
+                getMessage("email.account_reactivation.instruction", locale),
+                getMessage("email.account_reactivation.button", locale),
+                getMessage("email.account_reactivation.signature", locale),
+                getMessage("email.common.footer", locale),
+                getMessage("email.common.footer.notifications", locale)
+            );
     }
 }
