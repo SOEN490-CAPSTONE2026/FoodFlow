@@ -131,12 +131,16 @@ const FiltersPanel = ({
   isVisible = true,
   onClose,
   accountLocation = null,
+  countryRestriction = '',
 }) => {
   const { t } = useTranslation();
   const autocompleteRef = useRef(null);
   const [showLocationEditor, setShowLocationEditor] = useState(false);
   const [loadingCurrentLocation, setLoadingCurrentLocation] = useState(false);
   const [locationError, setLocationError] = useState('');
+  const autocompleteCountryRestriction = countryRestriction
+    ? { country: countryRestriction }
+    : undefined;
 
   // Translate food categories
   const translatedCategories = FOOD_CATEGORIES.map(cat => ({
@@ -438,7 +442,7 @@ const FiltersPanel = ({
                 }
                 onPlaceChanged={handlePlaceSelect}
                 types={['address']}
-                componentRestrictions={{ country: ['us', 'ca'] }}
+                componentRestrictions={autocompleteCountryRestriction}
               >
                 <input
                   type="text"

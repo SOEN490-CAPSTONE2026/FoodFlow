@@ -17,6 +17,7 @@ import {
 import { useLoadScript } from '@react-google-maps/api';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
+  default as api,
   surplusAPI,
   recommendationAPI,
   conversationAPI,
@@ -90,6 +91,7 @@ export default function ReceiverBrowse() {
   const [recommendations, setRecommendations] = useState({});
   const [mapViewOpen, setMapViewOpen] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
+  const [receiverCountryCode, setReceiverCountryCode] = useState('');
   const [expressingInterest, setExpressingInterest] = useState(null);
   const [focusedDonationId, setFocusedDonationId] = useState(null);
   const [savedNotification, setSavedNotification] = useState('');
@@ -221,8 +223,57 @@ export default function ReceiverBrowse() {
         });
       });
 
+    const getCountryCodeFromComponents = components => {
+      if (!Array.isArray(components)) {
+        return '';
+      }
+      const country = components.find(component =>
+        component?.types?.includes('country')
+      );
+      const code = country?.short_name || '';
+      return code ? code.toLowerCase() : '';
+    };
+
+    const normalizeCountryToCode = value => {
+      const raw = (value || '').toString().trim().toLowerCase();
+      if (!raw) {
+        return '';
+      }
+      if (/^[a-z]{2}$/.test(raw)) {
+        return raw;
+      }
+      const countryAliases = {
+        canada: 'ca',
+        'united states': 'us',
+        'united states of america': 'us',
+        usa: 'us',
+        us: 'us',
+        mexico: 'mx',
+        france: 'fr',
+        spain: 'es',
+        portugal: 'pt',
+        china: 'cn',
+        'saudi arabia': 'sa',
+        chile: 'cl',
+      };
+      return countryAliases[raw] || '';
+    };
+
     const initializeAccountAddressFilter = async () => {
       try {
+        let regionCountryCode = '';
+        try {
+          const regionResponse = await api.get('/profile/region');
+          regionCountryCode = normalizeCountryToCode(
+            regionResponse?.data?.country
+          );
+          if (regionCountryCode && isMounted) {
+            setReceiverCountryCode(regionCountryCode);
+          }
+        } catch {
+          // Region info is optional for this flow.
+        }
+
         const response = await profileAPI.get();
         const savedAddress =
           response?.data?.organizationAddress || response?.data?.address || '';
@@ -230,19 +281,37 @@ export default function ReceiverBrowse() {
           return;
         }
 
+        // Set the receiver's saved address immediately so UI never shows "No address selected".
+        const baseAccountFilters = {
+          foodType: [],
+          expiryBefore: null,
+          distance: 10,
+          location: savedAddress,
+          locationCoords: null,
+          locationSource: 'account',
+        };
+        if (isMounted) {
+          setFilters(baseAccountFilters);
+          setAppliedFilters(baseAccountFilters);
+        }
+
         const structuredAddress = await geocodeAddress(savedAddress);
         if (!structuredAddress || !isMounted) {
           return;
         }
 
+        const countryCode =
+          getCountryCodeFromComponents(structuredAddress.addressComponents) ||
+          regionCountryCode;
+        if (countryCode) {
+          setReceiverCountryCode(countryCode);
+        }
+
         setAccountLocation(structuredAddress);
         const defaultFilters = {
-          foodType: [],
-          expiryBefore: null,
-          distance: 10,
+          ...baseAccountFilters,
           location: structuredAddress.address,
           locationCoords: structuredAddress,
-          locationSource: 'account',
         };
         setFilters(defaultFilters);
         setAppliedFilters(defaultFilters);
@@ -738,6 +807,7 @@ export default function ReceiverBrowse() {
           isVisible={isFiltersVisible}
           onClose={handleCloseFilters}
           accountLocation={accountLocation}
+          countryRestriction={receiverCountryCode}
         />
       )}
 
