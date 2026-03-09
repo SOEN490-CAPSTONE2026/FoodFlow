@@ -143,7 +143,11 @@ describe('ChatWidget', () => {
       intent: 'info',
       actions: [
         { type: 'link', label: 'Dashboard', value: '/admin' },
-        { type: 'contact', label: 'Email Us', value: 'foodflow.group@gmail.com' },
+        {
+          type: 'contact',
+          label: 'Email Us',
+          value: 'foodflow.group@gmail.com',
+        },
         { type: 'copy', label: 'CopyCode', value: '1234' },
       ],
     };
