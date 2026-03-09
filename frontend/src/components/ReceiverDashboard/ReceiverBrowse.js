@@ -685,6 +685,29 @@ export default function ReceiverBrowse() {
     [navigate, t]
   );
 
+  const handleMapDonationSelect = useCallback(donation => {
+    setExpandedCardId(donation?.id ?? null);
+  }, []);
+
+  const handleMapViewDetails = useCallback(donation => {
+    if (!donation?.id) {
+      return;
+    }
+
+    setExpandedCardId(donation.id);
+    setFocusedDonationId(Number(donation.id));
+    setBrowseMode('list');
+
+    setTimeout(() => {
+      const targetCard = document.getElementById(
+        `receiver-browse-card-${donation.id}`
+      );
+      if (targetCard) {
+        targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 80);
+  }, []);
+
   const formatExpiryDate = useCallback(dateString => {
     if (!dateString) {
       return '—';
@@ -955,11 +978,16 @@ export default function ReceiverBrowse() {
           donations={items}
           filters={filters}
           accountLocation={accountLocation}
-          onClaimClick={donation => {
-            setClaimTargetItem(donation);
-            setClaimModalOpen(true);
-          }}
+          onClaimClick={handleClaimDonation}
+          onMarkerSelect={handleMapDonationSelect}
+          selectedDonationId={expandedCardId}
+          onViewDonationDetails={handleMapViewDetails}
           isLoaded={isLoaded}
+          formatBestBeforeDate={formatBestBeforeDate}
+          formatPickupTime={formatPickupTime}
+          formatStatus={formatStatus}
+          getStatusClass={getStatusClass}
+          t={t}
         />
       )}
 
