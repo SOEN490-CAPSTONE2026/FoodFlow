@@ -72,7 +72,7 @@ describe('API Service - Rate Limiting Integration (Simplified)', () => {
               {
                 type: 'contact',
                 label: 'Contact Support',
-                value: 'support@foodflow.com',
+                value: 'foodflow.group@gmail.com',
               },
             ],
             requiresEscalation: false,

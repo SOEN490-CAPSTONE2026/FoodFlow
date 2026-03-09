@@ -48,7 +48,7 @@ public class EmailService {
 
     private static final String FOOTER_NOTIFICATION = "<p style=\"margin:4px 0;\">You received this because you have email notifications enabled in your preferences.</p>"
             + "<p style=\"margin:4px 0;\">Manage your settings in your FoodFlow account.</p>";
-    private static final String FOOTER_AUTOMATED = "<p style=\"margin:4px 0;\">Need help? Contact us at support@foodflow.com</p>";
+    private static final String FOOTER_AUTOMATED = "<p style=\"margin:4px 0;\">Need help? Contact us at foodflow.group@gmail.com</p>";
     private static final String FOOTER_ADMIN_ACTION = "<p style=\"margin:4px 0;\">You received this because administrative action was taken on your account.</p>";
 
     
@@ -1186,7 +1186,7 @@ public class EmailService {
             + "<p style=\"margin:0 0 12px 0; font-size:15px; font-weight:600; color:#1f2937;\">Need Assistance?</p>"
             + "<p style=\"margin:0 0 8px 0; font-size:14px; color:#374151;\">If you believe this decision was made in error, please contact our support team:</p>"
             + "<table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">"
-            + "<tr><td style=\"padding:4px 0; font-size:14px; color:#374151;\"><strong>Email:</strong> support@foodflow.com</td></tr>"
+            + "<tr><td style=\"padding:4px 0; font-size:14px; color:#374151;\"><strong>Email:</strong> foodflow.group@gmail.com</td></tr>"
             + "<tr><td style=\"padding:4px 0; font-size:14px; color:#374151;\"><strong>Hours:</strong> Monday &ndash; Friday, 9 AM &ndash; 5 PM EST</td></tr>"
             + "<tr><td style=\"padding:4px 0; font-size:14px; color:#374151;\"><strong>Response Time:</strong> Within 24&ndash;48 hours</td></tr>"
             + "</table>"

@@ -215,14 +215,14 @@
   },
 
   "contact_information": {
-    "support_email": "support@foodflow.com",
+    "support_email": "foodflow.group@gmail.com",
     "support_hours": "Monday-Friday 9AM-6PM EST",
     "response_time": "Usually responds within 24 hours",
     "contact_methods": [
       {
         "type": "email",
         "label": "Email Support",
-        "value": "support@foodflow.com",
+        "value": "foodflow.group@gmail.com",
         "description": "Best for detailed questions, account issues, and bug reports"
       },
       {
