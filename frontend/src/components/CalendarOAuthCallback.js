@@ -4,6 +4,7 @@ import { Loader, CheckCircle, AlertCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { AuthContext } from '../contexts/AuthContext';
 import { calendarAPI } from '../services/api';
+import SEOHead from './SEOHead';
 
 /**
  * OAuth Callback handler for Google Calendar authentication
@@ -93,74 +94,76 @@ const CalendarOAuthCallback = () => {
   }, [searchParams, t]);
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        backgroundColor: '#f9fafb',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-        padding: '1rem',
-      }}
-    >
+    <>
+      <SEOHead noindex />
       <div
         style={{
-          backgroundColor: 'white',
-          borderRadius: '12px',
-          padding: '2rem',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-          maxWidth: '400px',
-          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '100vh',
+          backgroundColor: '#f9fafb',
+          fontFamily: 'system-ui, -apple-system, sans-serif',
+          padding: '1rem',
         }}
       >
-        {status === 'processing' && (
-          <>
-            <div
-              style={{
-                width: '48px',
-                height: '48px',
-                margin: '0 auto 1rem',
-                animation: 'spin 1s linear infinite',
-              }}
-            >
-              <Loader size={48} color="#1b4965" />
-            </div>
-            <h2 style={{ margin: '0 0 0.5rem 0', color: '#111827' }}>
-              {t('calendar.connecting') || 'Connecting...'}
-            </h2>
-          </>
-        )}
+        <div
+          style={{
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            padding: '2rem',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            maxWidth: '400px',
+            textAlign: 'center',
+          }}
+        >
+          {status === 'processing' && (
+            <>
+              <div
+                style={{
+                  width: '48px',
+                  height: '48px',
+                  margin: '0 auto 1rem',
+                  animation: 'spin 1s linear infinite',
+                }}
+              >
+                <Loader size={48} color="#1b4965" />
+              </div>
+              <h2 style={{ margin: '0 0 0.5rem 0', color: '#111827' }}>
+                {t('calendar.connecting') || 'Connecting...'}
+              </h2>
+            </>
+          )}
 
-        {status === 'success' && (
-          <>
-            <div style={{ margin: '0 auto 1rem' }}>
-              <CheckCircle size={48} color="#10b981" />
-            </div>
-            <h2 style={{ margin: '0 0 0.5rem 0', color: '#111827' }}>
-              {t('calendar.success') || 'Success!'}
-            </h2>
-          </>
-        )}
+          {status === 'success' && (
+            <>
+              <div style={{ margin: '0 auto 1rem' }}>
+                <CheckCircle size={48} color="#10b981" />
+              </div>
+              <h2 style={{ margin: '0 0 0.5rem 0', color: '#111827' }}>
+                {t('calendar.success') || 'Success!'}
+              </h2>
+            </>
+          )}
 
-        {status === 'error' && (
-          <>
-            <div style={{ margin: '0 auto 1rem' }}>
-              <AlertCircle size={48} color="#ef4444" />
-            </div>
-            <h2 style={{ margin: '0 0 0.5rem 0', color: '#111827' }}>
-              {t('calendar.error') || 'Error'}
-            </h2>
-          </>
-        )}
+          {status === 'error' && (
+            <>
+              <div style={{ margin: '0 auto 1rem' }}>
+                <AlertCircle size={48} color="#ef4444" />
+              </div>
+              <h2 style={{ margin: '0 0 0.5rem 0', color: '#111827' }}>
+                {t('calendar.error') || 'Error'}
+              </h2>
+            </>
+          )}
 
-        <p style={{ margin: '0', color: '#6b7280', fontSize: '0.9375rem' }}>
-          {message}
-        </p>
-      </div>
+          <p style={{ margin: '0', color: '#6b7280', fontSize: '0.9375rem' }}>
+            {message}
+          </p>
+        </div>
 
-      <style>{`
+        <style>{`
         @keyframes spin {
           from {
             transform: rotate(0deg);
@@ -170,7 +173,8 @@ const CalendarOAuthCallback = () => {
           }
         }
       `}</style>
-    </div>
+      </div>
+    </>
   );
 };
 

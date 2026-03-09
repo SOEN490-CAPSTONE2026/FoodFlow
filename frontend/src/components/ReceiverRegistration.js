@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { authAPI } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
+import SEOHead from './SEOHead';
 import ReceiverIllustration from '../assets/illustrations/receiver-ilustration.jpg';
 import { validatePassword } from '../utils/passwordValidation';
 import {
@@ -1252,6 +1253,7 @@ const ReceiverRegistration = () => {
 
   return (
     <div className="registration-page receiver-registration">
+      <SEOHead noindex />
       <button
         type="button"
         className="exit-registration-button"
