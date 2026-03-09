@@ -2,6 +2,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Calendar,
+  List,
+  Map,
   MapPin,
   Clock,
   Package2,
@@ -17,10 +19,12 @@ import {
 import { useLoadScript } from '@react-google-maps/api';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
+  default as api,
   surplusAPI,
   recommendationAPI,
   conversationAPI,
   savedDonationAPI,
+  profileAPI,
 } from '../../services/api';
 import {
   getDietaryTagLabel,
@@ -36,7 +40,6 @@ import {
 } from '../../constants/foodConstants';
 import { useTimezone } from '../../contexts/TimezoneContext';
 import FiltersPanel from './FiltersPanel';
-import MapViewBanner from './DonationsMap/MapViewBanner';
 import MapViewModal from './DonationsMap/MapViewModal';
 import './ReceiverBrowseModal.css';
 import './ReceiverBrowse.css';
@@ -60,6 +63,7 @@ export default function ReceiverBrowse() {
     distance: 10,
     location: '',
     locationCoords: null,
+    locationSource: 'account',
   });
 
   const [appliedFilters, setAppliedFilters] = useState({
@@ -68,9 +72,10 @@ export default function ReceiverBrowse() {
     distance: 10,
     location: '',
     locationCoords: null,
+    locationSource: 'account',
   });
+  const [accountLocation, setAccountLocation] = useState(null);
 
-  const [isFiltersVisible, setIsFiltersVisible] = useState(true);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -84,8 +89,8 @@ export default function ReceiverBrowse() {
   const [sortBy, setSortBy] = useState('relevance');
   const [hoveredRecommended, setHoveredRecommended] = useState(null);
   const [recommendations, setRecommendations] = useState({});
-  const [mapViewOpen, setMapViewOpen] = useState(false);
-  const [userLocation, setUserLocation] = useState(null);
+  const [browseMode, setBrowseMode] = useState('list');
+  const [receiverCountryCode, setReceiverCountryCode] = useState('');
   const [expressingInterest, setExpressingInterest] = useState(null);
   const [focusedDonationId, setFocusedDonationId] = useState(null);
   const [savedNotification, setSavedNotification] = useState('');
@@ -174,6 +179,283 @@ export default function ReceiverBrowse() {
   }, [fetchDonations, fetchSavedDonations, userTimezone]);
 
   useEffect(() => {
+    if (!isLoaded) {
+      return;
+    }
+
+    let isMounted = true;
+
+    const geocodeAddress = async address => {
+      const normalizedAddress = address?.trim();
+      if (!normalizedAddress) {
+        return null;
+      }
+
+      // Prefer in-browser Geocoder when available.
+      if (window.google?.maps?.Geocoder) {
+        const geocoder = new window.google.maps.Geocoder();
+        const geocoderResult = await new Promise(resolve => {
+          geocoder.geocode(
+            { address: normalizedAddress },
+            (results, status) => {
+              if (
+                status !== 'OK' ||
+                !Array.isArray(results) ||
+                results.length === 0
+              ) {
+                resolve(null);
+                return;
+              }
+
+              const topResult = results[0];
+              const point = topResult.geometry?.location;
+              if (!point) {
+                resolve(null);
+                return;
+              }
+
+              resolve({
+                lat: point.lat(),
+                lng: point.lng(),
+                address: topResult.formatted_address || normalizedAddress,
+                formattedAddress:
+                  topResult.formatted_address || normalizedAddress,
+                placeId: topResult.place_id || '',
+                addressComponents: topResult.address_components || [],
+                source: 'account',
+              });
+            }
+          );
+        });
+
+        if (geocoderResult) {
+          return geocoderResult;
+        }
+      }
+
+      // Fallback: Places text search via Maps JS (works when Places is enabled).
+      if (window.google?.maps?.places?.PlacesService) {
+        try {
+          const placesResult = await new Promise(resolve => {
+            const service = new window.google.maps.places.PlacesService(
+              document.createElement('div')
+            );
+            service.findPlaceFromQuery(
+              {
+                query: normalizedAddress,
+                fields: ['geometry', 'formatted_address', 'place_id', 'name'],
+              },
+              (results, status) => {
+                const topResult =
+                  status === window.google.maps.places.PlacesServiceStatus.OK &&
+                  Array.isArray(results) &&
+                  results.length > 0
+                    ? results[0]
+                    : null;
+                const point = topResult?.geometry?.location;
+                if (!point) {
+                  resolve(null);
+                  return;
+                }
+                resolve({
+                  lat: point.lat(),
+                  lng: point.lng(),
+                  address:
+                    topResult.formatted_address ||
+                    topResult.name ||
+                    normalizedAddress,
+                  formattedAddress:
+                    topResult.formatted_address ||
+                    topResult.name ||
+                    normalizedAddress,
+                  placeId: topResult.place_id || '',
+                  addressComponents: [],
+                  source: 'account',
+                });
+              }
+            );
+          });
+
+          if (placesResult) {
+            return placesResult;
+          }
+        } catch {
+          // continue to HTTP fallbacks
+        }
+      }
+
+      // Fallback 1: Google Geocoding HTTP API.
+      const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+      if (apiKey) {
+        try {
+          const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
+            normalizedAddress
+          )}&key=${apiKey}`;
+          const response = await fetch(url);
+          const payload = await response.json();
+          const topResult =
+            payload?.status === 'OK' &&
+            Array.isArray(payload.results) &&
+            payload.results.length > 0
+              ? payload.results[0]
+              : null;
+          const point = topResult?.geometry?.location;
+          if (point) {
+            return {
+              lat: point.lat,
+              lng: point.lng,
+              address: topResult.formatted_address || normalizedAddress,
+              formattedAddress:
+                topResult.formatted_address || normalizedAddress,
+              placeId: topResult.place_id || '',
+              addressComponents: topResult.address_components || [],
+              source: 'account',
+            };
+          }
+        } catch {
+          // continue to Nominatim fallback
+        }
+      }
+
+      // Fallback 2: OpenStreetMap Nominatim (no key required).
+      try {
+        const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(
+          normalizedAddress
+        )}`;
+        const response = await fetch(nominatimUrl, {
+          headers: {
+            Accept: 'application/json',
+          },
+        });
+        const payload = await response.json();
+        const topResult =
+          Array.isArray(payload) && payload.length > 0 ? payload[0] : null;
+        const lat = Number(topResult?.lat);
+        const lng = Number(topResult?.lon);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+          return null;
+        }
+
+        return {
+          lat,
+          lng,
+          address: topResult.display_name || normalizedAddress,
+          formattedAddress: topResult.display_name || normalizedAddress,
+          placeId: topResult.place_id ? String(topResult.place_id) : '',
+          addressComponents: [],
+          source: 'account',
+        };
+      } catch {
+        return null;
+      }
+    };
+
+    const getCountryCodeFromComponents = components => {
+      if (!Array.isArray(components)) {
+        return '';
+      }
+      const country = components.find(component =>
+        component?.types?.includes('country')
+      );
+      const code = country?.short_name || '';
+      return code ? code.toLowerCase() : '';
+    };
+
+    const normalizeCountryToCode = value => {
+      const raw = (value || '').toString().trim().toLowerCase();
+      if (!raw) {
+        return '';
+      }
+      if (/^[a-z]{2}$/.test(raw)) {
+        return raw;
+      }
+      const countryAliases = {
+        canada: 'ca',
+        'united states': 'us',
+        'united states of america': 'us',
+        usa: 'us',
+        us: 'us',
+        mexico: 'mx',
+        france: 'fr',
+        spain: 'es',
+        portugal: 'pt',
+        china: 'cn',
+        'saudi arabia': 'sa',
+        chile: 'cl',
+      };
+      return countryAliases[raw] || '';
+    };
+
+    const initializeAccountAddressFilter = async () => {
+      try {
+        let regionCountryCode = '';
+        try {
+          const regionResponse = await api.get('/profile/region');
+          regionCountryCode = normalizeCountryToCode(
+            regionResponse?.data?.country
+          );
+          if (regionCountryCode && isMounted) {
+            setReceiverCountryCode(regionCountryCode);
+          }
+        } catch {
+          // Region info is optional for this flow.
+        }
+
+        const response = await profileAPI.get();
+        const savedAddress =
+          response?.data?.organizationAddress || response?.data?.address || '';
+        if (!savedAddress) {
+          return;
+        }
+
+        // Set the receiver's saved address immediately so UI never shows "No address selected".
+        const baseAccountFilters = {
+          foodType: [],
+          expiryBefore: null,
+          distance: 10,
+          location: savedAddress,
+          locationCoords: null,
+          locationSource: 'account',
+        };
+        if (isMounted) {
+          setFilters(baseAccountFilters);
+          setAppliedFilters(baseAccountFilters);
+        }
+
+        const structuredAddress = await geocodeAddress(savedAddress);
+        if (!structuredAddress || !isMounted) {
+          return;
+        }
+
+        const countryCode =
+          getCountryCodeFromComponents(structuredAddress.addressComponents) ||
+          regionCountryCode;
+        if (countryCode) {
+          setReceiverCountryCode(countryCode);
+        }
+
+        setAccountLocation(structuredAddress);
+        const defaultFilters = {
+          ...baseAccountFilters,
+          location: structuredAddress.address,
+          locationCoords: structuredAddress,
+        };
+        setFilters(defaultFilters);
+        setAppliedFilters(defaultFilters);
+        await fetchFilteredDonations(defaultFilters);
+      } catch (err) {
+        console.error('Error initializing account address filters:', err);
+      }
+    };
+
+    initializeAccountAddressFilter();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isLoaded, fetchFilteredDonations]);
+
+  useEffect(() => {
     if (items.length > 0) {
       fetchRecommendations(items);
     }
@@ -252,17 +534,18 @@ export default function ReceiverBrowse() {
       foodType: [],
       expiryBefore: null,
       distance: 10,
-      location: '',
-      locationCoords: null,
+      location: accountLocation?.address || '',
+      locationCoords: accountLocation || null,
+      locationSource: 'account',
     };
     setFilters(clearedFilters);
     setAppliedFilters(clearedFilters);
-    await fetchDonations();
-  }, [fetchDonations]);
-
-  const handleCloseFilters = useCallback(() => {
-    setIsFiltersVisible(false);
-  }, []);
+    if (clearedFilters.locationCoords) {
+      await fetchFilteredDonations(clearedFilters);
+    } else {
+      await fetchDonations();
+    }
+  }, [accountLocation, fetchDonations, fetchFilteredDonations]);
 
   const handleMoreClick = useCallback(item => {
     setExpandedCardId(prev => (prev === item.id ? null : item.id));
@@ -348,47 +631,6 @@ export default function ReceiverBrowse() {
     },
     [t]
   );
-
-  //======================================
-  // Donations Map Helpers
-  //======================================
-  const getNearbyCount = useCallback(() => {
-    if (!filters.locationCoords) {
-      return items.length;
-    }
-
-    return items.filter(item => {
-      if (!item.pickupLocation) {
-        return false;
-      }
-
-      const distance = calculateDistance(
-        filters.locationCoords.lat,
-        filters.locationCoords.lng,
-        item.pickupLocation.latitude,
-        item.pickupLocation.longitude
-      );
-
-      return distance <= (filters.distance || 10);
-    }).length;
-  }, [items, filters]);
-
-  const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371;
-    const dLat = ((lat2 - lat1) * Math.PI) / 180;
-    const dLon = ((lon2 - lon1) * Math.PI) / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((lat1 * Math.PI) / 180) *
-        Math.cos((lat2 * Math.PI) / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-  };
-
-  //=================================================
-  //=================================================
 
   const handleClaimDonation = useCallback(
     item => {
@@ -611,29 +853,65 @@ export default function ReceiverBrowse() {
         <h1 className="receiver-section-title-browse">
           {t('receiverBrowse.title')}
         </h1>
+      </div>
 
-        <div className="sort-controls">
-          <span className="sort-label">
-            <ArrowUpDown size={16} />
-            {t('receiverBrowse.sortBy')}
+      <div className="receiver-browse-toolbar">
+        <div className="browse-mode-category">
+          <span className="browse-mode-category-label">
+            {t('receiverBrowse.browseBy', 'Browse by')}
           </span>
-          <div className="sort-buttons">
+          <div className="browse-mode-controls">
             <button
-              className={`sort-button ${sortBy === 'relevance' ? 'active' : ''}`}
-              onClick={() => setSortBy('relevance')}
+              className={`browse-mode-button ${browseMode === 'list' ? 'active' : ''}`}
+              onClick={() => setBrowseMode('list')}
             >
-              <Target size={16} />
-              {t('receiverBrowse.relevance')}
+              <List size={16} />
+              {t('receiverBrowse.listView', 'List')}
             </button>
             <button
-              className={`sort-button ${sortBy === 'date' ? 'active' : ''}`}
-              onClick={() => setSortBy('date')}
+              className={`browse-mode-button ${browseMode === 'map' ? 'active' : ''}`}
+              onClick={() => {
+                if (accountLocation) {
+                  setFilters(prev => ({
+                    ...prev,
+                    location: prev.location || accountLocation.address || '',
+                    locationCoords: prev.locationCoords || accountLocation,
+                    locationSource: prev.locationSource || 'account',
+                  }));
+                }
+                setBrowseMode('map');
+              }}
             >
-              <Calendar size={16} />
-              {t('receiverBrowse.datePosted')}
+              <Map size={16} />
+              {t('receiverBrowse.mapView', 'Map')}
             </button>
           </div>
         </div>
+
+        {browseMode === 'list' && (
+          <div className="sort-controls">
+            <span className="sort-label">
+              <ArrowUpDown size={16} />
+              {t('receiverBrowse.sortBy')}
+            </span>
+            <div className="sort-buttons">
+              <button
+                className={`sort-button ${sortBy === 'relevance' ? 'active' : ''}`}
+                onClick={() => setSortBy('relevance')}
+              >
+                <Target size={16} />
+                {t('receiverBrowse.relevance')}
+              </button>
+              <button
+                className={`sort-button ${sortBy === 'date' ? 'active' : ''}`}
+                onClick={() => setSortBy('date')}
+              >
+                <Calendar size={16} />
+                {t('receiverBrowse.datePosted')}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Only render FiltersPanel when Google Maps is loaded */}
@@ -644,17 +922,9 @@ export default function ReceiverBrowse() {
           onApplyFilters={handleApplyFilters}
           appliedFilters={appliedFilters}
           onClearFilters={handleClearFilters}
-          isVisible={isFiltersVisible}
-          onClose={handleCloseFilters}
-        />
-      )}
-
-      {isLoaded && (
-        <MapViewBanner
-          onOpenMap={() => setMapViewOpen(true)}
-          nearbyCount={getNearbyCount()}
-          distanceRadius={filters.distance || 10}
-          hasLocation={!!filters.locationCoords}
+          isVisible={true}
+          accountLocation={accountLocation}
+          countryRestriction={receiverCountryCode}
         />
       )}
 
@@ -670,7 +940,7 @@ export default function ReceiverBrowse() {
         </div>
       )}
 
-      {!loading && !error && items.length === 0 && (
+      {!loading && !error && items.length === 0 && browseMode === 'list' && (
         <div className="receiver-empty-state">
           <Package className="receiver-empty-state-icon" size={64} />
           <p>{t('receiverBrowse.noDonations')}</p>
@@ -678,9 +948,25 @@ export default function ReceiverBrowse() {
         </div>
       )}
 
+      {!loading && !error && browseMode === 'map' && (
+        <MapViewModal
+          isOpen={true}
+          onClose={() => setBrowseMode('list')}
+          donations={items}
+          filters={filters}
+          accountLocation={accountLocation}
+          onClaimClick={donation => {
+            setClaimTargetItem(donation);
+            setClaimModalOpen(true);
+          }}
+          isLoaded={isLoaded}
+        />
+      )}
+
       {!loading &&
         !error &&
         items.length > 0 &&
+        browseMode === 'list' &&
         (() => {
           // Filter and sort items based on selected sort option
           const filteredItems = [...items];
@@ -1185,20 +1471,6 @@ export default function ReceiverBrowse() {
         }}
         loading={claiming}
         formatFn={formatPickupTime}
-      />
-
-      <MapViewModal
-        isOpen={mapViewOpen}
-        onClose={() => setMapViewOpen(false)}
-        donations={items}
-        filters={filters}
-        onFiltersChange={handleFiltersChange}
-        onClaimClick={donation => {
-          setClaimTargetItem(donation);
-          setClaimModalOpen(true);
-        }}
-        isLoaded={isLoaded}
-        savedLocation={userLocation}
       />
     </div>
   );

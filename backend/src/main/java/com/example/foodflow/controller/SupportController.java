@@ -66,7 +66,7 @@ public class SupportController {
                         "RATE_LIMITED",
                         java.util.Arrays.asList(
                                 new SupportChatResponse.SupportAction("contact", "Contact Support",
-                                        "support@foodflow.com")),
+                                        "foodflow.group@gmail.com")),
                         false);
 
                 // Add rate limit headers
@@ -102,7 +102,7 @@ public class SupportController {
                     "RATE_LIMITED",
                     java.util.Arrays.asList(
                             new SupportChatResponse.SupportAction("contact", "Contact Support",
-                                    "support@foodflow.com")),
+                                    "foodflow.group@gmail.com")),
                     false);
 
             HttpHeaders headers = new HttpHeaders();
@@ -121,7 +121,7 @@ public class SupportController {
                     "ERROR",
                     java.util.Arrays.asList(
                             new SupportChatResponse.SupportAction("contact", "Contact Support",
-                                    "support@foodflow.com")),
+                                    "foodflow.group@gmail.com")),
                     true);
 
             logger.error("Error processing support chat for user {}", user.getId(), e);

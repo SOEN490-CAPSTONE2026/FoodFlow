@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { GoogleMap, Marker, InfoWindow, Circle } from '@react-google-maps/api';
-import { MapPin } from 'lucide-react';
+import { LocateFixed, MapPin } from 'lucide-react';
 import DonationMapCard from './DonationMapCard';
 import './DonationMap.css';
 
@@ -129,6 +129,18 @@ const DonationMap = ({
   const onDonationClaimClick = donation => {
     onClaimClick(donation);
     setSelectedDonation(null);
+  };
+
+  const handleRecenter = () => {
+    if (!map || !userLocation) {
+      return;
+    }
+
+    map.panTo({
+      lat: userLocation.latitude,
+      lng: userLocation.longitude,
+    });
+    map.setZoom(12);
   };
 
   // Check if Google Maps is available
@@ -262,6 +274,19 @@ const DonationMap = ({
           </InfoWindow>
         )}
       </GoogleMap>
+
+      {userLocation && (
+        <button
+          type="button"
+          className="map-recenter-button"
+          onClick={handleRecenter}
+          aria-label="Recenter map to your location"
+          title="Recenter to your location"
+        >
+          <LocateFixed size={16} />
+          Recenter
+        </button>
+      )}
 
       {/* Map legend */}
       <div className="map-legend">

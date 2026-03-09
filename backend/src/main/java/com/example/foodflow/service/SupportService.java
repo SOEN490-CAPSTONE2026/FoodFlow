@@ -27,7 +27,7 @@ public class SupportService {
     @Autowired
     private SupportContextBuilder contextBuilder;
 
-    @Value("${app.support.email:support@foodflow.com}")
+    @Value("${app.support.email:foodflow.group@gmail.com}")
     private String supportEmail;
 
     /**

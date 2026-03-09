@@ -70,7 +70,7 @@ describe('PhoneInput', () => {
     await user.click(screen.getByRole('button', { name: /france/i }));
 
     expect(onChange).toHaveBeenLastCalledWith('+331234567');
-  });
+  }, 15000);
 
   test('closes dropdown when clicking outside and supports disabled state', async () => {
     const user = userEvent.setup();

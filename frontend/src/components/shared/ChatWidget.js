@@ -222,7 +222,7 @@ const ChatWidget = () => {
           {
             type: 'contact',
             label: tSupport('actions.contactSupport', 'Contact Support'),
-            value: 'support@foodflow.com',
+            value: 'foodflow.group@gmail.com',
           },
         ],
         escalate: true,
