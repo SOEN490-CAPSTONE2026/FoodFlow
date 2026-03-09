@@ -2,6 +2,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Calendar,
+  List,
+  Map,
   MapPin,
   Clock,
   Package2,
@@ -38,7 +40,6 @@ import {
 } from '../../constants/foodConstants';
 import { useTimezone } from '../../contexts/TimezoneContext';
 import FiltersPanel from './FiltersPanel';
-import MapViewBanner from './DonationsMap/MapViewBanner';
 import MapViewModal from './DonationsMap/MapViewModal';
 import './ReceiverBrowseModal.css';
 import './ReceiverBrowse.css';
@@ -89,8 +90,7 @@ export default function ReceiverBrowse() {
   const [sortBy, setSortBy] = useState('relevance');
   const [hoveredRecommended, setHoveredRecommended] = useState(null);
   const [recommendations, setRecommendations] = useState({});
-  const [mapViewOpen, setMapViewOpen] = useState(false);
-  const [userLocation, setUserLocation] = useState(null);
+  const [browseMode, setBrowseMode] = useState('list');
   const [receiverCountryCode, setReceiverCountryCode] = useState('');
   const [expressingInterest, setExpressingInterest] = useState(null);
   const [focusedDonationId, setFocusedDonationId] = useState(null);
@@ -509,47 +509,6 @@ export default function ReceiverBrowse() {
     [t]
   );
 
-  //======================================
-  // Donations Map Helpers
-  //======================================
-  const getNearbyCount = useCallback(() => {
-    if (!filters.locationCoords) {
-      return items.length;
-    }
-
-    return items.filter(item => {
-      if (!item.pickupLocation) {
-        return false;
-      }
-
-      const distance = calculateDistance(
-        filters.locationCoords.lat,
-        filters.locationCoords.lng,
-        item.pickupLocation.latitude,
-        item.pickupLocation.longitude
-      );
-
-      return distance <= (filters.distance || 10);
-    }).length;
-  }, [items, filters]);
-
-  const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371;
-    const dLat = ((lat2 - lat1) * Math.PI) / 180;
-    const dLon = ((lon2 - lon1) * Math.PI) / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((lat1 * Math.PI) / 180) *
-        Math.cos((lat2 * Math.PI) / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-  };
-
-  //=================================================
-  //=================================================
-
   const handleClaimDonation = useCallback(
     item => {
       if (
@@ -772,27 +731,51 @@ export default function ReceiverBrowse() {
           {t('receiverBrowse.title')}
         </h1>
 
-        <div className="sort-controls">
-          <span className="sort-label">
-            <ArrowUpDown size={16} />
-            {t('receiverBrowse.sortBy')}
-          </span>
-          <div className="sort-buttons">
-            <button
-              className={`sort-button ${sortBy === 'relevance' ? 'active' : ''}`}
-              onClick={() => setSortBy('relevance')}
-            >
-              <Target size={16} />
-              {t('receiverBrowse.relevance')}
-            </button>
-            <button
-              className={`sort-button ${sortBy === 'date' ? 'active' : ''}`}
-              onClick={() => setSortBy('date')}
-            >
-              <Calendar size={16} />
-              {t('receiverBrowse.datePosted')}
-            </button>
+        {browseMode === 'list' && (
+          <div className="sort-controls">
+            <span className="sort-label">
+              <ArrowUpDown size={16} />
+              {t('receiverBrowse.sortBy')}
+            </span>
+            <div className="sort-buttons">
+              <button
+                className={`sort-button ${sortBy === 'relevance' ? 'active' : ''}`}
+                onClick={() => setSortBy('relevance')}
+              >
+                <Target size={16} />
+                {t('receiverBrowse.relevance')}
+              </button>
+              <button
+                className={`sort-button ${sortBy === 'date' ? 'active' : ''}`}
+                onClick={() => setSortBy('date')}
+              >
+                <Calendar size={16} />
+                {t('receiverBrowse.datePosted')}
+              </button>
+            </div>
           </div>
+        )}
+      </div>
+
+      <div className="browse-mode-category">
+        <span className="browse-mode-category-label">
+          {t('receiverBrowse.browseBy', 'Browse by')}
+        </span>
+        <div className="browse-mode-controls">
+          <button
+            className={`browse-mode-button ${browseMode === 'list' ? 'active' : ''}`}
+            onClick={() => setBrowseMode('list')}
+          >
+            <List size={16} />
+            {t('receiverBrowse.listView', 'List')}
+          </button>
+          <button
+            className={`browse-mode-button ${browseMode === 'map' ? 'active' : ''}`}
+            onClick={() => setBrowseMode('map')}
+          >
+            <Map size={16} />
+            {t('receiverBrowse.mapView', 'Map')}
+          </button>
         </div>
       </div>
 
@@ -808,15 +791,6 @@ export default function ReceiverBrowse() {
           onClose={handleCloseFilters}
           accountLocation={accountLocation}
           countryRestriction={receiverCountryCode}
-        />
-      )}
-
-      {isLoaded && (
-        <MapViewBanner
-          onOpenMap={() => setMapViewOpen(true)}
-          nearbyCount={getNearbyCount()}
-          distanceRadius={filters.distance || 10}
-          hasLocation={!!filters.locationCoords}
         />
       )}
 
@@ -843,6 +817,7 @@ export default function ReceiverBrowse() {
       {!loading &&
         !error &&
         items.length > 0 &&
+        browseMode === 'list' &&
         (() => {
           // Filter and sort items based on selected sort option
           const filteredItems = [...items];
@@ -1349,19 +1324,19 @@ export default function ReceiverBrowse() {
         formatFn={formatPickupTime}
       />
 
-      <MapViewModal
-        isOpen={mapViewOpen}
-        onClose={() => setMapViewOpen(false)}
-        donations={items}
-        filters={filters}
-        onFiltersChange={handleFiltersChange}
-        onClaimClick={donation => {
-          setClaimTargetItem(donation);
-          setClaimModalOpen(true);
-        }}
-        isLoaded={isLoaded}
-        savedLocation={userLocation}
-      />
+      {!loading && !error && browseMode === 'map' && (
+        <MapViewModal
+          isOpen={true}
+          onClose={() => setBrowseMode('list')}
+          donations={items}
+          filters={appliedFilters}
+          onClaimClick={donation => {
+            setClaimTargetItem(donation);
+            setClaimModalOpen(true);
+          }}
+          isLoaded={isLoaded}
+        />
+      )}
     </div>
   );
 }
