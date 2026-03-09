@@ -9,18 +9,25 @@ import brevoModel.SendSmtpEmail;
 import brevoModel.SendSmtpEmailSender;
 import brevoModel.SendSmtpEmailTo;
 import brevoModel.CreateSmtpEmail;
+import com.example.foodflow.model.entity.User;
+import com.example.foodflow.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.Locale;
 import java.util.Map;
 
 @Service
 public class EmailService {
     
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
+    
+    private final MessageSource messageSource;
+    private final UserRepository userRepository;
     
     @Value("${brevo.api.key}")
     private String brevoApiKey;
@@ -34,6 +41,65 @@ public class EmailService {
     @Value("${frontend.url}")
     private String frontendUrl;
     
+    // Supported languages matching the platform's language list
+    private static final String[] SUPPORTED_LANGUAGES = {"en", "fr", "es", "zh", "ar", "pt"};
+    
+    public EmailService(MessageSource messageSource, UserRepository userRepository) {
+        this.messageSource = messageSource;
+        this.userRepository = userRepository;
+    }
+    
+    /**
+     * Get user's preferred language from their profile, with fallback to English
+     * @param email user's email address
+     * @return Locale object for the user's language preference
+     */
+    private Locale getUserLocale(String email) {
+        try {
+            return userRepository.findByEmail(email)
+                    .map(user -> {
+                        String lang = user.getLanguagePreference();
+                        if (lang != null && isSupportedLanguage(lang)) {
+                            return Locale.forLanguageTag(lang);
+                        }
+                        return Locale.ENGLISH; // Default fallback
+                    })
+                    .orElse(Locale.ENGLISH);
+        } catch (Exception e) {
+            log.warn("Error fetching user locale for {}: {}. Defaulting to English.", email, e.getMessage());
+            return Locale.ENGLISH;
+        }
+    }
+    
+    /**
+     * Check if a language code is supported
+     */
+    private boolean isSupportedLanguage(String lang) {
+        for (String supported : SUPPORTED_LANGUAGES) {
+            if (supported.equalsIgnoreCase(lang)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * Get translated message with fallback to English
+     */
+    private String getMessage(String key, Locale locale, Object... args) {
+        try {
+            return messageSource.getMessage(key, args, locale);
+        } catch (Exception e) {
+            log.warn("Translation not found for key '{}' in locale '{}'. Falling back to English.", key, locale);
+            try {
+                return messageSource.getMessage(key, args, Locale.ENGLISH);
+            } catch (Exception ex) {
+                log.error("Translation not found for key '{}' even in English. Returning key as fallback.", key);
+                return key;
+            }
+        }
+    }
+    
     /**
      * Send an email verification link to new users
      * @param toEmail recipient email address
@@ -42,6 +108,8 @@ public class EmailService {
      */
     public void sendVerificationEmail(String toEmail, String verificationToken) throws ApiException {
         log.info("Sending verification email to: {}", toEmail);
+        
+        Locale locale = getUserLocale(toEmail);
         
         // Configure API client
         ApiClient defaultClient = Configuration.getDefaultApiClient();
@@ -64,10 +132,11 @@ public class EmailService {
         recipient.setEmail(toEmail);
         sendSmtpEmail.setTo(Collections.singletonList(recipient));
         
-        // Set subject and content
-        sendSmtpEmail.setSubject("FoodFlow - Verify Your Email Address");
-        sendSmtpEmail.setTextContent("Please verify your email address by clicking the link: " + frontendUrl + "/verify-email?token=" + verificationToken);
-        sendSmtpEmail.setHtmlContent(buildVerificationEmailBody(verificationToken));
+        // Set subject and content (localized)
+        String verificationLink = frontendUrl + "/verify-email?token=" + verificationToken;
+        sendSmtpEmail.setSubject(getMessage("email.verification.subject", locale));
+        sendSmtpEmail.setTextContent(getMessage("email.verification.text_content", locale, verificationLink));
+        sendSmtpEmail.setHtmlContent(buildVerificationEmailBody(verificationToken, locale));
         
         try {
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
@@ -88,6 +157,8 @@ public class EmailService {
     public void sendPasswordResetEmail(String toEmail, String resetCode) throws ApiException {
         log.info("Sending password reset email to: {}", toEmail);
         
+        Locale locale = getUserLocale(toEmail);
+        
         // Configure API client
         ApiClient defaultClient = Configuration.getDefaultApiClient();
         ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
@@ -109,10 +180,10 @@ public class EmailService {
         recipient.setEmail(toEmail);
         sendSmtpEmail.setTo(Collections.singletonList(recipient));
         
-        // Set subject and content
-        sendSmtpEmail.setSubject("FoodFlow - Password Reset Code");
-        sendSmtpEmail.setTextContent("Your password reset code is: " + resetCode);
-        sendSmtpEmail.setHtmlContent(buildPasswordResetEmailBody(resetCode));
+        // Set subject and content (localized)
+        sendSmtpEmail.setSubject(getMessage("email.password_reset.subject", locale));
+        sendSmtpEmail.setTextContent(getMessage("email.password_reset.text_content", locale, resetCode));
+        sendSmtpEmail.setHtmlContent(buildPasswordResetEmailBody(resetCode, locale));
         
         try {
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
@@ -130,6 +201,8 @@ public class EmailService {
     public void sendNewDonationNotification(String toEmail, String userName, Map<String, Object> donationData) {
         log.info("Sending new donation notification email to: {}", toEmail);
         
+        Locale locale = getUserLocale(toEmail);
+        
         try {
             ApiClient defaultClient = Configuration.getDefaultApiClient();
             ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
@@ -147,8 +220,8 @@ public class EmailService {
             recipient.setEmail(toEmail);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             
-            sendSmtpEmail.setSubject("New Donation Available - FoodFlow");
-            sendSmtpEmail.setHtmlContent(buildNewDonationEmailBody(userName, donationData));
+            sendSmtpEmail.setSubject(getMessage("email.new_donation.subject", locale));
+            sendSmtpEmail.setHtmlContent(buildNewDonationEmailBody(userName, donationData, locale));
             
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
             log.info("New donation notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
@@ -164,6 +237,8 @@ public class EmailService {
     public void sendDonationClaimedNotification(String toEmail, String userName, Map<String, Object> claimData) {
         log.info("Sending donation claimed notification email to: {}", toEmail);
         
+        Locale locale = getUserLocale(toEmail);
+        
         try {
             ApiClient defaultClient = Configuration.getDefaultApiClient();
             ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
@@ -181,8 +256,8 @@ public class EmailService {
             recipient.setEmail(toEmail);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             
-            sendSmtpEmail.setSubject("Your Donation Has Been Claimed - FoodFlow");
-            sendSmtpEmail.setHtmlContent(buildDonationClaimedEmailBody(userName, claimData));
+            sendSmtpEmail.setSubject(getMessage("email.donation_claimed.subject", locale));
+            sendSmtpEmail.setHtmlContent(buildDonationClaimedEmailBody(userName, claimData, locale));
             
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
             log.info("Donation claimed notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
@@ -197,38 +272,7 @@ public class EmailService {
     public void sendClaimCanceledNotification(String toEmail, String userName, Map<String, Object> claimData) {
         log.info("Sending claim canceled notification email to: {}", toEmail);
         
-        try {
-            ApiClient defaultClient = Configuration.getDefaultApiClient();
-            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-            apiKey.setApiKey(brevoApiKey);
-            
-            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
-            SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-            
-            SendSmtpEmailSender sender = new SendSmtpEmailSender();
-            sender.setEmail(fromEmail);
-            sender.setName(fromName);
-            sendSmtpEmail.setSender(sender);
-            
-            SendSmtpEmailTo recipient = new SendSmtpEmailTo();
-            recipient.setEmail(toEmail);
-            sendSmtpEmail.setTo(Collections.singletonList(recipient));
-            
-            sendSmtpEmail.setSubject("Claim Canceled - FoodFlow");
-            sendSmtpEmail.setHtmlContent(buildClaimCanceledEmailBody(userName, claimData));
-            
-            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
-            log.info("Claim canceled notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
-        } catch (ApiException ex) {
-            log.error("Error sending claim canceled notification to: {}", toEmail, ex);
-        }
-    }
-    
-    /**
-     * Send notification email for review received
-     */
-    public void sendReviewReceivedNotification(String toEmail, String userName, Map<String, Object> reviewData) {
-        log.info("Sending review received notification email to: {}", toEmail);
+        Locale locale = getUserLocale(toEmail);
         
         try {
             ApiClient defaultClient = Configuration.getDefaultApiClient();
@@ -247,8 +291,43 @@ public class EmailService {
             recipient.setEmail(toEmail);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             
-            sendSmtpEmail.setSubject("New Review Received - FoodFlow");
-            sendSmtpEmail.setHtmlContent(buildReviewReceivedEmailBody(userName, reviewData));
+            sendSmtpEmail.setSubject(getMessage("email.claim_canceled.subject", locale));
+            sendSmtpEmail.setHtmlContent(buildClaimCanceledEmailBody(userName, claimData, locale));
+            
+            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            log.info("Claim canceled notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
+        } catch (ApiException ex) {
+            log.error("Error sending claim canceled notification to: {}", toEmail, ex);
+        }
+    }
+    
+    /**
+     * Send notification email for review received
+     */
+    public void sendReviewReceivedNotification(String toEmail, String userName, Map<String, Object> reviewData) {
+        log.info("Sending review received notification email to: {}", toEmail);
+        
+        Locale locale = getUserLocale(toEmail);
+        
+        try {
+            ApiClient defaultClient = Configuration.getDefaultApiClient();
+            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
+            apiKey.setApiKey(brevoApiKey);
+            
+            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+            SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+            
+            SendSmtpEmailSender sender = new SendSmtpEmailSender();
+            sender.setEmail(fromEmail);
+            sender.setName(fromName);
+            sendSmtpEmail.setSender(sender);
+            
+            SendSmtpEmailTo recipient = new SendSmtpEmailTo();
+            recipient.setEmail(toEmail);
+            sendSmtpEmail.setTo(Collections.singletonList(recipient));
+            
+            sendSmtpEmail.setSubject(getMessage("email.review_received.subject", locale));
+            sendSmtpEmail.setHtmlContent(buildReviewReceivedEmailBody(userName, reviewData, locale));
             
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
             log.info("Review received notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
@@ -264,6 +343,8 @@ public class EmailService {
     public void sendDonationPickedUpNotification(String toEmail, String userName, Map<String, Object> donationData) {
         log.info("Sending donation picked up notification email to: {}", toEmail);
         
+        Locale locale = getUserLocale(toEmail);
+        
         try {
             ApiClient defaultClient = Configuration.getDefaultApiClient();
             ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
@@ -281,8 +362,8 @@ public class EmailService {
             recipient.setEmail(toEmail);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             
-            sendSmtpEmail.setSubject("Your Donation Has Been Picked Up - FoodFlow");
-            sendSmtpEmail.setHtmlContent(buildDonationPickedUpEmailBody(userName, donationData));
+            sendSmtpEmail.setSubject(getMessage("email.donation_picked_up.subject", locale));
+            sendSmtpEmail.setHtmlContent(buildDonationPickedUpEmailBody(userName, donationData, locale));
             
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
             log.info("Donation picked up notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
@@ -295,7 +376,7 @@ public class EmailService {
     /**
      * Build HTML email body for password reset
      */
-    private String buildPasswordResetEmailBody(String resetCode) {
+    private String buildPasswordResetEmailBody(String resetCode, Locale locale) {
         return """
             <!DOCTYPE html>
             <html>
@@ -314,32 +395,42 @@ public class EmailService {
             <body>
                 <div class="container">
                     <div class="header">
-                        <h1>FoodFlow Password Reset</h1>
+                        <h1>%s</h1>
                     </div>
                     <div class="content">
-                        <p>Hello,</p>
-                        <p>We received a request to reset your password. Use the verification code below to proceed:</p>
+                        <p>%s</p>
+                        <p>%s</p>
                         <div class="code-box">
                             <div class="code">%s</div>
                         </div>
-                        <p><strong>This code will expire in 60 seconds.</strong></p>
-                        <p>If you didn't request a password reset, please ignore this email or contact support if you have concerns.</p>
-                        <p class="warning">⚠️ Never share this code with anyone. FoodFlow will never ask for this code.</p>
+                        <p><strong>%s</strong></p>
+                        <p>%s</p>
+                        <p class="warning">%s</p>
                     </div>
                     <div class="footer">
-                        <p>© 2025 FoodFlow. All rights reserved.</p>
-                        <p>This is an automated message, please do not reply to this email.</p>
+                        <p>%s</p>
+                        <p>%s</p>
                     </div>
                 </div>
             </body>
             </html>
-            """.formatted(resetCode);
+            """.formatted(
+                getMessage("email.password_reset.header", locale),
+                getMessage("email.common.hello", locale),
+                getMessage("email.password_reset.intro", locale),
+                resetCode,
+                getMessage("email.password_reset.expire_warning", locale),
+                getMessage("email.password_reset.ignore_message", locale),
+                getMessage("email.password_reset.security_warning", locale),
+                getMessage("email.common.footer_copyright", locale),
+                getMessage("email.common.footer_automated", locale)
+            );
     }
     
     /**
      * Build HTML email body for email verification
      */
-    private String buildVerificationEmailBody(String verificationToken) {
+    private String buildVerificationEmailBody(String verificationToken, Locale locale) {
         String verificationLink = frontendUrl + "/verify-email?token=" + verificationToken;
         
         return """
@@ -387,45 +478,61 @@ public class EmailService {
             <body>
                 <div class="container">
                     <div class="header">
-                        <h1>Welcome to FoodFlow! 🍲</h1>
+                        <h1>%s</h1>
                     </div>
                     <div class="content">
-                        <p>Hello,</p>
-                        <p>Thank you for registering with FoodFlow! We're excited to have you join our community in fighting food waste and helping those in need.</p>
+                        <p>%s</p>
+                        <p>%s</p>
                         
                         <div class="info-box">
-                            <strong>📋 What happens next?</strong>
-                            <p style="margin: 10px 0 0 0;">Your application is pending verification. Our team will review your account within 24 hours. Please verify your email address to complete your registration.</p>
+                            <strong>%s</strong>
+                            <p style="margin: 10px 0 0 0;">%s</p>
                         </div>
                         
-                        <p><strong>Click the button below to verify your email address:</strong></p>
+                        <p><strong>%s</strong></p>
                         
                         <div class="button-container">
-                            <a href="%s" class="verify-button">Verify Email Address</a>
+                            <a href="%s" class="verify-button">%s</a>
                         </div>
                         
-                        <p style="font-size: 14px; color: #666;">This verification link will expire in 24 hours.</p>
+                        <p style="font-size: 14px; color: #666;">%s</p>
                         
-                        <p>If the button doesn't work, copy and paste this link into your browser:</p>
+                        <p>%s</p>
                         <div class="alternative-link">%s</div>
                         
-                        <p style="margin-top: 30px;">If you didn't create an account with FoodFlow, please ignore this email or contact our support team.</p>
+                        <p style="margin-top: 30px;">%s</p>
                     </div>
                     <div class="footer">
-                        <p>© 2025 FoodFlow. All rights reserved.</p>
-                        <p>This is an automated message, please do not reply to this email.</p>
-                        <p>Need help? Contact us at support@foodflow.com</p>
+                        <p>%s</p>
+                        <p>%s</p>
+                        <p>%s</p>
                     </div>
                 </div>
             </body>
             </html>
-            """.formatted(verificationLink, verificationLink);
+            """.formatted(
+                getMessage("email.verification.header", locale),
+                getMessage("email.common.hello", locale),
+                getMessage("email.verification.intro", locale),
+                getMessage("email.verification.what_next_title", locale),
+                getMessage("email.verification.what_next_body", locale),
+                getMessage("email.verification.button_instruction", locale),
+                verificationLink,
+                getMessage("email.verification.button_text", locale),
+                getMessage("email.verification.link_expiry", locale),
+                getMessage("email.verification.alt_link_text", locale),
+                verificationLink,
+                getMessage("email.verification.ignore_message", locale),
+                getMessage("email.common.footer_copyright", locale),
+                getMessage("email.common.footer_automated", locale),
+                getMessage("email.verification.footer_support", locale)
+            );
     }
     
     /**
      * Build HTML email body for new donation notification
      */
-    private String buildNewDonationEmailBody(String userName, Map<String, Object> donationData) {
+    private String buildNewDonationEmailBody(String userName, Map<String, Object> donationData, Locale locale) {
         String title = (String) donationData.getOrDefault("title", "New Donation");
         String quantity = String.valueOf(donationData.getOrDefault("quantity", "N/A"));
         String matchReason = (String) donationData.getOrDefault("matchReason", "Matches your preferences");
@@ -452,36 +559,48 @@ public class EmailService {
             <body>
                 <div class="container">
                     <div class="header">
-                        <h1>🍽️ New Donation Available</h1>
+                        <h1>🍽️ %s</h1>
                     </div>
                     <div class="content">
-                        <p>Hi %s,</p>
-                        <p>A new donation matching your preferences is now available:</p>
+                        <p>%s %s,</p>
+                        <p>%s</p>
                         <div class="donation-box">
-                            <div class="detail"><span class="label">Title:</span> %s</div>
-                            <div class="detail"><span class="label">Quantity:</span> %s</div>
-                            <div class="detail"><span class="label">Why this matches:</span> %s</div>
+                            <div class="detail"><span class="label">%s</span> %s</div>
+                            <div class="detail"><span class="label">%s</span> %s</div>
+                            <div class="detail"><span class="label">%s</span> %s</div>
                         </div>
-                        <p>Log in to FoodFlow to view details and claim this donation!</p>
+                        <p>%s</p>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/receiver/dashboard" class="button" style="color: white !important; text-decoration: none;">View Donation</a>
+                            <a href="http://localhost:3000/receiver/dashboard" class="button" style="color: white !important; text-decoration: none;">%s</a>
                         </p>
                     </div>
                     <div class="footer">
-                        <p>© 2026 FoodFlow. All rights reserved.</p>
-                        <p>You're receiving this email because you have email notifications enabled in your preferences.</p>
-                        <p>To manage your notification settings, visit Settings in your FoodFlow account.</p>
+                        <p>%s</p>
+                        <p>%s</p>
+                        <p>%s</p>
                     </div>
                 </div>
             </body>
             </html>
-            """.formatted(userName, title, quantity, matchReason);
+            """.formatted(
+                getMessage("email.new_donation.header", locale),
+                getMessage("email.common.hi", locale), userName,
+                getMessage("email.new_donation.intro", locale),
+                getMessage("email.new_donation.label_title", locale), title,
+                getMessage("email.new_donation.label_quantity", locale), quantity,
+                getMessage("email.new_donation.label_match_reason", locale), matchReason,
+                getMessage("email.new_donation.cta_text", locale),
+                getMessage("email.new_donation.button_text", locale),
+                getMessage("email.common.footer_copyright", locale),
+                getMessage("email.common.footer_notifications", locale),
+                getMessage("email.common.footer_manage_settings", locale)
+            );
     }
     
     /**
      * Build HTML email body for donation claimed notification
      */
-    private String buildDonationClaimedEmailBody(String userName, Map<String, Object> claimData) {
+    private String buildDonationClaimedEmailBody(String userName, Map<String, Object> claimData, Locale locale) {
         String title = (String) claimData.getOrDefault("title", "Your Donation");
         String receiverName = (String) claimData.getOrDefault("receiverName", "A receiver");
         String quantity = String.valueOf(claimData.getOrDefault("quantity", "N/A"));
@@ -508,36 +627,48 @@ public class EmailService {
             <body>
                 <div class="container">
                     <div class="header">
-                        <h1>✅ Your Donation Has Been Claimed!</h1>
+                        <h1>%s</h1>
                     </div>
                     <div class="content">
-                        <p>Hi %s,</p>
-                        <p>Great news! Your donation has been claimed:</p>
+                        <p>%s %s,</p>
+                        <p>%s</p>
                         <div class="claim-box">
-                            <div class="detail"><span class="label">Donation:</span> %s</div>
-                            <div class="detail"><span class="label">Claimed by:</span> %s</div>
-                            <div class="detail"><span class="label">Quantity:</span> %s</div>
+                            <div class="detail"><span class="label">%s</span> %s</div>
+                            <div class="detail"><span class="label">%s</span> %s</div>
+                            <div class="detail"><span class="label">%s</span> %s</div>
                         </div>
-                        <p>The receiver will coordinate pickup details with you. Please check your messages in FoodFlow.</p>
+                        <p>%s</p>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/donor/dashboard" class="button" style="color: white !important; text-decoration: none;">View Claim Details</a>
+                            <a href="http://localhost:3000/donor/dashboard" class="button" style="color: white !important; text-decoration: none;">%s</a>
                         </p>
                     </div>
                     <div class="footer">
-                        <p>© 2026 FoodFlow. All rights reserved.</p>
-                        <p>You're receiving this email because you have email notifications enabled in your preferences.</p>
-                        <p>To manage your notification settings, visit Settings in your FoodFlow account.</p>
+                        <p>%s</p>
+                        <p>%s</p>
+                        <p>%s</p>
                     </div>
                 </div>
             </body>
             </html>
-            """.formatted(userName, title, receiverName, quantity);
+            """.formatted(
+                getMessage("email.donation_claimed.header", locale),
+                getMessage("email.common.hi", locale), userName,
+                getMessage("email.donation_claimed.message", locale),
+                getMessage("email.donation_claimed.label.donation", locale), title,
+                getMessage("email.donation_claimed.label.claimed_by", locale), receiverName,
+                getMessage("email.donation_claimed.label.quantity", locale), quantity,
+                getMessage("email.donation_claimed.instruction", locale),
+                getMessage("email.donation_claimed.button", locale),
+                getMessage("email.common.footer_copyright", locale),
+                getMessage("email.common.footer_notifications", locale),
+                getMessage("email.common.footer_manage_settings", locale)
+            );
     }
     
     /**
      * Build HTML email body for claim canceled notification
      */
-    private String buildClaimCanceledEmailBody(String userName, Map<String, Object> claimData) {
+    private String buildClaimCanceledEmailBody(String userName, Map<String, Object> claimData, Locale locale) {
         String title = (String) claimData.getOrDefault("title", "A Donation");
         String reason = (String) claimData.getOrDefault("reason", "The receiver canceled their claim");
         
@@ -563,35 +694,46 @@ public class EmailService {
             <body>
                 <div class="container">
                     <div class="header">
-                        <h1>ℹ️ Claim Canceled</h1>
+                        <h1>%s</h1>
                     </div>
                     <div class="content">
-                        <p>Hi %s,</p>
-                        <p>A claim on your donation has been canceled:</p>
+                        <p>%s %s,</p>
+                        <p>%s</p>
                         <div class="info-box">
-                            <div class="detail"><span class="label">Donation:</span> %s</div>
-                            <div class="detail"><span class="label">Reason:</span> %s</div>
+                            <div class="detail"><span class="label">%s</span> %s</div>
+                            <div class="detail"><span class="label">%s</span> %s</div>
                         </div>
-                        <p>Your donation is now available again for other receivers to claim.</p>
+                        <p>%s</p>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/donor/dashboard" class="button" style="color: white !important; text-decoration: none;">View Your Donations</a>
+                            <a href="http://localhost:3000/donor/dashboard" class="button" style="color: white !important; text-decoration: none;">%s</a>
                         </p>
                     </div>
                     <div class="footer">
-                        <p>© 2026 FoodFlow. All rights reserved.</p>
-                        <p>You're receiving this email because you have email notifications enabled in your preferences.</p>
-                        <p>To manage your notification settings, visit Settings in your FoodFlow account.</p>
+                        <p>%s</p>
+                        <p>%s</p>
+                        <p>%s</p>
                     </div>
                 </div>
             </body>
             </html>
-            """.formatted(userName, title, reason);
+            """.formatted(
+                getMessage("email.claim_canceled.header", locale),
+                getMessage("email.common.hi", locale), userName,
+                getMessage("email.claim_canceled.message", locale),
+                getMessage("email.claim_canceled.label.donation", locale), title,
+                getMessage("email.claim_canceled.label.reason", locale), reason,
+                getMessage("email.claim_canceled.instruction", locale),
+                getMessage("email.claim_canceled.button", locale),
+                getMessage("email.common.footer_copyright", locale),
+                getMessage("email.common.footer_notifications", locale),
+                getMessage("email.common.footer_manage_settings", locale)
+            );
     }
     
     /**
      * Build HTML email body for review received notification
      */
-    private String buildReviewReceivedEmailBody(String userName, Map<String, Object> reviewData) {
+    private String buildReviewReceivedEmailBody(String userName, Map<String, Object> reviewData, Locale locale) {
         String reviewerName = (String) reviewData.getOrDefault("reviewerName", "A user");
         Integer rating = (Integer) reviewData.getOrDefault("rating", 0);
         String reviewText = (String) reviewData.getOrDefault("reviewText", "");
@@ -606,8 +748,6 @@ public class EmailService {
         String reviewContext = isDonorReview ? "a donor" : "a receiver";
         
         // Determine correct settings URL based on role
-        // If isDonorReview is true, reviewee is a receiver (donor reviewed them)
-        // If isDonorReview is false, reviewee is a donor (receiver reviewed them)
         String settingsUrl = isDonorReview ? "http://localhost:3000/receiver/settings" : "http://localhost:3000/donor/settings";
         
         return """
@@ -634,41 +774,46 @@ public class EmailService {
             <body>
                 <div class="container">
                     <div class="header">
-                        <h1>⭐ New Review Received</h1>
+                        <h1>%s</h1>
                     </div>
                     <div class="content">
-                        <p>Hi %s,</p>
-                        <p>You've received a new review from %s!</p>
+                        <p>%s %s,</p>
+                        <p>%s</p>
                         <div class="review-box">
-                            <div class="detail"><span class="label">From:</span> %s (%s)</div>
+                            <div class="detail"><span class="label">%s</span> %s (%s)</div>
                             <div class="stars">%s</div>
-                            <div class="detail"><span class="label">Rating:</span> %d/5 stars</div>
+                            <div class="detail"><span class="label">%s</span> %d%s</div>
                             %s
                         </div>
-                        <p>Your feedback helps build trust in the FoodFlow community. Keep up the great work!</p>
+                        <p>%s</p>
                         <p style="text-align: center;">
-                            <a href="%s" class="button" style="color: white !important; text-decoration: none;">View Your Profile</a>
+                            <a href="%s" class="button" style="color: white !important; text-decoration: none;">%s</a>
                         </p>
                     </div>
                     <div class="footer">
-                        <p>© 2026 FoodFlow. All rights reserved.</p>
-                        <p>You're receiving this email because you have review notifications enabled in your preferences.</p>
-                        <p>To manage your notification settings, visit Settings in your FoodFlow account.</p>
+                        <p>%s</p>
+                        <p>%s</p>
+                        <p>%s</p>
                     </div>
                 </div>
             </body>
             </html>
             """.formatted(
-                userName, 
-                reviewerName,
-                reviewerName, 
-                reviewContext,
+                getMessage("email.review_received.header", locale),
+                getMessage("email.common.hi", locale), userName,
+                getMessage("email.review_received.message", locale, reviewerName),
+                getMessage("email.review_received.label.from", locale), reviewerName, reviewContext,
                 starDisplay,
-                rating,
+                getMessage("email.review_received.label.rating", locale), rating, getMessage("email.review_received.stars_suffix", locale),
                 reviewText != null && !reviewText.isEmpty() 
                     ? "<div class=\"review-text\">\"" + reviewText + "\"</div>" 
                     : "",
-                settingsUrl
+                getMessage("email.review_received.instruction", locale),
+                settingsUrl,
+                getMessage("email.review_received.button", locale),
+                getMessage("email.common.footer_copyright", locale),
+                getMessage("email.common.footer_notifications", locale),
+                getMessage("email.common.footer_manage_settings", locale)
             );
     }
     
@@ -682,6 +827,8 @@ public class EmailService {
      */
     public void sendNewMessageNotification(String toEmail, String recipientName, String senderName, String messagePreview) {
         log.info("Sending new message notification email to: {}", toEmail);
+        
+        Locale locale = getUserLocale(toEmail);
         
         try {
             ApiClient defaultClient = Configuration.getDefaultApiClient();
@@ -700,8 +847,8 @@ public class EmailService {
             recipient.setEmail(toEmail);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             
-            sendSmtpEmail.setSubject("New Message from " + senderName + " - FoodFlow");
-            sendSmtpEmail.setHtmlContent(buildNewMessageEmailBody(recipientName, senderName, messagePreview));
+            sendSmtpEmail.setSubject(getMessage("email.new_message.subject", locale, senderName));
+            sendSmtpEmail.setHtmlContent(buildNewMessageEmailBody(recipientName, senderName, messagePreview, locale));
             
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
             log.info("New message notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
@@ -719,6 +866,8 @@ public class EmailService {
      */
     public void sendAccountApprovalEmail(String toEmail, String userName) throws ApiException {
         log.info("Sending account approval email to: {}", toEmail);
+        
+        Locale locale = getUserLocale(toEmail);
         
         // Configure API client
         ApiClient defaultClient = Configuration.getDefaultApiClient();
@@ -742,9 +891,9 @@ public class EmailService {
         sendSmtpEmail.setTo(Collections.singletonList(recipient));
         
         // Set subject and content
-        sendSmtpEmail.setSubject("FoodFlow - Account Approved! Welcome to FoodFlow");
-        sendSmtpEmail.setTextContent("Your FoodFlow account has been approved by our admin team. You now have full access to all features.");
-        sendSmtpEmail.setHtmlContent(buildAccountApprovalEmailBody(userName));
+        sendSmtpEmail.setSubject(getMessage("email.account_approval.subject", locale));
+        sendSmtpEmail.setTextContent(getMessage("email.account_approval.text_content", locale));
+        sendSmtpEmail.setHtmlContent(buildAccountApprovalEmailBody(userName, locale));
         
         try {
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
@@ -767,6 +916,8 @@ public class EmailService {
     public void sendAccountRejectionEmail(String toEmail, String userName, String reason, String customMessage) throws ApiException {
         log.info("Sending account rejection email to: {}", toEmail);
         
+        Locale locale = getUserLocale(toEmail);
+        
         // Configure API client
         ApiClient defaultClient = Configuration.getDefaultApiClient();
         ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
@@ -789,9 +940,9 @@ public class EmailService {
         sendSmtpEmail.setTo(Collections.singletonList(recipient));
         
         // Set subject and content
-        sendSmtpEmail.setSubject("FoodFlow - Account Registration Update");
-        sendSmtpEmail.setTextContent("Your FoodFlow account registration could not be approved. Reason: " + getRejectionReasonText(reason));
-        sendSmtpEmail.setHtmlContent(buildAccountRejectionEmailBody(userName, reason, customMessage));
+        sendSmtpEmail.setSubject(getMessage("email.account_rejection.subject", locale));
+        sendSmtpEmail.setTextContent(getMessage("email.account_rejection.text_content", locale, getRejectionReasonText(reason, locale)));
+        sendSmtpEmail.setHtmlContent(buildAccountRejectionEmailBody(userName, reason, customMessage, locale));
         
         try {
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
@@ -806,22 +957,22 @@ public class EmailService {
     /**
      * Convert rejection reason code to human-readable text
      */
-    private String getRejectionReasonText(String reason) {
+    private String getRejectionReasonText(String reason, Locale locale) {
         return switch (reason) {
-            case "incomplete_info" -> "Incomplete Information";
-            case "invalid_organization" -> "Invalid Organization";
-            case "duplicate_account" -> "Duplicate Account";
-            case "suspicious_activity" -> "Suspicious Activity";
-            case "does_not_meet_criteria" -> "Does Not Meet Criteria";
-            case "other" -> "Other";
-            default -> "Unspecified Reason";
+            case "incomplete_info" -> getMessage("email.account_rejection.reason.incomplete_info", locale);
+            case "invalid_organization" -> getMessage("email.account_rejection.reason.invalid_organization", locale);
+            case "duplicate_account" -> getMessage("email.account_rejection.reason.duplicate_account", locale);
+            case "suspicious_activity" -> getMessage("email.account_rejection.reason.suspicious_activity", locale);
+            case "does_not_meet_criteria" -> getMessage("email.account_rejection.reason.does_not_meet_criteria", locale);
+            case "other" -> getMessage("email.account_rejection.reason.other", locale);
+            default -> getMessage("email.account_rejection.reason.unspecified", locale);
         };
     }
     
     /**
      * Build HTML email body for new message notification
      */
-    private String buildNewMessageEmailBody(String recipientName, String senderName, String messagePreview) {
+    private String buildNewMessageEmailBody(String recipientName, String senderName, String messagePreview, Locale locale) {
         // Limit message preview to 150 characters
         String preview = messagePreview;
         if (preview.length() > 150) {
@@ -850,35 +1001,47 @@ public class EmailService {
             <body>
                 <div class="container">
                     <div class="header">
-                        <h1>💬 New Message Received</h1>
+                        <h1>%s</h1>
                     </div>
                     <div class="content">
-                        <p>Hi %s,</p>
-                        <p>You have received a new message on FoodFlow:</p>
+                        <p>%s %s,</p>
+                        <p>%s</p>
                         <div class="message-box">
-                            <div class="sender-name">From: %s</div>
+                            <div class="sender-name">%s %s</div>
                             <div class="message-preview">"%s"</div>
                         </div>
-                        <p>Log in to FoodFlow to view the full message and reply!</p>
+                        <p>%s</p>
                         <p style="text-align: center;">
-                            <a href="%s/donor/messages" class="button" style="color: white !important; text-decoration: none;">View Message</a>
+                            <a href="%s/donor/messages" class="button" style="color: white !important; text-decoration: none;">%s</a>
                         </p>
                     </div>
                     <div class="footer">
-                        <p>© 2026 FoodFlow. All rights reserved.</p>
-                        <p>You're receiving this email because you have email notifications enabled in your preferences.</p>
-                        <p>To manage your notification settings, visit Settings in your FoodFlow account.</p>
+                        <p>%s</p>
+                        <p>%s</p>
+                        <p>%s</p>
                     </div>
                 </div>
             </body>
             </html>
-            """.formatted(recipientName, senderName, preview, frontendUrl);
+            """.formatted(
+                getMessage("email.new_message.header", locale),
+                getMessage("email.common.hi", locale), recipientName,
+                getMessage("email.new_message.message", locale),
+                getMessage("email.new_message.label_from", locale), senderName,
+                preview,
+                getMessage("email.new_message.instruction", locale),
+                frontendUrl,
+                getMessage("email.new_message.button", locale),
+                getMessage("email.common.footer_copyright", locale),
+                getMessage("email.common.footer_notifications", locale),
+                getMessage("email.common.footer_manage_settings", locale)
+            );
     }
 
     /**
      * Build HTML email body for account approval
      */
-    private String buildAccountApprovalEmailBody(String userName) {
+    private String buildAccountApprovalEmailBody(String userName, Locale locale) {
         return """
             <!DOCTYPE html>
             <html>
@@ -937,8 +1100,8 @@ public class EmailService {
     /**
      * Build HTML email body for account rejection
      */
-    private String buildAccountRejectionEmailBody(String userName, String reason, String customMessage) {
-        String reasonText = getRejectionReasonText(reason);
+    private String buildAccountRejectionEmailBody(String userName, String reason, String customMessage, Locale locale) {
+        String reasonText = getRejectionReasonText(reason, locale);
         String messageSection = "";
         
         if (customMessage != null && !customMessage.trim().isEmpty()) {
@@ -1011,7 +1174,7 @@ public class EmailService {
     /**
      * Build HTML email body for donation picked up notification
      */
-    private String buildDonationPickedUpEmailBody(String userName, Map<String, Object> donationData) {
+    private String buildDonationPickedUpEmailBody(String userName, Map<String, Object> donationData, Locale locale) {
         String donationTitle = (String) donationData.getOrDefault("donationTitle", "Your Donation");
         String quantity = String.valueOf(donationData.getOrDefault("quantity", "N/A"));
         String receiverName = (String) donationData.getOrDefault("receiverName", "A receiver");
@@ -1039,33 +1202,46 @@ public class EmailService {
             <body>
                 <div class="container">
                     <div class="header">
-                        <h1>✓ Donation Picked Up</h1>
+                        <h1>%s</h1>
                     </div>
                     <div class="content">
-                        <p>Hi %s,</p>
+                        <p>%s</p>
                         <div class="success-box">
-                            <p><strong>Great news!</strong> Your donation has been successfully picked up by %s.</p>
+                            <p>%s</p>
                         </div>
-                        <p>Here are the details of your donation:</p>
+                        <p>%s</p>
                         <div class="info-box">
-                            <div class="detail"><span class="label">Donation Item:</span> %s</div>
-                            <div class="detail"><span class="label">Quantity:</span> %s</div>
-                            <div class="detail"><span class="label">Picked Up By:</span> %s</div>
+                            <div class="detail"><span class="label">%s</span> %s</div>
+                            <div class="detail"><span class="label">%s</span> %s</div>
+                            <div class="detail"><span class="label">%s</span> %s</div>
                         </div>
-                        <p>Thank you for making a difference in your community! Your donation will help someone in need.</p>
+                        <p>%s</p>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/donor/dashboard" class="button" style="color: white !important; text-decoration: none;">View Your Dashboard</a>
+                            <a href="http://localhost:3000/donor/dashboard" class="button" style="color: white !important; text-decoration: none;">%s</a>
                         </p>
                     </div>
                     <div class="footer">
-                        <p>© 2026 FoodFlow. All rights reserved.</p>
-                        <p>You're receiving this email because you have email notifications enabled in your preferences.</p>
-                        <p>To manage your notification settings, visit Settings in your FoodFlow account.</p>
+                        <p>%s</p>
+                        <p>%s</p>
+                        <p>%s</p>
                     </div>
                 </div>
             </body>
             </html>
-            """.formatted(userName, receiverName, donationTitle, quantity, receiverName);
+            """.formatted(
+                getMessage("email.donation_picked_up.header", locale),
+                getMessage("email.donation_picked_up.greeting", locale, userName),
+                getMessage("email.donation_picked_up.success_message", locale, receiverName),
+                getMessage("email.donation_picked_up.details_title", locale),
+                getMessage("email.donation_picked_up.label.donation_item", locale), donationTitle,
+                getMessage("email.donation_picked_up.label.quantity", locale), quantity,
+                getMessage("email.donation_picked_up.label.picked_up_by", locale), receiverName,
+                getMessage("email.donation_picked_up.thank_you", locale),
+                getMessage("email.donation_picked_up.button", locale),
+                getMessage("email.common.footer", locale),
+                getMessage("email.common.footer.notifications", locale),
+                getMessage("email.common.footer.manage_settings", locale)
+            );
     }
 
     /**
@@ -1073,6 +1249,8 @@ public class EmailService {
      */
     public void sendDonationCompletedNotification(String toEmail, String userName, Map<String, Object> donationData) {
         log.info("Sending donation completed notification email to: {}", toEmail);
+        
+        Locale locale = getUserLocale(toEmail);
         
         try {
             ApiClient defaultClient = Configuration.getDefaultApiClient();
@@ -1091,8 +1269,8 @@ public class EmailService {
             recipient.setEmail(toEmail);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             
-            sendSmtpEmail.setSubject("Your Donation Has Been Completed - FoodFlow");
-            sendSmtpEmail.setHtmlContent(buildDonationCompletedEmailBody(userName, donationData));
+            sendSmtpEmail.setSubject(getMessage("email.donation_completed.subject", locale));
+            sendSmtpEmail.setHtmlContent(buildDonationCompletedEmailBody(userName, donationData, locale));
             
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
             log.info("Donation completed notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
@@ -1105,7 +1283,7 @@ public class EmailService {
     /**
      * Build HTML email body for donation completed notification
      */
-    private String buildDonationCompletedEmailBody(String userName, Map<String, Object> donationData) {
+    private String buildDonationCompletedEmailBody(String userName, Map<String, Object> donationData, Locale locale) {
         String donationTitle = (String) donationData.getOrDefault("donationTitle", "A Donation");
         String quantity = String.valueOf(donationData.getOrDefault("quantity", "N/A"));
         String donorName = (String) donationData.getOrDefault("donorName", "A donor");
@@ -1168,6 +1346,8 @@ public class EmailService {
     public void sendReadyForPickupNotification(String toEmail, String userName, Map<String, Object> donationData) {
         log.info("Sending ready for pickup notification email to: {}", toEmail);
         
+        Locale locale = getUserLocale(toEmail);
+        
         try {
             ApiClient defaultClient = Configuration.getDefaultApiClient();
             ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
@@ -1185,8 +1365,8 @@ public class EmailService {
             recipient.setEmail(toEmail);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             
-            sendSmtpEmail.setSubject("Your Donation Is Ready for Pickup - FoodFlow");
-            sendSmtpEmail.setHtmlContent(buildReadyForPickupEmailBody(userName, donationData));
+            sendSmtpEmail.setSubject(getMessage("email.ready_for_pickup.subject", locale));
+            sendSmtpEmail.setHtmlContent(buildReadyForPickupEmailBody(userName, donationData, locale));
             
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
             log.info("Ready for pickup notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
@@ -1199,7 +1379,7 @@ public class EmailService {
     /**
      * Build HTML email body for ready for pickup notification
      */
-    private String buildReadyForPickupEmailBody(String userName, Map<String, Object> donationData) {
+    private String buildReadyForPickupEmailBody(String userName, Map<String, Object> donationData, Locale locale) {
         String donationTitle = (String) donationData.getOrDefault("donationTitle", "A Donation");
         String quantity = String.valueOf(donationData.getOrDefault("quantity", "N/A"));
         String pickupDate = (String) donationData.getOrDefault("pickupDate", "Soon");
@@ -1262,6 +1442,8 @@ public class EmailService {
      * Sends a donation expired notification email to a donor
      */
     public void sendDonationExpiredNotification(String toEmail, String donorName, Map<String, Object> donationData) {
+        Locale locale = getUserLocale(toEmail);
+        
         try {
             ApiClient defaultClient = Configuration.getDefaultApiClient();
             ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
@@ -1280,8 +1462,8 @@ public class EmailService {
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
             sendSmtpEmail.setSender(sender);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
-            sendSmtpEmail.setSubject("Donation Expired - FoodFlow");
-            sendSmtpEmail.setHtmlContent(buildDonationExpiredEmailBody(donorName, donationData));
+            sendSmtpEmail.setSubject(getMessage("email.donation_expired.subject", locale));
+            sendSmtpEmail.setHtmlContent(buildDonationExpiredEmailBody(donorName, donationData, locale));
 
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
             log.info("Donation expired email sent successfully to {} - Message ID: {}", toEmail, result.getMessageId());
@@ -1290,7 +1472,7 @@ public class EmailService {
         }
     }
 
-    private String buildDonationExpiredEmailBody(String donorName, Map<String, Object> donationData) {
+    private String buildDonationExpiredEmailBody(String donorName, Map<String, Object> donationData, Locale locale) {
         String donationTitle = (String) donationData.get("donationTitle");
         String quantity = (String) donationData.get("quantity");
         String expiryDate = (String) donationData.get("expiryDate");
@@ -1357,6 +1539,8 @@ public class EmailService {
      * Sends a donation status update notification email
      */
     public void sendDonationStatusUpdateNotification(String toEmail, String userName, Map<String, Object> statusData) {
+        Locale locale = getUserLocale(toEmail);
+        
         try {
             ApiClient defaultClient = Configuration.getDefaultApiClient();
             ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
@@ -1375,8 +1559,8 @@ public class EmailService {
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
             sendSmtpEmail.setSender(sender);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
-            sendSmtpEmail.setSubject("Donation Status Updated by Admin - FoodFlow");
-            sendSmtpEmail.setHtmlContent(buildDonationStatusUpdateEmailBody(userName, statusData));
+            sendSmtpEmail.setSubject(getMessage("email.donation_status_updated.subject", locale));
+            sendSmtpEmail.setHtmlContent(buildDonationStatusUpdateEmailBody(userName, statusData, locale));
 
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
             log.info("Donation status update email sent successfully to {} - Message ID: {}", toEmail, result.getMessageId());
@@ -1385,7 +1569,7 @@ public class EmailService {
         }
     }
 
-    private String buildDonationStatusUpdateEmailBody(String userName, Map<String, Object> statusData) {
+    private String buildDonationStatusUpdateEmailBody(String userName, Map<String, Object> statusData, Locale locale) {
         String donationTitle = (String) statusData.get("donationTitle");
         String oldStatus = (String) statusData.get("oldStatus");
         String newStatus = (String) statusData.get("newStatus");
@@ -1463,6 +1647,8 @@ public class EmailService {
     public void sendAccountDeactivationEmail(String toEmail, String userName) throws ApiException {
         log.info("Sending account deactivation email to: {}", toEmail);
         
+        Locale locale = getUserLocale(toEmail);
+        
         ApiClient defaultClient = Configuration.getDefaultApiClient();
         ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
         apiKey.setApiKey(brevoApiKey);
@@ -1479,9 +1665,9 @@ public class EmailService {
         recipient.setEmail(toEmail);
         sendSmtpEmail.setTo(Collections.singletonList(recipient));
         
-        sendSmtpEmail.setSubject("Account Deactivated - FoodFlow");
-        sendSmtpEmail.setTextContent("Your FoodFlow account has been deactivated by an administrator.");
-        sendSmtpEmail.setHtmlContent(buildAccountDeactivationEmailBody(userName));
+        sendSmtpEmail.setSubject(getMessage("email.account_deactivation.subject", locale));
+        sendSmtpEmail.setTextContent(getMessage("email.account_deactivation.text_content", locale));
+        sendSmtpEmail.setHtmlContent(buildAccountDeactivationEmailBody(userName, locale));
         
         try {
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
@@ -1492,7 +1678,7 @@ public class EmailService {
         }
     }
 
-    private String buildAccountDeactivationEmailBody(String userName) {
+    private String buildAccountDeactivationEmailBody(String userName, Locale locale) {
         return """
             <!DOCTYPE html>
             <html>
@@ -1546,6 +1732,8 @@ public class EmailService {
     public void sendAccountReactivationEmail(String toEmail, String userName) throws ApiException {
         log.info("Sending account reactivation email to: {}", toEmail);
         
+        Locale locale = getUserLocale(toEmail);
+        
         ApiClient defaultClient = Configuration.getDefaultApiClient();
         ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
         apiKey.setApiKey(brevoApiKey);
@@ -1562,9 +1750,9 @@ public class EmailService {
         recipient.setEmail(toEmail);
         sendSmtpEmail.setTo(Collections.singletonList(recipient));
         
-        sendSmtpEmail.setSubject("Account Reactivated - FoodFlow");
-        sendSmtpEmail.setTextContent("Your FoodFlow account has been reactivated by an administrator.");
-        sendSmtpEmail.setHtmlContent(buildAccountReactivationEmailBody(userName));
+        sendSmtpEmail.setSubject(getMessage("email.account_reactivation.subject", locale));
+        sendSmtpEmail.setTextContent(getMessage("email.account_reactivation.text_content", locale));
+        sendSmtpEmail.setHtmlContent(buildAccountReactivationEmailBody(userName, locale));
         
         try {
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
@@ -1575,7 +1763,7 @@ public class EmailService {
         }
     }
 
-    private String buildAccountReactivationEmailBody(String userName) {
+    private String buildAccountReactivationEmailBody(String userName, Locale locale) {
         return """
             <!DOCTYPE html>
             <html>
