@@ -2120,7 +2120,16 @@
       "feedbackScore": "Feedback Score",
       "noReviews": "No reviews yet",
       "memberSince": "Member Since",
-      "recentActivity": "Recent Activity"
+      "recentActivity": "Recent Activity",
+      "activityLog": {
+        "DONATION": "Donated {{item}}",
+        "CLAIM": "Claimed {{item}}",
+        "VERIFICATION": "Completed verification",
+        "DEACTIVATE_USER": "Account deactivated",
+        "quantityOf": "{{quantity}} of {{title}}",
+        "noActivity": "No recent activity",
+        "on": "on"
+      }
     },
     "modals": {
       "deactivate": {
@@ -2348,7 +2357,11 @@
       "flaggedPostTitle": "System flagged a post for review",
       "flaggedPostSubtitle": "Post #{{id}} - Inappropriate content detected",
       "disputeResolvedTitle": "Admin resolved a dispute",
-      "disputeResolvedSubtitle": "Case #{{id}}"
+      "disputeResolvedSubtitle": "Case #{{id}}",
+      "deactivatedUserTitle": "Deactivated User: {{name}}",
+      "deactivatedUserSubtitle": "Admin: {{admin}}  ·  Reason: {{reason}}  ·  Timestamp: {{timestamp}}",
+      "unknownUser": "Unknown",
+      "noReasonProvided": "No reason provided"
     },
     "timeAgo": {
       "minuteAgo": "1 min ago",

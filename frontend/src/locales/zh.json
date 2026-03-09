@@ -2207,7 +2207,16 @@
       "feedbackScore": "反馈评分",
       "noReviews": "暂无评价",
       "memberSince": "加入时间",
-      "recentActivity": "最近活动"
+      "recentActivity": "最近活动",
+      "activityLog": {
+        "DONATION": "捐赠了{{item}}",
+        "CLAIM": "领取了{{item}}",
+        "VERIFICATION": "完成了验证",
+        "DEACTIVATE_USER": "账户已停用",
+        "quantityOf": "{{quantity}}的{{title}}",
+        "noActivity": "暂无最近活动",
+        "on": "于"
+      }
     },
     "modals": {
       "deactivate": {
@@ -2435,7 +2444,11 @@
       "flaggedPostTitle": "系统标记了一条待审核内容",
       "flaggedPostSubtitle": "帖子 #{{id}} - 检测到不当内容",
       "disputeResolvedTitle": "管理员已解决一条争议",
-      "disputeResolvedSubtitle": "?? #{{id}}"
+      "disputeResolvedSubtitle": "?? #{{id}}",
+      "deactivatedUserTitle": "已停用用户：{{name}}",
+      "deactivatedUserSubtitle": "管理员：{{admin}}  ·  原因：{{reason}}  ·  时间：{{timestamp}}",
+      "unknownUser": "未知",
+      "noReasonProvided": "未提供原因"
     },
     "timeAgo": {
       "minuteAgo": "1 ???",

@@ -2214,7 +2214,16 @@
       "feedbackScore": "Note d'évaluation",
       "noReviews": "Aucun avis pour le moment",
       "memberSince": "Membre depuis",
-      "recentActivity": "Activité récente"
+      "recentActivity": "Activité récente",
+      "activityLog": {
+        "DONATION": "A donné {{item}}",
+        "CLAIM": "A réclamé {{item}}",
+        "VERIFICATION": "Vérification complétée",
+        "DEACTIVATE_USER": "Compte désactivé",
+        "quantityOf": "{{quantity}} de {{title}}",
+        "noActivity": "Aucune activité récente",
+        "on": "le"
+      }
     },
     "modals": {
       "deactivate": {
@@ -2442,7 +2451,11 @@
       "flaggedPostTitle": "Le système a signalé une publication pour examen",
       "flaggedPostSubtitle": "Publication #{{id}} - Contenu inapproprié détecté",
       "disputeResolvedTitle": "Un administrateur a résolu un litige",
-      "disputeResolvedSubtitle": "Dossier #{{id}}"
+      "disputeResolvedSubtitle": "Dossier #{{id}}",
+      "deactivatedUserTitle": "Utilisateur désactivé : {{name}}",
+      "deactivatedUserSubtitle": "Admin : {{admin}}  ·  Motif : {{reason}}  ·  Horodatage : {{timestamp}}",
+      "unknownUser": "Inconnu",
+      "noReasonProvided": "Aucun motif fourni"
     },
     "timeAgo": {
       "minuteAgo": "il y a 1 min",
