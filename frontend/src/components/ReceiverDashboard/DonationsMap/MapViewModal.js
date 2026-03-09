@@ -1,333 +1,272 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { X, MapPin, List } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { List, MapPin } from 'lucide-react';
 import DonationMap from './DonationMap';
-import LocationPermission from './LocationPermission';
-import DistanceControl from './DistanceControl';
 import './MapViewModal.css';
 
-/**
- * Main modal component for map view.
- * Handles location permissions, filtering, and displays the map.
- *
- * @param {Object} props
- * @param {boolean} props.isOpen - Whether modal is open
- * @param {Function} props.onClose - Close modal callback
- * @param {Array} props.donations - All donations to display
- * @param {Object} props.filters - Current filter state
- * @param {Function} props.onFiltersChange - Filter change callback
- * @param {Function} props.onClaimClick - Claim donation callback
- * @param {boolean} props.isLoaded - Whether Google Maps is loaded
- * @param {Object} props.savedLocation - Saved user location from profile
- */
 const MapViewModal = ({
   isOpen,
   onClose,
   donations = [],
-  filters,
-  onFiltersChange,
+  filters = {},
+  accountLocation = null,
   onClaimClick,
   isLoaded,
-  savedLocation,
 }) => {
-  const [userLocation, setUserLocation] = useState(null);
-  const [showLocationPermission, setShowLocationPermission] = useState(false);
-  const [viewMode, setViewMode] = useState('map'); // 'map' or 'list'
-  const [localDistance, setLocalDistance] = useState(filters?.distance || 10);
+  const [geocodedLocation, setGeocodedLocation] = useState(null);
 
-  // Helper functions - MUST be defined before useMemo
-  const toRad = value => (value * Math.PI) / 180;
+  const normalizeCoords = coords => {
+    if (!coords || typeof coords !== 'object') {
+      return null;
+    }
 
-  const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371; // Earth's radius in km
-    const dLat = toRad(lat2 - lat1);
-    const dLon = toRad(lon2 - lon1);
+    const rawLat = coords.lat ?? coords.latitude;
+    const rawLng = coords.lng ?? coords.longitude;
+    const lat = Number(rawLat);
+    const lng = Number(rawLng);
 
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(toRad(lat1)) *
-        Math.cos(toRad(lat2)) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      return null;
+    }
 
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
+    return {
+      latitude: lat,
+      longitude: lng,
+      address: coords.address || coords.formattedAddress || '',
+    };
   };
 
-  // Initialize location on mount
+  const userLocation = useMemo(() => {
+    const activeFilterLocation = normalizeCoords(filters?.locationCoords);
+    if (activeFilterLocation) {
+      return {
+        ...activeFilterLocation,
+        address: activeFilterLocation.address || filters.location || '',
+        source: filters.locationSource || 'filter',
+      };
+    }
+
+    const fallbackAccountLocation = normalizeCoords(accountLocation);
+    if (fallbackAccountLocation) {
+      return {
+        ...fallbackAccountLocation,
+        source: 'account',
+      };
+    }
+
+    return null;
+  }, [filters, accountLocation]);
+
   useEffect(() => {
-    if (isOpen) {
-      // Try to use saved location or filter location first
-      if (savedLocation?.latitude && savedLocation?.longitude) {
-        setUserLocation({
-          latitude: savedLocation.latitude,
-          longitude: savedLocation.longitude,
-          source: 'saved',
-        });
-      } else if (filters?.locationCoords) {
-        setUserLocation({
-          latitude: filters.locationCoords.lat,
-          longitude: filters.locationCoords.lng,
-          source: 'filter',
-        });
-      } else if (!userLocation) {
-        // Only show permission dialog if we don't have any location
-        setShowLocationPermission(true);
-      }
-    }
-  }, [isOpen]); // Only run when modal opens
+    let isActive = true;
 
-  // Filter donations by distance
-  const filteredDonations = useMemo(() => {
-    if (!userLocation) {
-      return donations;
+    if (userLocation) {
+      setGeocodedLocation(null);
+      return () => {
+        isActive = false;
+      };
     }
 
-    return donations.filter(donation => {
-      if (!donation.pickupLocation) {
-        return false;
+    const addressFromFilters = (filters?.location || '').trim();
+    const addressFromAccount = (
+      accountLocation?.address ||
+      accountLocation?.formattedAddress ||
+      ''
+    ).trim();
+    const addressToGeocode = addressFromFilters || addressFromAccount;
+
+    if (!isLoaded || !addressToGeocode || typeof window === 'undefined') {
+      setGeocodedLocation(null);
+      return () => {
+        isActive = false;
+      };
+    }
+
+    const resolveLocationFromAddress = async () => {
+      // Prefer browser Geocoder.
+      if (window.google?.maps?.Geocoder) {
+        const geocoder = new window.google.maps.Geocoder();
+        const geocoderResult = await new Promise(resolve => {
+          geocoder.geocode({ address: addressToGeocode }, (results, status) => {
+            const topResult =
+              status === 'OK' && Array.isArray(results) && results.length > 0
+                ? results[0]
+                : null;
+            const point = topResult?.geometry?.location;
+            if (!point) {
+              resolve(null);
+              return;
+            }
+            resolve({
+              latitude: point.lat(),
+              longitude: point.lng(),
+              address: topResult.formatted_address || addressToGeocode,
+            });
+          });
+        });
+
+        if (geocoderResult) {
+          return geocoderResult;
+        }
       }
 
-      const distance = calculateDistance(
-        userLocation.latitude,
-        userLocation.longitude,
-        donation.pickupLocation.latitude,
-        donation.pickupLocation.longitude
-      );
+      // Fallback: Places text search via Maps JS.
+      if (window.google?.maps?.places?.PlacesService) {
+        try {
+          const placesResult = await new Promise(resolve => {
+            const service = new window.google.maps.places.PlacesService(
+              document.createElement('div')
+            );
+            service.findPlaceFromQuery(
+              {
+                query: addressToGeocode,
+                fields: ['geometry', 'formatted_address', 'name'],
+              },
+              (results, status) => {
+                const topResult =
+                  status === window.google.maps.places.PlacesServiceStatus.OK &&
+                  Array.isArray(results) &&
+                  results.length > 0
+                    ? results[0]
+                    : null;
+                const point = topResult?.geometry?.location;
+                if (!point) {
+                  resolve(null);
+                  return;
+                }
+                resolve({
+                  latitude: point.lat(),
+                  longitude: point.lng(),
+                  address:
+                    topResult.formatted_address ||
+                    topResult.name ||
+                    addressToGeocode,
+                });
+              }
+            );
+          });
 
-      return distance <= localDistance;
-    });
-  }, [donations, userLocation, localDistance]);
+          if (placesResult) {
+            return placesResult;
+          }
+        } catch {
+          // continue to HTTP fallbacks
+        }
+      }
 
-  const handleLocationReceived = location => {
-    setUserLocation(location);
-    setShowLocationPermission(false);
+      // Fallback 1: Google Geocoding HTTP API.
+      const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+      if (apiKey) {
+        try {
+          const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
+            addressToGeocode
+          )}&key=${apiKey}`;
+          const response = await fetch(url);
+          const payload = await response.json();
+          const topResult =
+            payload?.status === 'OK' &&
+            Array.isArray(payload.results) &&
+            payload.results.length > 0
+              ? payload.results[0]
+              : null;
+          const point = topResult?.geometry?.location;
+          if (point) {
+            return {
+              latitude: point.lat,
+              longitude: point.lng,
+              address: topResult.formatted_address || addressToGeocode,
+            };
+          }
+        } catch {
+          // continue to Nominatim fallback
+        }
+      }
 
-    // Update filters with new location
-    if (onFiltersChange) {
-      onFiltersChange('locationCoords', {
-        lat: location.latitude,
-        lng: location.longitude,
-        address: location.address,
+      // Fallback 2: OpenStreetMap Nominatim.
+      try {
+        const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(
+          addressToGeocode
+        )}`;
+        const response = await fetch(nominatimUrl, {
+          headers: {
+            Accept: 'application/json',
+          },
+        });
+        const payload = await response.json();
+        const topResult =
+          Array.isArray(payload) && payload.length > 0 ? payload[0] : null;
+        const lat = Number(topResult?.lat);
+        const lng = Number(topResult?.lon);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+          return null;
+        }
+        return {
+          latitude: lat,
+          longitude: lng,
+          address: topResult.display_name || addressToGeocode,
+        };
+      } catch {
+        return null;
+      }
+    };
+
+    resolveLocationFromAddress().then(resolved => {
+      if (!isActive) {
+        return;
+      }
+      if (!resolved) {
+        setGeocodedLocation(null);
+        return;
+      }
+      setGeocodedLocation({
+        ...resolved,
+        source: filters?.locationSource || 'address',
       });
-    }
-  };
+    });
 
-  const handleLocationDenied = () => {
-    // Keep permission dialog open for fallback options
-  };
+    return () => {
+      isActive = false;
+    };
+  }, [userLocation, filters, accountLocation, isLoaded]);
 
-  const handleDistanceChange = newDistance => {
-    setLocalDistance(newDistance);
-    if (onFiltersChange) {
-      onFiltersChange('distance', newDistance);
-    }
-  };
-
-  const handleApplyToFilters = () => {
-    if (onFiltersChange) {
-      onFiltersChange('distance', localDistance);
-      if (userLocation) {
-        onFiltersChange('locationCoords', {
-          lat: userLocation.latitude,
-          lng: userLocation.longitude,
-          address: userLocation.address,
-        });
-
-        onFiltersChange(
-          'location',
-          userLocation.address ||
-            `${userLocation.latitude}, ${userLocation.longitude}`
-        );
-      }
-    }
-    onClose();
-  };
-
-  const handleClaimClick = donation => {
-    // Call the claim handler but DON'T close the modal
-    if (onClaimClick) {
-      onClaimClick(donation);
-    }
-  };
+  const effectiveUserLocation = userLocation || geocodedLocation;
 
   if (!isOpen) {
     return null;
   }
 
   return (
-    <div className="map-view-modal-overlay">
-      <div className="map-view-modal">
-        {/* Header */}
-        <div className="map-view-header">
-          <div className="header-left">
-            <MapPin size={24} className="header-icon" />
-            <div>
-              <h2>Nearby Donations</h2>
-              <p className="header-subtitle">
-                {userLocation ? (
-                  <>
-                    {filteredDonations.length}{' '}
-                    {filteredDonations.length === 1 ? 'donation' : 'donations'}{' '}
-                    within {localDistance}km
-                  </>
-                ) : (
-                  'Select your location to see nearby donations'
-                )}
-              </p>
-            </div>
-          </div>
-
-          <button className="close-modal-btn" onClick={onClose}>
-            <X size={24} />
-          </button>
+    <section className="map-view-inline" aria-label="Map browse view">
+      <div className="map-view-inline-header">
+        <div className="map-view-inline-title">
+          <MapPin size={20} />
+          <h2>Browse on map</h2>
         </div>
-
-        {/* Controls */}
-        <div className="map-view-controls">
-          {/* View toggle */}
-          <div className="view-toggle">
-            <button
-              className={`toggle-btn ${viewMode === 'map' ? 'active' : ''}`}
-              onClick={() => setViewMode('map')}
-            >
-              <MapPin size={16} />
-              Map
-            </button>
-            <button
-              className={`toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
-              onClick={() => setViewMode('list')}
-            >
-              <List size={16} />
-              List
-            </button>
-          </div>
-
-          {/* Distance control */}
-          <DistanceControl
-            distance={localDistance}
-            onChange={handleDistanceChange}
-            min={1}
-            max={50}
-          />
-
-          {/* Location info */}
-          {userLocation ? (
-            <div className="location-info">
-              <MapPin size={16} />
-              <span>
-                {userLocation.source === 'current' && 'Current location'}
-                {userLocation.source === 'saved' && 'Saved location'}
-                {userLocation.source === 'filter' && 'Search location'}
-                {userLocation.source === 'manual' && 'Manual location'}
-              </span>
-              <button
-                className="change-location-btn"
-                onClick={() => setShowLocationPermission(true)}
-              >
-                Change
-              </button>
-            </div>
-          ) : (
-            <div className="location-info warning">
-              <MapPin size={16} />
-              <span>No location set</span>
-              <button
-                className="change-location-btn primary"
-                onClick={() => setShowLocationPermission(true)}
-              >
-                Set Location
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Map or List View */}
-        <div className="map-view-content">
-          {viewMode === 'map' ? (
-            <DonationMap
-              donations={filteredDonations}
-              userLocation={userLocation}
-              distanceRadius={localDistance}
-              onClaimClick={handleClaimClick}
-              isLoaded={isLoaded}
-            />
-          ) : (
-            <div className="donations-list-view">
-              {!userLocation ? (
-                <div className="no-donations">
-                  <MapPin size={48} />
-                  <p>Please set your location to see donations</p>
-                  <button
-                    className="expand-radius-btn"
-                    onClick={() => setShowLocationPermission(true)}
-                  >
-                    Set Location
-                  </button>
-                </div>
-              ) : filteredDonations.length === 0 ? (
-                <div className="no-donations">
-                  <MapPin size={48} />
-                  <p>No donations found within {localDistance}km</p>
-                  <button
-                    className="expand-radius-btn"
-                    onClick={() =>
-                      handleDistanceChange(Math.min(50, localDistance + 10))
-                    }
-                  >
-                    Expand to {Math.min(50, localDistance + 10)}km
-                  </button>
-                </div>
-              ) : (
-                <div className="donations-list">
-                  {filteredDonations.map(donation => (
-                    <div key={donation.id} className="list-donation-card">
-                      <h4>{donation.title}</h4>
-                      <p>{donation.pickupLocation?.address}</p>
-                      <span className="distance-text">
-                        {calculateDistance(
-                          userLocation.latitude,
-                          userLocation.longitude,
-                          donation.pickupLocation.latitude,
-                          donation.pickupLocation.longitude
-                        ).toFixed(1)}
-                        km away
-                      </span>
-                      <button
-                        className="list-card-claim-btn"
-                        onClick={() => handleClaimClick(donation)}
-                      >
-                        Claim Donation
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="map-view-footer">
-          <button className="cancel-btn" onClick={onClose}>
-            Cancel
-          </button>
-          <button className="apply-btn" onClick={handleApplyToFilters}>
-            Apply to Filters
-          </button>
-        </div>
-
-        {/* Location Permission Dialog */}
-        {showLocationPermission && (
-          <LocationPermission
-            onLocationReceived={handleLocationReceived}
-            onLocationDenied={handleLocationDenied}
-            savedLocation={savedLocation}
-            onClose={() => setShowLocationPermission(false)}
-            isLoaded={isLoaded}
-          />
-        )}
+        <button
+          type="button"
+          className="map-view-inline-list-button"
+          onClick={onClose}
+        >
+          <List size={16} />
+          Back to list
+        </button>
       </div>
-    </div>
+
+      <div className="map-view-inline-subtitle">
+        {effectiveUserLocation
+          ? `${donations.length} donation${donations.length === 1 ? '' : 's'} within ${filters?.distance || 10}km`
+          : 'Set your location in filters to center the map'}
+      </div>
+
+      <div className="map-view-inline-content">
+        <DonationMap
+          donations={donations}
+          userLocation={effectiveUserLocation}
+          distanceRadius={filters?.distance || 10}
+          onClaimClick={onClaimClick}
+          isLoaded={isLoaded}
+        />
+      </div>
+    </section>
   );
 };
 

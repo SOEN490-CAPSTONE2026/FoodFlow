@@ -168,7 +168,7 @@ export default function DonorHelp() {
             </div>
             <div className="donor-contact-info">
               <h4>{t('donorHelp.support.emailLabel')}</h4>
-              <p>support@foodflow.com</p>
+              <p>foodflow.group@gmail.com</p>
               <span className="response-time">
                 {t('donorHelp.support.emailResponseTime')}
               </span>

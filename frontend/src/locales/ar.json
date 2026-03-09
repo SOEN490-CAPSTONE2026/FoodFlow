@@ -2222,7 +2222,16 @@
       "feedbackScore": "تقييم الملاحظات",
       "noReviews": "لا توجد مراجعات بعد",
       "memberSince": "عضو منذ",
-      "recentActivity": "النشاط الأخير"
+      "recentActivity": "النشاط الأخير",
+      "activityLog": {
+        "DONATION": "تبرع بـ {{item}}",
+        "CLAIM": "طالب بـ {{item}}",
+        "VERIFICATION": "اكتمل التحقق",
+        "DEACTIVATE_USER": "تم تعطيل الحساب",
+        "quantityOf": "{{quantity}} من {{title}}",
+        "noActivity": "لا يوجد نشاط حديث",
+        "on": "في"
+      }
     },
     "modals": {
       "deactivate": {
@@ -2450,7 +2459,11 @@
       "flaggedPostTitle": "قام النظام بتعليم منشور للمراجعة",
       "flaggedPostSubtitle": "المنشور #{{id}} - تم اكتشاف محتوى غير مناسب",
       "disputeResolvedTitle": "قام المسؤول بحل نزاع",
-      "disputeResolvedSubtitle": "القضية #{{id}}"
+      "disputeResolvedSubtitle": "القضية #{{id}}",
+      "deactivatedUserTitle": "تم إلغاء تفعيل المستخدم: {{name}}",
+      "deactivatedUserSubtitle": "المشرف: {{admin}}  ·  السبب: {{reason}}  ·  الوقت: {{timestamp}}",
+      "unknownUser": "مجهول",
+      "noReasonProvided": "لم يُذكر سبب"
     },
     "timeAgo": {
       "minuteAgo": "منذ دقيقة واحدة",

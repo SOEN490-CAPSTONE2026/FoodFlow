@@ -432,14 +432,6 @@ function ReceiverLayoutContent() {
               {savedDonationsCount}
             </span>
           </Link>
-
-          <Link
-            to="/receiver/invite"
-            className={`receiver-nav-link ${isActive('/receiver/invite') ? 'active' : ''}`}
-            onClick={() => setIsMenuOpen(false)}
-          >
-            {t('receiverLayout.inviteCommunity', 'Invite Community')}
-          </Link>
         </div>
 
         <div className="receiver-user-info" ref={dropdownRef}>
@@ -519,7 +511,7 @@ function ReceiverLayoutContent() {
               </div>
 
               <div
-                className="dropdown-item"
+                className="dropdown-item dropdown-item--invite"
                 onClick={() => {
                   setShowDropdown(false);
                   navigate('/receiver/invite');

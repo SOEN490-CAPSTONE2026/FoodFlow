@@ -1,12 +1,25 @@
 package com.example.foodflow.service;
 
 import com.example.foodflow.model.dto.AdminUserResponse;
+import com.example.foodflow.model.dto.UserActivityDTO;
+import com.example.foodflow.audit.AuditLogger;
+import com.example.foodflow.model.dto.AdminUserResponse;
+import com.example.foodflow.model.dto.UserActivityDTO;
 import com.example.foodflow.model.entity.AccountStatus;
+import com.example.foodflow.model.entity.AuditLog;
+import com.example.foodflow.model.entity.Claim;
+import com.example.foodflow.model.entity.Conversation;
+import com.example.foodflow.model.entity.Message;
+import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.UserRole;
+import com.example.foodflow.repository.AuditLogRepository;
 import com.example.foodflow.repository.ClaimRepository;
+import com.example.foodflow.repository.ConversationRepository;
+import com.example.foodflow.repository.MessageRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
 import com.example.foodflow.repository.UserRepository;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -19,6 +32,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,19 +50,31 @@ public class AdminUserService {
     private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
     private final NotificationPreferenceService notificationPreferenceService;
     private final EmailService emailService;
+    private final ConversationRepository conversationRepository;
+    private final MessageRepository messageRepository;
+    private final AuditLogger auditLogger;
+    private final AuditLogRepository auditLogRepository;
 
     public AdminUserService(UserRepository userRepository,
             SurplusPostRepository surplusPostRepository,
             ClaimRepository claimRepository,
             org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate,
             NotificationPreferenceService notificationPreferenceService,
-            EmailService emailService) {
+            EmailService emailService,
+            ConversationRepository conversationRepository,
+            MessageRepository messageRepository,
+            AuditLogger auditLogger,
+            AuditLogRepository auditLogRepository) {
         this.userRepository = userRepository;
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;
         this.messagingTemplate = messagingTemplate;
         this.notificationPreferenceService = notificationPreferenceService;
         this.emailService = emailService;
+        this.conversationRepository = conversationRepository;
+        this.messageRepository = messageRepository;
+        this.auditLogger = auditLogger;
+        this.auditLogRepository = auditLogRepository;
     }
 
     /**
@@ -120,6 +147,23 @@ public class AdminUserService {
         User savedUser = userRepository.save(user);
         log.info("User {} successfully deactivated", userId);
 
+        // Write structured audit log entry
+        String adminEmail = userRepository.findById(adminId)
+                .map(User::getEmail).orElse("unknown-admin");
+        auditLogger.logAction(new AuditLog(
+                adminEmail,
+                "DEACTIVATE_USER",
+                "User",
+                userId.toString(),
+                null,
+                user.getEmail(),
+                adminNotes));
+
+        // Send in-app message with deactivation reason
+        userRepository.findById(adminId).ifPresent(adminUser ->
+            sendDeactivationMessage(savedUser, adminUser, adminNotes)
+        );
+
         // Send notifications to user
         sendAccountStatusNotification(savedUser, "deactivated", adminNotes);
 
@@ -153,6 +197,53 @@ public class AdminUserService {
         sendAccountStatusNotification(savedUser, "reactivated", null);
 
         return convertToAdminUserResponse(savedUser);
+    }
+
+    /**
+     * Send a persisted in-app message to the user explaining the deactivation reason.
+     */
+    private void sendDeactivationMessage(User user, User adminUser, String reason) {
+        try {
+            String userName = user.getOrganization() != null
+                    ? user.getOrganization().getName()
+                    : user.getEmail();
+
+            String messageBody = String.format(
+                "Dear %s, your account has been deactivated by one of our admins for: %s",
+                userName, reason != null && !reason.isBlank() ? reason : "policy violation");
+
+            Long userId1 = Math.min(adminUser.getId(), user.getId());
+            Long userId2 = Math.max(adminUser.getId(), user.getId());
+
+            Optional<Conversation> existing = conversationRepository.findByUsers(userId1, userId2);
+            Conversation conversation = existing.orElseGet(() -> {
+                Conversation c = new Conversation(adminUser, user);
+                return conversationRepository.save(c);
+            });
+
+            Message message = new Message(conversation, adminUser, messageBody);
+            messageRepository.save(message);
+
+            conversation.setLastMessageAt(LocalDateTime.now());
+            String preview = messageBody.length() > 100 ? messageBody.substring(0, 100) + "..." : messageBody;
+            conversation.setLastMessagePreview(preview);
+            conversationRepository.save(conversation);
+
+            // Push real-time notification to the user's message queue
+            Map<String, Object> wsPayload = new HashMap<>();
+            wsPayload.put("conversationId", conversation.getId());
+            wsPayload.put("senderName", "FoodFlow Admin");
+            wsPayload.put("messageBody", messageBody);
+            wsPayload.put("timestamp", LocalDateTime.now().toString());
+            messagingTemplate.convertAndSendToUser(
+                    user.getId().toString(),
+                    "/queue/messages",
+                    wsPayload);
+
+            log.info("Deactivation in-app message sent to user {}", user.getId());
+        } catch (Exception e) {
+            log.error("Failed to send deactivation in-app message to user {}: {}", user.getId(), e.getMessage(), e);
+        }
     }
 
     /**
@@ -240,6 +331,15 @@ public class AdminUserService {
 
         log.info("WebSocket alert sent to userId={} ({})", user.getId(), user.getEmail());
 
+        // Send alert via email
+        try {
+            String userName = user.getFullName() != null ? user.getFullName() : user.getEmail();
+            emailService.sendAdminAlertEmail(user.getEmail(), userName, message);
+            log.info("Admin alert email sent to userId={} ({})", user.getId(), user.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to send admin alert email to userId={}: {}", user.getId(), e.getMessage(), e);
+        }
+
         // Also add to admin_notes for record-keeping
         String currentNotes = user.getAdminNotes() != null ? user.getAdminNotes() : "";
         String alertNote = String.format("\n[ALERT %s]: %s", LocalDateTime.now(), message);
@@ -321,6 +421,113 @@ public class AdminUserService {
         }
         
         return convertToAdminUserResponse(user);
+    }
+
+    /**
+     * Get recent activity for a user
+     * @param userId User ID
+     * @param limit Maximum number of activities to return
+     * @return List of recent activities
+     */
+    @Transactional(readOnly = true)
+    public List<UserActivityDTO> getRecentActivity(Long userId, int limit) {
+        log.info("Fetching recent activity for user {}, limit: {}", userId, limit);
+        
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+        
+        List<UserActivityDTO> activities = new ArrayList<>();
+        
+        if (user.getRole() == UserRole.DONOR) {
+            // Get recent donations
+            List<SurplusPost> recentPosts = surplusPostRepository.findByDonorOrderByCreatedAtDesc(user);
+            
+            for (SurplusPost post : recentPosts) {
+                if (activities.size() >= limit) break;
+                
+                String postTitle = post.getTitle();
+                String postQuantity = null;
+                if (post.getQuantity() != null && post.getQuantity().getValue() != null) {
+                    postQuantity = String.format("%.0f%s",
+                        post.getQuantity().getValue(),
+                        post.getQuantity().getUnit() != null ? post.getQuantity().getUnit().getLabel() : "");
+                }
+                
+                activities.add(new UserActivityDTO(
+                    "DONATION",
+                    post.getCreatedAt(),
+                    post.getId(),
+                    "SurplusPost",
+                    postTitle,
+                    postQuantity
+                ));
+            }
+            
+        } else if (user.getRole() == UserRole.RECEIVER) {
+            // Get recent claims with post details
+            List<Claim> recentClaims = claimRepository.findReceiverClaimsWithDetails(
+                userId, 
+                List.of(com.example.foodflow.model.types.ClaimStatus.ACTIVE, 
+                       com.example.foodflow.model.types.ClaimStatus.COMPLETED,
+                       com.example.foodflow.model.types.ClaimStatus.CANCELLED)
+            );
+            
+            for (Claim claim : recentClaims) {
+                if (activities.size() >= limit) break;
+                
+                SurplusPost post = claim.getSurplusPost();
+                String claimTitle = post.getTitle();
+                String claimQuantity = null;
+                if (post.getQuantity() != null && post.getQuantity().getValue() != null) {
+                    claimQuantity = String.format("%.0f%s",
+                        post.getQuantity().getValue(),
+                        post.getQuantity().getUnit() != null ? post.getQuantity().getUnit().getLabel() : "");
+                }
+                
+                activities.add(new UserActivityDTO(
+                    "CLAIM",
+                    claim.getClaimedAt(),
+                    claim.getId(),
+                    "Claim",
+                    claimTitle,
+                    claimQuantity
+                ));
+            }
+        }
+        
+        // Add verification activity if available
+        if (user.getOrganization() != null && user.getOrganization().getVerificationStatus() != null) {
+            if (activities.size() < limit) {
+                activities.add(new UserActivityDTO(
+                    "VERIFICATION",
+                    user.getCreatedAt(), // Use account creation as proxy for verification
+                    user.getId(),
+                    "User",
+                    null,
+                    null
+                ));
+            }
+        }
+        
+        // Include account deactivation events from the audit log
+        List<AuditLog> deactivations = auditLogRepository
+                .findByEntityIdAndActionOrderByTimestampDesc(userId.toString(), "DEACTIVATE_USER");
+        for (AuditLog auditEntry : deactivations) {
+            if (activities.size() >= limit) break;
+            activities.add(new UserActivityDTO(
+                    "DEACTIVATE_USER",
+                    auditEntry.getTimestamp(),
+                    userId,
+                    "User",
+                    auditEntry.getNewValue(), // reason (adminNotes)
+                    null));
+        }
+
+        // Sort by timestamp descending and limit
+        return activities.stream()
+                .sorted(Comparator.comparing(UserActivityDTO::getTimestamp).reversed())
+                .limit(limit)
+                .collect(Collectors.toList());
     }
 
 }

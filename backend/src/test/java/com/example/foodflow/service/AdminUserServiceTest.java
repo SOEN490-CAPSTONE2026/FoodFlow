@@ -6,7 +6,17 @@ import com.example.foodflow.model.entity.Organization;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.UserRole;
 import com.example.foodflow.model.entity.VerificationStatus;
+import com.example.foodflow.audit.AuditLogger;
+import com.example.foodflow.model.dto.UserActivityDTO;
+import com.example.foodflow.model.entity.AuditLog;
+import com.example.foodflow.model.entity.Claim;
+import com.example.foodflow.model.entity.Conversation;
+import com.example.foodflow.model.entity.SurplusPost;
+import com.example.foodflow.model.types.ClaimStatus;
+import com.example.foodflow.repository.AuditLogRepository;
 import com.example.foodflow.repository.ClaimRepository;
+import com.example.foodflow.repository.ConversationRepository;
+import com.example.foodflow.repository.MessageRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
 import com.example.foodflow.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,7 +33,11 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+
+import static org.mockito.Mockito.mock;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -49,6 +63,18 @@ class AdminUserServiceTest {
 
     @Mock
     private EmailService emailService;
+
+    @Mock
+    private AuditLogger auditLogger;
+
+    @Mock
+    private ConversationRepository conversationRepository;
+
+    @Mock
+    private MessageRepository messageRepository;
+
+    @Mock
+    private AuditLogRepository auditLogRepository;
 
     @InjectMocks
     private AdminUserService adminUserService;
@@ -698,5 +724,252 @@ class AdminUserServiceTest {
 
         assertThrows(RuntimeException.class,
                 () -> adminUserService.getUserActivity(404L));
+    }
+
+    // -----------------------------------------------------------------------
+    // deactivateUser – audit logging and in-app deactivation message
+    // -----------------------------------------------------------------------
+
+    @Test
+    void deactivateUser_WritesAuditLog() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testDonor));
+        when(userRepository.save(any(User.class))).thenReturn(testDonor);
+        when(surplusPostRepository.countByDonorId(1L)).thenReturn(0L);
+        when(notificationPreferenceService.shouldSendNotification(any(), anyString(), anyString())).thenReturn(false);
+
+        adminUserService.deactivateUser(1L, "policy violation", 3L);
+
+        verify(auditLogger).logAction(any(AuditLog.class));
+    }
+
+    @Test
+    void deactivateUser_WhenAdminFound_SendsDeactivationMessage() {
+        Conversation savedConversation = new Conversation();
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testDonor));
+        when(userRepository.findById(3L)).thenReturn(Optional.of(testAdmin));
+        when(userRepository.save(any(User.class))).thenReturn(testDonor);
+        when(surplusPostRepository.countByDonorId(1L)).thenReturn(0L);
+        when(notificationPreferenceService.shouldSendNotification(any(), anyString(), anyString())).thenReturn(false);
+        when(conversationRepository.findByUsers(anyLong(), anyLong())).thenReturn(Optional.empty());
+        when(conversationRepository.save(any(Conversation.class))).thenReturn(savedConversation);
+
+        adminUserService.deactivateUser(1L, "policy violation", 3L);
+
+        verify(messageRepository).save(any());
+        verify(messagingTemplate).convertAndSendToUser(
+                eq("1"),
+                eq("/queue/messages"),
+                anyMap()
+        );
+    }
+
+    @Test
+    void deactivateUser_AuditLog_ContainsAdminEmailAndReason() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testDonor));
+        when(userRepository.findById(3L)).thenReturn(Optional.of(testAdmin));
+        when(userRepository.save(any(User.class))).thenReturn(testDonor);
+        when(surplusPostRepository.countByDonorId(1L)).thenReturn(0L);
+        when(notificationPreferenceService.shouldSendNotification(any(), anyString(), anyString())).thenReturn(false);
+        when(conversationRepository.findByUsers(anyLong(), anyLong())).thenReturn(Optional.empty());
+        when(conversationRepository.save(any(Conversation.class))).thenReturn(new Conversation());
+
+        adminUserService.deactivateUser(1L, "misconduct", 3L);
+
+        verify(auditLogger).logAction(argThat(log ->
+                "DEACTIVATE_USER".equals(log.getAction())
+                && "User".equals(log.getEntityType())
+                && "1".equals(log.getEntityId())
+                && "misconduct".equals(log.getNewValue())
+        ));
+    }
+
+    // -----------------------------------------------------------------------
+    // getRecentActivity
+    // -----------------------------------------------------------------------
+
+    @Test
+    void getRecentActivity_WithNonExistentUser_ThrowsException() {
+        when(userRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(RuntimeException.class,
+                () -> adminUserService.getRecentActivity(999L, 3));
+    }
+
+    @Test
+    void getRecentActivity_WithDonor_ReturnsDonationActivities() {
+        testOrganization.setVerificationStatus(null);
+        SurplusPost mockPost = mock(SurplusPost.class);
+        when(mockPost.getTitle()).thenReturn("Rice Bags");
+        when(mockPost.getQuantity()).thenReturn(null);
+        when(mockPost.getId()).thenReturn(10L);
+        when(mockPost.getCreatedAt()).thenReturn(LocalDateTime.now().minusDays(1));
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testDonor));
+        when(surplusPostRepository.findByDonorOrderByCreatedAtDesc(testDonor))
+                .thenReturn(Arrays.asList(mockPost));
+        when(auditLogRepository.findByEntityIdAndActionOrderByTimestampDesc("1", "DEACTIVATE_USER"))
+                .thenReturn(Collections.emptyList());
+
+        List<UserActivityDTO> result = adminUserService.getRecentActivity(1L, 3);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("DONATION", result.get(0).getAction());
+        assertEquals("Rice Bags", result.get(0).getTitle());
+        assertEquals(10L, result.get(0).getEntityId());
+        verify(surplusPostRepository).findByDonorOrderByCreatedAtDesc(testDonor);
+    }
+
+    @Test
+    void getRecentActivity_WithDonor_FormatsQuantityWhenPresent() {
+        testOrganization.setVerificationStatus(null);
+        com.example.foodflow.model.types.Quantity qty =
+                new com.example.foodflow.model.types.Quantity(50.0, com.example.foodflow.model.types.Quantity.Unit.KILOGRAM);
+        SurplusPost mockPost = mock(SurplusPost.class);
+        when(mockPost.getTitle()).thenReturn("Bread");
+        when(mockPost.getQuantity()).thenReturn(qty);
+        when(mockPost.getId()).thenReturn(11L);
+        when(mockPost.getCreatedAt()).thenReturn(LocalDateTime.now().minusHours(1));
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testDonor));
+        when(surplusPostRepository.findByDonorOrderByCreatedAtDesc(testDonor))
+                .thenReturn(Arrays.asList(mockPost));
+        when(auditLogRepository.findByEntityIdAndActionOrderByTimestampDesc("1", "DEACTIVATE_USER"))
+                .thenReturn(Collections.emptyList());
+
+        List<UserActivityDTO> result = adminUserService.getRecentActivity(1L, 3);
+
+        assertEquals(1, result.size());
+        assertEquals("50kg", result.get(0).getQuantity());
+    }
+
+    @Test
+    void getRecentActivity_WithReceiver_ReturnsClaimActivities() {
+        testOrganization.setVerificationStatus(null);
+        Claim mockClaim = mock(Claim.class);
+        SurplusPost mockPost = mock(SurplusPost.class);
+        when(mockClaim.getSurplusPost()).thenReturn(mockPost);
+        when(mockClaim.getClaimedAt()).thenReturn(LocalDateTime.now().minusDays(2));
+        when(mockClaim.getId()).thenReturn(20L);
+        when(mockPost.getTitle()).thenReturn("Vegetables");
+        when(mockPost.getQuantity()).thenReturn(null);
+
+        when(userRepository.findById(2L)).thenReturn(Optional.of(testReceiver));
+        when(claimRepository.findReceiverClaimsWithDetails(eq(2L), anyList()))
+                .thenReturn(Arrays.asList(mockClaim));
+        when(auditLogRepository.findByEntityIdAndActionOrderByTimestampDesc("2", "DEACTIVATE_USER"))
+                .thenReturn(Collections.emptyList());
+
+        List<UserActivityDTO> result = adminUserService.getRecentActivity(2L, 3);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("CLAIM", result.get(0).getAction());
+        assertEquals("Vegetables", result.get(0).getTitle());
+        assertEquals(20L, result.get(0).getEntityId());
+        verify(claimRepository).findReceiverClaimsWithDetails(eq(2L), anyList());
+    }
+
+    @Test
+    void getRecentActivity_WithAdminUser_ReturnsEmpty() {
+        when(userRepository.findById(3L)).thenReturn(Optional.of(testAdmin));
+        when(auditLogRepository.findByEntityIdAndActionOrderByTimestampDesc("3", "DEACTIVATE_USER"))
+                .thenReturn(Collections.emptyList());
+
+        List<UserActivityDTO> result = adminUserService.getRecentActivity(3L, 3);
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void getRecentActivity_RespectsLimit() {
+        testOrganization.setVerificationStatus(null);
+        SurplusPost p1 = mock(SurplusPost.class);
+        SurplusPost p2 = mock(SurplusPost.class);
+        SurplusPost p3 = mock(SurplusPost.class);
+        when(p1.getTitle()).thenReturn("Post 1");
+        when(p1.getQuantity()).thenReturn(null);
+        when(p1.getId()).thenReturn(1L);
+        when(p1.getCreatedAt()).thenReturn(LocalDateTime.now().minusDays(1));
+        when(p2.getTitle()).thenReturn("Post 2");
+        when(p2.getQuantity()).thenReturn(null);
+        when(p2.getId()).thenReturn(2L);
+        when(p2.getCreatedAt()).thenReturn(LocalDateTime.now().minusDays(2));
+        // p3 stubs intentionally omitted – the loop breaks at limit=2, so p3 is never accessed
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testDonor));
+        when(surplusPostRepository.findByDonorOrderByCreatedAtDesc(testDonor))
+                .thenReturn(Arrays.asList(p1, p2, p3));
+        when(auditLogRepository.findByEntityIdAndActionOrderByTimestampDesc("1", "DEACTIVATE_USER"))
+                .thenReturn(Collections.emptyList());
+
+        List<UserActivityDTO> result = adminUserService.getRecentActivity(1L, 2);
+
+        assertEquals(2, result.size());
+    }
+
+    @Test
+    void getRecentActivity_IncludesDeactivationFromAuditLog() {
+        testOrganization.setVerificationStatus(null);
+        AuditLog deactivationEntry = new AuditLog(
+                "admin@test.com", "DEACTIVATE_USER", "User", "1",
+                null, "donor@test.com", "Terms violation");
+        deactivationEntry.setTimestamp(LocalDateTime.now().minusHours(1));
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testDonor));
+        when(surplusPostRepository.findByDonorOrderByCreatedAtDesc(testDonor))
+                .thenReturn(Collections.emptyList());
+        when(auditLogRepository.findByEntityIdAndActionOrderByTimestampDesc("1", "DEACTIVATE_USER"))
+                .thenReturn(Arrays.asList(deactivationEntry));
+
+        List<UserActivityDTO> result = adminUserService.getRecentActivity(1L, 3);
+
+        assertEquals(1, result.size());
+        assertEquals("DEACTIVATE_USER", result.get(0).getAction());
+        assertEquals(1L, result.get(0).getEntityId());
+    }
+
+    @Test
+    void getRecentActivity_WithVerifiedOrg_IncludesVerificationActivity() {
+        testOrganization.setVerificationStatus(VerificationStatus.VERIFIED);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testDonor));
+        when(surplusPostRepository.findByDonorOrderByCreatedAtDesc(testDonor))
+                .thenReturn(Collections.emptyList());
+        when(auditLogRepository.findByEntityIdAndActionOrderByTimestampDesc("1", "DEACTIVATE_USER"))
+                .thenReturn(Collections.emptyList());
+
+        List<UserActivityDTO> result = adminUserService.getRecentActivity(1L, 3);
+
+        assertEquals(1, result.size());
+        assertEquals("VERIFICATION", result.get(0).getAction());
+    }
+
+    @Test
+    void getRecentActivity_ResultIsSortedByTimestampDescending() {
+        testOrganization.setVerificationStatus(null);
+        AuditLog olderEntry = new AuditLog(
+                "admin@test.com", "DEACTIVATE_USER", "User",
+                "1", null, null, "first");
+        olderEntry.setTimestamp(LocalDateTime.now().minusDays(5));
+
+        SurplusPost recentPost = mock(SurplusPost.class);
+        when(recentPost.getTitle()).thenReturn("Recent Donation");
+        when(recentPost.getQuantity()).thenReturn(null);
+        when(recentPost.getId()).thenReturn(7L);
+        when(recentPost.getCreatedAt()).thenReturn(LocalDateTime.now().minusDays(1));
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testDonor));
+        when(surplusPostRepository.findByDonorOrderByCreatedAtDesc(testDonor))
+                .thenReturn(Arrays.asList(recentPost));
+        when(auditLogRepository.findByEntityIdAndActionOrderByTimestampDesc("1", "DEACTIVATE_USER"))
+                .thenReturn(Arrays.asList(olderEntry));
+
+        List<UserActivityDTO> result = adminUserService.getRecentActivity(1L, 5);
+
+        assertEquals(2, result.size());
+        assertEquals("DONATION", result.get(0).getAction());   // newer first
+        assertEquals("DEACTIVATE_USER", result.get(1).getAction()); // older second
     }
 }

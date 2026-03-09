@@ -199,7 +199,7 @@ export default function InviteCommunity() {
                 name="message"
                 value={formData.message}
                 onChange={handleChange}
-                rows={4}
+                rows={3}
                 placeholder={t('inviteCommunity.form.messagePlaceholder')}
                 className={errors.message ? 'input-error' : ''}
                 disabled={submitting}

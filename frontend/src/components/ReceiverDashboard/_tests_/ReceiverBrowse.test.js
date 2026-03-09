@@ -643,7 +643,7 @@ describe('ReceiverBrowse Component', () => {
       });
     });
 
-    test('opens map and triggers claim via map modal', async () => {
+    test('switches to map browse mode and triggers claim from map section', async () => {
       const donation = createMockDonation({
         id: 89,
         pickupSlots: [
@@ -660,7 +660,7 @@ describe('ReceiverBrowse Component', () => {
         renderWithProviders(<ReceiverBrowse />);
       });
 
-      fireEvent.click(await screen.findByText('Open Map'));
+      fireEvent.click(await screen.findByRole('button', { name: 'Map' }));
       expect(await screen.findByTestId('map-modal')).toBeInTheDocument();
 
       fireEvent.click(screen.getByText('Claim From Map'));
