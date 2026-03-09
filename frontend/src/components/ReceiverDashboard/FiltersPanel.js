@@ -437,7 +437,7 @@ const FiltersPanel = ({
                   (autocompleteRef.current = autocomplete)
                 }
                 onPlaceChanged={handlePlaceSelect}
-                types={['geocode', 'establishment']}
+                types={['address']}
                 componentRestrictions={{ country: ['us', 'ca'] }}
               >
                 <input
@@ -452,7 +452,10 @@ const FiltersPanel = ({
                       ? filters.location || ''
                       : ''
                   }
-                  onChange={e => handleFilterChange('location', e.target.value)}
+                  onChange={e => {
+                    handleFilterChange('locationSource', 'manual');
+                    handleFilterChange('location', e.target.value);
+                  }}
                 />
               </Autocomplete>
             </div>
