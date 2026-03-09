@@ -74,6 +74,18 @@ const CustomMultiSelect = ({
 }) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
+  const selectRef = useRef(null);
+
+  useEffect(() => {
+    const handleOutsideClick = event => {
+      if (!selectRef.current?.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, []);
 
   const handleOptionToggle = optionValue => {
     const newSelected = selectedValues.includes(optionValue)
@@ -81,6 +93,10 @@ const CustomMultiSelect = ({
       : [...selectedValues, optionValue];
     onChange(newSelected);
   };
+
+  const selectedOptions = options.filter(option =>
+    selectedValues.includes(option.value)
+  );
 
   const getDisplayText = () => {
     if (selectedValues.length === 0) {
@@ -94,23 +110,57 @@ const CustomMultiSelect = ({
   };
 
   return (
-    <div className="custom-multi-select">
+    <div className="custom-multi-select" ref={selectRef}>
       <button
         type="button"
-        className="multi-select-button"
+        className={`multi-select-button ${isOpen ? 'is-open' : ''}`}
         onClick={() => setIsOpen(!isOpen)}
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
       >
-        <span className="selected-text">{getDisplayText()}</span>
+        <div className="selected-content">
+          <span
+            className={`selected-text ${selectedValues.length === 0 ? 'placeholder' : ''}`}
+          >
+            {getDisplayText()}
+          </span>
+          {selectedValues.length > 1 && (
+            <span className="selected-count-pill">{selectedValues.length}</span>
+          )}
+        </div>
         <ChevronDown
           className={`dropdown-arrow ${isOpen ? 'open' : ''}`}
           size={16}
         />
       </button>
 
+      {selectedOptions.length > 0 && (
+        <div className="selected-preview">
+          {selectedOptions.slice(0, 2).map(option => (
+            <span key={option.value} className="selected-chip">
+              {option.label}
+            </span>
+          ))}
+          {selectedOptions.length > 2 && (
+            <span className="selected-chip selected-chip-more">
+              +{selectedOptions.length - 2}
+            </span>
+          )}
+        </div>
+      )}
+
       {isOpen && (
-        <div className="multi-select-dropdown">
+        <div className="multi-select-dropdown" role="listbox">
+          <div className="multi-select-dropdown-header">
+            {t('filtersPanel.foodTypeLabel')}
+          </div>
           {options.map(option => (
-            <label key={option.value} className="multi-select-option">
+            <label
+              key={option.value}
+              className={`multi-select-option ${
+                selectedValues.includes(option.value) ? 'selected' : ''
+              }`}
+            >
               <input
                 type="checkbox"
                 checked={selectedValues.includes(option.value)}
