@@ -239,7 +239,7 @@ describe('ClaimedView', () => {
     expect(mockOnBack).toHaveBeenCalledTimes(1);
   });
 
-  test('renders View Pickup Steps button', () => {
+  test('does not render View Pickup Steps button in pickup steps view', () => {
     render(
       <ClaimedView
         claim={mockClaim}
@@ -248,7 +248,7 @@ describe('ClaimedView', () => {
         onBack={jest.fn()}
       />
     );
-    expect(screen.getByText('View Pickup Steps')).toBeInTheDocument();
+    expect(screen.queryByText('View Pickup Steps')).not.toBeInTheDocument();
   });
 
   test('handles Bakery & Pastry food type', () => {

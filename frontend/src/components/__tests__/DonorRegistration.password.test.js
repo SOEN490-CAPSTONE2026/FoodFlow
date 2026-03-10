@@ -4,8 +4,31 @@ import { BrowserRouter } from 'react-router-dom';
 import DonorRegistration from '../DonorRegistration';
 import { AuthContext } from '../../contexts/AuthContext';
 import { authAPI } from '../../services/api';
+import {
+  inferTimezoneFromAddress,
+  getBrowserTimezone,
+} from '../../services/timezoneService';
+import { validateAndNormalizeAddressWithGoogle } from '../../utils/addressValidation';
 
 jest.mock('../../services/api');
+jest.mock('../../services/timezoneService', () => ({
+  inferTimezoneFromAddress: jest.fn().mockResolvedValue('America/Toronto'),
+  getBrowserTimezone: jest.fn().mockReturnValue('America/Toronto'),
+}));
+jest.mock('../../utils/addressValidation', () => ({
+  validateAndNormalizeAddressWithGoogle: jest.fn().mockResolvedValue({
+    isValid: true,
+    normalizedAddress: {
+      streetAddress: '123 Main St',
+      unit: '',
+      city: 'Montreal',
+      postalCode: 'H1H 1H1',
+      province: 'QC',
+      country: 'Canada',
+    },
+    mismatches: {},
+  }),
+}));
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: key => key }),
   initReactI18next: { type: '3rdParty', init: () => {} },
@@ -34,6 +57,20 @@ describe('DonorRegistration - Password Validation', () => {
     authAPI.checkPhoneExists = jest
       .fn()
       .mockResolvedValue({ data: { exists: false } });
+    inferTimezoneFromAddress.mockResolvedValue('America/Toronto');
+    getBrowserTimezone.mockReturnValue('America/Toronto');
+    validateAndNormalizeAddressWithGoogle.mockResolvedValue({
+      isValid: true,
+      normalizedAddress: {
+        streetAddress: '123 Main St',
+        unit: '',
+        city: 'Montreal',
+        postalCode: 'H1H 1H1',
+        province: 'QC',
+        country: 'Canada',
+      },
+      mismatches: {},
+    });
   });
 
   test('accepts typing weak password in key-based field', () => {

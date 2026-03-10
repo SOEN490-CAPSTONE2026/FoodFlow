@@ -10,7 +10,15 @@ const MapViewModal = ({
   filters = {},
   accountLocation = null,
   onClaimClick,
+  onMarkerSelect,
+  selectedDonationId = null,
+  onViewDonationDetails,
   isLoaded,
+  formatBestBeforeDate,
+  formatPickupTime,
+  formatStatus,
+  getStatusClass,
+  t,
 }) => {
   const [geocodedLocation, setGeocodedLocation] = useState(null);
 
@@ -263,7 +271,15 @@ const MapViewModal = ({
           userLocation={effectiveUserLocation}
           distanceRadius={filters?.distance || 10}
           onClaimClick={onClaimClick}
+          onSelectedDonationChange={onMarkerSelect}
+          selectedDonationId={selectedDonationId}
+          onViewDetailsClick={onViewDonationDetails}
           isLoaded={isLoaded}
+          formatBestBeforeDate={formatBestBeforeDate}
+          formatPickupTime={formatPickupTime}
+          formatStatus={formatStatus}
+          getStatusClass={getStatusClass}
+          t={t}
         />
       </div>
     </section>

@@ -15,6 +15,7 @@ jest.mock('react-i18next', () => ({
         'claimDetail.status.readyForPickup': 'Ready for Pickup',
         'claimDetail.status.completed': 'Completed',
         'claimDetail.status.notCompleted': 'Not Completed',
+        'claimDetail.status.expired': 'Expired',
         'claimDetail.defaultTitle': 'Untitled Donation',
         'claimDetail.donationDetails': 'Donation Details',
         'claimDetail.chatWithDonor': 'Chat with {{name}}',
@@ -411,6 +412,30 @@ describe('ClaimDetailModal', () => {
     const viewStepsButton = screen.getByText('View Pickup Steps');
     fireEvent.click(viewStepsButton);
     expect(screen.getByTestId('completed-view')).toBeInTheDocument();
+  });
+
+  test('does not show pickup steps action for EXPIRED status', () => {
+    const expiredClaim = {
+      ...mockClaim,
+      surplusPost: {
+        ...mockClaim.surplusPost,
+        status: 'EXPIRED',
+      },
+    };
+    render(
+      <Wrapper>
+        <ClaimDetailModal
+          claim={expiredClaim}
+          isOpen={true}
+          onClose={jest.fn()}
+        />
+      </Wrapper>
+    );
+
+    expect(screen.queryByText('View Pickup Steps')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('claimed-view')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('ready-pickup-view')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('completed-view')).not.toBeInTheDocument();
   });
 
   test('handles back navigation from pickup steps view', () => {

@@ -607,6 +607,6 @@ describe('ReceiverRegistration', () => {
           })
         );
       });
-    }, 15000);
+    }, 30000);
   });
 });

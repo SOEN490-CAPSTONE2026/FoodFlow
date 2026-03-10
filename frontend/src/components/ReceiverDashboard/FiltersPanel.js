@@ -74,6 +74,18 @@ const CustomMultiSelect = ({
 }) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
+  const selectRef = useRef(null);
+
+  useEffect(() => {
+    const handleOutsideClick = event => {
+      if (!selectRef.current?.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, []);
 
   const handleOptionToggle = optionValue => {
     const newSelected = selectedValues.includes(optionValue)
@@ -81,6 +93,10 @@ const CustomMultiSelect = ({
       : [...selectedValues, optionValue];
     onChange(newSelected);
   };
+
+  const selectedOptions = options.filter(option =>
+    selectedValues.includes(option.value)
+  );
 
   const getDisplayText = () => {
     if (selectedValues.length === 0) {
@@ -94,23 +110,57 @@ const CustomMultiSelect = ({
   };
 
   return (
-    <div className="custom-multi-select">
+    <div className="custom-multi-select" ref={selectRef}>
       <button
         type="button"
-        className="multi-select-button"
+        className={`multi-select-button ${isOpen ? 'is-open' : ''}`}
         onClick={() => setIsOpen(!isOpen)}
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
       >
-        <span className="selected-text">{getDisplayText()}</span>
+        <div className="selected-content">
+          <span
+            className={`selected-text ${selectedValues.length === 0 ? 'placeholder' : ''}`}
+          >
+            {getDisplayText()}
+          </span>
+          {selectedValues.length > 1 && (
+            <span className="selected-count-pill">{selectedValues.length}</span>
+          )}
+        </div>
         <ChevronDown
           className={`dropdown-arrow ${isOpen ? 'open' : ''}`}
           size={16}
         />
       </button>
 
+      {selectedOptions.length > 0 && (
+        <div className="selected-preview">
+          {selectedOptions.slice(0, 2).map(option => (
+            <span key={option.value} className="selected-chip">
+              {option.label}
+            </span>
+          ))}
+          {selectedOptions.length > 2 && (
+            <span className="selected-chip selected-chip-more">
+              +{selectedOptions.length - 2}
+            </span>
+          )}
+        </div>
+      )}
+
       {isOpen && (
-        <div className="multi-select-dropdown">
+        <div className="multi-select-dropdown" role="listbox">
+          <div className="multi-select-dropdown-header">
+            {t('filtersPanel.foodTypeLabel')}
+          </div>
           {options.map(option => (
-            <label key={option.value} className="multi-select-option">
+            <label
+              key={option.value}
+              className={`multi-select-option ${
+                selectedValues.includes(option.value) ? 'selected' : ''
+              }`}
+            >
               <input
                 type="checkbox"
                 checked={selectedValues.includes(option.value)}
@@ -143,6 +193,7 @@ const FiltersPanel = ({
 }) => {
   const { t } = useTranslation();
   const autocompleteRef = useRef(null);
+  const modalLocationInputRef = useRef(null);
   const [showLocationEditor, setShowLocationEditor] = useState(false);
   const [loadingCurrentLocation, setLoadingCurrentLocation] = useState(false);
   const [locationError, setLocationError] = useState('');
@@ -152,25 +203,81 @@ const FiltersPanel = ({
 
   useEffect(() => {
     const body = document?.body;
-    const root = document?.documentElement;
 
-    if (!body || !root) {
+    if (!body) {
       return undefined;
     }
 
     if (showLocationEditor) {
       body.classList.add('location-editor-open');
-      root.style.setProperty('--ff-scroll-y', `${window.scrollY || 0}px`);
     } else {
       body.classList.remove('location-editor-open');
-      root.style.removeProperty('--ff-scroll-y');
     }
 
     return () => {
       body.classList.remove('location-editor-open');
-      root.style.removeProperty('--ff-scroll-y');
     };
   }, [showLocationEditor]);
+
+  useEffect(() => {
+    if (!showLocationEditor) {
+      return undefined;
+    }
+
+    const syncPacPosition = () => {
+      const input = modalLocationInputRef.current;
+      const pacContainers = Array.from(
+        document.querySelectorAll('.pac-container')
+      );
+      if (!input || pacContainers.length === 0) {
+        return;
+      }
+
+      // Use the latest pac container (Google may leave stale ones in DOM)
+      const pac = pacContainers[pacContainers.length - 1];
+      const rect = input.getBoundingClientRect();
+      pac.style.setProperty('display', 'block', 'important');
+      pac.style.setProperty('position', 'fixed', 'important');
+      pac.style.setProperty('left', `${Math.round(rect.left)}px`, 'important');
+      pac.style.setProperty(
+        'top',
+        `${Math.round(rect.bottom - 1)}px`,
+        'important'
+      );
+      pac.style.setProperty(
+        'width',
+        `${Math.round(rect.width)}px`,
+        'important'
+      );
+
+      // Hide stale suggestion containers to avoid duplicate dropdowns.
+      pacContainers.forEach(container => {
+        if (container === pac) {
+          return;
+        }
+        container.style.setProperty('display', 'none', 'important');
+      });
+    };
+
+    const rafSync = () => {
+      window.requestAnimationFrame(syncPacPosition);
+    };
+
+    const intervalId = window.setInterval(syncPacPosition, 120);
+    window.addEventListener('scroll', rafSync, { passive: true });
+    window.addEventListener('resize', rafSync);
+
+    syncPacPosition();
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener('scroll', rafSync);
+      window.removeEventListener('resize', rafSync);
+      document.querySelectorAll('.pac-container').forEach(container => {
+        container.style.setProperty('display', 'none', 'important');
+      });
+    };
+  }, [showLocationEditor, filters.location]);
 
   // Translate food categories
   const translatedCategories = FOOD_CATEGORIES.map(cat => ({
@@ -535,6 +642,7 @@ const FiltersPanel = ({
                       componentRestrictions={autocompleteCountryRestriction}
                     >
                       <input
+                        ref={modalLocationInputRef}
                         type="text"
                         className="location-input"
                         placeholder={t(

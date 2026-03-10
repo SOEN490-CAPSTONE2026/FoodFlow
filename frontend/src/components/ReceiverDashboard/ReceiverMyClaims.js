@@ -1,13 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Package, User, ArrowRight, Filter, Clock, Star } from 'lucide-react';
+import {
+  Package,
+  User,
+  ArrowRight,
+  Filter,
+  Clock,
+  Calendar,
+  MapPin,
+} from 'lucide-react';
 import Select from 'react-select';
 import { claimsAPI, feedbackAPI } from '../../services/api';
 import { useNotification } from '../../contexts/NotificationContext';
 import { useTimezone } from '../../contexts/TimezoneContext';
 import {
+  getDietaryTagLabel,
   getPrimaryFoodCategory,
+  getTemperatureCategoryLabel,
   foodTypeImages,
   getUnitLabel,
 } from '../../constants/foodConstants';
@@ -301,6 +311,42 @@ export default function ReceiverMyClaims() {
     }
   };
 
+  const formatDisplayDate = dateValue => {
+    if (!dateValue) {
+      return t('receiverMyClaims.notSpecified');
+    }
+
+    try {
+      const parsedDate = new Date(`${dateValue}T00:00:00Z`);
+      if (Number.isNaN(parsedDate.getTime())) {
+        return dateValue;
+      }
+
+      return parsedDate.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        timeZone: userTimezone || 'UTC',
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return dateValue;
+    }
+  };
+
+  const getShortAddress = address => {
+    if (!address || typeof address !== 'string') {
+      return t('receiverMyClaims.notSpecified');
+    }
+
+    const trimmed = address.trim();
+    if (!trimmed) {
+      return t('receiverMyClaims.notSpecified');
+    }
+
+    return trimmed.length > 64 ? `${trimmed.slice(0, 61)}...` : trimmed;
+  };
+
   const getStatusCount = status => {
     if (status === 'All') {
       return claims.length;
@@ -554,6 +600,66 @@ export default function ReceiverMyClaims() {
           const resolvedDonationImage = getImageUrl(
             post?.resolvedDonationImageUrl
           );
+          const pickupWindow = formatPickupTime(
+            claim.confirmedPickupSlot?.pickupDate ||
+              claim.confirmedPickupSlot?.date,
+            claim.confirmedPickupSlot?.startTime ||
+              claim.confirmedPickupSlot?.pickupFrom,
+            claim.confirmedPickupSlot?.endTime ||
+              claim.confirmedPickupSlot?.pickupTo,
+            userTimezone
+          );
+          const categoryBadge = getPrimaryFoodCategory(post?.foodCategories);
+          const dietaryBadges = (
+            Array.isArray(post?.dietaryTags) ? post.dietaryTags : []
+          )
+            .slice(0, 2)
+            .map(getDietaryTagLabel)
+            .filter(Boolean);
+          const temperatureBadge = post?.temperatureCategory
+            ? getTemperatureCategoryLabel(post.temperatureCategory)
+            : '';
+          const quantityValue = `${post?.quantity?.value || 0} ${
+            getUnitLabel(post?.quantity?.unit) || 'items'
+          }`;
+          const expiryValue = formatDisplayDate(post?.expiryDate);
+          const pickupValue = pickupWindow;
+          const donorValue =
+            post?.donorName || t('receiverMyClaims.notSpecified');
+          const locationValue = getShortAddress(post?.pickupLocation?.address);
+
+          const infoRows = [
+            {
+              key: 'quantity-expiry',
+              icon: <Package size={16} className="claimed-page detail-icon" />,
+              value: `${quantityValue} \u00b7 Expires ${expiryValue}`,
+              tone: 'quantity',
+            },
+            {
+              key: 'pickup',
+              icon: <Clock size={16} className="claimed-page detail-icon" />,
+              prefix: 'Pickup',
+              value: pickupValue,
+              emphasizeValue: true,
+              tone: 'pickup',
+            },
+            {
+              key: 'donor',
+              icon: <User size={16} className="claimed-page detail-icon" />,
+              value: donorValue,
+              tone: 'donor',
+            },
+            {
+              key: 'location',
+              icon: <MapPin size={16} className="claimed-page detail-icon" />,
+              value: locationValue,
+              title:
+                post?.pickupLocation?.address ||
+                t('receiverMyClaims.notSpecified'),
+              isLocation: true,
+              tone: 'location',
+            },
+          ];
 
           return (
             <div
@@ -597,43 +703,61 @@ export default function ReceiverMyClaims() {
                   {post?.title || t('receiverMyClaims.untitledDonation')}
                 </h3>
 
+                {(categoryBadge ||
+                  dietaryBadges.length > 0 ||
+                  temperatureBadge) && (
+                  <div className="claimed-page card-tags">
+                    {categoryBadge && (
+                      <span className="claimed-page card-tag card-tag-category">
+                        {categoryBadge}
+                      </span>
+                    )}
+                    {dietaryBadges.map(tag => (
+                      <span
+                        key={`${claim.id}-${tag}`}
+                        className="claimed-page card-tag"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                    {temperatureBadge && (
+                      <span className="claimed-page card-tag card-tag-temp">
+                        {temperatureBadge}
+                      </span>
+                    )}
+                  </div>
+                )}
+
                 <div className="claimed-page card-details">
-                  <div className="claimed-page detail-item">
-                    <Package
-                      size={16}
-                      className="claimed-page quantity-detail-icon"
-                    />
-                    <span>
-                      {post?.quantity?.value || 0}{' '}
-                      {getUnitLabel(post?.quantity?.unit) || 'items'}
-                    </span>
-                  </div>
-                  <div className="claimed-page detail-item">
-                    <User
-                      size={16}
-                      className="claimed-page donor-detail-icon"
-                    />
-                    <span>
-                      {post?.donorName || t('receiverMyClaims.notSpecified')}
-                    </span>
-                  </div>
-                  <div className="claimed-page detail-item">
-                    <Clock
-                      size={16}
-                      className="claimed-page date-detail-icon"
-                    />
-                    <span>
-                      {formatPickupTime(
-                        claim.confirmedPickupSlot?.pickupDate ||
-                          claim.confirmedPickupSlot?.date,
-                        claim.confirmedPickupSlot?.startTime ||
-                          claim.confirmedPickupSlot?.pickupFrom,
-                        claim.confirmedPickupSlot?.endTime ||
-                          claim.confirmedPickupSlot?.pickupTo,
-                        userTimezone
-                      )}
-                    </span>
-                  </div>
+                  {infoRows.map(item => (
+                    <div
+                      className={`claimed-page detail-item detail-item-${item.tone || 'default'}`}
+                      key={item.key}
+                    >
+                      {item.icon}
+                      <span
+                        className={`claimed-page detail-value ${item.isLocation ? 'detail-value-location' : ''}`}
+                        title={item.title || undefined}
+                      >
+                        {item.prefix ? (
+                          <>
+                            <span>{item.prefix} </span>
+                            <span
+                              className={
+                                item.emphasizeValue
+                                  ? 'claimed-page detail-value-emphasis'
+                                  : ''
+                              }
+                            >
+                              {item.value}
+                            </span>
+                          </>
+                        ) : (
+                          item.value
+                        )}
+                      </span>
+                    </div>
+                  ))}
                 </div>
                 {/* Action Buttons */}
                 <div className="claimed-page card-actions">
@@ -651,24 +775,17 @@ export default function ReceiverMyClaims() {
                     </button>
                   )}
 
-                  <div
+                  <button
                     className="claimed-page view-details-container"
                     onClick={event => {
                       event.stopPropagation();
                       handleViewDetails(claim);
                     }}
+                    type="button"
                   >
                     <span>{t('receiverMyClaims.viewDetails')}</span>
-                    <button
-                      className="claimed-page view-details-btn"
-                      type="button"
-                    >
-                      <ArrowRight
-                        size={16}
-                        className="claimed-page arrow-icon"
-                      />
-                    </button>
-                  </div>
+                    <ArrowRight size={16} className="claimed-page arrow-icon" />
+                  </button>
                 </div>
               </div>
             </div>

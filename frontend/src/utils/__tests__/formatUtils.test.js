@@ -131,6 +131,19 @@ describe('formatUtils', () => {
       const result = formatDate({});
       expect(result).toBe('—');
     });
+
+    test('covers catch branch when toLocaleDateString throws', () => {
+      const localeSpy = jest
+        .spyOn(Date.prototype, 'toLocaleDateString')
+        .mockImplementationOnce(() => {
+          throw new Error('date format failed');
+        });
+
+      expect(formatDate(new Date())).toBe('—');
+      expect(console.error).toHaveBeenCalled();
+
+      localeSpy.mockRestore();
+    });
   });
 
   describe('formatTime', () => {
@@ -175,6 +188,19 @@ describe('formatUtils', () => {
     test('handles errors gracefully', () => {
       const result = formatTime({});
       expect(result).toBe('—');
+    });
+
+    test('covers catch branch when toLocaleTimeString throws', () => {
+      const localeSpy = jest
+        .spyOn(Date.prototype, 'toLocaleTimeString')
+        .mockImplementationOnce(() => {
+          throw new Error('time format failed');
+        });
+
+      expect(formatTime(new Date())).toBe('—');
+      expect(console.error).toHaveBeenCalled();
+
+      localeSpy.mockRestore();
     });
   });
 
@@ -227,6 +253,11 @@ describe('formatUtils', () => {
     test('handles errors gracefully', () => {
       const result = formatDateTime({});
       expect(result).toBe('—');
+    });
+
+    test('covers catch branch with unparseable Symbol input', () => {
+      expect(formatDateTime(Symbol('bad-date'))).toBe('—');
+      expect(console.error).toHaveBeenCalled();
     });
   });
 
@@ -295,6 +326,11 @@ describe('formatUtils', () => {
       const result = formatDateRange({}, {});
       expect(result).toBe('—');
     });
+
+    test('covers catch branch for Symbol date input', () => {
+      expect(formatDateRange(Symbol('from'), toDate)).toBe('—');
+      expect(console.error).toHaveBeenCalled();
+    });
   });
 
   describe('formatTimeRange', () => {
@@ -361,6 +397,11 @@ describe('formatUtils', () => {
       const result = formatTimeRange({}, {});
       expect(result).toBe('—');
     });
+
+    test('covers catch branch for Symbol time input', () => {
+      expect(formatTimeRange(Symbol('from'), toDate)).toBe('—');
+      expect(console.error).toHaveBeenCalled();
+    });
   });
 
   describe('formatPickupTime', () => {
@@ -425,6 +466,11 @@ describe('formatUtils', () => {
       const result = formatPickupTime('2024-03-15', '10:00', '14:00');
       // Should not throw error
       expect(result).toBeDefined();
+    });
+
+    test('covers catch branch for non-string pickupDate', () => {
+      expect(formatPickupTime(12345)).toBe('—');
+      expect(console.error).toHaveBeenCalled();
     });
   });
 
