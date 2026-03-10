@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import ga4Service from '../../services/ga4Service';
 import {
   Calendar,
   List,
@@ -617,6 +618,7 @@ export default function ReceiverBrowse() {
       setClaiming(true);
       try {
         await surplusAPI.claim(item.id, slot);
+        ga4Service.trackDonationClaimed();
         setItems(prev => prev.filter(post => post.id !== item.id));
         setClaimModalOpen(false);
         setClaimTargetItem(null);

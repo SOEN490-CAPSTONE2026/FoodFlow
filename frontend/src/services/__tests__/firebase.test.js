@@ -94,15 +94,19 @@ describe('Firebase Configuration', () => {
     expect(firebaseModule.app.options.measurementId).toBe('G-NNSDLTMQ29');
   });
 
-  test('exports analytics instance', () => {
-    expect(firebaseModule).toHaveProperty('analytics');
-    expect(firebaseModule.analytics).toBeDefined();
-    expect(firebaseModule.analytics).not.toBeNull();
+  test('exports getAnalyticsInstance function', () => {
+    expect(firebaseModule).toHaveProperty('getAnalyticsInstance');
+    expect(typeof firebaseModule.getAnalyticsInstance).toBe('function');
   });
 
-  test('exported analytics has app reference', () => {
-    expect(firebaseModule.analytics).toHaveProperty('app');
-    expect(firebaseModule.analytics.app).toBeDefined();
+  test('isAnalyticsInitialized starts false and becomes true after getAnalyticsInstance is called', () => {
+    // Use a fresh module isolated from beforeAll's cached copy so _analytics starts null
+    jest.isolateModules(() => {
+      const freshModule = require('../firebase');
+      expect(freshModule.isAnalyticsInitialized()).toBe(false);
+      freshModule.getAnalyticsInstance();
+      expect(freshModule.isAnalyticsInitialized()).toBe(true);
+    });
   });
 
   test('exports auth instance', () => {
@@ -116,10 +120,11 @@ describe('Firebase Configuration', () => {
     expect(firebaseModule.auth).toHaveProperty('currentUser');
   });
 
-  test('exports all three main Firebase services', () => {
+  test('exports all required Firebase services and helpers', () => {
     expect(Object.keys(firebaseModule)).toContain('app');
-    expect(Object.keys(firebaseModule)).toContain('analytics');
     expect(Object.keys(firebaseModule)).toContain('auth');
+    expect(Object.keys(firebaseModule)).toContain('getAnalyticsInstance');
+    expect(Object.keys(firebaseModule)).toContain('isAnalyticsInitialized');
   });
 
   test('app options has all required configuration keys', () => {

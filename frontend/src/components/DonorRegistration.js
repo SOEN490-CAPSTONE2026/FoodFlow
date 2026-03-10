@@ -5,6 +5,7 @@ import { Autocomplete, useLoadScript } from '@react-google-maps/api';
 import { authAPI } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
 import SEOHead from './SEOHead';
+import ga4Service from '../services/ga4Service';
 import DonorIllustration from '../assets/illustrations/donor-illustration.jpg';
 import { validatePassword } from '../utils/passwordValidation';
 import {
@@ -658,6 +659,7 @@ const DonorRegistration = () => {
       }
 
       setSubmitted(true);
+      ga4Service.trackSignUp('DONOR', formData.city);
 
       // Auto-redirect after 5 seconds
       setTimeout(() => {
