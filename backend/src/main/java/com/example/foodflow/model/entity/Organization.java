@@ -1,8 +1,6 @@
 package com.example.foodflow.model.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -21,16 +19,14 @@ public class Organization {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @NotBlank(message = "{validation.organizationName.required}")
+
     private String name;
 
-    @NotBlank(message = "{validation.contactPerson.required}")
+
     private String contactPerson;
 
-    @NotBlank(message = "{validation.phone.required}")
     private String phone;
 
-    @NotBlank(message = "{validation.address.required}")
     private String address;
 
     @Enumerated(EnumType.STRING)
