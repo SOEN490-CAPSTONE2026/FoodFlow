@@ -38,12 +38,16 @@ import './Receiver_Styles/ClaimDetailModal.css';
 const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
   const { t } = useTranslation();
   const post = claim?.surplusPost;
+  const normalizedStatus = (post?.status || claim?.status || '')
+    .toString()
+    .toUpperCase()
+    .replace(/\s+/g, '_');
   const [showPickupSteps, setShowPickupSteps] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [timeline, setTimeline] = useState([]);
   const [loadingTimeline, setLoadingTimeline] = useState(false);
   const [expandedTimeline, setExpandedTimeline] = useState(false);
-  const [expressingInterest, setExpressingInterest] = useState(false);
+  const [, setExpressingInterest] = useState(false);
   const navigate = useNavigate();
   const { userTimezone } = useTimezone();
   const getImageUrl = imageUrl => {
@@ -156,21 +160,29 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
   });
 
   const getDisplayStatus = () => {
-    const postStatus = post?.status;
-    if (postStatus === 'READY_FOR_PICKUP') {
+    if (normalizedStatus === 'READY_FOR_PICKUP') {
       return t('claimDetail.status.readyForPickup');
     }
-    if (postStatus === 'COMPLETED') {
+    if (normalizedStatus === 'COMPLETED') {
       return t('claimDetail.status.completed');
     }
-    if (postStatus === 'NOT_COMPLETED') {
+    if (normalizedStatus === 'NOT_COMPLETED') {
       return t('claimDetail.status.notCompleted');
+    }
+    if (normalizedStatus === 'EXPIRED') {
+      return t('claimDetail.status.expired', 'Expired');
     }
     return t('claimDetail.status.claimed');
   };
 
+  const statusClassName = normalizedStatus
+    ? `claimed-status-${normalizedStatus.toLowerCase().replace(/_/g, '-')}`
+    : 'claimed-status-claimed';
+
   const handleViewPickupSteps = () => {
-    // Show pickup steps for Claimed, Ready for Pickup, and Completed statuses
+    if (normalizedStatus === 'EXPIRED') {
+      return;
+    }
     setShowPickupSteps(true);
   };
 
@@ -228,9 +240,7 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
               alt={post?.title || t('claimDetail.defaultTitle')}
               className="claimed-modal-header-image"
             />
-            <span
-              className={`claimed-modal-status-badge claimed-status-${getDisplayStatus().toLowerCase().replace(' ', '-')}`}
-            >
+            <span className={`claimed-modal-status-badge ${statusClassName}`}>
               {getDisplayStatus()}
             </span>
             <div className="claimed-modal-header-overlay">
@@ -454,34 +464,18 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
 
             {/* Action Buttons */}
             <div className="claimed-modal-actions">
-              {(getDisplayStatus() === t('claimDetail.status.claimed') ||
-                getDisplayStatus() === t('claimDetail.status.readyForPickup') ||
-                getDisplayStatus() === t('claimDetail.status.completed') ||
-                getDisplayStatus() ===
-                  t('claimDetail.status.notCompleted')) && (
-                <>
-                  <button
-                    className="claimed-modal-btn-interest"
-                    onClick={handleExpressInterest}
-                    disabled={expressingInterest}
-                  >
-                    {expressingInterest
-                      ? t('claimDetail.connecting', 'Connecting...')
-                      : t('claimDetail.imInterested', "I'm Interested")}
-                  </button>
-                  <button
-                    className="claimed-modal-btn-secondary"
-                    onClick={onClose}
-                  >
-                    {t('claimDetail.backToDetails')}
-                  </button>
-                  <button
-                    className="claimed-modal-btn-primary"
-                    onClick={handleViewPickupSteps}
-                  >
-                    {t('claimDetail.viewPickupSteps')}
-                  </button>
-                </>
+              {[
+                'CLAIMED',
+                'READY_FOR_PICKUP',
+                'COMPLETED',
+                'NOT_COMPLETED',
+              ].includes(normalizedStatus) && (
+                <button
+                  className="claimed-modal-btn-primary"
+                  onClick={handleViewPickupSteps}
+                >
+                  {t('claimDetail.viewPickupSteps')}
+                </button>
               )}
             </div>
           </div>
@@ -489,7 +483,7 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
       </div>
 
       {/* Pickup Steps Modal */}
-      {getDisplayStatus() === t('claimDetail.status.claimed') ? (
+      {showPickupSteps && normalizedStatus === 'CLAIMED' && (
         <ClaimedView
           claim={claim}
           isOpen={showPickupSteps}
@@ -499,7 +493,9 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
           }}
           onBack={handleBackToDetails}
         />
-      ) : getDisplayStatus() === t('claimDetail.status.readyForPickup') ? (
+      )}
+
+      {showPickupSteps && normalizedStatus === 'READY_FOR_PICKUP' && (
         <ReadyForPickUpView
           claim={claim}
           isOpen={showPickupSteps}
@@ -509,19 +505,22 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
           }}
           onBack={handleBackToDetails}
         />
-      ) : (
-        <CompletedView
-          claim={claim}
-          isOpen={showPickupSteps}
-          onClose={() => {
-            setShowPickupSteps(false);
-            onClose();
-          }}
-          onBack={handleBackToDetails}
-          showFeedbackModal={showFeedbackModal}
-          setShowFeedbackModal={setShowFeedbackModal}
-        />
       )}
+
+      {showPickupSteps &&
+        ['COMPLETED', 'NOT_COMPLETED'].includes(normalizedStatus) && (
+          <CompletedView
+            claim={claim}
+            isOpen={showPickupSteps}
+            onClose={() => {
+              setShowPickupSteps(false);
+              onClose();
+            }}
+            onBack={handleBackToDetails}
+            showFeedbackModal={showFeedbackModal}
+            setShowFeedbackModal={setShowFeedbackModal}
+          />
+        )}
 
       <FeedbackModal
         claimId={claim?.id}

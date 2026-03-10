@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import '../style/CalendarOAuthSuccess.css';
+import SEOHead from './SEOHead';
 
 const CalendarOAuthSuccess = () => {
   const [countdown, setCountdown] = useState(3);
@@ -22,6 +23,7 @@ const CalendarOAuthSuccess = () => {
 
   return (
     <div className="calendar-oauth-container">
+      <SEOHead noindex />
       <div className="calendar-oauth-card">
         <div className="oauth-icon success-icon">✓</div>
         <h2>Calendar Connected Successfully!</h2>

@@ -231,7 +231,6 @@ const ClaimedView = ({ claim, isOpen, onClose, onBack }) => {
             <button className="claimed-view-btn-back" onClick={onBack}>
               Back to Details
             </button>
-            <button className="claimed-view-btn-view">View Pickup Steps</button>
           </div>
         </div>
       </div>

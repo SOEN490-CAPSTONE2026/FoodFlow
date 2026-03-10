@@ -81,6 +81,9 @@ describe('AdminImpactDashboard', () => {
   beforeEach(() => {
     // Reset mocks
     jest.clearAllMocks();
+    impactDashboardAPI.getMetrics.mockReset();
+    impactDashboardAPI.exportMetrics.mockReset();
+    impactDashboardAPI.getMetrics.mockResolvedValue({ data: mockMetrics });
 
     // Mock window.URL methods for export functionality
     global.URL.createObjectURL = jest.fn(() => 'mock-url');

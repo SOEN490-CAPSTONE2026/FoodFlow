@@ -61,7 +61,7 @@ describe('DonationMapCard', () => {
           onClaimClick={mockOnClaimClick}
         />
       );
-      expect(screen.getByText(/Exp:/i)).toBeInTheDocument();
+      expect(screen.getByText(/Expiry/i)).toBeInTheDocument();
     });
 
     it('renders pickup address', () => {
@@ -209,7 +209,7 @@ describe('DonationMapCard', () => {
           onClaimClick={mockOnClaimClick}
         />
       );
-      expect(screen.queryByText(/Exp:/i)).not.toBeInTheDocument();
+      expect(screen.getByText('—')).toBeInTheDocument();
     });
 
     it('handles missing pickupLocation address', () => {
@@ -266,8 +266,7 @@ describe('DonationMapCard', () => {
           onClaimClick={mockOnClaimClick}
         />
       );
-      //============= mhab: Might be subject to change ==============
-      expect(screen.getByText(/Dec 30|Dec 31/i)).toBeInTheDocument();
+      expect(screen.getByText(/2024-12-31/i)).toBeInTheDocument();
     });
 
     it('handles different date formats', () => {
@@ -278,8 +277,7 @@ describe('DonationMapCard', () => {
           onClaimClick={mockOnClaimClick}
         />
       );
-      //============= mhab: Might be subject to change ==============
-      expect(screen.getByText(/Jun 14|Jun 15/i)).toBeInTheDocument();
+      expect(screen.getByText(/2024-06-15/i)).toBeInTheDocument();
     });
 
     it('handles empty string expiryDate', () => {
@@ -290,7 +288,7 @@ describe('DonationMapCard', () => {
           onClaimClick={mockOnClaimClick}
         />
       );
-      expect(screen.queryByText(/Exp:/i)).not.toBeInTheDocument();
+      expect(screen.getByText('—')).toBeInTheDocument();
     });
   });
 

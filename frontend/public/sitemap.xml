@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <!-- Homepage — primary acquisition page -->
+  <url>
+    <loc>https://foodflow-org.up.railway.app/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Privacy Policy — required indexed legal page -->
+  <url>
+    <loc>https://foodflow-org.up.railway.app/privacy-policy</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+  <!--
+    NOTE: Registration, login, and all authenticated app routes (/donor, /receiver, /admin)
+    are intentionally excluded. They are either zero-acquisition-value or redirect-risk pages.
+    See robots.txt for the corresponding Disallow rules.
+
+    When new public marketing pages are added (e.g. /how-it-works, /about, /pricing),
+    add them here and update robots.txt accordingly.
+  -->
+
+</urlset>

@@ -6,6 +6,7 @@ import { authAPI } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { Eye, EyeOff } from 'lucide-react';
+import SEOHead from './SEOHead';
 import ga4Service from '../services/ga4Service';
 
 const LoginPage = () => {
@@ -120,6 +121,7 @@ const LoginPage = () => {
 
   return (
     <div className="login-page">
+      <SEOHead noindex />
       <div className="login-left" aria-hidden="true">
         <div className="background-spots">
           <span className="background-spot s1" />

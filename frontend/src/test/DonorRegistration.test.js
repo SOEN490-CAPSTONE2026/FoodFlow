@@ -173,7 +173,9 @@ describe('DonorRegistration', () => {
       );
       await user.click(screen.getByText('donorRegistration.nextButtonText'));
 
-      const input = document.getElementById('fileUpload');
+      await screen.findByLabelText('donorRegistration.chooseFileButton');
+      const input = document.querySelector('input#fileUpload');
+      expect(input).toBeInTheDocument();
       const badFile = createFile('file.txt', 100, 'text/plain');
       fireEvent.change(input, { target: { files: [badFile] } });
       expect(

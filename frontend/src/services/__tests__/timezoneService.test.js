@@ -27,6 +27,17 @@ describe('timezoneService', () => {
       const timezone = getBrowserTimezone();
       expect(isValidTimezone(timezone)).toBe(true);
     });
+
+    it('falls back to UTC when Intl API throws', () => {
+      const originalDateTimeFormat = Intl.DateTimeFormat;
+      Intl.DateTimeFormat = jest.fn(() => {
+        throw new Error('Intl unavailable');
+      });
+
+      expect(getBrowserTimezone()).toBe('UTC');
+
+      Intl.DateTimeFormat = originalDateTimeFormat;
+    });
   });
 
   describe('isValidTimezone', () => {
@@ -154,6 +165,17 @@ describe('timezoneService', () => {
     it('should handle null address', async () => {
       const timezone = await inferTimezoneFromAddress(null);
       expect(timezone).toBe(getBrowserTimezone());
+    });
+
+    it('should fall back to browser timezone when API key is missing', async () => {
+      delete process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+
+      const timezone = await inferTimezoneFromAddress(
+        '123 Main St, Toronto, ON, Canada'
+      );
+
+      expect(timezone).toBe(getBrowserTimezone());
+      expect(global.fetch).not.toHaveBeenCalled();
     });
   });
 });

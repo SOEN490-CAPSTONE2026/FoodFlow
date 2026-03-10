@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { X, Calendar, Clock, Plus, Trash2 } from 'lucide-react';
 import { Autocomplete } from '@react-google-maps/api';
 import Select from 'react-select';
+import SEOHead from '../SEOHead';
 import ga4Service from '../../services/ga4Service';
 import DatePicker from 'react-datepicker';
 import { imageAPI, surplusAPI } from '../../services/api';
@@ -646,6 +647,7 @@ const SurplusFormModal = ({
 
   return (
     <div className="modal-overlay" onClick={handleCancel}>
+      <SEOHead noindex />
       <div className="modal-container" onClick={e => e.stopPropagation()}>
         <div className="surplus-modal-header">
           <h2>

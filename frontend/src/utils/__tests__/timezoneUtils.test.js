@@ -89,4 +89,68 @@ describe('timezoneUtils', () => {
     toLocaleSpy.mockRestore();
     consoleErrorSpy.mockRestore();
   });
+
+  it('uses fallback branch in formatDateInTimezone when formatter throws', () => {
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+
+    const toLocaleSpy = jest
+      .spyOn(Date.prototype, 'toLocaleDateString')
+      .mockImplementationOnce(() => {
+        throw new Error('date formatter failed');
+      })
+      .mockImplementation(() => 'February 18, 2026');
+
+    expect(formatDateInTimezone('2026-02-18T12:00:00Z', 'UTC')).toBe(
+      'February 18, 2026'
+    );
+    expect(consoleErrorSpy).toHaveBeenCalled();
+
+    toLocaleSpy.mockRestore();
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('uses fallback branch in getDateSeparatorInTimezone when conversion throws', () => {
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+
+    const localeSpy = jest
+      .spyOn(Date.prototype, 'toLocaleString')
+      .mockImplementationOnce(() => {
+        throw new Error('timezone conversion failed');
+      });
+
+    const result = getDateSeparatorInTimezone('2026-02-18T12:00:00Z', 'UTC');
+    expect(result).toMatch(/2026/);
+    expect(consoleErrorSpy).toHaveBeenCalled();
+
+    localeSpy.mockRestore();
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('returns true in areDifferentDaysInTimezone when conversion throws', () => {
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+
+    const localeSpy = jest
+      .spyOn(Date.prototype, 'toLocaleString')
+      .mockImplementationOnce(() => {
+        throw new Error('timezone compare failed');
+      });
+
+    expect(
+      areDifferentDaysInTimezone(
+        '2026-02-18T12:00:00Z',
+        '2026-02-18T13:00:00Z',
+        'UTC'
+      )
+    ).toBe(true);
+    expect(consoleErrorSpy).toHaveBeenCalled();
+
+    localeSpy.mockRestore();
+    consoleErrorSpy.mockRestore();
+  });
 });

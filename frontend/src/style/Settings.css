@@ -444,6 +444,32 @@
   font-weight: 500;
 }
 
+.field-hint {
+  display: block;
+  color: #5b7287;
+  font-size: 0.78rem;
+  margin-top: 0.3rem;
+}
+
+.settings-address-autocomplete-wrap {
+  position: relative;
+}
+
+/* Google Places dropdown for settings address field */
+body.settings-address-open .pac-container {
+  margin-top: -3px !important;
+  border: 1px solid #d4e1ee;
+  border-radius: 0 0 10px 10px;
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.14);
+  overflow: hidden;
+  z-index: 9000 !important;
+}
+
+body.settings-address-open .pac-item {
+  padding: 10px 12px;
+  border-top: 1px solid #ecf2f8;
+}
+
 .field-input.error,
 .field-select.error {
   border-color: #dc2626;

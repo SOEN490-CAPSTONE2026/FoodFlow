@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import SEOHead from './SEOHead';
 
 const PrivacyPolicy = () => {
   const navigate = useNavigate();
@@ -100,6 +101,11 @@ const PrivacyPolicy = () => {
 
   return (
     <div style={styles.wrapper}>
+      <SEOHead
+        title="Privacy Policy"
+        description="Read FoodFlow's privacy policy to understand how we collect, use, and protect your personal information."
+        canonical="/privacy-policy"
+      />
       <div style={styles.container}>
         <h1 style={styles.title}>Privacy Policy</h1>
         <p style={styles.updated}>Last updated: October 2025</p>

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Autocomplete, useLoadScript } from '@react-google-maps/api';
 import { authAPI } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
+import SEOHead from './SEOHead';
 import ga4Service from '../services/ga4Service';
 import DonorIllustration from '../assets/illustrations/donor-illustration.jpg';
 import { validatePassword } from '../utils/passwordValidation';
@@ -1318,6 +1319,7 @@ const DonorRegistration = () => {
 
   return (
     <div className="registration-page">
+      <SEOHead noindex />
       <button
         type="button"
         className="exit-registration-button"
