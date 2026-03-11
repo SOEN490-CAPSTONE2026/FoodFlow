@@ -19,6 +19,7 @@ import {
   packagingTypeOptions,
 } from '../../constants/foodConstants';
 import { computeSuggestedExpiry } from '../../utils/expiryRules';
+import { toLocalDateInputValue } from '../../utils/timezoneUtils';
 import { useTimezone } from '../../contexts/TimezoneContext';
 import './Donor_Styles/SurplusFormModal.css';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -109,17 +110,7 @@ const SurplusFormModal = ({
   );
 
   const formatDate = date => {
-    if (!date) {
-      return '';
-    }
-    try {
-      // Handle both Date objects and date strings
-      const dateObj = date instanceof Date ? date : new Date(date);
-      return dateObj.toISOString().split('T')[0];
-    } catch (error) {
-      console.error('Error formatting date:', date, error);
-      return '';
-    }
+    return toLocalDateInputValue(date);
   };
 
   const formatTime = date => {

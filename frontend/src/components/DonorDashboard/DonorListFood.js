@@ -43,6 +43,13 @@ import {
   getPackagingTypeLabel,
   mapLegacyCategoryToFoodType,
 } from '../../constants/foodConstants';
+import {
+  formatPickupWindowFromParts,
+  formatWallClockDate,
+  formatWallClockTime,
+  parseBackendUtcTimestamp,
+  parseExplicitUtcTimestamp,
+} from '../../utils/timezoneUtils';
 import '../DonorDashboard/Donor_Styles/DonorListFood.css';
 
 // Define libraries for Google Maps
@@ -85,14 +92,11 @@ function formatExpiryDate(dateString, locale, notSpecifiedLabel) {
     return notSpecifiedLabel;
   }
   try {
-    // Parse as local date to avoid timezone conversion issues
-    const [year, month, day] = dateString.split('-').map(Number);
-    const date = new Date(year, month - 1, day);
-    return date.toLocaleDateString(locale || 'en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
+    const formatted = formatWallClockDate(
+      String(dateString),
+      locale || 'en-US'
+    );
+    return formatted || notSpecifiedLabel;
   } catch {
     return notSpecifiedLabel;
   }
@@ -133,42 +137,56 @@ function formatPickupTime(
   }
 
   try {
-    // Parse the date string as local date
-    const [year, month, day] = pickupDate.split('-').map(Number);
-    const date = new Date(year, month - 1, day);
-
-    const dateStr = date.toLocaleDateString(locale || 'en-US', {
-      month: 'short',
-      day: 'numeric',
-    });
+    const [year, month, day] = String(pickupDate).split('-').map(Number);
+    const pickupDayLabel =
+      year && month && day
+        ? new Date(Date.UTC(year, month - 1, day, 12, 0, 0)).toLocaleDateString(
+            locale || 'en-US',
+            { month: 'short', day: 'numeric', timeZone: 'UTC' }
+          )
+        : '';
 
     if (pickupFrom && pickupTo) {
-      // Create a proper local time for 'from'
-      const [fromHours, fromMinutes] = pickupFrom.split(':').map(Number);
-      const fromDate = new Date(year, month - 1, day, fromHours, fromMinutes);
-      const fromTime = fromDate.toLocaleTimeString(locale || 'en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-      });
-
-      // Create a proper local time for 'to'
-      const [toHours, toMinutes] = pickupTo.split(':').map(Number);
-      const toDate = new Date(year, month - 1, day, toHours, toMinutes);
-      const toTime = toDate.toLocaleTimeString(locale || 'en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-      });
-
-      return `${dateStr}, ${fromTime} — ${toTime}`;
+      const fromLabel = formatWallClockTime(
+        String(pickupFrom),
+        locale || 'en-US'
+      );
+      const toLabel = formatWallClockTime(String(pickupTo), locale || 'en-US');
+      if (!fromLabel || !toLabel) {
+        return flexibleLabel;
+      }
+      return pickupDayLabel
+        ? `${pickupDayLabel}, ${fromLabel} — ${toLabel}`
+        : formatPickupWindowFromParts(
+            String(pickupDate),
+            String(pickupFrom),
+            String(pickupTo),
+            locale || 'en-US'
+          ) || flexibleLabel;
     }
 
-    return `${dateStr}`;
+    return pickupDayLabel || flexibleLabel;
   } catch (error) {
     console.error('Error formatting pickup time:', error);
     return flexibleLabel;
   }
+}
+
+function parseStableSortDate(createdAt, pickupDate) {
+  const created =
+    parseExplicitUtcTimestamp(createdAt) || parseBackendUtcTimestamp(createdAt);
+  if (created) {
+    return created;
+  }
+
+  if (typeof pickupDate === 'string') {
+    const [year, month, day] = pickupDate.split('-').map(Number);
+    if (year && month && day) {
+      return new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+    }
+  }
+
+  return new Date(0);
 }
 
 // Get the backend base URL (without /api suffix) for file serving
@@ -448,8 +466,8 @@ export default function DonorListFood() {
     return [...posts].sort((a, b) => {
       if (sortOrder === 'date') {
         // Sort by date - newest first
-        const dateA = new Date(a.createdAt || a.pickupDate || 0);
-        const dateB = new Date(b.createdAt || b.pickupDate || 0);
+        const dateA = parseStableSortDate(a.createdAt, a.pickupDate);
+        const dateB = parseStableSortDate(b.createdAt, b.pickupDate);
         return dateB - dateA;
       } else if (sortOrder === 'status') {
         // Sort by status priority

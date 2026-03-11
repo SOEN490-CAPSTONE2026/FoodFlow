@@ -39,6 +39,13 @@ import {
   getPackagingTypeLabel,
   mapLegacyCategoryToFoodType,
 } from '../../constants/foodConstants';
+import {
+  parseExplicitUtcTimestamp,
+  parseBackendUtcTimestamp,
+  formatPickupWindowFromParts,
+  parseLocalDateTimeParts,
+} from '../../utils/timezoneUtils';
+import { normalizeStatus } from '../../utils/statusUtils';
 import { useTimezone } from '../../contexts/TimezoneContext';
 import FiltersPanel from './FiltersPanel';
 import MapViewModal from './DonationsMap/MapViewModal';
@@ -134,7 +141,7 @@ export default function ReceiverBrowse() {
       const response = await savedDonationAPI.getSavedDonations();
       const savedDonations = Array.isArray(response.data) ? response.data : [];
       const availableSavedDonations = savedDonations.filter(
-        donation => donation?.status === 'AVAILABLE'
+        donation => normalizeStatus(donation?.status) === 'AVAILABLE'
       );
       setBookmarkedItems(
         new Set(availableSavedDonations.map(donation => donation.id))
@@ -728,46 +735,56 @@ export default function ReceiverBrowse() {
     }
   }, []);
 
-  const formatBestBeforeDate = useCallback(dateValue => {
-    if (!dateValue) {
-      return '—';
-    }
-    try {
-      const date = new Date(dateValue);
-      return date.toLocaleString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-      });
-    } catch {
-      return '—';
-    }
-  }, []);
+  const formatBestBeforeDate = useCallback(
+    dateValue => {
+      if (!dateValue) {
+        return '—';
+      }
+      try {
+        const date =
+          typeof dateValue === 'string' && dateValue.includes('T')
+            ? parseBackendUtcTimestamp(dateValue)
+            : (() => {
+                const [year, month, day] = String(dateValue)
+                  .split('-')
+                  .map(Number);
+                if (!year || !month || !day) {
+                  return null;
+                }
+                return new Date(year, month - 1, day);
+              })();
+        if (!date) {
+          return '—';
+        }
+        return date.toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          timeZone: userTimezone || 'UTC',
+        });
+      } catch {
+        return '—';
+      }
+    },
+    [userTimezone]
+  );
 
   const formatPickupTime = useCallback((pickupDate, pickupFrom, pickupTo) => {
     if (!pickupDate || !pickupFrom || !pickupTo) {
       return '—';
     }
     try {
-      const fromDate = new Date(`${pickupDate}T${pickupFrom}`);
-      const dateStr = fromDate.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      });
-      const fromTime = fromDate.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-      });
-      const [hours, minutes] = pickupTo.split(':');
-      const hour = parseInt(hours, 10);
-      const isPM = hour >= 12;
-      const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-      const toTime = `${displayHour}:${minutes} ${isPM ? 'PM' : 'AM'}`;
-      return `${dateStr} ${fromTime}-${toTime}`;
+      // Keep backend-provided wall-clock values stable regardless of browser timezone.
+      return (
+        formatPickupWindowFromParts(
+          String(pickupDate),
+          String(pickupFrom),
+          String(pickupTo),
+          'en-US'
+        ) || '—'
+      );
     } catch {
       return '—';
     }
@@ -780,7 +797,12 @@ export default function ReceiverBrowse() {
       }
       try {
         const now = new Date();
-        const posted = new Date(dateString);
+        const posted =
+          parseExplicitUtcTimestamp(dateString) ||
+          parseBackendUtcTimestamp(dateString);
+        if (!posted) {
+          return '';
+        }
         const diffInHours = Math.floor((now - posted) / (1000 * 60 * 60));
         if (diffInHours < 1) {
           return t('receiverBrowse.justNow');
@@ -805,7 +827,7 @@ export default function ReceiverBrowse() {
 
   const formatStatus = useCallback(
     status => {
-      switch (status) {
+      switch (normalizeStatus(status)) {
         case 'AVAILABLE':
           return t('receiverBrowse.status.available');
         case 'READY_FOR_PICKUP':
@@ -826,7 +848,7 @@ export default function ReceiverBrowse() {
   );
 
   const getStatusClass = useCallback(status => {
-    switch (status) {
+    switch (normalizeStatus(status)) {
       case 'AVAILABLE':
         return 'status-available';
       case 'READY_FOR_PICKUP':
@@ -1020,15 +1042,43 @@ export default function ReceiverBrowse() {
               }
 
               // If neither has recommendations, sort by date (newest first)
-              const dateA = new Date(a.createdAt || a.pickupDate);
-              const dateB = new Date(b.createdAt || b.pickupDate);
+              const dateA =
+                parseExplicitUtcTimestamp(a.createdAt) ||
+                parseBackendUtcTimestamp(a.createdAt) ||
+                parseLocalDateTimeParts(
+                  a.pickupDate && a.pickupFrom ? a.pickupDate : null,
+                  a.pickupDate && a.pickupFrom ? a.pickupFrom : null
+                ) ||
+                new Date(0);
+              const dateB =
+                parseExplicitUtcTimestamp(b.createdAt) ||
+                parseBackendUtcTimestamp(b.createdAt) ||
+                parseLocalDateTimeParts(
+                  b.pickupDate && b.pickupFrom ? b.pickupDate : null,
+                  b.pickupDate && b.pickupFrom ? b.pickupFrom : null
+                ) ||
+                new Date(0);
               return dateB.getTime() - dateA.getTime();
             });
           } else {
             // Sort by creation date (newest first) for date filter
             filteredItems.sort((a, b) => {
-              const dateA = new Date(a.createdAt || a.pickupDate);
-              const dateB = new Date(b.createdAt || b.pickupDate);
+              const dateA =
+                parseExplicitUtcTimestamp(a.createdAt) ||
+                parseBackendUtcTimestamp(a.createdAt) ||
+                parseLocalDateTimeParts(
+                  a.pickupDate && a.pickupFrom ? a.pickupDate : null,
+                  a.pickupDate && a.pickupFrom ? a.pickupFrom : null
+                ) ||
+                new Date(0);
+              const dateB =
+                parseExplicitUtcTimestamp(b.createdAt) ||
+                parseBackendUtcTimestamp(b.createdAt) ||
+                parseLocalDateTimeParts(
+                  b.pickupDate && b.pickupFrom ? b.pickupDate : null,
+                  b.pickupDate && b.pickupFrom ? b.pickupFrom : null
+                ) ||
+                new Date(0);
               return dateB.getTime() - dateA.getTime();
             });
           }

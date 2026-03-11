@@ -15,6 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,15 +26,18 @@ public class SavedDonationService {
     private final SavedDonationRepository savedDonationRepository;
     private final SurplusPostRepository surplusPostRepository;
     private final SurplusService surplusService;
+    private final Clock clock;
 
     public SavedDonationService(
             SavedDonationRepository savedDonationRepository,
             SurplusPostRepository surplusPostRepository,
-            SurplusService surplusService
+            SurplusService surplusService,
+            Clock clock
     ) {
         this.savedDonationRepository = savedDonationRepository;
         this.surplusPostRepository = surplusPostRepository;
         this.surplusService = surplusService;
+        this.clock = clock;
     }
 
     /* 
@@ -74,7 +78,7 @@ public class SavedDonationService {
 
         // Prevent saving expired donations
         if (post.getExpiryDate() != null &&
-                post.getExpiryDate().isBefore(LocalDate.now())) {
+                post.getExpiryDate().isBefore(LocalDate.now(clock))) {
 
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
@@ -123,7 +127,7 @@ public class SavedDonationService {
     post != null &&
     post.getStatus() == PostStatus.AVAILABLE &&
     (post.getExpiryDate() == null ||
-        !post.getExpiryDate().isBefore(LocalDate.now()))
+        !post.getExpiryDate().isBefore(LocalDate.now(clock)))
 )
 
                 .map(post -> surplusService.convertToResponseForReceiver(post, receiverTimezone))

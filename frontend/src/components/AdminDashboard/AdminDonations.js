@@ -31,6 +31,10 @@ import {
   TableRow,
 } from '../ui/table';
 import { adminDonationAPI, feedbackAPI } from '../../services/api';
+import {
+  parseBackendUtcTimestamp,
+  parseExplicitUtcTimestamp,
+} from '../../utils/timezoneUtils';
 
 const statusOptions = [
   { value: '', label: 'All Status' },
@@ -381,7 +385,13 @@ const AdminDonations = () => {
     if (!dateString) {
       return t('adminDonations.notAvailable');
     }
-    return new Date(dateString).toLocaleString();
+    const parsed =
+      parseExplicitUtcTimestamp(dateString) ||
+      parseBackendUtcTimestamp(dateString);
+    if (!parsed) {
+      return t('adminDonations.notAvailable');
+    }
+    return parsed.toLocaleString();
   };
 
   return (

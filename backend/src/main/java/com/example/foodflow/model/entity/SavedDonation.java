@@ -2,6 +2,7 @@ package com.example.foodflow.model.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 @Entity
 @Table(
@@ -37,7 +38,7 @@ public class SavedDonation {
     public SavedDonation(User receiver, SurplusPost surplusPost) {
         this.receiver = receiver;
         this.surplusPost = surplusPost;
-        this.savedAt = LocalDateTime.now();
+        this.savedAt = LocalDateTime.now(ZoneOffset.UTC);
     }
 
 

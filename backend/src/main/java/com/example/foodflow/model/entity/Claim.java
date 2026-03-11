@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneOffset;
 import com.example.foodflow.model.types.ClaimStatus;
 
 @Entity
@@ -41,7 +42,7 @@ public class Claim {
     
     @PrePersist
     protected void onCreate() {
-        claimedAt = LocalDateTime.now();
+        claimedAt = LocalDateTime.now(ZoneOffset.UTC);
     }
     
     // Constructors

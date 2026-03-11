@@ -33,15 +33,21 @@ import {
   getPackagingTypeLabel,
 } from '../../constants/foodConstants';
 import { useTimezone } from '../../contexts/TimezoneContext';
+import { formatPickupWindowFromParts } from '../../utils/timezoneUtils';
+import { normalizeStatus } from '../../utils/statusUtils';
 import './Receiver_Styles/ClaimDetailModal.css';
 
 const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
   const { t } = useTranslation();
   const post = claim?.surplusPost;
-  const normalizedStatus = (post?.status || claim?.status || '')
-    .toString()
-    .toUpperCase()
-    .replace(/\s+/g, '_');
+  const normalizedClaimStatus = normalizeStatus(claim?.status);
+  const normalizedPostStatus = normalizeStatus(post?.status);
+  const normalizedStatus =
+    (normalizedClaimStatus
+      ? normalizedClaimStatus === 'ACTIVE'
+        ? 'CLAIMED'
+        : normalizedClaimStatus
+      : normalizedPostStatus) || '';
   const [showPickupSteps, setShowPickupSteps] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [timeline, setTimeline] = useState([]);
@@ -114,38 +120,14 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
       return t('claimDetail.notSpecified');
     }
     try {
-      // Backend sends LocalDateTime, treat as UTC by adding 'Z'
-      let fromDateStr = `${pickupDate}T${pickupFrom}`;
-      if (!fromDateStr.endsWith('Z') && !fromDateStr.includes('+')) {
-        fromDateStr = fromDateStr + 'Z';
-      }
-      let toDateStr = `${pickupDate}T${pickupTo}`;
-      if (!toDateStr.endsWith('Z') && !toDateStr.includes('+')) {
-        toDateStr = toDateStr + 'Z';
-      }
-
-      const fromDate = new Date(fromDateStr);
-      const toDate = new Date(toDateStr);
-
-      const dateStr = fromDate.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        timeZone: userTimezone,
-      });
-      const fromTime = fromDate.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-        timeZone: userTimezone,
-      });
-      const toTime = toDate.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-        timeZone: userTimezone,
-      });
-      return `${dateStr} ${fromTime}-${toTime}`;
+      return (
+        formatPickupWindowFromParts(
+          String(pickupDate),
+          String(pickupFrom),
+          String(pickupTo),
+          'en-US'
+        ) || t('claimDetail.notSpecified')
+      );
     } catch (error) {
       console.error('Error formatting pickup time:', error);
       return t('claimDetail.notSpecified');
@@ -457,6 +439,7 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                   <DonationTimeline
                     timeline={timeline}
                     loading={loadingTimeline}
+                    userTimezone={userTimezone || 'UTC'}
                   />
                 </div>
               )}

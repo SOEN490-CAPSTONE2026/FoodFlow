@@ -13,7 +13,6 @@ import {
 import Select from 'react-select';
 import { claimsAPI, feedbackAPI } from '../../services/api';
 import { useNotification } from '../../contexts/NotificationContext';
-import { useTimezone } from '../../contexts/TimezoneContext';
 import {
   getDietaryTagLabel,
   getPrimaryFoodCategory,
@@ -21,6 +20,11 @@ import {
   foodTypeImages,
   getUnitLabel,
 } from '../../constants/foodConstants';
+import {
+  formatPickupWindowFromParts,
+  parseLocalDateTimeParts,
+} from '../../utils/timezoneUtils';
+import { normalizeStatus } from '../../utils/statusUtils';
 import ClaimDetailModal from './ClaimDetailModal.js';
 import './Receiver_Styles/ReceiverMyClaims.css';
 
@@ -29,7 +33,6 @@ export default function ReceiverMyClaims() {
   const navigate = useNavigate();
   const location = useLocation();
   const { showNotification } = useNotification();
-  const { userTimezone } = useTimezone();
   const hasSetInitialFilter = useRef(false);
   const [claims, setClaims] = useState([]);
   const [activeFilter, setActiveFilter] = useState('All');
@@ -77,15 +80,15 @@ export default function ReceiverMyClaims() {
   ];
 
   const getNormalizedStatus = claim => {
-    const postStatus = claim.surplusPost?.status;
-    if (postStatus) {
-      return postStatus;
-    }
     const claimStatus = claim?.status;
-    if (!claimStatus || typeof claimStatus !== 'string') {
-      return null;
+    const normalizedClaimStatus = normalizeStatus(claimStatus);
+    if (normalizedClaimStatus) {
+      return normalizedClaimStatus === 'ACTIVE'
+        ? 'CLAIMED'
+        : normalizedClaimStatus;
     }
-    return claimStatus.toUpperCase().replace(/\s+/g, '_');
+
+    return normalizeStatus(claim?.surplusPost?.status) || null;
   };
 
   const getDisplayStatus = claim => {
@@ -263,48 +266,19 @@ export default function ReceiverMyClaims() {
   };
 
   // Format pickup time consistently with ReceiverBrowse
-  const formatPickupTime = (
-    pickupDate,
-    pickupFrom,
-    pickupTo,
-    userTimezone = 'UTC'
-  ) => {
+  const formatPickupTime = (pickupDate, pickupFrom, pickupTo) => {
     if (!pickupDate || !pickupFrom || !pickupTo) {
       return '—';
     }
     try {
-      // Backend sends LocalDateTime, treat as UTC by adding 'Z'
-      let fromDateStr = `${pickupDate}T${pickupFrom}`;
-      if (!fromDateStr.endsWith('Z') && !fromDateStr.includes('+')) {
-        fromDateStr = fromDateStr + 'Z';
-      }
-      let toDateStr = `${pickupDate}T${pickupTo}`;
-      if (!toDateStr.endsWith('Z') && !toDateStr.includes('+')) {
-        toDateStr = toDateStr + 'Z';
-      }
-
-      const fromDate = new Date(fromDateStr);
-      const toDate = new Date(toDateStr);
-
-      const dateStr = fromDate.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        timeZone: userTimezone,
-      });
-      const fromTime = fromDate.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-        timeZone: userTimezone,
-      });
-      const toTime = toDate.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-        timeZone: userTimezone,
-      });
-      return `${dateStr} ${fromTime}-${toTime}`;
+      return (
+        formatPickupWindowFromParts(
+          String(pickupDate),
+          String(pickupFrom),
+          String(pickupTo),
+          'en-US'
+        ) || '—'
+      );
     } catch (error) {
       console.error('Error formatting pickup time:', error);
       return '—';
@@ -317,16 +291,17 @@ export default function ReceiverMyClaims() {
     }
 
     try {
-      const parsedDate = new Date(`${dateValue}T00:00:00Z`);
-      if (Number.isNaN(parsedDate.getTime())) {
+      const [year, month, day] = String(dateValue).split('-').map(Number);
+      if (!year || !month || !day) {
         return dateValue;
       }
+      const parsedDate = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
 
       return parsedDate.toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
         year: 'numeric',
-        timeZone: userTimezone || 'UTC',
+        timeZone: 'UTC',
       });
     } catch (error) {
       console.error('Error formatting date:', error);
@@ -455,7 +430,9 @@ export default function ReceiverMyClaims() {
       }
 
       // Sort by pickup date - earliest pickup first (ascending)
-      return new Date(dateA).getTime() - new Date(dateB).getTime();
+      const parsedA = parseLocalDateTimeParts(dateA, '00:00:00') || new Date(0);
+      const parsedB = parseLocalDateTimeParts(dateB, '00:00:00') || new Date(0);
+      return parsedA.getTime() - parsedB.getTime();
     }
     if (sortBy.value === 'status') {
       const statusPriority = {
@@ -606,8 +583,7 @@ export default function ReceiverMyClaims() {
             claim.confirmedPickupSlot?.startTime ||
               claim.confirmedPickupSlot?.pickupFrom,
             claim.confirmedPickupSlot?.endTime ||
-              claim.confirmedPickupSlot?.pickupTo,
-            userTimezone
+              claim.confirmedPickupSlot?.pickupTo
           );
           const categoryBadge = getPrimaryFoodCategory(post?.foodCategories);
           const dietaryBadges = (

@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { Clock, ShieldAlert, Camera, X } from 'lucide-react';
+import {
+  parseBackendUtcTimestamp,
+  parseExplicitUtcTimestamp,
+} from '../../utils/timezoneUtils';
 import './DonationTimeline.css';
 
 // Get the backend base URL (without /api suffix)
@@ -49,6 +53,7 @@ export default function DonationTimeline({
   timeline = [],
   loading = false,
   showAdminBadges = false,
+  userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
 }) {
   const [enlargedImage, setEnlargedImage] = useState(null);
 
@@ -57,7 +62,12 @@ export default function DonationTimeline({
       return '—';
     }
     try {
-      const date = new Date(timestamp);
+      const date =
+        parseExplicitUtcTimestamp(timestamp) ||
+        parseBackendUtcTimestamp(timestamp);
+      if (!date) {
+        return '—';
+      }
       return date.toLocaleString('en-US', {
         month: 'numeric',
         day: 'numeric',
@@ -65,6 +75,7 @@ export default function DonationTimeline({
         hour: 'numeric',
         minute: '2-digit',
         hour12: true,
+        timeZone: userTimezone || 'UTC',
       });
     } catch (error) {
       // eslint-disable-next-line no-console
@@ -176,4 +187,5 @@ DonationTimeline.propTypes = {
   timeline: PropTypes.array,
   loading: PropTypes.bool,
   showAdminBadges: PropTypes.bool,
+  userTimezone: PropTypes.string,
 };

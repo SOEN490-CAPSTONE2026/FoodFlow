@@ -4,8 +4,10 @@ import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.types.FoodType;
 import com.example.foodflow.model.types.PackagingType;
 import com.example.foodflow.model.types.TemperatureCategory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -17,6 +19,8 @@ import java.util.Map;
 public class ExpiryPredictionService {
 
     public static final String VERSION = "rules_v1";
+    @Autowired
+    private Clock clock = Clock.systemUTC();
 
     public PredictionResult predict(SurplusPost post) {
         FoodType foodType = post.getFoodType();
@@ -65,7 +69,7 @@ public class ExpiryPredictionService {
         if (post.getCreatedAt() != null) {
             return post.getCreatedAt().toInstant(ZoneOffset.UTC);
         }
-        return Instant.now();
+        return Instant.now(clock);
     }
 
     private Duration resolveBaseShelfLife(FoodType foodType, TemperatureCategory temperatureCategory) {

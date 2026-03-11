@@ -22,6 +22,7 @@ import EmailVerificationRequired from '../EmailVerificationRequired';
 import AdminApprovalBanner from '../AdminApprovalBanner';
 import { connectToUserQueue, disconnect } from '../../services/socket';
 import api, { profileAPI, savedDonationAPI } from '../../services/api';
+import { normalizeStatus } from '../../utils/statusUtils';
 import {
   Settings as IconSettings,
   HelpCircle as IconHelpCircle,
@@ -189,7 +190,7 @@ function ReceiverLayoutContent() {
         const response = await savedDonationAPI.getSavedDonations();
         const savedItems = Array.isArray(response?.data) ? response.data : [];
         const availableSavedItems = savedItems.filter(
-          item => item?.status === 'AVAILABLE'
+          item => normalizeStatus(item?.status) === 'AVAILABLE'
         );
         setSavedDonationsCount(availableSavedItems.length);
       } catch (err) {
@@ -241,7 +242,7 @@ function ReceiverLayoutContent() {
         donorName,
       });
 
-      if (status === 'READY_FOR_PICKUP' || status === 'Ready for Pickup') {
+      if (normalizeStatus(status) === 'READY_FOR_PICKUP') {
         message = t('notifications.readyForPickup', { foodTitle });
       }
 

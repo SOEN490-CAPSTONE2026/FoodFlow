@@ -21,8 +21,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
+import java.lang.reflect.Field;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -105,6 +109,16 @@ class ClaimServiceTest {
                 .thenReturn(true);
     }
 
+    private void setFixedClock(Clock clock) {
+        try {
+            Field clockField = ClaimService.class.getDeclaredField("clock");
+            clockField.setAccessible(true);
+            clockField.set(claimService, clock);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to set test clock", e);
+        }
+    }
+
     @Test
     void claimSurplusPost_Success() {
         // Given
@@ -124,6 +138,31 @@ class ClaimServiceTest {
         assertThat(response.getId()).isEqualTo(1L);
         verify(claimRepository).save(any(Claim.class));
         verify(surplusPostRepository).save(argThat(post -> post.getStatus() == PostStatus.CLAIMED));
+    }
+
+    @Test
+    void claimSurplusPost_DonorLocalExpiryNotYetReached_AllowsClaim() {
+        // Given:
+        // 2026-03-10 end-of-day in America/Los_Angeles = 2026-03-11T06:59:59Z
+        // At 2026-03-11T02:00:00Z this should still be claimable.
+        setFixedClock(Clock.fixed(Instant.parse("2026-03-11T02:00:00Z"), ZoneOffset.UTC));
+        donor.setTimezone("America/Los_Angeles");
+        surplusPost.setExpiryDate(LocalDate.of(2026, 3, 10));
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
+
+        Claim savedClaim = new Claim(surplusPost, receiver);
+        savedClaim.setId(42L);
+        when(claimRepository.save(any(Claim.class))).thenReturn(savedClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        // When
+        ClaimResponse response = claimService.claimSurplusPost(claimRequest, receiver);
+
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.getId()).isEqualTo(42L);
     }
 
     @Test
@@ -206,6 +245,37 @@ class ClaimServiceTest {
         assertThat(responses).hasSize(2);
         assertThat(responses.get(0).getId()).isEqualTo(1L);
         assertThat(responses.get(1).getId()).isEqualTo(2L);
+    }
+
+    @Test
+    void getReceiverClaims_ConvertsSurplusPickupTimesToReceiverTimezone() {
+        receiver.setTimezone("America/Toronto");
+        surplusPost.setPickupDate(LocalDate.of(2026, 1, 15));
+        surplusPost.setPickupFrom(LocalTime.of(15, 0)); // Stored as UTC
+        surplusPost.setPickupTo(LocalTime.of(17, 0));   // Stored as UTC
+
+        Claim claim = new Claim(surplusPost, receiver);
+        claim.setId(10L);
+
+        when(claimRepository.findReceiverClaimsWithDetails(
+            eq(receiver.getId()),
+            eq(List.of(
+                ClaimStatus.ACTIVE,
+                ClaimStatus.COMPLETED,
+                ClaimStatus.NOT_COMPLETED,
+                ClaimStatus.EXPIRED
+            ))))
+            .thenReturn(List.of(claim));
+
+        List<ClaimResponse> responses = claimService.getReceiverClaims(receiver);
+
+        assertThat(responses).hasSize(1);
+        assertThat(responses.get(0).getSurplusPost().getPickupDate())
+            .isEqualTo(LocalDate.of(2026, 1, 15));
+        assertThat(responses.get(0).getSurplusPost().getPickupFrom())
+            .isEqualTo(LocalTime.of(10, 0));
+        assertThat(responses.get(0).getSurplusPost().getPickupTo())
+            .isEqualTo(LocalTime.of(12, 0));
     }
 
     @Test

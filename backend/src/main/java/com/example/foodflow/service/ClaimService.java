@@ -15,6 +15,7 @@ import com.example.foodflow.repository.SyncedCalendarEventRepository;
 import com.example.foodflow.service.calendar.CalendarEventService;
 import com.example.foodflow.service.calendar.CalendarIntegrationService;
 import com.example.foodflow.service.calendar.CalendarSyncService;
+import com.example.foodflow.util.ExpiryDateTimeResolver;
 import com.example.foodflow.util.TimezoneResolver;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.Timer;
@@ -27,6 +28,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -52,6 +54,8 @@ public class ClaimService {
     private final CalendarSyncService calendarSyncService;
     private final CalendarSyncPreferenceRepository calendarSyncPreferenceRepository;
     private final SyncedCalendarEventRepository syncedCalendarEventRepository;
+    @Autowired
+    private Clock clock = Clock.systemUTC();
     @Autowired(required = false)
     private DonationImageResolverService donationImageResolverService;
     
@@ -93,13 +97,10 @@ public class ClaimService {
         SurplusPost surplusPost = surplusPostRepository.findById(request.getSurplusPostId())
             .orElseThrow(() -> new ResourceNotFoundException("error.resource.not_found"));
 
-        // Check if post has expired based on effective expiry first, fallback to legacy expiry date.
-        LocalDateTime effectiveExpiry = surplusPost.getExpiryDateEffective();
-        if (effectiveExpiry == null && surplusPost.getExpiryDate() != null) {
-            effectiveExpiry = surplusPost.getExpiryDate().atTime(23, 59, 59);
-        }
+        // Check if post has expired using canonical expiry semantics.
+        LocalDateTime effectiveExpiry = ExpiryDateTimeResolver.resolveEffectiveExpiryUtc(surplusPost);
         if (effectiveExpiry != null &&
-                !LocalDateTime.now(java.time.ZoneOffset.UTC).isBefore(effectiveExpiry)) {
+                !LocalDateTime.now(clock).isBefore(effectiveExpiry)) {
             throw new RuntimeException("This donation has expired and cannot be claimed");
         }
 
@@ -225,7 +226,7 @@ public class ClaimService {
 
         // Check if the CONFIRMED pickup time has already started
         // CRITICAL: Use UTC for comparison since confirmed pickup times MUST be in UTC
-        java.time.ZonedDateTime nowUtc = java.time.ZonedDateTime.now(java.time.ZoneId.of("UTC"));
+        java.time.ZonedDateTime nowUtc = java.time.ZonedDateTime.now(clock);
         java.time.LocalDate today = nowUtc.toLocalDate();
         java.time.LocalTime currentTime = nowUtc.toLocalTime();
 
@@ -395,7 +396,14 @@ public class ClaimService {
     }
 
     private ClaimResponse toClaimResponse(Claim claim) {
+        return toClaimResponse(claim, null);
+    }
+
+    private ClaimResponse toClaimResponse(Claim claim, String receiverTimezone) {
         ClaimResponse response = new ClaimResponse(claim);
+        if (receiverTimezone != null && !receiverTimezone.trim().isEmpty()) {
+            applyReceiverTimezoneToSurplus(response.getSurplusPost(), receiverTimezone);
+        }
         SurplusResponse surplus = response.getSurplusPost();
         if (surplus != null && claim.getSurplusPost() != null && claim.getSurplusPost().getDonor() != null) {
             surplus.setDonorLogoUrl(claim.getSurplusPost().getDonor().getProfilePhoto());
@@ -409,10 +417,64 @@ public class ClaimService {
         }
         return response;
     }
+
+    private void applyReceiverTimezoneToSurplus(SurplusResponse surplus, String receiverTimezone) {
+        if (surplus == null) {
+            return;
+        }
+
+        if (surplus.getPickupDate() != null && surplus.getPickupFrom() != null && surplus.getPickupTo() != null) {
+            LocalDateTime pickupStart = TimezoneResolver.convertDateTime(
+                    surplus.getPickupDate(),
+                    surplus.getPickupFrom(),
+                    "UTC",
+                    receiverTimezone);
+            LocalDateTime pickupEnd = TimezoneResolver.convertDateTime(
+                    surplus.getPickupDate(),
+                    surplus.getPickupTo(),
+                    "UTC",
+                    receiverTimezone);
+            if (pickupStart != null) {
+                surplus.setPickupDate(pickupStart.toLocalDate());
+                surplus.setPickupFrom(pickupStart.toLocalTime());
+            }
+            if (pickupEnd != null) {
+                surplus.setPickupTo(pickupEnd.toLocalTime());
+            }
+        }
+
+        if (surplus.getPickupSlots() != null && !surplus.getPickupSlots().isEmpty()) {
+            for (var slot : surplus.getPickupSlots()) {
+                if (slot.getPickupDate() == null || slot.getStartTime() == null || slot.getEndTime() == null) {
+                    continue;
+                }
+                LocalDateTime slotStart = TimezoneResolver.convertDateTime(
+                        slot.getPickupDate(),
+                        slot.getStartTime(),
+                        "UTC",
+                        receiverTimezone);
+                LocalDateTime slotEnd = TimezoneResolver.convertDateTime(
+                        slot.getPickupDate(),
+                        slot.getEndTime(),
+                        "UTC",
+                        receiverTimezone);
+                if (slotStart != null) {
+                    slot.setPickupDate(slotStart.toLocalDate());
+                    slot.setStartTime(slotStart.toLocalTime());
+                }
+                if (slotEnd != null) {
+                    slot.setEndTime(slotEnd.toLocalTime());
+                }
+            }
+        }
+    }
     
     @Transactional(readOnly = true)
     @Timed(value = "claim.service.getReceiverClaims", description = "Time taken to get receiver claims")
     public List<ClaimResponse> getReceiverClaims(User receiver) {
+        String receiverTimezone = receiver.getTimezone() != null && !receiver.getTimezone().isBlank()
+                ? receiver.getTimezone()
+                : "UTC";
         return claimRepository.findReceiverClaimsWithDetails(
             receiver.getId(),
             java.util.List.of(
@@ -423,7 +485,7 @@ public class ClaimService {
             )
         )
             .stream()
-            .map(this::toClaimResponse)
+            .map(claim -> toClaimResponse(claim, receiverTimezone))
             .collect(Collectors.toList());
     }
     

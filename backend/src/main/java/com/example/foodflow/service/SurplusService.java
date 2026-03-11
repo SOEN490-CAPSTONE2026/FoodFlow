@@ -35,6 +35,7 @@ import com.example.foodflow.repository.SyncedCalendarEventRepository;
 import com.example.foodflow.service.calendar.CalendarEventService;
 import com.example.foodflow.service.calendar.CalendarIntegrationService;
 import com.example.foodflow.service.calendar.CalendarSyncService;
+import com.example.foodflow.util.ExpiryDateTimeResolver;
 import com.example.foodflow.util.TimezoneResolver;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -51,11 +52,12 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Instant;
-import java.time.ZoneId;
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -102,6 +104,8 @@ public class SurplusService {
     private final CalendarSyncService calendarSyncService;
     private final CalendarSyncPreferenceRepository calendarSyncPreferenceRepository;
     private final SyncedCalendarEventRepository syncedCalendarEventRepository;
+    @Autowired
+    private Clock clock = Clock.systemUTC();
     @Autowired(required = false)
     private DonationImageResolverService donationImageResolverService;
 
@@ -531,9 +535,7 @@ public class SurplusService {
         response.setSuggestedExpiryDate(post.getSuggestedExpiryDate());
         response.setEligibleAtSubmission(post.getEligibleAtSubmission());
         response.setWarningsAtSubmission(deserializeWarnings(post.getWarningsAtSubmission()));
-        response.setExpiryDateActual(post.getExpiryDate() != null
-                ? post.getExpiryDate().atTime(23, 59, 59)
-                : null);
+        response.setExpiryDateActual(ExpiryDateTimeResolver.resolveDateExpiryUtc(post));
         response.setExpiryDatePredicted(post.getExpiryDatePredicted());
         response.setExpiryDateEffective(post.getExpiryDateEffective());
         response.setPredictionConfidence(post.getExpiryPredictionConfidence());
@@ -1136,11 +1138,11 @@ public class SurplusService {
         }
 
         LocalDateTime previousEffective = resolveEffectiveExpiryForSort(post);
-        LocalDateTime overrideExpiry = parseExpiryOverride(expiryDateRaw);
+        LocalDateTime overrideExpiry = parseExpiryOverride(expiryDateRaw, post);
 
         post.setExpiryOverridden(true);
         post.setExpiryOverrideReason(reason);
-        post.setExpiryOverriddenAt(LocalDateTime.now(ZoneOffset.UTC));
+        post.setExpiryOverriddenAt(LocalDateTime.now(clock));
         post.setExpiryOverriddenBy(actor.getId());
         post.setExpiryDateEffective(overrideExpiry);
 
@@ -1213,30 +1215,16 @@ public class SurplusService {
     }
 
     private LocalDateTime resolveEffectiveExpiry(SurplusPost post) {
-        if (Boolean.TRUE.equals(post.getExpiryOverridden()) && post.getExpiryDateEffective() != null) {
-            return post.getExpiryDateEffective();
-        }
-
-        if (post.getExpiryDate() != null) {
-            return post.getExpiryDate().atTime(23, 59, 59);
-        }
-
-        return post.getExpiryDatePredicted();
+        return ExpiryDateTimeResolver.resolveEffectiveExpiryUtc(post);
     }
 
     private LocalDateTime resolveEffectiveExpiryForSort(SurplusPost post) {
-        if (post.getExpiryDateEffective() != null) {
-            return post.getExpiryDateEffective();
-        }
-        if (post.getExpiryDate() != null) {
-            return post.getExpiryDate().atTime(23, 59, 59);
-        }
-        return post.getExpiryDatePredicted();
+        return ExpiryDateTimeResolver.resolveEffectiveExpiryUtc(post);
     }
 
     private boolean isExpired(SurplusPost post) {
         LocalDateTime effective = resolveEffectiveExpiryForSort(post);
-        return effective != null && !LocalDateTime.now(ZoneOffset.UTC).isBefore(effective);
+        return effective != null && !LocalDateTime.now(clock).isBefore(effective);
     }
 
     private boolean isExpiringSoon(SurplusPost post) {
@@ -1244,7 +1232,7 @@ public class SurplusService {
         if (effective == null) {
             return false;
         }
-        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
+        LocalDateTime now = LocalDateTime.now(clock);
         return now.isBefore(effective) && !effective.isAfter(now.plusHours(expiringSoonHours));
     }
 
@@ -1287,7 +1275,7 @@ public class SurplusService {
         }
     }
 
-    private LocalDateTime parseExpiryOverride(String raw) {
+    private LocalDateTime parseExpiryOverride(String raw, SurplusPost post) {
         if (raw == null || raw.isBlank()) {
             throw new IllegalArgumentException("Override expiryDate is required");
         }
@@ -1296,10 +1284,16 @@ public class SurplusService {
             return LocalDateTime.parse(raw.trim());
         } catch (Exception ignored) {
             try {
-                return LocalDate.parse(raw.trim()).atTime(23, 59, 59);
+                return OffsetDateTime.parse(raw.trim()).withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime();
             } catch (Exception ignoredAgain) {
-                throw new IllegalArgumentException(
-                        "Invalid expiryDate format. Use ISO date-time (e.g. 2026-02-17T15:00:00) or date (YYYY-MM-DD)");
+                try {
+                    LocalDate localDate = LocalDate.parse(raw.trim());
+                    String donorTimezone = ExpiryDateTimeResolver.resolveDonorTimezone(post);
+                    return ExpiryDateTimeResolver.donorLocalEndOfDayUtc(localDate, donorTimezone);
+                } catch (Exception ignoredFinal) {
+                    throw new IllegalArgumentException(
+                            "Invalid expiryDate format. Use ISO date-time (e.g. 2026-02-17T15:00:00), offset date-time (e.g. 2026-02-17T15:00:00Z), or date (YYYY-MM-DD)");
+                }
             }
         }
     }
@@ -1505,7 +1499,7 @@ public class SurplusService {
         LocalTime confirmedEndTime = claim.getConfirmedPickupEndTime();
 
         if (confirmedDate != null && confirmedStartTime != null && confirmedEndTime != null) {
-            ZonedDateTime nowUtc = ZonedDateTime.now(ZoneId.of("UTC"));
+            ZonedDateTime nowUtc = ZonedDateTime.now(clock);
             LocalDate today = nowUtc.toLocalDate();
             LocalTime currentTime = nowUtc.toLocalTime();
 
@@ -1680,7 +1674,7 @@ public class SurplusService {
         evidenceEvent.setPickupEvidenceUrl(fileUrl);
         evidenceEvent.setDetails("Pickup evidence photo uploaded");
         evidenceEvent.setVisibleToUsers(true); // Visible to donor and admin
-        evidenceEvent.setTimestamp(LocalDateTime.now());
+        evidenceEvent.setTimestamp(LocalDateTime.now(clock));
 
         timelineRepository.save(evidenceEvent);
 

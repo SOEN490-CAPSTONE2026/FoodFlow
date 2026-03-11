@@ -5,6 +5,7 @@ import {
   foodTypeImages,
   getPrimaryFoodCategory,
 } from '../../constants/foodConstants';
+import { parseLocalDateTimeParts } from '../../utils/timezoneUtils';
 import './Receiver_Styles/ClaimedView.css';
 
 const ClaimedView = ({ claim, isOpen, onClose, onBack }) => {
@@ -50,13 +51,10 @@ const ClaimedView = ({ claim, isOpen, onClose, onBack }) => {
 
     const calculateTimeRemaining = () => {
       const now = new Date();
-      // Combine pickupDate (YYYY-MM-DD) and pickupFrom (HH:MM:SS) to create full datetime
-      // Add 'Z' to treat as UTC (same timezone as backend scheduler)
-      let pickupTimeStr = `${pickupDate}T${pickupFrom}`;
-      if (!pickupTimeStr.endsWith('Z') && !pickupTimeStr.includes('+')) {
-        pickupTimeStr = pickupTimeStr + 'Z';
+      const pickupTime = parseLocalDateTimeParts(pickupDate, pickupFrom);
+      if (!pickupTime) {
+        return;
       }
-      const pickupTime = new Date(pickupTimeStr);
       const diff = pickupTime - now;
 
       if (diff <= 0) {

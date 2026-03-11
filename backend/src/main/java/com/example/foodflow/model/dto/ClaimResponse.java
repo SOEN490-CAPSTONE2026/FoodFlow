@@ -1,6 +1,7 @@
 package com.example.foodflow.model.dto;
 
 import com.example.foodflow.model.entity.Claim;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.time.LocalDateTime;
 
 public class ClaimResponse {
@@ -10,6 +11,7 @@ public class ClaimResponse {
     private String surplusPostTitle;
     private Long receiverId;
     private String receiverEmail;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
     private LocalDateTime claimedAt;
     private String status;
     private SurplusResponse surplusPost;
