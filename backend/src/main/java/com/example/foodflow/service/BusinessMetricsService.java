@@ -69,6 +69,12 @@ public class BusinessMetricsService {
     private final Counter emailsSentCounter;
     private final Counter emailsFailedCounter;
 
+    // Payment Metrics
+    private final Counter paymentCreatedCounter;
+    private final Counter paymentSucceededCounter;
+    private final Counter paymentFailedCounter;
+    private final Counter refundProcessedCounter;
+
     public BusinessMetricsService(MeterRegistry meterRegistry) {
         this.meterRegistry = meterRegistry;
 
@@ -205,6 +211,23 @@ public class BusinessMetricsService {
 
         this.emailsFailedCounter = Counter.builder("emails.failed")
                 .description("Total email delivery failures")
+                .register(meterRegistry);
+
+        // Initialize payment counters
+        this.paymentCreatedCounter = Counter.builder("payments.created")
+                .description("Total payments created")
+                .register(meterRegistry);
+
+        this.paymentSucceededCounter = Counter.builder("payments.succeeded")
+                .description("Total payments succeeded")
+                .register(meterRegistry);
+
+        this.paymentFailedCounter = Counter.builder("payments.failed")
+                .description("Total payments failed")
+                .register(meterRegistry);
+
+        this.refundProcessedCounter = Counter.builder("refunds.processed")
+                .description("Total refunds processed")
                 .register(meterRegistry);
     }
 
@@ -380,6 +403,37 @@ public class BusinessMetricsService {
     public void incrementEmailByType(String emailType) {
         Counter.builder("emails.by.type")
                 .tag("type", emailType)
+                .register(meterRegistry)
+                .increment();
+    }
+
+    // Payment Methods
+    public void incrementPaymentCreated() {
+        paymentCreatedCounter.increment();
+    }
+
+    public void incrementPaymentSucceeded() {
+        paymentSucceededCounter.increment();
+    }
+
+    public void incrementPaymentFailed() {
+        paymentFailedCounter.increment();
+    }
+
+    public void incrementRefundProcessed() {
+        refundProcessedCounter.increment();
+    }
+
+    public void incrementPaymentByType(String paymentType) {
+        Counter.builder("payments.by.type")
+                .tag("type", paymentType)
+                .register(meterRegistry)
+                .increment();
+    }
+
+    public void incrementPaymentByCurrency(String currency) {
+        Counter.builder("payments.by.currency")
+                .tag("currency", currency)
                 .register(meterRegistry)
                 .increment();
     }
