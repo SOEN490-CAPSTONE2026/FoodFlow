@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import java.time.Clock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -67,6 +68,11 @@ class SurplusPostSchedulerServiceContextTest {
         @Bean
         SimpMessagingTemplate simpMessagingTemplate() {
             return mock(SimpMessagingTemplate.class);
+        }
+
+        @Bean
+        Clock clock() {
+            return Clock.systemUTC();
         }
     }
 }

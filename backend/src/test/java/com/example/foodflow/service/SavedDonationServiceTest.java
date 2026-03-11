@@ -22,12 +22,16 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -43,6 +47,9 @@ class SavedDonationServiceTest {
 
     @Mock
     private SurplusService surplusService;
+
+    @Mock
+    private Clock clock;
 
     @InjectMocks
     private SavedDonationService savedDonationService;
@@ -60,6 +67,9 @@ class SavedDonationServiceTest {
         donorUser = new User();
         donorUser.setId(20L);
         donorUser.setRole(UserRole.DONOR);
+
+        lenient().when(clock.getZone()).thenReturn(ZoneOffset.UTC);
+        lenient().when(clock.instant()).thenReturn(Instant.parse("2026-03-11T00:00:00Z"));
     }
 
     @AfterEach

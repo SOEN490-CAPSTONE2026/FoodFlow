@@ -10,6 +10,10 @@ import '@testing-library/jest-dom';
 import ReceiverSavedDonations from '../ReceiverSavedDonations';
 import { savedDonationAPI, surplusAPI } from '../../../services/api';
 
+jest.mock('../../../contexts/TimezoneContext', () => ({
+  useTimezone: () => ({ userTimezone: 'UTC' }),
+}));
+
 jest.mock('../../../services/api', () => ({
   savedDonationAPI: {
     getSavedDonations: jest.fn(),

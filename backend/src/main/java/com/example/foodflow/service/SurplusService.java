@@ -1330,9 +1330,21 @@ public class SurplusService {
             throw new BusinessException("error.auth.invalid_credentials");
         }
 
+        PostStatus oldStatus = post.getStatus();
         post.setStatus(PostStatus.COMPLETED);
         foodTypeImpactService.applyImpactSnapshot(post);
         SurplusPost updatedPost = surplusPostRepository.save(post);
+
+        // Keep timeline consistent with scheduler/manual transitions.
+        timelineService.createTimelineEvent(
+                updatedPost,
+                "PICKUP_CONFIRMED",
+                "donor",
+                donor.getId(),
+                oldStatus,
+                PostStatus.COMPLETED,
+                "Pickup confirmed with OTP code",
+                true);
 
         // Also complete the related claim so pickup achievements are updated
         logger.info("Looking for claim associated with postId={}", post.getId());
