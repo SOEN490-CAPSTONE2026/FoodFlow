@@ -733,8 +733,11 @@
       "box": "caixas"
     },
     "steps": {
+      "basicInfo": "Informações básicas",
       "foodDetails": "Detalhes do alimento",
       "quantityDates": "Quantidade e Datas",
+      "pickupSchedule": "Agenda de retirada",
+      "pickupLocation": "Local de retirada",
       "pickupInfo": "Informações de Retirada",
       "description": "Descrição"
     },
@@ -1713,6 +1716,11 @@
     "claimsLabel": "Reivindicacoes"
   },
   "donorHelp": {
+    "hero": {
+      "title": "Precisa de assistência?",
+      "subtitle": "Se você está sobrecarregado, lembre-se de que não precisa enfrentar isso sozinho. Entre em contato e obtenha a ajuda que precisa",
+      "searchPlaceholder": "Faça uma pergunta..."
+    },
     "gettingStarted": {
       "title": "Primeiros passos",
       "intro": "Bem-vindo ao FoodFlow! Siga estas etapas para começar a fazer a diferença doando seu excedente de alimentos para quem precisa.",
@@ -1735,8 +1743,13 @@
         }
       }
     },
+    "foodSafety": {
+      "title": "Segurança Alimentar",
+      "intro": "Aprenda sobre as diretrizes de segurança alimentar, manuseio adequado e requisitos de armazenamento."
+    },
     "faq": {
       "title": "Perguntas frequentes",
+      "subtitle": "Tudo o que você precisa saber sobre o produto e outras informações. Não encontrou a resposta que procura?",
       "items": {
         "q1": {
           "question": "Como crio uma doação?",
@@ -1779,6 +1792,10 @@
           "answer": "Sim. Quando um receptor reivindica a doação, você pode ver o nome da organização e informações de contato para coordenar a retirada."
         }
       }
+    },
+    "contact": {
+      "title": "Ainda precisa de ajuda?",
+      "subtitle": "Nossa equipe de suporte está aqui para ajudá-lo. Entre em contato através de seu canal preferido."
     },
     "support": {
       "title": "Precisa de mais ajuda?",

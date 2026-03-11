@@ -745,8 +745,11 @@
       "box": "cajas"
     },
     "steps": {
+      "basicInfo": "Información básica",
       "foodDetails": "Detalles del alimento",
       "quantityDates": "Cantidad y fechas",
+      "pickupSchedule": "Horario de recogida",
+      "pickupLocation": "Ubicación de recogida",
       "pickupInfo": "Información de recogida",
       "description": "Descripción"
     },
@@ -2501,5 +2504,96 @@
       "submitAnother": "Enviar otra sugerencia"
     },
     "errors": { "generic": "Algo salió mal. Por favor, inténtalo de nuevo." }
+  },
+  "donorHelp": {
+    "hero": {
+      "title": "¿Necesitas asistencia?",
+      "subtitle": "Si te sientes abrumado, recuerda que no tienes que enfrentarlo solo. Comunícate y obtén la ayuda que necesitas",
+      "searchPlaceholder": "Haz una pregunta..."
+    },
+    "gettingStarted": {
+      "title": "Primeros pasos",
+      "intro": "¡Bienvenido a FoodFlow! Así es como puedes empezar a donar excedentes de alimentos y marcar la diferencia en tu comunidad.",
+      "steps": {
+        "step1": {
+          "title": "Lista tus excedentes de alimentos",
+          "description": "Crea fácilmente listados para tus excedentes. Incluye detalles como cantidad, horarios de recogida e instrucciones especiales de manejo."
+        },
+        "step2": {
+          "title": "Establece tu disponibilidad",
+          "description": "Especifica cuándo los receptores pueden recoger las donaciones. Puedes establecer horarios regulares o franjas horarias específicas que funcionen para tu agenda."
+        },
+        "step3": {
+          "title": "Recibe y aprueba solicitudes",
+          "description": "Las organizaciones comunitarias solicitarán tus donaciones. Revisa las solicitudes y aprueba las que mejor te funcionen."
+        },
+        "step4": {
+          "title": "Rastrea tu impacto",
+          "description": "Monitorea tus donaciones, ve cuánto desperdicio de alimentos has evitado y consulta los comentarios de las organizaciones comunitarias a las que has ayudado."
+        }
+      }
+    },
+    "foodSafety": {
+      "title": "Seguridad Alimentaria",
+      "intro": "Aprende sobre las pautas de seguridad alimentaria, manejo adecuado y requisitos de almacenamiento."
+    },
+    "faq": {
+      "title": "Preguntas frecuentes",
+      "subtitle": "Todo lo que necesitas saber sobre el producto y otra información. ¿No encuentras la respuesta que buscas?",
+      "items": {
+        "q1": {
+          "question": "¿Qué tipos de alimentos puedo donar?",
+          "answer": "Puedes donar comidas preparadas, productos frescos, artículos de panadería, lácteos, carne, mariscos, productos envasados y bebidas. Todos los alimentos deben ser seguros para el consumo y cumplir con las pautas de salud locales."
+        },
+        "q2": {
+          "question": "¿Cómo garantizo la seguridad alimentaria?",
+          "answer": "Sigue los procedimientos adecuados de manipulación de alimentos, mantén las temperaturas correctas, etiqueta los alérgenos claramente y solo dona alimentos que servirías a tus propios clientes. Incluye instrucciones de almacenamiento y recalentamiento cuando sea aplicable."
+        },
+        "q3": {
+          "question": "¿Qué pasa si nadie reclama mi donación?",
+          "answer": "Si una donación no se reclama dentro del período de tiempo que especifiques, se marcará automáticamente como vencida. Puedes ajustar los horarios de recogida o contactar al soporte para conectarte con más receptores en tu área."
+        },
+        "q4": {
+          "question": "¿Puedo programar donaciones recurrentes?",
+          "answer": "¡Sí! Puedes configurar horarios regulares de donación para excedentes predecibles, como pan diario o productos semanales. Esto ayuda a los receptores a planificar con anticipación y garantiza un apoyo constante a la comunidad."
+        },
+        "q5": {
+          "question": "¿Estoy protegido de responsabilidad?",
+          "answer": "Sí, FoodFlow opera bajo la Ley de Donación de Alimentos del Buen Samaritano, que protege a los donantes de responsabilidad cuando donan alimentos de buena fe. Recomendamos seguir todas las pautas de seguridad alimentaria para garantizar donaciones de calidad."
+        },
+        "q6": {
+          "question": "¿Cómo funcionan las recogidas?",
+          "answer": "Los receptores vienen a tu ubicación durante la ventana de tiempo que especifiques. Recibirás notificaciones cuando se reclame una donación y puedes comunicarte directamente con los receptores sobre los detalles de la recogida."
+        },
+        "q7": {
+          "question": "¿Puedo donar ingredientes parcialmente usados?",
+          "answer": "Siempre que los ingredientes estén adecuadamente almacenados, sellados y sean seguros para el consumo, pueden donarse. Etiqueta claramente todos los artículos e incluye fechas de caducidad."
+        },
+        "q8": {
+          "question": "¿Cómo manejo las donaciones de último minuto?",
+          "answer": "Puedes crear listados \"urgentes\" que notifican inmediatamente a los receptores cercanos. Son perfectos para los excedentes del final del día que necesitan recogerse rápidamente."
+        },
+        "q9": {
+          "question": "¿Puedo elegir qué organizaciones reciben mis donaciones?",
+          "answer": "¡Sí! Puedes aprobar o rechazar solicitudes de organizaciones específicas. También puedes construir relaciones con receptores preferidos para futuras donaciones."
+        },
+        "q10": {
+          "question": "¿Cómo rastrea mi impacto ambiental?",
+          "answer": "Tu panel de donante muestra métricas que incluyen libras de alimentos donados, comidas proporcionadas y emisiones de CO2 estimadas evitadas. Puedes ver informes detallados y compartir tu historia de impacto."
+        }
+      }
+    },
+    "contact": {
+      "title": "¿Aún necesitas ayuda?",
+      "subtitle": "Nuestro equipo de soporte está aquí para ayudarte. Comunícate a través de tu canal preferido."
+    },
+    "support": {
+      "title": "¿Necesitas más ayuda?",
+      "intro": "Nuestro equipo de soporte está aquí para ayudarte con cualquier pregunta o problema.",
+      "emailLabel": "Soporte por correo electrónico",
+      "emailResponseTime": "Respuesta en 24 horas",
+      "phoneLabel": "Soporte telefónico",
+      "phoneAvailability": "Lun-Vie, 9AM-5PM EST"
+    }
   }
 }

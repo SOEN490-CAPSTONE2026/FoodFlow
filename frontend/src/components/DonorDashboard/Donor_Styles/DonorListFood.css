@@ -28,6 +28,9 @@
 .filter-icon {
   color: #64748b;
   flex-shrink: 0;
+  align-self: center;
+  display: flex;
+  align-items: center;
 }
 
 .sort-dropdown-container {
@@ -118,7 +121,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0f4c5c 0%, #1b6680 100%);
   color: #ffffff;
   border: none;
   border-radius: 999px;
@@ -126,15 +129,15 @@
   font-weight: 600;
   font-size: 15px;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(15, 76, 92, 0.3);
   transition: all 0.25s ease;
   white-space: nowrap;
 }
 
 .donor-ai-button:hover {
-  background: linear-gradient(135deg, #5568d3 0%, #6b3f8f 100%);
+  background: linear-gradient(135deg, #136b80 0%, #2487a7 100%);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 6px 20px rgba(15, 76, 92, 0.4);
 }
 
 .donor-ai-button svg {

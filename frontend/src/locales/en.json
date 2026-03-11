@@ -766,8 +766,11 @@
       "box": "boxes"
     },
     "steps": {
+      "basicInfo": "Basic Information",
       "foodDetails": "Food Details",
       "quantityDates": "Quantity & Dates",
+      "pickupSchedule": "Pickup Schedule",
+      "pickupLocation": "Pickup Location",
       "pickupInfo": "Pickup Info",
       "description": "Description"
     },
@@ -2532,6 +2535,97 @@
     },
     "errors": {
       "generic": "Something went wrong. Please try again."
+    }
+  },
+  "donorHelp": {
+    "hero": {
+      "title": "Need Assistance?",
+      "subtitle": "If you're feeling overwhelmed, remember you don't have to face it alone. Reach out and get the help you need",
+      "searchPlaceholder": "Ask a question..."
+    },
+    "gettingStarted": {
+      "title": "Getting Started",
+      "intro": "Welcome to FoodFlow! Here's how to start donating surplus food and making a difference in your community.",
+      "steps": {
+        "step1": {
+          "title": "List Your Surplus Food",
+          "description": "Easily create listings for your surplus food items. Include details like quantity, pickup times, and any special handling instructions."
+        },
+        "step2": {
+          "title": "Set Your Availability",
+          "description": "Specify when receivers can pick up donations. You can set regular hours or specific time slots that work for your schedule."
+        },
+        "step3": {
+          "title": "Receive & Approve Requests",
+          "description": "Community organizations will request your donations. Review requests and approve the ones that work best for you."
+        },
+        "step4": {
+          "title": "Track Your Impact",
+          "description": "Monitor your donations, see how much food waste you've prevented, and view feedback from the community organizations you've helped."
+        }
+      }
+    },
+    "foodSafety": {
+      "title": "Food Safety",
+      "intro": "Learn about food safety guidelines, proper handling, and storage requirements."
+    },
+    "faq": {
+      "title": "FAQ's",
+      "subtitle": "Everything you need to know about the product and other information. Can't find the answer you're looking for?",
+      "items": {
+        "q1": {
+          "question": "What types of food can I donate?",
+          "answer": "You can donate prepared meals, produce, bakery items, dairy, meat, seafood, packaged goods, and beverages. All food must be safe for consumption and meet local health guidelines."
+        },
+        "q2": {
+          "question": "How do I ensure food safety?",
+          "answer": "Follow proper food handling procedures, maintain correct temperatures, label allergens clearly, and only donate food that you would serve to your own customers. Include storage and reheating instructions when applicable."
+        },
+        "q3": {
+          "question": "What happens if no one claims my donation?",
+          "answer": "If a donation isn't claimed within the time window you specify, it will automatically be marked as expired. You can adjust pickup times or contact support to connect with more receivers in your area."
+        },
+        "q4": {
+          "question": "Can I schedule recurring donations?",
+          "answer": "Yes! You can set up regular donation schedules for predictable surplus, such as daily bread or weekly produce. This helps receivers plan ahead and ensures consistent support for the community."
+        },
+        "q5": {
+          "question": "Am I protected from liability?",
+          "answer": "Yes, FoodFlow operates under the Good Samaritan Food Donation Act, which protects donors from liability when donating food in good faith. We recommend following all food safety guidelines to ensure quality donations."
+        },
+        "q6": {
+          "question": "How do pickups work?",
+          "answer": "Receivers come to your location during the time window you specify. You'll receive notifications when a donation is claimed, and you can communicate directly with receivers about pickup details."
+        },
+        "q7": {
+          "question": "Can I donate partially used ingredients?",
+          "answer": "As long as ingredients are properly stored, sealed, and safe for consumption, they can be donated. Clearly label all items and include best-by dates."
+        },
+        "q8": {
+          "question": "How do I handle last-minute donations?",
+          "answer": "You can create \"urgent\" listings that notify nearby receivers immediately. These are perfect for end-of-day surplus that needs to be picked up quickly."
+        },
+        "q9": {
+          "question": "Can I choose which organizations receive my donations?",
+          "answer": "Yes! You can approve or decline requests from specific organizations. You can also build relationships with preferred receivers for future donations."
+        },
+        "q10": {
+          "question": "How do I track my environmental impact?",
+          "answer": "Your donor dashboard displays metrics including pounds of food donated, meals provided, and estimated CO2 emissions prevented. You can view detailed reports and share your impact story."
+        }
+      }
+    },
+    "contact": {
+      "title": "Still need help?",
+      "subtitle": "Our support team is here to assist you. Reach out through your preferred channel."
+    },
+    "support": {
+      "title": "Need More Help?",
+      "intro": "Our support team is here to assist you with any questions or issues.",
+      "emailLabel": "Email Support",
+      "emailResponseTime": "Response within 24 hours",
+      "phoneLabel": "Phone Support",
+      "phoneAvailability": "Mon-Fri, 9AM-5PM EST"
     }
   }
 }
