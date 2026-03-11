@@ -2,6 +2,7 @@ package com.example.foodflow.model.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 @Entity
 @Table(name = "donation_timeline")
@@ -51,7 +52,7 @@ public class DonationTimeline {
     @PrePersist
     protected void onCreate() {
         if (timestamp == null) {
-            timestamp = LocalDateTime.now();
+            timestamp = LocalDateTime.now(ZoneOffset.UTC);
         }
     }
     
@@ -63,7 +64,7 @@ public class DonationTimeline {
         this.eventType = eventType;
         this.actor = actor;
         this.actorUserId = actorUserId;
-        this.timestamp = LocalDateTime.now();
+        this.timestamp = LocalDateTime.now(ZoneOffset.UTC);
     }
     
     // Getters and Setters

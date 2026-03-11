@@ -16,6 +16,7 @@ import ReportUserModal from '../ReportUserModal';
 import FeedbackModal from '../FeedbackModal/FeedbackModal';
 import DonationTimeline from '../shared/DonationTimeline';
 import { reportAPI, surplusAPI } from '../../services/api';
+import { useTimezone } from '../../contexts/TimezoneContext';
 import './Receiver_Styles/CompletedView.css';
 
 const CompletedView = ({
@@ -27,6 +28,7 @@ const CompletedView = ({
   setShowFeedbackModal,
 }) => {
   const post = claim?.surplusPost;
+  const { userTimezone } = useTimezone();
   const containerRef = useRef(null);
   const [dimensions, setDimensions] = useState({ width: 750, height: 800 });
   const getImageUrl = imageUrl => {
@@ -203,6 +205,7 @@ const CompletedView = ({
                 <DonationTimeline
                   timeline={timeline}
                   loading={loadingTimeline}
+                  userTimezone={userTimezone || 'UTC'}
                 />
               </div>
             )}

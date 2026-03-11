@@ -1,4 +1,5 @@
 import {
+  inferRegionFromAddress,
   inferTimezoneFromAddress,
   getBrowserTimezone,
   isValidTimezone,
@@ -176,6 +177,74 @@ describe('timezoneService', () => {
 
       expect(timezone).toBe(getBrowserTimezone());
       expect(global.fetch).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('inferRegionFromAddress', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      global.fetch = jest.fn();
+    });
+
+    it('returns timezone, city, and country from geocoding + timezone APIs', async () => {
+      global.fetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            status: 'OK',
+            results: [
+              {
+                geometry: {
+                  location: {
+                    lat: 43.6532,
+                    lng: -79.3832,
+                  },
+                },
+                address_components: [
+                  {
+                    long_name: 'Toronto',
+                    short_name: 'Toronto',
+                    types: ['locality'],
+                  },
+                  { long_name: 'Canada', short_name: 'CA', types: ['country'] },
+                ],
+              },
+            ],
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            timeZoneId: 'America/Toronto',
+            status: 'OK',
+          }),
+        });
+
+      const region = await inferRegionFromAddress(
+        '123 Main St, Toronto, ON, Canada'
+      );
+
+      expect(region).toEqual({
+        timezone: 'America/Toronto',
+        city: 'Toronto',
+        country: 'Canada',
+        countryCode: 'CA',
+        source: 'google',
+      });
+    });
+
+    it('falls back to browser timezone when geocoding fails', async () => {
+      global.fetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          status: 'ZERO_RESULTS',
+          results: [],
+        }),
+      });
+
+      const region = await inferRegionFromAddress('Invalid Address');
+      expect(region.timezone).toBe(getBrowserTimezone());
+      expect(region.source).toBe('browser-fallback');
     });
   });
 });

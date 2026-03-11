@@ -10,6 +10,7 @@ import DonorPhotoPreferencesSection from './DonorDashboard/DonorPhotoPreferences
 import { AuthContext } from '../contexts/AuthContext';
 import { notificationPreferencesAPI, profileAPI } from '../services/api';
 import api from '../services/api';
+import { inferRegionFromAddress } from '../services/timezoneService';
 import '../style/Settings.css';
 
 /**
@@ -255,6 +256,11 @@ const Settings = () => {
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] =
     useState(false);
   const [regionSettings, setRegionSettings] = useState(null);
+  const [lastResolvedAddress, setLastResolvedAddress] = useState('');
+  const [addressSelectionMeta, setAddressSelectionMeta] = useState({
+    city: '',
+    country: '',
+  });
 
   // Notification preferences state
   const [notificationPreferences, setNotificationPreferences] = useState({
@@ -371,6 +377,7 @@ const Settings = () => {
           address: profileAddress || prev.address || '',
         }));
         setIsAddressSelected(Boolean(profileAddress));
+        setLastResolvedAddress(profileAddress || '');
 
         if (p.profilePhoto) {
           setProfileImage(p.profilePhoto);
@@ -489,6 +496,11 @@ const Settings = () => {
       const components = place.address_components;
       const streetNumber = getAddressComponent(components, 'street_number');
       const route = getAddressComponent(components, 'route');
+      const cityComponent =
+        getAddressComponent(components, 'locality') ||
+        getAddressComponent(components, 'postal_town') ||
+        getAddressComponent(components, 'administrative_area_level_2');
+      const countryComponent = getAddressComponent(components, 'country');
 
       if (!streetNumber || !route) {
         setIsAddressSelected(false);
@@ -505,6 +517,10 @@ const Settings = () => {
         ...prev,
         address: formattedAddress || prev.address,
       }));
+      setAddressSelectionMeta({
+        city: cityComponent?.long_name || '',
+        country: countryComponent?.long_name || '',
+      });
       setIsAddressSelected(true);
       setErrors(prev => ({ ...prev, address: '' }));
     } catch (error) {
@@ -653,6 +669,60 @@ const Settings = () => {
           ...prev,
           smsPhoneNumber: resp.data.phone || prev.smsPhoneNumber,
         }));
+
+        const currentAddress = (formData.address || '').trim();
+        const previousAddress = (lastResolvedAddress || '').trim();
+        const shouldResolveRegion =
+          currentAddress.length > 0 &&
+          currentAddress !== previousAddress &&
+          isAddressSelected;
+
+        if (shouldResolveRegion) {
+          try {
+            const inferredRegion = await inferRegionFromAddress(currentAddress);
+            const resolvedCity =
+              inferredRegion?.city || addressSelectionMeta.city || '';
+            const resolvedCountry =
+              inferredRegion?.country || addressSelectionMeta.country || '';
+
+            if (resolvedCity && resolvedCountry) {
+              const regionPayload = {
+                country: resolvedCountry,
+                city: resolvedCity,
+              };
+
+              // If timezone came from precise address lookup, pass it.
+              // Otherwise let backend resolve from city/country defaults.
+              if (
+                inferredRegion?.source === 'google' &&
+                inferredRegion?.timezone
+              ) {
+                regionPayload.timezone = inferredRegion.timezone;
+              }
+
+              const regionResp = await api.put(
+                '/profile/region',
+                regionPayload
+              );
+              setRegionSettings({
+                country: regionResp?.data?.country || resolvedCountry,
+                city: regionResp?.data?.city || resolvedCity,
+                timezone:
+                  regionResp?.data?.timezone ||
+                  inferredRegion?.timezone ||
+                  regionSettings?.timezone ||
+                  'UTC',
+              });
+            }
+          } catch (regionError) {
+            console.error(
+              'Error inferring region/timezone from address:',
+              regionError
+            );
+          }
+        }
+
+        setLastResolvedAddress(currentAddress);
 
         setSuccessMessage(t('settings.account.profileUpdated'));
       }

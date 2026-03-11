@@ -1194,6 +1194,11 @@
     "predicted": "Estimado",
     "addedToSaved": "Adicionado às doações salvas"
   },
+  "receiverSavedDonations": {
+    "title": "Doações salvas",
+    "failedToLoad": "Falha ao carregar doações salvas",
+    "empty": "Ainda não há doações salvas."
+  },
   "receiverMyClaims": {
     "readyForPickup": "Pronto para coleta",
     "completed": "Concluído",

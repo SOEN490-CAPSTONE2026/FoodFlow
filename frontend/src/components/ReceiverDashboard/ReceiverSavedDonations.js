@@ -2,12 +2,21 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Calendar, Clock, Package, ArrowUpDown } from 'lucide-react';
 import { savedDonationAPI, surplusAPI } from '../../services/api';
+import { useTimezone } from '../../contexts/TimezoneContext';
+import {
+  formatPickupWindowFromParts,
+  parseExplicitUtcTimestamp,
+  parseBackendUtcTimestamp,
+  parseLocalDateTimeParts,
+} from '../../utils/timezoneUtils';
+import { normalizeStatus } from '../../utils/statusUtils';
 import ReceiverDonationCard from './ReceiverDonationCard';
 import './ReceiverBrowseModal.css';
 import './ReceiverBrowse.css';
 
 export default function ReceiverSavedDonations() {
   const { t } = useTranslation();
+  const { userTimezone } = useTimezone();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -18,7 +27,7 @@ export default function ReceiverSavedDonations() {
   const [claimTargetItem, setClaimTargetItem] = useState(null);
   const [selectedSlotIndex, setSelectedSlotIndex] = useState(0);
   const [claiming, setClaiming] = useState(false);
-  const [sortBy, setSortBy] = useState('date');
+  const [sortBy, setSortBy] = useState('relevance');
 
   const fetchSavedDonations = useCallback(async () => {
     setLoading(true);
@@ -26,7 +35,7 @@ export default function ReceiverSavedDonations() {
       const response = await savedDonationAPI.getSavedDonations();
       const savedItems = Array.isArray(response.data) ? response.data : [];
       const availableSavedItems = savedItems.filter(
-        item => item?.status === 'AVAILABLE'
+        item => normalizeStatus(item?.status) === 'AVAILABLE'
       );
       setItems(availableSavedItems);
       setBookmarkedItems(new Set(availableSavedItems.map(item => item.id)));
@@ -147,46 +156,55 @@ export default function ReceiverSavedDonations() {
     [confirmClaim, t]
   );
 
-  const formatBestBeforeDate = useCallback(dateValue => {
-    if (!dateValue) {
-      return '—';
-    }
-    try {
-      const date = new Date(dateValue);
-      return date.toLocaleString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-      });
-    } catch {
-      return '—';
-    }
-  }, []);
+  const formatBestBeforeDate = useCallback(
+    dateValue => {
+      if (!dateValue) {
+        return '—';
+      }
+      try {
+        const date =
+          typeof dateValue === 'string' && dateValue.includes('T')
+            ? parseBackendUtcTimestamp(dateValue)
+            : (() => {
+                const [year, month, day] = String(dateValue)
+                  .split('-')
+                  .map(Number);
+                if (!year || !month || !day) {
+                  return null;
+                }
+                return new Date(year, month - 1, day);
+              })();
+        if (!date) {
+          return '—';
+        }
+        return date.toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          timeZone: userTimezone || 'UTC',
+        });
+      } catch {
+        return '—';
+      }
+    },
+    [userTimezone]
+  );
 
   const formatPickupTime = useCallback((pickupDate, pickupFrom, pickupTo) => {
     if (!pickupDate || !pickupFrom || !pickupTo) {
       return '—';
     }
     try {
-      const fromDate = new Date(`${pickupDate}T${pickupFrom}`);
-      const dateStr = fromDate.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      });
-      const fromTime = fromDate.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-      });
-      const [hours, minutes] = pickupTo.split(':');
-      const hour = parseInt(hours, 10);
-      const isPM = hour >= 12;
-      const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-      const toTime = `${displayHour}:${minutes} ${isPM ? 'PM' : 'AM'}`;
-      return `${dateStr} ${fromTime}-${toTime}`;
+      return (
+        formatPickupWindowFromParts(
+          String(pickupDate),
+          String(pickupFrom),
+          String(pickupTo),
+          'en-US'
+        ) || '—'
+      );
     } catch {
       return '—';
     }
@@ -199,7 +217,12 @@ export default function ReceiverSavedDonations() {
       }
       try {
         const now = new Date();
-        const posted = new Date(dateString);
+        const posted =
+          parseExplicitUtcTimestamp(dateString) ||
+          parseBackendUtcTimestamp(dateString);
+        if (!posted) {
+          return '';
+        }
         const diffInHours = Math.floor((now - posted) / (1000 * 60 * 60));
         if (diffInHours < 1) {
           return t('receiverBrowse.justNow');
@@ -224,7 +247,7 @@ export default function ReceiverSavedDonations() {
 
   const formatStatus = useCallback(
     status => {
-      switch (status) {
+      switch (normalizeStatus(status)) {
         case 'AVAILABLE':
           return t('receiverBrowse.status.available');
         case 'READY_FOR_PICKUP':
@@ -245,7 +268,7 @@ export default function ReceiverSavedDonations() {
   );
 
   const getStatusClass = useCallback(status => {
-    switch (status) {
+    switch (normalizeStatus(status)) {
       case 'AVAILABLE':
         return 'status-available';
       case 'READY_FOR_PICKUP':
@@ -264,8 +287,31 @@ export default function ReceiverSavedDonations() {
   }, []);
 
   const sortedItems = [...items].sort((a, b) => {
-    const dateA = new Date(a.createdAt || a.pickupDate);
-    const dateB = new Date(b.createdAt || b.pickupDate);
+    const dateA =
+      parseExplicitUtcTimestamp(a.createdAt) ||
+      parseBackendUtcTimestamp(a.createdAt) ||
+      parseLocalDateTimeParts(
+        a.pickupDate && a.pickupFrom ? a.pickupDate : null,
+        a.pickupDate && a.pickupFrom ? a.pickupFrom : null
+      ) ||
+      new Date(0);
+    const dateB =
+      parseExplicitUtcTimestamp(b.createdAt) ||
+      parseBackendUtcTimestamp(b.createdAt) ||
+      parseLocalDateTimeParts(
+        b.pickupDate && b.pickupFrom ? b.pickupDate : null,
+        b.pickupDate && b.pickupFrom ? b.pickupFrom : null
+      ) ||
+      new Date(0);
+
+    // Keep Saved Donations sorting consistent with Browse:
+    // - relevance (default)
+    // - date posted
+    // Saved items currently have no recommendation score, so relevance falls back to date.
+    if (sortBy === 'relevance') {
+      return dateB.getTime() - dateA.getTime();
+    }
+
     return dateB.getTime() - dateA.getTime();
   });
 
@@ -282,6 +328,13 @@ export default function ReceiverSavedDonations() {
             {t('receiverBrowse.sortBy')}
           </span>
           <div className="sort-buttons">
+            <button
+              className={`sort-button ${sortBy === 'relevance' ? 'active' : ''}`}
+              onClick={() => setSortBy('relevance')}
+            >
+              <Clock size={16} />
+              {t('receiverBrowse.relevance')}
+            </button>
             <button
               className={`sort-button ${sortBy === 'date' ? 'active' : ''}`}
               onClick={() => setSortBy('date')}

@@ -83,6 +83,26 @@ public class ConversationService {
             })
             .collect(Collectors.toList());
     }
+
+    /**
+     * Create or get a direct (non-donation) conversation between two users.
+     * Used for support escalation and other person-to-person threads.
+     */
+    @Transactional
+    public Conversation createOrGetDirectConversation(User userA, User userB) {
+        if (userA == null || userB == null || userA.getId() == null || userB.getId() == null) {
+            throw new IllegalArgumentException("Both conversation participants must be valid users");
+        }
+        if (userA.getId().equals(userB.getId())) {
+            throw new IllegalArgumentException("Cannot create conversation with the same user");
+        }
+
+        Long userId1 = Math.min(userA.getId(), userB.getId());
+        Long userId2 = Math.max(userA.getId(), userB.getId());
+
+        return conversationRepository.findByUsers(userId1, userId2)
+            .orElseGet(() -> conversationRepository.save(new Conversation(userA, userB)));
+    }
     
     /**
      * Start a new conversation or return existing one

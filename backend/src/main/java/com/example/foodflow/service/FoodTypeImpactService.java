@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
@@ -20,6 +21,8 @@ public class FoodTypeImpactService {
 
     private final Map<FoodType, ImpactFactor> factorsByFoodType;
     private final ObjectMapper objectMapper;
+    @Autowired
+    private Clock clock = Clock.systemUTC();
 
     @Autowired
     public FoodTypeImpactService(ObjectMapper objectMapper) {
@@ -52,7 +55,7 @@ public class FoodTypeImpactService {
 
         double co2eAvoided = weightKg * factor.co2eKgPerKg();
         double waterSaved = weightKg * factor.waterLitersPerKg();
-        LocalDateTime computedAt = LocalDateTime.now();
+        LocalDateTime computedAt = LocalDateTime.now(clock);
 
         Map<String, Object> inputs = new LinkedHashMap<>();
         inputs.put("foodType", foodType.name());

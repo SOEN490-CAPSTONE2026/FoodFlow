@@ -62,6 +62,10 @@ jest.mock('@react-google-maps/api', () => ({
 // Mock FiltersPanel
 jest.mock('../FiltersPanel', () => {
   return function MockFiltersPanel(props) {
+    if (!props.isVisible) {
+      return null;
+    }
+
     return (
       <div data-testid="filters-panel">
         <button onClick={props.onApplyFilters}>Apply Filters</button>
@@ -137,10 +141,16 @@ const createMockDonation = (overrides = {}) => ({
 describe('ReceiverBrowse Component', () => {
   let ReceiverBrowse;
 
+  const setViewportWidth = width => {
+    window.innerWidth = width;
+    window.dispatchEvent(new Event('resize'));
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     global.alert.mockClear();
     global.confirm.mockClear();
+    setViewportWidth(1024);
 
     // Set default mock implementations - no need for mockReset as clearAllMocks handles it
     surplusAPI.list.mockResolvedValue({ data: [] });
@@ -527,6 +537,33 @@ describe('ReceiverBrowse Component', () => {
       await waitFor(() => {
         expect(surplusAPI.search).toHaveBeenCalled();
       });
+    });
+
+    test('keeps filters closed by default on mobile and allows reopening', async () => {
+      setViewportWidth(390);
+      surplusAPI.list.mockResolvedValue({ data: [] });
+
+      await act(async () => {
+        renderWithProviders(<ReceiverBrowse />);
+      });
+
+      expect(screen.queryByTestId('filters-panel')).not.toBeInTheDocument();
+
+      const toggleButton = screen.getByRole('button', {
+        name: /filter donations|filters/i,
+      });
+
+      await act(async () => {
+        fireEvent.click(toggleButton);
+      });
+
+      expect(screen.getByTestId('filters-panel')).toBeInTheDocument();
+
+      await act(async () => {
+        fireEvent.click(toggleButton);
+      });
+
+      expect(screen.queryByTestId('filters-panel')).not.toBeInTheDocument();
     });
 
     // Test removed due to flakiness in CI environment - timing-dependent test with inconsistent behavior

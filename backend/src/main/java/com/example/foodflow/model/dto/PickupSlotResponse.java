@@ -1,6 +1,7 @@
 package com.example.foodflow.model.dto;
 
 import com.example.foodflow.model.entity.PickupSlot;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -13,6 +14,7 @@ public class PickupSlotResponse {
     private LocalTime endTime;
     private String notes;
     private Integer slotOrder;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
     private LocalDateTime createdAt;
     
     // Constructors
