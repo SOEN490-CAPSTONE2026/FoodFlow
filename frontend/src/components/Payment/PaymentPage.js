@@ -49,7 +49,7 @@ function PaymentPage() {
     setError('');
 
     try {
-      const response = await api.post('/api/payments/create-intent', {
+      const response = await api.post('/payments/create-intent', {
         amount: amount,
         currency: 'USD',
         paymentType: 'ONE_TIME',
