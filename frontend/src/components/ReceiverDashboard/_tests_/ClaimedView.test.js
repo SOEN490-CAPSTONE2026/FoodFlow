@@ -388,4 +388,49 @@ describe('ClaimedView', () => {
     const timer = container.querySelector('.pickup-step-timer');
     expect(timer).not.toBeInTheDocument();
   });
+
+  test('keeps countdown stable when user timezone changes if UTC pickup instant is explicit', async () => {
+    const claimWithExplicitUtcPickup = {
+      ...mockClaim,
+      confirmedPickupStartUtc: '2025-10-28T09:00:00Z',
+    };
+
+    const { container, rerender } = render(
+      <ClaimedView
+        claim={claimWithExplicitUtcPickup}
+        isOpen={true}
+        onClose={jest.fn()}
+        onBack={jest.fn()}
+        userTimezone="America/Toronto"
+      />
+    );
+
+    await waitFor(() => {
+      expect(container.querySelector('.pickup-step-timer')).toBeInTheDocument();
+    });
+
+    const initialTimerText = container.querySelector(
+      '.pickup-step-timer .timer-display'
+    ).textContent;
+
+    rerender(
+      <ClaimedView
+        claim={claimWithExplicitUtcPickup}
+        isOpen={true}
+        onClose={jest.fn()}
+        onBack={jest.fn()}
+        userTimezone="Asia/Tokyo"
+      />
+    );
+
+    await waitFor(() => {
+      expect(container.querySelector('.pickup-step-timer')).toBeInTheDocument();
+    });
+
+    const timerAfterTimezoneChange = container.querySelector(
+      '.pickup-step-timer .timer-display'
+    ).textContent;
+
+    expect(timerAfterTimezoneChange).toBe(initialTimerText);
+  });
 });
