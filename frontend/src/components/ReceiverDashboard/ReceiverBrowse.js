@@ -5,6 +5,7 @@ import {
   Calendar,
   List,
   Map,
+  Filter,
   MapPin,
   Clock,
   Package2,
@@ -98,6 +99,12 @@ export default function ReceiverBrowse() {
   const [hoveredRecommended, setHoveredRecommended] = useState(null);
   const [recommendations, setRecommendations] = useState({});
   const [browseMode, setBrowseMode] = useState('list');
+  const [isMobileFiltersViewport, setIsMobileFiltersViewport] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth <= 767 : false
+  );
+  const [showMobileFilters, setShowMobileFilters] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth > 767 : true
+  );
   const [receiverCountryCode, setReceiverCountryCode] = useState('');
   const [expressingInterest, setExpressingInterest] = useState(null);
   const [focusedDonationId, setFocusedDonationId] = useState(null);
@@ -185,6 +192,23 @@ export default function ReceiverBrowse() {
     fetchDonations();
     fetchSavedDonations();
   }, [fetchDonations, fetchSavedDonations, userTimezone]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+
+    const updateViewportState = () => {
+      const isMobile = window.innerWidth <= 767;
+      setIsMobileFiltersViewport(isMobile);
+      setShowMobileFilters(!isMobile);
+    };
+
+    updateViewportState();
+    window.addEventListener('resize', updateViewportState);
+
+    return () => window.removeEventListener('resize', updateViewportState);
+  }, []);
 
   useEffect(() => {
     if (!isLoaded) {
@@ -961,6 +985,18 @@ export default function ReceiverBrowse() {
         )}
       </div>
 
+      {isMobileFiltersViewport && (
+        <button
+          type="button"
+          className="receiver-mobile-filters-toggle"
+          onClick={() => setShowMobileFilters(prev => !prev)}
+          aria-expanded={showMobileFilters}
+        >
+          <Filter size={16} />
+          {t('filtersPanel.title')}
+        </button>
+      )}
+
       {/* Only render FiltersPanel when Google Maps is loaded */}
       {isLoaded && (
         <FiltersPanel
@@ -969,7 +1005,8 @@ export default function ReceiverBrowse() {
           onApplyFilters={handleApplyFilters}
           appliedFilters={appliedFilters}
           onClearFilters={handleClearFilters}
-          isVisible={true}
+          isVisible={!isMobileFiltersViewport || showMobileFilters}
+          onClose={() => setShowMobileFilters(false)}
           accountLocation={accountLocation}
           countryRestriction={receiverCountryCode}
         />

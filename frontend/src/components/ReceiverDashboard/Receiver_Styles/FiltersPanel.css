@@ -781,7 +781,9 @@ body.location-editor-open .pac-item {
   }
 
   .close-filters-btn {
-    display: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .filters-content {
