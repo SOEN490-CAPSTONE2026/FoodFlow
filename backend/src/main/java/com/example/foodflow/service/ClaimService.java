@@ -4,6 +4,7 @@ import com.example.foodflow.exception.BusinessException;
 import com.example.foodflow.exception.ResourceNotFoundException;
 import com.example.foodflow.model.dto.ClaimRequest;
 import com.example.foodflow.model.dto.ClaimResponse;
+import com.example.foodflow.model.dto.PickupSlotResponse;
 import com.example.foodflow.model.dto.SurplusResponse;
 import com.example.foodflow.model.entity.*;
 import com.example.foodflow.model.types.ClaimStatus;
@@ -403,6 +404,7 @@ public class ClaimService {
         ClaimResponse response = new ClaimResponse(claim);
         if (receiverTimezone != null && !receiverTimezone.trim().isEmpty()) {
             applyReceiverTimezoneToSurplus(response.getSurplusPost(), receiverTimezone);
+            applyReceiverTimezoneToConfirmedPickupSlot(response.getConfirmedPickupSlot(), receiverTimezone);
         }
         SurplusResponse surplus = response.getSurplusPost();
         if (surplus != null && claim.getSurplusPost() != null && claim.getSurplusPost().getDonor() != null) {
@@ -416,6 +418,34 @@ public class ClaimService {
             }
         }
         return response;
+    }
+
+    private void applyReceiverTimezoneToConfirmedPickupSlot(PickupSlotResponse confirmedSlot, String receiverTimezone) {
+        if (confirmedSlot == null ||
+                confirmedSlot.getPickupDate() == null ||
+                confirmedSlot.getStartTime() == null ||
+                confirmedSlot.getEndTime() == null) {
+            return;
+        }
+
+        LocalDateTime confirmedStart = TimezoneResolver.convertDateTime(
+                confirmedSlot.getPickupDate(),
+                confirmedSlot.getStartTime(),
+                "UTC",
+                receiverTimezone);
+        LocalDateTime confirmedEnd = TimezoneResolver.convertDateTime(
+                confirmedSlot.getPickupDate(),
+                confirmedSlot.getEndTime(),
+                "UTC",
+                receiverTimezone);
+
+        if (confirmedStart != null) {
+            confirmedSlot.setPickupDate(confirmedStart.toLocalDate());
+            confirmedSlot.setStartTime(confirmedStart.toLocalTime());
+        }
+        if (confirmedEnd != null) {
+            confirmedSlot.setEndTime(confirmedEnd.toLocalTime());
+        }
     }
 
     private void applyReceiverTimezoneToSurplus(SurplusResponse surplus, String receiverTimezone) {

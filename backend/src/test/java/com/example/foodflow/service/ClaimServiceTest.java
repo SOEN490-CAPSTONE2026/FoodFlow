@@ -279,6 +279,38 @@ class ClaimServiceTest {
     }
 
     @Test
+    void getReceiverClaims_ConvertsConfirmedPickupSlotToReceiverTimezone() {
+        receiver.setTimezone("America/Toronto");
+
+        Claim claim = new Claim(surplusPost, receiver);
+        claim.setId(11L);
+        claim.setConfirmedPickupDate(LocalDate.of(2026, 1, 15));
+        claim.setConfirmedPickupStartTime(LocalTime.of(22, 45)); // UTC
+        claim.setConfirmedPickupEndTime(LocalTime.of(23, 45));   // UTC
+
+        when(claimRepository.findReceiverClaimsWithDetails(
+            eq(receiver.getId()),
+            eq(List.of(
+                ClaimStatus.ACTIVE,
+                ClaimStatus.COMPLETED,
+                ClaimStatus.NOT_COMPLETED,
+                ClaimStatus.EXPIRED
+            ))))
+            .thenReturn(List.of(claim));
+
+        List<ClaimResponse> responses = claimService.getReceiverClaims(receiver);
+
+        assertThat(responses).hasSize(1);
+        assertThat(responses.get(0).getConfirmedPickupSlot()).isNotNull();
+        assertThat(responses.get(0).getConfirmedPickupSlot().getPickupDate())
+            .isEqualTo(LocalDate.of(2026, 1, 15));
+        assertThat(responses.get(0).getConfirmedPickupSlot().getStartTime())
+            .isEqualTo(LocalTime.of(17, 45));
+        assertThat(responses.get(0).getConfirmedPickupSlot().getEndTime())
+            .isEqualTo(LocalTime.of(18, 45));
+    }
+
+    @Test
     void getReceiverClaims_NoClaims_ReturnsEmptyList() {
         // Given
         when(claimRepository.findReceiverClaimsWithDetails(
