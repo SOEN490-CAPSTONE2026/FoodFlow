@@ -37,7 +37,7 @@ public class SavedDonationService {
         this.savedDonationRepository = savedDonationRepository;
         this.surplusPostRepository = surplusPostRepository;
         this.surplusService = surplusService;
-        this.clock = clock;
+        this.clock = clock != null ? clock : Clock.systemUTC();
     }
 
     /* 
