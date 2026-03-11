@@ -2,6 +2,7 @@ package com.example.foodflow.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,7 +30,7 @@ class ContextualSupportServiceTest {
         Map<String, Object> result = service.generateResponse(
             "How do I contact support?",
             "DONOR",
-            "en",
+            "es",
             Map.of("userPreferences", Map.of("timezone", "UTC"))
         );
 
@@ -41,6 +42,13 @@ class ContextualSupportServiceTest {
         assertThat(actions.get(0).get("value")).isEqualTo("foodflow.group@gmail.com");
         assertThat(actions.stream().anyMatch(a -> "/donor/help".equals(a.get("value")))).isTrue();
         assertThat(result.get("escalate")).isEqualTo(false);
+
+        verify(openAIService).generateSupportResponse(
+            org.mockito.Mockito.anyString(),
+            org.mockito.Mockito.anyString(),
+            org.mockito.Mockito.any(),
+            org.mockito.Mockito.eq("es")
+        );
     }
 
     @Test

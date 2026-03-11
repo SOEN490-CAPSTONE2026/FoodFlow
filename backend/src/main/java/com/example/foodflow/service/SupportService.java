@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.*;
+import java.util.Locale;
 
 /**
  * Simplified support service using contextual AI responses.
@@ -128,13 +129,32 @@ public class SupportService {
      * Build error fallback response
      */
     private SupportChatResponse buildErrorResponse(String language) {
-        String errorMessage = "fr".equals(language)
-                ? "Désolé, je rencontre des difficultés techniques. Veuillez contacter notre support."
-                : "Sorry, I'm experiencing technical difficulties. Please contact our support team.";
+        String errorMessage = switch (normalizeLanguage(language)) {
+            case "fr" -> "Désolé, je rencontre des difficultés techniques. Veuillez contacter notre support.";
+            case "es" -> "Lo siento, estoy teniendo dificultades tecnicas. Ponte en contacto con nuestro equipo de soporte.";
+            case "zh" -> "Wo zheng zai yudao jishu wenti. Qing lianxi women de zhichi tuandui.";
+            case "ar" -> "Asif, uwajih moshkilat taqniya. Yurja alttawasul mae fariq aldaem.";
+            case "pt" -> "Desculpe, estou enfrentando dificuldades tecnicas. Entre em contato com nossa equipe de suporte.";
+            default -> "Sorry, I'm experiencing technical difficulties. Please contact our support team.";
+        };
 
         List<SupportAction> actions = Arrays.asList(
                 new SupportAction("contact", "Contact Support", supportEmail));
 
         return new SupportChatResponse(errorMessage, "ERROR", actions, true);
+    }
+
+    private String normalizeLanguage(String language) {
+        if (language == null || language.isBlank()) {
+            return "en";
+        }
+        String normalized = language.trim().toLowerCase(Locale.ROOT);
+        if (normalized.contains("-")) {
+            normalized = normalized.substring(0, normalized.indexOf('-'));
+        }
+        return switch (normalized) {
+            case "en", "fr", "es", "zh", "ar", "pt" -> normalized;
+            default -> "en";
+        };
     }
 }
