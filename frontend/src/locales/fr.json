@@ -1242,13 +1242,18 @@
     "predicted": "Prédit",
     "addedToSaved": "Ajouté aux dons sauvegardés"
   },
+  "receiverSavedDonations": {
+    "title": "Dons sauvegardés",
+    "failedToLoad": "Échec du chargement des dons sauvegardés",
+    "empty": "Aucun don sauvegardé pour le moment."
+  },
   "receiverMyClaims": {
     "readyForPickup": "Prêt pour la collecte",
     "completed": "Complété",
     "notCompleted": "Non complété",
     "claimed": "Réclamé",
     "title": "Mes dons réclamés",
-    "subtitle": "Suivez vos dons et préparez-vous pour la collecte — chaque réclamation aide à réduire le gaspillage et à nourrir notre communauté.",
+    "subtitle": "Suivez vos dons et préparez-vous pour la collecte — chaque réclamation aide à réduire le gaspillage et à nourrir votre communauté.",
     "loading": "Chargement de vos réclamations...",
     "failedToLoad": "Échec du chargement de vos dons réclamés",
     "sortByDate": "Trier par date",
@@ -1641,8 +1646,45 @@
     "pickupSteps": "Étapes de collecte",
     "donationClaimed": "Don réclamé !",
     "successMessage": "Votre don a été réclamé avec succès ! Merci de faire une différence dans votre communauté.",
+    "pickupMissedTitle": "La collecte a été manquée, dommage.",
+    "pickupMissedMessage": "Cette collecte a été manquée. Dommage, et merci d'avoir essayé d'aider votre communauté.",
+    "reportDonor": "Signaler le donateur",
+    "leaveFeedback": "Laisser un avis",
     "backToDetails": "Retour aux détails",
     "viewPickupSteps": "Voir les étapes de collecte"
+  },
+  "donationTimeline": {
+    "loading": "Chargement du calendrier...",
+    "empty": "Aucun événement de calendrier de donation pour le moment.",
+    "actorLabel": "Acteur",
+    "statusLabel": "Statut",
+    "adminOnly": "Admin uniquement",
+    "pickupEvidence": "Preuve de collecte",
+    "actor": {
+      "donor": "Donneur",
+      "receiver": "Bénéficiaire",
+      "system": "Système",
+      "admin": "Admin",
+      "unknown": "Inconnu"
+    },
+    "events": {
+      "DONATION_POSTED": "Donation publiée",
+      "DONATION_UPDATED": "Donation mise à jour",
+      "DONATION_CLAIMED": "Donation réclamée",
+      "CLAIM_CANCELLED": "Réclamation annulée",
+      "READY_FOR_PICKUP": "Prête pour la collecte",
+      "PICKUP_CONFIRMED": "Collecte confirmée",
+      "PICKUP_MISSED": "Collecte manquée",
+      "PICKUP_EVIDENCE_UPLOADED": "Preuve de collecte téléversée",
+      "DONATION_EXPIRED": "Donation expirée"
+    },
+    "details": {
+      "claimedBy": "Réclamée par {{name}}",
+      "postedBy": "Donation publiée par {{name}}",
+      "readyForPickup": "L'heure de collecte est arrivée. Le code OTP a été généré automatiquement.",
+      "pickupMissed": "La fenêtre de collecte a expiré. Marquée automatiquement comme non complétée.",
+      "expired": "La donation a expiré automatiquement."
+    }
   },
   "claimDetail": {
     "status": {

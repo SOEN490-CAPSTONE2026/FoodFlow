@@ -1194,6 +1194,11 @@
     "predicted": "预测",
     "addedToSaved": "已添加到已保存捐赠"
   },
+  "receiverSavedDonations": {
+    "title": "已保存的捐赠",
+    "failedToLoad": "加载已保存捐赠失败",
+    "empty": "暂无已保存的捐赠。"
+  },
   "receiverMyClaims": {
     "readyForPickup": "准备取货",
     "completed": "已完成",

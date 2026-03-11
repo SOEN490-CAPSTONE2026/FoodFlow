@@ -10,6 +10,7 @@ import {
   parseBackendUtcDateTimeParts,
   parseBackendUtcTimestamp,
   parseLocalDateTimeParts,
+  parseZonedDateTimeParts,
   toLocalDateInputValue,
 } from '../timezoneUtils';
 
@@ -197,6 +198,22 @@ describe('timezoneUtils', () => {
     expect(parsed.getDate()).toBe(10);
     expect(parsed.getHours()).toBe(8);
     expect(parsed.getMinutes()).toBe(15);
+  });
+
+  it('parseZonedDateTimeParts resolves wall-clock date/time in UTC timezone', () => {
+    const parsed = parseZonedDateTimeParts('2026-03-10', '08:15:00', 'UTC');
+    expect(parsed).not.toBeNull();
+    expect(parsed.getTime()).toBe(Date.UTC(2026, 2, 10, 8, 15, 0));
+  });
+
+  it('parseZonedDateTimeParts resolves wall-clock date/time in non-UTC timezone', () => {
+    const parsed = parseZonedDateTimeParts(
+      '2026-02-27',
+      '17:45:00',
+      'Asia/Tokyo'
+    );
+    expect(parsed).not.toBeNull();
+    expect(parsed.toISOString()).toBe('2026-02-27T08:45:00.000Z');
   });
 
   it('formatWallClockDate formats date part without timezone drift', () => {

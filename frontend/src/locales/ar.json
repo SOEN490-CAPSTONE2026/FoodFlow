@@ -1192,6 +1192,11 @@
     "predicted": "متوقع",
     "addedToSaved": "تمت الإضافة إلى التبرعات المحفوظة"
   },
+  "receiverSavedDonations": {
+    "title": "التبرعات المحفوظة",
+    "failedToLoad": "فشل تحميل التبرعات المحفوظة",
+    "empty": "لا توجد تبرعات محفوظة بعد."
+  },
   "receiverMyClaims": {
     "readyForPickup": "جاهز للاستلام",
     "completed": "مكتمل",

@@ -1218,6 +1218,11 @@
     "predicted": "Estimado",
     "addedToSaved": "Añadido a donaciones guardadas"
   },
+  "receiverSavedDonations": {
+    "title": "Donaciones guardadas",
+    "failedToLoad": "No se pudieron cargar las donaciones guardadas",
+    "empty": "Aún no hay donaciones guardadas."
+  },
   "receiverMyClaims": {
     "readyForPickup": "Listo para recogida",
     "completed": "Completado",

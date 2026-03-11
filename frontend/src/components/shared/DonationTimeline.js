@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { Clock, ShieldAlert, Camera, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import {
   parseBackendUtcTimestamp,
   parseExplicitUtcTimestamp,
@@ -55,7 +56,108 @@ export default function DonationTimeline({
   showAdminBadges = false,
   userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
 }) {
+  const { t } = useTranslation();
   const [enlargedImage, setEnlargedImage] = useState(null);
+
+  const humanizeToken = value => {
+    if (!value || typeof value !== 'string') {
+      return '—';
+    }
+    return value
+      .toLowerCase()
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
+  const formatEventType = eventType => {
+    if (!eventType) {
+      return '—';
+    }
+    return t(`donationTimeline.events.${eventType}`, humanizeToken(eventType));
+  };
+
+  const formatActor = actor => {
+    if (!actor) {
+      return t('donationTimeline.actor.unknown', 'Unknown');
+    }
+    const normalized = String(actor).toLowerCase();
+    const known = {
+      donor: t('donationTimeline.actor.donor', 'Donor'),
+      receiver: t('donationTimeline.actor.receiver', 'Receiver'),
+      system: t('donationTimeline.actor.system', 'System'),
+      admin: t('donationTimeline.actor.admin', 'Admin'),
+    };
+    return known[normalized] || actor;
+  };
+
+  const formatStatus = status => {
+    if (!status) {
+      return '—';
+    }
+
+    const normalized = String(status).toUpperCase();
+    const map = {
+      AVAILABLE: t('receiverBrowse.status.available', 'Available'),
+      CLAIMED: t('claimDetail.status.claimed', 'Claimed'),
+      READY_FOR_PICKUP: t(
+        'claimDetail.status.readyForPickup',
+        'Ready for Pickup'
+      ),
+      COMPLETED: t('claimDetail.status.completed', 'Completed'),
+      NOT_COMPLETED: t('claimDetail.status.notCompleted', 'Not Completed'),
+      EXPIRED: t('claimDetail.status.expired', 'Expired'),
+    };
+
+    return map[normalized] || humanizeToken(normalized);
+  };
+
+  const formatDetails = event => {
+    if (!event?.details) {
+      return '';
+    }
+
+    const details = String(event.details);
+
+    if (/^Claimed by\s+/i.test(details)) {
+      const name = details.replace(/^Claimed by\s+/i, '').trim();
+      return t('donationTimeline.details.claimedBy', 'Claimed by {{name}}', {
+        name,
+      });
+    }
+
+    if (/^Donation posted by\s+/i.test(details)) {
+      const name = details.replace(/^Donation posted by\s+/i, '').trim();
+      return t(
+        'donationTimeline.details.postedBy',
+        'Donation posted by {{name}}',
+        { name }
+      );
+    }
+
+    if (event.eventType === 'READY_FOR_PICKUP') {
+      return t(
+        'donationTimeline.details.readyForPickup',
+        'Pickup time arrived. OTP generated automatically.'
+      );
+    }
+
+    if (event.eventType === 'PICKUP_MISSED') {
+      return t(
+        'donationTimeline.details.pickupMissed',
+        'Pickup window expired. Marked as not completed automatically.'
+      );
+    }
+
+    if (event.eventType === 'DONATION_EXPIRED') {
+      return t(
+        'donationTimeline.details.expired',
+        'Donation expired automatically.'
+      );
+    }
+
+    return details;
+  };
 
   const formatDate = timestamp => {
     if (!timestamp) {
@@ -88,7 +190,7 @@ export default function DonationTimeline({
     return (
       <div className="donation-timeline-loading">
         <Clock className="loading-spinner" size={24} />
-        <span>Loading timeline...</span>
+        <span>{t('donationTimeline.loading', 'Loading timeline...')}</span>
       </div>
     );
   }
@@ -97,7 +199,12 @@ export default function DonationTimeline({
     return (
       <div className="donation-timeline-empty">
         <Clock size={32} />
-        <p>No timeline events available yet.</p>
+        <p>
+          {t(
+            'donationTimeline.empty',
+            'No donation timeline events available yet.'
+          )}
+        </p>
       </div>
     );
   }
@@ -115,29 +222,37 @@ export default function DonationTimeline({
               {event.eventType === 'PICKUP_EVIDENCE_UPLOADED' && (
                 <Camera size={14} />
               )}
-              {event.eventType}
+              {formatEventType(event.eventType)}
             </div>
             <div className="donation-timeline-meta">
               <span>{formatDate(event.timestamp)}</span>
               <span className="donation-timeline-actor">
-                Actor: {event.actor}
+                {t('donationTimeline.actorLabel', 'Actor')}:{' '}
+                {formatActor(event.actor)}
               </span>
               {showAdminBadges && event.visibleToUsers === false && (
                 <span className="admin-only-badge">
                   <ShieldAlert size={14} />
-                  ADMIN ONLY
+                  {t('donationTimeline.adminOnly', 'Admin only')}
                 </span>
               )}
             </div>
             {event.oldStatus && event.newStatus && (
               <div className="donation-timeline-status-change">
-                Status: <span className="old-status">{event.oldStatus}</span>
+                {t('donationTimeline.statusLabel', 'Status')}:{' '}
+                <span className="old-status">
+                  {formatStatus(event.oldStatus)}
+                </span>
                 <span className="arrow">→</span>
-                <span className="new-status">{event.newStatus}</span>
+                <span className="new-status">
+                  {formatStatus(event.newStatus)}
+                </span>
               </div>
             )}
-            {event.details && (
-              <div className="donation-timeline-details">{event.details}</div>
+            {formatDetails(event) && (
+              <div className="donation-timeline-details">
+                {formatDetails(event)}
+              </div>
             )}
             {/* Display pickup evidence image */}
             {event.pickupEvidenceUrl && (
@@ -152,7 +267,9 @@ export default function DonationTimeline({
                     )
                   }
                 />
-                <span className="evidence-label">Pickup Evidence</span>
+                <span className="evidence-label">
+                  {t('donationTimeline.pickupEvidence', 'Pickup Evidence')}
+                </span>
               </div>
             )}
           </div>

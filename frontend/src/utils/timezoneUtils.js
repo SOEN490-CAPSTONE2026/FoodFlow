@@ -108,6 +108,88 @@ export const parseLocalDateTimeParts = (datePart, timePart) => {
 };
 
 /**
+ * Parse date/time parts as wall-clock values in a specific IANA timezone.
+ * Returns an absolute Date instant so countdown math is timezone-safe even
+ * when browser timezone differs from user profile timezone.
+ */
+export const parseZonedDateTimeParts = (
+  datePart,
+  timePart,
+  timeZone = 'UTC'
+) => {
+  if (!datePart || !timePart) {
+    return null;
+  }
+
+  if (typeof datePart !== 'string' || typeof timePart !== 'string') {
+    return null;
+  }
+
+  const [year, month, day] = datePart.split('-').map(Number);
+  const [hours, minutes, seconds = 0] = timePart.split(':').map(Number);
+
+  if (
+    !Number.isFinite(year) ||
+    !Number.isFinite(month) ||
+    !Number.isFinite(day) ||
+    !Number.isFinite(hours) ||
+    !Number.isFinite(minutes) ||
+    !Number.isFinite(seconds)
+  ) {
+    return null;
+  }
+
+  try {
+    const dtf = new Intl.DateTimeFormat('en-CA', {
+      timeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hourCycle: 'h23',
+    });
+
+    const getOffsetMs = utcMs => {
+      const parts = dtf.formatToParts(new Date(utcMs)).reduce((acc, part) => {
+        acc[part.type] = part.value;
+        return acc;
+      }, {});
+
+      const asUtc = Date.UTC(
+        Number(parts.year),
+        Number(parts.month) - 1,
+        Number(parts.day),
+        Number(parts.hour),
+        Number(parts.minute),
+        Number(parts.second)
+      );
+
+      return asUtc - utcMs;
+    };
+
+    const wallClockAsUtc = Date.UTC(
+      year,
+      month - 1,
+      day,
+      hours,
+      minutes,
+      seconds
+    );
+
+    // Two-pass offset resolution handles DST boundary transitions reliably.
+    const first = wallClockAsUtc - getOffsetMs(wallClockAsUtc);
+    const resolved = wallClockAsUtc - getOffsetMs(first);
+    const parsed = new Date(resolved);
+
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  } catch (error) {
+    return null;
+  }
+};
+
+/**
  * Format date part (YYYY-MM-DD) as a calendar date without browser timezone shifts.
  */
 export const formatWallClockDate = (datePart, locale = 'en-US') => {

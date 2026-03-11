@@ -5,10 +5,14 @@ import {
   foodTypeImages,
   getPrimaryFoodCategory,
 } from '../../constants/foodConstants';
-import { parseLocalDateTimeParts } from '../../utils/timezoneUtils';
+import {
+  parseExplicitUtcTimestamp,
+  parseBackendUtcTimestamp,
+  parseZonedDateTimeParts,
+} from '../../utils/timezoneUtils';
 import './Receiver_Styles/ClaimedView.css';
 
-const ClaimedView = ({ claim, isOpen, onClose, onBack }) => {
+const ClaimedView = ({ claim, isOpen, onClose, onBack, userTimezone }) => {
   const { t } = useTranslation();
   const post = claim?.surplusPost;
   const [timeRemaining, setTimeRemaining] = useState(null);
@@ -51,7 +55,12 @@ const ClaimedView = ({ claim, isOpen, onClose, onBack }) => {
 
     const calculateTimeRemaining = () => {
       const now = new Date();
-      const pickupTime = parseLocalDateTimeParts(pickupDate, pickupFrom);
+      // Prefer explicit UTC contract when available to keep countdown invariant
+      // across timezone preference changes.
+      const pickupTime =
+        parseExplicitUtcTimestamp(claim?.confirmedPickupStartUtc) ||
+        parseBackendUtcTimestamp(claim?.confirmedPickupStartUtc) ||
+        parseZonedDateTimeParts(pickupDate, pickupFrom, userTimezone || 'UTC');
       if (!pickupTime) {
         return;
       }
@@ -76,7 +85,13 @@ const ClaimedView = ({ claim, isOpen, onClose, onBack }) => {
     const interval = setInterval(calculateTimeRemaining, 1000);
 
     return () => clearInterval(interval);
-  }, [post?.pickupDate, post?.pickupFrom, isOpen]);
+  }, [
+    claim?.confirmedPickupStartUtc,
+    post?.pickupDate,
+    post?.pickupFrom,
+    isOpen,
+    userTimezone,
+  ]);
 
   if (!isOpen || !claim) {
     return null;

@@ -27,7 +27,7 @@ export default function ReceiverSavedDonations() {
   const [claimTargetItem, setClaimTargetItem] = useState(null);
   const [selectedSlotIndex, setSelectedSlotIndex] = useState(0);
   const [claiming, setClaiming] = useState(false);
-  const [sortBy, setSortBy] = useState('date');
+  const [sortBy, setSortBy] = useState('relevance');
 
   const fetchSavedDonations = useCallback(async () => {
     setLoading(true);
@@ -303,6 +303,15 @@ export default function ReceiverSavedDonations() {
         b.pickupDate && b.pickupFrom ? b.pickupFrom : null
       ) ||
       new Date(0);
+
+    // Keep Saved Donations sorting consistent with Browse:
+    // - relevance (default)
+    // - date posted
+    // Saved items currently have no recommendation score, so relevance falls back to date.
+    if (sortBy === 'relevance') {
+      return dateB.getTime() - dateA.getTime();
+    }
+
     return dateB.getTime() - dateA.getTime();
   });
 
@@ -319,6 +328,13 @@ export default function ReceiverSavedDonations() {
             {t('receiverBrowse.sortBy')}
           </span>
           <div className="sort-buttons">
+            <button
+              className={`sort-button ${sortBy === 'relevance' ? 'active' : ''}`}
+              onClick={() => setSortBy('relevance')}
+            >
+              <Clock size={16} />
+              {t('receiverBrowse.relevance')}
+            </button>
             <button
               className={`sort-button ${sortBy === 'date' ? 'active' : ''}`}
               onClick={() => setSortBy('date')}
