@@ -466,7 +466,9 @@ describe('ChatWidget', () => {
 
       openChat();
       const input = getInput();
-      fireEvent.change(input, { target: { value: 'I want to talk to support' } });
+      fireEvent.change(input, {
+        target: { value: 'I want to talk to support' },
+      });
       fireEvent.click(getSendButton(container));
 
       await waitFor(() => {
