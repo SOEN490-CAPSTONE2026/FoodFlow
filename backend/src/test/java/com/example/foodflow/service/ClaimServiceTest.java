@@ -1026,4 +1026,154 @@ class ClaimServiceTest {
         assertThat(response).isNotNull();
         verify(claimRepository).save(any(Claim.class));
     }
+
+    // ==================== Tests for completeClaim ====================
+
+    @Test
+    void completeClaim_Success() {
+        // Given
+        Claim activeClaim = new Claim(surplusPost, receiver);
+        activeClaim.setId(1L);
+        activeClaim.setStatus(ClaimStatus.ACTIVE);
+        surplusPost.setStatus(PostStatus.READY_FOR_PICKUP);
+
+        when(claimRepository.findById(1L)).thenReturn(Optional.of(activeClaim));
+        when(claimRepository.save(any(Claim.class))).thenReturn(activeClaim);
+
+        // When
+        claimService.completeClaim(1L);
+
+        // Then
+        verify(claimRepository).save(argThat(claim -> claim.getStatus() == ClaimStatus.COMPLETED));
+        verify(gamificationService).awardPoints(eq(receiver.getId()), anyInt(), anyString());
+    }
+
+    @Test
+    void completeClaim_ClaimNotFound_ThrowsException() {
+        // Given
+        when(claimRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> claimService.completeClaim(999L))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Claim not found");
+
+        verify(claimRepository, never()).save(any());
+    }
+
+
+    @Test
+    void completeClaim_AwardsGamificationPoints() {
+        // Given
+        Claim activeClaim = new Claim(surplusPost, receiver);
+        activeClaim.setId(1L);
+        activeClaim.setStatus(ClaimStatus.ACTIVE);
+
+        when(claimRepository.findById(1L)).thenReturn(Optional.of(activeClaim));
+        when(claimRepository.save(any(Claim.class))).thenReturn(activeClaim);
+
+        // When
+        claimService.completeClaim(1L);
+
+        // Then - verify gamification points awarded to receiver
+        verify(gamificationService).awardPoints(eq(receiver.getId()), anyInt(), anyString());
+        verify(gamificationService).checkAndUnlockAchievements(eq(receiver.getId()));
+    }
+
+    // ==================== Tests for Expired Claims ====================
+
+    @Test
+    void claimSurplusPost_WithExpiredPost_ThrowsException() {
+        // Given
+        surplusPost.setStatus(PostStatus.EXPIRED);
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+
+        // When & Then
+        assertThatThrownBy(() -> claimService.claimSurplusPost(claimRequest, receiver))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("expired");
+    }
+
+
+    @Test
+    void cancelClaim_CreatesTimelineEvent() {
+        // Given
+        Claim activeClaim = new Claim(surplusPost, receiver);
+        activeClaim.setId(1L);
+        activeClaim.setStatus(ClaimStatus.ACTIVE);
+
+        when(claimRepository.findById(1L)).thenReturn(Optional.of(activeClaim));
+        when(claimRepository.save(any(Claim.class))).thenReturn(activeClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        // When
+        claimService.cancelClaim(1L, receiver);
+
+        // Then
+        verify(timelineService).createTimelineEvent(
+                eq(surplusPost),
+                eq("CLAIM_CANCELLED"),
+                eq("receiver"),
+                eq(receiver.getId()),
+                eq(PostStatus.AVAILABLE),
+                eq(PostStatus.AVAILABLE),
+                anyString(),
+                eq(true)
+        );
+    }
+
+    @Test
+    void cancelClaim_UpdatesBusinessMetrics() {
+        // Given
+        Claim activeClaim = new Claim(surplusPost, receiver);
+        activeClaim.setId(1L);
+        activeClaim.setStatus(ClaimStatus.ACTIVE);
+
+        when(claimRepository.findById(1L)).thenReturn(Optional.of(activeClaim));
+        when(claimRepository.save(any(Claim.class))).thenReturn(activeClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        // When
+        claimService.cancelClaim(1L, receiver);
+
+        // Then
+        verify(businessMetricsService).incrementClaimCancelled();
+    }
+
+    @Test
+    void claimSurplusPost_UpdatesBusinessMetrics() {
+        // Given
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
+
+        Claim savedClaim = new Claim(surplusPost, receiver);
+        savedClaim.setId(1L);
+        when(claimRepository.save(any(Claim.class))).thenReturn(savedClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        // When
+        claimService.claimSurplusPost(claimRequest, receiver);
+
+        // Then
+        verify(businessMetricsService).incrementClaimCreated();
+        verify(businessMetricsService).incrementSurplusPostClaimed();
+    }
+
+    @Test
+    void completeClaim_UpdatesClaimMetrics() {
+        // Given
+        Claim activeClaim = new Claim(surplusPost, receiver);
+        activeClaim.setId(1L);
+        activeClaim.setStatus(ClaimStatus.ACTIVE);
+
+        when(claimRepository.findById(1L)).thenReturn(Optional.of(activeClaim));
+        when(claimRepository.save(any(Claim.class))).thenReturn(activeClaim);
+
+        // When
+        claimService.completeClaim(1L);
+
+        // Then
+        verify(businessMetricsService).incrementClaimCompleted();
+    }
 }
