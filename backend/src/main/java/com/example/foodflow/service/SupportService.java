@@ -166,7 +166,7 @@ public class SupportService {
             }
 
             Conversation conversation = conversationService.createOrGetDirectConversation(requester, supportAdmin);
-            String summaryMessage = buildSupportSummaryMessage(request, requester, assistantReply);
+            String summaryMessage = buildSupportSummaryMessage(request, requester);
             messageService.sendMessage(new MessageRequest(conversation.getId(), summaryMessage), requester);
 
             return new SupportEscalationResult(
@@ -194,17 +194,15 @@ public class SupportService {
                         .orElse(null));
     }
 
-    private String buildSupportSummaryMessage(SupportChatRequest request, User requester, String assistantReply) {
+    private String buildSupportSummaryMessage(SupportChatRequest request, User requester) {
         String userName = requester.getOrganization() != null && requester.getOrganization().getName() != null
                 ? requester.getOrganization().getName()
                 : requester.getEmail();
-        String route = request.getPageContext() != null ? request.getPageContext().getRoute() : null;
         String donationId = request.getPageContext() != null ? request.getPageContext().getDonationId() : null;
         String claimId = request.getPageContext() != null ? request.getPageContext().getClaimId() : null;
 
         String userStorySummary = summarizeUserStory(request);
         String latestUserMessage = safeText(request.getMessage());
-        String assistantUnderstanding = safeText(assistantReply);
         String ticketTitle = buildSupportTicketTitle(latestUserMessage, userStorySummary);
 
         StringBuilder summary = new StringBuilder();
@@ -213,11 +211,7 @@ public class SupportService {
         summary.append("Requester: ").append(userName).append(" (").append(requester.getEmail()).append(")\n");
         summary.append("Role: ").append(requester.getRole()).append("\n");
         summary.append("Language: ").append(normalizeLanguage(requester.getLanguagePreference())).append("\n");
-        summary.append("Needs human support: Yes\n");
 
-        if (route != null && !route.isBlank()) {
-            summary.append("Route: ").append(route).append("\n");
-        }
         if (donationId != null && !donationId.isBlank()) {
             summary.append("Donation ID: ").append(donationId).append("\n");
         }
@@ -226,12 +220,6 @@ public class SupportService {
         }
 
         summary.append("\nContext Summary:\n").append(userStorySummary).append("\n");
-        summary.append("\nWhat user asked (latest):\n").append(latestUserMessage).append("\n");
-        summary.append("\nAssistant understanding so far:\n").append(assistantUnderstanding).append("\n");
-        summary.append("\nExpected Support Action:\n");
-        summary.append("- Continue with the user in this conversation.\n");
-        summary.append("- Clarify issue details and provide direct resolution steps.\n");
-        summary.append("- Escalate internally if account/data/status correction is required.");
 
         return summary.toString().trim();
     }
