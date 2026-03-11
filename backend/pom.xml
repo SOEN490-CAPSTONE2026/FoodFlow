@@ -223,16 +223,6 @@
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>0.8.8</version>
-				<configuration>
-					<excludes>
-						<exclude>**/model/dto/**</exclude>
-						<exclude>**/config/**</exclude>
-						<exclude>**/FoodflowApplication.class</exclude>
-						<exclude>**/service/EmailService.class</exclude>
-						<exclude>**/service/AIExtractionService.class</exclude>
-						<exclude>**/exception/RestExceptionHandler.class</exclude>
-					</excludes>
-				</configuration>
 				<executions>
 					<execution>
 						<goals>
@@ -265,12 +255,6 @@
 								</limits>
 							</rule>
 						</rules>
-						<excludes>
-							<exclude>**/dto/**</exclude>
-							<exclude>**/config/**</exclude>
-							<exclude>**/FoodflowApplication.class</exclude>
-							<exclude>**/service/EmailService.class</exclude>
-						</excludes>
 					</configuration>
 				</execution>
 				</executions>
