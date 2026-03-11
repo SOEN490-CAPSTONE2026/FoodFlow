@@ -246,6 +246,17 @@ const SurplusFormModal = ({
     return date;
   };
 
+  const parseLocalDate = dateString => {
+    if (!dateString || typeof dateString !== 'string') {
+      return null;
+    }
+    const [year, month, day] = dateString.split('-').map(Number);
+    if (!year || !month || !day) {
+      return null;
+    }
+    return new Date(year, month - 1, day);
+  };
+
   // Auto-fill expiry from suggestion until donor edits expiry manually.
   useEffect(() => {
     if (expiryTouched) {
@@ -253,18 +264,31 @@ const SurplusFormModal = ({
     }
 
     if (!expirySuggestion.suggestedExpiryDate) {
-      setFormData(prev => ({
-        ...prev,
-        calculatedExpiryDate: '',
-      }));
+      setFormData(prev => {
+        if (!prev.calculatedExpiryDate) {
+          return prev;
+        }
+        return {
+          ...prev,
+          calculatedExpiryDate: '',
+        };
+      });
       return;
     }
 
-    const calculatedExpiry = new Date(expirySuggestion.suggestedExpiryDate);
+    const calculatedExpiry =
+      parseLocalDate(expirySuggestion.suggestedExpiryDate) ||
+      new Date(expirySuggestion.suggestedExpiryDate);
     const currentExpiryStr = formData.expiryDate
       ? formatDate(formData.expiryDate)
       : '';
-    if (currentExpiryStr !== expirySuggestion.suggestedExpiryDate) {
+    const currentCalculatedExpiryStr = formData.calculatedExpiryDate
+      ? formatDate(formData.calculatedExpiryDate)
+      : '';
+    if (
+      currentExpiryStr !== expirySuggestion.suggestedExpiryDate ||
+      currentCalculatedExpiryStr !== expirySuggestion.suggestedExpiryDate
+    ) {
       setFormData(prev => ({
         ...prev,
         calculatedExpiryDate: calculatedExpiry,
