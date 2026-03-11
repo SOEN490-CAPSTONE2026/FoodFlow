@@ -2,6 +2,7 @@ package com.example.foodflow.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
+import java.util.List;
 
 /**
  * Request DTO for the support chat endpoint.
@@ -14,6 +15,9 @@ public class SupportChatRequest {
 
     @JsonProperty("pageContext")
     private PageContext pageContext;
+
+    @JsonProperty("chatHistory")
+    private List<ChatMessage> chatHistory;
 
     // Constructors
     public SupportChatRequest() {
@@ -39,6 +43,43 @@ public class SupportChatRequest {
 
     public void setPageContext(PageContext pageContext) {
         this.pageContext = pageContext;
+    }
+
+    public List<ChatMessage> getChatHistory() {
+        return chatHistory;
+    }
+
+    public void setChatHistory(List<ChatMessage> chatHistory) {
+        this.chatHistory = chatHistory;
+    }
+
+    public static class ChatMessage {
+        private String type; // "user" | "assistant"
+        private String content;
+
+        public ChatMessage() {
+        }
+
+        public ChatMessage(String type, String content) {
+            this.type = type;
+            this.content = content;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public void setType(String type) {
+            this.type = type;
+        }
+
+        public String getContent() {
+            return content;
+        }
+
+        public void setContent(String content) {
+            this.content = content;
+        }
     }
 
     /**

@@ -175,6 +175,7 @@ describe('ChatWidget', () => {
         pageContext: expect.objectContaining({
           route: '/',
         }),
+        chatHistory: expect.any(Array),
       });
     });
 
@@ -443,6 +444,37 @@ describe('ChatWidget', () => {
         expect(screen.getByText('Contact Support')).toBeInTheDocument();
       });
     });
+
+    test('should auto-open messages when support escalation is returned', async () => {
+      const mockResponse = {
+        data: {
+          reply: 'I opened support chat for you.',
+          intent: 'SUPPORT_ESCALATED',
+          actions: [
+            {
+              type: 'link',
+              label: 'Open Support Chat',
+              value: '/receiver/messages?conversationId=42',
+            },
+          ],
+          escalate: true,
+        },
+      };
+      mockApi.post.mockResolvedValue(mockResponse);
+
+      const { container } = renderWithProviders();
+
+      openChat();
+      const input = getInput();
+      fireEvent.change(input, { target: { value: 'I want to talk to support' } });
+      fireEvent.click(getSendButton(container));
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          '/receiver/messages?conversationId=42'
+        );
+      });
+    });
   });
 
   describe('Chat Management', () => {
@@ -530,6 +562,7 @@ describe('ChatWidget', () => {
             donationId: '123',
             claimId: null,
           },
+          chatHistory: expect.any(Array),
         });
       });
     });
