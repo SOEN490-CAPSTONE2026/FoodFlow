@@ -39,6 +39,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class SavedDonationServiceTest {
 
+    private static final LocalDate FIXED_TODAY = LocalDate.of(2026, 3, 11);
+
     @Mock
     private SavedDonationRepository savedDonationRepository;
 
@@ -118,7 +120,7 @@ class SavedDonationServiceTest {
         authenticateAs(receiverUser);
         SurplusPost expired = new SurplusPost();
         expired.setId(1L);
-        expired.setExpiryDate(LocalDate.now().minusDays(1));
+        expired.setExpiryDate(FIXED_TODAY.minusDays(1));
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(expired));
 
         assertThatThrownBy(() -> savedDonationService.saveDonation(1L))
@@ -134,7 +136,7 @@ class SavedDonationServiceTest {
         authenticateAs(receiverUser);
         SurplusPost post = new SurplusPost();
         post.setId(1L);
-        post.setExpiryDate(LocalDate.now().plusDays(1));
+        post.setExpiryDate(FIXED_TODAY.plusDays(1));
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
         when(savedDonationRepository.existsByReceiverAndSurplusPost(receiverUser, post)).thenReturn(true);
 
@@ -148,7 +150,7 @@ class SavedDonationServiceTest {
         authenticateAs(receiverUser);
         SurplusPost post = new SurplusPost();
         post.setId(1L);
-        post.setExpiryDate(LocalDate.now().plusDays(1));
+        post.setExpiryDate(FIXED_TODAY.plusDays(1));
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(post));
         when(savedDonationRepository.existsByReceiverAndSurplusPost(receiverUser, post)).thenReturn(false);
 
@@ -173,17 +175,17 @@ class SavedDonationServiceTest {
         SurplusPost available = new SurplusPost();
         available.setId(1L);
         available.setStatus(PostStatus.AVAILABLE);
-        available.setExpiryDate(LocalDate.now().plusDays(2));
+        available.setExpiryDate(FIXED_TODAY.plusDays(2));
 
         SurplusPost expired = new SurplusPost();
         expired.setId(2L);
         expired.setStatus(PostStatus.AVAILABLE);
-        expired.setExpiryDate(LocalDate.now().minusDays(1));
+        expired.setExpiryDate(FIXED_TODAY.minusDays(1));
 
         SurplusPost claimed = new SurplusPost();
         claimed.setId(3L);
         claimed.setStatus(PostStatus.CLAIMED);
-        claimed.setExpiryDate(LocalDate.now().plusDays(2));
+        claimed.setExpiryDate(FIXED_TODAY.plusDays(2));
 
         SavedDonation sd1 = new SavedDonation(receiverUser, available);
         SavedDonation sd2 = new SavedDonation(receiverUser, expired);
