@@ -22,13 +22,15 @@ const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 const getTooltipPosition = (rect, placement) => {
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
+  const tooltipWidth = Math.min(360, viewportWidth - 32);
+  const tooltipHeight = Math.min(420, viewportHeight - 32);
 
   if (!rect || placement === 'center') {
     return { top: viewportHeight / 2, left: viewportWidth / 2, centered: true };
   }
 
-  const tooltipWidth = Math.min(360, viewportWidth - 32);
   const centeredLeft = rect.left + rect.width / 2 - tooltipWidth / 2;
+  const maxTop = Math.max(16, viewportHeight - tooltipHeight - 16);
 
   const positions = {
     bottom: {
@@ -36,25 +38,25 @@ const getTooltipPosition = (rect, placement) => {
       left: clamp(centeredLeft, 16, viewportWidth - tooltipWidth - 16),
     },
     top: {
-      top: rect.top - TOOLTIP_GAP,
+      top: rect.top - tooltipHeight - TOOLTIP_GAP,
       left: clamp(centeredLeft, 16, viewportWidth - tooltipWidth - 16),
     },
     right: {
-      top: clamp(rect.top, 16, viewportHeight - 220),
+      top: clamp(rect.top, 16, maxTop),
       left: Math.min(
         rect.right + TOOLTIP_GAP,
         viewportWidth - tooltipWidth - 16
       ),
     },
     left: {
-      top: clamp(rect.top, 16, viewportHeight - 220),
+      top: clamp(rect.top, 16, maxTop),
       left: Math.max(rect.left - tooltipWidth - TOOLTIP_GAP, 16),
     },
   };
 
   const fallbackBottom = positions.bottom;
   const selected = positions[placement] || fallbackBottom;
-  const top = clamp(selected.top, 16, viewportHeight - 220);
+  const top = clamp(selected.top, 16, maxTop);
 
   return { top, left: selected.left, centered: false };
 };
