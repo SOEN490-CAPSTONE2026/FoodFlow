@@ -63,7 +63,9 @@ function TutorialHarness() {
       <div data-testid="active-flag">{String(isTutorialActive)}</div>
       <div data-testid="role-flag">{String(currentTutorialRole)}</div>
       <div data-testid="step-flag">{String(currentTutorialStepKey)}</div>
-      <div data-testid="donor-replay-flag">{String(canReplayDonorTutorial)}</div>
+      <div data-testid="donor-replay-flag">
+        {String(canReplayDonorTutorial)}
+      </div>
       <div data-testid="receiver-replay-flag">
         {String(canReplayReceiverTutorial)}
       </div>
@@ -191,18 +193,24 @@ describe('DonorOnboardingController', () => {
     renderController('DONOR');
 
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'onboarding.actions.next' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'onboarding.actions.next' })
+    );
 
     await waitFor(() => {
       expect(
         screen.getByText('onboarding.donor.steps.impact.title')
       ).toBeInTheDocument();
     });
-    expect(screen.getByTestId('step-flag')).toHaveTextContent('impact-dashboard');
+    expect(screen.getByTestId('step-flag')).toHaveTextContent(
+      'impact-dashboard'
+    );
     expect(mockNavigate).toHaveBeenCalledWith('/donor/impact');
     expect(screen.getByText('step 2 of 6')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'onboarding.actions.back' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'onboarding.actions.back' })
+    );
 
     await waitFor(() => {
       expect(
@@ -220,7 +228,9 @@ describe('DonorOnboardingController', () => {
     renderController('DONOR');
 
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'onboarding.actions.skip' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'onboarding.actions.skip' })
+    );
 
     await waitFor(() => {
       expect(mockUpdateOnboarding).toHaveBeenCalledWith({
@@ -244,7 +254,9 @@ describe('DonorOnboardingController', () => {
     renderController('DONOR');
 
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'onboarding.actions.skip' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'onboarding.actions.skip' })
+    );
 
     expect(
       await screen.findByText('onboarding.errors.saveFailed')
@@ -276,7 +288,9 @@ describe('DonorOnboardingController', () => {
       await screen.findByText('onboarding.donor.steps.setup.title')
     ).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'onboarding.actions.finish' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'onboarding.actions.finish' })
+    );
 
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -296,10 +310,14 @@ describe('DonorOnboardingController', () => {
       screen.getByText('onboarding.receiver.steps.browse.title')
     ).toBeInTheDocument();
     expect(screen.getByTestId('role-flag')).toHaveTextContent('RECEIVER');
-    expect(screen.getByTestId('step-flag')).toHaveTextContent('browse-donations');
+    expect(screen.getByTestId('step-flag')).toHaveTextContent(
+      'browse-donations'
+    );
     expect(mockNavigate).toHaveBeenCalledWith('/receiver');
 
-    fireEvent.click(screen.getByRole('button', { name: 'onboarding.actions.skip' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'onboarding.actions.skip' })
+    );
 
     await waitFor(() => {
       expect(mockUpdateOnboarding).toHaveBeenCalledWith({
@@ -312,7 +330,9 @@ describe('DonorOnboardingController', () => {
 
     fireEvent.click(screen.getByText('replay receiver'));
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'onboarding.actions.skip' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'onboarding.actions.skip' })
+    );
 
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -344,7 +364,9 @@ describe('DonorOnboardingController', () => {
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
     expect(document.body.style.overflow).toBe('hidden');
 
-    fireEvent.click(screen.getByRole('button', { name: 'onboarding.actions.skip' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'onboarding.actions.skip' })
+    );
 
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
