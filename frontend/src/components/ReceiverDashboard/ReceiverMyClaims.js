@@ -523,7 +523,10 @@ export default function ReceiverMyClaims() {
 
   return (
     <div className="claimed-page claimed-donations-container">
-      <div className="claimed-page claims-header">
+      <div
+        className="claimed-page claims-header"
+        data-tour="receiver-my-claims"
+      >
         <div className="claimed-page claims-header-text">
           <h1>{t('receiverMyClaims.title')}</h1>
           <p className="claimed-page claimed-subtitle">

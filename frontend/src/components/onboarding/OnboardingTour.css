@@ -41,12 +41,14 @@
 .onboarding-tour__tooltip {
   position: fixed;
   width: min(360px, calc(100vw - 32px));
+  max-height: min(420px, calc(100vh - 32px));
   border-radius: 24px;
   background: linear-gradient(180deg, #ffffff 0%, #f6fbf8 100%);
   color: #10211a;
   box-shadow: 0 24px 60px rgba(7, 19, 14, 0.26);
   padding: 20px 20px 16px;
   pointer-events: auto;
+  overflow-y: auto;
   transition:
     transform 220ms ease,
     opacity 180ms ease,

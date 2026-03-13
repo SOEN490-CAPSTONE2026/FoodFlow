@@ -7,9 +7,11 @@ import React, {
   useState,
 } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { profileAPI } from '../../services/api';
 import { OnboardingContext } from '../../contexts/OnboardingContext';
-import { donorTutorialSteps } from './donorTutorialSteps';
+import { getDonorTutorialSteps } from './donorTutorialSteps';
+import { getReceiverTutorialSteps } from './receiverTutorialSteps';
 import './OnboardingTour.css';
 
 const HIGHLIGHT_PADDING = 10;
@@ -62,6 +64,8 @@ function OnboardingOverlay({
   step,
   stepIndex,
   totalSteps,
+  t,
+  tutorialLabel,
   targetRect,
   canGoBack,
   isSaving,
@@ -102,10 +106,14 @@ function OnboardingOverlay({
         style={
           tooltipPosition.centered
             ? undefined
-            : { top: tooltipPosition.top, left: tooltipPosition.left }
+            : {
+                top: tooltipPosition.top,
+                left: tooltipPosition.left,
+                maxHeight: 'min(420px, calc(100vh - 32px))',
+              }
         }
       >
-        <p className="onboarding-tour__eyebrow">Donor tutorial</p>
+        <p className="onboarding-tour__eyebrow">{tutorialLabel}</p>
         <h2 className="onboarding-tour__title">{step.title}</h2>
         <p className="onboarding-tour__text">{step.text}</p>
 
@@ -113,7 +121,10 @@ function OnboardingOverlay({
 
         <div className="onboarding-tour__footer">
           <div className="onboarding-tour__progress">
-            Step {stepIndex + 1} of {totalSteps}
+            {t('onboarding.stepProgress', {
+              current: stepIndex + 1,
+              total: totalSteps,
+            })}
           </div>
           <div className="onboarding-tour__actions">
             <button
@@ -122,7 +133,7 @@ function OnboardingOverlay({
               onClick={onSkip}
               disabled={isSaving}
             >
-              Skip
+              {t('onboarding.actions.skip')}
             </button>
             <button
               type="button"
@@ -130,7 +141,7 @@ function OnboardingOverlay({
               onClick={onBack}
               disabled={!canGoBack || isSaving}
             >
-              Back
+              {t('onboarding.actions.back')}
             </button>
             <button
               type="button"
@@ -138,7 +149,9 @@ function OnboardingOverlay({
               onClick={onNext}
               disabled={isSaving}
             >
-              {stepIndex === totalSteps - 1 ? 'Finish' : 'Next'}
+              {stepIndex === totalSteps - 1
+                ? t('onboarding.actions.finish')
+                : t('onboarding.actions.next')}
             </button>
           </div>
         </div>
@@ -148,6 +161,7 @@ function OnboardingOverlay({
 }
 
 export default function DonorOnboardingController({ children, role }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const [profileLoaded, setProfileLoaded] = useState(false);
@@ -160,7 +174,17 @@ export default function DonorOnboardingController({ children, role }) {
   const [targetRect, setTargetRect] = useState(null);
   const syncFrameRef = useRef(null);
   const syncTimeoutRef = useRef(null);
-  const steps = donorTutorialSteps;
+  const tutorialRole = role === 'DONOR' || role === 'RECEIVER' ? role : null;
+  const steps =
+    tutorialRole === 'DONOR'
+      ? getDonorTutorialSteps(t)
+      : tutorialRole === 'RECEIVER'
+        ? getReceiverTutorialSteps(t)
+        : [];
+  const tutorialLabel =
+    tutorialRole === 'RECEIVER'
+      ? t('onboarding.labels.receiver')
+      : t('onboarding.labels.donor');
 
   const currentStep = active ? steps[stepIndex] : null;
 
@@ -176,7 +200,7 @@ export default function DonorOnboardingController({ children, role }) {
   }, []);
 
   useEffect(() => {
-    if (role !== 'DONOR') {
+    if (!tutorialRole) {
       setProfileLoaded(true);
       setOnboardingCompleted(true);
       return;
@@ -211,7 +235,7 @@ export default function DonorOnboardingController({ children, role }) {
     return () => {
       cancelled = true;
     };
-  }, [role]);
+  }, [tutorialRole]);
 
   useEffect(() => () => clearSync(), [clearSync]);
 
@@ -319,9 +343,9 @@ export default function DonorOnboardingController({ children, role }) {
     } catch (saveError) {
       console.error('Failed to persist onboarding state:', saveError);
       setIsSaving(false);
-      setError('We could not save your tutorial progress. Please try again.');
+      setError(t('onboarding.errors.saveFailed'));
     }
-  }, [closeTutorial]);
+  }, [closeTutorial, t]);
 
   const handleNext = useCallback(() => {
     if (stepIndex === steps.length - 1) {
@@ -350,23 +374,47 @@ export default function DonorOnboardingController({ children, role }) {
   }, [closeTutorial, mode, persistCompletion]);
 
   const startDonorTutorial = useCallback(() => {
-    if (role !== 'DONOR' || !profileLoaded) {
+    if (tutorialRole !== 'DONOR' || !profileLoaded) {
       return;
     }
     setMode('replay');
     setStepIndex(0);
     setError('');
     setActive(true);
-  }, [profileLoaded, role]);
+  }, [profileLoaded, tutorialRole]);
+
+  const startReceiverTutorial = useCallback(() => {
+    if (tutorialRole !== 'RECEIVER' || !profileLoaded) {
+      return;
+    }
+    setMode('replay');
+    setStepIndex(0);
+    setError('');
+    setActive(true);
+  }, [profileLoaded, tutorialRole]);
 
   const contextValue = useMemo(
     () => ({
-      canReplayDonorTutorial: role === 'DONOR' && profileLoaded,
-      isDonorTutorialActive: active,
+      canReplayDonorTutorial: tutorialRole === 'DONOR' && profileLoaded,
+      canReplayReceiverTutorial: tutorialRole === 'RECEIVER' && profileLoaded,
+      isDonorTutorialActive: tutorialRole === 'DONOR' && active,
+      isReceiverTutorialActive: tutorialRole === 'RECEIVER' && active,
+      isTutorialActive: active,
+      currentTutorialRole: active ? tutorialRole : null,
+      currentTutorialStepKey: active ? currentStep?.key || null : null,
       onboardingCompleted,
       startDonorTutorial,
+      startReceiverTutorial,
     }),
-    [active, onboardingCompleted, profileLoaded, role, startDonorTutorial]
+    [
+      active,
+      currentStep?.key,
+      onboardingCompleted,
+      profileLoaded,
+      startDonorTutorial,
+      startReceiverTutorial,
+      tutorialRole,
+    ]
   );
 
   return (
@@ -377,6 +425,8 @@ export default function DonorOnboardingController({ children, role }) {
         step={currentStep}
         stepIndex={stepIndex}
         totalSteps={steps.length}
+        t={t}
+        tutorialLabel={tutorialLabel}
         targetRect={targetRect}
         canGoBack={stepIndex > 0}
         isSaving={isSaving}

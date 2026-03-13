@@ -926,7 +926,7 @@ export default function ReceiverBrowse() {
         </h1>
       </div>
 
-      <div className="receiver-browse-toolbar">
+      <div className="receiver-browse-toolbar" data-tour="receiver-browse-main">
         <div className="browse-mode-category">
           <span className="browse-mode-category-label">
             {t('receiverBrowse.browseBy', 'Browse by')}

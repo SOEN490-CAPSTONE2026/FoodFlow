@@ -2678,5 +2678,91 @@
       "submitAnother": "Enviar outra sugestão"
     },
     "errors": { "generic": "Algo deu errado. Por favor, tente novamente." }
+  },
+  "onboarding": {
+    "labels": {
+      "donor": "Tutorial do doador",
+      "receiver": "Tutorial do receptor"
+    },
+    "actions": {
+      "skip": "Pular",
+      "back": "Voltar",
+      "next": "Próximo",
+      "finish": "Concluir"
+    },
+    "stepProgress": "Etapa {{current}} de {{total}}",
+    "errors": {
+      "saveFailed": "Não foi possível salvar o progresso do tutorial. Tente novamente."
+    },
+    "help": {
+      "title": "Tutorial de integração",
+      "replayButton": "Mostrar tutorial novamente",
+      "donorIntro": "Reinicie o percurso do doador a qualquer momento para rever o painel, a publicação, o chat e os status de retirada.",
+      "receiverIntro": "Reinicie o percurso do receptor a qualquer momento para rever a busca, os salvos, as solicitações, o chat, as preferências e as configurações."
+    },
+    "donor": {
+      "steps": {
+        "dashboard": {
+          "title": "Bem-vindo ao FoodFlow",
+          "text": "Este é o seu painel de doador. A partir daqui, você pode gerenciar suas doações e acompanhar o que acontece depois."
+        },
+        "impact": {
+          "title": "Veja seu impacto",
+          "text": "Seu painel de impacto mostra quanto alimento você salvou e a diferença que suas doações estão fazendo ao longo do tempo."
+        },
+        "postDonation": {
+          "title": "Publicar uma doação",
+          "text": "Use esta ação para criar uma nova doação de alimentos e disponibilizá-la para os receptores."
+        },
+        "chat": {
+          "title": "Conversar com receptores",
+          "text": "Depois que uma doação for reivindicada, você pode usar o chat para coordenar a retirada e responder a perguntas."
+        },
+        "pickup": {
+          "title": "Acompanhar o progresso da retirada",
+          "text": "Cada doação passa por um fluxo de retirada com status para que você sempre saiba em que etapa ela está."
+        },
+        "setup": {
+          "title": "Configure sua conta",
+          "text": "Use Idioma e região para escolher seu idioma, localização e fuso horário. A integração com calendário sincroniza as retiradas do FoodFlow, e as preferências de exibição controlam como seus cartões de doação aparecem."
+        }
+      }
+    },
+    "receiver": {
+      "steps": {
+        "browse": {
+          "title": "Explorar doações",
+          "text": "Aqui você pode explorar as doações de alimentos disponíveis e encontrar itens que atendam às suas necessidades."
+        },
+        "saved": {
+          "title": "Doações salvas",
+          "text": "Aqui você encontra rapidamente as doações que salvou para revisar mais tarde."
+        },
+        "claims": {
+          "title": "Suas solicitações",
+          "text": "Esta seção mostra as doações que você reivindicou e permite acompanhar o progresso delas."
+        },
+        "chat": {
+          "title": "Conversar com doadores",
+          "text": "Use o chat para coordenar detalhes da retirada, fazer perguntas e se manter atualizado com os doadores."
+        },
+        "impact": {
+          "title": "Seu painel de impacto",
+          "text": "Este painel ajuda você a acompanhar sua atividade, retiradas e impacto geral na plataforma."
+        },
+        "preferences": {
+          "title": "Preferências e correspondência",
+          "text": "Defina aqui suas preferências alimentares para que o FoodFlow recomende doações que combinem melhor com suas necessidades."
+        },
+        "settings": {
+          "title": "Configurações",
+          "text": "Você pode gerenciar sua conta, repetir o tutorial e ajustar opções da plataforma a partir daqui."
+        },
+        "done": {
+          "title": "Você está pronto",
+          "text": "É isso — você está pronto para começar a usar o FoodFlow como receptor."
+        }
+      }
+    }
   }
 }

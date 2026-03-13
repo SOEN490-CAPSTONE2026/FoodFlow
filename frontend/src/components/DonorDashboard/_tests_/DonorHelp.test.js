@@ -41,7 +41,7 @@ describe('DonorHelp', () => {
 
   test('starts tutorial from help page', () => {
     renderWithRouter(<DonorHelp />);
-    fireEvent.click(screen.getByText('Show Tutorial Again'));
+    fireEvent.click(screen.getByText('onboarding.help.replayButton'));
     expect(mockStartDonorTutorial).toHaveBeenCalled();
   });
 });

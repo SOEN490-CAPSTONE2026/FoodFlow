@@ -20,6 +20,7 @@ import AchievementNotification from '../shared/AchievementNotification';
 import ReceiverPreferences from './ReceiverPreferences';
 import EmailVerificationRequired from '../EmailVerificationRequired';
 import AdminApprovalBanner from '../AdminApprovalBanner';
+import { useOnboarding } from '../../contexts/OnboardingContext';
 import { connectToUserQueue, disconnect } from '../../services/socket';
 import api, { profileAPI, savedDonationAPI } from '../../services/api';
 import { normalizeStatus } from '../../utils/statusUtils';
@@ -55,6 +56,12 @@ function ReceiverLayoutContent() {
   const [profilePhotoUrl, setProfilePhotoUrl] = useState(null);
   const [achievementNotification, setAchievementNotification] = useState(null);
   const dropdownRef = useRef(null);
+  const tutorialManagedDropdownRef = useRef(false);
+  const {
+    currentTutorialRole,
+    currentTutorialStepKey,
+    isReceiverTutorialActive,
+  } = useOnboarding();
   const isActive = path => location.pathname === path;
   const { notification, showNotification, clearNotification } =
     useNotification();
@@ -162,6 +169,31 @@ function ReceiverLayoutContent() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (currentTutorialRole !== 'RECEIVER' || !isReceiverTutorialActive) {
+      if (tutorialManagedDropdownRef.current) {
+        setShowDropdown(false);
+        tutorialManagedDropdownRef.current = false;
+      }
+      return;
+    }
+
+    if (
+      currentTutorialStepKey === 'preferences' ||
+      currentTutorialStepKey === 'settings'
+    ) {
+      setShowDropdown(true);
+      setShowPreferences(false);
+      tutorialManagedDropdownRef.current = true;
+      return;
+    }
+
+    if (tutorialManagedDropdownRef.current) {
+      setShowDropdown(false);
+      tutorialManagedDropdownRef.current = false;
+    }
+  }, [currentTutorialRole, currentTutorialStepKey, isReceiverTutorialActive]);
 
   // Fetch unread message count
   useEffect(() => {
@@ -395,6 +427,7 @@ function ReceiverLayoutContent() {
           <Link
             to="/receiver"
             className={`receiver-nav-link ${location.pathname === '/receiver' || location.pathname === '/receiver/browse' ? 'active' : ''}`}
+            data-tour="receiver-nav-browse"
             onClick={() => setIsMenuOpen(false)}
           >
             {t('receiverLayout.donations')}
@@ -403,6 +436,7 @@ function ReceiverLayoutContent() {
           <Link
             to="/receiver/my-claims"
             className={`receiver-nav-link ${isActive('/receiver/my-claims') || isActive('/receiver/dashboard') ? 'active' : ''}`}
+            data-tour="receiver-nav-claims"
             onClick={() => setIsMenuOpen(false)}
           >
             {t('receiverLayout.myClaims')}
@@ -419,6 +453,7 @@ function ReceiverLayoutContent() {
           <Link
             to="/receiver/impact"
             className={`receiver-nav-link ${isActive('/receiver/impact') ? 'active' : ''}`}
+            data-tour="receiver-nav-impact"
           >
             {t('receiverLayout.impact', 'Impact Dashboard')}
           </Link>
@@ -426,6 +461,7 @@ function ReceiverLayoutContent() {
           <Link
             to="/receiver/saved-donations"
             className={`receiver-nav-link receiver-nav-link--with-badge ${location.pathname === '/receiver/saved-donations' ? 'active' : ''}`}
+            data-tour="receiver-nav-saved"
             onClick={() => setIsMenuOpen(false)}
           >
             {t('receiverLayout.savedDonations')}
@@ -449,6 +485,7 @@ function ReceiverLayoutContent() {
             <button
               className="inbox-btn"
               type="button"
+              data-tour="receiver-nav-messages"
               aria-label="Messages"
               onClick={() => navigate('/receiver/messages')}
             >
@@ -480,6 +517,7 @@ function ReceiverLayoutContent() {
 
               <div
                 className="dropdown-item dropdown-item--settings"
+                data-tour="receiver-settings-entry"
                 onClick={() => {
                   setShowDropdown(false);
                   navigate('/receiver/settings');
@@ -491,6 +529,7 @@ function ReceiverLayoutContent() {
 
               <div
                 className="dropdown-item dropdown-item--preferences"
+                data-tour="receiver-preferences-entry"
                 onClick={() => {
                   setShowDropdown(false);
                   setShowPreferences(true);

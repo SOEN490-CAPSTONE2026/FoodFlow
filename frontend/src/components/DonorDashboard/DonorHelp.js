@@ -159,12 +159,9 @@ export default function DonorHelp() {
         <section className="help-section tutorial-section">
           <div className="section-header">
             <Sparkles size={24} />
-            <h2>Onboarding tutorial</h2>
+            <h2>{t('onboarding.help.title')}</h2>
           </div>
-          <p className="section-intro">
-            Restart the donor walkthrough any time to review the dashboard,
-            posting flow, chat, and pickup statuses.
-          </p>
+          <p className="section-intro">{t('onboarding.help.donorIntro')}</p>
           <button
             type="button"
             className="tutorial-replay-button"
@@ -173,7 +170,7 @@ export default function DonorHelp() {
             disabled={isDonorTutorialActive}
           >
             <Sparkles size={18} />
-            <span>Show Tutorial Again</span>
+            <span>{t('onboarding.help.replayButton')}</span>
           </button>
         </section>
       )}
