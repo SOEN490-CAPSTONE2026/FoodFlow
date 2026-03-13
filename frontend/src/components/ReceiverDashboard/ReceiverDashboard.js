@@ -13,28 +13,34 @@ import ReceiverHelp from './ReceiverHelp';
 import InviteCommunity from './InviteCommunity';
 import MessagingDashboard from '../MessagingDashboard/MessagingDashboard';
 import Settings from '../Settings';
+import DonorOnboardingController from '../onboarding/DonorOnboardingController';
 
 export default function ReceiverDashboard() {
   return (
     <>
       <SEOHead noindex />
-      <Routes>
-        <Route element={<ReceiverLayout />}>
-          <Route index element={<ReceiverBrowse />} />
-          <Route path="welcome" element={<ReceiverWelcome />} />
-          <Route path="browse" element={<ReceiverBrowse />} />
-          <Route path="saved-donations" element={<ReceiverSavedDonations />} />
-          <Route path="my-claims" element={<ReceiverMyClaims />} />
-          <Route path="achievements" element={<ReceiverAchievements />} />
-          <Route path="impact" element={<ReceiverImpactDashboard />} />
-          <Route path="messages" element={<MessagingDashboard />} />
-          <Route path="settings" element={<Settings />} />
-          <Route path="help" element={<ReceiverHelp />} />
-          <Route path="invite" element={<InviteCommunity />} />
+      <DonorOnboardingController role="RECEIVER">
+        <Routes>
+          <Route element={<ReceiverLayout />}>
+            <Route index element={<ReceiverBrowse />} />
+            <Route path="welcome" element={<ReceiverWelcome />} />
+            <Route path="browse" element={<ReceiverBrowse />} />
+            <Route
+              path="saved-donations"
+              element={<ReceiverSavedDonations />}
+            />
+            <Route path="my-claims" element={<ReceiverMyClaims />} />
+            <Route path="achievements" element={<ReceiverAchievements />} />
+            <Route path="impact" element={<ReceiverImpactDashboard />} />
+            <Route path="messages" element={<MessagingDashboard />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="help" element={<ReceiverHelp />} />
+            <Route path="invite" element={<InviteCommunity />} />
 
-          <Route path="*" element={<Navigate to="." replace />} />
-        </Route>
-      </Routes>
+            <Route path="*" element={<Navigate to="." replace />} />
+          </Route>
+        </Routes>
+      </DonorOnboardingController>
     </>
   );
 }

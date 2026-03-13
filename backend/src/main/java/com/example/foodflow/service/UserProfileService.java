@@ -1,6 +1,7 @@
 package com.example.foodflow.service;
 
 import com.example.foodflow.model.dto.RegionResponse;
+import com.example.foodflow.model.dto.UpdateOnboardingRequest;
 import com.example.foodflow.model.dto.UpdateProfileRequest;
 import com.example.foodflow.model.dto.UpdateRegionRequest;
 import com.example.foodflow.model.dto.UserProfileResponse;
@@ -85,6 +86,7 @@ public class UserProfileService {
         response.setPhone(user.getPhone());
         response.setPhoneNumber(user.getPhone());
         response.setProfilePhoto(user.getProfilePhoto());
+        response.setOnboardingCompleted(Boolean.TRUE.equals(user.getOnboardingCompleted()));
         
         Organization org = user.getOrganization();
         if (org != null) {
@@ -183,6 +185,13 @@ public class UserProfileService {
             user.setOrganization(org);
         }
         
+        return getProfile(user);
+    }
+
+    @Transactional
+    public UserProfileResponse updateOnboarding(User user, UpdateOnboardingRequest request) {
+        user.setOnboardingCompleted(Boolean.TRUE.equals(request.getOnboardingCompleted()));
+        userRepository.save(user);
         return getProfile(user);
     }
     

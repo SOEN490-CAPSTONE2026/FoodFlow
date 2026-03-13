@@ -12,7 +12,9 @@ import {
   Clock,
   Shield,
   AlertCircle,
+  Sparkles,
 } from 'lucide-react';
+import { useOnboarding } from '../../contexts/OnboardingContext';
 import './Donor_Styles/DonorHelp.css';
 
 /**
@@ -109,6 +111,8 @@ const FAQItem = ({ question, answer, isOpen, onClick }) => (
 export default function DonorHelp() {
   const [openFAQ, setOpenFAQ] = useState(null);
   const { t } = useTranslation();
+  const { canReplayDonorTutorial, startDonorTutorial, isDonorTutorialActive } =
+    useOnboarding();
 
   const faqs = [
     'q1',
@@ -151,6 +155,26 @@ export default function DonorHelp() {
 
   return (
     <div className="donor-help">
+      {canReplayDonorTutorial && (
+        <section className="help-section tutorial-section">
+          <div className="section-header">
+            <Sparkles size={24} />
+            <h2>{t('onboarding.help.title')}</h2>
+          </div>
+          <p className="section-intro">{t('onboarding.help.donorIntro')}</p>
+          <button
+            type="button"
+            className="tutorial-replay-button"
+            data-tour="donor-replay-tutorial"
+            onClick={startDonorTutorial}
+            disabled={isDonorTutorialActive}
+          >
+            <Sparkles size={18} />
+            <span>{t('onboarding.help.replayButton')}</span>
+          </button>
+        </section>
+      )}
+
       <section className="help-section getting-started">
         <div className="section-header">
           <BookOpen size={24} />

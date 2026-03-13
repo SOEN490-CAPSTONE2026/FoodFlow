@@ -2747,5 +2747,91 @@
     "errors": {
       "generic": "Une erreur s'est produite. Veuillez réessayer."
     }
+  },
+  "onboarding": {
+    "labels": {
+      "donor": "Tutoriel donateur",
+      "receiver": "Tutoriel receveur"
+    },
+    "actions": {
+      "skip": "Passer",
+      "back": "Retour",
+      "next": "Suivant",
+      "finish": "Terminer"
+    },
+    "stepProgress": "Étape {{current}} sur {{total}}",
+    "errors": {
+      "saveFailed": "Nous n’avons pas pu enregistrer votre progression dans le tutoriel. Veuillez réessayer."
+    },
+    "help": {
+      "title": "Tutoriel d’intégration",
+      "replayButton": "Afficher le tutoriel à nouveau",
+      "donorIntro": "Relancez le parcours donateur à tout moment pour revoir le tableau de bord, la publication, le chat et les statuts de collecte.",
+      "receiverIntro": "Relancez le parcours receveur à tout moment pour revoir la recherche, les sauvegardes, les réclamations, le chat, les préférences et les paramètres."
+    },
+    "donor": {
+      "steps": {
+        "dashboard": {
+          "title": "Bienvenue sur FoodFlow",
+          "text": "Voici votre tableau de bord donateur. Depuis ici, vous pouvez gérer vos dons et suivre ce qui se passe ensuite."
+        },
+        "impact": {
+          "title": "Voyez votre impact",
+          "text": "Votre tableau de bord d’impact montre la quantité de nourriture que vous avez sauvée et l’effet de vos dons au fil du temps."
+        },
+        "postDonation": {
+          "title": "Publier un don",
+          "text": "Utilisez cette action pour créer un nouveau don alimentaire et le rendre disponible aux receveurs."
+        },
+        "chat": {
+          "title": "Discuter avec les receveurs",
+          "text": "Une fois qu’un don est réservé, vous pouvez utiliser le chat pour coordonner la collecte et répondre aux questions."
+        },
+        "pickup": {
+          "title": "Suivre la collecte",
+          "text": "Chaque don suit un parcours de collecte avec des statuts pour que vous sachiez toujours à quelle étape il se trouve."
+        },
+        "setup": {
+          "title": "Configurez votre compte",
+          "text": "Utilisez Langue et région pour choisir votre langue, votre emplacement et votre fuseau horaire. L’intégration de calendrier permet de synchroniser les collectes FoodFlow, et les préférences d’affichage contrôlent l’apparence de vos cartes de dons."
+        }
+      }
+    },
+    "receiver": {
+      "steps": {
+        "browse": {
+          "title": "Parcourir les dons",
+          "text": "C’est ici que vous pouvez explorer les dons alimentaires disponibles et trouver ceux qui correspondent à vos besoins."
+        },
+        "saved": {
+          "title": "Dons enregistrés",
+          "text": "Vous pouvez retrouver ici rapidement les dons que vous avez enregistrés pour les consulter plus tard."
+        },
+        "claims": {
+          "title": "Vos réservations",
+          "text": "Cette section montre les dons que vous avez réservés et vous permet de suivre leur progression."
+        },
+        "chat": {
+          "title": "Discuter avec les donateurs",
+          "text": "Utilisez le chat pour coordonner les détails de collecte, poser des questions et rester informé avec les donateurs."
+        },
+        "impact": {
+          "title": "Votre tableau de bord d’impact",
+          "text": "Ce tableau de bord vous aide à suivre votre activité, vos collectes et votre impact global sur la plateforme."
+        },
+        "preferences": {
+          "title": "Préférences et correspondances",
+          "text": "Définissez ici vos préférences alimentaires afin que FoodFlow puisse recommander des dons mieux adaptés à vos besoins."
+        },
+        "settings": {
+          "title": "Paramètres",
+          "text": "Vous pouvez gérer votre compte, relancer le tutoriel et ajuster les options de la plateforme depuis ici."
+        },
+        "done": {
+          "title": "Vous êtes prêt",
+          "text": "C’est tout, vous êtes prêt à commencer à utiliser FoodFlow en tant que receveur."
+        }
+      }
+    }
   }
 }

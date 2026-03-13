@@ -86,6 +86,13 @@ jest.mock('../../../services/api', () => ({
   },
 }));
 
+jest.mock('../../../contexts/OnboardingContext', () => ({
+  useOnboarding: () => ({
+    isDonorTutorialActive: false,
+    currentDonorTutorialStep: null,
+  }),
+}));
+
 jest.mock('../../../constants/foodConstants', () => ({
   mapLegacyCategoryToFoodType: value => {
     const mapping = {

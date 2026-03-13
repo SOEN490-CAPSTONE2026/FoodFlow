@@ -239,7 +239,7 @@ export default function DonorImpactDashboard() {
   return (
     <div className="impact-dashboard-modern">
       {/* Header Controls */}
-      <div className="dashboard-controls">
+      <div className="dashboard-controls" data-tour="donor-impact-controls">
         <button
           className="customize-btn"
           onClick={() => setShowCustomizeModal(true)}

@@ -353,6 +353,7 @@ export default function DonorLayout() {
           <Link
             to="/donor"
             className={`donor-nav-link ${isActive('/donor') ? 'active' : ''}`}
+            data-tour="donor-nav-home"
             data-tooltip={t('donorLayout.home')}
           >
             <span className="nav-icon" aria-hidden>
@@ -364,6 +365,7 @@ export default function DonorLayout() {
           <Link
             to="/donor/list"
             className={`donor-nav-link ${isActive('/donor/list') ? 'active' : ''}`}
+            data-tour="donor-nav-donate"
             data-tooltip={t('donorLayout.donateNow')}
           >
             <span className="nav-icon" aria-hidden>
@@ -386,6 +388,7 @@ export default function DonorLayout() {
           <Link
             to="/donor/messages"
             className={`donor-nav-link ${isActive('/donor/messages') ? 'active' : ''}`}
+            data-tour="donor-nav-messages"
             data-tooltip={t('donorLayout.messages')}
           >
             <span className="nav-icon" aria-hidden>
@@ -397,6 +400,7 @@ export default function DonorLayout() {
           <Link
             to="/donor/impact"
             className={`donor-nav-link ${isActive('/donor/impact') ? 'active' : ''}`}
+            data-tour="donor-nav-impact"
             data-tooltip={t('donorLayout.impact', 'Impact Dashboard')}
           >
             <span className="nav-icon" aria-hidden>
@@ -424,6 +428,7 @@ export default function DonorLayout() {
           <Link
             to="/donor/settings"
             className={`donor-nav-link ${isActive('/donor/settings') ? 'active' : ''}`}
+            data-tour="donor-nav-settings"
             data-tooltip={t('donorLayout.settings')}
           >
             <span className="nav-icon" aria-hidden>

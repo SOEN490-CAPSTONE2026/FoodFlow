@@ -2575,5 +2575,91 @@
     "errors": {
       "generic": "Something went wrong. Please try again."
     }
+  },
+  "onboarding": {
+    "labels": {
+      "donor": "Donor tutorial",
+      "receiver": "Receiver tutorial"
+    },
+    "actions": {
+      "skip": "Skip",
+      "back": "Back",
+      "next": "Next",
+      "finish": "Finish"
+    },
+    "stepProgress": "Step {{current}} of {{total}}",
+    "errors": {
+      "saveFailed": "We could not save your tutorial progress. Please try again."
+    },
+    "help": {
+      "title": "Onboarding tutorial",
+      "replayButton": "Show Tutorial Again",
+      "donorIntro": "Restart the donor walkthrough any time to review the dashboard, posting flow, chat, and pickup statuses.",
+      "receiverIntro": "Restart the receiver walkthrough any time to review browsing, saved donations, claims, chat, preferences, and settings."
+    },
+    "donor": {
+      "steps": {
+        "dashboard": {
+          "title": "Welcome to FoodFlow",
+          "text": "This is your donor dashboard. From here, you can manage your donations and follow what happens next."
+        },
+        "impact": {
+          "title": "See your impact",
+          "text": "Your impact dashboard shows how much food you have saved and the difference your donations are making over time."
+        },
+        "postDonation": {
+          "title": "Post a donation",
+          "text": "Use this action to create a new food donation and make it available to receivers."
+        },
+        "chat": {
+          "title": "Chat with receivers",
+          "text": "Once a donation is claimed, you can use chat to coordinate pickup details and answer questions."
+        },
+        "pickup": {
+          "title": "Follow pickup progress",
+          "text": "Each donation moves through a pickup flow with statuses so you always know what stage it is in."
+        },
+        "setup": {
+          "title": "Set up your account",
+          "text": "Use Language & Region to choose your language, location, and timezone. Calendar Integration lets you sync FoodFlow pickups, and Display Preferences controls how your donation cards look."
+        }
+      }
+    },
+    "receiver": {
+      "steps": {
+        "browse": {
+          "title": "Browse donations",
+          "text": "This is where you can explore available food donations and find items that match your needs."
+        },
+        "saved": {
+          "title": "Saved donations",
+          "text": "Here you can quickly find donations you saved to review later."
+        },
+        "claims": {
+          "title": "Your claims",
+          "text": "This section shows the donations you’ve claimed and lets you track their progress."
+        },
+        "chat": {
+          "title": "Chat with donors",
+          "text": "Use chat to coordinate pickup details, ask questions, and stay updated with donors."
+        },
+        "impact": {
+          "title": "Your impact dashboard",
+          "text": "This dashboard helps you track your activity, pickups, and overall impact on the platform."
+        },
+        "preferences": {
+          "title": "Preferences and matching",
+          "text": "Set your food preferences here so FoodFlow can recommend donations that better fit your needs."
+        },
+        "settings": {
+          "title": "Settings",
+          "text": "You can manage your account, replay the tutorial, and adjust platform options from here."
+        },
+        "done": {
+          "title": "You’re ready",
+          "text": "That’s it — you’re ready to start using FoodFlow as a receiver."
+        }
+      }
+    }
   }
 }

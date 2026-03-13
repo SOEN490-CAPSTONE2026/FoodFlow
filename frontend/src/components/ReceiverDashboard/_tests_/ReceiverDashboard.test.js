@@ -4,6 +4,12 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import '@testing-library/jest-dom';
 import ReceiverDashboard from '../ReceiverDashboard';
 
+jest.mock('../../onboarding/DonorOnboardingController', () => {
+  return function MockReceiverOnboardingController({ children }) {
+    return <div data-testid="receiver-onboarding-controller">{children}</div>;
+  };
+});
+
 // Mock ReceiverLayout to render Outlet properly (using .js extension)
 jest.mock('../ReceiverLayout.js', () => {
   const { Outlet } = require('react-router-dom');
@@ -55,6 +61,9 @@ describe('ReceiverDashboard', () => {
   test('renders ReceiverLayout wrapper', () => {
     renderWithRouter('/receiver');
     expect(screen.getByTestId('receiver-layout')).toBeInTheDocument();
+    expect(
+      screen.getByTestId('receiver-onboarding-controller')
+    ).toBeInTheDocument();
   });
 
   test('renders browse page on index route', () => {

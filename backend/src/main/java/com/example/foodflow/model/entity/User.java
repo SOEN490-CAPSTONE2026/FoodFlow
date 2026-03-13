@@ -76,6 +76,9 @@ public class User {
     @Column(name = "data_storage_consent")
     private Boolean dataStorageConsent = false;
 
+    @Column(name = "onboarding_completed", nullable = false)
+    private Boolean onboardingCompleted = false;
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Organization organization;
 
@@ -165,4 +168,7 @@ public class User {
 
     public Boolean getDataStorageConsent() { return dataStorageConsent; }
     public void setDataStorageConsent(Boolean dataStorageConsent) { this.dataStorageConsent = dataStorageConsent; }
+
+    public Boolean getOnboardingCompleted() { return onboardingCompleted; }
+    public void setOnboardingCompleted(Boolean onboardingCompleted) { this.onboardingCompleted = onboardingCompleted; }
 }

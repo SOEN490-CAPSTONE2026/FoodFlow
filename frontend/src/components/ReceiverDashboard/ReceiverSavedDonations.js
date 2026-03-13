@@ -317,7 +317,10 @@ export default function ReceiverSavedDonations() {
 
   return (
     <div className="receiver-browse-container">
-      <div className="receiver-browse-header">
+      <div
+        className="receiver-browse-header"
+        data-tour="receiver-saved-donations"
+      >
         <h1 className="receiver-section-title-browse">
           {t('receiverSavedDonations.title', 'Saved Donations')}
         </h1>
