@@ -1022,73 +1022,91 @@ const Settings = () => {
           </div>
         </div>
 
-        {/* Language & Region Section */}
-        <div className="settings-section">
-          <div className="section-header-with-icon">
-            <div className="icon-circle">
-              <Globe size={24} />
-            </div>
-            <div className="section-title-group">
-              <h2>{t('settings.languageRegion.title')}</h2>
-              <p className="section-description">
-                {t('settings.languageRegion.description')}
+        <div className={role === 'DONOR' ? 'settings-donor-setup' : undefined}>
+          {role === 'DONOR' && (
+            <div
+              className="settings-section donor-setup-overview"
+              data-tour="donor-settings-setup"
+            >
+              <div className="donor-setup-overview__eyebrow">Donor setup</div>
+              <h2 className="donor-setup-overview__title">
+                Finish setting up your account
+              </h2>
+              <p className="donor-setup-overview__text">
+                Review Language &amp; Region, Calendar Integration, and Display
+                Preferences to personalize how FoodFlow works for you.
               </p>
-              <p className="language-region-summary">
-                {(regionSettings?.city && regionSettings?.country
-                  ? `${regionSettings.city}, ${regionSettings.country}`
-                  : t('settings.languageRegion.locationTimezone')) || ''}
-              </p>
-            </div>
-            <div className="settings-header-actions">
-              <button
-                type="button"
-                className="settings-toggle-btn"
-                onClick={() => setIsLanguageRegionExpanded(prev => !prev)}
-                aria-expanded={isLanguageRegionExpanded}
-                aria-label="Toggle language and region settings"
-              >
-                {isLanguageRegionExpanded ? 'Hide ▲' : 'Edit ▼'}
-              </button>
-            </div>
-          </div>
-          {isLanguageRegionExpanded && (
-            <div className="section-content language-region-content-wrap">
-              <div className="language-region-container">
-                <div className="subsection-header">
-                  <h3 className="subsection-title">
-                    {t('settings.languageRegion.languagePreference')}
-                  </h3>
-                  <p className="subsection-description">
-                    {t('settings.languageRegion.languageDesc')}
-                  </p>
-                </div>
-                <LanguageSwitcher />
-              </div>
-
-              <div className="region-settings-divider"></div>
-
-              <div className="language-region-container">
-                <div className="subsection-header">
-                  <h3 className="subsection-title">
-                    {t('settings.languageRegion.locationTimezone')}
-                  </h3>
-                  <p className="subsection-description">
-                    {t('settings.languageRegion.locationDesc')}
-                  </p>
-                </div>
-                <RegionSelector
-                  value={regionSettings}
-                  onChange={handleRegionChange}
-                />
-              </div>
             </div>
           )}
+
+          {/* Language & Region Section */}
+          <div className="settings-section">
+            <div className="section-header-with-icon">
+              <div className="icon-circle">
+                <Globe size={24} />
+              </div>
+              <div className="section-title-group">
+                <h2>{t('settings.languageRegion.title')}</h2>
+                <p className="section-description">
+                  {t('settings.languageRegion.description')}
+                </p>
+                <p className="language-region-summary">
+                  {(regionSettings?.city && regionSettings?.country
+                    ? `${regionSettings.city}, ${regionSettings.country}`
+                    : t('settings.languageRegion.locationTimezone')) || ''}
+                </p>
+              </div>
+              <div className="settings-header-actions">
+                <button
+                  type="button"
+                  className="settings-toggle-btn"
+                  onClick={() => setIsLanguageRegionExpanded(prev => !prev)}
+                  aria-expanded={isLanguageRegionExpanded}
+                  aria-label="Toggle language and region settings"
+                >
+                  {isLanguageRegionExpanded ? 'Hide ▲' : 'Edit ▼'}
+                </button>
+              </div>
+            </div>
+            {isLanguageRegionExpanded && (
+              <div className="section-content language-region-content-wrap">
+                <div className="language-region-container">
+                  <div className="subsection-header">
+                    <h3 className="subsection-title">
+                      {t('settings.languageRegion.languagePreference')}
+                    </h3>
+                    <p className="subsection-description">
+                      {t('settings.languageRegion.languageDesc')}
+                    </p>
+                  </div>
+                  <LanguageSwitcher />
+                </div>
+
+                <div className="region-settings-divider"></div>
+
+                <div className="language-region-container">
+                  <div className="subsection-header">
+                    <h3 className="subsection-title">
+                      {t('settings.languageRegion.locationTimezone')}
+                    </h3>
+                    <p className="subsection-description">
+                      {t('settings.languageRegion.locationDesc')}
+                    </p>
+                  </div>
+                  <RegionSelector
+                    value={regionSettings}
+                    onChange={handleRegionChange}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Calendar Integration Section */}
+          <CalendarSettings />
+
+          {role === 'DONOR' && <DonorPhotoPreferencesSection />}
         </div>
-
-        {/* Calendar Integration Section */}
-        <CalendarSettings />
-
-        {role === 'DONOR' && <DonorPhotoPreferencesSection />}
 
         {/* Notification Preferences Section */}
         <div className="settings-section">

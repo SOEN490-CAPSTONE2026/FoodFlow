@@ -7,6 +7,16 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: key => key }),
 }));
 
+const mockStartDonorTutorial = jest.fn();
+
+jest.mock('../../../contexts/OnboardingContext', () => ({
+  useOnboarding: () => ({
+    canReplayDonorTutorial: true,
+    isDonorTutorialActive: false,
+    startDonorTutorial: mockStartDonorTutorial,
+  }),
+}));
+
 const renderWithRouter = component =>
   render(<BrowserRouter>{component}</BrowserRouter>);
 
@@ -27,5 +37,11 @@ describe('DonorHelp', () => {
     expect(
       screen.getByText('donorHelp.faq.items.q1.answer')
     ).toBeInTheDocument();
+  });
+
+  test('starts tutorial from help page', () => {
+    renderWithRouter(<DonorHelp />);
+    fireEvent.click(screen.getByText('Show Tutorial Again'));
+    expect(mockStartDonorTutorial).toHaveBeenCalled();
   });
 });

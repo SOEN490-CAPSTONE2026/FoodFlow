@@ -136,7 +136,7 @@ const MessagingDashboard = () => {
   };
 
   return (
-    <div className="messaging-dashboard">
+    <div className="messaging-dashboard" data-tour="donor-chat-area">
       <ConversationsSidebar
         conversations={conversations}
         selectedConversation={selectedConversation}
