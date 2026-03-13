@@ -1194,6 +1194,11 @@
     "predicted": "预测",
     "addedToSaved": "已添加到已保存捐赠"
   },
+  "receiverSavedDonations": {
+    "title": "已保存的捐赠",
+    "failedToLoad": "加载已保存捐赠失败",
+    "empty": "暂无已保存的捐赠。"
+  },
   "receiverMyClaims": {
     "readyForPickup": "准备取货",
     "completed": "已完成",
@@ -2673,5 +2678,91 @@
       "submitAnother": "再次提交推荐"
     },
     "errors": { "generic": "出现错误，请重试。" }
+  },
+  "onboarding": {
+    "labels": {
+      "donor": "捐赠者教程",
+      "receiver": "接收者教程"
+    },
+    "actions": {
+      "skip": "跳过",
+      "back": "返回",
+      "next": "下一步",
+      "finish": "完成"
+    },
+    "stepProgress": "第 {{current}} 步，共 {{total}} 步",
+    "errors": {
+      "saveFailed": "无法保存您的教程进度。请再试一次。"
+    },
+    "help": {
+      "title": "新手教程",
+      "replayButton": "再次显示教程",
+      "donorIntro": "您可以随时重新开始捐赠者教程，回顾仪表板、发布、聊天和取货状态。",
+      "receiverIntro": "您可以随时重新开始接收者教程，回顾浏览、收藏、申领、聊天、偏好和设置。"
+    },
+    "donor": {
+      "steps": {
+        "dashboard": {
+          "title": "欢迎来到 FoodFlow",
+          "text": "这是您的捐赠者仪表板。在这里，您可以管理捐赠并跟踪后续进展。"
+        },
+        "impact": {
+          "title": "查看您的影响力",
+          "text": "您的影响力仪表板会显示您拯救了多少食物，以及您的捐赠随着时间带来的变化。"
+        },
+        "postDonation": {
+          "title": "发布捐赠",
+          "text": "使用此操作创建新的食物捐赠，并让接收者可以看到它。"
+        },
+        "chat": {
+          "title": "与接收者聊天",
+          "text": "一旦捐赠被认领，您可以使用聊天来协调取货细节并回答问题。"
+        },
+        "pickup": {
+          "title": "跟踪取货进度",
+          "text": "每个捐赠都会经过带有状态的取货流程，让您始终了解当前所处阶段。"
+        },
+        "setup": {
+          "title": "设置您的账户",
+          "text": "使用语言和地区选择您的语言、位置和时区。日历集成功能可同步 FoodFlow 取货安排，显示偏好可控制捐赠卡片的显示方式。"
+        }
+      }
+    },
+    "receiver": {
+      "steps": {
+        "browse": {
+          "title": "浏览捐赠",
+          "text": "您可以在这里浏览可用的食物捐赠，并找到符合您需求的物品。"
+        },
+        "saved": {
+          "title": "已保存的捐赠",
+          "text": "您可以在这里快速找到稍后想查看的已保存捐赠。"
+        },
+        "claims": {
+          "title": "您的申领",
+          "text": "此部分显示您已申领的捐赠，并让您跟踪其进度。"
+        },
+        "chat": {
+          "title": "与捐赠者聊天",
+          "text": "使用聊天协调取货细节、提出问题，并随时了解捐赠者的最新信息。"
+        },
+        "impact": {
+          "title": "您的影响力仪表板",
+          "text": "此仪表板可帮助您跟踪自己在平台上的活动、取货情况和整体影响。"
+        },
+        "preferences": {
+          "title": "偏好与匹配",
+          "text": "在这里设置您的食物偏好，以便 FoodFlow 推荐更符合您需求的捐赠。"
+        },
+        "settings": {
+          "title": "设置",
+          "text": "您可以在这里管理账户、重新播放教程并调整平台选项。"
+        },
+        "done": {
+          "title": "您已准备就绪",
+          "text": "就是这样，您已经可以开始以接收者身份使用 FoodFlow 了。"
+        }
+      }
+    }
   }
 }

@@ -38,6 +38,17 @@ jest.mock('../services/api', () => ({
   },
 }));
 
+jest.mock('../contexts/OnboardingContext', () => ({
+  useOnboarding: () => ({
+    canReplayDonorTutorial: true,
+    canReplayReceiverTutorial: true,
+    isDonorTutorialActive: false,
+    isReceiverTutorialActive: false,
+    startDonorTutorial: jest.fn(),
+    startReceiverTutorial: jest.fn(),
+  }),
+}));
+
 // Mock i18next
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({

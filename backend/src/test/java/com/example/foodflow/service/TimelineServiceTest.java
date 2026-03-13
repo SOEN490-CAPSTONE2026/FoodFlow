@@ -8,11 +8,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -27,13 +29,13 @@ class TimelineServiceTest {
     @Mock 
     private BusinessMetricsService businessMetricsService;
 
-    @InjectMocks
     private TimelineService timelineService;
 
     private SurplusPost testPost;
 
     @BeforeEach
     void setUp() {
+        timelineService = new TimelineService(timelineRepository, businessMetricsService, Clock.systemUTC());
         testPost = new SurplusPost();
         testPost.setId(1L);
         testPost.setTitle("Test Surplus Post");
@@ -75,8 +77,9 @@ class TimelineServiceTest {
         assertThat(captured.getDetails()).isEqualTo("Claimed by Test Organization");
         assertThat(captured.getVisibleToUsers()).isTrue();
         assertThat(captured.getTimestamp()).isNotNull();
-        assertThat(captured.getTimestamp()).isBefore(LocalDateTime.now().plusSeconds(1));
-        assertThat(captured.getTimestamp()).isAfter(LocalDateTime.now().minusSeconds(5));
+        LocalDateTime nowUtc = LocalDateTime.now(Clock.systemUTC());
+        assertThat(captured.getTimestamp()).isBefore(nowUtc.plusSeconds(1));
+        assertThat(captured.getTimestamp()).isAfter(nowUtc.minusSeconds(5));
     }
 
     @Test
@@ -224,7 +227,7 @@ class TimelineServiceTest {
         DonationTimeline savedTimeline = new DonationTimeline();
         when(timelineRepository.save(any(DonationTimeline.class))).thenReturn(savedTimeline);
 
-        LocalDateTime beforeCreation = LocalDateTime.now();
+        LocalDateTime beforeCreation = LocalDateTime.now(Clock.systemUTC());
 
         // Act
         timelineService.createTimelineEvent(
@@ -238,7 +241,7 @@ class TimelineServiceTest {
                 true
         );
 
-        LocalDateTime afterCreation = LocalDateTime.now();
+        LocalDateTime afterCreation = LocalDateTime.now(Clock.systemUTC());
 
         // Assert
         ArgumentCaptor<DonationTimeline> captor = ArgumentCaptor.forClass(DonationTimeline.class);
@@ -248,6 +251,29 @@ class TimelineServiceTest {
         assertThat(captured.getTimestamp()).isNotNull();
         assertThat(captured.getTimestamp()).isAfterOrEqualTo(beforeCreation);
         assertThat(captured.getTimestamp()).isBeforeOrEqualTo(afterCreation);
+    }
+
+    @Test
+    void createTimelineEvent_UsesInjectedClock() {
+        // Arrange
+        Clock fixedClock = Clock.fixed(Instant.parse("2026-03-10T12:34:56Z"), ZoneOffset.UTC);
+        timelineService = new TimelineService(timelineRepository, businessMetricsService, fixedClock);
+        when(timelineRepository.save(any(DonationTimeline.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Act
+        DonationTimeline result = timelineService.createTimelineEvent(
+                testPost,
+                "TEST_EVENT",
+                "system",
+                null,
+                null,
+                null,
+                "clock test",
+                true
+        );
+
+        // Assert
+        assertThat(result.getTimestamp()).isEqualTo(LocalDateTime.of(2026, 3, 10, 12, 34, 56));
     }
 
     @Test
@@ -387,4 +413,3 @@ class TimelineServiceTest {
         assertThat(captured.getDetails()).isEqualTo("");
     }
 }
-

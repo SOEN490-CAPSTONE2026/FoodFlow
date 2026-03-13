@@ -512,6 +512,56 @@
   border-top: 1px solid #e5e7eb;
 }
 
+.claim-detail-completed-inline {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.claim-detail-completed-inline-title {
+  margin: 0 0 0.35rem 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1b4965;
+}
+
+.claim-detail-completed-inline-description {
+  margin: 0;
+  color: #4b5563;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.claim-detail-completed-inline-actions {
+  margin-top: 1rem;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+
+.claim-detail-completed-inline-actions .claimed-modal-btn-report,
+.claim-detail-completed-inline-actions .claimed-modal-btn-feedback {
+  flex: 1 1 220px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 44px;
+}
+
+@media (max-width: 768px) {
+  .claim-detail-completed-inline-actions {
+    gap: 0.75rem;
+  }
+
+  .claim-detail-completed-inline-actions .claimed-modal-btn-report,
+  .claim-detail-completed-inline-actions .claimed-modal-btn-feedback {
+    flex: 1 1 100%;
+  }
+}
+
 .claimed-timeline-toggle-button {
   display: flex;
   align-items: center;

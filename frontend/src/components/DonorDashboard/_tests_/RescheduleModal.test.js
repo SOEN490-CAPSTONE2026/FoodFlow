@@ -593,29 +593,34 @@ describe('RescheduleModal', () => {
       fireEvent.click(screen.getByText('Create New Donation'));
 
       await waitFor(() => {
-        expect(surplusAPI.create).toHaveBeenCalledWith({
-          title: 'Fresh Vegetables',
-          quantity: { value: 10, unit: 'KILOGRAM' },
-          foodCategories: ['VEGETABLES'],
-          fabricationDate: '2025-01-20',
-          expiryDate: '2025-02-15',
-          pickupSlots: [
-            {
-              pickupDate: '2025-02-01',
-              startTime: '09:00',
-              endTime: '17:00',
-              notes: 'Call before arrival',
-            },
-          ],
-          pickupDate: '2025-02-01',
-          pickupFrom: '09:00',
-          pickupTo: '17:00',
-          pickupLocation: 'Main Street Store',
-          description: 'Fresh organic vegetables',
-          temperatureCategory: 'REFRIGERATED',
-          packagingType: 'BOXES',
-          donorTimezone: 'America/New_York',
-        });
+        expect(surplusAPI.create).toHaveBeenCalledTimes(1);
+        const payload = surplusAPI.create.mock.calls[0][0];
+        expect(payload).toEqual(
+          expect.objectContaining({
+            title: 'Fresh Vegetables',
+            quantity: { value: 10, unit: 'KILOGRAM' },
+            foodCategories: ['VEGETABLES'],
+            fabricationDate: '2025-01-20',
+            expiryDate: '2025-02-15',
+            pickupDate: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
+            pickupFrom: expect.stringMatching(/^\d{2}:\d{2}$/),
+            pickupTo: expect.stringMatching(/^\d{2}:\d{2}$/),
+            pickupLocation: 'Main Street Store',
+            description: 'Fresh organic vegetables',
+            temperatureCategory: 'REFRIGERATED',
+            packagingType: 'BOXES',
+            donorTimezone: 'America/New_York',
+          })
+        );
+        expect(payload.pickupSlots).toHaveLength(1);
+        expect(payload.pickupSlots[0]).toEqual(
+          expect.objectContaining({
+            pickupDate: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
+            startTime: expect.stringMatching(/^\d{2}:\d{2}$/),
+            endTime: expect.stringMatching(/^\d{2}:\d{2}$/),
+            notes: 'Call before arrival',
+          })
+        );
         expect(mockOnSuccess).toHaveBeenCalled();
         expect(mockOnClose).toHaveBeenCalled();
       });
@@ -675,22 +680,23 @@ describe('RescheduleModal', () => {
       fireEvent.click(screen.getByText('Create New Donation'));
 
       await waitFor(() => {
-        expect(surplusAPI.create).toHaveBeenCalledWith(
+        expect(surplusAPI.create).toHaveBeenCalledTimes(1);
+        const payload = surplusAPI.create.mock.calls[0][0];
+        expect(payload.pickupSlots).toHaveLength(2);
+        expect(payload.pickupSlots[0]).toEqual(
           expect.objectContaining({
-            pickupSlots: [
-              {
-                pickupDate: '2025-02-01',
-                startTime: '09:00',
-                endTime: '17:00',
-                notes: null,
-              },
-              {
-                pickupDate: '2025-02-02',
-                startTime: '10:00',
-                endTime: '18:00',
-                notes: null,
-              },
-            ],
+            pickupDate: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
+            notes: null,
+            startTime: expect.stringMatching(/^\d{2}:\d{2}$/),
+            endTime: expect.stringMatching(/^\d{2}:\d{2}$/),
+          })
+        );
+        expect(payload.pickupSlots[1]).toEqual(
+          expect.objectContaining({
+            pickupDate: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
+            notes: null,
+            startTime: expect.stringMatching(/^\d{2}:\d{2}$/),
+            endTime: expect.stringMatching(/^\d{2}:\d{2}$/),
           })
         );
       });

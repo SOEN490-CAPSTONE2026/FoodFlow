@@ -3,6 +3,7 @@ import { X, Plus, Trash2 } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import { surplusAPI } from '../../services/api';
 import { useTimezone } from '../../contexts/TimezoneContext';
+import { toLocalDateInputValue } from '../../utils/timezoneUtils';
 import './Donor_Styles/RescheduleModal.css';
 import 'react-datepicker/dist/react-datepicker.css';
 
@@ -17,7 +18,7 @@ const parseLocalDate = dateString => {
   return new Date(year, month - 1, day);
 };
 
-const formatDate = date => (date ? date.toISOString().split('T')[0] : '');
+const formatDate = date => toLocalDateInputValue(date);
 
 const formatTime = date => {
   if (!date) {

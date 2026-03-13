@@ -11,6 +11,7 @@ import {
   Search,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { toLocalDateInputValue } from '../../utils/timezoneUtils';
 import './Receiver_Styles/FiltersPanel.css';
 
 // Updated food categories to match backend enums exactly
@@ -50,7 +51,7 @@ const CustomDatePicker = ({ value, onChange, placeholder }) => {
         onChange={date => {
           // Convert Date object to YYYY-MM-DD string format
           if (date) {
-            const formattedDate = date.toISOString().split('T')[0];
+            const formattedDate = toLocalDateInputValue(date);
             onChange(formattedDate);
           } else {
             onChange('');

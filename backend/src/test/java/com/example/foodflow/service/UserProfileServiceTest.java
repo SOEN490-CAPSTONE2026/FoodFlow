@@ -1,6 +1,7 @@
 package com.example.foodflow.service;
 
 import com.example.foodflow.model.dto.RegionResponse;
+import com.example.foodflow.model.dto.UpdateOnboardingRequest;
 import com.example.foodflow.model.dto.UpdateRegionRequest;
 import com.example.foodflow.model.dto.UpdateProfileRequest;
 import com.example.foodflow.model.dto.UserProfileResponse;
@@ -250,5 +251,19 @@ class UserProfileServiceTest {
         when(userRepository.existsByEmail("ok@example.com")).thenReturn(false);
 
         assertThrows(IllegalArgumentException.class, () -> userProfileService.updateProfile(testUser, req));
+    }
+
+    @Test
+    void updateOnboarding_ShouldPersistCompletionState() {
+        UpdateOnboardingRequest request = new UpdateOnboardingRequest();
+        request.setOnboardingCompleted(true);
+
+        when(userRepository.save(any(User.class))).thenReturn(testUser);
+
+        UserProfileResponse response = userProfileService.updateOnboarding(testUser, request);
+
+        assertTrue(testUser.getOnboardingCompleted());
+        assertTrue(response.getOnboardingCompleted());
+        verify(userRepository, times(1)).save(testUser);
     }
 }

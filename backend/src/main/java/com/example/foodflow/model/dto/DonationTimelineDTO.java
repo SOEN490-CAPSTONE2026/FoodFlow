@@ -1,11 +1,13 @@
 package com.example.foodflow.model.dto;
 
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 public class DonationTimelineDTO {
     
     private Long id;
     private String eventType;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
     private LocalDateTime timestamp;
     private String actor;
     private Long actorUserId;

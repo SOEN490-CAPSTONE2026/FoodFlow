@@ -3,6 +3,7 @@ package com.example.foodflow.model.entity;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 @Entity
 @Table(name = "expiry_notification_log")
@@ -31,7 +32,7 @@ public class ExpiryNotificationLog {
     @PrePersist
     protected void onCreate() {
         if (sentAt == null) {
-            sentAt = LocalDateTime.now();
+            sentAt = LocalDateTime.now(ZoneOffset.UTC);
         }
     }
 

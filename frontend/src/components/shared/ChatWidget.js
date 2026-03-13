@@ -190,9 +190,18 @@ const ChatWidget = () => {
     setError('');
 
     try {
+      const chatHistory = [...messages, userMessage]
+        .filter(msg => msg?.type === 'user' || msg?.type === 'assistant')
+        .slice(-20)
+        .map(msg => ({
+          type: msg.type,
+          content: msg.content,
+        }));
+
       const response = await api.post('/support/chat', {
         message: userMessage.content,
         pageContext: getPageContext(),
+        chatHistory,
       });
 
       const assistantMessage = {
@@ -205,6 +214,20 @@ const ChatWidget = () => {
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+
+      const supportEscalationAction = (assistantMessage.actions || []).find(
+        action =>
+          action?.type === 'link' &&
+          typeof action?.value === 'string' &&
+          action.value.includes('/messages?conversationId=')
+      );
+
+      if (
+        assistantMessage.intent === 'SUPPORT_ESCALATED' &&
+        supportEscalationAction
+      ) {
+        navigate(supportEscalationAction.value);
+      }
     } catch (error) {
       console.error('Support chat error:', error);
 

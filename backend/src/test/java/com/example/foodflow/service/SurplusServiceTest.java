@@ -385,6 +385,15 @@ class SurplusServiceTest {
         ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
         verify(surplusPostRepository).save(postCaptor.capture());
         assertThat(postCaptor.getValue().getStatus()).isEqualTo(PostStatus.COMPLETED);
+        verify(timelineService).createTimelineEvent(
+                eq(post),
+                eq("PICKUP_CONFIRMED"),
+                eq("donor"),
+                eq(donor.getId()),
+                eq(PostStatus.READY_FOR_PICKUP),
+                eq(PostStatus.COMPLETED),
+                eq("Pickup confirmed with OTP code"),
+                eq(true));
     }
 
     @Test

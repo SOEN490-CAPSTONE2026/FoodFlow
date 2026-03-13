@@ -25,6 +25,7 @@ describe('useGamification', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    gamificationAPI.getUserStats.mockReset();
     jest.spyOn(console, 'error').mockImplementation(() => {});
   });
 
@@ -55,11 +56,11 @@ describe('useGamification', () => {
       });
 
       await waitFor(() => {
-        expect(result.current.loading).toBe(false);
+        expect(result.current.stats).toEqual(mockStats);
       });
 
       expect(gamificationAPI.getUserStats).toHaveBeenCalledWith(mockUserId);
-      expect(result.current.stats).toEqual(mockStats);
+      expect(result.current.loading).toBe(false);
       expect(result.current.error).toBe(null);
     });
 

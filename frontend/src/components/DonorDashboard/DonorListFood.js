@@ -43,6 +43,14 @@ import {
   getPackagingTypeLabel,
   mapLegacyCategoryToFoodType,
 } from '../../constants/foodConstants';
+import {
+  formatPickupWindowFromParts,
+  formatWallClockDate,
+  formatWallClockTime,
+  parseBackendUtcTimestamp,
+  parseExplicitUtcTimestamp,
+} from '../../utils/timezoneUtils';
+import { useOnboarding } from '../../contexts/OnboardingContext';
 import '../DonorDashboard/Donor_Styles/DonorListFood.css';
 
 // Define libraries for Google Maps
@@ -85,14 +93,11 @@ function formatExpiryDate(dateString, locale, notSpecifiedLabel) {
     return notSpecifiedLabel;
   }
   try {
-    // Parse as local date to avoid timezone conversion issues
-    const [year, month, day] = dateString.split('-').map(Number);
-    const date = new Date(year, month - 1, day);
-    return date.toLocaleDateString(locale || 'en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
+    const formatted = formatWallClockDate(
+      String(dateString),
+      locale || 'en-US'
+    );
+    return formatted || notSpecifiedLabel;
   } catch {
     return notSpecifiedLabel;
   }
@@ -133,42 +138,56 @@ function formatPickupTime(
   }
 
   try {
-    // Parse the date string as local date
-    const [year, month, day] = pickupDate.split('-').map(Number);
-    const date = new Date(year, month - 1, day);
-
-    const dateStr = date.toLocaleDateString(locale || 'en-US', {
-      month: 'short',
-      day: 'numeric',
-    });
+    const [year, month, day] = String(pickupDate).split('-').map(Number);
+    const pickupDayLabel =
+      year && month && day
+        ? new Date(Date.UTC(year, month - 1, day, 12, 0, 0)).toLocaleDateString(
+            locale || 'en-US',
+            { month: 'short', day: 'numeric', timeZone: 'UTC' }
+          )
+        : '';
 
     if (pickupFrom && pickupTo) {
-      // Create a proper local time for 'from'
-      const [fromHours, fromMinutes] = pickupFrom.split(':').map(Number);
-      const fromDate = new Date(year, month - 1, day, fromHours, fromMinutes);
-      const fromTime = fromDate.toLocaleTimeString(locale || 'en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-      });
-
-      // Create a proper local time for 'to'
-      const [toHours, toMinutes] = pickupTo.split(':').map(Number);
-      const toDate = new Date(year, month - 1, day, toHours, toMinutes);
-      const toTime = toDate.toLocaleTimeString(locale || 'en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-      });
-
-      return `${dateStr}, ${fromTime} — ${toTime}`;
+      const fromLabel = formatWallClockTime(
+        String(pickupFrom),
+        locale || 'en-US'
+      );
+      const toLabel = formatWallClockTime(String(pickupTo), locale || 'en-US');
+      if (!fromLabel || !toLabel) {
+        return flexibleLabel;
+      }
+      return pickupDayLabel
+        ? `${pickupDayLabel}, ${fromLabel} — ${toLabel}`
+        : formatPickupWindowFromParts(
+            String(pickupDate),
+            String(pickupFrom),
+            String(pickupTo),
+            locale || 'en-US'
+          ) || flexibleLabel;
     }
 
-    return `${dateStr}`;
+    return pickupDayLabel || flexibleLabel;
   } catch (error) {
     console.error('Error formatting pickup time:', error);
     return flexibleLabel;
   }
+}
+
+function parseStableSortDate(createdAt, pickupDate) {
+  const created =
+    parseExplicitUtcTimestamp(createdAt) || parseBackendUtcTimestamp(createdAt);
+  if (created) {
+    return created;
+  }
+
+  if (typeof pickupDate === 'string') {
+    const [year, month, day] = pickupDate.split('-').map(Number);
+    if (year && month && day) {
+      return new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+    }
+  }
+
+  return new Date(0);
 }
 
 // Get the backend base URL (without /api suffix) for file serving
@@ -215,6 +234,7 @@ const getEvidenceImageUrl = url => {
 
 export default function DonorListFood() {
   const { t, i18n } = useTranslation();
+  const { isDonorTutorialActive, currentDonorTutorialStep } = useOnboarding();
   const locale = i18n.resolvedLanguage || i18n.language || 'en-US';
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
@@ -255,6 +275,8 @@ export default function DonorListFood() {
   const [expandedTimeline, setExpandedTimeline] = useState({}); // { donationId: true/false }
   const [timelines, setTimelines] = useState({}); // { donationId: [timeline events] }
   const [loadingTimelines, setLoadingTimelines] = useState({}); // { donationId: true/false }
+  const showTutorialPickupDemo =
+    isDonorTutorialActive && currentDonorTutorialStep === 'pickup-progress';
 
   useEffect(() => {
     fetchMyPosts();
@@ -448,8 +470,8 @@ export default function DonorListFood() {
     return [...posts].sort((a, b) => {
       if (sortOrder === 'date') {
         // Sort by date - newest first
-        const dateA = new Date(a.createdAt || a.pickupDate || 0);
-        const dateB = new Date(b.createdAt || b.pickupDate || 0);
+        const dateA = parseStableSortDate(a.createdAt, a.pickupDate);
+        const dateB = parseStableSortDate(b.createdAt, b.pickupDate);
         return dateB - dateA;
       } else if (sortOrder === 'status') {
         // Sort by status priority
@@ -765,7 +787,7 @@ export default function DonorListFood() {
     }
   };
 
-  if (loading) {
+  if (loading && !showTutorialPickupDemo) {
     return (
       <div className="donor-list-wrapper">
         <div className="loading-state">
@@ -836,6 +858,7 @@ export default function DonorListFood() {
           </button>
           <button
             className="donor-add-button"
+            data-tour="donor-post-donation"
             onClick={() => {
               setIsEditMode(false);
               setEditPostId(null);
@@ -855,7 +878,7 @@ export default function DonorListFood() {
         )}
       </header>
 
-      {items.length === 0 ? (
+      {items.length === 0 && !showTutorialPickupDemo ? (
         <div className="empty-state">
           <Package className="empty-state-icon" size={64} />
           <h3 className="empty-state-title">
@@ -867,6 +890,108 @@ export default function DonorListFood() {
         </div>
       ) : (
         <section className="donor-list-grid" aria-label="Donations list">
+          {showTutorialPickupDemo && (
+            <article
+              className="donation-card donation-card--tutorial"
+              aria-label="Tutorial pickup flow example"
+              data-tour="donor-pickup-flow"
+            >
+              <div className="donation-header">
+                <h3 className="donation-title">Fresh Sandwich Trays</h3>
+                <span className={statusClass('READY_FOR_PICKUP')}>
+                  {t('donorListFood.status.readyForPickup')}
+                </span>
+              </div>
+
+              <div className="dietary-tags-row">
+                <span className="donation-tag">Prepared Meals</span>
+                <span className="donation-tag donation-tag--dietary">
+                  Vegetarian
+                </span>
+              </div>
+
+              <div className="compliance-badges">
+                <span className="compliance-badge temperature">
+                  <span className="badge-icon">❄</span>
+                  <span className="badge-label">Refrigerated</span>
+                </span>
+                <span className="compliance-badge packaging">
+                  <Package size={14} />
+                  <span className="badge-label">Sealed trays</span>
+                </span>
+              </div>
+
+              <div className="donation-quantity">12 servings</div>
+
+              <ul
+                className="donation-meta"
+                aria-label="tutorial donation details"
+              >
+                <li>
+                  <Calendar size={16} className="calendar-icon" />
+                  <span>{t('donorListFood.expires')}:&nbsp;Tomorrow</span>
+                </li>
+                <li>
+                  <Clock size={16} className="time-icon" />
+                  <div className="pickup-times-container">
+                    <span className="pickup-label">
+                      {t('donorListFood.pickup')}:
+                    </span>
+                    <span className="pickup-time-item">
+                      Mar 14, 3:00 PM - 5:00 PM
+                    </span>
+                  </div>
+                </li>
+                <li>
+                  <MapPin size={16} className="locationMap-icon" />
+                  <span className="donation-address">
+                    123 Community Lane, Toronto
+                  </span>
+                </li>
+              </ul>
+
+              <p className="donation-notes">
+                Tutorial preview: this example card shows how a claimed donation
+                moves through pickup and completion.
+              </p>
+
+              <div className="donation-timeline-section tutorial-flow-section">
+                <div className="tutorial-flow-section__label">Pickup flow</div>
+                <div className="tutorial-current-status">
+                  <span className="tutorial-current-status__label">
+                    Current status
+                  </span>
+                  <span className="badge badge--ready">
+                    {t('donorListFood.status.readyForPickup')}
+                  </span>
+                </div>
+                <div className="tutorial-status-journey">
+                  <span className="badge badge--available">
+                    {t('donorListFood.status.available')}
+                  </span>
+                  <span className="badge badge--claimed">
+                    {t('donorListFood.status.claimed')}
+                  </span>
+                  <span className="badge badge--ready">
+                    {t('donorListFood.status.readyForPickup')}
+                  </span>
+                  <span className="badge badge--completed tutorial-status-journey__muted">
+                    {t('donorListFood.status.completed')}
+                  </span>
+                </div>
+              </div>
+
+              <div className="donation-actions">
+                <button className="donation-action-button secondary" disabled>
+                  {t('donorListFood.openChat')}
+                </button>
+                <button className="donation-action-button primary" disabled>
+                  {t('donorListFood.enterPickupCode')}
+                </button>
+              </div>
+            </article>
+          )}
+
           {items.map(item => {
             const normalizedStatus = normalizeStatus(item.status);
             const resolvedFoodType = item.foodType || item.foodCategories?.[0];
