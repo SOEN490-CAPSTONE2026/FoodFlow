@@ -28,7 +28,9 @@ describe('PaymentSuccess', () => {
     it('should render success message when redirect_status is succeeded', () => {
       renderComponent('?redirect_status=succeeded&payment_intent=pi_123456789');
 
-      expect(screen.getByText(/Thank You for Your Donation!/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Thank You for Your Donation!/i)
+      ).toBeInTheDocument();
       expect(
         screen.getByText(
           /Your generous contribution helps us fight food waste and feed communities in need/i
@@ -57,7 +59,9 @@ describe('PaymentSuccess', () => {
         '?redirect_status=succeeded&payment_intent=pi_1234567890123456789012345'
       );
 
-      expect(screen.getByText(/Payment ID: pi_1234567890123456.../i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Payment ID: pi_1234567890123456.../i)
+      ).toBeInTheDocument();
     });
 
     it('should display impact message', () => {
@@ -94,9 +98,7 @@ describe('PaymentSuccess', () => {
 
       expect(screen.getByText(/Payment Failed/i)).toBeInTheDocument();
       expect(
-        screen.getByText(
-          /Unfortunately, your payment could not be processed/i
-        )
+        screen.getByText(/Unfortunately, your payment could not be processed/i)
       ).toBeInTheDocument();
     });
 
@@ -145,7 +147,9 @@ describe('PaymentSuccess', () => {
     it('should render processing message when no redirect_status', () => {
       renderComponent('?payment_intent=pi_processing123');
 
-      expect(screen.getByText(/Processing Your Payment.../i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Processing Your Payment.../i)
+      ).toBeInTheDocument();
       expect(
         screen.getByText(/Please wait while we confirm your donation/i)
       ).toBeInTheDocument();
@@ -162,7 +166,9 @@ describe('PaymentSuccess', () => {
     it('should render processing message for unknown redirect_status', () => {
       renderComponent('?redirect_status=unknown&payment_intent=pi_123');
 
-      expect(screen.getByText(/Processing Your Payment.../i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Processing Your Payment.../i)
+      ).toBeInTheDocument();
     });
   });
 
@@ -170,13 +176,17 @@ describe('PaymentSuccess', () => {
     it('should handle missing payment_intent parameter', () => {
       renderComponent('?redirect_status=succeeded');
 
-      expect(screen.getByText(/Thank You for Your Donation!/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Thank You for Your Donation!/i)
+      ).toBeInTheDocument();
     });
 
     it('should handle missing all parameters', () => {
       renderComponent('');
 
-      expect(screen.getByText(/Processing Your Payment.../i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Processing Your Payment.../i)
+      ).toBeInTheDocument();
     });
   });
 });

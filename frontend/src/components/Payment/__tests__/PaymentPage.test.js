@@ -14,8 +14,12 @@ jest.mock('@stripe/stripe-js', () => ({
 }));
 
 jest.mock('@stripe/react-stripe-js', () => ({
-  Elements: ({ children }) => <div data-testid="stripe-elements">{children}</div>,
-  PaymentElement: () => <div data-testid="payment-element">Payment Element</div>,
+  Elements: ({ children }) => (
+    <div data-testid="stripe-elements">{children}</div>
+  ),
+  PaymentElement: () => (
+    <div data-testid="payment-element">Payment Element</div>
+  ),
   useStripe: () => ({
     confirmPayment: jest.fn(),
   }),
@@ -87,7 +91,9 @@ describe('PaymentPage', () => {
       renderComponent();
 
       expect(
-        screen.getByText(/Secured by Stripe - Your payment information is encrypted and secure/i)
+        screen.getByText(
+          /Secured by Stripe - Your payment information is encrypted and secure/i
+        )
       ).toBeInTheDocument();
     });
 
@@ -254,7 +260,9 @@ describe('PaymentPage', () => {
       fireEvent.click(continueBtn);
 
       await waitFor(() => {
-        expect(screen.getByText('Payment initialization failed')).toBeInTheDocument();
+        expect(
+          screen.getByText('Payment initialization failed')
+        ).toBeInTheDocument();
       });
     });
 
@@ -328,7 +336,9 @@ describe('PaymentPage', () => {
       fireEvent.click(continueBtn);
 
       // Error should appear
-      const errorMessage = screen.getByText(/Please enter a valid amount \(minimum \$1\)/i);
+      const errorMessage = screen.getByText(
+        /Please enter a valid amount \(minimum \$1\)/i
+      );
       expect(errorMessage).toBeInTheDocument();
 
       // Select a valid amount
@@ -358,7 +368,9 @@ describe('PaymentPage', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('stripe-payment-form')).toBeInTheDocument();
-        expect(screen.getByText('Payment Form - Amount: $100')).toBeInTheDocument();
+        expect(
+          screen.getByText('Payment Form - Amount: $100')
+        ).toBeInTheDocument();
       });
     });
 
@@ -395,7 +407,9 @@ describe('PaymentPage', () => {
       const amountBtn = screen.getByText('$25');
       fireEvent.click(amountBtn);
 
-      expect(screen.getByText(/Continue to Payment \(\$25\)/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Continue to Payment \(\$25\)/i)
+      ).toBeInTheDocument();
     });
 
     it('should display custom amount in continue button', () => {
@@ -404,7 +418,9 @@ describe('PaymentPage', () => {
       const customInput = screen.getByPlaceholderText('0.00');
       fireEvent.change(customInput, { target: { value: '37.50' } });
 
-      expect(screen.getByText(/Continue to Payment \(\$37\.5\)/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Continue to Payment \(\$37\.5\)/i)
+      ).toBeInTheDocument();
     });
 
     it('should handle amount with custom decimal format', async () => {

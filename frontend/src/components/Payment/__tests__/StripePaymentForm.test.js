@@ -10,7 +10,9 @@ const mockUseStripe = jest.fn();
 const mockUseElements = jest.fn();
 
 jest.mock('@stripe/react-stripe-js', () => ({
-  PaymentElement: () => <div data-testid="payment-element">Payment Element</div>,
+  PaymentElement: () => (
+    <div data-testid="payment-element">Payment Element</div>
+  ),
   useStripe: () => mockUseStripe(),
   useElements: () => mockUseElements(),
 }));
@@ -39,7 +41,7 @@ describe('StripePaymentForm', () => {
     jest.clearAllMocks();
     delete window.location;
     window.location = { origin: 'http://localhost:3000' };
-    
+
     // Setup default mock returns
     mockUseStripe.mockReturnValue({
       confirmPayment: mockConfirmPayment,
@@ -78,7 +80,9 @@ describe('StripePaymentForm', () => {
     it('should render submit button', () => {
       renderComponent({ amount: 25 });
 
-      const submitBtn = screen.getByRole('button', { name: /Donate \$25\.00/i });
+      const submitBtn = screen.getByRole('button', {
+        name: /Donate \$25\.00/i,
+      });
       expect(submitBtn).toBeInTheDocument();
     });
 
@@ -111,7 +115,9 @@ describe('StripePaymentForm', () => {
 
       renderComponent();
 
-      const form = screen.getByRole('button', { name: /Donate/i }).closest('form');
+      const form = screen
+        .getByRole('button', { name: /Donate/i })
+        .closest('form');
       fireEvent.submit(form);
 
       await waitFor(() => {
@@ -136,7 +142,9 @@ describe('StripePaymentForm', () => {
 
       renderComponent({ amount: 30 });
 
-      const form = screen.getByRole('button', { name: /Donate \$30\.00/i }).closest('form');
+      const form = screen
+        .getByRole('button', { name: /Donate \$30\.00/i })
+        .closest('form');
       fireEvent.submit(form);
 
       await waitFor(() => {
@@ -156,7 +164,9 @@ describe('StripePaymentForm', () => {
 
       renderComponent();
 
-      const form = screen.getByRole('button', { name: /Donate/i }).closest('form');
+      const form = screen
+        .getByRole('button', { name: /Donate/i })
+        .closest('form');
       fireEvent.submit(form);
 
       expect(screen.getByText('Processing...')).toBeInTheDocument();
@@ -185,7 +195,9 @@ describe('StripePaymentForm', () => {
 
       renderComponent();
 
-      const form = screen.getByRole('button', { name: /Donate/i }).closest('form');
+      const form = screen
+        .getByRole('button', { name: /Donate/i })
+        .closest('form');
       fireEvent.submit(form);
 
       await waitFor(() => {
@@ -200,7 +212,9 @@ describe('StripePaymentForm', () => {
 
       renderComponent();
 
-      const form = screen.getByRole('button', { name: /Donate/i }).closest('form');
+      const form = screen
+        .getByRole('button', { name: /Donate/i })
+        .closest('form');
       fireEvent.submit(form);
 
       await waitFor(() => {
@@ -215,7 +229,9 @@ describe('StripePaymentForm', () => {
 
       renderComponent();
 
-      const form = screen.getByRole('button', { name: /Donate/i }).closest('form');
+      const form = screen
+        .getByRole('button', { name: /Donate/i })
+        .closest('form');
       fireEvent.submit(form);
 
       await waitFor(() => {
@@ -232,7 +248,9 @@ describe('StripePaymentForm', () => {
 
       renderComponent();
 
-      const form = screen.getByRole('button', { name: /Donate/i }).closest('form');
+      const form = screen
+        .getByRole('button', { name: /Donate/i })
+        .closest('form');
       fireEvent.submit(form);
 
       await waitFor(() => {
@@ -252,8 +270,10 @@ describe('StripePaymentForm', () => {
 
       renderComponent();
 
-      const form = screen.getByRole('button', { name: /Donate/i }).closest('form');
-      
+      const form = screen
+        .getByRole('button', { name: /Donate/i })
+        .closest('form');
+
       // First submission with error
       fireEvent.submit(form);
 
@@ -286,7 +306,9 @@ describe('StripePaymentForm', () => {
     it('should format amount in submit button', () => {
       renderComponent({ amount: 123.45 });
 
-      expect(screen.getByRole('button', { name: /Donate \$123\.45/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /Donate \$123\.45/i })
+      ).toBeInTheDocument();
     });
   });
 
@@ -298,7 +320,9 @@ describe('StripePaymentForm', () => {
 
       renderComponent();
 
-      const form = screen.getByRole('button', { name: /Donate/i }).closest('form');
+      const form = screen
+        .getByRole('button', { name: /Donate/i })
+        .closest('form');
       fireEvent.submit(form);
 
       await waitFor(() => {
