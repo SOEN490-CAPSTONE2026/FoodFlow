@@ -165,23 +165,26 @@ export default function AIDonationForm() {
           }`}
         >
           <div className="step-number">
-            <Upload size={14} />
+            <Upload size={16} />
           </div>
-          <span>{t('aiDonation.steps.upload')}</span>
+          <span className="step-label">{t('aiDonation.steps.upload')}</span>
+          <span className="step-sublabel">Step 1</span>
         </div>
         <div className="step-line"></div>
         <div className={`step ${step === 'review' ? 'active' : ''}`}>
           <div className="step-number">
-            <FileCheck2 size={14} />
+            <FileCheck2 size={16} />
           </div>
-          <span>{t('aiDonation.steps.review')}</span>
+          <span className="step-label">{t('aiDonation.steps.review')}</span>
+          <span className="step-sublabel">Step 2</span>
         </div>
         <div className="step-line"></div>
-        <div className="step">
+        <div className={`step ${step === 'submit' ? 'active' : ''}`}>
           <div className="step-number">
-            <Send size={14} />
+            <Send size={16} />
           </div>
-          <span>{t('aiDonation.steps.submit')}</span>
+          <span className="step-label">{t('aiDonation.steps.submit')}</span>
+          <span className="step-sublabel">Step 3</span>
         </div>
       </div>
 

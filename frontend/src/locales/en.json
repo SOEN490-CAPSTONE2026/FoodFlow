@@ -2627,5 +2627,70 @@
       "phoneLabel": "Phone Support",
       "phoneAvailability": "Mon-Fri, 9AM-5PM EST"
     }
+  },
+  "aiDonation": {
+    "backToDashboard": "Back to Dashboard",
+    "title": "Create Donation with AI",
+    "subtitle": "Upload a label photo to automatically extract product details",
+    "steps": {
+      "upload": "Upload",
+      "review": "Review",
+      "submit": "Submit"
+    },
+    "processing": {
+      "title": "Processing Image",
+      "hint": "This may take up to 30 seconds.",
+      "readingLabel": "Reading label",
+      "extractingData": "Extracting data",
+      "preparingResults": "Preparing results",
+      "loadingMaps": "Loading maps"
+    },
+    "toast": {
+      "extractionComplete": "Extraction complete. Review the details before submitting.",
+      "aiFailed": "AI extraction failed",
+      "analysisFailed": "Image analysis failed",
+      "requestTimedOut": "Request timed out. Please try again with a smaller image.",
+      "networkError": "Network error. Check your connection and try again."
+    },
+    "upload": {
+      "title": "Upload Label Image",
+      "subtitle": "Upload a clear image including:",
+      "required": {
+        "productName": "Product name",
+        "nutritionFacts": "Nutritional values",
+        "ingredientsList": "Ingredient list",
+        "expiryDate": "Expiration date",
+        "allergenInfo": "Allergen information"
+      },
+      "ariaLabel": "Upload label image",
+      "dragAndDrop": "Drag and drop your image here or click to browse",
+      "or": "OR",
+      "chooseFile": "Choose File",
+      "takePhoto": "Take Photo",
+      "fileTypes": "JPG, PNG, HEIC/HEIF",
+      "maxSize": "Maximum 5 MB",
+      "selectedFile": "Selected File",
+      "remove": "Remove",
+      "continueToReview": "Continue to Review",
+      "alternative": "OR",
+      "manualEntry": "Continue with manual entry",
+      "guidelinesTitle": "Tips for a Good Photo",
+      "guidelinesSubtitle": "Optimize extraction quality",
+      "uploadCardTitle": "Upload Label Image",
+      "uploadCardSubtitle": "Include these elements in your photo",
+      "tips": {
+        "goodLighting": "Good natural lighting",
+        "noGlare": "No glare or shadows",
+        "labelVisible": "Label fully visible",
+        "textInFocus": "Sharp and clear photo",
+        "includeExpiry": "Tight crop on label"
+      },
+      "manualHint": "Clear images improve extraction accuracy.",
+      "errors": {
+        "selectFile": "Please select an image to continue.",
+        "unsupportedType": "Unsupported file type. Please use JPG, PNG or HEIC.",
+        "fileTooLarge": "File exceeds 5 MB. Please choose a smaller image."
+      }
+    }
   }
 }
