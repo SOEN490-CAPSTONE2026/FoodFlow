@@ -956,6 +956,12 @@
   },
   "notifications": {
     "newMessageFrom": "Nova mensagem de",
+    "adminAlertHeaders": {
+      "warning": "Aviso",
+      "safetyNotice": "Aviso de seguranca",
+      "complianceReminder": "Lembrete de conformidade",
+      "adminAlert": "Alerta do administrador"
+    },
     "claimConfirmed": "Reclamação confirmada",
     "claimStatus": "Status da reclamação",
     "successfullyClaimed": "Reclamação bem-sucedida de \"{{foodTitle}}\" de {{donorName}}",
@@ -2250,6 +2256,11 @@
       "safety": "Informações importantes de segurança",
       "compliance": "Lembrar requisitos de conformidade",
       "custom": "Enviar uma mensagem personalizada"
+    },
+    "alertTemplates": {
+      "warning": "Caro usuário,\n\nDetectamos uma violação de política em sua atividade recente. Revise nossas políticas da plataforma e garanta conformidade para evitar novas ações.\n\nObrigado pela cooperação.",
+      "safety": "Caro usuário,\n\nObserve as seguintes diretrizes de segurança ao lidar com doações de alimentos:\n\n- Manter temperaturas adequadas de armazenamento\n- Verificar datas de validade regularmente\n- Seguir protocolos de higiene\n\nSua segurança e a dos beneficiários é nossa prioridade.",
+      "compliance": "Caro usuário,\n\nEste é um lembrete amigável para garantir que sua conta atenda todos os requisitos de conformidade:\n\n✓ Informações de perfil completas\n✓ Documentação atualizada\n✓ Adesão às políticas da plataforma\n\nRevise as configurações da sua conta e atualize qualquer informação ausente.\n\nObrigado por manter a conformidade."
     },
     "notifications": {
       "reasonRequired": "Informe um motivo para a desativação",

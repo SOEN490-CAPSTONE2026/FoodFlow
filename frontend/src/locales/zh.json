@@ -956,6 +956,12 @@
   },
   "notifications": {
     "newMessageFrom": "来自的新消息",
+    "adminAlertHeaders": {
+      "warning": "警告",
+      "safetyNotice": "安全提示",
+      "complianceReminder": "合规提醒",
+      "adminAlert": "管理员提醒"
+    },
     "claimConfirmed": "认领已确认",
     "claimStatus": "认领状态",
     "successfullyClaimed": "成功认领来自{{donorName}}的\"{{foodTitle}}\"",
@@ -2250,6 +2256,11 @@
       "safety": "重要安全信息",
       "compliance": "提醒合规要求",
       "custom": "发送自定义消息"
+    },
+    "alertTemplates": {
+      "warning": "尊敬的用户，\n\n我们在您最近的活动中检测到政策违规。请查看平台政策并确保合规，以避免进一步处理。\n\n感谢您的配合。",
+      "safety": "尊敬的用户，\n\n处理食物捐赠时请注意以下安全指引：\n\n- 保持适当的食物储存温度\n- 定期检查保质期\n- 遵守卫生流程\n\n您和受助者的安全是我们的首要任务。",
+      "compliance": "尊敬的用户，\n\n这是一次友好提醒，请确保您的账户满足所有合规要求：\n\n✓ 完整的资料信息\n✓ 最新的证明文件\n✓ 遵守平台政策\n\n请检查账户设置并更新任何缺失信息。\n\n感谢您保持合规。"
     },
     "notifications": {
       "reasonRequired": "请输入停用原因",

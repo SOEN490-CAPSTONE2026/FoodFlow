@@ -22,6 +22,7 @@ import com.example.foodflow.repository.UserRepository;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -36,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -54,6 +56,7 @@ public class AdminUserService {
     private final MessageRepository messageRepository;
     private final AuditLogger auditLogger;
     private final AuditLogRepository auditLogRepository;
+    private final MessageSource messageSource;
 
     public AdminUserService(UserRepository userRepository,
             SurplusPostRepository surplusPostRepository,
@@ -64,7 +67,8 @@ public class AdminUserService {
             ConversationRepository conversationRepository,
             MessageRepository messageRepository,
             AuditLogger auditLogger,
-            AuditLogRepository auditLogRepository) {
+            AuditLogRepository auditLogRepository,
+            MessageSource messageSource) {
         this.userRepository = userRepository;
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;
@@ -75,6 +79,7 @@ public class AdminUserService {
         this.messageRepository = messageRepository;
         this.auditLogger = auditLogger;
         this.auditLogRepository = auditLogRepository;
+        this.messageSource = messageSource;
     }
 
     /**
@@ -312,16 +317,42 @@ public class AdminUserService {
      */
     @Transactional
     public void sendAlertToUser(Long userId, String message) {
+        sendAlertToUser(userId, message, null, null);
+    }
+
+    @Transactional
+    public void sendAlertToUser(Long userId, String message, String alertType) {
+        sendAlertToUser(userId, message, alertType, null);
+    }
+
+    @Transactional
+    public void sendAlertToUser(Long userId, String message, String alertType, Long adminId) {
         log.info("Sending alert to user {}: {}", userId, message);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
 
+        String alertHeader = mapAlertTypeToHeader(alertType);
+        String preferredLanguage = normalizeSupportedLanguage(user.getLanguagePreference());
+        String deliveredMessage = resolveDeliveredAlertMessage(alertType, message, preferredLanguage);
+        Long conversationId = null;
+
+        User adminSender = resolveAdminSender(adminId);
+        if (adminSender != null) {
+            conversationId = persistAdminAlertMessage(user, adminSender, deliveredMessage);
+        }
+
         // Create a notification object similar to MessageResponse
         java.util.Map<String, Object> alertNotification = new java.util.HashMap<>();
-        alertNotification.put("senderName", "🔔 Admin Alert");
-        alertNotification.put("messageBody", message);
+        alertNotification.put("senderName", alertHeader);
+        alertNotification.put("type", "ADMIN_ALERT");
+        alertNotification.put("alertType", alertType);
+        alertNotification.put("preferredLanguage", preferredLanguage);
+        alertNotification.put("messageBody", deliveredMessage);
         alertNotification.put("timestamp", LocalDateTime.now().toString());
+        if (conversationId != null) {
+            alertNotification.put("conversationId", conversationId);
+        }
 
         // Send via WebSocket using the SAME pattern as MessageService
         messagingTemplate.convertAndSendToUser(
@@ -334,7 +365,7 @@ public class AdminUserService {
         // Send alert via email
         try {
             String userName = user.getFullName() != null ? user.getFullName() : user.getEmail();
-            emailService.sendAdminAlertEmail(user.getEmail(), userName, message);
+            emailService.sendAdminAlertEmail(user.getEmail(), userName, deliveredMessage, preferredLanguage);
             log.info("Admin alert email sent to userId={} ({})", user.getId(), user.getEmail());
         } catch (Exception e) {
             log.error("Failed to send admin alert email to userId={}: {}", user.getId(), e.getMessage(), e);
@@ -342,9 +373,117 @@ public class AdminUserService {
 
         // Also add to admin_notes for record-keeping
         String currentNotes = user.getAdminNotes() != null ? user.getAdminNotes() : "";
-        String alertNote = String.format("\n[ALERT %s]: %s", LocalDateTime.now(), message);
+        String alertNote = String.format("\n[%s %s]: %s", alertHeader.toUpperCase(), LocalDateTime.now(), deliveredMessage);
         user.setAdminNotes(currentNotes + alertNote);
         userRepository.save(user);
+    }
+
+    private String resolveDeliveredAlertMessage(String alertType, String fallbackMessage, String languageCode) {
+        String normalizedType = alertType == null ? "" : alertType.trim().toLowerCase(Locale.ROOT);
+        if ("custom".equals(normalizedType)) {
+            return fallbackMessage;
+        }
+
+        Locale locale = localeFromLanguage(languageCode);
+        String resolved = switch (normalizedType) {
+            case "warning" -> messageSource.getMessage(
+                    "admin.alert.template.warning",
+                    null,
+                    fallbackMessage,
+                    locale);
+            case "safety" -> messageSource.getMessage(
+                    "admin.alert.template.safety",
+                    null,
+                    fallbackMessage,
+                    locale);
+            case "compliance" -> messageSource.getMessage(
+                    "admin.alert.template.compliance",
+                    null,
+                    fallbackMessage,
+                    locale);
+            default -> fallbackMessage;
+        };
+
+        return resolved != null ? resolved : fallbackMessage;
+    }
+
+    private Locale localeFromLanguage(String languageCode) {
+        return switch (normalizeSupportedLanguage(languageCode)) {
+            case "fr" -> Locale.FRENCH;
+            case "es" -> new Locale("es");
+            case "zh" -> new Locale("zh");
+            case "ar" -> new Locale("ar");
+            case "pt" -> new Locale("pt");
+            default -> Locale.ENGLISH;
+        };
+    }
+
+    private User resolveAdminSender(Long adminId) {
+        if (adminId != null) {
+            Optional<User> adminById = userRepository.findById(adminId)
+                    .filter(admin -> admin.getRole() == UserRole.ADMIN);
+            if (adminById.isPresent()) {
+                return adminById.get();
+            }
+            log.warn("Admin sender with id {} not found or not ADMIN", adminId);
+        }
+
+        List<User> admins = userRepository.findByRole(UserRole.ADMIN);
+        if (admins != null && !admins.isEmpty()) {
+            return admins.get(0);
+        }
+
+        log.warn("No ADMIN user available to persist alert message thread");
+        return null;
+    }
+
+    private Long persistAdminAlertMessage(User user, User adminUser, String messageBody) {
+        Long userId1 = Math.min(adminUser.getId(), user.getId());
+        Long userId2 = Math.max(adminUser.getId(), user.getId());
+
+        Optional<Conversation> existing = conversationRepository.findByUsers(userId1, userId2);
+        Conversation conversation = existing.orElseGet(() -> conversationRepository.save(new Conversation(adminUser, user)));
+
+        Message message = new Message(conversation, adminUser, messageBody);
+        message.setMessageType("ADMIN_ALERT");
+        messageRepository.save(message);
+
+        conversation.setLastMessageAt(LocalDateTime.now());
+        String preview = messageBody.length() > 100 ? messageBody.substring(0, 100) + "..." : messageBody;
+        conversation.setLastMessagePreview(preview);
+        conversationRepository.save(conversation);
+
+        return conversation.getId();
+    }
+
+    private String mapAlertTypeToHeader(String alertType) {
+        if (alertType == null) {
+            return "Admin Alert";
+        }
+
+        return switch (alertType.trim().toLowerCase()) {
+            case "warning" -> "Warning";
+            case "safety" -> "Safety Notice";
+            case "compliance" -> "Compliance Reminder";
+            case "custom" -> "Admin Alert";
+            default -> "Admin Alert";
+        };
+    }
+
+    private String normalizeSupportedLanguage(String languagePreference) {
+        if (languagePreference == null || languagePreference.isBlank()) {
+            return "en";
+        }
+
+        String normalized = languagePreference.trim().toLowerCase(Locale.ROOT);
+        if (normalized.contains("-")) {
+            normalized = normalized.substring(0, normalized.indexOf('-'));
+        }
+
+        return switch (normalized) {
+            case "en", "fr", "es", "zh", "ar", "pt" -> normalized;
+            default -> "en";
+        };
     }
 
     /**

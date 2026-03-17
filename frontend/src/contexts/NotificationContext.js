@@ -13,8 +13,20 @@ export const useNotification = () => {
 export const NotificationProvider = ({ children }) => {
   const [notification, setNotification] = useState(null);
 
-  const showNotification = (senderName, message) => {
-    setNotification({ senderName, message });
+  const showNotification = (
+    senderName,
+    message,
+    type = null,
+    alertType = null,
+    preferredLanguage = null
+  ) => {
+    setNotification({
+      senderName,
+      message,
+      type,
+      alertType,
+      preferredLanguage,
+    });
   };
 
   const clearNotification = () => {
