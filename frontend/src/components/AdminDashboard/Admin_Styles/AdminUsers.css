@@ -628,6 +628,15 @@
   color: #1b4965;
 }
 
+.modal-content:not(.modal-user-detail) .modal-close {
+  top: 1px;
+  right: 12px;
+}
+
+.modal-content:not(.modal-user-detail) .modal-header {
+  padding-right: 40px;
+}
+
 .modal-alert {
   max-width: 520px;
 }
