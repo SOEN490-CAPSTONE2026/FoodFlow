@@ -1395,15 +1395,6 @@ const AdminUsers = () => {
                           className="btn-modify-document"
                           onClick={() => setShowUploadDocumentModal(true)}
                           title="Upload or replace document"
-                          style={{
-                            padding: '6px 12px',
-                            fontSize: '14px',
-                            backgroundColor: '#0077b6',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                          }}
                         >
                           {Edit3 && (
                             <Edit3 size={16} style={{ marginRight: '4px' }} />
