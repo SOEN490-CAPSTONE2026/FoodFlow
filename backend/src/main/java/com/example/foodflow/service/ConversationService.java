@@ -12,27 +12,47 @@ import com.example.foodflow.repository.ConversationRepository;
 import com.example.foodflow.repository.MessageRepository;
 import com.example.foodflow.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.Optional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class ConversationService {
-    
+    private static final Logger logger = LoggerFactory.getLogger(ConversationService.class);
+
     @Autowired
     private ConversationRepository conversationRepository;
-    
+
     @Autowired
     private MessageRepository messageRepository;
-    
+
     @Autowired
     private UserRepository userRepository;
 
     @Autowired
     private SurplusPostRepository surplusPostRepository;
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+
+    @Autowired
+    private EmailService emailService;
+
+    @Autowired
+    private SmsService smsService;
+
+    @Autowired
+    private NotificationPreferenceService notificationPreferenceService;
+    
+    @Autowired(required = false)
+    private DonationImageResolverService donationImageResolverService;
 
     
     /**
@@ -56,9 +76,32 @@ public class ConversationService {
                     currentUser.getId()
                 );
                 
-                return new ConversationResponse(conv, currentUser, lastMessagePreview, unreadCount, true);
+                return enrichConversationResponse(
+                    new ConversationResponse(conv, currentUser, lastMessagePreview, unreadCount, true),
+                    conv
+                );
             })
             .collect(Collectors.toList());
+    }
+
+    /**
+     * Create or get a direct (non-donation) conversation between two users.
+     * Used for support escalation and other person-to-person threads.
+     */
+    @Transactional
+    public Conversation createOrGetDirectConversation(User userA, User userB) {
+        if (userA == null || userB == null || userA.getId() == null || userB.getId() == null) {
+            throw new IllegalArgumentException("Both conversation participants must be valid users");
+        }
+        if (userA.getId().equals(userB.getId())) {
+            throw new IllegalArgumentException("Cannot create conversation with the same user");
+        }
+
+        Long userId1 = Math.min(userA.getId(), userB.getId());
+        Long userId2 = Math.max(userA.getId(), userB.getId());
+
+        return conversationRepository.findByUsers(userId1, userId2)
+            .orElseGet(() -> conversationRepository.save(new Conversation(userA, userB)));
     }
     
     /**
@@ -108,7 +151,10 @@ public class ConversationService {
             conversationRepository.save(conversation);
         }
         
-        return new ConversationResponse(conversation, currentUser, lastMessagePreview, unreadCount, conversationAlreadyExists);
+        return enrichConversationResponse(
+            new ConversationResponse(conversation, currentUser, lastMessagePreview, unreadCount, conversationAlreadyExists),
+            conversation
+        );
     }
     
     /**
@@ -146,7 +192,10 @@ public class ConversationService {
             currentUser.getId()
         );
         
-        return new ConversationResponse(conversation, currentUser, lastMessagePreview, unreadCount, true);
+        return enrichConversationResponse(
+            new ConversationResponse(conversation, currentUser, lastMessagePreview, unreadCount, true),
+            conversation
+        );
     }
 
     /**
@@ -170,7 +219,10 @@ public class ConversationService {
             currentUser.getId()
         );
         
-        return new ConversationResponse(conversation, currentUser, lastMessagePreview, unreadCount, true);
+        return enrichConversationResponse(
+            new ConversationResponse(conversation, currentUser, lastMessagePreview, unreadCount, true),
+            conversation
+        );
     }
 
      /**
@@ -191,12 +243,21 @@ public class ConversationService {
         if (currentUser.getId().equals(otherUserId)) {
             throw new IllegalArgumentException("Cannot create conversation with yourself");
         }
-        
-        // Check if conversation already exists for this post
-        Conversation conversation = conversationRepository.findByPostIdAndUserId(postId, currentUser.getId())
+
+        // Enforce donation-thread model: one conversation per (postId, receiverId).
+        User donor = post.getDonor();
+        User receiver;
+        if (currentUser.getId().equals(donor.getId())) {
+            receiver = otherUser;
+        } else if (otherUser.getId().equals(donor.getId())) {
+            receiver = currentUser;
+        } else {
+            throw new IllegalArgumentException("Conversation participants must include the donation donor");
+        }
+
+        Conversation conversation = conversationRepository.findByPostIdAndReceiverId(postId, receiver.getId())
             .orElseGet(() -> {
-                // Create new conversation linked to post
-                Conversation newConv = new Conversation(currentUser, otherUser, post);
+                Conversation newConv = Conversation.createDonationThread(donor, receiver, post);
                 return conversationRepository.save(newConv);
             });
         
@@ -212,6 +273,143 @@ public class ConversationService {
             currentUser.getId()
         );
         
-        return new ConversationResponse(conversation, currentUser, lastMessagePreview, unreadCount, true);
+        return enrichConversationResponse(
+            new ConversationResponse(conversation, currentUser, lastMessagePreview, unreadCount, true),
+            conversation
+        );
+    }
+
+    /**
+     * Express interest in a donation - creates a donation-anchored thread.
+     * Uses (donation_id, receiver_id) as the unique key.
+     * If a thread already exists for this donation+receiver, returns it.
+     * If new, creates the thread with a system message and notifies the donor.
+     */
+    @Transactional
+    public ConversationResponse expressInterestInDonation(Long postId, User receiver) {
+        // Validate post exists
+        SurplusPost post = surplusPostRepository.findById(postId)
+            .orElseThrow(() -> new IllegalArgumentException("Donation not found"));
+
+        User donor = post.getDonor();
+
+        // Prevent donor from expressing interest in their own donation
+        if (receiver.getId().equals(donor.getId())) {
+            throw new IllegalArgumentException("Cannot express interest in your own donation");
+        }
+
+        // Check if thread already exists for this donation + receiver
+        Optional<Conversation> existingThread = conversationRepository.findByPostIdAndReceiverId(postId, receiver.getId());
+
+        boolean alreadyExists = existingThread.isPresent();
+        Conversation conversation;
+        String lastMessagePreview = "No messages yet";
+        long unreadCount = 0L;
+
+        if (alreadyExists) {
+            conversation = existingThread.get();
+
+            // Get last message preview
+            List<Message> messages = messageRepository.findByConversationId(conversation.getId());
+            if (!messages.isEmpty()) {
+                lastMessagePreview = messages.get(messages.size() - 1).getMessageBody();
+            }
+            unreadCount = messageRepository.countUnreadInConversation(conversation.getId(), receiver.getId());
+        } else {
+            // Create new donation-anchored thread
+            conversation = Conversation.createDonationThread(donor, receiver, post);
+            conversation = conversationRepository.save(conversation);
+
+            // Get receiver name for the system message
+            String receiverName = receiver.getOrganization() != null ?
+                receiver.getOrganization().getName() : receiver.getEmail();
+
+            // Create system message to kick off the conversation
+            String systemMessageBody = receiverName + " is interested in your donation: " + post.getTitle();
+            Message systemMessage = new Message(conversation, receiver, systemMessageBody);
+            systemMessage.setMessageType("SYSTEM");
+            messageRepository.save(systemMessage);
+
+            // Update conversation timestamps and preview
+            conversation.setLastMessageAt(LocalDateTime.now());
+            conversation.setLastMessagePreview(systemMessageBody);
+            conversationRepository.save(conversation);
+
+            lastMessagePreview = systemMessageBody;
+
+            // Notify donor via WebSocket
+            try {
+                com.example.foodflow.model.dto.ConversationResponse notificationPayload =
+                    enrichConversationResponse(
+                        new com.example.foodflow.model.dto.ConversationResponse(
+                            conversation, donor, lastMessagePreview, 1L, false
+                        ),
+                        conversation
+                    );
+                messagingTemplate.convertAndSendToUser(
+                    donor.getId().toString(),
+                    "/queue/messages",
+                    notificationPayload
+                );
+                logger.info("Sent interest notification to donor userId={} for postId={}", donor.getId(), postId);
+            } catch (Exception e) {
+                logger.error("Failed to send WebSocket interest notification to donor: {}", e.getMessage());
+            }
+
+            // Send email notification to donor
+            try {
+                boolean emailEnabled = notificationPreferenceService.shouldSendNotification(donor, "newMessageFromReceiver", "email");
+                
+                if (emailEnabled && donor.getEmail() != null) {
+                    String donorName = donor.getOrganization() != null ? 
+                        donor.getOrganization().getName() : donor.getEmail();
+                    
+                    emailService.sendNewMessageNotification(
+                        donor.getEmail(),
+                        donorName,
+                        receiverName,
+                        systemMessageBody
+                    );
+                    logger.info("Sent interest email notification to donor userId={}", donor.getId());
+                }
+            } catch (Exception e) {
+                logger.error("Failed to send email interest notification to donor userId={}: {}", donor.getId(), e.getMessage());
+                // Don't fail the whole operation if email fails
+            }
+
+            // Send SMS notification to donor if enabled
+            try {
+                boolean smsEnabled = notificationPreferenceService.shouldSendNotification(donor, "newMessageFromReceiver", "sms");
+                
+                if (smsEnabled && donor.getPhone() != null && !donor.getPhone().isEmpty()) {
+                    smsService.sendNewMessageNotification(donor.getPhone(), receiverName, systemMessageBody);
+                    logger.info("Sent interest SMS notification to donor userId={}", donor.getId());
+                }
+            } catch (Exception e) {
+                logger.error("Failed to send SMS interest notification to donor userId={}: {}", donor.getId(), e.getMessage());
+                // Don't fail the whole operation if SMS fails
+            }
+        }
+
+        return enrichConversationResponse(
+            new ConversationResponse(conversation, receiver, lastMessagePreview, unreadCount, alreadyExists),
+            conversation
+        );
+    }
+
+    private ConversationResponse enrichConversationResponse(ConversationResponse response, Conversation conversation) {
+        if (response == null || conversation == null || conversation.getSurplusPost() == null) {
+            return response;
+        }
+        if (donationImageResolverService != null && conversation.getSurplusPost().getDonor() != null) {
+            response.setResolvedDonationImageUrl(
+                donationImageResolverService.resolveDonationImageUrl(
+                    conversation.getSurplusPost().getDonor(),
+                    conversation.getSurplusPost().getFoodType(),
+                    conversation.getSurplusPost().getId()
+                )
+            );
+        }
+        return response;
     }
 }

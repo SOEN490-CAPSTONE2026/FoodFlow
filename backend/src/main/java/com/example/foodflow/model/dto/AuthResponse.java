@@ -11,6 +11,7 @@ public class AuthResponse {
     private String accountStatus;
     private Boolean emailNotificationsEnabled;
     private Boolean smsNotificationsEnabled;
+    private String languagePreference;
 
     public AuthResponse(String token, String email, String role, String message) {
         this.token = token;
@@ -99,4 +100,7 @@ public class AuthResponse {
 
     public Boolean getSmsNotificationsEnabled() { return smsNotificationsEnabled; }
     public void setSmsNotificationsEnabled(Boolean smsNotificationsEnabled) { this.smsNotificationsEnabled = smsNotificationsEnabled; }
+
+    public String getLanguagePreference() { return languagePreference; }
+    public void setLanguagePreference(String languagePreference) { this.languagePreference = languagePreference; }
 }

@@ -4,10 +4,15 @@ import com.example.foodflow.model.dto.CompleteSurplusRequest;
 import com.example.foodflow.model.dto.ConfirmPickupRequest;
 import com.example.foodflow.model.dto.CreateSurplusRequest;
 import com.example.foodflow.model.dto.DonationTimelineDTO;
+import com.example.foodflow.model.dto.ExpiryOverrideRequest;
 import com.example.foodflow.model.dto.SurplusResponse;
 import com.example.foodflow.model.dto.SurplusFilterRequest;
 import com.example.foodflow.model.dto.UploadEvidenceResponse;
 import com.example.foodflow.model.entity.User;
+import com.example.foodflow.model.types.DietaryMatchMode;
+import com.example.foodflow.model.types.DietaryTag;
+import com.example.foodflow.model.types.FoodTaxonomyContract;
+import com.example.foodflow.model.types.FoodType;
 import com.example.foodflow.service.SurplusService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -19,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -76,10 +82,18 @@ public class SurplusController {
     @GetMapping
     @PreAuthorize("hasAuthority('RECEIVER')")
     public ResponseEntity<List<SurplusResponse>> getAllAvailableSurplus(
+            @RequestParam(required = false) String foodType,
+            @RequestParam(required = false) String dietaryTags,
+            @RequestParam(defaultValue = "ANY") String dietaryMatch,
+            @RequestParam(required = false) String sort,
             @AuthenticationPrincipal User receiver) {
-        // Use empty filter to get all available posts, but with timezone conversion
+        // Use filters if provided, default to available posts.
         SurplusFilterRequest filterRequest = new SurplusFilterRequest();
         filterRequest.setStatus("AVAILABLE");
+        filterRequest.setFoodTypes(parseFoodTypes(foodType));
+        filterRequest.setDietaryTags(parseDietaryTags(dietaryTags));
+        filterRequest.setDietaryMatch(parseDietaryMatch(dietaryMatch));
+        filterRequest.setSort(sort);
         List<SurplusResponse> availablePosts = surplusService.searchSurplusPostsForReceiver(filterRequest, receiver);
         return ResponseEntity.ok(availablePosts);
     }
@@ -108,6 +122,10 @@ public class SurplusController {
     @PreAuthorize("hasAuthority('RECEIVER')")
     public ResponseEntity<List<SurplusResponse>> searchSurplusPostsViaParams(
             @RequestParam(required = false) List<String> foodCategories,
+            @RequestParam(required = false) String foodType,
+            @RequestParam(required = false) String dietaryTags,
+            @RequestParam(defaultValue = "ANY") String dietaryMatch,
+            @RequestParam(required = false) String sort,
             @RequestParam(required = false) String expiryBefore,
             @RequestParam(required = false) String status,
             @AuthenticationPrincipal User receiver) {
@@ -116,6 +134,10 @@ public class SurplusController {
         // Create filter request from query parameters
         SurplusFilterRequest filterRequest = new SurplusFilterRequest();
         filterRequest.setFoodCategories(foodCategories);
+        filterRequest.setFoodTypes(parseFoodTypes(foodType));
+        filterRequest.setDietaryTags(parseDietaryTags(dietaryTags));
+        filterRequest.setDietaryMatch(parseDietaryMatch(dietaryMatch));
+        filterRequest.setSort(sort);
         filterRequest.setStatus(status != null ? status : "AVAILABLE");
 
         if (expiryBefore != null && !expiryBefore.trim().isEmpty()) {
@@ -133,6 +155,66 @@ public class SurplusController {
         List<SurplusResponse> filteredPosts = surplusService.searchSurplusPostsForReceiver(filterRequest, receiver);
         return ResponseEntity.ok(filteredPosts);
 
+    }
+
+    private List<FoodType> parseFoodTypes(String rawFoodType) {
+        if (rawFoodType == null || rawFoodType.isBlank()) {
+            return null;
+        }
+
+        String[] parts = rawFoodType.split(",");
+        List<FoodType> values = new ArrayList<>();
+        for (String part : parts) {
+            String normalized = part == null ? "" : part.trim();
+            if (normalized.isEmpty()) {
+                continue;
+            }
+            try {
+                values.add(FoodType.valueOf(normalized));
+            } catch (IllegalArgumentException ex) {
+                throw new IllegalArgumentException(
+                        "Invalid foodType '" + normalized + "'. Allowed values: [" + FoodTaxonomyContract.allowedFoodTypes()
+                                + "]");
+            }
+        }
+        return values;
+    }
+
+    private List<DietaryTag> parseDietaryTags(String rawDietaryTags) {
+        if (rawDietaryTags == null || rawDietaryTags.isBlank()) {
+            return null;
+        }
+
+        String[] parts = rawDietaryTags.split(",");
+        List<DietaryTag> values = new ArrayList<>();
+        for (String part : parts) {
+            String normalized = part == null ? "" : part.trim();
+            if (normalized.isEmpty()) {
+                continue;
+            }
+            try {
+                values.add(DietaryTag.valueOf(normalized));
+            } catch (IllegalArgumentException ex) {
+                throw new IllegalArgumentException(
+                        "Invalid dietaryTags value '" + normalized + "'. Allowed values: ["
+                                + FoodTaxonomyContract.allowedDietaryTags()
+                                + "]");
+            }
+        }
+        return values;
+    }
+
+    private DietaryMatchMode parseDietaryMatch(String rawDietaryMatch) {
+        if (rawDietaryMatch == null || rawDietaryMatch.isBlank()) {
+            return DietaryMatchMode.ANY;
+        }
+
+        try {
+            return DietaryMatchMode.valueOf(rawDietaryMatch.trim().toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException(
+                    "Invalid dietaryMatch '" + rawDietaryMatch + "'. Allowed values: [ANY, ALL]");
+        }
     }
 
 
@@ -179,6 +261,25 @@ public class SurplusController {
         return ResponseEntity.noContent().build(); // 204
     }
 
+    @PostMapping("/{id}/expiry/override")
+    @PreAuthorize("hasAnyAuthority('DONOR','ADMIN')")
+    public ResponseEntity<SurplusResponse> overrideExpiry(
+            @PathVariable Long id,
+            @Valid @RequestBody ExpiryOverrideRequest request,
+            @AuthenticationPrincipal User actor) {
+        SurplusResponse response = surplusService.overrideExpiry(id, request.getExpiryDate(), request.getReason(), actor);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}/expiry/override")
+    @PreAuthorize("hasAnyAuthority('DONOR','ADMIN')")
+    public ResponseEntity<SurplusResponse> clearExpiryOverride(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User actor) {
+        SurplusResponse response = surplusService.clearExpiryOverride(id, actor);
+        return ResponseEntity.ok(response);
+    }
+
     /**
      * Upload pickup evidence photo for a donation.
      * Only the donor of this donation can upload evidence.
@@ -205,5 +306,3 @@ public class SurplusController {
     }
 
 }
-
-

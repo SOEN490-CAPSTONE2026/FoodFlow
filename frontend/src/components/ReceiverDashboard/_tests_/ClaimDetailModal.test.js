@@ -15,6 +15,7 @@ jest.mock('react-i18next', () => ({
         'claimDetail.status.readyForPickup': 'Ready for Pickup',
         'claimDetail.status.completed': 'Completed',
         'claimDetail.status.notCompleted': 'Not Completed',
+        'claimDetail.status.expired': 'Expired',
         'claimDetail.defaultTitle': 'Untitled Donation',
         'claimDetail.donationDetails': 'Donation Details',
         'claimDetail.chatWithDonor': 'Chat with {{name}}',
@@ -34,6 +35,14 @@ jest.mock('react-i18next', () => ({
         'claimDetail.hideTimeline': 'Hide Donation Timeline',
         'claimDetail.backToDetails': 'Back to Details',
         'claimDetail.viewPickupSteps': 'View Pickup Steps',
+        'completedView.donationClaimed': 'Donation Claimed!',
+        'completedView.successMessage':
+          'Your donation has been successfully claimed! Thank you for making a difference in your community.',
+        'completedView.pickupMissedTitle': 'Pickup was missed, unfortunately.',
+        'completedView.pickupMissedMessage':
+          'This pickup was missed. Too bad, and thank you for trying to support your community.',
+        'completedView.reportDonor': 'Report Donor',
+        'completedView.leaveFeedback': 'Leave Feedback',
       };
 
       let result = translations[key] || key;
@@ -56,6 +65,7 @@ jest.mock('../../../services/api', () => ({
   },
   reportAPI: {
     reportUser: jest.fn(),
+    createReport: jest.fn(),
   },
   feedbackAPI: {
     submitFeedback: jest.fn(),
@@ -391,7 +401,7 @@ describe('ClaimDetailModal', () => {
     expect(screen.getByTestId('ready-pickup-view')).toBeInTheDocument();
   });
 
-  test('opens CompletedView when View Pickup Steps is clicked for COMPLETED status', () => {
+  test('shows completed message and feedback/report actions directly in details for COMPLETED status', () => {
     const completedClaim = {
       ...mockClaim,
       surplusPost: {
@@ -408,9 +418,74 @@ describe('ClaimDetailModal', () => {
         />
       </Wrapper>
     );
-    const viewStepsButton = screen.getByText('View Pickup Steps');
-    fireEvent.click(viewStepsButton);
-    expect(screen.getByTestId('completed-view')).toBeInTheDocument();
+
+    expect(screen.queryByText('View Pickup Steps')).not.toBeInTheDocument();
+    expect(screen.getByText('Donation Claimed!')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Your donation has been successfully claimed! Thank you for making a difference in your community.'
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Report Donor' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Leave Feedback' })
+    ).toBeInTheDocument();
+  });
+
+  test('shows not completed message with report-only action', () => {
+    const notCompletedClaim = {
+      ...mockClaim,
+      surplusPost: {
+        ...mockClaim.surplusPost,
+        status: 'NOT_COMPLETED',
+      },
+    };
+    render(
+      <Wrapper>
+        <ClaimDetailModal
+          claim={notCompletedClaim}
+          isOpen={true}
+          onClose={jest.fn()}
+        />
+      </Wrapper>
+    );
+
+    expect(screen.queryByText('View Pickup Steps')).not.toBeInTheDocument();
+    expect(
+      screen.getByText('Pickup was missed, unfortunately.')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Report Donor' })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Leave Feedback' })
+    ).not.toBeInTheDocument();
+  });
+
+  test('does not show pickup steps action for EXPIRED status', () => {
+    const expiredClaim = {
+      ...mockClaim,
+      surplusPost: {
+        ...mockClaim.surplusPost,
+        status: 'EXPIRED',
+      },
+    };
+    render(
+      <Wrapper>
+        <ClaimDetailModal
+          claim={expiredClaim}
+          isOpen={true}
+          onClose={jest.fn()}
+        />
+      </Wrapper>
+    );
+
+    expect(screen.queryByText('View Pickup Steps')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('claimed-view')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('ready-pickup-view')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('completed-view')).not.toBeInTheDocument();
   });
 
   test('handles back navigation from pickup steps view', () => {

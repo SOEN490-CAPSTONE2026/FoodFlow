@@ -41,8 +41,8 @@ class AuthControllerTest {
                 // Given
                 RegisterDonorRequest request = new RegisterDonorRequest();
                 request.setEmail("donor@test.com");
-                request.setPassword("password123");
-                request.setConfirmPassword("password123");
+                request.setPassword("TestSecure123!");
+                request.setConfirmPassword("TestSecure123!");
                 request.setOrganizationName("Test Restaurant");
                 request.setContactPerson("John Doe");
                 request.setPhone("123-456-7890");
@@ -70,8 +70,8 @@ class AuthControllerTest {
                 // Given
                 RegisterReceiverRequest request = new RegisterReceiverRequest();
                 request.setEmail("receiver@test.com");
-                request.setPassword("password123");
-                request.setConfirmPassword("password123");
+                request.setPassword("TestSecure123!");
+                request.setConfirmPassword("TestSecure123!");
                 request.setOrganizationName("Test Charity");
                 request.setContactPerson("Jane Smith");
                 request.setPhone("987-654-3210");
@@ -98,7 +98,7 @@ class AuthControllerTest {
                 // Given
                 RegisterDonorRequest request = new RegisterDonorRequest();
                 request.setEmail("invalid-email");
-                request.setPassword("password123");
+                request.setPassword("TestSecure123!");
 
                 // When & Then
                 mockMvc.perform(post("/api/auth/register/donor")

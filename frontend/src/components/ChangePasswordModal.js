@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { authAPI } from '../services/api';
 import './ChangePasswordModal.css';
 
 const ChangePasswordModal = ({ isOpen, onClose }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -41,40 +43,51 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
 
     // Validate current password
     if (!formData.currentPassword) {
-      newErrors.currentPassword = 'Current password is required';
+      newErrors.currentPassword = t(
+        'changePasswordModal.errors.currentPasswordRequired'
+      );
       setErrors(newErrors);
       return false;
     }
 
     // Validate new password
     if (!formData.newPassword) {
-      newErrors.newPassword = 'New password is required';
+      newErrors.newPassword = t(
+        'changePasswordModal.errors.newPasswordRequired'
+      );
       setErrors(newErrors);
       return false;
     }
 
     if (formData.newPassword.length < 8) {
-      newErrors.newPassword = 'Password must be at least 8 characters long';
+      newErrors.newPassword = t(
+        'changePasswordModal.errors.newPasswordMinLength'
+      );
       setErrors(newErrors);
       return false;
     }
 
     if (formData.currentPassword === formData.newPassword) {
-      newErrors.newPassword =
-        'New password must be different from current password';
+      newErrors.newPassword = t(
+        'changePasswordModal.errors.newPasswordDifferent'
+      );
       setErrors(newErrors);
       return false;
     }
 
     // Validate confirm password
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your new password';
+      newErrors.confirmPassword = t(
+        'changePasswordModal.errors.confirmPasswordRequired'
+      );
       setErrors(newErrors);
       return false;
     }
 
     if (formData.newPassword !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.confirmPassword = t(
+        'changePasswordModal.errors.passwordsDoNotMatch'
+      );
       setErrors(newErrors);
       return false;
     }
@@ -101,7 +114,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
       });
 
       setSuccessMessage(
-        response.data.message || 'Password changed successfully'
+        response.data.message || t('changePasswordModal.messages.success')
       );
 
       // Clear form after 2 seconds and close modal
@@ -116,7 +129,8 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
       }, 2000);
     } catch (error) {
       const errorMessage =
-        error.response?.data?.message || 'Failed to change password';
+        error.response?.data?.message ||
+        t('changePasswordModal.messages.changeFailed');
 
       // Map backend errors to specific fields
       if (errorMessage.toLowerCase().includes('incorrect current password')) {
@@ -159,11 +173,11 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
       <div className="modal-overlay" onClick={handleCancel}></div>
       <div className="change-password-modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>Change Password</h3>
+          <h3>{t('changePasswordModal.title')}</h3>
           <button
             className="close-button"
             onClick={handleCancel}
-            aria-label="Close modal"
+            aria-label={t('changePasswordModal.aria.closeModal')}
           >
             <X size={24} />
           </button>
@@ -171,7 +185,9 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
 
         <form onSubmit={handleSubmit} className="change-password-form">
           <div className="form-group">
-            <label htmlFor="currentPassword">Current Password</label>
+            <label htmlFor="currentPassword">
+              {t('changePasswordModal.fields.currentPassword')}
+            </label>
             <div className="password-input-wrapper">
               <input
                 type={showPassword.current ? 'text' : 'password'}
@@ -180,14 +196,18 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
                 value={formData.currentPassword}
                 onChange={handleChange}
                 className={errors.currentPassword ? 'error' : ''}
-                placeholder="Enter current password"
+                placeholder={t(
+                  'changePasswordModal.placeholders.currentPassword'
+                )}
                 autoComplete="current-password"
               />
               <button
                 type="button"
                 className="toggle-password"
                 onClick={() => togglePasswordVisibility('current')}
-                aria-label="Toggle password visibility"
+                aria-label={t(
+                  'changePasswordModal.aria.togglePasswordVisibility'
+                )}
               >
                 {showPassword.current ? (
                   <EyeOff size={20} />
@@ -202,7 +222,9 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="newPassword">New Password</label>
+            <label htmlFor="newPassword">
+              {t('changePasswordModal.fields.newPassword')}
+            </label>
             <div className="password-input-wrapper">
               <input
                 type={showPassword.new ? 'text' : 'password'}
@@ -211,14 +233,16 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
                 value={formData.newPassword}
                 onChange={handleChange}
                 className={errors.newPassword ? 'error' : ''}
-                placeholder="Enter new password"
+                placeholder={t('changePasswordModal.placeholders.newPassword')}
                 autoComplete="new-password"
               />
               <button
                 type="button"
                 className="toggle-password"
                 onClick={() => togglePasswordVisibility('new')}
-                aria-label="Toggle password visibility"
+                aria-label={t(
+                  'changePasswordModal.aria.togglePasswordVisibility'
+                )}
               >
                 {showPassword.new ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
@@ -229,7 +253,9 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="confirmPassword">Confirm New Password</label>
+            <label htmlFor="confirmPassword">
+              {t('changePasswordModal.fields.confirmNewPassword')}
+            </label>
             <div className="password-input-wrapper">
               <input
                 type={showPassword.confirm ? 'text' : 'password'}
@@ -238,14 +264,18 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 className={errors.confirmPassword ? 'error' : ''}
-                placeholder="Confirm new password"
+                placeholder={t(
+                  'changePasswordModal.placeholders.confirmNewPassword'
+                )}
                 autoComplete="new-password"
               />
               <button
                 type="button"
                 className="toggle-password"
                 onClick={() => togglePasswordVisibility('confirm')}
-                aria-label="Toggle password visibility"
+                aria-label={t(
+                  'changePasswordModal.aria.togglePasswordVisibility'
+                )}
               >
                 {showPassword.confirm ? (
                   <EyeOff size={20} />
@@ -260,10 +290,12 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
           </div>
 
           <div className="password-requirements">
-            <h4>Password Requirements:</h4>
+            <h4>{t('changePasswordModal.requirements.title')}</h4>
             <ul>
-              <li>At least 8 characters long</li>
-              <li>Must be different from your current password</li>
+              <li>{t('changePasswordModal.requirements.minLength')}</li>
+              <li>
+                {t('changePasswordModal.requirements.differentFromCurrent')}
+              </li>
             </ul>
           </div>
 
@@ -283,7 +315,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
             onClick={handleCancel}
             disabled={loading}
           >
-            Cancel
+            {t('common.cancel')}
           </button>
           <button
             type="submit"
@@ -291,7 +323,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
             onClick={handleSubmit}
             disabled={loading}
           >
-            {loading ? 'Changing...' : 'Confirm'}
+            {loading ? t('changePasswordModal.changing') : t('common.confirm')}
           </button>
         </div>
       </div>

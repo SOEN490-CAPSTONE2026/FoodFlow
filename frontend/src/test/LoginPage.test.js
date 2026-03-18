@@ -17,14 +17,19 @@ jest.mock('axios', () => {
 });
 
 let warnSpy;
+let originalFetch;
 beforeAll(() => {
   warnSpy = jest.spyOn(console, 'warn').mockImplementation((msg, ...args) => {
     if (String(msg).includes('React Router Future Flag Warning')) {
       return;
     }
   });
+  originalFetch = global.fetch;
 });
-afterAll(() => warnSpy && warnSpy.mockRestore());
+afterAll(() => {
+  warnSpy && warnSpy.mockRestore();
+  global.fetch = originalFetch;
+});
 
 const mockNavigate = jest.fn();
 
@@ -80,6 +85,8 @@ describe('LoginPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
+    localStorage.clear();
+    global.fetch = jest.fn().mockResolvedValue({ ok: true });
     // Reset analytics mock to default behavior
     jest
       .spyOn(require('../hooks/useAnalytics'), 'useAnalytics')
@@ -189,6 +196,49 @@ describe('LoginPage', () => {
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/donor');
     });
+  });
+
+  test('keeps the landing-page language instead of overwriting it with the backend default', async () => {
+    localStorage.setItem('languagePreference', 'fr');
+
+    authAPI.login.mockResolvedValueOnce({
+      data: {
+        token: 'abc123',
+        role: 'DONOR',
+        userId: '42',
+        organizationName: 'Donor Org',
+        verificationStatus: null,
+        accountStatus: 'ACTIVE',
+        languagePreference: 'en',
+      },
+    });
+
+    renderWithProviders();
+
+    fireEvent.change(screen.getByLabelText(/email address/i), {
+      target: { value: 'donor@example.com' },
+    });
+    fireEvent.change(
+      screen.getByLabelText(/^password$/i, { selector: 'input' }),
+      {
+        target: { value: 'password' },
+      }
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /log in/i }));
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/donor');
+    });
+
+    expect(localStorage.getItem('languagePreference')).toBe('fr');
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/user/language'),
+      expect.objectContaining({
+        method: 'PUT',
+        body: JSON.stringify({ languagePreference: 'fr' }),
+      })
+    );
   });
 
   test('failed login shows error and does not navigate', async () => {

@@ -5,6 +5,7 @@ import Home from './Home';
 import AboutUs from './AboutUs';
 import FAQ from './FAQ';
 import HowItWorks from './HowItWorks';
+import SEOHead from '../SEOHead';
 
 const LandingPage = () => {
   const location = useLocation();
@@ -32,6 +33,12 @@ const LandingPage = () => {
 
   return (
     <div className="landing-page">
+      <SEOHead
+        title="Surplus Food Redistribution Platform"
+        description="FoodFlow connects restaurants, grocery stores, and businesses with verified charities and shelters to redistribute surplus food in real time — reducing waste and fighting food insecurity."
+        canonical="/"
+        ogType="website"
+      />
       <section id="home">
         <Home />
       </section>

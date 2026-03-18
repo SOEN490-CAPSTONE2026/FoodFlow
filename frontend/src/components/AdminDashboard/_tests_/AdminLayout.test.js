@@ -7,6 +7,42 @@ import { AuthContext } from '../../../contexts/AuthContext';
 import AdminLayout from '../AdminLayout';
 
 const mockedNavigate = jest.fn();
+
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: key => {
+      const map = {
+        'admin.dashboard': 'Home',
+        'admin.users': 'User Management',
+        'admin.verificationQueue': 'Verification Queue',
+        'admin.impact': 'Impact Dashboard',
+        'admin.disputes': 'Disputes & Reports',
+        'admin.donations': 'Donations',
+        'admin.messages': 'Messages',
+        'admin.help': 'Help',
+        'admin.settings': 'Settings',
+        'admin.logout': 'Logout',
+        'admin.toggleMenu': 'Toggle Menu',
+        'admin.toggleSidebar': 'Toggle sidebar',
+        'admin.foodflowHome': 'FoodFlow Home',
+        'admin.communications': 'Incoming communications',
+      };
+      return map[key] || key;
+    },
+  }),
+}));
+
+jest.mock('../../../services/api', () => ({
+  profileAPI: {
+    get: jest.fn().mockResolvedValue({ data: {} }),
+  },
+}));
+
+jest.mock('../../../services/socket', () => ({
+  connectToUserQueue: jest.fn(),
+  disconnect: jest.fn(),
+}));
+
 jest.mock('react-router-dom', () => {
   const actual = jest.requireActual('react-router-dom');
   return {
@@ -68,10 +104,10 @@ describe('AdminLayout', () => {
     expect(
       screen.getAllByRole('img', { name: /foodflow/i }).length
     ).toBeGreaterThan(0);
+    // Topbar is hidden on /admin route, so no heading should be present
     expect(
-      screen.getByRole('heading', { name: /admin dashboard/i })
-    ).toBeInTheDocument();
-    expect(screen.getByText(/overview and quick actions/i)).toBeInTheDocument();
+      screen.queryByRole('heading', { name: /admin dashboard/i })
+    ).not.toBeInTheDocument();
     expect(screen.getByTestId('stub-outlet')).toHaveTextContent(
       'Dashboard Content'
     );
@@ -92,7 +128,7 @@ describe('AdminLayout', () => {
     renderWithRoutes('/admin/users');
     const nav = screen.getByRole('navigation');
     // Check that Users link exists and navigation renders
-    const usersLink = within(nav).getByText('Users');
+    const usersLink = within(nav).getByText('User Management');
     expect(usersLink).toBeInTheDocument();
     expect(nav).toBeInTheDocument();
   });
@@ -115,12 +151,10 @@ describe('AdminLayout', () => {
     expect(container.querySelector('.mobile-overlay')).not.toBeInTheDocument();
   });
 
-  // UPDATED: split into two tests – navigate call + rendering at target route
-
-  it('invokes navigate to /admin/messages when Messages row is clicked', () => {
-    renderWithRoutes('/admin');
-    fireEvent.click(screen.getAllByText('Messages')[0]);
-    expect(mockedNavigate).toHaveBeenCalledWith('/admin/messages');
+  it('Messages link navigates to /admin/messages', () => {
+    const { container } = renderWithRoutes('/admin');
+    const messagesLink = screen.getAllByText('Messages')[0].closest('a');
+    expect(messagesLink).toHaveAttribute('href', '/admin/messages');
   });
 
   it('shows correct title/desc when rendered at /admin/messages', () => {
@@ -132,53 +166,5 @@ describe('AdminLayout', () => {
     expect(screen.getByTestId('stub-outlet')).toHaveTextContent(
       'Messages Content'
     );
-  });
-
-  describe('Responsive contacts count (getMaxContacts & dropdown)', () => {
-    it('shows 1 contact at height <= 650, then 2 at <=800, then 4 at >800', () => {
-      Object.defineProperty(window, 'innerHeight', {
-        writable: true,
-        configurable: true,
-        value: 600,
-      });
-      const { container, unmount } = renderWithRoutes('/admin');
-      const toggle = screen.getByLabelText('Toggle Messages');
-
-      fireEvent.click(toggle);
-      let items = container.querySelectorAll(
-        '.messages-dropdown .message-item'
-      );
-      expect(items.length).toBe(1);
-
-      window.innerHeight = 750;
-      fireEvent(window, new Event('resize'));
-      items = container.querySelectorAll('.messages-dropdown .message-item');
-      expect(items.length).toBe(2);
-
-      window.innerHeight = 900;
-      fireEvent(window, new Event('resize'));
-      items = container.querySelectorAll('.messages-dropdown .message-item');
-      expect(items.length).toBe(4);
-
-      const statuses = container.querySelectorAll(
-        '.messages-dropdown .message-item .message-status'
-      );
-      expect(statuses.length).toBe(2); // first two contacts are online
-      unmount();
-    });
-  });
-
-  it('toggle button expands/collapses messages dropdown', () => {
-    const { container } = renderWithRoutes('/admin');
-    const toggle = screen.getByLabelText('Toggle Messages');
-    expect(
-      container.querySelector('.messages-dropdown')
-    ).not.toBeInTheDocument();
-    fireEvent.click(toggle);
-    expect(container.querySelector('.messages-dropdown')).toBeInTheDocument();
-    fireEvent.click(toggle);
-    expect(
-      container.querySelector('.messages-dropdown')
-    ).not.toBeInTheDocument();
   });
 });

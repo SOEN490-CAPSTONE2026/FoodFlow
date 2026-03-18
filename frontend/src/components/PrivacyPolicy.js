@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import SEOHead from './SEOHead';
 
 const PrivacyPolicy = () => {
   const navigate = useNavigate();
@@ -8,6 +9,17 @@ const PrivacyPolicy = () => {
 
   useEffect(() => {
     setTimeout(() => setFadeIn(true), 50);
+
+    // Scroll to anchor if present in URL
+    const hash = window.location.hash;
+    if (hash) {
+      setTimeout(() => {
+        const element = document.getElementById(hash.substring(1));
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    }
   }, []);
 
   const styles = {
@@ -89,6 +101,11 @@ const PrivacyPolicy = () => {
 
   return (
     <div style={styles.wrapper}>
+      <SEOHead
+        title="Privacy Policy"
+        description="Read FoodFlow's privacy policy to understand how we collect, use, and protect your personal information."
+        canonical="/privacy-policy"
+      />
       <div style={styles.container}>
         <h1 style={styles.title}>Privacy Policy</h1>
         <p style={styles.updated}>Last updated: October 2025</p>
@@ -152,8 +169,29 @@ const PrivacyPolicy = () => {
           </ul>
         </section>
 
+        <section id="third-party-integrations" style={styles.section}>
+          <h2 style={styles.heading}>5. Third-Party Integrations</h2>
+          <p>
+            FoodFlow integrates with third-party services to enhance your
+            experience. When you choose to connect third-party services, you
+            authorize us to access and process certain information from those
+            services in accordance with their respective terms and privacy
+            policies.
+          </p>
+          <ul style={styles.list}>
+            <li>
+              <strong>Google Calendar Integration:</strong> If you opt to
+              connect your Google Calendar, we use OAuth 2.0 authentication to
+              securely access your calendar data. We request the necessary
+              permissions to sync donation appointments and pickup schedules.
+              You may revoke this access at any time through your account
+              settings or directly through your Google account permissions.
+            </li>
+          </ul>
+        </section>
+
         <section style={styles.section}>
-          <h2 style={styles.heading}>5. Data Retention</h2>
+          <h2 style={styles.heading}>6. Data Retention</h2>
           <p>
             We retain your information only as long as necessary to provide our
             services. You may request deletion at any time by emailing{' '}
@@ -165,7 +203,7 @@ const PrivacyPolicy = () => {
         </section>
 
         <section style={styles.section}>
-          <h2 style={styles.heading}>6. Your Rights</h2>
+          <h2 style={styles.heading}>7. Your Rights</h2>
           <p>
             You have the right to access, correct, or delete your data and to
             withdraw consent to processing at any time. Requests can be made by
@@ -174,7 +212,7 @@ const PrivacyPolicy = () => {
         </section>
 
         <section style={styles.section}>
-          <h2 style={styles.heading}>7. Security</h2>
+          <h2 style={styles.heading}>8. Security</h2>
           <p>
             We apply technical and organizational measures such as encryption
             and restricted access to protect your data. However, no online
@@ -183,7 +221,7 @@ const PrivacyPolicy = () => {
         </section>
 
         <section style={styles.section}>
-          <h2 style={styles.heading}>8. Changes to This Policy</h2>
+          <h2 style={styles.heading}>9. Changes to This Policy</h2>
           <p>
             We may update this Privacy Policy periodically. Any changes will be
             reflected on this page with an updated revision date.
@@ -191,7 +229,7 @@ const PrivacyPolicy = () => {
         </section>
 
         <section style={styles.section}>
-          <h2 style={styles.heading}>9. Contact Us</h2>
+          <h2 style={styles.heading}>10. Contact Us</h2>
           <p>
             If you have any questions or concerns about this Privacy Policy,
             reach out to:

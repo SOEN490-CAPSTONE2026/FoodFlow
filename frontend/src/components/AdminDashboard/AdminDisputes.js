@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Search,
   AlertTriangle,
   FileText,
   Clock,
   CheckCircle,
-  XCircle,
   Eye,
 } from 'lucide-react';
 import { adminDisputeAPI } from '../../services/api';
@@ -14,6 +14,7 @@ import './Admin_Styles/AdminDisputes.css';
 
 const AdminDisputes = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [disputes, setDisputes] = useState([]);
   const [filteredDisputes, setFilteredDisputes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,64 +31,95 @@ const AdminDisputes = () => {
   });
 
   useEffect(() => {
+    const fetchDisputes = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const response = await adminDisputeAPI.getAllDisputes();
+
+        const disputeData = response.data.content || [];
+
+        const transformedData = disputeData.map(dispute => ({
+          id: dispute.id,
+          caseId: `DR-${new Date().getFullYear()}-${String(dispute.id).padStart(3, '0')}`,
+          reporterId: dispute.reporterId,
+          reporterName: dispute.reporterName,
+          reporterType: dispute.reporterType || 'DONOR',
+          reportedUserId: dispute.reportedUserId,
+          reportedUserName: dispute.reportedUserName,
+          reportedUserType: dispute.reportedUserType || 'RECEIVER',
+          donationId: dispute.donationId,
+          donationTitle: dispute.donationTitle || '',
+          description: dispute.description,
+          status: dispute.status,
+          createdAt: dispute.createdAt,
+          resolvedAt: dispute.resolvedAt || null,
+          updatedAt: dispute.updatedAt || null,
+        }));
+
+        setDisputes(transformedData);
+        calculateStats(transformedData);
+      } catch {
+        setError(t('adminDisputes.errors.loadFailed'));
+        setDisputes([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchDisputes();
-  }, []);
-
-  useEffect(() => {
-    applyFilters();
-  }, [disputes, searchTerm, statusFilter]);
-
-  const fetchDisputes = async () => {
-    try {
-      setLoading(true);
-      setError('');
-      const response = await adminDisputeAPI.getAllDisputes();
-
-      // Backend returns Spring Page object with content array
-      const disputeData = response.data.content || [];
-
-      // Transform backend data to match frontend expectations
-      const transformedData = disputeData.map(dispute => ({
-        id: dispute.id,
-        caseId: `DR-${new Date().getFullYear()}-${String(dispute.id).padStart(3, '0')}`,
-        reporterId: dispute.reporterId,
-        reporterName: dispute.reporterName,
-        reporterType: dispute.reporterType || 'DONOR',
-        reportedUserId: dispute.reportedUserId,
-        reportedUserName: dispute.reportedUserName,
-        reportedUserType: dispute.reportedUserType || 'RECEIVER',
-        donationId: dispute.donationId,
-        donationTitle: dispute.donationTitle || '',
-        description: dispute.description,
-        status: dispute.status,
-        createdAt: dispute.createdAt,
-        resolvedAt: dispute.resolvedAt,
-      }));
-
-      setDisputes(transformedData);
-      calculateStats(transformedData);
-    } catch (err) {
-      setError('Error loading disputes');
-      console.error('Failed to fetch disputes:', err);
-      setDisputes([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [t]);
 
   const calculateStats = disputeList => {
+    const resolvedDisputes = disputeList.filter(
+      d => d.status === 'RESOLVED' || d.status === 'CLOSED'
+    );
+
+    // Calculate average resolution time in days (submission → resolution)
+    // Uses resolvedAt if available, otherwise falls back to updatedAt
+    const resolutionTimes = resolvedDisputes
+      .map(d => {
+        const start = d.createdAt ? new Date(d.createdAt) : null;
+        const end = d.resolvedAt
+          ? new Date(d.resolvedAt)
+          : d.updatedAt
+            ? new Date(d.updatedAt)
+            : null;
+
+        if (!start || !end || isNaN(start) || isNaN(end)) {
+          return null;
+        }
+
+        const diffMs = end - start;
+        // Guard: never allow negative resolution time
+        return diffMs >= 0 ? diffMs / (1000 * 60 * 60 * 24) : 0;
+      })
+      .filter(t => t !== null);
+
+    const avgResolutionDays =
+      resolutionTimes.length > 0
+        ? Math.max(
+            0,
+            Math.round(
+              (resolutionTimes.reduce((a, b) => a + b, 0) /
+                resolutionTimes.length) *
+                10
+            ) / 10
+          )
+        : 0;
+
     const stats = {
       total: disputeList.length,
       open: disputeList.filter(d => d.status === 'OPEN').length,
       underReview: disputeList.filter(d => d.status === 'UNDER_REVIEW').length,
       resolved: disputeList.filter(d => d.status === 'RESOLVED').length,
       closed: disputeList.filter(d => d.status === 'CLOSED').length,
-      avgResolutionDays: 2.4, // This should be calculated from resolved disputes
+      avgResolutionDays,
     };
     setStats(stats);
   };
 
-  const applyFilters = () => {
+  useEffect(() => {
     let filtered = [...disputes];
 
     // Apply status filter
@@ -108,12 +140,7 @@ const AdminDisputes = () => {
     }
 
     setFilteredDisputes(filtered);
-  };
-
-  const handleSearch = e => {
-    e.preventDefault();
-    applyFilters();
-  };
+  }, [disputes, searchTerm, statusFilter]);
 
   const getStatusBadgeClass = status => {
     switch (status) {
@@ -131,7 +158,14 @@ const AdminDisputes = () => {
   };
 
   const formatStatus = status => {
-    return status.replace(/_/g, ' ');
+    const statusLabels = {
+      OPEN: t('adminDisputes.status.open'),
+      UNDER_REVIEW: t('adminDisputes.status.underReview'),
+      RESOLVED: t('adminDisputes.status.resolved'),
+      CLOSED: t('adminDisputes.status.closed'),
+    };
+
+    return statusLabels[status] || status.replace(/_/g, ' ');
   };
 
   const formatDate = dateString => {
@@ -154,7 +188,7 @@ const AdminDisputes = () => {
   if (loading) {
     return (
       <div className="admin-disputes-container">
-        <div className="loading-spinner">Loading disputes...</div>
+        <div className="loading-spinner">{t('adminDisputes.loading')}</div>
       </div>
     );
   }
@@ -164,8 +198,11 @@ const AdminDisputes = () => {
       <div className="admin-disputes-container">
         <div className="error-message">
           {error}
-          <button onClick={fetchDisputes} className="retry-btn">
-            Retry
+          <button
+            onClick={() => window.location.reload()}
+            className="retry-btn"
+          >
+            {t('common.retry')}
           </button>
         </div>
       </div>
@@ -181,7 +218,9 @@ const AdminDisputes = () => {
             <FileText size={24} color="#ef4444" />
           </div>
           <div className="stat-content">
-            <div className="stat-label">Total Cases</div>
+            <div className="stat-label">
+              {t('adminDisputes.stats.totalCases')}
+            </div>
             <div className="stat-value">{stats.total}</div>
           </div>
         </div>
@@ -191,7 +230,7 @@ const AdminDisputes = () => {
             <AlertTriangle size={24} color="#f59e0b" />
           </div>
           <div className="stat-content">
-            <div className="stat-label">Open</div>
+            <div className="stat-label">{t('adminDisputes.status.open')}</div>
             <div className="stat-value">{stats.open}</div>
           </div>
         </div>
@@ -201,7 +240,9 @@ const AdminDisputes = () => {
             <CheckCircle size={24} color="#10b981" />
           </div>
           <div className="stat-content">
-            <div className="stat-label">Resolved Today</div>
+            <div className="stat-label">
+              {t('adminDisputes.stats.resolvedToday')}
+            </div>
             <div className="stat-value">0</div>
           </div>
         </div>
@@ -211,8 +252,14 @@ const AdminDisputes = () => {
             <Clock size={24} color="#6366f1" />
           </div>
           <div className="stat-content">
-            <div className="stat-label">Avg Resolution</div>
-            <div className="stat-value">{stats.avgResolutionDays} days</div>
+            <div className="stat-label">
+              {t('adminDisputes.stats.avgResolution')}
+            </div>
+            <div className="stat-value">
+              {t('adminDisputes.stats.avgResolutionValue', {
+                count: stats.avgResolutionDays,
+              })}
+            </div>
           </div>
         </div>
       </div>
@@ -220,7 +267,7 @@ const AdminDisputes = () => {
       {/* Cases Section */}
       <div className="disputes-section">
         <div className="disputes-section-header">
-          <h2>All Cases</h2>
+          <h2>{t('adminDisputes.allCases')}</h2>
         </div>
 
         {/* Tabs and Search */}
@@ -230,13 +277,13 @@ const AdminDisputes = () => {
               className={statusFilter === 'ALL' ? 'tab-btn active' : 'tab-btn'}
               onClick={() => setStatusFilter('ALL')}
             >
-              All Cases
+              {t('adminDisputes.allCases')}
             </button>
             <button
               className={statusFilter === 'OPEN' ? 'tab-btn active' : 'tab-btn'}
               onClick={() => setStatusFilter('OPEN')}
             >
-              Open
+              {t('adminDisputes.status.open')}
             </button>
             <button
               className={
@@ -244,7 +291,7 @@ const AdminDisputes = () => {
               }
               onClick={() => setStatusFilter('UNDER_REVIEW')}
             >
-              Under Review
+              {t('adminDisputes.status.underReview')}
             </button>
             <button
               className={
@@ -252,7 +299,7 @@ const AdminDisputes = () => {
               }
               onClick={() => setStatusFilter('RESOLVED')}
             >
-              Resolved
+              {t('adminDisputes.status.resolved')}
             </button>
             <button
               className={
@@ -260,7 +307,7 @@ const AdminDisputes = () => {
               }
               onClick={() => setStatusFilter('CLOSED')}
             >
-              Closed
+              {t('adminDisputes.status.closed')}
             </button>
           </div>
 
@@ -268,7 +315,7 @@ const AdminDisputes = () => {
             <Search size={18} className="search-icon" />
             <input
               type="text"
-              placeholder="Search cases..."
+              placeholder={t('adminDisputes.searchPlaceholder')}
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               className="search-input"
@@ -281,42 +328,47 @@ const AdminDisputes = () => {
           {filteredDisputes.length === 0 ? (
             <div className="empty-state">
               <FileText size={48} color="#9ca3af" />
-              <h3>No Cases Found</h3>
-              <p>There are no disputes matching your current filters.</p>
+              <h3>{t('adminDisputes.emptyTitle')}</h3>
+              <p>{t('adminDisputes.emptyDescription')}</p>
             </div>
           ) : (
             <table className="disputes-table">
               <thead>
                 <tr>
-                  <th>CASE ID</th>
-                  <th>REPORTER</th>
-                  <th>REPORTED USER</th>
-                  <th>DONATION ID</th>
-                  <th>CREATED</th>
-                  <th>STATUS</th>
-                  <th>ACTION</th>
+                  <th>{t('adminDisputes.table.caseId')}</th>
+                  <th>{t('adminDisputes.table.reporter')}</th>
+                  <th>{t('adminDisputes.table.reportedUser')}</th>
+                  <th>{t('adminDisputes.table.donationId')}</th>
+                  <th>{t('adminDisputes.table.created')}</th>
+                  <th>{t('adminDisputes.table.status')}</th>
+                  <th>{t('adminDisputes.table.action')}</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredDisputes.map(dispute => (
                   <tr key={dispute.id}>
-                    <td className="case-id">{dispute.caseId}</td>
-                    <td>
+                    <td
+                      data-label={t('adminDisputes.table.caseId')}
+                      className="case-id"
+                    >
+                      {dispute.caseId}
+                    </td>
+                    <td data-label={t('adminDisputes.table.reporter')}>
                       <div className="user-cell">
                         <div className="user-name">{dispute.reporterName}</div>
                         <div className="user-type">
                           {dispute.reporterType === 'DONOR'
-                            ? 'Donor'
-                            : 'Receiver'}
+                            ? t('adminDisputes.userTypes.donor')
+                            : t('adminDisputes.userTypes.receiver')}
                         </div>
                       </div>
                     </td>
-                    <td>
+                    <td data-label={t('adminDisputes.table.reportedUser')}>
                       <div className="reported-user-name">
                         {dispute.reportedUserName}
                       </div>
                     </td>
-                    <td>
+                    <td data-label={t('adminDisputes.table.donationId')}>
                       {dispute.donationId ? (
                         <span className="donation-id">
                           DON-2024-{String(dispute.donationId).padStart(4, '0')}
@@ -325,7 +377,7 @@ const AdminDisputes = () => {
                         <span className="no-donation">—</span>
                       )}
                     </td>
-                    <td>
+                    <td data-label={t('adminDisputes.table.created')}>
                       <div className="date-cell">
                         <div className="date-main">
                           {formatDate(dispute.createdAt)}
@@ -335,12 +387,12 @@ const AdminDisputes = () => {
                         </div>
                       </div>
                     </td>
-                    <td>
+                    <td data-label={t('adminDisputes.table.status')}>
                       <span className={getStatusBadgeClass(dispute.status)}>
                         {formatStatus(dispute.status)}
                       </span>
                     </td>
-                    <td>
+                    <td data-label={t('adminDisputes.table.action')}>
                       <button
                         className="view-btn"
                         onClick={() =>
@@ -348,7 +400,7 @@ const AdminDisputes = () => {
                         }
                       >
                         <Eye size={16} />
-                        View
+                        {t('adminDisputes.table.view')}
                       </button>
                     </td>
                   </tr>

@@ -7,6 +7,8 @@ import {
   Navigate,
 } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { HelmetProvider } from 'react-helmet-async';
 import LandingPage from './components/LandingPage/LandingPage';
 import RegisterType from './components/RegisterType';
 import DonorRegistration from './components/DonorRegistration';
@@ -15,6 +17,9 @@ import LoginPage from './components/LoginPage';
 import ForgotPassword from './components/ForgotPassword';
 import EmailVerification from './components/EmailVerification';
 import NavigationBar from './components/NavigationBar';
+import ChatWidget from './components/shared/ChatWidget';
+import CalendarOAuthCallback from './components/CalendarOAuthCallback';
+import CalendarOAuthSuccess from './components/CalendarOAuthSuccess';
 import { AuthProvider } from './contexts/AuthContext';
 import { TimezoneProvider } from './contexts/TimezoneContext';
 import { useAnalytics } from './hooks/useAnalytics';
@@ -28,16 +33,34 @@ import ReceiverDashboard from './components/ReceiverDashboard/ReceiverDashboard'
 
 import SurplusForm from './components/DonorDashboard/SurplusFormModal';
 import PrivacyPolicy from './components/PrivacyPolicy';
+import NotFound from './components/NotFound';
+import PaymentPage from './components/Payment/PaymentPage';
+import PaymentSuccess from './components/Payment/PaymentSuccess';
+import CookieBanner from './components/CookieBanner';
+import { ConsentProvider } from './contexts/ConsentContext';
 import './App.css';
 
 import { useLocation } from 'react-router-dom';
+import { useAuth } from './contexts/AuthContext';
 
 import './locales/i18n';
+
+// Create a client for React Query
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
 
 function AppContent() {
   useAnalytics();
   const location = useLocation();
   const { i18n } = useTranslation();
+  const { user } = useAuth();
 
   // Set document direction and lang attribute based on current language
   useEffect(() => {
@@ -57,10 +80,14 @@ function AppContent() {
     location.pathname === '/login' ||
     location.pathname === '/forgot-password' ||
     location.pathname === '/verify-email' ||
+    location.pathname === '/calendar/oauth-success' ||
     location.pathname.startsWith('/register') ||
     location.pathname.startsWith('/donor') ||
     location.pathname.startsWith('/admin') ||
     location.pathname.startsWith('/receiver');
+
+  // Show chat widget only for authenticated users
+  const showChatWidget = user != null;
 
   return (
     <div className="App">
@@ -75,6 +102,14 @@ function AppContent() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/verify-email" element={<EmailVerification />} />
+        <Route
+          path="/calendar/oauth/callback"
+          element={<CalendarOAuthCallback />}
+        />
+        <Route
+          path="/calendar/oauth-success"
+          element={<CalendarOAuthSuccess />}
+        />
 
         {/* ===== Admin Dashboard (UNPROTECTED for dev preview) ===== */}
         <Route
@@ -112,20 +147,38 @@ function AppContent() {
         />
         <Route path="/surplus/create" element={<SurplusForm />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+
+        {/* Payment Routes */}
+        <Route path="/payment" element={<PaymentPage />} />
+        <Route path="/payment/success" element={<PaymentSuccess />} />
+
+        {/* Catch-all: renders a noindex 404 page for any unknown route */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
+
+      {/* Support chat widget - shown only for authenticated users */}
+      {showChatWidget && <ChatWidget />}
+      {/* Cookie consent banner — shown on first visit until user makes a choice */}
+      <CookieBanner />
     </div>
   );
 }
 
 function App() {
   return (
-    <AuthProvider>
-      <TimezoneProvider>
-        <Router>
-          <AppContent />
-        </Router>
-      </TimezoneProvider>
-    </AuthProvider>
+    <HelmetProvider>
+      <ConsentProvider>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <TimezoneProvider>
+              <Router>
+                <AppContent />
+              </Router>
+            </TimezoneProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </ConsentProvider>
+    </HelmetProvider>
   );
 }
 

@@ -4,6 +4,12 @@ import { MemoryRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
 import DonorDashboard from '../DonorDashboard';
 
+jest.mock('../../onboarding/DonorOnboardingController', () => {
+  return function MockDonorOnboardingController({ children }) {
+    return <div data-testid="donor-onboarding-controller">{children}</div>;
+  };
+});
+
 // Mock all the components
 jest.mock('../DonorLayout', () => {
   const { Outlet } = require('react-router-dom');
@@ -52,6 +58,9 @@ describe('DonorDashboard', () => {
   test('renders DonorLayout wrapper', () => {
     renderWithRouter('/');
     expect(screen.getByTestId('donor-layout')).toBeInTheDocument();
+    expect(
+      screen.getByTestId('donor-onboarding-controller')
+    ).toBeInTheDocument();
   });
 
   test('renders DonorWelcome at index route', () => {

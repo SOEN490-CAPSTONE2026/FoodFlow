@@ -16,6 +16,7 @@ import ReportUserModal from '../ReportUserModal';
 import FeedbackModal from '../FeedbackModal/FeedbackModal';
 import DonationTimeline from '../shared/DonationTimeline';
 import { reportAPI, surplusAPI } from '../../services/api';
+import { useTimezone } from '../../contexts/TimezoneContext';
 import './Receiver_Styles/CompletedView.css';
 
 const CompletedView = ({
@@ -27,8 +28,30 @@ const CompletedView = ({
   setShowFeedbackModal,
 }) => {
   const post = claim?.surplusPost;
+  const { userTimezone } = useTimezone();
   const containerRef = useRef(null);
   const [dimensions, setDimensions] = useState({ width: 750, height: 800 });
+  const getImageUrl = imageUrl => {
+    if (!imageUrl) {
+      return null;
+    }
+    if (
+      imageUrl.startsWith('http://') ||
+      imageUrl.startsWith('https://') ||
+      imageUrl.startsWith('data:')
+    ) {
+      return imageUrl;
+    }
+    const apiBaseUrl =
+      process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+    const backendBaseUrl = apiBaseUrl.endsWith('/api')
+      ? apiBaseUrl.slice(0, -4)
+      : apiBaseUrl.replace(/\/api$/, '');
+    if (imageUrl.startsWith('/api/files/')) {
+      return `${backendBaseUrl}${imageUrl}`;
+    }
+    return `${backendBaseUrl}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+  };
   const [showReportModal, setShowReportModal] = useState(false);
   const [timeline, setTimeline] = useState([]);
   const [loadingTimeline, setLoadingTimeline] = useState(false);
@@ -124,6 +147,7 @@ const CompletedView = ({
         <div className="claimed-modal-header">
           <img
             src={
+              getImageUrl(post?.resolvedDonationImageUrl) ||
               foodTypeImages[getPrimaryFoodCategory(post?.foodCategories)] ||
               foodTypeImages['Prepared Meals']
             }
@@ -181,6 +205,7 @@ const CompletedView = ({
                 <DonationTimeline
                   timeline={timeline}
                   loading={loadingTimeline}
+                  userTimezone={userTimezone || 'UTC'}
                 />
               </div>
             )}

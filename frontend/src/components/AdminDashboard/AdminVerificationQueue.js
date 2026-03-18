@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import Select from 'react-select';
 import {
   ChevronRight,
@@ -29,6 +30,7 @@ import {
 
 // Modals
 const ApprovalModal = ({ user, onClose, onConfirm, loading }) => {
+  const { t } = useTranslation();
   const [mouseDownInsideModal, setMouseDownInsideModal] = useState(false);
 
   const handleBackdropClick = e => {
@@ -57,27 +59,32 @@ const ApprovalModal = ({ user, onClose, onConfirm, loading }) => {
       >
         <div className="modal-header">
           <CheckCircle size={24} color="#10b981" />
-          <h3>Approve Registration</h3>
+          <h3>{t('adminVerificationQueue.modals.approval.title')}</h3>
         </div>
         <div className="modal-body">
-          <p>Are you sure you want to approve this registration?</p>
+          <p>{t('adminVerificationQueue.modals.approval.confirm')}</p>
           <div className="user-info-summary">
             <p>
-              <strong>Organization:</strong> {user.organizationName}
+              <strong>
+                {t('adminVerificationQueue.labels.organization')}:
+              </strong>{' '}
+              {user.organizationName}
             </p>
             <p>
-              <strong>Contact:</strong> {user.contactName}
+              <strong>{t('adminVerificationQueue.labels.contact')}:</strong>{' '}
+              {user.contactName}
             </p>
             <p>
-              <strong>Email:</strong> {user.email}
+              <strong>{t('adminVerificationQueue.labels.email')}:</strong>{' '}
+              {user.email}
             </p>
             <p>
-              <strong>Type:</strong> {user.role}
+              <strong>{t('adminVerificationQueue.labels.type')}:</strong>{' '}
+              {user.role}
             </p>
           </div>
           <p className="approval-note">
-            The user will receive an approval email and their status will be set
-            to ACTIVE.
+            {t('adminVerificationQueue.modals.approval.note')}
           </p>
         </div>
         <div className="modal-actions">
@@ -86,14 +93,16 @@ const ApprovalModal = ({ user, onClose, onConfirm, loading }) => {
             onClick={onClose}
             disabled={loading}
           >
-            Cancel
+            {t('common.cancel')}
           </button>
           <button
             className="btn-approve"
             onClick={onConfirm}
             disabled={loading}
           >
-            {loading ? 'Approving...' : 'Approve User'}
+            {loading
+              ? t('adminVerificationQueue.modals.approval.loading')
+              : t('adminVerificationQueue.modals.approval.action')}
           </button>
         </div>
       </div>
@@ -102,17 +111,36 @@ const ApprovalModal = ({ user, onClose, onConfirm, loading }) => {
 };
 
 const RejectionModal = ({ user, onClose, onConfirm, loading }) => {
+  const { t } = useTranslation();
   const [reason, setReason] = useState('');
   const [customMessage, setCustomMessage] = useState('');
   const [mouseDownInsideModal, setMouseDownInsideModal] = useState(false);
 
   const rejectionReasons = [
-    { value: 'incomplete_info', label: 'Incomplete Information' },
-    { value: 'invalid_organization', label: 'Invalid Organization' },
-    { value: 'duplicate_account', label: 'Duplicate Account' },
-    { value: 'suspicious_activity', label: 'Suspicious Activity' },
-    { value: 'does_not_meet_criteria', label: 'Does Not Meet Criteria' },
-    { value: 'other', label: 'Other' },
+    {
+      value: 'incomplete_info',
+      label: t('adminVerificationQueue.rejectionReasons.incompleteInfo'),
+    },
+    {
+      value: 'invalid_organization',
+      label: t('adminVerificationQueue.rejectionReasons.invalidOrganization'),
+    },
+    {
+      value: 'duplicate_account',
+      label: t('adminVerificationQueue.rejectionReasons.duplicateAccount'),
+    },
+    {
+      value: 'suspicious_activity',
+      label: t('adminVerificationQueue.rejectionReasons.suspiciousActivity'),
+    },
+    {
+      value: 'does_not_meet_criteria',
+      label: t('adminVerificationQueue.rejectionReasons.doesNotMeetCriteria'),
+    },
+    {
+      value: 'other',
+      label: t('adminVerificationQueue.rejectionReasons.other'),
+    },
   ];
 
   const handleBackdropClick = e => {
@@ -127,7 +155,7 @@ const RejectionModal = ({ user, onClose, onConfirm, loading }) => {
 
   const handleSubmit = () => {
     if (!reason) {
-      alert('Please select a rejection reason');
+      alert(t('adminVerificationQueue.modals.rejection.selectReason'));
       return;
     }
     onConfirm(reason, customMessage);
@@ -149,51 +177,64 @@ const RejectionModal = ({ user, onClose, onConfirm, loading }) => {
       >
         <div className="modal-header">
           <XCircle size={24} color="#ef4444" />
-          <h3>Reject Registration</h3>
+          <h3>{t('adminVerificationQueue.modals.rejection.title')}</h3>
         </div>
         <div className="modal-body">
-          <p>Please provide a reason for rejecting this registration:</p>
+          <p>{t('adminVerificationQueue.modals.rejection.prompt')}</p>
           <div className="user-info-summary">
             <p>
-              <strong>Organization:</strong> {user.organizationName}
+              <strong>
+                {t('adminVerificationQueue.labels.organization')}:
+              </strong>{' '}
+              {user.organizationName}
             </p>
             <p>
-              <strong>Contact:</strong> {user.contactName}
+              <strong>{t('adminVerificationQueue.labels.contact')}:</strong>{' '}
+              {user.contactName}
             </p>
             <p>
-              <strong>Email:</strong> {user.email}
+              <strong>{t('adminVerificationQueue.labels.email')}:</strong>{' '}
+              {user.email}
             </p>
             <p>
-              <strong>Type:</strong> {user.role}
+              <strong>{t('adminVerificationQueue.labels.type')}:</strong>{' '}
+              {user.role}
             </p>
           </div>
 
           <div className="form-group">
-            <label>Rejection Reason *</label>
+            <label>
+              {t('adminVerificationQueue.modals.rejection.reason')} *
+            </label>
             <Select
               options={rejectionReasons}
               value={rejectionReasons.find(r => r.value === reason)}
               onChange={option => setReason(option.value)}
-              placeholder="Select a reason..."
+              placeholder={t(
+                'adminVerificationQueue.modals.rejection.reasonPlaceholder'
+              )}
               className="rejection-reason-select"
               classNamePrefix="select"
             />
           </div>
 
           <div className="form-group">
-            <label>Additional Message (Optional)</label>
+            <label>
+              {t('adminVerificationQueue.modals.rejection.additionalMessage')}
+            </label>
             <textarea
               value={customMessage}
               onChange={e => setCustomMessage(e.target.value)}
-              placeholder="Add any additional information for the user..."
+              placeholder={t(
+                'adminVerificationQueue.modals.rejection.messagePlaceholder'
+              )}
               rows={4}
               className="rejection-message-input"
             />
           </div>
 
           <p className="rejection-note">
-            The user will receive a rejection email with the reason and can
-            re-register if needed.
+            {t('adminVerificationQueue.modals.rejection.note')}
           </p>
         </div>
         <div className="modal-actions">
@@ -202,14 +243,16 @@ const RejectionModal = ({ user, onClose, onConfirm, loading }) => {
             onClick={onClose}
             disabled={loading}
           >
-            Cancel
+            {t('common.cancel')}
           </button>
           <button
             className="btn-reject"
             onClick={handleSubmit}
             disabled={loading || !reason}
           >
-            {loading ? 'Rejecting...' : 'Reject User'}
+            {loading
+              ? t('adminVerificationQueue.modals.rejection.loading')
+              : t('adminVerificationQueue.modals.rejection.action')}
           </button>
         </div>
       </div>
@@ -218,6 +261,7 @@ const RejectionModal = ({ user, onClose, onConfirm, loading }) => {
 };
 
 const ManualVerifyModal = ({ user, onClose, onConfirm, loading }) => {
+  const { t } = useTranslation();
   const [mouseDownInsideModal, setMouseDownInsideModal] = useState(false);
 
   const handleBackdropClick = e => {
@@ -246,29 +290,32 @@ const ManualVerifyModal = ({ user, onClose, onConfirm, loading }) => {
       >
         <div className="modal-header">
           <Mail size={24} color="#2563eb" />
-          <h3>Manually Verify Email</h3>
+          <h3>{t('adminVerificationQueue.modals.manualVerify.title')}</h3>
         </div>
         <div className="modal-body">
-          <p>
-            This will mark the user's email as verified and move them to the
-            admin approval queue.
-          </p>
+          <p>{t('adminVerificationQueue.modals.manualVerify.prompt')}</p>
           <div className="user-info-summary">
             <p>
-              <strong>Organization:</strong> {user.organizationName}
+              <strong>
+                {t('adminVerificationQueue.labels.organization')}:
+              </strong>{' '}
+              {user.organizationName}
             </p>
             <p>
-              <strong>Contact:</strong> {user.contactName}
+              <strong>{t('adminVerificationQueue.labels.contact')}:</strong>{' '}
+              {user.contactName}
             </p>
             <p>
-              <strong>Email:</strong> {user.email}
+              <strong>{t('adminVerificationQueue.labels.email')}:</strong>{' '}
+              {user.email}
             </p>
             <p>
-              <strong>Type:</strong> {user.role}
+              <strong>{t('adminVerificationQueue.labels.type')}:</strong>{' '}
+              {user.role}
             </p>
           </div>
           <p className="approval-note">
-            Use this only when the verification link fails.
+            {t('adminVerificationQueue.modals.manualVerify.note')}
           </p>
         </div>
         <div className="modal-actions">
@@ -277,14 +324,16 @@ const ManualVerifyModal = ({ user, onClose, onConfirm, loading }) => {
             onClick={onClose}
             disabled={loading}
           >
-            Cancel
+            {t('common.cancel')}
           </button>
           <button
             className="btn-approve"
             onClick={onConfirm}
             disabled={loading}
           >
-            {loading ? 'Verifying...' : 'Verify Email'}
+            {loading
+              ? t('adminVerificationQueue.modals.manualVerify.loading')
+              : t('adminVerificationQueue.modals.manualVerify.action')}
           </button>
         </div>
       </div>
@@ -294,6 +343,7 @@ const ManualVerifyModal = ({ user, onClose, onConfirm, loading }) => {
 
 // Main Component
 const AdminVerificationQueue = () => {
+  const { t } = useTranslation();
   const [pendingUsers, setPendingUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -371,11 +421,21 @@ const AdminVerificationQueue = () => {
       const now = new Date();
       const waitTimes = content.map(u => {
         const createdDate = new Date(u.createdAt);
-        return (now - createdDate) / (1000 * 60 * 60); // hours
+        if (isNaN(createdDate)) {
+          return 0;
+        }
+        const diffMs = now - createdDate;
+        // Guard: never allow negative wait time (e.g. future createdAt due to clock skew)
+        return Math.max(0, diffMs / (1000 * 60 * 60));
       });
       const avgWaitTime =
         waitTimes.length > 0
-          ? Math.round(waitTimes.reduce((a, b) => a + b, 0) / waitTimes.length)
+          ? Math.max(
+              0,
+              Math.round(
+                waitTimes.reduce((a, b) => a + b, 0) / waitTimes.length
+              )
+            )
           : 0;
 
       setStats({
@@ -457,7 +517,9 @@ const AdminVerificationQueue = () => {
       setFilteredUsers(prev => prev.filter(u => u.id !== selectedUser.id));
 
       showToast(
-        `${selectedUser.organizationName} has been approved successfully!`,
+        t('adminVerificationQueue.toasts.approved', {
+          name: selectedUser.organizationName,
+        }),
         'success'
       );
       setShowApprovalModal(false);
@@ -467,7 +529,7 @@ const AdminVerificationQueue = () => {
       fetchPendingUsers();
     } catch (err) {
       console.error('Error approving user:', err);
-      showToast('Failed to approve user. Please try again.', 'error');
+      showToast(t('adminVerificationQueue.toasts.approveFailed'), 'error');
     } finally {
       setActionLoading(false);
     }
@@ -488,7 +550,9 @@ const AdminVerificationQueue = () => {
       setFilteredUsers(prev => prev.filter(u => u.id !== selectedUser.id));
 
       showToast(
-        `${selectedUser.organizationName} has been rejected.`,
+        t('adminVerificationQueue.toasts.rejected', {
+          name: selectedUser.organizationName,
+        }),
         'success'
       );
       setShowRejectionModal(false);
@@ -498,7 +562,7 @@ const AdminVerificationQueue = () => {
       fetchPendingUsers();
     } catch (err) {
       console.error('Error rejecting user:', err);
-      showToast('Failed to reject user. Please try again.', 'error');
+      showToast(t('adminVerificationQueue.toasts.rejectFailed'), 'error');
     } finally {
       setActionLoading(false);
     }
@@ -512,7 +576,7 @@ const AdminVerificationQueue = () => {
     setActionLoading(true);
     try {
       await adminVerificationAPI.verifyEmail(selectedUser.id);
-      showToast('Email verified manually');
+      showToast(t('adminVerificationQueue.toasts.verified'));
       setShowManualVerifyModal(false);
       setSelectedUser(null);
       fetchPendingUsers();
@@ -520,7 +584,7 @@ const AdminVerificationQueue = () => {
       console.error('Error manually verifying email:', err);
       showToast(
         err.response?.data?.message ||
-          'Failed to verify email. Please try again.',
+          t('adminVerificationQueue.toasts.verifyFailed'),
         'error'
       );
     } finally {
@@ -532,15 +596,26 @@ const AdminVerificationQueue = () => {
   const getWaitingTime = createdAt => {
     const now = new Date();
     const created = new Date(createdAt);
+    if (isNaN(created)) {
+      return `0 ${t('adminVerificationQueue.time.hours')}`;
+    }
     const diffMs = now - created;
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    // Guard: never show negative waiting time
+    const safeDiffMs = Math.max(0, diffMs);
+    const diffHours = Math.floor(safeDiffMs / (1000 * 60 * 60));
     const diffDays = Math.floor(diffHours / 24);
 
     if (diffDays > 0) {
-      return `${diffDays} day${diffDays > 1 ? 's' : ''}`;
-    } else {
-      return `${diffHours} hour${diffHours !== 1 ? 's' : ''}`;
+      return `${diffDays} ${t(
+        diffDays > 1
+          ? 'adminVerificationQueue.time.days'
+          : 'adminVerificationQueue.time.day'
+      )}`;
     }
+    if (diffHours === 1) {
+      return `${diffHours} ${t('adminVerificationQueue.time.hour')}`;
+    }
+    return `${diffHours} ${t('adminVerificationQueue.time.hours')}`;
   };
 
   // Format date
@@ -567,35 +642,54 @@ const AdminVerificationQueue = () => {
   };
 
   // Handle document view
-  const handleViewDocument = documentName => {
-    // In a real app, this would open the document
-    alert(
-      `Viewing document: ${documentName}\n\nIn production, this would open the uploaded document for review.`
-    );
+  const handleViewDocument = documentUrl => {
+    // If it's a URL (contains http), open in a new tab; otherwise show alert
+    if (documentUrl && documentUrl.startsWith('http')) {
+      window.open(documentUrl, '_blank');
+    } else if (documentUrl) {
+      // Fallback for document names - construct URL
+      window.open(
+        `${process.env.REACT_APP_API_BASE_URL}/api/files/licenses/${documentUrl}`,
+        '_blank'
+      );
+    } else {
+      alert('No document available');
+    }
   };
 
   // User type filter options
   const userTypeOptions = [
-    { value: '', label: 'All Types' },
-    { value: 'DONOR', label: 'Donors' },
-    { value: 'RECEIVER', label: 'Receivers' },
+    { value: '', label: t('adminVerificationQueue.filters.allTypes') },
+    { value: 'DONOR', label: t('adminVerificationQueue.filters.donors') },
+    { value: 'RECEIVER', label: t('adminVerificationQueue.filters.receivers') },
   ];
 
   const statusOptions = [
-    { value: 'PENDING_ADMIN_APPROVAL', label: 'Email Verified' },
-    { value: 'PENDING_VERIFICATION', label: 'Email Not Verified' },
+    {
+      value: 'PENDING_ADMIN_APPROVAL',
+      label: t('adminVerificationQueue.status.emailVerified'),
+    },
+    {
+      value: 'PENDING_VERIFICATION',
+      label: t('adminVerificationQueue.status.emailNotVerified'),
+    },
   ];
 
   // Sort options
   const sortOptions = [
-    { value: 'date', label: 'Registration Date' },
-    { value: 'userType', label: 'User Type' },
-    { value: 'waitingTime', label: 'Waiting Time' },
+    { value: 'date', label: t('adminVerificationQueue.sort.registrationDate') },
+    { value: 'userType', label: t('adminVerificationQueue.sort.userType') },
+    {
+      value: 'waitingTime',
+      label: t('adminVerificationQueue.sort.waitingTime'),
+    },
   ];
 
   if (loading && pendingUsers.length === 0) {
     return (
-      <div className="admin-verification-loading">Loading pending users...</div>
+      <div className="admin-verification-loading">
+        {t('adminVerificationQueue.loading')}
+      </div>
     );
   }
 
@@ -610,7 +704,9 @@ const AdminVerificationQueue = () => {
             <UserCheck size={24} color="#3b82f6" />
           </div>
           <div className="stat-content">
-            <div className="stat-label">Total Pending</div>
+            <div className="stat-label">
+              {t('adminVerificationQueue.stats.totalPending')}
+            </div>
             <div className="stat-value">{stats.totalPending}</div>
           </div>
         </div>
@@ -620,7 +716,9 @@ const AdminVerificationQueue = () => {
             <Building2 size={24} color="#f59e0b" />
           </div>
           <div className="stat-content">
-            <div className="stat-label">Pending Donors</div>
+            <div className="stat-label">
+              {t('adminVerificationQueue.stats.pendingDonors')}
+            </div>
             <div className="stat-value">{stats.pendingDonors}</div>
           </div>
         </div>
@@ -630,7 +728,9 @@ const AdminVerificationQueue = () => {
             <Building2 size={24} color="#10b981" />
           </div>
           <div className="stat-content">
-            <div className="stat-label">Pending Receivers</div>
+            <div className="stat-label">
+              {t('adminVerificationQueue.stats.pendingReceivers')}
+            </div>
             <div className="stat-value">{stats.pendingReceivers}</div>
           </div>
         </div>
@@ -640,8 +740,10 @@ const AdminVerificationQueue = () => {
             <Clock size={24} color="#6366f1" />
           </div>
           <div className="stat-content">
-            <div className="stat-label">Avg. Wait Time</div>
-            <div className="stat-value">{stats.avgWaitTime}h</div>
+            <div className="stat-label">
+              {t('adminVerificationQueue.stats.avgWaitTime')}
+            </div>
+            <div className="stat-value">{Math.max(0, stats.avgWaitTime)}h</div>
           </div>
         </div>
       </div>
@@ -649,9 +751,12 @@ const AdminVerificationQueue = () => {
       {/* Users Section */}
       <div className="users-section">
         <div className="users-section-header">
-          <h2>Pending Registrations</h2>
+          <h2>{t('adminVerificationQueue.title')}</h2>
           <div className="pagination-info">
-            Showing {filteredUsers.length} of {stats.totalPending} pending users
+            {t('adminVerificationQueue.showing', {
+              shown: filteredUsers.length,
+              total: stats.totalPending,
+            })}
           </div>
         </div>
 
@@ -661,7 +766,7 @@ const AdminVerificationQueue = () => {
             <Search className="search-icon" size={18} />
             <input
               type="text"
-              placeholder="Search by organization name or email..."
+              placeholder={t('adminVerificationQueue.searchPlaceholder')}
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               className="admin-users-search"
@@ -677,7 +782,7 @@ const AdminVerificationQueue = () => {
             }}
             className="filter-select"
             classNamePrefix="select"
-            placeholder="Filter by type"
+            placeholder={t('adminVerificationQueue.filters.byType')}
           />
 
           <Select
@@ -689,7 +794,7 @@ const AdminVerificationQueue = () => {
             }}
             className="filter-select"
             classNamePrefix="select"
-            placeholder="Filter by status"
+            placeholder={t('adminVerificationQueue.filters.byStatus')}
           />
 
           <Select
@@ -698,7 +803,7 @@ const AdminVerificationQueue = () => {
             onChange={option => setSortBy(option.value)}
             className="filter-select"
             classNamePrefix="select"
-            placeholder="Sort by"
+            placeholder={t('adminVerificationQueue.filters.sortBy')}
           />
 
           <button
@@ -706,7 +811,12 @@ const AdminVerificationQueue = () => {
             onClick={() =>
               setSortOrder(prev => (prev === 'asc' ? 'desc' : 'asc'))
             }
-            title={`Sort ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
+            title={t('adminVerificationQueue.sort.toggle', {
+              order:
+                sortOrder === 'asc'
+                  ? t('adminVerificationQueue.sort.descending')
+                  : t('adminVerificationQueue.sort.ascending'),
+            })}
           >
             {sortOrder === 'asc' ? '↑' : '↓'}
           </button>
@@ -724,8 +834,8 @@ const AdminVerificationQueue = () => {
         {filteredUsers.length === 0 ? (
           <div className="empty-state">
             <UserCheck size={48} color="#9ca3af" />
-            <h3>No Pending Registrations</h3>
-            <p>All user registrations have been reviewed.</p>
+            <h3>{t('adminVerificationQueue.empty.title')}</h3>
+            <p>{t('adminVerificationQueue.empty.description')}</p>
           </div>
         ) : (
           <>
@@ -734,14 +844,30 @@ const AdminVerificationQueue = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead></TableHead>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Organization</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Waiting Time</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>
+                      {t('adminVerificationQueue.table.id')}
+                    </TableHead>
+                    <TableHead>
+                      {t('adminVerificationQueue.table.organization')}
+                    </TableHead>
+                    <TableHead>
+                      {t('adminVerificationQueue.table.type')}
+                    </TableHead>
+                    <TableHead>
+                      {t('adminVerificationQueue.table.status')}
+                    </TableHead>
+                    <TableHead>
+                      {t('adminVerificationQueue.table.email')}
+                    </TableHead>
+                    <TableHead>
+                      {t('adminVerificationQueue.table.phone')}
+                    </TableHead>
+                    <TableHead>
+                      {t('adminVerificationQueue.table.waitingTime')}
+                    </TableHead>
+                    <TableHead>
+                      {t('adminVerificationQueue.table.actions')}
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -775,24 +901,33 @@ const AdminVerificationQueue = () => {
                           <span
                             className={`pill pill-${user.role.toLowerCase()}`}
                           >
-                            {user.role === 'DONOR' ? 'Donor' : 'Receiver'}
+                            {user.role === 'DONOR'
+                              ? t('adminDisputes.userTypes.donor')
+                              : t('adminDisputes.userTypes.receiver')}
                           </span>
                         </TableCell>
                         <TableCell>
                           {user.accountStatus === 'PENDING_VERIFICATION' ? (
                             <span className="pill pill-email-pending">
-                              Email Not Verified
+                              {t(
+                                'adminVerificationQueue.status.emailNotVerified'
+                              )}
                             </span>
                           ) : (
                             <span className="pill pill-pending">
-                              Pending Approval
+                              {t(
+                                'adminVerificationQueue.status.pendingApproval'
+                              )}
                             </span>
                           )}
                         </TableCell>
                         <TableCell className="email-cell">
                           {user.email}
                         </TableCell>
-                        <TableCell>{user.phoneNumber || 'N/A'}</TableCell>
+                        <TableCell>
+                          {user.phoneNumber ||
+                            t('adminVerificationQueue.notAvailable')}
+                        </TableCell>
                         <TableCell>
                           <span className="waiting-time">
                             <Clock size={14} />
@@ -808,7 +943,9 @@ const AdminVerificationQueue = () => {
                                   setSelectedUser(user);
                                   setShowManualVerifyModal(true);
                                 }}
-                                title="Verify Email"
+                                title={t(
+                                  'adminVerificationQueue.actions.verifyEmail'
+                                )}
                               >
                                 <Mail size={16} />
                               </button>
@@ -820,7 +957,9 @@ const AdminVerificationQueue = () => {
                                     setSelectedUser(user);
                                     setShowApprovalModal(true);
                                   }}
-                                  title="Approve"
+                                  title={t(
+                                    'adminVerificationQueue.actions.approve'
+                                  )}
                                 >
                                   <CheckCircle size={16} />
                                 </button>
@@ -830,7 +969,9 @@ const AdminVerificationQueue = () => {
                                     setSelectedUser(user);
                                     setShowRejectionModal(true);
                                   }}
-                                  title="Reject"
+                                  title={t(
+                                    'adminVerificationQueue.actions.reject'
+                                  )}
                                 >
                                   <XCircle size={16} />
                                 </button>
@@ -1164,10 +1305,13 @@ const AdminVerificationQueue = () => {
                   disabled={currentPage === 0}
                   className="pagination-btn"
                 >
-                  Previous
+                  {t('adminVerificationQueue.pagination.previous')}
                 </button>
                 <span className="pagination-info">
-                  Page {currentPage + 1} of {totalPages}
+                  {t('adminVerificationQueue.pagination.pageOf', {
+                    page: currentPage + 1,
+                    total: totalPages,
+                  })}
                 </span>
                 <button
                   onClick={() =>
@@ -1176,7 +1320,7 @@ const AdminVerificationQueue = () => {
                   disabled={currentPage >= totalPages - 1}
                   className="pagination-btn"
                 >
-                  Next
+                  {t('adminVerificationQueue.pagination.next')}
                 </button>
               </div>
             )}

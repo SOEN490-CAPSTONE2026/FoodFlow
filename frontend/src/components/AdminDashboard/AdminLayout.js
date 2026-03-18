@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import {
   Outlet,
   useLocation,
@@ -8,64 +8,124 @@ import {
 } from 'react-router-dom';
 import {
   Home,
-  LayoutGrid,
   Users,
   UserCheck,
   Heart,
-  Calendar as CalendarIcon,
-  FileText,
   Mail,
   ChevronRight,
   ChevronLeft,
-  ChevronDown,
+  HelpCircle,
   Settings,
   LogOut,
   Menu,
   X,
   AlertTriangle,
+  BarChart3,
+  UserPlus,
+  Image,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Logo from '../../assets/Logo_White.png';
 import { AuthContext } from '../../contexts/AuthContext';
+import { profileAPI } from '../../services/api';
+import { connectToUserQueue, disconnect } from '../../services/socket';
+import MessageNotification from '../MessagingDashboard/MessageNotification';
 import './Admin_Styles/AdminLayout.css';
 
 export default function AdminLayout() {
   const { t } = useTranslation();
-  const { logout } = useContext(AuthContext);
+  const { logout, organizationName, role } = useContext(AuthContext);
   const location = useLocation();
   const navigate = useNavigate();
   const navType = useNavigationType();
-  const [messagesOpen, setMessagesOpen] = useState(false);
-  const [screenHeight, setScreenHeight] = useState(window.innerHeight);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [notification, setNotification] = useState(null);
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState(null);
 
-  const contacts = [
-    { name: 'Olive Nacelle', online: true },
-    { name: 'Amélie Laurent', online: true },
-    { name: 'Amélie Jackson', online: false },
-    { name: 'Frankie Sullivan', online: false },
-  ];
+  const isMessagesPage = location.pathname === '/admin/messages';
 
-  useEffect(() => {
-    const handleResize = () => {
-      setScreenHeight(window.innerHeight);
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  const getMaxContacts = () => {
-    if (screenHeight <= 650) {
-      return 1;
+  const getProfilePhotoUrl = photoUrl => {
+    if (!photoUrl) {
+      return null;
     }
-    if (screenHeight <= 800) {
-      return 2;
+    if (
+      photoUrl.startsWith('http://') ||
+      photoUrl.startsWith('https://') ||
+      photoUrl.startsWith('data:')
+    ) {
+      return photoUrl;
     }
-    return 4;
+    const apiBaseUrl =
+      process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+    const backendBaseUrl = apiBaseUrl.endsWith('/api')
+      ? apiBaseUrl.slice(0, -4)
+      : apiBaseUrl.replace(/\/api$/, '');
+    if (photoUrl.startsWith('/uploads/')) {
+      const filename = photoUrl.substring('/uploads/'.length);
+      return `${backendBaseUrl}/api/files/uploads/${filename}`;
+    }
+    if (photoUrl.startsWith('/api/files/')) {
+      return `${backendBaseUrl}${photoUrl}`;
+    }
+    return `${backendBaseUrl}${photoUrl.startsWith('/') ? '' : '/'}${photoUrl}`;
   };
 
-  const visibleContacts = contacts.slice(0, getMaxContacts());
+  useEffect(() => {
+    let isMounted = true;
+    const fetchProfilePhoto = async () => {
+      try {
+        const response = await profileAPI.get();
+        if (isMounted) {
+          const url = getProfilePhotoUrl(response.data?.profilePhoto);
+          setProfilePhotoUrl(url);
+        }
+      } catch (error) {
+        console.error('Error fetching profile photo:', error);
+      }
+    };
+    fetchProfilePhoto();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const onMessage = payload => {
+      const senderName =
+        payload.senderName ||
+        payload.sender?.email ||
+        payload.senderEmail ||
+        '';
+      const message =
+        payload.messageBody || payload.message || payload.body || '';
+      if (message) {
+        setNotification({ senderName, message });
+      }
+    };
+
+    connectToUserQueue(
+      onMessage,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    );
+    return () => {
+      try {
+        disconnect();
+      } catch (e) {
+        /* ignore */
+      }
+    };
+  }, []);
 
   const pageTitle = (() => {
     switch (location.pathname) {
@@ -73,19 +133,25 @@ export default function AdminLayout() {
       case '/admin/dashboard':
         return t('admin.dashboard');
       case '/admin/users':
-        return 'User Management';
+        return t('admin.users');
       case '/admin/verification-queue':
-        return 'Verification Queue';
+        return t('admin.verificationQueue');
       case '/admin/analytics':
         return t('admin.analytics');
+      case '/admin/impact':
+        return t('admin.impact');
       case '/admin/calendar':
         return t('admin.calendar');
       case '/admin/messages':
         return t('admin.messages');
       case '/admin/disputes':
-        return 'Disputes & Reports';
+        return t('admin.disputes');
+      case '/admin/referrals':
+        return 'Referral Submissions';
       case '/admin/help':
         return t('admin.help');
+      case '/admin/images':
+        return 'Images';
       default:
         return t('admin.dashboard');
     }
@@ -97,19 +163,25 @@ export default function AdminLayout() {
       case '/admin/dashboard':
         return t('admin.overview');
       case '/admin/verification-queue':
-        return 'Review and approve pending user registrations';
+        return t('admin.verificationQueueDesc');
       case '/admin/users':
-        return 'Manage and monitor all platform users';
+        return t('admin.usersDesc');
       case '/admin/analytics':
         return t('admin.metrics');
+      case '/admin/impact':
+        return t('admin.impactDesc');
       case '/admin/calendar':
         return t('admin.events');
       case '/admin/messages':
         return t('admin.communications');
       case '/admin/disputes':
-        return 'Track, review, and resolve reported issues';
+        return t('admin.disputesDesc');
+      case '/admin/referrals':
+        return 'View community invitations and business suggestions from users';
       case '/admin/help':
         return t('admin.guides');
+      case '/admin/images':
+        return 'Moderate uploads and manage default library images';
       default:
         return t('admin.administration');
     }
@@ -145,7 +217,7 @@ export default function AdminLayout() {
         <button
           className="hamburger-btn"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label="Toggle Menu"
+          aria-label={t('admin.toggleMenu')}
         >
           {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
@@ -166,14 +238,14 @@ export default function AdminLayout() {
             to="/"
             replace
             state={{ scrollTo: 'home', from: 'admin' }}
-            aria-label="FoodFlow Home"
+            aria-label={t('admin.foodflowHome')}
           >
             <img src={Logo} alt="FoodFlow" className="admin-logo" />
           </Link>
           <button
             className="sidebar-toggle-btn"
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            aria-label="Toggle sidebar"
+            aria-label={t('admin.toggleSidebar')}
           >
             {sidebarCollapsed ? (
               <ChevronRight size={20} />
@@ -183,133 +255,161 @@ export default function AdminLayout() {
           </button>
         </div>
 
-        <nav className="admin-nav-links" style={{ flex: '0 1 auto' }}>
+        <nav className="admin-nav-links">
           <Link
-            to="/admin/welcome"
-            className={`admin-nav-link ${isActive('/admin/welcome') ? 'active' : ''}`}
-            data-tooltip="Home"
+            to="/admin"
+            className={`admin-nav-link ${isActive('/admin') ? 'active' : ''}`}
+            data-tooltip={t('admin.dashboard')}
           >
             <span className="nav-icon" aria-hidden>
               <Home size={18} className="lucide" />
             </span>
-            Home
+            {t('admin.dashboard')}
           </Link>
 
           <Link
             to="/admin/verification-queue"
             className={`admin-nav-link ${isActive('/admin/verification-queue') ? 'active' : ''}`}
-            data-tooltip="Verification Queue"
+            data-tooltip={t('admin.verificationQueue')}
           >
             <span className="nav-icon" aria-hidden>
               <UserCheck size={18} className="lucide" />
             </span>
-            Verification
+            {t('admin.verificationQueue')}
           </Link>
 
           <Link
             to="/admin/users"
             className={`admin-nav-link ${isActive('/admin/users') ? 'active' : ''}`}
-            data-tooltip="Users"
+            data-tooltip={t('admin.users')}
           >
             <span className="nav-icon" aria-hidden>
               <Users size={18} className="lucide" />
             </span>
-            Users
+            {t('admin.users')}
           </Link>
 
           <Link
             to="/admin/donations"
             className={`admin-nav-link ${isActive('/admin/donations') ? 'active' : ''}`}
-            data-tooltip="Donations"
+            data-tooltip={t('admin.donations')}
           >
             <span className="nav-icon" aria-hidden>
               <Heart size={18} className="lucide" />
             </span>
-            Donations
+            {t('admin.donations')}
+          </Link>
+
+          <Link
+            to="/admin/images"
+            className={`admin-nav-link ${isActive('/admin/images') ? 'active' : ''}`}
+            data-tooltip="Images"
+          >
+            <span className="nav-icon" aria-hidden>
+              <Image size={18} className="lucide" />
+            </span>
+            Images
+          </Link>
+
+          <Link
+            to="/admin/impact"
+            className={`admin-nav-link ${isActive('/admin/impact') ? 'active' : ''}`}
+            data-tooltip={t('admin.impact')}
+          >
+            <span className="nav-icon" aria-hidden>
+              <BarChart3 size={18} className="lucide" />
+            </span>
+            {t('admin.impact')}
           </Link>
 
           <Link
             to="/admin/disputes"
             className={`admin-nav-link ${isActive('/admin/disputes') ? 'active' : ''}`}
-            data-tooltip="Disputes"
+            data-tooltip={t('admin.disputes')}
           >
             <span className="nav-icon" aria-hidden>
               <AlertTriangle size={18} className="lucide" />
             </span>
-            Disputes
+            {t('admin.disputes')}
           </Link>
 
-          <div
-            className={`admin-nav-link messages-link ${isActive('/admin/messages') ? 'active' : ''}`}
-            data-tooltip="Messages"
+          <Link
+            to="/admin/referrals"
+            className={`admin-nav-link ${isActive('/admin/referrals') ? 'active' : ''}`}
+            data-tooltip="Referrals"
           >
-            <div
-              onClick={() => navigate('/admin/messages')}
-              className="messages-left"
-            >
-              <span className="nav-icon" aria-hidden>
-                <Mail size={18} className="lucide" />
-              </span>
-              Messages
-            </div>
-            <button
-              className="messages-toggle"
-              onClick={() => setMessagesOpen(s => !s)}
-              aria-label="Toggle Messages"
-            >
-              {messagesOpen ? (
-                <ChevronDown size={16} className="lucide" />
-              ) : (
-                <ChevronRight size={16} className="lucide" />
-              )}
-            </button>
-          </div>
+            <span className="nav-icon" aria-hidden>
+              <UserPlus size={18} className="lucide" />
+            </span>
+            Referrals
+          </Link>
 
-          {messagesOpen && (
-            <div className="messages-dropdown">
-              {visibleContacts.map((c, i) => (
-                <div key={i} className="message-item">
-                  <div className="message-avatar">
-                    {c.online && <span className="message-status" />}
-                  </div>
-                  <span className="message-name">{c.name}</span>
-                </div>
-              ))}
-            </div>
-          )}
+          <Link
+            to="/admin/messages"
+            className={`admin-nav-link ${isActive('/admin/messages') ? 'active' : ''}`}
+            data-tooltip={t('admin.messages')}
+          >
+            <span className="nav-icon" aria-hidden>
+              <Mail size={18} className="lucide" />
+            </span>
+            {t('admin.messages')}
+          </Link>
         </nav>
 
-        <div style={{ flex: 1 }} />
         <div className="admin-nav-bottom">
+          <div
+            className="admin-nav-link disabled"
+            data-tooltip={t('admin.help')}
+          >
+            <span className="nav-icon" aria-hidden>
+              <HelpCircle size={18} className="lucide" />
+            </span>
+            {t('admin.help')}
+          </div>
           <Link
             to="/admin/settings"
             className={`admin-nav-link ${isActive('/admin/settings') ? 'active' : ''}`}
-            data-tooltip="Settings"
+            data-tooltip={t('admin.settings')}
           >
             <span className="nav-icon" aria-hidden>
               <Settings size={18} className="lucide" />
             </span>
-            Settings
+            {t('admin.settings')}
           </Link>
           <button
             onClick={handleLogout}
             className="admin-nav-link logout-btn"
-            data-tooltip="Logout"
+            data-tooltip={t('admin.logout')}
           >
             <span className="nav-icon" aria-hidden>
               <LogOut size={18} className="lucide" />
             </span>
-            Logout
+            {t('admin.logout')}
           </button>
         </div>
 
         <div className="admin-sidebar-footer admin-user">
           <div className="account-row">
             <button className="user-profile-pic" type="button">
-              <div className="account-avatar"></div>
+              <div
+                className="account-avatar"
+                style={
+                  profilePhotoUrl
+                    ? {
+                        backgroundImage: `url(${profilePhotoUrl})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                      }
+                    : undefined
+                }
+              ></div>
               <div className="account-text">
-                <span className="account-name">Evian</span>
-                <span className="account-role">admin</span>
+                <span className="account-name">
+                  {organizationName || 'Admin'}
+                </span>
+                <span className="account-role">
+                  {role?.toLowerCase() || 'admin'}
+                </span>
               </div>
             </button>
           </div>
@@ -317,15 +417,27 @@ export default function AdminLayout() {
       </aside>
 
       <main className="admin-main">
-        <header className="admin-topbar">
-          <div className="admin-topbar-left">
-            <h1>{pageTitle}</h1>
-            <p>{pageDesc}</p>
-          </div>
-        </header>
+        {location.pathname !== '/admin' &&
+          location.pathname !== '/admin/dashboard' && (
+            <header className="admin-topbar">
+              <div className="admin-topbar-left">
+                <h1>{pageTitle}</h1>
+                <p>{pageDesc}</p>
+              </div>
+            </header>
+          )}
 
-        <section className="admin-content">
+        <section
+          className={`admin-content ${isMessagesPage ? 'messages-page' : ''}`}
+        >
           <Outlet />
+
+          {notification && (
+            <MessageNotification
+              notification={notification}
+              onClose={() => setNotification(null)}
+            />
+          )}
         </section>
       </main>
     </div>

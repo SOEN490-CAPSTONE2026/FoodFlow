@@ -1,12 +1,16 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
-import { User, Globe, Bell, Camera, Lock } from 'lucide-react';
+import { Autocomplete, useLoadScript } from '@react-google-maps/api';
+import { User, Globe, Bell, Camera, Lock, Calendar } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './LanguageSwitcher';
 import RegionSelector from './RegionSelector';
 import ChangePasswordModal from './ChangePasswordModal';
+import CalendarSettings from './CalendarSettings';
+import DonorPhotoPreferencesSection from './DonorDashboard/DonorPhotoPreferencesSection';
 import { AuthContext } from '../contexts/AuthContext';
 import { notificationPreferencesAPI, profileAPI } from '../services/api';
 import api from '../services/api';
+import { inferRegionFromAddress } from '../services/timezoneService';
 import '../style/Settings.css';
 
 /**
@@ -252,6 +256,11 @@ const Settings = () => {
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] =
     useState(false);
   const [regionSettings, setRegionSettings] = useState(null);
+  const [lastResolvedAddress, setLastResolvedAddress] = useState('');
+  const [addressSelectionMeta, setAddressSelectionMeta] = useState({
+    city: '',
+    country: '',
+  });
 
   // Notification preferences state
   const [notificationPreferences, setNotificationPreferences] = useState({
@@ -274,8 +283,25 @@ const Settings = () => {
   const [errors, setErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState('');
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [isLanguageRegionExpanded, setIsLanguageRegionExpanded] =
+    useState(false);
+  const [isNotificationTypesExpanded, setIsNotificationTypesExpanded] =
+    useState(false);
+  const [isAddressSelected, setIsAddressSelected] = useState(true);
 
   const fileInputRef = useRef(null);
+  const addressAutocompleteRef = useRef(null);
+  const { isLoaded: isMapsLoaded } = useLoadScript({
+    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY || '',
+    libraries: ['places'],
+  });
+
+  useEffect(() => {
+    document.body.classList.add('settings-address-open');
+    return () => {
+      document.body.classList.remove('settings-address-open');
+    };
+  }, []);
 
   // Load user profile on component mount
   useEffect(() => {
@@ -341,14 +367,17 @@ const Settings = () => {
       const profileResp = await profileAPI.get();
       if (profileResp.data) {
         const p = profileResp.data;
+        const profileAddress = p.organizationAddress || p.address || '';
         setFormData(prev => ({
           ...prev,
           fullName: p.fullName || prev.fullName || '',
           email: p.email || prev.email || '',
           phoneNumber: p.phone || p.phoneNumber || prev.phoneNumber || '',
           organization: p.organizationName || prev.organization || '',
-          address: p.organizationAddress || p.address || prev.address || '',
+          address: profileAddress || prev.address || '',
         }));
+        setIsAddressSelected(Boolean(profileAddress));
+        setLastResolvedAddress(profileAddress || '');
 
         if (p.profilePhoto) {
           setProfileImage(p.profilePhoto);
@@ -423,6 +452,11 @@ const Settings = () => {
       newErrors.phoneNumber = 'Please enter a valid phone number';
     }
 
+    if (formData.address && formData.address.trim() && !isAddressSelected) {
+      newErrors.address =
+        'Please select a full street address from Google suggestions (with street number).';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -430,9 +464,68 @@ const Settings = () => {
   const handleInputChange = e => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    if (name === 'address') {
+      setIsAddressSelected(false);
+    }
     // Clear error for this field when user starts typing
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const getAddressComponent = (components = [], type) =>
+    components.find(component => component.types?.includes(type));
+
+  const onLoadAddressAutocomplete = autocomplete => {
+    addressAutocompleteRef.current = autocomplete;
+    autocomplete.setFields([
+      'address_components',
+      'formatted_address',
+      'geometry',
+    ]);
+    autocomplete.setOptions({ types: ['address'] });
+  };
+
+  const handleAddressPlaceChanged = () => {
+    try {
+      const place = addressAutocompleteRef.current?.getPlace();
+      if (!place?.address_components) {
+        return;
+      }
+
+      const components = place.address_components;
+      const streetNumber = getAddressComponent(components, 'street_number');
+      const route = getAddressComponent(components, 'route');
+      const cityComponent =
+        getAddressComponent(components, 'locality') ||
+        getAddressComponent(components, 'postal_town') ||
+        getAddressComponent(components, 'administrative_area_level_2');
+      const countryComponent = getAddressComponent(components, 'country');
+
+      if (!streetNumber || !route) {
+        setIsAddressSelected(false);
+        setErrors(prev => ({
+          ...prev,
+          address:
+            'Please select a full street address from suggestions (with street number).',
+        }));
+        return;
+      }
+
+      const formattedAddress = place.formatted_address || place.name || '';
+      setFormData(prev => ({
+        ...prev,
+        address: formattedAddress || prev.address,
+      }));
+      setAddressSelectionMeta({
+        city: cityComponent?.long_name || '',
+        country: countryComponent?.long_name || '',
+      });
+      setIsAddressSelected(true);
+      setErrors(prev => ({ ...prev, address: '' }));
+    } catch (error) {
+      console.error('Address autocomplete error:', error);
+      setIsAddressSelected(false);
     }
   };
 
@@ -576,6 +669,60 @@ const Settings = () => {
           ...prev,
           smsPhoneNumber: resp.data.phone || prev.smsPhoneNumber,
         }));
+
+        const currentAddress = (formData.address || '').trim();
+        const previousAddress = (lastResolvedAddress || '').trim();
+        const shouldResolveRegion =
+          currentAddress.length > 0 &&
+          currentAddress !== previousAddress &&
+          isAddressSelected;
+
+        if (shouldResolveRegion) {
+          try {
+            const inferredRegion = await inferRegionFromAddress(currentAddress);
+            const resolvedCity =
+              inferredRegion?.city || addressSelectionMeta.city || '';
+            const resolvedCountry =
+              inferredRegion?.country || addressSelectionMeta.country || '';
+
+            if (resolvedCity && resolvedCountry) {
+              const regionPayload = {
+                country: resolvedCountry,
+                city: resolvedCity,
+              };
+
+              // If timezone came from precise address lookup, pass it.
+              // Otherwise let backend resolve from city/country defaults.
+              if (
+                inferredRegion?.source === 'google' &&
+                inferredRegion?.timezone
+              ) {
+                regionPayload.timezone = inferredRegion.timezone;
+              }
+
+              const regionResp = await api.put(
+                '/profile/region',
+                regionPayload
+              );
+              setRegionSettings({
+                country: regionResp?.data?.country || resolvedCountry,
+                city: regionResp?.data?.city || resolvedCity,
+                timezone:
+                  regionResp?.data?.timezone ||
+                  inferredRegion?.timezone ||
+                  regionSettings?.timezone ||
+                  'UTC',
+              });
+            }
+          } catch (regionError) {
+            console.error(
+              'Error inferring region/timezone from address:',
+              regionError
+            );
+          }
+        }
+
+        setLastResolvedAddress(currentAddress);
 
         setSuccessMessage(t('settings.account.profileUpdated'));
       }
@@ -806,14 +953,46 @@ const Settings = () => {
                     <label className="field-label">
                       {t('settings.account.address')}
                     </label>
-                    <input
-                      type="text"
-                      name="address"
-                      className="field-input"
-                      placeholder={t('settings.account.addressPlaceholder')}
-                      value={formData.address}
-                      onChange={handleInputChange}
-                    />
+                    {isMapsLoaded ? (
+                      <div className="settings-address-autocomplete-wrap">
+                        <Autocomplete
+                          onLoad={onLoadAddressAutocomplete}
+                          onPlaceChanged={handleAddressPlaceChanged}
+                          options={{ types: ['address'] }}
+                        >
+                          <input
+                            type="text"
+                            name="address"
+                            className={`field-input ${errors.address ? 'error' : ''}`}
+                            placeholder={t(
+                              'settings.account.addressPlaceholder'
+                            )}
+                            value={formData.address}
+                            onChange={handleInputChange}
+                            autoComplete="off"
+                          />
+                        </Autocomplete>
+                      </div>
+                    ) : (
+                      <input
+                        type="text"
+                        name="address"
+                        className={`field-input ${errors.address ? 'error' : ''}`}
+                        placeholder={t('settings.account.addressPlaceholder')}
+                        value={formData.address}
+                        onChange={handleInputChange}
+                      />
+                    )}
+                    {!errors.address &&
+                      formData.address?.trim() &&
+                      !isAddressSelected && (
+                        <span className="field-hint">
+                          Select the full address from Google suggestions.
+                        </span>
+                      )}
+                    {errors.address && (
+                      <span className="field-error">{errors.address}</span>
+                    )}
                   </div>
                 </div>
 
@@ -843,49 +1022,90 @@ const Settings = () => {
           </div>
         </div>
 
-        {/* Language & Region Section */}
-        <div className="settings-section">
-          <div className="section-header-with-icon">
-            <div className="icon-circle">
-              <Globe size={24} />
-            </div>
-            <div className="section-title-group">
-              <h2>{t('settings.languageRegion.title')}</h2>
-              <p className="section-description">
-                {t('settings.languageRegion.description')}
+        <div className={role === 'DONOR' ? 'settings-donor-setup' : undefined}>
+          {role === 'DONOR' && (
+            <div
+              className="settings-section donor-setup-overview"
+              data-tour="donor-settings-setup"
+            >
+              <div className="donor-setup-overview__eyebrow">Donor setup</div>
+              <h2 className="donor-setup-overview__title">
+                Finish setting up your account
+              </h2>
+              <p className="donor-setup-overview__text">
+                Review Language &amp; Region, Calendar Integration, and Display
+                Preferences to personalize how FoodFlow works for you.
               </p>
             </div>
-          </div>
-          <div className="section-content">
-            <div className="language-region-container">
-              <div className="subsection-header">
-                <h3 className="subsection-title">
-                  {t('settings.languageRegion.languagePreference')}
-                </h3>
-                <p className="subsection-description">
-                  {t('settings.languageRegion.languageDesc')}
+          )}
+
+          {/* Language & Region Section */}
+          <div className="settings-section">
+            <div className="section-header-with-icon">
+              <div className="icon-circle">
+                <Globe size={24} />
+              </div>
+              <div className="section-title-group">
+                <h2>{t('settings.languageRegion.title')}</h2>
+                <p className="section-description">
+                  {t('settings.languageRegion.description')}
+                </p>
+                <p className="language-region-summary">
+                  {(regionSettings?.city && regionSettings?.country
+                    ? `${regionSettings.city}, ${regionSettings.country}`
+                    : t('settings.languageRegion.locationTimezone')) || ''}
                 </p>
               </div>
-              <LanguageSwitcher />
-            </div>
-
-            <div className="region-settings-divider"></div>
-
-            <div className="language-region-container">
-              <div className="subsection-header">
-                <h3 className="subsection-title">
-                  {t('settings.languageRegion.locationTimezone')}
-                </h3>
-                <p className="subsection-description">
-                  {t('settings.languageRegion.locationDesc')}
-                </p>
+              <div className="settings-header-actions">
+                <button
+                  type="button"
+                  className="settings-toggle-btn"
+                  onClick={() => setIsLanguageRegionExpanded(prev => !prev)}
+                  aria-expanded={isLanguageRegionExpanded}
+                  aria-label="Toggle language and region settings"
+                >
+                  {isLanguageRegionExpanded ? 'Hide ▲' : 'Edit ▼'}
+                </button>
               </div>
-              <RegionSelector
-                value={regionSettings}
-                onChange={handleRegionChange}
-              />
             </div>
+            {isLanguageRegionExpanded && (
+              <div className="section-content language-region-content-wrap">
+                <div className="language-region-container">
+                  <div className="subsection-header">
+                    <h3 className="subsection-title">
+                      {t('settings.languageRegion.languagePreference')}
+                    </h3>
+                    <p className="subsection-description">
+                      {t('settings.languageRegion.languageDesc')}
+                    </p>
+                  </div>
+                  <LanguageSwitcher />
+                </div>
+
+                <div className="region-settings-divider"></div>
+
+                <div className="language-region-container">
+                  <div className="subsection-header">
+                    <h3 className="subsection-title">
+                      {t('settings.languageRegion.locationTimezone')}
+                    </h3>
+                    <p className="subsection-description">
+                      {t('settings.languageRegion.locationDesc')}
+                    </p>
+                  </div>
+                  <RegionSelector
+                    value={regionSettings}
+                    onChange={handleRegionChange}
+                  />
+                </div>
+              </div>
+            )}
           </div>
+
+          {/* Calendar Integration Section */}
+          <CalendarSettings />
+
+          {role === 'DONOR' && <DonorPhotoPreferencesSection />}
         </div>
 
         {/* Notification Preferences Section */}
@@ -961,22 +1181,19 @@ const Settings = () => {
               <User size={24} />
             </div>
             <div className="section-title-group">
-              <h2>Privacy & Data Consent</h2>
+              <h2>{t('settings.privacyConsent.title')}</h2>
               <p className="section-description">
-                Your data storage consent and privacy information
+                {t('settings.privacyConsent.description')}
               </p>
             </div>
           </div>
           <div className="section-content">
             <div className="privacy-consent-info">
               <p style={{ marginBottom: '1rem', lineHeight: '1.6' }}>
-                You have consented to data storage upon registering with
-                FoodFlow. We collect and store your information to provide our
-                services and connect donors with receivers efficiently.
+                {t('settings.privacyConsent.consentMessage')}
               </p>
               <p style={{ lineHeight: '1.6' }}>
-                For more details about how we handle your data, please review
-                our{' '}
+                {t('settings.privacyConsent.detailsPrefix')}{' '}
                 <a
                   href="/privacy-policy"
                   target="_blank"
@@ -987,9 +1204,9 @@ const Settings = () => {
                     fontWeight: '500',
                   }}
                 >
-                  Privacy Policy
+                  {t('settings.privacyConsent.privacyPolicyLink')}
                 </a>
-                .
+                {t('settings.privacyConsent.detailsSuffix')}
               </p>
             </div>
           </div>
@@ -1006,38 +1223,59 @@ const Settings = () => {
               <p className="section-description">
                 {t('settings.notificationTypes.description')}
               </p>
+              <p className="language-region-summary">
+                {Object.values(notifications || {}).filter(Boolean).length}{' '}
+                active
+              </p>
+            </div>
+            <div className="settings-header-actions">
+              <button
+                type="button"
+                className="settings-toggle-btn"
+                onClick={() => setIsNotificationTypesExpanded(prev => !prev)}
+                aria-expanded={isNotificationTypesExpanded}
+                aria-label="Toggle notification types"
+              >
+                {isNotificationTypesExpanded ? 'Hide ▲' : 'Edit ▼'}
+              </button>
             </div>
           </div>
-          <div className="section-content">
-            {Object.entries(
-              getNotificationCategories()[role] ||
-                getNotificationCategories().RECEIVER
-            ).map(([categoryName, categoryItems]) => (
-              <div key={categoryName} className="notification-category">
-                <h3 className="notification-category-title">{categoryName}</h3>
-                <div className="notification-list">
-                  {categoryItems.map(notification => (
-                    <div key={notification.key} className="notification-item">
-                      <div className="notification-info">
-                        <h4 className="notification-title">
-                          {notification.label}
-                        </h4>
-                        <p className="notification-desc">{notification.desc}</p>
+          {isNotificationTypesExpanded && (
+            <div className="section-content language-region-content-wrap">
+              {Object.entries(
+                getNotificationCategories()[role] ||
+                  getNotificationCategories().RECEIVER
+              ).map(([categoryName, categoryItems]) => (
+                <div key={categoryName} className="notification-category">
+                  <h3 className="notification-category-title">
+                    {categoryName}
+                  </h3>
+                  <div className="notification-list">
+                    {categoryItems.map(notification => (
+                      <div key={notification.key} className="notification-item">
+                        <div className="notification-info">
+                          <h4 className="notification-title">
+                            {notification.label}
+                          </h4>
+                          <p className="notification-desc">
+                            {notification.desc}
+                          </p>
+                        </div>
+                        <label className="toggle-switch">
+                          <input
+                            type="checkbox"
+                            checked={notifications[notification.key] || false}
+                            onChange={() => handleToggle(notification.key)}
+                          />
+                          <span className="toggle-slider"></span>
+                        </label>
                       </div>
-                      <label className="toggle-switch">
-                        <input
-                          type="checkbox"
-                          checked={notifications[notification.key] || false}
-                          onChange={() => handleToggle(notification.key)}
-                        />
-                        <span className="toggle-slider"></span>
-                      </label>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

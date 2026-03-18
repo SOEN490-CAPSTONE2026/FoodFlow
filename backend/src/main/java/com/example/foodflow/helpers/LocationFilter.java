@@ -2,9 +2,9 @@ package com.example.foodflow.helpers;
 
 import com.example.foodflow.model.types.Location;
 import org.springframework.data.jpa.domain.Specification;
-import jakarta.persistence.criteria.Path;
-import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Path;
 
 import java.util.Objects;
 
@@ -18,125 +18,53 @@ public class LocationFilter implements Filter<Location> {
      * Supported operations for distance filtering.
      */
     public enum Operation {
-        WITHIN,                    // distance <= maxDistance
-        OUTSIDE,                   // distance > maxDistance  
-        EXACTLY,                   // distance == exactDistance (with tolerance)
-        GREATER_THAN,              // distance > minDistance
-        GREATER_THAN_OR_EQUAL,     // distance >= minDistance
-        LESS_THAN,                 // distance < maxDistance
-        LESS_THAN_OR_EQUAL         // distance <= maxDistance
+        WITHIN,
+        OUTSIDE
     }
 
-    private final Location referenceLocation;  // the location to measure from
-    private final double distanceKm;           // distance in kilometers
-    private final Operation operation;         // operation type
-    private final double tolerance;            // tolerance for EXACTLY operation (default: 0.1 km)
+    private final Location referenceLocation;
+    private final double distanceKm;
+    private final Operation operation;
 
     /**
      * Private constructor to enforce static factory methods usage.
      */
-    protected LocationFilter(Location referenceLocation, double distanceKm, Operation operation, double tolerance) {
+    protected LocationFilter(Location referenceLocation, double distanceKm, Operation operation) {
         this.referenceLocation = Objects.requireNonNull(referenceLocation, "Reference location cannot be null");
         if (distanceKm < 0) {
             throw new IllegalArgumentException("Distance cannot be negative");
         }
-        if (tolerance < 0) {
-            throw new IllegalArgumentException("Tolerance cannot be negative");
-        }
-        
         this.distanceKm = distanceKm;
         this.operation = Objects.requireNonNull(operation, "Operation cannot be null");
-        this.tolerance = tolerance;
     }
 
-    // ---------------- Static factory methods ----------------
-
-    /**
-     * Filter for locations within a certain distance (inclusive).
-     */
+    // Static factory methods
     public static LocationFilter within(Location referenceLocation, double distanceKm) {
-        return new LocationFilter(referenceLocation, distanceKm, Operation.WITHIN, 0.1);
+        return new LocationFilter(referenceLocation, distanceKm, Operation.WITHIN);
     }
 
-    /**
-     * Filter for locations outside a certain distance (exclusive).
-     */
     public static LocationFilter outside(Location referenceLocation, double distanceKm) {
-        return new LocationFilter(referenceLocation, distanceKm, Operation.OUTSIDE, 0.1);
+        return new LocationFilter(referenceLocation, distanceKm, Operation.OUTSIDE);
     }
 
     /**
-     * Filter for locations at exactly a certain distance (with default tolerance of 0.1km).
+     * Check if a target location satisfies this distance filter (in-memory).
      */
-    public static LocationFilter exactly(Location referenceLocation, double distanceKm) {
-        return new LocationFilter(referenceLocation, distanceKm, Operation.EXACTLY, 0.1);
-    }
-
-    /**
-     * Filter for locations at exactly a certain distance (with custom tolerance).
-     */
-    public static LocationFilter exactly(Location referenceLocation, double distanceKm, double toleranceKm) {
-        return new LocationFilter(referenceLocation, distanceKm, Operation.EXACTLY, toleranceKm);
-    }
-
-    /**
-     * Filter for locations greater than a certain distance.
-     */
-    public static LocationFilter greaterThan(Location referenceLocation, double distanceKm) {
-        return new LocationFilter(referenceLocation, distanceKm, Operation.GREATER_THAN, 0.1);
-    }
-
-    /**
-     * Filter for locations greater than or equal to a certain distance.
-     */
-    public static LocationFilter greaterThanOrEqual(Location referenceLocation, double distanceKm) {
-        return new LocationFilter(referenceLocation, distanceKm, Operation.GREATER_THAN_OR_EQUAL, 0.1);
-    }
-
-    /**
-     * Filter for locations less than a certain distance.
-     */
-    public static LocationFilter lessThan(Location referenceLocation, double distanceKm) {
-        return new LocationFilter(referenceLocation, distanceKm, Operation.LESS_THAN, 0.1);
-    }
-
-    /**
-     * Filter for locations less than or equal to a certain distance.
-     */
-    public static LocationFilter lessThanOrEqual(Location referenceLocation, double distanceKm) {
-        return new LocationFilter(referenceLocation, distanceKm, Operation.LESS_THAN_OR_EQUAL, 0.1);
-    }
-
-    // ---------------- In-memory check ----------------
-
-    /**
-     * Check if a location satisfies this distance filter.
-     * @param targetLocation the location to check
-     * @return true if the location satisfies the filter
-     */
+    @Override
     public boolean check(Location targetLocation) {
         Objects.requireNonNull(targetLocation, "Target location cannot be null");
+
+        if (targetLocation.getLatitude() == null || targetLocation.getLongitude() == null) {
+            return false;
+        }
 
         double actualDistance = referenceLocation.distanceTo(targetLocation);
 
         switch (operation) {
             case WITHIN:
-            case LESS_THAN_OR_EQUAL:
                 return actualDistance <= distanceKm;
-                
             case OUTSIDE:
-            case GREATER_THAN:
                 return actualDistance > distanceKm;
-                
-            case EXACTLY:
-                return Math.abs(actualDistance - distanceKm) <= tolerance;
-                
-            case GREATER_THAN_OR_EQUAL:
-                return actualDistance >= distanceKm;
-                
-            case LESS_THAN:
-                return actualDistance < distanceKm;
-                
             default:
                 throw new IllegalStateException("Unknown operation: " + operation);
         }
@@ -145,7 +73,7 @@ public class LocationFilter implements Filter<Location> {
     @Override
     public <E> Specification<E> toSpecification(String fieldName) {
         return (root, query, cb) -> {
-            // Get the location field path
+            // Get the location field paths
             Path<Location> locationPath = root.get(fieldName);
             Path<Double> latPath = locationPath.get("latitude");
             Path<Double> lonPath = locationPath.get("longitude");
@@ -157,27 +85,12 @@ public class LocationFilter implements Filter<Location> {
                 referenceLocation.getLongitude()
             );
 
+            // Apply the operation
             switch (operation) {
                 case WITHIN:
-                case LESS_THAN_OR_EQUAL:
                     return cb.lessThanOrEqualTo(distanceExpression, distanceKm);
-                    
                 case OUTSIDE:
-                case GREATER_THAN:
                     return cb.greaterThan(distanceExpression, distanceKm);
-                    
-                case EXACTLY:
-                    return cb.and(
-                        cb.greaterThanOrEqualTo(distanceExpression, distanceKm - tolerance),
-                        cb.lessThanOrEqualTo(distanceExpression, distanceKm + tolerance)
-                    );
-                    
-                case GREATER_THAN_OR_EQUAL:
-                    return cb.greaterThanOrEqualTo(distanceExpression, distanceKm);
-                    
-                case LESS_THAN:
-                    return cb.lessThan(distanceExpression, distanceKm);
-                    
                 default:
                     throw new IllegalStateException("Unknown operation: " + operation);
             }
@@ -186,52 +99,49 @@ public class LocationFilter implements Filter<Location> {
 
     /**
      * Creates a Haversine distance calculation expression for JPA Criteria API.
-     * This creates the SQL equivalent of the Haversine formula.
+     * OPTIMIZED VERSION - Pre-calculates constants in Java to avoid SQL complexity.
      */
     private Expression<Double> createHaversineExpression(
             CriteriaBuilder cb,
             Path<Double> targetLat, Path<Double> targetLon,
             double refLat, double refLon) {
         
-        // Convert to radians
-        Expression<Double> refLatRad = cb.literal(Math.toRadians(refLat));
-        Expression<Double> refLonRad = cb.literal(Math.toRadians(refLon));
-        Expression<Double> targetLatRad = cb.prod(cb.literal(Math.PI / 180.0), targetLat);
-        Expression<Double> targetLonRad = cb.prod(cb.literal(Math.PI / 180.0), targetLon);
+        // Pre-calculate reference values in Java (NOT in SQL) - this is KEY
+        double lat1Rad = Math.toRadians(refLat);
+        double lon1Rad = Math.toRadians(refLon);
+        double cosLat1 = Math.cos(lat1Rad);
+        double sinLat1 = Math.sin(lat1Rad);
         
-        // Calculate differences
-        Expression<Double> latDiff = cb.diff(targetLatRad, refLatRad);
-        Expression<Double> lonDiff = cb.diff(targetLonRad, refLonRad);
+        // Convert target coordinates to radians (in SQL)
+        Expression<Double> lat2Rad = cb.prod(targetLat, Math.PI / 180.0);
+        Expression<Double> lon2Rad = cb.prod(targetLon, Math.PI / 180.0);
         
-        // Haversine formula components
-        // sin²(Δlat/2)
-        Expression<Double> sinLatHalf = cb.function("SIN", Double.class, cb.quot(latDiff, cb.literal(2.0)));
-        Expression<Double> sinLatHalfSq = cb.prod(sinLatHalf, sinLatHalf);
+        // Calculate cos and sin for target latitude (in SQL)
+        Expression<Double> cosLat2 = cb.function("cos", Double.class, lat2Rad);
+        Expression<Double> sinLat2 = cb.function("sin", Double.class, lat2Rad);
         
-        // sin²(Δlon/2)
-        Expression<Double> sinLonHalf = cb.function("SIN", Double.class, cb.quot(lonDiff, cb.literal(2.0)));
-        Expression<Double> sinLonHalfSq = cb.prod(sinLonHalf, sinLonHalf);
+        // Calculate longitude difference
+        Expression<Double> lonDiff = cb.diff(lon2Rad, lon1Rad);
+        Expression<Double> cosLonDiff = cb.function("cos", Double.class, lonDiff);
         
-        // cos(lat1) * cos(lat2)
-        Expression<Double> cosRefLat = cb.function("COS", Double.class, refLatRad);
-        Expression<Double> cosTargetLat = cb.function("COS", Double.class, targetLatRad);
-        Expression<Double> cosProduct = cb.prod(cosRefLat, cosTargetLat);
+        // Simplified Haversine formula:
+        // a = cos(lat1) * cos(lat2) * cos(lon2-lon1) + sin(lat1) * sin(lat2)
+        Expression<Double> term1 = cb.prod(cosLat1, cb.prod(cosLat2, cosLonDiff));
+        Expression<Double> term2 = cb.prod(sinLat1, sinLat2);
+        Expression<Double> a = cb.sum(term1, term2);
         
-        // a = sin²(Δlat/2) + cos(lat1) * cos(lat2) * sin²(Δlon/2)
-        Expression<Double> a = cb.sum(sinLatHalfSq, cb.prod(cosProduct, sinLonHalfSq));
+        // Clamp 'a' to [-1, 1] range to prevent acos domain errors
+        // This is CRITICAL - without it, floating point errors cause acos to fail
+        Expression<Double> aUpper = cb.function("least", Double.class, cb.literal(1.0), a);
+        Expression<Double> aClamped = cb.function("greatest", Double.class, cb.literal(-1.0), aUpper);
         
-        // c = 2 * atan2(√a, √(1-a))
-        Expression<Double> sqrtA = cb.function("SQRT", Double.class, a);
-        Expression<Double> sqrt1MinusA = cb.function("SQRT", Double.class, cb.diff(cb.literal(1.0), a));
-        Expression<Double> atan2 = cb.function("ATAN2", Double.class, sqrtA, sqrt1MinusA);
-        Expression<Double> c = cb.prod(cb.literal(2.0), atan2);
+        // distance = R * acos(a)  where R = 6371 km (Earth's radius)
+        Expression<Double> acosValue = cb.function("acos", Double.class, aClamped);
         
-        // distance = R * c (R = 6371 km)
-        return cb.prod(cb.literal(6371.0), c);
+        return cb.prod(6371.0, acosValue);
     }
 
-    // ---------------- Getters ----------------
-    
+    // Getters
     public Location getReferenceLocation() { 
         return referenceLocation; 
     }
@@ -243,12 +153,6 @@ public class LocationFilter implements Filter<Location> {
     public Operation getOperation() { 
         return operation; 
     }
-    
-    public double getTolerance() { 
-        return tolerance; 
-    }
-
-    // ---------------- Object methods ----------------
 
     @Override
     public boolean equals(Object obj) {
@@ -257,19 +161,18 @@ public class LocationFilter implements Filter<Location> {
         
         LocationFilter that = (LocationFilter) obj;
         return Double.compare(that.distanceKm, distanceKm) == 0 &&
-               Double.compare(that.tolerance, tolerance) == 0 &&
                Objects.equals(referenceLocation, that.referenceLocation) &&
                operation == that.operation;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(referenceLocation, distanceKm, operation, tolerance);
+        return Objects.hash(referenceLocation, distanceKm, operation);
     }
 
     @Override
     public String toString() {
-        return String.format("LocationFilter{reference=%s, distance=%.2fkm, operation=%s, tolerance=%.2fkm}", 
-                           referenceLocation, distanceKm, operation, tolerance);
+        return String.format("LocationFilter{reference=%s, distance=%.2fkm, operation=%s}", 
+                           referenceLocation, distanceKm, operation);
     }
 }

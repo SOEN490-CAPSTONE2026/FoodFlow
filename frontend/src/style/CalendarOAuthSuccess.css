@@ -1,0 +1,115 @@
+.calendar-oauth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.calendar-oauth-card {
+  background: white;
+  border-radius: 16px;
+  padding: 48px 64px;
+  max-width: 500px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.oauth-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+  font-size: 48px;
+  font-weight: bold;
+  animation: iconPop 0.5s ease-out;
+}
+
+@keyframes iconPop {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.success-icon {
+  background: #28a745;
+  color: white;
+}
+
+.calendar-oauth-card h2 {
+  color: #224d68;
+  font-size: 28px;
+  margin: 0 0 16px 0;
+  font-weight: 600;
+}
+
+.calendar-oauth-card p {
+  color: #666;
+  font-size: 16px;
+  line-height: 1.6;
+  margin: 0 0 12px 0;
+}
+
+.calendar-oauth-message {
+  color: #555;
+  font-size: 15px;
+  margin-top: 8px;
+}
+
+.closing-message {
+  color: #999;
+  font-size: 14px;
+  font-style: italic;
+  margin-top: 24px;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 600px) {
+  .calendar-oauth-card {
+    padding: 32px 24px;
+  }
+
+  .calendar-oauth-card h2 {
+    font-size: 24px;
+  }
+
+  .oauth-icon {
+    width: 64px;
+    height: 64px;
+    font-size: 36px;
+  }
+}

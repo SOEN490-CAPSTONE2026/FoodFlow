@@ -6,6 +6,10 @@ import com.example.foodflow.model.types.Quantity;
 import com.example.foodflow.model.types.Location;
 import com.example.foodflow.model.types.TemperatureCategory;
 import com.example.foodflow.model.types.PackagingType;
+import com.example.foodflow.model.types.DietaryTag;
+import com.example.foodflow.model.types.FoodType;
+import com.example.foodflow.validation.ValidAddress;
+import com.fasterxml.jackson.annotation.JsonAlias;
 
 import jakarta.validation.constraints.*;
 import java.time.LocalDate;
@@ -28,8 +32,8 @@ public class CreateSurplusRequest {
     @NotNull(message = "{validation.quantity.required}")
     private Quantity quantity;
 
+    @JsonAlias("fabricatedAt")
     private LocalDate fabricationDate;
-    @NotNull(message = "{validation.expiryDate.required}")
     @Future(message = "{validation.expiryDate.future}")
     private LocalDate expiryDate;
 
@@ -46,6 +50,7 @@ public class CreateSurplusRequest {
     private LocalTime pickupTo;
 
     @NotNull(message = "{validation.pickupLocation.required}")
+    @ValidAddress
     private Location pickupLocation;
 
     @Valid
@@ -61,6 +66,11 @@ public class CreateSurplusRequest {
 
     @NotNull(message = "Packaging type is required")
     private PackagingType packagingType;
+
+    private FoodType foodType;
+
+    @Size(max = 10, message = "validation.dietaryTags.max")
+    private List<DietaryTag> dietaryTags = new ArrayList<>();
 
     // Constructors
     public CreateSurplusRequest() {}
@@ -110,4 +120,20 @@ public class CreateSurplusRequest {
     
     public String getDonorTimezone() { return donorTimezone; }
     public void setDonorTimezone(String donorTimezone) { this.donorTimezone = donorTimezone; }
+
+    public FoodType getFoodType() { return foodType; }
+    public void setFoodType(FoodType foodType) { this.foodType = foodType; }
+
+    public List<DietaryTag> getDietaryTags() { return dietaryTags; }
+    public void setDietaryTags(List<DietaryTag> dietaryTags) {
+        this.dietaryTags = dietaryTags != null ? dietaryTags : new ArrayList<>();
+    }
+
+    @AssertTrue(message = "validation.dietaryTags.unique")
+    public boolean isDietaryTagsUnique() {
+        if (dietaryTags == null) {
+            return true;
+        }
+        return new HashSet<>(dietaryTags).size() == dietaryTags.size();
+    }
 }

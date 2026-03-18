@@ -1,20 +1,15 @@
 package com.example.foodflow.service;
 
 import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import org.springframework.stereotype.Service;
-import com.example.foodflow.model.types.ClaimStatus;
 import com.example.foodflow.repository.ClaimRepository;
-import com.example.foodflow.repository.SurplusPostRepository;
 
 @Service
 public class BusinessMetricsService {
 
     private final MeterRegistry meterRegistry;
-    private final ClaimRepository claimRepository;
-    private final SurplusPostRepository surplusPostRepository;
 
     // Surplus Post Metrics
     private final Counter surplusPostCreatedCounter;
@@ -51,9 +46,6 @@ public class BusinessMetricsService {
     private final Counter distanceCalculationsCounter;
     private final Counter locationSearchesCounter;
 
-    // Food Category Metrics
-    private final Counter foodCategoryPostsCounter;
-
     // Dispute/Report Metrics
     private final Counter disputesCreatedCounter;
     private final Counter disputesResolvedCounter;
@@ -77,12 +69,14 @@ public class BusinessMetricsService {
     private final Counter emailsSentCounter;
     private final Counter emailsFailedCounter;
 
-    public BusinessMetricsService(MeterRegistry meterRegistry,
-                                 ClaimRepository claimRepository,
-                                 SurplusPostRepository surplusPostRepository) {
+    // Payment Metrics
+    private final Counter paymentCreatedCounter;
+    private final Counter paymentSucceededCounter;
+    private final Counter paymentFailedCounter;
+    private final Counter refundProcessedCounter;
+
+    public BusinessMetricsService(MeterRegistry meterRegistry) {
         this.meterRegistry = meterRegistry;
-        this.claimRepository = claimRepository;
-        this.surplusPostRepository = surplusPostRepository;
 
         // Initialize counters
         this.surplusPostCreatedCounter = Counter.builder("surplus.posts.created")
@@ -162,10 +156,6 @@ public class BusinessMetricsService {
                 .description("Total location-based searches")
                 .register(meterRegistry);
 
-        this.foodCategoryPostsCounter = Counter.builder("food.categories.posts")
-                .description("Total posts created by food category")
-                .register(meterRegistry);
-
         // Initialize dispute counters
         this.disputesCreatedCounter = Counter.builder("disputes.created")
                 .description("Total disputes/reports created")
@@ -222,25 +212,22 @@ public class BusinessMetricsService {
         this.emailsFailedCounter = Counter.builder("emails.failed")
                 .description("Total email delivery failures")
                 .register(meterRegistry);
-    }
 
-    private void registerActiveClaimsGauges() {
-        // Active claims gauge
-        Gauge.builder("claims.active", claimRepository, repo -> 
-                repo.countByStatus(ClaimStatus.ACTIVE))
-                .description("Number of active claims")
+        // Initialize payment counters
+        this.paymentCreatedCounter = Counter.builder("payments.created")
+                .description("Total payments created")
                 .register(meterRegistry);
 
-        // Cancelled claims gauge
-        Gauge.builder("claims.cancelled.total", claimRepository, repo -> 
-                repo.countByStatus(ClaimStatus.CANCELLED))
-                .description("Total number of cancelled claims")
+        this.paymentSucceededCounter = Counter.builder("payments.succeeded")
+                .description("Total payments succeeded")
                 .register(meterRegistry);
 
-        // Completed claims gauge
-        Gauge.builder("claims.completed.total", claimRepository, repo -> 
-                repo.countByStatus(ClaimStatus.COMPLETED))
-                .description("Total number of completed claims")
+        this.paymentFailedCounter = Counter.builder("payments.failed")
+                .description("Total payments failed")
+                .register(meterRegistry);
+
+        this.refundProcessedCounter = Counter.builder("refunds.processed")
+                .description("Total refunds processed")
                 .register(meterRegistry);
     }
 
@@ -416,6 +403,37 @@ public class BusinessMetricsService {
     public void incrementEmailByType(String emailType) {
         Counter.builder("emails.by.type")
                 .tag("type", emailType)
+                .register(meterRegistry)
+                .increment();
+    }
+
+    // Payment Methods
+    public void incrementPaymentCreated() {
+        paymentCreatedCounter.increment();
+    }
+
+    public void incrementPaymentSucceeded() {
+        paymentSucceededCounter.increment();
+    }
+
+    public void incrementPaymentFailed() {
+        paymentFailedCounter.increment();
+    }
+
+    public void incrementRefundProcessed() {
+        refundProcessedCounter.increment();
+    }
+
+    public void incrementPaymentByType(String paymentType) {
+        Counter.builder("payments.by.type")
+                .tag("type", paymentType)
+                .register(meterRegistry)
+                .increment();
+    }
+
+    public void incrementPaymentByCurrency(String currency) {
+        Counter.builder("payments.by.currency")
+                .tag("currency", currency)
                 .register(meterRegistry)
                 .increment();
     }

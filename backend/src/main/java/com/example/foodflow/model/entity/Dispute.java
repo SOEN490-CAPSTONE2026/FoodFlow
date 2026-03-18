@@ -42,7 +42,10 @@ public class Dispute {
     
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-    
+
+    @Column(name = "resolved_at")
+    private LocalDateTime resolvedAt;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -136,5 +139,13 @@ public class Dispute {
     
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    public LocalDateTime getResolvedAt() {
+        return resolvedAt;
+    }
+
+    public void setResolvedAt(LocalDateTime resolvedAt) {
+        this.resolvedAt = resolvedAt;
     }
 }

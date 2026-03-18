@@ -1,7 +1,6 @@
 package com.example.foodflow.service;
 
 import com.example.foodflow.exception.BusinessException;
-import com.example.foodflow.filter.RequestCorrelationFilter;
 import com.example.foodflow.model.dto.AuthResponse;
 import com.example.foodflow.model.dto.RegisterDonorRequest;
 import com.example.foodflow.model.dto.RegisterReceiverRequest;
@@ -21,7 +20,7 @@ import com.example.foodflow.security.JwtTokenProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,10 +28,9 @@ import io.micrometer.core.annotation.Timed;
 import java.security.SecureRandom;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.UUID;
-
+import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
-
 
 @Service
 public class AuthService {
@@ -48,7 +46,11 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final EmailService emailService;
     private final EmailVerificationTokenRepository verificationTokenRepository;
-        
+    private final PasswordValidator passwordValidator;
+
+    @Value("${password.policy.reset-token-expiry-minutes:15}")
+    private int resetTokenExpiryMinutes;
+
     // In-memory storage for reset codes (expiry handled by timestamp)
     private final Map<String, ResetCodeData> resetCodes = new ConcurrentHashMap<>();
     private final SecureRandom secureRandom = new SecureRandom();
@@ -80,7 +82,8 @@ public class AuthService {
                     MetricsService metricsService,
                     ObjectMapper objectMapper,
                     EmailService emailService,
-                    EmailVerificationTokenRepository verificationTokenRepository) {
+                    EmailVerificationTokenRepository verificationTokenRepository,
+                    PasswordValidator passwordValidator) {
         this.userRepository = userRepository;
         this.organizationRepository = organizationRepository;
         this.passwordEncoder = passwordEncoder;
@@ -89,6 +92,7 @@ public class AuthService {
         this.objectMapper = objectMapper;
         this.emailService = emailService;
         this.verificationTokenRepository = verificationTokenRepository;
+        this.passwordValidator = passwordValidator;
     }
 
 
@@ -96,6 +100,15 @@ public class AuthService {
     @Timed(value = "auth.service.registerDonor", description = "Time taken to register a donor")
     public AuthResponse registerDonor(RegisterDonorRequest request) {
         log.info("Starting donor registration for email: {}", request.getEmail());
+
+        // Validate password against policy
+        List<String> passwordErrors = passwordValidator.validatePassword(request.getPassword());
+        if (!passwordErrors.isEmpty()) {
+            String errorMessage = String.join("; ", passwordErrors);
+            log.warn("Registration failed: Password policy violation for email: {} - {}", request.getEmail(), errorMessage);
+            throw new RuntimeException(errorMessage);
+        }
+
         // Validate password confirmation
         if (request.getConfirmPassword() == null || !request.getPassword().equals(request.getConfirmPassword())) {
             log.warn("Registration failed: Passwords do not match for email: {}", request.getEmail());
@@ -111,18 +124,25 @@ public class AuthService {
         // Create user
         User user = new User();
         user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
+        user.setPassword(encodedPassword);
         user.setRole(UserRole.DONOR);
         user.setAccountStatus(AccountStatus.PENDING_VERIFICATION);
         user.setFullName(request.getContactPerson());
         user.setPhone(request.getPhone());
         user.setDataStorageConsent(request.getDataStorageConsent() != null ? request.getDataStorageConsent() : false);
+        // Set timezone from request, default to UTC if not provided
+        user.setTimezone(request.getTimezone() != null ? request.getTimezone() : "UTC");
 
         // Initialize default notification preferences
         initializeDefaultNotificationPreferences(user);
 
         User savedUser = userRepository.save(user);
         log.debug("User created with ID: {} for email: {}", savedUser.getId(), savedUser.getEmail());
+
+        // Save initial password to history
+        passwordValidator.savePasswordToHistory(savedUser, encodedPassword);
+        log.debug("Initial password saved to history for user: {}", savedUser.getEmail());
 
         // Create organization
         Organization organization = new Organization();
@@ -135,6 +155,14 @@ public class AuthService {
         // Default verification status to PENDING on registration
         organization.setVerificationStatus(VerificationStatus.PENDING);
         organization.setBusinessLicense(request.getBusinessLicense());
+        // Set timezone from request, default to UTC if not provided
+        organization.setTimezone(request.getTimezone() != null ? request.getTimezone() : "UTC");
+
+        // Store supporting document URL if uploaded
+        if (request.getSupportingDocumentUrl() != null) {
+            organization.setSupportingDocumentUrl(request.getSupportingDocumentUrl());
+            log.debug("Supporting document URL set for donor: {}", request.getSupportingDocumentUrl());
+        }
 
         organizationRepository.save(organization);
         log.debug("Organization created for user: {} - Organization: {}", 
@@ -164,15 +192,25 @@ public class AuthService {
         log.info("Donor registration successful: email={}, organization={}, type={}",
             savedUser.getEmail(), request.getOrganizationName(), request.getOrganizationType());
 
-        return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), 
+        AuthResponse response = new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), 
             "Donor registered successfully", savedUser.getId(), request.getOrganizationName(), 
             organization.getVerificationStatus() != null ? organization.getVerificationStatus().toString() : null,
             savedUser.getAccountStatus() != null ? savedUser.getAccountStatus().toString() : null);
+        response.setLanguagePreference(savedUser.getLanguagePreference());
+        return response;
     }
 
     @Transactional
     @Timed(value = "auth.service.registerReceiver", description = "Time taken to register a receiver")
     public AuthResponse registerReceiver(RegisterReceiverRequest request) {
+        // Validate password against policy
+        List<String> passwordErrors = passwordValidator.validatePassword(request.getPassword());
+        if (!passwordErrors.isEmpty()) {
+            String errorMessage = String.join("; ", passwordErrors);
+            log.warn("Registration failed: Password policy violation for email: {} - {}", request.getEmail(), errorMessage);
+            throw new RuntimeException(errorMessage);
+        }
+
         // Validate password confirmation
         if (request.getConfirmPassword() == null || !request.getPassword().equals(request.getConfirmPassword())) {
             throw new RuntimeException("Passwords do not match");
@@ -185,17 +223,23 @@ public class AuthService {
         // Create user
         User user = new User();
         user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
+        user.setPassword(encodedPassword);
         user.setRole(UserRole.RECEIVER);
         user.setAccountStatus(AccountStatus.PENDING_VERIFICATION);
         user.setFullName(request.getContactPerson());
         user.setPhone(request.getPhone());
         user.setDataStorageConsent(request.getDataStorageConsent() != null ? request.getDataStorageConsent() : false);
+        // Set timezone from request, default to UTC if not provided
+        user.setTimezone(request.getTimezone() != null ? request.getTimezone() : "UTC");
 
         // Initialize default notification preferences
         initializeDefaultNotificationPreferences(user);
 
         User savedUser = userRepository.save(user);
+
+        // Save initial password to history
+        passwordValidator.savePasswordToHistory(savedUser, encodedPassword);
 
         // Create organization
         Organization organization = new Organization();
@@ -210,15 +254,17 @@ public class AuthService {
                 // Default verification status to PENDING on registration
                 organization.setVerificationStatus(VerificationStatus.PENDING);
         // Store charity registration number for verification (optional)
-        if (request.getClass().getSimpleName().equals("RegisterReceiverRequest")) {
-            // Safe cast because method signature accepts RegisterReceiverRequest
-            try {
-                String charityReg = (String) request.getClass().getMethod("getCharityRegistrationNumber").invoke(request);
-                organization.setCharityRegistrationNumber(charityReg);
-            } catch (Exception ignored) {
-                // If the getter is not present or invocation fails, skip setting the field
-            }
+        if (request.getCharityRegistrationNumber() != null) {
+            organization.setCharityRegistrationNumber(request.getCharityRegistrationNumber());
         }
+
+        // Store supporting document URL if uploaded
+        if (request.getSupportingDocumentUrl() != null) {
+            organization.setSupportingDocumentUrl(request.getSupportingDocumentUrl());
+            log.debug("Supporting document URL set for receiver: {}", request.getSupportingDocumentUrl());
+        }
+        // Set timezone from request, default to UTC if not provided
+        organization.setTimezone(request.getTimezone() != null ? request.getTimezone() : "UTC");
 
         organizationRepository.save(organization);
 
@@ -243,10 +289,12 @@ public class AuthService {
         metricsService.incrementReceiverRegistration();
         metricsService.incrementUserRegistration();
 
-        return new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), 
+        AuthResponse response = new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), 
             "Receiver registered successfully", savedUser.getId(), request.getOrganizationName(), 
             organization.getVerificationStatus() != null ? organization.getVerificationStatus().toString() : null,
             savedUser.getAccountStatus() != null ? savedUser.getAccountStatus().toString() : null);
+        response.setLanguagePreference(savedUser.getLanguagePreference());
+        return response;
     }
 
     @Transactional(readOnly = true)
@@ -285,8 +333,10 @@ public class AuthService {
 
             log.info("Login successful: email={}, role={}, accountStatus={}, organizationName={}, verificationStatus={}", 
                 user.getEmail(), user.getRole(), accountStatus, organizationName, verificationStatus);
-            return new AuthResponse(token, user.getEmail(), user.getRole().toString(),
+            AuthResponse response = new AuthResponse(token, user.getEmail(), user.getRole().toString(),
                        "Account logged in successfully.", user.getId(), organizationName, verificationStatus, accountStatus);
+            response.setLanguagePreference(user.getLanguagePreference());
+            return response;
         } catch (RuntimeException e) {
             // Already logged failure metrics above
             throw e;
@@ -490,7 +540,7 @@ public class AuthService {
      * @return success message
      */
     @Transactional
-    @Timed(value = "auth.service.resetPassword", description = "Time taken to reset password")
+    @Timed(value = "auth.service.changePassword", description = "Time taken to change password")
     /**
      * Change password for authenticated user
      * Verifies current password before updating to new password
@@ -516,18 +566,37 @@ public class AuthService {
             throw new RuntimeException("New password must be different from current password");
         }
         
+        // Validate password against policy (already validated by @ValidPassword, but double-check)
+        List<String> validationErrors = passwordValidator.validatePassword(newPassword);
+        if (!validationErrors.isEmpty()) {
+            log.warn("Password policy validation failed for user: {} - Errors: {}", user.getEmail(), validationErrors);
+            throw new RuntimeException(String.join("; ", validationErrors));
+        }
+
+        // Check password history
+        if (passwordValidator.isPasswordInHistory(user, newPassword)) {
+            log.warn("Password reuse detected for user: {}", user.getEmail());
+            throw new RuntimeException("You cannot reuse a recent password. Please choose a different password");
+        }
+
         // Hash and update the password
         String hashedPassword = passwordEncoder.encode(newPassword);
         user.setPassword(hashedPassword);
         userRepository.save(user);
         
+        // Save to password history
+        passwordValidator.savePasswordToHistory(user, hashedPassword);
+
         log.info("Password changed successfully for user: {}", user.getEmail());
         
         return Map.of(
             "message", "Password changed successfully"
         );
+
     }
     
+    @Transactional
+    @Timed(value = "auth.service.resetPassword", description = "Time taken to reset password")
     public Map<String, String> resetPassword(String email, String phone, String code, String newPassword) {
         log.info("Attempting password reset for email: {} or phone: {}", email, phone);
         
@@ -562,11 +631,27 @@ public class AuthService {
             throw new RuntimeException("Either email or phone is required");
         }
         
+        // Validate password against policy (already validated by @ValidPassword, but double-check)
+        List<String> validationErrors = passwordValidator.validatePassword(newPassword);
+        if (!validationErrors.isEmpty()) {
+            log.warn("Password policy validation failed for user: {} - Errors: {}", user.getEmail(), validationErrors);
+            throw new RuntimeException(String.join("; ", validationErrors));
+        }
+
+        // Check password history
+        if (passwordValidator.isPasswordInHistory(user, newPassword)) {
+            log.warn("Password reuse detected for user: {}", user.getEmail());
+            throw new RuntimeException("You cannot reuse a recent password. Please choose a different password");
+        }
+
         // Hash and update the password
         String hashedPassword = passwordEncoder.encode(newPassword);
         user.setPassword(hashedPassword);
         userRepository.save(user);
         
+        // Save to password history
+        passwordValidator.savePasswordToHistory(user, hashedPassword);
+
         // Remove the used code from storage if it was email-based
         if (email != null && !email.trim().isEmpty()) {
             resetCodes.remove(email);
@@ -657,6 +742,11 @@ public class AuthService {
         // Verify the user - transition to PENDING_ADMIN_APPROVAL
         User user = tokenEntity.getUser();
         user.setAccountStatus(AccountStatus.PENDING_ADMIN_APPROVAL);
+        
+        // Automatically enable email notifications upon email verification
+        user.setEmailNotificationsEnabled(true);
+        log.info("Email notifications automatically enabled for user: {}", user.getEmail());
+        
         userRepository.save(user);
         
         // Mark token as verified
@@ -714,6 +804,3 @@ public class AuthService {
         }
     }
 }
-
-
-

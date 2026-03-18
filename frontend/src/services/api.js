@@ -26,8 +26,27 @@ api.interceptors.request.use(
 );
 
 api.interceptors.response.use(
-  response => response,
+  response => {
+    // Add rate limit info to response if available
+    if (response.headers['x-ratelimit-limit']) {
+      response.data.rateLimitInfo = {
+        limit: parseInt(response.headers['x-ratelimit-limit']),
+        remaining: parseInt(response.headers['x-ratelimit-remaining']),
+        retryAfter: response.headers['retry-after']
+          ? parseInt(response.headers['retry-after'])
+          : null,
+      };
+    }
+    return response;
+  },
   error => {
+    // Handle rate limiting errors
+    if (error.response?.status === 429) {
+      const retryAfter = error.response.headers['retry-after'] || 60;
+      error.rateLimited = true;
+      error.retryAfter = retryAfter;
+    }
+
     if (error.response && error.response.status === 401) {
       const authKeys = [
         'jwtToken',
@@ -116,8 +135,16 @@ export const surplusAPI = {
   list: () => api.get('/surplus'), // Just /surplus, not /api/surplus
   getMyPosts: () => api.get('/surplus/my-posts'),
   getPost: id => api.get(`/surplus/${id}`),
-  create: data => api.post('/surplus', data),
-  update: (id, data) => api.put(`/surplus/${id}`, data),
+  create: data =>
+    api.post('/surplus', {
+      ...data,
+      dietaryTags: Array.isArray(data?.dietaryTags) ? data.dietaryTags : [],
+    }),
+  update: (id, data) =>
+    api.put(`/surplus/${id}`, {
+      ...data,
+      dietaryTags: Array.isArray(data?.dietaryTags) ? data.dietaryTags : [],
+    }),
   // claim now accepts an optional `slot` parameter. If `slot` has an `id` we send `pickupSlotId`,
   // otherwise we include the slot object as `pickupSlot` so the backend can interpret it.
   deletePost: id => api.delete(`/surplus/${id}/delete`),
@@ -156,9 +183,18 @@ export const surplusAPI = {
 
     // Only add fields if they have actual values
     if (filters.foodType && filters.foodType.length > 0) {
-      filterRequest.foodCategories = filters.foodType.map(
+      filterRequest.foodTypes = filters.foodType.map(
         mapFrontendCategoryToBackend
       );
+    }
+
+    if (filters.dietaryTags && filters.dietaryTags.length > 0) {
+      filterRequest.dietaryTags = filters.dietaryTags;
+      filterRequest.dietaryMatch = filters.dietaryMatch || 'ANY';
+    }
+
+    if (filters.sort) {
+      filterRequest.sort = filters.sort;
     }
 
     if (filters.expiryBefore) {
@@ -188,9 +224,19 @@ export const surplusAPI = {
     const params = new URLSearchParams();
 
     if (filters.foodType && filters.foodType.length > 0) {
-      filters.foodType.forEach(category => {
-        params.append('foodCategories', mapFrontendCategoryToBackend(category));
-      });
+      const mappedFoodTypes = filters.foodType
+        .map(category => mapFrontendCategoryToBackend(category))
+        .join(',');
+      params.append('foodType', mappedFoodTypes);
+    }
+
+    if (filters.dietaryTags && filters.dietaryTags.length > 0) {
+      params.append('dietaryTags', filters.dietaryTags.join(','));
+      params.append('dietaryMatch', filters.dietaryMatch || 'ANY');
+    }
+
+    if (filters.sort) {
+      params.append('sort', filters.sort);
     }
 
     if (filters.expiryBefore) {
@@ -227,10 +273,58 @@ export const surplusAPI = {
 };
 
 export const claimsAPI = {
-  myClaims: () => api.get('/claims/my-claims'), // ✅ No /api prefix
+  myClaims: () => api.get('/claims/my-claims'),
   claim: postId => api.post('/claims', { surplusPostId: postId }),
   cancel: claimId => api.delete(`/claims/${claimId}`),
   getClaimForSurplusPost: postId => api.get(`/claims/post/${postId}`),
+};
+
+/**
+ * Saved Donations API functions
+ */
+export const savedDonationAPI = {
+  /**
+   * Get all saved donations for the current user
+   * @returns {Promise} List of saved donations
+   */
+  getSavedDonations: () => api.get('/receiver/saved'),
+
+  /**
+   * Save a donation
+   * @param {number} donationId - Donation ID to save
+   * @returns {Promise} Response data
+   */
+  save: donationId => api.post(`/receiver/saved/${donationId}`),
+
+  /**
+   * Unsave a donation
+   * @param {number} donationId - Donation ID to unsave
+   * @returns {Promise} Response data
+   */
+  unsave: donationId => api.delete(`/receiver/saved/${donationId}`),
+
+  /**
+   * Check if a donation is saved
+   * @param {number} donationId - Donation ID to check
+   * @returns {Promise} Boolean indicating if saved
+   */
+  isSaved: donationId => api.get(`/receiver/saved/check/${donationId}`),
+
+  /**
+   * Get total number of saved donations for current user
+   * @returns {Promise} Count of saved donations
+   */
+  getSavedCount: () => api.get('/receiver/saved/count'),
+};
+
+export const conversationAPI = {
+  expressInterest: postId => api.post(`/conversations/interested/${postId}`),
+  createOrGetPostConversation: (postId, otherUserId) =>
+    api.post(`/conversations/post/${postId}`, { otherUserId }),
+  getConversations: () => api.get('/conversations'),
+  getConversation: convId => api.get(`/conversations/${convId}`),
+  getMessages: convId => api.get(`/conversations/${convId}/messages`),
+  markAsRead: convId => api.put(`/conversations/${convId}/read`),
 };
 
 /**
@@ -334,6 +428,34 @@ export const userAPI = {
 export const profileAPI = {
   get: () => api.get('/profile'),
   update: data => api.put('/profile', data),
+  updateOnboarding: data => api.put('/profile/onboarding', data),
+};
+
+export const imageAPI = {
+  upload: (file, options = {}, onProgress) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (options.foodType) {
+      formData.append('foodType', options.foodType);
+    }
+    if (options.donationId) {
+      formData.append('donationId', options.donationId);
+    }
+    return api.post('/images/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      onUploadProgress: onProgress,
+    });
+  },
+};
+
+export const imageLibraryAPI = {
+  list: (activeOnly = true) =>
+    api.get('/images/library', { params: { activeOnly } }),
+};
+
+export const donorPhotoSettingsAPI = {
+  get: () => api.get('/donor/settings/photos'),
+  update: payload => api.put('/donor/settings/photos', payload),
 };
 
 /**
@@ -554,6 +676,37 @@ export const adminVerificationAPI = {
     }),
 };
 
+export const adminImageAPI = {
+  getLibrary: (activeOnly = false) =>
+    api.get('/admin/image-library', { params: { activeOnly } }),
+  addLibraryItem: payload => {
+    const formData = new FormData();
+    if (payload.file) {
+      formData.append('file', payload.file);
+    }
+    if (payload.imageUrl) {
+      formData.append('imageUrl', payload.imageUrl);
+    }
+    if (payload.foodType) {
+      formData.append('foodType', payload.foodType);
+    }
+    if (payload.active !== undefined) {
+      formData.append('active', payload.active);
+    }
+    return api.post('/admin/image-library', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+  deleteLibraryItem: id => api.delete(`/admin/image-library/${id}`),
+  patchLibraryItem: (id, active) =>
+    api.patch(`/admin/image-library/${id}`, { active }),
+  getUploads: status =>
+    api.get('/admin/uploads/images', { params: { status } }),
+  moderateUpload: (id, payload) =>
+    api.patch(`/admin/uploads/images/${id}`, payload),
+  deleteUpload: id => api.delete(`/admin/uploads/images/${id}`),
+};
+
 /**
  * Maps frontend food categories to backend enum values.
  * @param {string} frontendCategory - Frontend category name
@@ -583,6 +736,155 @@ export const gamificationAPI = {
    * @returns {Promise} List of all achievements
    */
   getAllAchievements: () => api.get('/gamification/achievements'),
+
+  /**
+   * Get leaderboard for a specific role
+   * @param {string} role - User role (DONOR or RECEIVER)
+   * @returns {Promise} Leaderboard with top 10 users and current user's position
+   */
+  getLeaderboard: role => api.get(`/gamification/leaderboard/${role}`),
 };
+
+// Support chat API for rate limiting integration
+export const supportChatAPI = {
+  sendMessage: (message, pageContext) => {
+    return api.post('/support/chat', {
+      message,
+      pageContext,
+    });
+  },
+};
+
+// Rate limit monitoring API
+export const rateLimitAPI = {
+  getStats: () => {
+    return api.get('/admin/rate-limit-stats');
+  },
+
+  getUserStatus: () => {
+    return api.get('/admin/my-rate-limit');
+  },
+};
+
+// Calendar API
+export const calendarAPI = {
+  /**
+   * Get calendar integration status
+   */
+  getStatus: () => api.get('/calendar/status'),
+
+  /**
+   * Initiate calendar connection (gets OAuth URL)
+   */
+  initiateConnection: provider =>
+    api.post('/calendar/connect', { calendarProvider: provider }),
+
+  /**
+   * Handle OAuth callback
+   */
+  handleOAuthCallback: (code, state) =>
+    api.get('/calendar/oauth/google/callback', {
+      params: { code, state },
+    }),
+
+  /**
+   * Disconnect calendar
+   */
+  disconnect: provider =>
+    api.post('/calendar/disconnect', null, {
+      params: { provider },
+    }),
+
+  /**
+   * Get sync preferences
+   */
+  getPreferences: () => api.get('/calendar/preferences'),
+
+  /**
+   * Update sync preferences
+   */
+  updatePreferences: preferences =>
+    api.put('/calendar/preferences', preferences),
+
+  /**
+   * Get synced events
+   */
+  getEvents: () => api.get('/calendar/events'),
+
+  /**
+   * Trigger manual sync
+   */
+  sync: () => api.post('/calendar/sync'),
+
+  /**
+   * Test calendar connection
+   */
+  testConnection: provider =>
+    api.post('/calendar/test', null, {
+      params: { provider },
+    }),
+};
+
+// Impact Dashboard API
+export const impactDashboardAPI = {
+  /**
+   * Get impact metrics for current user based on their role
+   * @param {string} dateRange - Date range filter: 'WEEKLY', 'MONTHLY', 'ALL_TIME'
+   * @returns {Promise} Impact metrics including food weight, meals, CO2, water saved
+   */
+  getMetrics: (dateRange = 'ALL_TIME') =>
+    api.get('/impact-dashboard/metrics', {
+      params: { dateRange },
+    }),
+
+  /**
+   * Export impact metrics as CSV
+   * @param {string} dateRange - Date range filter: 'WEEKLY', 'MONTHLY', 'ALL_TIME'
+   * @returns {Promise} CSV file download
+   */
+  exportMetrics: (dateRange = 'ALL_TIME') =>
+    api.get('/impact-dashboard/export', {
+      params: { dateRange },
+      responseType: 'blob',
+    }),
+};
+// Referral API
+export const referralAPI = {
+  /**
+   * Submit a referral (INVITE_COMMUNITY from receiver, SUGGEST_BUSINESS from donor)
+   * @param {Object} data - { referralType, businessName, contactEmail, contactPhone?, message? }
+   * @returns {Promise} Created referral data
+   */
+  submit: data => api.post('/referrals', data),
+
+  /**
+   * Get all referral submissions (admin only)
+   * @returns {Promise} List of all referrals
+   */
+  getAll: () => api.get('/admin/referrals'),
+};
+
+// Export the core axios instance for backward compatibility
+// Safely bind methods with fallbacks for testing
+export const post =
+  api && typeof api.post === 'function'
+    ? api.post.bind(api)
+    : () => Promise.resolve();
+export const get =
+  api && typeof api.get === 'function'
+    ? api.get.bind(api)
+    : () => Promise.resolve();
+export const put =
+  api && typeof api.put === 'function'
+    ? api.put.bind(api)
+    : () => Promise.resolve();
+export const del =
+  api && typeof api.delete === 'function'
+    ? api.delete.bind(api)
+    : () => Promise.resolve();
+export const patch =
+  api && typeof api.patch === 'function'
+    ? api.patch.bind(api)
+    : () => Promise.resolve();
 
 export default api;

@@ -7,6 +7,10 @@ import { AuthContext } from '../../contexts/AuthContext';
 // parse ESM node_modules (axios) or CSS/images during the test run.
 jest.mock('../../services/api', () => ({
   get: jest.fn(() => Promise.resolve({ data: [] })),
+  profileAPI: { get: jest.fn(() => Promise.resolve({ data: {} })) },
+  savedDonationAPI: {
+    getSavedDonations: jest.fn(() => Promise.resolve({ data: [] })),
+  },
 }));
 jest.mock('../../services/socket', () => ({
   connectToUserQueue: jest.fn(),

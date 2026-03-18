@@ -63,8 +63,14 @@ public class SecurityConfig {
                 .requestMatchers("/ws/**").permitAll()  // Allow WebSocket connections
                 
                 // Messaging endpoints - must be accessible to all authenticated users
-                .requestMatchers("/api/conversations/**").hasAnyAuthority("DONOR", "RECEIVER")
-                .requestMatchers("/api/messages/**").hasAnyAuthority("DONOR", "RECEIVER")
+                .requestMatchers("/api/conversations/**").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
+                .requestMatchers("/api/messages/**").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
+                
+                // Calendar OAuth callback - must be public for Google redirect
+                .requestMatchers("/api/calendar/oauth/google/callback").permitAll()
+                
+                // Calendar endpoints - accessible to donors and receivers
+                .requestMatchers("/api/calendar/**").hasAnyAuthority("DONOR", "RECEIVER")
                 
                 // Surplus endpoints with proper role restrictions
                 .requestMatchers(HttpMethod.POST, "/api/surplus").hasAuthority("DONOR")
@@ -74,8 +80,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.DELETE, "/api/surplus/**").hasAuthority("DONOR")
 
                         // Messaging endpoints - must be accessible to all authenticated users
-                        .requestMatchers("/api/conversations/**").hasAnyAuthority("DONOR", "RECEIVER")
-                        .requestMatchers("/api/messages/**").hasAnyAuthority("DONOR", "RECEIVER")
+                        .requestMatchers("/api/conversations/**").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
+                        .requestMatchers("/api/messages/**").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
 
                         // Surplus endpoints with proper role restrictions
                         .requestMatchers(HttpMethod.POST, "/api/surplus").hasAuthority("DONOR")
@@ -118,6 +124,10 @@ public class SecurityConfig {
                         .hasAnyAuthority("RECEIVER", "DONOR", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/profile/**")
                         .hasAnyAuthority("RECEIVER", "DONOR", "ADMIN")
+
+                        //Save endpoints
+                        .requestMatchers("/api/receiver/saved/**").hasAuthority("RECEIVER")
+
 
                         // All other requests require authentication
                         .anyRequest().authenticated())

@@ -6,10 +6,12 @@ import { authAPI } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { Eye, EyeOff } from 'lucide-react';
+import SEOHead from './SEOHead';
+import ga4Service from '../services/ga4Service';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const location = useLocation();
   const { login } = useContext(AuthContext);
   const [email, setEmail] = useState('');
@@ -29,6 +31,36 @@ const LoginPage = () => {
     }
   }, [location]);
 
+  const syncLanguagePreference = async (selectedLanguage, token) => {
+    const normalized = selectedLanguage?.split('-')[0] || 'en';
+    localStorage.setItem('languagePreference', normalized);
+    await i18n.changeLanguage(normalized);
+
+    if (!token) {
+      return;
+    }
+
+    const apiBase =
+      process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+
+    try {
+      const response = await fetch(`${apiBase}/user/language`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ languagePreference: normalized }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update language preference');
+      }
+    } catch (syncError) {
+      console.error('Failed to update language preference:', syncError);
+    }
+  };
+
   const handleLogin = async e => {
     e.preventDefault();
     setError('');
@@ -44,10 +76,21 @@ const LoginPage = () => {
       const organizationName = response?.data?.organizationName;
       const verificationStatus = response?.data?.verificationStatus;
       const accountStatus = response?.data?.accountStatus;
+      const languagePreference = response?.data?.languagePreference;
 
       if (!token || !userRole || !userId) {
         throw new Error('Invalid server response');
       }
+
+      const landingLanguagePreference =
+        localStorage.getItem('languagePreference');
+      const resolvedLanguagePreference =
+        landingLanguagePreference ||
+        languagePreference ||
+        i18n.language?.split('-')[0] ||
+        'en';
+
+      await syncLanguagePreference(resolvedLanguagePreference, token);
 
       login(
         token,
@@ -58,6 +101,7 @@ const LoginPage = () => {
         accountStatus
       ); // this automatically updates localStorage and context
       trackLogin(true);
+      ga4Service.trackLogin(userRole);
 
       switch (userRole.toUpperCase()) {
         case 'ADMIN':
@@ -112,6 +156,7 @@ const LoginPage = () => {
 
   return (
     <div className="login-page">
+      <SEOHead noindex />
       <div className="login-left" aria-hidden="true">
         <div className="background-spots">
           <span className="background-spot s1" />
@@ -148,7 +193,7 @@ const LoginPage = () => {
                 {t('login.backHome')}
               </button>
               <h1 id="login-title" className="login-title">
-                Log in to your account
+                {t('login.title')}
               </h1>
 
               <form onSubmit={handleLogin} noValidate>

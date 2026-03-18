@@ -37,6 +37,10 @@ jest.mock('../../../services/api', () => ({
   },
 }));
 
+jest.mock('../../../contexts/TimezoneContext', () => ({
+  useTimezone: () => ({ userTimezone: 'UTC' }),
+}));
+
 const mockClaim = {
   surplusPost: {
     title: 'Fresh Vegetables',

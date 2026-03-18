@@ -18,7 +18,9 @@ import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.model.types.Quantity;
 import com.example.foodflow.repository.ClaimRepository;
 import com.example.foodflow.repository.DonationTimelineRepository;
+import com.example.foodflow.repository.ExpiryAuditLogRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -61,6 +63,18 @@ class SurplusServiceTest {
     private ExpiryCalculationService expiryCalculationService;
 
     @Mock
+    private ExpiryPredictionService expiryPredictionService;
+
+    @Mock
+    private ExpirySuggestionService expirySuggestionService;
+
+    @Mock
+    private ExpiryAuditLogRepository expiryAuditLogRepository;
+
+    @Mock
+    private ObjectMapper objectMapper;
+
+    @Mock
     private TimelineService timelineService;
 
     @Mock
@@ -74,6 +88,18 @@ class SurplusServiceTest {
 
     @Mock
     private ClaimService claimService;
+
+    @Mock
+    private org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
+
+    @Mock
+    private EmailService emailService;
+
+    @Mock
+    private NotificationPreferenceService notificationPreferenceService;
+
+    @Mock
+    private FoodTypeImpactService foodTypeImpactService;
 
     @InjectMocks
     private SurplusService surplusService;
@@ -124,6 +150,24 @@ class SurplusServiceTest {
         slot.setNotes("Test slot");
         slots.add(slot);
         request.setPickupSlots(slots);
+
+        try {
+            lenient().when(objectMapper.writeValueAsString(any())).thenReturn("{}");
+        } catch (Exception ignored) {
+        }
+        lenient().when(expiryPredictionService.predict(any(SurplusPost.class))).thenReturn(
+                new ExpiryPredictionService.PredictionResult(
+                        java.time.Instant.now().plus(java.time.Duration.ofDays(2)),
+                        0.75d,
+                        "rules_v1",
+                        Map.of("foodType", "PREPARED")));
+        lenient().when(expirySuggestionService.computeSuggestedExpiry(any(), any(), any(), any())).thenReturn(
+                new ExpirySuggestionService.SuggestionResult(
+                        LocalDate.now().plusDays(2),
+                        2,
+                        true,
+                        List.of(),
+                        "Suggested expiry: " + LocalDate.now().plusDays(2)));
     }
 
     @Test
@@ -160,6 +204,76 @@ class SurplusServiceTest {
 
         verify(pickupSlotValidationService, times(1)).validateSlots(any());
         verify(surplusPostRepository, times(1)).save(any(SurplusPost.class));
+    }
+
+    @Test
+    void testCreateSurplusPost_ComputesExpirySuggestionSnapshot() {
+        SurplusPost savedPost = new SurplusPost();
+        savedPost.setId(101L);
+        savedPost.setDonor(donor);
+        savedPost.setTitle(request.getTitle());
+        savedPost.setFoodCategories(request.getFoodCategories());
+        savedPost.setQuantity(request.getQuantity());
+        savedPost.setPickupLocation(request.getPickupLocation());
+        savedPost.setExpiryDate(request.getExpiryDate());
+        savedPost.setPickupDate(request.getPickupDate());
+        savedPost.setPickupFrom(request.getPickupFrom());
+        savedPost.setPickupTo(request.getPickupTo());
+        savedPost.setDescription(request.getDescription());
+
+        when(expirySuggestionService.computeSuggestedExpiry(any(), any(), any(), any())).thenReturn(
+                new ExpirySuggestionService.SuggestionResult(
+                        LocalDate.of(2026, 2, 20),
+                        3,
+                        true,
+                        List.of("Packaging suggests cold storage, confirm temperature"),
+                        "Suggested expiry: 2026-02-20"));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
+
+        surplusService.createSurplusPost(request, donor);
+
+        ArgumentCaptor<SurplusPost> captor = ArgumentCaptor.forClass(SurplusPost.class);
+        verify(surplusPostRepository).save(captor.capture());
+        SurplusPost created = captor.getValue();
+
+        assertThat(created.getSuggestedExpiryDate()).isEqualTo(LocalDate.of(2026, 2, 20));
+        assertThat(created.getEligibleAtSubmission()).isTrue();
+        assertThat(created.getWarningsAtSubmission()).isEqualTo("{}");
+    }
+
+    @Test
+    void testCreateSurplusPost_NotEligibleMarksForReview() {
+        SurplusPost savedPost = new SurplusPost();
+        savedPost.setId(102L);
+        savedPost.setDonor(donor);
+        savedPost.setTitle(request.getTitle());
+        savedPost.setFoodCategories(request.getFoodCategories());
+        savedPost.setQuantity(request.getQuantity());
+        savedPost.setPickupLocation(request.getPickupLocation());
+        savedPost.setExpiryDate(request.getExpiryDate());
+        savedPost.setPickupDate(request.getPickupDate());
+        savedPost.setPickupFrom(request.getPickupFrom());
+        savedPost.setPickupTo(request.getPickupTo());
+        savedPost.setDescription(request.getDescription());
+
+        when(expirySuggestionService.computeSuggestedExpiry(any(), any(), any(), any())).thenReturn(
+                new ExpirySuggestionService.SuggestionResult(
+                        LocalDate.of(2026, 2, 17),
+                        0,
+                        false,
+                        List.of("Hot food must be cooled and refrigerated to be eligible for donation"),
+                        "Suggested expiry: 2026-02-17"));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
+
+        surplusService.createSurplusPost(request, donor);
+
+        ArgumentCaptor<SurplusPost> captor = ArgumentCaptor.forClass(SurplusPost.class);
+        verify(surplusPostRepository).save(captor.capture());
+        SurplusPost created = captor.getValue();
+
+        assertThat(created.getEligibleAtSubmission()).isFalse();
+        assertThat(created.getFlagged()).isTrue();
+        assertThat(created.getFlagReason()).contains("requires_review");
     }
 
     @Test
@@ -271,6 +385,15 @@ class SurplusServiceTest {
         ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
         verify(surplusPostRepository).save(postCaptor.capture());
         assertThat(postCaptor.getValue().getStatus()).isEqualTo(PostStatus.COMPLETED);
+        verify(timelineService).createTimelineEvent(
+                eq(post),
+                eq("PICKUP_CONFIRMED"),
+                eq("donor"),
+                eq(donor.getId()),
+                eq(PostStatus.READY_FOR_PICKUP),
+                eq(PostStatus.COMPLETED),
+                eq("Pickup confirmed with OTP code"),
+                eq(true));
     }
 
     @Test
@@ -1032,7 +1155,6 @@ class SurplusServiceTest {
 
         doNothing().when(pickupSlotValidationService).validateSlots(any());
         when(expiryCalculationService.isValidFabricationDate(any())).thenReturn(true);
-        when(expiryCalculationService.calculateExpiryDate(any(), any())).thenReturn(LocalDate.now().plusDays(2));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
 
         // When
@@ -1041,14 +1163,15 @@ class SurplusServiceTest {
         // Then
         assertThat(response).isNotNull();
         verify(expiryCalculationService).isValidFabricationDate(LocalDate.now().minusDays(1));
-        verify(expiryCalculationService).calculateExpiryDate(eq(LocalDate.now().minusDays(1)), any());
+        verify(expiryPredictionService).predict(any(SurplusPost.class));
 
         ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
         verify(surplusPostRepository).save(postCaptor.capture());
 
         SurplusPost capturedPost = postCaptor.getValue();
         assertThat(capturedPost.getFabricationDate()).isEqualTo(LocalDate.now().minusDays(1));
-        assertThat(capturedPost.getExpiryDate()).isNotNull();
+        assertThat(capturedPost.getExpiryDatePredicted()).isNotNull();
+        assertThat(capturedPost.getExpiryDateEffective()).isNotNull();
     }
 
     @Test
@@ -1212,7 +1335,7 @@ class SurplusServiceTest {
     }
 
     @Test
-    void testCreateSurplusPost_WithoutFabricationOrExpiry_ThrowsException() {
+    void testCreateSurplusPost_WithoutFabricationOrExpiry_UsesPrediction() {
         // Given
         CreateSurplusRequest requestWithoutDates = new CreateSurplusRequest();
         requestWithoutDates.setTitle("No Dates Meal");
@@ -1232,10 +1355,24 @@ class SurplusServiceTest {
         slots.add(slot);
         requestWithoutDates.setPickupSlots(slots);
 
-        // When & Then
-        assertThatThrownBy(() -> surplusService.createSurplusPost(requestWithoutDates, donor))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Expiry date is required");
+        SurplusPost savedPost = new SurplusPost();
+        savedPost.setId(1L);
+        savedPost.setDonor(donor);
+        savedPost.setTitle(requestWithoutDates.getTitle());
+        savedPost.setFoodCategories(requestWithoutDates.getFoodCategories());
+        savedPost.setQuantity(requestWithoutDates.getQuantity());
+        savedPost.setPickupLocation(requestWithoutDates.getPickupLocation());
+
+        doNothing().when(pickupSlotValidationService).validateSlots(any());
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
+
+        // When
+        SurplusResponse response = surplusService.createSurplusPost(requestWithoutDates, donor);
+
+        // Then
+        assertThat(response).isNotNull();
+        verify(expiryPredictionService).predict(any(SurplusPost.class));
+        verify(surplusPostRepository).save(any(SurplusPost.class));
     }
 
     @Test
@@ -1273,7 +1410,6 @@ class SurplusServiceTest {
 
         doNothing().when(pickupSlotValidationService).validateSlots(any());
         when(expiryCalculationService.isValidFabricationDate(any())).thenReturn(true);
-        when(expiryCalculationService.calculateExpiryDate(any(), any())).thenReturn(LocalDate.now().plusDays(3));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
 
         // When
@@ -1281,13 +1417,14 @@ class SurplusServiceTest {
 
         // Then
         assertThat(response).isNotNull();
-        verify(expiryCalculationService).calculateExpiryDate(eq(LocalDate.now()), any());
+        verify(expiryPredictionService).predict(any(SurplusPost.class));
 
         ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
         verify(surplusPostRepository).save(postCaptor.capture());
 
         SurplusPost capturedPost = postCaptor.getValue();
-        assertThat(capturedPost.getExpiryDate()).isNotNull();
+        assertThat(capturedPost.getExpiryDatePredicted()).isNotNull();
+        assertThat(capturedPost.getExpiryDateEffective()).isNotNull();
     }
 
     @Test
@@ -1324,7 +1461,6 @@ class SurplusServiceTest {
 
         doNothing().when(pickupSlotValidationService).validateSlots(any());
         when(expiryCalculationService.isValidFabricationDate(any())).thenReturn(true);
-        when(expiryCalculationService.calculateExpiryDate(any(), any())).thenReturn(LocalDate.now().plusDays(30));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
 
         // When
@@ -1332,13 +1468,14 @@ class SurplusServiceTest {
 
         // Then
         assertThat(response).isNotNull();
-        verify(expiryCalculationService).calculateExpiryDate(eq(LocalDate.now()), any());
+        verify(expiryPredictionService).predict(any(SurplusPost.class));
 
         ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
         verify(surplusPostRepository).save(postCaptor.capture());
 
         SurplusPost capturedPost = postCaptor.getValue();
-        assertThat(capturedPost.getExpiryDate()).isNotNull();
+        assertThat(capturedPost.getExpiryDatePredicted()).isNotNull();
+        assertThat(capturedPost.getExpiryDateEffective()).isNotNull();
     }
 
     // ==================== Tests for Timeline Feature ====================
@@ -2106,4 +2243,586 @@ class SurplusServiceTest {
                 .hasMessageContaining("Evidence can only be uploaded for claimed");
     }
 
+    // ==================== Tests for Country Filtering ====================
+
+    @Test
+    void testSearchSurplusPostsForReceiver_FiltersPostsByReceiverCountry() {
+        // Given - receiver in Canada
+        Organization receiverOrg = new Organization();
+        receiverOrg.setId(2L);
+        receiverOrg.setName("Food Bank");
+        receiverOrg.setAddress("456 Main St, Toronto, ON, M5H 2N2, Canada");
+        receiverOrg.setOrganizationType(OrganizationType.FOOD_BANK);
+        receiver.setOrganization(receiverOrg);
+
+        // Post from Canada (should be included)
+        SurplusPost canadaPost = new SurplusPost();
+        canadaPost.setId(1L);
+        canadaPost.setDonor(donor);
+        canadaPost.setTitle("Canadian Food");
+        canadaPost.setStatus(PostStatus.AVAILABLE);
+        canadaPost.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        canadaPost.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        canadaPost.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC", "Canada"));
+        canadaPost.setExpiryDate(LocalDate.now().plusDays(2));
+        canadaPost.setPickupDate(LocalDate.now());
+        canadaPost.setPickupFrom(LocalTime.of(9, 0));
+        canadaPost.setPickupTo(LocalTime.of(17, 0));
+
+        // Post from USA (should be filtered out)
+        SurplusPost usaPost = new SurplusPost();
+        usaPost.setId(2L);
+        usaPost.setDonor(donor);
+        usaPost.setTitle("USA Food");
+        usaPost.setStatus(PostStatus.AVAILABLE);
+        usaPost.setFoodCategories(Set.of(FoodCategory.BAKERY_PASTRY));
+        usaPost.setQuantity(new Quantity(3.0, Quantity.Unit.KILOGRAM));
+        usaPost.setPickupLocation(new Location(40.7128, -74.0060, "New York, NY", "United States"));
+        usaPost.setExpiryDate(LocalDate.now().plusDays(1));
+        usaPost.setPickupDate(LocalDate.now());
+        usaPost.setPickupFrom(LocalTime.of(10, 0));
+        usaPost.setPickupTo(LocalTime.of(18, 0));
+
+        com.example.foodflow.model.dto.SurplusFilterRequest filterRequest = 
+                new com.example.foodflow.model.dto.SurplusFilterRequest();
+        filterRequest.setStatus(PostStatus.AVAILABLE.name());
+
+        when(surplusPostRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class)))
+                .thenReturn(Arrays.asList(canadaPost, usaPost));
+
+        // When
+        List<SurplusResponse> responses = surplusService.searchSurplusPostsForReceiver(filterRequest, receiver);
+
+        // Then - only Canadian post should be returned
+        assertThat(responses).hasSize(1);
+        assertThat(responses.get(0).getTitle()).isEqualTo("Canadian Food");
+        assertThat(responses.get(0).getPickupLocation().getCountry()).isEqualTo("Canada");
+    }
+
+    @Test
+    void testSearchSurplusPostsForReceiver_NoCountryOnReceiver_ShowsAllPosts() {
+        // Given - receiver with no country
+        Organization receiverOrg = new Organization();
+        receiverOrg.setId(2L);
+        receiverOrg.setName("Food Bank");
+        receiverOrg.setAddress("456 Main St"); // No country
+        receiverOrg.setOrganizationType(OrganizationType.FOOD_BANK);
+        receiver.setOrganization(receiverOrg);
+
+        SurplusPost canadaPost = new SurplusPost();
+        canadaPost.setId(1L);
+        canadaPost.setDonor(donor);
+        canadaPost.setTitle("Canadian Food");
+        canadaPost.setStatus(PostStatus.AVAILABLE);
+        canadaPost.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        canadaPost.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        canadaPost.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC", "Canada"));
+        canadaPost.setExpiryDate(LocalDate.now().plusDays(2));
+        canadaPost.setPickupDate(LocalDate.now());
+        canadaPost.setPickupFrom(LocalTime.of(9, 0));
+        canadaPost.setPickupTo(LocalTime.of(17, 0));
+
+        SurplusPost usaPost = new SurplusPost();
+        usaPost.setId(2L);
+        usaPost.setDonor(donor);
+        usaPost.setTitle("USA Food");
+        usaPost.setStatus(PostStatus.AVAILABLE);
+        usaPost.setFoodCategories(Set.of(FoodCategory.BAKERY_PASTRY));
+        usaPost.setQuantity(new Quantity(3.0, Quantity.Unit.KILOGRAM));
+        usaPost.setPickupLocation(new Location(40.7128, -74.0060, "New York, NY", "United States"));
+        usaPost.setExpiryDate(LocalDate.now().plusDays(1));
+        usaPost.setPickupDate(LocalDate.now());
+        usaPost.setPickupFrom(LocalTime.of(10, 0));
+        usaPost.setPickupTo(LocalTime.of(18, 0));
+
+        com.example.foodflow.model.dto.SurplusFilterRequest filterRequest = 
+                new com.example.foodflow.model.dto.SurplusFilterRequest();
+        filterRequest.setStatus(PostStatus.AVAILABLE.name());
+
+        when(surplusPostRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class)))
+                .thenReturn(Arrays.asList(canadaPost, usaPost));
+
+        // When
+        List<SurplusResponse> responses = surplusService.searchSurplusPostsForReceiver(filterRequest, receiver);
+
+        // Then - should show all posts (permissive)
+        assertThat(responses).hasSize(2);
+    }
+
+    @Test
+    void testSearchSurplusPostsForReceiver_NoCountryOnPost_PostIsIncluded() {
+        // Given - receiver in Canada
+        Organization receiverOrg = new Organization();
+        receiverOrg.setId(2L);
+        receiverOrg.setName("Food Bank");
+        receiverOrg.setAddress("456 Main St, Toronto, ON, M5H 2N2, Canada");
+        receiverOrg.setOrganizationType(OrganizationType.FOOD_BANK);
+        receiver.setOrganization(receiverOrg);
+
+        // Post without country (legacy data - should be included)
+        SurplusPost noCountryPost = new SurplusPost();
+        noCountryPost.setId(1L);
+        noCountryPost.setDonor(donor);
+        noCountryPost.setTitle("Legacy Food");
+        noCountryPost.setStatus(PostStatus.AVAILABLE);
+        noCountryPost.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        noCountryPost.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        noCountryPost.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC")); // No country
+        noCountryPost.setExpiryDate(LocalDate.now().plusDays(2));
+        noCountryPost.setPickupDate(LocalDate.now());
+        noCountryPost.setPickupFrom(LocalTime.of(9, 0));
+        noCountryPost.setPickupTo(LocalTime.of(17, 0));
+
+        com.example.foodflow.model.dto.SurplusFilterRequest filterRequest = 
+                new com.example.foodflow.model.dto.SurplusFilterRequest();
+        filterRequest.setStatus(PostStatus.AVAILABLE.name());
+
+        when(surplusPostRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class)))
+                .thenReturn(Collections.singletonList(noCountryPost));
+
+        // When
+        List<SurplusResponse> responses = surplusService.searchSurplusPostsForReceiver(filterRequest, receiver);
+
+        // Then - legacy post should be included (permissive)
+        assertThat(responses).hasSize(1);
+        assertThat(responses.get(0).getTitle()).isEqualTo("Legacy Food");
+    }
+
+    @Test
+    void testSearchSurplusPostsForReceiver_CaseInsensitiveCountryMatching() {
+        // Given - receiver in "Canada"
+        Organization receiverOrg = new Organization();
+        receiverOrg.setId(2L);
+        receiverOrg.setName("Food Bank");
+        receiverOrg.setAddress("456 Main St, Toronto, ON, M5H 2N2, Canada");
+        receiverOrg.setOrganizationType(OrganizationType.FOOD_BANK);
+        receiver.setOrganization(receiverOrg);
+
+        // Post with "CANADA" (different case)
+        SurplusPost canadaPost = new SurplusPost();
+        canadaPost.setId(1L);
+        canadaPost.setDonor(donor);
+        canadaPost.setTitle("CANADA Food");
+        canadaPost.setStatus(PostStatus.AVAILABLE);
+        canadaPost.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        canadaPost.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        canadaPost.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC", "CANADA")); // Uppercase
+        canadaPost.setExpiryDate(LocalDate.now().plusDays(2));
+        canadaPost.setPickupDate(LocalDate.now());
+        canadaPost.setPickupFrom(LocalTime.of(9, 0));
+        canadaPost.setPickupTo(LocalTime.of(17, 0));
+
+        com.example.foodflow.model.dto.SurplusFilterRequest filterRequest = 
+                new com.example.foodflow.model.dto.SurplusFilterRequest();
+        filterRequest.setStatus(PostStatus.AVAILABLE.name());
+
+        when(surplusPostRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class)))
+                .thenReturn(Collections.singletonList(canadaPost));
+
+        // When
+        List<SurplusResponse> responses = surplusService.searchSurplusPostsForReceiver(filterRequest, receiver);
+
+        // Then - should match despite case difference
+        assertThat(responses).hasSize(1);
+        assertThat(responses.get(0).getTitle()).isEqualTo("CANADA Food");
+    }
+
+    @Test
+    void testSearchSurplusPostsForReceiver_NullReceiver_ShowsAllPosts() {
+        // Given
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setTitle("Test Food");
+        post.setStatus(PostStatus.AVAILABLE);
+        post.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        post.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        post.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC", "Canada"));
+        post.setExpiryDate(LocalDate.now().plusDays(2));
+        post.setPickupDate(LocalDate.now());
+        post.setPickupFrom(LocalTime.of(9, 0));
+        post.setPickupTo(LocalTime.of(17, 0));
+
+        com.example.foodflow.model.dto.SurplusFilterRequest filterRequest = 
+                new com.example.foodflow.model.dto.SurplusFilterRequest();
+        filterRequest.setStatus(PostStatus.AVAILABLE.name());
+
+        when(surplusPostRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class)))
+                .thenReturn(Collections.singletonList(post));
+
+        // When - null receiver (e.g., in tests)
+        List<SurplusResponse> responses = surplusService.searchSurplusPostsForReceiver(filterRequest, null);
+
+        // Then - should not filter by country
+        assertThat(responses).hasSize(1);
+        assertThat(responses.get(0).getTitle()).isEqualTo("Test Food");
+    }
+
+    @Test
+    void testSearchSurplusPostsForReceiver_NoOrganization_ShowsAllPosts() {
+        // Given - receiver without organization
+        User receiverWithoutOrg = new User();
+        receiverWithoutOrg.setId(2L);
+        receiverWithoutOrg.setEmail("receiver@test.com");
+        receiverWithoutOrg.setRole(UserRole.RECEIVER);
+        receiverWithoutOrg.setOrganization(null); // No organization
+
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setTitle("Test Food");
+        post.setStatus(PostStatus.AVAILABLE);
+        post.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        post.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        post.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC", "Canada"));
+        post.setExpiryDate(LocalDate.now().plusDays(2));
+        post.setPickupDate(LocalDate.now());
+        post.setPickupFrom(LocalTime.of(9, 0));
+        post.setPickupTo(LocalTime.of(17, 0));
+
+        com.example.foodflow.model.dto.SurplusFilterRequest filterRequest = 
+                new com.example.foodflow.model.dto.SurplusFilterRequest();
+        filterRequest.setStatus(PostStatus.AVAILABLE.name());
+
+        when(surplusPostRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class)))
+                .thenReturn(Collections.singletonList(post));
+
+        // When
+        List<SurplusResponse> responses = surplusService.searchSurplusPostsForReceiver(filterRequest, receiverWithoutOrg);
+
+        // Then - should not filter by country (permissive)
+        assertThat(responses).hasSize(1);
+        assertThat(responses.get(0).getTitle()).isEqualTo("Test Food");
+    }
+
+    @Test
+    void testSearchSurplusPostsForReceiver_MultiplePostsDifferentCountries() {
+        // Given - receiver in Canada
+        Organization receiverOrg = new Organization();
+        receiverOrg.setId(2L);
+        receiverOrg.setName("Food Bank");
+        receiverOrg.setAddress("456 Main St, Toronto, ON, M5H 2N2, Canada");
+        receiverOrg.setOrganizationType(OrganizationType.FOOD_BANK);
+        receiver.setOrganization(receiverOrg);
+
+        SurplusPost canadaPost1 = new SurplusPost();
+        canadaPost1.setId(1L);
+        canadaPost1.setDonor(donor);
+        canadaPost1.setTitle("Canadian Food 1");
+        canadaPost1.setStatus(PostStatus.AVAILABLE);
+        canadaPost1.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        canadaPost1.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        canadaPost1.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC", "Canada"));
+        canadaPost1.setExpiryDate(LocalDate.now().plusDays(2));
+        canadaPost1.setPickupDate(LocalDate.now());
+        canadaPost1.setPickupFrom(LocalTime.of(9, 0));
+        canadaPost1.setPickupTo(LocalTime.of(17, 0));
+
+        SurplusPost canadaPost2 = new SurplusPost();
+        canadaPost2.setId(2L);
+        canadaPost2.setDonor(donor);
+        canadaPost2.setTitle("Canadian Food 2");
+        canadaPost2.setStatus(PostStatus.AVAILABLE);
+        canadaPost2.setFoodCategories(Set.of(FoodCategory.BAKERY_PASTRY));
+        canadaPost2.setQuantity(new Quantity(3.0, Quantity.Unit.KILOGRAM));
+        canadaPost2.setPickupLocation(new Location(43.6532, -79.3832, "Toronto, ON", "Canada"));
+        canadaPost2.setExpiryDate(LocalDate.now().plusDays(1));
+        canadaPost2.setPickupDate(LocalDate.now());
+        canadaPost2.setPickupFrom(LocalTime.of(10, 0));
+        canadaPost2.setPickupTo(LocalTime.of(18, 0));
+
+        SurplusPost usaPost = new SurplusPost();
+        usaPost.setId(3L);
+        usaPost.setDonor(donor);
+        usaPost.setTitle("USA Food");
+        usaPost.setStatus(PostStatus.AVAILABLE);
+        usaPost.setFoodCategories(Set.of(FoodCategory.FRUITS_VEGETABLES));
+        usaPost.setQuantity(new Quantity(10.0, Quantity.Unit.KILOGRAM));
+        usaPost.setPickupLocation(new Location(40.7128, -74.0060, "New York, NY", "United States"));
+        usaPost.setExpiryDate(LocalDate.now().plusDays(3));
+        usaPost.setPickupDate(LocalDate.now());
+        usaPost.setPickupFrom(LocalTime.of(8, 0));
+        usaPost.setPickupTo(LocalTime.of(16, 0));
+
+        com.example.foodflow.model.dto.SurplusFilterRequest filterRequest = 
+                new com.example.foodflow.model.dto.SurplusFilterRequest();
+        filterRequest.setStatus(PostStatus.AVAILABLE.name());
+
+        when(surplusPostRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class)))
+                .thenReturn(Arrays.asList(canadaPost1, canadaPost2, usaPost));
+
+        // When
+        List<SurplusResponse> responses = surplusService.searchSurplusPostsForReceiver(filterRequest, receiver);
+
+        // Then - only Canadian posts should be returned
+        assertThat(responses).hasSize(2);
+        assertThat(responses).extracting(SurplusResponse::getTitle)
+                .containsExactlyInAnyOrder("Canadian Food 1", "Canadian Food 2");
+    }
+
+    // ==================== Additional Coverage Tests for 90% Target ====================
+
+    @Test
+    void testConvertToResponseForReceiver_WithTimezone() {
+        // Given
+        receiver.setTimezone("America/Los_Angeles");
+        
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setTitle("Test Food");
+        post.setStatus(PostStatus.AVAILABLE);
+        post.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        post.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        post.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC"));
+        post.setExpiryDate(LocalDate.now().plusDays(2));
+        post.setPickupDate(LocalDate.now());
+        post.setPickupFrom(LocalTime.of(9, 0));
+        post.setPickupTo(LocalTime.of(17, 0));
+
+        when(surplusPostRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class)))
+                .thenReturn(Collections.singletonList(post));
+
+        com.example.foodflow.model.dto.SurplusFilterRequest filterRequest = 
+                new com.example.foodflow.model.dto.SurplusFilterRequest();
+
+        // When
+        List<SurplusResponse> responses = surplusService.searchSurplusPostsForReceiver(filterRequest, receiver);
+
+        // Then
+        assertThat(responses).isNotEmpty();
+        assertThat(responses.get(0).getId()).isEqualTo(1L);
+    }
+
+    @Test
+    void testConvertToResponseForDonor_WithNullTimezone() {
+        // Given - donor with no timezone set
+        donor.setTimezone(null);
+        
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setTitle("Test Food");
+        post.setStatus(PostStatus.AVAILABLE);
+        post.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        post.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        post.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC"));
+        post.setExpiryDate(LocalDate.now().plusDays(2));
+        post.setPickupDate(LocalDate.now());
+        post.setPickupFrom(LocalTime.of(9, 0));
+        post.setPickupTo(LocalTime.of(17, 0));
+
+        when(surplusPostRepository.findByDonorId(donor.getId()))
+                .thenReturn(Collections.singletonList(post));
+
+        // When
+        List<SurplusResponse> responses = surplusService.getUserSurplusPosts(donor);
+
+        // Then
+        assertThat(responses).isNotEmpty();
+        assertThat(responses.get(0).getId()).isEqualTo(1L);
+    }
+
+    @Test
+    void testSearchSurplusPosts_WithNullOrganization() {
+        // Given - donor without organization
+        User donorWithoutOrg = new User();
+        donorWithoutOrg.setId(1L);
+        donorWithoutOrg.setEmail("donor@test.com");
+        donorWithoutOrg.setRole(UserRole.DONOR);
+        donorWithoutOrg.setOrganization(null);
+
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donorWithoutOrg);
+        post.setTitle("Test Food");
+        post.setStatus(PostStatus.AVAILABLE);
+        post.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        post.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        post.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC"));
+        post.setExpiryDate(LocalDate.now().plusDays(2));
+        post.setPickupDate(LocalDate.now());
+        post.setPickupFrom(LocalTime.of(9, 0));
+        post.setPickupTo(LocalTime.of(17, 0));
+
+        when(surplusPostRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class)))
+                .thenReturn(Collections.singletonList(post));
+
+        com.example.foodflow.model.dto.SurplusFilterRequest filterRequest = 
+                new com.example.foodflow.model.dto.SurplusFilterRequest();
+
+        // When
+        List<SurplusResponse> responses = surplusService.searchSurplusPosts(filterRequest);
+
+        // Then
+        assertThat(responses).isNotEmpty();
+    }
+
+    @Test
+    void testExtractCountryFromOrganization_WithNullAddress() {
+        // Given - receiver with organization but null address
+        Organization org = new Organization();
+        org.setId(2L);
+        org.setName("Food Bank");
+        org.setAddress(null);
+        receiver.setOrganization(org);
+
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setTitle("Test Food");
+        post.setStatus(PostStatus.AVAILABLE);
+        post.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        post.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        post.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC", "Canada"));
+        post.setExpiryDate(LocalDate.now().plusDays(2));
+        post.setPickupDate(LocalDate.now());
+        post.setPickupFrom(LocalTime.of(9, 0));
+        post.setPickupTo(LocalTime.of(17, 0));
+
+        when(surplusPostRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class)))
+                .thenReturn(Collections.singletonList(post));
+
+        com.example.foodflow.model.dto.SurplusFilterRequest filterRequest = 
+                new com.example.foodflow.model.dto.SurplusFilterRequest();
+
+        // When - should not filter
+        List<SurplusResponse> responses = surplusService.searchSurplusPostsForReceiver(filterRequest, receiver);
+
+        // Then
+        assertThat(responses).hasSize(1);
+    }
+
+
+    @Test
+    void testConvertToResponse_WithAllFieldsPopulated() {
+        // Given
+        SurplusPost post = new SurplusPost();
+        post.setId(1L);
+        post.setDonor(donor);
+        post.setTitle("Complete Food");
+        post.setStatus(PostStatus.AVAILABLE);
+        post.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS, FoodCategory.BAKERY_PASTRY));
+        post.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        post.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC", "Canada"));
+        post.setExpiryDate(LocalDate.now().plusDays(2));
+        post.setPickupDate(LocalDate.now());
+        post.setPickupFrom(LocalTime.of(9, 0));
+        post.setPickupTo(LocalTime.of(17, 0));
+        post.setDescription("Full description");
+        post.setOtpCode("123456");
+        post.setFlagged(true);
+        post.setFlagReason("Test reason");
+
+        when(surplusPostRepository.findByDonorId(donor.getId()))
+                .thenReturn(Collections.singletonList(post));
+
+        // When
+        List<SurplusResponse> responses = surplusService.getUserSurplusPosts(donor);
+
+        // Then
+        assertThat(responses).hasSize(1);
+        SurplusResponse response = responses.get(0);
+        assertThat(response.getTitle()).isEqualTo("Complete Food");
+        assertThat(response.getDescription()).isEqualTo("Full description");
+        assertThat(response.getFoodCategories()).hasSize(2);
+    }
+
+    @Test
+    void testSearchSurplusPostsForReceiver_EmptyResults() {
+        // Given
+        when(surplusPostRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class)))
+                .thenReturn(Collections.emptyList());
+
+        com.example.foodflow.model.dto.SurplusFilterRequest filterRequest = 
+                new com.example.foodflow.model.dto.SurplusFilterRequest();
+
+        // When
+        List<SurplusResponse> responses = surplusService.searchSurplusPostsForReceiver(filterRequest, receiver);
+
+        // Then
+        assertThat(responses).isEmpty();
+    }
+
+    @Test
+    void testCreateSurplusPost_WithEmptyDescription() {
+        // Given
+        request.setDescription("");
+
+        SurplusPost savedPost = new SurplusPost();
+        savedPost.setId(1L);
+        savedPost.setDonor(donor);
+        savedPost.setTitle(request.getTitle());
+        savedPost.setFoodCategories(request.getFoodCategories());
+        savedPost.setQuantity(request.getQuantity());
+
+        doNothing().when(pickupSlotValidationService).validateSlots(any());
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
+
+        // When
+        SurplusResponse response = surplusService.createSurplusPost(request, donor);
+
+        // Then
+        assertThat(response).isNotNull();
+    }
+
+    @Test
+    void testCreateSurplusPost_WithSingleCategory() {
+        // Given
+        request.getFoodCategories().clear();
+        request.getFoodCategories().add(FoodCategory.FRUITS_VEGETABLES);
+
+        SurplusPost savedPost = new SurplusPost();
+        savedPost.setId(1L);
+        savedPost.setDonor(donor);
+        savedPost.setTitle(request.getTitle());
+        savedPost.setFoodCategories(request.getFoodCategories());
+
+        doNothing().when(pickupSlotValidationService).validateSlots(any());
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(savedPost);
+
+        // When
+        SurplusResponse response = surplusService.createSurplusPost(request, donor);
+
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.getFoodCategories()).contains(FoodCategory.FRUITS_VEGETABLES);
+    }
+
+    @Test
+    void testUpdateSurplusPost_UpdatesAllFields() {
+        // Given
+        SurplusPost existingPost = new SurplusPost();
+        existingPost.setId(1L);
+        existingPost.setDonor(donor);
+        existingPost.setTitle("Old");
+        existingPost.setStatus(PostStatus.AVAILABLE);
+        existingPost.setFoodCategories(Set.of(FoodCategory.PREPARED_MEALS));
+        existingPost.setQuantity(new Quantity(5.0, Quantity.Unit.KILOGRAM));
+        existingPost.setPickupSlots(new ArrayList<>());
+
+        CreateSurplusRequest updateRequest = new CreateSurplusRequest();
+        updateRequest.setTitle("New Title");
+        updateRequest.getFoodCategories().add(FoodCategory.BAKERY_PASTRY);
+        updateRequest.setQuantity(new Quantity(10.0, Quantity.Unit.KILOGRAM));
+        updateRequest.setExpiryDate(LocalDate.now().plusDays(5));
+        updateRequest.setPickupDate(LocalDate.now().plusDays(1));
+        updateRequest.setPickupFrom(LocalTime.of(8, 0));
+        updateRequest.setPickupTo(LocalTime.of(20, 0));
+        updateRequest.setPickupLocation(new Location(40.0, -75.0, "New Location"));
+        updateRequest.setDescription("New description");
+        updateRequest.setPickupSlots(new ArrayList<>());
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(existingPost));
+        when(surplusPostRepository.saveAndFlush(any(SurplusPost.class))).thenReturn(existingPost);
+
+        // When
+        SurplusResponse response = surplusService.updateSurplusPost(1L, updateRequest, donor);
+
+        // Then
+        assertThat(response).isNotNull();
+        verify(surplusPostRepository, times(2)).saveAndFlush(any(SurplusPost.class));
+    }
+
 }
+

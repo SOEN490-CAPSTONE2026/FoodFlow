@@ -1,4 +1,4 @@
-{
+﻿{
   "nav": {
     "home": "الرئيسية",
     "howItWorks": "كيف يعمل",
@@ -37,6 +37,104 @@
     "sendResetLink": "إرسال رابط إعادة التعيين",
     "enterEmail": "أدخل عنوان بريدك الإلكتروني"
   },
+  "forgotPasswordPage": {
+    "backToLogin": "العودة الى تسجيل الدخول",
+    "subtitle": "لا تقلق. اختر كيف تريد استلام رمز OTP. بعد ادخال الرمز يمكنك اعادة تعيين كلمة المرور.",
+    "methodEmailTitle": "البريد الالكتروني",
+    "methodEmailSubtitle": "استلام رابط عبر البريد الالكتروني",
+    "methodSmsTitle": "رسالة نصية",
+    "methodSmsSubtitle": "استلام رمز عبر رسالة نصية",
+    "passwordsDoNotMatch": "كلمتا المرور غير متطابقتين",
+    "chooseMethod": "يرجى اختيار البريد الالكتروني او الرسائل النصية",
+    "enterEmailAddress": "يرجى ادخال بريدك الالكتروني",
+    "enterValidEmail": "يرجى ادخال بريد الكتروني صالح",
+    "enterPhoneNumber": "يرجى ادخال رقم هاتفك",
+    "selectCountryCode": "يرجى اختيار رمز الدولة من القائمة",
+    "enterValidPhoneNumber": "يرجى ادخال رقم هاتف صالح مع رمز الدولة",
+    "invalidPhoneFormat": "صيغة رقم الهاتف غير صالحة. استخدم هذا الشكل: +14165551234",
+    "tooManyRequests": "طلبات كثيرة جدا. يرجى المحاولة لاحقا.",
+    "failedSendCode": "فشل ارسال رمز التحقق. يرجى المحاولة مرة اخرى.",
+    "emailAddressLabel": "البريد الالكتروني",
+    "emailPlaceholder": "ادخل بريدك الالكتروني",
+    "phoneNumberLabel": "رقم الهاتف",
+    "phonePlaceholder": "رقم الهاتف",
+    "sending": "جار الارسال...",
+    "sendCode": "ارسال الرمز",
+    "resetSuccessTitle": "تمت اعادة تعيين كلمة المرور",
+    "resetSuccessMessage": "تمت اعادة تعيين كلمة المرور بنجاح.",
+    "redirectLogin": "سيتم تحويلك الى صفحة تسجيل الدخول الان...",
+    "codeExpiredTitle": "انتهى الوقت.",
+    "codeExpiredMessage": "انتهت صلاحية الرمز. يمكنك اعادة ارسال رمز جديد او الرجوع لتسجيل الدخول.",
+    "resendCode": "اعادة ارسال الرمز",
+    "codeIncorrectTitle": "الرمز الذي ادخلته غير صحيح.",
+    "codeIncorrectMessage": "تحقق من الرمز وحاول مرة اخرى او اطلب رمزا جديدا.",
+    "timeRemaining": "الوقت المتبقي",
+    "tryAgain": "حاول مرة اخرى",
+    "verifiedTitle": "تم بنجاح",
+    "verifiedMessage": "تم التحقق من هويتك. يرجى ادخال كلمة المرور الجديدة ادناه.",
+    "enterBothPasswords": "يرجى ادخال حقلي كلمة المرور",
+    "passwordMinLength": "يجب ان تحتوي كلمة المرور على 10 احرف على الاقل",
+    "passwordUppercase": "يجب ان تحتوي كلمة المرور على حرف كبير واحد على الاقل",
+    "passwordLowercase": "يجب ان تحتوي كلمة المرور على حرف صغير واحد على الاقل",
+    "passwordDigit": "يجب ان تحتوي كلمة المرور على رقم واحد على الاقل",
+    "passwordSpecial": "يجب ان تحتوي كلمة المرور على رمز خاص واحد على الاقل (!@#$%^&*()_+-=[]{}|;:,.<>?)",
+    "failedResetPassword": "فشل اعادة تعيين كلمة المرور. يرجى المحاولة مرة اخرى.",
+    "newPasswordPlaceholder": "كلمة المرور الجديدة",
+    "confirmNewPasswordPlaceholder": "تأكيد كلمة المرور الجديدة",
+    "resetting": "جار اعادة التعيين...",
+    "resetPasswordAction": "اعادة تعيين كلمة المرور",
+    "codeSentTitle": "تم ارسال الرمز",
+    "codeSentMessage": "لقد ارسلنا رمز تحقق مكونا من 6 ارقام الى",
+    "codeSentInfo": "ادخل الارقام الستة التي وصلتك عبر",
+    "expiresIn": "تنتهي الصلاحية خلال",
+    "sideImageAlt": "مثال على التبرع",
+    "logoAlt": "شعار فودفلو",
+    "delivery": {
+      "sms": "رسالة نصية",
+      "email": "البريد الالكتروني"
+    }
+  },
+  "reportUserModal": {
+    "photoTooLarge": "يجب ان يكون حجم الصورة اقل من 5 ميجابايت",
+    "descriptionRequired": "يرجى تقديم وصف",
+    "submitFailed": "فشل ارسال البلاغ. يرجى المحاولة مرة اخرى.",
+    "title": "الابلاغ عن مستخدم",
+    "infoPrefix": "انت تقوم بالابلاغ عن",
+    "thisUser": "هذا المستخدم",
+    "donationLinked": "سيتم ربط هذا البلاغ بالتبرع.",
+    "descriptionLabel": "الوصف",
+    "descriptionPlaceholder": "يرجى وصف ما حدث...",
+    "photoLabel": "دليل مصور (اختياري)",
+    "uploadPrompt": "انقر لرفع صورة",
+    "maxSize": "الحد الاقصى: 5 ميجابايت",
+    "evidencePreviewAlt": "معاينة الدليل",
+    "removePhoto": "ازالة",
+    "cancel": "الغاء",
+    "submitting": "جار الارسال...",
+    "submit": "ارسال البلاغ"
+  },
+  "regionSelector": {
+    "geolocationUnsupported": "المتصفح لا يدعم تحديد الموقع",
+    "detectFailed": "تعذر اكتشاف الموقع. يرجى الاختيار يدويا.",
+    "accessLocationFailed": "تعذر الوصول الى موقعك. يرجى الاختيار يدويا.",
+    "detecting": "جار اكتشاف الموقع...",
+    "autoDetect": "اكتشاف موقعي تلقائيا",
+    "country": "الدولة",
+    "city": "المدينة",
+    "timezone": "المنطقة الزمنية",
+    "loadingCountries": "جار تحميل الدول...",
+    "selectCountry": "اختر دولتك...",
+    "searchCountries": "ابحث عن الدول...",
+    "enterCity": "ادخل مدينتك...",
+    "selectTimezone": "اختر المنطقة الزمنية...",
+    "autoSetCountry": "يتم ضبطها تلقائيا بناء على دولتك",
+    "autoDetectedHint": "تم اكتشاف منطقتك الزمنية تلقائيا. يمكنك تغييرها اذا لزم الامر."
+  },
+  "phoneInput": {
+    "searchCountry": "ابحث عن دولة...",
+    "noCountries": "لم يتم العثور على دول",
+    "placeholder": "رقم الهاتف"
+  },
   "registration": {
     "registerAsDonor": "التسجيل كمتبرع",
     "registerAsReceiver": "التسجيل كمستفيد",
@@ -51,6 +149,7 @@
     "country": "البلد",
     "fullName": "الاسم الكامل",
     "acceptTerms": "أوافق على شروط الخدمة",
+    "dataConsentPrefix": "أوافق على تخزين البيانات كما هو موضح في",
     "privacyPolicy": "سياسة الخصوصية",
     "termsOfService": "شروط الخدمة",
     "registrationSuccess": "تم التسجيل بنجاح",
@@ -153,7 +252,10 @@
     "download": "تحميل",
     "hidePassword": "إخفاء كلمة المرور",
     "showPassword": "إظهار كلمة المرور",
-    "time": "الوقت"
+    "time": "الوقت",
+    "retry": "إعادة المحاولة",
+    "less": "أقل",
+    "more": "المزيد"
   },
   "validation": {
     "required": "هذا الحقل مطلوب",
@@ -161,6 +263,23 @@
     "minLength": "الحد الأدنى {{count}} أحرف مطلوبة",
     "maxLength": "الحد الأقصى {{count}} حرف مسموح",
     "pattern": "تنسيق غير صالح"
+  },
+  "passwordValidation": {
+    "required": "كلمة المرور مطلوبة",
+    "minLength": "يجب أن تتكون كلمة المرور من 10 أحرف على الأقل",
+    "uppercase": "يجب أن تحتوي كلمة المرور على حرف كبير واحد على الأقل",
+    "lowercase": "يجب أن تحتوي كلمة المرور على حرف صغير واحد على الأقل",
+    "digit": "يجب أن تحتوي كلمة المرور على رقم واحد على الأقل",
+    "specialCharacter": "يجب أن تحتوي كلمة المرور على رمز خاص واحد على الأقل (!@#$%^&*()_+-=[]{}|;:,.<>?)",
+    "commonPassword": "كلمة المرور هذه شائعة جدًا. يرجى اختيار كلمة مرور أكثر أمانًا",
+    "policy": {
+      "minLength": "10 أحرف على الأقل",
+      "uppercase": "حرف كبير واحد على الأقل (A-Z)",
+      "lowercase": "حرف صغير واحد على الأقل (a-z)",
+      "digit": "رقم واحد على الأقل (0-9)",
+      "specialCharacter": "رمز خاص واحد على الأقل (!@#$%^&*()_+-=[]{}|;:,.<>?)",
+      "commonPassword": "عدم استخدام كلمة مرور شائعة"
+    }
   },
   "toast": {
     "saved": "تم الحفظ",
@@ -520,7 +639,8 @@
       "readyForPickup": "جاهز للاستلام",
       "notCompleted": "غير مكتمل",
       "expired": "منتهي الصلاحية"
-    }
+    },
+    "yourRating": "تقييمك"
   },
   "receiverWelcome": {
     "title": "ابحث عن طعام بالقرب منك",
@@ -580,6 +700,10 @@
     "fabricationDateHelp": "اختياري - يساعد في تقييم نضارة الطعام",
     "expiryDateAutoCalculated": "(محسوب تلقائيًا، يمكنك التعديل)",
     "expiryDateSuggestion": "تاريخ الانتهاء المقترح: {{date}} (بناءً على فئة الطعام)",
+    "expiryDateSuggestionRule": "تاريخ الانتهاء المقترح: {{date}} (بناءً على {{foodType}} + {{temperature}})",
+    "eligibilityEligible": "مؤهل",
+    "eligibilityNotEligible": "غير مؤهل",
+    "confirmSafetyOverride": "أؤكد أن هذا العنصر آمن للتبرع",
     "loadingDetails": "جارٍ تحميل تفاصيل التبرع...",
     "validationError": "يرجى إكمال جميع الحقول المطلوبة قبل المتابعة.",
     "cancel": "إلغاء",
@@ -613,6 +737,55 @@
       "quantityDates": "الكمية والتاريخ",
       "pickupInfo": "معلومات الاستلام",
       "description": "الوصف"
+    },
+    "dietaryTagsLabel": "الوسوم الغذائية",
+    "dietaryTagsOptional": "(اختياري)",
+    "maxDietaryTags": "الحد الأقصى 10 وسوم غذائية",
+    "foodTypeValues": {
+      "PREPARED": "وجبات جاهزة",
+      "PRODUCE": "منتجات طازجة",
+      "BAKERY": "مخبوزات وحلويات",
+      "DAIRY_EGGS": "ألبان وبيض",
+      "MEAT_POULTRY": "لحوم ودواجن",
+      "SEAFOOD": "مأكولات بحرية",
+      "PANTRY": "مواد معبأة / مؤن",
+      "BEVERAGES": "مشروبات"
+    },
+    "dietaryTagValues": {
+      "HALAL": "حلال",
+      "KOSHER": "كوشير",
+      "VEGETARIAN": "نباتي",
+      "VEGAN": "نباتي صرف",
+      "GLUTEN_FREE": "خالٍ من الغلوتين",
+      "DAIRY_FREE": "خالٍ من الألبان",
+      "NUT_FREE": "خالٍ من المكسرات",
+      "EGG_FREE": "خالٍ من البيض",
+      "SOY_FREE": "خالٍ من الصويا"
+    },
+    "temperatureCategoryValues": {
+      "FROZEN": "مجمد (أقل من 0°م)",
+      "REFRIGERATED": "مبرد (0–4°م)",
+      "ROOM_TEMPERATURE": "درجة حرارة الغرفة",
+      "HOT_COOKED": "ساخن / مطبوخ"
+    },
+    "packagingTypeValues": {
+      "SEALED": "محكم الإغلاق",
+      "LOOSE": "سائب",
+      "REFRIGERATED_CONTAINER": "حاوية مبردة",
+      "FROZEN_CONTAINER": "حاوية مجمدة",
+      "VACUUM_PACKED": "معبأ بتفريغ الهواء",
+      "BOXED": "معبأ في صندوق",
+      "WRAPPED": "ملفوف",
+      "BULK": "كميات كبيرة",
+      "OTHER": "أخرى"
+    },
+    "expiryWarnings": {
+      "Packaging suggests cold storage, confirm temperature": "نوع التعبئة يشير إلى التخزين البارد، يرجى تأكيد درجة الحرارة",
+      "Packaging suggests frozen storage, confirm temperature": "نوع التعبئة يشير إلى التخزين المجمد، يرجى تأكيد درجة الحرارة",
+      "Hot food must be cooled and refrigerated to be eligible for donation": "يجب تبريد الطعام الساخن ووضعه في التبريد ليكون مؤهلاً للتبرع",
+      "Produce is usually not hot/cooked": "المنتجات الطازجة عادة لا تكون ساخنة/مطبوخة",
+      "Pantry items are usually stored at room temperature": "مواد المؤن عادة تُخزن في درجة حرارة الغرفة",
+      "Hot beverages are same-day donations": "المشروبات الساخنة تبرعات لليوم نفسه"
     }
   },
   "chat": {
@@ -627,6 +800,40 @@
     "typeMessage": "اكتب رسالتك هنا...",
     "sendMessage": "إرسال رسالة",
     "failedToSend": "فشل إرسال الرسالة"
+  },
+  "supportChat": {
+    "title": "دعم FoodFlow",
+    "welcome": "👋 مرحبا! أنا مساعد دعم FoodFlow. كيف يمكنني مساعدتك اليوم؟",
+    "endMessage": "انتهت المحادثة. شكرًا لاستخدامك دعم FoodFlow. إذا كانت لديك أسئلة أخرى، يمكنك بدء محادثة جديدة.",
+    "errorMessage": "عذرًا، لا يمكنني الرد الآن. يرجى الاتصال بفريق الدعم مباشرةً.",
+    "aria": {
+      "open": "فتح دردشة الدعم",
+      "close": "إغلاق دردشة الدعم"
+    },
+    "buttons": {
+      "endChat": "إنهاء الدردشة",
+      "newChat": "دردشة جديدة"
+    },
+    "titles": {
+      "endChat": "إنهاء الدردشة",
+      "newChat": "دردشة جديدة"
+    },
+    "placeholders": {
+      "ended": "انتهت الدردشة. انقر على \"دردشة جديدة\" للبدء من جديد.",
+      "input": "اكتب سؤالك..."
+    },
+    "actions": {
+      "createDonation": "إنشاء تبرع",
+      "myMessages": "رسائلي",
+      "settings": "الإعدادات",
+      "browseFood": "تصفح الطعام",
+      "myClaims": "مطالباتي",
+      "myDonations": "تبرعاتي",
+      "helpCenter": "مركز المساعدة",
+      "emailSupport": "البريد الإلكتروني للدعم",
+      "contactSupport": "الاتصال بالدعم",
+      "dashboard": "لوحة التحكم"
+    }
   },
   "messaging": {
     "failedToLoad": "فشل تحميل المحادثات",
@@ -689,7 +896,22 @@
     "events": "الفعاليات والجداول",
     "communications": "الاتصالات الواردة",
     "guides": "الأدلة والدعم",
-    "administration": "الإدارة"
+    "administration": "الإدارة",
+    "welcomeBack": "مرحباً بعودتك، {{name}}",
+    "users": "إدارة المستخدمين",
+    "verificationQueue": "قائمة التحقق",
+    "impact": "لوحة الأثر",
+    "disputes": "النزاعات والتقارير",
+    "donations": "التبرعات",
+    "settings": "الإعدادات",
+    "logout": "تسجيل الخروج",
+    "toggleMenu": "تبديل القائمة",
+    "foodflowHome": "الصفحة الرئيسية لـ FoodFlow",
+    "toggleSidebar": "تبديل الشريط الجانبي",
+    "verificationQueueDesc": "مراجعة واعتماد تسجيلات المستخدمين المعلقة",
+    "usersDesc": "إدارة ومراقبة جميع مستخدمي المنصة",
+    "impactDesc": "مقاييس الأثر البيئي والاجتماعي على مستوى المنصة",
+    "disputesDesc": "تتبع ومراجعة وحل المشكلات المبلغ عنها"
   },
   "claimedView": {
     "claimed": "تم المطالبة به",
@@ -746,29 +968,38 @@
     "donateNow": "تبرع الآن",
     "requestsClaims": "الطلبات والمطالبات",
     "pickupSchedule": "جدول الاستلام",
+    "achievements": "الإنجازات",
     "messages": "الرسائل",
+    "impact": "لوحة التأثير",
     "settings": "الإعدادات",
     "help": "المساعدة",
     "logout": "تسجيل الخروج",
+    "suggestBusiness": "اقتراح شركة",
     "pageTitles": {
       "donorDashboard": "لوحة تحكم المتبرع",
       "donateNow": "تبرع الآن",
       "requestsClaims": "الطلبات والمطالبات",
       "pickupSchedule": "جدول الاستلام",
+      "achievements": "الإنجازات",
       "messages": "الرسائل",
+      "impact": "لوحة التأثير",
       "settings": "الإعدادات",
       "help": "المساعدة",
-      "donor": "متبرع"
+      "donor": "متبرع",
+      "suggestBusiness": "اقتراح شركة"
     },
     "pageDescriptions": {
       "donorDashboard": "نظرة عامة وإجراءات سريعة",
       "donateNow": "إنشاء وإدارة إعلانات التبرعات",
       "requestsClaims": "الطلبات الواردة والحالة",
       "pickupSchedule": "النشاط الأخير والسجل",
+      "achievements": "اعرض إنجازاتك وشاراتك",
       "messages": "الاتصالات الواردة",
+      "impact": "اعرض تأثيرك البيئي والاجتماعي",
       "settings": "إدارة تفضيلاتك وإعدادات الحساب",
       "help": "الأدلة والدعم",
-      "donorPortal": "بوابة المتبرع FoodFlow"
+      "donorPortal": "بوابة المتبرع FoodFlow",
+      "suggestBusiness": "اقترح شركة للانضمام إلى FoodFlow كمتبرع بالطعام"
     },
     "notifications": {
       "newClaim": "مطالبة جديدة",
@@ -790,6 +1021,7 @@
     "loading": "جارٍ تحميل تبرعاتك...",
     "sortByDate": "ترتيب حسب التاريخ",
     "sortByStatus": "ترتيب حسب الحالة",
+    "createWithAI": "إنشاء باستخدام الذكاء الاصطناعي",
     "donateMore": "تبرع بالمزيد",
     "emptyStateTitle": "لم تنشر أي شيء بعد",
     "emptyStateDescription": "أنشئ منشور التبرع الأول لبدء مساعدة مجتمعك في تقليل هدر الطعام.",
@@ -803,8 +1035,34 @@
     },
     "expires": "تنتهي الصلاحية",
     "pickup": "الاستلام",
+    "flexible": "مرن",
     "notSpecified": "غير محدد",
     "addressNotSpecified": "العنوان غير محدد",
+    "uploading": "جارٍ الرفع...",
+    "uploadDonationPhoto": "رفع صورة التبرع",
+    "photosUploadedSingular": "تم رفع {{count}} صورة",
+    "photosUploadedPlural": "تم رفع {{count}} صور",
+    "viewPhotosSingular": "عرض {{count}} صورة",
+    "viewPhotosPlural": "عرض {{count}} صور",
+    "viewDonationTimeline": "عرض تسلسل التبرع",
+    "hideDonationTimeline": "إخفاء تسلسل التبرع",
+    "reportReceiver": "الإبلاغ عن المستفيد",
+    "leaveFeedback": "ترك تقييم",
+    "failedFetchRecipientEmail": "تعذر جلب بريد المستفيد للمنشور \"{{title}}\"",
+    "receiverIdMissing": "معرّف المستفيد مفقود للمنشور \"{{title}}\"",
+    "receiverNotFoundOrInvalidEmail": "المستفيد غير موجود أو البريد الإلكتروني غير صالح",
+    "failedFetchReceiverDetails": "فشل جلب تفاصيل المستفيد. يرجى المحاولة مرة أخرى.",
+    "failedOpenDonationChat": "فشل فتح دردشة التبرع. يرجى المحاولة مرة أخرى.",
+    "unableLoadReceiverInfo": "تعذر تحميل معلومات المستفيد. يرجى المحاولة مرة أخرى.",
+    "noClaimsFoundForDonation": "لم يتم العثور على مطالبات لهذا التبرع. يرجى المحاولة مرة أخرى.",
+    "failedOpenFeedbackModal": "فشل فتح نافذة التقييم. يرجى المحاولة مرة أخرى.",
+    "failedOpenReportModal": "فشل فتح نافذة الإبلاغ. يرجى المحاولة مرة أخرى.",
+    "reportSubmittedSuccessfully": "تم إرسال البلاغ بنجاح",
+    "failedSubmitReport": "فشل إرسال البلاغ. يرجى المحاولة مرة أخرى.",
+    "onlyJpegPngAllowed": "يسمح فقط بصور JPEG وPNG",
+    "fileSizeMustBeLessThan5Mb": "يجب أن يكون حجم الملف أقل من 5 ميغابايت",
+    "uploadFailed": "فشل الرفع",
+    "failedUploadPhoto": "فشل رفع الصورة. يرجى المحاولة مرة أخرى.",
     "confirmDelete": "هل أنت متأكد من رغبتك في حذف هذا المنشور؟",
     "failedToFetch": "فشل جلب المنشورات",
     "editFunctionality": "فتح نموذج التعديل لـ: {{title}}\n(وظيفة التعديل قيد التنفيذ)"
@@ -854,6 +1112,7 @@
     "donations": "التبرعات",
     "myClaims": "مطالباتي",
     "savedDonations": "التبرعات المحفوظة",
+    "inviteCommunity": "دعوة مجتمع",
     "settings": "الإعدادات",
     "preferences": "التفضيلات",
     "help": "المساعدة",
@@ -876,7 +1135,9 @@
       "messages": "التواصل مع المتبرعين والمستخدمين الآخرين",
       "settings": "إدارة تفضيلاتك وإعدادات الحساب",
       "default": "بوابة المستفيد FoodFlow"
-    }
+    },
+    "achievements": "الإنجازات",
+    "impact": "لوحة تحكم الأثر"
   },
   "receiverBrowse": {
     "confirmClaim": "هل أنت متأكد من رغبتك في المطالبة بهذا التبرع؟",
@@ -926,7 +1187,15 @@
     "choosePickupSlot": "اختر موعد استلام",
     "noProposedSlots": "لا توجد مواعيد مقترحة متاحة.",
     "confirming": "جارٍ التأكيد...",
-    "confirmAndClaim": "تأكيد والمطالبة"
+    "confirmAndClaim": "تأكيد والمطالبة",
+    "expiringSoon": "ينتهي قريبًا",
+    "predicted": "متوقع",
+    "addedToSaved": "تمت الإضافة إلى التبرعات المحفوظة"
+  },
+  "receiverSavedDonations": {
+    "title": "التبرعات المحفوظة",
+    "failedToLoad": "فشل تحميل التبرعات المحفوظة",
+    "empty": "لا توجد تبرعات محفوظة بعد."
   },
   "receiverMyClaims": {
     "readyForPickup": "جاهز للاستلام",
@@ -1089,6 +1358,14 @@
       "smsDisabled": "تم تعطيل تنبيهات الرسائل القصيرة",
       "updateFailed": "فشل التحديث. يرجى المحاولة مرة أخرى."
     },
+    "privacyConsent": {
+      "title": "الخصوصية وموافقة البيانات",
+      "description": "موافقتك على تخزين البيانات ومعلومات الخصوصية",
+      "consentMessage": "لقد وافقت على تخزين البيانات عند التسجيل في FoodFlow. نقوم بجمع معلوماتك وتخزينها لتقديم خدماتنا وربط المتبرعين بالمستفيدين بكفاءة.",
+      "detailsPrefix": "لمزيد من التفاصيل حول كيفية تعاملنا مع بياناتك، يرجى مراجعة",
+      "privacyPolicyLink": "سياسة الخصوصية",
+      "detailsSuffix": "."
+    },
     "notificationTypes": {
       "title": "أنواع الإشعارات",
       "description": "خصص أنواع الإشعارات التي تريد تلقيها",
@@ -1180,6 +1457,159 @@
       "imageInvalid": "يرجى تحميل ملف صورة صالح"
     }
   },
+  "achievements": {
+    "loading": "جارٍ تحميل إنجازاتك...",
+    "error": "تعذر تحميل الإنجازات",
+    "errorMessage": "يرجى تحديث الصفحة والمحاولة مرة أخرى",
+    "noAchievements": "لا توجد إنجازات بعد",
+    "startDonating": "ابدأ بالتبرع بالطعام لكسب الشارات والنقاط!",
+    "title": "إنجازاتك",
+    "sectionTitle": "الإنجازات",
+    "subtitle": "تابع تقدمك واحصل على المكافآت",
+    "totalPoints": "إجمالي النقاط",
+    "pointsDescription": "النقاط المكتسبة من الإنجازات",
+    "progress": "التقدم",
+    "complete": "مكتمل",
+    "unlockedBadges": "الشارات المفتوحة",
+    "badgesDescription": "الإنجازات التي تم تحقيقها",
+    "unlocked": "الإنجازات المفتوحة",
+    "unlockedTitle": "تم فتح إنجاز جديد!",
+    "unlockedIndicator": "✓ تم الفتح",
+    "inProgress": "قيد التقدم",
+    "locked": "الإنجازات المقفلة",
+    "points": "نقاط",
+    "viewAll": "عرض جميع الإنجازات",
+    "unlockCriteria": "معايير الفتح:",
+    "pointsEarned": "+{{count}} نقطة مكتسبة",
+    "closeNotification": "إغلاق الإشعار",
+    "criteriaTypes": {
+      "DONATION_COUNT": "التبرعات",
+      "CLAIM_COUNT": "المطالبات",
+      "MESSAGE_COUNT": "الرسائل",
+      "WEEKLY_STREAK": "أسابيع متتالية",
+      "UNIQUE_PARTNER_COUNT": "المنظمات",
+      "STREAK_DAYS": "أيام متتالية",
+      "TOTAL_POINTS": "إجمالي النقاط"
+    },
+    "descriptionTemplates": {
+      "DONATION_COUNT": "أنشئ {{count}} تبرعًا غذائيًا ناجحًا",
+      "WEEKLY_STREAK": "تبرع مرة واحدة على الأقل كل أسبوع لمدة {{count}} أسابيع متتالية",
+      "MESSAGE_COUNT": "أرسل {{count}} رسالة في محادثات التبرع",
+      "UNIQUE_PARTNER_COUNT": "تفاعل بنجاح مع {{count}} منظمة مختلفة"
+    },
+    "catalog": {
+      "community_champion": {
+        "name": "بطل المجتمع"
+      },
+      "century_donor": {
+        "name": "متبرع المئة"
+      },
+      "unstoppable_force": {
+        "name": "قوة لا تُوقف"
+      },
+      "donation_master": {
+        "name": "سيد التبرعات"
+      },
+      "elite_contributor": {
+        "name": "مساهم النخبة"
+      },
+      "legendary_donor": {
+        "name": "المتبرع الأسطوري"
+      },
+      "donation_titan": {
+        "name": "عملاق التبرعات"
+      },
+      "thousand_strong": {
+        "name": "ألف بثبات"
+      },
+      "ultimate_benefactor": {
+        "name": "المحسن الأعظم"
+      },
+      "steady_start": {
+        "name": "بداية ثابتة"
+      },
+      "monthly_commitment": {
+        "name": "التزام شهري"
+      },
+      "two_month_streak": {
+        "name": "سلسلة شهرين"
+      },
+      "quarterly_dedication": {
+        "name": "تفانٍ ربع سنوي"
+      },
+      "half_year_hero": {
+        "name": "بطل نصف العام"
+      },
+      "year_round_giver": {
+        "name": "متبرع طوال العام"
+      },
+      "two_year_legend": {
+        "name": "أسطورة السنتين"
+      },
+      "chatty_starter": {
+        "name": "بداية كثيرة التفاعل"
+      },
+      "conversationalist": {
+        "name": "محاور متمرس"
+      },
+      "active_communicator": {
+        "name": "متواصل نشط"
+      },
+      "communication_expert": {
+        "name": "خبير التواصل"
+      },
+      "message_master": {
+        "name": "سيد الرسائل"
+      },
+      "communication_guru": {
+        "name": "معلم التواصل"
+      },
+      "ultimate_networker": {
+        "name": "باني الشبكات الأعظم"
+      },
+      "making_connections": {
+        "name": "بناء الروابط"
+      },
+      "community_builder": {
+        "name": "صانع المجتمع"
+      },
+      "network_grower": {
+        "name": "موسع الشبكة"
+      },
+      "relationship_expert": {
+        "name": "خبير العلاقات"
+      },
+      "community_leader": {
+        "name": "قائد المجتمع"
+      },
+      "connection_master": {
+        "name": "سيد الروابط"
+      },
+      "network_titan": {
+        "name": "عملاق الشبكة"
+      },
+      "ultimate_connector": {
+        "name": "الواصل الأعظم"
+      }
+    }
+  },
+  "leaderboard": {
+    "title": "لوحة المتصدرين",
+    "loading": "جارٍ تحميل لوحة المتصدرين...",
+    "error": "تعذر تحميل لوحة المتصدرين",
+    "errorMessage": "يرجى تحديث الصفحة والمحاولة مرة أخرى",
+    "retry": "إعادة المحاولة",
+    "noData": "لا توجد بيانات للوحة المتصدرين بعد",
+    "noDataMessage": "كن أول من يكسب النقاط ويتصدر اللوحة!",
+    "topDonors": "أفضل المتبرعين",
+    "topReceivers": "أفضل المستفيدين",
+    "refresh": "تحديث",
+    "yourPosition": "مركزك",
+    "keepGoing": "استمر في المساهمة للصعود في لوحة المتصدرين!",
+    "totalUsers": "{{count}} مستخدمًا إجمالاً",
+    "you": "أنت",
+    "pts": "نقطة"
+  },
   "completedView": {
     "claimed": "مطالب به",
     "untitledDonation": "تبرع بدون عنوان",
@@ -1215,5 +1645,1126 @@
     "hideTimeline": "إخفاء الجدول الزمني للتبرع",
     "backToDetails": "العودة إلى التفاصيل",
     "viewPickupSteps": "عرض خطوات الاستلام"
+  },
+  "impactDashboard": {
+    "title": "لوحة التأثير الخاصة بك",
+    "subtitle": "اطلع على الأثر البيئي والاجتماعي لتبرعاتك",
+    "receiverSubtitle": "اطلع على الأثر البيئي والاجتماعي للأغذية التي استلمتها",
+    "platformTitle": "لوحة تأثير المنصة",
+    "adminSubtitle": "مقاييس الأثر البيئي والاجتماعي على مستوى المنصة",
+    "weekly": "آخر 7 أيام",
+    "monthly": "آخر 30 يومًا",
+    "days7": "7 أيام",
+    "days30": "30 يومًا",
+    "allTime": "كل الوقت",
+    "export": "تصدير CSV",
+    "errorLoading": "فشل تحميل المقاييس",
+    "loadError": "فشل تحميل مقاييس التأثير",
+    "exportError": "فشل تصدير المقاييس",
+    "foodWeight": "وزن الطعام المُنقذ",
+    "foodReceived": "الطعام المستلم",
+    "foodClaimed": "الطعام المُستلم",
+    "totalFoodSaved": "إجمالي الطعام المُنقذ",
+    "mealsProvided": "الوجبات المقدمة",
+    "mealsServed": "الوجبات المقدمة",
+    "peopleFed": "أشخاص تم إطعامهم",
+    "co2Avoided": "انبعاثات CO₂ المتجنبة",
+    "waterSaved": "المياه المُوفرة",
+    "activityStats": "إحصاءات النشاط",
+    "activitySummary": "ملخص النشاط",
+    "platformActivity": "نشاط المنصة",
+    "totalPosts": "إجمالي التبرعات المنشورة",
+    "completed": "التبرعات المكتملة",
+    "completedClaims": "الاستلامات المكتملة",
+    "claimsCompleted": "الاستلامات المكتملة",
+    "totalClaims": "إجمالي طلبات الاستلام",
+    "completionRate": "معدل الإكمال",
+    "userEngagement": "تفاعل المستخدمين",
+    "activeDonors": "المتبرعون النشطون",
+    "activeReceivers": "المستلمون النشطون",
+    "activeDays": "الأيام النشطة",
+    "pendingPickups": "عمليات الاستلام المعلقة",
+    "avgResponseTime": "متوسط وقت الاستجابة",
+    "cancelledDonations": "التبرعات الملغاة",
+    "impactScore": "إجمالي نقاط التأثير",
+    "repeatDonors": "المتبرعون المتكررون",
+    "repeatReceivers": "المستلمون المتكررون",
+    "foodSavedOverTime": "الطعام المُنقذ بمرور الوقت",
+    "dateLabel": "التاريخ",
+    "foodSavedLabel": "الطعام المنقذ",
+    "impactOverview": "نظرة عامة على التأثير",
+    "claimsByDay": "الاستلامات حسب اليوم",
+    "claimsByWeek": "الاستلامات حسب الأسبوع",
+    "claimsByMonth": "الاستلامات حسب الشهر",
+    "noChartData": "لا توجد بيانات للفترة المحددة",
+    "noPreviousData": "لا توجد بيانات للفترة السابقة",
+    "vsPrevious": "مقارنة بالفترة السابقة",
+    "customizeMetrics": "تخصيص المقاييس",
+    "selectMetrics": "حدد المقاييس التي تريد عرضها في لوحة التحكم",
+    "thankYou": "شكرًا لمساهمتك",
+    "donorMessage": "تساعد تبرعاتك في تقليل هدر الطعام ودعم مجتمعك.",
+    "receiverMessage": "من خلال استلام تبرعات الطعام، أنت تساعد في تقليل الهدر ودعم مجتمعك.",
+    "platformSuccess": "ملخص تأثير المنصة",
+    "adminMessage": "تُحدث FoodFlow تأثيرًا حقيقيًا في تقليل هدر الطعام ودعم المجتمعات.",
+    "selectAll": "تحديد الكل",
+    "clearAll": "مسح الكل",
+    "done": "تم",
+    "impactMetrics": "مقاييس الأثر",
+    "foodSavedByDay": "الطعام المنقذ حسب اليوم",
+    "foodSavedByWeek": "الطعام المنقذ حسب الأسبوع",
+    "foodSavedByMonth": "الطعام المنقذ حسب الشهر",
+    "claimsLabel": "المطالبات"
+  },
+  "donorHelp": {
+    "gettingStarted": {
+      "title": "البدء",
+      "intro": "مرحباً بك في FoodFlow! اتبع هذه الخطوات لبدء إحداث فرق من خلال التبرع بفائض الطعام للمحتاجين.",
+      "steps": {
+        "step1": {
+          "title": "أنشئ أول تبرع لك",
+          "description": "اضغط على \"تبرع الآن\" في الشريط الجانبي واملأ نموذج التبرع بتفاصيل الطعام مثل النوع والكمية والوصف."
+        },
+        "step2": {
+          "title": "حدد أوقات الاستلام",
+          "description": "اختر المواعيد المتاحة لاستلام الطعام من موقعك. يمكنك إضافة أكثر من موعد لمرونة أكبر."
+        },
+        "step3": {
+          "title": "انتظر المطالبات",
+          "description": "سيتمكن المستفيدون المعتمدون من رؤية تبرعك والمطالبة به، وستتلقى إشعاراً فورياً عند المطالبة."
+        },
+        "step4": {
+          "title": "أكد التسليم برمز OTP",
+          "description": "عند وصول المستفيد خلال نافذة الاستلام، سيعطيك رمز OTP. أدخل الرمز لتأكيد التسليم بنجاح."
+        }
+      }
+    },
+    "faq": {
+      "title": "الأسئلة الشائعة",
+      "items": {
+        "q1": {
+          "question": "كيف أنشئ تبرعاً؟",
+          "answer": "انتقل إلى \"تبرع الآن\" من الشريط الجانبي، واضغط \"إضافة تبرع\"، ثم أدخل التفاصيل مثل العنوان ونوع الطعام والكمية وتاريخ الانتهاء ومواعيد الاستلام، ثم اضغط \"إرسال\"."
+        },
+        "q2": {
+          "question": "كيف تعمل عملية تأكيد الاستلام؟",
+          "answer": "عند مطالبة مستفيد بتبرعك ووصوله في الوقت المحدد، يجب عليك تأكيد التسليم. يتم إنشاء رمز OTP لكل تبرع مطالب به ويقدمه المستفيد لك لإدخاله في التطبيق."
+        },
+        "q3": {
+          "question": "ما هو رمز OTP؟",
+          "answer": "OTP هو رمز تحقق لمرة واحدة مكوّن من 6 أرقام، يُنشأ تلقائياً عندما تصبح حالة التبرع \"جاهز للاستلام\"."
+        },
+        "q4": {
+          "question": "هل يمكنني تعديل أو حذف التبرع؟",
+          "answer": "نعم، يمكن تعديل أو حذف التبرعات غير المطالب بها. بعد المطالبة بالتبرع لا يمكن تعديله أو حذفه."
+        },
+        "q5": {
+          "question": "كيف أرسل رسالة إلى مستفيد؟",
+          "answer": "اضغط على \"الرسائل\" في الشريط الجانبي للوصول إلى المحادثات والتنسيق مع المستفيدين."
+        },
+        "q6": {
+          "question": "ما أنواع الطعام التي يمكنني التبرع بها؟",
+          "answer": "يدعم FoodFlow عدة فئات: وجبات جاهزة، منتجات معبأة، فواكه وخضروات، ألبان ومبردات، معجنات ومخبوزات، وأطعمة مجمدة."
+        },
+        "q7": {
+          "question": "كيف أحدد مواعيد الاستلام؟",
+          "answer": "عند إنشاء التبرع يمكنك إضافة عدة مواعيد استلام مع التاريخ ووقت البداية والنهاية لكل موعد."
+        },
+        "q8": {
+          "question": "ماذا يحدث إذا لم يحضر المستفيد؟",
+          "answer": "إذا لم يتم الاستلام ضمن النافذة المحددة، قد تنتهي المطالبة ويصبح التبرع متاحاً مرة أخرى لمستفيدين آخرين."
+        },
+        "q9": {
+          "question": "كيف يتم التحقق من منظمتي؟",
+          "answer": "عند التسجيل تُرسل بيانات المنظمة للتحقق. يراجع فريق الإدارة الترخيص والعنوان وغيرها من المعلومات."
+        },
+        "q10": {
+          "question": "هل يمكنني معرفة من طالب بتبرعي؟",
+          "answer": "نعم، بعد المطالبة يمكنك رؤية اسم منظمة المستفيد ومعلومات التواصل للتنسيق على الاستلام."
+        }
+      }
+    },
+    "support": {
+      "title": "هل تحتاج إلى مساعدة إضافية؟",
+      "intro": "لم تجد ما تبحث عنه؟ فريق الدعم هنا لمساعدتك.",
+      "emailLabel": "دعم عبر البريد الإلكتروني",
+      "emailResponseTime": "الرد خلال 24 ساعة",
+      "phoneLabel": "دعم هاتفي",
+      "phoneAvailability": "الاثنين-الجمعة، 9 ص - 6 م (EST)"
+    }
+  },
+  "receiverHelp": {
+    "gettingStarted": {
+      "title": "البدء",
+      "intro": "مرحباً بك في FoodFlow! كمستفيد، يمكنك المطالبة بتبرعات الطعام الفائض من الشركات والمنظمات المحلية.",
+      "steps": {
+        "step1": {
+          "title": "تصفح التبرعات المتاحة",
+          "description": "استكشف صفحة التبرعات للعثور على قوائم الطعام القريبة منك، واستخدم الفلاتر حسب احتياج منظمتك."
+        },
+        "step2": {
+          "title": "اطلب التبرع وحدد موعد الاستلام",
+          "description": "اضغط \"مطالبة\" على بطاقة التبرع واختر موعد استلام من المواعيد المتاحة."
+        },
+        "step3": {
+          "title": "الاستلام برمز OTP",
+          "description": "احضر في الوقت المحدد وقدم رمز OTP للمتبرع ليؤكد التسليم وإكمال العملية."
+        },
+        "step4": {
+          "title": "حدد تفضيلاتك",
+          "description": "حدّث تفضيلات الطعام في ملفك الشخصي للحصول على مطابقة أفضل."
+        }
+      }
+    },
+    "faq": {
+      "title": "الأسئلة الشائعة",
+      "items": {
+        "q1": {
+          "question": "كيف أطالب بتبرع؟",
+          "answer": "تصفح التبرعات المتاحة، ثم اضغط \"مطالبة\" على التبرع المطلوب واختر موعد الاستلام المناسب."
+        },
+        "q2": {
+          "question": "كيف أؤكد الاستلام؟",
+          "answer": "عند الوصول لموقع المتبرع في الوقت المحدد، قدّم رمز OTP للمتبرع ليقوم بإدخاله وتأكيد التسليم."
+        },
+        "q3": {
+          "question": "ما هو رمز OTP؟",
+          "answer": "هو رمز تحقق فريد من 6 أرقام يظهر في تفاصيل المطالبة عند حالة \"جاهز للاستلام\"."
+        },
+        "q4": {
+          "question": "ما هي تفضيلات الطعام؟",
+          "answer": "تفضيلات الطعام تسمح لك بتحديد أنواع الطعام، أحجام التبرعات، والمتطلبات الغذائية التي تحتاجها منظمتك."
+        },
+        "q5": {
+          "question": "كيف أحدد تفضيلات الطعام؟",
+          "answer": "اضغط على صورة الحساب أعلى اليمين ثم اختر \"التفضيلات\" لتحديد الأنواع والقيود الغذائية."
+        },
+        "q6": {
+          "question": "كيف أرسل رسالة إلى متبرع؟",
+          "answer": "اضغط \"الرسائل\" للوصول إلى المحادثات والتواصل مع المتبرعين بخصوص تفاصيل الاستلام."
+        },
+        "q7": {
+          "question": "ماذا تعني حالات التبرع؟",
+          "answer": "تشمل الحالات: متاح، مطالب به، جاهز للاستلام، مكتمل، وملغي."
+        },
+        "q8": {
+          "question": "هل يمكنني إلغاء مطالبة؟",
+          "answer": "نعم، يمكنك الإلغاء قبل الاستلام من خلال \"مطالباتي\" ثم اختيار التبرع وإلغاء المطالبة."
+        },
+        "q9": {
+          "question": "كيف أجد تبرعات قريبة مني؟",
+          "answer": "تعرض صفحة التبرعات القوائم القريبة، ويمكنك استخدام الفلاتر حسب النوع أو المسافة أو وقت الاستلام."
+        },
+        "q10": {
+          "question": "كيف يتم التحقق من منظمتي؟",
+          "answer": "عند التسجيل، تُراجع الإدارة بيانات المنظمة ووثائق التسجيل ومعلومات التواصل للتحقق."
+        }
+      }
+    },
+    "support": {
+      "title": "هل تحتاج إلى مساعدة إضافية؟",
+      "intro": "لم تجد ما تبحث عنه؟ فريق الدعم هنا لمساعدتك.",
+      "emailLabel": "دعم عبر البريد الإلكتروني",
+      "emailResponseTime": "الرد خلال 24 ساعة",
+      "phoneLabel": "دعم هاتفي",
+      "phoneAvailability": "الاثنين-الجمعة، 9 ص - 6 م (EST)"
+    }
+  },
+  "aiDonation": {
+    "backToDashboard": "العودة إلى لوحة التحكم",
+    "title": "إنشاء تبرع بالذكاء الاصطناعي",
+    "subtitle": "قم برفع صورة الملصق لاستخراج تفاصيل المنتج. يمكنك المراجعة قبل الإرسال.",
+    "steps": {
+      "upload": "الرفع",
+      "review": "المراجعة",
+      "submit": "الإرسال"
+    },
+    "processing": {
+      "title": "جارٍ معالجة الصورة",
+      "hint": "قد يستغرق ذلك حتى 30 ثانية.",
+      "readingLabel": "قراءة الملصق",
+      "extractingData": "استخراج البيانات",
+      "preparingResults": "تجهيز النتائج",
+      "loadingMaps": "جارٍ تحميل الخرائط"
+    },
+    "toast": {
+      "extractionComplete": "اكتمل الاستخراج. راجع التفاصيل قبل الإرسال.",
+      "aiFailed": "فشل استخراج البيانات بالذكاء الاصطناعي",
+      "analysisFailed": "فشل تحليل الصورة",
+      "requestTimedOut": "انتهت مهلة الطلب. يرجى المحاولة بصورة أصغر.",
+      "networkError": "خطأ في الشبكة. يرجى التحقق من الاتصال والمحاولة مرة أخرى."
+    },
+    "upload": {
+      "title": "رفع صورة الملصق",
+      "subtitle": "ارفع صورة واضحة تتضمن:",
+      "required": {
+        "productName": "اسم المنتج",
+        "nutritionFacts": "القيم الغذائية",
+        "ingredientsList": "قائمة المكونات",
+        "expiryDate": "تاريخ الانتهاء أو الأفضل قبل",
+        "allergenInfo": "معلومات مسببات الحساسية"
+      },
+      "ariaLabel": "رفع صورة الملصق",
+      "dragAndDrop": "اسحب وأفلت صورة الملصق",
+      "or": "أو",
+      "chooseFile": "اختر ملف",
+      "fileTypes": "JPG, PNG, HEIC",
+      "maxSize": "الحد الأقصى 5 ميجابايت",
+      "selectedFile": "الملف المحدد",
+      "remove": "إزالة",
+      "continueToReview": "متابعة إلى المراجعة",
+      "alternative": "بديل",
+      "manualEntry": "المتابعة بالإدخال اليدوي",
+      "guidelinesTitle": "إرشادات الصورة",
+      "tips": {
+        "goodLighting": "إضاءة جيدة",
+        "noGlare": "بدون انعكاس",
+        "labelVisible": "الملصق ظاهر بالكامل",
+        "textInFocus": "اجعل النص واضحًا",
+        "includeExpiry": "أدرج تاريخ الانتهاء/الأفضل قبل عند توفره"
+      },
+      "manualHint": "الصور الواضحة تحسن دقة الاستخراج.",
+      "errors": {
+        "selectFile": "اختر ملف صورة للمتابعة.",
+        "unsupportedType": "نوع ملف غير مدعوم. استخدم JPG أو PNG أو HEIC.",
+        "fileTooLarge": "حجم الملف يتجاوز 5 ميجابايت. اختر صورة أصغر."
+      }
+    }
+  },
+  "adminWelcome": {
+    "title": "مرحبًا",
+    "description": "هذه هي صفحة الترحيب الخاصة بالإدارة."
+  },
+  "adminHelp": {
+    "title": "المساعدة"
+  },
+  "adminCalendar": {
+    "title": "التقويم"
+  },
+  "adminAnalytics": {
+    "title": "تحليلات الامتثال لسلامة الغذاء",
+    "subtitle": "راقب الامتثال لدرجات الحرارة والتغليف عبر جميع التبرعات",
+    "loading": "جارٍ تحميل بيانات الامتثال...",
+    "temperatureCategories": "فئات درجات الحرارة",
+    "packagingTypes": "أنواع التغليف",
+    "noTemperatureData": "لا توجد بيانات درجات حرارة متاحة",
+    "noPackagingData": "لا توجد بيانات تغليف متاحة",
+    "totalAnalyzed": "إجمالي التبرعات التي تم تحليلها:",
+    "errors": {
+      "loadFailed": "تعذر تحميل بيانات الامتثال"
+    }
+  },
+  "adminDisputes": {
+    "loading": "جارٍ تحميل النزاعات...",
+    "allCases": "جميع الحالات",
+    "searchPlaceholder": "ابحث في الحالات...",
+    "emptyTitle": "لم يتم العثور على حالات",
+    "emptyDescription": "لا توجد نزاعات تطابق عوامل التصفية الحالية.",
+    "userTypes": {
+      "donor": "متبرع",
+      "receiver": "مستلم"
+    },
+    "status": {
+      "open": "مفتوح",
+      "underReview": "قيد المراجعة",
+      "resolved": "تم الحل",
+      "closed": "مغلق"
+    },
+    "stats": {
+      "totalCases": "إجمالي الحالات",
+      "resolvedToday": "تم حلها اليوم",
+      "avgResolution": "متوسط الحل",
+      "avgResolutionValue": "{{count}} يوم"
+    },
+    "table": {
+      "caseId": "معرّف الحالة",
+      "reporter": "المبلّغ",
+      "reportedUser": "المستخدم المُبلّغ عنه",
+      "donationId": "معرّف التبرع",
+      "created": "تاريخ الإنشاء",
+      "status": "الحالة",
+      "action": "الإجراء",
+      "view": "عرض"
+    },
+    "errors": {
+      "loadFailed": "حدث خطأ أثناء تحميل النزاعات"
+    }
+  },
+  "adminDisputeDetail": {
+    "notAvailable": "غير متاح",
+    "backToDisputes": "العودة إلى النزاعات",
+    "caseNotFound": "الحالة غير موجودة",
+    "caseTitle": "الحالة {{caseId}}",
+    "createdOn": "تم الإنشاء في {{date}} الساعة {{time}}",
+    "saveStatusChange": "حفظ تغيير الحالة",
+    "statusHint": "تتطلب تغييرات الحالة تأكيدًا",
+    "actionsHint": "جميع الإجراءات خاصة بالمسؤولين فقط وغير مرئية لمستخدمي المنصة.",
+    "resolutionHint": "يجب وضع علامة تم الحل على الحالة قبل إغلاقها",
+    "labels": {
+      "caseId": "معرّف الحالة",
+      "createdDate": "تاريخ الإنشاء",
+      "createdTime": "وقت الإنشاء",
+      "name": "الاسم",
+      "userId": "معرّف المستخدم",
+      "donationId": "معرّف التبرع",
+      "currentStatus": "الحالة الحالية",
+      "updateStatus": "تحديث الحالة"
+    },
+    "sections": {
+      "caseInformation": "معلومات الحالة",
+      "reporter": "المبلّغ",
+      "reportedUser": "المستخدم المُبلّغ عنه",
+      "relatedDonation": "التبرع المرتبط",
+      "reportDescription": "وصف البلاغ",
+      "caseStatus": "حالة القضية",
+      "adminActions": "إجراءات إدارية",
+      "caseResolution": "حل القضية"
+    },
+    "actions": {
+      "deactivateUser": "إلغاء تفعيل حساب المستخدم",
+      "overrideDonation": "تجاوز حالة التبرع",
+      "flagUser": "وضع علامة للمراجعة على المستخدم",
+      "closeCase": "إغلاق الحالة"
+    },
+    "alerts": {
+      "statusAlreadySet": "تم تعيين الحالة بالفعل إلى {{status}}",
+      "statusUpdated": "تم تحديث الحالة بنجاح",
+      "updateFailed": "فشل تحديث الحالة: {{message}}",
+      "deactivateRequested": "تم طلب إلغاء تفعيل حساب المستخدم",
+      "overrideDonation": "تجاوز حالة التبرع",
+      "userFlagged": "تم وضع علامة للمراجعة على المستخدم",
+      "mustResolveBeforeClose": "يجب وضع علامة تم الحل على الحالة قبل إغلاقها"
+    },
+    "confirm": {
+      "changeStatus": "هل أنت متأكد أنك تريد تغيير الحالة إلى \"{{status}}\"؟",
+      "deactivateUser": "هل أنت متأكد أنك تريد إلغاء تفعيل حساب هذا المستخدم؟",
+      "closeCase": "هل أنت متأكد أنك تريد إغلاق هذه الحالة؟"
+    },
+    "errors": {
+      "loadFailed": "تعذر تحميل تفاصيل الحالة"
+    }
+  },
+  "adminVerificationQueue": {
+    "title": "عمليات التسجيل المعلقة",
+    "loading": "جارٍ تحميل المستخدمين المعلقين...",
+    "showing": "عرض {{shown}} من أصل {{total}} مستخدمين معلقين",
+    "searchPlaceholder": "ابحث باسم المؤسسة أو البريد الإلكتروني...",
+    "notAvailable": "غير متوفر",
+    "labels": {
+      "organization": "المؤسسة",
+      "contact": "جهة الاتصال",
+      "email": "البريد الإلكتروني",
+      "type": "النوع"
+    },
+    "stats": {
+      "totalPending": "إجمالي المعلّق",
+      "pendingDonors": "المتبرعون المعلقون",
+      "pendingReceivers": "المستلمون المعلقون",
+      "avgWaitTime": "متوسط وقت الانتظار"
+    },
+    "filters": {
+      "allTypes": "كل الأنواع",
+      "donors": "المتبرعون",
+      "receivers": "المستلمون",
+      "byType": "تصفية حسب النوع",
+      "byStatus": "تصفية حسب الحالة",
+      "sortBy": "ترتيب حسب"
+    },
+    "status": {
+      "emailVerified": "تم التحقق من البريد",
+      "emailNotVerified": "لم يتم التحقق من البريد",
+      "pendingApproval": "بانتظار الموافقة"
+    },
+    "sort": {
+      "registrationDate": "تاريخ التسجيل",
+      "userType": "نوع المستخدم",
+      "waitingTime": "وقت الانتظار",
+      "toggle": "ترتيب {{order}}",
+      "ascending": "تصاعدي",
+      "descending": "تنازلي"
+    },
+    "table": {
+      "id": "المعرف",
+      "organization": "المؤسسة",
+      "type": "النوع",
+      "status": "الحالة",
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف",
+      "waitingTime": "وقت الانتظار",
+      "actions": "الإجراءات"
+    },
+    "empty": {
+      "title": "لا توجد تسجيلات معلقة",
+      "description": "تمت مراجعة جميع تسجيلات المستخدمين."
+    },
+    "actions": {
+      "verifyEmail": "التحقق من البريد",
+      "approve": "موافقة",
+      "reject": "رفض"
+    },
+    "time": {
+      "day": "يوم",
+      "days": "أيام",
+      "hour": "ساعة",
+      "hours": "ساعات"
+    },
+    "document": {
+      "viewing": "عرض المستند: {{name}}",
+      "productionNote": "في بيئة الإنتاج، سيفتح هذا المستند المرفوع للمراجعة."
+    },
+    "rejectionReasons": {
+      "incompleteInfo": "معلومات غير مكتملة",
+      "invalidOrganization": "مؤسسة غير صالحة",
+      "duplicateAccount": "حساب مكرر",
+      "suspiciousActivity": "نشاط مشبوه",
+      "doesNotMeetCriteria": "لا يستوفي المعايير",
+      "other": "أخرى"
+    },
+    "modals": {
+      "approval": {
+        "title": "الموافقة على التسجيل",
+        "confirm": "هل أنت متأكد أنك تريد الموافقة على هذا التسجيل؟",
+        "note": "سيتلقى المستخدم رسالة موافقة عبر البريد وسيتم تعيين حالته إلى نشط.",
+        "loading": "جارٍ الموافقة...",
+        "action": "الموافقة على المستخدم"
+      },
+      "rejection": {
+        "title": "رفض التسجيل",
+        "selectReason": "يرجى اختيار سبب الرفض",
+        "prompt": "يرجى تقديم سبب لرفض هذا التسجيل:",
+        "reason": "سبب الرفض",
+        "reasonPlaceholder": "اختر سببًا...",
+        "additionalMessage": "رسالة إضافية (اختياري)",
+        "messagePlaceholder": "أضف أي معلومات إضافية للمستخدم...",
+        "note": "سيتلقى المستخدم رسالة رفض مع السبب ويمكنه إعادة التسجيل إذا لزم الأمر.",
+        "loading": "جارٍ الرفض...",
+        "action": "رفض المستخدم"
+      },
+      "manualVerify": {
+        "title": "التحقق اليدوي من البريد",
+        "prompt": "سيؤدي هذا إلى اعتبار بريد المستخدم متحققًا ونقله إلى قائمة موافقة الإدارة.",
+        "note": "استخدم هذا فقط عندما يفشل رابط التحقق.",
+        "loading": "جارٍ التحقق...",
+        "action": "التحقق من البريد"
+      }
+    },
+    "toasts": {
+      "approved": "تمت الموافقة على {{name}} بنجاح!",
+      "approveFailed": "تعذر الموافقة على المستخدم. يرجى المحاولة مرة أخرى.",
+      "rejected": "تم رفض {{name}}.",
+      "rejectFailed": "تعذر رفض المستخدم. يرجى المحاولة مرة أخرى.",
+      "verified": "تم التحقق من البريد يدويًا",
+      "verifyFailed": "تعذر التحقق من البريد. يرجى المحاولة مرة أخرى."
+    },
+    "pagination": {
+      "previous": "السابق",
+      "next": "التالي",
+      "pageOf": "الصفحة {{page}} من {{total}}"
+    }
+  },
+  "adminUsers": {
+    "title": "كل المستخدمين",
+    "searchPlaceholder": "ابحث بالاسم أو البريد أو المؤسسة...",
+    "empty": "لم يتم العثور على مستخدمين",
+    "moreLess": "المزيد/أقل",
+    "notAvailable": "غير متوفر",
+    "stats": {
+      "totalUsers": "إجمالي المستخدمين",
+      "totalDonors": "إجمالي المتبرعين",
+      "newUsers": "مستخدمون جدد",
+      "totalReceivers": "إجمالي المستلمين"
+    },
+    "filters": {
+      "allRoles": "كل الأدوار",
+      "allStatus": "كل الحالات",
+      "reset": "إعادة تعيين"
+    },
+    "table": {
+      "id": "المعرف",
+      "name": "الاسم",
+      "role": "الدور",
+      "status": "الحالة",
+      "email": "البريد الإلكتروني",
+      "activity": "النشاط",
+      "actions": "الإجراءات"
+    },
+    "roles": {
+      "donor": "متبرع",
+      "receiver": "مستلم",
+      "admin": "مسؤول"
+    },
+    "status": {
+      "active": "نشط",
+      "deactivated": "معطل"
+    },
+    "actions": {
+      "viewDetails": "عرض التفاصيل",
+      "deactivate": "تعطيل",
+      "reactivate": "إعادة التفعيل",
+      "sendAlert": "إرسال تنبيه"
+    },
+    "details": {
+      "totalActivity": "إجمالي النشاط",
+      "donationsCount": "{{count}} تبرعات",
+      "claimsCount": "{{count}} مطالبات",
+      "disputes": "النزاعات",
+      "feedbackScore": "تقييم الملاحظات",
+      "noReviews": "لا توجد مراجعات بعد",
+      "memberSince": "عضو منذ",
+      "recentActivity": "النشاط الأخير",
+      "activityLog": {
+        "DONATION": "تبرع بـ {{item}}",
+        "CLAIM": "طالب بـ {{item}}",
+        "VERIFICATION": "اكتمل التحقق",
+        "DEACTIVATE_USER": "تم تعطيل الحساب",
+        "quantityOf": "{{quantity}} من {{title}}",
+        "noActivity": "لا يوجد نشاط حديث",
+        "on": "في"
+      }
+    },
+    "modals": {
+      "deactivate": {
+        "title": "تعطيل المستخدم:",
+        "placeholder": "أدخل سبب التعطيل (مطلوب)..."
+      },
+      "reactivate": {
+        "title": "إعادة تفعيل المستخدم",
+        "confirmPrefix": "هل أنت متأكد أنك تريد إعادة تفعيل"
+      },
+      "alert": {
+        "title": "إرسال تنبيه إلى:",
+        "alertType": "نوع التنبيه",
+        "customPlaceholder": "أدخل رسالتك المخصصة...",
+        "editPlaceholder": "تعديل الرسالة"
+      }
+    },
+    "alertTypes": {
+      "warning": "تحذير",
+      "safety": "إشعار أمان",
+      "compliance": "تذكير بالامتثال",
+      "custom": "تنبيه مخصص"
+    },
+    "alertDescriptions": {
+      "warning": "إرسال تحذير بشأن مخالفات السياسات",
+      "safety": "معلومات أمان مهمة",
+      "compliance": "تذكير بمتطلبات الامتثال",
+      "custom": "إرسال رسالة مخصصة"
+    },
+    "notifications": {
+      "reasonRequired": "يرجى إدخال سبب التعطيل",
+      "deactivated": "تم تعطيل المستخدم بنجاح",
+      "deactivateFailed": "فشل تعطيل المستخدم",
+      "reactivated": "تمت إعادة تفعيل المستخدم بنجاح",
+      "reactivateFailed": "فشلت إعادة تفعيل المستخدم",
+      "alertRequired": "يرجى إدخال رسالة تنبيه",
+      "alertSent": "تم إرسال التنبيه بنجاح",
+      "alertFailed": "فشل إرسال التنبيه"
+    },
+    "errors": {
+      "loadFailed": "تعذر تحميل المستخدمين. يرجى المحاولة مرة أخرى لاحقًا."
+    }
+  },
+  "adminDonations": {
+    "title": "كل التبرعات",
+    "searchPlaceholder": "ابحث بالعنوان أو المتبرع أو المستلم أو المعرف...",
+    "loading": "جارٍ تحميل التبرعات...",
+    "empty": "لم يتم العثور على تبرعات",
+    "notAvailable": "غير متوفر",
+    "flaggedDonation": "تبرع مبلّغ عنه",
+    "lowRating": "تقييم منخفض (<= نجمتين)",
+    "stats": {
+      "total": "إجمالي التبرعات",
+      "active": "نشطة",
+      "completed": "مكتملة",
+      "flagged": "مبلّغ عنها"
+    },
+    "filters": {
+      "allStatus": "كل الحالات",
+      "reset": "إعادة تعيين"
+    },
+    "table": {
+      "id": "المعرف",
+      "title": "العنوان",
+      "status": "الحالة",
+      "donor": "المتبرع",
+      "receiver": "المستلم",
+      "rating": "التقييم",
+      "flagged": "مبلّغ عنه",
+      "created": "تم الإنشاء",
+      "updated": "تم التحديث",
+      "actions": "الإجراءات"
+    },
+    "actions": {
+      "viewDetails": "عرض التفاصيل"
+    },
+    "details": {
+      "foodCategories": "فئات الطعام",
+      "quantity": "الكمية",
+      "expiryDate": "تاريخ الانتهاء",
+      "pickupDate": "تاريخ الاستلام",
+      "temperature": "درجة الحرارة",
+      "packagingConditions": "حالة التغليف",
+      "description": "الوصف",
+      "noDescription": "لا يوجد وصف",
+      "feedbackRatings": "الملاحظات والتقييمات",
+      "clickToLoadFeedback": "انقر للتوسيع وتحميل الملاحظات...",
+      "noFeedback": "لم يتم تقديم أي ملاحظات لهذا التبرع بعد."
+    },
+    "errors": {
+      "loadFailed": "تعذر تحميل التبرعات. يرجى المحاولة مرة أخرى."
+    }
+  },
+  "adminSettings": {
+    "loading": "جارٍ تحميل الملف الشخصي...",
+    "profileAlt": "الملف الشخصي",
+    "profilePhoto": "صورة الملف الشخصي",
+    "profilePhotoDescription": "ارفع صورة لتخصيص حسابك",
+    "changePassword": "تغيير كلمة المرور",
+    "saving": "جارٍ الحفظ...",
+    "saveChanges": "حفظ التغييرات",
+    "emailAlerts": "تنبيهات البريد الإلكتروني",
+    "smsAlerts": "تنبيهات الرسائل النصية",
+    "yourEmailAddress": "عنوان بريدك الإلكتروني",
+    "emailAlertsDescription": "استلم الإشعارات عبر البريد الإلكتروني على {{email}}",
+    "smsAlertsDescription": "استلم الإشعارات عبر الرسائل النصية{{phone}}",
+    "sections": {
+      "account": "الحساب",
+      "languageRegion": "اللغة والمنطقة",
+      "notificationPreferences": "تفضيلات الإشعارات",
+      "notificationTypes": "أنواع الإشعارات"
+    },
+    "descriptions": {
+      "account": "إدارة ملفك الشخصي وتفاصيل حسابك",
+      "languageRegion": "اضبط تفضيلات اللغة والموقع والمنطقة الزمنية",
+      "notificationPreferences": "اختر كيف تريد استلام الإشعارات",
+      "notificationTypes": "خصّص أنواع الإشعارات التي تريد استلامها"
+    },
+    "subsections": {
+      "languagePreference": "تفضيل اللغة",
+      "locationTimezone": "الموقع والمنطقة الزمنية"
+    },
+    "subsectionDescriptions": {
+      "languagePreference": "اختر لغتك المفضلة لواجهة الاستخدام",
+      "locationTimezone": "اضبط موقعك لضمان دقة معلومات التاريخ والوقت"
+    },
+    "fields": {
+      "fullName": "الاسم الكامل",
+      "email": "البريد الإلكتروني",
+      "organization": "المؤسسة",
+      "phone": "رقم الهاتف",
+      "address": "العنوان"
+    },
+    "placeholders": {
+      "fullName": "أدخل اسمك الكامل",
+      "email": "أدخل بريدك الإلكتروني",
+      "organization": "أدخل اسم مؤسستك",
+      "phone": "أدخل رقم هاتفك",
+      "address": "أدخل عنوانك"
+    },
+    "validation": {
+      "fullNameRequired": "الاسم الكامل مطلوب",
+      "fullNameMin": "يجب أن يتكون الاسم الكامل من حرفين على الأقل",
+      "emailRequired": "البريد الإلكتروني مطلوب",
+      "emailInvalid": "يرجى إدخال بريد إلكتروني صالح",
+      "phoneInvalid": "يرجى إدخال رقم هاتف صالح",
+      "imageSize": "يجب أن يكون حجم الصورة أقل من 5 ميجابايت",
+      "imageFile": "يرجى رفع ملف صورة صالح"
+    },
+    "messages": {
+      "profileUpdated": "تم تحديث الملف الشخصي بنجاح",
+      "updateFailed": "تعذر تحديث الملف الشخصي. يرجى المحاولة مرة أخرى.",
+      "emailAlertsEnabled": "تم تفعيل تنبيهات البريد الإلكتروني",
+      "emailAlertsDisabled": "تم تعطيل تنبيهات البريد الإلكتروني",
+      "smsAlertsEnabled": "تم تفعيل تنبيهات الرسائل النصية",
+      "smsAlertsDisabled": "تم تعطيل تنبيهات الرسائل النصية"
+    }
+  },
+  "adminHome": {
+    "defaultAdminName": "المسؤول",
+    "loadingDashboardStats": "جارٍ تحميل إحصائيات لوحة التحكم...",
+    "errors": {
+      "loadStats": "فشل تحميل إحصائيات لوحة التحكم"
+    },
+    "stats": {
+      "totalUsers": "إجمالي المستخدمين",
+      "totalDonations": "إجمالي التبرعات",
+      "ongoingClaims": "المطالبات الجارية",
+      "activeDonations": "التبرعات النشطة",
+      "pendingVerifications": "عمليات التحقق المعلقة",
+      "completed": "المكتمل"
+    },
+    "quickActions": {
+      "title": "إجراءات سريعة",
+      "subtitle": "الوصول إلى أهم أدوات الإدارة",
+      "viewLess": "عرض أقل",
+      "viewAllTools": "عرض كل الأدوات",
+      "userManagement": {
+        "title": "إدارة المستخدمين",
+        "description": "إدارة المستخدمين والأدوار والصلاحيات"
+      },
+      "reviewDonations": {
+        "title": "مراجعة التبرعات",
+        "description": "مراجعة وإدارة منشورات التبرعات"
+      },
+      "disputeDashboard": {
+        "title": "لوحة النزاعات",
+        "description": "معالجة النزاعات والتقارير"
+      },
+      "messages": {
+        "title": "الرسائل",
+        "description": "عرض تواصل المنصة"
+      },
+      "flaggedPosts": {
+        "title": "المنشورات المُعلّمة",
+        "description": "مراجعة المحتوى المُعلّم"
+      },
+      "pickupSchedule": {
+        "title": "جدول الاستلام",
+        "description": "عرض وإدارة جداول الاستلام"
+      },
+      "analytics": {
+        "title": "التحليلات",
+        "description": "عرض تحليلات وتقارير المنصة"
+      },
+      "systemSettings": {
+        "title": "إعدادات النظام",
+        "description": "تهيئة إعدادات المنصة"
+      }
+    },
+    "recentActivity": {
+      "title": "النشاط الأخير",
+      "viewAllActivity": "عرض كل النشاط"
+    },
+    "activity": {
+      "defaultUser": "مستخدم جديد",
+      "defaultDonor": "متبرع",
+      "defaultDonationTitle": "تبرع جديد",
+      "userType": {
+        "donor": "متبرع",
+        "receiver": "مستفيد"
+      },
+      "newUserRegistered": "قام {{name}} بالتسجيل كـ {{userType}} جديد",
+      "newDonationPosted": "قام {{name}} بنشر تبرع جديد",
+      "flaggedPostTitle": "قام النظام بتعليم منشور للمراجعة",
+      "flaggedPostSubtitle": "المنشور #{{id}} - تم اكتشاف محتوى غير مناسب",
+      "disputeResolvedTitle": "قام المسؤول بحل نزاع",
+      "disputeResolvedSubtitle": "القضية #{{id}}",
+      "deactivatedUserTitle": "تم إلغاء تفعيل المستخدم: {{name}}",
+      "deactivatedUserSubtitle": "المشرف: {{admin}}  ·  السبب: {{reason}}  ·  الوقت: {{timestamp}}",
+      "unknownUser": "مجهول",
+      "noReasonProvided": "لم يُذكر سبب"
+    },
+    "timeAgo": {
+      "minuteAgo": "منذ دقيقة واحدة",
+      "minutesAgo": "منذ {{count}} دقائق",
+      "hourAgo": "منذ ساعة واحدة",
+      "hoursAgo": "منذ {{count}} ساعات",
+      "dayAgo": "منذ يوم واحد",
+      "daysAgo": "منذ {{count}} أيام"
+    }
+  },
+  "calendar": {
+    "title": "تكامل التقويم",
+    "description": "زامن مواعيد الاستلام في FoodFlow مع Google Calendar",
+    "connected": "متصل",
+    "notConnected": "غير متصل",
+    "provider": "المزوّد",
+    "connectPrompt": "قم بربط Google Calendar لمزامنة مواعيد التبرعات وجداول الاستلام تلقائيًا. لا تفوّت أي حدث مهم!",
+    "connectButton": "ربط Google Calendar",
+    "disconnectButton": "قطع الاتصال",
+    "loadError": "فشل تحميل بيانات التقويم",
+    "connectError": "فشل ربط التقويم. يرجى المحاولة مرة أخرى.",
+    "disconnectError": "فشل قطع اتصال التقويم",
+    "syncButton": "مزامنة الآن",
+    "preferences": "تفضيلات المزامنة",
+    "syncEnabled": "تفعيل المزامنة التلقائية",
+    "connecting": "جارٍ الاتصال...",
+    "disconnectTitle": "قطع اتصال التقويم؟",
+    "disconnectWarning1": "عند قطع الاتصال، ستفقد FoodFlow جميع الصلاحيات للعمل على تقويم Google الخاص بك.",
+    "disconnectWarning2": "لإعادة التفعيل، ستحتاج إلى إتمام تدفق OAuth مرة أخرى.",
+    "disconnectWarning3": "ستبقى الأحداث التي تم إنشاؤها سابقًا في التقويم.",
+    "disconnectSuccess": "تم قطع اتصال التقويم بنجاح",
+    "autoReminders": "تفعيل التذكيرات التلقائية",
+    "reminderPreferences": "تفضيلات التذكير",
+    "reminderTimeBeforeEvent": "وقت التذكير قبل الحدث",
+    "reminderType": "نوع التذكير",
+    "eventPreferences": "تفضيلات الحدث",
+    "eventColor": "لون الحدث",
+    "eventVisibility": "خصوصية الحدث",
+    "eventDuration": "مدة الحدث",
+    "saveButton": "حفظ التفضيلات",
+    "saveSuccess": "تم حفظ التفضيلات بنجاح",
+    "saveError": "فشل حفظ التفضيلات",
+    "syncError": "فشلت مزامنة التقويم",
+    "syncedEvents": "الأحداث المتزامنة",
+    "connectionDetails": {
+      "title": "تفاصيل الاتصال",
+      "connectedSince": "أول اتصال",
+      "grantedScopes": "النطاقات الممنوحة",
+      "lastSuccessfulSync": "آخر مزامنة ناجحة",
+      "lastFailedRefresh": "آخر تحديث فاشل",
+      "googleAccountEmail": "بريد حساب Google",
+      "primaryCalendarName": "اسم التقويم الأساسي",
+      "calendarTimeZone": "المنطقة الزمنية للتقويم",
+      "never": "أبدًا",
+      "notAvailable": "غير متاح بعد"
+    },
+    "summary": {
+      "connectedTo": "متصل بـ {{provider}}",
+      "notConnected": "غير متصل",
+      "syncedEventSingular": "{{count}} حدث متزامن",
+      "syncedEventPlural": "{{count}} أحداث متزامنة"
+    },
+    "toggleAria": "تبديل تكامل التقويم",
+    "hide": "إخفاء",
+    "edit": "تعديل",
+    "viewConnectionDetails": "عرض تفاصيل الاتصال",
+    "minutes": "دقائق",
+    "email": "بريد إلكتروني",
+    "popup": "نافذة منبثقة",
+    "both": "كلاهما",
+    "colors": {
+      "blue": "أزرق",
+      "green": "أخضر",
+      "purple": "بنفسجي",
+      "red": "أحمر",
+      "yellow": "أصفر",
+      "orange": "برتقالي",
+      "gray": "رمادي"
+    },
+    "visibility": {
+      "private": "خاص",
+      "public": "عام"
+    },
+    "onlyAppliedNoEndTime": "يُطبّق فقط إذا لم يكن للاستلام وقت انتهاء",
+    "privacyPolicyPrefix": "اضغط هنا لعرض",
+    "privacyPolicyLink": "سياسة تكامل التقويم",
+    "closeModalAria": "إغلاق النافذة"
+  },
+  "changePasswordModal": {
+    "title": "تغيير كلمة المرور",
+    "changing": "جاري التغيير...",
+    "fields": {
+      "currentPassword": "كلمة المرور الحالية",
+      "newPassword": "كلمة المرور الجديدة",
+      "confirmNewPassword": "تأكيد كلمة المرور الجديدة"
+    },
+    "placeholders": {
+      "currentPassword": "أدخل كلمة المرور الحالية",
+      "newPassword": "أدخل كلمة مرور جديدة",
+      "confirmNewPassword": "أكد كلمة المرور الجديدة"
+    },
+    "requirements": {
+      "title": "متطلبات كلمة المرور:",
+      "minLength": "على الأقل 8 أحرف",
+      "differentFromCurrent": "يجب أن تكون مختلفة عن كلمة مرورك الحالية"
+    },
+    "errors": {
+      "currentPasswordRequired": "كلمة المرور الحالية مطلوبة",
+      "newPasswordRequired": "كلمة المرور الجديدة مطلوبة",
+      "newPasswordMinLength": "يجب أن تكون كلمة المرور 8 أحرف على الأقل",
+      "newPasswordDifferent": "يجب أن تختلف كلمة المرور الجديدة عن الحالية",
+      "confirmPasswordRequired": "الرجاء تأكيد كلمة المرور الجديدة",
+      "passwordsDoNotMatch": "كلمتا المرور غير متطابقتين"
+    },
+    "messages": {
+      "success": "تم تغيير كلمة المرور بنجاح",
+      "changeFailed": "فشل تغيير كلمة المرور"
+    },
+    "aria": {
+      "closeModal": "إغلاق النافذة",
+      "togglePasswordVisibility": "تبديل ظهور كلمة المرور"
+    }
+  },
+  "donorPhotoPreferences": {
+    "title": "تفضيلات العرض",
+    "modeSingle": "الوضع: صورة واحدة",
+    "modePerFoodType": "الوضع: حسب نوع الطعام",
+    "selectedSingular": "{{count}} صورة محددة",
+    "selectedPlural": "{{count}} صور محددة",
+    "toggleAria": "تبديل تفضيلات العرض",
+    "hide": "إخفاء",
+    "edit": "تعديل",
+    "singleModeTitle": "صورة واحدة لكل التبرعات",
+    "perTypeModeTitle": "صورة لكل نوع طعام",
+    "singleDonationImage": "صورة التبرع الواحدة",
+    "uploading": "جارٍ الرفع...",
+    "pendingApproval": "بانتظار الموافقة",
+    "selectFromLibrary": "أو اختر من المكتبة الداخلية:",
+    "libraryImageAlt": "Library {{id}}",
+    "selectedTypeAlt": "{{foodType}} selected",
+    "saving": "جارٍ الحفظ...",
+    "saveButton": "حفظ تفضيلات الصور",
+    "note": "ملاحظة: تتم مراجعة صور المتبرعين من قِبل المشرف قبل ظهورها على بطاقات المستلمين.",
+    "loading": "جارٍ تحميل تفضيلات الصور...",
+    "messages": {
+      "uploadSuccess": "تم رفع الصورة. احفظ التفضيلات للتطبيق. ستظهر صور المتبرعين بعد موافقة المشرف.",
+      "saved": "تم حفظ تفضيلات الصور."
+    },
+    "errors": {
+      "load": "فشل تحميل تفضيلات الصور.",
+      "save": "فشل حفظ التفضيلات.",
+      "upload": "فشل رفع الصورة.",
+      "fileRequired": "ملف الصورة مطلوب.",
+      "invalidType": "يُسمح فقط بصور JPEG وPNG وWEBP.",
+      "maxSize": "يجب ألا يتجاوز حجم الصورة 5 ميجابايت."
+    }
+  },
+  "foodTypeLabels": {
+    "PREPARED": "وجبات جاهزة",
+    "PRODUCE": "منتجات طازجة",
+    "BAKERY": "مخبوزات وحلويات",
+    "DAIRY_EGGS": "ألبان وبيض",
+    "MEAT_POULTRY": "لحوم ودواجن",
+    "SEAFOOD": "مأكولات بحرية",
+    "PANTRY": "مواد معبأة / مخزن",
+    "BEVERAGES": "مشروبات"
+  },
+  "inviteCommunity": {
+    "title": "دعوة منظمة مجتمعية",
+    "subtitle": "هل تعرف منظمة يمكنها الاستفادة من FoodFlow؟ ادعوها للانضمام كمتلقٍّ.",
+    "form": {
+      "businessNameLabel": "اسم المنظمة",
+      "businessNamePlaceholder": "مثال: مخزن الغذاء المجتمعي",
+      "contactEmailLabel": "البريد الإلكتروني للتواصل",
+      "contactEmailPlaceholder": "contact@organization.org",
+      "contactPhoneLabel": "هاتف التواصل (اختياري)",
+      "contactPhonePlaceholder": "+1 (555) 123-4567",
+      "messageLabel": "رسالة شخصية (اختياري)",
+      "messagePlaceholder": "أخبرهم لماذا يعد FoodFlow خياراً رائعاً...",
+      "submitButton": "إرسال الدعوة",
+      "submitting": "جارٍ إرسال الدعوة…"
+    },
+    "validation": {
+      "businessNameRequired": "اسم المنظمة مطلوب.",
+      "businessNameTooLong": "لا يمكن أن يتجاوز اسم المنظمة 200 حرف.",
+      "contactEmailRequired": "البريد الإلكتروني للتواصل مطلوب.",
+      "contactEmailInvalid": "يرجى إدخال عنوان بريد إلكتروني صحيح.",
+      "messageTooLong": "لا يمكن أن تتجاوز الرسالة 500 حرف."
+    },
+    "success": {
+      "heading": "تم إرسال الدعوة!",
+      "body": "شكراً لمساعدتك في تنمية مجتمع FoodFlow. سيتواصل فريقنا مع {{email}} لتزويدهم بمزيد من المعلومات.",
+      "submitAnother": "إرسال دعوة أخرى"
+    },
+    "errors": {
+      "generic": "حدث خطأ ما. يرجى المحاولة مرة أخرى."
+    }
+  },
+  "suggestBusiness": {
+    "title": "اقتراح شركة",
+    "subtitle": "هل تعرف شركة تنتج فائضاً غذائياً؟ اقترح عليها الانضمام إلى FoodFlow كمتبرع.",
+    "form": {
+      "businessNameLabel": "اسم الشركة",
+      "businessNamePlaceholder": "مثال: مخبز الوادي الأخضر",
+      "contactEmailLabel": "البريد الإلكتروني للتواصل",
+      "contactEmailPlaceholder": "contact@business.com",
+      "contactPhoneLabel": "هاتف التواصل (اختياري)",
+      "contactPhonePlaceholder": "+1 (555) 123-4567",
+      "messageLabel": "رسالة شخصية (اختياري)",
+      "messagePlaceholder": "أخبرهم لماذا يعد FoodFlow فرصة رائعة للحد من الهدر…",
+      "submitButton": "إرسال الاقتراح",
+      "submitting": "جارٍ الإرسال…"
+    },
+    "validation": {
+      "businessNameRequired": "اسم الشركة مطلوب.",
+      "businessNameTooLong": "لا يمكن أن يتجاوز اسم الشركة 200 حرف.",
+      "contactEmailRequired": "البريد الإلكتروني للتواصل مطلوب.",
+      "contactEmailInvalid": "يرجى إدخال عنوان بريد إلكتروني صحيح.",
+      "messageTooLong": "لا يمكن أن تتجاوز الرسالة 500 حرف."
+    },
+    "success": {
+      "heading": "تم إرسال الاقتراح!",
+      "body": "شكراً لمساعدتك في تنمية شبكة FoodFlow. سيتواصل فريقنا مع {{email}} لتزويدهم بمزيد من المعلومات.",
+      "submitAnother": "إرسال اقتراح آخر"
+    },
+    "errors": {
+      "generic": "حدث خطأ ما. يرجى المحاولة مرة أخرى."
+    }
+  },
+  "onboarding": {
+    "labels": {
+      "donor": "دليل المتبرع",
+      "receiver": "دليل المستفيد"
+    },
+    "actions": {
+      "skip": "تخطي",
+      "back": "رجوع",
+      "next": "التالي",
+      "finish": "إنهاء"
+    },
+    "stepProgress": "الخطوة {{current}} من {{total}}",
+    "errors": {
+      "saveFailed": "تعذر حفظ تقدمك في الدليل. يرجى المحاولة مرة أخرى."
+    },
+    "help": {
+      "title": "الدليل التعريفي",
+      "replayButton": "عرض الدليل مرة أخرى",
+      "donorIntro": "أعد تشغيل جولة المتبرع في أي وقت لمراجعة لوحة التحكم، ونشر التبرعات، والدردشة، وحالات الاستلام.",
+      "receiverIntro": "أعد تشغيل جولة المستفيد في أي وقت لمراجعة التصفح، والعناصر المحفوظة، والمطالبات، والدردشة، والتفضيلات، والإعدادات."
+    },
+    "donor": {
+      "steps": {
+        "dashboard": {
+          "title": "مرحبًا بك في FoodFlow",
+          "text": "هذه هي لوحة تحكم المتبرع الخاصة بك. من هنا يمكنك إدارة تبرعاتك ومتابعة ما يحدث بعد ذلك."
+        },
+        "impact": {
+          "title": "اطلع على أثر مساهمتك",
+          "text": "تعرض لوحة الأثر مقدار الطعام الذي أنقذته والفرق الذي تحدثه تبرعاتك بمرور الوقت."
+        },
+        "postDonation": {
+          "title": "نشر تبرع",
+          "text": "استخدم هذا الإجراء لإنشاء تبرع غذائي جديد وإتاحته للمستفيدين."
+        },
+        "chat": {
+          "title": "الدردشة مع المستفيدين",
+          "text": "بمجرد المطالبة بالتبرع، يمكنك استخدام الدردشة لتنسيق تفاصيل الاستلام والإجابة عن الأسئلة."
+        },
+        "pickup": {
+          "title": "متابعة تقدم الاستلام",
+          "text": "يمر كل تبرع بمراحل استلام مع حالات توضح لك دائمًا المرحلة الحالية."
+        },
+        "setup": {
+          "title": "إعداد حسابك",
+          "text": "استخدم اللغة والمنطقة لاختيار لغتك وموقعك ومنطقتك الزمنية. يتيح تكامل التقويم مزامنة عمليات الاستلام في FoodFlow، وتتحكم تفضيلات العرض في شكل بطاقات التبرع."
+        }
+      }
+    },
+    "receiver": {
+      "steps": {
+        "browse": {
+          "title": "تصفح التبرعات",
+          "text": "هنا يمكنك استكشاف تبرعات الطعام المتاحة والعثور على العناصر التي تناسب احتياجاتك."
+        },
+        "saved": {
+          "title": "التبرعات المحفوظة",
+          "text": "هنا يمكنك العثور بسرعة على التبرعات التي حفظتها لمراجعتها لاحقًا."
+        },
+        "claims": {
+          "title": "مطالباتك",
+          "text": "يعرض هذا القسم التبرعات التي طالبت بها ويتيح لك تتبع تقدمها."
+        },
+        "chat": {
+          "title": "الدردشة مع المتبرعين",
+          "text": "استخدم الدردشة لتنسيق تفاصيل الاستلام، وطرح الأسئلة، والبقاء على اطلاع مع المتبرعين."
+        },
+        "impact": {
+          "title": "لوحة أثر مساهمتك",
+          "text": "تساعدك هذه اللوحة على تتبع نشاطك وعمليات الاستلام وأثرك العام على المنصة."
+        },
+        "preferences": {
+          "title": "التفضيلات والمطابقة",
+          "text": "اضبط تفضيلاتك الغذائية هنا حتى يتمكن FoodFlow من اقتراح تبرعات تناسب احتياجاتك بشكل أفضل."
+        },
+        "settings": {
+          "title": "الإعدادات",
+          "text": "يمكنك إدارة حسابك، وإعادة تشغيل الدليل، وضبط خيارات المنصة من هنا."
+        },
+        "done": {
+          "title": "أنت جاهز",
+          "text": "هذا كل شيء — أنت الآن جاهز لبدء استخدام FoodFlow كمستفيد."
+        }
+      }
+    }
   }
 }

@@ -36,13 +36,13 @@ class AuthDTOTest {
     void registerDonorRequest_SettersAndGetters_ShouldWork() {
         RegisterDonorRequest request = new RegisterDonorRequest();
         request.setEmail("donor@test.com");
-        request.setPassword("Password123!");
+        request.setPassword("TestSecure123!");
         request.setPhone("+1234567890");
         request.setOrganizationName("Donor Org");
         request.setAddress("123 Main St");
         
         assertEquals("donor@test.com", request.getEmail());
-        assertEquals("Password123!", request.getPassword());
+        assertEquals("TestSecure123!", request.getPassword());
         assertEquals("+1234567890", request.getPhone());
         assertEquals("Donor Org", request.getOrganizationName());
         assertEquals("123 Main St", request.getAddress());
@@ -53,13 +53,13 @@ class AuthDTOTest {
     void registerReceiverRequest_SettersAndGetters_ShouldWork() {
         RegisterReceiverRequest request = new RegisterReceiverRequest();
         request.setEmail("receiver@test.com");
-        request.setPassword("Password123!");
+        request.setPassword("TestSecure123!");
         request.setPhone("+1234567890");
         request.setOrganizationName("Receiver Org");
         request.setAddress("456 Oak Ave");
         
         assertEquals("receiver@test.com", request.getEmail());
-        assertEquals("Password123!", request.getPassword());
+        assertEquals("TestSecure123!", request.getPassword());
         assertEquals("+1234567890", request.getPhone());
         assertEquals("Receiver Org", request.getOrganizationName());
         assertEquals("456 Oak Ave", request.getAddress());

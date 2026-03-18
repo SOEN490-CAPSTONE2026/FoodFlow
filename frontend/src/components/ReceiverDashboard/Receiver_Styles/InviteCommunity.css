@@ -1,0 +1,253 @@
+/* InviteCommunity.css — Receiver Dashboard Referral Page */
+
+.invite-community-page {
+  padding: 18px 20px;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.invite-community-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(27, 73, 101, 0.08);
+  overflow: hidden;
+}
+
+.invite-community-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 20px 22px 16px;
+  background: linear-gradient(135deg, #1b4965 0%, #2f6f95 100%);
+  color: #fff;
+}
+
+.invite-community-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.16);
+  flex-shrink: 0;
+}
+
+.invite-community-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0 0 4px;
+  line-height: 1.25;
+}
+
+.invite-community-subtitle {
+  font-size: 0.9rem;
+  margin: 0;
+  opacity: 0.92;
+  line-height: 1.4;
+  max-width: 560px;
+}
+
+.invite-community-form {
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.invite-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.invite-form-group label {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: #334155;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.invite-form-group input,
+.invite-form-group textarea {
+  padding: 9px 12px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 9px;
+  font-size: 0.9rem;
+  color: #0f172a;
+  background: #f8fafc;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.invite-form-group input::placeholder,
+.invite-form-group textarea::placeholder {
+  color: #7b8794;
+}
+
+.invite-form-group input:focus,
+.invite-form-group textarea:focus {
+  outline: none;
+  border-color: #62b6cb;
+  box-shadow: 0 0 0 3px rgba(98, 182, 203, 0.2);
+  background: #ffffff;
+}
+
+.invite-form-group textarea {
+  min-height: 96px;
+}
+
+.invite-form-group input.input-error,
+.invite-form-group textarea.input-error {
+  border-color: #e53e3e;
+}
+
+.required {
+  color: #e53e3e;
+}
+
+.char-count {
+  font-weight: 500;
+  font-size: 0.78rem;
+  color: #8a94a2;
+}
+
+.field-error {
+  font-size: 0.8rem;
+  color: #e53e3e;
+  margin-top: 2px;
+}
+
+.invite-community-error {
+  background: #fff5f5;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #b91c1c;
+  font-size: 0.85rem;
+}
+
+.invite-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 2px;
+}
+
+.invite-btn-primary {
+  background: linear-gradient(135deg, #2d7a4f, #38a169);
+  color: #fff;
+  border: none;
+  border-radius: 9px;
+  padding: 10px 22px;
+  min-width: 200px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    opacity 0.2s ease,
+    transform 0.1s ease;
+}
+
+.invite-btn-primary:hover:not(:disabled) {
+  opacity: 0.93;
+  transform: translateY(-1px);
+}
+
+.invite-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.invite-community-success {
+  padding: 40px 28px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.invite-community-success-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2d7a4f, #38a169);
+  color: #fff;
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.invite-community-success h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0;
+}
+
+.invite-community-success p {
+  color: #4a5568;
+  font-size: 0.95rem;
+  margin: 0;
+  max-width: 400px;
+  line-height: 1.55;
+}
+
+.invite-btn-secondary {
+  margin-top: 8px;
+  background: #f0fdf4;
+  color: #2d7a4f;
+  border: 1.5px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 10px 22px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.invite-btn-secondary:hover {
+  background: #dcfce7;
+}
+
+@media (max-width: 760px) {
+  .invite-community-page {
+    padding: 14px 12px;
+  }
+
+  .invite-community-header {
+    padding: 16px 14px;
+    gap: 12px;
+  }
+
+  .invite-community-title {
+    font-size: 1.15rem;
+  }
+
+  .invite-community-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .invite-community-form {
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .invite-form-actions {
+    justify-content: stretch;
+  }
+
+  .invite-btn-primary {
+    width: 100%;
+    min-width: 0;
+  }
+}

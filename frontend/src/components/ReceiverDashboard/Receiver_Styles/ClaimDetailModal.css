@@ -96,16 +96,21 @@
   color: #1b4965;
 }
 
-.claimed-status-ready-for.pickup {
+.claimed-status-ready-for-pickup {
   background-color: #d1fae5;
   color: #065f46;
 }
 
 .claimed-status-completed {
-  background: #e2e8f0;
-  color: #314158;
+  background-color: #e0f2fe;
+  color: #0c4a6e;
 }
 .claimed-status-not-completed {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.claimed-status-expired {
   background-color: #fee2e2;
   color: #991b1b;
 }
@@ -142,23 +147,26 @@
 .claimed-modal-chat-link {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0;
-  background: none;
+  gap: 0.55rem;
+  padding: 0.55rem 0.9rem;
+  background: transparent;
+  border: 1px solid #cfe4f7;
+  border-radius: 10px;
   color: #1b4965;
   text-decoration: none;
-  border: none;
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
 }
 
 .claimed-modal-chat-link:hover {
-  color: #2d6a8a;
-  text-decoration: underline;
-  transform: none;
+  color: #17445f;
+  background: transparent;
+  border-color: #bad9f3;
+  text-decoration: none;
+  transform: translateY(-1px);
 }
 
 .claimed-modal-chat-link:active {
@@ -171,8 +179,8 @@
 
 .claimed-modal-chat-link svg {
   flex-shrink: 0;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
 }
 
 @keyframes pulse {
@@ -354,7 +362,8 @@
 }
 
 .claimed-modal-btn-secondary,
-.claimed-modal-btn-primary {
+.claimed-modal-btn-primary,
+.claimed-modal-btn-interest {
   flex: 1;
   padding: 0.875rem 1.5rem;
   font-size: 0.95rem;
@@ -382,6 +391,22 @@
 
 .claimed-modal-btn-primary:hover {
   background: #164058;
+}
+
+.claimed-modal-btn-interest {
+  background: #62b6cb;
+  color: white;
+  border: none;
+}
+
+.claimed-modal-btn-interest:hover:not(:disabled) {
+  background: #4aa8c4;
+}
+
+.claimed-modal-btn-interest:disabled {
+  background: #62b6cb;
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .claimed-modal-btn-feedback {
@@ -485,6 +510,56 @@
   margin-top: 1.5rem;
   padding-top: 1.5rem;
   border-top: 1px solid #e5e7eb;
+}
+
+.claim-detail-completed-inline {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.claim-detail-completed-inline-title {
+  margin: 0 0 0.35rem 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1b4965;
+}
+
+.claim-detail-completed-inline-description {
+  margin: 0;
+  color: #4b5563;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.claim-detail-completed-inline-actions {
+  margin-top: 1rem;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+
+.claim-detail-completed-inline-actions .claimed-modal-btn-report,
+.claim-detail-completed-inline-actions .claimed-modal-btn-feedback {
+  flex: 1 1 220px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 44px;
+}
+
+@media (max-width: 768px) {
+  .claim-detail-completed-inline-actions {
+    gap: 0.75rem;
+  }
+
+  .claim-detail-completed-inline-actions .claimed-modal-btn-report,
+  .claim-detail-completed-inline-actions .claimed-modal-btn-feedback {
+    flex: 1 1 100%;
+  }
 }
 
 .claimed-timeline-toggle-button {

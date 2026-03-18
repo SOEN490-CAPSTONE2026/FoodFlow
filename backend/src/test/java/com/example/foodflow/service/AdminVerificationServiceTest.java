@@ -1,5 +1,6 @@
 package com.example.foodflow.service;
 
+import brevo.ApiException;
 import com.example.foodflow.model.dto.ApprovalResponse;
 import com.example.foodflow.model.dto.RejectionResponse;
 import com.example.foodflow.model.dto.UserVerificationPageResponse;
@@ -39,6 +40,12 @@ class AdminVerificationServiceTest {
 
     @Mock
     private EmailVerificationTokenRepository verificationTokenRepository;
+
+    @Mock
+    private NotificationPreferenceService notificationPreferenceService;
+
+    @Mock
+    private org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
 
     @InjectMocks
     private AdminVerificationService adminVerificationService;
@@ -227,6 +234,7 @@ class AdminVerificationServiceTest {
             // Arrange
             when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
             when(userRepository.save(any(User.class))).thenReturn(testUser);
+            when(notificationPreferenceService.shouldSendNotification(any(User.class), anyString(), anyString())).thenReturn(true);
 
             // Act
             ApprovalResponse response = adminVerificationService.approveUser(1L);
@@ -435,6 +443,126 @@ class AdminVerificationServiceTest {
             assertEquals("User is not pending email verification", exception.getMessage());
             verify(userRepository).findById(1L);
             verify(userRepository, never()).save(any(User.class));
+        }
+    }
+
+    // Notification-related tests
+
+    @Nested
+    @DisplayName("Notification Preference Tests")
+    class NotificationPreferenceTests {
+
+        @Test
+        @DisplayName("Should send only email when websocket is disabled")
+        void approveUser_EmailEnabledWebSocketDisabled_SendsOnlyEmail() throws Exception {
+            // Arrange
+            when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+            when(userRepository.save(any(User.class))).thenReturn(testUser);
+            when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("email"))).thenReturn(true);
+            when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("websocket"))).thenReturn(false);
+
+            // Act
+            ApprovalResponse response = adminVerificationService.approveUser(1L);
+
+            // Assert
+            assertNotNull(response);
+            assertTrue(response.isSuccess());
+            verify(emailService).sendAccountApprovalEmail(eq("john@foodbank.org"), eq("Community Food Bank"));
+            verify(messagingTemplate, never()).convertAndSendToUser(anyString(), anyString(), anyMap());
+        }
+
+        @Test
+        @DisplayName("Should send only websocket when email is disabled")
+        void approveUser_EmailDisabledWebSocketEnabled_SendsOnlyWebSocket() throws Exception {
+            // Arrange
+            when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+            when(userRepository.save(any(User.class))).thenReturn(testUser);
+            when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("email"))).thenReturn(false);
+            when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("websocket"))).thenReturn(true);
+
+            // Act
+            ApprovalResponse response = adminVerificationService.approveUser(1L);
+
+            // Assert
+            assertNotNull(response);
+            assertTrue(response.isSuccess());
+            verify(emailService, never()).sendAccountApprovalEmail(anyString(), anyString());
+            verify(messagingTemplate).convertAndSendToUser(eq("1"), eq("/queue/verification/approved"), anyMap());
+        }
+
+        @Test
+        @DisplayName("Should send both notifications when both are enabled")
+        void approveUser_BothEnabled_SendsBoth() throws Exception {
+            // Arrange
+            when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+            when(userRepository.save(any(User.class))).thenReturn(testUser);
+            when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("email"))).thenReturn(true);
+            when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("websocket"))).thenReturn(true);
+
+            // Act
+            ApprovalResponse response = adminVerificationService.approveUser(1L);
+
+            // Assert
+            assertNotNull(response);
+            assertTrue(response.isSuccess());
+            verify(emailService).sendAccountApprovalEmail(eq("john@foodbank.org"), eq("Community Food Bank"));
+            verify(messagingTemplate).convertAndSendToUser(eq("1"), eq("/queue/verification/approved"), anyMap());
+        }
+
+        @Test
+        @DisplayName("Should not send any notifications when both are disabled")
+        void approveUser_BothDisabled_SendsNeither() throws Exception {
+            // Arrange
+            when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+            when(userRepository.save(any(User.class))).thenReturn(testUser);
+            when(notificationPreferenceService.shouldSendNotification(any(User.class), anyString(), anyString())).thenReturn(false);
+
+            // Act
+            ApprovalResponse response = adminVerificationService.approveUser(1L);
+
+            // Assert
+            assertNotNull(response);
+            assertTrue(response.isSuccess());
+            verify(emailService, never()).sendAccountApprovalEmail(anyString(), anyString());
+            verify(messagingTemplate, never()).convertAndSendToUser(anyString(), anyString(), anyMap());
+        }
+
+        @Test
+        @DisplayName("Should handle email failure gracefully and still send websocket")
+        void approveUser_EmailFailsWebSocketSucceeds_CompletesSuccessfully() throws Exception {
+            // Arrange
+            when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+            when(userRepository.save(any(User.class))).thenReturn(testUser);
+            when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("email"))).thenReturn(true);
+            when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("websocket"))).thenReturn(true);
+            doThrow(new ApiException("Email service error")).when(emailService).sendAccountApprovalEmail(anyString(), anyString());
+
+            // Act
+            ApprovalResponse response = adminVerificationService.approveUser(1L);
+
+            // Assert
+            assertNotNull(response);
+            assertTrue(response.isSuccess());
+            verify(emailService).sendAccountApprovalEmail(eq("john@foodbank.org"), eq("Community Food Bank"));
+            verify(messagingTemplate).convertAndSendToUser(eq("1"), eq("/queue/verification/approved"), anyMap());
+            assertEquals(AccountStatus.ACTIVE, testUser.getAccountStatus());
+        }
+
+        @Test
+        @DisplayName("Should respect notification preferences for each channel independently")
+        void approveUser_ChecksPreferencesForEachChannel() throws Exception {
+            // Arrange
+            when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+            when(userRepository.save(any(User.class))).thenReturn(testUser);
+            when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("email"))).thenReturn(true);
+            when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("websocket"))).thenReturn(true);
+
+            // Act
+            adminVerificationService.approveUser(1L);
+
+            // Assert - verify that preferences were checked for both channels
+            verify(notificationPreferenceService).shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("email"));
+            verify(notificationPreferenceService).shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("websocket"));
         }
     }
 }

@@ -71,7 +71,7 @@ class TemperaturePackagingComplianceTest {
         // Create and persist donor user
         testDonor = new User();
         testDonor.setEmail("testdonor@compliance.test");
-        testDonor.setPassword(passwordEncoder.encode("TestPassword123!"));
+        testDonor.setPassword(passwordEncoder.encode("TestTestSecure123!"));
         testDonor.setRole(UserRole.DONOR);
         testDonor.setOrganization(organization);
         testDonor = userRepository.save(testDonor);

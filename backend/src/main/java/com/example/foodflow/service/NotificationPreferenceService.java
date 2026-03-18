@@ -28,6 +28,7 @@ public class NotificationPreferenceService {
             "pickupReminder",
             "donationPickedUp",
             "donationExpired",
+            "donationExpiringSoon",
             "newMessageFromReceiver",
             "receiverReview",
             "donationFlagged",

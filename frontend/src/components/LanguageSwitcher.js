@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import ReactCountryFlag from 'react-country-flag';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Check, Search } from 'lucide-react';
 import '../style/LanguageSwitcher.css';
 
@@ -11,13 +11,17 @@ import ARIcon from '../assets/lang-icons/AR.svg';
 import PRIcon from '../assets/lang-icons/PR.svg';
 
 /**
- * LanguageSwitcher component - UI only (no i18n functionality yet)
+ * LanguageSwitcher component
  * Displays 6 languages with flags, native names, search, and selection indicator
+ * Persists selection and updates i18n language.
  */
 const LanguageSwitcher = () => {
+  const { i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState(
-    localStorage.getItem('languagePreference') || 'en'
+    localStorage.getItem('languagePreference') ||
+      i18n.language?.split('-')[0] ||
+      'en'
   );
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -74,11 +78,19 @@ const LanguageSwitcher = () => {
 
   const selectedLang = languages.find(lang => lang.code === selectedLanguage);
 
+  useEffect(() => {
+    const normalized = i18n.language?.split('-')[0] || 'en';
+    setSelectedLanguage(normalized);
+  }, [i18n.language]);
+
   const handleLanguageSelect = async langCode => {
-    setSelectedLanguage(langCode);
-    localStorage.setItem('languagePreference', langCode);
+    const normalized = langCode?.split('-')[0] || 'en';
+
+    setSelectedLanguage(normalized);
+    localStorage.setItem('languagePreference', normalized);
     setIsOpen(false);
     setSearchQuery('');
+    i18n.changeLanguage(normalized);
 
     const token =
       localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
@@ -88,14 +100,17 @@ const LanguageSwitcher = () => {
       return;
     }
 
+    const apiBase =
+      process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+
     try {
-      const response = await fetch('http://localhost:8080/api/user/language', {
+      const response = await fetch(`${apiBase}/user/language`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ languagePreference: langCode }),
+        body: JSON.stringify({ languagePreference: normalized }),
       });
 
       if (!response.ok) {
@@ -109,12 +124,12 @@ const LanguageSwitcher = () => {
     }
 
     // Visual feedback only - no actual i18n change yet
-    console.log(`Language selected: ${langCode}`);
+    console.log(`Language selected: ${normalized}`);
 
     // Show a brief toast/message (optional)
     const toast = document.createElement('div');
     toast.className = 'language-toast';
-    toast.textContent = `Language switched to ${languages.find(l => l.code === langCode)?.nativeName}`;
+    toast.textContent = `Language switched to ${languages.find(l => l.code === normalized)?.nativeName}`;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 2000);
   };

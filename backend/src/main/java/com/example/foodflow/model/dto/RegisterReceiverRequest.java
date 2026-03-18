@@ -2,6 +2,7 @@ package com.example.foodflow.model.dto;
 
 import com.example.foodflow.model.entity.OrganizationType;
 import com.example.foodflow.config.jackson.OrganizationTypeDeserializer;
+import com.example.foodflow.validation.ValidPassword;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -13,12 +14,10 @@ public class RegisterReceiverRequest {
     private String email;
 
     @NotBlank(message = "{validation.password.required}")
-    @Size(min = 8, message = "{validation.password.minLength}")
+    @ValidPassword
     private String password;
 
-    @NotBlank(message = "{validation.organizationName.required}")
-    @NotBlank
-    @Size(min = 8)
+    @NotBlank(message = "Password confirmation is required")
     private String confirmPassword;
 
     @NotBlank
@@ -38,7 +37,12 @@ public class RegisterReceiverRequest {
     private Integer capacity;
     private String charityRegistrationNumber;
 
+    // URL of the uploaded supporting document (set by the controller after file storage)
+    private String supportingDocumentUrl;
+
     private Boolean dataStorageConsent = false;
+
+    private String timezone; // Timezone inferred from address (e.g., "America/Toronto")
 
     // Constructors, getters, setters
     public RegisterReceiverRequest() {}
@@ -73,6 +77,12 @@ public class RegisterReceiverRequest {
     public String getCharityRegistrationNumber() { return charityRegistrationNumber; }
     public void setCharityRegistrationNumber(String charityRegistrationNumber) { this.charityRegistrationNumber = charityRegistrationNumber; }
 
+    public String getSupportingDocumentUrl() { return supportingDocumentUrl; }
+    public void setSupportingDocumentUrl(String supportingDocumentUrl) { this.supportingDocumentUrl = supportingDocumentUrl; }
+
     public Boolean getDataStorageConsent() { return dataStorageConsent; }
     public void setDataStorageConsent(Boolean dataStorageConsent) { this.dataStorageConsent = dataStorageConsent; }
+
+    public String getTimezone() { return timezone; }
+    public void setTimezone(String timezone) { this.timezone = timezone; }
 }

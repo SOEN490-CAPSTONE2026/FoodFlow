@@ -5,26 +5,39 @@
     <link rel="icon" href="%PUBLIC_URL%/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
+
+    <!-- Default description — overridden per-page by SEOHead via react-helmet-async -->
     <meta
       name="description"
-      content="Web site created using create-react-app"
+      content="FoodFlow connects restaurants, grocery stores, and businesses with verified charities and shelters to redistribute surplus food in real time — reducing waste and fighting food insecurity."
     />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/Logo.png" />
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
 
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-    <title>FoodFlow</title>
+    <!-- Default robots directive — overridden per-page by SEOHead -->
+    <meta name="robots" content="index, follow" />
+
+    <!-- Canonical — overridden per-page by SEOHead -->
+    <link rel="canonical" href="https://foodflow-org.up.railway.app/" />
+
+    <!-- Default Open Graph tags — overridden per-page by SEOHead -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="FoodFlow" />
+    <meta property="og:title" content="FoodFlow | Surplus Food Redistribution Platform" />
+    <meta
+      property="og:description"
+      content="FoodFlow connects restaurants, grocery stores, and businesses with verified charities and shelters to redistribute surplus food in real time."
+    />
+    <meta property="og:image" content="https://foodflow-org.up.railway.app/Logo.png" />
+    <meta property="og:url" content="https://foodflow-org.up.railway.app/" />
+
+    <!-- Google Search Console site verification                                      -->
+    <!-- Replace the content value with the token from Google Search Console          -->
+    <!-- Verification method: HTML meta tag                                            -->
+    <!-- <meta name="google-site-verification" content="REPLACE_WITH_GSC_TOKEN" />   -->
+
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/Logo.png" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+
+    <title>FoodFlow | Surplus Food Redistribution Platform</title>
     <script>
       (function (m, a, z, e) {
         var s, t, u, v;

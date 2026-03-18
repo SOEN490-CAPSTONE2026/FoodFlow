@@ -1092,4 +1092,87 @@ class SurplusControllerTest {
                 .andExpect(jsonPath("$.temperatureCategory").value("FROZEN"))
                 .andExpect(jsonPath("$.packagingType").value("VACUUM_PACKED"));
     }
+
+    @Test
+    @WithMockUser(username = "donor@test.com", authorities = {"DONOR"})
+    void testCreateSurplusPost_InvalidFoodType_ShouldReturnBadRequest() throws Exception {
+        String payload = """
+                {
+                  "title": "Vegetable Lasagna",
+                  "foodCategories": ["PREPARED_MEALS"],
+                  "foodType": "INVALID_TYPE",
+                  "dietaryTags": ["VEGAN"],
+                  "quantity": {"value": 10, "unit": "KILOGRAM"},
+                  "expiryDate": "2099-01-10",
+                  "description": "Vegetarian lasagna with spinach",
+                  "pickupDate": "2099-01-10",
+                  "pickupFrom": "10:00",
+                  "pickupTo": "12:00",
+                  "pickupLocation": {"latitude": 45.2903, "longitude": -34.0987, "address": "123 Main St"},
+                  "temperatureCategory": "REFRIGERATED",
+                  "packagingType": "SEALED"
+                }
+                """;
+
+        mockMvc.perform(post("/api/surplus")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(payload))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(username = "donor@test.com", authorities = {"DONOR"})
+    void testCreateSurplusPost_InvalidDietaryTag_ShouldReturnBadRequest() throws Exception {
+        String payload = """
+                {
+                  "title": "Vegetable Lasagna",
+                  "foodCategories": ["PREPARED_MEALS"],
+                  "foodType": "PREPARED",
+                  "dietaryTags": ["INVALID_TAG"],
+                  "quantity": {"value": 10, "unit": "KILOGRAM"},
+                  "expiryDate": "2099-01-10",
+                  "description": "Vegetarian lasagna with spinach",
+                  "pickupDate": "2099-01-10",
+                  "pickupFrom": "10:00",
+                  "pickupTo": "12:00",
+                  "pickupLocation": {"latitude": 45.2903, "longitude": -34.0987, "address": "123 Main St"},
+                  "temperatureCategory": "REFRIGERATED",
+                  "packagingType": "SEALED"
+                }
+                """;
+
+        mockMvc.perform(post("/api/surplus")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(payload))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(username = "donor@test.com", authorities = {"DONOR"})
+    void testCreateSurplusPost_DuplicateDietaryTags_ShouldReturnBadRequest() throws Exception {
+        String payload = """
+                {
+                  "title": "Vegetable Lasagna",
+                  "foodCategories": ["PREPARED_MEALS"],
+                  "foodType": "PREPARED",
+                  "dietaryTags": ["VEGAN", "VEGAN"],
+                  "quantity": {"value": 10, "unit": "KILOGRAM"},
+                  "expiryDate": "2099-01-10",
+                  "description": "Vegetarian lasagna with spinach",
+                  "pickupDate": "2099-01-10",
+                  "pickupFrom": "10:00",
+                  "pickupTo": "12:00",
+                  "pickupLocation": {"latitude": 45.2903, "longitude": -34.0987, "address": "123 Main St"},
+                  "temperatureCategory": "REFRIGERATED",
+                  "packagingType": "SEALED"
+                }
+                """;
+
+        mockMvc.perform(post("/api/surplus")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(payload))
+                .andExpect(status().isBadRequest());
+
+        verify(surplusService, never()).createSurplusPost(any(CreateSurplusRequest.class), any());
+    }
 }

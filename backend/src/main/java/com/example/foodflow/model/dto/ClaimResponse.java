@@ -1,7 +1,10 @@
 package com.example.foodflow.model.dto;
 
 import com.example.foodflow.model.entity.Claim;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 public class ClaimResponse {
     
@@ -10,7 +13,12 @@ public class ClaimResponse {
     private String surplusPostTitle;
     private Long receiverId;
     private String receiverEmail;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
     private LocalDateTime claimedAt;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
+    private LocalDateTime confirmedPickupStartUtc;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
+    private LocalDateTime confirmedPickupEndUtc;
     private String status;
     private SurplusResponse surplusPost;
     private PickupSlotResponse confirmedPickupSlot;
@@ -28,6 +36,14 @@ public class ClaimResponse {
         this.claimedAt = claim.getClaimedAt();
         this.status = claim.getStatus().getDisplayName();
         this.surplusPost = new SurplusResponse(claim.getSurplusPost());
+        this.confirmedPickupStartUtc = toUtcDateTime(
+            claim.getConfirmedPickupDate(),
+            claim.getConfirmedPickupStartTime()
+        );
+        this.confirmedPickupEndUtc = toUtcDateTime(
+            claim.getConfirmedPickupDate(),
+            claim.getConfirmedPickupEndTime()
+        );
         
         // Include confirmed pickup slot if available
         if (claim.getConfirmedPickupDate() != null) {
@@ -56,6 +72,16 @@ public class ClaimResponse {
     
     public LocalDateTime getClaimedAt() { return claimedAt; }
     public void setClaimedAt(LocalDateTime claimedAt) { this.claimedAt = claimedAt; }
+
+    public LocalDateTime getConfirmedPickupStartUtc() { return confirmedPickupStartUtc; }
+    public void setConfirmedPickupStartUtc(LocalDateTime confirmedPickupStartUtc) {
+        this.confirmedPickupStartUtc = confirmedPickupStartUtc;
+    }
+
+    public LocalDateTime getConfirmedPickupEndUtc() { return confirmedPickupEndUtc; }
+    public void setConfirmedPickupEndUtc(LocalDateTime confirmedPickupEndUtc) {
+        this.confirmedPickupEndUtc = confirmedPickupEndUtc;
+    }
     
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
@@ -66,5 +92,12 @@ public class ClaimResponse {
     public PickupSlotResponse getConfirmedPickupSlot() { return confirmedPickupSlot; }
     public void setConfirmedPickupSlot(PickupSlotResponse confirmedPickupSlot) { 
         this.confirmedPickupSlot = confirmedPickupSlot; 
+    }
+
+    private LocalDateTime toUtcDateTime(LocalDate date, LocalTime time) {
+        if (date == null || time == null) {
+            return null;
+        }
+        return LocalDateTime.of(date, time);
     }
 }

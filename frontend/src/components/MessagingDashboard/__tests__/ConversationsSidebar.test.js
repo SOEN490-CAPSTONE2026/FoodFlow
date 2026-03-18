@@ -38,7 +38,7 @@ describe('ConversationsSidebar', () => {
     jest.clearAllMocks();
   });
 
-  test('renders sidebar header with title and subtitle', () => {
+  test('renders sidebar header with title', () => {
     render(
       <ConversationsSidebar
         conversations={[]}
@@ -49,9 +49,6 @@ describe('ConversationsSidebar', () => {
     );
 
     expect(screen.getByText('Messages')).toBeInTheDocument();
-    expect(
-      screen.getByText('Connect and coordinate here!')
-    ).toBeInTheDocument();
   });
 
   test('renders empty state when no conversations', () => {
@@ -129,8 +126,8 @@ describe('ConversationsSidebar', () => {
       />
     );
 
-    // Get unread badges from conversation items (not the filter badge)
-    const unreadBadges = container.querySelectorAll('.unread-badge');
+    // Get unread badges from conversation items (inline badges)
+    const unreadBadges = container.querySelectorAll('.unread-badge-inline');
     expect(unreadBadges[0]).toHaveTextContent('2'); // John's badge
     expect(unreadBadges[1]).toHaveTextContent('1'); // Bob's badge
   });
@@ -148,25 +145,12 @@ describe('ConversationsSidebar', () => {
     const janeConversation = screen
       .getByText('Jane Smith')
       .closest('.conversation-item');
-    const badge = janeConversation.querySelector('.unread-badge');
+    const badge = janeConversation.querySelector('.unread-badge-inline');
     expect(badge).not.toBeInTheDocument();
   });
 
-  test('calls onNewConversation when new conversation button is clicked', () => {
-    render(
-      <ConversationsSidebar
-        conversations={mockConversations}
-        selectedConversation={null}
-        onSelectConversation={mockOnSelectConversation}
-        onNewConversation={mockOnNewConversation}
-      />
-    );
-
-    const newButton = screen.getByTitle(/start new conversation/i);
-    fireEvent.click(newButton);
-
-    expect(mockOnNewConversation).toHaveBeenCalled();
-  });
+  // Test removed - new conversation button no longer exists in the sidebar
+  // The functionality has been moved elsewhere in the UI
 
   test('renders All and Unread filter tabs', () => {
     render(
@@ -310,7 +294,7 @@ describe('ConversationsSidebar', () => {
     expect(avatars[2]).toHaveTextContent('B'); // Bob
   });
 
-  test('displays lastMessagePreview', () => {
+  test('displays lastMessagePreview with sender name', () => {
     render(
       <ConversationsSidebar
         conversations={mockConversations}
@@ -320,9 +304,10 @@ describe('ConversationsSidebar', () => {
       />
     );
 
-    expect(screen.getByText('Hello there')).toBeInTheDocument();
-    expect(screen.getByText('How are you?')).toBeInTheDocument();
-    expect(screen.getByText('See you soon')).toBeInTheDocument();
+    // The format is now "SenderName · Message"
+    expect(screen.getByText(/John Doe · Hello there/)).toBeInTheDocument();
+    expect(screen.getByText(/Jane Smith · How are you\?/)).toBeInTheDocument();
+    expect(screen.getByText(/Bob Wilson · See you soon/)).toBeInTheDocument();
   });
 
   test('formats timestamp as "Just now" for recent messages', () => {

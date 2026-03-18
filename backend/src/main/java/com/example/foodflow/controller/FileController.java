@@ -43,6 +43,16 @@ public class FileController {
     }
 
     /**
+     * Serves uploaded license/supporting documents.
+     * URL pattern: /api/files/licenses/{filename}
+     */
+    @GetMapping("/licenses/{filename:.+}")
+    public ResponseEntity<Resource> serveLicenseFile(@PathVariable String filename) {
+        logger.info("Serving license file: filename={}", filename);
+        return serveFile("licenses/" + filename);
+    }
+
+    /**
      * Fallback for legacy URLs that were stored directly as /uploads/{filename}
      * This handles old URLs that don't have the proper path structure
      * URL pattern: /api/files/uploads/{filename}
@@ -53,6 +63,41 @@ public class FileController {
         logger.info("Serving legacy upload file: filename={}", filename);
         // Try to find the file in the uploads directory (search subdirectories)
         return serveFileSearching(filename);
+    }
+
+    /**
+     * Serves donation images stored under /uploads/donation-images/{filename}
+     * URL pattern: /api/files/donation-images/{filename}
+     */
+    @GetMapping("/donation-images/{filename:.+}")
+    public ResponseEntity<Resource> serveDonationImageFile(
+            @PathVariable String filename) {
+        logger.info("Serving donation image file: filename={}", filename);
+        return serveFile("donation-images/" + filename);
+    }
+
+    /**
+     * Serves donation images stored under donor-specific folders:
+     * /uploads/donation-images/donor-{id}/{filename}
+     * URL pattern: /api/files/donation-images/{donorFolder}/{filename}
+     */
+    @GetMapping("/donation-images/{donorFolder}/{filename:.+}")
+    public ResponseEntity<Resource> serveDonationImageFileInDonorFolder(
+            @PathVariable String donorFolder,
+            @PathVariable String filename) {
+        logger.info("Serving donation image file: donorFolder={}, filename={}", donorFolder, filename);
+        return serveFile("donation-images/" + donorFolder + "/" + filename);
+    }
+
+    /**
+     * Serves internal library images from /uploads/internal-library/{filename}
+     * URL pattern: /api/files/internal-library/{filename}
+     */
+    @GetMapping("/internal-library/{filename:.+}")
+    public ResponseEntity<Resource> serveInternalLibraryImageFile(
+            @PathVariable String filename) {
+        logger.info("Serving internal library image file: filename={}", filename);
+        return serveFile("internal-library/" + filename);
     }
 
     /**
@@ -98,7 +143,12 @@ public class FileController {
      * Generic method to serve files from the upload directory.
      */
     private ResponseEntity<Resource> serveFile(String relativePath) {
-        Path file = resolveUploadPath().resolve(relativePath).normalize();
+        Path root = resolveUploadPath();
+        Path file = root.resolve(relativePath).normalize();
+        if (!file.startsWith(root)) {
+            logger.warn("Blocked invalid file path traversal attempt: {}", relativePath);
+            return ResponseEntity.badRequest().build();
+        }
         logger.info("Looking for file at: {}", file);
         return serveFileFromPath(file);
     }

@@ -1,16 +1,25 @@
 import { useTranslation } from 'react-i18next';
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { X, Calendar, Clock, Plus, Trash2 } from 'lucide-react';
 import { Autocomplete } from '@react-google-maps/api';
 import Select from 'react-select';
+import SEOHead from '../SEOHead';
+import ga4Service from '../../services/ga4Service';
 import DatePicker from 'react-datepicker';
-import { surplusAPI } from '../../services/api';
+import { imageAPI, surplusAPI } from '../../services/api';
 import {
+  dietaryTagOptions,
   foodTypeOptions,
+  getFoodTypeLabel,
+  getTemperatureCategoryLabel,
+  mapFoodTypeToLegacyCategory,
+  mapLegacyCategoryToFoodType,
   unitOptions,
   temperatureCategoryOptions,
   packagingTypeOptions,
 } from '../../constants/foodConstants';
+import { computeSuggestedExpiry } from '../../utils/expiryRules';
+import { toLocalDateInputValue } from '../../utils/timezoneUtils';
 import { useTimezone } from '../../contexts/TimezoneContext';
 import './Donor_Styles/SurplusFormModal.css';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -24,15 +33,18 @@ const SurplusFormModal = ({
   const { t } = useTranslation();
 
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 4;
+  const totalSteps = 3;
   const { userTimezone } = useTimezone();
   const [isLoading, setIsLoading] = useState(false);
+  const [expiryTouched, setExpiryTouched] = useState(false);
+  const [safetyAcknowledged, setSafetyAcknowledged] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
     quantityValue: '',
     quantityUnit: 'KILOGRAM',
     foodCategories: [],
+    dietaryTags: [],
     fabricationDate: '',
     expiryDate: '',
     calculatedExpiryDate: '',
@@ -53,20 +65,52 @@ const SurplusFormModal = ({
 
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [donationPhotoFile, setDonationPhotoFile] = useState(null);
+  const [donationPhotoPreview, setDonationPhotoPreview] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [photoError, setPhotoError] = useState('');
   const autocompleteRef = useRef(null);
+  const translatedFoodTypeOptions = useMemo(
+    () =>
+      foodTypeOptions.map(option => ({
+        ...option,
+        label: t(`surplusForm.foodTypeValues.${option.value}`, option.label),
+      })),
+    [t]
+  );
+  const translatedDietaryTagOptions = useMemo(
+    () =>
+      dietaryTagOptions.map(option => ({
+        ...option,
+        label: t(`surplusForm.dietaryTagValues.${option.value}`, option.label),
+      })),
+    [t]
+  );
+  const translatedTemperatureCategoryOptions = useMemo(
+    () =>
+      temperatureCategoryOptions.map(option => ({
+        ...option,
+        label: t(
+          `surplusForm.temperatureCategoryValues.${option.value}`,
+          option.label
+        ),
+      })),
+    [t]
+  );
+  const translatedPackagingTypeOptions = useMemo(
+    () =>
+      packagingTypeOptions.map(option => ({
+        ...option,
+        label: t(
+          `surplusForm.packagingTypeValues.${option.value}`,
+          option.label
+        ),
+      })),
+    [t]
+  );
 
   const formatDate = date => {
-    if (!date) {
-      return '';
-    }
-    try {
-      // Handle both Date objects and date strings
-      const dateObj = date instanceof Date ? date : new Date(date);
-      return dateObj.toISOString().split('T')[0];
-    } catch (error) {
-      console.error('Error formatting date:', date, error);
-      return '';
-    }
+    return toLocalDateInputValue(date);
   };
 
   const formatTime = date => {
@@ -84,36 +128,22 @@ const SurplusFormModal = ({
       return '';
     }
   };
-
-  // Calculate expiry date based on food category shelf life rules
-  const calculateExpiryDate = (fabricationDate, foodCategories) => {
-    if (!fabricationDate) {
-      return '';
-    }
-
-    // Shelf-life mapping (in days) - matches backend rules
-    const shelfLifeMap = {
-      PREPARED_MEALS: 3,
-      BAKERY_PASTRY: 3,
-      FRUITS_VEGETABLES: 7,
-      DAIRY_COLD: 10,
-      FROZEN: 30,
-      PACKAGED_PANTRY: 90,
-    };
-
-    // Get minimum shelf life from selected categories
-    const minShelfLife = foodCategories.reduce((min, category) => {
-      const days = shelfLifeMap[category.value] || 7;
-      return Math.min(min, days);
-    }, Infinity);
-
-    const fabrication = new Date(fabricationDate);
-    const expiry = new Date(fabrication);
-    expiry.setDate(
-      expiry.getDate() + (minShelfLife === Infinity ? 7 : minShelfLife)
-    );
-    return expiry;
-  };
+  const selectedFoodType = formData.foodCategories?.[0]?.value || '';
+  const expirySuggestion = useMemo(
+    () =>
+      computeSuggestedExpiry({
+        foodType: selectedFoodType,
+        temperatureCategory: formData.temperatureCategory,
+        packagingType: formData.packagingType,
+        fabricationDate: formData.fabricationDate,
+      }),
+    [
+      selectedFoodType,
+      formData.temperatureCategory,
+      formData.packagingType,
+      formData.fabricationDate,
+    ]
+  );
 
   // Load existing post data in edit mode
   useEffect(() => {
@@ -125,13 +155,17 @@ const SurplusFormModal = ({
           const post = response.data;
 
           // Parse food categories
-          const categories = post.foodCategories.map(
-            cat =>
-              foodTypeOptions.find(opt => opt.value === cat) || {
-                value: cat,
-                label: cat,
+          const categories = post.foodCategories.map(cat => {
+            const mappedValue = mapLegacyCategoryToFoodType(cat);
+            return (
+              translatedFoodTypeOptions.find(
+                opt => opt.value === mappedValue
+              ) || {
+                value: mappedValue,
+                label: mappedValue,
               }
-          );
+            );
+          });
 
           // Parse dates
           const fabricationDate = post.fabricationDate
@@ -170,6 +204,9 @@ const SurplusFormModal = ({
             quantityValue: post.quantity?.value?.toString() || '',
             quantityUnit: post.quantity?.unit || 'KILOGRAM',
             foodCategories: categories,
+            dietaryTags: Array.isArray(post.dietaryTags)
+              ? [...new Set(post.dietaryTags)].slice(0, 10)
+              : [],
             fabricationDate: fabricationDate,
             expiryDate: expiryDate,
             calculatedExpiryDate: '',
@@ -184,6 +221,8 @@ const SurplusFormModal = ({
           });
 
           setPickupSlots(slots);
+          setExpiryTouched(true);
+          setSafetyAcknowledged(false);
           setIsLoading(false);
         })
         .catch(err => {
@@ -193,7 +232,7 @@ const SurplusFormModal = ({
           setIsLoading(false);
         });
     }
-  }, [editMode, postId, isOpen]);
+  }, [editMode, postId, isOpen, translatedFoodTypeOptions, t]);
 
   // Helper function to parse time string (HH:mm) to Date object for DatePicker
   const parseTimeToDate = timeString => {
@@ -207,47 +246,59 @@ const SurplusFormModal = ({
     return date;
   };
 
-  // Auto-calculate expiry date when fabrication date or food categories change (only in create mode)
+  const parseLocalDate = dateString => {
+    if (!dateString || typeof dateString !== 'string') {
+      return null;
+    }
+    const [year, month, day] = dateString.split('-').map(Number);
+    if (!year || !month || !day) {
+      return null;
+    }
+    return new Date(year, month - 1, day);
+  };
+
+  // Auto-fill expiry from suggestion until donor edits expiry manually.
   useEffect(() => {
-    if (
-      !editMode &&
-      formData.fabricationDate &&
-      formData.foodCategories.length > 0
-    ) {
-      const calculatedExpiry = calculateExpiryDate(
-        formData.fabricationDate,
-        formData.foodCategories
-      );
+    if (expiryTouched) {
+      return;
+    }
 
-      // Only update if the calculated date is different from current expiry
-      const currentExpiryStr = formData.expiryDate
-        ? formatDate(formData.expiryDate)
-        : '';
-      const calculatedExpiryStr = formatDate(calculatedExpiry);
-
-      if (currentExpiryStr !== calculatedExpiryStr) {
-        setFormData(prev => ({
+    if (!expirySuggestion.suggestedExpiryDate) {
+      setFormData(prev => {
+        if (!prev.calculatedExpiryDate) {
+          return prev;
+        }
+        return {
           ...prev,
-          calculatedExpiryDate: calculatedExpiry,
-          expiryDate: calculatedExpiry,
-        }));
-      }
-    } else if (
-      !editMode &&
-      (!formData.fabricationDate || formData.foodCategories.length === 0)
+          calculatedExpiryDate: '',
+        };
+      });
+      return;
+    }
+
+    const calculatedExpiry =
+      parseLocalDate(expirySuggestion.suggestedExpiryDate) ||
+      new Date(expirySuggestion.suggestedExpiryDate);
+    const currentExpiryStr = formData.expiryDate
+      ? formatDate(formData.expiryDate)
+      : '';
+    const currentCalculatedExpiryStr = formData.calculatedExpiryDate
+      ? formatDate(formData.calculatedExpiryDate)
+      : '';
+    if (
+      currentExpiryStr !== expirySuggestion.suggestedExpiryDate ||
+      currentCalculatedExpiryStr !== expirySuggestion.suggestedExpiryDate
     ) {
-      // Clear calculated dates if fabrication date or categories are missing
       setFormData(prev => ({
         ...prev,
-        calculatedExpiryDate: '',
-        expiryDate: '',
+        calculatedExpiryDate: calculatedExpiry,
+        expiryDate: calculatedExpiry,
       }));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    editMode,
-    formData.fabricationDate,
-    formData.foodCategories.map(c => c.value).join(','),
+    expirySuggestion.suggestedExpiryDate,
+    expiryTouched,
+    formData.expiryDate,
   ]);
 
   const handleChange = e => {
@@ -257,17 +308,63 @@ const SurplusFormModal = ({
 
   const onLoadAutocomplete = autocomplete => {
     autocompleteRef.current = autocomplete;
+
+    // Restrict to street addresses only (no cities, provinces, countries)
+    autocompleteRef.current.setOptions({
+      types: ['address'], // Only street-level addresses
+      fields: ['formatted_address', 'geometry', 'address_components'],
+    });
   };
 
   const onPlaceChanged = () => {
     if (autocompleteRef.current) {
       const place = autocompleteRef.current.getPlace();
+
+      // Validate that a place was actually selected
+      if (!place || !place.geometry) {
+        setError(t('surplusForm.errors.invalidAddress'));
+        return;
+      }
+
+      // Check address components for street number and route
+      const hasStreetNumber = place.address_components?.some(component =>
+        component.types.includes('street_number')
+      );
+
+      const hasRoute = place.address_components?.some(component =>
+        component.types.includes('route')
+      );
+
+      // Reject if missing street number or route
+      if (!hasStreetNumber || !hasRoute) {
+        setError(t('surplusForm.errors.requiresStreetAddress'));
+        setFormData(prev => ({
+          ...prev,
+          pickupLocation: {
+            latitude: '',
+            longitude: '',
+            address: '',
+            country: '',
+          },
+        }));
+        return;
+      }
+
+      // Extract country from address components (full country name)
+      const countryComponent = place.address_components?.find(component =>
+        component.types.includes('country')
+      );
+      const country = countryComponent?.long_name || null;
+
+      // Valid address - set location with country
       const location = {
-        latitude: place.geometry?.location?.lat() || '',
-        longitude: place.geometry?.location?.lng() || '',
+        latitude: place.geometry.location.lat(),
+        longitude: place.geometry.location.lng(),
         address: place.formatted_address || place.name || '',
+        country: country,
       };
       setFormData(prev => ({ ...prev, pickupLocation: location }));
+      setError(''); // Clear any previous errors
     }
   };
 
@@ -295,6 +392,45 @@ const SurplusFormModal = ({
     setPickupSlots(updatedSlots);
   };
 
+  const toggleDietaryTag = tagValue => {
+    setFormData(prev => {
+      const current = Array.isArray(prev.dietaryTags) ? prev.dietaryTags : [];
+      if (current.includes(tagValue)) {
+        return {
+          ...prev,
+          dietaryTags: current.filter(tag => tag !== tagValue),
+        };
+      }
+      if (current.length >= 10) {
+        setError(t('surplusForm.maxDietaryTags'));
+        return prev;
+      }
+      return {
+        ...prev,
+        dietaryTags: [...current, tagValue],
+      };
+    });
+  };
+
+  const handleDonationPhotoChange = e => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      return;
+    }
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type.toLowerCase())) {
+      setPhotoError('Only JPEG, PNG, and WEBP images are allowed.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setPhotoError('Image size must be 5MB or less.');
+      return;
+    }
+    setPhotoError('');
+    setDonationPhotoFile(file);
+    setDonationPhotoPreview(URL.createObjectURL(file));
+  };
+
   const handleSubmit = async e => {
     e.preventDefault();
     setMessage('');
@@ -309,15 +445,22 @@ const SurplusFormModal = ({
         notes: slot.notes || null,
       }));
 
+      const selectedFoodTypes = Array.isArray(formData.foodCategories)
+        ? formData.foodCategories.map(fc => fc.value)
+        : [];
+      const dietaryTags = Array.isArray(formData.dietaryTags)
+        ? [...new Set(formData.dietaryTags)].slice(0, 10)
+        : [];
+
       const submissionData = {
         title: formData.title,
         quantity: {
           value: parseFloat(formData.quantityValue),
           unit: formData.quantityUnit,
         },
-        foodCategories: Array.isArray(formData.foodCategories)
-          ? formData.foodCategories.map(fc => fc.value)
-          : [],
+        foodType: selectedFoodTypes.length > 0 ? selectedFoodTypes[0] : null,
+        foodCategories: selectedFoodTypes.map(mapFoodTypeToLegacyCategory),
+        dietaryTags: dietaryTags,
         fabricationDate: formatDate(formData.fabricationDate),
         expiryDate: formatDate(formData.expiryDate),
         pickupSlots: formattedSlots,
@@ -342,6 +485,28 @@ const SurplusFormModal = ({
         response = await surplusAPI.create(submissionData);
         const createdPostId = response?.data?.id || 'unknown';
         setMessage(t('surplusForm.successCreated', { id: createdPostId }));
+        ga4Service.trackDonationCreated();
+      }
+
+      const savedPostId = response?.data?.id || postId;
+      if (donationPhotoFile) {
+        setUploadProgress(1);
+        const uploaded = await imageAPI.upload(
+          donationPhotoFile,
+          {
+            foodType:
+              selectedFoodTypes.length > 0 ? selectedFoodTypes[0] : null,
+            donationId: savedPostId,
+          },
+          progressEvent => {
+            const total = progressEvent.total || 1;
+            const percent = Math.round((progressEvent.loaded / total) * 100);
+            setUploadProgress(percent);
+          }
+        );
+        if (!uploaded?.data?.image?.id) {
+          console.warn('Donation photo upload completed without image id');
+        }
       }
 
       // Reset form only in create mode
@@ -351,6 +516,7 @@ const SurplusFormModal = ({
           quantityValue: '',
           quantityUnit: 'KILOGRAM',
           foodCategories: [],
+          dietaryTags: [],
           fabricationDate: '',
           expiryDate: '',
           calculatedExpiryDate: '',
@@ -368,7 +534,14 @@ const SurplusFormModal = ({
             notes: '',
           },
         ]);
+        setExpiryTouched(false);
+        setSafetyAcknowledged(false);
       }
+
+      setDonationPhotoFile(null);
+      setDonationPhotoPreview(null);
+      setUploadProgress(0);
+      setPhotoError('');
 
       setTimeout(() => {
         setMessage('');
@@ -381,34 +554,36 @@ const SurplusFormModal = ({
   };
 
   const handleCancel = () => {
-    const confirmMessage = editMode
-      ? t('surplusForm.cancelEditConfirm')
-      : t('surplusForm.cancelConfirm');
-    if (window.confirm(confirmMessage)) {
-      setCurrentStep(1);
-      setFormData({
-        title: '',
-        quantityValue: '',
-        quantityUnit: 'KILOGRAM',
-        foodCategories: [],
-        fabricationDate: '',
-        expiryDate: '',
-        calculatedExpiryDate: '',
-        pickupLocation: { latitude: '', longitude: '', address: '' },
-        description: '',
-        temperatureCategory: '',
-        packagingType: '',
-      });
-      setPickupSlots([
-        {
-          pickupDate: '',
-          startTime: '',
-          endTime: '',
-          notes: '',
-        },
-      ]);
-      onClose();
-    }
+    setCurrentStep(1);
+    setFormData({
+      title: '',
+      quantityValue: '',
+      quantityUnit: 'KILOGRAM',
+      foodCategories: [],
+      dietaryTags: [],
+      fabricationDate: '',
+      expiryDate: '',
+      calculatedExpiryDate: '',
+      pickupLocation: { latitude: '', longitude: '', address: '' },
+      description: '',
+      temperatureCategory: '',
+      packagingType: '',
+    });
+    setPickupSlots([
+      {
+        pickupDate: '',
+        startTime: '',
+        endTime: '',
+        notes: '',
+      },
+    ]);
+    setExpiryTouched(false);
+    setSafetyAcknowledged(false);
+    setDonationPhotoFile(null);
+    setDonationPhotoPreview(null);
+    setUploadProgress(0);
+    setPhotoError('');
+    onClose();
   };
 
   // Validation for each step
@@ -417,6 +592,7 @@ const SurplusFormModal = ({
       case 1: // Food Details
         return (
           formData.title.trim() !== '' &&
+          formData.description.trim() !== '' &&
           formData.foodCategories.length > 0 &&
           formData.temperatureCategory !== '' &&
           formData.packagingType !== ''
@@ -426,19 +602,25 @@ const SurplusFormModal = ({
           formData.quantityValue !== '' &&
           parseFloat(formData.quantityValue) > 0 &&
           formData.fabricationDate !== '' &&
-          formData.expiryDate !== ''
+          formData.expiryDate !== '' &&
+          (expirySuggestion.eligible || safetyAcknowledged)
         );
-      case 3: // Pickup Info
+      case 3: {
+        // Pickup Info
+        const hasValidAddress =
+          formData.pickupLocation.address.trim() !== '' &&
+          formData.pickupLocation.latitude !== '' &&
+          formData.pickupLocation.longitude !== '';
+
         return (
           pickupSlots.every(
             slot =>
               slot.pickupDate !== '' &&
               slot.startTime !== '' &&
               slot.endTime !== ''
-          ) && formData.pickupLocation.address.trim() !== ''
+          ) && hasValidAddress
         );
-      case 4: // Description
-        return formData.description.trim() !== '';
+      }
       default:
         return false;
     }
@@ -476,11 +658,11 @@ const SurplusFormModal = ({
     { number: 1, label: t('surplusForm.steps.foodDetails') },
     { number: 2, label: t('surplusForm.steps.quantityDates') },
     { number: 3, label: t('surplusForm.steps.pickupInfo') },
-    { number: 4, label: t('surplusForm.steps.description') },
   ];
 
   return (
     <div className="modal-overlay" onClick={handleCancel}>
+      <SEOHead noindex />
       <div className="modal-container" onClick={e => e.stopPropagation()}>
         <div className="surplus-modal-header">
           <h2>
@@ -559,6 +741,21 @@ const SurplusFormModal = ({
                     />
                   </div>
 
+                  <div className="form-section">
+                    <label className="input-label">
+                      {t('surplusForm.descriptionLabel')} *
+                    </label>
+                    <textarea
+                      name="description"
+                      value={formData.description}
+                      onChange={handleChange}
+                      className="input-field textarea"
+                      placeholder={t('surplusForm.descriptionPlaceholder')}
+                      rows="3"
+                      required
+                    />
+                  </div>
+
                   {/* Categories */}
                   <div className="form-section">
                     <label className="input-label">
@@ -566,7 +763,7 @@ const SurplusFormModal = ({
                     </label>
                     <Select
                       isMulti
-                      options={foodTypeOptions}
+                      options={translatedFoodTypeOptions}
                       value={formData.foodCategories}
                       onChange={selected =>
                         setFormData(prev => ({
@@ -580,6 +777,28 @@ const SurplusFormModal = ({
                     />
                   </div>
 
+                  <div className="form-section">
+                    <label className="input-label">
+                      {t('surplusForm.dietaryTagsLabel')}{' '}
+                      {t('surplusForm.dietaryTagsOptional')}
+                    </label>
+                    <div className="dietary-chip-group">
+                      {translatedDietaryTagOptions.map(tag => {
+                        const active = formData.dietaryTags.includes(tag.value);
+                        return (
+                          <button
+                            type="button"
+                            key={tag.value}
+                            className={`dietary-chip ${active ? 'active' : ''}`}
+                            onClick={() => toggleDietaryTag(tag.value)}
+                          >
+                            {tag.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   {/* Food Safety Compliance */}
                   <div className="form-section row-group">
                     <div className="input-group half-width">
@@ -588,8 +807,8 @@ const SurplusFormModal = ({
                       </label>
                       <Select
                         name="temperatureCategory"
-                        options={temperatureCategoryOptions}
-                        value={temperatureCategoryOptions.find(
+                        options={translatedTemperatureCategoryOptions}
+                        value={translatedTemperatureCategoryOptions.find(
                           opt => opt.value === formData.temperatureCategory
                         )}
                         onChange={selected =>
@@ -615,8 +834,8 @@ const SurplusFormModal = ({
                       </label>
                       <Select
                         name="packagingType"
-                        options={packagingTypeOptions}
-                        value={packagingTypeOptions.find(
+                        options={translatedPackagingTypeOptions}
+                        value={translatedPackagingTypeOptions.find(
                           opt => opt.value === formData.packagingType
                         )}
                         onChange={selected =>
@@ -633,6 +852,43 @@ const SurplusFormModal = ({
                         {t('surplusForm.packagingTypeHelp')}
                       </span>
                     </div>
+                  </div>
+
+                  <div className="form-section">
+                    <label className="input-label">
+                      Donation Photo (Optional)
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/webp"
+                      onChange={handleDonationPhotoChange}
+                      className="input-field"
+                    />
+                    <span className="input-help-text">
+                      Upload JPEG/PNG/WEBP, max 5MB. Admin approval is required
+                      before receiver display.
+                    </span>
+                    {photoError && (
+                      <div className="error-message">{photoError}</div>
+                    )}
+                    {donationPhotoPreview && (
+                      <img
+                        src={donationPhotoPreview}
+                        alt="Donation preview"
+                        style={{
+                          width: '100%',
+                          maxHeight: '180px',
+                          objectFit: 'cover',
+                          borderRadius: '10px',
+                          marginTop: '0.75rem',
+                        }}
+                      />
+                    )}
+                    {uploadProgress > 0 && uploadProgress < 100 && (
+                      <div className="input-help-text">
+                        Upload progress: {uploadProgress}%
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -724,23 +980,68 @@ const SurplusFormModal = ({
                       </label>
                       <DatePicker
                         selected={formData.expiryDate}
-                        onChange={date =>
-                          setFormData(prev => ({ ...prev, expiryDate: date }))
-                        }
+                        onChange={date => {
+                          setExpiryTouched(true);
+                          setFormData(prev => ({ ...prev, expiryDate: date }));
+                        }}
                         minDate={formData.fabricationDate || new Date()}
                         dateFormat="yyyy-MM-dd"
                         className="input-field"
                         placeholderText={t('surplusForm.expiryDatePlaceholder')}
                         required
                       />
-                      {formData.calculatedExpiryDate &&
-                        formData.fabricationDate && (
-                          <span className="input-help-text">
-                            {t('surplusForm.expiryDateSuggestion', {
-                              date: formatDate(formData.calculatedExpiryDate),
-                            })}
-                          </span>
-                        )}
+                      {expirySuggestion.suggestedExpiryDate && (
+                        <span className="input-help-text">
+                          {t('surplusForm.expiryDateSuggestionRule', {
+                            date: expirySuggestion.suggestedExpiryDate,
+                            foodType: t(
+                              `surplusForm.foodTypeValues.${selectedFoodType}`,
+                              getFoodTypeLabel(selectedFoodType)
+                            ),
+                            temperature: t(
+                              `surplusForm.temperatureCategoryValues.${formData.temperatureCategory}`,
+                              getTemperatureCategoryLabel(
+                                formData.temperatureCategory
+                              )
+                            ),
+                          })}
+                        </span>
+                      )}
+                      <div
+                        className={`eligibility-badge ${
+                          expirySuggestion.eligible
+                            ? 'eligible'
+                            : 'not-eligible'
+                        }`}
+                      >
+                        {expirySuggestion.eligible
+                          ? t('surplusForm.eligibilityEligible')
+                          : t('surplusForm.eligibilityNotEligible')}
+                      </div>
+                      {expirySuggestion.warnings.length > 0 && (
+                        <ul className="expiry-warning-list">
+                          {expirySuggestion.warnings.map(warning => (
+                            <li key={warning}>
+                              {t(
+                                `surplusForm.expiryWarnings.${warning}`,
+                                warning
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      {!expirySuggestion.eligible && (
+                        <label className="safety-acknowledgement">
+                          <input
+                            type="checkbox"
+                            checked={safetyAcknowledged}
+                            onChange={event =>
+                              setSafetyAcknowledged(event.target.checked)
+                            }
+                          />
+                          <span>{t('surplusForm.confirmSafetyOverride')}</span>
+                        </label>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -899,27 +1200,6 @@ const SurplusFormModal = ({
                         required
                       />
                     </Autocomplete>
-                  </div>
-                </div>
-              )}
-
-              {/* Step 4: Description */}
-              {currentStep === 4 && (
-                <div className="form-step-content">
-                  {/* Description */}
-                  <div className="form-section">
-                    <label className="input-label">
-                      {t('surplusForm.descriptionLabel')} *
-                    </label>
-                    <textarea
-                      name="description"
-                      value={formData.description}
-                      onChange={handleChange}
-                      className="input-field textarea"
-                      placeholder={t('surplusForm.descriptionPlaceholder')}
-                      rows="4"
-                      required
-                    />
                   </div>
                 </div>
               )}

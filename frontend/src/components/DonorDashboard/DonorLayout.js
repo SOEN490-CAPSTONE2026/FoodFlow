@@ -9,8 +9,8 @@ import {
 import { useTranslation } from 'react-i18next';
 import {
   Home,
-  LayoutGrid,
   Heart,
+  Award,
   Mail,
   ChevronRight,
   ChevronLeft,
@@ -20,11 +20,14 @@ import {
   LogOut,
   Menu,
   X,
+  BarChart3,
+  Building2,
 } from 'lucide-react';
 import { AuthContext } from '../../contexts/AuthContext';
 import Logo from '../../assets/Logo_White.png';
 import './Donor_Styles/DonorLayout.css';
 import MessageNotification from '../MessagingDashboard/MessageNotification';
+import AchievementNotification from '../shared/AchievementNotification';
 import EmailVerificationRequired from '../EmailVerificationRequired';
 import AdminApprovalBanner from '../AdminApprovalBanner';
 import { connectToUserQueue, disconnect } from '../../services/socket';
@@ -43,6 +46,7 @@ export default function DonorLayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const menuRef = useRef(null);
   const [notification, setNotification] = useState(null);
+  const [achievementNotification, setAchievementNotification] = useState(null);
   const [profilePhotoUrl, setProfilePhotoUrl] = useState(null);
 
   const pageTitle = (() => {
@@ -52,12 +56,21 @@ export default function DonorLayout() {
         return t('donorLayout.pageTitles.donorDashboard');
       case '/donor/list':
         return t('donorLayout.pageTitles.donateNow');
+      case '/donor/impact':
+        return t('donorLayout.pageTitles.impact', 'Impact Dashboard');
+      case '/donor/achievements':
+        return t('donorLayout.pageTitles.achievements', 'Achievements');
       case '/donor/messages':
         return t('donorLayout.pageTitles.messages');
       case '/donor/settings':
         return t('donorLayout.pageTitles.settings');
       case '/donor/help':
         return t('donorLayout.pageTitles.help');
+      case '/donor/suggest-business':
+        return t(
+          'donorLayout.pageTitles.suggestBusiness',
+          'Suggest a Business'
+        );
       default:
         return t('donorLayout.pageTitles.donor');
     }
@@ -70,12 +83,27 @@ export default function DonorLayout() {
         return t('donorLayout.pageDescriptions.donorDashboard');
       case '/donor/list':
         return t('donorLayout.pageDescriptions.donateNow');
+      case '/donor/impact':
+        return t(
+          'donorLayout.pageDescriptions.impact',
+          'View your environmental and social impact'
+        );
+      case '/donor/achievements':
+        return t(
+          'donorLayout.pageDescriptions.achievements',
+          'View your achievements and badges'
+        );
       case '/donor/messages':
         return t('donorLayout.pageDescriptions.messages');
       case '/donor/settings':
         return t('donorLayout.pageDescriptions.settings');
       case '/donor/help':
         return t('donorLayout.pageDescriptions.help');
+      case '/donor/suggest-business':
+        return t(
+          'donorLayout.pageDescriptions.suggestBusiness',
+          'Suggest a business to join FoodFlow as a food donor'
+        );
       default:
         return t('donorLayout.pageDescriptions.donorPortal');
     }
@@ -183,7 +211,63 @@ export default function DonorLayout() {
       });
     };
 
-    connectToUserQueue(onMessage, onClaimNotification, onClaimCancelled);
+    const onAchievementUnlocked = payload => {
+      // Handle achievement unlock notifications
+      console.log('DONOR: Achievement unlocked:', payload);
+      setAchievementNotification(payload);
+    };
+
+    const onReviewReceived = payload => {
+      console.log('DONOR: Review received:', payload);
+      // Show a notification to the donor that they received a review
+      if (payload.rating) {
+        const stars = '⭐'.repeat(payload.rating);
+        setNotification({
+          senderName: payload.reviewerName || 'Receiver',
+          message: `left you a ${payload.rating}-star review ${stars}`,
+        });
+      }
+    };
+
+    const onDonationExpired = payload => {
+      console.log('DONOR: Donation expired:', payload);
+      const message = `Your donation "${payload.title}" has expired and been removed from listings.`;
+      setNotification({
+        senderName: t('donorLayout.notifications.donationExpired'),
+        message,
+      });
+    };
+
+    const onDonationStatusUpdated = payload => {
+      console.log('DONOR: Donation status updated by admin:', payload);
+      setNotification({
+        senderName: t('donorLayout.notifications.donationStatusUpdated'),
+        message: payload.message,
+      });
+    };
+
+    const onVerificationApproved = payload => {
+      console.log('DONOR: Verification approved:', payload);
+      setNotification({
+        senderName: t('donorLayout.notifications.verificationApproved'),
+        message: payload.message,
+      });
+    };
+
+    connectToUserQueue(
+      onMessage,
+      onClaimNotification,
+      onClaimCancelled,
+      null, // no new post notifications for donors
+      onAchievementUnlocked,
+      onReviewReceived,
+      null, // no donation completion notifications for donors
+      null, // no donation ready for pickup for donors
+      onDonationExpired,
+      onDonationStatusUpdated,
+      null, // no donation status changed for donors
+      onVerificationApproved
+    );
     return () => {
       try {
         disconnect();
@@ -269,6 +353,7 @@ export default function DonorLayout() {
           <Link
             to="/donor"
             className={`donor-nav-link ${isActive('/donor') ? 'active' : ''}`}
+            data-tour="donor-nav-home"
             data-tooltip={t('donorLayout.home')}
           >
             <span className="nav-icon" aria-hidden>
@@ -278,19 +363,9 @@ export default function DonorLayout() {
           </Link>
 
           <Link
-            to="/donor/dashboard"
-            className={`donor-nav-link ${isActive('/donor/dashboard') ? 'active' : ''}`}
-            data-tooltip={t('donorLayout.dashboard')}
-          >
-            <span className="nav-icon" aria-hidden>
-              <LayoutGrid size={18} className="lucide" />
-            </span>
-            {t('donorLayout.dashboard')}
-          </Link>
-
-          <Link
             to="/donor/list"
             className={`donor-nav-link ${isActive('/donor/list') ? 'active' : ''}`}
+            data-tour="donor-nav-donate"
             data-tooltip={t('donorLayout.donateNow')}
           >
             <span className="nav-icon" aria-hidden>
@@ -300,8 +375,20 @@ export default function DonorLayout() {
           </Link>
 
           <Link
+            to="/donor/achievements"
+            className={`donor-nav-link ${isActive('/donor/achievements') ? 'active' : ''}`}
+            data-tooltip={t('donorLayout.achievements', 'Achievements')}
+          >
+            <span className="nav-icon" aria-hidden>
+              <Award size={18} className="lucide" />
+            </span>
+            {t('donorLayout.achievements', 'Achievements')}
+          </Link>
+
+          <Link
             to="/donor/messages"
             className={`donor-nav-link ${isActive('/donor/messages') ? 'active' : ''}`}
+            data-tour="donor-nav-messages"
             data-tooltip={t('donorLayout.messages')}
           >
             <span className="nav-icon" aria-hidden>
@@ -309,12 +396,39 @@ export default function DonorLayout() {
             </span>
             {t('donorLayout.messages')}
           </Link>
+
+          <Link
+            to="/donor/impact"
+            className={`donor-nav-link ${isActive('/donor/impact') ? 'active' : ''}`}
+            data-tour="donor-nav-impact"
+            data-tooltip={t('donorLayout.impact', 'Impact Dashboard')}
+          >
+            <span className="nav-icon" aria-hidden>
+              <BarChart3 size={18} className="lucide" />
+            </span>
+            {t('donorLayout.impact', 'Impact')}
+          </Link>
+
+          <Link
+            to="/donor/suggest-business"
+            className={`donor-nav-link ${isActive('/donor/suggest-business') ? 'active' : ''}`}
+            data-tooltip={t(
+              'donorLayout.suggestBusiness',
+              'Suggest a Business'
+            )}
+          >
+            <span className="nav-icon" aria-hidden>
+              <Building2 size={18} className="lucide" />
+            </span>
+            {t('donorLayout.suggestBusiness', 'Suggest Business')}
+          </Link>
         </nav>
 
         <div className="donor-nav-bottom">
           <Link
             to="/donor/settings"
             className={`donor-nav-link ${isActive('/donor/settings') ? 'active' : ''}`}
+            data-tour="donor-nav-settings"
             data-tooltip={t('donorLayout.settings')}
           >
             <span className="nav-icon" aria-hidden>
@@ -351,10 +465,13 @@ export default function DonorLayout() {
               ></div>
               <div className="account-text">
                 <span className="account-name">
-                  {organizationName || 'Donor'}
+                  {organizationName ||
+                    t('donorLayout.pageTitles.donor', 'Donor')}
                 </span>
                 <span className="account-role">
-                  {role?.toLowerCase() || 'donor'}
+                  {role
+                    ? t(`roles.${role.toLowerCase()}`, role)
+                    : t('donorLayout.pageTitles.donor', 'Donor')}
                 </span>
               </div>
             </button>
@@ -410,6 +527,13 @@ export default function DonorLayout() {
                 <MessageNotification
                   notification={notification}
                   onClose={() => setNotification(null)}
+                />
+              )}
+
+              {achievementNotification && (
+                <AchievementNotification
+                  achievement={achievementNotification}
+                  onClose={() => setAchievementNotification(null)}
                 />
               )}
             </section>

@@ -209,7 +209,7 @@ export default function DonorWelcome() {
             <Star size={24} strokeWidth={2} fill="currentColor" />
           </div>
           <div className="stat-content">
-            <div className="stat-label">Your Rating</div>
+            <div className="stat-label">{t('donorWelcome.yourRating')}</div>
             <div className="stat-value">
               {stats.totalReviews > 0 ? (
                 <>

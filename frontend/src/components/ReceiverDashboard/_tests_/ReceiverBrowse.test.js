@@ -7,7 +7,12 @@ import {
   act,
 } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { surplusAPI, recommendationAPI } from '../../../services/api';
+import { MemoryRouter } from 'react-router-dom';
+import {
+  surplusAPI,
+  recommendationAPI,
+  savedDonationAPI,
+} from '../../../services/api';
 import { TimezoneProvider } from '../../../contexts/TimezoneContext';
 
 // Helper function to render with required providers
@@ -18,7 +23,9 @@ const renderWithProviders = (ui, options = {}) => {
   };
 
   return render(
-    <TimezoneProvider value={mockTimezoneContext}>{ui}</TimezoneProvider>,
+    <MemoryRouter>
+      <TimezoneProvider value={mockTimezoneContext}>{ui}</TimezoneProvider>
+    </MemoryRouter>,
     options
   );
 };
@@ -55,6 +62,10 @@ jest.mock('@react-google-maps/api', () => ({
 // Mock FiltersPanel
 jest.mock('../FiltersPanel', () => {
   return function MockFiltersPanel(props) {
+    if (!props.isVisible) {
+      return null;
+    }
+
     return (
       <div data-testid="filters-panel">
         <button onClick={props.onApplyFilters}>Apply Filters</button>
@@ -66,6 +77,39 @@ jest.mock('../FiltersPanel', () => {
           }
         >
           Change Food Type
+        </button>
+      </div>
+    );
+  };
+});
+
+jest.mock('../DonationsMap/MapViewBanner', () => {
+  return function MockMapViewBanner({ onOpenMap }) {
+    return (
+      <button type="button" onClick={onOpenMap}>
+        Open Map
+      </button>
+    );
+  };
+});
+
+jest.mock('../DonationsMap/MapViewModal', () => {
+  return function MockMapViewModal({
+    isOpen,
+    onClose,
+    onClaimClick,
+    donations,
+  }) {
+    if (!isOpen) {
+      return null;
+    }
+    return (
+      <div data-testid="map-modal">
+        <button type="button" onClick={onClose}>
+          Close Map
+        </button>
+        <button type="button" onClick={() => onClaimClick(donations?.[0])}>
+          Claim From Map
         </button>
       </div>
     );
@@ -97,15 +141,24 @@ const createMockDonation = (overrides = {}) => ({
 describe('ReceiverBrowse Component', () => {
   let ReceiverBrowse;
 
+  const setViewportWidth = width => {
+    window.innerWidth = width;
+    window.dispatchEvent(new Event('resize'));
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     global.alert.mockClear();
     global.confirm.mockClear();
+    setViewportWidth(1024);
 
     // Set default mock implementations - no need for mockReset as clearAllMocks handles it
     surplusAPI.list.mockResolvedValue({ data: [] });
     surplusAPI.search.mockResolvedValue({ data: [] });
     surplusAPI.claim.mockResolvedValue({});
+    savedDonationAPI.getSavedDonations.mockResolvedValue({ data: [] });
+    savedDonationAPI.save.mockResolvedValue({});
+    savedDonationAPI.unsave.mockResolvedValue({});
     recommendationAPI.getBrowseRecommendations.mockResolvedValue({});
     recommendationAPI.getRecommendationForPost.mockResolvedValue(null);
     recommendationAPI.getTopRecommendations.mockResolvedValue([]);
@@ -486,6 +539,33 @@ describe('ReceiverBrowse Component', () => {
       });
     });
 
+    test('keeps filters closed by default on mobile and allows reopening', async () => {
+      setViewportWidth(390);
+      surplusAPI.list.mockResolvedValue({ data: [] });
+
+      await act(async () => {
+        renderWithProviders(<ReceiverBrowse />);
+      });
+
+      expect(screen.queryByTestId('filters-panel')).not.toBeInTheDocument();
+
+      const toggleButton = screen.getByRole('button', {
+        name: /filter donations|filters/i,
+      });
+
+      await act(async () => {
+        fireEvent.click(toggleButton);
+      });
+
+      expect(screen.getByTestId('filters-panel')).toBeInTheDocument();
+
+      await act(async () => {
+        fireEvent.click(toggleButton);
+      });
+
+      expect(screen.queryByTestId('filters-panel')).not.toBeInTheDocument();
+    });
+
     // Test removed due to flakiness in CI environment - timing-dependent test with inconsistent behavior
     // between local and CI environments regarding TimezoneProvider initialization
   });
@@ -507,6 +587,123 @@ describe('ReceiverBrowse Component', () => {
       });
 
       expect(bookmarkBtn).toBeInTheDocument();
+    });
+
+    test('saves then unsaves when clicked twice', async () => {
+      const donation = createMockDonation({ id: 55 });
+      surplusAPI.list.mockResolvedValue({ data: [donation] });
+      savedDonationAPI.getSavedDonations.mockResolvedValue({ data: [] });
+
+      await act(async () => {
+        renderWithProviders(<ReceiverBrowse />);
+      });
+
+      const bookmarkBtn = await screen.findByLabelText('Bookmark');
+      fireEvent.click(bookmarkBtn);
+
+      await waitFor(() => {
+        expect(savedDonationAPI.save).toHaveBeenCalledWith(55);
+      });
+
+      await waitFor(() => {
+        expect(bookmarkBtn).not.toBeDisabled();
+      });
+
+      fireEvent.click(bookmarkBtn);
+      await waitFor(() => {
+        expect(savedDonationAPI.unsave).toHaveBeenCalledWith(55);
+      });
+    });
+
+    test('restores bookmark and alerts on save error', async () => {
+      const donation = createMockDonation({ id: 77 });
+      surplusAPI.list.mockResolvedValue({ data: [donation] });
+      savedDonationAPI.save.mockRejectedValueOnce(new Error('save failed'));
+
+      await act(async () => {
+        renderWithProviders(<ReceiverBrowse />);
+      });
+
+      const bookmarkBtn = await screen.findByLabelText('Bookmark');
+      fireEvent.click(bookmarkBtn);
+
+      await waitFor(() => {
+        expect(savedDonationAPI.save).toHaveBeenCalledWith(77);
+        expect(global.alert).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('Claim Modal Branch', () => {
+    test('opens pickup-slot modal and confirms claim with selected slot', async () => {
+      const donation = createMockDonation({
+        id: 88,
+        pickupSlots: [
+          {
+            pickupDate: '2025-11-20',
+            startTime: '09:00:00',
+            endTime: '11:00:00',
+          },
+          {
+            pickupDate: '2025-11-21',
+            startTime: '14:00:00',
+            endTime: '16:00:00',
+          },
+        ],
+      });
+      surplusAPI.list.mockResolvedValue({ data: [donation] });
+
+      await act(async () => {
+        renderWithProviders(<ReceiverBrowse />);
+      });
+
+      fireEvent.click(await screen.findByText('Claim Donation'));
+      expect(
+        await screen.findByText('Choose a pickup slot')
+      ).toBeInTheDocument();
+
+      const radios = screen.getAllByRole('radio');
+      fireEvent.click(radios[1]);
+      fireEvent.click(
+        document.querySelector('.claim-modal-actions .btn-create')
+      );
+
+      await waitFor(() => {
+        expect(surplusAPI.claim).toHaveBeenCalledWith(
+          88,
+          expect.objectContaining({
+            pickupDate: '2025-11-21',
+            startTime: '14:00:00',
+            endTime: '16:00:00',
+          })
+        );
+      });
+    });
+
+    test('switches to map browse mode and triggers claim from map section', async () => {
+      const donation = createMockDonation({
+        id: 89,
+        pickupSlots: [
+          {
+            pickupDate: '2025-11-22',
+            startTime: '10:00:00',
+            endTime: '12:00:00',
+          },
+        ],
+      });
+      surplusAPI.list.mockResolvedValue({ data: [donation] });
+
+      await act(async () => {
+        renderWithProviders(<ReceiverBrowse />);
+      });
+
+      fireEvent.click(await screen.findByRole('button', { name: 'Map' }));
+      expect(await screen.findByTestId('map-modal')).toBeInTheDocument();
+
+      fireEvent.click(screen.getByText('Claim From Map'));
+      expect(
+        await screen.findByText('Choose a pickup slot')
+      ).toBeInTheDocument();
     });
   });
 });

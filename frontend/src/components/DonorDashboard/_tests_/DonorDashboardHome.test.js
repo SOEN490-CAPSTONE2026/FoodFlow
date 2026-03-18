@@ -1,11 +1,16 @@
 import React from 'react';
 import { render, screen, within } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
 import DonorDashboardHome from '../DonorDashboardHome';
 
 describe('DonorDashboardHome', () => {
   test('renders empty state when no props provided', () => {
-    render(<DonorDashboardHome />);
+    render(
+      <MemoryRouter>
+        <DonorDashboardHome />
+      </MemoryRouter>
+    );
     expect(
       screen.getByRole('heading', { name: /dashboard/i })
     ).toBeInTheDocument();
@@ -44,7 +49,11 @@ describe('DonorDashboardHome', () => {
       ],
     };
 
-    render(<DonorDashboardHome stats={stats} chartData={chartData} />);
+    render(
+      <MemoryRouter>
+        <DonorDashboardHome stats={stats} chartData={chartData} />
+      </MemoryRouter>
+    );
 
     // Header
     expect(

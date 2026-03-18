@@ -1,4 +1,10 @@
-import React, { createContext, useState, useEffect, useCallback } from 'react';
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  useCallback,
+  useContext,
+} from 'react';
 import PropTypes from 'prop-types';
 import { onUnauthorized } from '../services/authEvents';
 
@@ -65,6 +71,18 @@ export const AuthProvider = ({ children }) => {
       null
     );
   });
+
+  // User object combining all user-related data
+  const user = isLoggedIn
+    ? {
+        id: userId,
+        role: role,
+        organizationName: organizationName,
+        organizationVerificationStatus: organizationVerificationStatus,
+        accountStatus: accountStatus,
+        languagePreference: localStorage.getItem('languagePreference') || 'en',
+      }
+    : null;
 
   useEffect(() => {
     const handleStorage = () => {
@@ -214,6 +232,7 @@ export const AuthProvider = ({ children }) => {
         organizationName,
         organizationVerificationStatus,
         accountStatus,
+        user,
         login,
         logout,
       }}
@@ -225,4 +244,13 @@ export const AuthProvider = ({ children }) => {
 
 AuthProvider.propTypes = {
   children: PropTypes.node.isRequired,
+};
+
+// Custom hook to use auth context
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };

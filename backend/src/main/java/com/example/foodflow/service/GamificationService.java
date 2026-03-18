@@ -1,8 +1,11 @@
 package com.example.foodflow.service;
 
+import com.example.foodflow.model.dto.AchievementNotificationDTO;
 import com.example.foodflow.model.dto.AchievementProgress;
 import com.example.foodflow.model.dto.AchievementResponse;
 import com.example.foodflow.model.dto.GamificationStatsResponse;
+import com.example.foodflow.model.dto.LeaderboardEntryDTO;
+import com.example.foodflow.model.dto.LeaderboardResponse;
 import com.example.foodflow.model.entity.Achievement;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.UserAchievement;
@@ -18,6 +21,10 @@ import com.example.foodflow.repository.UserAchievementRepository;
 import com.example.foodflow.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +49,7 @@ public class GamificationService {
     private final ClaimRepository claimRepository;
     private final MessageRepository messageRepository;
     private final ConversationRepository conversationRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     public GamificationService(UserRepository userRepository,
                               AchievementRepository achievementRepository,
@@ -49,7 +57,8 @@ public class GamificationService {
                               SurplusPostRepository surplusPostRepository,
                               ClaimRepository claimRepository,
                               MessageRepository messageRepository,
-                              ConversationRepository conversationRepository) {
+                              ConversationRepository conversationRepository,
+                              SimpMessagingTemplate messagingTemplate) {
         this.userRepository = userRepository;
         this.achievementRepository = achievementRepository;
         this.userAchievementRepository = userAchievementRepository;
@@ -57,6 +66,7 @@ public class GamificationService {
         this.claimRepository = claimRepository;
         this.messageRepository = messageRepository;
         this.conversationRepository = conversationRepository;
+        this.messagingTemplate = messagingTemplate;
     }
 
     /**
@@ -119,7 +129,14 @@ public class GamificationService {
                 user.setTotalPoints(currentPoints + achievement.getPointsValue());
                 userRepository.save(user);
 
-                logger.info("User {} unlocked achievement: {} (+{} points)", 
+                // Send WebSocket notification
+                sendAchievementNotification(user, userAchievement);
+
+                // Mark as notified
+                userAchievement.setNotified(true);
+                userAchievementRepository.save(userAchievement);
+
+                logger.info("User {} unlocked achievement: {} (+{} points)",
                     userId, achievement.getName(), achievement.getPointsValue());
             }
         }
@@ -269,10 +286,10 @@ public class GamificationService {
 
             case PICKUP_COUNT:
                 // Count completed claims - receiver claims with COMPLETED status
-                return (int) claimRepository.findAll().stream()
-                    .filter(claim -> claim.getReceiver().getId().equals(user.getId()) && 
-                                   claim.getStatus() == ClaimStatus.COMPLETED)
-                    .count();
+                return (int) claimRepository.findReceiverClaimsWithDetails(
+                    user.getId(),
+                    java.util.List.of(ClaimStatus.COMPLETED)
+                ).size();
 
             case MESSAGE_COUNT:
                 // Count messages sent by user
@@ -280,9 +297,146 @@ public class GamificationService {
                     .filter(message -> message.getSender().getId().equals(user.getId()))
                     .count();
 
+            case UNIQUE_PARTNER_COUNT:
+                // Count unique conversation partners the user has interacted with
+                return (int) conversationRepository.findByUserId(user.getId()).stream()
+                    .map(conversation -> conversation.getOtherParticipant(user.getId()).getId())
+                    .distinct()
+                    .count();
+
             default:
                 logger.warn("Unsupported criteria type for achievement checking: {}", criteriaType);
                 return 0;
+        }
+    }
+
+    /**
+     * Get leaderboard for a specific role (DONOR or RECEIVER).
+     * Returns top 10 users by points and current user's position if outside top 10.
+     * Results are cached for 5 minutes.
+     * 
+     * @param role User role to filter by (DONOR or RECEIVER)
+     * @param currentUserId Current authenticated user's ID
+     * @return LeaderboardResponse with top users and current user's entry
+     */
+    @Cacheable(value = "leaderboard", key = "#role + '_' + #currentUserId")
+    @Transactional(readOnly = true)
+    public LeaderboardResponse getLeaderboard(UserRole role, Long currentUserId) {
+        logger.info("Fetching leaderboard for role: {} and userId: {}", role, currentUserId);
+        
+        // Get top 10 users by role and points
+        PageRequest topTenRequest = PageRequest.of(0, 10, 
+            Sort.by(Sort.Direction.DESC, "totalPoints"));
+        
+        List<User> topUsers = userRepository.findByRole(role, topTenRequest).getContent();
+        
+        // Get total count of users in this role
+        long totalUsers = userRepository.countByRole(role);
+        
+        // Build top 10 leaderboard entries
+        List<LeaderboardEntryDTO> topEntries = new ArrayList<>();
+        boolean currentUserInTop10 = false;
+        
+        for (int i = 0; i < topUsers.size(); i++) {
+            User user = topUsers.get(i);
+            boolean isCurrentUser = user.getId().equals(currentUserId);
+            if (isCurrentUser) {
+                currentUserInTop10 = true;
+            }
+            
+            // Get display name: organization name if available, otherwise full name or email
+            String displayName = user.getEmail(); // fallback
+            if (user.getOrganization() != null && user.getOrganization().getName() != null) {
+                displayName = user.getOrganization().getName();
+            } else if (user.getFullName() != null && !user.getFullName().isEmpty()) {
+                displayName = user.getFullName();
+            }
+            
+            LeaderboardEntryDTO entry = new LeaderboardEntryDTO(
+                i + 1, // rank (1-based)
+                user.getId(),
+                displayName,
+                user.getTotalPoints() != null ? user.getTotalPoints() : 0,
+                isCurrentUser,
+                user.getProfilePhoto() // Add profile photo
+            );
+            topEntries.add(entry);
+        }
+        
+        // If current user is not in top 10, find their rank
+        LeaderboardEntryDTO currentUserEntry = null;
+        if (!currentUserInTop10) {
+            User currentUser = userRepository.findById(currentUserId)
+                .orElse(null);
+            
+            if (currentUser != null && currentUser.getRole() == role) {
+                // Count users with more points to determine rank
+                int userPoints = currentUser.getTotalPoints() != null ? currentUser.getTotalPoints() : 0;
+                long rank = userRepository.countByRoleAndTotalPointsGreaterThan(role, userPoints) + 1;
+                
+                // Get display name: organization name if available, otherwise full name or email
+                String displayName = currentUser.getEmail(); // fallback
+                if (currentUser.getOrganization() != null && currentUser.getOrganization().getName() != null) {
+                    displayName = currentUser.getOrganization().getName();
+                } else if (currentUser.getFullName() != null && !currentUser.getFullName().isEmpty()) {
+                    displayName = currentUser.getFullName();
+                }
+                
+                currentUserEntry = new LeaderboardEntryDTO(
+                    (int) rank,
+                    currentUser.getId(),
+                    displayName,
+                    userPoints,
+                    true,
+                    currentUser.getProfilePhoto() // Add profile photo
+                );
+            }
+        }
+        
+        LeaderboardResponse response = new LeaderboardResponse(
+            topEntries,
+            currentUserEntry,
+            (int) totalUsers,
+            LocalDateTime.now()
+        );
+        
+        logger.info("Leaderboard generated for role {}: {} top users, currentUser in top10: {}", 
+            role, topEntries.size(), currentUserInTop10);
+        
+        return response;
+    }
+
+    /**
+     * Send WebSocket notification when achievement is unlocked.
+     *
+     * @param user User who unlocked the achievement
+     * @param userAchievement The unlocked achievement
+     */
+    private void sendAchievementNotification(User user, UserAchievement userAchievement) {
+        try {
+            Achievement achievement = userAchievement.getAchievement();
+
+            AchievementNotificationDTO notification = new AchievementNotificationDTO(
+                achievement.getId(),
+                achievement.getName(),
+                achievement.getDescription(),
+                achievement.getIconName(), // Achievement entity uses 'iconName' field
+                achievement.getPointsValue(),
+                achievement.getCategory() != null ? achievement.getCategory().toString() : null,
+                userAchievement.getEarnedAt()
+            );
+
+            messagingTemplate.convertAndSendToUser(
+                user.getId().toString(),
+                "/queue/achievements",
+                notification
+            );
+
+            logger.info("Sent achievement notification to userId={} for achievement: {}",
+                user.getId(), achievement.getName());
+        } catch (Exception e) {
+            logger.error("Failed to send achievement notification to userId={}: {}",
+                user.getId(), e.getMessage());
         }
     }
 }

@@ -8,6 +8,32 @@ import DonorListFood from '../DonorListFood';
 import { surplusAPI } from '../../../services/api';
 import { AuthContext } from '../../../contexts/AuthContext';
 
+jest.mock('react-i18next', () => ({
+  useTranslation: () => {
+    const en = require('../../../locales/en.json');
+    const getValue = (obj, key) =>
+      key.split('.').reduce((acc, part) => acc?.[part], obj);
+
+    return {
+      t: (key, options) => {
+        const value = getValue(en, key);
+        if (typeof value === 'string') {
+          if (!options || typeof options !== 'object') {
+            return value;
+          }
+          return Object.entries(options).reduce(
+            (text, [k, v]) =>
+              text.replace(new RegExp(`{{${k}}}`, 'g'), String(v)),
+            value
+          );
+        }
+        return key;
+      },
+      i18n: { language: 'en' },
+    };
+  },
+}));
+
 // Mock the dependencies
 jest.mock('axios', () => ({
   get: jest.fn(),
@@ -24,13 +50,6 @@ jest.mock('@react-google-maps/api', () => ({
   }),
 }));
 
-jest.mock('../../../constants/foodConstants', () => ({
-  getFoodTypeLabel: value => value || '',
-  getUnitLabel: value => value || '',
-  getTemperatureCategoryLabel: value => value || '',
-  getTemperatureCategoryIcon: () => null,
-  getPackagingTypeLabel: value => value || '',
-}));
 jest.mock('../SurplusFormModal', () => {
   return function MockSurplusFormModal({ isOpen, onClose }) {
     return isOpen ? (
@@ -67,7 +86,27 @@ jest.mock('../../../services/api', () => ({
   },
 }));
 
+jest.mock('../../../contexts/OnboardingContext', () => ({
+  useOnboarding: () => ({
+    isDonorTutorialActive: false,
+    currentDonorTutorialStep: null,
+  }),
+}));
+
 jest.mock('../../../constants/foodConstants', () => ({
+  mapLegacyCategoryToFoodType: value => {
+    const mapping = {
+      FRUITS_VEGETABLES: 'PRODUCE',
+      BAKERY_PASTRY: 'BAKERY',
+      BAKERY_ITEMS: 'BAKERY',
+      PREPARED_MEALS: 'PREPARED',
+      DAIRY_COLD: 'DAIRY_EGGS',
+      FRESH_MEAT: 'MEAT_POULTRY',
+      FISH: 'SEAFOOD',
+      PACKAGED_PANTRY: 'PANTRY',
+    };
+    return mapping[value] || value;
+  },
   getFoodTypeLabel: value => {
     const mapping = {
       FRUITS_VEGETABLES: 'Fruits & Vegetables',
@@ -91,25 +130,30 @@ jest.mock('../../../constants/foodConstants', () => ({
     };
     return mapping[value] || value;
   },
+  getTemperatureCategoryLabel: value => value || '',
+  getTemperatureCategoryIcon: () => null,
+  getPackagingTypeLabel: value => value || '',
 }));
 
 jest.mock('lucide-react', () => ({
-  Calendar: () => 'CalendarIcon',
-  Clock: () => 'ClockIcon',
-  MapPin: () => 'MapPinIcon',
-  Edit: () => 'EditIcon',
-  Trash2: () => 'TrashIcon',
-  AlertTriangle: () => 'AlertIcon',
-  X: () => 'XIcon',
-  Package: () => 'PackageIcon',
-  ChevronDown: () => 'ChevronDownIcon',
-  Filter: () => 'FilterIcon',
-  Camera: () => 'CameraIcon',
-  Image: () => 'ImageIcon',
-  ChevronLeft: () => 'ChevronLeftIcon',
-  ChevronRight: () => 'ChevronRightIcon',
-  Upload: () => 'UploadIcon',
-  Star: () => 'StarIcon',
+  Calendar: () => <span>CalendarIcon</span>,
+  Clock: () => <span>ClockIcon</span>,
+  MapPin: () => <span>MapPinIcon</span>,
+  Edit: () => <span>EditIcon</span>,
+  Trash2: () => <span>TrashIcon</span>,
+  AlertTriangle: () => <span>AlertIcon</span>,
+  X: () => <span>XIcon</span>,
+  Package: () => <span>PackageIcon</span>,
+  ChevronDown: () => <span>ChevronDownIcon</span>,
+  Filter: () => <span>FilterIcon</span>,
+  Camera: () => <span>CameraIcon</span>,
+  Image: () => <span>ImageIcon</span>,
+  ChevronLeft: () => <span>ChevronLeftIcon</span>,
+  ChevronRight: () => <span>ChevronRightIcon</span>,
+  Upload: () => <span>UploadIcon</span>,
+  Star: () => <span>StarIcon</span>,
+  MessageCircle: () => <span>MessageCircleIcon</span>,
+  Sparkles: () => <span>SparklesIcon</span>,
 }));
 
 jest.mock('../../shared/DonationTimeline', () => {
@@ -293,9 +337,7 @@ describe('DonorListFood', () => {
     expect(quantityDiv).toHaveTextContent('5');
     expect(quantityDiv).toHaveTextContent('kg');
     expect(within(appleCard).getByText(/Available/i)).toBeInTheDocument();
-    expect(
-      within(appleCard).getByText(/Fruits & Vegetables/i)
-    ).toBeInTheDocument();
+    expect(within(appleCard).getByText(/Produce/i)).toBeInTheDocument();
   });
 
   test('displays donation details like time and location after loading data', async () => {
@@ -1483,7 +1525,9 @@ describe('DonorListFood', () => {
       setup();
 
       await waitFor(() => {
-        expect(screen.getByText(/edit/i)).toBeInTheDocument();
+        // Check for edit button using getAllByText since there are multiple "Edit" texts (button + icon)
+        const editElements = screen.getAllByText(/edit/i);
+        expect(editElements.length).toBeGreaterThan(0);
       });
     });
   });

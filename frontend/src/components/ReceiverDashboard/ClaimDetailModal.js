@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -10,15 +10,21 @@ import {
   Clock,
   MessageCircle,
   ChevronDown,
+  AlertTriangle,
   Star,
 } from 'lucide-react';
 import useGoogleMap from '../../hooks/useGoogleMaps';
 import ClaimedView from './ClaimedView';
-import CompletedView from './CompletedView';
 import ReadyForPickUpView from './ReadyForPickUpView';
 import DonationTimeline from '../shared/DonationTimeline';
 import FeedbackModal from '../FeedbackModal/FeedbackModal';
-import { surplusAPI, claimsAPI, reportAPI } from '../../services/api';
+import ReportUserModal from '../ReportUserModal';
+import {
+  surplusAPI,
+  claimsAPI,
+  reportAPI,
+  conversationAPI,
+} from '../../services/api';
 import {
   getPrimaryFoodCategory,
   foodTypeImages,
@@ -28,18 +34,54 @@ import {
   getPackagingTypeLabel,
 } from '../../constants/foodConstants';
 import { useTimezone } from '../../contexts/TimezoneContext';
+import { formatPickupWindowFromParts } from '../../utils/timezoneUtils';
+import { normalizeStatus } from '../../utils/statusUtils';
 import './Receiver_Styles/ClaimDetailModal.css';
 
 const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
   const { t } = useTranslation();
   const post = claim?.surplusPost;
+  const normalizedClaimStatus = normalizeStatus(claim?.status);
+  const normalizedPostStatus = normalizeStatus(post?.status);
+  const normalizedStatus = (() => {
+    if (normalizedClaimStatus && normalizedClaimStatus !== 'ACTIVE') {
+      return normalizedClaimStatus;
+    }
+    if (normalizedClaimStatus === 'ACTIVE') {
+      return normalizedPostStatus || 'CLAIMED';
+    }
+    return normalizedPostStatus || '';
+  })();
   const [showPickupSteps, setShowPickupSteps] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
   const [timeline, setTimeline] = useState([]);
   const [loadingTimeline, setLoadingTimeline] = useState(false);
   const [expandedTimeline, setExpandedTimeline] = useState(false);
+  const [, setExpressingInterest] = useState(false);
   const navigate = useNavigate();
   const { userTimezone } = useTimezone();
+  const getImageUrl = imageUrl => {
+    if (!imageUrl) {
+      return null;
+    }
+    if (
+      imageUrl.startsWith('http://') ||
+      imageUrl.startsWith('https://') ||
+      imageUrl.startsWith('data:')
+    ) {
+      return imageUrl;
+    }
+    const apiBaseUrl =
+      process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+    const backendBaseUrl = apiBaseUrl.endsWith('/api')
+      ? apiBaseUrl.slice(0, -4)
+      : apiBaseUrl.replace(/\/api$/, '');
+    if (imageUrl.startsWith('/api/files/')) {
+      return `${backendBaseUrl}${imageUrl}`;
+    }
+    return `${backendBaseUrl}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+  };
 
   // Reset timeline state when modal closes or claim changes
   useEffect(() => {
@@ -83,38 +125,14 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
       return t('claimDetail.notSpecified');
     }
     try {
-      // Backend sends LocalDateTime, treat as UTC by adding 'Z'
-      let fromDateStr = `${pickupDate}T${pickupFrom}`;
-      if (!fromDateStr.endsWith('Z') && !fromDateStr.includes('+')) {
-        fromDateStr = fromDateStr + 'Z';
-      }
-      let toDateStr = `${pickupDate}T${pickupTo}`;
-      if (!toDateStr.endsWith('Z') && !toDateStr.includes('+')) {
-        toDateStr = toDateStr + 'Z';
-      }
-
-      const fromDate = new Date(fromDateStr);
-      const toDate = new Date(toDateStr);
-
-      const dateStr = fromDate.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        timeZone: userTimezone,
-      });
-      const fromTime = fromDate.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-        timeZone: userTimezone,
-      });
-      const toTime = toDate.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-        timeZone: userTimezone,
-      });
-      return `${dateStr} ${fromTime}-${toTime}`;
+      return (
+        formatPickupWindowFromParts(
+          String(pickupDate),
+          String(pickupFrom),
+          String(pickupTo),
+          'en-US'
+        ) || t('claimDetail.notSpecified')
+      );
     } catch (error) {
       console.error('Error formatting pickup time:', error);
       return t('claimDetail.notSpecified');
@@ -129,27 +147,72 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
   });
 
   const getDisplayStatus = () => {
-    const postStatus = post?.status;
-    if (postStatus === 'READY_FOR_PICKUP') {
+    if (normalizedStatus === 'READY_FOR_PICKUP') {
       return t('claimDetail.status.readyForPickup');
     }
-    if (postStatus === 'COMPLETED') {
+    if (normalizedStatus === 'COMPLETED') {
       return t('claimDetail.status.completed');
     }
-    if (postStatus === 'NOT_COMPLETED') {
+    if (normalizedStatus === 'NOT_COMPLETED') {
       return t('claimDetail.status.notCompleted');
+    }
+    if (normalizedStatus === 'EXPIRED') {
+      return t('claimDetail.status.expired', 'Expired');
     }
     return t('claimDetail.status.claimed');
   };
 
+  const statusClassName = normalizedStatus
+    ? `claimed-status-${normalizedStatus.toLowerCase().replace(/_/g, '-')}`
+    : 'claimed-status-claimed';
+  const canViewPickupSteps = ['CLAIMED', 'READY_FOR_PICKUP'].includes(
+    normalizedStatus
+  );
+
   const handleViewPickupSteps = () => {
-    // Show pickup steps for Claimed, Ready for Pickup, and Completed statuses
+    if (normalizedStatus === 'EXPIRED') {
+      return;
+    }
     setShowPickupSteps(true);
   };
 
   const handleBackToDetails = () => {
     setShowPickupSteps(false);
   };
+
+  const handleReportSubmit = async reportData => {
+    try {
+      await reportAPI.createReport(reportData);
+      alert('Report submitted successfully! An admin will review it shortly.');
+      setShowReportModal(false);
+    } catch (error) {
+      console.error('Failed to submit report:', error);
+      alert('Failed to submit report. Please try again.');
+    }
+  };
+
+  const handleExpressInterest = useCallback(async () => {
+    if (!post?.id) {
+      return;
+    }
+
+    try {
+      setExpressingInterest(true);
+      const response = await conversationAPI.expressInterest(post.id);
+      const conversation = response.data;
+      navigate(`/receiver/messages?conversationId=${conversation.id}`);
+    } catch (err) {
+      console.error('Error expressing interest:', err);
+      alert(
+        t(
+          'claimDetail.failedToExpressInterest',
+          "Couldn't start conversation. Please try again."
+        )
+      );
+    } finally {
+      setExpressingInterest(false);
+    }
+  }, [post?.id, navigate, t]);
 
   if (!isOpen || !claim) {
     return null;
@@ -171,15 +234,14 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
           <div className="claimed-modal-header">
             <img
               src={
+                getImageUrl(post?.resolvedDonationImageUrl) ||
                 foodTypeImages[getPrimaryFoodCategory(post?.foodCategories)] ||
                 foodTypeImages['Prepared Meals']
               }
               alt={post?.title || t('claimDetail.defaultTitle')}
               className="claimed-modal-header-image"
             />
-            <span
-              className={`claimed-modal-status-badge claimed-status-${getDisplayStatus().toLowerCase().replace(' ', '-')}`}
-            >
+            <span className={`claimed-modal-status-badge ${statusClassName}`}>
               {getDisplayStatus()}
             </span>
             <div className="claimed-modal-header-overlay">
@@ -200,10 +262,7 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                 className="claimed-modal-chat-link"
                 onClick={e => {
                   e.preventDefault();
-                  // Navigate to chat with donor
-                  navigate(
-                    `/receiver/messages?recipientEmail=${encodeURIComponent(post?.donorEmail)}`
-                  );
+                  handleExpressInterest();
                 }}
                 title={t('claimDetail.chatWithDonor', {
                   name: post?.donorName || t('claimDetail.donor'),
@@ -359,22 +418,78 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
               </div>
 
               {/* Map using the hook */}
-              <div className="claimed-modal-map-container">
-                {post?.pickupLocation?.latitude &&
-                post?.pickupLocation?.longitude ? (
-                  <div ref={mapRef} className="claimed-modal-map-view" />
-                ) : (
-                  <div className="claimed-modal-map-placeholder">
-                    <MapPin size={48} />
-                    <p>{t('claimDetail.mapComingSoon')}</p>
-                    <p className="claimed-modal-map-address">
-                      {post?.pickupLocation?.address ||
-                        t('claimDetail.addressNotSpecified')}
-                    </p>
-                  </div>
-                )}
-              </div>
+              {!['COMPLETED', 'NOT_COMPLETED'].includes(normalizedStatus) && (
+                <div className="claimed-modal-map-container">
+                  {post?.pickupLocation?.latitude &&
+                  post?.pickupLocation?.longitude ? (
+                    <div ref={mapRef} className="claimed-modal-map-view" />
+                  ) : (
+                    <div className="claimed-modal-map-placeholder">
+                      <MapPin size={48} />
+                      <p>{t('claimDetail.mapComingSoon')}</p>
+                      <p className="claimed-modal-map-address">
+                        {post?.pickupLocation?.address ||
+                          t('claimDetail.addressNotSpecified')}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
+
+            {['COMPLETED', 'NOT_COMPLETED'].includes(normalizedStatus) && (
+              <div className="claim-detail-completed-inline">
+                <h4 className="claim-detail-completed-inline-title">
+                  {normalizedStatus === 'COMPLETED'
+                    ? t('completedView.donationClaimed', 'Donation Claimed!')
+                    : t(
+                        'completedView.pickupMissedTitle',
+                        'Pickup was missed, unfortunately.'
+                      )}
+                </h4>
+                <p className="claim-detail-completed-inline-description">
+                  {normalizedStatus === 'COMPLETED'
+                    ? t(
+                        'completedView.successMessage',
+                        'Your donation has been successfully claimed! Thank you for making a difference in your community.'
+                      )
+                    : t(
+                        'completedView.pickupMissedMessage',
+                        'This pickup was missed. Too bad, and thank you for trying to support your community.'
+                      )}
+                </p>
+                <div className="claim-detail-completed-inline-actions">
+                  <button
+                    className="claimed-modal-btn-report"
+                    onClick={() => setShowReportModal(true)}
+                  >
+                    <AlertTriangle size={16} />
+                    {t('completedView.reportDonor', 'Report Donor')}
+                  </button>
+                  {normalizedStatus === 'COMPLETED' && (
+                    <button
+                      className="claimed-modal-btn-feedback"
+                      onClick={() => setShowFeedbackModal(true)}
+                    >
+                      <Star size={16} />
+                      {t('completedView.leaveFeedback', 'Leave Feedback')}
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            {canViewPickupSteps && (
+              <div className="claimed-modal-actions">
+                <button
+                  className="claimed-modal-btn-primary"
+                  onClick={handleViewPickupSteps}
+                >
+                  {t('claimDetail.viewPickupSteps')}
+                </button>
+              </div>
+            )}
 
             {/* Timeline Section */}
             <div className="claimed-modal-timeline-section">
@@ -399,32 +514,9 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
                   <DonationTimeline
                     timeline={timeline}
                     loading={loadingTimeline}
+                    userTimezone={userTimezone || 'UTC'}
                   />
                 </div>
-              )}
-            </div>
-
-            {/* Action Buttons */}
-            <div className="claimed-modal-actions">
-              {(getDisplayStatus() === t('claimDetail.status.claimed') ||
-                getDisplayStatus() === t('claimDetail.status.readyForPickup') ||
-                getDisplayStatus() === t('claimDetail.status.completed') ||
-                getDisplayStatus() ===
-                  t('claimDetail.status.notCompleted')) && (
-                <>
-                  <button
-                    className="claimed-modal-btn-secondary"
-                    onClick={onClose}
-                  >
-                    {t('claimDetail.backToDetails')}
-                  </button>
-                  <button
-                    className="claimed-modal-btn-primary"
-                    onClick={handleViewPickupSteps}
-                  >
-                    {t('claimDetail.viewPickupSteps')}
-                  </button>
-                </>
               )}
             </div>
           </div>
@@ -432,17 +524,20 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
       </div>
 
       {/* Pickup Steps Modal */}
-      {getDisplayStatus() === t('claimDetail.status.claimed') ? (
+      {showPickupSteps && normalizedStatus === 'CLAIMED' && (
         <ClaimedView
           claim={claim}
           isOpen={showPickupSteps}
+          userTimezone={userTimezone || 'UTC'}
           onClose={() => {
             setShowPickupSteps(false);
             onClose();
           }}
           onBack={handleBackToDetails}
         />
-      ) : getDisplayStatus() === t('claimDetail.status.readyForPickup') ? (
+      )}
+
+      {showPickupSteps && normalizedStatus === 'READY_FOR_PICKUP' && (
         <ReadyForPickUpView
           claim={claim}
           isOpen={showPickupSteps}
@@ -452,18 +547,6 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
           }}
           onBack={handleBackToDetails}
         />
-      ) : (
-        <CompletedView
-          claim={claim}
-          isOpen={showPickupSteps}
-          onClose={() => {
-            setShowPickupSteps(false);
-            onClose();
-          }}
-          onBack={handleBackToDetails}
-          showFeedbackModal={showFeedbackModal}
-          setShowFeedbackModal={setShowFeedbackModal}
-        />
       )}
 
       <FeedbackModal
@@ -471,6 +554,17 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
         targetUser={post?.donor}
         isOpen={showFeedbackModal}
         onClose={() => setShowFeedbackModal(false)}
+      />
+
+      <ReportUserModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        reportedUser={{
+          id: post?.donorId,
+          name: post?.donorName || t('claimDetail.donor'),
+        }}
+        donationId={post?.id}
+        onSubmit={handleReportSubmit}
       />
     </>
   );

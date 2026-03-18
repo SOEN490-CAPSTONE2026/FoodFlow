@@ -27,10 +27,12 @@ public class FileStorageService {
     private static final List<String> ALLOWED_CONTENT_TYPES = Arrays.asList(
         "image/jpeg",
         "image/jpg",
-        "image/png"
+        "image/png",
+        "application/pdf",
+        "image/webp"
     );
 
-    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+    private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
     @Value("${file.upload.dir:uploads}")
     private String uploadDir;
@@ -51,8 +53,7 @@ public class FileStorageService {
         validateFile(file);
 
         // Generate unique filename
-        String originalFilename = file.getOriginalFilename();
-        String extension = getFileExtension(originalFilename);
+        String extension = getFileExtensionFromContentType(file.getContentType());
         String uniqueFilename = UUID.randomUUID().toString() + extension;
 
         // Create target directory using absolute path
@@ -106,23 +107,28 @@ public class FileStorageService {
         }
 
         if (file.getSize() > MAX_FILE_SIZE) {
-            throw new IllegalArgumentException("File size exceeds maximum allowed size of 5MB");
+            throw new IllegalArgumentException("File size exceeds maximum allowed size of 10MB");
         }
 
         String contentType = file.getContentType();
         if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType.toLowerCase())) {
-            throw new IllegalArgumentException("Invalid file type. Only JPEG and PNG images are allowed");
+            throw new IllegalArgumentException("Invalid file type. Only JPEG, PNG, PDF and WEBP images are allowed");
         }
     }
 
     /**
      * Gets the file extension from a filename.
      */
-    private String getFileExtension(String filename) {
-        if (filename == null || !filename.contains(".")) {
-            return ".jpg"; // Default extension
+    private String getFileExtensionFromContentType(String contentType) {
+        if (contentType == null) {
+            return ".jpg";
         }
-        return filename.substring(filename.lastIndexOf("."));
+        return switch (contentType.toLowerCase()) {
+            case "image/png" -> ".png";
+            case "image/webp" -> ".webp";
+            case "image/jpeg", "image/jpg" -> ".jpg";
+            default -> ".jpg";
+        };
     }
 
     /**
@@ -146,4 +152,3 @@ public class FileStorageService {
         }
     }
 }
-

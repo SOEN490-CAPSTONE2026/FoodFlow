@@ -21,8 +21,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
+import java.lang.reflect.Field;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -54,6 +58,15 @@ class ClaimServiceTest {
 
     @Mock
     private TimelineService timelineService;
+
+    @Mock
+    private EmailService emailService;
+
+    @Mock
+    private GamificationService gamificationService;
+
+    @Mock
+    private SmsService smsService;
 
     @InjectMocks
     private ClaimService claimService;
@@ -96,6 +109,16 @@ class ClaimServiceTest {
                 .thenReturn(true);
     }
 
+    private void setFixedClock(Clock clock) {
+        try {
+            Field clockField = ClaimService.class.getDeclaredField("clock");
+            clockField.setAccessible(true);
+            clockField.set(claimService, clock);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to set test clock", e);
+        }
+    }
+
     @Test
     void claimSurplusPost_Success() {
         // Given
@@ -115,6 +138,31 @@ class ClaimServiceTest {
         assertThat(response.getId()).isEqualTo(1L);
         verify(claimRepository).save(any(Claim.class));
         verify(surplusPostRepository).save(argThat(post -> post.getStatus() == PostStatus.CLAIMED));
+    }
+
+    @Test
+    void claimSurplusPost_DonorLocalExpiryNotYetReached_AllowsClaim() {
+        // Given:
+        // 2026-03-10 end-of-day in America/Los_Angeles = 2026-03-11T06:59:59Z
+        // At 2026-03-11T02:00:00Z this should still be claimable.
+        setFixedClock(Clock.fixed(Instant.parse("2026-03-11T02:00:00Z"), ZoneOffset.UTC));
+        donor.setTimezone("America/Los_Angeles");
+        surplusPost.setExpiryDate(LocalDate.of(2026, 3, 10));
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
+
+        Claim savedClaim = new Claim(surplusPost, receiver);
+        savedClaim.setId(42L);
+        when(claimRepository.save(any(Claim.class))).thenReturn(savedClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        // When
+        ClaimResponse response = claimService.claimSurplusPost(claimRequest, receiver);
+
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.getId()).isEqualTo(42L);
     }
 
     @Test
@@ -197,6 +245,69 @@ class ClaimServiceTest {
         assertThat(responses).hasSize(2);
         assertThat(responses.get(0).getId()).isEqualTo(1L);
         assertThat(responses.get(1).getId()).isEqualTo(2L);
+    }
+
+    @Test
+    void getReceiverClaims_ConvertsSurplusPickupTimesToReceiverTimezone() {
+        receiver.setTimezone("America/Toronto");
+        surplusPost.setPickupDate(LocalDate.of(2026, 1, 15));
+        surplusPost.setPickupFrom(LocalTime.of(15, 0)); // Stored as UTC
+        surplusPost.setPickupTo(LocalTime.of(17, 0));   // Stored as UTC
+
+        Claim claim = new Claim(surplusPost, receiver);
+        claim.setId(10L);
+
+        when(claimRepository.findReceiverClaimsWithDetails(
+            eq(receiver.getId()),
+            eq(List.of(
+                ClaimStatus.ACTIVE,
+                ClaimStatus.COMPLETED,
+                ClaimStatus.NOT_COMPLETED,
+                ClaimStatus.EXPIRED
+            ))))
+            .thenReturn(List.of(claim));
+
+        List<ClaimResponse> responses = claimService.getReceiverClaims(receiver);
+
+        assertThat(responses).hasSize(1);
+        assertThat(responses.get(0).getSurplusPost().getPickupDate())
+            .isEqualTo(LocalDate.of(2026, 1, 15));
+        assertThat(responses.get(0).getSurplusPost().getPickupFrom())
+            .isEqualTo(LocalTime.of(10, 0));
+        assertThat(responses.get(0).getSurplusPost().getPickupTo())
+            .isEqualTo(LocalTime.of(12, 0));
+    }
+
+    @Test
+    void getReceiverClaims_ConvertsConfirmedPickupSlotToReceiverTimezone() {
+        receiver.setTimezone("America/Toronto");
+
+        Claim claim = new Claim(surplusPost, receiver);
+        claim.setId(11L);
+        claim.setConfirmedPickupDate(LocalDate.of(2026, 1, 15));
+        claim.setConfirmedPickupStartTime(LocalTime.of(22, 45)); // UTC
+        claim.setConfirmedPickupEndTime(LocalTime.of(23, 45));   // UTC
+
+        when(claimRepository.findReceiverClaimsWithDetails(
+            eq(receiver.getId()),
+            eq(List.of(
+                ClaimStatus.ACTIVE,
+                ClaimStatus.COMPLETED,
+                ClaimStatus.NOT_COMPLETED,
+                ClaimStatus.EXPIRED
+            ))))
+            .thenReturn(List.of(claim));
+
+        List<ClaimResponse> responses = claimService.getReceiverClaims(receiver);
+
+        assertThat(responses).hasSize(1);
+        assertThat(responses.get(0).getConfirmedPickupSlot()).isNotNull();
+        assertThat(responses.get(0).getConfirmedPickupSlot().getPickupDate())
+            .isEqualTo(LocalDate.of(2026, 1, 15));
+        assertThat(responses.get(0).getConfirmedPickupSlot().getStartTime())
+            .isEqualTo(LocalTime.of(17, 45));
+        assertThat(responses.get(0).getConfirmedPickupSlot().getEndTime())
+            .isEqualTo(LocalTime.of(18, 45));
     }
 
     @Test
@@ -531,5 +642,640 @@ class ClaimServiceTest {
         // Then - status should be CLAIMED since pickup date is in the future
         SurplusPost savedPost = postCaptor.getValue();
         assertThat(savedPost.getStatus()).isEqualTo(PostStatus.CLAIMED);
+    }
+
+    // Notification Tests
+
+    @Test
+    void claimSurplusPost_WithEmailNotificationsEnabled_SendsEmailToDonor() {
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
+
+        Claim savedClaim = new Claim(surplusPost, receiver);
+        savedClaim.setId(1L);
+        when(claimRepository.save(any(Claim.class))).thenReturn(savedClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("donationClaimed"), eq("email")))
+                .thenReturn(true);
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("donationClaimed"), eq("websocket")))
+                .thenReturn(true);
+
+        claimService.claimSurplusPost(claimRequest, receiver);
+
+        verify(notificationPreferenceService).shouldSendNotification(eq(donor), eq("donationClaimed"), eq("email"));
+        verify(notificationPreferenceService).shouldSendNotification(eq(donor), eq("donationClaimed"), eq("websocket"));
+    }
+
+    @Test
+    void claimSurplusPost_WithEmailNotificationsDisabled_DoesNotSendEmail() {
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
+
+        Claim savedClaim = new Claim(surplusPost, receiver);
+        savedClaim.setId(1L);
+        when(claimRepository.save(any(Claim.class))).thenReturn(savedClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("donationClaimed"), eq("email")))
+                .thenReturn(false);
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("donationClaimed"), eq("websocket")))
+                .thenReturn(true);
+
+        claimService.claimSurplusPost(claimRequest, receiver);
+
+        verify(notificationPreferenceService).shouldSendNotification(eq(donor), eq("donationClaimed"), eq("email"));
+        verify(messagingTemplate).convertAndSendToUser(eq("1"), eq("/queue/claims"), any());
+        verify(messagingTemplate).convertAndSendToUser(eq("2"), eq("/queue/claims"), any());
+    }
+
+    @Test
+    void claimSurplusPost_WithWebSocketNotificationsDisabled_DoesNotSendWebSocket() {
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
+
+        Claim savedClaim = new Claim(surplusPost, receiver);
+        savedClaim.setId(1L);
+        when(claimRepository.save(any(Claim.class))).thenReturn(savedClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("donationClaimed"), eq("websocket")))
+                .thenReturn(false);
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("donationClaimed"), eq("email")))
+                .thenReturn(true);
+
+        claimService.claimSurplusPost(claimRequest, receiver);
+
+        verify(notificationPreferenceService).shouldSendNotification(eq(donor), eq("donationClaimed"), eq("websocket"));
+        // Should still send to receiver (notification always sent to claim creator)
+        verify(messagingTemplate).convertAndSendToUser(eq("2"), eq("/queue/claims"), any());
+    }
+
+    @Test
+    void claimSurplusPost_WithAllNotificationsDisabled_DoesNotSendToDonor() {
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
+
+        Claim savedClaim = new Claim(surplusPost, receiver);
+        savedClaim.setId(1L);
+        when(claimRepository.save(any(Claim.class))).thenReturn(savedClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("donationClaimed"), anyString()))
+                .thenReturn(false);
+
+        claimService.claimSurplusPost(claimRequest, receiver);
+
+        verify(notificationPreferenceService, times(3)).shouldSendNotification(eq(donor), eq("donationClaimed"), anyString());
+        // Should still send to receiver
+        verify(messagingTemplate).convertAndSendToUser(eq("2"), eq("/queue/claims"), any());
+    }
+
+    @Test
+    void cancelClaim_WithEmailNotificationsEnabled_SendsEmailToDonor() {
+        Claim activeClaim = new Claim(surplusPost, receiver);
+        activeClaim.setId(1L);
+        activeClaim.setStatus(ClaimStatus.ACTIVE);
+
+        when(claimRepository.findById(1L)).thenReturn(Optional.of(activeClaim));
+        when(claimRepository.save(any(Claim.class))).thenReturn(activeClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("claimCanceled"), eq("email")))
+                .thenReturn(true);
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("claimCanceled"), eq("websocket")))
+                .thenReturn(true);
+
+        claimService.cancelClaim(1L, receiver);
+
+        verify(notificationPreferenceService).shouldSendNotification(eq(donor), eq("claimCanceled"), eq("email"));
+        verify(notificationPreferenceService).shouldSendNotification(eq(donor), eq("claimCanceled"), eq("websocket"));
+    }
+
+    @Test
+    void cancelClaim_WithEmailNotificationsDisabled_DoesNotSendEmail() {
+        Claim activeClaim = new Claim(surplusPost, receiver);
+        activeClaim.setId(1L);
+        activeClaim.setStatus(ClaimStatus.ACTIVE);
+
+        when(claimRepository.findById(1L)).thenReturn(Optional.of(activeClaim));
+        when(claimRepository.save(any(Claim.class))).thenReturn(activeClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("claimCanceled"), eq("email")))
+                .thenReturn(false);
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("claimCanceled"), eq("websocket")))
+                .thenReturn(true);
+
+        claimService.cancelClaim(1L, receiver);
+
+        verify(notificationPreferenceService).shouldSendNotification(eq(donor), eq("claimCanceled"), eq("email"));
+        verify(messagingTemplate).convertAndSendToUser(eq("1"), eq("/queue/claims/cancelled"), any());
+    }
+
+    @Test
+    void cancelClaim_WithWebSocketNotificationsDisabled_DoesNotSendWebSocket() {
+        Claim activeClaim = new Claim(surplusPost, receiver);
+        activeClaim.setId(1L);
+        activeClaim.setStatus(ClaimStatus.ACTIVE);
+
+        when(claimRepository.findById(1L)).thenReturn(Optional.of(activeClaim));
+        when(claimRepository.save(any(Claim.class))).thenReturn(activeClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("claimCanceled"), eq("websocket")))
+                .thenReturn(false);
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("claimCanceled"), eq("email")))
+                .thenReturn(true);
+
+        claimService.cancelClaim(1L, receiver);
+
+        verify(notificationPreferenceService).shouldSendNotification(eq(donor), eq("claimCanceled"), eq("websocket"));
+        verify(messagingTemplate, never()).convertAndSendToUser(anyString(), eq("/queue/claims/cancelled"), any());
+    }
+
+    @Test
+    void cancelClaim_WithAllNotificationsDisabled_DoesNotSendToDonor() {
+        Claim activeClaim = new Claim(surplusPost, receiver);
+        activeClaim.setId(1L);
+        activeClaim.setStatus(ClaimStatus.ACTIVE);
+
+        when(claimRepository.findById(1L)).thenReturn(Optional.of(activeClaim));
+        when(claimRepository.save(any(Claim.class))).thenReturn(activeClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("claimCanceled"), anyString()))
+                .thenReturn(false);
+
+        claimService.cancelClaim(1L, receiver);
+
+        verify(notificationPreferenceService, times(3)).shouldSendNotification(eq(donor), eq("claimCanceled"), anyString());
+        verify(messagingTemplate, never()).convertAndSendToUser(anyString(), eq("/queue/claims/cancelled"), any());
+    }
+
+    @Test
+    void claimSurplusPost_VerifiesCorrectNotificationChannelsChecked() {
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
+
+        Claim savedClaim = new Claim(surplusPost, receiver);
+        savedClaim.setId(1L);
+        when(claimRepository.save(any(Claim.class))).thenReturn(savedClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        when(notificationPreferenceService.shouldSendNotification(any(User.class), anyString(), anyString()))
+                .thenReturn(true);
+
+        claimService.claimSurplusPost(claimRequest, receiver);
+
+        // Verify both websocket and email channels are checked for donor
+        verify(notificationPreferenceService).shouldSendNotification(donor, "donationClaimed", "websocket");
+        verify(notificationPreferenceService).shouldSendNotification(donor, "donationClaimed", "email");
+    }
+
+    @Test
+    void claimSurplusPost_SendsSmsWhenEnabledAndPhoneValid() {
+        donor.setPhone("+12345678901");
+        
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
+
+        Claim savedClaim = new Claim(surplusPost, receiver);
+        savedClaim.setId(1L);
+        when(claimRepository.save(any(Claim.class))).thenReturn(savedClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("donationClaimed"), eq("sms")))
+                .thenReturn(true);
+
+        claimService.claimSurplusPost(claimRequest, receiver);
+
+        verify(smsService).sendDonationClaimedNotification(anyString(), anyString(), any());
+    }
+
+    @Test
+    void claimSurplusPost_DoesNotSendSmsWhenPhoneInvalid() {
+        donor.setPhone("invalid-phone");
+        
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
+
+        Claim savedClaim = new Claim(surplusPost, receiver);
+        savedClaim.setId(1L);
+        when(claimRepository.save(any(Claim.class))).thenReturn(savedClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("donationClaimed"), eq("sms")))
+                .thenReturn(true);
+
+        claimService.claimSurplusPost(claimRequest, receiver);
+
+        verify(smsService, never()).sendDonationClaimedNotification(anyString(), anyString(), any());
+    }
+
+    @Test
+    void cancelClaim_SendsSmsWhenEnabledAndPhoneValid() {
+        donor.setPhone("+19876543210");
+        
+        Claim activeClaim = new Claim(surplusPost, receiver);
+        activeClaim.setId(1L);
+        activeClaim.setStatus(ClaimStatus.ACTIVE);
+
+        when(claimRepository.findById(1L)).thenReturn(Optional.of(activeClaim));
+        when(claimRepository.save(any(Claim.class))).thenReturn(activeClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("claimCanceled"), eq("sms")))
+                .thenReturn(true);
+
+        claimService.cancelClaim(1L, receiver);
+
+        verify(smsService).sendClaimCanceledNotification(anyString(), anyString(), any());
+    }
+
+    @Test
+    void cancelClaim_DoesNotSendSmsWhenPhoneMissing() {
+        donor.setPhone(null);
+        
+        Claim activeClaim = new Claim(surplusPost, receiver);
+        activeClaim.setId(1L);
+        activeClaim.setStatus(ClaimStatus.ACTIVE);
+
+        when(claimRepository.findById(1L)).thenReturn(Optional.of(activeClaim));
+        when(claimRepository.save(any(Claim.class))).thenReturn(activeClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("claimCanceled"), eq("sms")))
+                .thenReturn(true);
+
+        claimService.cancelClaim(1L, receiver);
+
+        verify(smsService, never()).sendClaimCanceledNotification(anyString(), anyString(), any());
+    }
+
+    @Test
+    void claimSurplusPost_SendsEmailWithDonorNameWhenNoOrganization() {
+        // Ensure donor has no organization
+        donor.setOrganization(null);
+        
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
+
+        Claim savedClaim = new Claim(surplusPost, receiver);
+        savedClaim.setId(1L);
+        when(claimRepository.save(any(Claim.class))).thenReturn(savedClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("donationClaimed"), eq("email")))
+                .thenReturn(true);
+
+        claimService.claimSurplusPost(claimRequest, receiver);
+
+        verify(emailService).sendDonationClaimedNotification(eq("donor@test.com"), eq("Donor"), any());
+    }
+
+    @Test
+    void cancelClaim_SendsEmailWithDonorNameWhenNoOrganization() {
+        // Ensure donor has no organization
+        donor.setOrganization(null);
+        
+        Claim activeClaim = new Claim(surplusPost, receiver);
+        activeClaim.setId(1L);
+        activeClaim.setStatus(ClaimStatus.ACTIVE);
+
+        when(claimRepository.findById(1L)).thenReturn(Optional.of(activeClaim));
+        when(claimRepository.save(any(Claim.class))).thenReturn(activeClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("claimCanceled"), eq("email")))
+                .thenReturn(true);
+
+        claimService.cancelClaim(1L, receiver);
+
+        verify(emailService).sendClaimCanceledNotification(eq("donor@test.com"), eq("Donor"), any());
+    }
+
+    @Test
+    void claimSurplusPost_DoesNotSendSmsWhenPhoneEmpty() {
+        donor.setPhone("   ");  // Empty/whitespace phone
+        
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
+
+        Claim savedClaim = new Claim(surplusPost, receiver);
+        savedClaim.setId(1L);
+        when(claimRepository.save(any(Claim.class))).thenReturn(savedClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("donationClaimed"), eq("sms")))
+                .thenReturn(true);
+
+        claimService.claimSurplusPost(claimRequest, receiver);
+
+        verify(smsService, never()).sendDonationClaimedNotification(anyString(), anyString(), any());
+    }
+
+    @Test
+    void cancelClaim_DoesNotSendSmsWhenPhoneEmpty() {
+        donor.setPhone("");  // Empty string phone
+        
+        Claim activeClaim = new Claim(surplusPost, receiver);
+        activeClaim.setId(1L);
+        activeClaim.setStatus(ClaimStatus.ACTIVE);
+
+        when(claimRepository.findById(1L)).thenReturn(Optional.of(activeClaim));
+        when(claimRepository.save(any(Claim.class))).thenReturn(activeClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        when(notificationPreferenceService.shouldSendNotification(eq(donor), eq("claimCanceled"), eq("sms")))
+                .thenReturn(true);
+
+        claimService.cancelClaim(1L, receiver);
+
+        verify(smsService, never()).sendClaimCanceledNotification(anyString(), anyString(), any());
+    }
+
+    @Test
+    void claimSurplusPost_UsesReceiverOrganizationNameInTimeline() {
+        // Set up receiver with organization
+        com.example.foodflow.model.entity.Organization receiverOrg = new com.example.foodflow.model.entity.Organization();
+        receiverOrg.setId(10L);
+        receiverOrg.setName("Test Food Bank");
+        receiver.setOrganization(receiverOrg);
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
+
+        Claim savedClaim = new Claim(surplusPost, receiver);
+        savedClaim.setId(1L);
+        when(claimRepository.save(any(Claim.class))).thenReturn(savedClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        claimService.claimSurplusPost(claimRequest, receiver);
+
+        // Verify timeline event was created with organization name
+        verify(timelineService).createTimelineEvent(
+                eq(surplusPost),
+                eq("DONATION_CLAIMED"),
+                eq("receiver"),
+                eq(receiver.getId()),
+                eq(PostStatus.AVAILABLE),
+                any(PostStatus.class),
+                eq("Claimed by Test Food Bank"),
+                eq(true)
+        );
+    }
+
+    @Test
+    void claimSurplusPost_UsesReceiverEmailInTimelineWhenNoOrganization() {
+        // Ensure receiver has no organization (default in setUp)
+        receiver.setOrganization(null);
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
+
+        Claim savedClaim = new Claim(surplusPost, receiver);
+        savedClaim.setId(1L);
+        when(claimRepository.save(any(Claim.class))).thenReturn(savedClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        claimService.claimSurplusPost(claimRequest, receiver);
+
+        // Verify timeline event was created with email as fallback
+        verify(timelineService).createTimelineEvent(
+                eq(surplusPost),
+                eq("DONATION_CLAIMED"),
+                eq("receiver"),
+                eq(receiver.getId()),
+                eq(PostStatus.AVAILABLE),
+                any(PostStatus.class),
+                eq("Claimed by receiver@test.com"),
+                eq(true)
+        );
+    }
+
+    @Test
+    void claimSurplusPost_WithExistingOtpCode_DoesNotRegenerateCode() {
+        // Given - post already has OTP code and pickup time has started
+        LocalDate pastDate = LocalDate.now().minusDays(1);
+        LocalTime startTime = LocalTime.of(10, 0);
+        LocalTime endTime = LocalTime.of(12, 0);
+
+        surplusPost.setOtpCode("EXISTING123");
+        surplusPost.setPickupDate(pastDate);
+
+        PickupSlotRequest pickupSlot = new PickupSlotRequest();
+        pickupSlot.setPickupDate(pastDate);
+        pickupSlot.setStartTime(startTime);
+        pickupSlot.setEndTime(endTime);
+        claimRequest.setPickupSlot(pickupSlot);
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
+
+        Claim savedClaim = new Claim(surplusPost, receiver);
+        savedClaim.setId(1L);
+        savedClaim.setConfirmedPickupDate(pastDate);
+        savedClaim.setConfirmedPickupStartTime(startTime);
+        savedClaim.setConfirmedPickupEndTime(endTime);
+        when(claimRepository.save(any(Claim.class))).thenReturn(savedClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        claimService.claimSurplusPost(claimRequest, receiver);
+
+        // Verify OTP code wasn't changed
+        verify(surplusPostRepository).save(argThat(post -> 
+                "EXISTING123".equals(post.getOtpCode()) && 
+                post.getStatus() == PostStatus.READY_FOR_PICKUP
+        ));
+    }
+
+    @Test
+    void claimSurplusPost_WithInvalidSlotTimes_LogsWarning() {
+        // Given - slot with end time before start time (suspicious timezone issue)
+        LocalDate pickupDate = LocalDate.now().plusDays(2);
+        LocalTime startTime = LocalTime.of(16, 0);  // 4 PM
+        LocalTime endTime = LocalTime.of(14, 0);    // 2 PM (before start!)
+
+        PickupSlot suspiciousSlot = new PickupSlot();
+        suspiciousSlot.setId(200L);
+        suspiciousSlot.setPickupDate(pickupDate);
+        suspiciousSlot.setStartTime(startTime);
+        suspiciousSlot.setEndTime(endTime);
+        suspiciousSlot.setSurplusPost(surplusPost);
+
+        List<PickupSlot> pickupSlots = new ArrayList<>();
+        pickupSlots.add(suspiciousSlot);
+        surplusPost.setPickupSlots(pickupSlots);
+
+        claimRequest.setPickupSlotId(200L);
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
+
+        Claim savedClaim = new Claim(surplusPost, receiver);
+        savedClaim.setId(1L);
+        savedClaim.setConfirmedPickupDate(pickupDate);
+        savedClaim.setConfirmedPickupStartTime(startTime);
+        savedClaim.setConfirmedPickupEndTime(endTime);
+        when(claimRepository.save(any(Claim.class))).thenReturn(savedClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        // When
+        ClaimResponse response = claimService.claimSurplusPost(claimRequest, receiver);
+
+        // Then - claim should still be created despite suspicious times
+        assertThat(response).isNotNull();
+        verify(claimRepository).save(any(Claim.class));
+    }
+
+    // ==================== Tests for completeClaim ====================
+
+    @Test
+    void completeClaim_Success() {
+        // Given
+        Claim activeClaim = new Claim(surplusPost, receiver);
+        activeClaim.setId(1L);
+        activeClaim.setStatus(ClaimStatus.ACTIVE);
+        surplusPost.setStatus(PostStatus.READY_FOR_PICKUP);
+
+        when(claimRepository.findById(1L)).thenReturn(Optional.of(activeClaim));
+        when(claimRepository.save(any(Claim.class))).thenReturn(activeClaim);
+
+        // When
+        claimService.completeClaim(1L);
+
+        // Then
+        verify(claimRepository).save(argThat(claim -> claim.getStatus() == ClaimStatus.COMPLETED));
+        verify(gamificationService).awardPoints(eq(receiver.getId()), anyInt(), anyString());
+    }
+
+    @Test
+    void completeClaim_ClaimNotFound_ThrowsException() {
+        // Given
+        when(claimRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> claimService.completeClaim(999L))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Claim not found");
+
+        verify(claimRepository, never()).save(any());
+    }
+
+
+    @Test
+    void completeClaim_AwardsGamificationPoints() {
+        // Given
+        Claim activeClaim = new Claim(surplusPost, receiver);
+        activeClaim.setId(1L);
+        activeClaim.setStatus(ClaimStatus.ACTIVE);
+
+        when(claimRepository.findById(1L)).thenReturn(Optional.of(activeClaim));
+        when(claimRepository.save(any(Claim.class))).thenReturn(activeClaim);
+
+        // When
+        claimService.completeClaim(1L);
+
+        // Then - verify gamification points awarded to receiver
+        verify(gamificationService).awardPoints(eq(receiver.getId()), anyInt(), anyString());
+        verify(gamificationService).checkAndUnlockAchievements(eq(receiver.getId()));
+    }
+
+    // ==================== Tests for Expired Claims ====================
+
+    @Test
+    void claimSurplusPost_WithExpiredPost_ThrowsException() {
+        // Given
+        surplusPost.setStatus(PostStatus.EXPIRED);
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+
+        // When & Then
+        assertThatThrownBy(() -> claimService.claimSurplusPost(claimRequest, receiver))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("expired");
+    }
+
+
+    @Test
+    void cancelClaim_CreatesTimelineEvent() {
+        // Given
+        Claim activeClaim = new Claim(surplusPost, receiver);
+        activeClaim.setId(1L);
+        activeClaim.setStatus(ClaimStatus.ACTIVE);
+
+        when(claimRepository.findById(1L)).thenReturn(Optional.of(activeClaim));
+        when(claimRepository.save(any(Claim.class))).thenReturn(activeClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        // When
+        claimService.cancelClaim(1L, receiver);
+
+        // Then
+        verify(timelineService).createTimelineEvent(
+                eq(surplusPost),
+                eq("CLAIM_CANCELLED"),
+                eq("receiver"),
+                eq(receiver.getId()),
+                eq(PostStatus.AVAILABLE),
+                eq(PostStatus.AVAILABLE),
+                anyString(),
+                eq(true)
+        );
+    }
+
+    @Test
+    void cancelClaim_UpdatesBusinessMetrics() {
+        // Given
+        Claim activeClaim = new Claim(surplusPost, receiver);
+        activeClaim.setId(1L);
+        activeClaim.setStatus(ClaimStatus.ACTIVE);
+
+        when(claimRepository.findById(1L)).thenReturn(Optional.of(activeClaim));
+        when(claimRepository.save(any(Claim.class))).thenReturn(activeClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        // When
+        claimService.cancelClaim(1L, receiver);
+
+        // Then
+        verify(businessMetricsService).incrementClaimCancelled();
+    }
+
+    @Test
+    void claimSurplusPost_UpdatesBusinessMetrics() {
+        // Given
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
+
+        Claim savedClaim = new Claim(surplusPost, receiver);
+        savedClaim.setId(1L);
+        when(claimRepository.save(any(Claim.class))).thenReturn(savedClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        // When
+        claimService.claimSurplusPost(claimRequest, receiver);
+
+        // Then
+        verify(businessMetricsService).incrementClaimCreated();
+        verify(businessMetricsService).incrementSurplusPostClaimed();
+    }
+
+    @Test
+    void completeClaim_UpdatesClaimMetrics() {
+        // Given
+        Claim activeClaim = new Claim(surplusPost, receiver);
+        activeClaim.setId(1L);
+        activeClaim.setStatus(ClaimStatus.ACTIVE);
+
+        when(claimRepository.findById(1L)).thenReturn(Optional.of(activeClaim));
+        when(claimRepository.save(any(Claim.class))).thenReturn(activeClaim);
+
+        // When
+        claimService.completeClaim(1L);
+
+        // Then
+        verify(businessMetricsService).incrementClaimCompleted();
     }
 }

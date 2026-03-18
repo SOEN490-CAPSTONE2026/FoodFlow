@@ -411,7 +411,7 @@ class ConversationServiceTest {
         // Given
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
         when(userRepository.findById(2L)).thenReturn(Optional.of(user2));
-        when(conversationRepository.findByPostIdAndUserId(1L, 1L)).thenReturn(Optional.empty());
+        when(conversationRepository.findByPostIdAndReceiverId(1L, 2L)).thenReturn(Optional.empty());
         when(conversationRepository.save(any(Conversation.class))).thenReturn(conversation);
         when(messageRepository.findByConversationId(anyLong())).thenReturn(Collections.emptyList());
         when(messageRepository.countUnreadInConversation(anyLong(), anyLong())).thenReturn(0L);
@@ -431,7 +431,7 @@ class ConversationServiceTest {
         // Given
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
         when(userRepository.findById(2L)).thenReturn(Optional.of(user2));
-        when(conversationRepository.findByPostIdAndUserId(1L, 1L)).thenReturn(Optional.of(conversation));
+        when(conversationRepository.findByPostIdAndReceiverId(1L, 2L)).thenReturn(Optional.of(conversation));
         when(messageRepository.findByConversationId(1L)).thenReturn(Arrays.asList(message));
         when(messageRepository.countUnreadInConversation(1L, 1L)).thenReturn(2L);
 
@@ -489,7 +489,7 @@ class ConversationServiceTest {
 
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
         when(userRepository.findById(2L)).thenReturn(Optional.of(user2));
-        when(conversationRepository.findByPostIdAndUserId(1L, 1L)).thenReturn(Optional.of(conversation));
+        when(conversationRepository.findByPostIdAndReceiverId(1L, 2L)).thenReturn(Optional.of(conversation));
         when(messageRepository.findByConversationId(1L)).thenReturn(Arrays.asList(message, message2));
         when(messageRepository.countUnreadInConversation(1L, 1L)).thenReturn(1L);
 

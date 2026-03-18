@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Gift,
   Trophy,
@@ -9,6 +10,7 @@ import {
   Star,
   Medal,
 } from 'lucide-react';
+import { translateAchievement } from '../../utils/achievementsI18n';
 import './BadgeDisplay.css';
 
 /**
@@ -63,7 +65,9 @@ const getAchievementIcon = (name, category) => {
  * @param {Object} props.progress - Progress data (for locked badges)
  */
 const BadgeIcon = ({ achievement, unlocked = false, progress = null }) => {
+  const { t } = useTranslation();
   const [showTooltip, setShowTooltip] = useState(false);
+  const localizedAchievement = translateAchievement(t, achievement);
 
   const Icon = getAchievementIcon(achievement.name, achievement.category);
 
@@ -73,6 +77,11 @@ const BadgeIcon = ({ achievement, unlocked = false, progress = null }) => {
     }
     return `${progress.currentValue || 0} / ${achievement.criteriaValue}`;
   };
+
+  const criteriaTypeLabel = t(
+    `achievements.criteriaTypes.${achievement.criteriaType}`,
+    achievement.criteriaType.toLowerCase().replace('_', ' ')
+  );
 
   return (
     <div
@@ -87,19 +96,24 @@ const BadgeIcon = ({ achievement, unlocked = false, progress = null }) => {
       {showTooltip && (
         <div className="badge-tooltip">
           <div className="badge-tooltip-header">
-            <strong>{achievement.name}</strong>
+            <strong>{localizedAchievement.name}</strong>
             {unlocked && (
-              <span className="badge-unlocked-indicator">✓ Unlocked</span>
+              <span className="badge-unlocked-indicator">
+                {t('achievements.unlockedIndicator', '✓ Unlocked')}
+              </span>
             )}
           </div>
-          <p className="badge-tooltip-description">{achievement.description}</p>
+          <p className="badge-tooltip-description">
+            {localizedAchievement.description}
+          </p>
 
           {!unlocked && (
             <div className="badge-tooltip-criteria">
-              <span className="criteria-label">Unlock Criteria:</span>
+              <span className="criteria-label">
+                {t('achievements.unlockCriteria', 'Unlock Criteria:')}
+              </span>
               <span className="criteria-value">
-                {achievement.criteriaValue}{' '}
-                {achievement.criteriaType.toLowerCase().replace('_', ' ')}
+                {achievement.criteriaValue} {criteriaTypeLabel}
               </span>
               {progress && (
                 <div className="badge-progress">
@@ -121,7 +135,10 @@ const BadgeIcon = ({ achievement, unlocked = false, progress = null }) => {
 
           {unlocked && achievement.pointsReward > 0 && (
             <div className="badge-tooltip-reward">
-              +{achievement.pointsReward} points earned
+              {t('achievements.pointsEarned', {
+                count: achievement.pointsReward,
+                defaultValue: `+${achievement.pointsReward} points earned`,
+              })}
             </div>
           )}
         </div>
