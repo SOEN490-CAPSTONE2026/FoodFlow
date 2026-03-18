@@ -1353,7 +1353,6 @@ const AdminUsers = () => {
                   </div>
                   <div className="info-item">
                     <span className="info-label">
-                      <FileText size={16} /> Document
                       <Globe size={16} /> Preferred Language
                     </span>
                     <span className="info-value">
