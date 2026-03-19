@@ -1,28 +1,50 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Package, User, ArrowRight, Filter, Clock, Star } from 'lucide-react';
+import {
+  Package,
+  User,
+  ArrowRight,
+  Filter,
+  Clock,
+  Calendar,
+  MapPin,
+} from 'lucide-react';
 import Select from 'react-select';
 import { claimsAPI, feedbackAPI } from '../../services/api';
 import { useNotification } from '../../contexts/NotificationContext';
-import { useTimezone } from '../../contexts/TimezoneContext';
 import {
+  getDietaryTagLabel,
   getPrimaryFoodCategory,
+  getTemperatureCategoryLabel,
   foodTypeImages,
   getUnitLabel,
 } from '../../constants/foodConstants';
+import {
+  formatPickupWindowFromParts,
+  parseLocalDateTimeParts,
+} from '../../utils/timezoneUtils';
+import { normalizeStatus } from '../../utils/statusUtils';
 import ClaimDetailModal from './ClaimDetailModal.js';
 import './Receiver_Styles/ReceiverMyClaims.css';
+
+const FILTER_KEYS = {
+  CLAIMED: 'CLAIMED',
+  READY: 'READY',
+  COMPLETED: 'COMPLETED',
+  NOT_COMPLETED: 'NOT_COMPLETED',
+  EXPIRED: 'EXPIRED',
+  ALL: 'ALL',
+};
 
 export default function ReceiverMyClaims() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const { showNotification } = useNotification();
-  const { userTimezone } = useTimezone();
   const hasSetInitialFilter = useRef(false);
   const [claims, setClaims] = useState([]);
-  const [activeFilter, setActiveFilter] = useState('All');
+  const [activeFilter, setActiveFilter] = useState(FILTER_KEYS.ALL);
   const [sortBy, setSortBy] = useState({
     value: 'date',
     label: 'Sort by Date',
@@ -67,15 +89,19 @@ export default function ReceiverMyClaims() {
   ];
 
   const getNormalizedStatus = claim => {
-    const postStatus = claim.surplusPost?.status;
-    if (postStatus) {
-      return postStatus;
-    }
     const claimStatus = claim?.status;
-    if (!claimStatus || typeof claimStatus !== 'string') {
-      return null;
+    const normalizedClaimStatus = normalizeStatus(claimStatus);
+    const normalizedPostStatus = normalizeStatus(claim?.surplusPost?.status);
+    if (normalizedClaimStatus && normalizedClaimStatus !== 'ACTIVE') {
+      return normalizedClaimStatus;
     }
-    return claimStatus.toUpperCase().replace(/\s+/g, '_');
+
+    // ACTIVE claim means "ongoing"; visible lifecycle state should come from post.
+    if (normalizedClaimStatus === 'ACTIVE') {
+      return normalizedPostStatus || 'CLAIMED';
+    }
+
+    return normalizedPostStatus || null;
   };
 
   const getDisplayStatus = claim => {
@@ -104,8 +130,8 @@ export default function ReceiverMyClaims() {
       return;
     }
     hasSetInitialFilter.current = true;
-    if (activeFilter !== 'All') {
-      setActiveFilter('All');
+    if (activeFilter !== FILTER_KEYS.ALL) {
+      setActiveFilter(FILTER_KEYS.ALL);
     }
   }, [activeFilter, location.state]);
 
@@ -136,7 +162,7 @@ export default function ReceiverMyClaims() {
       c => getNormalizedStatus(c) === 'READY_FOR_PICKUP'
     );
     if (hasReady) {
-      setActiveFilter('Ready');
+      setActiveFilter(FILTER_KEYS.READY);
       hasSetInitialFilter.current = true;
       return;
     }
@@ -150,7 +176,7 @@ export default function ReceiverMyClaims() {
         getNormalizedStatus(c) !== 'EXPIRED'
     );
     if (hasClaimed) {
-      setActiveFilter('Claimed');
+      setActiveFilter(FILTER_KEYS.CLAIMED);
       hasSetInitialFilter.current = true;
       return;
     }
@@ -160,13 +186,13 @@ export default function ReceiverMyClaims() {
       c => getNormalizedStatus(c) === 'COMPLETED'
     );
     if (hasCompleted) {
-      setActiveFilter('Completed');
+      setActiveFilter(FILTER_KEYS.COMPLETED);
       hasSetInitialFilter.current = true;
       return;
     }
 
     // Otherwise show All
-    setActiveFilter('All');
+    setActiveFilter(FILTER_KEYS.ALL);
     hasSetInitialFilter.current = true;
   }, [claims, location.state]);
 
@@ -253,73 +279,81 @@ export default function ReceiverMyClaims() {
   };
 
   // Format pickup time consistently with ReceiverBrowse
-  const formatPickupTime = (
-    pickupDate,
-    pickupFrom,
-    pickupTo,
-    userTimezone = 'UTC'
-  ) => {
+  const formatPickupTime = (pickupDate, pickupFrom, pickupTo) => {
     if (!pickupDate || !pickupFrom || !pickupTo) {
       return '—';
     }
     try {
-      // Backend sends LocalDateTime, treat as UTC by adding 'Z'
-      let fromDateStr = `${pickupDate}T${pickupFrom}`;
-      if (!fromDateStr.endsWith('Z') && !fromDateStr.includes('+')) {
-        fromDateStr = fromDateStr + 'Z';
-      }
-      let toDateStr = `${pickupDate}T${pickupTo}`;
-      if (!toDateStr.endsWith('Z') && !toDateStr.includes('+')) {
-        toDateStr = toDateStr + 'Z';
-      }
-
-      const fromDate = new Date(fromDateStr);
-      const toDate = new Date(toDateStr);
-
-      const dateStr = fromDate.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        timeZone: userTimezone,
-      });
-      const fromTime = fromDate.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-        timeZone: userTimezone,
-      });
-      const toTime = toDate.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-        timeZone: userTimezone,
-      });
-      return `${dateStr} ${fromTime}-${toTime}`;
+      return (
+        formatPickupWindowFromParts(
+          String(pickupDate),
+          String(pickupFrom),
+          String(pickupTo),
+          'en-US'
+        ) || '—'
+      );
     } catch (error) {
       console.error('Error formatting pickup time:', error);
       return '—';
     }
   };
 
-  const getStatusCount = status => {
-    if (status === 'All') {
+  const formatDisplayDate = dateValue => {
+    if (!dateValue) {
+      return t('receiverMyClaims.notSpecified');
+    }
+
+    try {
+      const [year, month, day] = String(dateValue).split('-').map(Number);
+      if (!year || !month || !day) {
+        return dateValue;
+      }
+      const parsedDate = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+
+      return parsedDate.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        timeZone: 'UTC',
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return dateValue;
+    }
+  };
+
+  const getShortAddress = address => {
+    if (!address || typeof address !== 'string') {
+      return t('receiverMyClaims.notSpecified');
+    }
+
+    const trimmed = address.trim();
+    if (!trimmed) {
+      return t('receiverMyClaims.notSpecified');
+    }
+
+    return trimmed.length > 64 ? `${trimmed.slice(0, 61)}...` : trimmed;
+  };
+
+  const getStatusCount = filterKey => {
+    if (filterKey === FILTER_KEYS.ALL) {
       return claims.length;
     }
-    if (status === 'Ready') {
+    if (filterKey === FILTER_KEYS.READY) {
       return claims.filter(c => getNormalizedStatus(c) === 'READY_FOR_PICKUP')
         .length;
     }
-    if (status === 'Completed') {
+    if (filterKey === FILTER_KEYS.COMPLETED) {
       return claims.filter(c => getNormalizedStatus(c) === 'COMPLETED').length;
     }
-    if (status === 'Not Completed') {
+    if (filterKey === FILTER_KEYS.NOT_COMPLETED) {
       return claims.filter(c => getNormalizedStatus(c) === 'NOT_COMPLETED')
         .length;
     }
-    if (status === 'Expired') {
+    if (filterKey === FILTER_KEYS.EXPIRED) {
       return claims.filter(c => getNormalizedStatus(c) === 'EXPIRED').length;
     }
-    if (status === 'Claimed') {
+    if (filterKey === FILTER_KEYS.CLAIMED) {
       return claims.filter(
         c =>
           getNormalizedStatus(c) !== 'READY_FOR_PICKUP' &&
@@ -333,45 +367,54 @@ export default function ReceiverMyClaims() {
 
   const filters = [
     {
+      key: FILTER_KEYS.CLAIMED,
       name: t('receiverMyClaims.filters.claimed'),
-      count: getStatusCount(t('receiverMyClaims.filters.claimed')),
+      count: getStatusCount(FILTER_KEYS.CLAIMED),
     },
     {
+      key: FILTER_KEYS.READY,
       name: t('receiverMyClaims.filters.ready'),
-      count: getStatusCount(t('receiverMyClaims.filters.ready')),
+      count: getStatusCount(FILTER_KEYS.READY),
     },
     {
+      key: FILTER_KEYS.COMPLETED,
       name: t('receiverMyClaims.filters.completed'),
-      count: getStatusCount(t('receiverMyClaims.filters.completed')),
+      count: getStatusCount(FILTER_KEYS.COMPLETED),
     },
     {
+      key: FILTER_KEYS.NOT_COMPLETED,
       name: t('receiverMyClaims.filters.notCompleted'),
-      count: getStatusCount(t('receiverMyClaims.filters.notCompleted')),
+      count: getStatusCount(FILTER_KEYS.NOT_COMPLETED),
     },
-    { name: 'Expired', count: getStatusCount('Expired') },
     {
+      key: FILTER_KEYS.EXPIRED,
+      name: 'Expired',
+      count: getStatusCount(FILTER_KEYS.EXPIRED),
+    },
+    {
+      key: FILTER_KEYS.ALL,
       name: t('receiverMyClaims.filters.all'),
-      count: getStatusCount(t('receiverMyClaims.filters.all')),
+      count: getStatusCount(FILTER_KEYS.ALL),
     },
   ];
 
   const filteredClaims = claims.filter(claim => {
-    if (activeFilter === 'All') {
+    if (activeFilter === FILTER_KEYS.ALL) {
       return true;
     }
-    if (activeFilter === 'Ready') {
+    if (activeFilter === FILTER_KEYS.READY) {
       return getNormalizedStatus(claim) === 'READY_FOR_PICKUP';
     }
-    if (activeFilter === 'Completed') {
+    if (activeFilter === FILTER_KEYS.COMPLETED) {
       return getNormalizedStatus(claim) === 'COMPLETED';
     }
-    if (activeFilter === 'Not Completed') {
+    if (activeFilter === FILTER_KEYS.NOT_COMPLETED) {
       return getNormalizedStatus(claim) === 'NOT_COMPLETED';
     }
-    if (activeFilter === 'Expired') {
+    if (activeFilter === FILTER_KEYS.EXPIRED) {
       return getNormalizedStatus(claim) === 'EXPIRED';
     }
-    if (activeFilter === 'Claimed') {
+    if (activeFilter === FILTER_KEYS.CLAIMED) {
       return (
         getNormalizedStatus(claim) !== 'READY_FOR_PICKUP' &&
         getNormalizedStatus(claim) !== 'COMPLETED' &&
@@ -408,8 +451,10 @@ export default function ReceiverMyClaims() {
         return -1;
       }
 
-      // Sort by pickup date - earliest pickup first (ascending)
-      return new Date(dateA).getTime() - new Date(dateB).getTime();
+      // Sort by pickup date - most recent first (descending)
+      const parsedA = parseLocalDateTimeParts(dateA, '00:00:00') || new Date(0);
+      const parsedB = parseLocalDateTimeParts(dateB, '00:00:00') || new Date(0);
+      return parsedB.getTime() - parsedA.getTime();
     }
     if (sortBy.value === 'status') {
       const statusPriority = {
@@ -442,8 +487,8 @@ export default function ReceiverMyClaims() {
       return;
     }
 
-    if (activeFilter !== 'All') {
-      setActiveFilter('All');
+    if (activeFilter !== FILTER_KEYS.ALL) {
+      setActiveFilter(FILTER_KEYS.ALL);
       return;
     }
 
@@ -478,38 +523,45 @@ export default function ReceiverMyClaims() {
 
   return (
     <div className="claimed-page claimed-donations-container">
-      {/* Rating Stats Box */}
-      <div className="receiver-stats-box">
-        <div className="stat-item">
-          <div className="stat-info">
-            <div className="stat-value">
-              {rating.totalReviews > 0 ? (
-                <span className="rating-vertical-wrap">
-                  <span className="rating-main">
-                    <span className="rating-star">★</span> Your Rating :
-                    <span className="rating-number">
-                      {rating.averageRating.toFixed(1)}
+      <div
+        className="claimed-page claims-header"
+        data-tour="receiver-my-claims"
+      >
+        <div className="claimed-page claims-header-text">
+          <h1>{t('receiverMyClaims.title')}</h1>
+          <p className="claimed-page claimed-subtitle">
+            {t('receiverMyClaims.subtitle')}
+          </p>
+        </div>
+
+        {/* Rating Stats Box */}
+        <div className="receiver-stats-box">
+          <div className="stat-item">
+            <div className="stat-info">
+              <div className="stat-value">
+                {rating.totalReviews > 0 ? (
+                  <span className="rating-vertical-wrap">
+                    <span className="rating-main">
+                      <span className="rating-star">★</span> Your Rating :
+                      <span className="rating-number">
+                        {rating.averageRating.toFixed(1)}
+                      </span>
+                      <span className="rating-count">
+                        ({rating.totalReviews})
+                      </span>
                     </span>
-                    <span className="rating-count">
-                      ({rating.totalReviews})
+                    <span className="rating-count-row">
+                      <span className="rating-count"></span>
                     </span>
                   </span>
-                  <span className="rating-count-row">
-                    <span className="rating-count"></span>
-                  </span>
-                </span>
-              ) : (
-                <span className="no-rating">—</span>
-              )}
+                ) : (
+                  <span className="no-rating">—</span>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
-
-      <h1>{t('receiverMyClaims.title')}</h1>
-      <p className="claimed-page claimed-subtitle">
-        {t('receiverMyClaims.subtitle')}
-      </p>
 
       {error && <div className="claimed-page error-message">{error}</div>}
 
@@ -518,9 +570,9 @@ export default function ReceiverMyClaims() {
         <div className="claimed-page donation-filter-buttons">
           {filters.map(filter => (
             <button
-              key={filter.name}
-              onClick={() => setActiveFilter(filter.name)}
-              className={`claimed-page filter-btn ${activeFilter === filter.name ? 'active' : ''}`}
+              key={filter.key}
+              onClick={() => setActiveFilter(filter.key)}
+              className={`claimed-page filter-btn ${activeFilter === filter.key ? 'active' : ''}`}
             >
               <span>{filter.name}</span>
               <span className="claimed-page donation-filter-count">
@@ -554,6 +606,65 @@ export default function ReceiverMyClaims() {
           const resolvedDonationImage = getImageUrl(
             post?.resolvedDonationImageUrl
           );
+          const pickupWindow = formatPickupTime(
+            claim.confirmedPickupSlot?.pickupDate ||
+              claim.confirmedPickupSlot?.date,
+            claim.confirmedPickupSlot?.startTime ||
+              claim.confirmedPickupSlot?.pickupFrom,
+            claim.confirmedPickupSlot?.endTime ||
+              claim.confirmedPickupSlot?.pickupTo
+          );
+          const categoryBadge = getPrimaryFoodCategory(post?.foodCategories);
+          const dietaryBadges = (
+            Array.isArray(post?.dietaryTags) ? post.dietaryTags : []
+          )
+            .slice(0, 2)
+            .map(getDietaryTagLabel)
+            .filter(Boolean);
+          const temperatureBadge = post?.temperatureCategory
+            ? getTemperatureCategoryLabel(post.temperatureCategory)
+            : '';
+          const quantityValue = `${post?.quantity?.value || 0} ${
+            getUnitLabel(post?.quantity?.unit) || 'items'
+          }`;
+          const expiryValue = formatDisplayDate(post?.expiryDate);
+          const pickupValue = pickupWindow;
+          const donorValue =
+            post?.donorName || t('receiverMyClaims.notSpecified');
+          const locationValue = getShortAddress(post?.pickupLocation?.address);
+
+          const infoRows = [
+            {
+              key: 'quantity-expiry',
+              icon: <Package size={16} className="claimed-page detail-icon" />,
+              value: `${quantityValue} \u00b7 Expires ${expiryValue}`,
+              tone: 'quantity',
+            },
+            {
+              key: 'pickup',
+              icon: <Clock size={16} className="claimed-page detail-icon" />,
+              prefix: 'Pickup',
+              value: pickupValue,
+              emphasizeValue: true,
+              tone: 'pickup',
+            },
+            {
+              key: 'donor',
+              icon: <User size={16} className="claimed-page detail-icon" />,
+              value: donorValue,
+              tone: 'donor',
+            },
+            {
+              key: 'location',
+              icon: <MapPin size={16} className="claimed-page detail-icon" />,
+              value: locationValue,
+              title:
+                post?.pickupLocation?.address ||
+                t('receiverMyClaims.notSpecified'),
+              isLocation: true,
+              tone: 'location',
+            },
+          ];
 
           return (
             <div
@@ -597,43 +708,61 @@ export default function ReceiverMyClaims() {
                   {post?.title || t('receiverMyClaims.untitledDonation')}
                 </h3>
 
+                {(categoryBadge ||
+                  dietaryBadges.length > 0 ||
+                  temperatureBadge) && (
+                  <div className="claimed-page card-tags">
+                    {categoryBadge && (
+                      <span className="claimed-page card-tag card-tag-category">
+                        {categoryBadge}
+                      </span>
+                    )}
+                    {dietaryBadges.map(tag => (
+                      <span
+                        key={`${claim.id}-${tag}`}
+                        className="claimed-page card-tag"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                    {temperatureBadge && (
+                      <span className="claimed-page card-tag card-tag-temp">
+                        {temperatureBadge}
+                      </span>
+                    )}
+                  </div>
+                )}
+
                 <div className="claimed-page card-details">
-                  <div className="claimed-page detail-item">
-                    <Package
-                      size={16}
-                      className="claimed-page quantity-detail-icon"
-                    />
-                    <span>
-                      {post?.quantity?.value || 0}{' '}
-                      {getUnitLabel(post?.quantity?.unit) || 'items'}
-                    </span>
-                  </div>
-                  <div className="claimed-page detail-item">
-                    <User
-                      size={16}
-                      className="claimed-page donor-detail-icon"
-                    />
-                    <span>
-                      {post?.donorName || t('receiverMyClaims.notSpecified')}
-                    </span>
-                  </div>
-                  <div className="claimed-page detail-item">
-                    <Clock
-                      size={16}
-                      className="claimed-page date-detail-icon"
-                    />
-                    <span>
-                      {formatPickupTime(
-                        claim.confirmedPickupSlot?.pickupDate ||
-                          claim.confirmedPickupSlot?.date,
-                        claim.confirmedPickupSlot?.startTime ||
-                          claim.confirmedPickupSlot?.pickupFrom,
-                        claim.confirmedPickupSlot?.endTime ||
-                          claim.confirmedPickupSlot?.pickupTo,
-                        userTimezone
-                      )}
-                    </span>
-                  </div>
+                  {infoRows.map(item => (
+                    <div
+                      className={`claimed-page detail-item detail-item-${item.tone || 'default'}`}
+                      key={item.key}
+                    >
+                      {item.icon}
+                      <span
+                        className={`claimed-page detail-value ${item.isLocation ? 'detail-value-location' : ''}`}
+                        title={item.title || undefined}
+                      >
+                        {item.prefix ? (
+                          <>
+                            <span>{item.prefix} </span>
+                            <span
+                              className={
+                                item.emphasizeValue
+                                  ? 'claimed-page detail-value-emphasis'
+                                  : ''
+                              }
+                            >
+                              {item.value}
+                            </span>
+                          </>
+                        ) : (
+                          item.value
+                        )}
+                      </span>
+                    </div>
+                  ))}
                 </div>
                 {/* Action Buttons */}
                 <div className="claimed-page card-actions">
@@ -651,24 +780,17 @@ export default function ReceiverMyClaims() {
                     </button>
                   )}
 
-                  <div
+                  <button
                     className="claimed-page view-details-container"
                     onClick={event => {
                       event.stopPropagation();
                       handleViewDetails(claim);
                     }}
+                    type="button"
                   >
                     <span>{t('receiverMyClaims.viewDetails')}</span>
-                    <button
-                      className="claimed-page view-details-btn"
-                      type="button"
-                    >
-                      <ArrowRight
-                        size={16}
-                        className="claimed-page arrow-icon"
-                      />
-                    </button>
-                  </div>
+                    <ArrowRight size={16} className="claimed-page arrow-icon" />
+                  </button>
                 </div>
               </div>
             </div>
@@ -680,10 +802,12 @@ export default function ReceiverMyClaims() {
         <div className="claimed-page empty-state">
           <Package size={48} className="claimed-page empty-icon" />
           <p>
-            {activeFilter === t('receiverMyClaims.filters.all')
+            {activeFilter === FILTER_KEYS.ALL
               ? t('receiverMyClaims.noClaimsYet')
               : t('receiverMyClaims.noDonationsForFilter', {
-                  filter: activeFilter,
+                  filter:
+                    filters.find(filter => filter.key === activeFilter)?.name ||
+                    activeFilter,
                 })}
           </p>
         </div>

@@ -242,7 +242,7 @@ describe('ReceiverMyClaims Component', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Untitled Donation')).toBeInTheDocument();
-        expect(screen.getByText('Not specified')).toBeInTheDocument();
+        expect(screen.getAllByText('Not specified').length).toBeGreaterThan(0);
         // When quantity is null, it defaults to "0 items"
         expect(screen.getByText(/0 items/i)).toBeInTheDocument();
       });

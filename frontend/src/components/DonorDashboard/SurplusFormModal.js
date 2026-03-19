@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import { Autocomplete } from '@react-google-maps/api';
 import Select from 'react-select';
+import SEOHead from '../SEOHead';
+import ga4Service from '../../services/ga4Service';
 import DatePicker from 'react-datepicker';
 import { imageAPI, surplusAPI } from '../../services/api';
 import {
@@ -26,6 +28,7 @@ import {
   packagingTypeOptions,
 } from '../../constants/foodConstants';
 import { computeSuggestedExpiry } from '../../utils/expiryRules';
+import { toLocalDateInputValue } from '../../utils/timezoneUtils';
 import { useTimezone } from '../../contexts/TimezoneContext';
 import './Donor_Styles/SurplusFormModal.css';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -116,17 +119,7 @@ const SurplusFormModal = ({
   );
 
   const formatDate = date => {
-    if (!date) {
-      return '';
-    }
-    try {
-      // Handle both Date objects and date strings
-      const dateObj = date instanceof Date ? date : new Date(date);
-      return dateObj.toISOString().split('T')[0];
-    } catch (error) {
-      console.error('Error formatting date:', date, error);
-      return '';
-    }
+    return toLocalDateInputValue(date);
   };
 
   const formatTime = date => {
@@ -262,6 +255,17 @@ const SurplusFormModal = ({
     return date;
   };
 
+  const parseLocalDate = dateString => {
+    if (!dateString || typeof dateString !== 'string') {
+      return null;
+    }
+    const [year, month, day] = dateString.split('-').map(Number);
+    if (!year || !month || !day) {
+      return null;
+    }
+    return new Date(year, month - 1, day);
+  };
+
   // Auto-fill expiry from suggestion until donor edits expiry manually.
   useEffect(() => {
     if (expiryTouched) {
@@ -269,18 +273,31 @@ const SurplusFormModal = ({
     }
 
     if (!expirySuggestion.suggestedExpiryDate) {
-      setFormData(prev => ({
-        ...prev,
-        calculatedExpiryDate: '',
-      }));
+      setFormData(prev => {
+        if (!prev.calculatedExpiryDate) {
+          return prev;
+        }
+        return {
+          ...prev,
+          calculatedExpiryDate: '',
+        };
+      });
       return;
     }
 
-    const calculatedExpiry = new Date(expirySuggestion.suggestedExpiryDate);
+    const calculatedExpiry =
+      parseLocalDate(expirySuggestion.suggestedExpiryDate) ||
+      new Date(expirySuggestion.suggestedExpiryDate);
     const currentExpiryStr = formData.expiryDate
       ? formatDate(formData.expiryDate)
       : '';
-    if (currentExpiryStr !== expirySuggestion.suggestedExpiryDate) {
+    const currentCalculatedExpiryStr = formData.calculatedExpiryDate
+      ? formatDate(formData.calculatedExpiryDate)
+      : '';
+    if (
+      currentExpiryStr !== expirySuggestion.suggestedExpiryDate ||
+      currentCalculatedExpiryStr !== expirySuggestion.suggestedExpiryDate
+    ) {
       setFormData(prev => ({
         ...prev,
         calculatedExpiryDate: calculatedExpiry,
@@ -477,6 +494,7 @@ const SurplusFormModal = ({
         response = await surplusAPI.create(submissionData);
         const createdPostId = response?.data?.id || 'unknown';
         setMessage(t('surplusForm.successCreated', { id: createdPostId }));
+        ga4Service.trackDonationCreated();
       }
 
       const savedPostId = response?.data?.id || postId;
@@ -655,6 +673,7 @@ const SurplusFormModal = ({
 
   return (
     <div className="modal-overlay" onClick={handleCancel}>
+      <SEOHead noindex />
       <div className="modal-container" onClick={e => e.stopPropagation()}>
         <div className="surplus-modal-header">
           <h2>

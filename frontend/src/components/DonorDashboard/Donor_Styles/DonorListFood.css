@@ -213,6 +213,16 @@
     0 8px 24px rgba(15, 23, 42, 0.12);
 }
 
+.donation-card--tutorial {
+  border-style: dashed;
+  border-color: #8bc7a9;
+  background: linear-gradient(
+    180deg,
+    rgba(245, 253, 247, 0.98),
+    rgba(255, 255, 255, 1)
+  );
+}
+
 .donation-header {
   display: flex;
   align-items: flex-start;
@@ -600,6 +610,48 @@
   background: #d1d5db;
 }
 
+.tutorial-flow-section {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #f7fbf8;
+  border: 1px solid #d8ebe0;
+}
+
+.tutorial-flow-section__label {
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #285343;
+}
+
+.tutorial-current-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid #dcefe4;
+}
+
+.tutorial-current-status__label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #285343;
+}
+
+.tutorial-status-journey {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tutorial-status-journey__muted {
+  opacity: 0.72;
+}
+
 .donation-action-button.report-receiver {
   background: #fff4ee;
   color: #7f1d1d;
@@ -686,6 +738,10 @@
   }
   .donation-card {
     padding: 22px;
+  }
+  .tutorial-current-status {
+    align-items: flex-start;
+    flex-direction: column;
   }
   .donation-actions {
     flex-wrap: wrap;

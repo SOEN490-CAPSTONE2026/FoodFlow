@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import FoodFlowLogo from '../../assets/Logo.png';
 import { useTimezone } from '../../contexts/TimezoneContext';
+import ga4Service from '../../services/ga4Service';
 import {
   foodTypeImages,
   getFoodTypeLabel,
@@ -140,6 +141,7 @@ const ChatPanel = ({
 
       setMessages([...messages, response.data]);
       setNewMessage('');
+      ga4Service.trackMessageSent();
       onMessageSent();
     } catch (err) {
       console.error('Error sending message:', err);

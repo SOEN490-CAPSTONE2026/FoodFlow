@@ -1,21 +1,18 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import {
   Plus,
   Minus,
-  HelpCircle,
   BookOpen,
-  MessageCircle,
   Phone,
   Mail,
-  Heart,
-  Clock,
   Shield,
-  AlertCircle,
-  Search,
   Rocket,
   Users,
+  Sparkles,
 } from 'lucide-react';
+import { useOnboarding } from '../../contexts/OnboardingContext';
 import './Donor_Styles/DonorHelp.css';
 
 /**
@@ -48,14 +45,22 @@ const FAQItem = ({ question, answer, isOpen, onClick }) => (
   </div>
 );
 
+FAQItem.propTypes = {
+  question: PropTypes.string.isRequired,
+  answer: PropTypes.string.isRequired,
+  isOpen: PropTypes.bool.isRequired,
+  onClick: PropTypes.func.isRequired,
+};
+
 /**
  * Donor Help Page Component
  * Displays getting started guide, FAQs, and contact information for donors
  */
 export default function DonorHelp() {
   const [openFAQ, setOpenFAQ] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
   const { t } = useTranslation();
+  const { canReplayDonorTutorial, startDonorTutorial, isDonorTutorialActive } =
+    useOnboarding();
 
   const faqs = [
     'q1',
@@ -95,29 +100,35 @@ export default function DonorHelp() {
     setOpenFAQ(openFAQ === index ? null : index);
   };
 
-  const filteredFAQs = faqs.filter(
-    faq =>
-      faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      faq.answer.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   return (
     <div className="donor-help">
-      {/* Hero Section with Search */}
-      <div className="help-hero">
-        <h1 className="donor-help-title">{t('donorHelp.hero.title')}</h1>
-        <p className="help-subtitle">{t('donorHelp.hero.subtitle')}</p>
-        <div className="search-container">
-          <Search className="search-icon" size={20} />
-          <input
-            type="text"
-            placeholder={t('donorHelp.hero.searchPlaceholder')}
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="search-input"
-          />
+      {canReplayDonorTutorial && (
+        <section className="help-section tutorial-section">
+          <div className="section-header">
+            <Sparkles size={24} />
+            <h2>{t('onboarding.help.title')}</h2>
+          </div>
+          <p className="section-intro">{t('onboarding.help.donorIntro')}</p>
+          <button
+            type="button"
+            className="tutorial-replay-button"
+            data-tour="donor-replay-tutorial"
+            onClick={startDonorTutorial}
+            disabled={isDonorTutorialActive}
+          >
+            <Sparkles size={18} />
+            <span>{t('onboarding.help.replayButton')}</span>
+          </button>
+        </section>
+      )}
+
+      <section className="help-section getting-started">
+        <div className="section-header">
+          <BookOpen size={24} />
+          <h2>{t('donorHelp.gettingStarted.title')}</h2>
         </div>
-      </div>
+        <p className="section-intro">{t('donorHelp.gettingStarted.intro')}</p>
+      </section>
 
       {/* Category Cards */}
       <div className="category-cards">
@@ -139,7 +150,7 @@ export default function DonorHelp() {
           <p className="faq-subtitle">{t('donorHelp.faq.subtitle')}</p>
         </div>
         <div className="faq-list">
-          {(searchQuery ? filteredFAQs : faqs).map((faq, index) => (
+          {faqs.map((faq, index) => (
             <FAQItem
               key={index}
               question={faq.question}

@@ -1221,6 +1221,11 @@
     "predicted": "Estimado",
     "addedToSaved": "Añadido a donaciones guardadas"
   },
+  "receiverSavedDonations": {
+    "title": "Donaciones guardadas",
+    "failedToLoad": "No se pudieron cargar las donaciones guardadas",
+    "empty": "Aún no hay donaciones guardadas."
+  },
   "receiverMyClaims": {
     "readyForPickup": "Listo para recogida",
     "completed": "Completado",
@@ -2594,6 +2599,90 @@
       "emailResponseTime": "Respuesta en 24 horas",
       "phoneLabel": "Soporte telefónico",
       "phoneAvailability": "Lun-Vie, 9AM-5PM EST"
+  "onboarding": {
+    "labels": {
+      "donor": "Tutorial para donantes",
+      "receiver": "Tutorial para receptores"
+    },
+    "actions": {
+      "skip": "Omitir",
+      "back": "Atrás",
+      "next": "Siguiente",
+      "finish": "Finalizar"
+    },
+    "stepProgress": "Paso {{current}} de {{total}}",
+    "errors": {
+      "saveFailed": "No pudimos guardar tu progreso del tutorial. Inténtalo de nuevo."
+    },
+    "help": {
+      "title": "Tutorial de bienvenida",
+      "replayButton": "Mostrar tutorial otra vez",
+      "donorIntro": "Reinicia el recorrido para donantes cuando quieras para repasar el panel, la publicación, el chat y los estados de recogida.",
+      "receiverIntro": "Reinicia el recorrido para receptores cuando quieras para repasar la exploración, guardados, reclamaciones, chat, preferencias y ajustes."
+    },
+    "donor": {
+      "steps": {
+        "dashboard": {
+          "title": "Bienvenido a FoodFlow",
+          "text": "Este es tu panel de donante. Desde aquí puedes gestionar tus donaciones y seguir lo que sucede después."
+        },
+        "impact": {
+          "title": "Mira tu impacto",
+          "text": "Tu panel de impacto muestra cuánta comida has salvado y la diferencia que están generando tus donaciones con el tiempo."
+        },
+        "postDonation": {
+          "title": "Publica una donación",
+          "text": "Usa esta acción para crear una nueva donación de alimentos y ponerla a disposición de los receptores."
+        },
+        "chat": {
+          "title": "Chatea con receptores",
+          "text": "Una vez que una donación sea reclamada, puedes usar el chat para coordinar la recogida y responder preguntas."
+        },
+        "pickup": {
+          "title": "Sigue el progreso de la recogida",
+          "text": "Cada donación avanza por un flujo de recogida con estados para que siempre sepas en qué etapa se encuentra."
+        },
+        "setup": {
+          "title": "Configura tu cuenta",
+          "text": "Usa Idioma y región para elegir idioma, ubicación y zona horaria. La integración con calendario te permite sincronizar recogidas de FoodFlow, y las preferencias de visualización controlan cómo se ven tus tarjetas de donación."
+        }
+      }
+    },
+    "receiver": {
+      "steps": {
+        "browse": {
+          "title": "Explorar donaciones",
+          "text": "Aquí puedes explorar las donaciones de alimentos disponibles y encontrar artículos que se ajusten a tus necesidades."
+        },
+        "saved": {
+          "title": "Donaciones guardadas",
+          "text": "Aquí puedes encontrar rápidamente las donaciones que guardaste para revisarlas más tarde."
+        },
+        "claims": {
+          "title": "Tus reclamaciones",
+          "text": "Esta sección muestra las donaciones que has reclamado y te permite seguir su progreso."
+        },
+        "chat": {
+          "title": "Chatea con donantes",
+          "text": "Usa el chat para coordinar la recogida, hacer preguntas y mantenerte al día con los donantes."
+        },
+        "impact": {
+          "title": "Tu panel de impacto",
+          "text": "Este panel te ayuda a seguir tu actividad, tus recogidas y tu impacto general en la plataforma."
+        },
+        "preferences": {
+          "title": "Preferencias y coincidencias",
+          "text": "Configura aquí tus preferencias alimentarias para que FoodFlow pueda recomendar donaciones que se adapten mejor a tus necesidades."
+        },
+        "settings": {
+          "title": "Configuración",
+          "text": "Puedes gestionar tu cuenta, volver a mostrar el tutorial y ajustar opciones de la plataforma desde aquí."
+        },
+        "done": {
+          "title": "Ya estás listo",
+          "text": "Eso es todo: ya estás listo para empezar a usar FoodFlow como receptor."
+        }
+      }
     }
   }
 }

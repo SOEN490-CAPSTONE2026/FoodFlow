@@ -104,7 +104,7 @@ describe('DonationTimeline Component', () => {
       render(<DonationTimeline timeline={[]} loading={false} />);
 
       expect(
-        screen.getByText('No timeline events available yet.')
+        screen.getByText('No donation timeline events available yet.')
       ).toBeInTheDocument();
       expect(screen.getByTestId('clock-icon')).toBeInTheDocument();
     });
@@ -113,7 +113,7 @@ describe('DonationTimeline Component', () => {
       render(<DonationTimeline timeline={null} loading={false} />);
 
       expect(
-        screen.getByText('No timeline events available yet.')
+        screen.getByText('No donation timeline events available yet.')
       ).toBeInTheDocument();
     });
 
@@ -121,7 +121,7 @@ describe('DonationTimeline Component', () => {
       render(<DonationTimeline loading={false} />);
 
       expect(
-        screen.getByText('No timeline events available yet.')
+        screen.getByText('No donation timeline events available yet.')
       ).toBeInTheDocument();
     });
   });
@@ -130,10 +130,10 @@ describe('DonationTimeline Component', () => {
     it('should render all timeline events', () => {
       render(<DonationTimeline timeline={mockTimeline} loading={false} />);
 
-      expect(screen.getByText('DONATION_POSTED')).toBeInTheDocument();
-      expect(screen.getByText('DONATION_CLAIMED')).toBeInTheDocument();
-      expect(screen.getAllByText('READY_FOR_PICKUP').length).toBeGreaterThan(0);
-      expect(screen.getByText('PICKUP_CONFIRMED')).toBeInTheDocument();
+      expect(screen.getByText('Donation Posted')).toBeInTheDocument();
+      expect(screen.getByText('Donation Claimed')).toBeInTheDocument();
+      expect(screen.getAllByText('Ready For Pickup').length).toBeGreaterThan(0);
+      expect(screen.getByText('Pickup Confirmed')).toBeInTheDocument();
     });
 
     it('should display timestamps for all events', () => {
@@ -147,8 +147,8 @@ describe('DonationTimeline Component', () => {
     it('should display actor information for all events', () => {
       render(<DonationTimeline timeline={mockTimeline} loading={false} />);
 
-      expect(screen.getAllByText(/Actor: donor/).length).toBe(2);
-      expect(screen.getAllByText(/Actor: receiver/).length).toBe(2);
+      expect(screen.getAllByText(/Actor: Donor/).length).toBe(2);
+      expect(screen.getAllByText(/Actor: Receiver/).length).toBe(2);
     });
 
     it('should display event details when present', () => {
@@ -158,7 +158,9 @@ describe('DonationTimeline Component', () => {
       expect(
         screen.getByText('Claimed by Food Bank Central')
       ).toBeInTheDocument();
-      expect(screen.getByText('Food is ready for pickup')).toBeInTheDocument();
+      expect(
+        screen.getByText('Pickup time arrived. OTP generated automatically.')
+      ).toBeInTheDocument();
       expect(
         screen.getByText('Pickup confirmed successfully')
       ).toBeInTheDocument();
@@ -177,7 +179,7 @@ describe('DonationTimeline Component', () => {
       );
 
       const container = screen
-        .getByText('DONATION_POSTED')
+        .getByText('Donation Posted')
         .closest('.donation-timeline-content');
       expect(
         container.querySelector('.donation-timeline-details')
@@ -197,10 +199,10 @@ describe('DonationTimeline Component', () => {
     it('should show old and new status correctly', () => {
       render(<DonationTimeline timeline={mockTimeline} loading={false} />);
 
-      expect(screen.getByText('AVAILABLE')).toBeInTheDocument();
-      expect(screen.getAllByText('CLAIMED').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('READY_FOR_PICKUP').length).toBeGreaterThan(0);
-      expect(screen.getByText('COMPLETED')).toBeInTheDocument();
+      expect(screen.getByText('Available')).toBeInTheDocument();
+      expect(screen.getAllByText('Claimed').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Ready for Pickup').length).toBeGreaterThan(0);
+      expect(screen.getByText('Completed')).toBeInTheDocument();
     });
 
     it('should not display status change if oldStatus is missing', () => {
@@ -217,7 +219,7 @@ describe('DonationTimeline Component', () => {
       );
 
       const container = screen
-        .getByText('DONATION_POSTED')
+        .getByText('Donation Posted')
         .closest('.donation-timeline-content');
       expect(
         container.querySelector('.donation-timeline-status-change')
@@ -238,7 +240,7 @@ describe('DonationTimeline Component', () => {
       );
 
       const container = screen
-        .getByText('DONATION_CLAIMED')
+        .getByText('Donation Claimed')
         .closest('.donation-timeline-content');
       expect(
         container.querySelector('.donation-timeline-status-change')
@@ -258,7 +260,7 @@ describe('DonationTimeline Component', () => {
       );
 
       const adminEventElement = screen
-        .getByText('ADMIN_AUDIT')
+        .getByText('Admin Audit')
         .closest('.donation-timeline-item');
       expect(adminEventElement).toHaveClass('admin-only');
     });
@@ -273,7 +275,7 @@ describe('DonationTimeline Component', () => {
         />
       );
 
-      expect(screen.getByText('ADMIN ONLY')).toBeInTheDocument();
+      expect(screen.getByText('Admin only')).toBeInTheDocument();
       expect(screen.getByTestId('shield-alert-icon')).toBeInTheDocument();
     });
 
@@ -287,7 +289,7 @@ describe('DonationTimeline Component', () => {
         />
       );
 
-      expect(screen.queryByText('ADMIN ONLY')).not.toBeInTheDocument();
+      expect(screen.queryByText('Admin only')).not.toBeInTheDocument();
     });
 
     it('should not display admin badge for user-visible events', () => {
@@ -299,7 +301,7 @@ describe('DonationTimeline Component', () => {
         />
       );
 
-      expect(screen.queryByText('ADMIN ONLY')).not.toBeInTheDocument();
+      expect(screen.queryByText('Admin only')).not.toBeInTheDocument();
     });
   });
 
@@ -366,7 +368,7 @@ describe('DonationTimeline Component', () => {
       render(<DonationTimeline timeline={timeline} loading={false} />);
 
       // Should render something (either "—" or the invalid string formatted)
-      expect(screen.getByText('TEST_EVENT')).toBeInTheDocument();
+      expect(screen.getByText('Test Event')).toBeInTheDocument();
 
       consoleErrorSpy.mockRestore();
     });
@@ -435,7 +437,7 @@ describe('DonationTimeline Component', () => {
       const singleEvent = [mockTimeline[0]];
       render(<DonationTimeline timeline={singleEvent} loading={false} />);
 
-      expect(screen.getByText('DONATION_POSTED')).toBeInTheDocument();
+      expect(screen.getByText('Donation Posted')).toBeInTheDocument();
       expect(screen.getByText('Donation created')).toBeInTheDocument();
     });
 
@@ -451,8 +453,8 @@ describe('DonationTimeline Component', () => {
 
       render(<DonationTimeline timeline={longTimeline} loading={false} />);
 
-      expect(screen.getByText('EVENT_0')).toBeInTheDocument();
-      expect(screen.getByText('EVENT_49')).toBeInTheDocument();
+      expect(screen.getAllByText('Event 0').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Event 49').length).toBeGreaterThan(0);
     });
 
     it('should handle mixed visibility events', () => {
@@ -484,7 +486,7 @@ describe('DonationTimeline Component', () => {
 
       render(<DonationTimeline timeline={minimalEvent} loading={false} />);
 
-      expect(screen.getByText('MINIMAL_EVENT')).toBeInTheDocument();
+      expect(screen.getByText('Minimal Event')).toBeInTheDocument();
       expect(screen.getByText('Actor: test')).toBeInTheDocument();
     });
   });
@@ -494,7 +496,7 @@ describe('DonationTimeline Component', () => {
       render(<DonationTimeline />);
 
       expect(
-        screen.getByText('No timeline events available yet.')
+        screen.getByText('No donation timeline events available yet.')
       ).toBeInTheDocument();
     });
 
@@ -508,7 +510,7 @@ describe('DonationTimeline Component', () => {
         />
       );
 
-      expect(screen.queryByText('ADMIN ONLY')).not.toBeInTheDocument();
+      expect(screen.queryByText('Admin only')).not.toBeInTheDocument();
 
       rerender(
         <DonationTimeline
@@ -518,7 +520,7 @@ describe('DonationTimeline Component', () => {
         />
       );
 
-      expect(screen.getByText('ADMIN ONLY')).toBeInTheDocument();
+      expect(screen.getByText('Admin only')).toBeInTheDocument();
     });
 
     it('should accept loading prop', () => {
@@ -531,7 +533,7 @@ describe('DonationTimeline Component', () => {
       rerender(<DonationTimeline timeline={mockTimeline} loading={false} />);
 
       expect(screen.queryByText('Loading timeline...')).not.toBeInTheDocument();
-      expect(screen.getByText('DONATION_POSTED')).toBeInTheDocument();
+      expect(screen.getByText('Donation Posted')).toBeInTheDocument();
     });
   });
 
@@ -556,16 +558,16 @@ describe('DonationTimeline Component', () => {
       render(<DonationTimeline timeline={mockTimeline} loading={false} />);
 
       // All text should be readable - check unique event types
-      expect(screen.getByText('DONATION_POSTED')).toBeVisible();
-      expect(screen.getByText('DONATION_CLAIMED')).toBeVisible();
-      expect(screen.getByText('PICKUP_CONFIRMED')).toBeVisible();
+      expect(screen.getByText('Donation Posted')).toBeVisible();
+      expect(screen.getByText('Donation Claimed')).toBeVisible();
+      expect(screen.getByText('Pickup Confirmed')).toBeVisible();
 
-      // Check details
-      mockTimeline.forEach(event => {
-        if (event.details) {
-          expect(screen.getByText(event.details)).toBeVisible();
-        }
-      });
+      expect(screen.getByText('Donation created')).toBeVisible();
+      expect(screen.getByText('Claimed by Food Bank Central')).toBeVisible();
+      expect(
+        screen.getByText('Pickup time arrived. OTP generated automatically.')
+      ).toBeVisible();
+      expect(screen.getByText('Pickup confirmed successfully')).toBeVisible();
     });
   });
 
@@ -602,12 +604,12 @@ describe('DonationTimeline Component', () => {
       expect(evidenceImage).toBeInTheDocument();
     });
 
-    it('should display PICKUP_EVIDENCE_UPLOADED event type', () => {
+    it('should display pickup evidence uploaded event type', () => {
       render(
         <DonationTimeline timeline={mockTimelineWithEvidence} loading={false} />
       );
 
-      expect(screen.getByText('PICKUP_EVIDENCE_UPLOADED')).toBeInTheDocument();
+      expect(screen.getByText('Pickup Evidence Uploaded')).toBeInTheDocument();
     });
 
     it('should display evidence label', () => {

@@ -193,7 +193,7 @@ export default function ReceiverImpactDashboard() {
 
   if (loading) {
     return (
-      <div className="impact-dashboard">
+      <div className="impact-dashboard" data-tour="receiver-impact-controls">
         <div className="loading-container">
           <div className="spinner"></div>
           <p>{t('common.loading', 'Loading...')}</p>
@@ -204,7 +204,7 @@ export default function ReceiverImpactDashboard() {
 
   if (error) {
     return (
-      <div className="impact-dashboard">
+      <div className="impact-dashboard" data-tour="receiver-impact-controls">
         <div className="error-container">
           <p className="error-message">{error}</p>
           <button
@@ -221,7 +221,7 @@ export default function ReceiverImpactDashboard() {
   return (
     <div className="impact-dashboard-modern">
       {/* Header Controls */}
-      <div className="dashboard-controls">
+      <div className="dashboard-controls" data-tour="receiver-impact-controls">
         <button
           className="customize-btn"
           onClick={() => setShowCustomizeModal(true)}

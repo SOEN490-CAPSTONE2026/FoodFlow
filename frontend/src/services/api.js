@@ -428,6 +428,7 @@ export const userAPI = {
 export const profileAPI = {
   get: () => api.get('/profile'),
   update: data => api.put('/profile', data),
+  updateOnboarding: data => api.put('/profile/onboarding', data),
 };
 
 export const imageAPI = {

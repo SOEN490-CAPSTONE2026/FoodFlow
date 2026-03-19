@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { Autocomplete, useLoadScript } from '@react-google-maps/api';
 import { authAPI } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
+import SEOHead from './SEOHead';
+import ga4Service from '../services/ga4Service';
 import ReceiverIllustration from '../assets/illustrations/receiver-ilustration.jpg';
 import { validatePassword } from '../utils/passwordValidation';
 import {
@@ -695,6 +697,7 @@ const ReceiverRegistration = () => {
       }
 
       setSubmitted(true);
+      ga4Service.trackSignUp('RECEIVER', formData.city);
 
       // Auto-redirect after 5 seconds
       setTimeout(() => {
@@ -1453,6 +1456,7 @@ const ReceiverRegistration = () => {
 
   return (
     <div className="registration-page receiver-registration">
+      <SEOHead noindex />
       <button
         type="button"
         className="exit-registration-button"

@@ -1,3 +1,32 @@
-# https://www.robotstxt.org/robotstxt.html
+# robots.txt for FoodFlow
+# https://foodflow-org.up.railway.app
+
 User-agent: *
-Disallow:
+
+# Allow all indexable public pages
+Allow: /$
+Allow: /privacy-policy$
+
+# Block auth and registration flows
+# (redirect-risk: these pages bounce unauthenticated visitors)
+Disallow: /login
+Disallow: /forgot-password
+Disallow: /verify-email
+Disallow: /register
+
+# Block OAuth callbacks (transient, no crawlable content)
+Disallow: /calendar/oauth/
+Disallow: /calendar/oauth-success
+
+# Block all authenticated app routes
+Disallow: /admin/
+Disallow: /donor/
+Disallow: /receiver/
+Disallow: /surplus/
+Disallow: /dashboard/
+
+# Block backend API (preserves crawl budget for public pages)
+Disallow: /api/
+
+# Sitemap location
+Sitemap: https://foodflow-org.up.railway.app/sitemap.xml

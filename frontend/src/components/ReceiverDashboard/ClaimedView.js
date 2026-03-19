@@ -5,9 +5,14 @@ import {
   foodTypeImages,
   getPrimaryFoodCategory,
 } from '../../constants/foodConstants';
+import {
+  parseExplicitUtcTimestamp,
+  parseBackendUtcTimestamp,
+  parseZonedDateTimeParts,
+} from '../../utils/timezoneUtils';
 import './Receiver_Styles/ClaimedView.css';
 
-const ClaimedView = ({ claim, isOpen, onClose, onBack }) => {
+const ClaimedView = ({ claim, isOpen, onClose, onBack, userTimezone }) => {
   const { t } = useTranslation();
   const post = claim?.surplusPost;
   const [timeRemaining, setTimeRemaining] = useState(null);
@@ -50,13 +55,15 @@ const ClaimedView = ({ claim, isOpen, onClose, onBack }) => {
 
     const calculateTimeRemaining = () => {
       const now = new Date();
-      // Combine pickupDate (YYYY-MM-DD) and pickupFrom (HH:MM:SS) to create full datetime
-      // Add 'Z' to treat as UTC (same timezone as backend scheduler)
-      let pickupTimeStr = `${pickupDate}T${pickupFrom}`;
-      if (!pickupTimeStr.endsWith('Z') && !pickupTimeStr.includes('+')) {
-        pickupTimeStr = pickupTimeStr + 'Z';
+      // Prefer explicit UTC contract when available to keep countdown invariant
+      // across timezone preference changes.
+      const pickupTime =
+        parseExplicitUtcTimestamp(claim?.confirmedPickupStartUtc) ||
+        parseBackendUtcTimestamp(claim?.confirmedPickupStartUtc) ||
+        parseZonedDateTimeParts(pickupDate, pickupFrom, userTimezone || 'UTC');
+      if (!pickupTime) {
+        return;
       }
-      const pickupTime = new Date(pickupTimeStr);
       const diff = pickupTime - now;
 
       if (diff <= 0) {
@@ -78,7 +85,13 @@ const ClaimedView = ({ claim, isOpen, onClose, onBack }) => {
     const interval = setInterval(calculateTimeRemaining, 1000);
 
     return () => clearInterval(interval);
-  }, [post?.pickupDate, post?.pickupFrom, isOpen]);
+  }, [
+    claim?.confirmedPickupStartUtc,
+    post?.pickupDate,
+    post?.pickupFrom,
+    isOpen,
+    userTimezone,
+  ]);
 
   if (!isOpen || !claim) {
     return null;
@@ -231,7 +244,6 @@ const ClaimedView = ({ claim, isOpen, onClose, onBack }) => {
             <button className="claimed-view-btn-back" onClick={onBack}>
               Back to Details
             </button>
-            <button className="claimed-view-btn-view">View Pickup Steps</button>
           </div>
         </div>
       </div>

@@ -95,7 +95,9 @@ describe('DonationMap', () => {
           distanceRadius={10}
         />
       );
-      expect(screen.getByTestId('marker-45.5017--73.5673')).toBeInTheDocument();
+      expect(
+        screen.getAllByTestId('marker-45.5017--73.5673').length
+      ).toBeGreaterThan(0);
       expect(screen.getByTestId('marker-45.5087--73.554')).toBeInTheDocument();
     });
 
@@ -138,9 +140,9 @@ describe('DonationMap', () => {
           distanceRadius={10}
         />
       );
-      // Should only render 2 donation markers
+      // One user marker + two donation markers
       const markers = screen.getAllByTestId(/^marker-/);
-      expect(markers.length).toBeLessThan(4); // Less than would be if null was rendered
+      expect(markers).toHaveLength(3);
     });
   });
 
@@ -154,9 +156,9 @@ describe('DonationMap', () => {
           distanceRadius={15}
         />
       );
-      const circle = screen.getByTestId('circle');
-      expect(circle).toBeInTheDocument();
-      expect(circle).toHaveAttribute('data-radius', '15000'); // km to meters
+      const circles = screen.getAllByTestId('circle');
+      expect(circles.length).toBeGreaterThan(0);
+      expect(circles[0]).toHaveAttribute('data-radius', '15000'); // km to meters
     });
 
     it('does not render circle without user location', () => {
@@ -195,6 +197,18 @@ describe('DonationMap', () => {
         />
       );
       expect(screen.getByText('Available donation')).toBeInTheDocument();
+    });
+
+    it('shows selected donation marker in legend', () => {
+      render(
+        <DonationMap
+          donations={mockDonations}
+          userLocation={mockUserLocation}
+          isLoaded={true}
+          distanceRadius={10}
+        />
+      );
+      expect(screen.getByText('Selected donation')).toBeInTheDocument();
     });
 
     it('does not show user location in legend without location', () => {

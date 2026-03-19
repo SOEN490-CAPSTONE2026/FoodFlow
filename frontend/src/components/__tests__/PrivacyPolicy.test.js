@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import PrivacyPolicy from '../PrivacyPolicy';
 
@@ -74,5 +74,104 @@ describe('PrivacyPolicy', () => {
 
     // Should render successfully
     expect(links.length + buttons.length >= 0).toBe(true);
+  });
+});
+
+// ─── Back to Home button ──────────────────────────────────────────────────────
+
+describe('PrivacyPolicy — Back to Home button', () => {
+  test('renders the Back to Home button', () => {
+    renderWithRouter(<PrivacyPolicy />);
+    expect(
+      screen.getByRole('button', { name: /back to home/i })
+    ).toBeInTheDocument();
+  });
+
+  test('hovering the button triggers onMouseEnter without throwing', () => {
+    renderWithRouter(<PrivacyPolicy />);
+    const btn = screen.getByRole('button', { name: /back to home/i });
+    expect(() => fireEvent.mouseEnter(btn)).not.toThrow();
+  });
+
+  test('moving mouse off the button triggers onMouseLeave without throwing', () => {
+    renderWithRouter(<PrivacyPolicy />);
+    const btn = screen.getByRole('button', { name: /back to home/i });
+    fireEvent.mouseEnter(btn);
+    expect(() => fireEvent.mouseLeave(btn)).not.toThrow();
+  });
+
+  test('hover state cycles: enter then leave leaves button still in document', () => {
+    renderWithRouter(<PrivacyPolicy />);
+    const btn = screen.getByRole('button', { name: /back to home/i });
+    fireEvent.mouseEnter(btn);
+    fireEvent.mouseLeave(btn);
+    expect(btn).toBeInTheDocument();
+  });
+
+  test('clicking Back to Home does not throw', () => {
+    renderWithRouter(<PrivacyPolicy />);
+    const btn = screen.getByRole('button', { name: /back to home/i });
+    expect(() => fireEvent.click(btn)).not.toThrow();
+  });
+});
+
+// ─── Hash anchor scroll (useEffect) ──────────────────────────────────────────
+
+describe('PrivacyPolicy — hash anchor scrolling', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  test('renders without error when window.location.hash is empty', () => {
+    // jsdom default: hash is ''
+    expect(() => renderWithRouter(<PrivacyPolicy />)).not.toThrow();
+  });
+
+  test('scrollIntoView is called when hash matches a section id', () => {
+    const scrollIntoView = jest.fn();
+    const mockElement = { scrollIntoView };
+    jest.spyOn(document, 'getElementById').mockReturnValue(mockElement);
+
+    // Set window.location.hash so the useEffect branch fires
+    Object.defineProperty(window, 'location', {
+      value: { ...window.location, hash: '#third-party-integrations' },
+      writable: true,
+    });
+
+    renderWithRouter(<PrivacyPolicy />);
+
+    act(() => {
+      jest.advanceTimersByTime(200);
+    });
+
+    expect(scrollIntoView).toHaveBeenCalledWith({
+      behavior: 'smooth',
+      block: 'start',
+    });
+
+    document.getElementById.mockRestore();
+    window.location = { ...window.location, hash: '' };
+  });
+
+  test('does not throw when hash points to a non-existent element', () => {
+    jest.spyOn(document, 'getElementById').mockReturnValue(null);
+
+    Object.defineProperty(window, 'location', {
+      value: { ...window.location, hash: '#nonexistent' },
+      writable: true,
+    });
+
+    expect(() => renderWithRouter(<PrivacyPolicy />)).not.toThrow();
+
+    act(() => {
+      jest.advanceTimersByTime(200);
+    });
+
+    document.getElementById.mockRestore();
+    window.location = { ...window.location, hash: '' };
   });
 });
