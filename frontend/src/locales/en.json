@@ -2733,6 +2733,8 @@
         "unsupportedType": "Unsupported file type. Please use JPG, PNG or HEIC.",
         "fileTooLarge": "File exceeds 5 MB. Please choose a smaller image."
       }
+    }
+  },
   "onboarding": {
     "labels": {
       "donor": "Donor tutorial",

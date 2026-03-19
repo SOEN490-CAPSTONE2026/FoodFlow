@@ -2599,6 +2599,8 @@
       "emailResponseTime": "Respuesta en 24 horas",
       "phoneLabel": "Soporte telefónico",
       "phoneAvailability": "Lun-Vie, 9AM-5PM EST"
+    }
+  },
   "onboarding": {
     "labels": {
       "donor": "Tutorial para donantes",
