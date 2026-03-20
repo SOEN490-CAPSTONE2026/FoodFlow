@@ -146,6 +146,7 @@
   letter-spacing: 0.05em;
   border-bottom: 1px solid #e5e7eb;
   background: white;
+  vertical-align: middle;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -157,9 +158,12 @@
   font-size: 14px;
   color: #374151;
   vertical-align: middle;
+  background: white;
+  text-align: left;
 }
 
 .donations-table tbody tr {
+  background: white;
   transition: background-color 0.2s;
   cursor: pointer;
 }
@@ -172,11 +176,16 @@
   background-color: #f3f4f6;
 }
 
-/* Column widths */
+.donations-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Column widths - responsive layout */
 .donations-table th:nth-child(1),
 .donations-table td:nth-child(1) {
   width: 3%;
   min-width: 40px;
+  text-align: center;
 }
 
 .donations-table th:nth-child(2),
@@ -187,8 +196,8 @@
 
 .donations-table th:nth-child(3),
 .donations-table td:nth-child(3) {
-  width: 12%;
-  min-width: 120px;
+  width: 20%;
+  min-width: 160px;
 }
 
 .donations-table th:nth-child(4),
@@ -205,8 +214,8 @@
 
 .donations-table th:nth-child(6),
 .donations-table td:nth-child(6) {
-  width: 10%;
-  min-width: 100px;
+  width: 24%;
+  min-width: 200px;
 }
 
 .donations-table th:nth-child(7),
@@ -223,40 +232,60 @@
 
 .donations-table th:nth-child(9),
 .donations-table td:nth-child(9) {
-  width: 14%;
-  min-width: 140px;
+  width: 10%;
+  min-width: 100px;
 }
 
 .donations-table th:nth-child(10),
 .donations-table td:nth-child(10) {
-  width: 14%;
-  min-width: 140px;
+  width: 10%;
+  min-width: 100px;
 }
 
 .donations-table th:nth-child(11),
 .donations-table td:nth-child(11) {
-  width: 4%;
-  min-width: 60px;
+  width: 6%;
+  min-width: 80px;
   text-align: center;
+}
+
+.donations-table td:nth-child(11) .action-buttons {
+  justify-content: center;
+  flex-wrap: nowrap;
+  margin: 0 auto;
 }
 
 .id-cell {
   font-family: 'Courier New', monospace;
+  font-weight: 500;
   color: #6b7280;
   font-size: 13px;
 }
 
 .no-donations {
   text-align: center;
-  color: #888;
-  padding: 24px 0;
+  color: #9ca3af;
+  padding: 60px;
+  font-style: italic;
+  font-size: 15px;
 }
 
 .expand-btn {
   background: none;
   border: none;
+  color: #9ca3af;
   cursor: pointer;
   padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.expand-btn:hover {
+  color: #374151;
 }
 
 .details-row {
@@ -307,6 +336,12 @@
   font-size: 14px;
   margin: 0;
   text-align: left;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 2px;
+  align-items: center;
 }
 
 .donation-admin-modal-overlay {
@@ -1299,14 +1334,16 @@
   }
 
   .donations-table td {
-    padding: 6px 0;
-    border-bottom: none;
+    padding: 6px 0 !important;
+    border-bottom: none !important;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    width: 100%;
+    width: 100% !important;
     font-size: 14px;
     min-height: 0;
+    min-width: unset !important;
+    text-align: left !important;
   }
 
   .donations-table td::before {
@@ -1361,6 +1398,10 @@
     font-weight: 500;
   }
 
+  .donations-table td:nth-child(11) .action-buttons {
+    margin: 0;
+  }
+
   .donations-table th:nth-child(n),
   .donations-table td:nth-child(n) {
     width: 100% !important;
@@ -1388,7 +1429,6 @@
     gap: 12px;
   }
 
-  .user-details-expanded,
   .donation-details-expanded {
     gap: 16px;
   }

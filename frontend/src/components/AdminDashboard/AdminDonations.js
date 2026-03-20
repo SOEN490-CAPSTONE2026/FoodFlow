@@ -646,22 +646,24 @@ const AdminDonations = () => {
                         {formatDate(donation.updatedAt)}
                       </TableCell>
                       <TableCell data-label="Actions">
-                        <button
-                          className="action-btn"
-                          onClick={() => openDetailModal(donation)}
-                          title={t('adminDonations.actions.viewDetails')}
-                        >
-                          <Eye size={16} />
-                          <span className="mobile-action-label">
-                            {t('adminDonations.actions.viewDetails')}
-                          </span>
-                        </button>
+                        <div className="action-buttons">
+                          <button
+                            className="action-btn"
+                            onClick={() => openDetailModal(donation)}
+                            title={t('adminDonations.actions.viewDetails')}
+                          >
+                            <Eye size={16} />
+                            <span className="mobile-action-label">
+                              {t('adminDonations.actions.viewDetails')}
+                            </span>
+                          </button>
+                        </div>
                       </TableCell>
                     </TableRow>
                     {expandedRows.has(donation.id) && (
                       <TableRow className="details-row">
                         <TableCell colSpan="11">
-                          <div className="user-details-expanded">
+                          <div className="donation-details-expanded">
                             <div className="details-grid">
                               <div className="details-section">
                                 <h4>
