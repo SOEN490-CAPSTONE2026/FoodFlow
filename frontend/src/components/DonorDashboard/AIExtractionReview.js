@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { Autocomplete } from '@react-google-maps/api';
 import Select from 'react-select';
@@ -31,6 +32,7 @@ export default function AIExtractionReview({
   onSubmitError,
 }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { userTimezone } = useTimezone();
   const autocompleteRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -100,7 +102,7 @@ export default function AIExtractionReview({
     { id: 2, label: 'Quantity & Dates' },
     { id: 3, label: 'Pickup Information' },
     { id: 4, label: 'Description & Details' },
-    { id: 5, label: 'Review & Submit' },
+    { id: 5, label: t('aiDonation.steps.reviewSubmit') },
   ];
 
   /**
@@ -306,8 +308,77 @@ export default function AIExtractionReview({
 
   const progressPercent = Math.min(currentStep * 20, 100);
 
+  const validateStep = step => {
+    if (step === 1) {
+      if (!formData.title.trim()) {
+        toast.error('Please enter a food name/title');
+        return false;
+      }
+      if (formData.foodCategories.length === 0) {
+        toast.error('Please select at least one food category');
+        return false;
+      }
+      if (!formData.temperatureCategory) {
+        toast.error('Please select a temperature category');
+        return false;
+      }
+      if (!formData.packagingType) {
+        toast.error('Please select a packaging type');
+        return false;
+      }
+    }
+
+    if (step === 2) {
+      if (!formData.quantityValue || parseFloat(formData.quantityValue) <= 0) {
+        toast.error('Please enter a valid quantity');
+        return false;
+      }
+      if (!formData.quantityUnit) {
+        toast.error('Please select a unit of measurement');
+        return false;
+      }
+      if (!formData.expiryDate && !expirySuggestion.suggestedExpiryDate) {
+        toast.error('Please enter an expiry date');
+        return false;
+      }
+    }
+
+    if (step === 3) {
+      if (!pickupSlots[0].pickupDate) {
+        toast.error('Please select a pickup date');
+        return false;
+      }
+      if (!pickupSlots[0].startTime || !pickupSlots[0].endTime) {
+        toast.error('Please fill in pickup start and end time');
+        return false;
+      }
+      if (
+        new Date(pickupSlots[0].endTime) <= new Date(pickupSlots[0].startTime)
+      ) {
+        toast.error('Pickup end time must be after start time');
+        return false;
+      }
+      if (!formData.pickupLocation.address.trim()) {
+        toast.error('Please enter a pickup location');
+        return false;
+      }
+    }
+
+    if (step === 4) {
+      if (!formData.description.trim()) {
+        toast.error('Please enter a description');
+        return false;
+      }
+    }
+
+    return true;
+  };
+
   const goNext = () => {
-    setCurrentStep(prev => Math.min(prev + 1, maxUnlockedStep));
+    if (!validateStep(currentStep)) {
+      return;
+    }
+    setCurrentStep(prev => Math.min(prev + 1, 5));
   };
 
   const goPrevious = () => {
@@ -318,56 +389,7 @@ export default function AIExtractionReview({
    * Validate form before submission
    */
   const validateForm = () => {
-    if (!formData.title.trim()) {
-      toast.error('Please enter a food name/title');
-      return false;
-    }
-
-    if (formData.foodCategories.length === 0) {
-      toast.error('Please select at least one food category');
-      return false;
-    }
-
-    if (!formData.temperatureCategory) {
-      toast.error('Please select a temperature category');
-      return false;
-    }
-
-    if (!formData.packagingType) {
-      toast.error('Please select a packaging type');
-      return false;
-    }
-
-    if (!formData.quantityValue || parseFloat(formData.quantityValue) <= 0) {
-      toast.error('Please enter a valid quantity');
-      return false;
-    }
-
-    if (!formData.expiryDate && !expirySuggestion.suggestedExpiryDate) {
-      toast.error('Please enter an expiry date');
-      return false;
-    }
-
-    if (
-      !pickupSlots[0].pickupDate ||
-      !pickupSlots[0].startTime ||
-      !pickupSlots[0].endTime
-    ) {
-      toast.error('Please fill in pickup date and time');
-      return false;
-    }
-
-    if (!formData.pickupLocation.address.trim()) {
-      toast.error('Please enter a pickup location');
-      return false;
-    }
-
-    if (!formData.description.trim()) {
-      toast.error('Please enter a description');
-      return false;
-    }
-
-    return true;
+    return [1, 2, 3, 4].every(step => validateStep(step));
   };
 
   /**
@@ -426,7 +448,7 @@ export default function AIExtractionReview({
       toast.success(`Donation created successfully! ID: ${createdPostId}`);
 
       setTimeout(() => {
-        navigate('/donor/dashboard');
+        navigate('/donor/list');
       }, 1500);
     } catch (err) {
       onSubmitError?.();
@@ -497,7 +519,7 @@ export default function AIExtractionReview({
 
             <div className="form-field">
               <label className="field-label">
-                Product Name *
+                Food Name *
                 {wasAIPopulated('foodName') && (
                   <>
                     <span className="ai-badge-inline">AI-Generated</span>
@@ -511,14 +533,14 @@ export default function AIExtractionReview({
                 value={formData.title}
                 onChange={handleChange}
                 className="input-field"
-                placeholder="Enter product name"
+                placeholder="Enter food name"
                 required
               />
             </div>
 
             <div className="form-field">
               <label className="field-label">
-                Category *
+                Food Categories *
                 {wasAIPopulated('foodCategories') && (
                   <>
                     <span className="ai-badge-inline">AI-Generated</span>
@@ -537,7 +559,7 @@ export default function AIExtractionReview({
                   }))
                 }
                 classNamePrefix="react-select"
-                placeholder="Select category"
+                placeholder="Select food categories"
                 required
               />
             </div>
@@ -545,7 +567,7 @@ export default function AIExtractionReview({
             <div className="form-row">
               <div className="form-field half-width">
                 <label className="field-label">
-                  Storage Temperature *
+                  Temperature Category *
                   {wasAIPopulated('temperatureCategory') && (
                     <>
                       <span className="ai-badge-inline">AI-Generated</span>
@@ -565,7 +587,7 @@ export default function AIExtractionReview({
                     }))
                   }
                   classNamePrefix="react-select"
-                  placeholder="Select temperature"
+                  placeholder="Select temperature category"
                   required
                 />
               </div>
@@ -668,7 +690,7 @@ export default function AIExtractionReview({
             <div className="form-row">
               <div className="form-field half-width">
                 <label className="field-label">
-                  Manufacturing Date
+                  Fabrication Date
                   {wasAIPopulated('fabricationDate') && (
                     <>
                       <span className="ai-badge-inline">AI-Generated</span>
@@ -684,7 +706,7 @@ export default function AIExtractionReview({
                   maxDate={new Date()}
                   dateFormat="yyyy-MM-dd"
                   className="input-field"
-                  placeholderText="Select manufacturing date"
+                  placeholderText="Select fabrication date"
                 />
               </div>
 
@@ -873,7 +895,6 @@ export default function AIExtractionReview({
         {currentStep === 5 && (
           <section className="ai-review-card ai-review-final-card">
             <div className="ai-review-ready-banner">
-              <span className="ai-review-ready-check">OK</span>
               <div>
                 <h4>Ready to Submit!</h4>
                 <p>
@@ -981,9 +1002,7 @@ export default function AIExtractionReview({
               type="button"
               className="btn-submit"
               onClick={goNext}
-              disabled={
-                currentStep >= maxUnlockedStep && !stepCompletion[currentStep]
-              }
+              disabled={isSubmitting}
             >
               Continue
             </button>

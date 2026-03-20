@@ -2677,7 +2677,8 @@
     "steps": {
       "upload": "Upload",
       "review": "Review",
-      "submit": "Submit"
+      "submit": "Submit",
+      "reviewSubmit": "Review & Submit"
     },
     "processing": {
       "title": "Processing Image",

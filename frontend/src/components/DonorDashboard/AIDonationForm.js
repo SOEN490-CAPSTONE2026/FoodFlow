@@ -138,7 +138,7 @@ export default function AIDonationForm() {
             data={extractedData}
             imageFile={selectedImage}
             onReUpload={handleReUpload}
-            onCancel={() => navigate('/donor/dashboard')}
+            onCancel={() => navigate('/donor/list')}
             onSubmitStart={() => setStep('submit')}
             onSubmitError={() => setStep('review')}
           />
@@ -162,15 +162,17 @@ export default function AIDonationForm() {
     <div className="ai-donation-form-container">
       <div className="ai-donation-header">
         <button
-          className="back-button"
-          onClick={() => navigate('/donor/dashboard')}
+          className="ai-back-button"
+          onClick={() => navigate('/donor/list')}
           disabled={isProcessing}
         >
           <ArrowLeft size={16} />
           <span>{t('aiDonation.backToDashboard')}</span>
         </button>
-        <h1>{t('aiDonation.title')}</h1>
-        <p className="ai-subtitle">{t('aiDonation.subtitle')}</p>
+        <div className="ai-donation-title-block">
+          <h1>{t('aiDonation.title')}</h1>
+          <p className="ai-subtitle">{t('aiDonation.subtitle')}</p>
+        </div>
       </div>
 
       <div className="ai-step-indicator">
