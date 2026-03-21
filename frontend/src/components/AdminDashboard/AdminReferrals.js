@@ -106,7 +106,7 @@ export default function AdminReferrals() {
             <tbody>
               {filtered.map(ref => (
                 <tr key={ref.id}>
-                  <td>
+                  <td data-label="Type">
                     <span
                       className={`referral-type-badge referral-type-badge--${ref.referralType === 'INVITE_COMMUNITY' ? 'community' : 'business'}`}
                     >
@@ -121,8 +121,13 @@ export default function AdminReferrals() {
                       )}
                     </span>
                   </td>
-                  <td className="referral-name">{ref.businessName}</td>
-                  <td>
+                  <td
+                    data-label="Business / Organization"
+                    className="referral-name"
+                  >
+                    {ref.businessName}
+                  </td>
+                  <td data-label="Contact Email">
                     <a
                       href={`mailto:${ref.contactEmail}`}
                       className="referral-email-link"
@@ -131,7 +136,7 @@ export default function AdminReferrals() {
                     </a>
                   </td>
                   <td>{ref.contactPhone || '—'}</td>
-                  <td className="referral-message">
+                  <td data-label="Message" className="referral-message">
                     {ref.message ? (
                       <span title={ref.message}>
                         {ref.message.length > 80
@@ -142,8 +147,12 @@ export default function AdminReferrals() {
                       '—'
                     )}
                   </td>
-                  <td className="referral-submitter">{ref.submittedByEmail}</td>
-                  <td className="referral-date">{formatDate(ref.createdAt)}</td>
+                  <td data-label="Submitted By" className="referral-submitter">
+                    {ref.submittedByEmail}
+                  </td>
+                  <td data-label="Date" className="referral-date">
+                    {formatDate(ref.createdAt)}
+                  </td>
                 </tr>
               ))}
             </tbody>
