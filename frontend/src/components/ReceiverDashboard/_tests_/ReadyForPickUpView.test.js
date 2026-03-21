@@ -117,7 +117,9 @@ describe('ReadyForPickUpView', () => {
     );
     expect(screen.getByText('Pickup Steps')).toBeInTheDocument();
     expect(screen.getByText('Your Pickup Code')).toBeInTheDocument();
-    expect(screen.getByText('Confirm Pickup')).toBeInTheDocument();
+    expect(
+      screen.getByText('Automatic Pickup Confirmation')
+    ).toBeInTheDocument();
   });
 
   test('calls onClose when close button is clicked', () => {
@@ -180,8 +182,7 @@ describe('ReadyForPickUpView', () => {
     expect(mockOnBack).toHaveBeenCalledTimes(1);
   });
 
-  test('logs to console when Mark as Collected is clicked', () => {
-    const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+  test('does not render manual pickup confirmation button', () => {
     render(
       <ReadyForPickUpView
         claim={mockClaim}
@@ -190,10 +191,10 @@ describe('ReadyForPickUpView', () => {
         onBack={jest.fn()}
       />
     );
-    const markCollectedButton = screen.getByText('Mark as Collected');
-    fireEvent.click(markCollectedButton);
-    expect(consoleSpy).toHaveBeenCalledWith('Marking as collected...');
-    consoleSpy.mockRestore();
+    expect(screen.queryByText('Mark as Collected')).not.toBeInTheDocument();
+    expect(
+      screen.getByText('No manual confirmation needed from your side.')
+    ).toBeInTheDocument();
   });
 
   test('renders correct food type image for Fruits & Vegetables', () => {

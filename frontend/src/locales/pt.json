@@ -956,6 +956,12 @@
   },
   "notifications": {
     "newMessageFrom": "Nova mensagem de",
+    "adminAlertHeaders": {
+      "warning": "Aviso",
+      "safetyNotice": "Aviso de seguranca",
+      "complianceReminder": "Lembrete de conformidade",
+      "adminAlert": "Alerta do administrador"
+    },
     "claimConfirmed": "Reclamação confirmada",
     "claimStatus": "Status da reclamação",
     "successfullyClaimed": "Reclamação bem-sucedida de \"{{foodTitle}}\" de {{donorName}}",
@@ -1193,6 +1199,11 @@
     "expiringSoon": "Expira em breve",
     "predicted": "Estimado",
     "addedToSaved": "Adicionado às doações salvas"
+  },
+  "receiverSavedDonations": {
+    "title": "Doações salvas",
+    "failedToLoad": "Falha ao carregar doações salvas",
+    "empty": "Ainda não há doações salvas."
   },
   "receiverMyClaims": {
     "readyForPickup": "Pronto para coleta",
@@ -2207,7 +2218,16 @@
       "feedbackScore": "Pontuação de feedback",
       "noReviews": "Ainda não há avaliações",
       "memberSince": "Membro desde",
-      "recentActivity": "Atividade recente"
+      "recentActivity": "Atividade recente",
+      "activityLog": {
+        "DONATION": "Doou {{item}}",
+        "CLAIM": "Solicitou {{item}}",
+        "VERIFICATION": "Verificação concluída",
+        "DEACTIVATE_USER": "Conta desativada",
+        "quantityOf": "{{quantity}} de {{title}}",
+        "noActivity": "Sem atividade recente",
+        "on": "em"
+      }
     },
     "modals": {
       "deactivate": {
@@ -2236,6 +2256,11 @@
       "safety": "Informações importantes de segurança",
       "compliance": "Lembrar requisitos de conformidade",
       "custom": "Enviar uma mensagem personalizada"
+    },
+    "alertTemplates": {
+      "warning": "Caro usuário,\n\nDetectamos uma violação de política em sua atividade recente. Revise nossas políticas da plataforma e garanta conformidade para evitar novas ações.\n\nObrigado pela cooperação.",
+      "safety": "Caro usuário,\n\nObserve as seguintes diretrizes de segurança ao lidar com doações de alimentos:\n\n- Manter temperaturas adequadas de armazenamento\n- Verificar datas de validade regularmente\n- Seguir protocolos de higiene\n\nSua segurança e a dos beneficiários é nossa prioridade.",
+      "compliance": "Caro usuário,\n\nEste é um lembrete amigável para garantir que sua conta atenda todos os requisitos de conformidade:\n\n✓ Informações de perfil completas\n✓ Documentação atualizada\n✓ Adesão às políticas da plataforma\n\nRevise as configurações da sua conta e atualize qualquer informação ausente.\n\nObrigado por manter a conformidade."
     },
     "notifications": {
       "reasonRequired": "Informe um motivo para a desativação",
@@ -2435,7 +2460,11 @@
       "flaggedPostTitle": "O sistema sinalizou uma publicação para revisão",
       "flaggedPostSubtitle": "Publicação #{{id}} - Conteúdo inadequado detectado",
       "disputeResolvedTitle": "Um administrador resolveu uma disputa",
-      "disputeResolvedSubtitle": "Caso #{{id}}"
+      "disputeResolvedSubtitle": "Caso #{{id}}",
+      "deactivatedUserTitle": "Usuário desativado: {{name}}",
+      "deactivatedUserSubtitle": "Admin: {{admin}}  ·  Motivo: {{reason}}  ·  Timestamp: {{timestamp}}",
+      "unknownUser": "Desconhecido",
+      "noReasonProvided": "Nenhum motivo fornecido"
     },
     "timeAgo": {
       "minuteAgo": "h? 1 min",
@@ -2660,5 +2689,91 @@
       "submitAnother": "Enviar outra sugestão"
     },
     "errors": { "generic": "Algo deu errado. Por favor, tente novamente." }
+  },
+  "onboarding": {
+    "labels": {
+      "donor": "Tutorial do doador",
+      "receiver": "Tutorial do receptor"
+    },
+    "actions": {
+      "skip": "Pular",
+      "back": "Voltar",
+      "next": "Próximo",
+      "finish": "Concluir"
+    },
+    "stepProgress": "Etapa {{current}} de {{total}}",
+    "errors": {
+      "saveFailed": "Não foi possível salvar o progresso do tutorial. Tente novamente."
+    },
+    "help": {
+      "title": "Tutorial de integração",
+      "replayButton": "Mostrar tutorial novamente",
+      "donorIntro": "Reinicie o percurso do doador a qualquer momento para rever o painel, a publicação, o chat e os status de retirada.",
+      "receiverIntro": "Reinicie o percurso do receptor a qualquer momento para rever a busca, os salvos, as solicitações, o chat, as preferências e as configurações."
+    },
+    "donor": {
+      "steps": {
+        "dashboard": {
+          "title": "Bem-vindo ao FoodFlow",
+          "text": "Este é o seu painel de doador. A partir daqui, você pode gerenciar suas doações e acompanhar o que acontece depois."
+        },
+        "impact": {
+          "title": "Veja seu impacto",
+          "text": "Seu painel de impacto mostra quanto alimento você salvou e a diferença que suas doações estão fazendo ao longo do tempo."
+        },
+        "postDonation": {
+          "title": "Publicar uma doação",
+          "text": "Use esta ação para criar uma nova doação de alimentos e disponibilizá-la para os receptores."
+        },
+        "chat": {
+          "title": "Conversar com receptores",
+          "text": "Depois que uma doação for reivindicada, você pode usar o chat para coordenar a retirada e responder a perguntas."
+        },
+        "pickup": {
+          "title": "Acompanhar o progresso da retirada",
+          "text": "Cada doação passa por um fluxo de retirada com status para que você sempre saiba em que etapa ela está."
+        },
+        "setup": {
+          "title": "Configure sua conta",
+          "text": "Use Idioma e região para escolher seu idioma, localização e fuso horário. A integração com calendário sincroniza as retiradas do FoodFlow, e as preferências de exibição controlam como seus cartões de doação aparecem."
+        }
+      }
+    },
+    "receiver": {
+      "steps": {
+        "browse": {
+          "title": "Explorar doações",
+          "text": "Aqui você pode explorar as doações de alimentos disponíveis e encontrar itens que atendam às suas necessidades."
+        },
+        "saved": {
+          "title": "Doações salvas",
+          "text": "Aqui você encontra rapidamente as doações que salvou para revisar mais tarde."
+        },
+        "claims": {
+          "title": "Suas solicitações",
+          "text": "Esta seção mostra as doações que você reivindicou e permite acompanhar o progresso delas."
+        },
+        "chat": {
+          "title": "Conversar com doadores",
+          "text": "Use o chat para coordenar detalhes da retirada, fazer perguntas e se manter atualizado com os doadores."
+        },
+        "impact": {
+          "title": "Seu painel de impacto",
+          "text": "Este painel ajuda você a acompanhar sua atividade, retiradas e impacto geral na plataforma."
+        },
+        "preferences": {
+          "title": "Preferências e correspondência",
+          "text": "Defina aqui suas preferências alimentares para que o FoodFlow recomende doações que combinem melhor com suas necessidades."
+        },
+        "settings": {
+          "title": "Configurações",
+          "text": "Você pode gerenciar sua conta, repetir o tutorial e ajustar opções da plataforma a partir daqui."
+        },
+        "done": {
+          "title": "Você está pronto",
+          "text": "É isso — você está pronto para começar a usar o FoodFlow como receptor."
+        }
+      }
+    }
   }
 }

@@ -37,7 +37,7 @@ import {
 } from '../ui/table';
 
 const AdminUsers = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -87,6 +87,9 @@ const AdminUsers = () => {
 
   // User ratings
   const [userRatings, setUserRatings] = useState({});
+
+  // User recent activities
+  const [userActivities, setUserActivities] = useState({});
 
   // User detail modal
   const [showUserDetailModal, setShowUserDetailModal] = useState(false);
@@ -298,7 +301,7 @@ const AdminUsers = () => {
         localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
       await axios.post(
         `${process.env.REACT_APP_API_BASE_URL}/admin/users/${selectedUser.id}/send-alert`,
-        { message: alertMessage },
+        { message: alertMessage, alertType },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -418,6 +421,36 @@ const AdminUsers = () => {
     setIsDraggingFile(false);
   };
 
+  // Fetch user recent activity
+  const fetchUserActivity = async userId => {
+    if (userActivities[userId]) {
+      return;
+    } // Already fetched
+
+    try {
+      const token =
+        localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_BASE_URL}/admin/users/${userId}/recent-activity?limit=3`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      if (response && response.data) {
+        setUserActivities(prev => ({
+          ...prev,
+          [userId]: response.data,
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching user activity:', error);
+      setUserActivities(prev => ({
+        ...prev,
+        [userId]: [],
+      }));
+    }
+  };
+
   // Open user detail modal
   const openUserDetailModal = async user => {
     try {
@@ -447,6 +480,11 @@ const AdminUsers = () => {
       if (!userRatings[user.id]) {
         await fetchUserRating(user.id);
       }
+
+      // Fetch recent activity if not already loaded
+      if (!userActivities[user.id]) {
+        await fetchUserActivity(user.id);
+      }
     } catch (error) {
       console.error('Error fetching user details:', error);
       // Fallback to using the user object from the table if API fails
@@ -456,6 +494,11 @@ const AdminUsers = () => {
       // Still try to fetch rating
       if (!userRatings[user.id]) {
         await fetchUserRating(user.id);
+      }
+
+      // Still try to fetch activity
+      if (!userActivities[user.id]) {
+        await fetchUserActivity(user.id);
       }
     }
   };
@@ -709,8 +752,9 @@ const AdminUsers = () => {
                             newExpanded.delete(user.id);
                           } else {
                             newExpanded.add(user.id);
-                            // Fetch rating when expanding
+                            // Fetch rating and activity when expanding
                             fetchUserRating(user.id);
+                            fetchUserActivity(user.id);
                           }
                           setExpandedRows(newExpanded);
                         }}
@@ -872,11 +916,51 @@ const AdminUsers = () => {
                           <div className="details-activity">
                             <h4>{t('adminUsers.details.recentActivity')}</h4>
                             <ul className="activity-list">
-                              <li>• Donated 50kg of produce on Dec 15, 2025</li>
-                              <li>
-                                • Donated 30kg of bakery items on Dec 10, 2025
-                              </li>
-                              <li>• Completed verification on Dec 1, 2024</li>
+                              {userActivities[user.id] ? (
+                                userActivities[user.id].length > 0 ? (
+                                  userActivities[user.id].map(
+                                    (activity, index) => {
+                                      const item = activity.quantity
+                                        ? t(
+                                            'adminUsers.details.activityLog.quantityOf',
+                                            {
+                                              quantity: activity.quantity,
+                                              title: activity.title,
+                                            }
+                                          )
+                                        : activity.title || '';
+                                      const actionText = t(
+                                        `adminUsers.details.activityLog.${activity.action}`,
+                                        { item }
+                                      );
+                                      const dateText = new Date(
+                                        activity.timestamp
+                                      ).toLocaleDateString(i18n.language, {
+                                        month: 'short',
+                                        day: 'numeric',
+                                        year: 'numeric',
+                                      });
+                                      return (
+                                        <li key={index}>
+                                          • {actionText}{' '}
+                                          {t(
+                                            'adminUsers.details.activityLog.on'
+                                          )}{' '}
+                                          {dateText}
+                                        </li>
+                                      );
+                                    }
+                                  )
+                                ) : (
+                                  <li>
+                                    {t(
+                                      'adminUsers.details.activityLog.noActivity'
+                                    )}
+                                  </li>
+                                )
+                              ) : (
+                                <li>{t('common.loading')}</li>
+                              )}
                             </ul>
                           </div>
                         </div>
@@ -1001,9 +1085,7 @@ const AdminUsers = () => {
                       setAlertMessage('');
                     } else {
                       setAlertType('warning');
-                      setAlertMessage(
-                        'Dear User,\n\nWe have detected a policy violation in your recent activity. Please review our platform policies and ensure compliance to avoid further action.\n\nThank you for your cooperation.'
-                      );
+                      setAlertMessage(t('adminUsers.alertTemplates.warning'));
                     }
                   }}
                 >
@@ -1034,9 +1116,7 @@ const AdminUsers = () => {
                       setAlertMessage('');
                     } else {
                       setAlertType('safety');
-                      setAlertMessage(
-                        'Important Safety Notice\n\nPlease be aware of the following safety guidelines when handling food donations:\n\n- Maintain proper food storage temperatures\n- Check expiration dates regularly\n- Follow hygiene protocols\n\nYour safety and the safety of recipients is our top priority.'
-                      );
+                      setAlertMessage(t('adminUsers.alertTemplates.safety'));
                     }
                   }}
                 >
@@ -1068,7 +1148,7 @@ const AdminUsers = () => {
                     } else {
                       setAlertType('compliance');
                       setAlertMessage(
-                        'Compliance Reminder\n\nThis is a friendly reminder to ensure your account meets all compliance requirements:\n\n✓ Complete profile information\n✓ Updated documentation\n✓ Adherence to platform policies\n\nPlease review your account settings and update any missing information.\n\nThank you for maintaining compliance.'
+                        t('adminUsers.alertTemplates.compliance')
                       );
                     }
                   }}
@@ -1269,7 +1349,6 @@ const AdminUsers = () => {
                   </div>
                   <div className="info-item">
                     <span className="info-label">
-                      <FileText size={16} /> Document
                       <Globe size={16} /> Preferred Language
                     </span>
                     <span className="info-value">
@@ -1312,15 +1391,6 @@ const AdminUsers = () => {
                           className="btn-modify-document"
                           onClick={() => setShowUploadDocumentModal(true)}
                           title="Upload or replace document"
-                          style={{
-                            padding: '6px 12px',
-                            fontSize: '14px',
-                            backgroundColor: '#0077b6',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                          }}
                         >
                           {Edit3 && (
                             <Edit3 size={16} style={{ marginRight: '4px' }} />

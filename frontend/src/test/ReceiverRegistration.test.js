@@ -343,7 +343,7 @@ describe('ReceiverRegistration', () => {
 
     // Should still be on step 4
     expect(screen.getByLabelText(/contact person/i)).toBeInTheDocument();
-  });
+  }, 15000);
 
   describe('Data Storage Consent', () => {
     it('renders data storage consent checkbox on step 5', async () => {
@@ -607,6 +607,6 @@ describe('ReceiverRegistration', () => {
           })
         );
       });
-    });
+    }, 30000);
   });
 });

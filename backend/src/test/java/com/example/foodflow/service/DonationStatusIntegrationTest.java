@@ -92,21 +92,21 @@ class DonationStatusIntegrationTest {
 
     @Test
     void testSchedulerGeneratesOtpForReadyForPickup() {
-        // Create a CLAIMED post with pickup time in the past
-        LocalDate pastDate = LocalDate.now().minusDays(1);
-        LocalTime startTime = LocalTime.of(9, 0);
-        LocalTime endTime = LocalTime.of(12, 0);
+        // Create a CLAIMED post with an active pickup window (started but not ended)
+        LocalDate todayUtc = LocalDate.now(java.time.ZoneOffset.UTC);
+        LocalTime startTime = LocalTime.of(0, 0);
+        LocalTime endTime = LocalTime.of(23, 59);
 
         SurplusPost post = createTestPost(PostStatus.CLAIMED);
-        post.setPickupDate(pastDate);
+        post.setPickupDate(todayUtc);
         post.setPickupFrom(startTime);
         post.setPickupTo(endTime);
         post = surplusPostRepository.save(post);
 
-        // Create a claim with confirmed pickup date in the past (scheduler needs this!)
+        // Create claim with confirmed pickup slot in the same active window.
         Claim claim = new Claim(post, receiver);
         claim.setStatus(ClaimStatus.ACTIVE);
-        claim.setConfirmedPickupDate(pastDate);
+        claim.setConfirmedPickupDate(todayUtc);
         claim.setConfirmedPickupStartTime(startTime);
         claim.setConfirmedPickupEndTime(endTime);
         claimRepository.save(claim);

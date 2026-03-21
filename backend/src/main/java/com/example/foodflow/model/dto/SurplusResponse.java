@@ -19,6 +19,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.example.foodflow.model.entity.SurplusPost;
+import com.example.foodflow.util.ExpiryDateTimeResolver;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 public class SurplusResponse {
 
@@ -34,8 +36,11 @@ public class SurplusResponse {
     private LocalDate suggestedExpiryDate;
     private Boolean eligibleAtSubmission;
     private List<String> warningsAtSubmission = new ArrayList<>();
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
     private LocalDateTime expiryDateActual;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
     private LocalDateTime expiryDatePredicted;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
     private LocalDateTime expiryDateEffective;
     private Double predictionConfidence;
     private String predictionVersion;
@@ -45,6 +50,7 @@ public class SurplusResponse {
     private Double impactCo2eKg;
     private Double impactWaterL;
     private String impactFactorVersion;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
     private LocalDateTime impactComputedAt;
 
     // Changed fields
@@ -59,7 +65,9 @@ public class SurplusResponse {
     private String donorName;
     private String donorLogoUrl;
     private String resolvedDonationImageUrl;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
     private LocalDateTime createdAt;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
     private LocalDateTime updatedAt;
     private List<PickupSlotResponse> pickupSlots = new ArrayList<>();
     private PickupSlotResponse confirmedPickupSlot;
@@ -114,9 +122,7 @@ public class SurplusResponse {
         this.userProvidedExpiryDate = surplusPost.getUserProvidedExpiryDate();
         this.suggestedExpiryDate = surplusPost.getSuggestedExpiryDate();
         this.eligibleAtSubmission = surplusPost.getEligibleAtSubmission();
-        this.expiryDateActual = surplusPost.getExpiryDate() != null
-                ? surplusPost.getExpiryDate().atTime(23, 59, 59)
-                : null;
+        this.expiryDateActual = ExpiryDateTimeResolver.resolveDateExpiryUtc(surplusPost);
         this.expiryDatePredicted = surplusPost.getExpiryDatePredicted();
         this.expiryDateEffective = surplusPost.getExpiryDateEffective();
         this.predictionConfidence = surplusPost.getExpiryPredictionConfidence();

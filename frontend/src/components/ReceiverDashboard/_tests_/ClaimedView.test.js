@@ -239,7 +239,7 @@ describe('ClaimedView', () => {
     expect(mockOnBack).toHaveBeenCalledTimes(1);
   });
 
-  test('renders View Pickup Steps button', () => {
+  test('does not render View Pickup Steps button in pickup steps view', () => {
     render(
       <ClaimedView
         claim={mockClaim}
@@ -248,7 +248,7 @@ describe('ClaimedView', () => {
         onBack={jest.fn()}
       />
     );
-    expect(screen.getByText('View Pickup Steps')).toBeInTheDocument();
+    expect(screen.queryByText('View Pickup Steps')).not.toBeInTheDocument();
   });
 
   test('handles Bakery & Pastry food type', () => {
@@ -387,5 +387,50 @@ describe('ClaimedView', () => {
     // Timer should not render if pickup date is missing
     const timer = container.querySelector('.pickup-step-timer');
     expect(timer).not.toBeInTheDocument();
+  });
+
+  test('keeps countdown stable when user timezone changes if UTC pickup instant is explicit', async () => {
+    const claimWithExplicitUtcPickup = {
+      ...mockClaim,
+      confirmedPickupStartUtc: '2025-10-28T09:00:00Z',
+    };
+
+    const { container, rerender } = render(
+      <ClaimedView
+        claim={claimWithExplicitUtcPickup}
+        isOpen={true}
+        onClose={jest.fn()}
+        onBack={jest.fn()}
+        userTimezone="America/Toronto"
+      />
+    );
+
+    await waitFor(() => {
+      expect(container.querySelector('.pickup-step-timer')).toBeInTheDocument();
+    });
+
+    const initialTimerText = container.querySelector(
+      '.pickup-step-timer .timer-display'
+    ).textContent;
+
+    rerender(
+      <ClaimedView
+        claim={claimWithExplicitUtcPickup}
+        isOpen={true}
+        onClose={jest.fn()}
+        onBack={jest.fn()}
+        userTimezone="Asia/Tokyo"
+      />
+    );
+
+    await waitFor(() => {
+      expect(container.querySelector('.pickup-step-timer')).toBeInTheDocument();
+    });
+
+    const timerAfterTimezoneChange = container.querySelector(
+      '.pickup-step-timer .timer-display'
+    ).textContent;
+
+    expect(timerAfterTimezoneChange).toBe(initialTimerText);
   });
 });

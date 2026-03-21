@@ -24,6 +24,41 @@
   gap: 1.25rem;
 }
 
+.settings-donor-setup {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.donor-setup-overview {
+  background: linear-gradient(135deg, #f6fbff 0%, #edf7f6 100%);
+  border: 1px solid #d5e8e5;
+  box-shadow: 0 10px 24px rgba(27, 73, 101, 0.08);
+}
+
+.donor-setup-overview__eyebrow {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #4f7d67;
+  margin-bottom: 0.4rem;
+}
+
+.donor-setup-overview__title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #163443;
+  margin: 0 0 0.4rem;
+}
+
+.donor-setup-overview__text {
+  font-size: 0.97rem;
+  line-height: 1.6;
+  color: #49606c;
+  margin: 0;
+}
+
 /* Settings Section */
 .settings-section {
   background: white;
@@ -295,6 +330,12 @@
   border-color: #62a8c3;
 }
 
+.password-toggle-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .password-fields {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -442,6 +483,32 @@
   font-size: 0.8125rem;
   margin-top: 0.25rem;
   font-weight: 500;
+}
+
+.field-hint {
+  display: block;
+  color: #5b7287;
+  font-size: 0.78rem;
+  margin-top: 0.3rem;
+}
+
+.settings-address-autocomplete-wrap {
+  position: relative;
+}
+
+/* Google Places dropdown for settings address field */
+body.settings-address-open .pac-container {
+  margin-top: -3px !important;
+  border: 1px solid #d4e1ee;
+  border-radius: 0 0 10px 10px;
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.14);
+  overflow: hidden;
+  z-index: 9000 !important;
+}
+
+body.settings-address-open .pac-item {
+  padding: 10px 12px;
+  border-top: 1px solid #ecf2f8;
 }
 
 .field-input.error,

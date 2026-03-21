@@ -8,6 +8,20 @@ import { notificationPreferencesAPI, profileAPI } from '../services/api';
 import api from '../services/api';
 
 // Mock the dependencies
+jest.mock('@react-google-maps/api', () => ({
+  Autocomplete: ({ children, onLoad }) => {
+    if (onLoad) {
+      onLoad({
+        setFields: jest.fn(),
+        setOptions: jest.fn(),
+        getPlace: jest.fn(() => null),
+      });
+    }
+    return children;
+  },
+  useLoadScript: () => ({ isLoaded: true }),
+}));
+
 jest.mock('../services/api', () => ({
   __esModule: true,
   default: {
@@ -22,6 +36,17 @@ jest.mock('../services/api', () => ({
     getPreferences: jest.fn(),
     updatePreferences: jest.fn(),
   },
+}));
+
+jest.mock('../contexts/OnboardingContext', () => ({
+  useOnboarding: () => ({
+    canReplayDonorTutorial: true,
+    canReplayReceiverTutorial: true,
+    isDonorTutorialActive: false,
+    isReceiverTutorialActive: false,
+    startDonorTutorial: jest.fn(),
+    startReceiverTutorial: jest.fn(),
+  }),
 }));
 
 // Mock i18next
@@ -406,6 +431,35 @@ describe('Settings', () => {
           screen.getByText('Please enter a valid phone number')
         ).toBeInTheDocument();
       });
+    });
+
+    test('requires selecting address from Google suggestions when edited manually', async () => {
+      renderSettings();
+
+      await waitFor(() => {
+        expect(
+          screen.queryByText('settings.account.loadingProfile')
+        ).not.toBeInTheDocument();
+      });
+
+      const addressInput = screen.getByPlaceholderText(
+        'settings.account.addressPlaceholder'
+      );
+      fireEvent.change(addressInput, {
+        target: { value: '456 Manual Street, Montreal' },
+      });
+
+      const saveButton = screen.getByText('settings.account.saveChanges');
+      fireEvent.click(saveButton);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            'Please select a full street address from Google suggestions (with street number).'
+          )
+        ).toBeInTheDocument();
+      });
+      expect(profileAPI.update).not.toHaveBeenCalled();
     });
 
     test('successfully saves valid profile', async () => {

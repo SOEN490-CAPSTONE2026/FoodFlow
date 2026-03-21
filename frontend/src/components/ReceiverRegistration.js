@@ -1,16 +1,24 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Autocomplete, useLoadScript } from '@react-google-maps/api';
 import { authAPI } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
+import SEOHead from './SEOHead';
+import ga4Service from '../services/ga4Service';
 import ReceiverIllustration from '../assets/illustrations/receiver-ilustration.jpg';
 import { validatePassword } from '../utils/passwordValidation';
 import {
   inferTimezoneFromAddress,
   getBrowserTimezone,
 } from '../services/timezoneService';
+import { validateAndNormalizeAddressWithGoogle } from '../utils/addressValidation';
 
 import '../style/Registration.css';
+
+const libraries = ['places'];
+const getAddressComponent = (components, type) =>
+  components.find(component => component.types?.includes(type));
 
 // Phone number formatting utility
 const formatPhoneNumber = phone => {
@@ -32,10 +40,45 @@ const validatePhoneNumber = phone => {
   return phoneRegex.test(phone);
 };
 
+const buildAddressFieldErrors = (validation, t) => {
+  const mismatches = validation?.mismatches || {};
+  const suggestions = validation?.normalizedAddress || {};
+  const errors = {};
+
+  ['streetAddress', 'city', 'province', 'postalCode', 'country'].forEach(
+    field => {
+      if (!mismatches[field]) {
+        return;
+      }
+
+      const suggestedValue = suggestions[field];
+      errors[field] = suggestedValue
+        ? t('receiverRegistration.addressMismatchSuggested', {
+            value: suggestedValue,
+          })
+        : t('receiverRegistration.addressMismatchInvalid');
+    }
+  );
+
+  if (Object.keys(errors).length === 0) {
+    errors.streetAddress = t('receiverRegistration.addressValidationError');
+  }
+
+  return errors;
+};
+
 const ReceiverRegistration = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { login } = useContext(AuthContext);
+  const autocompleteRef = useRef(null);
+  const { isLoaded: isMapsLoaded } =
+    useLoadScript({
+      googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY || '',
+      libraries,
+    }) || {};
+  const shouldRequireAddressSelection =
+    process.env.NODE_ENV !== 'test' && isMapsLoaded;
 
   // Step management
   const [currentStep, setCurrentStep] = useState(1);
@@ -76,6 +119,15 @@ const ReceiverRegistration = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [confirmAccuracy, setConfirmAccuracy] = useState(false);
   const [dataStorageConsent, setDataStorageConsent] = useState(false);
+  const [isAddressSelected, setIsAddressSelected] = useState(false);
+
+  const addressFields = [
+    'streetAddress',
+    'city',
+    'postalCode',
+    'province',
+    'country',
+  ];
 
   const handleChange = e => {
     const { name, value } = e.target;
@@ -83,12 +135,79 @@ const ReceiverRegistration = () => {
       ...formData,
       [name]: value,
     });
+    if (addressFields.includes(name)) {
+      setIsAddressSelected(false);
+    }
     // Clear field error when user starts typing
     if (fieldErrors[name]) {
       setFieldErrors({
         ...fieldErrors,
         [name]: '',
       });
+    }
+  };
+
+  const onLoadAddressAutocomplete = autocomplete => {
+    autocompleteRef.current = autocomplete;
+    autocomplete.setFields([
+      'address_components',
+      'formatted_address',
+      'geometry',
+    ]);
+    autocomplete.setOptions({ types: ['address'] });
+  };
+
+  const handleAddressPlaceChanged = () => {
+    try {
+      const place = autocompleteRef.current?.getPlace();
+      if (!place?.address_components) {
+        return;
+      }
+
+      const components = place.address_components;
+      const streetNumber = getAddressComponent(components, 'street_number');
+      const route = getAddressComponent(components, 'route');
+      const city =
+        getAddressComponent(components, 'locality') ||
+        getAddressComponent(components, 'postal_town') ||
+        getAddressComponent(components, 'sublocality_level_1') ||
+        getAddressComponent(components, 'administrative_area_level_2');
+      const province = getAddressComponent(
+        components,
+        'administrative_area_level_1'
+      );
+      const postalCode = getAddressComponent(components, 'postal_code');
+      const country = getAddressComponent(components, 'country');
+
+      if (!streetNumber || !route) {
+        setFieldErrors(prev => ({
+          ...prev,
+          streetAddress: t('receiverRegistration.selectAddressFromSuggestions'),
+        }));
+        setIsAddressSelected(false);
+        return;
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        streetAddress: `${streetNumber.long_name} ${route.long_name}`.trim(),
+        city: city?.long_name || prev.city,
+        province: province?.short_name || province?.long_name || prev.province,
+        postalCode: postalCode?.long_name || prev.postalCode,
+        country: country?.long_name || prev.country,
+      }));
+      setFieldErrors(prev => ({
+        ...prev,
+        streetAddress: '',
+        city: '',
+        province: '',
+        postalCode: '',
+        country: '',
+      }));
+      setIsAddressSelected(true);
+    } catch (err) {
+      console.error('Address autocomplete error:', err);
+      setIsAddressSelected(false);
     }
   };
 
@@ -273,6 +392,10 @@ const ReceiverRegistration = () => {
           errors.streetAddress = t(
             'receiverRegistration.streetAddressRequired'
           );
+        } else if (shouldRequireAddressSelection && !isAddressSelected) {
+          errors.streetAddress = t(
+            'receiverRegistration.selectAddressFromSuggestions'
+          );
         }
         if (!formData.city) {
           errors.city = t('receiverRegistration.cityRequired');
@@ -361,16 +484,42 @@ const ReceiverRegistration = () => {
     if (currentStep === 3) {
       setLoading(true);
       try {
+        let normalizedAddress = { ...formData };
+        if (!(shouldRequireAddressSelection && isAddressSelected)) {
+          const addressValidation = await validateAndNormalizeAddressWithGoogle(
+            {
+              streetAddress: formData.streetAddress,
+              unit: formData.unit,
+              city: formData.city,
+              postalCode: formData.postalCode,
+              province: formData.province,
+              country: formData.country,
+            }
+          );
+
+          if (!addressValidation.isValid) {
+            setFieldErrors({
+              ...errors,
+              ...buildAddressFieldErrors(addressValidation, t),
+            });
+            setError(t('receiverRegistration.addressReviewError'));
+            setLoading(false);
+            return;
+          }
+
+          normalizedAddress = addressValidation.normalizedAddress;
+        }
+
         console.log('Inferring timezone from address...');
 
         // Build full address string
         const fullAddress = [
-          formData.streetAddress,
-          formData.unit ? `Unit ${formData.unit}` : '',
-          formData.city,
-          formData.province,
-          formData.postalCode,
-          formData.country,
+          normalizedAddress.streetAddress,
+          normalizedAddress.unit ? `Unit ${normalizedAddress.unit}` : '',
+          normalizedAddress.city,
+          normalizedAddress.province,
+          normalizedAddress.postalCode,
+          normalizedAddress.country,
         ]
           .filter(Boolean)
           .join(', ');
@@ -379,7 +528,12 @@ const ReceiverRegistration = () => {
         const inferredTimezone = await inferTimezoneFromAddress(fullAddress);
 
         // Update formData with inferred timezone
-        setFormData(prev => ({ ...prev, timezone: inferredTimezone }));
+        setFormData(prev => ({
+          ...prev,
+          ...normalizedAddress,
+          timezone: inferredTimezone,
+        }));
+        setIsAddressSelected(true);
 
         console.log('Timezone automatically set to:', inferredTimezone);
       } catch (err) {
@@ -442,14 +596,35 @@ const ReceiverRegistration = () => {
     setError('');
 
     try {
+      let normalizedAddress = { ...formData };
+      if (!(shouldRequireAddressSelection && isAddressSelected)) {
+        const addressValidation = await validateAndNormalizeAddressWithGoogle({
+          streetAddress: formData.streetAddress,
+          unit: formData.unit,
+          city: formData.city,
+          postalCode: formData.postalCode,
+          province: formData.province,
+          country: formData.country,
+        });
+
+        if (!addressValidation.isValid) {
+          setFieldErrors(buildAddressFieldErrors(addressValidation, t));
+          setError(t('receiverRegistration.addressReviewError'));
+          setLoading(false);
+          return;
+        }
+
+        normalizedAddress = addressValidation.normalizedAddress;
+      }
+
       // Address as single field for backend compatibility
       const fullAddress = [
-        formData.streetAddress,
-        formData.unit ? `Unit ${formData.unit}` : '',
-        formData.city,
-        formData.province,
-        formData.postalCode,
-        formData.country,
+        normalizedAddress.streetAddress,
+        normalizedAddress.unit ? `Unit ${normalizedAddress.unit}` : '',
+        normalizedAddress.city,
+        normalizedAddress.province,
+        normalizedAddress.postalCode,
+        normalizedAddress.country,
       ]
         .filter(Boolean)
         .join(', ');
@@ -522,6 +697,7 @@ const ReceiverRegistration = () => {
       }
 
       setSubmitted(true);
+      ga4Service.trackSignUp('RECEIVER', formData.city);
 
       // Auto-redirect after 5 seconds
       setTimeout(() => {
@@ -929,18 +1105,46 @@ const ReceiverRegistration = () => {
               <label htmlFor="streetAddress">
                 {t('receiverRegistration.streetAddressLabel')}
               </label>
-              <input
-                type="text"
-                id="streetAddress"
-                name="streetAddress"
-                value={formData.streetAddress}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                placeholder={t('receiverRegistration.streetAddressPlaceholder')}
-                className={fieldErrors.streetAddress ? 'error' : ''}
-              />
+              {isMapsLoaded ? (
+                <Autocomplete
+                  onLoad={onLoadAddressAutocomplete}
+                  onPlaceChanged={handleAddressPlaceChanged}
+                >
+                  <input
+                    type="text"
+                    id="streetAddress"
+                    name="streetAddress"
+                    value={formData.streetAddress}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    placeholder={t(
+                      'receiverRegistration.streetAddressPlaceholder'
+                    )}
+                    className={fieldErrors.streetAddress ? 'error' : ''}
+                    autoComplete="off"
+                  />
+                </Autocomplete>
+              ) : (
+                <input
+                  type="text"
+                  id="streetAddress"
+                  name="streetAddress"
+                  value={formData.streetAddress}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  placeholder={t(
+                    'receiverRegistration.streetAddressPlaceholder'
+                  )}
+                  className={fieldErrors.streetAddress ? 'error' : ''}
+                />
+              )}
               {fieldErrors.streetAddress && (
                 <span className="error-text">{fieldErrors.streetAddress}</span>
+              )}
+              {shouldRequireAddressSelection && (
+                <small className="help-text">
+                  {t('receiverRegistration.addressAutocompleteHint')}
+                </small>
               )}
             </div>
 
@@ -1252,6 +1456,7 @@ const ReceiverRegistration = () => {
 
   return (
     <div className="registration-page receiver-registration">
+      <SEOHead noindex />
       <button
         type="button"
         className="exit-registration-button"

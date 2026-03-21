@@ -628,6 +628,15 @@
   color: #1b4965;
 }
 
+.modal-content:not(.modal-user-detail) .modal-close {
+  top: 1px;
+  right: 12px;
+}
+
+.modal-content:not(.modal-user-detail) .modal-header {
+  padding-right: 40px;
+}
+
 .modal-alert {
   max-width: 520px;
 }
@@ -1132,25 +1141,34 @@
 }
 
 /* User Detail Modal */
-.modal-user-detail {
-  max-width: 90vw;
-  width: 95%;
+.modal-content.modal-user-detail {
+  max-width: 96vw;
+  width: min(97%, 1120px);
   max-height: 90vh;
   overflow-y: auto;
-  padding: 40px;
+  padding: 20px;
 }
 
-.modal-user-detail .modal-header {
+.modal-content.modal-user-detail .modal-close {
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  font-size: 32px;
+}
+
+.modal-content.modal-user-detail .modal-header {
   background: white;
   color: #1b4965;
   padding: 0;
   border-radius: 0;
-  margin: 0 0 32px 0;
+  margin: 0 0 20px 0;
   border-bottom: 1px solid #e5e7eb;
-  padding-bottom: 20px;
+  padding-bottom: 14px;
 }
 
-.modal-user-detail .modal-header h2 {
+.modal-content.modal-user-detail .modal-header h2 {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
@@ -1159,10 +1177,10 @@
   padding-right: 40px;
 }
 
-.modal-user-detail .modal-body {
+.modal-content.modal-user-detail .modal-body {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
   margin: 0;
   padding: 0;
@@ -1194,7 +1212,7 @@
 
 .info-card-header h3 {
   margin: 0;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: #6b7280;
   text-transform: uppercase;
@@ -1222,7 +1240,7 @@
 }
 
 .info-label {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: #6b7280;
   display: flex;
@@ -1238,7 +1256,7 @@
 }
 
 .info-value {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 500;
   color: #1b4965;
   word-break: break-word;
@@ -1249,6 +1267,7 @@
 .license-document-link {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   color: #62b6cb;
   text-decoration: none;
@@ -1259,6 +1278,37 @@
   border-radius: 8px;
   background: #f0f9ff;
   font-size: 14px;
+  white-space: nowrap;
+}
+
+.btn-modify-document {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  text-align: center;
+  gap: 0;
+  padding: 10px 16px 10px 40px;
+  min-height: 43px;
+  font-size: 14px;
+  font-weight: 500;
+  background: #0077b6;
+  color: white;
+  border: 1.5px solid #0077b6;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-modify-document svg {
+  position: absolute;
+  left: 14px;
+}
+
+.btn-modify-document:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 119, 182, 0.25);
 }
 
 .license-document-link:hover {
@@ -1562,19 +1612,19 @@
     max-width: 95%;
   }
 
-  .modal-user-detail {
+  .modal-content.modal-user-detail {
     max-width: 95%;
     padding: 24px;
   }
 
-  .modal-user-detail .modal-header {
+  .modal-content.modal-user-detail .modal-header {
     position: relative;
     padding: 20px;
     padding-right: 48px;
     margin: -24px -24px 20px -24px;
   }
 
-  .modal-user-detail .modal-header h2 {
+  .modal-content.modal-user-detail .modal-header h2 {
     font-size: 16px;
     line-height: 1.3;
     word-break: break-word;

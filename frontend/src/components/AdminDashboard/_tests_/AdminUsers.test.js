@@ -356,7 +356,7 @@ describe('AdminUsers', () => {
     await waitFor(() => {
       expect(axios.post).toHaveBeenCalledWith(
         expect.stringContaining('/admin/users/1/send-alert'),
-        { message: 'Important message' },
+        { message: 'Important message', alertType: 'custom' },
         expect.any(Object)
       );
       expect(

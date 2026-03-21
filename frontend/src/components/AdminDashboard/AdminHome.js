@@ -247,6 +247,53 @@ export default function AdminHome() {
         });
       });
 
+      // Fetch recent user deactivations from audit log
+      try {
+        const token =
+          localStorage.getItem('jwtToken') ||
+          sessionStorage.getItem('jwtToken');
+        const auditResponse = await axios.get(
+          `${process.env.REACT_APP_API_BASE_URL}/admin/audit-logs/recent`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const auditLogs = auditResponse.data || [];
+        auditLogs
+          .filter(entry => entry.action === 'DEACTIVATE_USER')
+          .slice(0, 5)
+          .forEach(entry => {
+            const deactivationTs = entry.timestamp
+              ? new Date(entry.timestamp)
+              : new Date();
+            const formattedTs = deactivationTs
+              .toLocaleString('en-CA', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true,
+              })
+              .replace(',', '');
+            recentActivities.push({
+              id: `deactivation-${entry.id}`,
+              type: 'deactivation',
+              icon: 'deactivation',
+              title: t('adminHome.activity.deactivatedUserTitle', {
+                name: entry.oldValue || t('adminHome.activity.unknownUser'),
+              }),
+              subtitle: t('adminHome.activity.deactivatedUserSubtitle', {
+                admin: entry.username,
+                reason:
+                  entry.newValue || t('adminHome.activity.noReasonProvided'),
+                timestamp: formattedTs,
+              }),
+              timestamp: deactivationTs,
+            });
+          });
+      } catch (auditErr) {
+        console.error('Error fetching audit logs:', auditErr);
+      }
+
       // Sort by timestamp (most recent first)
       recentActivities.sort((a, b) => b.timestamp - a.timestamp);
 
@@ -293,6 +340,8 @@ export default function AdminHome() {
         return <Scale size={20} />;
       case 'rejected':
         return <UserX size={20} />;
+      case 'deactivation':
+        return <UserX size={20} />;
       default:
         return <Activity size={20} />;
     }
@@ -312,6 +361,8 @@ export default function AdminHome() {
         return '#8b5cf6'; // purple
       case 'rejected':
         return '#f59e0b'; // orange
+      case 'deactivation':
+        return '#ef4444'; // red
       default:
         return '#6b7280'; // gray
     }

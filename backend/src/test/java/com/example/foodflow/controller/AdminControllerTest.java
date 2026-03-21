@@ -1,11 +1,15 @@
 package com.example.foodflow.controller;
 import com.example.foodflow.model.dto.*;
+import com.example.foodflow.model.entity.AuditLog;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.UserRole;
 import com.example.foodflow.model.types.PostStatus;
+import com.example.foodflow.repository.AuditLogRepository;
 import com.example.foodflow.repository.UserRepository;
 import com.example.foodflow.security.JwtTokenProvider;
 import com.example.foodflow.service.AdminDonationService;
+import com.example.foodflow.service.DisputeService;
+import com.example.foodflow.service.FileStorageService;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -13,6 +17,8 @@ import static org.mockito.Mockito.*;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -39,6 +45,18 @@ class AdminControllerTest {
 
     @Mock
     private AdminUserService adminUserService;
+    @Mock
+    private AdminDonationService adminDonationService;
+    @Mock
+    private DisputeService disputeService;
+    @Mock
+    private JwtTokenProvider jwtTokenProvider;
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private FileStorageService fileStorageService;
+    @Mock
+    private AuditLogRepository auditLogRepository;
     private AdminDonationResponse testDonationResponse;
     private User adminUser;
     @InjectMocks
@@ -348,16 +366,19 @@ class AdminControllerTest {
             // Given
             SendAlertRequest request = new SendAlertRequest();
             request.setMessage("Important alert message");
+            request.setAlertType("warning");
 
-            doNothing().when(adminUserService).sendAlertToUser(1L, "Important alert message");
+            when(jwtTokenProvider.getEmailFromToken("token")).thenReturn("admin@test.com");
+            when(userRepository.findByEmail("admin@test.com")).thenReturn(java.util.Optional.of(adminUser));
+            doNothing().when(adminUserService).sendAlertToUser(1L, "Important alert message", "warning", 999L);
 
             // When
-            ResponseEntity<?> response = adminController.sendAlert(1L, request);
+            ResponseEntity<?> response = adminController.sendAlert(1L, request, "Bearer token");
 
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
 
-            verify(adminUserService).sendAlertToUser(1L, "Important alert message");
+            verify(adminUserService).sendAlertToUser(1L, "Important alert message", "warning", 999L);
         }
 
         @Test
@@ -367,12 +388,14 @@ class AdminControllerTest {
             SendAlertRequest request = new SendAlertRequest();
             request.setMessage("Test alert");
 
+            when(jwtTokenProvider.getEmailFromToken("token")).thenReturn("admin@test.com");
+            when(userRepository.findByEmail("admin@test.com")).thenReturn(java.util.Optional.of(adminUser));
             doThrow(new RuntimeException("User not found"))
-                .when(adminUserService).sendAlertToUser(999L, "Test alert");
+                .when(adminUserService).sendAlertToUser(999L, "Test alert", null, 999L);
 
             // When
             try {
-                ResponseEntity<?> response = adminController.sendAlert(999L, request);
+                ResponseEntity<?> response = adminController.sendAlert(999L, request, "Bearer token");
                 
                 // Controller should return BAD_REQUEST for invalid users
                 assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -389,15 +412,17 @@ class AdminControllerTest {
             SendAlertRequest request = new SendAlertRequest();
             request.setMessage("");
 
-            doNothing().when(adminUserService).sendAlertToUser(1L, "");
+            when(jwtTokenProvider.getEmailFromToken("token")).thenReturn("admin@test.com");
+            when(userRepository.findByEmail("admin@test.com")).thenReturn(java.util.Optional.of(adminUser));
+            doNothing().when(adminUserService).sendAlertToUser(1L, "", null, 999L);
 
             // When
-            ResponseEntity<?> response = adminController.sendAlert(1L, request);
+            ResponseEntity<?> response = adminController.sendAlert(1L, request, "Bearer token");
 
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
 
-            verify(adminUserService).sendAlertToUser(1L, "");
+            verify(adminUserService).sendAlertToUser(1L, "", null, 999L);
         }
     }
 
@@ -509,6 +534,150 @@ class AdminControllerTest {
             }
 
             verify(adminUserService).getAllUsers("DONOR", "ACTIVE", "search", 0, 20);
+        }
+    }
+
+    @Nested
+    @DisplayName("getRecentActivity Tests")
+    class GetRecentActivityTests {
+
+        @Test
+        @DisplayName("Should return recent activity list successfully")
+        void shouldReturnRecentActivitySuccessfully() {
+            UserActivityDTO activity = new UserActivityDTO(
+                    "DONATION", LocalDateTime.now(), 5L, "SurplusPost", "Rice", "10kg");
+            when(adminUserService.getRecentActivity(1L, 3)).thenReturn(Arrays.asList(activity));
+
+            ResponseEntity<List<UserActivityDTO>> response = adminController.getRecentActivity(1L, 3);
+
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertNotNull(response.getBody());
+            assertEquals(1, response.getBody().size());
+            assertEquals("DONATION", response.getBody().get(0).getAction());
+            verify(adminUserService).getRecentActivity(1L, 3);
+        }
+
+        @Test
+        @DisplayName("Should return 404 when user is not found")
+        void shouldReturnNotFoundWhenUserNotFound() {
+            when(adminUserService.getRecentActivity(999L, 3))
+                    .thenThrow(new RuntimeException("User not found"));
+
+            ResponseEntity<List<UserActivityDTO>> response = adminController.getRecentActivity(999L, 3);
+
+            assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+            verify(adminUserService).getRecentActivity(999L, 3);
+        }
+
+        @Test
+        @DisplayName("Should return 200 with empty list when user has no activity")
+        void shouldReturnEmptyListWhenUserHasNoActivity() {
+            when(adminUserService.getRecentActivity(2L, 3)).thenReturn(Collections.emptyList());
+
+            ResponseEntity<List<UserActivityDTO>> response = adminController.getRecentActivity(2L, 3);
+
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertTrue(response.getBody().isEmpty());
+            verify(adminUserService).getRecentActivity(2L, 3);
+        }
+
+        @Test
+        @DisplayName("Should respect custom limit parameter")
+        void shouldRespectCustomLimitParameter() {
+            List<UserActivityDTO> activities = Arrays.asList(
+                    new UserActivityDTO("DONATION", LocalDateTime.now().minusDays(1), 1L, "SurplusPost", "A", null),
+                    new UserActivityDTO("DONATION", LocalDateTime.now().minusDays(2), 2L, "SurplusPost", "B", null),
+                    new UserActivityDTO("DONATION", LocalDateTime.now().minusDays(3), 3L, "SurplusPost", "C", null),
+                    new UserActivityDTO("DONATION", LocalDateTime.now().minusDays(4), 4L, "SurplusPost", "D", null),
+                    new UserActivityDTO("DONATION", LocalDateTime.now().minusDays(5), 5L, "SurplusPost", "E", null)
+            );
+            when(adminUserService.getRecentActivity(1L, 5)).thenReturn(activities);
+
+            ResponseEntity<List<UserActivityDTO>> response = adminController.getRecentActivity(1L, 5);
+
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertEquals(5, response.getBody().size());
+            verify(adminUserService).getRecentActivity(1L, 5);
+        }
+
+        @Test
+        @DisplayName("Should return activity with correct entity details")
+        void shouldReturnActivityWithCorrectEntityDetails() {
+            UserActivityDTO activity = new UserActivityDTO(
+                    "CLAIM", LocalDateTime.now().minusDays(1), 10L, "Claim", "Vegetables", "5kg");
+            when(adminUserService.getRecentActivity(2L, 3)).thenReturn(Arrays.asList(activity));
+
+            ResponseEntity<List<UserActivityDTO>> response = adminController.getRecentActivity(2L, 3);
+
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            UserActivityDTO returned = response.getBody().get(0);
+            assertEquals("CLAIM", returned.getAction());
+            assertEquals(10L, returned.getEntityId());
+            assertEquals("Claim", returned.getEntityType());
+            assertEquals("Vegetables", returned.getTitle());
+            assertEquals("5kg", returned.getQuantity());
+        }
+    }
+
+    @Nested
+    @DisplayName("getRecentAuditLogs Tests")
+    class GetRecentAuditLogsTests {
+
+        @Test
+        @DisplayName("Should return recent audit logs successfully")
+        void shouldReturnRecentAuditLogsSuccessfully() {
+            AuditLog log1 = new AuditLog(
+                    "admin@test.com", "DEACTIVATE_USER", "User", "1",
+                    null, "donor@test.com", "Policy violation");
+            when(auditLogRepository.findTop20ByOrderByTimestampDesc()).thenReturn(Arrays.asList(log1));
+
+            ResponseEntity<List<AuditLog>> response = adminController.getRecentAuditLogs();
+
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertNotNull(response.getBody());
+            assertEquals(1, response.getBody().size());
+            assertEquals("DEACTIVATE_USER", response.getBody().get(0).getAction());
+            assertEquals("admin@test.com", response.getBody().get(0).getUsername());
+            verify(auditLogRepository).findTop20ByOrderByTimestampDesc();
+        }
+
+        @Test
+        @DisplayName("Should return empty list when no audit logs exist")
+        void shouldReturnEmptyListWhenNoAuditLogsExist() {
+            when(auditLogRepository.findTop20ByOrderByTimestampDesc()).thenReturn(Collections.emptyList());
+
+            ResponseEntity<List<AuditLog>> response = adminController.getRecentAuditLogs();
+
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertTrue(response.getBody().isEmpty());
+            verify(auditLogRepository).findTop20ByOrderByTimestampDesc();
+        }
+
+        @Test
+        @DisplayName("Should return 500 when repository throws exception")
+        void shouldReturnInternalServerErrorOnRepositoryException() {
+            when(auditLogRepository.findTop20ByOrderByTimestampDesc())
+                    .thenThrow(new RuntimeException("DB connection failed"));
+
+            ResponseEntity<List<AuditLog>> response = adminController.getRecentAuditLogs();
+
+            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+            verify(auditLogRepository).findTop20ByOrderByTimestampDesc();
+        }
+
+        @Test
+        @DisplayName("Should return up to 20 entries from the repository")
+        void shouldReturnUpTo20Entries() {
+            List<AuditLog> logs = new java.util.ArrayList<>();
+            for (int i = 0; i < 20; i++) {
+                logs.add(new AuditLog("admin" + i, "LOGIN", "User", String.valueOf(i), null, null, null));
+            }
+            when(auditLogRepository.findTop20ByOrderByTimestampDesc()).thenReturn(logs);
+
+            ResponseEntity<List<AuditLog>> response = adminController.getRecentAuditLogs();
+
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertEquals(20, response.getBody().size());
         }
     }
 }

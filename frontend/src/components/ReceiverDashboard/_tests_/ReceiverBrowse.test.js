@@ -62,6 +62,10 @@ jest.mock('@react-google-maps/api', () => ({
 // Mock FiltersPanel
 jest.mock('../FiltersPanel', () => {
   return function MockFiltersPanel(props) {
+    if (!props.isVisible) {
+      return null;
+    }
+
     return (
       <div data-testid="filters-panel">
         <button onClick={props.onApplyFilters}>Apply Filters</button>
@@ -137,10 +141,16 @@ const createMockDonation = (overrides = {}) => ({
 describe('ReceiverBrowse Component', () => {
   let ReceiverBrowse;
 
+  const setViewportWidth = width => {
+    window.innerWidth = width;
+    window.dispatchEvent(new Event('resize'));
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     global.alert.mockClear();
     global.confirm.mockClear();
+    setViewportWidth(1024);
 
     // Set default mock implementations - no need for mockReset as clearAllMocks handles it
     surplusAPI.list.mockResolvedValue({ data: [] });
@@ -529,6 +539,33 @@ describe('ReceiverBrowse Component', () => {
       });
     });
 
+    test('keeps filters closed by default on mobile and allows reopening', async () => {
+      setViewportWidth(390);
+      surplusAPI.list.mockResolvedValue({ data: [] });
+
+      await act(async () => {
+        renderWithProviders(<ReceiverBrowse />);
+      });
+
+      expect(screen.queryByTestId('filters-panel')).not.toBeInTheDocument();
+
+      const toggleButton = screen.getByRole('button', {
+        name: /filter donations|filters/i,
+      });
+
+      await act(async () => {
+        fireEvent.click(toggleButton);
+      });
+
+      expect(screen.getByTestId('filters-panel')).toBeInTheDocument();
+
+      await act(async () => {
+        fireEvent.click(toggleButton);
+      });
+
+      expect(screen.queryByTestId('filters-panel')).not.toBeInTheDocument();
+    });
+
     // Test removed due to flakiness in CI environment - timing-dependent test with inconsistent behavior
     // between local and CI environments regarding TimezoneProvider initialization
   });
@@ -643,7 +680,7 @@ describe('ReceiverBrowse Component', () => {
       });
     });
 
-    test('opens map and triggers claim via map modal', async () => {
+    test('switches to map browse mode and triggers claim from map section', async () => {
       const donation = createMockDonation({
         id: 89,
         pickupSlots: [
@@ -660,7 +697,7 @@ describe('ReceiverBrowse Component', () => {
         renderWithProviders(<ReceiverBrowse />);
       });
 
-      fireEvent.click(await screen.findByText('Open Map'));
+      fireEvent.click(await screen.findByRole('button', { name: 'Map' }));
       expect(await screen.findByTestId('map-modal')).toBeInTheDocument();
 
       fireEvent.click(screen.getByText('Claim From Map'));

@@ -39,7 +39,7 @@ export default function DonorDashboardHome({ stats, chartData }) {
   // Guard if no data provided
   if (!chartData || !stats) {
     return (
-      <div className="donor-dashboard-home">
+      <div className="donor-dashboard-home" data-tour="donor-dashboard-main">
         <h1>{t('donorDashboardHome.dashboard')}</h1>
         <p className="subtitle">{t('donorDashboardHome.subtitle')}</p>
         <div className="empty-state">
@@ -64,7 +64,7 @@ export default function DonorDashboardHome({ stats, chartData }) {
   );
 
   return (
-    <div className="donor-dashboard-home">
+    <div className="donor-dashboard-home" data-tour="donor-dashboard-main">
       <h1>{t('donorDashboardHome.dashboard')}</h1>
       <p className="subtitle">{t('donorDashboardHome.subtitle')}</p>
 

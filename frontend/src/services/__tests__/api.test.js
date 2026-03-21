@@ -941,6 +941,34 @@ describe('API service', () => {
     expect(resp).toEqual({ data: { id: 1 } });
   });
 
+  test('profileAPI.updateOnboarding', async () => {
+    const mockPut = jest
+      .fn()
+      .mockResolvedValue({ data: { onboardingCompleted: true } });
+    jest.doMock('axios', () => ({
+      create: jest.fn(() => ({
+        interceptors: {
+          request: { use: jest.fn() },
+          response: { use: jest.fn() },
+        },
+        post: mockPost,
+        get: mockGet,
+        put: mockPut,
+        patch: mockPatch,
+        delete: mockDelete,
+      })),
+    }));
+
+    jest.resetModules();
+    const { profileAPI } = require('../api');
+
+    const data = { onboardingCompleted: true };
+    const resp = await profileAPI.updateOnboarding(data);
+
+    expect(mockPut).toHaveBeenCalledWith('/profile/onboarding', data);
+    expect(resp).toEqual({ data: { onboardingCompleted: true } });
+  });
+
   // reportAPI tests
   test('reportAPI.createReport', async () => {
     mockPost.mockResolvedValue({ data: { id: 1 } });

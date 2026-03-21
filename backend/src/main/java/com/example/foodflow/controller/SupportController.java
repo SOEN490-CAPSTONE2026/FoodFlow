@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import java.util.Locale;
 
 /**
  * Controller for the support chat functionality.
@@ -57,16 +58,15 @@ public class SupportController {
 
             // Check rate limits before processing
             if (!rateLimitingService.allowSupportRequest(user.getId(), clientIp)) {
-                String errorMessage = "fr".equals(user.getLanguagePreference())
-                        ? "Trop de demandes. Veuillez attendre avant de réessayer."
-                        : "Too many requests. Please wait before trying again.";
+                String errorMessage = getLocalizedMessage(user.getLanguagePreference(),
+                        "Too many requests. Please wait before trying again.");
 
                 SupportChatResponse rateLimitResponse = new SupportChatResponse(
                         errorMessage,
                         "RATE_LIMITED",
                         java.util.Arrays.asList(
                                 new SupportChatResponse.SupportAction("contact", "Contact Support",
-                                        "support@foodflow.com")),
+                                        "foodflow.group@gmail.com")),
                         false);
 
                 // Add rate limit headers
@@ -93,16 +93,14 @@ public class SupportController {
 
         } catch (RateLimitExceededException e) {
             // Handle specific rate limit exceptions
-            String errorMessage = "fr".equals(user.getLanguagePreference())
-                    ? "Limite de requêtes dépassée. Veuillez réessayer plus tard."
-                    : "Rate limit exceeded. Please try again later.";
+            String errorMessage = getLocalizedRateLimitExceeded(user.getLanguagePreference());
 
             SupportChatResponse rateLimitResponse = new SupportChatResponse(
                     errorMessage,
                     "RATE_LIMITED",
                     java.util.Arrays.asList(
                             new SupportChatResponse.SupportAction("contact", "Contact Support",
-                                    "support@foodflow.com")),
+                                    "foodflow.group@gmail.com")),
                     false);
 
             HttpHeaders headers = new HttpHeaders();
@@ -112,16 +110,14 @@ public class SupportController {
 
         } catch (Exception e) {
             // Return safe error response without exposing internal details
-            String errorMessage = "fr".equals(user.getLanguagePreference())
-                    ? "Une erreur est survenue. Veuillez contacter le support."
-                    : "An error occurred. Please contact support.";
+            String errorMessage = getLocalizedGenericError(user.getLanguagePreference());
 
             SupportChatResponse errorResponse = new SupportChatResponse(
                     errorMessage,
                     "ERROR",
                     java.util.Arrays.asList(
                             new SupportChatResponse.SupportAction("contact", "Contact Support",
-                                    "support@foodflow.com")),
+                                    "foodflow.group@gmail.com")),
                     true);
 
             logger.error("Error processing support chat for user {}", user.getId(), e);
@@ -143,5 +139,52 @@ public class SupportController {
 
         RateLimitingService.RateLimitStats stats = rateLimitingService.getStats();
         return ResponseEntity.ok(stats);
+    }
+
+    private String normalizeLanguage(String language) {
+        if (language == null || language.isBlank()) {
+            return "en";
+        }
+        String normalized = language.trim().toLowerCase(Locale.ROOT);
+        if (normalized.contains("-")) {
+            normalized = normalized.substring(0, normalized.indexOf('-'));
+        }
+        return switch (normalized) {
+            case "en", "fr", "es", "zh", "ar", "pt" -> normalized;
+            default -> "en";
+        };
+    }
+
+    private String getLocalizedMessage(String language, String englishDefault) {
+        return switch (normalizeLanguage(language)) {
+            case "fr" -> "Trop de demandes. Veuillez attendre avant de réessayer.";
+            case "es" -> "Demasiadas solicitudes. Espera antes de volver a intentarlo.";
+            case "zh" -> "Qingqiu guoduo. Qing shao hou zai shi.";
+            case "ar" -> "Tama talabat kathira. Yurja alintizar qabl almuhawala maratan ukhra.";
+            case "pt" -> "Muitas solicitacoes. Aguarde antes de tentar novamente.";
+            default -> englishDefault;
+        };
+    }
+
+    private String getLocalizedRateLimitExceeded(String language) {
+        return switch (normalizeLanguage(language)) {
+            case "fr" -> "Limite de requêtes dépassée. Veuillez réessayer plus tard.";
+            case "es" -> "Limite de solicitudes superado. Intentalo de nuevo mas tarde.";
+            case "zh" -> "Yichao chuxian qingqiu xianzhi. Qing shaohou zai shi.";
+            case "ar" -> "Tatam tajawuz hadd altalabat. Yurja almuhawala lahiqan.";
+            case "pt" -> "Limite de solicitacoes excedido. Tente novamente mais tarde.";
+            default -> "Rate limit exceeded. Please try again later.";
+        };
+    }
+
+    private String getLocalizedGenericError(String language) {
+        return switch (normalizeLanguage(language)) {
+            case "fr" -> "Une erreur est survenue. Veuillez contacter le support.";
+            case "es" -> "Ocurrio un error. Ponte en contacto con soporte.";
+            case "zh" -> "Fasheng cuowu. Qing lianxi zhichi.";
+            case "ar" -> "Hadas khata. Yurja altawasul mae aldaem.";
+            case "pt" -> "Ocorreu um erro. Entre em contato com o suporte.";
+            default -> "An error occurred. Please contact support.";
+        };
     }
 }

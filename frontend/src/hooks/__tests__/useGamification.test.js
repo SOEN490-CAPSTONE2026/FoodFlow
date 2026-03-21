@@ -25,6 +25,7 @@ describe('useGamification', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    gamificationAPI.getUserStats.mockReset();
     jest.spyOn(console, 'error').mockImplementation(() => {});
   });
 
@@ -55,11 +56,11 @@ describe('useGamification', () => {
       });
 
       await waitFor(() => {
-        expect(result.current.loading).toBe(false);
+        expect(result.current.stats).toEqual(mockStats);
       });
 
       expect(gamificationAPI.getUserStats).toHaveBeenCalledWith(mockUserId);
-      expect(result.current.stats).toEqual(mockStats);
+      expect(result.current.loading).toBe(false);
       expect(result.current.error).toBe(null);
     });
 
@@ -184,6 +185,7 @@ describe('useGamification', () => {
     it('should clear error on successful retry', async () => {
       gamificationAPI.getUserStats
         .mockRejectedValueOnce(new Error('First error'))
+        .mockRejectedValueOnce(new Error('First error'))
         .mockResolvedValueOnce({ data: mockStats });
 
       const { result } = renderHook(() => useGamification(), {
@@ -192,6 +194,11 @@ describe('useGamification', () => {
 
       await waitFor(() => {
         expect(result.current.error).toBe('First error');
+      });
+
+      result.current.refresh();
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
       });
 
       result.current.refresh();

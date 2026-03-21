@@ -448,6 +448,8 @@
     "streetAddressLabel": "Adresse",
     "streetAddressPlaceholder": "123 Rue Principale",
     "streetAddressRequired": "L'adresse est requise",
+    "selectAddressFromSuggestions": "Veuillez sélectionner une adresse dans les suggestions Google",
+    "addressAutocompleteHint": "Commencez à taper puis sélectionnez une adresse complète",
     "unitLabel": "Unité / Bureau (Optionnel)",
     "unitPlaceholder": "Unité 4B",
     "cityLabel": "Ville",
@@ -463,6 +465,10 @@
     "countryLabel": "Pays",
     "countryPlaceholder": "Canada",
     "countryRequired": "Le pays est requis",
+    "addressValidationError": "Veuillez entrer une adresse complète valide reconnue par Google Maps",
+    "addressReviewError": "Veuillez vérifier les champs d'adresse en surbrillance",
+    "addressMismatchInvalid": "Cette valeur ne correspond pas à Google Maps",
+    "addressMismatchSuggested": "Cette valeur semble incorrecte. Suggestion : {{value}}",
     "contactPersonLabel": "Nom de la personne-ressource",
     "contactPersonPlaceholder": "Jean Dupont",
     "contactPersonRequired": "Le nom de la personne-ressource est requis",
@@ -564,6 +570,8 @@
     "streetAddressLabel": "Adresse",
     "streetAddressPlaceholder": "123 Rue Principale",
     "streetAddressRequired": "L'adresse est requise",
+    "selectAddressFromSuggestions": "Veuillez sélectionner une adresse dans les suggestions Google",
+    "addressAutocompleteHint": "Commencez à taper puis sélectionnez une adresse complète",
     "unitLabel": "Unité / Bureau (Optionnel)",
     "unitPlaceholder": "Unité 4B",
     "cityLabel": "Ville",
@@ -579,6 +587,10 @@
     "countryLabel": "Pays",
     "countryPlaceholder": "Canada",
     "countryRequired": "Le pays est requis",
+    "addressValidationError": "Veuillez entrer une adresse complète valide reconnue par Google Maps",
+    "addressReviewError": "Veuillez vérifier les champs d'adresse en surbrillance",
+    "addressMismatchInvalid": "Cette valeur ne correspond pas à Google Maps",
+    "addressMismatchSuggested": "Cette valeur semble incorrecte. Suggestion : {{value}}",
     "contactPersonLabel": "Nom de la personne-ressource",
     "contactPersonPlaceholder": "Jean Dupont",
     "contactPersonRequired": "Le nom de la personne-ressource est requis",
@@ -966,6 +978,15 @@
     "km": "km",
     "locationLabel": "Emplacement",
     "enterLocation": "Entrer l'emplacement...",
+    "usingAddress": "Adresse utilisée",
+    "noAddressSelected": "Aucune adresse sélectionnée",
+    "useAnotherAddress": "Utiliser une autre adresse",
+    "useAccountAddress": "Utiliser l'adresse du compte",
+    "useCurrentLocation": "Utiliser ma position actuelle",
+    "gettingCurrentLocation": "Localisation en cours…",
+    "searchAnotherAddress": "Rechercher une autre adresse...",
+    "currentLocationUnsupported": "La géolocalisation n'est pas prise en charge par ce navigateur.",
+    "currentLocationFailed": "Impossible d'obtenir votre position actuelle. Essayez une autre adresse.",
     "clearAll": "Tout effacer",
     "applyFilters": "Appliquer les filtres",
     "selectedCount": "{{count}} sélectionné(s)",
@@ -983,6 +1004,12 @@
   },
   "notifications": {
     "newMessageFrom": "Nouveau message de",
+    "adminAlertHeaders": {
+      "warning": "Avertissement",
+      "safetyNotice": "Avis de securite",
+      "complianceReminder": "Rappel de conformite",
+      "adminAlert": "Alerte admin"
+    },
     "claimConfirmed": "Réclamation confirmée",
     "claimStatus": "Statut de la réclamation",
     "successfullyClaimed": "Réclamation réussie de \"{{foodTitle}}\" de {{donorName}}",
@@ -1139,7 +1166,7 @@
     "donations": "Dons",
     "myClaims": "Mes réclamations",
     "savedDonations": "Dons sauvegardés",
-    "inviteCommunity": "Inviter une communauté",
+    "inviteCommunity": "Recommander une organisation",
     "settings": "Paramètres",
     "preferences": "Préférences",
     "help": "Aide",
@@ -1153,7 +1180,7 @@
       "browse": "Parcourir les aliments disponibles",
       "messages": "Messages",
       "settings": "Paramètres",
-      "inviteCommunity": "Inviter une organisation communautaire",
+      "inviteCommunity": "Recommander une organisation",
       "default": "Tableau de bord bénéficiaire"
     },
     "pageDescriptions": {
@@ -1162,7 +1189,7 @@
       "browse": "Parcourir les annonces de nourriture disponibles",
       "messages": "Communiquer avec les donateurs et autres utilisateurs",
       "settings": "Gérer vos préférences et paramètres de compte",
-      "inviteCommunity": "Connaissez-vous une organisation qui pourrait bénéficier de FoodFlow ? Invitez-la à rejoindre.",
+      "inviteCommunity": "Connaissez-vous une organisation qui pourrait bénéficier de FoodFlow ? Partagez son contact et l'équipe FoodFlow la contactera.",
       "default": "Portail bénéficiaire FoodFlow"
     },
     "achievements": "Realisations",
@@ -1221,13 +1248,18 @@
     "predicted": "Prédit",
     "addedToSaved": "Ajouté aux dons sauvegardés"
   },
+  "receiverSavedDonations": {
+    "title": "Dons sauvegardés",
+    "failedToLoad": "Échec du chargement des dons sauvegardés",
+    "empty": "Aucun don sauvegardé pour le moment."
+  },
   "receiverMyClaims": {
     "readyForPickup": "Prêt pour la collecte",
     "completed": "Complété",
     "notCompleted": "Non complété",
     "claimed": "Réclamé",
     "title": "Mes dons réclamés",
-    "subtitle": "Suivez vos dons et préparez-vous pour la collecte — chaque réclamation aide à réduire le gaspillage et à nourrir notre communauté.",
+    "subtitle": "Suivez vos dons et préparez-vous pour la collecte — chaque réclamation aide à réduire le gaspillage et à nourrir votre communauté.",
     "loading": "Chargement de vos réclamations...",
     "failedToLoad": "Échec du chargement de vos dons réclamés",
     "sortByDate": "Trier par date",
@@ -1620,8 +1652,45 @@
     "pickupSteps": "Étapes de collecte",
     "donationClaimed": "Don réclamé !",
     "successMessage": "Votre don a été réclamé avec succès ! Merci de faire une différence dans votre communauté.",
+    "pickupMissedTitle": "La collecte a été manquée, dommage.",
+    "pickupMissedMessage": "Cette collecte a été manquée. Dommage, et merci d'avoir essayé d'aider votre communauté.",
+    "reportDonor": "Signaler le donateur",
+    "leaveFeedback": "Laisser un avis",
     "backToDetails": "Retour aux détails",
     "viewPickupSteps": "Voir les étapes de collecte"
+  },
+  "donationTimeline": {
+    "loading": "Chargement du calendrier...",
+    "empty": "Aucun événement de calendrier de donation pour le moment.",
+    "actorLabel": "Acteur",
+    "statusLabel": "Statut",
+    "adminOnly": "Admin uniquement",
+    "pickupEvidence": "Preuve de collecte",
+    "actor": {
+      "donor": "Donneur",
+      "receiver": "Bénéficiaire",
+      "system": "Système",
+      "admin": "Admin",
+      "unknown": "Inconnu"
+    },
+    "events": {
+      "DONATION_POSTED": "Donation publiée",
+      "DONATION_UPDATED": "Donation mise à jour",
+      "DONATION_CLAIMED": "Donation réclamée",
+      "CLAIM_CANCELLED": "Réclamation annulée",
+      "READY_FOR_PICKUP": "Prête pour la collecte",
+      "PICKUP_CONFIRMED": "Collecte confirmée",
+      "PICKUP_MISSED": "Collecte manquée",
+      "PICKUP_EVIDENCE_UPLOADED": "Preuve de collecte téléversée",
+      "DONATION_EXPIRED": "Donation expirée"
+    },
+    "details": {
+      "claimedBy": "Réclamée par {{name}}",
+      "postedBy": "Donation publiée par {{name}}",
+      "readyForPickup": "L'heure de collecte est arrivée. Le code OTP a été généré automatiquement.",
+      "pickupMissed": "La fenêtre de collecte a expiré. Marquée automatiquement comme non complétée.",
+      "expired": "La donation a expiré automatiquement."
+    }
   },
   "claimDetail": {
     "status": {
@@ -2214,7 +2283,16 @@
       "feedbackScore": "Note d'évaluation",
       "noReviews": "Aucun avis pour le moment",
       "memberSince": "Membre depuis",
-      "recentActivity": "Activité récente"
+      "recentActivity": "Activité récente",
+      "activityLog": {
+        "DONATION": "A donné {{item}}",
+        "CLAIM": "A réclamé {{item}}",
+        "VERIFICATION": "Vérification complétée",
+        "DEACTIVATE_USER": "Compte désactivé",
+        "quantityOf": "{{quantity}} de {{title}}",
+        "noActivity": "Aucune activité récente",
+        "on": "le"
+      }
     },
     "modals": {
       "deactivate": {
@@ -2243,6 +2321,11 @@
       "safety": "Informations de sécurité importantes",
       "compliance": "Rappeler les exigences de conformité",
       "custom": "Envoyer un message personnalisé"
+    },
+    "alertTemplates": {
+      "warning": "Cher utilisateur,\n\nNous avons detecte une violation de politique dans votre activite recente. Veuillez consulter nos politiques et assurer la conformite pour eviter d'autres actions.\n\nMerci de votre cooperation.",
+      "safety": "Cher utilisateur,\n\nVeuillez respecter les consignes de securite suivantes pour la gestion des dons alimentaires:\n\n- Maintenir les temperatures de conservation appropriees\n- Verifier regulierement les dates d'expiration\n- Respecter les protocoles d'hygiene\n\nVotre securite et celle des beneficiaires est notre priorite.",
+      "compliance": "Cher utilisateur,\n\nCeci est un rappel amical pour garantir que votre compte respecte toutes les exigences de conformite:\n\n✓ Profil complet\n✓ Documentation a jour\n✓ Respect des politiques de la plateforme\n\nVeuillez verifier vos parametres de compte et mettre a jour les informations manquantes.\n\nMerci de maintenir la conformite."
     },
     "notifications": {
       "reasonRequired": "Veuillez fournir un motif de désactivation",
@@ -2442,7 +2525,11 @@
       "flaggedPostTitle": "Le système a signalé une publication pour examen",
       "flaggedPostSubtitle": "Publication #{{id}} - Contenu inapproprié détecté",
       "disputeResolvedTitle": "Un administrateur a résolu un litige",
-      "disputeResolvedSubtitle": "Dossier #{{id}}"
+      "disputeResolvedSubtitle": "Dossier #{{id}}",
+      "deactivatedUserTitle": "Utilisateur désactivé : {{name}}",
+      "deactivatedUserSubtitle": "Admin : {{admin}}  ·  Motif : {{reason}}  ·  Horodatage : {{timestamp}}",
+      "unknownUser": "Inconnu",
+      "noReasonProvided": "Aucun motif fourni"
     },
     "timeAgo": {
       "minuteAgo": "il y a 1 min",
@@ -2611,8 +2698,8 @@
     "BEVERAGES": "Boissons"
   },
   "inviteCommunity": {
-    "title": "Inviter une organisation communautaire",
-    "subtitle": "Vous connaissez une organisation qui pourrait bénéficier de FoodFlow ? Invitez-la à rejoindre en tant que bénéficiaire.",
+    "title": "Recommander une organisation",
+    "subtitle": "Partagez les coordonnées d'une organisation potentiellement intéressée. L'équipe FoodFlow la contactera pour lui présenter la plateforme.",
     "form": {
       "businessNameLabel": "Nom de l'organisation",
       "businessNamePlaceholder": "ex. Banque alimentaire communautaire",
@@ -2621,8 +2708,8 @@
       "contactPhoneLabel": "Téléphone de contact (optionnel)",
       "contactPhonePlaceholder": "+1 (555) 123-4567",
       "messageLabel": "Message personnel (optionnel)",
-      "messagePlaceholder": "Dites-leur pourquoi FoodFlow serait une excellente solution...",
-      "submitButton": "Envoyer l'invitation",
+      "messagePlaceholder": "Ajoutez un contexte utile pour l'équipe FoodFlow (optionnel)...",
+      "submitButton": "Envoyer la recommandation",
       "submitting": "Envoi en cours…"
     },
     "validation": {
@@ -2633,9 +2720,9 @@
       "messageTooLong": "Le message ne peut pas dépasser 500 caractères."
     },
     "success": {
-      "heading": "Invitation envoyée !",
-      "body": "Merci d'avoir aidé à développer la communauté FoodFlow. Notre équipe contactera {{email}} avec plus d'informations.",
-      "submitAnother": "Envoyer une autre invitation"
+      "heading": "Recommandation envoyée !",
+      "body": "Merci. L'équipe FoodFlow contactera {{email}} pour présenter la plateforme.",
+      "submitAnother": "Envoyer une autre recommandation"
     },
     "errors": {
       "generic": "Une erreur s'est produite. Veuillez réessayer."
@@ -2670,6 +2757,92 @@
     },
     "errors": {
       "generic": "Une erreur s'est produite. Veuillez réessayer."
+    }
+  },
+  "onboarding": {
+    "labels": {
+      "donor": "Tutoriel donateur",
+      "receiver": "Tutoriel receveur"
+    },
+    "actions": {
+      "skip": "Passer",
+      "back": "Retour",
+      "next": "Suivant",
+      "finish": "Terminer"
+    },
+    "stepProgress": "Étape {{current}} sur {{total}}",
+    "errors": {
+      "saveFailed": "Nous n’avons pas pu enregistrer votre progression dans le tutoriel. Veuillez réessayer."
+    },
+    "help": {
+      "title": "Tutoriel d’intégration",
+      "replayButton": "Afficher le tutoriel à nouveau",
+      "donorIntro": "Relancez le parcours donateur à tout moment pour revoir le tableau de bord, la publication, le chat et les statuts de collecte.",
+      "receiverIntro": "Relancez le parcours receveur à tout moment pour revoir la recherche, les sauvegardes, les réclamations, le chat, les préférences et les paramètres."
+    },
+    "donor": {
+      "steps": {
+        "dashboard": {
+          "title": "Bienvenue sur FoodFlow",
+          "text": "Voici votre tableau de bord donateur. Depuis ici, vous pouvez gérer vos dons et suivre ce qui se passe ensuite."
+        },
+        "impact": {
+          "title": "Voyez votre impact",
+          "text": "Votre tableau de bord d’impact montre la quantité de nourriture que vous avez sauvée et l’effet de vos dons au fil du temps."
+        },
+        "postDonation": {
+          "title": "Publier un don",
+          "text": "Utilisez cette action pour créer un nouveau don alimentaire et le rendre disponible aux receveurs."
+        },
+        "chat": {
+          "title": "Discuter avec les receveurs",
+          "text": "Une fois qu’un don est réservé, vous pouvez utiliser le chat pour coordonner la collecte et répondre aux questions."
+        },
+        "pickup": {
+          "title": "Suivre la collecte",
+          "text": "Chaque don suit un parcours de collecte avec des statuts pour que vous sachiez toujours à quelle étape il se trouve."
+        },
+        "setup": {
+          "title": "Configurez votre compte",
+          "text": "Utilisez Langue et région pour choisir votre langue, votre emplacement et votre fuseau horaire. L’intégration de calendrier permet de synchroniser les collectes FoodFlow, et les préférences d’affichage contrôlent l’apparence de vos cartes de dons."
+        }
+      }
+    },
+    "receiver": {
+      "steps": {
+        "browse": {
+          "title": "Parcourir les dons",
+          "text": "C’est ici que vous pouvez explorer les dons alimentaires disponibles et trouver ceux qui correspondent à vos besoins."
+        },
+        "saved": {
+          "title": "Dons enregistrés",
+          "text": "Vous pouvez retrouver ici rapidement les dons que vous avez enregistrés pour les consulter plus tard."
+        },
+        "claims": {
+          "title": "Vos réservations",
+          "text": "Cette section montre les dons que vous avez réservés et vous permet de suivre leur progression."
+        },
+        "chat": {
+          "title": "Discuter avec les donateurs",
+          "text": "Utilisez le chat pour coordonner les détails de collecte, poser des questions et rester informé avec les donateurs."
+        },
+        "impact": {
+          "title": "Votre tableau de bord d’impact",
+          "text": "Ce tableau de bord vous aide à suivre votre activité, vos collectes et votre impact global sur la plateforme."
+        },
+        "preferences": {
+          "title": "Préférences et correspondances",
+          "text": "Définissez ici vos préférences alimentaires afin que FoodFlow puisse recommander des dons mieux adaptés à vos besoins."
+        },
+        "settings": {
+          "title": "Paramètres",
+          "text": "Vous pouvez gérer votre compte, relancer le tutoriel et ajuster les options de la plateforme depuis ici."
+        },
+        "done": {
+          "title": "Vous êtes prêt",
+          "text": "C’est tout, vous êtes prêt à commencer à utiliser FoodFlow en tant que receveur."
+        }
+      }
     }
   }
 }

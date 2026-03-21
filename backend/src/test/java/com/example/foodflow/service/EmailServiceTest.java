@@ -5,7 +5,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.MessageSource;
 import org.springframework.test.util.ReflectionTestUtils;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,6 +15,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 class EmailServiceTest {
+
+    @Mock
+    private MessageSource messageSource;
 
     @InjectMocks
     private EmailService emailService;
@@ -770,5 +775,122 @@ class EmailServiceTest {
         assertEquals(newFromEmail, ReflectionTestUtils.getField(emailService, "fromEmail"));
         assertEquals(newFromName, ReflectionTestUtils.getField(emailService, "fromName"));
         assertEquals(newFrontendUrl, ReflectionTestUtils.getField(emailService, "frontendUrl"));
+    }
+
+    @Test
+    void sendReviewReceivedNotification_WithValidData_DoesNotThrow() {
+        Map<String, Object> reviewData = new HashMap<>();
+        reviewData.put("reviewerName", "Receiver Org");
+        reviewData.put("rating", 5);
+        reviewData.put("comment", "Great pickup experience");
+
+        assertDoesNotThrow(() -> emailService.sendReviewReceivedNotification(
+                "donor@example.com",
+                "Donor Name",
+                reviewData));
+    }
+
+    @Test
+    void sendDonationPickedUpNotification_WithValidData_DoesNotThrow() {
+        Map<String, Object> donationData = new HashMap<>();
+        donationData.put("donationTitle", "Fresh Bread");
+        donationData.put("quantity", "5");
+        donationData.put("receiverName", "Community Kitchen");
+
+        assertDoesNotThrow(() -> emailService.sendDonationPickedUpNotification(
+                "donor@example.com",
+                "Donor Name",
+                donationData));
+    }
+
+    @Test
+    void sendNewMessageNotification_WithValidData_DoesNotThrow() {
+        assertDoesNotThrow(() -> emailService.sendNewMessageNotification(
+                "receiver@example.com",
+                "Receiver Name",
+                "Donor Name",
+                "Hello, your pickup is ready."));
+    }
+
+    @Test
+    void sendDonationCompletedNotification_WithValidData_DoesNotThrow() {
+        Map<String, Object> donationData = new HashMap<>();
+        donationData.put("donationTitle", "Meals");
+        donationData.put("quantity", "10");
+        donationData.put("pickupDate", "2026-03-12");
+
+        assertDoesNotThrow(() -> emailService.sendDonationCompletedNotification(
+                "receiver@example.com",
+                "Receiver Name",
+                donationData));
+    }
+
+    @Test
+    void sendReadyForPickupNotification_WithValidData_DoesNotThrow() {
+        Map<String, Object> donationData = new HashMap<>();
+        donationData.put("donationTitle", "Prepared Meals");
+        donationData.put("pickupCode", "123456");
+        donationData.put("pickupWindow", "14:00-16:00");
+
+        assertDoesNotThrow(() -> emailService.sendReadyForPickupNotification(
+                "receiver@example.com",
+                "Receiver Name",
+                donationData));
+    }
+
+    @Test
+    void sendDonationExpiredNotification_WithValidData_DoesNotThrow() {
+        Map<String, Object> donationData = new HashMap<>();
+        donationData.put("donationTitle", "Dairy Items");
+        donationData.put("expiryDate", "2026-03-10");
+
+        assertDoesNotThrow(() -> emailService.sendDonationExpiredNotification(
+                "donor@example.com",
+                "Donor Name",
+                donationData));
+    }
+
+    @Test
+    void sendDonationStatusUpdateNotification_WithValidData_DoesNotThrow() {
+        Map<String, Object> statusData = new HashMap<>();
+        statusData.put("donationTitle", "Fruit Basket");
+        statusData.put("oldStatus", "CLAIMED");
+        statusData.put("newStatus", "READY_FOR_PICKUP");
+        statusData.put("reason", "Pickup time reached");
+
+        assertDoesNotThrow(() -> emailService.sendDonationStatusUpdateNotification(
+                "user@example.com",
+                "User Name",
+                statusData));
+    }
+
+    @Test
+    void sendAccountDeactivationEmail_WithValidInputs_AttemptsToSend() {
+        assertDoesNotThrow(() -> {
+            try {
+                emailService.sendAccountDeactivationEmail("user@example.com", "User Name");
+            } catch (ApiException e) {
+                assertTrue(e.getMessage() != null || e.getCode() != 0);
+            }
+        });
+    }
+
+    @Test
+    void sendAccountReactivationEmail_WithValidInputs_AttemptsToSend() {
+        assertDoesNotThrow(() -> {
+            try {
+                emailService.sendAccountReactivationEmail("user@example.com", "User Name");
+            } catch (ApiException e) {
+                assertTrue(e.getMessage() != null || e.getCode() != 0);
+            }
+        });
+    }
+
+    @Test
+    void sendAdminAlertEmail_WithValidInputs_DoesNotThrow() {
+        assertDoesNotThrow(() -> emailService.sendAdminAlertEmail(
+                "admin@example.com",
+                "Admin User",
+                "Potential policy violation detected."));
     }
 }

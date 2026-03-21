@@ -1,6 +1,7 @@
 package com.example.foodflow.controller;
 
 import com.example.foodflow.model.dto.RegionResponse;
+import com.example.foodflow.model.dto.UpdateOnboardingRequest;
 import com.example.foodflow.model.dto.UpdateProfileRequest;
 import com.example.foodflow.model.dto.UpdateRegionRequest;
 import com.example.foodflow.model.dto.UserProfileResponse;
@@ -187,6 +188,26 @@ class UserProfileControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.timezone").value("America/New_York"));
     }
+
+    @Test
+    void updateOnboarding_ShouldReturn200() throws Exception {
+        UpdateOnboardingRequest request = new UpdateOnboardingRequest();
+        request.setOnboardingCompleted(true);
+
+        UserProfileResponse response = new UserProfileResponse();
+        response.setEmail("user@test.com");
+        response.setOnboardingCompleted(true);
+
+        when(userProfileService.updateOnboarding(any(User.class), any(UpdateOnboardingRequest.class)))
+            .thenReturn(response);
+
+        mockMvc.perform(put("/api/profile/onboarding")
+                .with(authentication(auth))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.onboardingCompleted").value(true));
+    }
     
     @Test
     void getProfile_Unauthenticated_ShouldReturn401() throws Exception {
@@ -221,6 +242,17 @@ class UserProfileControllerTest {
         
         // When & Then
         mockMvc.perform(put("/api/profile/region")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void updateOnboarding_Unauthenticated_ShouldReturn401() throws Exception {
+        UpdateOnboardingRequest request = new UpdateOnboardingRequest();
+        request.setOnboardingCompleted(true);
+
+        mockMvc.perform(put("/api/profile/onboarding")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized());

@@ -5,7 +5,10 @@ import com.example.foodflow.model.dto.AdminUserResponse;
 import com.example.foodflow.model.dto.DeactivateUserRequest;
 import com.example.foodflow.model.dto.OverrideStatusRequest;
 import com.example.foodflow.model.dto.SendAlertRequest;
+import com.example.foodflow.model.dto.UserActivityDTO;
+import com.example.foodflow.model.entity.AuditLog;
 import com.example.foodflow.model.entity.User;
+import com.example.foodflow.repository.AuditLogRepository;
 import com.example.foodflow.repository.UserRepository;
 import com.example.foodflow.security.JwtTokenProvider;
 import com.example.foodflow.service.AdminDonationService;
@@ -28,6 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -43,16 +47,19 @@ public class AdminController {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
     private final FileStorageService fileStorageService;
+    private final AuditLogRepository auditLogRepository;
 
     public AdminController(AdminUserService adminUserService, AdminDonationService adminDonationService,
                           DisputeService disputeService, JwtTokenProvider jwtTokenProvider, 
-                          UserRepository userRepository, FileStorageService fileStorageService) {
+                          UserRepository userRepository, FileStorageService fileStorageService,
+                          AuditLogRepository auditLogRepository) {
         this.adminUserService = adminUserService;
         this.adminDonationService = adminDonationService;
         this.disputeService = disputeService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.userRepository = userRepository;
         this.fileStorageService = fileStorageService;
+        this.auditLogRepository = auditLogRepository;
     }
 
     /**
@@ -162,12 +169,26 @@ public class AdminController {
     @PostMapping("/users/{userId}/send-alert")
     public ResponseEntity<?> sendAlert(
             @PathVariable Long userId,
-            @RequestBody SendAlertRequest request) {
+            @RequestBody SendAlertRequest request,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
         
         log.info("Admin sending alert to user: {}", userId);
         
         try {
-            adminUserService.sendAlertToUser(userId, request.getMessage());
+            Long adminId = null;
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String token = authHeader.substring(7);
+                String adminEmail = jwtTokenProvider.getEmailFromToken(token);
+                adminId = userRepository.findByEmail(adminEmail)
+                        .map(User::getId)
+                        .orElse(null);
+            }
+
+            if (request.getAlertType() != null && !request.getAlertType().isBlank()) {
+                adminUserService.sendAlertToUser(userId, request.getMessage(), request.getAlertType(), adminId);
+            } else {
+                adminUserService.sendAlertToUser(userId, request.getMessage(), null, adminId);
+            }
             return ResponseEntity.ok().body("Alert sent successfully");
         } catch (RuntimeException e) {
             log.error("Error sending alert to user {}: {}", userId, e.getMessage());
@@ -194,6 +215,28 @@ public class AdminController {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
             log.error("Error fetching activity for user {}", userId, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * Get recent activity history for a user
+     * GET /api/admin/users/{userId}/recent-activity?limit=3
+     */
+    @GetMapping("/users/{userId}/recent-activity")
+    public ResponseEntity<List<UserActivityDTO>> getRecentActivity(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "3") int limit) {
+        log.info("Admin fetching recent activity for user: {}, limit: {}", userId, limit);
+        
+        try {
+            List<UserActivityDTO> activities = adminUserService.getRecentActivity(userId, limit);
+            return ResponseEntity.ok(activities);
+        } catch (RuntimeException e) {
+            log.error("Error fetching recent activity for user {}: {}", userId, e.getMessage());
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            log.error("Error fetching recent activity for user {}", userId, e);
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -229,6 +272,23 @@ public class AdminController {
         } catch (Exception e) {
             log.error("Error uploading document for user {}", userId, e);
             return ResponseEntity.internalServerError().body("Failed to upload document");
+        }
+    }
+
+    // ========== AUDIT LOG ENDPOINTS ==========
+
+    /**
+     * Get the 20 most recent audit log entries
+     * GET /api/admin/audit-logs/recent
+     */
+    @GetMapping("/audit-logs/recent")
+    public ResponseEntity<List<AuditLog>> getRecentAuditLogs() {
+        log.info("Admin fetching recent audit logs");
+        try {
+            return ResponseEntity.ok(auditLogRepository.findTop20ByOrderByTimestampDesc());
+        } catch (Exception e) {
+            log.error("Error fetching recent audit logs", e);
+            return ResponseEntity.internalServerError().build();
         }
     }
 

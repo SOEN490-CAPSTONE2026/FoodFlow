@@ -118,7 +118,7 @@
 			<artifactId>micrometer-jakarta9</artifactId>
 			<version>1.15.0</version>
 		</dependency>
-			<dependency>
+		<dependency>
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-core</artifactId>
 		</dependency>
@@ -128,8 +128,8 @@
 		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
-				<artifactId>lombok</artifactId>
-				<version>1.18.42</version>
+			<artifactId>lombok</artifactId>
+			<version>1.18.42</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -189,6 +189,19 @@
 			<groupId>org.modelmapper</groupId>
 			<artifactId>modelmapper</artifactId>
 			<version>3.2.0</version>
+		</dependency>
+		<!-- Stripe Payment Integration -->
+		<dependency>
+			<groupId>com.stripe</groupId>
+			<artifactId>stripe-java</artifactId>
+			<version>24.18.0</version>
+		</dependency>
+		<!-- iText for PDF Invoice Generation -->
+		<dependency>
+			<groupId>com.itextpdf</groupId>
+			<artifactId>itext7-core</artifactId>
+			<version>8.0.3</version>
+			<type>pom</type>
 		</dependency>
 	</dependencies>
 
@@ -255,12 +268,6 @@
 								</limits>
 							</rule>
 						</rules>
-						<excludes>
-							<exclude>**/dto/**</exclude>
-							<exclude>**/config/**</exclude>
-							<exclude>**/FoodflowApplication.class</exclude>
-							<exclude>**/service/EmailService.class</exclude>
-						</excludes>
 					</configuration>
 				</execution>
 				</executions>

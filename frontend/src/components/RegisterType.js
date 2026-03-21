@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import SEOHead from './SEOHead';
 import RegistrationIllustration from '../assets/illustrations/registration-illustration2.png';
 import DonorIcon from '../assets/icons/donor-icon.png';
 import ReceiverIcon from '../assets/icons/receiver-icon.png';
@@ -13,6 +14,7 @@ const RegisterType = () => {
 
   return (
     <div className="register-type-page">
+      <SEOHead noindex />
       <div
         className="logo-container"
         onClick={() => navigate('/')}

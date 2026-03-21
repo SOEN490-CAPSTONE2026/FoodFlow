@@ -22,9 +22,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.lang.reflect.Field;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -110,17 +113,19 @@ class SurplusPostSchedulerServiceTest {
 
     @Test
     void testUpdatePostsToReadyForPickup_ClaimedPostPickupTimeStarted_UpdatesStatus() {
-        // Given - CLAIMED post with pickup time started (pickup date in the past
-        // ensures it will transition)
-        claimedPost.setPickupDate(LocalDate.now().minusDays(1));
-        claimedPost.setPickupFrom(LocalTime.of(9, 0));
-        claimedPost.setPickupTo(LocalTime.of(17, 0));
+        // Given - CLAIMED post with started, not-ended pickup window
+        LocalDate pickupDate = LocalDate.now(ZoneOffset.UTC);
+        LocalTime startTime = LocalTime.of(0, 0);
+        LocalTime endTime = LocalTime.of(23, 59);
+        claimedPost.setPickupDate(pickupDate);
+        claimedPost.setPickupFrom(startTime);
+        claimedPost.setPickupTo(endTime);
         // Set createdAt to 3 minutes ago to pass grace period check using reflection
         setCreatedAt(claimedPost, LocalDateTime.now().minusMinutes(3));
 
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
                 .thenReturn(Collections.singletonList(claimedPost));
-        mockClaimForPost(claimedPost, LocalDate.now().minusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
+        mockClaimForPost(claimedPost, pickupDate, startTime, endTime);
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
 
         // When
@@ -139,15 +144,18 @@ class SurplusPostSchedulerServiceTest {
 
     @Test
     void testUpdatePostsToReadyForPickup_ClaimedPostPickupDateInPast_UpdatesStatus() {
-        // Given - CLAIMED post with pickup date in the past
-        claimedPost.setPickupDate(LocalDate.now().minusDays(1));
-        claimedPost.setPickupFrom(LocalTime.of(9, 0));
-        claimedPost.setPickupTo(LocalTime.of(17, 0));
+        // Given - CLAIMED post with started, not-ended pickup window
+        LocalDate pickupDate = LocalDate.now(ZoneOffset.UTC);
+        LocalTime startTime = LocalTime.of(0, 0);
+        LocalTime endTime = LocalTime.of(23, 59);
+        claimedPost.setPickupDate(pickupDate);
+        claimedPost.setPickupFrom(startTime);
+        claimedPost.setPickupTo(endTime);
         setCreatedAt(claimedPost, LocalDateTime.now().minusMinutes(3));
 
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
                 .thenReturn(Collections.singletonList(claimedPost));
-        mockClaimForPost(claimedPost, LocalDate.now().minusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
+        mockClaimForPost(claimedPost, pickupDate, startTime, endTime);
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
 
         // When
@@ -184,21 +192,24 @@ class SurplusPostSchedulerServiceTest {
     void testUpdatePostsToReadyForPickup_MultipleClaimedPosts_UpdatesAll() {
         // Given - Multiple CLAIMED posts with pickup time started
         SurplusPost claimedPost2 = createTestPost(4L, PostStatus.CLAIMED);
+        LocalDate pickupDate = LocalDate.now(ZoneOffset.UTC);
+        LocalTime startTime = LocalTime.of(0, 0);
+        LocalTime endTime = LocalTime.of(23, 59);
 
-        claimedPost.setPickupDate(LocalDate.now().minusDays(1));
-        claimedPost.setPickupFrom(LocalTime.of(9, 0));
-        claimedPost.setPickupTo(LocalTime.of(17, 0));
+        claimedPost.setPickupDate(pickupDate);
+        claimedPost.setPickupFrom(startTime);
+        claimedPost.setPickupTo(endTime);
         setCreatedAt(claimedPost, LocalDateTime.now().minusMinutes(3));
 
-        claimedPost2.setPickupDate(LocalDate.now().minusDays(1));
-        claimedPost2.setPickupFrom(LocalTime.of(9, 0));
-        claimedPost2.setPickupTo(LocalTime.of(17, 0));
+        claimedPost2.setPickupDate(pickupDate);
+        claimedPost2.setPickupFrom(startTime);
+        claimedPost2.setPickupTo(endTime);
         setCreatedAt(claimedPost2, LocalDateTime.now().minusMinutes(3));
 
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
                 .thenReturn(Arrays.asList(claimedPost, claimedPost2));
-        mockClaimForPost(claimedPost, LocalDate.now().minusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
-        mockClaimForPost(claimedPost2, LocalDate.now().minusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
+        mockClaimForPost(claimedPost, pickupDate, startTime, endTime);
+        mockClaimForPost(claimedPost2, pickupDate, startTime, endTime);
         when(surplusPostRepository.save(any(SurplusPost.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -212,15 +223,18 @@ class SurplusPostSchedulerServiceTest {
     @Test
     void testUpdatePostsToReadyForPickup_OtpAlreadyExists_DoesNotRegenerateOtp() {
         // Given - CLAIMED post already has an OTP
-        claimedPost.setPickupDate(LocalDate.now().minusDays(1));
-        claimedPost.setPickupFrom(LocalTime.of(9, 0));
-        claimedPost.setPickupTo(LocalTime.of(17, 0));
+        LocalDate pickupDate = LocalDate.now(ZoneOffset.UTC);
+        LocalTime startTime = LocalTime.of(0, 0);
+        LocalTime endTime = LocalTime.of(23, 59);
+        claimedPost.setPickupDate(pickupDate);
+        claimedPost.setPickupFrom(startTime);
+        claimedPost.setPickupTo(endTime);
         claimedPost.setOtpCode("123456");
         setCreatedAt(claimedPost, LocalDateTime.now().minusMinutes(3));
 
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
                 .thenReturn(Collections.singletonList(claimedPost));
-        mockClaimForPost(claimedPost, LocalDate.now().minusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
+        mockClaimForPost(claimedPost, pickupDate, startTime, endTime);
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
 
         // When
@@ -237,15 +251,18 @@ class SurplusPostSchedulerServiceTest {
     @Test
     void testUpdatePostsToReadyForPickup_EmptyOtpCode_GeneratesNewOtp() {
         // Given - CLAIMED post has empty OTP
-        claimedPost.setPickupDate(LocalDate.now().minusDays(1));
-        claimedPost.setPickupFrom(LocalTime.of(9, 0));
-        claimedPost.setPickupTo(LocalTime.of(17, 0));
+        LocalDate pickupDate = LocalDate.now(ZoneOffset.UTC);
+        LocalTime startTime = LocalTime.of(0, 0);
+        LocalTime endTime = LocalTime.of(23, 59);
+        claimedPost.setPickupDate(pickupDate);
+        claimedPost.setPickupFrom(startTime);
+        claimedPost.setPickupTo(endTime);
         claimedPost.setOtpCode("");
         setCreatedAt(claimedPost, LocalDateTime.now().minusMinutes(3));
 
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
                 .thenReturn(Collections.singletonList(claimedPost));
-        mockClaimForPost(claimedPost, LocalDate.now().minusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
+        mockClaimForPost(claimedPost, pickupDate, startTime, endTime);
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
 
         // When
@@ -273,6 +290,66 @@ class SurplusPostSchedulerServiceTest {
         verify(surplusPostRepository, never()).save(any(SurplusPost.class));
     }
 
+    @Test
+    void testUpdatePostsToReadyForPickup_ExpiredPost_DoesNotTransitionToReady() {
+        // Given
+        Clock fixedClock = Clock.fixed(Instant.parse("2026-03-10T10:00:00Z"), ZoneOffset.UTC);
+        SurplusPostSchedulerService fixedClockService = new SurplusPostSchedulerService(
+                surplusPostRepository,
+                claimRepository,
+                null,
+                timelineService,
+                notificationPreferenceService,
+                emailService,
+                smsService,
+                messagingTemplate,
+                fixedClock);
+
+        claimedPost.setStatus(PostStatus.CLAIMED);
+        claimedPost.setExpiryDate(LocalDate.of(2026, 3, 9)); // expired before fixed clock
+        setCreatedAt(claimedPost, LocalDateTime.of(2026, 3, 10, 9, 0));
+
+        when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
+                .thenReturn(Collections.singletonList(claimedPost));
+        mockClaimForPost(claimedPost, LocalDate.of(2026, 3, 10), LocalTime.of(9, 0), LocalTime.of(11, 0));
+
+        // When
+        fixedClockService.updatePostsToReadyForPickup();
+
+        // Then
+        verify(surplusPostRepository, never()).save(any(SurplusPost.class));
+    }
+
+    @Test
+    void testUpdatePostsToReadyForPickup_EndedPickupWindow_DoesNotTransitionToReady() {
+        // Given
+        Clock fixedClock = Clock.fixed(Instant.parse("2026-03-10T15:00:00Z"), ZoneOffset.UTC);
+        SurplusPostSchedulerService fixedClockService = new SurplusPostSchedulerService(
+                surplusPostRepository,
+                claimRepository,
+                null,
+                timelineService,
+                notificationPreferenceService,
+                emailService,
+                smsService,
+                messagingTemplate,
+                fixedClock);
+
+        claimedPost.setStatus(PostStatus.CLAIMED);
+        claimedPost.setExpiryDate(LocalDate.of(2026, 3, 11)); // still active by date expiry
+        setCreatedAt(claimedPost, LocalDateTime.of(2026, 3, 10, 10, 0));
+
+        when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
+                .thenReturn(Collections.singletonList(claimedPost));
+        mockClaimForPost(claimedPost, LocalDate.of(2026, 3, 10), LocalTime.of(9, 0), LocalTime.of(12, 0));
+
+        // When
+        fixedClockService.updatePostsToReadyForPickup();
+
+        // Then
+        verify(surplusPostRepository, never()).save(any(SurplusPost.class));
+    }
+
     // ==================== Tests for updatePostsToNotCompleted ====================
 
     @Test
@@ -283,7 +360,7 @@ class SurplusPostSchedulerServiceTest {
         readyPost.setPickupTo(LocalTime.of(17, 0));
         readyPost.setOtpCode("123456");
 
-        when(surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP))
+        when(surplusPostRepository.findByStatusIn(any()))
                 .thenReturn(Collections.singletonList(readyPost));
         mockClaimForPost(readyPost, LocalDate.now().minusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(readyPost);
@@ -307,7 +384,7 @@ class SurplusPostSchedulerServiceTest {
         readyPost.setPickupTo(LocalTime.of(17, 0));
         readyPost.setOtpCode("123456");
 
-        when(surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP))
+        when(surplusPostRepository.findByStatusIn(any()))
                 .thenReturn(Collections.singletonList(readyPost));
         mockClaimForPost(readyPost, LocalDate.now().minusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(readyPost);
@@ -332,7 +409,7 @@ class SurplusPostSchedulerServiceTest {
         readyPost.setPickupTo(LocalTime.of(23, 59));
         readyPost.setOtpCode("123456");
 
-        when(surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP))
+        when(surplusPostRepository.findByStatusIn(any()))
                 .thenReturn(Collections.singletonList(readyPost));
         mockClaimForPost(readyPost, LocalDate.now().plusDays(1), LocalTime.of(9, 0), LocalTime.of(23, 59));
 
@@ -351,7 +428,7 @@ class SurplusPostSchedulerServiceTest {
         readyPost.setPickupTo(LocalTime.of(17, 0));
         readyPost.setOtpCode("123456");
 
-        when(surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP))
+        when(surplusPostRepository.findByStatusIn(any()))
                 .thenReturn(Collections.singletonList(readyPost));
         mockClaimForPost(readyPost, LocalDate.now().plusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
 
@@ -377,7 +454,7 @@ class SurplusPostSchedulerServiceTest {
         readyPost2.setPickupFrom(LocalTime.of(10, 0));
         readyPost2.setPickupTo(LocalTime.of(18, 0));
 
-        when(surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP))
+        when(surplusPostRepository.findByStatusIn(any()))
                 .thenReturn(Arrays.asList(readyPost, readyPost2));
         mockClaimForPost(readyPost, LocalDate.now().minusDays(1), LocalTime.of(9, 0), LocalTime.of(17, 0));
         mockClaimForPost(readyPost2, LocalDate.now().minusDays(2), LocalTime.of(10, 0), LocalTime.of(18, 0));
@@ -394,7 +471,7 @@ class SurplusPostSchedulerServiceTest {
     @Test
     void testUpdatePostsToNotCompleted_NoPosts_DoesNotSaveAnything() {
         // Given - No posts to update
-        when(surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP))
+        when(surplusPostRepository.findByStatusIn(any()))
                 .thenReturn(Collections.emptyList());
 
         // When
@@ -444,7 +521,8 @@ class SurplusPostSchedulerServiceTest {
 
     private void mockClaimForPost(SurplusPost post, LocalDate pickupDate, LocalTime startTime, LocalTime endTime) {
         Claim claim = createClaimForPost(post, pickupDate, startTime, endTime);
-        when(claimRepository.findBySurplusPost(post)).thenReturn(java.util.Optional.of(claim));
+        when(claimRepository.findBySurplusPostIdAndStatus(post.getId(), ClaimStatus.ACTIVE))
+                .thenReturn(java.util.Optional.of(claim));
     }
 
     private void setToleranceValues(int earlyMinutes, int lateMinutes) {
@@ -481,18 +559,16 @@ class SurplusPostSchedulerServiceTest {
         // that's within tolerance
         setToleranceValues(15, 15);
 
-        // Use yesterday's date to ensure the logic always triggers (past date = always
-        // ready)
-        claimedPost.setPickupDate(LocalDate.now().minusDays(1));
-        claimedPost.setPickupFrom(LocalTime.of(8, 0));
-        claimedPost.setPickupTo(LocalTime.of(14, 0));
+        LocalDate pickupDate = LocalDate.now(ZoneOffset.UTC);
+        claimedPost.setPickupDate(pickupDate);
+        claimedPost.setPickupFrom(LocalTime.of(0, 0));
+        claimedPost.setPickupTo(LocalTime.of(23, 59));
         setCreatedAt(claimedPost, LocalDateTime.now().minusMinutes(3));
 
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
                 .thenReturn(Collections.singletonList(claimedPost));
-        // Claim with confirmed pickup slot yesterday - should transition to
-        // READY_FOR_PICKUP
-        mockClaimForPost(claimedPost, LocalDate.now().minusDays(1), LocalTime.of(8, 0), LocalTime.of(14, 0));
+        // Claim with active same-day window should transition to READY_FOR_PICKUP
+        mockClaimForPost(claimedPost, pickupDate, LocalTime.of(0, 0), LocalTime.of(23, 59));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
 
         // When
@@ -515,7 +591,7 @@ class SurplusPostSchedulerServiceTest {
         readyPost.setPickupTo(LocalTime.of(14, 0));
         readyPost.setOtpCode("123456");
 
-        when(surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP))
+        when(surplusPostRepository.findByStatusIn(any()))
                 .thenReturn(Collections.singletonList(readyPost));
         mockClaimForPost(readyPost, LocalDate.now().minusDays(1), LocalTime.of(8, 0), LocalTime.of(14, 0));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(readyPost);
@@ -539,7 +615,7 @@ class SurplusPostSchedulerServiceTest {
         readyPost.setPickupTo(LocalTime.of(14, 0));
         readyPost.setOtpCode("123456");
 
-        when(surplusPostRepository.findByStatus(PostStatus.READY_FOR_PICKUP))
+        when(surplusPostRepository.findByStatusIn(any()))
                 .thenReturn(Collections.singletonList(readyPost));
         mockClaimForPost(readyPost, LocalDate.now().plusDays(1), LocalTime.of(8, 0), LocalTime.of(14, 0));
 
@@ -582,17 +658,18 @@ class SurplusPostSchedulerServiceTest {
     void testUpdatePostsToReadyForPickup_SendsEmailWhenEnabled() {
         // Given
         setToleranceValues(15, 15);
-        LocalDate yesterday = LocalDate.now().minusDays(1);
-        LocalTime startTime = LocalTime.of(8, 0);
+        LocalDate pickupDate = LocalDate.now(ZoneOffset.UTC);
+        LocalTime startTime = LocalTime.of(0, 0);
+        LocalTime endTime = LocalTime.of(23, 59);
         
-        claimedPost.setPickupDate(yesterday);
+        claimedPost.setPickupDate(pickupDate);
         claimedPost.setPickupFrom(startTime);
-        claimedPost.setPickupTo(LocalTime.of(14, 0));
+        claimedPost.setPickupTo(endTime);
         setCreatedAt(claimedPost, LocalDateTime.now().minusHours(1));
         
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
                 .thenReturn(Collections.singletonList(claimedPost));
-        mockClaimForPost(claimedPost, yesterday, startTime, LocalTime.of(14, 0));
+        mockClaimForPost(claimedPost, pickupDate, startTime, endTime);
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
         when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("donationReadyForPickup"), eq("email")))
                 .thenReturn(true);
@@ -610,17 +687,18 @@ class SurplusPostSchedulerServiceTest {
     void testUpdatePostsToReadyForPickup_DoesNotSendEmailWhenDisabled() {
         // Given
         setToleranceValues(15, 15);
-        LocalDate yesterday = LocalDate.now().minusDays(1);
-        LocalTime startTime = LocalTime.of(8, 0);
+        LocalDate pickupDate = LocalDate.now(ZoneOffset.UTC);
+        LocalTime startTime = LocalTime.of(0, 0);
+        LocalTime endTime = LocalTime.of(23, 59);
         
-        claimedPost.setPickupDate(yesterday);
+        claimedPost.setPickupDate(pickupDate);
         claimedPost.setPickupFrom(startTime);
-        claimedPost.setPickupTo(LocalTime.of(14, 0));
+        claimedPost.setPickupTo(endTime);
         setCreatedAt(claimedPost, LocalDateTime.now().minusHours(1));
         
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
                 .thenReturn(Collections.singletonList(claimedPost));
-        mockClaimForPost(claimedPost, yesterday, startTime, LocalTime.of(14, 0));
+        mockClaimForPost(claimedPost, pickupDate, startTime, endTime);
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
         // Email and websocket notifications default to false (no stubbing needed)
 
@@ -635,17 +713,18 @@ class SurplusPostSchedulerServiceTest {
     void testUpdatePostsToReadyForPickup_SendsWebsocketWhenEnabled() {
         // Given
         setToleranceValues(15, 15);
-        LocalDate yesterday = LocalDate.now().minusDays(1);
-        LocalTime startTime = LocalTime.of(8, 0);
+        LocalDate pickupDate = LocalDate.now(ZoneOffset.UTC);
+        LocalTime startTime = LocalTime.of(0, 0);
+        LocalTime endTime = LocalTime.of(23, 59);
         
-        claimedPost.setPickupDate(yesterday);
+        claimedPost.setPickupDate(pickupDate);
         claimedPost.setPickupFrom(startTime);
-        claimedPost.setPickupTo(LocalTime.of(14, 0));
+        claimedPost.setPickupTo(endTime);
         setCreatedAt(claimedPost, LocalDateTime.now().minusHours(1));
         
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
                 .thenReturn(Collections.singletonList(claimedPost));
-        mockClaimForPost(claimedPost, yesterday, startTime, LocalTime.of(14, 0));
+        mockClaimForPost(claimedPost, pickupDate, startTime, endTime);
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
         when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("donationReadyForPickup"), eq("websocket")))
                 .thenReturn(true);
@@ -663,17 +742,18 @@ class SurplusPostSchedulerServiceTest {
     void testUpdatePostsToReadyForPickup_DoesNotSendWebsocketWhenDisabled() {
         // Given
         setToleranceValues(15, 15);
-        LocalDate yesterday = LocalDate.now().minusDays(1);
-        LocalTime startTime = LocalTime.of(8, 0);
+        LocalDate pickupDate = LocalDate.now(ZoneOffset.UTC);
+        LocalTime startTime = LocalTime.of(0, 0);
+        LocalTime endTime = LocalTime.of(23, 59);
         
-        claimedPost.setPickupDate(yesterday);
+        claimedPost.setPickupDate(pickupDate);
         claimedPost.setPickupFrom(startTime);
-        claimedPost.setPickupTo(LocalTime.of(14, 0));
+        claimedPost.setPickupTo(endTime);
         setCreatedAt(claimedPost, LocalDateTime.now().minusHours(1));
         
         when(surplusPostRepository.findByStatus(PostStatus.CLAIMED))
                 .thenReturn(Collections.singletonList(claimedPost));
-        mockClaimForPost(claimedPost, yesterday, startTime, LocalTime.of(14, 0));
+        mockClaimForPost(claimedPost, pickupDate, startTime, endTime);
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(claimedPost);
         // Email and websocket notifications default to false (no stubbing needed)
 
@@ -762,5 +842,218 @@ class SurplusPostSchedulerServiceTest {
 
         // Then
         verify(messagingTemplate, never()).convertAndSendToUser(anyString(), eq("/queue/donations/expired"), any());
+    }
+
+    @Test
+    void testMarkExpiredPosts_ReadyForPickupPost_TransitionsToExpired() {
+        // Given
+        enableAutoFlagging();
+        SurplusPost expiredReadyPost = createTestPost(10L, PostStatus.READY_FOR_PICKUP);
+        expiredReadyPost.setExpiryDate(LocalDate.now().minusDays(2));
+
+        when(surplusPostRepository.findByStatusIn(any()))
+                .thenReturn(Collections.singletonList(expiredReadyPost));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // When
+        schedulerService.markExpiredPosts();
+
+        // Then
+        ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
+        verify(surplusPostRepository).save(postCaptor.capture());
+        assertThat(postCaptor.getValue().getStatus()).isEqualTo(PostStatus.EXPIRED);
+    }
+
+    @Test
+    void testMarkExpiredPosts_ActiveClaimAlsoTransitionsToExpired() {
+        // Given
+        enableAutoFlagging();
+        SurplusPost expiredClaimedPost = createTestPost(14L, PostStatus.CLAIMED);
+        expiredClaimedPost.setExpiryDate(LocalDate.now().minusDays(1));
+
+        Claim activeClaim = new Claim();
+        activeClaim.setId(140L);
+        activeClaim.setSurplusPost(expiredClaimedPost);
+        activeClaim.setReceiver(receiver);
+        activeClaim.setStatus(ClaimStatus.ACTIVE);
+
+        when(surplusPostRepository.findByStatusIn(any()))
+                .thenReturn(Collections.singletonList(expiredClaimedPost));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(claimRepository.findBySurplusPostIdAndStatus(expiredClaimedPost.getId(), ClaimStatus.ACTIVE))
+                .thenReturn(java.util.Optional.of(activeClaim));
+        when(claimRepository.save(any(Claim.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // When
+        schedulerService.markExpiredPosts();
+
+        // Then
+        ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+        verify(claimRepository).save(claimCaptor.capture());
+        assertThat(claimCaptor.getValue().getStatus()).isEqualTo(ClaimStatus.EXPIRED);
+    }
+
+    @Test
+    void testMarkExpiredPosts_DonorLocalEndOfDayNotReached_DoesNotExpire() {
+        // Given:
+        // For America/Los_Angeles, 2026-03-10 EOD => 2026-03-11T06:59:59Z
+        // At 2026-03-11T02:00:00Z, post must remain active.
+        Clock fixedClock = Clock.fixed(Instant.parse("2026-03-11T02:00:00Z"), ZoneOffset.UTC);
+        SurplusPostSchedulerService fixedClockService = new SurplusPostSchedulerService(
+                surplusPostRepository,
+                claimRepository,
+                null,
+                timelineService,
+                notificationPreferenceService,
+                emailService,
+                smsService,
+                messagingTemplate,
+                fixedClock);
+        try {
+            Field enableAutoFlaggingField = SurplusPostSchedulerService.class.getDeclaredField("enableAutoFlagging");
+            enableAutoFlaggingField.setAccessible(true);
+            enableAutoFlaggingField.set(fixedClockService, true);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to enable auto-flagging", e);
+        }
+
+        SurplusPost post = createTestPost(11L, PostStatus.READY_FOR_PICKUP);
+        post.setExpiryDate(LocalDate.of(2026, 3, 10));
+        donor.setTimezone("America/Los_Angeles");
+        post.setDonor(donor);
+
+        when(surplusPostRepository.findByStatusIn(any())).thenReturn(Collections.singletonList(post));
+
+        // When
+        fixedClockService.markExpiredPosts();
+
+        // Then
+        verify(surplusPostRepository, never()).save(any(SurplusPost.class));
+    }
+
+    @Test
+    void testUpdatePostsToNotCompleted_AvailablePostPickupWindowEnded_UpdatesStatus() {
+        // Given
+        Clock fixedClock = Clock.fixed(Instant.parse("2026-03-10T15:00:00Z"), ZoneOffset.UTC);
+        SurplusPostSchedulerService fixedClockService = new SurplusPostSchedulerService(
+                surplusPostRepository,
+                claimRepository,
+                null,
+                timelineService,
+                notificationPreferenceService,
+                emailService,
+                smsService,
+                messagingTemplate,
+                fixedClock);
+
+        availablePost.setStatus(PostStatus.AVAILABLE);
+        availablePost.setExpiryDate(LocalDate.of(2026, 3, 15)); // not expired
+        availablePost.setPickupDate(LocalDate.of(2026, 3, 10));
+        availablePost.setPickupFrom(LocalTime.of(9, 0));
+        availablePost.setPickupTo(LocalTime.of(12, 0)); // already ended
+        setCreatedAt(availablePost, LocalDateTime.of(2026, 3, 10, 10, 0));
+
+        when(surplusPostRepository.findByStatusIn(any()))
+                .thenReturn(Collections.singletonList(availablePost));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // When
+        fixedClockService.updatePostsToNotCompleted();
+
+        // Then
+        ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
+        verify(surplusPostRepository).save(postCaptor.capture());
+        assertThat(postCaptor.getValue().getStatus()).isEqualTo(PostStatus.NOT_COMPLETED);
+        verify(claimRepository, never()).save(any(Claim.class));
+    }
+
+    @Test
+    void testUpdatePostsToNotCompleted_ClaimedPostPickupWindowEnded_UpdatesToNotCompleted() {
+        // Given
+        Clock fixedClock = Clock.fixed(Instant.parse("2026-03-10T15:00:00Z"), ZoneOffset.UTC);
+        SurplusPostSchedulerService fixedClockService = new SurplusPostSchedulerService(
+                surplusPostRepository,
+                claimRepository,
+                null,
+                timelineService,
+                notificationPreferenceService,
+                emailService,
+                smsService,
+                messagingTemplate,
+                fixedClock);
+
+        claimedPost.setStatus(PostStatus.CLAIMED);
+        setCreatedAt(claimedPost, LocalDateTime.of(2026, 3, 10, 10, 0));
+
+        when(surplusPostRepository.findByStatusIn(any()))
+                .thenReturn(Collections.singletonList(claimedPost));
+        mockClaimForPost(claimedPost, LocalDate.of(2026, 3, 10), LocalTime.of(9, 0), LocalTime.of(12, 0));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // When
+        fixedClockService.updatePostsToNotCompleted();
+
+        // Then
+        ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
+        verify(surplusPostRepository).save(postCaptor.capture());
+        assertThat(postCaptor.getValue().getStatus()).isEqualTo(PostStatus.NOT_COMPLETED);
+    }
+
+    @Test
+    void testMarkExpiredPosts_AvailablePastPickupWindow_DoesNotExpireIfEffectiveExpiryNotReached() {
+        // Given
+        Clock fixedClock = Clock.fixed(Instant.parse("2026-03-10T15:00:00Z"), ZoneOffset.UTC);
+        SurplusPostSchedulerService fixedClockService = new SurplusPostSchedulerService(
+                surplusPostRepository,
+                claimRepository,
+                null,
+                timelineService,
+                notificationPreferenceService,
+                emailService,
+                smsService,
+                messagingTemplate,
+                fixedClock);
+        try {
+            Field enableAutoFlaggingField = SurplusPostSchedulerService.class.getDeclaredField("enableAutoFlagging");
+            enableAutoFlaggingField.setAccessible(true);
+            enableAutoFlaggingField.set(fixedClockService, true);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to enable auto-flagging", e);
+        }
+
+        SurplusPost post = createTestPost(12L, PostStatus.AVAILABLE);
+        post.setExpiryDate(LocalDate.of(2026, 3, 15));
+        post.setPickupDate(LocalDate.of(2026, 3, 10));
+        post.setPickupFrom(LocalTime.of(9, 0));
+        post.setPickupTo(LocalTime.of(12, 0));
+
+        when(surplusPostRepository.findByStatusIn(any()))
+                .thenReturn(Collections.singletonList(post));
+
+        // When
+        fixedClockService.markExpiredPosts();
+
+        // Then
+        verify(surplusPostRepository, never()).save(any(SurplusPost.class));
+    }
+
+    @Test
+    void testMarkExpiredPosts_NotCompletedPost_ExpiresWhenEffectiveExpiryReached() {
+        // Given
+        enableAutoFlagging();
+        SurplusPost post = createTestPost(13L, PostStatus.NOT_COMPLETED);
+        post.setExpiryDate(LocalDate.now().minusDays(1));
+
+        when(surplusPostRepository.findByStatusIn(any()))
+                .thenReturn(Collections.singletonList(post));
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // When
+        schedulerService.markExpiredPosts();
+
+        // Then
+        ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
+        verify(surplusPostRepository).save(postCaptor.capture());
+        assertThat(postCaptor.getValue().getStatus()).isEqualTo(PostStatus.EXPIRED);
     }
 }

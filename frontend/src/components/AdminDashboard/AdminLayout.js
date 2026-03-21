@@ -14,7 +14,6 @@ import {
   Mail,
   ChevronRight,
   ChevronLeft,
-  HelpCircle,
   Settings,
   LogOut,
   Menu,
@@ -100,7 +99,13 @@ export default function AdminLayout() {
       const message =
         payload.messageBody || payload.message || payload.body || '';
       if (message) {
-        setNotification({ senderName, message });
+        setNotification({
+          senderName,
+          message,
+          type: payload.type,
+          alertType: payload.alertType,
+          preferredLanguage: payload.preferredLanguage,
+        });
       }
     };
 
@@ -357,15 +362,6 @@ export default function AdminLayout() {
         </nav>
 
         <div className="admin-nav-bottom">
-          <div
-            className="admin-nav-link disabled"
-            data-tooltip={t('admin.help')}
-          >
-            <span className="nav-icon" aria-hidden>
-              <HelpCircle size={18} className="lucide" />
-            </span>
-            {t('admin.help')}
-          </div>
           <Link
             to="/admin/settings"
             className={`admin-nav-link ${isActive('/admin/settings') ? 'active' : ''}`}

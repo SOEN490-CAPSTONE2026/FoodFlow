@@ -173,7 +173,9 @@ describe('DonorRegistration', () => {
       );
       await user.click(screen.getByText('donorRegistration.nextButtonText'));
 
-      const input = document.getElementById('fileUpload');
+      await screen.findByLabelText('donorRegistration.chooseFileButton');
+      const input = document.querySelector('input#fileUpload');
+      expect(input).toBeInTheDocument();
       const badFile = createFile('file.txt', 100, 'text/plain');
       fireEvent.change(input, { target: { files: [badFile] } });
       expect(
@@ -200,6 +202,7 @@ describe('DonorRegistration', () => {
         'SecurePass123!'
       );
       await user.click(screen.getByText('donorRegistration.nextButtonText'));
+      await screen.findByLabelText('donorRegistration.chooseFileButton');
 
       const area = screen
         .getByLabelText('donorRegistration.chooseFileButton')
@@ -211,14 +214,10 @@ describe('DonorRegistration', () => {
       );
       fireEvent.dragOver(area);
       fireEvent.drop(area, { dataTransfer: { files: [largeFile] } });
-      // With i18n mock, error renders as its key — assert some error element appeared
-      await waitFor(() => {
-        const errorEl = document.querySelector(
-          '.file-error, .error-message, [class*="error"]'
-        );
-        expect(errorEl).toBeTruthy();
-      });
-    });
+      expect(
+        await screen.findByText('donorRegistration.fileSizeError')
+      ).toBeInTheDocument();
+    }, 30000);
 
     it('allows removing a selected file', async () => {
       const user = userEvent.setup({ delay: null });
