@@ -45,7 +45,9 @@ describe('AdminReferrals', () => {
     referralAPI.getAll.mockReturnValue(new Promise(() => {}));
     renderWithRouter(<AdminReferrals />);
 
-    expect(screen.getByText(/loading referral submissions/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/loading referral submissions/i)
+    ).toBeInTheDocument();
   });
 
   it('renders referrals table after successful fetch', async () => {
@@ -71,7 +73,9 @@ describe('AdminReferrals', () => {
       })
     );
 
-    expect(screen.getByRole('heading', { name: /referral message/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /referral message/i })
+    ).toBeInTheDocument();
     expect(
       screen.getByText('They have lots of surplus bread at end of day.')
     ).toBeInTheDocument();

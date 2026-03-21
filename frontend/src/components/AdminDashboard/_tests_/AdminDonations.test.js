@@ -640,7 +640,9 @@ describe('AdminDonations Component', () => {
     expect(screen.getByText('Participants')).toBeInTheDocument();
 
     fireEvent.click(screen.getAllByRole('button', { name: /next/i })[0]);
-    expect(await screen.findByText('Donation Details - Timeline')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Donation Details - Timeline')
+    ).toBeInTheDocument();
     expect(screen.getByText('Timeline')).toBeInTheDocument();
 
     fireEvent.click(screen.getAllByRole('button', { name: /back/i })[0]);
