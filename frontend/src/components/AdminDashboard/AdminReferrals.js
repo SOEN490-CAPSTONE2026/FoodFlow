@@ -34,7 +34,7 @@ export default function AdminReferrals() {
 
   const formatDate = dateStr => {
     if (!dateStr) {
-      return 'â€”';
+      return '-';
     }
     return new Date(dateStr).toLocaleDateString('en-CA', {
       year: 'numeric',
@@ -80,7 +80,7 @@ export default function AdminReferrals() {
 
       {loading ? (
         <div className="admin-referrals-loading">
-          Loading referral submissionsâ€¦
+          Loading referral submissions...
         </div>
       ) : filtered.length === 0 ? (
         <div className="admin-referrals-empty">
@@ -195,8 +195,8 @@ export default function AdminReferrals() {
             </div>
             <div className="referral-message-modal-body">
               <div className="referral-message-modal-meta">
-                <span>{'\u2014'}</span>
-                <span>{'\u2014'}</span>
+                <span>{selectedMessageReferral.submittedByEmail}</span>
+                <span>{formatDate(selectedMessageReferral.createdAt)}</span>
               </div>
               <div className="referral-message-modal-content">
                 {selectedMessageReferral.message}
