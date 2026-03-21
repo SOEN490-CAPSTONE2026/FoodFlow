@@ -881,7 +881,8 @@
   border: 1px solid #d7eaf1 !important;
 }
 
-.donation-admin-info-card.donation-admin-override-card .donation-admin-override-form {
+.donation-admin-info-card.donation-admin-override-card
+  .donation-admin-override-form {
   background: #f9fafb !important;
 }
 
