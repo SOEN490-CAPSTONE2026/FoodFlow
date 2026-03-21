@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { referralAPI } from '../../services/api';
-import { UserPlus, Building2, Share2, RefreshCw } from 'lucide-react';
+import { UserPlus, Building2, Share2, RefreshCw, Eye, X } from 'lucide-react';
 import './Admin_Styles/AdminReferrals.css';
 
 export default function AdminReferrals() {
@@ -8,6 +8,7 @@ export default function AdminReferrals() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('ALL');
+  const [selectedMessageReferral, setSelectedMessageReferral] = useState(null);
 
   const fetchReferrals = async () => {
     setLoading(true);
@@ -33,7 +34,7 @@ export default function AdminReferrals() {
 
   const formatDate = dateStr => {
     if (!dateStr) {
-      return '—';
+      return 'â€”';
     }
     return new Date(dateStr).toLocaleDateString('en-CA', {
       year: 'numeric',
@@ -79,7 +80,7 @@ export default function AdminReferrals() {
 
       {loading ? (
         <div className="admin-referrals-loading">
-          Loading referral submissions…
+          Loading referral submissionsâ€¦
         </div>
       ) : filtered.length === 0 ? (
         <div className="admin-referrals-empty">
@@ -135,16 +136,22 @@ export default function AdminReferrals() {
                       {ref.contactEmail}
                     </a>
                   </td>
-                  <td>{ref.contactPhone || '—'}</td>
-                  <td data-label="Message" className="referral-message">
+                  <td data-label="Contact Phone">
+                    {ref.contactPhone || '\u2014'}
+                  </td>
+                  <td data-label="Message" className="referral-message-cell">
                     {ref.message ? (
-                      <span title={ref.message}>
-                        {ref.message.length > 80
-                          ? ref.message.slice(0, 80) + '…'
-                          : ref.message}
-                      </span>
+                      <button
+                        type="button"
+                        className="referral-action-btn"
+                        onClick={() => setSelectedMessageReferral(ref)}
+                        title="View message"
+                        aria-label={`View message from ${ref.businessName}`}
+                      >
+                        <Eye size={16} />
+                      </button>
                     ) : (
-                      '—'
+                      <span className="referral-message-empty">{'\u2014'}</span>
                     )}
                   </td>
                   <td data-label="Submitted By" className="referral-submitter">
@@ -164,6 +171,40 @@ export default function AdminReferrals() {
         Showing {filtered.length} of {referrals.length} submission
         {referrals.length !== 1 ? 's' : ''}
       </div>
+
+      {selectedMessageReferral && (
+        <div
+          className="referral-message-modal-overlay"
+          onClick={() => setSelectedMessageReferral(null)}
+        >
+          <div
+            className="referral-message-modal"
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="referral-message-modal-close"
+              onClick={() => setSelectedMessageReferral(null)}
+              aria-label="Close message"
+            >
+              <X size={20} />
+            </button>
+            <div className="referral-message-modal-header">
+              <h2>Referral Message</h2>
+              <p>{selectedMessageReferral.businessName}</p>
+            </div>
+            <div className="referral-message-modal-body">
+              <div className="referral-message-modal-meta">
+                <span>{'\u2014'}</span>
+                <span>{'\u2014'}</span>
+              </div>
+              <div className="referral-message-modal-content">
+                {selectedMessageReferral.message}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
