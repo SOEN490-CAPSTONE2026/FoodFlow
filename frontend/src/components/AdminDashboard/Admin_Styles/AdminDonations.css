@@ -468,10 +468,10 @@
 /* Info Cards */
 .donation-admin-page-one-layout {
   display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
   width: min(100%, 1040px);
-  align-items: start;
+  align-items: stretch;
 }
 
 .donation-admin-info-card {
@@ -484,6 +484,9 @@
   padding: 20px;
   width: 100%;
   box-sizing: border-box;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .donation-admin-info-card-basic {
@@ -530,6 +533,9 @@
   border-radius: 12px;
   padding: 16px;
   width: 100%;
+  flex: 1;
+  display: flex;
+  align-items: center;
 }
 
 /* Info Grid */
@@ -543,7 +549,7 @@
 
 .donation-admin-page-one-grid {
   align-items: stretch;
-  justify-items: center;
+  justify-items: stretch;
 }
 
 .donation-admin-info-item {
@@ -605,6 +611,8 @@
   padding: 0;
   align-items: stretch;
   justify-items: center;
+  width: 100%;
+  flex: 1;
 }
 
 .donation-admin-participant-card {
@@ -614,6 +622,10 @@
   padding: 16px;
   width: 100%;
   max-width: none;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .donation-admin-participant-header {
