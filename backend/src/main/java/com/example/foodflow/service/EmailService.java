@@ -11,9 +11,11 @@ import brevoModel.SendSmtpEmailTo;
 import brevoModel.CreateSmtpEmail;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.Locale;
 import java.util.Collections;
 import java.util.Map;
 
@@ -33,6 +35,12 @@ public class EmailService {
     
     @Value("${frontend.url}")
     private String frontendUrl;
+
+    private final MessageSource messageSource;
+
+    public EmailService(MessageSource messageSource) {
+        this.messageSource = messageSource;
+    }
 
     // ──────────────────────────────────────────────────────────────
     // Brand constants
@@ -622,7 +630,13 @@ public class EmailService {
      * @param alertMessage the alert message from the admin
      */
     public void sendAdminAlertEmail(String toEmail, String userName, String alertMessage) {
+        sendAdminAlertEmail(toEmail, userName, alertMessage, "en");
+    }
+
+    public void sendAdminAlertEmail(String toEmail, String userName, String alertMessage, String languagePreference) {
         log.info("Sending admin alert email to: {}", toEmail);
+
+        String language = normalizeSupportedLanguage(languagePreference);
 
         try {
             ApiClient defaultClient = Configuration.getDefaultApiClient();
@@ -641,12 +655,12 @@ public class EmailService {
             recipient.setEmail(toEmail);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
 
-            sendSmtpEmail.setSubject("[No-Reply] FoodFlow - Important Alert from Administration");
-            sendSmtpEmail.setTextContent("Dear " + userName + ", You have received an alert from the FoodFlow administration team: " + alertMessage);
-            sendSmtpEmail.setHtmlContent(buildAdminAlertEmailBody(userName, alertMessage));
+            sendSmtpEmail.setSubject(getAdminAlertEmailSubject(language));
+            sendSmtpEmail.setTextContent(getAdminAlertEmailText(language, userName, alertMessage));
+            sendSmtpEmail.setHtmlContent(buildAdminAlertEmailBody(userName, alertMessage, language));
 
             CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
-            log.info("Admin alert email sent successfully to: {}. MessageId: {}", toEmail, result.getMessageId());
+            log.info("Admin alert email sent successfully to: {} (lang={}). MessageId: {}", toEmail, language, result.getMessageId());
         } catch (ApiException ex) {
             log.error("Error sending admin alert email to: {}. Status: {}, Response: {}",
                       toEmail, ex.getCode(), ex.getResponseBody(), ex);
@@ -1337,19 +1351,102 @@ public class EmailService {
      * 17. Admin Alert Email
      */
     private String buildAdminAlertEmailBody(String userName, String alertMessage) {
+        return buildAdminAlertEmailBody(userName, alertMessage, "en");
+    }
+
+    private String buildAdminAlertEmailBody(String userName, String alertMessage, String language) {
+        String normalizedLanguage = normalizeSupportedLanguage(language);
         String formattedMessage = formatAlertMessageToHtml(alertMessage);
 
-        String content = p("Dear " + userName + ",")
-            + p("You have received an important alert from the FoodFlow administration team.")
+        String content = p(getAdminAlertGreeting(normalizedLanguage) + " " + userName + ",")
+            + p(getAdminAlertIntro(normalizedLanguage))
             + infoBox(COLOR_WARNING, "#fffbeb",
-                "<p style=\"margin:0 0 8px 0; font-size:14px; color:#92400e;\"><strong>Admin Alert</strong></p>"
+                "<p style=\"margin:0 0 8px 0; font-size:14px; color:#92400e;\"><strong>" + getAdminAlertHeader(normalizedLanguage) + "</strong></p>"
                 + "<div style=\"font-size:14px; color:#92400e; line-height:1.7;\">" + formattedMessage + "</div>")
-            + p("Please review this alert carefully and take any necessary action. If you have questions or believe this was sent in error, please contact our support team.")
-            + ctaButton("Go to FoodFlow", frontendUrl + "/login", COLOR_PRIMARY)
+            + p(getAdminAlertBody(normalizedLanguage))
+            + ctaButton(getAdminAlertCta(normalizedLanguage), frontendUrl + "/login", COLOR_PRIMARY)
             + "<p style=\"margin:16px 0 0 0; font-size:15px; color:#374151; line-height:1.6;\">" 
-            + "Best regards,<br/><strong>The FoodFlow Team</strong></p>";
+            + getAdminAlertSignoff(normalizedLanguage) + "<br/><strong>" + getFoodFlowTeamLabel(normalizedLanguage) + "</strong></p>";
 
-        return wrapInBrandedTemplate("&#9888; Admin Alert", COLOR_WARNING, content, FOOTER_ADMIN_ACTION);
+        return wrapInBrandedTemplate("&#9888; " + getAdminAlertHeader(normalizedLanguage), COLOR_WARNING, content, FOOTER_ADMIN_ACTION);
+    }
+
+    private String normalizeSupportedLanguage(String languagePreference) {
+        if (languagePreference == null || languagePreference.isBlank()) {
+            return "en";
+        }
+
+        String normalized = languagePreference.trim().toLowerCase(Locale.ROOT);
+        if (normalized.contains("-")) {
+            normalized = normalized.substring(0, normalized.indexOf('-'));
+        }
+
+        return switch (normalized) {
+            case "en", "fr", "es", "zh", "ar", "pt" -> normalized;
+            default -> "en";
+        };
+    }
+
+    private String getAdminAlertEmailSubject(String language) {
+        return msg("email.adminAlert.subject", null,
+                "[No-Reply] FoodFlow - Important Alert from Administration", language);
+    }
+
+    private String getAdminAlertEmailText(String language, String userName, String alertMessage) {
+        Object[] args = new Object[] { userName, alertMessage };
+        String fallback = "Dear " + userName
+                + ", You have received an alert from the FoodFlow administration team: " + alertMessage;
+        return msg("email.adminAlert.text", args, fallback, language);
+    }
+
+    private String getAdminAlertHeader(String language) {
+        return msg("email.adminAlert.header", null, "Admin Alert", language);
+    }
+
+    private String getAdminAlertGreeting(String language) {
+        return msg("email.adminAlert.greeting", null, "Dear", language);
+    }
+
+    private String getAdminAlertIntro(String language) {
+        return msg("email.adminAlert.intro", null,
+                "You have received an important alert from the FoodFlow administration team.", language);
+    }
+
+    private String getAdminAlertBody(String language) {
+        return msg("email.adminAlert.body", null,
+                "Please review this alert carefully and take any necessary action. If you have questions or believe this was sent in error, please contact our support team.",
+                language);
+    }
+
+    private String getAdminAlertCta(String language) {
+        return msg("email.adminAlert.cta", null, "Go to FoodFlow", language);
+    }
+
+    private String getAdminAlertSignoff(String language) {
+        return msg("email.adminAlert.signoff", null, "Best regards,", language);
+    }
+
+    private String getFoodFlowTeamLabel(String language) {
+        return msg("email.team.name", null, "The FoodFlow Team", language);
+    }
+
+    private String msg(String key, Object[] args, String fallback, String language) {
+        Locale locale = resolveLocale(language);
+        if (messageSource == null) {
+            return fallback;
+        }
+        return messageSource.getMessage(key, args, fallback, locale);
+    }
+
+    private Locale resolveLocale(String language) {
+        return switch (normalizeSupportedLanguage(language)) {
+            case "fr" -> Locale.FRENCH;
+            case "es" -> new Locale("es");
+            case "zh" -> new Locale("zh");
+            case "ar" -> new Locale("ar");
+            case "pt" -> new Locale("pt");
+            default -> Locale.ENGLISH;
+        };
     }
 
     /**

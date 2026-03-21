@@ -175,7 +175,13 @@ export default function DonorLayout() {
       const message =
         payload.messageBody || payload.message || payload.body || '';
       if (message) {
-        setNotification({ senderName, message });
+        setNotification({
+          senderName,
+          message,
+          type: payload.type,
+          alertType: payload.alertType,
+          preferredLanguage: payload.preferredLanguage,
+        });
       }
     };
 

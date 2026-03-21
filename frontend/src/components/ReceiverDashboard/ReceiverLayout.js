@@ -258,7 +258,13 @@ function ReceiverLayoutContent() {
       const message =
         payload.messageBody || payload.message || payload.body || '';
       if (message) {
-        showNotification(senderName, message);
+        showNotification(
+          senderName,
+          message,
+          payload.type,
+          payload.alertType,
+          payload.preferredLanguage
+        );
         // Increment unread count when receiving a new message
         setUnreadMessagesCount(prev => prev + 1);
       }

@@ -1005,6 +1005,12 @@
   },
   "notifications": {
     "newMessageFrom": "New message from {{senderName}}",
+    "adminAlertHeaders": {
+      "warning": "Warning",
+      "safetyNotice": "Safety Notice",
+      "complianceReminder": "Compliance Reminder",
+      "adminAlert": "Admin Alert"
+    },
     "claimConfirmed": "Claim Confirmed",
     "claimStatus": "Claim Status",
     "successfullyClaimed": "Successfully claimed \"{{foodTitle}}\" from {{donorName}}",
@@ -2221,6 +2227,11 @@
       "safety": "Important safety information",
       "compliance": "Remind about compliance requirements",
       "custom": "Send a custom message"
+    },
+    "alertTemplates": {
+      "warning": "Dear User,\n\nWe have detected a policy violation in your recent activity. Please review our platform policies and ensure compliance to avoid further action.\n\nThank you for your cooperation.",
+      "safety": "Dear User,\n\nPlease be aware of the following safety guidelines when handling food donations:\n\n- Maintain proper food storage temperatures\n- Check expiration dates regularly\n- Follow hygiene protocols\n\nYour safety and the safety of recipients is our top priority.",
+      "compliance": "Dear User,\n\nThis is a friendly reminder to ensure your account meets all compliance requirements:\n\n✓ Complete profile information\n✓ Updated documentation\n✓ Adherence to platform policies\n\nPlease review your account settings and update any missing information.\n\nThank you for maintaining compliance."
     },
     "notifications": {
       "reasonRequired": "Please provide a reason for deactivation",
