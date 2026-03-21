@@ -636,11 +636,13 @@ describe('AdminDonations Component', () => {
     );
 
     await screen.findByText('Donation Details - Basic Info & Participants');
-    expect(await screen.findByText('Feedback & Ratings')).toBeInTheDocument();
-    expect(screen.getByText('From Donor to Receiver')).toBeInTheDocument();
-    expect(screen.getByText('From Receiver to Donor')).toBeInTheDocument();
+    expect(screen.getByText('Basic Information')).toBeInTheDocument();
+    expect(screen.getByText('Participants')).toBeInTheDocument();
 
     fireEvent.click(screen.getAllByRole('button', { name: /next/i })[0]);
+    expect(await screen.findByText('Donation Details - Timeline')).toBeInTheDocument();
+    expect(screen.getByText('Timeline')).toBeInTheDocument();
+
     fireEvent.click(screen.getAllByRole('button', { name: /back/i })[0]);
     expect(
       await screen.findByText('Donation Details - Basic Info & Participants')
