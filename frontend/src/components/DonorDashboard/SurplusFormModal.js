@@ -10,7 +10,7 @@ import {
   ChevronRight,
   Sparkles,
 } from 'lucide-react';
-import { Autocomplete } from '@react-google-maps/api';
+import { Autocomplete, useLoadScript } from '@react-google-maps/api';
 import Select from 'react-select';
 import SEOHead from '../SEOHead';
 import ga4Service from '../../services/ga4Service';
