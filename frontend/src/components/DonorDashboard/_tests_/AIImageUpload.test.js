@@ -55,7 +55,9 @@ describe('AIImageUpload', () => {
   test('renders initial upload state', () => {
     renderComponent();
     expect(screen.getByText('aiDonation.upload.title')).toBeInTheDocument();
-    expect(screen.getByText('aiDonation.upload.subtitle')).toBeInTheDocument();
+    expect(
+      screen.getByText('aiDonation.upload.dragAndDrop')
+    ).toBeInTheDocument();
     expect(
       screen.getByText('aiDonation.upload.chooseFile')
     ).toBeInTheDocument();

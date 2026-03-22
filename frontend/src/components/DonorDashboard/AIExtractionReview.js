@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { Autocomplete } from '@react-google-maps/api';
 import Select from 'react-select';
@@ -23,15 +25,19 @@ import 'react-datepicker/dist/react-datepicker.css';
  */
 export default function AIExtractionReview({
   data,
-  imageFile,
+  imageFile: _imageFile,
   onReUpload,
   onCancel,
+  onSubmitStart,
+  onSubmitError,
 }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { userTimezone } = useTimezone();
   const autocompleteRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [expiryTouched, setExpiryTouched] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
 
   // Parse AI-extracted data into form state
   const [formData, setFormData] = useState({
@@ -90,6 +96,14 @@ export default function AIExtractionReview({
       notes: '',
     },
   ]);
+
+  const stepMeta = [
+    { id: 1, label: 'Product Information' },
+    { id: 2, label: 'Quantity & Dates' },
+    { id: 3, label: 'Pickup Information' },
+    { id: 4, label: 'Description & Details' },
+    { id: 5, label: t('aiDonation.steps.reviewSubmit') },
+  ];
 
   /**
    * Map backend food categories to react-select format
@@ -192,7 +206,6 @@ export default function AIExtractionReview({
       const dateObj = date instanceof Date ? date : new Date(date);
       return dateObj.toISOString().split('T')[0];
     } catch (error) {
-      console.error('Error formatting date:', date, error);
       return '';
     }
   };
@@ -207,65 +220,176 @@ export default function AIExtractionReview({
       const minutes = String(dateObj.getMinutes()).padStart(2, '0');
       return `${hours}:${minutes}`;
     } catch (error) {
-      console.error('Error formatting time:', date, error);
       return '';
     }
+  };
+
+  const getOptionLabel = (options, value) => {
+    if (!value) {
+      return 'Not set';
+    }
+    return options.find(opt => opt.value === value)?.label || value;
+  };
+
+  const formatDateDisplay = date => {
+    if (!date) {
+      return 'Not set';
+    }
+    const dateObj = date instanceof Date ? date : new Date(date);
+    if (Number.isNaN(dateObj.getTime())) {
+      return 'Not set';
+    }
+    return dateObj.toISOString().split('T')[0];
+  };
+
+  const formatTimeDisplay = date => {
+    if (!date) {
+      return '--:--';
+    }
+    const dateObj = date instanceof Date ? date : new Date(date);
+    if (Number.isNaN(dateObj.getTime())) {
+      return '--:--';
+    }
+    return dateObj.toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+  };
+
+  const getPickupWindowHours = () => {
+    const slot = pickupSlots[0];
+    if (!slot?.startTime || !slot?.endTime) {
+      return null;
+    }
+    const start = new Date(slot.startTime).getTime();
+    const end = new Date(slot.endTime).getTime();
+    if (Number.isNaN(start) || Number.isNaN(end) || end <= start) {
+      return null;
+    }
+    return Math.round(((end - start) / (1000 * 60 * 60)) * 10) / 10;
+  };
+
+  const productComplete =
+    Boolean(formData.title.trim()) &&
+    formData.foodCategories.length > 0 &&
+    Boolean(formData.temperatureCategory) &&
+    Boolean(formData.packagingType);
+
+  const quantityComplete =
+    Boolean(formData.quantityValue) &&
+    parseFloat(formData.quantityValue) > 0 &&
+    Boolean(formData.quantityUnit) &&
+    Boolean(formData.expiryDate || expirySuggestion.suggestedExpiryDate);
+
+  const pickupComplete =
+    Boolean(pickupSlots[0]?.pickupDate) &&
+    Boolean(pickupSlots[0]?.startTime) &&
+    Boolean(pickupSlots[0]?.endTime) &&
+    Boolean(formData.pickupLocation.address?.trim());
+
+  const detailsComplete = Boolean(formData.description.trim());
+
+  const stepCompletion = {
+    1: productComplete,
+    2: quantityComplete,
+    3: pickupComplete,
+    4: detailsComplete,
+    5: productComplete && quantityComplete && pickupComplete && detailsComplete,
+  };
+
+  const maxUnlockedStep = [1, 2, 3, 4, 5].reduce((unlocked, step) => {
+    if (step === 1) {
+      return unlocked;
+    }
+    const previousStepComplete = stepCompletion[step - 1];
+    return previousStepComplete ? Math.max(unlocked, step) : unlocked;
+  }, 1);
+
+  const progressPercent = Math.min(currentStep * 20, 100);
+
+  const validateStep = step => {
+    if (step === 1) {
+      if (!formData.title.trim()) {
+        toast.error('Please enter a food name/title');
+        return false;
+      }
+      if (formData.foodCategories.length === 0) {
+        toast.error('Please select at least one food category');
+        return false;
+      }
+      if (!formData.temperatureCategory) {
+        toast.error('Please select a temperature category');
+        return false;
+      }
+      if (!formData.packagingType) {
+        toast.error('Please select a packaging type');
+        return false;
+      }
+    }
+
+    if (step === 2) {
+      if (!formData.quantityValue || parseFloat(formData.quantityValue) <= 0) {
+        toast.error('Please enter a valid quantity');
+        return false;
+      }
+      if (!formData.quantityUnit) {
+        toast.error('Please select a unit of measurement');
+        return false;
+      }
+      if (!formData.expiryDate && !expirySuggestion.suggestedExpiryDate) {
+        toast.error('Please enter an expiry date');
+        return false;
+      }
+    }
+
+    if (step === 3) {
+      if (!pickupSlots[0].pickupDate) {
+        toast.error('Please select a pickup date');
+        return false;
+      }
+      if (!pickupSlots[0].startTime || !pickupSlots[0].endTime) {
+        toast.error('Please fill in pickup start and end time');
+        return false;
+      }
+      if (
+        new Date(pickupSlots[0].endTime) <= new Date(pickupSlots[0].startTime)
+      ) {
+        toast.error('Pickup end time must be after start time');
+        return false;
+      }
+      if (!formData.pickupLocation.address.trim()) {
+        toast.error('Please enter a pickup location');
+        return false;
+      }
+    }
+
+    if (step === 4) {
+      if (!formData.description.trim()) {
+        toast.error('Please enter a description');
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  const goNext = () => {
+    if (!validateStep(currentStep)) {
+      return;
+    }
+    setCurrentStep(prev => Math.min(prev + 1, 5));
+  };
+
+  const goPrevious = () => {
+    setCurrentStep(prev => Math.max(prev - 1, 1));
   };
 
   /**
    * Validate form before submission
    */
   const validateForm = () => {
-    if (!formData.title.trim()) {
-      toast.error('Please enter a food name/title');
-      return false;
-    }
-
-    if (formData.foodCategories.length === 0) {
-      toast.error('Please select at least one food category');
-      return false;
-    }
-
-    if (!formData.temperatureCategory) {
-      toast.error('Please select a temperature category');
-      return false;
-    }
-
-    if (!formData.packagingType) {
-      toast.error('Please select a packaging type');
-      return false;
-    }
-
-    if (!formData.quantityValue || parseFloat(formData.quantityValue) <= 0) {
-      toast.error('Please enter a valid quantity');
-      return false;
-    }
-
-    if (!formData.expiryDate && !expirySuggestion.suggestedExpiryDate) {
-      toast.error('Please enter an expiry date');
-      return false;
-    }
-
-    if (
-      !pickupSlots[0].pickupDate ||
-      !pickupSlots[0].startTime ||
-      !pickupSlots[0].endTime
-    ) {
-      toast.error('Please fill in pickup date and time');
-      return false;
-    }
-
-    if (!formData.pickupLocation.address.trim()) {
-      toast.error('Please enter a pickup location');
-      return false;
-    }
-
-    if (!formData.description.trim()) {
-      toast.error('Please enter a description');
-      return false;
-    }
-
-    return true;
+    return [1, 2, 3, 4].every(step => validateStep(step));
   };
 
   /**
@@ -278,6 +402,7 @@ export default function AIExtractionReview({
       return;
     }
 
+    onSubmitStart?.();
     setIsSubmitting(true);
 
     try {
@@ -323,10 +448,10 @@ export default function AIExtractionReview({
       toast.success(`Donation created successfully! ID: ${createdPostId}`);
 
       setTimeout(() => {
-        navigate('/donor/dashboard');
+        navigate('/donor/list');
       }, 1500);
     } catch (err) {
-      console.error('Error creating donation:', err);
+      onSubmitError?.();
       toast.error(err.response?.data?.message || 'Failed to create donation');
     } finally {
       setIsSubmitting(false);
@@ -334,375 +459,591 @@ export default function AIExtractionReview({
   };
 
   return (
-    <div className="ai-extraction-review">
-      {/* Header with image preview */}
-      <div className="review-header">
-        <div className="header-content">
-          <h3>Review AI-Extracted Information</h3>
-          <p className="header-subtitle">
-            Please verify and complete the fields below. Fields marked with{' '}
-            <span className="ai-badge-inline">AI</span> were auto-filled.
-          </p>
+    <div className="ai-extraction-review ai-review-shell">
+      <div className="ai-review-topbar">
+        <div>
+          <h3>Create Donation with AI</h3>
+          <p>Upload a label photo to automatically extract product details</p>
         </div>
+        <button
+          className="ai-review-reupload"
+          onClick={onReUpload}
+          type="button"
+        >
+          Re-upload Image
+        </button>
+      </div>
 
-        <div className="header-actions">
-          <button className="btn-reupload" onClick={onReUpload} type="button">
-            📸 Re-upload Image
-          </button>
+      <div className="ai-review-progress-panel">
+        <div className="ai-review-progress-header">
+          <span>Step {currentStep} of 5</span>
+          <span>{progressPercent}% Complete</span>
+        </div>
+        <div className="ai-review-progress-track">
+          <div
+            className="ai-review-progress-fill"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+        <div className="ai-review-step-tabs">
+          {stepMeta.map(step => {
+            const isActive = currentStep === step.id;
+            const isCompleted =
+              step.id < currentStep || stepCompletion[step.id];
+            const isClickable = step.id <= maxUnlockedStep;
+            return (
+              <button
+                key={step.id}
+                type="button"
+                className={`ai-review-step-tab ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}`}
+                onClick={() => isClickable && setCurrentStep(step.id)}
+                disabled={!isClickable}
+              >
+                <span>{step.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Image preview thumbnail */}
-      {imageFile && (
-        <div className="image-thumbnail">
-          <img src={URL.createObjectURL(imageFile)} alt="Uploaded label" />
-        </div>
-      )}
+      <form onSubmit={handleSubmit} className="review-form ai-review-form">
+        {currentStep === 1 && (
+          <section className="ai-review-card">
+            <div className="ai-review-card-head">
+              <div>
+                <h4>Product Information</h4>
+                <p>Basic details about your food item</p>
+              </div>
+              <div className="ai-review-fields-pill">4 fields</div>
+            </div>
 
-      <form onSubmit={handleSubmit} className="review-form">
-        {/* Basic Information */}
-        <div className="form-section">
-          <h4 className="section-title">📝 Basic Information</h4>
-
-          <div className="form-field">
-            <label className="field-label">
-              Food Name *
-              {wasAIPopulated('foodName') && (
-                <>
-                  <span className="ai-badge-inline">AI</span>
-                  {getConfidenceBadge('foodName')}
-                </>
-              )}
-            </label>
-            <input
-              type="text"
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              className="input-field"
-              placeholder="Enter food name"
-              required
-            />
-          </div>
-
-          <div className="form-field">
-            <label className="field-label">
-              Food Categories *
-              {wasAIPopulated('foodCategories') && (
-                <>
-                  <span className="ai-badge-inline">AI</span>
-                  {getConfidenceBadge('foodCategories')}
-                </>
-              )}
-            </label>
-            <Select
-              isMulti
-              options={foodTypeOptions}
-              value={formData.foodCategories}
-              onChange={selected =>
-                setFormData(prev => ({ ...prev, foodCategories: selected }))
-              }
-              classNamePrefix="react-select"
-              placeholder="Select food categories"
-              required
-            />
-          </div>
-
-          <div className="form-row">
-            <div className="form-field half-width">
+            <div className="form-field">
               <label className="field-label">
-                Temperature Category *
-                {wasAIPopulated('temperatureCategory') && (
+                Food Name *
+                {wasAIPopulated('foodName') && (
                   <>
-                    <span className="ai-badge-inline">AI</span>
-                    {getConfidenceBadge('temperatureCategory')}
+                    <span className="ai-badge-inline">AI-Generated</span>
+                    {getConfidenceBadge('foodName')}
                   </>
                 )}
               </label>
-              <Select
-                options={temperatureCategoryOptions}
-                value={temperatureCategoryOptions.find(
-                  opt => opt.value === formData.temperatureCategory
-                )}
-                onChange={selected =>
-                  setFormData(prev => ({
-                    ...prev,
-                    temperatureCategory: selected.value,
-                  }))
-                }
-                classNamePrefix="react-select"
-                placeholder="Select temperature"
-                required
-              />
-            </div>
-
-            <div className="form-field half-width">
-              <label className="field-label">
-                Packaging Type *
-                {wasAIPopulated('packagingType') && (
-                  <>
-                    <span className="ai-badge-inline">AI</span>
-                    {getConfidenceBadge('packagingType')}
-                  </>
-                )}
-              </label>
-              <Select
-                options={packagingTypeOptions}
-                value={packagingTypeOptions.find(
-                  opt => opt.value === formData.packagingType
-                )}
-                onChange={selected =>
-                  setFormData(prev => ({
-                    ...prev,
-                    packagingType: selected.value,
-                  }))
-                }
-                classNamePrefix="react-select"
-                placeholder="Select packaging"
-                required
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Quantity & Dates */}
-        <div className="form-section">
-          <h4 className="section-title">📊 Quantity & Dates</h4>
-
-          <div className="form-row">
-            <div className="form-field half-width">
-              <label className="field-label">
-                Quantity *
-                {wasAIPopulated('quantity') && (
-                  <>
-                    <span className="ai-badge-inline">AI</span>
-                    {getConfidenceBadge('quantity')}
-                  </>
-                )}
-              </label>
-              <input
-                type="number"
-                name="quantityValue"
-                value={formData.quantityValue}
-                onChange={handleChange}
-                className="input-field"
-                placeholder="Enter quantity"
-                min="0"
-                step="0.1"
-                required
-              />
-            </div>
-
-            <div className="form-field half-width">
-              <label className="field-label">Unit *</label>
-              <Select
-                options={unitOptions}
-                value={unitOptions.find(
-                  opt => opt.value === formData.quantityUnit
-                )}
-                onChange={selected =>
-                  setFormData(prev => ({
-                    ...prev,
-                    quantityUnit: selected.value,
-                  }))
-                }
-                classNamePrefix="react-select"
-                placeholder="Select unit"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="form-row">
-            <div className="form-field half-width">
-              <label className="field-label">
-                Fabrication Date
-                {wasAIPopulated('fabricationDate') && (
-                  <>
-                    <span className="ai-badge-inline">AI</span>
-                    {getConfidenceBadge('fabricationDate')}
-                  </>
-                )}
-              </label>
-              <DatePicker
-                selected={formData.fabricationDate}
-                onChange={date =>
-                  setFormData(prev => ({ ...prev, fabricationDate: date }))
-                }
-                maxDate={new Date()}
-                dateFormat="yyyy-MM-dd"
-                className="input-field"
-                placeholderText="Select fabrication date"
-              />
-            </div>
-
-            <div className="form-field half-width">
-              <label className="field-label">
-                Expiry Date *
-                {wasAIPopulated('expiryDate') && (
-                  <>
-                    <span className="ai-badge-inline">AI</span>
-                    {getConfidenceBadge('expiryDate')}
-                  </>
-                )}
-              </label>
-              <DatePicker
-                selected={formData.expiryDate}
-                onChange={date => {
-                  setExpiryTouched(true);
-                  setFormData(prev => ({ ...prev, expiryDate: date }));
-                }}
-                minDate={formData.fabricationDate || new Date()}
-                dateFormat="yyyy-MM-dd"
-                className="input-field"
-                placeholderText="Select expiry date"
-                required
-              />
-              {!expiryTouched && expirySuggestion.suggestedExpiryDate && (
-                <p className="field-help-text">
-                  Suggested expiry: {expirySuggestion.suggestedExpiryDate}
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Pickup Information */}
-        <div className="form-section">
-          <h4 className="section-title">📍 Pickup Information</h4>
-
-          <div className="form-row">
-            <div className="form-field third-width">
-              <label className="field-label">Pickup Date *</label>
-              <DatePicker
-                selected={pickupSlots[0].pickupDate}
-                onChange={date => updatePickupSlot(0, 'pickupDate', date)}
-                minDate={new Date()}
-                dateFormat="yyyy-MM-dd"
-                className="input-field"
-                placeholderText="Select date"
-                required
-              />
-            </div>
-
-            <div className="form-field third-width">
-              <label className="field-label">Start Time *</label>
-              <DatePicker
-                selected={pickupSlots[0].startTime}
-                onChange={date => updatePickupSlot(0, 'startTime', date)}
-                showTimeSelect
-                showTimeSelectOnly
-                timeIntervals={15}
-                timeCaption="Time"
-                dateFormat="HH:mm"
-                className="input-field"
-                placeholderText="Start time"
-                required
-              />
-            </div>
-
-            <div className="form-field third-width">
-              <label className="field-label">End Time *</label>
-              <DatePicker
-                selected={pickupSlots[0].endTime}
-                onChange={date => updatePickupSlot(0, 'endTime', date)}
-                showTimeSelect
-                showTimeSelectOnly
-                timeIntervals={15}
-                timeCaption="Time"
-                dateFormat="HH:mm"
-                className="input-field"
-                placeholderText="End time"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="form-field">
-            <label className="field-label">Pickup Location *</label>
-            <Autocomplete
-              onLoad={onLoadAutocomplete}
-              onPlaceChanged={onPlaceChanged}
-            >
               <input
                 type="text"
-                value={formData.pickupLocation.address}
-                onChange={e =>
-                  setFormData(prev => ({
-                    ...prev,
-                    pickupLocation: {
-                      ...prev.pickupLocation,
-                      address: e.target.value,
-                    },
-                  }))
-                }
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
                 className="input-field"
-                placeholder="Enter pickup address"
+                placeholder="Enter food name"
                 required
               />
-            </Autocomplete>
-          </div>
-        </div>
+            </div>
 
-        {/* Description & Additional Info */}
-        <div className="form-section">
-          <h4 className="section-title">📄 Description</h4>
+            <div className="form-field">
+              <label className="field-label">
+                Food Categories *
+                {wasAIPopulated('foodCategories') && (
+                  <>
+                    <span className="ai-badge-inline">AI-Generated</span>
+                    {getConfidenceBadge('foodCategories')}
+                  </>
+                )}
+              </label>
+              <Select
+                isMulti
+                options={foodTypeOptions}
+                value={formData.foodCategories}
+                onChange={selected =>
+                  setFormData(prev => ({
+                    ...prev,
+                    foodCategories: selected || [],
+                  }))
+                }
+                classNamePrefix="react-select"
+                placeholder="Select food categories"
+                required
+              />
+            </div>
 
-          <div className="form-field">
-            <label className="field-label">
-              Description *
-              {wasAIPopulated('description') && (
-                <>
-                  <span className="ai-badge-inline">AI</span>
-                  {getConfidenceBadge('description')}
-                </>
-              )}
-            </label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              className="input-field textarea"
-              placeholder="Provide additional details about the food"
-              rows="4"
-              required
-            />
-          </div>
-
-          {/* Show allergens if detected */}
-          {data.allergens && data.allergens.length > 0 && (
-            <div className="allergen-info">
-              <h5>⚠️ Detected Allergens:</h5>
-              <div className="allergen-tags">
-                {data.allergens.map((allergen, index) => (
-                  <span key={index} className="allergen-tag">
-                    {allergen}
-                  </span>
-                ))}
+            <div className="form-row">
+              <div className="form-field half-width">
+                <label className="field-label">
+                  Temperature Category *
+                  {wasAIPopulated('temperatureCategory') && (
+                    <>
+                      <span className="ai-badge-inline">AI-Generated</span>
+                      {getConfidenceBadge('temperatureCategory')}
+                    </>
+                  )}
+                </label>
+                <Select
+                  options={temperatureCategoryOptions}
+                  value={temperatureCategoryOptions.find(
+                    opt => opt.value === formData.temperatureCategory
+                  )}
+                  onChange={selected =>
+                    setFormData(prev => ({
+                      ...prev,
+                      temperatureCategory: selected?.value || '',
+                    }))
+                  }
+                  classNamePrefix="react-select"
+                  placeholder="Select temperature category"
+                  required
+                />
               </div>
-              <p className="allergen-note">
-                Please verify and include allergen information in the
-                description
+
+              <div className="form-field half-width">
+                <label className="field-label">
+                  Packaging Type *
+                  {wasAIPopulated('packagingType') && (
+                    <>
+                      <span className="ai-badge-inline">AI-Generated</span>
+                      {getConfidenceBadge('packagingType')}
+                    </>
+                  )}
+                </label>
+                <Select
+                  options={packagingTypeOptions}
+                  value={packagingTypeOptions.find(
+                    opt => opt.value === formData.packagingType
+                  )}
+                  onChange={selected =>
+                    setFormData(prev => ({
+                      ...prev,
+                      packagingType: selected?.value || '',
+                    }))
+                  }
+                  classNamePrefix="react-select"
+                  placeholder="Select packaging"
+                  required
+                />
+              </div>
+            </div>
+          </section>
+        )}
+
+        {currentStep === 2 && (
+          <section className="ai-review-card">
+            <div className="ai-review-card-head">
+              <div>
+                <h4>Quantity & Dates</h4>
+                <p>Specify amounts and important dates</p>
+              </div>
+              <div className="ai-review-fields-pill">5 fields</div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-field half-width">
+                <label className="field-label">
+                  Quantity *
+                  {wasAIPopulated('quantity') && (
+                    <>
+                      <span className="ai-badge-inline">AI-Generated</span>
+                      {getConfidenceBadge('quantity')}
+                    </>
+                  )}
+                </label>
+                <input
+                  type="number"
+                  name="quantityValue"
+                  value={formData.quantityValue}
+                  onChange={handleChange}
+                  className="input-field"
+                  placeholder="Enter quantity"
+                  min="0"
+                  step="0.1"
+                  required
+                />
+              </div>
+
+              <div className="form-field half-width">
+                <label className="field-label">Unit of Measurement *</label>
+                <Select
+                  options={unitOptions}
+                  value={unitOptions.find(
+                    opt => opt.value === formData.quantityUnit
+                  )}
+                  onChange={selected =>
+                    setFormData(prev => ({
+                      ...prev,
+                      quantityUnit: selected?.value || '',
+                    }))
+                  }
+                  classNamePrefix="react-select"
+                  placeholder="Select unit"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="ai-review-total-row">
+              <span>Total Donation Amount</span>
+              <strong>
+                {formData.quantityValue || 0}{' '}
+                {getOptionLabel(
+                  unitOptions,
+                  formData.quantityUnit
+                ).toLowerCase()}
+              </strong>
+            </div>
+
+            <div className="form-row">
+              <div className="form-field half-width">
+                <label className="field-label">
+                  Fabrication Date
+                  {wasAIPopulated('fabricationDate') && (
+                    <>
+                      <span className="ai-badge-inline">AI-Generated</span>
+                      {getConfidenceBadge('fabricationDate')}
+                    </>
+                  )}
+                </label>
+                <DatePicker
+                  selected={formData.fabricationDate}
+                  onChange={date =>
+                    setFormData(prev => ({ ...prev, fabricationDate: date }))
+                  }
+                  maxDate={new Date()}
+                  dateFormat="yyyy-MM-dd"
+                  className="input-field"
+                  placeholderText="Select fabrication date"
+                />
+              </div>
+
+              <div className="form-field half-width">
+                <label className="field-label">
+                  Expiration Date *
+                  {wasAIPopulated('expiryDate') && (
+                    <>
+                      <span className="ai-badge-inline">AI-Generated</span>
+                      {getConfidenceBadge('expiryDate')}
+                    </>
+                  )}
+                </label>
+                <DatePicker
+                  selected={formData.expiryDate}
+                  onChange={date => {
+                    setExpiryTouched(true);
+                    setFormData(prev => ({ ...prev, expiryDate: date }));
+                  }}
+                  minDate={formData.fabricationDate || new Date()}
+                  dateFormat="yyyy-MM-dd"
+                  className="input-field"
+                  placeholderText="Select expiration date"
+                  required
+                />
+                {!expiryTouched && expirySuggestion.suggestedExpiryDate && (
+                  <p className="field-help-text">
+                    Suggested expiry date:{' '}
+                    {expirySuggestion.suggestedExpiryDate}
+                  </p>
+                )}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {currentStep === 3 && (
+          <section className="ai-review-card">
+            <div className="ai-review-card-head">
+              <div>
+                <h4>Pickup Information</h4>
+                <p>When and where to collect the donation</p>
+              </div>
+              <div className="ai-review-fields-pill">4 fields</div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-field third-width">
+                <label className="field-label">Pickup Date *</label>
+                <DatePicker
+                  selected={pickupSlots[0].pickupDate}
+                  onChange={date => updatePickupSlot(0, 'pickupDate', date)}
+                  minDate={new Date()}
+                  dateFormat="yyyy-MM-dd"
+                  className="input-field"
+                  placeholderText="Select date"
+                  required
+                />
+              </div>
+
+              <div className="form-field third-width">
+                <label className="field-label">Start Time *</label>
+                <DatePicker
+                  selected={pickupSlots[0].startTime}
+                  onChange={date => updatePickupSlot(0, 'startTime', date)}
+                  showTimeSelect
+                  showTimeSelectOnly
+                  timeIntervals={15}
+                  timeCaption="Time"
+                  dateFormat="HH:mm"
+                  className="input-field"
+                  placeholderText="Start time"
+                  required
+                />
+              </div>
+
+              <div className="form-field third-width">
+                <label className="field-label">End Time *</label>
+                <DatePicker
+                  selected={pickupSlots[0].endTime}
+                  onChange={date => updatePickupSlot(0, 'endTime', date)}
+                  showTimeSelect
+                  showTimeSelectOnly
+                  timeIntervals={15}
+                  timeCaption="Time"
+                  dateFormat="HH:mm"
+                  className="input-field"
+                  placeholderText="End time"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="ai-review-window-row">
+              <span>Pickup Window</span>
+              <strong>
+                {formatTimeDisplay(pickupSlots[0].startTime)} -{' '}
+                {formatTimeDisplay(pickupSlots[0].endTime)}
+                {getPickupWindowHours()
+                  ? ` (${getPickupWindowHours()} hours)`
+                  : ''}
+              </strong>
+            </div>
+
+            <div className="form-field">
+              <label className="field-label">Pickup Location *</label>
+              <Autocomplete
+                onLoad={onLoadAutocomplete}
+                onPlaceChanged={onPlaceChanged}
+              >
+                <input
+                  type="text"
+                  value={formData.pickupLocation.address}
+                  onChange={e =>
+                    setFormData(prev => ({
+                      ...prev,
+                      pickupLocation: {
+                        ...prev.pickupLocation,
+                        address: e.target.value,
+                      },
+                    }))
+                  }
+                  className="input-field"
+                  placeholder="Enter pickup address"
+                  required
+                />
+              </Autocomplete>
+              <p className="field-help-text">
+                This address will be shared with the recipient organization.
               </p>
             </div>
-          )}
-        </div>
+          </section>
+        )}
 
-        {/* Form Actions */}
-        <div className="form-actions">
+        {currentStep === 4 && (
+          <section className="ai-review-card">
+            <div className="ai-review-card-head">
+              <div>
+                <h4>Description & Allergens</h4>
+                <p>Additional product details and safety information</p>
+              </div>
+              <div className="ai-review-fields-pill">2 fields</div>
+            </div>
+
+            <div className="form-field">
+              <label className="field-label">
+                Product Description *
+                {wasAIPopulated('description') && (
+                  <>
+                    <span className="ai-badge-inline">AI-Generated</span>
+                    {getConfidenceBadge('description')}
+                  </>
+                )}
+              </label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                className="input-field textarea"
+                placeholder="Provide a detailed description of the product"
+                rows="5"
+                required
+              />
+            </div>
+
+            {data.allergens && data.allergens.length > 0 && (
+              <div className="allergen-info ai-allergen-card">
+                <h5>Allergen Information</h5>
+                <p>Contains {data.allergens.length} allergens</p>
+                <div className="allergen-tags">
+                  {data.allergens.map((allergen, index) => (
+                    <span key={index} className="allergen-tag">
+                      {allergen}
+                    </span>
+                  ))}
+                </div>
+                <p className="allergen-note">
+                  Important: Please verify all allergens are listed in the
+                  description above.
+                </p>
+              </div>
+            )}
+          </section>
+        )}
+
+        {currentStep === 5 && (
+          <section className="ai-review-card ai-review-final-card">
+            <div className="ai-review-ready-banner">
+              <div>
+                <h4>Ready to Submit!</h4>
+                <p>
+                  You have completed all sections. Please review the summary
+                  below before submitting your donation.
+                </p>
+              </div>
+            </div>
+
+            <div className="ai-review-summary-grid">
+              <article className="ai-review-summary-item">
+                <header>
+                  <h5>Product Information</h5>
+                  <button type="button" onClick={() => setCurrentStep(1)}>
+                    Edit
+                  </button>
+                </header>
+                <p>Name: {formData.title || 'Not set'}</p>
+                <p>
+                  Category:{' '}
+                  {formData.foodCategories.map(item => item.label).join(', ') ||
+                    'Not set'}
+                </p>
+                <p>
+                  Temperature:{' '}
+                  {getOptionLabel(
+                    temperatureCategoryOptions,
+                    formData.temperatureCategory
+                  )}
+                </p>
+                <p>
+                  Packaging:{' '}
+                  {getOptionLabel(packagingTypeOptions, formData.packagingType)}
+                </p>
+              </article>
+
+              <article className="ai-review-summary-item">
+                <header>
+                  <h5>Quantity & Dates</h5>
+                  <button type="button" onClick={() => setCurrentStep(2)}>
+                    Edit
+                  </button>
+                </header>
+                <p>
+                  Amount: {formData.quantityValue || '0'}{' '}
+                  {getOptionLabel(
+                    unitOptions,
+                    formData.quantityUnit
+                  ).toLowerCase()}
+                </p>
+                <p>
+                  Manufactured: {formatDateDisplay(formData.fabricationDate)}
+                </p>
+                <p>
+                  Expires:{' '}
+                  {formatDateDisplay(
+                    formData.expiryDate || expirySuggestion.suggestedExpiryDate
+                  )}
+                </p>
+              </article>
+
+              <article className="ai-review-summary-item">
+                <header>
+                  <h5>Pickup Information</h5>
+                  <button type="button" onClick={() => setCurrentStep(3)}>
+                    Edit
+                  </button>
+                </header>
+                <p>Date: {formatDateDisplay(pickupSlots[0]?.pickupDate)}</p>
+                <p>
+                  Time: {formatTimeDisplay(pickupSlots[0]?.startTime)} -{' '}
+                  {formatTimeDisplay(pickupSlots[0]?.endTime)}
+                </p>
+                <p>Location: {formData.pickupLocation.address || 'Not set'}</p>
+              </article>
+
+              <article className="ai-review-summary-item">
+                <header>
+                  <h5>Details & Safety</h5>
+                  <button type="button" onClick={() => setCurrentStep(4)}>
+                    Edit
+                  </button>
+                </header>
+                <p>{formData.description || 'No description provided.'}</p>
+                {data.allergens?.length > 0 && (
+                  <p>Allergens: {data.allergens.join(', ')}</p>
+                )}
+              </article>
+            </div>
+          </section>
+        )}
+
+        <div className="form-actions ai-review-actions">
           <button
             type="button"
             className="btn-cancel"
-            onClick={onCancel}
+            onClick={currentStep === 1 ? onCancel : goPrevious}
             disabled={isSubmitting}
           >
-            Cancel
+            {currentStep === 1 ? 'Cancel' : 'Back'}
           </button>
-          <button type="submit" className="btn-submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Creating Donation...' : 'Create Donation →'}
-          </button>
+
+          {currentStep < 5 ? (
+            <button
+              type="button"
+              className="btn-submit"
+              onClick={goNext}
+              disabled={isSubmitting}
+            >
+              Continue
+            </button>
+          ) : (
+            <button
+              type="submit"
+              className="btn-submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Creating Donation...' : 'Submit Donation'}
+            </button>
+          )}
         </div>
       </form>
     </div>
   );
 }
+
+AIExtractionReview.propTypes = {
+  data: PropTypes.shape({
+    foodName: PropTypes.string,
+    quantityValue: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    quantityUnit: PropTypes.string,
+    foodCategories: PropTypes.arrayOf(PropTypes.string),
+    fabricationDate: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.instanceOf(Date),
+    ]),
+    expiryDate: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.instanceOf(Date),
+    ]),
+    description: PropTypes.string,
+    temperatureCategory: PropTypes.string,
+    packagingType: PropTypes.string,
+    confidenceScores: PropTypes.objectOf(PropTypes.number),
+    allergens: PropTypes.arrayOf(PropTypes.string),
+  }).isRequired,
+  imageFile: PropTypes.any,
+  onReUpload: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  onSubmitStart: PropTypes.func,
+  onSubmitError: PropTypes.func,
+};

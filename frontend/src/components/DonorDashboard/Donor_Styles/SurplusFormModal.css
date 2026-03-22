@@ -49,7 +49,7 @@
 }
 
 .surplus-modal-header {
-  padding: 24px;
+  padding: 18px 24px;
   border-bottom: 1px solid #eaeaea;
   background-color: #f8f9fa;
   position: relative;
@@ -60,7 +60,7 @@
   font-weight: 600;
   color: #1b4965;
   margin: 0;
-  margin-top: 12px;
+  margin-top: 8px;
   text-align: left;
 }
 .close-button {
@@ -75,8 +75,8 @@
   align-items: center;
   justify-content: center;
   position: absolute;
-  right: 20px;
-  top: 24px;
+  right: 18px;
+  top: 18px;
 }
 
 .close-button:hover {
@@ -89,17 +89,19 @@
 }
 
 .form-section {
-  padding: 20px 24px;
+  padding: 8px 24px;
 }
 
 .form-section:last-of-type {
   border-bottom: none;
+  padding-bottom: 12px;
 }
 
 .section-title {
   font-size: 1.1rem;
   font-weight: 600;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
+  margin-top: 4px;
   color: #2d3748;
 }
 
@@ -128,6 +130,7 @@
   font-size: 0.9rem;
   font-weight: 500;
   color: #4a5568;
+  margin-top: 4px;
 }
 
 .input-field {
@@ -142,8 +145,8 @@
 
 .input-field:focus {
   outline: none;
-  border-color: #4299e1;
-  box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.1);
+  border-color: #5a8ba8;
+  box-shadow: 0 0 0 2px rgba(27, 73, 101, 0.08);
 }
 
 .textarea {
@@ -167,7 +170,7 @@
 .checkbox-option input[type='checkbox'] {
   width: 18px;
   height: 18px;
-  accent-color: #4299e1;
+  accent-color: #1b4965;
 }
 
 /* React Select Styling */
@@ -213,8 +216,8 @@
 }
 
 .react-select__control--is-focused {
-  border-color: #4299e1 !important;
-  box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.1) !important;
+  border-color: #5a8ba8 !important;
+  box-shadow: 0 0 0 2px rgba(27, 73, 101, 0.08) !important;
 }
 
 .react-select__value-container {
@@ -303,7 +306,7 @@
 .modal-footer {
   display: flex;
   justify-content: space-between;
-  padding: 20px 24px;
+  padding: 14px 24px;
   border-top: 1px solid #eaeaea;
   background-color: #f8f9fa;
   gap: 12px;
@@ -311,25 +314,44 @@
 
 /* Buttons */
 .btn {
-  padding: 12px 24px;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  font-weight: 500;
+  padding: 14px 28px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
   border: none;
-  flex: 1;
+  min-width: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.btn:active {
+  transform: translateY(1px);
 }
 
 .btn-cancel {
   background-color: white;
   color: #1b4965;
-  border: 1px solid #bebebe;
+  border: 2px solid #d1d5db;
 }
 
-.btn-cancel:hover {
+.btn-cancel:hover:not(:disabled) {
   background-color: #f7fafc;
-  border-color: #cbd5e0;
+  border-color: #9ca3af;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-cancel:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  color: #9ca3af;
+  background-color: #f9fafb;
+  border-color: #e5e7eb;
+  box-shadow: none;
 }
 
 .btn-create {
@@ -339,22 +361,24 @@
 
 .btn-create:hover {
   background-color: #245b7c;
+  box-shadow: 0 4px 10px rgba(27, 73, 101, 0.25);
+  transform: translateY(-1px);
 }
 
 /* Messages */
 .success-message {
   color: #059669;
-  padding: 12px;
+  padding: 10px 12px;
   border-radius: 6px;
-  margin: 16px 24px;
+  margin: 12px 24px;
   font-size: 0.9rem;
 }
 
 .error-message {
   color: #9f2d00;
-  padding: 12px;
+  padding: 10px 12px;
   border-radius: 6px;
-  margin: 16px 24px;
+  margin: 12px 24px;
   font-size: 0.9rem;
 }
 .validation-error {
@@ -371,7 +395,7 @@
 
 .input-error:focus {
   border-color: #9f2d00 !important;
-  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.1) !important;
+  box-shadow: 0 0 0 2px rgba(159, 45, 0, 0.08) !important;
 }
 
 /* Google Maps Autocomplete Styling */
@@ -894,7 +918,7 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin: 12px auto 24px;
+  margin: 8px auto 16px;
   max-width: 750px;
   padding: 0 16px;
 }
@@ -983,8 +1007,8 @@
 
 /* Form Step Content */
 .form-step-content {
-  padding: 24px;
-  min-height: 400px;
+  padding: 0;
+  min-height: 250px;
   animation: fadeIn 0.3s ease-in;
 }
 

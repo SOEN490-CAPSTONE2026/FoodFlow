@@ -765,8 +765,11 @@
       "box": "boîtes"
     },
     "steps": {
+      "basicInfo": "Informations de base",
       "foodDetails": "Détails de l'aliment",
       "quantityDates": "Quantité & Dates",
+      "pickupSchedule": "Horaire de collecte",
+      "pickupLocation": "Lieu de collecte",
       "pickupInfo": "Informations de collecte",
       "description": "Description"
     },
@@ -1789,6 +1792,11 @@
     "claimsLabel": "Reclamations"
   },
   "donorHelp": {
+    "hero": {
+      "title": "Besoin d'aide ?",
+      "subtitle": "Si vous vous sentez dépassé, rappelez-vous que vous n'êtes pas seul. Contactez-nous et obtenez l'aide dont vous avez besoin",
+      "searchPlaceholder": "Posez une question..."
+    },
     "gettingStarted": {
       "title": "Premiers pas",
       "intro": "Bienvenue sur FoodFlow ! Suivez ces étapes pour commencer à faire la différence en donnant vos surplus alimentaires à ceux qui en ont besoin.",
@@ -1811,8 +1819,13 @@
         }
       }
     },
+    "foodSafety": {
+      "title": "Sécurité alimentaire",
+      "intro": "Apprenez les directives de sécurité alimentaire, la manipulation appropriée et les exigences de stockage."
+    },
     "faq": {
       "title": "Foire aux questions",
+      "subtitle": "Tout ce que vous devez savoir sur le produit et d'autres informations. Vous ne trouvez pas la réponse que vous cherchez ?",
       "items": {
         "q1": {
           "question": "Comment créer un don ?",
@@ -1855,6 +1868,10 @@
           "answer": "Oui. Une fois votre don réclamé, vous pouvez voir le nom de l'organisation bénéficiaire et ses coordonnées. Cela facilite la préparation de la collecte et la coordination."
         }
       }
+    },
+    "contact": {
+      "title": "Toujours besoin d'aide ?",
+      "subtitle": "Notre équipe de support est là pour vous aider. Contactez-nous via votre canal préféré."
     },
     "support": {
       "title": "Besoin de plus d'aide ?",

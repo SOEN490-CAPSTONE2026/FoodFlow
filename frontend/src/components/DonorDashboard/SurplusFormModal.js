@@ -1,6 +1,15 @@
 import { useTranslation } from 'react-i18next';
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { X, Calendar, Clock, Plus, Trash2 } from 'lucide-react';
+import {
+  X,
+  Calendar,
+  Clock,
+  Plus,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
+} from 'lucide-react';
 import { Autocomplete } from '@react-google-maps/api';
 import Select from 'react-select';
 import SEOHead from '../SEOHead';
@@ -33,7 +42,7 @@ const SurplusFormModal = ({
   const { t } = useTranslation();
 
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 3;
+  const totalSteps = 4;
   const { userTimezone } = useTimezone();
   const [isLoading, setIsLoading] = useState(false);
   const [expiryTouched, setExpiryTouched] = useState(false);
@@ -589,15 +598,17 @@ const SurplusFormModal = ({
   // Validation for each step
   const validateStep = step => {
     switch (step) {
-      case 1: // Food Details
+      case 1: // Basic Information
         return (
           formData.title.trim() !== '' &&
           formData.description.trim() !== '' &&
-          formData.foodCategories.length > 0 &&
-          formData.temperatureCategory !== '' &&
-          formData.packagingType !== ''
+          formData.foodCategories.length > 0
         );
-      case 2: // Quantity & Dates
+      case 2: // Food Details
+        return (
+          formData.temperatureCategory !== '' && formData.packagingType !== ''
+        );
+      case 3: // Quantity & Dates
         return (
           formData.quantityValue !== '' &&
           parseFloat(formData.quantityValue) > 0 &&
@@ -605,21 +616,20 @@ const SurplusFormModal = ({
           formData.expiryDate !== '' &&
           (expirySuggestion.eligible || safetyAcknowledged)
         );
-      case 3: {
-        // Pickup Info
+      case 4: // Pickup Schedule
+        return pickupSlots.every(
+          slot =>
+            slot.pickupDate !== '' &&
+            slot.startTime !== '' &&
+            slot.endTime !== ''
+        );
+      case 5: {
+        // Pickup Location
         const hasValidAddress =
           formData.pickupLocation.address.trim() !== '' &&
           formData.pickupLocation.latitude !== '' &&
           formData.pickupLocation.longitude !== '';
-
-        return (
-          pickupSlots.every(
-            slot =>
-              slot.pickupDate !== '' &&
-              slot.startTime !== '' &&
-              slot.endTime !== ''
-          ) && hasValidAddress
-        );
+        return hasValidAddress;
       }
       default:
         return false;
@@ -655,9 +665,10 @@ const SurplusFormModal = ({
   }
 
   const steps = [
-    { number: 1, label: t('surplusForm.steps.foodDetails') },
-    { number: 2, label: t('surplusForm.steps.quantityDates') },
-    { number: 3, label: t('surplusForm.steps.pickupInfo') },
+    { number: 1, label: t('surplusForm.steps.basicInfo') },
+    { number: 2, label: t('surplusForm.steps.foodDetails') },
+    { number: 3, label: t('surplusForm.steps.quantityDates') },
+    { number: 4, label: t('surplusForm.steps.pickupInfo') },
   ];
 
   return (
@@ -722,7 +733,7 @@ const SurplusFormModal = ({
           {/* Form Content - Only show when not loading */}
           {!isLoading && (
             <>
-              {/* Step 1: Food Details */}
+              {/* Step 1: Basic Information */}
               {currentStep === 1 && (
                 <div className="form-step-content">
                   {/* Title */}
@@ -737,21 +748,6 @@ const SurplusFormModal = ({
                       onChange={handleChange}
                       className="input-field"
                       placeholder={t('surplusForm.titlePlaceholder')}
-                      required
-                    />
-                  </div>
-
-                  <div className="form-section">
-                    <label className="input-label">
-                      {t('surplusForm.descriptionLabel')} *
-                    </label>
-                    <textarea
-                      name="description"
-                      value={formData.description}
-                      onChange={handleChange}
-                      className="input-field textarea"
-                      placeholder={t('surplusForm.descriptionPlaceholder')}
-                      rows="3"
                       required
                     />
                   </div>
@@ -777,6 +773,26 @@ const SurplusFormModal = ({
                     />
                   </div>
 
+                  <div className="form-section">
+                    <label className="input-label">
+                      {t('surplusForm.descriptionLabel')} *
+                    </label>
+                    <textarea
+                      name="description"
+                      value={formData.description}
+                      onChange={handleChange}
+                      className="input-field textarea"
+                      placeholder={t('surplusForm.descriptionPlaceholder')}
+                      rows="3"
+                      required
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Step 2: Food Details */}
+              {currentStep === 2 && (
+                <div className="form-step-content">
                   <div className="form-section">
                     <label className="input-label">
                       {t('surplusForm.dietaryTagsLabel')}{' '}
@@ -893,8 +909,8 @@ const SurplusFormModal = ({
                 </div>
               )}
 
-              {/* Step 2: Quantity & Dates */}
-              {currentStep === 2 && (
+              {/* Step 3: Quantity & Dates */}
+              {currentStep === 3 && (
                 <div className="form-step-content">
                   {/* Quantity */}
                   <div className="form-section row-group">
@@ -1047,8 +1063,8 @@ const SurplusFormModal = ({
                 </div>
               )}
 
-              {/* Step 3: Pickup Info */}
-              {currentStep === 3 && (
+              {/* Step 4: Pickup Info (Schedule & Location) */}
+              {currentStep === 4 && (
                 <div className="form-step-content">
                   {/* Pickup Time Slots */}
                   <div className="form-section">
@@ -1210,15 +1226,15 @@ const SurplusFormModal = ({
 
               {/* Footer */}
               <div className="modal-footer">
-                {currentStep > 1 && (
-                  <button
-                    type="button"
-                    className="btn btn-cancel"
-                    onClick={handlePrevious}
-                  >
-                    {t('surplusForm.previous')}
-                  </button>
-                )}
+                <button
+                  type="button"
+                  className="btn btn-cancel"
+                  onClick={handlePrevious}
+                  disabled={currentStep === 1}
+                >
+                  <ChevronLeft size={18} />
+                  {t('surplusForm.previous')}
+                </button>
                 {currentStep < totalSteps ? (
                   <button
                     type="button"
@@ -1226,12 +1242,14 @@ const SurplusFormModal = ({
                     onClick={handleNext}
                   >
                     {t('surplusForm.next')}
+                    <ChevronRight size={18} />
                   </button>
                 ) : (
                   <button type="submit" className="btn btn-create">
                     {editMode
                       ? t('surplusForm.updateDonation')
                       : t('surplusForm.createDonation')}
+                    <Sparkles size={18} />
                   </button>
                 )}
               </div>

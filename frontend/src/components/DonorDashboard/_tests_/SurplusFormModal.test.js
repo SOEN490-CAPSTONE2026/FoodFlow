@@ -64,6 +64,8 @@ jest.mock('react-i18next', () => ({
         'surplusForm.descriptionLabel': 'Description',
         'surplusForm.descriptionPlaceholder':
           'Describe the food (ingredients, freshness, etc.)',
+        'surplusForm.dietaryTagsLabel': 'Dietary Tags',
+        'surplusForm.dietaryTagsOptional': '(Optional)',
         'surplusForm.previous': 'Previous',
         'surplusForm.next': 'Next',
         'surplusForm.createDonation': 'Create Donation',
@@ -78,10 +80,16 @@ jest.mock('react-i18next', () => ({
         'surplusForm.successUpdated': 'Success! Donation updated successfully.',
         'surplusForm.failed': 'Failed to create surplus post',
         'surplusForm.failedToLoad': 'Failed to load post data',
+        'surplusForm.maxDietaryTags': 'Maximum 10 dietary tags allowed.',
+        'surplusForm.eligibilityEligible': 'Eligible for donation',
+        'surplusForm.eligibilityNotEligible': 'Not eligible for donation',
+        'surplusForm.confirmSafetyOverride':
+          'I confirm this food is safe to donate.',
+        // Step labels – now 4 steps: Basic Info, Food Details, Quantity & Dates, Pickup Info
+        'surplusForm.steps.basicInfo': 'Basic Info',
         'surplusForm.steps.foodDetails': 'Food Details',
         'surplusForm.steps.quantityDates': 'Quantity & Dates',
         'surplusForm.steps.pickupInfo': 'Pickup Info',
-        'surplusForm.steps.description': 'Description',
       };
       // Handle interpolation
       let result = translations[key] || key;
@@ -95,7 +103,7 @@ jest.mock('react-i18next', () => ({
   }),
 }));
 
-// Mock the surplusAPI directly
+// Mock the surplusAPI and imageAPI
 jest.mock('../../../services/api', () => ({
   __esModule: true,
   default: {
@@ -105,6 +113,9 @@ jest.mock('../../../services/api', () => ({
     create: jest.fn(),
     update: jest.fn(),
     getPost: jest.fn(),
+  },
+  imageAPI: {
+    upload: jest.fn().mockResolvedValue({ data: { image: { id: 1 } } }),
   },
 }));
 
@@ -157,7 +168,7 @@ jest.mock('@react-google-maps/api', () => {
                 },
               ],
             })),
-            setOptions: jest.fn(), // Add setOptions method to the mock
+            setOptions: jest.fn(),
           };
           onLoad(mockAutocomplete);
         }
@@ -203,13 +214,16 @@ jest.mock('react-datepicker', () => {
   };
 });
 
-// Mock lucide-react icons
+// Mock lucide-react icons – includes all icons used in the new component
 jest.mock('lucide-react', () => ({
   X: () => <span data-testid="x-icon">X</span>,
   Calendar: () => <span data-testid="calendar-icon">Calendar</span>,
   Clock: () => <span data-testid="clock-icon">Clock</span>,
   Plus: () => <span data-testid="plus-icon">Plus</span>,
   Trash2: () => <span data-testid="trash-icon">Trash</span>,
+  ChevronLeft: () => <span data-testid="chevron-left-icon">&#8249;</span>,
+  ChevronRight: () => <span data-testid="chevron-right-icon">&#8250;</span>,
+  Sparkles: () => <span data-testid="sparkles-icon">&#10024;</span>,
 }));
 
 // Mock localStorage
@@ -300,7 +314,15 @@ describe('SurplusFormModal', () => {
     mockConfirm.mockReturnValue(true);
   });
 
-  // Helper function to fill Step 1 (Food Details)
+  /**
+   * Step layout in the new component (totalSteps = 4):
+   *   Step 1 – Basic Info:      title, food categories, description
+   *   Step 2 – Food Details:    dietary tags, temperature category, packaging type, photo
+   *   Step 3 – Quantity & Dates: quantity value/unit, fabrication date, expiry date
+   *   Step 4 – Pickup Info:     pickup time slots + pickup location
+   */
+
+  // Helper: fill Step 1 – Basic Info
   const fillStep1 = async () => {
     await userEvent.type(
       screen.getByPlaceholderText('e.g., Vegetable Lasagna'),
@@ -312,9 +334,15 @@ describe('SurplusFormModal', () => {
       ),
       'Test description'
     );
-
     const categoriesSelect = screen.getByTestId('mock-select-default');
     await userEvent.selectOptions(categoriesSelect, ['PREPARED']);
+  };
+
+  // Helper: fill Step 2 – Food Details (temperature category + packaging type)
+  const fillStep2 = async () => {
+    await waitFor(() => {
+      expect(screen.getByText('Food Details')).toBeInTheDocument();
+    });
 
     const tempSelect = screen.getByTestId('mock-select-temperatureCategory');
     fireEvent.change(tempSelect, { target: { value: 'REFRIGERATED' } });
@@ -323,9 +351,8 @@ describe('SurplusFormModal', () => {
     fireEvent.change(packagingSelect, { target: { value: 'SEALED' } });
   };
 
-  // Helper function to fill Step 2 (Quantity & Dates)
-  const fillStep2 = async () => {
-    // Wait for step 2 to be visible first
+  // Helper: fill Step 3 – Quantity & Dates
+  const fillStep3 = async () => {
     await waitFor(() => {
       expect(screen.getByText('Quantity & Dates')).toBeInTheDocument();
     });
@@ -338,8 +365,12 @@ describe('SurplusFormModal', () => {
     fireEvent.click(datePickers[1]); // Expiry date
   };
 
-  // Helper function to fill Step 3 (Pickup Info)
-  const fillStep3 = async () => {
+  // Helper: fill Step 4 – Pickup Info
+  const fillStep4 = async () => {
+    await waitFor(() => {
+      expect(screen.getByText('Pickup Info')).toBeInTheDocument();
+    });
+
     const datePickers = screen.getAllByTestId('date-picker');
     const timePickers = screen.getAllByTestId('time-picker');
 
@@ -359,6 +390,8 @@ describe('SurplusFormModal', () => {
     expect(
       screen.getByPlaceholderText('e.g., Vegetable Lasagna')
     ).toBeInTheDocument();
+    // Step labels from the progress bar
+    expect(screen.getByText('Basic Info')).toBeInTheDocument();
     expect(screen.getByText('Food Details')).toBeInTheDocument();
   });
 
@@ -371,23 +404,24 @@ describe('SurplusFormModal', () => {
     expect(container.firstChild).toBeNull();
   });
 
-  // Multi-step navigation
+  // Multi-step navigation through all 4 steps
   test('navigates through all steps correctly', async () => {
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
-    // Step 1
-    expect(screen.getByText('Food Details')).toBeInTheDocument();
+    // Step 1 – Basic Info
+    expect(screen.getByText('Basic Info')).toBeInTheDocument();
     await fillStep1();
     fireEvent.click(screen.getByText('Next'));
 
-    // Step 2
-    await waitFor(() => {
-      expect(screen.getByText('Quantity & Dates')).toBeInTheDocument();
-    });
+    // Step 2 – Food Details
     await fillStep2();
     fireEvent.click(screen.getByText('Next'));
 
-    // Step 3
+    // Step 3 – Quantity & Dates
+    await fillStep3();
+    fireEvent.click(screen.getByText('Next'));
+
+    // Step 4 – Pickup Info (last step shows submit button)
     await waitFor(() => {
       expect(screen.getByText('Pickup Info')).toBeInTheDocument();
     });
@@ -407,7 +441,7 @@ describe('SurplusFormModal', () => {
     });
 
     // Should still be on step 1
-    expect(screen.getByText('Food Details')).toBeInTheDocument();
+    expect(screen.getByText('Basic Info')).toBeInTheDocument();
   });
 
   // Previous button navigation
@@ -418,13 +452,13 @@ describe('SurplusFormModal', () => {
     fireEvent.click(screen.getByText('Next'));
 
     await waitFor(() => {
-      expect(screen.getByText('Quantity & Dates')).toBeInTheDocument();
+      expect(screen.getByText('Food Details')).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByText('Previous'));
 
     await waitFor(() => {
-      expect(screen.getByText('Food Details')).toBeInTheDocument();
+      expect(screen.getByText('Basic Info')).toBeInTheDocument();
     });
   });
 
@@ -435,16 +469,16 @@ describe('SurplusFormModal', () => {
 
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
-    // Complete all steps
     await fillStep1();
     fireEvent.click(screen.getByText('Next'));
 
-    await screen.findByText('Quantity & Dates');
     await fillStep2();
     fireEvent.click(screen.getByText('Next'));
 
-    await screen.findByText('Pickup Info');
     await fillStep3();
+    fireEvent.click(screen.getByText('Next'));
+
+    await fillStep4();
     fireEvent.click(screen.getByText('Create Donation'));
 
     await waitFor(() => {
@@ -461,22 +495,21 @@ describe('SurplusFormModal', () => {
     });
   });
 
-  // Temperature category is required
-  test('requires temperature category in step 1', async () => {
+  // Temperature category is required (Step 2)
+  test('requires temperature category in step 2', async () => {
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
-    await userEvent.type(
-      screen.getByPlaceholderText('e.g., Vegetable Lasagna'),
-      'Test Food'
-    );
+    await fillStep1();
+    fireEvent.click(screen.getByText('Next'));
 
-    const categoriesSelect = screen.getByTestId('mock-select-default');
-    await userEvent.selectOptions(categoriesSelect, ['PREPARED']);
+    await waitFor(() => {
+      expect(screen.getByText('Food Details')).toBeInTheDocument();
+    });
 
+    // Fill packaging but NOT temperature
     const packagingSelect = screen.getByTestId('mock-select-packagingType');
     fireEvent.change(packagingSelect, { target: { value: 'SEALED' } });
 
-    // Don't fill temperature category
     fireEvent.click(screen.getByText('Next'));
     await waitFor(() => {
       expect(
@@ -485,22 +518,21 @@ describe('SurplusFormModal', () => {
     });
   });
 
-  // Packaging type is required
-  test('requires packaging type in step 1', async () => {
+  // Packaging type is required (Step 2)
+  test('requires packaging type in step 2', async () => {
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
-    await userEvent.type(
-      screen.getByPlaceholderText('e.g., Vegetable Lasagna'),
-      'Test Food'
-    );
+    await fillStep1();
+    fireEvent.click(screen.getByText('Next'));
 
-    const categoriesSelect = screen.getByTestId('mock-select-default');
-    await userEvent.selectOptions(categoriesSelect, ['PREPARED']);
+    await waitFor(() => {
+      expect(screen.getByText('Food Details')).toBeInTheDocument();
+    });
 
+    // Fill temperature but NOT packaging
     const tempSelect = screen.getByTestId('mock-select-temperatureCategory');
     fireEvent.change(tempSelect, { target: { value: 'REFRIGERATED' } });
 
-    // Don't fill packaging type
     fireEvent.click(screen.getByText('Next'));
     await waitFor(() => {
       expect(
@@ -520,13 +552,14 @@ describe('SurplusFormModal', () => {
 
     await fillStep1();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Quantity & Dates');
 
     await fillStep2();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Pickup Info');
 
     await fillStep3();
+    fireEvent.click(screen.getByText('Next'));
+
+    await fillStep4();
     fireEvent.click(screen.getByText('Create Donation'));
 
     await waitFor(() => {
@@ -558,13 +591,14 @@ describe('SurplusFormModal', () => {
 
     await fillStep1();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Quantity & Dates');
 
     await fillStep2();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Pickup Info');
 
     await fillStep3();
+    fireEvent.click(screen.getByText('Next'));
+
+    await fillStep4();
     fireEvent.click(screen.getByText('Create Donation'));
 
     await waitFor(() => {
@@ -581,16 +615,16 @@ describe('SurplusFormModal', () => {
 
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
-    // Fill all required fields through all steps
     await fillStep1();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Quantity & Dates');
 
     await fillStep2();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Pickup Info');
 
     await fillStep3();
+    fireEvent.click(screen.getByText('Next'));
+
+    await fillStep4();
     fireEvent.click(screen.getByText('Create Donation'));
 
     await waitFor(() => {
@@ -609,18 +643,13 @@ describe('SurplusFormModal', () => {
   test('updates form state when input fields change', async () => {
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
-    // Test title input on Step 1
+    // Step 1
     const titleInput = screen.getByPlaceholderText('e.g., Vegetable Lasagna');
     await userEvent.type(titleInput, 'Banana Bread');
     expect(titleInput.value).toBe('Banana Bread');
 
-    // Navigate to Step 2 for quantity
     const categoriesSelect = screen.getByTestId('mock-select-default');
     await userEvent.selectOptions(categoriesSelect, ['PREPARED']);
-    const tempSelect = screen.getByTestId('mock-select-temperatureCategory');
-    fireEvent.change(tempSelect, { target: { value: 'REFRIGERATED' } });
-    const packagingSelect = screen.getByTestId('mock-select-packagingType');
-    fireEvent.change(packagingSelect, { target: { value: 'SEALED' } });
 
     const descriptionInput = screen.getByPlaceholderText(
       'Describe the food (ingredients, freshness, etc.)'
@@ -630,8 +659,18 @@ describe('SurplusFormModal', () => {
     expect(descriptionInput.value).toBe('Fresh banana bread');
 
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Quantity & Dates');
 
+    // Step 2
+    expect(await screen.findByText('Food Details')).toBeInTheDocument();
+    const tempSelect = screen.getByTestId('mock-select-temperatureCategory');
+    fireEvent.change(tempSelect, { target: { value: 'REFRIGERATED' } });
+    const packagingSelect = screen.getByTestId('mock-select-packagingType');
+    fireEvent.change(packagingSelect, { target: { value: 'SEALED' } });
+
+    fireEvent.click(screen.getByText('Next'));
+
+    // Step 3
+    expect(await screen.findByText('Quantity & Dates')).toBeInTheDocument();
     const quantityInput = document.querySelector('input[name="quantityValue"]');
     await userEvent.type(quantityInput, '5');
     expect(quantityInput.value).toBe('5');
@@ -640,8 +679,9 @@ describe('SurplusFormModal', () => {
     fireEvent.click(datePickers[0]); // Fabrication date
     fireEvent.click(datePickers[1]); // Expiry date
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Pickup Info');
 
+    // Step 4
+    expect(await screen.findByText('Pickup Info')).toBeInTheDocument();
     const pickupDatePickers = screen.getAllByTestId('date-picker');
     const timePickers = screen.getAllByTestId('time-picker');
     fireEvent.click(pickupDatePickers[0]);
@@ -659,16 +699,16 @@ describe('SurplusFormModal', () => {
 
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
-    // Fill all required fields through all steps
     await fillStep1();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Quantity & Dates');
 
     await fillStep2();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Pickup Info');
 
     await fillStep3();
+    fireEvent.click(screen.getByText('Next'));
+
+    await fillStep4();
     fireEvent.click(screen.getByText('Create Donation'));
 
     await waitFor(() => {
@@ -691,36 +731,39 @@ describe('SurplusFormModal', () => {
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     const categoriesSelect = screen.getByTestId('mock-select-default');
-
-    // Simulate selecting multiple options using userEvent
     await userEvent.selectOptions(categoriesSelect, ['PREPARED', 'BAKERY']);
     expect(categoriesSelect).toBeInTheDocument();
     expect(categoriesSelect.value).toContain('PREPARED');
   });
 
-  // Unit selection change
+  // Unit selection change (Step 3)
   test('changes quantity unit selection', async () => {
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     await fillStep1();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Quantity & Dates');
+
+    await fillStep2();
+    fireEvent.click(screen.getByText('Next'));
+
+    expect(await screen.findByText('Quantity & Dates')).toBeInTheDocument();
 
     const unitSelect = screen.getByTestId('mock-select-quantityUnit');
-
-    fireEvent.change(unitSelect, {
-      target: { value: 'ITEM' },
-    });
+    fireEvent.change(unitSelect, { target: { value: 'ITEM' } });
     expect(unitSelect.value).toBe('ITEM');
   });
 
-  // Expiry date selection
+  // Expiry date selection (Step 3)
   test('selects expiry date', async () => {
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     await fillStep1();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Quantity & Dates');
+
+    await fillStep2();
+    fireEvent.click(screen.getByText('Next'));
+
+    expect(await screen.findByText('Quantity & Dates')).toBeInTheDocument();
 
     const datePickers = screen.getAllByTestId('date-picker');
     const expiryDatePicker = datePickers[1]; // Second date picker is expiry date
@@ -729,17 +772,20 @@ describe('SurplusFormModal', () => {
     expect(expiryDatePicker).toBeInTheDocument();
   });
 
-  // Add multiple pickup slots
+  // Add multiple pickup slots (Step 4)
   test('adds multiple pickup slots', async () => {
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     await fillStep1();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Quantity & Dates');
 
     await fillStep2();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Pickup Info');
+
+    await fillStep3();
+    fireEvent.click(screen.getByText('Next'));
+
+    expect(await screen.findByText('Pickup Info')).toBeInTheDocument();
 
     const addButton = screen.getByText('Add Another Slot');
     fireEvent.click(addButton);
@@ -750,21 +796,23 @@ describe('SurplusFormModal', () => {
     expect(screen.getByText('Slot 3')).toBeInTheDocument();
   });
 
-  // Remove pickup slot
+  // Remove pickup slot (Step 4)
   test('removes a pickup slot', async () => {
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     await fillStep1();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Quantity & Dates');
 
     await fillStep2();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Pickup Info');
+
+    await fillStep3();
+    fireEvent.click(screen.getByText('Next'));
+
+    expect(await screen.findByText('Pickup Info')).toBeInTheDocument();
 
     const addButton = screen.getByText('Add Another Slot');
     fireEvent.click(addButton);
-
     expect(screen.getByText('Slot 2')).toBeInTheDocument();
 
     const trashIcons = screen.getAllByTestId('trash-icon');
@@ -781,107 +829,121 @@ describe('SurplusFormModal', () => {
 
     await fillStep1();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Quantity & Dates');
 
     await fillStep2();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Pickup Info');
 
+    await fillStep3();
+    fireEvent.click(screen.getByText('Next'));
+
+    expect(await screen.findByText('Pickup Info')).toBeInTheDocument();
+
+    // With only one slot, no trash icon should be rendered
     const trashIcons = screen.queryAllByTestId('trash-icon');
     expect(trashIcons.length).toBe(0);
   });
 
-  // Update pickup slot date
+  // Update pickup slot date (Step 4)
   test('updates pickup slot date', async () => {
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     await fillStep1();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Quantity & Dates');
 
     await fillStep2();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Pickup Info');
+
+    await fillStep3();
+    fireEvent.click(screen.getByText('Next'));
+
+    expect(await screen.findByText('Pickup Info')).toBeInTheDocument();
 
     const datePickers = screen.getAllByTestId('date-picker');
-    const slotDatePicker = datePickers[0]; // First date picker on this step is pickup slot date
-
+    const slotDatePicker = datePickers[0];
     fireEvent.click(slotDatePicker);
     expect(slotDatePicker).toBeInTheDocument();
   });
 
-  // Update pickup slot start time
+  // Update pickup slot start time (Step 4)
   test('updates pickup slot start time', async () => {
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     await fillStep1();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Quantity & Dates');
 
     await fillStep2();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Pickup Info');
+
+    await fillStep3();
+    fireEvent.click(screen.getByText('Next'));
+
+    expect(await screen.findByText('Pickup Info')).toBeInTheDocument();
 
     const timePickers = screen.getAllByTestId('time-picker');
     const startTimePicker = timePickers[0];
-
     fireEvent.click(startTimePicker);
     expect(startTimePicker).toBeInTheDocument();
   });
 
-  // Update pickup slot end time
+  // Update pickup slot end time (Step 4)
   test('updates pickup slot end time', async () => {
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     await fillStep1();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Quantity & Dates');
 
     await fillStep2();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Pickup Info');
+
+    await fillStep3();
+    fireEvent.click(screen.getByText('Next'));
+
+    expect(await screen.findByText('Pickup Info')).toBeInTheDocument();
 
     const timePickers = screen.getAllByTestId('time-picker');
     const endTimePicker = timePickers[1];
-
     fireEvent.click(endTimePicker);
     expect(endTimePicker).toBeInTheDocument();
   });
 
-  // Update pickup slot notes
+  // Update pickup slot notes (Step 4)
   test('updates pickup slot notes', async () => {
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     await fillStep1();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Quantity & Dates');
 
     await fillStep2();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Pickup Info');
+
+    await fillStep3();
+    fireEvent.click(screen.getByText('Next'));
+
+    expect(await screen.findByText('Pickup Info')).toBeInTheDocument();
 
     const notesInput = screen.getByPlaceholderText(
       'e.g., Use back entrance, Ask for manager'
     );
-
     await userEvent.type(notesInput, 'Ring the doorbell');
     expect(notesInput.value).toBe('Ring the doorbell');
   });
 
-  // Google Places Autocomplete address selection
+  // Google Places Autocomplete address selection (Step 4)
   test('handles Google Places autocomplete selection', async () => {
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     await fillStep1();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Quantity & Dates');
 
     await fillStep2();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Pickup Info');
+
+    await fillStep3();
+    fireEvent.click(screen.getByText('Next'));
+
+    expect(await screen.findByText('Pickup Info')).toBeInTheDocument();
 
     const addressInput = screen.getByPlaceholderText('Start typing address...');
-    // Trigger the autocomplete by blurring the input
     fireEvent.blur(addressInput);
 
     await waitFor(() => {
@@ -889,20 +951,22 @@ describe('SurplusFormModal', () => {
     });
   });
 
-  // Manual address input without autocomplete
+  // Manual address input without autocomplete (Step 4)
   test('handles manual address input', async () => {
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
     await fillStep1();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Quantity & Dates');
 
     await fillStep2();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Pickup Info');
+
+    await fillStep3();
+    fireEvent.click(screen.getByText('Next'));
+
+    expect(await screen.findByText('Pickup Info')).toBeInTheDocument();
 
     const addressInput = screen.getByPlaceholderText('Start typing address...');
-
     await userEvent.clear(addressInput);
     await userEvent.type(addressInput, '456 Manual Street');
     expect(addressInput.value).toBe('456 Manual Street');
@@ -917,42 +981,38 @@ describe('SurplusFormModal', () => {
 
     await fillStep1();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Quantity & Dates');
 
     await fillStep2();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Pickup Info');
 
-    // Fill first slot (from fillStep3)
+    await fillStep3();
+    fireEvent.click(screen.getByText('Next'));
+
+    expect(await screen.findByText('Pickup Info')).toBeInTheDocument();
+
+    // Fill first slot
     let datePickers = screen.getAllByTestId('date-picker');
     let timePickers = screen.getAllByTestId('time-picker');
-
-    fireEvent.click(datePickers[0]); // Pickup date
-    fireEvent.click(timePickers[0]); // Start time
-    fireEvent.click(timePickers[1]); // End time
+    fireEvent.click(datePickers[0]);
+    fireEvent.click(timePickers[0]);
+    fireEvent.click(timePickers[1]);
 
     const addressInput = screen.getByPlaceholderText('Start typing address...');
     await userEvent.type(addressInput, 'Test Location');
     fireEvent.blur(addressInput);
 
-    // Add a second slot
+    // Add second slot
     fireEvent.click(screen.getByText('Add Another Slot'));
-
-    // Wait for second slot to appear and get updated pickers
     await waitFor(() => {
       expect(screen.getByText('Slot 2')).toBeInTheDocument();
     });
 
-    // Get all pickers again after second slot is added
     datePickers = screen.getAllByTestId('date-picker');
     timePickers = screen.getAllByTestId('time-picker');
-
-    // Fill second slot
     fireEvent.click(datePickers[1]);
     fireEvent.click(timePickers[2]);
     fireEvent.click(timePickers[3]);
 
-    // Fill slot notes
     const notesInputs = screen.getAllByPlaceholderText(
       'e.g., Use back entrance, Ask for manager'
     );
@@ -969,14 +1029,17 @@ describe('SurplusFormModal', () => {
     expect(apiCall[0].pickupSlots).toHaveLength(2);
   });
 
-  // Quantity with decimal values
+  // Quantity with decimal values (Step 3)
   test('handles decimal quantity values', async () => {
     renderWithProviders(<SurplusFormModal {...defaultProps} />);
 
-    // First fill step 1 and navigate to step 2 where quantity input is
     await fillStep1();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Quantity & Dates');
+
+    await fillStep2();
+    fireEvent.click(screen.getByText('Next'));
+
+    expect(await screen.findByText('Quantity & Dates')).toBeInTheDocument();
 
     const quantityInput = document.querySelector('input[name="quantityValue"]');
     await userEvent.type(quantityInput, '5.5');
@@ -991,13 +1054,14 @@ describe('SurplusFormModal', () => {
 
     await fillStep1();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Quantity & Dates');
 
     await fillStep2();
     fireEvent.click(screen.getByText('Next'));
-    await screen.findByText('Pickup Info');
 
     await fillStep3();
+    fireEvent.click(screen.getByText('Next'));
+
+    await fillStep4();
     fireEvent.click(screen.getByText('Create Donation'));
 
     await waitFor(() => {
