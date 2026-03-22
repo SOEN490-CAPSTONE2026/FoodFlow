@@ -107,15 +107,13 @@ jest.mock('../../../services/api', () => ({
     getPost: jest.fn(),
   },
   pickupPreferencesAPI: {
-    get: jest
-      .fn()
-      .mockResolvedValue({
-        data: {
-          availabilityWindowStart: '',
-          availabilityWindowEnd: '',
-          slots: [],
-        },
-      }),
+    get: jest.fn().mockResolvedValue({
+      data: {
+        availabilityWindowStart: '',
+        availabilityWindowEnd: '',
+        slots: [],
+      },
+    }),
   },
 }));
 
