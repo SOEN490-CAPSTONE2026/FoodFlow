@@ -72,7 +72,7 @@ describe('FAQ Component', () => {
 
     // Initially, the answer content exists but might be hidden by CSS
     // Check if  FAQ item doesn't have the 'active' class initially
-    const firstFAQItem = firstQuestion.closest('.faq-item');
+    const firstFAQItem = firstQuestion.closest('.landing-faq-item');
     expect(firstFAQItem).not.toHaveClass('active');
 
     // Press to open
@@ -101,8 +101,8 @@ describe('FAQ Component', () => {
       'What kind of organizations can receive food through FoodFlow?'
     );
 
-    const firstFAQItem = firstQuestion.closest('.faq-item');
-    const secondFAQItem = secondQuestion.closest('.faq-item');
+    const firstFAQItem = firstQuestion.closest('.landing-faq-item');
+    const secondFAQItem = secondQuestion.closest('.landing-faq-item');
 
     // Open first FAQ
     fireEvent.click(firstQuestion);
@@ -125,7 +125,7 @@ describe('FAQ Component', () => {
     const question = screen.getByText(
       'How can I use FoodFlow to donate my surplus food?'
     );
-    const faqItem = question.closest('.faq-item');
+    const faqItem = question.closest('.landing-faq-item');
 
     // Open FAQ
     fireEvent.click(question);
@@ -146,8 +146,8 @@ describe('FAQ Component', () => {
       'What kind of organizations can receive food through FoodFlow?'
     );
 
-    const firstFAQItem = firstQuestion.closest('.faq-item');
-    const secondFAQItem = secondQuestion.closest('.faq-item');
+    const firstFAQItem = firstQuestion.closest('.landing-faq-item');
+    const secondFAQItem = secondQuestion.closest('.landing-faq-item');
 
     // Open first FAQ only
     fireEvent.click(firstQuestion);

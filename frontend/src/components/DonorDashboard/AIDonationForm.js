@@ -23,6 +23,12 @@ export default function AIDonationForm() {
   const [extractedData, setExtractedData] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  const isUploadActive = step === 'upload' || step === 'processing';
+  const isUploadCompleted = step === 'review' || step === 'submit';
+  const isReviewActive = step === 'review';
+  const isReviewCompleted = step === 'submit';
+  const isSubmitActive = step === 'submit';
+
   const handleImageUpload = async imageFile => {
     setSelectedImage(imageFile);
     setStep('processing');
@@ -132,8 +138,19 @@ export default function AIDonationForm() {
             data={extractedData}
             imageFile={selectedImage}
             onReUpload={handleReUpload}
-            onCancel={() => navigate('/donor/dashboard')}
+            onCancel={() => navigate('/donor/list')}
+            onSubmitStart={() => setStep('submit')}
+            onSubmitError={() => setStep('review')}
           />
+        );
+
+      case 'submit':
+        return (
+          <div className="ai-processing-container">
+            <div className="ai-spinner"></div>
+            <h3>{t('aiDonation.submitting.title')}</h3>
+            <p className="processing-hint">{t('aiDonation.submitting.hint')}</p>
+          </div>
         );
 
       default:
@@ -145,43 +162,50 @@ export default function AIDonationForm() {
     <div className="ai-donation-form-container">
       <div className="ai-donation-header">
         <button
-          className="back-button"
-          onClick={() => navigate('/donor/dashboard')}
+          className="ai-back-button"
+          onClick={() => navigate('/donor/list')}
           disabled={isProcessing}
         >
           <ArrowLeft size={16} />
           <span>{t('aiDonation.backToDashboard')}</span>
         </button>
-        <h1>{t('aiDonation.title')}</h1>
-        <p className="ai-subtitle">{t('aiDonation.subtitle')}</p>
+        <div className="ai-donation-title-block">
+          <h1>{t('aiDonation.title')}</h1>
+          <p className="ai-subtitle">{t('aiDonation.subtitle')}</p>
+        </div>
       </div>
 
       <div className="ai-step-indicator">
         <div
-          className={`step ${
-            step === 'upload' || step === 'processing' || step === 'review'
-              ? 'active'
-              : ''
-          }`}
+          className={`ai-step ${isUploadActive ? 'active' : ''} ${isUploadCompleted ? 'completed' : ''}`}
         >
-          <div className="step-number">
-            <Upload size={14} />
+          <div className="ai-step-number">
+            <Upload size={16} />
           </div>
-          <span>{t('aiDonation.steps.upload')}</span>
+          <span className="ai-step-label">{t('aiDonation.steps.upload')}</span>
+          <span className="ai-step-sublabel">Step 1</span>
         </div>
-        <div className="step-line"></div>
-        <div className={`step ${step === 'review' ? 'active' : ''}`}>
-          <div className="step-number">
-            <FileCheck2 size={14} />
+        <div
+          className={`ai-step-line ${isUploadCompleted ? 'completed' : ''}`}
+        ></div>
+        <div
+          className={`ai-step ${isReviewActive ? 'active' : ''} ${isReviewCompleted ? 'completed' : ''}`}
+        >
+          <div className="ai-step-number">
+            <FileCheck2 size={16} />
           </div>
-          <span>{t('aiDonation.steps.review')}</span>
+          <span className="ai-step-label">{t('aiDonation.steps.review')}</span>
+          <span className="ai-step-sublabel">Step 2</span>
         </div>
-        <div className="step-line"></div>
-        <div className="step">
-          <div className="step-number">
-            <Send size={14} />
+        <div
+          className={`ai-step-line ${isReviewCompleted ? 'completed' : ''}`}
+        ></div>
+        <div className={`ai-step ${isSubmitActive ? 'active' : ''}`}>
+          <div className="ai-step-number">
+            <Send size={16} />
           </div>
-          <span>{t('aiDonation.steps.submit')}</span>
+          <span className="ai-step-label">{t('aiDonation.steps.submit')}</span>
+          <span className="ai-step-sublabel">Step 3</span>
         </div>
       </div>
 

@@ -1,6 +1,3 @@
-/* DonorHelp.css - Donor Help Page Styling */
-
-/* Force disable any animations on FAQ items */
 .donor-help,
 .donor-help *,
 .donor-help .faq-section,
@@ -17,42 +14,131 @@
 }
 
 .donor-help {
-  padding: 0 0 2rem 0;
-  max-width: 900px;
+  padding: 0;
+  background: transparent;
+  min-height: 100vh;
+}
+
+/* Hero Section with Search */
+.help-hero {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: transparent;
+  margin-bottom: 2.5rem;
+}
+
+.donor-help-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1b4965;
+  margin: 0 0 0.75rem 0;
+  letter-spacing: -0.02em;
+}
+
+.help-subtitle {
+  font-size: 1rem;
+  color: #5f6c7b;
+  margin: 0 0 2rem 0;
+  line-height: 1.6;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.search-container {
+  position: relative;
+  max-width: 560px;
   margin: 0 auto;
 }
 
-/* Section Styling */
-.help-section {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 1.5rem 2rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  border: 1px solid #e8e8e8;
+.search-icon {
+  position: absolute;
+  left: 1.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #5f6c7b;
+  pointer-events: none;
 }
 
-.section-header {
+.search-input {
+  width: 100%;
+  padding: 1rem 1.25rem 1rem 3.25rem;
+  border: 1px solid #e3e8ef;
+  border-radius: 12px;
+  font-size: 1rem;
+  color: #0f1419;
+  background: #ffffff;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: #9ca3af;
+}
+
+.search-input:focus {
+  border-color: #1b4965;
+  box-shadow: 0 0 0 3px rgba(27, 73, 101, 0.08);
+}
+
+/* Category Cards */
+.category-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin: 0 auto 3rem;
+  max-width: calc(1200px + 4rem);
+  padding: 0;
+}
+
+.category-card {
+  background: #ffffff;
+  border: 1px solid #e3e8ef;
+  border-radius: 16px;
+  padding: 2.5rem 3rem 3.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+}
+
+.category-card:hover {
+  border-color: #1b4965;
+  box-shadow: 0 8px 24px rgba(27, 73, 101, 0.12);
+  transform: translateY(-4px);
+}
+
+.category-header {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
   margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 2px solid #f0f0f0;
 }
 
-.section-header svg {
-  color: #4caf50;
+.category-icon {
+  color: #1b4965;
   flex-shrink: 0;
 }
 
-.section-header h2 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #1a1a1a;
-  margin: 0;
+.category-icon svg {
+  width: 24px;
+  height: 24px;
 }
 
+.category-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #0f1419;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.category-description {
+  font-size: 1rem;
+  color: #5f6c7b;
+  line-height: 1.65;
+}
 .section-intro {
   color: #666;
   font-size: 0.95rem;
@@ -163,277 +249,449 @@
   color: #666;
   line-height: 1.5;
   margin: 0;
+  text-align: left;
 }
 
 /* FAQ Section */
+.faq-section {
+  padding: 2rem 2rem 3rem;
+  max-width: calc(1200px + 4rem);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 3rem;
+  align-items: start;
+  background: #ffffff;
+  border: 1px solid #e3e8ef;
+  border-radius: 16px;
+}
+
+.faq-header {
+  position: sticky;
+  top: 2rem;
+}
+
+.faq-heading {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1b4965;
+  margin: 0 0 0.75rem 0;
+  letter-spacing: -0.02em;
+  text-align: left;
+}
+
+.faq-subtitle {
+  font-size: 1rem;
+  color: #5f6c7b;
+  margin: 0 0 1.5rem 0;
+  text-align: left;
+  line-height: 1.6;
+}
+
+.faq-contact-link {
+  display: inline-block;
+  color: #1b4965;
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.faq-contact-link:hover {
+  text-decoration: underline;
+}
+
 .faq-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0;
 }
 
 .faq-item {
-  border: 2px solid #e5e7eb;
-  border-radius: 10px;
-  overflow: hidden;
-  transition: all 0.2s ease;
-  background: #ffffff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  all: unset;
+  display: block;
+  border: none !important;
+  border-radius: 0 !important;
+  overflow: visible;
+  transition: none;
+  background: transparent !important;
+  margin-bottom: 0;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.faq-item:last-child {
+  margin-bottom: 0;
 }
 
 .faq-item:hover {
-  border-color: #4caf50;
-  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.15);
+  background: transparent;
 }
 
 .faq-item.open {
-  border-color: #4caf50;
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+  background: transparent;
+  box-shadow: none;
 }
 
 .faq-question {
+  all: unset;
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.25rem 1.5rem;
-  background-color: #ffffff !important;
-  border: none;
+  padding: 1.25rem 0;
+  margin-bottom: 0.5rem;
+  background-color: transparent !important;
+  background: transparent !important;
+  border: none !important;
   cursor: pointer;
   text-align: left;
   font-size: 1rem;
   font-weight: 600;
-  color: #1a1a1a !important;
-  transition: all 0.2s ease;
+  color: #0f1419;
+  transition: color 0.2s ease;
   font-family: inherit;
+  letter-spacing: -0.01em;
+  outline: none !important;
+  box-shadow: none !important;
+  box-sizing: border-box;
 }
 
 .faq-question span {
   flex: 1;
   padding-right: 1rem;
-  color: #1a1a1a !important;
+  color: inherit;
 }
 
 .faq-question:hover {
-  background-color: #f0fdf4 !important;
+  background-color: transparent !important;
 }
 
 .faq-question:focus {
-  outline: 2px solid #4caf50;
-  outline-offset: -2px;
+  outline: none;
 }
 
 .faq-item.open .faq-question {
-  background-color: #e8f5e9 !important;
-  border-bottom: 1px solid #c8e6c9;
-  color: #2e7d32 !important;
+  background-color: transparent !important;
+  color: #1b4965;
 }
 
 .faq-item.open .faq-question span {
-  color: #2e7d32 !important;
+  color: inherit;
 }
 
 .faq-question svg {
-  color: #4caf50 !important;
+  color: #5f6c7b !important;
   flex-shrink: 0;
-  min-width: 24px;
-  min-height: 24px;
-  transition: transform 0.2s ease;
-}
-
-.faq-item.open .faq-question svg {
-  color: #2e7d32 !important;
-}
-
-.faq-answer {
-  padding: 1.25rem 1.5rem;
-  background-color: #fafffe !important;
-  font-size: 0.95rem;
-  color: #333333 !important;
-  line-height: 1.8;
-  animation: fadeIn 0.25s ease;
-  border-top: 1px solid #e8f5e9;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Contact Section */
-.contact-options {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-}
-
-.contact-card {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  padding: 1.25rem;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  text-decoration: none;
-  color: inherit;
+  min-width: 22px;
+  min-height: 22px;
   transition: all 0.2s ease;
 }
 
-.contact-card:hover {
-  background: #f0fdf4;
-  border-color: #4caf50;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.1);
+.faq-item.open .faq-question svg {
+  color: #1b4965 !important;
 }
 
-.contact-card:focus {
-  outline: 2px solid #4caf50;
+.faq-answer {
+  padding: 0 0 1.5rem 0;
+  margin-bottom: 1rem;
+  background-color: transparent !important;
+  background: transparent !important;
+  font-size: 0.95rem;
+  color: #5f6c7b;
+  line-height: 1.7;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  font-weight: 400;
+}
+
+/* Contact Section */
+.help-contact-section {
+  padding: 3rem 3rem 3.5rem;
+  max-width: calc(1200px + 4rem);
+  margin: 3rem auto 0;
+  background: #ffffff;
+  border: 1px solid #e3e8ef;
+  border-radius: 16px;
+}
+
+.donor-contact-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.donor-contact-heading {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1b4965;
+  margin: 0 0 0.75rem 0;
+  letter-spacing: -0.02em;
+}
+
+.donor-contact-subtitle {
+  font-size: 1rem;
+  color: #5f6c7b;
+  margin: 0;
+  line-height: 1.6;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.donor-contact-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.donor-contact-card {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 2.5rem 2rem;
+  background: #f8fafb;
+  border: 1px solid #e3e8ef;
+  border-radius: 14px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.donor-contact-card:hover {
+  background: #ffffff;
+  border-color: #1b4965;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(27, 73, 101, 0.12);
+}
+
+.donor-contact-card:focus {
+  outline: 2px solid #1b4965;
   outline-offset: 2px;
 }
 
-.contact-icon {
+.donor-contact-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
-  background: linear-gradient(135deg, #4caf50, #45a049);
-  border-radius: 10px;
+  width: 56px;
+  height: 56px;
+  background: #1b4965;
+  border-radius: 12px;
   flex-shrink: 0;
+  transition: all 0.3s ease;
 }
 
-.contact-icon svg {
-  color: white;
+.donor-contact-card:hover .donor-contact-icon {
+  background: #0f3347;
 }
 
-.contact-info h4 {
-  font-size: 1rem;
+.donor-contact-icon svg {
+  color: #ffffff;
+}
+
+.donor-contact-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1;
+}
+
+.donor-contact-info h4 {
+  font-size: 1.05rem;
   font-weight: 600;
-  color: #1a1a1a;
+  color: #0f1419;
+  margin: 0 0 0.25rem 0;
+  letter-spacing: -0.01em;
+}
+
+.donor-contact-info p {
+  font-size: 1rem;
+  color: #1b4965;
+  font-weight: 600;
   margin: 0 0 0.25rem 0;
 }
 
-.contact-info p {
-  font-size: 0.95rem;
-  color: #4caf50;
-  font-weight: 500;
-  margin: 0 0 0.25rem 0;
-}
-
-.contact-info .response-time {
-  font-size: 0.8rem;
-  color: #888;
+.donor-contact-info .response-time {
+  font-size: 0.85rem;
+  color: #5f6c7b;
+  font-weight: 400;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .donor-help {
-    padding: 0 0 1.5rem 0;
+  .help-hero {
+    padding: 2.5rem 1.5rem;
   }
 
-  .help-section {
-    padding: 1.25rem;
-    margin-bottom: 1rem;
+  .help-title {
+    font-size: 1.875rem;
   }
 
-  .section-header h2 {
-    font-size: 1.1rem;
+  .help-subtitle {
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
   }
 
-  .getting-started-content {
+  .search-input {
+    padding: 0.875rem 1rem 0.875rem 3rem;
+    font-size: 0.95rem;
+  }
+
+  .search-icon {
+    left: 1rem;
+  }
+
+  .category-cards {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 1.25rem;
+    padding: 0 0.75rem;
   }
 
-  .step {
-    padding: 1rem;
+  .category-card {
+    padding: 1.75rem 1.5rem;
   }
 
-  .step-number {
-    width: 24px;
-    height: 24px;
-    font-size: 0.75rem;
-    top: -8px;
-    left: -8px;
+  .category-header {
+    gap: 0.75rem;
+    margin-bottom: 0.625rem;
   }
 
-  .faq-question {
-    padding: 0.875rem 1rem;
+  .category-title {
+    font-size: 1.05rem;
+  }
+
+  .category-description {
     font-size: 0.9rem;
   }
 
-  .faq-answer {
-    padding: 0.875rem 1rem;
-    font-size: 0.85rem;
-  }
-
-  .contact-options {
+  .faq-section {
+    padding: 1.5rem 0.75rem 2.5rem;
     grid-template-columns: 1fr;
+    gap: 2rem;
   }
 
-  .contact-card {
-    padding: 1rem;
+  .faq-header {
+    position: static;
   }
 
-  .contact-icon {
-    width: 42px;
-    height: 42px;
+  .faq-heading {
+    font-size: 1.75rem;
+  }
+
+  .faq-subtitle {
+    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .faq-question {
+    padding: 1.125rem 1.25rem;
+    font-size: 0.975rem;
+  }
+
+  .faq-answer {
+    padding: 1.25rem;
+    font-size: 0.9rem;
+  }
+
+  .help-contact-section {
+    padding: 2.5rem 1.5rem 3rem;
+  }
+
+  .donor-contact-header {
+    margin-bottom: 2rem;
+  }
+
+  .donor-contact-heading {
+    font-size: 1.75rem;
+  }
+
+  .donor-contact-subtitle {
+    font-size: 0.95rem;
+  }
+
+  .donor-contact-options {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .donor-contact-card {
+    padding: 1.5rem;
+  }
+
+  .donor-contact-icon {
+    width: 52px;
+    height: 52px;
   }
 }
 
 @media (max-width: 480px) {
-  .help-section {
-    padding: 1rem;
-    border-radius: 8px;
+  .help-hero {
+    padding: 2rem 1.25rem;
+    margin-bottom: 2rem;
   }
 
-  .section-header {
-    gap: 0.5rem;
+  .help-title {
+    font-size: 1.625rem;
   }
 
-  .section-header svg {
-    width: 20px;
-    height: 20px;
-  }
-
-  .section-header h2 {
-    font-size: 1rem;
-  }
-
-  .step-content h4 {
+  .help-subtitle {
     font-size: 0.9rem;
   }
 
-  .step-content p {
-    font-size: 0.8rem;
+  .search-container {
+    max-width: 100%;
+  }
+
+  .search-input {
+    padding: 0.75rem 0.875rem 0.75rem 2.75rem;
+    font-size: 0.9rem;
+  }
+
+  .help-contact-section {
+    padding: 2rem 1.25rem 2.5rem;
+  }
+
+  .donor-contact-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .donor-contact-heading {
+    font-size: 1.5rem;
+  }
+
+  .donor-contact-subtitle {
+    font-size: 0.875rem;
+  }
+
+  .donor-contact-card {
+    padding: 1.25rem;
+    gap: 1rem;
+  }
+
+  .donor-contact-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .donor-contact-info h4 {
+    font-size: 1rem;
+  }
+
+  .donor-contact-info p {
+    font-size: 0.95rem;
   }
 }
 
-/* Dark mode support (optional - for future) */
-@media (prefers-color-scheme: dark) {
-  /* Can be implemented when dark mode is added to the app */
-}
-
-/* Accessibility - Reduced motion */
+/* Accessibility */
 @media (prefers-reduced-motion: reduce) {
-  .step,
+  .category-card,
   .contact-card,
-  .faq-item {
+  .faq-item,
+  .search-input {
     transition: none;
   }
 
-  .faq-answer {
-    animation: none;
-  }
-
-  .step:hover,
+  .category-card:hover,
   .contact-card:hover {
     transform: none;
   }

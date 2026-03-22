@@ -24,7 +24,10 @@ describe('DonorHelp', () => {
   test('renders key-based sections', () => {
     renderWithRouter(<DonorHelp />);
     expect(
-      screen.getByText('donorHelp.gettingStarted.title')
+      screen.getByRole('heading', {
+        name: 'donorHelp.gettingStarted.title',
+        level: 2,
+      })
     ).toBeInTheDocument();
     expect(screen.getByText('donorHelp.faq.title')).toBeInTheDocument();
     expect(screen.getByText('donorHelp.support.title')).toBeInTheDocument();

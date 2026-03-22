@@ -103,6 +103,8 @@ export default function DonorWelcome() {
             });
 
             const recipient =
+              donation.receiverOrganization ||
+              donation.receiverName ||
               donation.claimant?.organizationName ||
               donation.claimant?.name ||
               t('donorWelcome.noNameYet');
@@ -261,7 +263,7 @@ export default function DonorWelcome() {
 
       {/* Recent Donations */}
       <div className="recent-donations-section">
-        <div className="section-header">
+        <div className="donor-welcome-section-header">
           <h2>{t('donorWelcome.recentDonations')}</h2>
           {recentDonations.length > 0 && (
             <button className="view-all-btn" onClick={handleViewAll}>
