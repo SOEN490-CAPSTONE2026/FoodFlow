@@ -979,7 +979,9 @@ describe('DonorListFood', () => {
       setup();
 
       await openActionsMenuForDonation(user, /fresh apples/i);
-      expect(screen.getByRole('menuitem', { name: /thank you/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('menuitem', { name: /thank you/i })
+      ).toBeInTheDocument();
       expect(
         screen.getByRole('menuitem', { name: /report receiver/i })
       ).toBeInTheDocument();
@@ -999,7 +1001,9 @@ describe('DonorListFood', () => {
       setup();
 
       await openActionsMenuForDonation(user, /fresh apples/i);
-      expect(screen.getByRole('menuitem', { name: /open chat/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('menuitem', { name: /open chat/i })
+      ).toBeInTheDocument();
     });
   });
 
@@ -1129,7 +1133,9 @@ describe('DonorListFood', () => {
       setup();
 
       await openActionsMenuForDonation(user, /fresh apples/i);
-      await user.click(screen.getByRole('menuitem', { name: /enter pickup code/i }));
+      await user.click(
+        screen.getByRole('menuitem', { name: /enter pickup code/i })
+      );
 
       expect(screen.getByTestId('confirm-pickup-modal')).toBeInTheDocument();
     });
@@ -1249,7 +1255,9 @@ describe('DonorListFood', () => {
       setup();
 
       await openActionsMenuForDonation(user, /fresh apples/i);
-      expect(screen.getByRole('menuitem', { name: /open chat/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('menuitem', { name: /open chat/i })
+      ).toBeInTheDocument();
     });
 
     test('should display photo carousel when photos exist', async () => {
@@ -1368,7 +1376,9 @@ describe('DonorListFood', () => {
       setup();
 
       await openActionsMenuForDonation(user, /fresh apples/i);
-      await user.click(screen.getByRole('menuitem', { name: /leave feedback/i }));
+      await user.click(
+        screen.getByRole('menuitem', { name: /leave feedback/i })
+      );
 
       await waitFor(() => {
         expect(mockClaimsAPI.getClaimForSurplusPost).toHaveBeenCalledWith(1);
@@ -1388,7 +1398,9 @@ describe('DonorListFood', () => {
       setup();
 
       await openActionsMenuForDonation(user, /fresh apples/i);
-      await user.click(screen.getByRole('menuitem', { name: /leave feedback/i }));
+      await user.click(
+        screen.getByRole('menuitem', { name: /leave feedback/i })
+      );
 
       await waitFor(() => {
         expect(window.alert).toHaveBeenCalled();
@@ -1410,7 +1422,9 @@ describe('DonorListFood', () => {
       setup();
 
       await openActionsMenuForDonation(user, /fresh apples/i);
-      await user.click(screen.getByRole('menuitem', { name: /leave feedback/i }));
+      await user.click(
+        screen.getByRole('menuitem', { name: /leave feedback/i })
+      );
 
       await waitFor(() => {
         expect(window.alert).toHaveBeenCalled();
@@ -1431,7 +1445,9 @@ describe('DonorListFood', () => {
       setup();
 
       await openActionsMenuForDonation(user, /fresh apples/i);
-      expect(screen.getByRole('menuitem', { name: /thank you/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('menuitem', { name: /thank you/i })
+      ).toBeInTheDocument();
     });
   });
 
@@ -1525,7 +1541,9 @@ describe('DonorListFood', () => {
       setup();
 
       await openActionsMenuForDonation(user, /fresh apples/i);
-      expect(screen.getByRole('menuitem', { name: /edit/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('menuitem', { name: /edit/i })
+      ).toBeInTheDocument();
     });
   });
 

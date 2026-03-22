@@ -42,7 +42,13 @@ jest.mock('@react-google-maps/api', () => ({
 }));
 
 jest.mock('react-select', () => {
-  return function MockSelect({ value, onChange, options, placeholder, isMulti }) {
+  return function MockSelect({
+    value,
+    onChange,
+    options,
+    placeholder,
+    isMulti,
+  }) {
     return (
       <select
         data-testid={`mock-select-${placeholder}`}
@@ -81,7 +87,12 @@ jest.mock('react-select', () => {
 });
 
 jest.mock('react-datepicker', () => {
-  return function MockDatePicker({ selected, onChange, placeholder, placeholderText }) {
+  return function MockDatePicker({
+    selected,
+    onChange,
+    placeholder,
+    placeholderText,
+  }) {
     const getValue = () => {
       if (!selected) {
         return '';
@@ -184,10 +195,16 @@ describe('AIExtractionReview', () => {
     renderComponent();
 
     expect(screen.getByText('Create Donation with AI')).toBeInTheDocument();
-    expect(screen.getAllByText('Product Information').length).toBeGreaterThan(0);
-    expect(screen.getByRole('button', { name: 'Re-upload Image' })).toBeInTheDocument();
+    expect(screen.getAllByText('Product Information').length).toBeGreaterThan(
+      0
+    );
+    expect(
+      screen.getByRole('button', { name: 'Re-upload Image' })
+    ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Continue' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Continue' })
+    ).toBeInTheDocument();
   });
 
   test('calls onReUpload when re-upload button is clicked', async () => {
@@ -215,7 +232,9 @@ describe('AIExtractionReview', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith('Please enter a food name/title');
+      expect(toast.error).toHaveBeenCalledWith(
+        'Please enter a food name/title'
+      );
     });
   });
 
