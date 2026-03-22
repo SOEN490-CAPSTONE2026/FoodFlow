@@ -77,7 +77,7 @@ describe('AIDonationForm', () => {
     await user.click(
       screen.getByRole('button', { name: 'aiDonation.backToDashboard' })
     );
-    expect(mockNavigate).toHaveBeenCalledWith('/donor/dashboard');
+    expect(mockNavigate).toHaveBeenCalledWith('/donor/list');
 
     await user.click(
       screen.getByRole('button', { name: 'aiDonation.upload.manualEntry' })
