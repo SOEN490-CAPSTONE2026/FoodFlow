@@ -122,6 +122,7 @@ jest.mock('../../../services/api', () => ({
         slots: [],
       },
     }),
+  },
   imageAPI: {
     upload: jest.fn().mockResolvedValue({ data: { image: { id: 1 } } }),
   },
