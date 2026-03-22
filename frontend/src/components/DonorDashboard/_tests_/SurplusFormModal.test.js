@@ -120,7 +120,7 @@ const renderWithProviders = (ui, options = {}) => {
 // Mock @react-google-maps/api with autocomplete simulation
 jest.mock('@react-google-maps/api', () => {
   const React = require('react');
-  
+
   const MockAutocomplete = ({ children, onLoad, onPlaceChanged }) => {
     React.useEffect(() => {
       if (onLoad) {
@@ -162,12 +162,12 @@ jest.mock('@react-google-maps/api', () => {
         onLoad(mockAutocomplete);
       }
     }, [onLoad]);
-    
+
     return React.cloneElement(children, {
       onBlur: onPlaceChanged,
     });
   };
-  
+
   return {
     __esModule: true,
     useLoadScript: () => ({
