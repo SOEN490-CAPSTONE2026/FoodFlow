@@ -6,7 +6,7 @@ import Select from 'react-select';
 import SEOHead from '../SEOHead';
 import ga4Service from '../../services/ga4Service';
 import DatePicker from 'react-datepicker';
-import { imageAPI, surplusAPI } from '../../services/api';
+import { imageAPI, surplusAPI, pickupPreferencesAPI } from '../../services/api';
 import {
   dietaryTagOptions,
   foodTypeOptions,
@@ -144,6 +144,28 @@ const SurplusFormModal = ({
       formData.fabricationDate,
     ]
   );
+
+  // Pre-fill pickup slots from saved preferences when opening in create mode
+  useEffect(() => {
+    if (!editMode && isOpen) {
+      pickupPreferencesAPI
+        .get()
+        .then(res => {
+          const data = res.data;
+          if (data.slots && data.slots.length > 0) {
+            setPickupSlots(
+              data.slots.map(s => ({
+                pickupDate: '',
+                startTime: s.startTime ? parseTimeToDate(s.startTime) : '',
+                endTime: s.endTime ? parseTimeToDate(s.endTime) : '',
+                notes: s.notes || '',
+              }))
+            );
+          }
+        })
+        .catch(() => {});
+    }
+  }, [isOpen, editMode]);
 
   // Load existing post data in edit mode
   useEffect(() => {
