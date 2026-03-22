@@ -125,8 +125,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/profile/**")
                         .hasAnyAuthority("RECEIVER", "DONOR", "ADMIN")
 
-                        //Save endpoints
+                        // Save endpoints
                         .requestMatchers("/api/receiver/saved/**").hasAuthority("RECEIVER")
+
+                        // Monetary donation endpoints
+                        .requestMatchers("/api/donations/stats/**").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
+                        .requestMatchers("/api/donations/badge/**").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
+                        .requestMatchers("/api/donations/privacy/**").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
+                        .requestMatchers("/api/donations/profile/*/public").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
 
 
                         // All other requests require authentication
