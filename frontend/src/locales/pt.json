@@ -733,8 +733,11 @@
       "box": "caixas"
     },
     "steps": {
+      "basicInfo": "Informações básicas",
       "foodDetails": "Detalhes do alimento",
       "quantityDates": "Quantidade e Datas",
+      "pickupSchedule": "Agenda de retirada",
+      "pickupLocation": "Local de retirada",
       "pickupInfo": "Informações de Retirada",
       "description": "Descrição"
     },
@@ -956,6 +959,12 @@
   },
   "notifications": {
     "newMessageFrom": "Nova mensagem de",
+    "adminAlertHeaders": {
+      "warning": "Aviso",
+      "safetyNotice": "Aviso de seguranca",
+      "complianceReminder": "Lembrete de conformidade",
+      "adminAlert": "Alerta do administrador"
+    },
     "claimConfirmed": "Reclamação confirmada",
     "claimStatus": "Status da reclamação",
     "successfullyClaimed": "Reclamação bem-sucedida de \"{{foodTitle}}\" de {{donorName}}",
@@ -1718,6 +1727,11 @@
     "claimsLabel": "Reivindicacoes"
   },
   "donorHelp": {
+    "hero": {
+      "title": "Precisa de assistência?",
+      "subtitle": "Se você está sobrecarregado, lembre-se de que não precisa enfrentar isso sozinho. Entre em contato e obtenha a ajuda que precisa",
+      "searchPlaceholder": "Faça uma pergunta..."
+    },
     "gettingStarted": {
       "title": "Primeiros passos",
       "intro": "Bem-vindo ao FoodFlow! Siga estas etapas para começar a fazer a diferença doando seu excedente de alimentos para quem precisa.",
@@ -1740,8 +1754,13 @@
         }
       }
     },
+    "foodSafety": {
+      "title": "Segurança Alimentar",
+      "intro": "Aprenda sobre as diretrizes de segurança alimentar, manuseio adequado e requisitos de armazenamento."
+    },
     "faq": {
       "title": "Perguntas frequentes",
+      "subtitle": "Tudo o que você precisa saber sobre o produto e outras informações. Não encontrou a resposta que procura?",
       "items": {
         "q1": {
           "question": "Como crio uma doação?",
@@ -1784,6 +1803,10 @@
           "answer": "Sim. Quando um receptor reivindica a doação, você pode ver o nome da organização e informações de contato para coordenar a retirada."
         }
       }
+    },
+    "contact": {
+      "title": "Ainda precisa de ajuda?",
+      "subtitle": "Nossa equipe de suporte está aqui para ajudá-lo. Entre em contato através de seu canal preferido."
     },
     "support": {
       "title": "Precisa de mais ajuda?",
@@ -2250,6 +2273,11 @@
       "safety": "Informações importantes de segurança",
       "compliance": "Lembrar requisitos de conformidade",
       "custom": "Enviar uma mensagem personalizada"
+    },
+    "alertTemplates": {
+      "warning": "Caro usuário,\n\nDetectamos uma violação de política em sua atividade recente. Revise nossas políticas da plataforma e garanta conformidade para evitar novas ações.\n\nObrigado pela cooperação.",
+      "safety": "Caro usuário,\n\nObserve as seguintes diretrizes de segurança ao lidar com doações de alimentos:\n\n- Manter temperaturas adequadas de armazenamento\n- Verificar datas de validade regularmente\n- Seguir protocolos de higiene\n\nSua segurança e a dos beneficiários é nossa prioridade.",
+      "compliance": "Caro usuário,\n\nEste é um lembrete amigável para garantir que sua conta atenda todos os requisitos de conformidade:\n\n✓ Informações de perfil completas\n✓ Documentação atualizada\n✓ Adesão às políticas da plataforma\n\nRevise as configurações da sua conta e atualize qualquer informação ausente.\n\nObrigado por manter a conformidade."
     },
     "notifications": {
       "reasonRequired": "Informe um motivo para a desativação",

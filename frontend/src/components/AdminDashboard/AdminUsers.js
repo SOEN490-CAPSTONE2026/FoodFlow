@@ -301,7 +301,7 @@ const AdminUsers = () => {
         localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
       await axios.post(
         `${process.env.REACT_APP_API_BASE_URL}/admin/users/${selectedUser.id}/send-alert`,
-        { message: alertMessage },
+        { message: alertMessage, alertType },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -1085,9 +1085,7 @@ const AdminUsers = () => {
                       setAlertMessage('');
                     } else {
                       setAlertType('warning');
-                      setAlertMessage(
-                        'Dear User,\n\nWe have detected a policy violation in your recent activity. Please review our platform policies and ensure compliance to avoid further action.\n\nThank you for your cooperation.'
-                      );
+                      setAlertMessage(t('adminUsers.alertTemplates.warning'));
                     }
                   }}
                 >
@@ -1118,9 +1116,7 @@ const AdminUsers = () => {
                       setAlertMessage('');
                     } else {
                       setAlertType('safety');
-                      setAlertMessage(
-                        'Important Safety Notice\n\nPlease be aware of the following safety guidelines when handling food donations:\n\n- Maintain proper food storage temperatures\n- Check expiration dates regularly\n- Follow hygiene protocols\n\nYour safety and the safety of recipients is our top priority.'
-                      );
+                      setAlertMessage(t('adminUsers.alertTemplates.safety'));
                     }
                   }}
                 >
@@ -1152,7 +1148,7 @@ const AdminUsers = () => {
                     } else {
                       setAlertType('compliance');
                       setAlertMessage(
-                        'Compliance Reminder\n\nThis is a friendly reminder to ensure your account meets all compliance requirements:\n\n✓ Complete profile information\n✓ Updated documentation\n✓ Adherence to platform policies\n\nPlease review your account settings and update any missing information.\n\nThank you for maintaining compliance.'
+                        t('adminUsers.alertTemplates.compliance')
                       );
                     }
                   }}
@@ -1353,7 +1349,6 @@ const AdminUsers = () => {
                   </div>
                   <div className="info-item">
                     <span className="info-label">
-                      <FileText size={16} /> Document
                       <Globe size={16} /> Preferred Language
                     </span>
                     <span className="info-value">
@@ -1396,15 +1391,6 @@ const AdminUsers = () => {
                           className="btn-modify-document"
                           onClick={() => setShowUploadDocumentModal(true)}
                           title="Upload or replace document"
-                          style={{
-                            padding: '6px 12px',
-                            fontSize: '14px',
-                            backgroundColor: '#0077b6',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                          }}
                         >
                           {Edit3 && (
                             <Edit3 size={16} style={{ marginRight: '4px' }} />

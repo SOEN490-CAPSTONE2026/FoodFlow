@@ -11,7 +11,9 @@ import './CookieBanner.css';
 const CookieBanner = () => {
   const { bannerVisible, accept, decline } = useConsent();
 
-  if (!bannerVisible) return null;
+  if (!bannerVisible) {
+    return null;
+  }
 
   return (
     <div className="cookie-banner" role="region" aria-label="Cookie consent">

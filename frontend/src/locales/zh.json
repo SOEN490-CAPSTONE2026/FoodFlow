@@ -733,8 +733,11 @@
       "box": "盒"
     },
     "steps": {
+      "basicInfo": "基本信息",
       "foodDetails": "食物详情",
       "quantityDates": "数量和日期",
+      "pickupSchedule": "取货时间表",
+      "pickupLocation": "取货地点",
       "pickupInfo": "取货信息",
       "description": "描述"
     },
@@ -956,6 +959,12 @@
   },
   "notifications": {
     "newMessageFrom": "来自的新消息",
+    "adminAlertHeaders": {
+      "warning": "警告",
+      "safetyNotice": "安全提示",
+      "complianceReminder": "合规提醒",
+      "adminAlert": "管理员提醒"
+    },
     "claimConfirmed": "认领已确认",
     "claimStatus": "认领状态",
     "successfullyClaimed": "成功认领来自{{donorName}}的\"{{foodTitle}}\"",
@@ -1718,6 +1727,11 @@
     "claimsLabel": "认领数"
   },
   "donorHelp": {
+    "hero": {
+      "title": "需要帮助吗？",
+      "subtitle": "如果您感到力不从心，请记住您并不孤单。联系我们获取所需的帮助",
+      "searchPlaceholder": "提出问题..."
+    },
     "gettingStarted": {
       "title": "快速开始",
       "intro": "欢迎使用 FoodFlow！按照以下步骤开始捐赠剩余食物，帮助有需要的人。",
@@ -1740,8 +1754,13 @@
         }
       }
     },
+    "foodSafety": {
+      "title": "食品安全",
+      "intro": "了解食品安全指南、正确处理和储存要求。"
+    },
     "faq": {
       "title": "常见问题",
+      "subtitle": "您需要了解的所有产品信息和其他内容。找不到您要的答案？",
       "items": {
         "q1": {
           "question": "如何创建捐赠？",
@@ -1784,6 +1803,10 @@
           "answer": "可以，认领后您可查看受助机构名称和联系方式以便协调取货。"
         }
       }
+    },
+    "contact": {
+      "title": "仍需帮助？",
+      "subtitle": "我们的支持团队随时为您服务。请通过您喜欢的渠道联系我们。"
     },
     "support": {
       "title": "需要更多帮助？",
@@ -2250,6 +2273,11 @@
       "safety": "重要安全信息",
       "compliance": "提醒合规要求",
       "custom": "发送自定义消息"
+    },
+    "alertTemplates": {
+      "warning": "尊敬的用户，\n\n我们在您最近的活动中检测到政策违规。请查看平台政策并确保合规，以避免进一步处理。\n\n感谢您的配合。",
+      "safety": "尊敬的用户，\n\n处理食物捐赠时请注意以下安全指引：\n\n- 保持适当的食物储存温度\n- 定期检查保质期\n- 遵守卫生流程\n\n您和受助者的安全是我们的首要任务。",
+      "compliance": "尊敬的用户，\n\n这是一次友好提醒，请确保您的账户满足所有合规要求：\n\n✓ 完整的资料信息\n✓ 最新的证明文件\n✓ 遵守平台政策\n\n请检查账户设置并更新任何缺失信息。\n\n感谢您保持合规。"
     },
     "notifications": {
       "reasonRequired": "请输入停用原因",

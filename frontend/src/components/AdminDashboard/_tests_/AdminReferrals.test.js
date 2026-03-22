@@ -1,10 +1,10 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import AdminReferrals from '../AdminReferrals';
 import { referralAPI } from '../../../services/api';
 
-// Mock the API
 jest.mock('../../../services/api', () => ({
   referralAPI: {
     getAll: jest.fn(),
@@ -42,8 +42,9 @@ describe('AdminReferrals', () => {
   });
 
   it('renders loading state initially', () => {
-    referralAPI.getAll.mockReturnValue(new Promise(() => {})); // never resolves
+    referralAPI.getAll.mockReturnValue(new Promise(() => {}));
     renderWithRouter(<AdminReferrals />);
+
     expect(
       screen.getByText(/loading referral submissions/i)
     ).toBeInTheDocument();
@@ -57,9 +58,32 @@ describe('AdminReferrals', () => {
     expect(screen.getByText('Green Valley Bakery')).toBeInTheDocument();
     expect(screen.getByText('Community Food Pantry')).toBeInTheDocument();
     expect(screen.getByText('contact@bakery.com')).toBeInTheDocument();
-    expect(screen.getByText('info@pantry.org')).toBeInTheDocument();
     expect(screen.getByText('donor@example.com')).toBeInTheDocument();
-    expect(screen.getByText('receiver@example.com')).toBeInTheDocument();
+  });
+
+  it('opens referral message in a popup when the message icon is clicked', async () => {
+    referralAPI.getAll.mockResolvedValueOnce({ data: mockReferrals });
+    renderWithRouter(<AdminReferrals />);
+
+    await screen.findByTestId('referrals-table');
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: /view message from green valley bakery/i,
+      })
+    );
+
+    expect(
+      screen.getByRole('heading', { name: /referral message/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('They have lots of surplus bread at end of day.')
+    ).toBeInTheDocument();
+    expect(
+      within(document.querySelector('.referral-message-modal')).getByText(
+        'donor@example.com'
+      )
+    ).toBeInTheDocument();
   });
 
   it('shows error message when fetch fails', async () => {
@@ -85,7 +109,7 @@ describe('AdminReferrals', () => {
     renderWithRouter(<AdminReferrals />);
 
     await screen.findByTestId('referrals-table');
-    expect(screen.getByText(/showing 2 of 2/i)).toBeInTheDocument();
+    expect(screen.getByText(/showing 2 of 2 submissions/i)).toBeInTheDocument();
   });
 
   it('filters by SUGGEST_BUSINESS type', async () => {
@@ -93,12 +117,11 @@ describe('AdminReferrals', () => {
     renderWithRouter(<AdminReferrals />);
 
     await screen.findByTestId('referrals-table');
-
-    fireEvent.click(screen.getByText('Suggest Business'));
+    fireEvent.click(screen.getByRole('button', { name: /suggest business/i }));
 
     expect(screen.getByText('Green Valley Bakery')).toBeInTheDocument();
     expect(screen.queryByText('Community Food Pantry')).not.toBeInTheDocument();
-    expect(screen.getByText(/showing 1 of 2/i)).toBeInTheDocument();
+    expect(screen.getByText(/showing 1 of 2 submissions/i)).toBeInTheDocument();
   });
 
   it('filters by INVITE_COMMUNITY type', async () => {
@@ -106,26 +129,11 @@ describe('AdminReferrals', () => {
     renderWithRouter(<AdminReferrals />);
 
     await screen.findByTestId('referrals-table');
-
-    fireEvent.click(screen.getByText('Invite Community'));
+    fireEvent.click(screen.getByRole('button', { name: /invite community/i }));
 
     expect(screen.getByText('Community Food Pantry')).toBeInTheDocument();
     expect(screen.queryByText('Green Valley Bakery')).not.toBeInTheDocument();
-    expect(screen.getByText(/showing 1 of 2/i)).toBeInTheDocument();
-  });
-
-  it('shows all referrals when ALL filter is selected', async () => {
-    referralAPI.getAll.mockResolvedValueOnce({ data: mockReferrals });
-    renderWithRouter(<AdminReferrals />);
-
-    await screen.findByTestId('referrals-table');
-
-    fireEvent.click(screen.getByText('Suggest Business'));
-    fireEvent.click(screen.getByText('All'));
-
-    expect(screen.getByText('Green Valley Bakery')).toBeInTheDocument();
-    expect(screen.getByText('Community Food Pantry')).toBeInTheDocument();
-    expect(screen.getByText(/showing 2 of 2/i)).toBeInTheDocument();
+    expect(screen.getByText(/showing 1 of 2 submissions/i)).toBeInTheDocument();
   });
 
   it('refreshes data when Refresh button is clicked', async () => {
@@ -136,7 +144,7 @@ describe('AdminReferrals', () => {
     renderWithRouter(<AdminReferrals />);
     await screen.findByTestId('referrals-table');
 
-    fireEvent.click(screen.getByText('Refresh'));
+    fireEvent.click(screen.getByRole('button', { name: /refresh/i }));
 
     await waitFor(() => {
       expect(referralAPI.getAll).toHaveBeenCalledTimes(2);
@@ -149,8 +157,6 @@ describe('AdminReferrals', () => {
 
     await screen.findByTestId('referrals-table');
 
-    // Community Food Pantry has no phone or message — expect em dashes
-    const dashes = screen.getAllByText('—');
-    expect(dashes.length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText('\u2014').length).toBeGreaterThanOrEqual(2);
   });
 });

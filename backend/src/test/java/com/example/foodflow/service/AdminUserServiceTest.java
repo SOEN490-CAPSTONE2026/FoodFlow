@@ -25,6 +25,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -35,6 +36,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.mockito.Mockito.mock;
@@ -75,6 +77,9 @@ class AdminUserServiceTest {
 
     @Mock
     private AuditLogRepository auditLogRepository;
+
+    @Mock
+    private MessageSource messageSource;
 
     @InjectMocks
     private AdminUserService adminUserService;
@@ -251,7 +256,12 @@ class AdminUserServiceTest {
 
     @Test
     void sendAlertToUser_WithValidUser_SendsAlertSuccessfully() {
+        Conversation conversation = new Conversation(testAdmin, testDonor);
+        testDonor.setLanguagePreference("fr");
         when(userRepository.findById(1L)).thenReturn(Optional.of(testDonor));
+        when(userRepository.findByRole(UserRole.ADMIN)).thenReturn(Arrays.asList(testAdmin));
+        when(conversationRepository.findByUsers(1L, 3L)).thenReturn(Optional.empty());
+        when(conversationRepository.save(any(Conversation.class))).thenReturn(conversation);
         when(userRepository.save(any(User.class))).thenReturn(testDonor);
 
         adminUserService.sendAlertToUser(1L, "Test alert message");
@@ -261,6 +271,8 @@ class AdminUserServiceTest {
             eq("/queue/messages"),
             anyMap()
         );
+        verify(messageRepository).save(any());
+        verify(emailService).sendAdminAlertEmail(eq("donor@test.com"), anyString(), eq("Test alert message"), eq("fr"));
         verify(userRepository).save(testDonor);
         assertTrue(testDonor.getAdminNotes().contains("Test alert message"));
     }
@@ -699,6 +711,25 @@ class AdminUserServiceTest {
                 eq("/queue/messages"),
                 anyMap()
         );
+    }
+
+    @Test
+    void sendAlertToUser_WithUnsupportedPreferredLanguage_FallsBackToEnglish() {
+        testDonor.setLanguagePreference("de");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testDonor));
+        when(userRepository.save(any(User.class))).thenReturn(testDonor);
+        when(messageSource.getMessage(eq("admin.alert.template.warning"), isNull(), anyString(), any(java.util.Locale.class)))
+            .thenReturn("Localized warning in English");
+
+        adminUserService.sendAlertToUser(1L, "Hello!", "warning");
+
+        verify(messagingTemplate).convertAndSendToUser(
+                eq("1"),
+                eq("/queue/messages"),
+            argThat(payload -> "en".equals(((Map<?, ?>) payload).get("preferredLanguage"))
+                && "Localized warning in English".equals(((Map<?, ?>) payload).get("messageBody")))
+        );
+        verify(emailService).sendAdminAlertEmail(eq("donor@test.com"), anyString(), eq("Localized warning in English"), eq("en"));
     }
 
     // -----------------------------------------------------------------------

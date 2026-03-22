@@ -169,12 +169,26 @@ public class AdminController {
     @PostMapping("/users/{userId}/send-alert")
     public ResponseEntity<?> sendAlert(
             @PathVariable Long userId,
-            @RequestBody SendAlertRequest request) {
+            @RequestBody SendAlertRequest request,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
         
         log.info("Admin sending alert to user: {}", userId);
         
         try {
-            adminUserService.sendAlertToUser(userId, request.getMessage());
+            Long adminId = null;
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String token = authHeader.substring(7);
+                String adminEmail = jwtTokenProvider.getEmailFromToken(token);
+                adminId = userRepository.findByEmail(adminEmail)
+                        .map(User::getId)
+                        .orElse(null);
+            }
+
+            if (request.getAlertType() != null && !request.getAlertType().isBlank()) {
+                adminUserService.sendAlertToUser(userId, request.getMessage(), request.getAlertType(), adminId);
+            } else {
+                adminUserService.sendAlertToUser(userId, request.getMessage(), null, adminId);
+            }
             return ResponseEntity.ok().body("Alert sent successfully");
         } catch (RuntimeException e) {
             log.error("Error sending alert to user {}: {}", userId, e.getMessage());

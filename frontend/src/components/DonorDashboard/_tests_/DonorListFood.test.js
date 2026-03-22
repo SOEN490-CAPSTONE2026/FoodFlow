@@ -133,13 +133,29 @@ jest.mock('../../../constants/foodConstants', () => ({
   getTemperatureCategoryLabel: value => value || '',
   getTemperatureCategoryIcon: () => null,
   getPackagingTypeLabel: value => value || '',
+  getDietaryTagLabel: value => value || '',
+  getPrimaryFoodCategory: categories => {
+    if (!Array.isArray(categories) || categories.length === 0) {
+      return 'Prepared Meals';
+    }
+    const first = categories[0];
+    const normalized = typeof first === 'string' ? first : first?.name;
+    return normalized || 'Prepared Meals';
+  },
+  foodTypeImages: {
+    'Prepared Meals': '/images/prepared-meals.png',
+    PRODUCE: '/images/produce.png',
+    BAKERY: '/images/bakery.png',
+    DAIRY_EGGS: '/images/dairy.png',
+    PANTRY: '/images/pantry.png',
+  },
 }));
 
 jest.mock('lucide-react', () => ({
   Calendar: () => <span>CalendarIcon</span>,
   Clock: () => <span>ClockIcon</span>,
   MapPin: () => <span>MapPinIcon</span>,
-  Edit: () => <span>EditIcon</span>,
+  Edit3: () => <span>EditIcon</span>,
   Trash2: () => <span>TrashIcon</span>,
   AlertTriangle: () => <span>AlertIcon</span>,
   X: () => <span>XIcon</span>,
@@ -154,6 +170,9 @@ jest.mock('lucide-react', () => ({
   Star: () => <span>StarIcon</span>,
   MessageCircle: () => <span>MessageCircleIcon</span>,
   Sparkles: () => <span>SparklesIcon</span>,
+  MoreHorizontal: () => <span>MoreHorizontalIcon</span>,
+  KeyRound: () => <span>KeyRoundIcon</span>,
+  CheckCircle2: () => <span>CheckCircle2Icon</span>,
 }));
 
 jest.mock('../../shared/DonationTimeline', () => {
@@ -253,6 +272,17 @@ const TestWrapper = ({ children }) => {
 
 describe('DonorListFood', () => {
   const setup = () => render(<DonorListFood />, { wrapper: TestWrapper });
+  const openActionsMenuForDonation = async (user, donationLabel) => {
+    await waitFor(() => {
+      expect(screen.getByLabelText(donationLabel)).toBeInTheDocument();
+    });
+
+    const card = screen.getByLabelText(donationLabel);
+    const moreActionsButton = within(card).getByRole('button', {
+      name: /more actions/i,
+    });
+    await user.click(moreActionsButton);
+  };
 
   let originalAlert;
   let originalConfirm;
@@ -379,33 +409,27 @@ describe('DonorListFood', () => {
 
   test('shows edit and delete buttons for AVAILABLE status donations', async () => {
     surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
+    const user = userEvent.setup();
 
     setup();
 
-    await waitFor(() => {
-      expect(screen.getByLabelText(/fresh apples/i)).toBeInTheDocument();
-    });
+    await openActionsMenuForDonation(user, /fresh apples/i);
 
-    // Only the AVAILABLE item should have edit and delete buttons
-    const editButtons = screen.getAllByRole('button', { name: /edit/i });
-    const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
-
-    expect(editButtons).toHaveLength(1);
-    expect(deleteButtons).toHaveLength(1);
+    expect(screen.getByRole('menuitem', { name: /edit/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: /delete/i })
+    ).toBeInTheDocument();
   });
 
   test('shows reschedule button for NOT_COMPLETED status donations', async () => {
     surplusAPI.getMyPosts.mockResolvedValue({ data: mockItems });
+    const user = userEvent.setup();
 
     setup();
 
-    await waitFor(() => {
-      expect(
-        screen.getByLabelText(/artisan bread selection/i)
-      ).toBeInTheDocument();
-    });
+    await openActionsMenuForDonation(user, /artisan bread selection/i);
 
-    const rescheduleButton = screen.getByRole('button', {
+    const rescheduleButton = screen.getByRole('menuitem', {
       name: /reschedule/i,
     });
     expect(rescheduleButton).toBeInTheDocument();
@@ -417,13 +441,9 @@ describe('DonorListFood', () => {
 
     setup();
 
-    await waitFor(() => {
-      expect(
-        screen.getByLabelText(/artisan bread selection/i)
-      ).toBeInTheDocument();
-    });
+    await openActionsMenuForDonation(user, /artisan bread selection/i);
 
-    const rescheduleButton = screen.getByRole('button', {
+    const rescheduleButton = screen.getByRole('menuitem', {
       name: /reschedule/i,
     });
     await user.click(rescheduleButton);
@@ -437,12 +457,10 @@ describe('DonorListFood', () => {
 
     setup();
 
-    await waitFor(() => {
-      expect(screen.getByLabelText(/fresh apples/i)).toBeInTheDocument();
-    });
+    await openActionsMenuForDonation(user, /fresh apples/i);
 
-    const editButtons = screen.getAllByRole('button', { name: /edit/i });
-    await user.click(editButtons[0]);
+    const editButton = screen.getByRole('menuitem', { name: /edit/i });
+    await user.click(editButton);
 
     // Modal should open
     expect(screen.getByTestId('surplus-form-modal')).toBeInTheDocument();
@@ -458,12 +476,10 @@ describe('DonorListFood', () => {
 
     setup();
 
-    await waitFor(() => {
-      expect(screen.getByLabelText(/fresh apples/i)).toBeInTheDocument();
-    });
+    await openActionsMenuForDonation(user, /fresh apples/i);
 
-    const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
-    await user.click(deleteButtons[0]);
+    const deleteButton = screen.getByRole('menuitem', { name: /delete/i });
+    await user.click(deleteButton);
 
     expect(window.confirm).toHaveBeenCalledWith(
       'Are you sure you want to delete this post?'
@@ -484,12 +500,10 @@ describe('DonorListFood', () => {
 
     setup();
 
-    await waitFor(() => {
-      expect(screen.getByLabelText(/fresh apples/i)).toBeInTheDocument();
-    });
+    await openActionsMenuForDonation(user, /fresh apples/i);
 
-    const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
-    await user.click(deleteButtons[0]);
+    const deleteButton = screen.getByRole('menuitem', { name: /delete/i });
+    await user.click(deleteButton);
 
     expect(window.confirm).toHaveBeenCalledWith(
       'Are you sure you want to delete this post?'
@@ -698,8 +712,8 @@ describe('DonorListFood', () => {
     ).toBeInTheDocument();
 
     // If your buttons trigger navigation, they should work without throwing Router errors
-    const editButtons = screen.getAllByRole('button', { name: /edit/i });
-    await user.click(editButtons[0]);
+    await openActionsMenuForDonation(user, /fresh apples/i);
+    await user.click(screen.getByRole('menuitem', { name: /edit/i }));
 
     // Modal should open properly with Router context
     expect(screen.getByTestId('surplus-form-modal')).toBeInTheDocument();
@@ -939,6 +953,7 @@ describe('DonorListFood', () => {
 
   describe('Status-specific buttons', () => {
     test('should show ENTER PICKUP CODE button for READY_FOR_PICKUP status', async () => {
+      const user = userEvent.setup();
       const readyItem = {
         ...mockItems[0],
         status: 'READY_FOR_PICKUP',
@@ -947,12 +962,14 @@ describe('DonorListFood', () => {
 
       setup();
 
-      await waitFor(() => {
-        expect(screen.getByText(/enter pickup code/i)).toBeInTheDocument();
-      });
+      await openActionsMenuForDonation(user, /fresh apples/i);
+      expect(
+        screen.getByRole('menuitem', { name: /enter pickup code/i })
+      ).toBeInTheDocument();
     });
 
     test('should show THANK YOU, REPORT RECEIVER, and LEAVE FEEDBACK buttons for COMPLETED status', async () => {
+      const user = userEvent.setup();
       const completedItem = {
         ...mockItems[0],
         status: 'COMPLETED',
@@ -961,14 +978,20 @@ describe('DonorListFood', () => {
 
       setup();
 
-      await waitFor(() => {
-        expect(screen.getByText(/thank you/i)).toBeInTheDocument();
-        expect(screen.getByText(/report receiver/i)).toBeInTheDocument();
-        expect(screen.getByText(/leave feedback/i)).toBeInTheDocument();
-      });
+      await openActionsMenuForDonation(user, /fresh apples/i);
+      expect(
+        screen.getByRole('menuitem', { name: /thank you/i })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('menuitem', { name: /report receiver/i })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('menuitem', { name: /leave feedback/i })
+      ).toBeInTheDocument();
     });
 
     test('should show OPEN CHAT button for CLAIMED status', async () => {
+      const user = userEvent.setup();
       const claimedItem = {
         ...mockItems[0],
         status: 'CLAIMED',
@@ -977,9 +1000,10 @@ describe('DonorListFood', () => {
 
       setup();
 
-      await waitFor(() => {
-        expect(screen.getByText(/open chat/i)).toBeInTheDocument();
-      });
+      await openActionsMenuForDonation(user, /fresh apples/i);
+      expect(
+        screen.getByRole('menuitem', { name: /open chat/i })
+      ).toBeInTheDocument();
     });
   });
 
@@ -1108,16 +1132,16 @@ describe('DonorListFood', () => {
 
       setup();
 
-      await waitFor(() => {
-        expect(screen.getByText(/enter pickup code/i)).toBeInTheDocument();
-      });
-
-      await user.click(screen.getByText(/enter pickup code/i));
+      await openActionsMenuForDonation(user, /fresh apples/i);
+      await user.click(
+        screen.getByRole('menuitem', { name: /enter pickup code/i })
+      );
 
       expect(screen.getByTestId('confirm-pickup-modal')).toBeInTheDocument();
     });
 
     test('should open success modal after successful pickup confirmation', async () => {
+      const user = userEvent.setup();
       const readyItem = {
         ...mockItems[0],
         status: 'READY_FOR_PICKUP',
@@ -1126,9 +1150,10 @@ describe('DonorListFood', () => {
 
       const { container } = setup();
 
-      await waitFor(() => {
-        expect(screen.getByText(/enter pickup code/i)).toBeInTheDocument();
-      });
+      await openActionsMenuForDonation(user, /fresh apples/i);
+      expect(
+        screen.getByRole('menuitem', { name: /enter pickup code/i })
+      ).toBeInTheDocument();
 
       // Success modal appears after pickup success (mocked)
       expect(
@@ -1220,6 +1245,7 @@ describe('DonorListFood', () => {
     });
 
     test('should show upload button for CLAIMED donations', async () => {
+      const user = userEvent.setup();
       const claimedItem = {
         ...mockItems[0],
         status: 'CLAIMED',
@@ -1228,9 +1254,10 @@ describe('DonorListFood', () => {
 
       setup();
 
-      await waitFor(() => {
-        expect(screen.getByText(/open chat/i)).toBeInTheDocument();
-      });
+      await openActionsMenuForDonation(user, /fresh apples/i);
+      expect(
+        screen.getByRole('menuitem', { name: /open chat/i })
+      ).toBeInTheDocument();
     });
 
     test('should display photo carousel when photos exist', async () => {
@@ -1348,11 +1375,10 @@ describe('DonorListFood', () => {
 
       setup();
 
-      await waitFor(() => {
-        expect(screen.getByText(/leave feedback/i)).toBeInTheDocument();
-      });
-
-      await user.click(screen.getByText(/leave feedback/i));
+      await openActionsMenuForDonation(user, /fresh apples/i);
+      await user.click(
+        screen.getByRole('menuitem', { name: /leave feedback/i })
+      );
 
       await waitFor(() => {
         expect(mockClaimsAPI.getClaimForSurplusPost).toHaveBeenCalledWith(1);
@@ -1371,11 +1397,10 @@ describe('DonorListFood', () => {
 
       setup();
 
-      await waitFor(() => {
-        expect(screen.getByText(/leave feedback/i)).toBeInTheDocument();
-      });
-
-      await user.click(screen.getByText(/leave feedback/i));
+      await openActionsMenuForDonation(user, /fresh apples/i);
+      await user.click(
+        screen.getByRole('menuitem', { name: /leave feedback/i })
+      );
 
       await waitFor(() => {
         expect(window.alert).toHaveBeenCalled();
@@ -1396,11 +1421,10 @@ describe('DonorListFood', () => {
 
       setup();
 
-      await waitFor(() => {
-        expect(screen.getByText(/leave feedback/i)).toBeInTheDocument();
-      });
-
-      await user.click(screen.getByText(/leave feedback/i));
+      await openActionsMenuForDonation(user, /fresh apples/i);
+      await user.click(
+        screen.getByRole('menuitem', { name: /leave feedback/i })
+      );
 
       await waitFor(() => {
         expect(window.alert).toHaveBeenCalled();
@@ -1420,9 +1444,10 @@ describe('DonorListFood', () => {
 
       setup();
 
-      await waitFor(() => {
-        expect(screen.getByText(/thank you/i)).toBeInTheDocument();
-      });
+      await openActionsMenuForDonation(user, /fresh apples/i);
+      expect(
+        screen.getByRole('menuitem', { name: /thank you/i })
+      ).toBeInTheDocument();
     });
   });
 
@@ -1452,11 +1477,8 @@ describe('DonorListFood', () => {
 
       setup();
 
-      await waitFor(() => {
-        expect(screen.getByText(/open chat/i)).toBeInTheDocument();
-      });
-
-      await user.click(screen.getByText(/open chat/i));
+      await openActionsMenuForDonation(user, /fresh apples/i);
+      await user.click(screen.getByRole('menuitem', { name: /open chat/i }));
 
       await waitFor(() => {
         expect(mockClaimsAPI.getClaimForSurplusPost).toHaveBeenCalledWith(1);
@@ -1475,11 +1497,8 @@ describe('DonorListFood', () => {
 
       setup();
 
-      await waitFor(() => {
-        expect(screen.getByText(/open chat/i)).toBeInTheDocument();
-      });
-
-      await user.click(screen.getByText(/open chat/i));
+      await openActionsMenuForDonation(user, /fresh apples/i);
+      await user.click(screen.getByRole('menuitem', { name: /open chat/i }));
 
       await waitFor(() => {
         expect(mockClaimsAPI.getClaimForSurplusPost).toHaveBeenCalled();
@@ -1500,11 +1519,8 @@ describe('DonorListFood', () => {
 
       setup();
 
-      await waitFor(() => {
-        expect(screen.getByText(/open chat/i)).toBeInTheDocument();
-      });
-
-      await user.click(screen.getByText(/open chat/i));
+      await openActionsMenuForDonation(user, /fresh apples/i);
+      await user.click(screen.getByRole('menuitem', { name: /open chat/i }));
 
       await waitFor(() => {
         expect(mockClaimsAPI.getClaimForSurplusPost).toHaveBeenCalled();
@@ -1524,11 +1540,10 @@ describe('DonorListFood', () => {
 
       setup();
 
-      await waitFor(() => {
-        // Check for edit button using getAllByText since there are multiple "Edit" texts (button + icon)
-        const editElements = screen.getAllByText(/edit/i);
-        expect(editElements.length).toBeGreaterThan(0);
-      });
+      await openActionsMenuForDonation(user, /fresh apples/i);
+      expect(
+        screen.getByRole('menuitem', { name: /edit/i })
+      ).toBeInTheDocument();
     });
   });
 
