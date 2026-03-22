@@ -53,9 +53,9 @@
 }
 
 .suggest-info-card-header h3 {
-  font-size: 1.00rem;
+  font-size: 1rem;
   font-weight: 700;
-  color: #2C5568;
+  color: #2c5568;
   margin: 0;
 }
 
@@ -229,7 +229,6 @@
   gap: 5px;
 }
 
-
 .suggest-form-group label {
   font-size: 0.83rem;
   font-weight: 600;
@@ -302,7 +301,9 @@
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s, transform 0.1s;
+  transition:
+    background 0.2s,
+    transform 0.1s;
   margin-top: 4px;
 }
 

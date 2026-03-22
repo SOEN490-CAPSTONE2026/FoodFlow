@@ -104,15 +104,15 @@
 .ai-step-indicator .ai-step.active .ai-step-number {
   width: 52px;
   height: 52px;
-  background: #5FB3C1;
-  border-color: #5FB3C1;
+  background: #5fb3c1;
+  border-color: #5fb3c1;
   color: #ffffff;
   box-shadow: 0 0 0 6px rgba(61, 140, 134, 0.15);
 }
 
 .ai-step-indicator .ai-step.completed .ai-step-number {
-  background: #5FB3C1;
-  border-color: #5FB3C1;
+  background: #5fb3c1;
+  border-color: #5fb3c1;
   color: #ffffff;
 }
 
@@ -140,12 +140,12 @@
 }
 
 .ai-step-indicator .ai-step.active .ai-step-sublabel {
-  color: #5FB3C1;
+  color: #5fb3c1;
   font-weight: 600;
 }
 
 .ai-step-indicator .ai-step.completed .ai-step-sublabel {
-  color: #5FB3C1;
+  color: #5fb3c1;
   font-weight: 600;
 }
 
@@ -160,7 +160,7 @@
 }
 
 .ai-step-line.completed {
-  background: #5FB3C1;
+  background: #5fb3c1;
 }
 
 /* AI Form Content */
@@ -268,12 +268,12 @@
 }
 
 .dropzone.dragging {
-  border-color: #5FB3C1;
+  border-color: #5fb3c1;
   background: #f0fafa;
 }
 
 .dropzone:focus-visible {
-  outline: 2px solid #5FB3C1;
+  outline: 2px solid #5fb3c1;
   outline-offset: 2px;
 }
 
@@ -288,7 +288,7 @@
   width: 60px;
   height: 60px;
   border-radius: 16px;
-  background: #5FB3C1;
+  background: #5fb3c1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -297,14 +297,14 @@
 }
 
 .dropzone-title {
-  color: #1B4965;
+  color: #1b4965;
   font-size: 1.1rem;
   font-weight: 600;
   margin: 0;
 }
 
 .dropzone-text {
-  color: #6A7282;
+  color: #6a7282;
   font-size: 0.9rem;
   margin: 0;
 }
@@ -319,7 +319,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  background: #5FB3C1;
+  background: #5fb3c1;
   color: #fff;
   padding: 0.6rem 1.2rem;
   border-radius: 10px;
@@ -438,7 +438,7 @@
 }
 
 .upload-info-check {
-  color: #5FB3C1;
+  color: #5fb3c1;
   flex-shrink: 0;
 }
 

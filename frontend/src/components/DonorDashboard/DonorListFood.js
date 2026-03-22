@@ -99,7 +99,10 @@ function formatExpiryDate(dateString, locale, notSpecifiedLabel) {
     return notSpecifiedLabel;
   }
   try {
-    const formatted = formatWallClockDate(String(dateString), locale || 'en-US');
+    const formatted = formatWallClockDate(
+      String(dateString),
+      locale || 'en-US'
+    );
     return formatted || notSpecifiedLabel;
   } catch {
     return notSpecifiedLabel;
@@ -151,7 +154,10 @@ function formatPickupTime(
         : '';
 
     if (pickupFrom && pickupTo) {
-      const fromLabel = formatWallClockTime(String(pickupFrom), locale || 'en-US');
+      const fromLabel = formatWallClockTime(
+        String(pickupFrom),
+        locale || 'en-US'
+      );
       const toLabel = formatWallClockTime(String(pickupTo), locale || 'en-US');
       if (!fromLabel || !toLabel) {
         return flexibleLabel;
