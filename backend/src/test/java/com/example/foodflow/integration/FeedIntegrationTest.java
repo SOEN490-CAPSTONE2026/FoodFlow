@@ -14,6 +14,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -29,11 +31,17 @@ class FeedIntegrationTest {
         @Autowired
         private ObjectMapper objectMapper;
 
+        private static String uniqueEmail(String prefix) {
+                return prefix + "+" + UUID.randomUUID() + "@test.com";
+        }
+
         @Test
         void feedLoadsForReceiver() throws Exception {
+                String receiverEmail = uniqueEmail("receiver");
+
                 // Register a receiver
                 RegisterReceiverRequest registerRequest = new RegisterReceiverRequest();
-                registerRequest.setEmail("receiver@test.com");
+                registerRequest.setEmail(receiverEmail);
                 registerRequest.setPassword("TestSecure123!");
                 registerRequest.setConfirmPassword("TestSecure123!");
                 registerRequest.setOrganizationName("Test Charity");
@@ -47,7 +55,7 @@ class FeedIntegrationTest {
                                 .content(objectMapper.writeValueAsString(registerRequest)))
                                 .andExpect(status().isOk());
 
-                LoginRequest loginRequest = new LoginRequest("receiver@test.com", "TestSecure123!");
+                LoginRequest loginRequest = new LoginRequest(receiverEmail, "TestSecure123!");
                 MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(loginRequest)))
@@ -66,9 +74,11 @@ class FeedIntegrationTest {
 
         @Test
         void donorPostCreationStillWorks() throws Exception {
+                String donorEmail = uniqueEmail("donor");
+
                 // Register a donor
                 RegisterDonorRequest registerRequest = new RegisterDonorRequest();
-                registerRequest.setEmail("donor@test.com");
+                registerRequest.setEmail(donorEmail);
                 registerRequest.setPassword("TestSecure123!");
                 registerRequest.setConfirmPassword("TestSecure123!");
                 registerRequest.setOrganizationName("Test Restaurant");
@@ -83,7 +93,7 @@ class FeedIntegrationTest {
                                 .content(objectMapper.writeValueAsString(registerRequest)))
                                 .andExpect(status().isOk());
 
-                LoginRequest loginRequest = new LoginRequest("donor@test.com", "TestSecure123!");
+                LoginRequest loginRequest = new LoginRequest(donorEmail, "TestSecure123!");
                 MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(loginRequest)))
@@ -118,9 +128,11 @@ class FeedIntegrationTest {
 
         @Test
         void newPostAppearsInFeed() throws Exception {
+                String donorEmail = uniqueEmail("donor2");
+
                 // Register a donor
                 RegisterDonorRequest donorRequest = new RegisterDonorRequest();
-                donorRequest.setEmail("donor2@test.com");
+                donorRequest.setEmail(donorEmail);
                 donorRequest.setPassword("TestSecure123!");
                 donorRequest.setConfirmPassword("TestSecure123!");
                 donorRequest.setOrganizationName("Test Restaurant 2");
@@ -134,7 +146,7 @@ class FeedIntegrationTest {
                                 .content(objectMapper.writeValueAsString(donorRequest)))
                                 .andExpect(status().isOk());
 
-                LoginRequest donorLogin = new LoginRequest("donor2@test.com", "TestSecure123!");
+                LoginRequest donorLogin = new LoginRequest(donorEmail, "TestSecure123!");
                 MvcResult donorLoginResult = mockMvc.perform(post("/api/auth/login")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(donorLogin)))
@@ -144,9 +156,11 @@ class FeedIntegrationTest {
                 String donorToken = objectMapper.readTree(donorLoginResult.getResponse().getContentAsString())
                                 .get("token").asText();
 
+                String receiverEmail = uniqueEmail("receiver2");
+
                 // Register a receiver
                 RegisterReceiverRequest receiverRequest = new RegisterReceiverRequest();
-                receiverRequest.setEmail("receiver2@test.com");
+                receiverRequest.setEmail(receiverEmail);
                 receiverRequest.setPassword("TestSecure123!");
                 receiverRequest.setConfirmPassword("TestSecure123!");
                 receiverRequest.setOrganizationName("Test Charity 2");
@@ -159,7 +173,7 @@ class FeedIntegrationTest {
                                 .content(objectMapper.writeValueAsString(receiverRequest)))
                                 .andExpect(status().isOk());
 
-                LoginRequest receiverLogin = new LoginRequest("receiver2@test.com", "TestSecure123!");
+                LoginRequest receiverLogin = new LoginRequest(receiverEmail, "TestSecure123!");
                 MvcResult receiverLoginResult = mockMvc.perform(post("/api/auth/login")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(receiverLogin)))
