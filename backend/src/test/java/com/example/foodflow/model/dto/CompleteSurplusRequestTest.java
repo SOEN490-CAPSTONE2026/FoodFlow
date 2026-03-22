@@ -6,14 +6,11 @@ import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.util.Set;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Unit tests for CompleteSurplusRequest DTO validation
- * Story 8.1 - Update Donation Status (Donor-Side)
  */
 class CompleteSurplusRequestTest {
 

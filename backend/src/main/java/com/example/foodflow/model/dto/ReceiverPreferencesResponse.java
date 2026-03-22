@@ -1,7 +1,6 @@
 package com.example.foodflow.model.dto;
 
 import com.example.foodflow.model.entity.ReceiverPreferences;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;

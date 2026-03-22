@@ -4,7 +4,6 @@ import com.example.foodflow.model.types.FoodType;
 import com.example.foodflow.model.types.PackagingType;
 import com.example.foodflow.model.types.TemperatureCategory;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;

@@ -21,11 +21,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -519,8 +517,6 @@ class AdminDonationServiceTest {
         assertEquals(50.0, result.getQuantity().getValue());
         assertEquals(Quantity.Unit.KILOGRAM, result.getQuantity().getUnit());
     }
-
-    // ==================== Additional Tests for 90%+ Coverage ====================
 
     @Test
     void getAllDonations_WithInvalidStatusFilter_IgnoresFilter() {

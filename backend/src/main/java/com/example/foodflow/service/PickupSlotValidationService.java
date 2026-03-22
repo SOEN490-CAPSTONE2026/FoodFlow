@@ -3,8 +3,6 @@ package com.example.foodflow.service;
 import com.example.foodflow.exception.BusinessException;
 import com.example.foodflow.model.dto.PickupSlotRequest;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -81,15 +79,5 @@ public class PickupSlotValidationService {
         // Two ranges [a1, a2] and [b1, b2] overlap if a1 < b2 AND b1 < a2
         return slot1.getStartTime().isBefore(slot2.getEndTime()) &&
                slot2.getStartTime().isBefore(slot1.getEndTime());
-    }
-    
-    /**
-     * Formats a slot for error messages
-     */
-    private String formatSlot(PickupSlotRequest slot) {
-        return String.format("%s from %s to %s",
-            slot.getPickupDate(),
-            slot.getStartTime(),
-            slot.getEndTime());
     }
 }
