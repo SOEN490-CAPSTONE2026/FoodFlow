@@ -15,7 +15,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/claims")
-@CrossOrigin(origins = "${spring.web.cors.allowed-origins}")
 public class ClaimController {
     
     private final ClaimService claimService;

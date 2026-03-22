@@ -27,16 +27,17 @@ import java.util.Locale;
  */
 @RestController
 @RequestMapping("/api/support")
-@CrossOrigin(origins = "http://localhost:3000")
 public class SupportController {
 
     private static final Logger logger = LoggerFactory.getLogger(SupportController.class);
 
-    @Autowired
-    private SupportService supportService;
+    private final SupportService supportService;
+    private final RateLimitingService rateLimitingService;
 
-    @Autowired
-    private RateLimitingService rateLimitingService;
+    public SupportController(SupportService supportService, RateLimitingService rateLimitingService) {
+        this.supportService = supportService;
+        this.rateLimitingService = rateLimitingService;
+    }
 
     /**
      * Handle support chat requests with rate limiting

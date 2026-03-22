@@ -12,18 +12,19 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/receiver/preferences")
-@CrossOrigin(origins = "http://localhost:3000")
 public class ReceiverPreferencesController {
     
     private static final Logger logger = LoggerFactory.getLogger(ReceiverPreferencesController.class);
     
-    @Autowired
-    private ReceiverPreferencesService preferencesService;
+    private final ReceiverPreferencesService preferencesService;
+
+    public ReceiverPreferencesController(ReceiverPreferencesService preferencesService) {
+        this.preferencesService = preferencesService;
+    }
     
     /**
      * GET /api/receiver/preferences

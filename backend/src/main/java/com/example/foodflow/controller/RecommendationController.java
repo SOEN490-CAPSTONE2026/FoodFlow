@@ -2,7 +2,6 @@ package com.example.foodflow.controller;
 
 import java.util.List;
 import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -11,7 +10,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.example.foodflow.model.dto.RecommendationDTO;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.service.RecommendationService;
@@ -23,8 +21,11 @@ import com.example.foodflow.service.RecommendationService;
 @RequestMapping("/api/recommendations")
 public class RecommendationController {
 
-    @Autowired
-    private RecommendationService recommendationService;
+    private final RecommendationService recommendationService;
+
+    public RecommendationController(RecommendationService recommendationService) {
+        this.recommendationService = recommendationService;
+    }
 
     /**
      * Get recommendation data for a specific post

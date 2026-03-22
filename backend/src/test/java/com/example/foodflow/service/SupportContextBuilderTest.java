@@ -2,7 +2,6 @@ package com.example.foodflow.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
-
 import com.example.foodflow.model.dto.SupportChatRequest;
 import com.example.foodflow.model.entity.AccountStatus;
 import com.example.foodflow.model.entity.Claim;
@@ -29,9 +28,7 @@ class SupportContextBuilderTest {
     void buildSupportContext_includesOrgDonationAndClaim() {
         SurplusPostRepository surplusPostRepository = Mockito.mock(SurplusPostRepository.class);
         ClaimRepository claimRepository = Mockito.mock(ClaimRepository.class);
-        SupportContextBuilder builder = new SupportContextBuilder();
-        ReflectionTestUtils.setField(builder, "surplusPostRepository", surplusPostRepository);
-        ReflectionTestUtils.setField(builder, "claimRepository", claimRepository);
+        SupportContextBuilder builder = new SupportContextBuilder(surplusPostRepository, claimRepository);
 
         User receiver = new User();
         receiver.setId(10L);
@@ -93,9 +90,10 @@ class SupportContextBuilderTest {
 
     @Test
     void buildSupportContext_invalidDonationId_skipsDonation() {
-        SupportContextBuilder builder = new SupportContextBuilder();
-        ReflectionTestUtils.setField(builder, "surplusPostRepository", Mockito.mock(SurplusPostRepository.class));
-        ReflectionTestUtils.setField(builder, "claimRepository", Mockito.mock(ClaimRepository.class));
+        SupportContextBuilder builder = new SupportContextBuilder(
+            Mockito.mock(SurplusPostRepository.class),
+            Mockito.mock(ClaimRepository.class)
+        );
 
         User user = new User();
         user.setId(1L);

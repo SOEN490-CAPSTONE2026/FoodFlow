@@ -29,10 +29,17 @@ class SupportServiceTest {
     void processChat_happyPath_convertsActionsAndDefaultsEscalate() {
         ContextualSupportService contextualSupportService = Mockito.mock(ContextualSupportService.class);
         SupportContextBuilder contextBuilder = Mockito.mock(SupportContextBuilder.class);
+        ConversationService conversationService = Mockito.mock(ConversationService.class);
+        MessageService messageService = Mockito.mock(MessageService.class);
+        UserRepository userRepository = Mockito.mock(UserRepository.class);
 
-        SupportService service = new SupportService();
-        ReflectionTestUtils.setField(service, "contextualSupportService", contextualSupportService);
-        ReflectionTestUtils.setField(service, "contextBuilder", contextBuilder);
+        SupportService service = new SupportService(
+            contextualSupportService,
+            contextBuilder,
+            conversationService,
+            messageService,
+            userRepository
+        );
 
         when(contextBuilder.buildSupportContext(any(User.class), any(SupportChatRequest.class)))
             .thenReturn(new ObjectMapper().createObjectNode());
@@ -67,10 +74,17 @@ class SupportServiceTest {
     void processChat_whenException_returnsLocalizedError() {
         ContextualSupportService contextualSupportService = Mockito.mock(ContextualSupportService.class);
         SupportContextBuilder contextBuilder = Mockito.mock(SupportContextBuilder.class);
+        ConversationService conversationService = Mockito.mock(ConversationService.class);
+        MessageService messageService = Mockito.mock(MessageService.class);
+        UserRepository userRepository = Mockito.mock(UserRepository.class);
 
-        SupportService service = new SupportService();
-        ReflectionTestUtils.setField(service, "contextualSupportService", contextualSupportService);
-        ReflectionTestUtils.setField(service, "contextBuilder", contextBuilder);
+        SupportService service = new SupportService(
+            contextualSupportService,
+            contextBuilder,
+            conversationService,
+            messageService,
+            userRepository
+        );
         ReflectionTestUtils.setField(service, "supportEmail", "help@foodflow.test");
 
         when(contextBuilder.buildSupportContext(any(User.class), any(SupportChatRequest.class)))
@@ -105,12 +119,13 @@ class SupportServiceTest {
         MessageService messageService = Mockito.mock(MessageService.class);
         UserRepository userRepository = Mockito.mock(UserRepository.class);
 
-        SupportService service = new SupportService();
-        ReflectionTestUtils.setField(service, "contextualSupportService", contextualSupportService);
-        ReflectionTestUtils.setField(service, "contextBuilder", contextBuilder);
-        ReflectionTestUtils.setField(service, "conversationService", conversationService);
-        ReflectionTestUtils.setField(service, "messageService", messageService);
-        ReflectionTestUtils.setField(service, "userRepository", userRepository);
+        SupportService service = new SupportService(
+            contextualSupportService,
+            contextBuilder,
+            conversationService,
+            messageService,
+            userRepository
+        );
 
         when(contextBuilder.buildSupportContext(any(User.class), any(SupportChatRequest.class)))
             .thenReturn(new ObjectMapper().createObjectNode());

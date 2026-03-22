@@ -16,8 +16,11 @@ import org.springframework.web.bind.annotation.*;
 @PreAuthorize("hasAuthority('ADMIN')")
 public class AdminVerificationController {
 
-    @Autowired
-    private AdminVerificationService adminVerificationService;
+    private final AdminVerificationService adminVerificationService;
+
+    public AdminVerificationController(AdminVerificationService adminVerificationService) {
+        this.adminVerificationService = adminVerificationService;
+    }
 
     /**
      * GET /api/admin/pending-users

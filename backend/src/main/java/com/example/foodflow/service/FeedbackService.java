@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +14,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.example.foodflow.model.dto.AdminRatingDashboardDTO;
 import com.example.foodflow.model.dto.AdminRatingDashboardDTO.RatingStatisticsDTO;
 import com.example.foodflow.model.dto.FeedbackRequestDTO;
@@ -27,7 +25,6 @@ import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.types.ClaimStatus;
 import com.example.foodflow.repository.ClaimRepository;
 import com.example.foodflow.repository.FeedbackRepository;
-import com.example.foodflow.service.AlertService;
 
 /**
  * Service for managing feedback operations with admin functionality and
@@ -39,29 +36,32 @@ public class FeedbackService {
 
     private static final Logger logger = LoggerFactory.getLogger(FeedbackService.class);
 
-    @Autowired
-    private FeedbackRepository feedbackRepository;
-
-    @Autowired
-    private ClaimRepository claimRepository;
-
-    @Autowired(required = false) // Optional dependency
-    private AlertService alertService;
-
-    @Autowired(required = false) // Optional dependency for websocket notifications
-    private SimpMessagingTemplate messagingTemplate;
-
-    @Autowired(required = false) // Optional dependency for notification preferences
-    private NotificationPreferenceService notificationPreferenceService;
-
-    @Autowired(required = false) // Optional dependency for email notifications
-    private EmailService emailService;
+    private final FeedbackRepository feedbackRepository;
+    private final ClaimRepository claimRepository;
+    private final AlertService alertService;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final NotificationPreferenceService notificationPreferenceService;
+    private final EmailService emailService;
 
     @Value("${app.rating.low-threshold:2.0}")
     private Double lowRatingThreshold;
 
     @Value("${app.rating.min-reviews-for-alert:3}")
     private Integer minReviewsForAlert;
+
+    public FeedbackService(FeedbackRepository feedbackRepository,
+                          ClaimRepository claimRepository,
+                          @Autowired(required = false) AlertService alertService,
+                          @Autowired(required = false) SimpMessagingTemplate messagingTemplate,
+                          @Autowired(required = false) NotificationPreferenceService notificationPreferenceService,
+                          @Autowired(required = false) EmailService emailService) {
+        this.feedbackRepository = feedbackRepository;
+        this.claimRepository = claimRepository;
+        this.alertService = alertService;
+        this.messagingTemplate = messagingTemplate;
+        this.notificationPreferenceService = notificationPreferenceService;
+        this.emailService = emailService;
+    }
 
     /**
      * Submit feedback for a completed donation with threshold monitoring
