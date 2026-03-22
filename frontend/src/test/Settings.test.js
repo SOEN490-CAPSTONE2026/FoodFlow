@@ -4,7 +4,11 @@ import '@testing-library/jest-dom';
 import Settings from '../components/Settings';
 import { AuthContext } from '../contexts/AuthContext';
 
-import { notificationPreferencesAPI, pickupPreferencesAPI, profileAPI } from '../services/api';
+import {
+  notificationPreferencesAPI,
+  pickupPreferencesAPI,
+  profileAPI,
+} from '../services/api';
 import api from '../services/api';
 
 // Mock the dependencies
@@ -153,7 +157,11 @@ describe('Settings', () => {
       .fn()
       .mockResolvedValue({ data: {} });
     pickupPreferencesAPI.get = jest.fn().mockResolvedValue({
-      data: { availabilityWindowStart: '', availabilityWindowEnd: '', slots: [] },
+      data: {
+        availabilityWindowStart: '',
+        availabilityWindowEnd: '',
+        slots: [],
+      },
     });
     pickupPreferencesAPI.save = jest.fn().mockResolvedValue({ data: {} });
   });
@@ -1261,9 +1269,7 @@ describe('Settings', () => {
         data: {
           availabilityWindowStart: '',
           availabilityWindowEnd: '',
-          slots: [
-            { startTime: '09:00', endTime: '12:00', notes: 'Morning' },
-          ],
+          slots: [{ startTime: '09:00', endTime: '12:00', notes: 'Morning' }],
         },
       });
 
@@ -1414,7 +1420,9 @@ describe('Settings', () => {
       await expandPickupPrefs();
 
       // Add a slot
-      const addButton = await screen.findByRole('button', { name: /Add Slot/i });
+      const addButton = await screen.findByRole('button', {
+        name: /Add Slot/i,
+      });
       fireEvent.click(addButton);
 
       await waitFor(() => {
@@ -1450,7 +1458,9 @@ describe('Settings', () => {
       await expandPickupPrefs();
 
       // Add a slot but leave times empty
-      const addButton = await screen.findByRole('button', { name: /Add Slot/i });
+      const addButton = await screen.findByRole('button', {
+        name: /Add Slot/i,
+      });
       fireEvent.click(addButton);
 
       await waitFor(() => {
