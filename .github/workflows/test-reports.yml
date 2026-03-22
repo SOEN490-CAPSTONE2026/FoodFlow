@@ -1,0 +1,121 @@
+name: Test Reports
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Weekly report generation on Mondays at 9 AM UTC
+    - cron: '0 9 * * 1'
+
+jobs:
+  generate-test-reports:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: ./frontend/package-lock.json
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'maven'
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: ./frontend
+
+      - name: Prepare frontend test result directory
+        run: mkdir -p test-results
+        working-directory: ./frontend
+
+      - name: Run frontend tests with report output
+        run: npm run test:coverage:ci
+        working-directory: ./frontend
+
+      - name: Build frontend HTML summary report
+        working-directory: ./frontend
+        run: |
+          mkdir -p test-results
+          node <<'EOF'
+          const fs = require('fs');
+          const path = require('path');
+
+          const resultsPath = path.join('test-results', 'jest-results.json');
+          const outputPath = path.join('test-results', 'index.html');
+
+          if (!fs.existsSync(resultsPath)) {
+            fs.writeFileSync(outputPath, '<html><body><h1>Frontend test report unavailable</h1></body></html>');
+            process.exit(0);
+          }
+
+          const data = JSON.parse(fs.readFileSync(resultsPath, 'utf8'));
+          const rows = (data.testResults || []).map((suite) => {
+            const status = suite.status || 'unknown';
+            const color = status === 'passed' ? '#22c55e' : '#ef4444';
+            const name = suite.name || 'Unnamed suite';
+            const duration = suite.endTime && suite.startTime ? `${suite.endTime - suite.startTime} ms` : 'N/A';
+            return `<tr><td>${name}</td><td style="color:${color}">${status}</td><td>${duration}</td></tr>`;
+          }).join('');
+
+          const html = `<!doctype html>
+          <html>
+          <head>
+            <meta charset="utf-8" />
+            <title>Frontend Test Report</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 24px; }
+              table { border-collapse: collapse; width: 100%; }
+              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+              th { background: #f5f5f5; }
+            </style>
+          </head>
+          <body>
+            <h1>Frontend Test Report</h1>
+            <p>Total suites: ${data.numTotalTestSuites || 0}</p>
+            <p>Failed suites: ${data.numFailedTestSuites || 0}</p>
+            <p>Passed tests: ${data.numPassedTests || 0} / ${data.numTotalTests || 0}</p>
+            <table>
+              <thead><tr><th>Suite</th><th>Status</th><th>Duration</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </body>
+          </html>`;
+
+          fs.writeFileSync(outputPath, html);
+          EOF
+
+      - name: Run backend tests and generate reports
+        working-directory: ./backend
+        run: |
+          ./mvnw clean test surefire-report:report-only
+
+      - name: Upload frontend HTML reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-html-test-reports
+          path: |
+            frontend/test-results/index.html
+            frontend/coverage/lcov-report/
+          retention-days: 30
+
+      - name: Upload backend HTML reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-html-test-reports
+          path: |
+            backend/target/reports/
+            backend/target/site/surefire-report.html
+          if-no-files-found: ignore
+          retention-days: 30
+
+

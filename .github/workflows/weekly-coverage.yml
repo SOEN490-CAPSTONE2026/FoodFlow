@@ -36,23 +36,24 @@ jobs:
         id: frontend_coverage
         working-directory: frontend
         run: |
-          npm install cheerio
           COVERAGE=$(node <<'EOF'
             const fs = require('fs');
-            const cheerio = require('cheerio');
+            const summaryPath = 'coverage/coverage-summary.json';
 
-            const html = fs.readFileSync('coverage/lcov-report/index.html', 'utf8');
-            const $ = cheerio.load(html);
+            if (!fs.existsSync(summaryPath)) {
+              console.error('coverage-summary.json not found');
+              process.exit(1);
+            }
 
-            let lines = '';
-            $('.pad1 > .clearfix > div.fl').each((i, el) => {
-              const key = $(el).find('span.quiet').text().trim();
-              if (key === 'Lines') {
-                lines = $(el).find('span.strong').text().trim();
-              }
-            });
+            const summary = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
+            const linesPct = summary?.total?.lines?.pct;
 
-            console.log(lines.replace('%','').trim());
+            if (typeof linesPct !== 'number') {
+              console.error('Unable to read lines coverage percentage');
+              process.exit(1);
+            }
+
+            console.log(String(linesPct));
           EOF
           )
           echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
@@ -110,26 +111,18 @@ jobs:
           DB_USER: foodflow_user
           DB_PASS: foodflow_password
         run: |
-          ./mvnw clean test "-Dspring.profiles.active=test" || true
-          ./mvnw jacoco:report
+          ./mvnw clean verify "-Dspring.profiles.active=test"
 
       - name: Extract coverage summary
         id: backend_coverage
         working-directory: backend
         run: |
-          npm install cheerio
-          COVERAGE=$(node <<'EOF'
-            const fs = require('fs');
-            const cheerio = require('cheerio');
+          if [ ! -f target/site/jacoco/jacoco.csv ]; then
+            echo "JaCoCo CSV report not found at target/site/jacoco/jacoco.csv"
+            exit 1
+          fi
 
-            const html = fs.readFileSync('target/site/jacoco/index.html', 'utf8');
-            const $ = cheerio.load(html);
-
-            const instructionCoverage = $('tfoot tr td.ctr2').eq(0).text().trim();
-
-            console.log(instructionCoverage.replace('%','').trim());
-          EOF
-          )
+          COVERAGE=$(awk -F',' 'NR>1 { missed += $4; covered += $5 } END { total = missed + covered; if (total == 0) { print "0.00" } else { printf "%.2f", (covered * 100) / total } }' target/site/jacoco/jacoco.csv)
           echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
 
       - name: Upload backend coverage artifact
@@ -143,6 +136,24 @@ jobs:
     runs-on: ubuntu-latest
     needs: [frontend-coverage, backend-coverage]
     steps:
+      - name: Enforce minimum coverage (80%)
+        run: |
+          FRONTEND=${{ needs.frontend-coverage.outputs.coverage }}
+          BACKEND=${{ needs.backend-coverage.outputs.coverage }}
+
+          echo "Frontend coverage: ${FRONTEND}%"
+          echo "Backend coverage: ${BACKEND}%"
+
+          awk -v value="$FRONTEND" 'BEGIN { exit (value >= 80 ? 0 : 1) }' || {
+            echo "Frontend coverage is below 80%"
+            exit 1
+          }
+
+          awk -v value="$BACKEND" 'BEGIN { exit (value >= 80 ? 0 : 1) }' || {
+            echo "Backend coverage is below 80%"
+            exit 1
+          }
+
       - name: Create coverage summary
         run: |
           echo "## Weekly Coverage Report" >> $GITHUB_STEP_SUMMARY
