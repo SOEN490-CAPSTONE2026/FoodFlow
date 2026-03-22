@@ -140,19 +140,19 @@ class ReportControllerTest {
     }
     
     @Test
-    void createReport_Unauthenticated_ShouldReturn403() throws Exception {
+    void createReport_Unauthenticated_ShouldReturn401() throws Exception {
         // Given
         CreateReportRequest request = new CreateReportRequest();
         request.setReportedId(2L);
         request.setDonationId(100L);
         request.setDescription("User did not show up");
-        
+
         // When & Then
-        // FIXED: Without authentication, validation still happens first, returning 400
+        // /api/reports/** requires authentication; unauthenticated requests are rejected with 401
         mockMvc.perform(post("/api/reports")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isUnauthorized());
     }
     
     @Test
