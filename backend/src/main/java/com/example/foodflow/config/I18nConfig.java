@@ -19,8 +19,8 @@ public class I18nConfig {
     @Bean
     public MessageSource messageSource() {
         ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
-        // basename points to classpath:messages_{lang}.properties
-        messageSource.setBasename("classpath:messages");
+        // basename points to classpath:messages_{lang}.properties and classpath:email_{lang}.properties
+        messageSource.setBasenames("classpath:messages", "classpath:email");
         messageSource.setDefaultEncoding(StandardCharsets.UTF_8.name());
         // cache for development; set to -1 or a larger value in production
         messageSource.setCacheSeconds(3600);
