@@ -49,7 +49,9 @@ export default function AIImageUpload({ onImageSelect, onManualEntry }) {
 
   const handleInputChange = e => {
     const file = e.target.files[0];
-    if (file) handleFileSelect(file);
+    if (file) {
+      handleFileSelect(file);
+    }
   };
 
   const handleDragEnter = useCallback(e => {
@@ -74,11 +76,15 @@ export default function AIImageUpload({ onImageSelect, onManualEntry }) {
     e.stopPropagation();
     setIsDragging(false);
     const files = e.dataTransfer.files;
-    if (files && files.length > 0) handleFileSelect(files[0]);
+    if (files && files.length > 0) {
+      handleFileSelect(files[0]);
+    }
   }, []);
 
   const handleProceed = () => {
-    if (selectedFile) onImageSelect(selectedFile);
+    if (selectedFile) {
+      onImageSelect(selectedFile);
+    }
   };
 
   const handleClear = () => {

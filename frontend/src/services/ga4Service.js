@@ -35,12 +35,18 @@ const isProduction = () => process.env.NODE_ENV === 'production';
  * Fire-and-forget — failures are silently swallowed.
  */
 const fetchAndCacheCity = async () => {
-  if (localStorage.getItem(CITY_KEY)) return; // already known
+  if (localStorage.getItem(CITY_KEY)) {
+    return;
+  } // already known
   try {
     const res = await fetch('https://ipapi.co/json/');
-    if (!res.ok) return;
+    if (!res.ok) {
+      return;
+    }
     const data = await res.json();
-    if (data.city) localStorage.setItem(CITY_KEY, data.city);
+    if (data.city) {
+      localStorage.setItem(CITY_KEY, data.city);
+    }
   } catch (_) {
     // network error or blocked — degrade gracefully, city just won't appear in events
   }
@@ -64,7 +70,9 @@ const baseParams = () => ({
  * Strips undefined values so GA4 doesn't receive empty properties.
  */
 const track = (eventName, params = {}) => {
-  if (!isProduction() || isAdminRoute() || !hasConsent()) return;
+  if (!isProduction() || isAdminRoute() || !hasConsent()) {
+    return;
+  }
 
   const merged = { ...baseParams(), ...params };
   // Remove keys whose value is undefined (GA4 rejects them)
@@ -83,7 +91,9 @@ const ga4Service = {
    * Called once on app boot and whenever consent changes.
    */
   applyConsent() {
-    if (!isProduction()) return;
+    if (!isProduction()) {
+      return;
+    }
     // Only initialise (and thus activate) the analytics instance after explicit consent.
     // Before consent, we simply do nothing — getAnalyticsInstance() is never called.
     if (hasConsent()) {
@@ -151,7 +161,9 @@ const ga4Service = {
    * @param {string} city  Coarse city name from the registration form
    */
   trackSignUp(role, city) {
-    if (city) localStorage.setItem(CITY_KEY, city);
+    if (city) {
+      localStorage.setItem(CITY_KEY, city);
+    }
     track('sign_up_success', { role, city: city || undefined });
   },
 
