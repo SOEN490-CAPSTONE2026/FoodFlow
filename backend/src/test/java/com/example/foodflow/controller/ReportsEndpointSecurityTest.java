@@ -1,42 +1,76 @@
 package com.example.foodflow.controller;
 
+import com.example.foodflow.model.dto.DisputeResponse;
+import com.example.foodflow.model.entity.User;
+import com.example.foodflow.model.entity.UserRole;
+import com.example.foodflow.repository.UserRepository;
 import com.example.foodflow.service.DisputeService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import java.util.Collections;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Verifies that /api/reports/** enforces authentication.
- *
- * Prior to the security fix, this path was listed under permitAll() in SecurityConfig.
- * These tests confirm unauthenticated requests are rejected (401) and that all three
- * platform roles (DONOR, RECEIVER, ADMIN) are permitted through the security filter.
- *
- * Note: GET /api/reports has no handler — an authenticated request returns 405 (Method
- * Not Allowed), which confirms it passed the security filter. POST /api/reports requires
- * a valid body; an authenticated request with an empty body returns 400, not 401.
- */
+
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 class ReportsEndpointSecurityTest {
+
+    private static final String VALID_BODY =
+            "{\"reportedId\": 1, \"description\": \"Behaviour that violated the platform rules\"}";
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockitoBean
     private DisputeService disputeService;
+
+    @MockitoBean
+    private UserRepository userRepository;
+
+    private User donorUser;
+    private User receiverUser;
+    private User adminUser;
+
+    @BeforeEach
+    void setUp() {
+        donorUser = new User();
+        donorUser.setId(1L);
+        donorUser.setRole(UserRole.DONOR);
+
+        receiverUser = new User();
+        receiverUser.setId(2L);
+        receiverUser.setRole(UserRole.RECEIVER);
+
+        adminUser = new User();
+        adminUser.setId(3L);
+        adminUser.setRole(UserRole.ADMIN);
+
+        when(disputeService.createReport(any(), anyLong())).thenReturn(new DisputeResponse());
+    }
+
+    private UsernamePasswordAuthenticationToken authAs(User user, String authority) {
+        return new UsernamePasswordAuthenticationToken(
+                user, null,
+                Collections.singletonList(new SimpleGrantedAuthority(authority)));
+    }
 
     // --- Unauthenticated requests ---
 
@@ -50,75 +84,44 @@ class ReportsEndpointSecurityTest {
     void postReports_withoutAuthentication_returns401() throws Exception {
         mockMvc.perform(post("/api/reports")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
+                        .content(VALID_BODY))
                 .andExpect(status().isUnauthorized());
     }
 
     // --- DONOR role ---
 
     @Test
-    @WithMockUser(authorities = "DONOR")
-    void getReports_withDonorRole_passesSecurity() throws Exception {
-        // No GET handler exists; 405 confirms the request passed the security filter
-        mockMvc.perform(get("/api/reports"))
-                .andExpect(result -> assertNotEquals(
-                        401, result.getResponse().getStatus(),
-                        "DONOR should not receive 401 on /api/reports"));
-    }
-
-    @Test
-    @WithMockUser(authorities = "DONOR")
-    void postReports_withDonorRole_passesSecurity() throws Exception {
-        // Invalid body returns 400 from the controller — not 401 from the security filter
+    void postReports_withDonorRole_returns201() throws Exception {
+        // Passes SecurityConfig URL filter and method-level @PreAuthorize;
+        // service mocked → 201 Created
         mockMvc.perform(post("/api/reports")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
-                .andExpect(result -> assertNotEquals(
-                        401, result.getResponse().getStatus(),
-                        "DONOR should not receive 401 on POST /api/reports"));
+                        .content(VALID_BODY)
+                        .with(authentication(authAs(donorUser, "DONOR"))))
+                .andExpect(status().isCreated());
     }
 
     // --- RECEIVER role ---
 
     @Test
-    @WithMockUser(authorities = "RECEIVER")
-    void getReports_withReceiverRole_passesSecurity() throws Exception {
-        mockMvc.perform(get("/api/reports"))
-                .andExpect(result -> assertNotEquals(
-                        401, result.getResponse().getStatus(),
-                        "RECEIVER should not receive 401 on /api/reports"));
-    }
-
-    @Test
-    @WithMockUser(authorities = "RECEIVER")
-    void postReports_withReceiverRole_passesSecurity() throws Exception {
+    void postReports_withReceiverRole_returns201() throws Exception {
         mockMvc.perform(post("/api/reports")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
-                .andExpect(result -> assertNotEquals(
-                        401, result.getResponse().getStatus(),
-                        "RECEIVER should not receive 401 on POST /api/reports"));
+                        .content(VALID_BODY)
+                        .with(authentication(authAs(receiverUser, "RECEIVER"))))
+                .andExpect(status().isCreated());
     }
 
     // --- ADMIN role ---
 
     @Test
-    @WithMockUser(authorities = "ADMIN")
-    void getReports_withAdminRole_passesSecurity() throws Exception {
-        mockMvc.perform(get("/api/reports"))
-                .andExpect(result -> assertNotEquals(
-                        401, result.getResponse().getStatus(),
-                        "ADMIN should not receive 401 on /api/reports"));
-    }
-
-    @Test
-    @WithMockUser(authorities = "ADMIN")
-    void postReports_withAdminRole_passesSecurity() throws Exception {
+    void postReports_withAdminRole_returns400() throws Exception {
+        // SecurityConfig allows ADMIN on /api/reports/**, but the method-level
+        // @PreAuthorize("hasAnyAuthority('DONOR', 'RECEIVER')") blocks ADMIN by throwing 400 status code
         mockMvc.perform(post("/api/reports")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
-                .andExpect(result -> assertNotEquals(
-                        401, result.getResponse().getStatus(),
-                        "ADMIN should not receive 401 on POST /api/reports"));
+                        .content(VALID_BODY)
+                        .with(authentication(authAs(adminUser, "ADMIN"))))
+                .andExpect(status().isBadRequest());
     }
 }

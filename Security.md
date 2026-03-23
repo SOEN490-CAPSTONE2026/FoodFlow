@@ -68,8 +68,8 @@ password.policy.reset-token-expiry-minutes=15
 | Concern | Location |
 |---|---|
 | CORS bean | `SecurityConfig.java:143` — `corsConfigurationSource()` |
-| Allowed origins | `SecurityConfig.java:147` — reads `cors.allowed.origins` property, splits on comma |
-| Property binding | `application.properties` — `cors.allowed.origins=${CORS_ALLOWED_ORIGINS:http://localhost:3000}` |
+| Allowed origins | `SecurityConfig.java:147` — reads `spring.web.cors.allowed-origins` property, splits on comma |
+| Property binding | `application.properties` — `spring.web.cors.allowed-origins=${CORS_ALLOWED_ORIGINS:http://localhost:3000}` |
 
 **Environment configuration:**
 
