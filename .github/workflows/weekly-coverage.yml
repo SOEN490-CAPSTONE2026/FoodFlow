@@ -36,32 +36,49 @@ jobs:
         id: frontend_coverage
         working-directory: frontend
         run: |
-          npm install cheerio
           COVERAGE=$(node <<'EOF'
             const fs = require('fs');
-            const cheerio = require('cheerio');
+            const summaryPath = 'coverage/coverage-summary.json';
+            const lcovPath = 'coverage/lcov.info';
 
-            const html = fs.readFileSync('coverage/lcov-report/index.html', 'utf8');
-            const $ = cheerio.load(html);
-
-            let lines = '';
-            $('.pad1 > .clearfix > div.fl').each((i, el) => {
-              const key = $(el).find('span.quiet').text().trim();
-              if (key === 'Lines') {
-                lines = $(el).find('span.strong').text().trim();
+            if (fs.existsSync(summaryPath)) {
+              const summary = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
+              const linesPct = summary?.total?.lines?.pct;
+              if (typeof linesPct === 'number') {
+                console.log(String(linesPct));
+                process.exit(0);
               }
-            });
+            }
 
-            console.log(lines.replace('%','').trim());
+            if (!fs.existsSync(lcovPath)) {
+              console.error('No frontend coverage summary found (coverage-summary.json or lcov.info)');
+              process.exit(1);
+            }
+
+            const lines = fs.readFileSync(lcovPath, 'utf8').split(/\r?\n/);
+            let found = 0;
+            let hit = 0;
+            for (const line of lines) {
+              if (line.startsWith('LF:')) found += Number(line.slice(3)) || 0;
+              if (line.startsWith('LH:')) hit += Number(line.slice(3)) || 0;
+            }
+
+            if (found <= 0) {
+              console.error('Invalid lcov data: no executable lines found');
+              process.exit(1);
+            }
+
+            console.log(((hit * 100) / found).toFixed(2));
           EOF
           )
           echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
 
       - name: Upload coverage report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: frontend-coverage
-          path: frontend/coverage/lcov-report/index.html
+          path: frontend/coverage/
 
   backend-coverage:
     name: Backend Coverage
@@ -93,13 +110,6 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Wait for Postgres to be ready
-        run: |
-          until pg_isready -h localhost -U foodflow_user -d foodflow_db; do
-            echo "Waiting for Postgres..."
-            sleep 5
-          done
-
       - name: Run backend tests with coverage
         working-directory: backend
         env:
@@ -110,39 +120,54 @@ jobs:
           DB_USER: foodflow_user
           DB_PASS: foodflow_password
         run: |
-          ./mvnw clean test "-Dspring.profiles.active=test" || true
-          ./mvnw jacoco:report
+          ./mvnw clean verify "-Dspring.profiles.active=test"
 
       - name: Extract coverage summary
         id: backend_coverage
         working-directory: backend
         run: |
-          npm install cheerio
-          COVERAGE=$(node <<'EOF'
-            const fs = require('fs');
-            const cheerio = require('cheerio');
+          if [ ! -f target/site/jacoco/jacoco.csv ]; then
+            echo "JaCoCo CSV report not found at target/site/jacoco/jacoco.csv"
+            exit 1
+          fi
 
-            const html = fs.readFileSync('target/site/jacoco/index.html', 'utf8');
-            const $ = cheerio.load(html);
-
-            const instructionCoverage = $('tfoot tr td.ctr2').eq(0).text().trim();
-
-            console.log(instructionCoverage.replace('%','').trim());
-          EOF
-          )
+          COVERAGE=$(awk -F',' 'NR>1 { missed += $4; covered += $5 } END { total = missed + covered; if (total == 0) { print "0.00" } else { printf "%.2f", (covered * 100) / total } }' target/site/jacoco/jacoco.csv)
           echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
 
       - name: Upload backend coverage artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: backend-coverage
-          path: backend/target/site/jacoco/index.html
+          path: |
+            backend/target/site/jacoco/
+            backend/target/surefire-reports/
+            backend/target/failsafe-reports/
+          if-no-files-found: ignore
 
   summary:
     name: Coverage Summary
     runs-on: ubuntu-latest
     needs: [frontend-coverage, backend-coverage]
     steps:
+      - name: Enforce minimum coverage (80%)
+        run: |
+          FRONTEND=${{ needs.frontend-coverage.outputs.coverage }}
+          BACKEND=${{ needs.backend-coverage.outputs.coverage }}
+
+          echo "Frontend coverage: ${FRONTEND}%"
+          echo "Backend coverage: ${BACKEND}%"
+
+          awk -v value="$FRONTEND" 'BEGIN { exit (value >= 80 ? 0 : 1) }' || {
+            echo "Frontend coverage is below 80%"
+            exit 1
+          }
+
+          awk -v value="$BACKEND" 'BEGIN { exit (value >= 80 ? 0 : 1) }' || {
+            echo "Backend coverage is below 80%"
+            exit 1
+          }
+
       - name: Create coverage summary
         run: |
           echo "## Weekly Coverage Report" >> $GITHUB_STEP_SUMMARY

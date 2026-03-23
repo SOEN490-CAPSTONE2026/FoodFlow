@@ -1,0 +1,81 @@
+name: Monitoring Deploy
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Weekly verification run on Mondays at 8 AM UTC
+    - cron: '0 8 * * 1'
+
+jobs:
+  deploy-monitoring:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    concurrency:
+      group: monitoring-deploy
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Compose
+        run: |
+          docker --version
+          docker compose version
+
+      - name: Start monitoring stack
+        run: |
+          docker compose -f monitoring/docker-compose.monitoring.yml up -d
+
+      - name: Wait for Prometheus to be healthy
+        run: |
+          for i in $(seq 1 12); do
+            if curl --fail http://localhost:9090/-/ready; then
+              echo "Prometheus is ready"
+              exit 0
+            fi
+            echo "Waiting for Prometheus to be ready..."
+            sleep 5
+          done
+          echo "Prometheus failed to start"
+          docker compose -f monitoring/docker-compose.monitoring.yml logs prometheus
+          exit 1
+
+      - name: Wait for Grafana to be healthy
+        run: |
+          for i in $(seq 1 12); do
+            if curl --fail http://localhost:3001/api/health; then
+              echo "Grafana is ready"
+              exit 0
+            fi
+            echo "Waiting for Grafana to be ready..."
+            sleep 5
+          done
+          echo "Grafana failed to start"
+          docker compose -f monitoring/docker-compose.monitoring.yml logs grafana
+          exit 1
+
+      - name: Check Prometheus targets
+        run: |
+          curl --fail http://localhost:9090/api/v1/targets || {
+            docker compose -f monitoring/docker-compose.monitoring.yml logs prometheus
+            exit 1
+          }
+
+      - name: Cleanup containers
+        if: always()
+        run: |
+          docker compose -f monitoring/docker-compose.monitoring.yml logs --no-color > /tmp/monitoring.log 2>&1 || true
+          docker compose -f monitoring/docker-compose.monitoring.yml down -v || true
+
+      - name: Upload monitoring logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: monitoring-container-logs
+          path: |
+            /tmp/monitoring.log
+          if-no-files-found: ignore
+
+
