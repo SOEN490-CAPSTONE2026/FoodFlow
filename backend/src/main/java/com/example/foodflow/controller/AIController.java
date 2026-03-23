@@ -19,7 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @RestController
 @RequestMapping("/api/ai")
-@CrossOrigin(origins = "*")
 public class AIController {
     
     private static final Logger log = LoggerFactory.getLogger(AIController.class);

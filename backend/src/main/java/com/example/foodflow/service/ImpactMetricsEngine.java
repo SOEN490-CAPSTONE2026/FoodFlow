@@ -2,7 +2,6 @@ package com.example.foodflow.service;
 
 import com.example.foodflow.model.types.FoodType;
 import org.springframework.stereotype.Component;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;

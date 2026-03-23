@@ -2,9 +2,7 @@ package com.example.foodflow.service;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Timer;
 import org.springframework.stereotype.Service;
-import io.micrometer.core.instrument.Tags;
 
 
 @Service
@@ -15,7 +13,6 @@ public class MetricsService {
     private final Counter receiverRegistrationCounter;
     private final Counter loginAttemptCounter;
     private final Counter loginSuccessCounter;
-    private final Counter userInteractionCounter;
     private final MeterRegistry meterRegistry;
 
     public MetricsService(MeterRegistry meterRegistry) {
@@ -39,10 +36,6 @@ public class MetricsService {
         
         this.loginSuccessCounter = Counter.builder("login.success.total")
                 .description("Successful logins")
-                .register(meterRegistry);
-
-        this.userInteractionCounter = Counter.builder("user.interactions.total")
-                .description("User interactions from frontend")
                 .register(meterRegistry);
     }
 

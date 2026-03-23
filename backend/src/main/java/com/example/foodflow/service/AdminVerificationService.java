@@ -35,20 +35,23 @@ public class AdminVerificationService {
 
     private static final Logger log = LoggerFactory.getLogger(AdminVerificationService.class);
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final EmailService emailService;
+    private final EmailVerificationTokenRepository verificationTokenRepository;
+    private final NotificationPreferenceService notificationPreferenceService;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    @Autowired
-    private EmailService emailService;
-
-    @Autowired
-    private EmailVerificationTokenRepository verificationTokenRepository;
-
-    @Autowired
-    private NotificationPreferenceService notificationPreferenceService;
-
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
+    public AdminVerificationService(UserRepository userRepository,
+                                   EmailService emailService,
+                                   EmailVerificationTokenRepository verificationTokenRepository,
+                                   NotificationPreferenceService notificationPreferenceService,
+                                   SimpMessagingTemplate messagingTemplate) {
+        this.userRepository = userRepository;
+        this.emailService = emailService;
+        this.verificationTokenRepository = verificationTokenRepository;
+        this.notificationPreferenceService = notificationPreferenceService;
+        this.messagingTemplate = messagingTemplate;
+    }
 
     /**
      * Get paginated list of users pending admin approval

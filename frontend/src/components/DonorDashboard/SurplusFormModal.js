@@ -10,7 +10,7 @@ import {
   ChevronRight,
   Sparkles,
 } from 'lucide-react';
-import { Autocomplete } from '@react-google-maps/api';
+import { Autocomplete, useLoadScript } from '@react-google-maps/api';
 import Select from 'react-select';
 import SEOHead from '../SEOHead';
 import ga4Service from '../../services/ga4Service';
@@ -33,6 +33,9 @@ import { useTimezone } from '../../contexts/TimezoneContext';
 import './Donor_Styles/SurplusFormModal.css';
 import 'react-datepicker/dist/react-datepicker.css';
 
+// Define libraries for Google Maps
+const libraries = ['places'];
+
 const SurplusFormModal = ({
   isOpen,
   onClose,
@@ -40,6 +43,12 @@ const SurplusFormModal = ({
   postId = null,
 }) => {
   const { t } = useTranslation();
+
+  // Load Google Maps script with Places library
+  const { isLoaded: isMapsLoaded } = useLoadScript({
+    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY || '',
+    libraries,
+  });
 
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 4;
@@ -353,7 +362,7 @@ const SurplusFormModal = ({
 
       // Validate that a place was actually selected
       if (!place || !place.geometry) {
-        setError(t('surplusForm.errors.invalidAddress'));
+        // Don't clear the field or show error - user might still be typing
         return;
       }
 
@@ -366,28 +375,13 @@ const SurplusFormModal = ({
         component.types.includes('route')
       );
 
-      // Reject if missing street number or route
-      if (!hasStreetNumber || !hasRoute) {
-        setError(t('surplusForm.errors.requiresStreetAddress'));
-        setFormData(prev => ({
-          ...prev,
-          pickupLocation: {
-            latitude: '',
-            longitude: '',
-            address: '',
-            country: '',
-          },
-        }));
-        return;
-      }
-
       // Extract country from address components (full country name)
       const countryComponent = place.address_components?.find(component =>
         component.types.includes('country')
       );
       const country = countryComponent?.long_name || null;
 
-      // Valid address - set location with country
+      // Always set location data when user selects from dropdown
       const location = {
         latitude: place.geometry.location.lat(),
         longitude: place.geometry.location.lng(),
@@ -395,7 +389,18 @@ const SurplusFormModal = ({
         country: country,
       };
       setFormData(prev => ({ ...prev, pickupLocation: location }));
-      setError(''); // Clear any previous errors
+
+      // Warn if missing street number or route, but don't prevent selection
+      if (!hasStreetNumber || !hasRoute) {
+        setError(
+          t(
+            'surplusForm.errors.requiresStreetAddress',
+            'Please select a complete street address (not just city or postal code)'
+          )
+        );
+      } else {
+        setError(''); // Clear any previous errors
+      }
     }
   };
 
@@ -1216,10 +1221,32 @@ const SurplusFormModal = ({
                     <label className="input-label">
                       {t('surplusForm.pickupLocationLabel')} *
                     </label>
-                    <Autocomplete
-                      onLoad={onLoadAutocomplete}
-                      onPlaceChanged={onPlaceChanged}
-                    >
+                    {isMapsLoaded ? (
+                      <Autocomplete
+                        onLoad={onLoadAutocomplete}
+                        onPlaceChanged={onPlaceChanged}
+                      >
+                        <input
+                          type="text"
+                          name="address"
+                          value={formData.pickupLocation.address}
+                          onChange={e =>
+                            setFormData(prev => ({
+                              ...prev,
+                              pickupLocation: {
+                                ...prev.pickupLocation,
+                                address: e.target.value,
+                              },
+                            }))
+                          }
+                          className="input-field"
+                          placeholder={t(
+                            'surplusForm.pickupLocationPlaceholder'
+                          )}
+                          required
+                        />
+                      </Autocomplete>
+                    ) : (
                       <input
                         type="text"
                         name="address"
@@ -1236,8 +1263,38 @@ const SurplusFormModal = ({
                         className="input-field"
                         placeholder={t('surplusForm.pickupLocationPlaceholder')}
                         required
+                        disabled
                       />
-                    </Autocomplete>
+                    )}
+                    <span className="input-help-text">
+                      ⚠️ <strong>IMPORTANT:</strong> Type your address, then
+                      SELECT from the Google Maps dropdown that appears
+                    </span>
+                    {formData.pickupLocation.latitude &&
+                    formData.pickupLocation.longitude ? (
+                      <div
+                        style={{
+                          color: 'green',
+                          fontSize: '0.875rem',
+                          marginTop: '0.5rem',
+                          fontWeight: 'bold',
+                        }}
+                      >
+                        ✓ Address with coordinates selected - you can proceed
+                      </div>
+                    ) : formData.pickupLocation.address ? (
+                      <div
+                        style={{
+                          color: 'red',
+                          fontSize: '0.875rem',
+                          marginTop: '0.5rem',
+                          fontWeight: 'bold',
+                        }}
+                      >
+                        ⚠️ You must SELECT your address from the Google Maps
+                        dropdown (just typing won't work)
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               )}

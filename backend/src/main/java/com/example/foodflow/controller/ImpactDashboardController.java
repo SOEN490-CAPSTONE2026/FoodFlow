@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
@@ -21,7 +20,6 @@ import java.nio.charset.StandardCharsets;
  */
 @RestController
 @RequestMapping("/api/impact-dashboard")
-@CrossOrigin(origins = "${spring.web.cors.allowed-origins}")
 public class ImpactDashboardController {
 
     private static final Logger logger = LoggerFactory.getLogger(ImpactDashboardController.class);

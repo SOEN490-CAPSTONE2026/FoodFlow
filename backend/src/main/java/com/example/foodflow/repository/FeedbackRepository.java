@@ -2,12 +2,10 @@ package com.example.foodflow.repository;
 
 import java.util.List;
 import java.util.Optional;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
 import com.example.foodflow.model.entity.Claim;
 import com.example.foodflow.model.entity.Feedback;
 import com.example.foodflow.model.entity.User;

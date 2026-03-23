@@ -3,7 +3,6 @@ package com.example.foodflow.model.dto;
 import com.example.foodflow.model.entity.AccountStatus;
 import com.example.foodflow.model.entity.OrganizationType;
 import com.example.foodflow.model.entity.UserRole;
-
 import java.time.LocalDateTime;
 
 public class UserVerificationDTO {

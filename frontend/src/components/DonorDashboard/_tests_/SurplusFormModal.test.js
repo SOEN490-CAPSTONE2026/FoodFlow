@@ -142,53 +142,60 @@ const renderWithProviders = (ui, options = {}) => {
 
 // Mock @react-google-maps/api with autocomplete simulation
 jest.mock('@react-google-maps/api', () => {
-  const mockReact = require('react');
-  return {
-    Autocomplete: ({ children, onLoad, onPlaceChanged }) => {
-      mockReact.useEffect(() => {
-        if (onLoad) {
-          const mockAutocomplete = {
-            getPlace: jest.fn(() => ({
-              geometry: {
-                location: {
-                  lat: () => 45.4215,
-                  lng: () => -75.6972,
-                },
+  const React = require('react');
+
+  const MockAutocomplete = ({ children, onLoad, onPlaceChanged }) => {
+    React.useEffect(() => {
+      if (onLoad) {
+        const mockAutocomplete = {
+          getPlace: jest.fn(() => ({
+            geometry: {
+              location: {
+                lat: () => 45.4215,
+                lng: () => -75.6972,
               },
-              formatted_address: '123 Test Street, Ottawa, ON',
-              name: 'Test Location',
-              address_components: [
-                {
-                  long_name: '123',
-                  short_name: '123',
-                  types: ['street_number'],
-                },
-                {
-                  long_name: 'Test Street',
-                  short_name: 'Test St',
-                  types: ['route'],
-                },
-                {
-                  long_name: 'Ottawa',
-                  short_name: 'Ottawa',
-                  types: ['locality', 'political'],
-                },
-                {
-                  long_name: 'Ontario',
-                  short_name: 'ON',
-                  types: ['administrative_area_level_1', 'political'],
-                },
-              ],
-            })),
-            setOptions: jest.fn(),
-          };
-          onLoad(mockAutocomplete);
-        }
-      }, []);
-      return mockReact.cloneElement(children, {
-        onBlur: onPlaceChanged,
-      });
-    },
+            },
+            formatted_address: '123 Test Street, Ottawa, ON',
+            name: 'Test Location',
+            address_components: [
+              {
+                long_name: '123',
+                short_name: '123',
+                types: ['street_number'],
+              },
+              {
+                long_name: 'Test Street',
+                short_name: 'Test St',
+                types: ['route'],
+              },
+              {
+                long_name: 'Ottawa',
+                short_name: 'Ottawa',
+                types: ['locality', 'political'],
+              },
+              {
+                long_name: 'Ontario',
+                short_name: 'ON',
+                types: ['administrative_area_level_1', 'political'],
+              },
+            ],
+          })),
+          setOptions: jest.fn(),
+        };
+        onLoad(mockAutocomplete);
+      }
+    }, []);
+    return React.cloneElement(children, {
+      onBlur: onPlaceChanged,
+    });
+  };
+
+  return {
+    Autocomplete: MockAutocomplete,
+    useLoadScript: () => ({
+      isLoaded: true,
+      loadError: null,
+    }),
   };
 });
 

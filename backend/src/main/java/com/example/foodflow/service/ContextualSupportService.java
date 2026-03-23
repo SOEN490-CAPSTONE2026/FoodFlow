@@ -22,15 +22,15 @@ public class ContextualSupportService {
 
     private final ResourceLoader resourceLoader;
     private final ObjectMapper objectMapper;
-
-    @Autowired
-    private OpenAIService openAIService;
-
+    private final OpenAIService openAIService;
     private JsonNode appContext;
 
-    public ContextualSupportService(ResourceLoader resourceLoader, ObjectMapper objectMapper) {
+    public ContextualSupportService(ResourceLoader resourceLoader, 
+                                   ObjectMapper objectMapper,
+                                   OpenAIService openAIService) {
         this.resourceLoader = resourceLoader;
         this.objectMapper = objectMapper;
+        this.openAIService = openAIService;
         loadAppContext();
     }
 

@@ -15,18 +15,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-/**
- * Comprehensive unit tests for ImpactCalculationService
- */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ImpactCalculationService Tests")
 class ImpactCalculationServiceTest {

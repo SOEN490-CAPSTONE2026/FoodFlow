@@ -8,7 +8,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/analytics")
-@CrossOrigin(origins = "${spring.web.cors.allowed-origins}")
 public class UserInteractionController {
 
     private final MetricsService metricsService;

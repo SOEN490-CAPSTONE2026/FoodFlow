@@ -36,7 +36,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/admin")
 @PreAuthorize("hasAuthority('ADMIN')")
-@CrossOrigin(origins = "*")
 public class AdminController {
 
     private static final Logger log = LoggerFactory.getLogger(AdminController.class);

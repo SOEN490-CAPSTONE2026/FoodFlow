@@ -20,11 +20,13 @@ import java.util.List;
 @RequestMapping("/api/conversations")
 public class ConversationController {
     
-    @Autowired
-    private ConversationService conversationService;
-    
-    @Autowired
-    private MessageService messageService;
+    private final ConversationService conversationService;
+    private final MessageService messageService;
+
+    public ConversationController(ConversationService conversationService, MessageService messageService) {
+        this.conversationService = conversationService;
+        this.messageService = messageService;
+    }
     
     /**
      * Get all conversations for the current user

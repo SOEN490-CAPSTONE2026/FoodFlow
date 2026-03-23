@@ -2,7 +2,6 @@ package com.example.foodflow.i18n;
 
 import com.example.foodflow.model.dto.LoginRequest;
 import com.example.foodflow.model.dto.RegisterDonorRequest;
-import com.example.foodflow.model.dto.CreateSurplusRequest;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.UserRole;
 import com.example.foodflow.repository.UserRepository;
@@ -18,7 +17,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
-
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;

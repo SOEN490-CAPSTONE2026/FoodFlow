@@ -857,6 +857,7 @@ class EmailServiceTest {
         statusData.put("oldStatus", "CLAIMED");
         statusData.put("newStatus", "READY_FOR_PICKUP");
         statusData.put("reason", "Pickup time reached");
+        statusData.put("userType", "donor");
 
         assertDoesNotThrow(() -> emailService.sendDonationStatusUpdateNotification(
                 "user@example.com",

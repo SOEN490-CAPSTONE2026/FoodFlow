@@ -4,7 +4,6 @@ import com.example.foodflow.security.JwtTokenProvider;
 import com.example.foodflow.repository.UserRepository;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
-import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 import org.slf4j.Logger;

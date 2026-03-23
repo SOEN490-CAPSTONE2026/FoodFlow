@@ -27,32 +27,35 @@ import java.util.stream.Collectors;
 public class ConversationService {
     private static final Logger logger = LoggerFactory.getLogger(ConversationService.class);
 
-    @Autowired
-    private ConversationRepository conversationRepository;
+    private final ConversationRepository conversationRepository;
+    private final MessageRepository messageRepository;
+    private final UserRepository userRepository;
+    private final SurplusPostRepository surplusPostRepository;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final EmailService emailService;
+    private final SmsService smsService;
+    private final NotificationPreferenceService notificationPreferenceService;
+    private final DonationImageResolverService donationImageResolverService;
 
-    @Autowired
-    private MessageRepository messageRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private SurplusPostRepository surplusPostRepository;
-
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
-
-    @Autowired
-    private EmailService emailService;
-
-    @Autowired
-    private SmsService smsService;
-
-    @Autowired
-    private NotificationPreferenceService notificationPreferenceService;
-    
-    @Autowired(required = false)
-    private DonationImageResolverService donationImageResolverService;
+    public ConversationService(ConversationRepository conversationRepository,
+                              MessageRepository messageRepository,
+                              UserRepository userRepository,
+                              SurplusPostRepository surplusPostRepository,
+                              SimpMessagingTemplate messagingTemplate,
+                              EmailService emailService,
+                              SmsService smsService,
+                              NotificationPreferenceService notificationPreferenceService,
+                              @Autowired(required = false) DonationImageResolverService donationImageResolverService) {
+        this.conversationRepository = conversationRepository;
+        this.messageRepository = messageRepository;
+        this.userRepository = userRepository;
+        this.surplusPostRepository = surplusPostRepository;
+        this.messagingTemplate = messagingTemplate;
+        this.emailService = emailService;
+        this.smsService = smsService;
+        this.notificationPreferenceService = notificationPreferenceService;
+        this.donationImageResolverService = donationImageResolverService;
+    }
 
     
     /**

@@ -10,16 +10,14 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.DefaultResourceLoader;
-import org.springframework.test.util.ReflectionTestUtils;
 
 class ContextualSupportServiceTest {
 
     @Test
     void generateResponse_contactSupport_addsActionsAndNoEscalate() {
-        ContextualSupportService service =
-            new ContextualSupportService(new DefaultResourceLoader(), new ObjectMapper());
         OpenAIService openAIService = org.mockito.Mockito.mock(OpenAIService.class);
-        ReflectionTestUtils.setField(service, "openAIService", openAIService);
+        ContextualSupportService service =
+            new ContextualSupportService(new DefaultResourceLoader(), new ObjectMapper(), openAIService);
 
         when(openAIService.generateSupportResponse(org.mockito.Mockito.anyString(),
                 org.mockito.Mockito.anyString(),
@@ -53,10 +51,9 @@ class ContextualSupportServiceTest {
 
     @Test
     void generateResponse_whenOpenAiThrows_returnsFallback() {
-        ContextualSupportService service =
-            new ContextualSupportService(new DefaultResourceLoader(), new ObjectMapper());
         OpenAIService openAIService = org.mockito.Mockito.mock(OpenAIService.class);
-        ReflectionTestUtils.setField(service, "openAIService", openAIService);
+        ContextualSupportService service =
+            new ContextualSupportService(new DefaultResourceLoader(), new ObjectMapper(), openAIService);
 
         doThrow(new RuntimeException("boom")).when(openAIService)
             .generateSupportResponse(org.mockito.Mockito.anyString(),

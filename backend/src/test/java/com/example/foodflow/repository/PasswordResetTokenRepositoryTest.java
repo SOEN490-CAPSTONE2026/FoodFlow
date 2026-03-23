@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
-
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -26,9 +25,6 @@ public class PasswordResetTokenRepositoryTest {
 
     @Autowired
     private PasswordResetTokenRepository passwordResetTokenRepository;
-
-    @Autowired
-    private UserRepository userRepository;
 
     private User testUser;
 
