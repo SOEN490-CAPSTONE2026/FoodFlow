@@ -114,6 +114,15 @@ jest.mock('../../../services/api', () => ({
     update: jest.fn(),
     getPost: jest.fn(),
   },
+  pickupPreferencesAPI: {
+    get: jest.fn().mockResolvedValue({
+      data: {
+        availabilityWindowStart: '',
+        availabilityWindowEnd: '',
+        slots: [],
+      },
+    }),
+  },
   imageAPI: {
     upload: jest.fn().mockResolvedValue({ data: { image: { id: 1 } } }),
   },
@@ -121,7 +130,10 @@ jest.mock('../../../services/api', () => ({
 
 // Import the mocked module after the mock is set up
 // eslint-disable-next-line import/first
-import { surplusAPI as mockSurplusAPI } from '../../../services/api';
+import {
+  surplusAPI as mockSurplusAPI,
+  pickupPreferencesAPI as mockPickupPreferencesAPI,
+} from '../../../services/api';
 
 // Helper function to render with required providers
 const renderWithProviders = (ui, options = {}) => {
@@ -312,6 +324,13 @@ describe('SurplusFormModal', () => {
     jest.clearAllMocks();
     localStorageMock.getItem.mockReturnValue('mock-jwt-token');
     mockConfirm.mockReturnValue(true);
+    mockPickupPreferencesAPI.get.mockResolvedValue({
+      data: {
+        availabilityWindowStart: '',
+        availabilityWindowEnd: '',
+        slots: [],
+      },
+    });
   });
 
   /**
