@@ -268,6 +268,6 @@ class UserProfileServiceTest {
     }
 
     private boolean isUtcOffset(String offset) {
-        return "Z".equals(offset) || "+00:00".equals(offset) || "UTC".equals(offset);
+        return "Z".equals(offset) || "+00:00".equals(offset);
     }
 }

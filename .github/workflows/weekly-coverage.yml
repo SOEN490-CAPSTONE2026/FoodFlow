@@ -120,7 +120,7 @@ jobs:
           DB_USER: foodflow_user
           DB_PASS: foodflow_password
         run: |
-          mvn clean verify "-Dspring.profiles.active=test"
+          ./mvnw clean verify "-Dspring.profiles.active=test"
 
       - name: Extract coverage summary
         id: backend_coverage
