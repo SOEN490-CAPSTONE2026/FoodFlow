@@ -1,8 +1,6 @@
 package com.example.foodflow.model.entity;
 
 import org.junit.jupiter.api.Test;
-import java.time.LocalDateTime;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class MessageTest {
@@ -42,7 +40,6 @@ class MessageTest {
         Conversation conversation = new Conversation();
         User sender = new User();
         String body = "Hello World";
-        LocalDateTime created = LocalDateTime.now();
         
         message.setId(id);
         message.setConversation(conversation);

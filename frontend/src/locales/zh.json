@@ -733,8 +733,11 @@
       "box": "盒"
     },
     "steps": {
+      "basicInfo": "基本信息",
       "foodDetails": "食物详情",
       "quantityDates": "数量和日期",
+      "pickupSchedule": "取货时间表",
+      "pickupLocation": "取货地点",
       "pickupInfo": "取货信息",
       "description": "描述"
     },
@@ -1724,6 +1727,11 @@
     "claimsLabel": "认领数"
   },
   "donorHelp": {
+    "hero": {
+      "title": "需要帮助吗？",
+      "subtitle": "如果您感到力不从心，请记住您并不孤单。联系我们获取所需的帮助",
+      "searchPlaceholder": "提出问题..."
+    },
     "gettingStarted": {
       "title": "快速开始",
       "intro": "欢迎使用 FoodFlow！按照以下步骤开始捐赠剩余食物，帮助有需要的人。",
@@ -1746,8 +1754,13 @@
         }
       }
     },
+    "foodSafety": {
+      "title": "食品安全",
+      "intro": "了解食品安全指南、正确处理和储存要求。"
+    },
     "faq": {
       "title": "常见问题",
+      "subtitle": "您需要了解的所有产品信息和其他内容。找不到您要的答案？",
       "items": {
         "q1": {
           "question": "如何创建捐赠？",
@@ -1790,6 +1803,10 @@
           "answer": "可以，认领后您可查看受助机构名称和联系方式以便协调取货。"
         }
       }
+    },
+    "contact": {
+      "title": "仍需帮助？",
+      "subtitle": "我们的支持团队随时为您服务。请通过您喜欢的渠道联系我们。"
     },
     "support": {
       "title": "需要更多帮助？",

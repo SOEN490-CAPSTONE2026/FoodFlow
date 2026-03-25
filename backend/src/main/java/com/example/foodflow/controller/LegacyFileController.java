@@ -9,9 +9,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -22,7 +20,6 @@ import java.nio.file.Paths;
  */
 @RestController
 @RequestMapping("/uploads")
-@CrossOrigin(origins = "${spring.web.cors.allowed-origins}")
 public class LegacyFileController {
 
     private static final Logger logger = LoggerFactory.getLogger(LegacyFileController.class);

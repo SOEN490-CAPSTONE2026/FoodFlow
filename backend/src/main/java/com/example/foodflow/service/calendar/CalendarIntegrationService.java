@@ -28,20 +28,23 @@ public class CalendarIntegrationService {
 
     private static final Logger logger = LoggerFactory.getLogger(CalendarIntegrationService.class);
 
-    @Autowired
-    private CalendarIntegrationRepository calendarIntegrationRepository;
+    private final CalendarIntegrationRepository calendarIntegrationRepository;
+    private final CalendarConsentHistoryRepository calendarConsentHistoryRepository;
+    private final CalendarSyncPreferenceRepository calendarSyncPreferenceRepository;
+    private final GoogleOAuthService googleOAuthService;
+    private final GoogleCalendarProvider googleCalendarProvider;
 
-    @Autowired
-    private CalendarConsentHistoryRepository calendarConsentHistoryRepository;
-
-    @Autowired
-    private CalendarSyncPreferenceRepository calendarSyncPreferenceRepository;
-
-    @Autowired
-    private GoogleOAuthService googleOAuthService;
-
-    @Autowired
-    private GoogleCalendarProvider googleCalendarProvider;
+    public CalendarIntegrationService(CalendarIntegrationRepository calendarIntegrationRepository,
+                                      CalendarConsentHistoryRepository calendarConsentHistoryRepository,
+                                      CalendarSyncPreferenceRepository calendarSyncPreferenceRepository,
+                                      GoogleOAuthService googleOAuthService,
+                                      GoogleCalendarProvider googleCalendarProvider) {
+        this.calendarIntegrationRepository = calendarIntegrationRepository;
+        this.calendarConsentHistoryRepository = calendarConsentHistoryRepository;
+        this.calendarSyncPreferenceRepository = calendarSyncPreferenceRepository;
+        this.googleOAuthService = googleOAuthService;
+        this.googleCalendarProvider = googleCalendarProvider;
+    }
 
     /**
      * Get or create a calendar integration for a user

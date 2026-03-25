@@ -37,29 +37,33 @@ public class CalendarController {
 
     private static final Logger logger = LoggerFactory.getLogger(CalendarController.class);
 
-    @Autowired
-    private CalendarIntegrationService calendarIntegrationService;
-
-    @Autowired
-    private CalendarEventService calendarEventService;
-
-    @Autowired
-    private CalendarSyncService calendarSyncService;
-
-    @Autowired
-    private GoogleOAuthService googleOAuthService;
-
-    @Autowired
-    private ModelMapper modelMapper;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private CalendarSyncPreferenceRepository calendarSyncPreferenceRepository;
+    private final CalendarIntegrationService calendarIntegrationService;
+    private final CalendarEventService calendarEventService;
+    private final CalendarSyncService calendarSyncService;
+    private final GoogleOAuthService googleOAuthService;
+    private final ModelMapper modelMapper;
+    private final UserRepository userRepository;
+    private final CalendarSyncPreferenceRepository calendarSyncPreferenceRepository;
 
     @Value("${frontend.url}")
     private String frontendUrl;
+
+    public CalendarController(
+            CalendarIntegrationService calendarIntegrationService,
+            CalendarEventService calendarEventService,
+            CalendarSyncService calendarSyncService,
+            GoogleOAuthService googleOAuthService,
+            ModelMapper modelMapper,
+            UserRepository userRepository,
+            CalendarSyncPreferenceRepository calendarSyncPreferenceRepository) {
+        this.calendarIntegrationService = calendarIntegrationService;
+        this.calendarEventService = calendarEventService;
+        this.calendarSyncService = calendarSyncService;
+        this.googleOAuthService = googleOAuthService;
+        this.modelMapper = modelMapper;
+        this.userRepository = userRepository;
+        this.calendarSyncPreferenceRepository = calendarSyncPreferenceRepository;
+    }
 
     /**
      * Get calendar integration status for current user

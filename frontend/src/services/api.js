@@ -458,6 +458,11 @@ export const donorPhotoSettingsAPI = {
   update: payload => api.put('/donor/settings/photos', payload),
 };
 
+export const pickupPreferencesAPI = {
+  get: () => api.get('/donors/pickup-preferences'),
+  save: payload => api.put('/donors/pickup-preferences', payload),
+};
+
 /**
  * Report/Dispute API functions
  */

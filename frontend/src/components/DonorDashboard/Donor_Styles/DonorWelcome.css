@@ -299,14 +299,14 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
-.section-header {
+.donor-welcome-section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
 }
 
-.section-header h2 {
+.donor-welcome-section-header h2 {
   font-size: 20px;
   font-weight: 600;
   color: #1b4965;
@@ -841,7 +841,7 @@
     justify-self: start;
   }
 
-  .section-header {
+  .donor-welcome-section-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;

@@ -10,11 +10,8 @@ import com.example.foodflow.repository.ClaimRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 /**
@@ -24,13 +21,15 @@ import java.util.Optional;
 @Service
 public class SupportContextBuilder {
 
-    @Autowired
-    private SurplusPostRepository surplusPostRepository;
-
-    @Autowired
-    private ClaimRepository claimRepository;
-
+    private final SurplusPostRepository surplusPostRepository;
+    private final ClaimRepository claimRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    public SupportContextBuilder(SurplusPostRepository surplusPostRepository,
+                                 ClaimRepository claimRepository) {
+        this.surplusPostRepository = surplusPostRepository;
+        this.claimRepository = claimRepository;
+    }
 
     /**
      * Build support context for the authenticated user

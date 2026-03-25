@@ -4,10 +4,8 @@ import com.example.foodflow.model.types.FoodCategory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
-
 import java.time.LocalDate;
 import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class ExpiryCalculationServiceTest {

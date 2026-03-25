@@ -4,9 +4,7 @@ import com.example.foodflow.model.dto.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -14,7 +12,6 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -28,11 +25,13 @@ public class GlobalExceptionHandler {
 
         private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-        @Autowired
-        private MessageSource messageSource;
+        private final MessageSource messageSource;
+        private final org.springframework.web.servlet.LocaleResolver localeResolver;
 
-        @Autowired
-        private org.springframework.web.servlet.LocaleResolver localeResolver;
+        public GlobalExceptionHandler(MessageSource messageSource, org.springframework.web.servlet.LocaleResolver localeResolver) {
+                this.messageSource = messageSource;
+                this.localeResolver = localeResolver;
+        }
 
         /**
          * Resolve locale from the request using the configured LocaleResolver.
@@ -235,6 +234,32 @@ public class GlobalExceptionHandler {
                 log.warn("Runtime exception on {}: {}", request.getRequestURI(), ex.getMessage());
 
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
+
+        /**
+         * Handle IOException (e.g., file upload failures).
+         */
+        @ExceptionHandler(java.io.IOException.class)
+        public ResponseEntity<ErrorResponse> handleIOException(
+                        java.io.IOException ex,
+                        HttpServletRequest request) {
+
+                Locale locale = resolveLocale(request);
+                String localizedMessage = messageSource.getMessage(
+                                "error.file.upload",
+                                null,
+                                "File operation failed",
+                                locale);
+
+                ErrorResponse errorResponse = new ErrorResponse(
+                                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                                "Internal Server Error",
+                                localizedMessage,
+                                request.getRequestURI());
+
+                log.error("IOException on {}: {}", request.getRequestURI(), ex.getMessage(), ex);
+
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
 
         /**

@@ -5,8 +5,6 @@ import com.example.foodflow.model.types.DietaryMatchMode;
 import com.example.foodflow.model.types.DietaryTag;
 import com.example.foodflow.model.types.FoodType;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
-
 import java.time.LocalDate;
 import java.util.List;
 

@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -172,6 +171,7 @@ public class AIExtractionService {
             String requestBody = String.format("""
                 {
                   "model": "gpt-4o",
+                                    "response_format": { "type": "json_object" },
                   "messages": [
                     {
                       "role": "user",
@@ -245,6 +245,7 @@ public class AIExtractionService {
                 cleanedResponse = cleanedResponse.substring(0, cleanedResponse.length() - 3);
             }
             cleanedResponse = cleanedResponse.trim();
+            cleanedResponse = extractJsonObject(cleanedResponse);
             
             JsonNode root = objectMapper.readTree(cleanedResponse);
             
@@ -330,6 +331,64 @@ public class AIExtractionService {
         }
         
         return response;
+    }
+
+    /**
+     * Extract the first valid JSON object from a string response.
+     * This guards against occasional model prefaces/suffixes around JSON payloads.
+     */
+    private String extractJsonObject(String raw) {
+        if (raw == null || raw.isBlank()) {
+            throw new IllegalArgumentException("Empty AI response");
+        }
+
+        String trimmed = raw.trim();
+        if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+            return trimmed;
+        }
+
+        int start = trimmed.indexOf('{');
+        if (start < 0) {
+            throw new IllegalArgumentException("No JSON object found in AI response");
+        }
+
+        boolean inString = false;
+        boolean escaping = false;
+        int depth = 0;
+
+        for (int i = start; i < trimmed.length(); i++) {
+            char ch = trimmed.charAt(i);
+
+            if (escaping) {
+                escaping = false;
+                continue;
+            }
+
+            if (ch == '\\' && inString) {
+                escaping = true;
+                continue;
+            }
+
+            if (ch == '"') {
+                inString = !inString;
+                continue;
+            }
+
+            if (inString) {
+                continue;
+            }
+
+            if (ch == '{') {
+                depth++;
+            } else if (ch == '}') {
+                depth--;
+                if (depth == 0) {
+                    return trimmed.substring(start, i + 1);
+                }
+            }
+        }
+
+        throw new IllegalArgumentException("Unclosed JSON object in AI response");
     }
     
     /**

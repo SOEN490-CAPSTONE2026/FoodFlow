@@ -30,23 +30,26 @@ import java.util.Locale;
 public class SupportService {
     private static final Logger logger = LoggerFactory.getLogger(SupportService.class);
 
-    @Autowired
-    private ContextualSupportService contextualSupportService;
-
-    @Autowired
-    private SupportContextBuilder contextBuilder;
-
-    @Autowired
-    private ConversationService conversationService;
-
-    @Autowired
-    private MessageService messageService;
-
-    @Autowired
-    private UserRepository userRepository;
+    private final ContextualSupportService contextualSupportService;
+    private final SupportContextBuilder contextBuilder;
+    private final ConversationService conversationService;
+    private final MessageService messageService;
+    private final UserRepository userRepository;
 
     @Value("${app.support.email:foodflow.group@gmail.com}")
     private String supportEmail;
+
+    public SupportService(ContextualSupportService contextualSupportService,
+                         SupportContextBuilder contextBuilder,
+                         ConversationService conversationService,
+                         MessageService messageService,
+                         UserRepository userRepository) {
+        this.contextualSupportService = contextualSupportService;
+        this.contextBuilder = contextBuilder;
+        this.conversationService = conversationService;
+        this.messageService = messageService;
+        this.userRepository = userRepository;
+    }
 
     /**
      * Process a support chat request using contextual AI approach
