@@ -87,7 +87,9 @@ jobs:
           cache: 'maven'
 
       - name: Run backend tests with coverage
-        run: mvn clean verify
+        env:
+          SPRING_PROFILES_ACTIVE: test
+        run: ./mvnw clean verify "-Dspring.profiles.active=test"
         working-directory: ./backend
 
       - name: Upload backend coverage report

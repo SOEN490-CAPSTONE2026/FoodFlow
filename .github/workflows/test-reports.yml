@@ -94,8 +94,10 @@ jobs:
 
       - name: Run backend tests and generate reports
         working-directory: ./backend
+        env:
+          SPRING_PROFILES_ACTIVE: test
         run: |
-          ./mvnw clean test surefire-report:report-only
+          ./mvnw clean verify "-Dspring.profiles.active=test"
 
       - name: Upload frontend HTML reports
         if: always()
@@ -113,8 +115,9 @@ jobs:
         with:
           name: backend-html-test-reports
           path: |
-            backend/target/reports/
-            backend/target/site/surefire-report.html
+            backend/target/site/jacoco/
+            backend/target/surefire-reports/
+            backend/target/failsafe-reports/
           if-no-files-found: ignore
           retention-days: 30
 

@@ -8,11 +8,13 @@ import com.example.foodflow.service.MessageService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.ActiveProfiles;
@@ -32,6 +34,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
+@ResourceLock("spring-context-mockmvc")
 class ConversationControllerTest {
     
     @Autowired
@@ -108,7 +112,7 @@ class ConversationControllerTest {
         StartConversationRequest request = new StartConversationRequest();
         request.setRecipientEmail("invalid@test.com");
         
-        when(conversationService.startConversation(any(User.class), any(StartConversationRequest.class)))
+        when(conversationService.startConversation(any(), any(StartConversationRequest.class)))
             .thenThrow(new IllegalArgumentException("User not found"));
         
         // When & Then
@@ -138,7 +142,7 @@ class ConversationControllerTest {
     @Test
     void getConversation_Forbidden_ShouldReturn403() throws Exception {
         // Given
-        when(conversationService.getConversationResponse(eq(1L), any(User.class)))
+        when(conversationService.getConversationResponse(eq(1L), any()))
             .thenThrow(new IllegalArgumentException("Access denied"));
         
         // When & Then

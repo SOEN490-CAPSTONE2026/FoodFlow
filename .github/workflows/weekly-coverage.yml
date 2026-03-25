@@ -85,21 +85,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       coverage: ${{ steps.backend_coverage.outputs.coverage }}
-    services:
-      postgres:
-        image: postgres:15
-        ports:
-          - 5432:5432
-        env:
-          POSTGRES_DB: foodflow_db
-          POSTGRES_USER: foodflow_user
-          POSTGRES_PASSWORD: foodflow_password
-        options: >-
-          --health-cmd="pg_isready -U foodflow_user -d foodflow_db"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
     steps:
       - name: Checkout backend code
         uses: actions/checkout@v4
@@ -114,11 +99,6 @@ jobs:
         working-directory: backend
         env:
           SPRING_PROFILES_ACTIVE: test
-          DB_HOST: localhost
-          DB_PORT: 5432
-          DB_NAME: foodflow_db
-          DB_USER: foodflow_user
-          DB_PASS: foodflow_password
         run: |
           ./mvnw clean verify "-Dspring.profiles.active=test"
 
