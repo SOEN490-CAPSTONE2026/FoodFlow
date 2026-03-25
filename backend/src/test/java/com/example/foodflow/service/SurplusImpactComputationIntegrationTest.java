@@ -56,6 +56,7 @@ class SurplusImpactComputationIntegrationTest {
                 Mockito.mock(EmailService.class),
                 Mockito.mock(NotificationPreferenceService.class),
                 new FoodTypeImpactService(new ObjectMapper()),
+                Mockito.mock(ImpactCalculationService.class),
                 Mockito.mock(com.example.foodflow.service.calendar.CalendarEventService.class),
                 Mockito.mock(com.example.foodflow.service.calendar.CalendarIntegrationService.class),
                 Mockito.mock(com.example.foodflow.service.calendar.CalendarSyncService.class),
