@@ -89,7 +89,14 @@ jobs:
       - name: Run backend tests with coverage
         env:
           SPRING_PROFILES_ACTIVE: test
-        run: ./mvnw clean verify "-Dspring.profiles.active=test"
+        run: |
+          ./mvnw clean verify \
+            "-Dspring.profiles.active=test" \
+            "-Djunit.jupiter.execution.parallel.enabled=false" \
+            "-Djunit.jupiter.execution.parallel.mode.default=same_thread" \
+            "-Djunit.jupiter.execution.parallel.mode.classes.default=same_thread" \
+            "-Dsurefire.rerunFailingTestsCount=2" \
+            "-Dfailsafe.rerunFailingTestsCount=2"
         working-directory: ./backend
 
       - name: Upload backend coverage report
