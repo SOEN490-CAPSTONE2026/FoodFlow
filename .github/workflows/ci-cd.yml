@@ -44,9 +44,6 @@ jobs:
       - run: npm install
         working-directory: ./frontend
 
-      - name: Temporary stop (Discord alert test)
-        run: exit 1
-
       - name: Run frontend linting and formatting
         run: npm run validate
         working-directory: ./frontend
@@ -132,9 +129,26 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           SHORT_SHA="${SHA:0:7}"
-          MESSAGE="CI failed in ${REPO}\nBranch: ${BRANCH}\nEvent: ${EVENT}\nActor: ${ACTOR}\nCommit: ${SHORT_SHA}\nsetup: ${SETUP_RESULT} | frontend: ${FRONTEND_RESULT} | backend: ${BACKEND_RESULT}\nRun: ${RUN_URL}"
-          ESCAPED_MESSAGE=$(printf '%s' "$MESSAGE" | sed 's/\\/\\\\/g; s/"/\\"/g; :a;N;$!ba;s/\n/\\n/g')
+
+          MESSAGE=$(cat <<EOF
+          CI FAILED in ${REPO}
+          Branch: ${BRANCH}
+          Event: ${EVENT}
+          Actor: ${ACTOR}
+          Commit: ${SHORT_SHA}
+
+          Job results:
+          - setup: ${SETUP_RESULT}
+          - frontend: ${FRONTEND_RESULT}
+          - backend: ${BACKEND_RESULT}
+
+          Run: ${RUN_URL}
+          EOF
+          )
+
+          PAYLOAD=$(MESSAGE="$MESSAGE" python3 -c 'import json, os; print(json.dumps({"content": os.environ["MESSAGE"]}))')
+
           curl -sS -X POST "$DISCORD_WEBHOOK" \
             -H "Content-Type: application/json" \
-            -d "{\"content\":\"$ESCAPED_MESSAGE\"}"
+            -d "$PAYLOAD"
 
