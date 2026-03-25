@@ -18,8 +18,10 @@ import java.util.Locale;
  */
 @Service
 public class OpenAIService {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(OpenAIService.class);
+
+    private final BusinessMetricsService businessMetricsService;
 
     @Value("${app.openai.api-key}")
     private String openAIApiKey;
@@ -41,7 +43,8 @@ public class OpenAIService {
     // Security limits
     private static final int MAX_CONTEXT_LENGTH = 20000; // Limit context size
 
-    public OpenAIService() {
+    public OpenAIService(BusinessMetricsService businessMetricsService) {
+        this.businessMetricsService = businessMetricsService;
         this.httpClient = new OkHttpClient.Builder()
                 .connectTimeout(30, TimeUnit.SECONDS)
                 .writeTimeout(30, TimeUnit.SECONDS)
@@ -63,11 +66,14 @@ public class OpenAIService {
             JsonNode supportContext, String userLanguage) {
         
         long startTime = System.currentTimeMillis();
-        
+        io.micrometer.core.instrument.Timer.Sample sample = businessMetricsService.startTimer();
+
         try {
             // Input validation to prevent abuse
             if (!validateInput(userMessage, helpPackContent, supportContext)) {
                 logger.warn("OpenAI request blocked due to invalid input");
+                businessMetricsService.incrementOpenAiCallsFailed("chat_completion");
+                businessMetricsService.recordOpenAiDuration(sample, "chat_completion");
                 return getEscalationMessage(userLanguage);
             }
             
@@ -143,8 +149,10 @@ public class OpenAIService {
                 long duration = System.currentTimeMillis() - startTime;
                 
                 if (!response.isSuccessful()) {
-                    logger.warn("OpenAI API request failed with status: {} in {}ms", 
+                    logger.warn("OpenAI API request failed with status: {} in {}ms",
                         response.code(), duration);
+                    businessMetricsService.incrementOpenAiCallsFailed("chat_completion");
+                    businessMetricsService.recordOpenAiDuration(sample, "chat_completion");
                     return getEscalationMessage(userLanguage);
                 }
 
@@ -159,6 +167,8 @@ public class OpenAIService {
                     if (message != null && message.has("content")) {
                         String result = message.get("content").asText();
                         logger.info("OpenAI API request completed successfully in {}ms", duration);
+                        businessMetricsService.incrementOpenAiCalls("chat_completion");
+                        businessMetricsService.recordOpenAiDuration(sample, "chat_completion");
                         return result;
                     }
                 }
@@ -170,6 +180,8 @@ public class OpenAIService {
         } catch (Exception e) {
             long duration = System.currentTimeMillis() - startTime;
             logger.error("OpenAI API request failed after {}ms", duration, e);
+            businessMetricsService.incrementOpenAiCallsFailed("chat_completion");
+            businessMetricsService.recordOpenAiDuration(sample, "chat_completion");
             return getEscalationMessage(userLanguage);
         }
     }

@@ -99,6 +99,7 @@ public class SurplusService {
     private final EmailService emailService;
     private final NotificationPreferenceService notificationPreferenceService;
     private final FoodTypeImpactService foodTypeImpactService;
+    private final ImpactCalculationService impactCalculationService;
     private final CalendarEventService calendarEventService;
     private final CalendarIntegrationService calendarIntegrationService;
     private final CalendarSyncService calendarSyncService;
@@ -137,6 +138,7 @@ public class SurplusService {
             EmailService emailService,
             NotificationPreferenceService notificationPreferenceService,
             FoodTypeImpactService foodTypeImpactService,
+            ImpactCalculationService impactCalculationService,
             CalendarEventService calendarEventService,
             CalendarIntegrationService calendarIntegrationService,
             CalendarSyncService calendarSyncService,
@@ -161,6 +163,7 @@ public class SurplusService {
         this.emailService = emailService;
         this.notificationPreferenceService = notificationPreferenceService;
         this.foodTypeImpactService = foodTypeImpactService;
+        this.impactCalculationService = impactCalculationService;
         this.calendarEventService = calendarEventService;
         this.calendarIntegrationService = calendarIntegrationService;
         this.calendarSyncService = calendarSyncService;
@@ -308,6 +311,12 @@ public class SurplusService {
                 true);
 
         businessMetricsService.incrementSurplusPostCreated();
+        businessMetricsService.incrementDonationsCreated();
+        if (savedPost.getQuantity() != null) {
+            businessMetricsService.recordDonationQuantity(
+                    impactCalculationService.convertToKg(savedPost.getQuantity()));
+        }
+        businessMetricsService.recordDonationCreationDuration(sample);
         businessMetricsService.recordTimer(sample, "surplus.service.create", "status",
                 savedPost.getStatus().toString());
 
@@ -1469,6 +1478,11 @@ public class SurplusService {
 
 
         businessMetricsService.incrementSurplusPostCompleted();
+        businessMetricsService.incrementDonationsCompleted();
+        if (post.getQuantity() != null) {
+            businessMetricsService.recordFoodRescued(
+                    impactCalculationService.convertToKg(post.getQuantity()));
+        }
         businessMetricsService.recordTimer(sample, "surplus.service.complete", "status", "complete");
 
         return convertToResponse(updatedPost);
