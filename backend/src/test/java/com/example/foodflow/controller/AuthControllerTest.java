@@ -7,10 +7,12 @@ import com.example.foodflow.model.dto.LoginRequest;
 import com.example.foodflow.service.AuthService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,6 +24,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
+@ResourceLock("spring-context-mockmvc")
 class AuthControllerTest {
 
         @Autowired
@@ -48,8 +52,6 @@ class AuthControllerTest {
 
                 AuthResponse response = new AuthResponse("jwt-token", "donor@test.com", "DONOR",
                                 "Registration successful");
-                response.setToken("jwt-token");
-                response.setEmail("donor@test.com");
 
                 when(authService.registerDonor(any(RegisterDonorRequest.class))).thenReturn(response);
 
@@ -76,7 +78,6 @@ class AuthControllerTest {
 
                 AuthResponse response = new AuthResponse("jwt-token", "donor@test.com", "DONOR",
                                 "Registration successful");
-                response.setToken("jwt-token");
                 response.setEmail("receiver@test.com");
 
                 when(authService.registerReceiver(any(RegisterReceiverRequest.class))).thenReturn(response);

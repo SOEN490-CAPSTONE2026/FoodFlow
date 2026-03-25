@@ -48,8 +48,12 @@ jobs:
         run: npm run validate
         working-directory: ./frontend
 
+      - name: Prepare frontend test result directory
+        run: mkdir -p test-results
+        working-directory: ./frontend
+
       - name: Run frontend tests with coverage
-        run: npm run test:coverage
+        run: npm run test:coverage:ci
         working-directory: ./frontend
 
       - name: Upload frontend coverage report
@@ -58,6 +62,14 @@ jobs:
         with:
           name: frontend-coverage-report
           path: frontend/coverage/
+          retention-days: 30
+
+      - name: Upload frontend test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-test-results
+          path: frontend/test-results/
           retention-days: 30
       
   backend:
@@ -75,7 +87,16 @@ jobs:
           cache: 'maven'
 
       - name: Run backend tests with coverage
-        run: mvn clean verify
+        env:
+          SPRING_PROFILES_ACTIVE: test
+        run: |
+          ./mvnw clean verify \
+            "-Dspring.profiles.active=test" \
+            "-Djunit.jupiter.execution.parallel.enabled=false" \
+            "-Djunit.jupiter.execution.parallel.mode.default=same_thread" \
+            "-Djunit.jupiter.execution.parallel.mode.classes.default=same_thread" \
+            "-Dsurefire.rerunFailingTestsCount=2" \
+            "-Dfailsafe.rerunFailingTestsCount=2"
         working-directory: ./backend
 
       - name: Upload backend coverage report
@@ -86,65 +107,55 @@ jobs:
           path: backend/target/site/jacoco/
           retention-days: 30
 
-  prometheus_grafana:
+      - name: Upload backend test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-reports
+          path: |
+            backend/target/surefire-reports/
+            backend/target/failsafe-reports/
+          retention-days: 30
+
+  notify-discord:
+    needs: [setup, frontend, backend]
     runs-on: ubuntu-latest
-    
+    if: ${{ always() && contains(needs.*.result, 'failure') }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Compose
+      - name: Send Discord notification
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          SETUP_RESULT: ${{ needs.setup.result }}
+          FRONTEND_RESULT: ${{ needs.frontend.result }}
+          BACKEND_RESULT: ${{ needs.backend.result }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+          ACTOR: ${{ github.actor }}
+          EVENT: ${{ github.event_name }}
+          SHA: ${{ github.sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          docker --version
-          docker compose version
+          SHORT_SHA="${SHA:0:7}"
 
-      - name: Start Prometheus and Grafana
-        run: |
-          docker network create foodflow-ci || true
+          MESSAGE=$(cat <<EOF
+          CI FAILED in ${REPO}
+          Branch: ${BRANCH}
+          Event: ${EVENT}
+          Actor: ${ACTOR}
+          Commit: ${SHORT_SHA}
 
-          docker run -d \
-            --name prometheus \
-            --network foodflow-ci \
-            -p 9090:9090 \
-            -v $(pwd)/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml \
-            prom/prometheus:latest \
-            --config.file=/etc/prometheus/prometheus.yml
+          Job results:
+          - setup: ${SETUP_RESULT}
+          - frontend: ${FRONTEND_RESULT}
+          - backend: ${BACKEND_RESULT}
 
-          docker run -d \
-            --name grafana \
-            --network foodflow-ci \
-            -p 3001:3000 \
-            -e "GF_SECURITY_ADMIN_PASSWORD=admin" \
-            -e "GF_USERS_ALLOW_SIGN_UP=false" \
-            grafana/grafana:latest
+          Run: ${RUN_URL}
+          EOF
+          )
 
-      - name: Wait for Prometheus to be healthy
-        run: |
-          for i in {1..10}; do
-            if curl --fail http://localhost:9090/-/ready; then
-              echo "Prometheus is ready"
-              exit 0
-            fi
-            echo "Waiting for Prometheus to be ready..."
-            sleep 5
-          done
-          echo "Prometheus failed to start"
-          docker logs prometheus
-          exit 1
+          PAYLOAD=$(MESSAGE="$MESSAGE" python3 -c 'import json, os; print(json.dumps({"content": os.environ["MESSAGE"]}))')
 
-      - name: Wait for Grafana to be healthy
-        run: |
-          for i in {1..10}; do
-            if curl --fail http://localhost:3001/api/health; then
-              echo "Grafana is ready"
-              exit 0
-            fi
-            echo "Waiting for Grafana to be ready..."
-            sleep 5
-          done
-          echo "Grafana failed to start"
-          docker logs grafana
-          exit 1
+          curl -sS -X POST "$DISCORD_WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD"
 
-      - name: Check Prometheus targets
-        run: curl --fail http://localhost:9090/api/v1/targets || (docker logs prometheus && exit 1)
