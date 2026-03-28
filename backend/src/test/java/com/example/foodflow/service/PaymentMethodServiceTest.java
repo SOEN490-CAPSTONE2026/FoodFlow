@@ -10,6 +10,7 @@ import com.example.foodflow.model.types.PaymentMethodType;
 import com.example.foodflow.repository.PaymentMethodRepository;
 import com.stripe.exception.StripeException;
 import com.stripe.model.SetupIntent;
+import com.stripe.param.SetupIntentCreateParams;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -253,7 +254,9 @@ class PaymentMethodServiceTest {
         when(stripeSetupIntent.getStatus()).thenReturn("requires_payment_method");
 
         try (MockedStatic<SetupIntent> setupIntentMock = mockStatic(SetupIntent.class)) {
-            setupIntentMock.when(() -> SetupIntent.create(any())).thenReturn(stripeSetupIntent);
+            setupIntentMock
+                .when(() -> SetupIntent.create(any(SetupIntentCreateParams.class)))
+                .thenReturn(stripeSetupIntent);
 
             SetupIntentResponse response = paymentMethodService.createSetupIntent(user);
 
@@ -267,7 +270,9 @@ class PaymentMethodServiceTest {
         try (MockedStatic<SetupIntent> setupIntentMock = mockStatic(SetupIntent.class)) {
             StripeException stripeException = mock(StripeException.class);
             when(stripeException.getUserMessage()).thenReturn("Setup error");
-            setupIntentMock.when(() -> SetupIntent.create(any())).thenThrow(stripeException);
+            setupIntentMock
+                .when(() -> SetupIntent.create(any(SetupIntentCreateParams.class)))
+                .thenThrow(stripeException);
 
             assertThatThrownBy(() -> paymentMethodService.createSetupIntent(user))
                 .isInstanceOf(RuntimeException.class)
