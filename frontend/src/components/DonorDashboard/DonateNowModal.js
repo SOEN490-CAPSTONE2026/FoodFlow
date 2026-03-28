@@ -1,8 +1,11 @@
 import React, { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 import './Donor_Styles/DonateNowModal.css';
 
 export default function DonateNowModal({ isOpen, onClose }) {
+  const { t } = useTranslation();
+
   useEffect(() => {
     if (!isOpen) {
       return undefined;
@@ -28,13 +31,13 @@ export default function DonateNowModal({ isOpen, onClose }) {
         className="donation-support-modal"
         role="dialog"
         aria-modal="true"
-        aria-label="Donate Now"
+        aria-label={t('donation.modalAriaLabel')}
         onClick={e => e.stopPropagation()}
       >
         <button
           type="button"
           className="donation-support-modal-close"
-          aria-label="Close"
+          aria-label={t('donation.closeAriaLabel')}
           onClick={onClose}
         >
           <X size={18} />

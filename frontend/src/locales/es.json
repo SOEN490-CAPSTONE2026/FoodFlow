@@ -1039,6 +1039,14 @@
       "cancelledClaim": "{{receiverName}} canceló su reclamación de \"{{foodTitle}}\""
     }
   },
+  "donation": {
+    "title": "Apoya a FoodFlow",
+    "subtitle": "Ayudanos a seguir rescatando alimentos excedentes y entregando mas comidas a las comunidades locales.",
+    "bannerAriaLabel": "Apoya a FoodFlow",
+    "listAriaLabel": "Lista de donaciones",
+    "modalAriaLabel": "Donar ahora",
+    "closeAriaLabel": "Cerrar"
+  },
   "donorListFood": {
     "edit": "Editar",
     "delete": "Eliminar",

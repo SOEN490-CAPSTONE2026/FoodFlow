@@ -969,20 +969,15 @@ export default function DonorListFood() {
         <>
           <section
             className="donation-support-banner"
-            aria-label="Support FoodFlow"
+            aria-label={t('donation.bannerAriaLabel')}
           >
             <div className="donation-support-banner-content">
               <div className="donation-support-banner-icon" aria-hidden="true">
                 <Heart strokeWidth={2} />
               </div>
               <div className="donation-support-banner-text">
-                <h3>{t('donation.title', 'Support FoodFlow')}</h3>
-                <p>
-                  {t(
-                    'donation.subtitle',
-                    'Help us keep rescuing surplus food and delivering more meals to local communities.'
-                  )}
-                </p>
+                <h3>{t('donation.title')}</h3>
+                <p>{t('donation.subtitle')}</p>
               </div>
             </div>
             <button
@@ -998,7 +993,10 @@ export default function DonorListFood() {
             onClose={() => setIsDonateNowModalOpen(false)}
           />
 
-          <section className="donor-list-grid" aria-label="Donations list">
+          <section
+            className="donor-list-grid"
+            aria-label={t('donation.listAriaLabel')}
+          >
             {showTutorialPickupDemo && (
               <article
                 className="donation-card donation-card--tutorial"

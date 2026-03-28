@@ -1077,6 +1077,14 @@
       "verificationApprovedDesc": "Your account has been approved by an administrator"
     }
   },
+  "donation": {
+    "title": "Support FoodFlow",
+    "subtitle": "Help us keep rescuing surplus food and delivering more meals to local communities.",
+    "bannerAriaLabel": "Support FoodFlow",
+    "listAriaLabel": "Donations list",
+    "modalAriaLabel": "Donate Now",
+    "closeAriaLabel": "Close"
+  },
   "donorListFood": {
     "edit": "Edit",
     "delete": "Delete",
